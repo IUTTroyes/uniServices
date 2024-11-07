@@ -44,11 +44,35 @@
       <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/error-handler" />
       <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/flex" />
       <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/console" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/maker-bundle" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/process" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/inflector" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/nikic/php-parser" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/lexer" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/deprecations" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/doctrine-bundle" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/sql-formatter" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/migrations" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/collections" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/persistence" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/instantiator" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/stopwatch" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/event-manager" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/doctrine-bridge" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/cache" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/orm" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/dbal" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/doctrine-migrations-bundle" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
   <component name="PhpStanOptionsConfiguration">
     <option name="transferred" value="true" />
+  </component>
+  <component name="PhpUnit">
+    <phpunit_settings>
+      <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/BackendUniServices/vendor/autoload.php" />
+    </phpunit_settings>
   </component>
   <component name="PsalmOptionsConfiguration">
     <option name="transferred" value="true" />

@@ -5,6 +5,21 @@
       <sourceFolder url="file://$MODULE_DIR$/BackendUniServices/src" isTestSource="false" packagePrefix="App\" />
       <sourceFolder url="file://$MODULE_DIR$/BackendUniServices/tests" isTestSource="true" packagePrefix="App\Tests\" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/composer" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/cache" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/collections" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/dbal" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/deprecations" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/doctrine-bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/doctrine-migrations-bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/event-manager" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/inflector" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/instantiator" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/lexer" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/migrations" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/orm" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/persistence" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/sql-formatter" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/nikic/php-parser" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/psr/cache" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/psr/container" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/psr/event-dispatcher" />
@@ -15,6 +30,7 @@
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/console" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/dependency-injection" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/deprecation-contracts" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/doctrine-bridge" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/dotenv" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/error-handler" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/event-dispatcher" />
@@ -25,13 +41,16 @@
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/framework-bundle" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/http-foundation" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/http-kernel" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/maker-bundle" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/polyfill-intl-grapheme" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/polyfill-intl-normalizer" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/polyfill-mbstring" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/polyfill-php83" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/process" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/routing" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/runtime" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/service-contracts" />
+      <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/stopwatch" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/string" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/var-dumper" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/symfony/var-exporter" />
