@@ -1,0 +1,47 @@
+twig:
+  default_path: '%kernel.project_dir%/templates'
+  debug: '%kernel.debug%'
+  strict_variables: '%kernel.debug%'
+  file_name_pattern: '*.twig'
+
+  globals:
+    # the value is the service's id
+    version: '@App\Classes\Version'
+    user_data: '@App\Classes\DataUserSession'
+    iconShow: '%env(resolve:ICON_SHOW)%'
+    iconEdit: '%env(resolve:ICON_EDIT)%'
+    iconDelete: '%env(resolve:ICON_DELETE)%'
+    iconPrint: '%env(resolve:ICON_PRINT)%'
+    iconDuplicate: '%env(resolve:ICON_DUPLICATE)%'
+    iconAdd: '%env(resolve:ICON_ADD)%'
+    iconHelp: '%env(resolve:ICON_HELP)%'
+    iconAdmin: '%env(resolve:ICON_ADMINISTRATION)%' #'fas fa-wrench'
+    iconRetour: '%env(resolve:ICON_RETOUR)%' #'fas fa-wrench'
+    iconMenuDashboard: '%env(resolve:ICON_MENU_DASHBOARD)%' #fas fa-home'
+    iconMenuTrombi: '%env(resolve:ICON_MENU_TROMBINOSCOPE)%' #fa-user-friends
+    iconMenuAgenda: '%env(resolve:ICON_MENU_AGENDA)%' #ffa-calendar-alt
+    iconMenuApplications: '%env(resolve:ICON_MENU_APPLICATIONS)%' #ffa-toolbox
+    iconDashboard: '%env(resolve:ICON_DASHBOARD)%' #fas fa-home'
+    iconTrombi: '%env(resolve:ICON_TROMBINOSCOPE)%' #fa-user-friends
+    iconAgenda: '%env(resolve:ICON_AGENDA)%' #ffa-calendar-alt
+    iconApplications: '%env(resolve:ICON_APPLICATIONS)%' #ffa-toolbox
+    iconDocuments: '%env(resolve:ICON_DOCUMENTS)%' #fa-folder
+    iconInformation: '%env(resolve:ICON_INFORMATION)%' #fa-file-alt
+    iconMessage: '%env(resolve:ICON_MESSAGE)%' #fas fa-home'
+    iconNotification: '%env(resolve:ICON_NOTIFCATION)%' #fas fa-home'
+    iconOriginaux: '%env(resolve:ICON_ORIGINAUX)%' #fas fa-books | fas fa-otter'
+    iconStudent: '%env(resolve:ICON_STUDENT)%' #fas fa-user-graduate'
+    iconQualite: '%env(resolve:ICON_QUALITE)%' #fas fa-diagnoses'
+    iconPersonnel: '%env(resolve:ICON_PERSONNEL)%' #fas fa-users'
+    iconScolarite: '%env(resolve:ICON_SCOLARITE)%' #fas fa-school'
+    iconPrevi: '%env(resolve:ICON_PREVI)%' #fas fa-clock'
+    iconApogee: '%env(resolve:ICON_APOGEE)%' #fas fa-chart-pie'
+    iconCompta: '%env(resolve:ICON_COMPTA)%' #fas fa-comments-dollar'
+
+    linuxpath: '%env(resolve:BASE_URL)%'
+
+    exception_controller: null # This is needed to fix the deprecation in Symfony 4.4
+
+when@test:
+  twig:
+    strict_variables: true

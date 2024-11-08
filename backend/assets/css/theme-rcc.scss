@@ -1,0 +1,78 @@
+// Copyright (c) 2021. | David Annebicque | IUT de Troyes  - All Rights Reserved
+// @file /Users/davidannebicque/htdocs/intranetV3/assets/css/theme-rcc.scss
+// @author davidannebicque
+// @project intranetV3
+// @lastUpdate 21/09/2021 06:39
+
+body.rcc {
+  --avatar-size: 2rem;
+  --avatar-size-md: 4rem;
+  --avatar-size-xxl: 6rem;
+  --colorIUT: #3EBFF0;
+  --colorFocus: #3EBFF0;
+  --colorIUTComplementaire: #083153;
+  --backgroundEdtVide: #bfbebb;
+  --backgroundEdtVidePair: #eaeaea;
+  --colorTextA: #083153;
+  --policeDark: #313944;
+  --body: #f5f6fa;
+  --header: #fff;
+  --footer: #fff;
+  --card: #fff;
+  --borderCard: rgba(77, 82, 89, 0.07);
+  --police: #4d5259;
+  --policeH: #313944;
+  --colorHoverBtnTopBar: #4d5259;
+
+  --colorPrimaryHover: #083153;
+  --colorTextPrimaryHover: #3EBFF0;
+
+  --colorSuccess: #15c377;
+  --colorSecondary: #e4e7ea;
+  --colorPrimary: #3EBFF0;
+  --colorInfo: #48b0f7;
+  --colorWarning: #faa64b;
+  --colorDanger: #f96868;
+  --colorPink: #f96197;
+  --colorPurple: #926dde;
+  --colorBrown: #8d6658;
+  --colorCyan: #57c7d4;
+  --colorYellow: #fcc525;
+  --colorGray: #868e96;
+  --colorDark: #465161;
+}
+
+body.rcc.dark-theme {
+  --colorIUT: #3EBFF0;
+  --colorIUTComplementaire: #083153;
+  --colorFocus: #083153;
+  --colorTextA: #3EBFF0;
+  --policeDark: #202945;
+  --backgroundEdtVide: #bfbebb;
+  --backgroundEdtVidePair: #eaeaea;
+  --body: #202945;
+  --header: #152028;
+  --footer: #152028;
+  --card: #152028;
+  --police: #eaeaea;
+  --borderCard: #3EBFF0;
+  --colorHoverBtnTopBar: #3EBFF0;
+  --policeH: #eaeaea;
+
+  --colorPrimaryHover: #083153;
+  --colorTextPrimaryHover: #3EBFF0;
+
+  --colorSuccess: #008A00;
+  --colorPrimary: #3EBFF0;
+  --colorInfo: #238CF2;
+  --colorSecondary: #e4e7ea;
+  --colorWarning: #F0730B;
+  --colorDanger: #BF0000;
+  --colorPink: #f96197;
+  --colorPurple: #926dde;
+  --colorBrown: #8d6658;
+  --colorCyan: #1890A7;
+  --colorYellow: #fcc525;
+  --colorGray: #868e96;
+  --colorDark: #465161;
+}

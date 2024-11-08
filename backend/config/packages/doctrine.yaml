@@ -1,0 +1,81 @@
+doctrine:
+    dbal:
+        default_connection: default
+        connections:
+            default:
+                # configure these for your database server
+                url: '%env(resolve:DATABASE_URL)%'
+                driver: 'pdo_mysql'
+                server_version: '5.7'
+                charset: 'utf8mb4'
+                default_table_options:
+                    charset: utf8
+                    collate: utf8_general_ci
+                mapping_types:
+                    uuid_binary: binary
+            apogee:
+                # configure these for your database server
+                url: '%env(resolve:DATABASE_APOGEE_URL)%'
+                driver: 'oci8'
+                charset: 'utf8mb4'
+
+        # IMPORTANT: You MUST configure your server version,
+        # either here or in the DATABASE_URL env var (see .env file)
+        #server_version: '13'
+        types:
+            uuid_binary: Ramsey\Uuid\Doctrine\UuidBinaryType
+            datetime_immutable: \Carbon\Doctrine\DateTimeImmutableType
+            datetime: \Carbon\Doctrine\DateTimeType
+            date: \Carbon\Doctrine\DateTimeType
+            time: \Carbon\Doctrine\DateTimeType
+
+    orm:
+        controller_resolver:
+            auto_mapping: true
+        auto_generate_proxy_classes: true
+        enable_lazy_ghost_objects: true
+        default_entity_manager: default
+        entity_managers:
+            default:
+                connection: default
+                naming_strategy: doctrine.orm.naming_strategy.underscore_number_aware
+                auto_mapping: true
+                mappings:
+                    App:
+                        is_bundle: false
+                        type: attribute
+                        dir: '%kernel.project_dir%/src/Entity'
+                        prefix: 'App\Entity'
+                        alias: App
+                dql:
+                    string_functions:
+                        MD5: App\DQL\MD5
+            apogee:
+                connection: apogee
+
+when@test:
+    doctrine:
+        dbal:
+            # "TEST_TOKEN" is typically set by ParaTest
+            dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+
+when@prod:
+    doctrine:
+        orm:
+            auto_generate_proxy_classes: false
+            query_cache_driver:
+                type: pool
+                pool: doctrine.system_cache_pool
+            result_cache_driver:
+                type: pool
+                pool: doctrine.result_cache_pool
+
+    framework:
+        cache:
+            pools:
+                doctrine.result_cache_pool:
+                    adapter: cache.app
+                doctrine.system_cache_pool:
+                    adapter: cache.system
+
+
