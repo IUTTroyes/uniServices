@@ -63,6 +63,22 @@
       <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/orm" />
       <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/dbal" />
       <path value="$PROJECT_DIR$/BackendUniServices/vendor/doctrine/doctrine-migrations-bundle" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/jms/metadata" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/vich/uploader-bundle" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/property-access" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/type-info" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/translation" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/property-info" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/translation-contracts" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/polyfill-intl-idn" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/mime" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/psr/clock" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/clock" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/password-hasher" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/security-core" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/security-csrf" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/security-http" />
+      <path value="$PROJECT_DIR$/BackendUniServices/vendor/symfony/security-bundle" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
