@@ -1,0 +1,30 @@
+{
+  "name": "test-fronts",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "dependencies": {
+    "axios": "^1.7.7",
+    "vue": "^3.5.*"
+  },
+  "scripts": {
+    "build:all": "npm run build --workspace=apps/intranet && npm run build --workspace=apps/auth",
+    "open:intranet": "opn http://localhost:3000",
+    "open:auth": "opn http://localhost:3001",
+    "dev:intranet": "npm run dev --workspace=apps/intranet",
+    "dev:auth": "npm run dev --workspace=apps/auth",
+    "dev:all": "npm-run-all --parallel dev:intranet dev:auth open:intranet open:auth"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MPL-2.0",
+  "description": "",
+  "devDependencies": {
+    "npm-run-all": "^4.1.5",
+    "opn-cli": "^1.0.0",
+    "sass-embedded": "^1.80.4"
+  }
+}
