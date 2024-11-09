@@ -1,7 +1,7 @@
 # uniServices
 
 ## Lancer la partie front
-    
+
 ```bash
 npm run build:all => build toutes les applications
 npm run dev:all => lance toutes les applications en mode dev
