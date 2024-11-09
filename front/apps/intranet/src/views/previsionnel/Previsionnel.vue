@@ -3,9 +3,7 @@
 </script>
 
 <template>
-  <main>
-    <router-view></router-view>
-  </main>
+  <h1>Prévisionnel</h1>
 </template>
 
 <style scoped>

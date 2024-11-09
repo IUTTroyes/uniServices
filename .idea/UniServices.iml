@@ -2,8 +2,8 @@
 <module type="WEB_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/BackendUniServices/src" isTestSource="false" packagePrefix="App\" />
-      <sourceFolder url="file://$MODULE_DIR$/BackendUniServices/tests" isTestSource="true" packagePrefix="App\Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/backend/src" isTestSource="false" packagePrefix="App\" />
+      <sourceFolder url="file://$MODULE_DIR$/backend/tests" isTestSource="true" packagePrefix="App\Tests\" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/cache" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/collections" />
