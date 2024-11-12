@@ -1,6 +1,6 @@
-import 'common-styles/main.scss';
 import PrimeVue from "primevue/config";
 import Aura from '@primevue/themes/aura';
+import 'common-styles/main.scss';
 
 import router from './router';
 
