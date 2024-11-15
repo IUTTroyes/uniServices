@@ -3,14 +3,15 @@
     flex-direction: column;
     height: calc(100vh - 4rem);
     justify-content: space-between;
-    padding: 2rem 1rem;
+    padding: 1rem 2rem 0 1rem;
     transition: margin-left var(--layout-section-transition-duration);
     box-shadow: rgba(0, 0, 0, 0.06) 0px 4px 4px 1px inset;
 }
 
 .layout-main {
     flex: 1 1 auto;
-    padding: 3rem 1rem;
+    padding: 2rem 1rem;
+    margin: 2rem 0;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--primary-color) var(--surface-ground);
