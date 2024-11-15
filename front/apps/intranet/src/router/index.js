@@ -1,13 +1,25 @@
-import AppLayout from '@/layout/AppLayout.vue';
+import { LayoutComponent } from 'common-components';
 import { createRouter, createWebHistory } from 'vue-router';
 import dashboardRoutes from './modules/dashboardRoutes';
+
+const intranetMenu = [
+    {
+        // label: 'Dashboard',
+        items: [
+            { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
+            { label: 'Agenda', icon: 'pi pi-fw pi-calendar', to: '/agenda' },
+        ]
+    }
+
+];
 
 const router = createRouter({
     history: createWebHistory('/intranet/'),
     routes: [
         {
             path: '/',
-            component: AppLayout,
+            component: LayoutComponent,
+            props: { menuItems: intranetMenu },
             children: [
                 ...dashboardRoutes,
                 {

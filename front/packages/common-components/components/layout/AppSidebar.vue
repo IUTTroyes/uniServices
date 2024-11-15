@@ -1,10 +1,17 @@
 <script setup>
 import AppMenu from './AppMenu.vue';
+
+const props = defineProps({
+    menuItems: {
+        type: Array,
+        required: true
+    }
+});
 </script>
 
 <template>
     <div class="layout-sidebar">
-        <app-menu></app-menu>
+        <app-menu :model="menuItems"></app-menu>
     </div>
 </template>
 
