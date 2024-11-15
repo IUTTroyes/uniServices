@@ -1,0 +1,3 @@
+{
+    "extends": "../../packages/common-config/vercel.json"
+}

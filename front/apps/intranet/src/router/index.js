@@ -1,18 +1,15 @@
 import AppLayout from '@/layout/AppLayout.vue';
 import { createRouter, createWebHistory } from 'vue-router';
+import dashboardRoutes from './modules/dashboardRoutes';
 
 const router = createRouter({
-    history: createWebHistory(),
+    history: createWebHistory('/intranet/'),
     routes: [
         {
             path: '/',
             component: AppLayout,
             children: [
-                {
-                    path: '/',
-                    name: 'dashboard',
-                    component: () => import('@/views/Dashboard.vue')
-                },
+                ...dashboardRoutes,
                 {
                     path: '/uikit/formlayout',
                     name: 'formlayout',
