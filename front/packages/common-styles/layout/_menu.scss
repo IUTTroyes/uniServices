@@ -15,7 +15,7 @@
         left var(--layout-section-transition-duration);
     background-color: var(--surface-overlay);
     border-radius: var(--content-border-radius);
-    padding: 0.5rem 1rem;
+    padding: 0.5rem 0;
 }
 
 .layout-menu {
@@ -68,8 +68,7 @@
             outline: 0 none;
             color: var(--text-color);
             cursor: pointer;
-            padding: 0.75rem 0;
-            border-radius: var(--content-border-radius);
+            padding: 0.75rem 1rem;
             transition:
                 background-color var(--element-transition-duration),
                 box-shadow var(--element-transition-duration);
