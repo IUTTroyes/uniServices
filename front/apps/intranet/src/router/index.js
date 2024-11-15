@@ -4,7 +4,7 @@ import dashboardRoutes from './modules/dashboardRoutes';
 
 const intranetMenu = [
     {
-        label: 'Home',
+        // label: 'Home',
         items: [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
             { label: 'Agenda', icon: 'pi pi-fw pi-calendar', to: '/agenda' },
