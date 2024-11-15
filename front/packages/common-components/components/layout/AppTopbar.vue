@@ -2,6 +2,13 @@
 import { useLayout } from './composables/layout.js';
 import AppConfigurator from './AppConfigurator.vue';
 
+const props = defineProps({
+  logoUrl: {
+    type: String,
+    required: true
+  }
+});
+
 const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout();
 </script>
 
@@ -12,7 +19,7 @@ const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout();
                 <i class="pi pi-bars"></i>
             </button>
             <router-link to="/" class="layout-topbar-logo">
-                <img alt="logo" src="assets/layout/images/logo.svg" />
+              <img :src="logoUrl" alt="logo" />
             </router-link>
         </div>
 
