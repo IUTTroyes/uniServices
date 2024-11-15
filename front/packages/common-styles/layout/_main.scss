@@ -1,13 +1,18 @@
 .layout-main-container {
     display: flex;
     flex-direction: column;
-    min-height: 100vh;
+    height: calc(100vh - 4rem);
     justify-content: space-between;
-    padding: 6rem 2rem 0 2rem;
+    padding: 2rem 1rem;
     transition: margin-left var(--layout-section-transition-duration);
+    box-shadow: rgba(0, 0, 0, 0.06) 0px 4px 4px 1px inset;
 }
 
 .layout-main {
     flex: 1 1 auto;
-    padding-bottom: 2rem;
+    padding: 3rem 1rem;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--surface-ground);
+    scrollbar-track-color: var(--surface-card);
 }
