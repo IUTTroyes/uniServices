@@ -9,6 +9,8 @@
 
 @media (min-width: 992px) {
     .layout-wrapper {
+        background-color: var(--surface-card);
+
         &.layout-overlay {
             .layout-main-container {
                 margin-left: 0;
@@ -41,7 +43,10 @@
 
         &.layout-static {
             .layout-main-container {
-                margin-left: 22rem;
+                background-color: var(--surface-ground);
+                border-top-left-radius: 35px;
+                margin-top: 4rem;
+                margin-left: 10rem;
             }
 
             &.layout-static-inactive {
