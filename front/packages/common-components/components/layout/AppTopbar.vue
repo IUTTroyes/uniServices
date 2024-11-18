@@ -1,6 +1,5 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
-import AppConfigurator from './AppConfigurator.vue';
 
 const props = defineProps({
   logoUrl: {
