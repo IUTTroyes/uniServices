@@ -4,6 +4,7 @@ import { computed, ref, watch } from 'vue';
 import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
+import AppBreadcrumb from "./AppBreadcrumb.vue";
 
 const props = defineProps({
   menuItems: {
@@ -13,6 +14,14 @@ const props = defineProps({
   logoUrl: {
     type: String,
     required: true
+  },
+  appName: {
+    type: String,
+    required: true
+  },
+  breadcrumbItems: {
+    type: Array,
+    required: false
   }
 });
 
@@ -66,9 +75,10 @@ function isOutsideClicked(event) {
 
 <template>
   <div class="layout-wrapper" :class="containerClass">
-    <app-topbar :logo-url></app-topbar>
+    <app-topbar :logo-url :app-name></app-topbar>
     <app-sidebar :menu-items="menuItems"></app-sidebar>
     <div class="layout-main-container">
+      <app-breadcrumb v-if="breadcrumbItems" :items="breadcrumbItems"></app-breadcrumb>
       <div class="layout-main">
         <router-view></router-view>
       </div>

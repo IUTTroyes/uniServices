@@ -6,6 +6,10 @@ const props = defineProps({
   logoUrl: {
     type: String,
     required: true
+  },
+  appName: {
+    type: String,
+    required: true
   }
 });
 
@@ -19,11 +23,16 @@ const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout();
                 <i class="pi pi-bars"></i>
             </button>
             <router-link to="/" class="layout-topbar-logo">
-              <img :src="logoUrl" alt="logo" />
+              <img :src="logoUrl" alt="logo" /> <span>{{appName}}</span>
             </router-link>
         </div>
 
         <div class="layout-topbar-actions">
+          <IconField>
+            <InputIcon class="pi pi-search" />
+            <InputText v-model="value1" placeholder="Recherche" />
+          </IconField>
+
             <div class="layout-config-menu">
                 <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
                     <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>

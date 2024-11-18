@@ -27,12 +27,15 @@
         gap: 0.5rem;
 
         img {
-            //width: 4rem;
             height: 4rem;
         }
 
         &:focus-visible {
             @include focused();
+        }
+
+        span {
+            text-transform: uppercase;
         }
     }
 
@@ -44,7 +47,6 @@
         border-radius: 50%;
         width: 2.5rem;
         height: 2.5rem;
-        color: var(--text-color);
         transition: background-color var(--element-transition-duration);
         cursor: pointer;
 
