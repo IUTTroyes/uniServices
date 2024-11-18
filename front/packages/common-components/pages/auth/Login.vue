@@ -1,52 +1,81 @@
 <script setup>
-import Button from 'primevue/button';
-import Checkbox from 'primevue/checkbox';
-import InputText from 'primevue/inputtext';
-
 import { ref } from 'vue';
 
-const checked1 = ref(true);
-
 const props = defineProps({
-    logo: {
-        type: String,
-        required: true
-    },
+  logoUrl: {
+    type: String,
+    required: true
+  }
 });
+
+const username = ref('');
+const password = ref('');
+const checked = ref(false);
 </script>
+
 <template>
-    <div class="bg-surface-50 dark:bg-surface-950 px-6 py-20 md:px-12 lg:px-20">
-        <div class="bg-surface-0 dark:bg-surface-900 p-6 shadow rounded-border w-full lg:w-6/12 mx-auto">
-            <div class="text-center mb-8">
-                <img src="{{logo}}" class="mb-4" alt="">
-                <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4">Welcome Back</div>
-                <span class="text-surface-600 dark:text-surface-200 font-medium leading-normal">Don't have an account?</span>
-                <a class="font-medium no-underline ml-2 text-primary cursor-pointer">Create today!</a>
+  <div class="bg-surface-50 dark:bg-surface-950 flex items-center justify-center min-h-screen min-w-[100vw] overflow-hidden">
+    <div class="flex flex-col items-center justify-center form">
+      <div style="border-radius: 56px; padding: 0.3rem; background: linear-gradient(180deg, var(--primary-color) 10%, rgba(33, 150, 243, 0) 30%)">
+        <div class="w-full bg-surface-0 dark:bg-surface-900 py-20 px-8 sm:px-20" style="border-radius: 53px">
+          <div class="text-center mb-8">
+            <img :src="logoUrl" alt="logo de l'iut" class="logo" />
+            <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4 uppercase">Connexion</div>
+            <span class="text-muted-color font-medium">Etudiants, personnels de l'Université et vacataires, connectez-vous avec l'authentification de l'Université.</span>
+          </div>
+          <Button label="Connexion URCA" class="w-full" as="router-link" to="/"></Button>
+
+          <hr>
+
+          <div>
+            <IftaLabel>
+              <InputText id="username" class="w-full md:w-[30rem] mb-8" v-model="username" />
+              <label for="username">Login</label>
+            </IftaLabel>
+            <IftaLabel>
+              <InputText id="password" :toggleMask="true" fluid :feedback="false" class="w-full md:w-[30rem] mb-8" v-model="password" />
+              <label for="password">Mot de passe</label>
+            </IftaLabel>
+
+            <div class="flex items-center justify-between mt-2 mb-8 gap-8">
+              <div class="flex items-center">
+                <Checkbox v-model="checked" id="rememberme1" binary class="mr-2"></Checkbox>
+                <label for="rememberme1">Se souvenir de moi</label>
+              </div>
+              <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié ?</span>
             </div>
-
-            <div>
-                <label for="email1" class="text-surface-900 dark:text-surface-0 font-medium mb-2 block">Email</label>
-                <InputText id="email1" type="text" placeholder="Email address" class="w-full mb-4" />
-
-                <label for="password1" class="text-surface-900 dark:text-surface-0 font-medium mb-2 block">Password</label>
-                <InputText id="password1" type="password" placehoder="Password" class="w-full mb-4" />
-
-                <div class="flex items-center justify-between mb-12">
-                    <div class="flex items-center">
-                        <Checkbox id="rememberme1" v-model="checked1" :binary="true" class="mr-2" />
-                        <label for="rememberme1">Remember me</label>
-                    </div>
-                    <a class="font-medium no-underline ml-2 text-primary text-right cursor-pointer">Forgot password?</a>
-                </div>
-
-                <Button label="Sign In" icon="pi pi-user" class="w-full" />
-            </div>
+            <Button label='Connexion invité' class="w-full" as="router-link" to="/"></Button>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
 </template>
+
 <style scoped>
-img {
-    width: 100px;
-    margin: 0 auto;
+.logo {
+  width: 150px;
+  margin: 0 auto 2rem auto;
+}
+
+.form {
+  width: 100%;
+  max-width: 40rem;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid lightgray;
+  margin: 2rem 0;
+}
+
+.pi-eye {
+  transform: scale(1.6);
+  margin-right: 1rem;
+}
+
+.pi-eye-slash {
+  transform: scale(1.6);
+  margin-right: 1rem;
 }
 </style>
