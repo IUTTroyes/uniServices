@@ -8,6 +8,8 @@ import PrimeVue from 'primevue/config';
 import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
 
+import IftaLabel from 'primevue/iftalabel';
+
 import '@/assets/styles.scss';
 import '@/assets/tailwind.css';
 import {definePreset} from "@primevue/themes";
@@ -31,6 +33,8 @@ const MyPreset = definePreset(Aura, {
 });
 
 const app = createApp(App);
+
+app.component('IftaLabel', IftaLabel);
 
 app.use(router);
 app.use(PrimeVue, {
