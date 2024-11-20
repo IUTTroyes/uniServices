@@ -4,17 +4,19 @@ import {onMounted} from "vue";
 
 const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1];
 
-// const store = useUsersStore();
-//
-// onMounted(() => {
-//   store.fetchUser();
-// });
+const store = useUsersStore();
+
+onMounted(() => {
+  store.fetchUser();
+});
+
+console.log(store.user);
 </script>
 
 <template>
   <div>
     <div class="m-5">
-      <p>Hello :)</p>
+        <p>Hello, {{ store.user?.prenom }}</p>
     </div>
     <div class="grid grid-cols-2 gap-4">
       <div class="card h-full">
