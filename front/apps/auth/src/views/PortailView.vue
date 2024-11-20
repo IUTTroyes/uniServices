@@ -8,7 +8,6 @@ if (token) {
     ('token', token);
 }
 const tokenParts = token?.split('.');
-
 const payload = tokenParts ? JSON.parse(atob(tokenParts[1])) : {};
 const username = payload.username;
 const type = payload.type;
@@ -19,7 +18,7 @@ const redirectToUnifolio = async () => {
 };
 
 const redirectToIntranet = async () => {
-    window.location.replace('http://localhost:5175');
+    window.location.replace('http://localhost:3001');
 }
 </script>
 

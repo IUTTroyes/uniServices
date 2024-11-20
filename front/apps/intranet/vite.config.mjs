@@ -18,8 +18,13 @@ export default defineConfig({
     ],
     base: '/intranet/', // Base pour app2
     server: {
-        host: 'iutranet.fr', //
-        port: 3001 // Port pour app2
+        host: '0.0.0.0', //
+        port: 3001, // Port pour app2
+        strictPort: true,
+        cors: {
+            origin: ['http://localhost:3001'],
+            credentials: true,
+        }
     },
     resolve: {
         alias: {

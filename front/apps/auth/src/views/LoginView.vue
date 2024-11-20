@@ -20,8 +20,8 @@ const handleSubmit = async () => {
     });
     console.log('Login successful:', response.data);
     localStorage.setItem('token', response.data.token);
-    document.cookie = `token=${response.data.token}; Secure; SameSite=None`;
-    location.reload();
+      document.cookie = `token=${response.data.token}; path=/; domain=.localhost; secure; SameSite=Lax`;
+      location.reload();
     location.href = '/auth/portail';
   } catch (error) {
     console.error('Login failed:', error.response.data);
