@@ -22,6 +22,7 @@ const handleSubmit = async () => {
     localStorage.setItem('token', response.data.token);
     document.cookie = `token=${response.data.token}; Secure; SameSite=None`;
     location.reload();
+    location.href = '/auth/portail';
   } catch (error) {
     console.error('Login failed:', error.response.data);
     // Handle login error (e.g., show error message)

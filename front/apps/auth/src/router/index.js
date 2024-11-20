@@ -1,7 +1,6 @@
-import AppLayout from '@/layout/AppLayout.vue';
 import { createRouter, createWebHistory } from 'vue-router';
-import { LoginComponent } from 'common-components';
-
+import LoginView from "@/views/LoginView.vue";
+import AppPortail from "@/views/PortailView.vue";
 const logoUrl = new URL('@/assets/logo/logo_iut.png', import.meta.url).href;
 
 
@@ -10,14 +9,14 @@ const router = createRouter({
     routes: [
         {
             path: '/',
-            component: LoginComponent,
+            component: LoginView,
             props: route => ({
                 logoUrl: logoUrl,
             }),
         },
         {
-            path: '/inscription',
-            component: LoginComponent,
+            path: '/portail',
+            component: AppPortail,
         }
     ]
 });
