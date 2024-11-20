@@ -5,10 +5,11 @@ namespace App\Entity;
 use App\Repository\PersonnelRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: PersonnelRepository::class)]
-class Personnel implements UserInterface
+class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -24,7 +25,7 @@ class Personnel implements UserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
 
-    #[ORM\Column(type: Types::ARRAY)]
+    #[ORM\Column(type: Types::JSON)]
     private array $roles = [];
 
     #[ORM\Column(length: 75)]

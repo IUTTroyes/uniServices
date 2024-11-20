@@ -9,7 +9,7 @@ const router = createRouter({
     history: createWebHistory('/auth/'),
     routes: [
         {
-            path: '/connexion',
+            path: '/',
             component: LoginComponent,
             props: route => ({
                 logoUrl: logoUrl,

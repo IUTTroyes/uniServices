@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios';
 
 const props = defineProps({
   logoUrl: {
@@ -11,6 +12,19 @@ const props = defineProps({
 const username = ref('');
 const password = ref('');
 const checked = ref(false);
+const handleSubmit = async () => {
+  try {
+    const response = await axios.post('http://localhost:8000/api/login', {
+      username: username.value,
+      password: password.value
+    });
+    console.log('Login successful:', response.data);
+    // Handle successful login (e.g., store token, redirect, etc.)
+  } catch (error) {
+    console.error('Login failed:', error.response.data);
+    // Handle login error (e.g., show error message)
+  }
+};
 </script>
 
 <template>
@@ -27,7 +41,7 @@ const checked = ref(false);
 
           <hr>
 
-          <div>
+          <form @submit.prevent="handleSubmit" class="flex flex-col gap-8">
             <IftaLabel>
               <InputText id="username" class="w-full md:w-[30rem] mb-8" v-model="username" />
               <label for="username">Login</label>
@@ -44,8 +58,8 @@ const checked = ref(false);
               </div>
               <span class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié ?</span>
             </div>
-            <Button label='Connexion invité' class="w-full" as="router-link" to="/"></Button>
-          </div>
+            <Button label='Connexion invité' class="w-full" type="submit"></Button>
+          </form>
         </div>
       </div>
     </div>
