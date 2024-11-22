@@ -41,7 +41,7 @@ const profileItems = ref([
           // Supprimer le token des cookies
           document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
           // Rediriger vers localhost:3000 avec le paramètre logout
-          window.location.replace('http://localhost:3000?logout=true');
+          window.location.replace('http://localhost:3000/?logout=true');
 
         }
       }

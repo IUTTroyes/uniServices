@@ -34,6 +34,12 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
     const token = localStorage.getItem('token');
 
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('logout')) {
+        localStorage.removeItem('token');
+        window.location.replace('http://localhost:3000/auth/login');
+    }
+
     if (token) {
         const tokenParts = token.split('.');
         const payload = JSON.parse(atob(tokenParts[1]));

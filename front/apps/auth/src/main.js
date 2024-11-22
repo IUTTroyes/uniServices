@@ -33,14 +33,6 @@ const MyPreset = definePreset(Aura, {
     }
 });
 
-window.onload = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('logout')) {
-        localStorage.removeItem('token');
-        window.location.replace('http://localhost:3000');
-    }
-};
-
 const pinia = createPinia();
 const app = createApp(App);
 
