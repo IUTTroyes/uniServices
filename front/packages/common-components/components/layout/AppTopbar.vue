@@ -3,6 +3,8 @@ import { useLayout } from './composables/layout.js';
 import { defineProps } from 'vue';
 import { ref } from 'vue';
 
+const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1];
+
 const props = defineProps({
   logoUrl: {
     type: String,
@@ -18,6 +20,38 @@ const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout();
 
 const search = ref('');
 
+const menu = ref();
+const profileItems = ref([
+  {
+    label: 'Options',
+    items: [
+      {
+        label: 'Profil',
+        icon: 'pi pi-user'
+      },
+      {
+        label: 'Paramètres',
+        icon: 'pi pi-cog'
+      },
+      {
+        label: 'Déconnexion',
+        icon: 'pi pi-sign-out',
+        command: () => {
+          localStorage.removeItem('token');
+          // Supprimer le token des cookies
+          document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          // Rediriger vers localhost:3000 avec le paramètre logout
+          window.location.replace('http://localhost:3000?logout=true');
+
+        }
+      }
+    ]
+  }
+]);
+
+const toggle = (event) => {
+  menu.value.toggle(event);
+};
 </script>
 
 <template>
@@ -77,10 +111,12 @@ const search = ref('');
             <i class="pi pi-bell"></i>
             <span>Notifications</span>
           </button>
-          <button type="button" class="layout-topbar-action layout-topbar-action-highlight">
+          <button type="button" class="layout-topbar-action layout-topbar-action-highlight"  @click="toggle" aria-haspopup="true" aria-controls="overlay_menu">
             <i class="pi pi-user"></i>
             <span>Profile</span>
           </button>
+          <Menu ref="menu" id="overlay_menu" :model="profileItems" :popup="true" />
+
         </div>
       </div>
     </div>
