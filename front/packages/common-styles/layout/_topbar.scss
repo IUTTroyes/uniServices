@@ -117,6 +117,8 @@
 @media (max-width: 991px) {
     .layout-topbar {
         padding: 0 2rem;
+        align-items: center;
+        justify-content: space-between;
 
         .layout-topbar-logo-container {
             width: auto;
@@ -129,6 +131,15 @@
 
         .layout-topbar-menu-button {
             display: inline-flex;
+        }
+
+        .layout-topbar-actions {
+            margin-left: 0;
+            display: flex;
+
+            .layout-topbar-search {
+                display: none;
+            }
         }
 
         .layout-topbar-menu {
