@@ -29,6 +29,15 @@ const search = ref('');
       <router-link to="/" class="layout-topbar-logo">
         <img :src="logoUrl" alt="logo" /> <span>{{appName}}</span>
       </router-link>
+
+      <button type="button" class="layout-topbar-action-app">
+        <img src="@/assets/logo/logo_unifolio.png" alt="calendar" />
+        <span>UniFolio</span>
+      </button>
+      <button type="button" class="layout-topbar-action-app">
+        <img src="@/assets/logo/logo_unifolio.png" alt="calendar" />
+        <span>Correcto</span>
+      </button>
     </div>
 
     <div class="layout-topbar-actions">
@@ -54,6 +63,7 @@ const search = ref('');
 
       <div class="layout-topbar-menu lg:block">
         <div class="layout-topbar-menu-content">
+
           <button type="button" class="layout-topbar-action layout-topbar-action-text">
             <i class="pi pi-calendar"></i>
             <span>2024/2025</span>

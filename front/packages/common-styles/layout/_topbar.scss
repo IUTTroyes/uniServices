@@ -15,6 +15,35 @@
     .layout-topbar-logo-container {
         display: flex;
         align-items: center;
+        gap: 1rem;
+
+        .layout-topbar-action-app {
+            display: inline-flex;
+            gap: 5px;
+            justify-content: center;
+            align-items: center;
+            border-radius: 5px;
+            width: fit-content;
+            padding: 0 0.5rem;
+            transition: background-color var(--element-transition-duration);
+            cursor: pointer;
+
+            &:hover {
+                background-color: var(--surface-hover);
+            }
+
+            span {
+                display: block;
+            }
+
+            img {
+                display: block;
+                width: 2.5rem;
+                height: 2.5rem;
+                padding: 0.25rem;
+                border-radius: 50%;
+            }
+        }
     }
 
     .layout-topbar-logo {
