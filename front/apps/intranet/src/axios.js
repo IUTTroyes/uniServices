@@ -20,7 +20,7 @@ api.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
         } else {
             localStorage.removeItem('token');
-            window.location.replace('http://localhost:5173'); // Redirect to login page
+            window.location.replace('http://localhost:3000'); // Redirect to login page
         }
         return config;
     },
@@ -35,7 +35,7 @@ api.interceptors.response.use(
         if (error.response && error.response.status === 401) {
             // Token is invalid or expired
             localStorage.removeItem('token');
-            window.location.replace('http://localhost:5173'); // Redirect to login page
+            window.location.replace('http://localhost:3000'); // Redirect to login page
         }
         return Promise.reject(error);
     }

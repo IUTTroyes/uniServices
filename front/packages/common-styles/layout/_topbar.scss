@@ -9,10 +9,10 @@
     background-color: var(--surface-card);
     transition: left var(--layout-section-transition-duration);
     display: flex;
+    gap: 1.5rem;
     align-items: center;
 
     .layout-topbar-logo-container {
-        width: 20rem;
         display: flex;
         align-items: center;
     }
@@ -70,6 +70,22 @@
         &.layout-topbar-action-highlight {
             background-color: var(--primary-color);
             color: var(--primary-contrast-color);
+        }
+        &.layout-topbar-action-text {
+            display: inline-flex;
+            gap: 5px;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color-secondary);
+            border-radius: 5px;
+            width: fit-content;
+            padding: 0 0.5rem;
+            transition: background-color var(--element-transition-duration);
+            cursor: pointer;
+
+            span {
+                display: block;
+            }
         }
     }
 

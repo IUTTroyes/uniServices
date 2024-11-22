@@ -42,6 +42,9 @@ class Etudiant implements UserInterface
     #[ORM\Column(length: 75)]
     private ?string $nom = null;
 
+    #[ORM\Column(length: 255)]
+    private ?string $photo_name = null;
+
     public function getMails(): array
     {
         return [$this->mail_univ];
@@ -137,6 +140,18 @@ class Etudiant implements UserInterface
     public function setNom(string $nom): static
     {
         $this->nom = $nom;
+
+        return $this;
+    }
+
+    public function getPhotoName(): ?string
+    {
+        return $this->photo_name;
+    }
+
+    public function setPhotoName(?string $photo_name): static
+    {
+        $this->photo_name = $photo_name;
 
         return $this;
     }

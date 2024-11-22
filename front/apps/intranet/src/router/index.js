@@ -30,13 +30,18 @@ const router = createRouter({
             }),
             children: [
                 ...dashboardRoutes,
-                {
-                    path: '/uikit/formlayout',
-                    name: 'formlayout',
-                    component: () => import('@/views/uikit/FormLayout.vue'),
-                    meta: { breadcrumb: [{ label: 'Home', route: '/' }, { label: 'Form Layout' }] }
-                },
             ]
+        },
+        {
+            path: '/agenda',
+            component: LayoutComponent,
+            props: route => ({
+                menuItems: intranetMenu,
+                logoUrl: logoUrl,
+                appName: appName,
+                breadcrumbItems: route.meta.breadcrumb || []
+            }),
+            meta: { breadcrumb: [{ label: 'Dashboard', route: '/' }, { label: 'Agenda', route: null, icon: 'pi pi-calendar' }] },
         }
     ]
 });
