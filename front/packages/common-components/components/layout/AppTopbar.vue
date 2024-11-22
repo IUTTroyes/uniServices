@@ -20,7 +20,9 @@ const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout();
 
 const search = ref('');
 
-const menu = ref();
+const anneeMenu = ref();
+const profileMenu = ref();
+
 const profileItems = ref([
   {
     label: 'Options',
@@ -38,19 +40,31 @@ const profileItems = ref([
         icon: 'pi pi-sign-out',
         command: () => {
           localStorage.removeItem('token');
-          // Supprimer le token des cookies
           document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-          // Rediriger vers localhost:3000 avec le paramètre logout
           window.location.replace('http://localhost:3000/?logout=true');
-
         }
       }
     ]
   }
 ]);
 
-const toggle = (event) => {
-  menu.value.toggle(event);
+const anneeItems = ref([
+  {
+    label: 'Années universitaires',
+    items: [
+      {
+        label: '2023/2024',
+      }
+    ]
+  }
+]);
+
+const toggleProfileMenu = (event) => {
+  profileMenu.value.toggle(event);
+};
+
+const toggleAnneeMenu = (event) => {
+  anneeMenu.value.toggle(event);
 };
 </script>
 
@@ -98,10 +112,11 @@ const toggle = (event) => {
       <div class="layout-topbar-menu lg:block">
         <div class="layout-topbar-menu-content">
 
-          <button type="button" class="layout-topbar-action layout-topbar-action-text">
+          <button type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
             <i class="pi pi-calendar"></i>
             <span>2024/2025</span>
           </button>
+          <Menu ref="anneeMenu" id="annee_menu" :model="anneeItems" :popup="true" />
 
           <button type="button" class="layout-topbar-action">
             <i class="pi pi-inbox"></i>
@@ -111,11 +126,11 @@ const toggle = (event) => {
             <i class="pi pi-bell"></i>
             <span>Notifications</span>
           </button>
-          <button type="button" class="layout-topbar-action layout-topbar-action-highlight"  @click="toggle" aria-haspopup="true" aria-controls="overlay_menu">
+          <button type="button" class="layout-topbar-action layout-topbar-action-highlight"  @click="toggleProfileMenu" aria-haspopup="true" aria-controls="profile_menu">
             <i class="pi pi-user"></i>
             <span>Profile</span>
           </button>
-          <Menu ref="menu" id="overlay_menu" :model="profileItems" :popup="true" />
+          <Menu ref="profileMenu" id="profile_menu" :model="profileItems" :popup="true" />
 
         </div>
       </div>
