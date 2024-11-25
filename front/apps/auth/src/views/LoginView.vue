@@ -46,13 +46,13 @@ const handleSubmit = async () => {
 
           <form @submit.prevent="handleSubmit" class="flex flex-col">
             <IftaLabel>
-              <InputText id="username" class="w-full md:w-[30rem] mb-4" v-model="username" />
+              <InputText id="username" class="w-full mb-4" v-model="username" />
               <label for="username">Login</label>
             </IftaLabel>
-            <IftaLabel>
-              <InputText id="password" :toggleMask="true" fluid :feedback="false" class="w-full md:w-[30rem] mb-8" v-model="password" />
-              <label for="password">Mot de passe</label>
-            </IftaLabel>
+              <IftaLabel>
+                  <Password v-model="password" inputId="password" :feedback="false" class="w-full mb-8 pwd" toggleMask/>
+                  <label for="password">Password</label>
+              </IftaLabel>
 
             <div class="flex items-center justify-between mt-2 mb-4 gap-8">
               <div class="flex items-center">
@@ -86,13 +86,8 @@ hr {
   margin: 2rem 0;
 }
 
-.pi-eye {
-  transform: scale(1.6);
-  margin-right: 1rem;
-}
-
-.pi-eye-slash {
-  transform: scale(1.6);
-  margin-right: 1rem;
+.p-password {
+    flex-direction: column;
+    justify-content: flex-start;
 }
 </style>
