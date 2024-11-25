@@ -2,7 +2,11 @@
 
 <template>
     <div class="layout-footer">
-        SAKAI by
-        <a href="https://primevue.org" target="_blank" rel="noopener noreferrer" class="text-primary font-bold hover:underline">PrimeVue</a>
+        <div class="layout-footer-left">
+            <span>&copy; 2023 UniServices</span>
+        </div>
+        <div class="layout-footer-right">
+            <span>Version 1.0.0</span>
+        </div>
     </div>
 </template>

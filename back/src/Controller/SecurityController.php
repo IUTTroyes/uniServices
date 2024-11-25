@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Entity\Etudiant;
+use App\Entity\StructureEtudiant;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

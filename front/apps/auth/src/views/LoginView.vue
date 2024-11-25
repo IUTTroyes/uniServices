@@ -81,7 +81,7 @@ const handleSubmit = async () => {
 
                     <hr>
 
-                    <small>Compte invité</small>
+                    <p class="text-center">Compte invité</p>
                     <form @submit.prevent="handleSubmit" class="flex flex-col mb-8 mt-8">
                         <IftaLabel>
                             <InputText id="username" class="w-full mb-4" v-model="username" />
@@ -101,7 +101,7 @@ const handleSubmit = async () => {
                         </div>
                         <Button label='Connexion invité' class="w-full" type="submit" severity="secondary"></Button>
                     </form>
-                    <small>En cas de problème de connexion, contactez le support à cette adresse : intranet.iut-troyes@univ-reims.fr</small>
+                    <small class="text-muted-color">En cas de problème de connexion, contactez le support à cette adresse : intranet.iut-troyes@univ-reims.fr</small>
                 </div>
             </div>
         </div>
@@ -133,7 +133,8 @@ const handleSubmit = async () => {
     display: flex;
     flex-direction: column;
     align-items: start;
-    justify-content: space-between;
+    justify-content: start;
+    gap: 1rem;
     border-bottom-left-radius: 15px;
     border-top-left-radius: 15px;
 
