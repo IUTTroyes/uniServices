@@ -29,7 +29,7 @@ class StructureAnneeUniversitaire
      * @var Collection<int, StructureScolarite>
      */
     #[ORM\OneToMany(targetEntity: StructureScolarite::class, mappedBy: 'structureAnneeUniversitaire')]
-    private Collection $scolarit�es;
+    private Collection $scolarites;
 
     /**
      * @var Collection<int, StructurePn>
@@ -48,7 +48,7 @@ class StructureAnneeUniversitaire
 
     public function __construct()
     {
-        $this->scolarit�es = new ArrayCollection();
+        $this->scolarites = new ArrayCollection();
         $this->pn = new ArrayCollection();
         $this->personnels = new ArrayCollection();
     }
@@ -97,27 +97,27 @@ class StructureAnneeUniversitaire
     /**
      * @return Collection<int, StructureScolarite>
      */
-    public function getScolarit�es(): Collection
+    public function getScolarites(): Collection
     {
-        return $this->scolarit�es;
+        return $this->scolarites;
     }
 
-    public function addScolaritE(StructureScolarite $scolaritE): static
+    public function addScolarite(StructureScolarite $scolarite): static
     {
-        if (!$this->scolarit�es->contains($scolaritE)) {
-            $this->scolarit�es->add($scolaritE);
-            $scolaritE->setStructureAnneeUniversitaire($this);
+        if (!$this->scolarites->contains($scolarite)) {
+            $this->scolarites->add($scolarite);
+            $scolarite->setStructureAnneeUniversitaire($this);
         }
 
         return $this;
     }
 
-    public function removeScolaritE(StructureScolarite $scolaritE): static
+    public function removeScolarite(StructureScolarite $scolarite): static
     {
-        if ($this->scolarit�es->removeElement($scolaritE)) {
+        if ($this->scolarites->removeElement($scolarite)) {
             // set the owning side to null (unless already changed)
-            if ($scolaritE->getStructureAnneeUniversitaire() === $this) {
-                $scolaritE->setStructureAnneeUniversitaire(null);
+            if ($scolarite->getStructureAnneeUniversitaire() === $this) {
+                $scolarite->setStructureAnneeUniversitaire(null);
             }
         }
 
