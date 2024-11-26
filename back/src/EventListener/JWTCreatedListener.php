@@ -2,7 +2,7 @@
 
 namespace App\EventListener;
 
-use App\Entity\StructureEtudiant;
+use App\Entity\Structure\StructureEtudiant;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 
 class JWTCreatedListener

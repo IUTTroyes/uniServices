@@ -1,13 +1,15 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
-use App\Repository\DepartementRepository;
+use App\Repository\StructureDepartementRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: DepartementRepository::class)]
+#[ORM\Entity(repositoryClass: StructureDepartementRepository::class)]
 #[ApiResource]
 class StructureDepartement
 {
@@ -39,6 +41,17 @@ class StructureDepartement
 
     #[ORM\Column]
     private array $opt = [];
+
+    /**
+     * @var Collection<int, StructureDiplome>
+     */
+    #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'departement')]
+    private Collection $structureDiplomes;
+
+    public function __construct()
+    {
+        $this->structureDiplomes = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -137,6 +150,36 @@ class StructureDepartement
     public function setOpt(array $opt): static
     {
         $this->opt = $opt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureDiplome>
+     */
+    public function getStructureDiplomes(): Collection
+    {
+        return $this->structureDiplomes;
+    }
+
+    public function addStructureDiplome(StructureDiplome $structureDiplome): static
+    {
+        if (!$this->structureDiplomes->contains($structureDiplome)) {
+            $this->structureDiplomes->add($structureDiplome);
+            $structureDiplome->setDepartement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStructureDiplome(StructureDiplome $structureDiplome): static
+    {
+        if ($this->structureDiplomes->removeElement($structureDiplome)) {
+            // set the owning side to null (unless already changed)
+            if ($structureDiplome->getDepartement() === $this) {
+                $structureDiplome->setDepartement(null);
+            }
+        }
 
         return $this;
     }

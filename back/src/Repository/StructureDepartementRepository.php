@@ -2,14 +2,14 @@
 
 namespace App\Repository;
 
-use App\Entity\StructureDepartement;
+use App\Entity\Structure\StructureDepartement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<StructureDepartement>
  */
-class DepartementRepository extends ServiceEntityRepository
+class StructureDepartementRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {

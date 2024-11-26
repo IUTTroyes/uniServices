@@ -1,25 +1,26 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use App\Repository\EtudiantRepository;
+use App\Repository\StructureEtudiantRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[ORM\Entity(repositoryClass: EtudiantRepository::class)]
+#[ORM\Entity(repositoryClass: StructureEtudiantRepository::class)]
 #[ApiResource(
     operations: [
         new Get(),
         new GetCollection(),
     ]
 )]
-class StructureEtudiant implements UserInterface
+class StructureEtudiant implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -123,9 +124,11 @@ class StructureEtudiant implements UserInterface
         return $this->password;
     }
 
-    public function setPassword(?string $password): void
+    public function setPassword(?string $password): static
     {
         $this->password = $password;
+
+        return $this;
     }
 
     public function getRoles(): array

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Structure;
 
 use App\Repository\StructureScolariteRepository;
 use Doctrine\DBAL\Types\Types;
@@ -49,7 +49,7 @@ class StructureScolarite
     #[ORM\Column]
     private ?bool $actif = null;
 
-    #[ORM\ManyToOne(inversedBy: 'scolaritÃes')]
+    #[ORM\ManyToOne(inversedBy: 'scolaritï¿½es')]
     #[ORM\JoinColumn(nullable: false)]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Structure;
 
 use App\Repository\DiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -43,7 +43,7 @@ class StructureDiplome
      * @var Collection<int, self>
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
-    private Collection $enfants;
+    private ?Collection $enfants = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $logo_partenaire = null;
@@ -56,6 +56,9 @@ class StructureDiplome
      */
     #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome')]
     private Collection $structurePns;
+
+    #[ORM\ManyToOne(inversedBy: 'structureDiplomes')]
+    private ?StructureDepartement $departement = null;
 
     public function __construct()
     {
@@ -172,7 +175,7 @@ class StructureDiplome
         return $this->enfants;
     }
 
-    public function addEnfant(self $enfant): static
+    public function addEnfant(?self $enfant): static
     {
         if (!$this->enfants->contains($enfant)) {
             $this->enfants->add($enfant);
@@ -244,6 +247,18 @@ class StructureDiplome
                 $structurePn->setDiplome(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDepartement(): ?StructureDepartement
+    {
+        return $this->departement;
+    }
+
+    public function setDepartement(?StructureDepartement $departement): static
+    {
+        $this->departement = $departement;
 
         return $this;
     }

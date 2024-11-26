@@ -31,7 +31,7 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-    <div class="bg bg-surface-50 dark:bg-surface-950 flex flex-wrap items-center justify-center min-h-screen min-w-[100vw] overflow-hidden">
+    <div class="bg bg-surface-50 dark:bg-surface-950 flex flex-wrap items-center justify-center min-h-screen overflow-hidden">
         <div class="login-container flex">
             <div class="info-section bg-black bg-opacity-60 text-white backdrop-blur-sm flex justify-start p-16 gap-4">
                     <img :src="logoUrl" alt="logo de l'iut" class="logo" />

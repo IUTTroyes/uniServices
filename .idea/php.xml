@@ -176,6 +176,8 @@
       <path value="$PROJECT_DIR$/back/vendor/symfony/translation-contracts" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/validator" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/service-contracts" />
+      <path value="$PROJECT_DIR$/back/vendor/doctrine/doctrine-fixtures-bundle" />
+      <path value="$PROJECT_DIR$/back/vendor/doctrine/data-fixtures" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />

@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use App\Repository\PersonnelRepository;
+use App\Repository\StructurePersonnelRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -13,7 +13,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[ORM\Entity(repositoryClass: PersonnelRepository::class)]
+#[ORM\Entity(repositoryClass: StructurePersonnelRepository::class)]
 #[ApiResource(
     operations: [
         new Get(),
@@ -127,9 +127,11 @@ class StructurePersonnel implements UserInterface, PasswordAuthenticatedUserInte
         return $this->password;
     }
 
-    public function setPassword(?string $password): void
+    public function setPassword(?string $password): static
     {
         $this->password = $password;
+
+        return $this;
     }
 
     public function getRoles(): array

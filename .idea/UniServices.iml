@@ -171,6 +171,8 @@
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/twig/twig" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/webmozart/assert" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/willdurand/negotiation" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/doctrine/data-fixtures" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/doctrine/doctrine-fixtures-bundle" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

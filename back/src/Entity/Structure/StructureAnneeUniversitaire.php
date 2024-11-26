@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Structure;
 
 use App\Repository\StructureAnneeUniversitaireRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -29,7 +29,7 @@ class StructureAnneeUniversitaire
      * @var Collection<int, StructureScolarite>
      */
     #[ORM\OneToMany(targetEntity: StructureScolarite::class, mappedBy: 'structureAnneeUniversitaire')]
-    private Collection $scolaritÃes;
+    private Collection $scolaritï¿½es;
 
     /**
      * @var Collection<int, StructurePn>
@@ -48,7 +48,7 @@ class StructureAnneeUniversitaire
 
     public function __construct()
     {
-        $this->scolaritÃes = new ArrayCollection();
+        $this->scolaritï¿½es = new ArrayCollection();
         $this->pn = new ArrayCollection();
         $this->personnels = new ArrayCollection();
     }
@@ -97,15 +97,15 @@ class StructureAnneeUniversitaire
     /**
      * @return Collection<int, StructureScolarite>
      */
-    public function getScolaritÃes(): Collection
+    public function getScolaritï¿½es(): Collection
     {
-        return $this->scolaritÃes;
+        return $this->scolaritï¿½es;
     }
 
     public function addScolaritE(StructureScolarite $scolaritE): static
     {
-        if (!$this->scolaritÃes->contains($scolaritE)) {
-            $this->scolaritÃes->add($scolaritE);
+        if (!$this->scolaritï¿½es->contains($scolaritE)) {
+            $this->scolaritï¿½es->add($scolaritE);
             $scolaritE->setStructureAnneeUniversitaire($this);
         }
 
@@ -114,7 +114,7 @@ class StructureAnneeUniversitaire
 
     public function removeScolaritE(StructureScolarite $scolaritE): static
     {
-        if ($this->scolaritÃes->removeElement($scolaritE)) {
+        if ($this->scolaritï¿½es->removeElement($scolaritE)) {
             // set the owning side to null (unless already changed)
             if ($scolaritE->getStructureAnneeUniversitaire() === $this) {
                 $scolaritE->setStructureAnneeUniversitaire(null);
