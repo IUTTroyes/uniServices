@@ -54,6 +54,9 @@ class StructureSemestre
     #[ORM\OneToMany(targetEntity: StructureScolarite::class, mappedBy: 'semestre')]
     private Collection $structureScolarites;
 
+    #[ORM\ManyToOne(inversedBy: 'structureSemestres')]
+    private ?StructureAnnee $annee = null;
+
     public function __construct()
     {
         $this->structureGroupes = new ArrayCollection();
@@ -226,6 +229,18 @@ class StructureSemestre
                 $structureScolarite->setSemestre(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getAnnee(): ?StructureAnnee
+    {
+        return $this->annee;
+    }
+
+    public function setAnnee(?StructureAnnee $annee): static
+    {
+        $this->annee = $annee;
 
         return $this;
     }

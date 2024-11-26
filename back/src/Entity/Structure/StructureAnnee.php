@@ -45,9 +45,16 @@ class StructureAnnee
     #[ORM\Column]
     private array $opt = [];
 
+    /**
+     * @var Collection<int, StructureSemestre>
+     */
+    #[ORM\OneToMany(targetEntity: StructureSemestre::class, mappedBy: 'annee')]
+    private Collection $structureSemestres;
+
     public function __construct()
     {
         $this->pn = new ArrayCollection();
+        $this->structureSemestres = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -177,6 +184,36 @@ class StructureAnnee
     public function setOpt(array $opt): static
     {
         $this->opt = $opt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureSemestre>
+     */
+    public function getStructureSemestres(): Collection
+    {
+        return $this->structureSemestres;
+    }
+
+    public function addStructureSemestre(StructureSemestre $structureSemestre): static
+    {
+        if (!$this->structureSemestres->contains($structureSemestre)) {
+            $this->structureSemestres->add($structureSemestre);
+            $structureSemestre->setAnnee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStructureSemestre(StructureSemestre $structureSemestre): static
+    {
+        if ($this->structureSemestres->removeElement($structureSemestre)) {
+            // set the owning side to null (unless already changed)
+            if ($structureSemestre->getAnnee() === $this) {
+                $structureSemestre->setAnnee(null);
+            }
+        }
 
         return $this;
     }

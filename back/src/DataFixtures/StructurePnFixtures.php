@@ -20,19 +20,27 @@ class StructurePnFixtures extends Fixture
 
     public function getOrder()
     {
-        return 1;
+        return 3;
     }
 
     public function load(ObjectManager $manager): void
     {
-        $diplome = $this->diplomeRepository->findOneBy(['libelle' => 'MMI']);
+        $diplome1 = $this->diplomeRepository->findOneBy(['sigle' => 'MMI']);
+        $diplome2 = $this->diplomeRepository->findOneBy(['sigle' => 'MMI DWeb-Di FC']);
 
         $pn1 = new StructurePn();
         $pn1->setLibelle('PN BUT MMI ')
             ->setAnneePublication('2022')
-            ->setDiplome($diplome)
+            ->setDiplome($diplome1)
         ;
         $manager->persist($pn1);
+
+        $pn2 = new StructurePn();
+        $pn2->setLibelle('PN BUT MMI DWEB')
+            ->setAnneePublication('2024')
+            ->setDiplome($diplome2)
+        ;
+        $manager->persist($pn2);
 
         $manager->flush();
     }

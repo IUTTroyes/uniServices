@@ -17,7 +17,7 @@ class StructureUserFixtures extends Fixture
 
     public function getOrder(): int
     {
-        return 1;
+        return 10;
     }
 
     public function load(ObjectManager $manager): void
