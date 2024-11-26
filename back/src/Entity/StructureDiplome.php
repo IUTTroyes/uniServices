@@ -51,9 +51,16 @@ class StructureDiplome
     #[ORM\Column]
     private array $opt = [];
 
+    /**
+     * @var Collection<int, StructurePn>
+     */
+    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome')]
+    private Collection $structurePns;
+
     public function __construct()
     {
         $this->enfants = new ArrayCollection();
+        $this->structurePns = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -207,6 +214,36 @@ class StructureDiplome
     public function setOpt(array $opt): static
     {
         $this->opt = $opt;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructurePn>
+     */
+    public function getStructurePns(): Collection
+    {
+        return $this->structurePns;
+    }
+
+    public function addStructurePn(StructurePn $structurePn): static
+    {
+        if (!$this->structurePns->contains($structurePn)) {
+            $this->structurePns->add($structurePn);
+            $structurePn->setDiplome($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStructurePn(StructurePn $structurePn): static
+    {
+        if ($this->structurePns->removeElement($structurePn)) {
+            // set the owning side to null (unless already changed)
+            if ($structurePn->getDiplome() === $this) {
+                $structurePn->setDiplome(null);
+            }
+        }
 
         return $this;
     }

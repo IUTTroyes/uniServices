@@ -6,6 +6,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Repository\EtudiantRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -44,6 +46,24 @@ class StructureEtudiant implements UserInterface
 
     #[ORM\Column(length: 255)]
     private ?string $photo_name = null;
+
+    /**
+     * @var Collection<int, StructureGroupe>
+     */
+    #[ORM\ManyToMany(targetEntity: StructureGroupe::class, mappedBy: 'etudiants')]
+    private Collection $structureGroupes;
+
+    /**
+     * @var Collection<int, StructureScolarite>
+     */
+    #[ORM\OneToMany(targetEntity: StructureScolarite::class, mappedBy: 'etudiant', orphanRemoval: true)]
+    private Collection $structureScolarites;
+
+    public function __construct()
+    {
+        $this->structureGroupes = new ArrayCollection();
+        $this->structureScolarites = new ArrayCollection();
+    }
 
     public function getMails(): array
     {
@@ -152,6 +172,63 @@ class StructureEtudiant implements UserInterface
     public function setPhotoName(?string $photo_name): static
     {
         $this->photo_name = $photo_name;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureGroupe>
+     */
+    public function getStructureGroupes(): Collection
+    {
+        return $this->structureGroupes;
+    }
+
+    public function addStructureGroupe(StructureGroupe $structureGroupe): static
+    {
+        if (!$this->structureGroupes->contains($structureGroupe)) {
+            $this->structureGroupes->add($structureGroupe);
+            $structureGroupe->addEtudiant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStructureGroupe(StructureGroupe $structureGroupe): static
+    {
+        if ($this->structureGroupes->removeElement($structureGroupe)) {
+            $structureGroupe->removeEtudiant($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureScolarite>
+     */
+    public function getStructureScolarites(): Collection
+    {
+        return $this->structureScolarites;
+    }
+
+    public function addStructureScolarite(StructureScolarite $structureScolarite): static
+    {
+        if (!$this->structureScolarites->contains($structureScolarite)) {
+            $this->structureScolarites->add($structureScolarite);
+            $structureScolarite->setEtudiant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStructureScolarite(StructureScolarite $structureScolarite): static
+    {
+        if ($this->structureScolarites->removeElement($structureScolarite)) {
+            // set the owning side to null (unless already changed)
+            if ($structureScolarite->getEtudiant() === $this) {
+                $structureScolarite->setEtudiant(null);
+            }
+        }
 
         return $this;
     }

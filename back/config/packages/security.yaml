@@ -8,9 +8,9 @@ security:
             chain:
                 providers: [ personnel_user, etudiant_user ]
         personnel_user:
-            entity: { class: App\Entity\Personnel, property: username }
+            entity: { class: App\Entity\StructurePersonnel, property: username }
         etudiant_user:
-            entity: { class: App\Entity\Etudiant, property: username }
+            entity: { class: App\Entity\StructureEtudiant, property: username }
 
     firewalls:
         dev:
@@ -63,8 +63,8 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
-        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
-#        - { path: ^/api,       roles: PUBLIC_ACCESS }
+#        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
+        - { path: ^/api,       roles: PUBLIC_ACCESS }
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
 

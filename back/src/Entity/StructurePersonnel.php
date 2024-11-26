@@ -60,6 +60,9 @@ class StructurePersonnel implements UserInterface, PasswordAuthenticatedUserInte
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'assistant_diplome')]
     private Collection $assistant_diplome;
 
+    #[ORM\ManyToOne(inversedBy: 'personnels')]
+    private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
+
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
@@ -233,6 +236,18 @@ class StructurePersonnel implements UserInterface, PasswordAuthenticatedUserInte
                 $assistantDiplome->setAssistantDiplome(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getStructureAnneeUniversitaire(): ?StructureAnneeUniversitaire
+    {
+        return $this->structureAnneeUniversitaire;
+    }
+
+    public function setStructureAnneeUniversitaire(?StructureAnneeUniversitaire $structureAnneeUniversitaire): static
+    {
+        $this->structureAnneeUniversitaire = $structureAnneeUniversitaire;
 
         return $this;
     }
