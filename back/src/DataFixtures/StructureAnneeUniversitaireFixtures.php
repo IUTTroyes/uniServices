@@ -17,11 +17,13 @@ class StructureAnneeUniversitaireFixtures extends Fixture
 
     public function __construct(
         StructureScolariteRepository $scolariteRepository,
-        StructurePersonnelRepository $personnelRepository
+        StructurePersonnelRepository $personnelRepository,
+        StructurePnRepository $pnRepository
     )
     {
         $this->scolariteRepository = $scolariteRepository;
         $this->personnelRepository = $personnelRepository;
+        $this->pnRepository = $pnRepository;
     }
 
     public function getOrder()
