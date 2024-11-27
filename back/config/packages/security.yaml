@@ -8,9 +8,9 @@ security:
             chain:
                 providers: [ personnel_user, etudiant_user ]
         personnel_user:
-            entity: { class: App\Entity\Structure\StructurePersonnel, property: username }
+            entity: { class: App\Entity\Users\Personnel, property: username }
         etudiant_user:
-            entity: { class: App\Entity\Structure\StructureEtudiant, property: username }
+            entity: { class: App\Entity\Users\Etudiant, property: username }
 
     firewalls:
         dev:

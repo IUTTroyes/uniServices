@@ -2,39 +2,39 @@
 
 namespace App\Repository;
 
-use App\Entity\Structure\StructureEtudiant;
+use App\Entity\Users\Personnel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<StructureEtudiant>
+ * @extends ServiceEntityRepository<Personnel>
  */
-class StructureEtudiantRepository extends ServiceEntityRepository
+class PersonnelRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, StructureEtudiant::class);
+        parent::__construct($registry, Personnel::class);
     }
 
     //    /**
-    //     * @return StructureEtudiant[] Returns an array of StructureEtudiant objects
+    //     * @return Personnel[] Returns an array of Personnel objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('e')
-    //            ->andWhere('e.exampleField = :val')
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('e.id', 'ASC')
+    //            ->orderBy('p.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?StructureEtudiant
+    //    public function findOneBySomeField($value): ?Personnel
     //    {
-    //        return $this->createQueryBuilder('e')
-    //            ->andWhere('e.exampleField = :val')
+    //        return $this->createQueryBuilder('p')
+    //            ->andWhere('p.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

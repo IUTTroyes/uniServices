@@ -3,7 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Structure\StructureAnnee;
-use App\Repository\StructurePersonnelRepository;
+use App\Repository\PersonnelRepository;
 use App\Repository\StructurePnRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
@@ -13,11 +13,11 @@ class StructureAnneeFixtures extends Fixture implements OrderedFixtureInterface
 {
     private StructurePnRepository $pnRepository;
 
-    private StructurePersonnelRepository $personnelRepository;
+    private PersonnelRepository $personnelRepository;
 
     public function __construct(
         StructurePnRepository $pnRepository,
-        StructurePersonnelRepository $personnelRepository
+        PersonnelRepository $personnelRepository
     )
     {
         $this->pnRepository = $pnRepository;

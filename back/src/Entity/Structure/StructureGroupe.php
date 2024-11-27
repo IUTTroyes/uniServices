@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Structure;
 
-use App\Entity\Structure\StructureEtudiant;
-use App\Entity\Structure\StructureSemestre;
+use App\Entity\Users\Etudiant;
 use App\Repository\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -31,9 +30,9 @@ class StructureGroupe
     private ?self $parent = null;
 
     /**
-     * @var Collection<int, StructureEtudiant>
+     * @var Collection<int, Etudiant>
      */
-    #[ORM\ManyToMany(targetEntity: StructureEtudiant::class, inversedBy: 'structureGroupes')]
+    #[ORM\ManyToMany(targetEntity: Etudiant::class, inversedBy: 'structureGroupes')]
     private Collection $etudiants;
 
     #[ORM\Column(nullable: true)]
@@ -112,14 +111,14 @@ class StructureGroupe
     }
 
     /**
-     * @return Collection<int, StructureEtudiant>
+     * @return Collection<int, Etudiant>
      */
     public function getEtudiants(): Collection
     {
         return $this->etudiants;
     }
 
-    public function addEtudiant(StructureEtudiant $etudiant): static
+    public function addEtudiant(Etudiant $etudiant): static
     {
         if (!$this->etudiants->contains($etudiant)) {
             $this->etudiants->add($etudiant);
@@ -128,7 +127,7 @@ class StructureGroupe
         return $this;
     }
 
-    public function removeEtudiant(StructureEtudiant $etudiant): static
+    public function removeEtudiant(Etudiant $etudiant): static
     {
         $this->etudiants->removeElement($etudiant);
 

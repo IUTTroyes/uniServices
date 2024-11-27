@@ -79,12 +79,8 @@ const toggleAnneeMenu = (event) => {
       </router-link>
 
       <button type="button" class="layout-topbar-action-app">
-        <img src="@/assets/logo/logo_unifolio.png" alt="calendar" />
-        <span>UniFolio</span>
-      </button>
-      <button type="button" class="layout-topbar-action-app">
-        <img src="@/assets/logo/logo_unifolio.png" alt="calendar" />
-        <span>Correcto</span>
+        <span>Département MMI</span>
+        <i class="pi pi-arrow-right-arrow-left"></i>
       </button>
     </div>
 
@@ -95,6 +91,15 @@ const toggleAnneeMenu = (event) => {
           <InputText v-model="search" placeholder="Recherche" />
         </IconField>
       </div>
+
+      <button type="button" class="layout-topbar-action-app">
+        <img src="@/assets/logo/logo_unifolio.png" alt="calendar" />
+        <span>UniFolio</span>
+      </button>
+      <button type="button" class="layout-topbar-action-app">
+        <img src="@/assets/logo/logo_unifolio.png" alt="calendar" />
+        <span>Correcto</span>
+      </button>
 
       <div class="layout-config-menu">
         <button type="button" class="layout-topbar-action" @click="toggleDarkMode">

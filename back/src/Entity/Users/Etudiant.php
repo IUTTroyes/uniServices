@@ -1,36 +1,42 @@
 <?php
 
-namespace App\Entity\Structure;
+namespace App\Entity\Users;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use App\Repository\StructurePersonnelRepository;
+use App\Entity\Structure\StructureGroupe;
+use App\Entity\Structure\StructureScolarite;
+use App\Repository\EtudiantRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Attribute\Groups;
 
-#[ORM\Entity(repositoryClass: StructurePersonnelRepository::class)]
+#[ORM\Entity(repositoryClass: EtudiantRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(),
-        new GetCollection(),
+        new Get(normalizationContext: ['groups' => ['etudiant:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['etudiant:read']]),
     ]
 )]
-class StructurePersonnel implements UserInterface, PasswordAuthenticatedUserInterface
+class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['etudiant:read'])]
     private ?string $mail_univ = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -40,33 +46,33 @@ class StructurePersonnel implements UserInterface, PasswordAuthenticatedUserInte
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?string $prenom = null;
 
     #[ORM\Column(length: 75)]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
     private ?string $photo_name = null;
 
     /**
-     * @var Collection<int, StructureDiplome>
+     * @var Collection<int, StructureGroupe>
      */
-    #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'responsable_diplome')]
-    private Collection $responsableDiplome;
+    #[ORM\ManyToMany(targetEntity: StructureGroupe::class, mappedBy: 'etudiants')]
+    private Collection $structureGroupes;
 
     /**
-     * @var Collection<int, StructureDiplome>
+     * @var Collection<int, StructureScolarite>
      */
-    #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'assistant_diplome')]
-    private Collection $assistant_diplome;
-
-    #[ORM\ManyToOne(inversedBy: 'personnels')]
-    private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
+    #[ORM\OneToMany(targetEntity: StructureScolarite::class, mappedBy: 'etudiant', orphanRemoval: true)]
+    #[Groups(['etudiant:read'])]
+    private Collection $structureScolarites;
 
     public function __construct()
     {
-        $this->responsableDiplome = new ArrayCollection();
-        $this->assistant_diplome = new ArrayCollection();
+        $this->structureGroupes = new ArrayCollection();
+        $this->structureScolarites = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -76,7 +82,7 @@ class StructurePersonnel implements UserInterface, PasswordAuthenticatedUserInte
 
     public function getTypeUser(): ?string
     {
-        return 'personnel';
+        return 'etudiant';
     }
 
     public function __toString(): string
@@ -183,73 +189,58 @@ class StructurePersonnel implements UserInterface, PasswordAuthenticatedUserInte
     }
 
     /**
-     * @return Collection<int, StructureDiplome>
+     * @return Collection<int, StructureGroupe>
      */
-    public function getResponsableDiplome(): Collection
+    public function getStructureGroupes(): Collection
     {
-        return $this->responsableDiplome;
+        return $this->structureGroupes;
     }
 
-    public function addResponsableDiplome(StructureDiplome $responsableDiplome): static
+    public function addStructureGroupe(StructureGroupe $structureGroupe): static
     {
-        if (!$this->responsableDiplome->contains($responsableDiplome)) {
-            $this->responsableDiplome->add($responsableDiplome);
-            $responsableDiplome->setResponsableDiplome($this);
+        if (!$this->structureGroupes->contains($structureGroupe)) {
+            $this->structureGroupes->add($structureGroupe);
+            $structureGroupe->addEtudiant($this);
         }
 
         return $this;
     }
 
-    public function removeResponsableDiplome(StructureDiplome $responsableDiplome): static
+    public function removeStructureGroupe(StructureGroupe $structureGroupe): static
     {
-        if ($this->responsableDiplome->removeElement($responsableDiplome)) {
-            // set the owning side to null (unless already changed)
-            if ($responsableDiplome->getResponsableDiplome() === $this) {
-                $responsableDiplome->setResponsableDiplome(null);
-            }
+        if ($this->structureGroupes->removeElement($structureGroupe)) {
+            $structureGroupe->removeEtudiant($this);
         }
 
         return $this;
     }
 
     /**
-     * @return Collection<int, StructureDiplome>
+     * @return Collection<int, StructureScolarite>
      */
-    public function getAssistantDiplome(): Collection
+    public function getStructureScolarites(): Collection
     {
-        return $this->assistant_diplome;
+        return $this->structureScolarites;
     }
 
-    public function addAssistantDiplome(StructureDiplome $assistantDiplome): static
+    public function addStructureScolarite(StructureScolarite $structureScolarite): static
     {
-        if (!$this->assistant_diplome->contains($assistantDiplome)) {
-            $this->assistant_diplome->add($assistantDiplome);
-            $assistantDiplome->setAssistantDiplome($this);
+        if (!$this->structureScolarites->contains($structureScolarite)) {
+            $this->structureScolarites->add($structureScolarite);
+            $structureScolarite->setEtudiant($this);
         }
 
         return $this;
     }
 
-    public function removeAssistantDiplome(StructureDiplome $assistantDiplome): static
+    public function removeStructureScolarite(StructureScolarite $structureScolarite): static
     {
-        if ($this->assistant_diplome->removeElement($assistantDiplome)) {
+        if ($this->structureScolarites->removeElement($structureScolarite)) {
             // set the owning side to null (unless already changed)
-            if ($assistantDiplome->getAssistantDiplome() === $this) {
-                $assistantDiplome->setAssistantDiplome(null);
+            if ($structureScolarite->getEtudiant() === $this) {
+                $structureScolarite->setEtudiant(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getStructureAnneeUniversitaire(): ?StructureAnneeUniversitaire
-    {
-        return $this->structureAnneeUniversitaire;
-    }
-
-    public function setStructureAnneeUniversitaire(?StructureAnneeUniversitaire $structureAnneeUniversitaire): static
-    {
-        $this->structureAnneeUniversitaire = $structureAnneeUniversitaire;
 
         return $this;
     }

@@ -5,6 +5,7 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Users\Personnel;
 use App\Repository\StructureDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -30,10 +31,10 @@ class StructureDiplome
     private ?string $libelle = null;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome')]
-    private ?StructurePersonnel $responsable_diplome = null;
+    private ?Personnel $responsable_diplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'assistant_diplome')]
-    private ?StructurePersonnel $assistant_diplome = null;
+    private ?Personnel $assistant_diplome = null;
 
     #[ORM\Column]
     private ?int $volume_horaire = null;
@@ -95,24 +96,24 @@ class StructureDiplome
         return $this;
     }
 
-    public function getResponsableDiplome(): ?StructurePersonnel
+    public function getResponsableDiplome(): ?Personnel
     {
         return $this->responsable_diplome;
     }
 
-    public function setResponsableDiplome(?StructurePersonnel $responsable_diplome): static
+    public function setResponsableDiplome(?Personnel $responsable_diplome): static
     {
         $this->responsable_diplome = $responsable_diplome;
 
         return $this;
     }
 
-    public function getAssistantDiplome(): ?StructurePersonnel
+    public function getAssistantDiplome(): ?Personnel
     {
         return $this->assistant_diplome;
     }
 
-    public function setAssistantDiplome(?StructurePersonnel $assistant_diplome): static
+    public function setAssistantDiplome(?Personnel $assistant_diplome): static
     {
         $this->assistant_diplome = $assistant_diplome;
 

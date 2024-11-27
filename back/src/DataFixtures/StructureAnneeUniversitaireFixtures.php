@@ -3,7 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Structure\StructureAnneeUniversitaire;
-use App\Repository\StructurePersonnelRepository;
+use App\Repository\PersonnelRepository;
 use App\Repository\StructurePnRepository;
 use App\Repository\StructureScolariteRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -13,13 +13,13 @@ use Doctrine\Persistence\ObjectManager;
 class StructureAnneeUniversitaireFixtures extends Fixture implements OrderedFixtureInterface
 {
     private StructureScolariteRepository $scolariteRepository;
-    private StructurePersonnelRepository $personnelRepository;
+    private PersonnelRepository $personnelRepository;
     private StructurePnRepository $pnRepository;
 
     public function __construct(
         StructureScolariteRepository $scolariteRepository,
-        StructurePersonnelRepository $personnelRepository,
-        StructurePnRepository $pnRepository
+        PersonnelRepository          $personnelRepository,
+        StructurePnRepository        $pnRepository
     )
     {
         $this->scolariteRepository = $scolariteRepository;

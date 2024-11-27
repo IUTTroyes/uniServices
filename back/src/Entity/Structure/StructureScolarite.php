@@ -5,6 +5,7 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Users\Etudiant;
 use App\Repository\StructureScolariteRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -32,7 +33,7 @@ class StructureScolarite
     #[ORM\ManyToOne(inversedBy: 'structureScolarites')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['scolarite:read'])]
-    private ?StructureEtudiant $etudiant = null;
+    private ?Etudiant $etudiant = null;
 
     #[ORM\Column]
     #[Groups(['scolarite:read'])]
@@ -92,12 +93,12 @@ class StructureScolarite
         return $this;
     }
 
-    public function getEtudiant(): ?StructureEtudiant
+    public function getEtudiant(): ?Etudiant
     {
         return $this->etudiant;
     }
 
-    public function setEtudiant(?StructureEtudiant $etudiant): static
+    public function setEtudiant(?Etudiant $etudiant): static
     {
         $this->etudiant = $etudiant;
 

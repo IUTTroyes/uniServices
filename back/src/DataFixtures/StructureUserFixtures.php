@@ -2,8 +2,8 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Structure\StructureEtudiant;
-use App\Entity\Structure\StructurePersonnel;
+use App\Entity\Users\Etudiant;
+use App\Entity\Users\Personnel;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -27,7 +27,7 @@ class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
     public function load(ObjectManager $manager): void
     {
         // ----------- PERSONNEL
-        $personnel = new StructurePersonnel();
+        $personnel = new Personnel();
         $password = $this->encoder->hashPassword($personnel, 'test');
         $personnel->setUsername('hero0010')
             ->setMailUniv('cyndel.herolt@univ-reims.fr')
@@ -40,7 +40,7 @@ class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
         $manager->persist($personnel);
 
         // ----------- ETUDIANT
-        $etudiant = new StructureEtudiant();
+        $etudiant = new Etudiant();
         $password = $this->encoder->hashPassword($etudiant, 'test');
         $etudiant->setUsername('hero0005')
             ->setMailUniv('cyndel.herolt@etudiant.univ-reims.fr')

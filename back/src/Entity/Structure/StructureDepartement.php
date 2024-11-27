@@ -48,9 +48,19 @@ class StructureDepartement
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'departement')]
     private Collection $structureDiplomes;
 
+    #[ORM\OneToOne(mappedBy: 'departement', cascade: ['persist', 'remove'])]
+    private ?StructureDepartementPersonnel $structureDepartementPersonnel = null;
+
+    /**
+     * @var Collection<int, StructureDepartementPersonnel>
+     */
+    #[ORM\OneToMany(targetEntity: StructureDepartementPersonnel::class, mappedBy: 'departement')]
+    private Collection $structureDepartementPersonnels;
+
     public function __construct()
     {
         $this->structureDiplomes = new ArrayCollection();
+        $this->structureDepartementPersonnels = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -178,6 +188,53 @@ class StructureDepartement
             // set the owning side to null (unless already changed)
             if ($structureDiplome->getDepartement() === $this) {
                 $structureDiplome->setDepartement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getStructureDepartementPersonnel(): ?StructureDepartementPersonnel
+    {
+        return $this->structureDepartementPersonnel;
+    }
+
+    public function setStructureDepartementPersonnel(StructureDepartementPersonnel $structureDepartementPersonnel): static
+    {
+        // set the owning side of the relation if necessary
+        if ($structureDepartementPersonnel->getDepartementId() !== $this) {
+            $structureDepartementPersonnel->setDepartementId($this);
+        }
+
+        $this->structureDepartementPersonnel = $structureDepartementPersonnel;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureDepartementPersonnel>
+     */
+    public function getStructureDepartementPersonnels(): Collection
+    {
+        return $this->structureDepartementPersonnels;
+    }
+
+    public function addStructureDepartementPersonnel(StructureDepartementPersonnel $structureDepartementPersonnel): static
+    {
+        if (!$this->structureDepartementPersonnels->contains($structureDepartementPersonnel)) {
+            $this->structureDepartementPersonnels->add($structureDepartementPersonnel);
+            $structureDepartementPersonnel->setDepartement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStructureDepartementPersonnel(StructureDepartementPersonnel $structureDepartementPersonnel): static
+    {
+        if ($this->structureDepartementPersonnels->removeElement($structureDepartementPersonnel)) {
+            // set the owning side to null (unless already changed)
+            if ($structureDepartementPersonnel->getDepartement() === $this) {
+                $structureDepartementPersonnel->setDepartement(null);
             }
         }
 

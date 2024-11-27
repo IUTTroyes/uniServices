@@ -2,7 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\StructureGroupe;
+use App\Entity\Structure\StructureGroupe;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;

@@ -13,7 +13,7 @@ export const useUsersStore = defineStore('users', () => {
 
     const fetchUser = async () => {
         try {
-            const response = await api.get(`/api/structure_${type}/${userId}`);
+            const response = await api.get(`/api/${type}/${userId}`);
             // transformer user.photo_name en chemin vers l'image : "@/assets/photos_etudiants/" + user.photo_name
             response.data.photo_name = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photo_name;
             user.value = response.data;

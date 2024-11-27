@@ -2,7 +2,7 @@
 
 namespace App\EventListener;
 
-use App\Entity\Structure\StructureEtudiant;
+use App\Entity\Users\Etudiant;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 
 class JWTCreatedListener
@@ -12,7 +12,7 @@ class JWTCreatedListener
         $user = $event->getUser();
         $payload = $event->getData();
 
-        if ($user instanceof StructureEtudiant) {
+        if ($user instanceof Etudiant) {
             $type = 'etudiants';
         } else {
             $type = 'personnels';

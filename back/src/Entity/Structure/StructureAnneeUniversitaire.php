@@ -5,6 +5,7 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Users\Personnel;
 use App\Repository\StructureAnneeUniversitaireRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -47,9 +48,9 @@ class StructureAnneeUniversitaire
     private Collection $pn;
 
     /**
-     * @var Collection<int, StructurePersonnel>
+     * @var Collection<int, Personnel>
      */
-    #[ORM\OneToMany(targetEntity: StructurePersonnel::class, mappedBy: 'structureAnneeUniversitaire')]
+    #[ORM\OneToMany(targetEntity: Personnel::class, mappedBy: 'structureAnneeUniversitaire')]
     private Collection $personnels;
 
     #[ORM\Column]
@@ -158,14 +159,14 @@ class StructureAnneeUniversitaire
     }
 
     /**
-     * @return Collection<int, StructurePersonnel>
+     * @return Collection<int, Personnel>
      */
     public function getPersonnels(): Collection
     {
         return $this->personnels;
     }
 
-    public function addPersonnel(StructurePersonnel $personnel): static
+    public function addPersonnel(Personnel $personnel): static
     {
         if (!$this->personnels->contains($personnel)) {
             $this->personnels->add($personnel);
@@ -175,7 +176,7 @@ class StructureAnneeUniversitaire
         return $this;
     }
 
-    public function removePersonnel(StructurePersonnel $personnel): static
+    public function removePersonnel(Personnel $personnel): static
     {
         if ($this->personnels->removeElement($personnel)) {
             // set the owning side to null (unless already changed)
