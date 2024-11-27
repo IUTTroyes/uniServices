@@ -66,9 +66,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToOne(inversedBy: 'personnels')]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
 
-    #[ORM\OneToOne(mappedBy: 'personnel', cascade: ['persist', 'remove'])]
-    private ?StructureDepartementPersonnel $structureDepartementPersonnel = null;
-
     /**
      * @var Collection<int, StructureDepartementPersonnel>
      */
@@ -263,28 +260,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     public function setStructureAnneeUniversitaire(?StructureAnneeUniversitaire $structureAnneeUniversitaire): static
     {
         $this->structureAnneeUniversitaire = $structureAnneeUniversitaire;
-
-        return $this;
-    }
-
-    public function getStructureDepartementPersonnel(): ?StructureDepartementPersonnel
-    {
-        return $this->structureDepartementPersonnel;
-    }
-
-    public function setStructureDepartementPersonnel(?StructureDepartementPersonnel $structureDepartementPersonnel): static
-    {
-        // unset the owning side of the relation if necessary
-        if ($structureDepartementPersonnel === null && $this->structureDepartementPersonnel !== null) {
-            $this->structureDepartementPersonnel->setPersonnelId(null);
-        }
-
-        // set the owning side of the relation if necessary
-        if ($structureDepartementPersonnel !== null && $structureDepartementPersonnel->getPersonnelId() !== $this) {
-            $structureDepartementPersonnel->setPersonnelId($this);
-        }
-
-        $this->structureDepartementPersonnel = $structureDepartementPersonnel;
 
         return $this;
     }

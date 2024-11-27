@@ -48,9 +48,6 @@ class StructureDepartement
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'departement')]
     private Collection $structureDiplomes;
 
-    #[ORM\OneToOne(mappedBy: 'departement', cascade: ['persist', 'remove'])]
-    private ?StructureDepartementPersonnel $structureDepartementPersonnel = null;
-
     /**
      * @var Collection<int, StructureDepartementPersonnel>
      */
@@ -190,23 +187,6 @@ class StructureDepartement
                 $structureDiplome->setDepartement(null);
             }
         }
-
-        return $this;
-    }
-
-    public function getStructureDepartementPersonnel(): ?StructureDepartementPersonnel
-    {
-        return $this->structureDepartementPersonnel;
-    }
-
-    public function setStructureDepartementPersonnel(StructureDepartementPersonnel $structureDepartementPersonnel): static
-    {
-        // set the owning side of the relation if necessary
-        if ($structureDepartementPersonnel->getDepartementId() !== $this) {
-            $structureDepartementPersonnel->setDepartementId($this);
-        }
-
-        $this->structureDepartementPersonnel = $structureDepartementPersonnel;
 
         return $this;
     }

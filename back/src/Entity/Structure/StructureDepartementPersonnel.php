@@ -2,11 +2,21 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Users\Personnel;
 use App\Repository\StructureDepartementPersonnelRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDepartementPersonnelRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['structure_departement_personnel:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['structure_departement_personnel:read']]),
+    ]
+)]
 class StructureDepartementPersonnel
 {
     #[ORM\Id]
@@ -25,6 +35,7 @@ class StructureDepartementPersonnel
     private ?Personnel $personnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'structureDepartementPersonnels')]
+    #[Groups(groups: ['personnel:read'])]
     private ?StructureDepartement $departement = null;
 
     public function getId(): ?int
