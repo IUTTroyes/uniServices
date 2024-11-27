@@ -2,12 +2,21 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Repository\StructureAnneeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StructureAnneeRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['annee:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['annee:read']]),
+    ]
+)]
 class StructureAnnee
 {
     #[ORM\Id]

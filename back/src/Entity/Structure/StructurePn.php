@@ -2,17 +2,28 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Repository\StructurePnRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: StructurePnRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['structure_pn:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['structure_pn:read']]),
+    ]
+)]
 class StructurePn
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['structure_pn:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]

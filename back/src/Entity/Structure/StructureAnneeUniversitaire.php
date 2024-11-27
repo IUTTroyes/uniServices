@@ -2,6 +2,9 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Repository\StructureAnneeUniversitaireRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -9,6 +12,12 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StructureAnneeUniversitaireRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['structure_annee_universitaire:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['structure_annee_universitaire:read']]),
+    ]
+)]
 class StructureAnneeUniversitaire
 {
     #[ORM\Id]

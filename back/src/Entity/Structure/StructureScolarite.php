@@ -2,16 +2,27 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Repository\StructureScolariteRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureScolariteRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['scolarite:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['scolarite:read']]),
+    ]
+)]
 class StructureScolarite
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['scolarite:read', 'etudiant:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'structureScolarites')]
@@ -20,37 +31,48 @@ class StructureScolarite
 
     #[ORM\ManyToOne(inversedBy: 'structureScolarites')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['scolarite:read'])]
     private ?StructureEtudiant $etudiant = null;
 
     #[ORM\Column]
+    #[Groups(['scolarite:read'])]
     private ?int $ordre = null;
 
     #[ORM\Column(length: 10, nullable: true)]
+    #[Groups(['scolarite:read'])]
     private ?string $proposition = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
     private ?float $moyenne = null;
 
     #[ORM\Column]
+    #[Groups(['scolarite:read'])]
     private ?int $nb_absences = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['scolarite:read'])]
     private ?string $commentaire = null;
 
     #[ORM\Column]
+    #[Groups(['scolarite:read'])]
     private ?bool $public = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
     private ?array $moyennes_matiere = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
     private ?array $moyennes_ue = null;
 
     #[ORM\Column]
+    #[Groups(['scolarite:read'])]
     private ?bool $actif = null;
 
-    #[ORM\ManyToOne(inversedBy: 'scolarit�es')]
+    #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['scolarite:read'])]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
 
     public function getId(): ?int

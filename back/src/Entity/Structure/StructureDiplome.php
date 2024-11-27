@@ -2,17 +2,28 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Repository\StructureDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDiplomeRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['structure_diplome:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['structure_diplome:read']]),
+    ]
+)]
 class StructureDiplome
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['structure_diplome:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]

@@ -13,12 +13,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureEtudiantRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(),
-        new GetCollection(),
+        new Get(normalizationContext: ['groups' => ['etudiant:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['etudiant:read']]),
     ]
 )]
 class StructureEtudiant implements UserInterface, PasswordAuthenticatedUserInterface
@@ -26,12 +27,15 @@ class StructureEtudiant implements UserInterface, PasswordAuthenticatedUserInter
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['etudiant:read'])]
     private ?string $mail_univ = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -41,9 +45,11 @@ class StructureEtudiant implements UserInterface, PasswordAuthenticatedUserInter
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?string $prenom = null;
 
     #[ORM\Column(length: 75)]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
@@ -59,6 +65,7 @@ class StructureEtudiant implements UserInterface, PasswordAuthenticatedUserInter
      * @var Collection<int, StructureScolarite>
      */
     #[ORM\OneToMany(targetEntity: StructureScolarite::class, mappedBy: 'etudiant', orphanRemoval: true)]
+    #[Groups(['etudiant:read'])]
     private Collection $structureScolarites;
 
     public function __construct()

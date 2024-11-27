@@ -2,6 +2,9 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\StructureGroupe;
 use App\Repository\StructureSemestreRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -9,6 +12,12 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StructureSemestreRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['semestre:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['semestre:read']]),
+    ]
+)]
 class StructureSemestre
 {
     #[ORM\Id]
