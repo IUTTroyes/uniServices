@@ -1,7 +1,9 @@
 <?php
 
-namespace App\Entity\Structure;
+namespace App\Entity;
 
+use App\Entity\Structure\StructureEtudiant;
+use App\Entity\Structure\StructureSemestre;
 use App\Repository\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -21,7 +23,11 @@ class StructureGroupe
     #[ORM\Column(length: 50)]
     private ?string $code_apogee = null;
 
+    #[ORM\Column(length: 10)]
+    private ?string $type = null;
+
     #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?self $parent = null;
 
     /**
@@ -29,9 +35,6 @@ class StructureGroupe
      */
     #[ORM\ManyToMany(targetEntity: StructureEtudiant::class, inversedBy: 'structureGroupes')]
     private Collection $etudiants;
-
-    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
-    private ?self $enfants = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $ordre = null;
@@ -42,11 +45,17 @@ class StructureGroupe
     #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'structureGroupes')]
     private Collection $semestres;
 
+    /**
+     * @var Collection<int, self>
+     */
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
+    private ?Collection $enfants = null;
+
     public function __construct()
     {
         $this->etudiants = new ArrayCollection();
-        $this->enfants = new ArrayCollection();
         $this->semestres = new ArrayCollection();
+        $this->enfants = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -74,6 +83,18 @@ class StructureGroupe
     public function setCodeApogee(string $code_apogee): static
     {
         $this->code_apogee = $code_apogee;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(?string $type): static
+    {
+        $this->type = $type;
 
         return $this;
     }
@@ -114,40 +135,6 @@ class StructureGroupe
         return $this;
     }
 
-    public function getEnfants(): ?self
-    {
-        return $this->enfants;
-    }
-
-    public function setEnfants(?self $enfants): static
-    {
-        $this->enfants = $enfants;
-
-        return $this;
-    }
-
-    public function addEnfant(self $enfant): static
-    {
-        if (!$this->enfants->contains($enfant)) {
-            $this->enfants->add($enfant);
-            $enfant->setEnfants($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEnfant(self $enfant): static
-    {
-        if ($this->enfants->removeElement($enfant)) {
-            // set the owning side to null (unless already changed)
-            if ($enfant->getEnfants() === $this) {
-                $enfant->setEnfants(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function getOrdre(): ?int
     {
         return $this->ordre;
@@ -180,6 +167,36 @@ class StructureGroupe
     public function removeSemestre(StructureSemestre $semestre): static
     {
         $this->semestres->removeElement($semestre);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, self>
+     */
+    public function getEnfants(): Collection
+    {
+        return $this->enfants;
+    }
+
+    public function addEnfant(?self $enfant): static
+    {
+        if (!$this->enfants->contains($enfant)) {
+            $this->enfants->add($enfant);
+            $enfant->setParent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEnfant(self $enfant): static
+    {
+        if ($this->enfants->removeElement($enfant)) {
+            // set the owning side to null (unless already changed)
+            if ($enfant->getParent() === $this) {
+                $enfant->setParent(null);
+            }
+        }
 
         return $this;
     }

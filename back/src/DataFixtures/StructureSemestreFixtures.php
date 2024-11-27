@@ -5,9 +5,10 @@ namespace App\DataFixtures;
 use App\Entity\Structure\StructureSemestre;
 use App\Repository\StructureAnneeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-class StructureSemestreFixtures extends Fixture
+class StructureSemestreFixtures extends Fixture implements OrderedFixtureInterface
 {
     private StructureAnneeRepository $anneeRepository;
 
@@ -18,9 +19,12 @@ class StructureSemestreFixtures extends Fixture
         $this->anneeRepository = $anneeRepository;
     }
 
-    public function getOrder()
+    /**
+     * @inheritDoc
+     */
+    public function getOrder(): int
     {
-        return 5;
+        return 6;
     }
 
     public function load(ObjectManager $manager): void

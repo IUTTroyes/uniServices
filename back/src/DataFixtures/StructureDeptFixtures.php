@@ -4,13 +4,17 @@ namespace App\DataFixtures;
 
 use App\Entity\Structure\StructureDepartement;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-class StructureDeptFixtures extends Fixture
+class StructureDeptFixtures extends Fixture implements OrderedFixtureInterface
 {
-    public function getOrder()
+    /**
+     * @inheritDoc
+     */
+    public function getOrder(): int
     {
-        return 1;
+        return 2;
     }
 
     public function load(ObjectManager $manager): void

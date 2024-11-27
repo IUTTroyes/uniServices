@@ -3,30 +3,41 @@
 namespace App\DataFixtures;
 
 use App\Entity\Structure\StructureAnnee;
+use App\Repository\StructurePersonnelRepository;
 use App\Repository\StructurePnRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-class StructureAnneeFixtures extends Fixture
+class StructureAnneeFixtures extends Fixture implements OrderedFixtureInterface
 {
     private StructurePnRepository $pnRepository;
 
+    private StructurePersonnelRepository $personnelRepository;
+
     public function __construct(
-        StructurePnRepository $pnRepository
+        StructurePnRepository $pnRepository,
+        StructurePersonnelRepository $personnelRepository
     )
     {
         $this->pnRepository = $pnRepository;
+        $this->personnelRepository = $personnelRepository;
     }
 
-    public function getOrder()
+    /**
+     * @inheritDoc
+     */
+    public function getOrder(): int
     {
-        return 4;
+        return 5;
     }
 
     public function load(ObjectManager $manager): void
     {
         $pn1 = $this->pnRepository->findOneBy(['libelle' => 'PN BUT MMI']);
         $pn2 = $this->pnRepository->findOneBy(['libelle' => 'PN BUT MMI DWEB']);
+
+        $personnel = $this->personnelRepository->findOneBy(['username' => 'hero0010']);
 
         $annee1 = new StructureAnnee();
         $annee1->setLibelle('MMI 1')

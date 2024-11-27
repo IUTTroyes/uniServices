@@ -5,9 +5,10 @@ namespace App\DataFixtures;
 use App\Entity\Structure\StructurePn;
 use App\Repository\StructureDiplomeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-class StructurePnFixtures extends Fixture
+class StructurePnFixtures extends Fixture implements OrderedFixtureInterface
 {
     private StructureDiplomeRepository $diplomeRepository;
 
@@ -18,9 +19,12 @@ class StructurePnFixtures extends Fixture
         $this->diplomeRepository = $diplomeRepository;
     }
 
-    public function getOrder()
+    /**
+     * @inheritDoc
+     */
+    public function getOrder(): int
     {
-        return 3;
+        return 4;
     }
 
     public function load(ObjectManager $manager): void

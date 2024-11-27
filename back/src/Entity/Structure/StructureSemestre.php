@@ -2,6 +2,7 @@
 
 namespace App\Entity\Structure;
 
+use App\Entity\StructureGroupe;
 use App\Repository\StructureSemestreRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

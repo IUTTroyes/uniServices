@@ -2,12 +2,12 @@
 
 namespace App\Entity\Structure;
 
-use App\Repository\DiplomeRepository;
+use App\Repository\StructureDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: DiplomeRepository::class)]
+#[ORM\Entity(repositoryClass: StructureDiplomeRepository::class)]
 class StructureDiplome
 {
     #[ORM\Id]
@@ -37,12 +37,13 @@ class StructureDiplome
     private ?bool $actif = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
+    #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?self $parent = null;
 
     /**
      * @var Collection<int, self>
      */
-    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
     private ?Collection $enfants = null;
 
     #[ORM\Column(length: 255, nullable: true)]

@@ -5,19 +5,23 @@ namespace App\DataFixtures;
 use App\Entity\Structure\StructureEtudiant;
 use App\Entity\Structure\StructurePersonnel;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-class StructureUserFixtures extends Fixture
+class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
 {
     public function __construct(
         private readonly UserPasswordHasherInterface $encoder,
     ) {
     }
 
+    /**
+     * @inheritDoc
+     */
     public function getOrder(): int
     {
-        return 10;
+        return 1;
     }
 
     public function load(ObjectManager $manager): void

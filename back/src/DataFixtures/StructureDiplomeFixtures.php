@@ -5,9 +5,10 @@ namespace App\DataFixtures;
 use App\Entity\Structure\StructureDiplome;
 use App\Repository\StructureDepartementRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-class StructureDiplomeFixtures extends Fixture
+class StructureDiplomeFixtures extends Fixture implements OrderedFixtureInterface
 {
     private StructureDepartementRepository $departementRepository;
 
@@ -18,9 +19,12 @@ class StructureDiplomeFixtures extends Fixture
         $this->departementRepository = $departementRepository;
     }
 
-    public function getOrder()
+    /**
+     * @inheritDoc
+     */
+    public function getOrder(): int
     {
-        return 2;
+        return 3;
     }
 
     public function load(ObjectManager $manager): void
@@ -35,10 +39,6 @@ class StructureDiplomeFixtures extends Fixture
             ->setActif(true)
             ->setLogoPartenaire('logo_partenaire.png')
             ->setOpt(['nb_jours_saisie' => '1'])
-            ->setResponsableDiplome(null)
-            ->setAssistantDiplome(null)
-            ->setParent(null)
-            ->addEnfant(null)
             ->setDepartement($departement)
         ;
         $manager->persist($diplome1);
@@ -51,10 +51,7 @@ class StructureDiplomeFixtures extends Fixture
             ->setActif(true)
             ->setLogoPartenaire('logo_partenaire.png')
             ->setOpt(['nb_jours_saisie' => '1'])
-            ->setResponsableDiplome(null)
-            ->setAssistantDiplome(null)
             ->setParent($diplome1)
-            ->addEnfant(null)
             ->setDepartement($departement)
         ;
         $manager->persist($diplome2);
@@ -67,10 +64,7 @@ class StructureDiplomeFixtures extends Fixture
             ->setActif(true)
             ->setLogoPartenaire('logo_partenaire.png')
             ->setOpt(['nb_jours_saisie' => '1'])
-            ->setResponsableDiplome(null)
-            ->setAssistantDiplome(null)
             ->setParent($diplome1)
-            ->addEnfant(null)
             ->setDepartement($departement)
         ;
         $manager->persist($diplome3);

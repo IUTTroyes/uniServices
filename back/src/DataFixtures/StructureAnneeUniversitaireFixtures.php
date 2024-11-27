@@ -7,9 +7,10 @@ use App\Repository\StructurePersonnelRepository;
 use App\Repository\StructurePnRepository;
 use App\Repository\StructureScolariteRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 
-class StructureAnneeUniversitaireFixtures extends Fixture
+class StructureAnneeUniversitaireFixtures extends Fixture implements OrderedFixtureInterface
 {
     private StructureScolariteRepository $scolariteRepository;
     private StructurePersonnelRepository $personnelRepository;
@@ -26,7 +27,10 @@ class StructureAnneeUniversitaireFixtures extends Fixture
         $this->pnRepository = $pnRepository;
     }
 
-    public function getOrder()
+    /**
+     * @inheritDoc
+     */
+    public function getOrder(): int
     {
         return 7;
     }
@@ -34,8 +38,6 @@ class StructureAnneeUniversitaireFixtures extends Fixture
     public function load(ObjectManager $manager): void
     {
         $personnel = $this->personnelRepository->findOneBy(['username' => 'hero0010']);
-        $scolarite1 = $this->scolariteRepository->findOneBy(['ordre' => 1]);
-        $scolarite2 = $this->scolariteRepository->findOneBy(['ordre' => 2]);
 
         $pn1 = $this->pnRepository->findOneBy(['libelle' => 'PN BUT MMI ']);
         $pn2 = $this->pnRepository->findOneBy(['libelle' => 'PN BUT MMI DWEB']);
@@ -43,7 +45,6 @@ class StructureAnneeUniversitaireFixtures extends Fixture
         $anneeUniversitaire1 = new StructureAnneeUniversitaire();
         $anneeUniversitaire1->setLibelle('2023/2024')
             ->setAnnee(2023)
-            ->addScolarite($scolarite1)
             ->addPn($pn1)
             ->addPn($pn2)
             ->addPersonnel($personnel)
@@ -54,7 +55,6 @@ class StructureAnneeUniversitaireFixtures extends Fixture
         $anneeUniversitaire2 = new StructureAnneeUniversitaire();
         $anneeUniversitaire2->setLibelle('2024/2025')
             ->setAnnee(2024)
-            ->addScolarite($scolarite2)
             ->addPn($pn1)
             ->addPn($pn2)
             ->addPersonnel($personnel)
