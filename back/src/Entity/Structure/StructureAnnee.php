@@ -65,6 +65,7 @@ class StructureAnnee
     {
         $this->pn = new ArrayCollection();
         $this->structureSemestres = new ArrayCollection();
+        $this->setOpt([]);
     }
 
     public function getId(): ?int
@@ -227,8 +228,7 @@ class StructureAnnee
             'alternance' => 1,
         ]);
 
-        $resolver->setAllowedTypes('materiel', 'int');
-        $resolver->setAllowedTypes('edt', 'int');
+        $resolver->setAllowedTypes('alternance', 'int');
     }
 
     public function setOpt(array $opt): static

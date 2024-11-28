@@ -78,6 +78,7 @@ class StructureDiplome
     {
         $this->enfants = new ArrayCollection();
         $this->structurePns = new ArrayCollection();
+        $this->setOpt([]);
     }
 
     public function getId(): ?int
@@ -285,8 +286,16 @@ class StructureDiplome
             'saisie_cm_autorisee' => 1,
         ]);
 
-        $resolver->setAllowedTypes('materiel', 'int');
-        $resolver->setAllowedTypes('edt', 'int');
+        $resolver->setAllowedTypes('nb_jours_saisie_absence', 'int');
+        $resolver->setAllowedTypes('supp_absence', 'int');
+        $resolver->setAllowedTypes('anonymat', 'int');
+        $resolver->setAllowedTypes('commentaire_releve', 'int');
+        $resolver->setAllowedTypes('espace_perso_visible', 'int');
+        $resolver->setAllowedTypes('semaine_visible', 'int');
+        $resolver->setAllowedTypes('certif_qualite', 'int');
+        $resolver->setAllowedTypes('resp_qualite', 'int');
+        $resolver->setAllowedTypes('update_celcat', 'int');
+        $resolver->setAllowedTypes('saisie_cm_autorisee', 'int');
     }
 
     public function setOpt(array $opt): static

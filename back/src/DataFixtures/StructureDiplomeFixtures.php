@@ -38,7 +38,6 @@ class StructureDiplomeFixtures extends Fixture implements OrderedFixtureInterfac
             ->setSigle('MMI')
             ->setActif(true)
             ->setLogoPartenaire('logo_partenaire.png')
-            ->setOpt(['nb_jours_saisie' => '1'])
             ->setDepartement($departement)
         ;
         $manager->persist($diplome1);
@@ -50,7 +49,6 @@ class StructureDiplomeFixtures extends Fixture implements OrderedFixtureInterfac
             ->setSigle('MMI DWeb-Di FC')
             ->setActif(true)
             ->setLogoPartenaire('logo_partenaire.png')
-            ->setOpt(['nb_jours_saisie' => '1'])
             ->setParent($diplome1)
             ->setDepartement($departement)
         ;
@@ -63,7 +61,6 @@ class StructureDiplomeFixtures extends Fixture implements OrderedFixtureInterfac
             ->setSigle('MMI DWeb-Di')
             ->setActif(true)
             ->setLogoPartenaire('logo_partenaire.png')
-            ->setOpt(['nb_jours_saisie' => '1'])
             ->setParent($diplome1)
             ->setDepartement($departement)
         ;

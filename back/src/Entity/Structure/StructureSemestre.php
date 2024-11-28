@@ -71,6 +71,7 @@ class StructureSemestre
     {
         $this->structureGroupes = new ArrayCollection();
         $this->structureScolarites = new ArrayCollection();
+        $this->setOpt([]);
     }
 
     public function getId(): ?int
@@ -268,8 +269,21 @@ class StructureSemestre
             'mail_rattrapage' => 0,
         ]);
 
-        $resolver->setAllowedTypes('materiel', 'int');
-        $resolver->setAllowedTypes('edt', 'int');
+        $resolver->setAllowedTypes('mail_releve', 'int');
+        $resolver->setAllowedTypes('mail_modif_note', 'int');
+        $resolver->setAllowedTypes('dest_mail_releve', 'int');
+        $resolver->setAllowedTypes('dest_mail_modif_note', 'int');
+        $resolver->setAllowedTypes('eval_visible', 'int');
+        $resolver->setAllowedTypes('eval_modif', 'int');
+        $resolver->setAllowedTypes('penalite_absence', 'int');
+        $resolver->setAllowedTypes('mail_absence_resp', 'int');
+        $resolver->setAllowedTypes('dest_mail_absence_resp', 'int');
+        $resolver->setAllowedTypes('mail_absence_etudiant', 'int');
+        $resolver->setAllowedTypes('opt_penalite_absence', 'int');
+        $resolver->setAllowedTypes('mail_assistante_justif_absence', 'int');
+        $resolver->setAllowedTypes('bilan_semestre', 'int');
+        $resolver->setAllowedTypes('rattrapage', 'int');
+        $resolver->setAllowedTypes('mail_rattrapage', 'int');
     }
 
     public function setOpt(array $opt): static

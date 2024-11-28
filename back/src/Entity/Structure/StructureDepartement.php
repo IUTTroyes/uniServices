@@ -59,6 +59,7 @@ class StructureDepartement
     {
         $this->structureDiplomes = new ArrayCollection();
         $this->structureDepartementPersonnels = new ArrayCollection();
+        $this->setOpt([]);
     }
 
     public function getId(): ?int
@@ -226,6 +227,8 @@ class StructureDepartement
 
         $resolver->setAllowedTypes('materiel', 'int');
         $resolver->setAllowedTypes('edt', 'int');
+        $resolver->setAllowedTypes('stage', 'int');
+        $resolver->setAllowedTypes('resp_ri', 'int');
     }
 
     public function setOpt(array $opt): static

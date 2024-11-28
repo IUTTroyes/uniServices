@@ -48,7 +48,6 @@ class StructureAnneeFixtures extends Fixture implements OrderedFixtureInterface
             ->setActif(true)
             ->setCouleur('red')
             ->addPn($pn1)
-            ->setOpt(['alternance' => '0'])
         ;
         $manager->persist($annee1);
 
@@ -61,7 +60,6 @@ class StructureAnneeFixtures extends Fixture implements OrderedFixtureInterface
             ->setActif(true)
             ->setCouleur('purple')
             ->addPn($pn2)
-            ->setOpt(['alternance' => '1'])
             ;
         $manager->persist($annee2);
 

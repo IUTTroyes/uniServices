@@ -41,7 +41,6 @@ class StructureSemestreFixtures extends Fixture implements OrderedFixtureInterfa
             ->setNbGroupesTd(3)
             ->setNbGroupesTp(6)
             ->setCodeElement('MMI123')
-            ->setOpt(['modif_notes' => '0'])
             ->setAnnee($annee1)
             ;
         $manager->persist($semestre1);
@@ -55,7 +54,6 @@ class StructureSemestreFixtures extends Fixture implements OrderedFixtureInterfa
             ->setNbGroupesTd(3)
             ->setNbGroupesTp(6)
             ->setCodeElement('MMI123')
-            ->setOpt(['modif_notes' => '0'])
             ->setAnnee($annee1)
             ;
         $manager->persist($semestre2);
@@ -69,7 +67,6 @@ class StructureSemestreFixtures extends Fixture implements OrderedFixtureInterfa
             ->setNbGroupesTd(1)
             ->setNbGroupesTp(2)
             ->setCodeElement('MMI124')
-            ->setOpt(['modif_notes' => '0'])
             ->setAnnee($annee2)
             ;
         $manager->persist($semestre3);
@@ -83,7 +80,6 @@ class StructureSemestreFixtures extends Fixture implements OrderedFixtureInterfa
             ->setNbGroupesTd(1)
             ->setNbGroupesTp(2)
             ->setCodeElement('MMI124')
-            ->setOpt(['modif_notes' => '0'])
             ->setAnnee($annee2)
             ;
         $manager->persist($semestre4);
