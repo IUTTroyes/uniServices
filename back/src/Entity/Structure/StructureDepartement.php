@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDepartementRepository::class)]
 #[ApiResource]
@@ -17,9 +18,11 @@ class StructureDepartement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(groups: ['structure_departement:read', 'personnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(groups: ['structure_departement:read', 'personnel:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -38,9 +41,11 @@ class StructureDepartement
     private ?string $description = null;
 
     #[ORM\Column]
+    #[Groups(groups: ['structure_departement:read', 'personnel:read'])]
     private ?bool $actif = null;
 
     #[ORM\Column]
+    #[Groups(groups: ['structure_departement:read'])]
     private array $opt = [];
 
     /**

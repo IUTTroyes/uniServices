@@ -28,6 +28,7 @@ class StructureDepartementPersonnel
     private array $roles = [];
 
     #[ORM\Column]
+    #[Groups(groups: ['personnel:read'])]
     private ?bool $defaut = null;
 
     #[ORM\ManyToOne(inversedBy: 'structureDepartementPersonnels')]

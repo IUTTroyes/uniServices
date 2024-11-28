@@ -1,9 +1,14 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
-import { defineProps } from 'vue';
-import { ref } from 'vue';
+import {defineProps, onMounted} from 'vue';
+import { ref, watch } from 'vue';
+import { useUsersStore } from "@/stores/users.js";
 
 const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1];
+
+const store = useUsersStore();
+
+onMounted(store.fetchUser);
 
 const props = defineProps({
   logoUrl: {
@@ -22,6 +27,7 @@ const search = ref('');
 
 const anneeMenu = ref();
 const profileMenu = ref();
+const deptMenu = ref();
 
 const profileItems = ref([
   {
@@ -59,12 +65,24 @@ const anneeItems = ref([
   }
 ]);
 
+const deptItems = ref([]);
+watch(() => store.departements, (newDepartements) => {
+  deptItems.value = newDepartements.map(departementPersonnel => ({
+    label: departementPersonnel.departement.libelle,
+    id: departementPersonnel.departement.id
+  }));
+}, { immediate: true });
+
 const toggleProfileMenu = (event) => {
   profileMenu.value.toggle(event);
 };
 
 const toggleAnneeMenu = (event) => {
   anneeMenu.value.toggle(event);
+};
+
+const toggleDeptMenu = (event) => {
+  deptMenu.value.toggle(event);
 };
 </script>
 
@@ -78,10 +96,11 @@ const toggleAnneeMenu = (event) => {
         <img :src="logoUrl" alt="logo" /> <span>{{appName}}</span>
       </router-link>
 
-      <button type="button" class="layout-topbar-action-app">
-        <span>Département MMI</span>
+      <button type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
+        <span>Département {{store.departementDefaut.departement.libelle}}</span>
         <i class="pi pi-arrow-right-arrow-left"></i>
       </button>
+      <Menu ref="deptMenu" id="dept_menu" :model="deptItems" :popup="true" />
     </div>
 
     <div class="layout-topbar-actions">

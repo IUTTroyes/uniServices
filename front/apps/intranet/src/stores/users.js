@@ -10,6 +10,8 @@ const type = payload.type;
 
 export const useUsersStore = defineStore('users', () => {
     const user = ref([]);
+    const departements = ref([]);
+    const departementDefaut = ref({});
 
     const fetchUser = async () => {
         try {
@@ -17,6 +19,9 @@ export const useUsersStore = defineStore('users', () => {
             // transformer user.photo_name en chemin vers l'image : "@/assets/photos_etudiants/" + user.photo_name
             response.data.photo_name = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photo_name;
             user.value = response.data;
+            departements.value = response.data.structureDepartementPersonnels;
+            // récupérer le département qui a defaut = true
+            departementDefaut.value = departements.value.find(departement => departement.defaut === true);
         } catch (error) {
             console.error('Error fetching user:', error);
         }
@@ -24,6 +29,8 @@ export const useUsersStore = defineStore('users', () => {
 
     return {
         user,
+        departements,
+        departementDefaut,
         fetchUser
     };
 });

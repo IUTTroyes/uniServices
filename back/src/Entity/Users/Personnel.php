@@ -15,12 +15,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PersonnelRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(),
-        new GetCollection(),
+        new Get(normalizationContext: ['groups' => ['personnel:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['personnel:read']]),
     ]
 )]
 class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
@@ -28,48 +29,60 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+        #[Groups(['personnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
+        #[Groups(['personnel:read'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
+        #[Groups(['personnel:read'])]
     private ?string $mail_univ = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+        #[Groups(['personnel:read'])]
     private ?string $password = null;
 
     #[ORM\Column(type: Types::JSON)]
+        #[Groups(['personnel:read'])]
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
+        #[Groups(['personnel:read'])]
     private ?string $prenom = null;
 
     #[ORM\Column(length: 75)]
+        #[Groups(['personnel:read'])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
+        #[Groups(['personnel:read'])]
     private ?string $photo_name = null;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'responsable_diplome')]
+        #[Groups(['personnel:read'])]
     private Collection $responsableDiplome;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'assistant_diplome')]
+        #[Groups(['personnel:read'])]
     private Collection $assistant_diplome;
 
     #[ORM\ManyToOne(inversedBy: 'personnels')]
+        #[Groups(['personnel:read'])]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
 
     /**
      * @var Collection<int, StructureDepartementPersonnel>
      */
     #[ORM\OneToMany(targetEntity: StructureDepartementPersonnel::class, mappedBy: 'personnel', orphanRemoval: true)]
+    #[Groups(['personnel:read'])]
     private Collection $structureDepartementPersonnels;
 
     public function __construct()
