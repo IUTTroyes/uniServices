@@ -9,6 +9,7 @@ use App\Repository\StructureSemestreRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 #[ORM\Entity(repositoryClass: StructureSemestreRepository::class)]
 #[ApiResource(
@@ -178,13 +179,6 @@ class StructureSemestre
         return $this->opt;
     }
 
-    public function setOpt(array $opt): static
-    {
-        $this->opt = $opt;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, StructureGroupe>
      */
@@ -250,6 +244,39 @@ class StructureSemestre
     public function setAnnee(?StructureAnnee $annee): static
     {
         $this->annee = $annee;
+
+        return $this;
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'mail_releve' => 0,
+            'mail_modif_note' => 0,
+            'dest_mail_releve' => 0,
+            'dest_mail_modif_note' => 0,
+            'eval_visible' => 1,
+            'eval_modif' => 1,
+            'penalite_absence' => 0,
+            'mail_absence_resp' => 0,
+            'dest_mail_absence_resp' => 0,
+            'mail_absence_etudiant' => 0,
+            'opt_penalite_absence' => 0,
+            'mail_assistante_justif_absence' => 0,
+            'bilan_semestre' => 0,
+            'rattrapage' => 0,
+            'mail_rattrapage' => 0,
+        ]);
+
+        $resolver->setAllowedTypes('materiel', 'int');
+        $resolver->setAllowedTypes('edt', 'int');
+    }
+
+    public function setOpt(array $opt): static
+    {
+        $resolver = new OptionsResolver();
+        $this->configureOptions($resolver);
+        $this->opt = $resolver->resolve($opt);
 
         return $this;
     }

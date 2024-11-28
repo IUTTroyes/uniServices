@@ -9,6 +9,7 @@ use App\Repository\StructureAnneeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 #[ORM\Entity(repositoryClass: StructureAnneeRepository::class)]
 #[ApiResource(
@@ -190,13 +191,6 @@ class StructureAnnee
         return $this->opt;
     }
 
-    public function setOpt(array $opt): static
-    {
-        $this->opt = $opt;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, StructureSemestre>
      */
@@ -223,6 +217,25 @@ class StructureAnnee
                 $structureSemestre->setAnnee(null);
             }
         }
+
+        return $this;
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'alternance' => 1,
+        ]);
+
+        $resolver->setAllowedTypes('materiel', 'int');
+        $resolver->setAllowedTypes('edt', 'int');
+    }
+
+    public function setOpt(array $opt): static
+    {
+        $resolver = new OptionsResolver();
+        $this->configureOptions($resolver);
+        $this->opt = $resolver->resolve($opt);
 
         return $this;
     }
