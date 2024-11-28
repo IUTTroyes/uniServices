@@ -10,6 +10,7 @@ use App\Repository\StructureDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDiplomeRepository::class)]
@@ -227,13 +228,6 @@ class StructureDiplome
         return $this->opt;
     }
 
-    public function setOpt(array $opt): static
-    {
-        $this->opt = $opt;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, StructurePn>
      */
@@ -272,6 +266,34 @@ class StructureDiplome
     public function setDepartement(?StructureDepartement $departement): static
     {
         $this->departement = $departement;
+
+        return $this;
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'nb_jours_saisie_absence' => 15,
+            'supp_absence' => 0,
+            'anonymat' => 0,
+            'commentaire_releve' => 0,
+            'espace_perso_visible' => 0,
+            'semaine_visible' => 2,
+            'certif_qualite' => 0,
+            'resp_qualite' => 0,
+            'update_celcat' => 0,
+            'saisie_cm_autorisee' => 1,
+        ]);
+
+        $resolver->setAllowedTypes('materiel', 'int');
+        $resolver->setAllowedTypes('edt', 'int');
+    }
+
+    public function setOpt(array $opt): static
+    {
+        $resolver = new OptionsResolver();
+        $this->configureOptions($resolver);
+        $this->opt = $resolver->resolve($opt);
 
         return $this;
     }

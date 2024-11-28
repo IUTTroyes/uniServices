@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 #[ORM\Entity(repositoryClass: StructureDepartementRepository::class)]
 #[ApiResource]
@@ -154,13 +155,6 @@ class StructureDepartement
         return $this->opt;
     }
 
-    public function setOpt(array $opt): static
-    {
-        $this->opt = $opt;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, StructureDiplome>
      */
@@ -217,6 +211,28 @@ class StructureDepartement
                 $structureDepartementPersonnel->setDepartement(null);
             }
         }
+
+        return $this;
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'materiel' => 0,
+            'edt' => 0,
+            'stage' => 0,
+            'resp_ri' => 0,
+        ]);
+
+        $resolver->setAllowedTypes('materiel', 'int');
+        $resolver->setAllowedTypes('edt', 'int');
+    }
+
+    public function setOpt(array $opt): static
+    {
+        $resolver = new OptionsResolver();
+        $this->configureOptions($resolver);
+        $this->opt = $resolver->resolve($opt);
 
         return $this;
     }
