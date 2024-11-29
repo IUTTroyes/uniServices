@@ -7,6 +7,7 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
+use App\Entity\Type\TypeDiplome;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -28,6 +29,7 @@ class CopyTransfertBddCommand extends Command
     protected $em;
     protected array $tDepartements = [];
     protected array $tAnneeUniversitaire = [];
+    protected array $tTypeDiplomes = [];
     protected array $tDiplomes = [];
     protected array $tAnnees = [];
     protected array $tSemestres = [];
@@ -52,9 +54,11 @@ class CopyTransfertBddCommand extends Command
         // vider les tables de destination et les réinitialiser
         $this->entityManager->getConnection()->executeQuery('SET
 FOREIGN_KEY_CHECKS=0');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE type_diplome');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_departement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_diplome');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_semestre');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee_universitaire');
         $this->entityManager->getConnection()->executeQuery('SET
 FOREIGN_KEY_CHECKS=1');
@@ -68,6 +72,7 @@ FOREIGN_KEY_CHECKS=1');
         $this->effacerTables();
 
         // Départements
+        $this->addTypeDiplome();
         $this->addAnneeUniversitaire();
         $this->addDepartements();
         $this->addDiplomes();
@@ -164,12 +169,12 @@ FOREIGN_KEY_CHECKS=1');
             $diplome->setApogeeCodeDiplome($dip['code_diplome']);
             $diplome->setApogeeCodeVersion($dip['code_version']);
             $diplome->setApogeeCodeDepartement($dip['code_departement']);
+            $diplome->setTypeDiplome($this->tTypeDiplomes[$dip['type_diplome_id']]);
 
             /*
              *  "id" => 1
               "responsable_diplome_id" => 200
               "assistant_diplome_id" => 360
-              "type_diplome_id" => 2
               "opt_responsable_qualite_id" => 541
               "referentiel_id" => null
               "apc_parcours_id" => null
@@ -307,6 +312,26 @@ FOREIGN_KEY_CHECKS=1');
 
             $this->entityManager->persist($semestre);
             $this->io->info('Semestre : ' . $sem['libelle'] . ' ajouté pour insertion');
+        }
+
+        $this->entityManager->flush();
+    }
+
+    private function addTypeDiplome(): void
+    {
+        $sql = "SELECT * FROM type_diplome";
+        $typeD = $this->em->executeQuery($sql)->fetchAllAssociative();
+
+        foreach ($typeD as $type) {
+            $typeDiplome = new TypeDiplome();
+            $typeDiplome->setLibelle($type['libelle']);
+            $typeDiplome->setSigle((bool)$type['sigle']);
+            $typeDiplome->setApc((bool)$type['apc']);
+
+            $this->tTypeDiplomes[$type['id']] = $typeDiplome;
+
+            $this->entityManager->persist($typeDiplome);
+            $this->io->info('Type Diplome : ' . $type['libelle'] . ' ajouté pour insertion');
         }
 
         $this->entityManager->flush();

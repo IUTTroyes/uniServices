@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
+use App\Entity\Type\TypeDiplome;
 use App\Entity\Users\Personnel;
 use App\Repository\StructureDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -87,6 +88,9 @@ class StructureDiplome
 
     #[ORM\Column(length: 3, nullable: true)]
     private ?string $apogeeCodeDepartement = null;
+
+    #[ORM\ManyToOne(inversedBy: 'structureDiplomes')]
+    private ?TypeDiplome $typeDiplome = null;
 
     public function __construct()
     {
@@ -339,6 +343,18 @@ class StructureDiplome
     public function setApogeeCodeDepartement(?string $apogeeCodeDepartement): static
     {
         $this->apogeeCodeDepartement = $apogeeCodeDepartement;
+
+        return $this;
+    }
+
+    public function getTypeDiplome(): ?TypeDiplome
+    {
+        return $this->typeDiplome;
+    }
+
+    public function setTypeDiplome(?TypeDiplome $typeDiplome): static
+    {
+        $this->typeDiplome = $typeDiplome;
 
         return $this;
     }
