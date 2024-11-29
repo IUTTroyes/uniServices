@@ -5,6 +5,9 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Traits\EduSignTrait;
+use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OptionTrait;
 use App\Repository\StructureSemestreRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -18,8 +21,13 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
         new GetCollection(normalizationContext: ['groups' => ['semestre:read']]),
     ]
 )]
+#[ORM\HasLifecycleCallbacks]
 class StructureSemestre
 {
+    use LifeCycleTrait;
+    use OptionTrait;
+    use EduSignTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -48,9 +56,6 @@ class StructureSemestre
 
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $code_element = null;
-
-    #[ORM\Column]
-    private array $opt = [];
 
     /**
      * @var Collection<int, StructureGroupe>
@@ -175,11 +180,6 @@ class StructureSemestre
         return $this;
     }
 
-    public function getOpt(): array
-    {
-        return $this->opt;
-    }
-
     /**
      * @return Collection<int, StructureGroupe>
      */
@@ -252,46 +252,37 @@ class StructureSemestre
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'mail_releve' => 0,
-            'mail_modif_note' => 0,
+            'mail_releve' => false,
+            'mail_modif_note' => false,
             'dest_mail_releve' => 0,
             'dest_mail_modif_note' => 0,
-            'eval_visible' => 1,
-            'eval_modif' => 1,
-            'penalite_absence' => 0,
-            'mail_absence_resp' => 0,
+            'eval_visible' => true,
+            'eval_modif' => true,
+            'penalite_absence' => 0.5,
+            'mail_absence_resp' => false,
             'dest_mail_absence_resp' => 0,
-            'mail_absence_etudiant' => 0,
-            'opt_penalite_absence' => 0,
-            'mail_assistante_justif_absence' => 0,
-            'bilan_semestre' => 0,
-            'rattrapage' => 0,
+            'mail_absence_etudiant' => false,
+            'opt_penalite_absence' => true,
+            'mail_assistante_justif_absence' => false,
+            'bilan_semestre' => true,
+            'rattrapage' => true,
             'mail_rattrapage' => 0,
         ]);
 
-        $resolver->setAllowedTypes('mail_releve', 'int');
-        $resolver->setAllowedTypes('mail_modif_note', 'int');
+        $resolver->setAllowedTypes('mail_releve', 'bool');
+        $resolver->setAllowedTypes('mail_modif_note', 'bool');
         $resolver->setAllowedTypes('dest_mail_releve', 'int');
         $resolver->setAllowedTypes('dest_mail_modif_note', 'int');
-        $resolver->setAllowedTypes('eval_visible', 'int');
-        $resolver->setAllowedTypes('eval_modif', 'int');
-        $resolver->setAllowedTypes('penalite_absence', 'int');
-        $resolver->setAllowedTypes('mail_absence_resp', 'int');
+        $resolver->setAllowedTypes('eval_visible', 'bool');
+        $resolver->setAllowedTypes('eval_modif', 'bool');
+        $resolver->setAllowedTypes('penalite_absence', 'float');
+        $resolver->setAllowedTypes('mail_absence_resp', 'bool');
         $resolver->setAllowedTypes('dest_mail_absence_resp', 'int');
-        $resolver->setAllowedTypes('mail_absence_etudiant', 'int');
-        $resolver->setAllowedTypes('opt_penalite_absence', 'int');
-        $resolver->setAllowedTypes('mail_assistante_justif_absence', 'int');
-        $resolver->setAllowedTypes('bilan_semestre', 'int');
-        $resolver->setAllowedTypes('rattrapage', 'int');
+        $resolver->setAllowedTypes('mail_absence_etudiant', 'bool');
+        $resolver->setAllowedTypes('opt_penalite_absence', 'bool');
+        $resolver->setAllowedTypes('mail_assistante_justif_absence', 'bool');
+        $resolver->setAllowedTypes('bilan_semestre', 'bool');
+        $resolver->setAllowedTypes('rattrapage', 'bool');
         $resolver->setAllowedTypes('mail_rattrapage', 'int');
-    }
-
-    public function setOpt(array $opt): static
-    {
-        $resolver = new OptionsResolver();
-        $this->configureOptions($resolver);
-        $this->opt = $resolver->resolve($opt);
-
-        return $this;
     }
 }

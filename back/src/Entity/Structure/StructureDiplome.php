@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OptionTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\StructureDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -27,6 +28,7 @@ class StructureDiplome
 {
     use EduSignTrait;
     use LifeCycleTrait;
+    use OptionTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -68,9 +70,6 @@ class StructureDiplome
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $logo_partenaire = null;
 
-    #[ORM\Column]
-    private array $opt = [];
-
     /**
      * @var Collection<int, StructurePn>
      */
@@ -79,6 +78,15 @@ class StructureDiplome
 
     #[ORM\ManyToOne(inversedBy: 'structureDiplomes')]
     private ?StructureDepartement $departement = null;
+
+    #[ORM\Column(length: 3, nullable: true)]
+    private ?string $apogeeCodeVersion = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $apogeeCodeDiplome = null;
+
+    #[ORM\Column(length: 3, nullable: true)]
+    private ?string $apogeeCodeDepartement = null;
 
     public function __construct()
     {
@@ -230,11 +238,6 @@ class StructureDiplome
         return $this;
     }
 
-    public function getOpt(): array
-    {
-        return $this->opt;
-    }
-
     /**
      * @return Collection<int, StructurePn>
      */
@@ -304,11 +307,38 @@ class StructureDiplome
         $resolver->setAllowedTypes('saisie_cm_autorisee', 'bool');
     }
 
-    public function setOpt(array $opt): static
+    public function getApogeeCodeVersion(): ?string
     {
-        $resolver = new OptionsResolver();
-        $this->configureOptions($resolver);
-        $this->opt = $resolver->resolve($opt);
+        return $this->apogeeCodeVersion;
+    }
+
+    public function setApogeeCodeVersion(?string $apogeeCodeVersion): static
+    {
+        $this->apogeeCodeVersion = $apogeeCodeVersion;
+
+        return $this;
+    }
+
+    public function getApogeeCodeDiplome(): ?string
+    {
+        return $this->apogeeCodeDiplome;
+    }
+
+    public function setApogeeCodeDiplome(?string $apogeeCodeDiplome): static
+    {
+        $this->apogeeCodeDiplome = $apogeeCodeDiplome;
+
+        return $this;
+    }
+
+    public function getApogeeCodeDepartement(): ?string
+    {
+        return $this->apogeeCodeDepartement;
+    }
+
+    public function setApogeeCodeDepartement(?string $apogeeCodeDepartement): static
+    {
+        $this->apogeeCodeDepartement = $apogeeCodeDepartement;
 
         return $this;
     }

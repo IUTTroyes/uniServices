@@ -41,8 +41,8 @@ class StructureAnneeFixtures extends Fixture implements OrderedFixtureInterface
 
         $annee1 = new StructureAnnee();
         $annee1->setLibelle('MMI 1')
-            ->setCodeEtape('MMI123')
-            ->setCodeVersion('1')
+            ->setApogeeCodeEtape('MMI123')
+            ->setApogeeCodeVersion('111')
             ->setOrdre(1)
             ->setLibelleLong('Première année de BUT MMI')
             ->setActif(true)
@@ -53,8 +53,8 @@ class StructureAnneeFixtures extends Fixture implements OrderedFixtureInterface
 
         $annee2 = new StructureAnnee();
         $annee2->setLibelle('MMI - DWeb-DI - 2 FC')
-            ->setCodeEtape('MMI124')
-            ->setCodeVersion('12')
+            ->setApogeeCodeEtape('MMI124')
+            ->setApogeeCodeVersion('121')
             ->setOrdre(2)
             ->setLibelleLong('Deuxiéme année de B.U.T. MMI - parcours Développement web et dispositifs interactifs')
             ->setActif(true)

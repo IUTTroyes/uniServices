@@ -4,6 +4,7 @@ namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OptionTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Repository\StructureDepartementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,6 +21,7 @@ class StructureDepartement
 {
     use UuidTrait;
     use LifeCycleTrait;
+    use OptionTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -49,10 +51,6 @@ class StructureDepartement
     #[ORM\Column]
     #[Groups(groups: ['structure_departement:read', 'personnel:read'])]
     private ?bool $actif = null;
-
-    #[ORM\Column]
-    #[Groups(groups: ['structure_departement:read'])]
-    private array $opt = [];
 
     /**
      * @var Collection<int, StructureDiplome>
@@ -162,11 +160,6 @@ class StructureDepartement
         return $this;
     }
 
-    public function getOpt(): array
-    {
-        return $this->opt;
-    }
-
     /**
      * @return Collection<int, StructureDiplome>
      */
@@ -240,14 +233,5 @@ class StructureDepartement
         $resolver->setAllowedTypes('edt', 'bool');
         $resolver->setAllowedTypes('stage', 'bool');
         $resolver->setAllowedTypes('resp_ri', 'string'); //todo: sauvegarder l'IRI de la personne ? pour faire le lien en front ?
-    }
-
-    public function setOpt(array $opt): static
-    {
-        $resolver = new OptionsResolver();
-        $this->configureOptions($resolver);
-        $this->opt = $resolver->resolve($opt);
-
-        return $this;
     }
 }
