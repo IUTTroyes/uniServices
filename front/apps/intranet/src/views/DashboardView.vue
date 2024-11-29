@@ -1,10 +1,15 @@
 <script setup>
 import { useUsersStore } from "@/stores/users.js";
 import { onMounted, computed } from "vue";
+import { formatDateLong } from "common-helpers";
+
+const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1];
 
 const store = useUsersStore();
 
-onMounted(store.fetchUser);
+onMounted(async() => {
+    await store.fetchUser();
+});
 
 const date = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',
@@ -33,7 +38,7 @@ const initiales = computed(() =>
                     </div>
                     <div class="ml-4">
                         <h1 class="text-2xl font-semibold"><span class="font-light">Bonjour,</span> {{ store.user?.prenom }}</h1>
-                        <small>{{ date }}</small>
+                        <small>{{ formatDateLong(date) }}</small>
                     </div>
                 </div>
             </div>

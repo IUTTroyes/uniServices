@@ -8,7 +8,20 @@ const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.
 
 const store = useUsersStore();
 
-onMounted(store.fetchUser);
+const deptItems = ref([]);
+const deptDefaut = ref();
+
+const load = ref(false);
+
+onMounted(async() => {
+  await store.fetchUser();
+  deptItems.value = store.departements.map(departementPersonnel => ({
+    label: departementPersonnel.departement.libelle,
+    id: departementPersonnel.departement.id
+  }));
+
+  load.value = true;
+});
 
 const props = defineProps({
   logoUrl: {
@@ -65,13 +78,6 @@ const anneeItems = ref([
   }
 ]);
 
-const deptItems = ref([]);
-watch(() => store.departements, (newDepartements) => {
-  deptItems.value = newDepartements.map(departementPersonnel => ({
-    label: departementPersonnel.departement.libelle,
-    id: departementPersonnel.departement.id
-  }));
-}, { immediate: true });
 
 const toggleProfileMenu = (event) => {
   profileMenu.value.toggle(event);
@@ -87,7 +93,7 @@ const toggleDeptMenu = (event) => {
 </script>
 
 <template>
-  <div class="layout-topbar">
+  <div class="layout-topbar" v-if="load">
     <div class="layout-topbar-logo-container">
       <button class="layout-menu-button layout-topbar-action" @click="onMenuToggle">
         <i class="pi pi-bars"></i>

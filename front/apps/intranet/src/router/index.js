@@ -1,6 +1,7 @@
 import { LayoutComponent } from 'common-components';
 import { createRouter, createWebHistory } from 'vue-router';
 import dashboardRoutes from './modules/dashboardRoutes';
+import agendaRoutes from "@/router/modules/agendaRoutes.js";
 
 const intranetMenu = [
     {
@@ -29,20 +30,9 @@ const router = createRouter({
                 breadcrumbItems: route.meta.breadcrumb || []
             }),
             children: [
-                ...dashboardRoutes,
+                ...dashboardRoutes, ...agendaRoutes
             ]
         },
-        {
-            path: '/agenda',
-            component: LayoutComponent,
-            props: route => ({
-                menuItems: intranetMenu,
-                logoUrl: logoUrl,
-                appName: appName,
-                breadcrumbItems: route.meta.breadcrumb || []
-            }),
-            meta: { breadcrumb: [{ label: 'Dashboard', route: '/' }, { label: 'Agenda', route: null, icon: 'pi pi-calendar' }] },
-        }
     ]
 });
 

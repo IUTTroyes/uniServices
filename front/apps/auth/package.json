@@ -11,7 +11,8 @@
     },
     "dependencies": {
         "common-helpers": "file:../../packages/common-helpers",
-        "common-styles": "file:../../packages/common-styles"
+        "common-styles": "file:../../packages/common-styles",
+        "pinia": "^2.2.7"
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^5.1.4",

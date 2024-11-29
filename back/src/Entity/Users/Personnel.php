@@ -29,53 +29,53 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private ?string $username = null;
 
     #[ORM\Column(length: 255)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private ?string $mail_univ = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private ?string $password = null;
 
     #[ORM\Column(type: Types::JSON)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private ?string $prenom = null;
 
     #[ORM\Column(length: 75)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private ?string $nom = null;
 
     #[ORM\Column(length: 255)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private ?string $photo_name = null;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'responsable_diplome')]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private Collection $responsableDiplome;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'assistant_diplome')]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private Collection $assistant_diplome;
 
     #[ORM\ManyToOne(inversedBy: 'personnels')]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
 
     /**
