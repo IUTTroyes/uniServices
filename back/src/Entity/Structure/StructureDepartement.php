@@ -224,16 +224,16 @@ class StructureDepartement
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'materiel' => 0,
-            'edt' => 0,
-            'stage' => 0,
-            'resp_ri' => 0,
+            'materiel' => false,
+            'edt' => false,
+            'stage' => false,
+            'resp_ri' => '',
         ]);
 
-        $resolver->setAllowedTypes('materiel', 'int');
-        $resolver->setAllowedTypes('edt', 'int');
-        $resolver->setAllowedTypes('stage', 'int');
-        $resolver->setAllowedTypes('resp_ri', 'int');
+        $resolver->setAllowedTypes('materiel', 'bool');
+        $resolver->setAllowedTypes('edt', 'bool');
+        $resolver->setAllowedTypes('stage', 'bool');
+        $resolver->setAllowedTypes('resp_ri', 'string'); //todo: sauvegarder l'IRI de la personne ? pour faire le lien en front ?
     }
 
     public function setOpt(array $opt): static
