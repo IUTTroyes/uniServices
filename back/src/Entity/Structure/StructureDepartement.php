@@ -3,6 +3,8 @@
 namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\UuidTrait;
 use App\Repository\StructureDepartementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,8 +15,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDepartementRepository::class)]
 #[ApiResource]
+#[ORM\HasLifecycleCallbacks]
 class StructureDepartement
 {
+    use UuidTrait;
+    use LifeCycleTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

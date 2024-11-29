@@ -5,6 +5,7 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\StructureAnneeUniversitaireRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -19,8 +20,11 @@ use Doctrine\ORM\Mapping as ORM;
         new GetCollection(normalizationContext: ['groups' => ['structure_annee_universitaire:read']]),
     ]
 )]
+#[ORM\HasLifecycleCallbacks]
 class StructureAnneeUniversitaire
 {
+    use LifeCycleTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

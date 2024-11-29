@@ -5,6 +5,8 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Traits\EduSignTrait;
+use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\StructureDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,8 +22,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(normalizationContext: ['groups' => ['structure_diplome:read']]),
     ]
 )]
+#[ORM\HasLifecycleCallbacks]
 class StructureDiplome
 {
+    use EduSignTrait;
+    use LifeCycleTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -275,27 +281,27 @@ class StructureDiplome
     {
         $resolver->setDefaults([
             'nb_jours_saisie_absence' => 15,
-            'supp_absence' => 0,
-            'anonymat' => 0,
-            'commentaire_releve' => 0,
-            'espace_perso_visible' => 0,
+            'supp_absence' => true,
+            'anonymat' => false,
+            'commentaire_releve' => false,
+            'espace_perso_visible' => false,
             'semaine_visible' => 2,
-            'certif_qualite' => 0,
+            'certif_qualite' => true,
             'resp_qualite' => 0,
-            'update_celcat' => 0,
-            'saisie_cm_autorisee' => 1,
+            'update_celcat' => false,
+            'saisie_cm_autorisee' => true,
         ]);
 
         $resolver->setAllowedTypes('nb_jours_saisie_absence', 'int');
-        $resolver->setAllowedTypes('supp_absence', 'int');
-        $resolver->setAllowedTypes('anonymat', 'int');
-        $resolver->setAllowedTypes('commentaire_releve', 'int');
-        $resolver->setAllowedTypes('espace_perso_visible', 'int');
+        $resolver->setAllowedTypes('supp_absence', 'bool');
+        $resolver->setAllowedTypes('anonymat', 'bool');
+        $resolver->setAllowedTypes('commentaire_releve', 'bool');
+        $resolver->setAllowedTypes('espace_perso_visible', 'bool');
         $resolver->setAllowedTypes('semaine_visible', 'int');
-        $resolver->setAllowedTypes('certif_qualite', 'int');
+        $resolver->setAllowedTypes('certif_qualite', 'bool');
         $resolver->setAllowedTypes('resp_qualite', 'int');
-        $resolver->setAllowedTypes('update_celcat', 'int');
-        $resolver->setAllowedTypes('saisie_cm_autorisee', 'int');
+        $resolver->setAllowedTypes('update_celcat', 'bool');
+        $resolver->setAllowedTypes('saisie_cm_autorisee', 'bool');
     }
 
     public function setOpt(array $opt): static
