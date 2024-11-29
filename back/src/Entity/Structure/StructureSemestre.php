@@ -51,8 +51,8 @@ class StructureSemestre
     #[ORM\Column]
     private ?int $nb_groupes_td = null;
 
-    #[ORM\Column(length: 255)]
-    private ?string $nb_groupes_tp = null;
+    #[ORM\Column()]
+    private ?int $nb_groupes_tp = 2;
 
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $code_element = null;
@@ -156,12 +156,12 @@ class StructureSemestre
         return $this;
     }
 
-    public function getNbGroupesTp(): ?string
+    public function getNbGroupesTp(): ?int
     {
         return $this->nb_groupes_tp;
     }
 
-    public function setNbGroupesTp(string $nb_groupes_tp): static
+    public function setNbGroupesTp(int $nb_groupes_tp): static
     {
         $this->nb_groupes_tp = $nb_groupes_tp;
 

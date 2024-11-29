@@ -36,13 +36,13 @@ class StructureAnnee
     private ?string $libelle = null;
 
     #[ORM\Column]
-    private ?int $ordre = null;
+    private int $ordre = 0;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $libelle_long = null;
 
     #[ORM\Column]
-    private ?bool $actif = null;
+    private bool $actif = true;
 
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $couleur = null;

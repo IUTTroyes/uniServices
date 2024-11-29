@@ -8,14 +8,11 @@ use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Type\TypeDiplome;
-use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Uid\UuidV4;
@@ -26,7 +23,9 @@ use Symfony\Component\Uid\UuidV4;
 )]
 class CopyTransfertBddCommand extends Command
 {
-    protected $em;
+    protected object $em;
+
+    /** @param array<int, StructureDepartement> $tDepartements */
     protected array $tDepartements = [];
     protected array $tAnneeUniversitaire = [];
     protected array $tTypeDiplomes = [];
@@ -49,7 +48,7 @@ class CopyTransfertBddCommand extends Command
     {
     }
 
-    private function effacerTables()
+    private function effacerTables(): void
     {
         // vider les tables de destination et les réinitialiser
         $this->entityManager->getConnection()->executeQuery('SET
@@ -325,7 +324,7 @@ FOREIGN_KEY_CHECKS=1');
         foreach ($typeD as $type) {
             $typeDiplome = new TypeDiplome();
             $typeDiplome->setLibelle($type['libelle']);
-            $typeDiplome->setSigle((bool)$type['sigle']);
+            $typeDiplome->setSigle($type['sigle']);
             $typeDiplome->setApc((bool)$type['apc']);
 
             $this->tTypeDiplomes[$type['id']] = $typeDiplome;
