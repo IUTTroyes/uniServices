@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureScolarite;
+use App\Entity\Traits\LifeCycleTrait;
 use App\Repository\EtudiantRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -23,8 +24,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(normalizationContext: ['groups' => ['etudiant:read']]),
     ]
 )]
+#[ORM\HasLifecycleCallbacks]
 class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    use LifeCycleTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

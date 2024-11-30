@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
+use App\Entity\Traits\LifeCycleTrait;
 use App\Repository\PersonnelRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -24,8 +25,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(normalizationContext: ['groups' => ['personnel:read']]),
     ]
 )]
+#[ORM\HasLifecycleCallbacks]
 class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    use LifeCycleTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
