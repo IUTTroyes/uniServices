@@ -34,14 +34,14 @@ class StructurePnFixtures extends Fixture implements OrderedFixtureInterface
 
         $pn1 = new StructurePn();
         $pn1->setLibelle('PN BUT MMI ')
-            ->setAnneePublication('2022')
+            ->setAnneePublication(2022)
             ->setDiplome($diplome1)
         ;
         $manager->persist($pn1);
 
         $pn2 = new StructurePn();
         $pn2->setLibelle('PN BUT MMI DWEB')
-            ->setAnneePublication('2024')
+            ->setAnneePublication(2024)
             ->setDiplome($diplome2)
         ;
         $manager->persist($pn2);

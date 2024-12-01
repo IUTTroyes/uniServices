@@ -19,13 +19,13 @@ class TypeDiplome
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $libelle = null;
+    private string $libelle;
 
     #[ORM\Column(length: 20)]
-    private ?string $sigle = null;
+    private string $sigle;
 
     #[ORM\Column]
-    private ?bool $apc = false;
+    private bool $apc = false;
 
     /**
      * @var Collection<int, StructureDiplome>
@@ -72,7 +72,7 @@ class TypeDiplome
         return $this->apc;
     }
 
-    public function setApc(bool $apc): static
+    public function setApc(bool $apc = false): static
     {
         $this->apc = $apc;
 

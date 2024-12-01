@@ -5,6 +5,7 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\StructureAnneeUniversitaireRepository;
@@ -40,9 +41,9 @@ class StructureAnneeUniversitaire
     private ?string $commentaire = null;
 
     /**
-     * @var Collection<int, StructureScolarite>
+     * @var Collection<int, EtudiantScolarite>
      */
-    #[ORM\OneToMany(targetEntity: StructureScolarite::class, mappedBy: 'structureAnneeUniversitaire')]
+    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'structureAnneeUniversitaire')]
     private Collection $scolarites;
 
     /**
@@ -109,14 +110,14 @@ class StructureAnneeUniversitaire
     }
 
     /**
-     * @return Collection<int, StructureScolarite>
+     * @return Collection<int, EtudiantScolarite>
      */
     public function getScolarites(): Collection
     {
         return $this->scolarites;
     }
 
-    public function addScolarite(StructureScolarite $scolarite): static
+    public function addScolarite(EtudiantScolarite $scolarite): static
     {
         if (!$this->scolarites->contains($scolarite)) {
             $this->scolarites->add($scolarite);
@@ -126,7 +127,7 @@ class StructureAnneeUniversitaire
         return $this;
     }
 
-    public function removeScolarite(StructureScolarite $scolarite): static
+    public function removeScolarite(EtudiantScolarite $scolarite): static
     {
         if ($this->scolarites->removeElement($scolarite)) {
             // set the owning side to null (unless already changed)

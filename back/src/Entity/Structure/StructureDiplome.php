@@ -38,42 +38,36 @@ class StructureDiplome
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $libelle = null;
+    private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome')]
-    private ?Personnel $responsable_diplome = null;
+    private ?Personnel $responsableDiplome = null;
 
-    #[ORM\ManyToOne(inversedBy: 'assistant_diplome')]
-    private ?Personnel $assistant_diplome = null;
-
-    #[ORM\Column]
-    private ?int $volume_horaire = null;
+    #[ORM\ManyToOne(inversedBy: 'assistantDiplome')]
+    private ?Personnel $assistantDiplome = null;
 
     #[ORM\Column]
-    private ?int $code_celcat_departement = null;
+    private int $volumeHoraire = 0;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $codeCelcatDepartement = null;
 
     #[ORM\Column(length: 40, nullable: true)]
     private ?string $sigle = null;
 
     #[ORM\Column]
-    private ?bool $actif = null;
+    private bool $actif = true;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?self $parent = null;
 
-    /**
-     * @var Collection<int, self>
-     */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
-    private ?Collection $enfants = null;
+    private ?Collection $enfants;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $logo_partenaire = null;
+    private ?string $logoPartenaireName = null;
 
-    /**
-     * @var Collection<int, StructurePn>
-     */
     #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome')]
     private Collection $structurePns;
 
@@ -118,48 +112,48 @@ class StructureDiplome
 
     public function getResponsableDiplome(): ?Personnel
     {
-        return $this->responsable_diplome;
+        return $this->responsableDiplome;
     }
 
-    public function setResponsableDiplome(?Personnel $responsable_diplome): static
+    public function setResponsableDiplome(?Personnel $responsableDiplome): static
     {
-        $this->responsable_diplome = $responsable_diplome;
+        $this->responsableDiplome = $responsableDiplome;
 
         return $this;
     }
 
     public function getAssistantDiplome(): ?Personnel
     {
-        return $this->assistant_diplome;
+        return $this->assistantDiplome;
     }
 
-    public function setAssistantDiplome(?Personnel $assistant_diplome): static
+    public function setAssistantDiplome(?Personnel $assistantDiplome): static
     {
-        $this->assistant_diplome = $assistant_diplome;
+        $this->assistantDiplome = $assistantDiplome;
 
         return $this;
     }
 
     public function getVolumeHoraire(): ?int
     {
-        return $this->volume_horaire;
+        return $this->volumeHoraire;
     }
 
-    public function setVolumeHoraire(int $volume_horaire): static
+    public function setVolumeHoraire(int $volumeHoraire): static
     {
-        $this->volume_horaire = $volume_horaire;
+        $this->volumeHoraire = $volumeHoraire;
 
         return $this;
     }
 
     public function getCodeCelcatDepartement(): ?int
     {
-        return $this->code_celcat_departement;
+        return $this->codeCelcatDepartement;
     }
 
-    public function setCodeCelcatDepartement(int $code_celcat_departement): static
+    public function setCodeCelcatDepartement(?int $codeCelcatDepartement): static
     {
-        $this->code_celcat_departement = $code_celcat_departement;
+        $this->codeCelcatDepartement = $codeCelcatDepartement;
 
         return $this;
     }
@@ -232,12 +226,12 @@ class StructureDiplome
 
     public function getLogoPartenaire(): ?string
     {
-        return $this->logo_partenaire;
+        return $this->logoPartenaireName;
     }
 
-    public function setLogoPartenaire(?string $logo_partenaire): static
+    public function setLogoPartenaire(?string $logoPartenaireName): static
     {
-        $this->logo_partenaire = $logo_partenaire;
+        $this->logoPartenaireName = $logoPartenaireName;
 
         return $this;
     }

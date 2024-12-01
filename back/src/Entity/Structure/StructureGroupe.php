@@ -17,38 +17,29 @@ class StructureGroupe
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $libelle = null;
+    private string $libelle;
 
-    #[ORM\Column(length: 50)]
-    private ?string $code_apogee = null;
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $codeApogee = null;
 
     #[ORM\Column(length: 10)]
-    private ?string $type = null;
+    private string $type;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?self $parent = null;
 
-    /**
-     * @var Collection<int, Etudiant>
-     */
     #[ORM\ManyToMany(targetEntity: Etudiant::class, inversedBy: 'structureGroupes')]
     private Collection $etudiants;
 
     #[ORM\Column(nullable: true)]
     private ?int $ordre = null;
 
-    /**
-     * @var Collection<int, StructureSemestre>
-     */
     #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'structureGroupes')]
     private Collection $semestres;
 
-    /**
-     * @var Collection<int, self>
-     */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
-    private ?Collection $enfants = null;
+    private ?Collection $enfants;
 
     public function __construct()
     {
@@ -76,12 +67,12 @@ class StructureGroupe
 
     public function getCodeApogee(): ?string
     {
-        return $this->code_apogee;
+        return $this->codeApogee;
     }
 
-    public function setCodeApogee(string $code_apogee): static
+    public function setCodeApogee(string $codeApogee): static
     {
-        $this->code_apogee = $code_apogee;
+        $this->codeApogee = $codeApogee;
 
         return $this;
     }
@@ -182,7 +173,7 @@ class StructureGroupe
     {
         if (!$this->enfants->contains($enfant)) {
             $this->enfants->add($enfant);
-            $enfant->setParent($this);
+            $enfant?->setParent($this);
         }
 
         return $this;

@@ -5,10 +5,11 @@ namespace App\Entity\Users;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Structure\StructureGroupe;
-use App\Entity\Structure\StructureScolarite;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Repository\EtudiantRepository;
+use App\ValueObject\Adresse;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -28,6 +29,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
 {
     use LifeCycleTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -36,11 +38,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 75)]
     #[Groups(['etudiant:read', 'scolarite:read'])]
-    private ?string $username = null;
+    private string $username;
 
     #[ORM\Column(length: 255)]
     #[Groups(['etudiant:read'])]
-    private ?string $mail_univ = null;
+    private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
@@ -50,14 +52,14 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 75)]
     #[Groups(['etudiant:read', 'scolarite:read'])]
-    private ?string $prenom = null;
+    private string $prenom;
 
     #[ORM\Column(length: 75)]
     #[Groups(['etudiant:read', 'scolarite:read'])]
-    private ?string $nom = null;
+    private string $nom;
 
-    #[ORM\Column(length: 255)]
-    private ?string $photo_name = null;
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $photoName = null;
 
     /**
      * @var Collection<int, StructureGroupe>
@@ -66,21 +68,27 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $structureGroupes;
 
     /**
-     * @var Collection<int, StructureScolarite>
+     * @var Collection<int, EtudiantScolarite>
      */
-    #[ORM\OneToMany(targetEntity: StructureScolarite::class, mappedBy: 'etudiant', orphanRemoval: true)]
+    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'etudiant', orphanRemoval: true)]
     #[Groups(['etudiant:read'])]
-    private Collection $structureScolarites;
+    private Collection $etudiantScolarites;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $adresseEtudiante = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $adresseParentale = null;
 
     public function __construct()
     {
         $this->structureGroupes = new ArrayCollection();
-        $this->structureScolarites = new ArrayCollection();
+        $this->etudiantScolarites = new ArrayCollection();
     }
 
     public function getMails(): array
     {
-        return [$this->mail_univ];
+        return [$this->mailUniv];
     }
 
     public function getTypeUser(): ?string
@@ -121,12 +129,12 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getMailUniv(): ?string
     {
-        return $this->mail_univ;
+        return $this->mailUniv;
     }
 
-    public function setMailUniv(string $mail_univ): static
+    public function setMailUniv(string $mailUniv): static
     {
-        $this->mail_univ = $mail_univ;
+        $this->mailUniv = $mailUniv;
 
         return $this;
     }
@@ -181,12 +189,12 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getPhotoName(): ?string
     {
-        return $this->photo_name;
+        return $this->photoName;
     }
 
-    public function setPhotoName(?string $photo_name): static
+    public function setPhotoName(?string $photoName): static
     {
-        $this->photo_name = $photo_name;
+        $this->photoName = $photoName;
 
         return $this;
     }
@@ -219,32 +227,60 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, StructureScolarite>
+     * @return Collection<int, EtudiantScolarite>
      */
-    public function getStructureScolarites(): Collection
+    public function getEtudiantScolarites(): Collection
     {
-        return $this->structureScolarites;
+        return $this->etudiantScolarites;
     }
 
-    public function addStructureScolarite(StructureScolarite $structureScolarite): static
+    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
     {
-        if (!$this->structureScolarites->contains($structureScolarite)) {
-            $this->structureScolarites->add($structureScolarite);
-            $structureScolarite->setEtudiant($this);
+        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
+            $this->etudiantScolarites->add($etudiantScolarite);
+            $etudiantScolarite->setEtudiant($this);
         }
 
         return $this;
     }
 
-    public function removeStructureScolarite(StructureScolarite $structureScolarite): static
+    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
     {
-        if ($this->structureScolarites->removeElement($structureScolarite)) {
+        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
             // set the owning side to null (unless already changed)
-            if ($structureScolarite->getEtudiant() === $this) {
-                $structureScolarite->setEtudiant(null);
+            if ($etudiantScolarite->getEtudiant() === $this) {
+                $etudiantScolarite->setEtudiant(null);
             }
         }
 
         return $this;
+    }
+
+    public function setAdresseEtudiante(Adresse $adresse): void
+    {
+        $this->adresseEtudiante = $adresse->toArray();
+    }
+
+    public function getAdresseEtudiante(): ?Adresse
+    {
+        if ($this->adresseEtudiante === null) {
+            return null;
+        }
+
+        return Adresse::fromArray($this->adresseEtudiante);
+    }
+
+    public function setAdresseParentale(Adresse $adresse): void
+    {
+        $this->adresseParentale= $adresse->toArray();
+    }
+
+    public function getAdresseParentale(): ?Adresse
+    {
+        if ($this->adresseParentale === null) {
+            return null;
+        }
+
+        return Adresse::fromArray($this->adresseParentale);
     }
 }

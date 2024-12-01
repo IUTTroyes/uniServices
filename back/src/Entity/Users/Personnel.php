@@ -10,6 +10,7 @@ use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Repository\PersonnelRepository;
+use App\ValueObject\Adresse;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -38,11 +39,11 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 75)]
         #[Groups(['personnel:read'])]
-    private ?string $username = null;
+    private string $username;
 
     #[ORM\Column(length: 255)]
-        #[Groups(['personnel:read'])]
-    private ?string $mail_univ = null;
+    #[Groups(['personnel:read'])]
+    private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
         #[Groups(['personnel:read'])]
@@ -54,33 +55,36 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(length: 75)]
         #[Groups(['personnel:read'])]
-    private ?string $prenom = null;
+    private string $prenom;
 
     #[ORM\Column(length: 75)]
         #[Groups(['personnel:read'])]
-    private ?string $nom = null;
+    private string $nom;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
         #[Groups(['personnel:read'])]
-    private ?string $photo_name = null;
+    private ?string $photoName = null;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
-    #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'responsable_diplome')]
+    #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'responsableDiplome')]
         #[Groups(['personnel:read'])]
     private Collection $responsableDiplome;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
-    #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'assistant_diplome')]
+    #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'assistantDiplome')]
         #[Groups(['personnel:read'])]
-    private Collection $assistant_diplome;
+    private Collection $assistantDiplome;
 
     #[ORM\ManyToOne(inversedBy: 'personnels')]
         #[Groups(['personnel:read'])]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $adressePersonnelle = null;
 
     /**
      * @var Collection<int, StructureDepartementPersonnel>
@@ -92,13 +96,13 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
-        $this->assistant_diplome = new ArrayCollection();
+        $this->assistantDiplome = new ArrayCollection();
         $this->structureDepartementPersonnels = new ArrayCollection();
     }
 
     public function getMails(): array
     {
-        return [$this->mail_univ];
+        return [$this->mailUniv];
     }
 
     public function getTypeUser(): ?string
@@ -139,12 +143,12 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getMailUniv(): ?string
     {
-        return $this->mail_univ;
+        return $this->mailUniv;
     }
 
-    public function setMailUniv(string $mail_univ): static
+    public function setMailUniv(string $mailUniv): static
     {
-        $this->mail_univ = $mail_univ;
+        $this->mailUniv = $mailUniv;
 
         return $this;
     }
@@ -199,12 +203,12 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getPhotoName(): ?string
     {
-        return $this->photo_name;
+        return $this->photoName;
     }
 
-    public function setPhotoName(?string $photo_name): static
+    public function setPhotoName(?string $photoName): static
     {
-        $this->photo_name = $photo_name;
+        $this->photoName = $photoName;
 
         return $this;
     }
@@ -244,13 +248,13 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
      */
     public function getAssistantDiplome(): Collection
     {
-        return $this->assistant_diplome;
+        return $this->assistantDiplome;
     }
 
     public function addAssistantDiplome(StructureDiplome $assistantDiplome): static
     {
-        if (!$this->assistant_diplome->contains($assistantDiplome)) {
-            $this->assistant_diplome->add($assistantDiplome);
+        if (!$this->assistantDiplome->contains($assistantDiplome)) {
+            $this->assistantDiplome->add($assistantDiplome);
             $assistantDiplome->setAssistantDiplome($this);
         }
 
@@ -259,7 +263,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removeAssistantDiplome(StructureDiplome $assistantDiplome): static
     {
-        if ($this->assistant_diplome->removeElement($assistantDiplome)) {
+        if ($this->assistantDiplome->removeElement($assistantDiplome)) {
             // set the owning side to null (unless already changed)
             if ($assistantDiplome->getAssistantDiplome() === $this) {
                 $assistantDiplome->setAssistantDiplome(null);
@@ -309,5 +313,19 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    public function setAdressePersonnelle(Adresse $adresse): void
+    {
+        $this->adressePersonnelle = $adresse->toArray();
+    }
+
+    public function getAdressePersonnelle(): ?Adresse
+    {
+        if ($this->adressePersonnelle === null) {
+            return null;
+        }
+
+        return Adresse::fromArray($this->adressePersonnelle);
     }
 }

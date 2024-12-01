@@ -34,16 +34,16 @@ class StructureDepartement
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $logo_name = null;
+    private ?string $logoName = null;
 
     #[ORM\Column(length: 16, nullable: true)]
-    private ?string $tel_contact = null;
+    private ?string $telContact = null;
 
     #[ORM\Column(length: 16, nullable: true)]
     private ?string $couleur = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $site_web = null;
+    private ?string $siteWeb = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
@@ -90,24 +90,24 @@ class StructureDepartement
 
     public function getLogoName(): ?string
     {
-        return $this->logo_name;
+        return $this->logoName;
     }
 
-    public function setLogoName(?string $logo_name): static
+    public function setLogoName(?string $logoName): static
     {
-        $this->logo_name = $logo_name;
+        $this->logoName = $logoName;
 
         return $this;
     }
 
     public function getTelContact(): ?string
     {
-        return $this->tel_contact;
+        return $this->telContact;
     }
 
-    public function setTelContact(?string $tel_contact): static
+    public function setTelContact(?string $telContact): static
     {
-        $this->tel_contact = $tel_contact;
+        $this->telContact = $telContact;
 
         return $this;
     }
@@ -126,12 +126,12 @@ class StructureDepartement
 
     public function getSiteWeb(): ?string
     {
-        return $this->site_web;
+        return $this->siteWeb;
     }
 
-    public function setSiteWeb(?string $site_web): static
+    public function setSiteWeb(?string $siteWeb): static
     {
-        $this->site_web = $site_web;
+        $this->siteWeb = $siteWeb;
 
         return $this;
     }

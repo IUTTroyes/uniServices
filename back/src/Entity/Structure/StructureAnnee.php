@@ -5,7 +5,6 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Repository\StructureAnneeRepository;
@@ -39,7 +38,7 @@ class StructureAnnee
     private int $ordre = 0;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $libelle_long = null;
+    private ?string $libelleLong = null;
 
     #[ORM\Column]
     private bool $actif = true;
@@ -103,12 +102,12 @@ class StructureAnnee
 
     public function getLibelleLong(): ?string
     {
-        return $this->libelle_long;
+        return $this->libelleLong;
     }
 
-    public function setLibelleLong(?string $libelle_long): static
+    public function setLibelleLong(?string $libelleLong): static
     {
-        $this->libelle_long = $libelle_long;
+        $this->libelleLong = $libelleLong;
 
         return $this;
     }

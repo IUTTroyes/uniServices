@@ -3,24 +3,25 @@
 namespace App\Entity\Traits;
 
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 trait LifeCycleTrait
 {
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
-    private ?CarbonInterface $created = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    private ?CarbonImmutable $created = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?CarbonInterface $updated = null;
 
-    public function getCreated(): ?CarbonInterface
+    public function getCreated(): ?CarbonImmutable
     {
-        return $this->created ?? Carbon::now();
+        return $this->created ?? CarbonImmutable::now();
     }
 
-    public function setCreated(?CarbonInterface $created): void
+    public function setCreated(?CarbonImmutable $created): void
     {
         $this->created = $created;
     }
@@ -50,6 +51,6 @@ trait LifeCycleTrait
     #[ORM\PrePersist]
     public function setCreatedValue(): void
     {
-        $this->created = Carbon::now();
+        $this->created = CarbonImmutable::now();
     }
 }

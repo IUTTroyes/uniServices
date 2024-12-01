@@ -11,6 +11,7 @@ use App\Entity\Structure\StructureSemestre;
 use App\Entity\Type\TypeDiplome;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\ValueObject\Adresse;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -80,7 +81,7 @@ FOREIGN_KEY_CHECKS=1');
 
         // Départements
         $this->addPersonnels();
-        $this->addEtudiants();
+        //$this->addEtudiants();
         $this->addTypeDiplome();
         $this->addDepartements();
         $this->addPersonnelsDepartements();
@@ -362,10 +363,24 @@ FOREIGN_KEY_CHECKS=1');
             $personnel->setRoles(json_decode($pers['roles'], true) ?? []);
             $personnel->setStructureAnneeUniversitaire($this->tAnneeUniversitaire[$pers['annee_universitaire_id']]);
 
+            // gestion des adresses
+            if ($pers['adresse_id'] !== null && $pers['adresse_id'] !== '') {
+                $sql = 'SELECT * FROM adresse WHERE id = ' . $pers['adresse_id'];
+                $adresse = $this->em->executeQuery($sql)->fetchAssociative();
+
+                $objAdresse = new Adresse(
+                    $adresse['adresse1'] ?? '',
+                    $adresse['adresse2'] ?? '',
+                    $adresse['adresse3'] ?? '',
+                    $adresse['code_postal'] ?? '',
+                    $adresse['ville'] ?? '',
+                    $adresse['pays'] ?? 'France'
+                );
+                $personnel->setAdressePersonnelle($objAdresse);
+            }
+
             /*
              * "id" => 1
-  "adresse_id" => 6436
-  "created" => "2019-12-17 00:00:00"
   "statut" => "vacataire"
   "poste_interne" => null
   "tel_bureau" => null
@@ -425,16 +440,46 @@ FOREIGN_KEY_CHECKS=1');
             $etudiant->setPhotoName($etu['photo_name']);
             $etudiant->setPassword($etu['password']);
             $etudiant->setRoles(json_decode($etu['roles'], true) ?? ["ROLE_ETUDIANT"]);
+
+            // gestion des adresses : adresse etudiante et adresse parentale
+            if ($etu['adresse_id'] !== null && $etu['adresse_id'] !== '') {
+                $sql = 'SELECT * FROM adresse WHERE id = ' . $etu['adresse_id'];
+                $adresse = $this->em->executeQuery($sql)->fetchAssociative();
+
+                $objAdresseEtudiante = new Adresse(
+                    $adresse['adresse1'] ?? '',
+                    $adresse['adresse2'] ?? '',
+                    $adresse['adresse3'] ?? '',
+                    $adresse['code_postal'] ?? '',
+                    $adresse['ville'] ?? '',
+                    $adresse['pays'] ?? 'France'
+                );
+                $etudiant->setAdresseEtudiante($objAdresseEtudiante);
+            }
+
+            if ($etu['adresse_parentale_id'] !== null && $etu['adresse_parentale_id'] !== '') {
+                $sql = 'SELECT * FROM adresse WHERE id = ' . $etu['adresse_parentale_id'];
+                $adresse = $this->em->executeQuery($sql)->fetchAssociative();
+
+                $objAdresseParentale = new Adresse(
+                    $adresse['adresse1'] ?? '',
+                    $adresse['adresse2'] ?? '',
+                    $adresse['adresse3'] ?? '',
+                    $adresse['code_postal'] ?? '',
+                    $adresse['ville'] ?? '',
+                    $adresse['pays'] ?? 'France'
+                );
+                $etudiant->setAdresseParentale($objAdresseParentale);
+            }
+
+
             $this->entityManager->persist($etudiant);
             $this->io->info('Etudiant : ' . $etu['nom'] . ' ajouté pour insertion');
 
             /*
              * "id" => 30
-  "adresse_id" => 213
   "semestre_id" => null
-  "adresse_parentale_id" => null
   "bac_id" => null
-  "created" => "2019-12-09 20:33:15"
   "uuid" => "�G�Lo�C�"
   "num_etudiant" => "21701820"
   "num_ine" => "2410019804U"

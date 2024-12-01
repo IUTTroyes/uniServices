@@ -5,6 +5,7 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
@@ -34,28 +35,28 @@ class StructureSemestre
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $libelle = null;
+    private string $libelle;
 
     #[ORM\Column]
-    private ?int $ordre_annee = null;
+    private int $ordreAnnee = 0;
 
     #[ORM\Column]
-    private ?int $ordre_lmd = null;
+    private int $ordreLmd = 0;
 
     #[ORM\Column]
-    private ?bool $actif = null;
+    private bool $actif = true;
 
     #[ORM\Column]
-    private ?int $nb_groupes_cm = null;
+    private int $nbGroupesCm = 1;
 
     #[ORM\Column]
-    private ?int $nb_groupes_td = null;
+    private int $nbGroupesTd = 1;
 
     #[ORM\Column()]
-    private ?int $nb_groupes_tp = 2;
+    private int $nbGroupesTp = 2;
 
     #[ORM\Column(length: 20, nullable: true)]
-    private ?string $code_element = null;
+    private ?string $codeElement = null;
 
     /**
      * @var Collection<int, StructureGroupe>
@@ -64,10 +65,10 @@ class StructureSemestre
     private Collection $structureGroupes;
 
     /**
-     * @var Collection<int, StructureScolarite>
+     * @var Collection<int, EtudiantScolarite>
      */
-    #[ORM\OneToMany(targetEntity: StructureScolarite::class, mappedBy: 'semestre')]
-    private Collection $structureScolarites;
+    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'semestre')]
+    private Collection $etudiantScolarites;
 
     #[ORM\ManyToOne(inversedBy: 'structureSemestres')]
     private ?StructureAnnee $annee = null;
@@ -75,7 +76,7 @@ class StructureSemestre
     public function __construct()
     {
         $this->structureGroupes = new ArrayCollection();
-        $this->structureScolarites = new ArrayCollection();
+        $this->etudiantScolarites = new ArrayCollection();
         $this->setOpt([]);
     }
 
@@ -98,24 +99,24 @@ class StructureSemestre
 
     public function getOrdreAnnee(): ?int
     {
-        return $this->ordre_annee;
+        return $this->ordreAnnee;
     }
 
-    public function setOrdreAnnee(int $ordre_annee): static
+    public function setOrdreAnnee(int $ordreAnnee): static
     {
-        $this->ordre_annee = $ordre_annee;
+        $this->ordreAnnee = $ordreAnnee;
 
         return $this;
     }
 
     public function getOrdreLmd(): ?int
     {
-        return $this->ordre_lmd;
+        return $this->ordreLmd;
     }
 
-    public function setOrdreLmd(int $ordre_lmd): static
+    public function setOrdreLmd(int $ordreLmd): static
     {
-        $this->ordre_lmd = $ordre_lmd;
+        $this->ordreLmd = $ordreLmd;
 
         return $this;
     }
@@ -134,48 +135,48 @@ class StructureSemestre
 
     public function getNbGroupesCm(): ?int
     {
-        return $this->nb_groupes_cm;
+        return $this->nbGroupesCm;
     }
 
-    public function setNbGroupesCm(int $nb_groupes_cm): static
+    public function setNbGroupesCm(int $nbGroupesCm): static
     {
-        $this->nb_groupes_cm = $nb_groupes_cm;
+        $this->nbGroupesCm = $nbGroupesCm;
 
         return $this;
     }
 
     public function getNbGroupesTd(): ?int
     {
-        return $this->nb_groupes_td;
+        return $this->nbGroupesTd;
     }
 
-    public function setNbGroupesTd(int $nb_groupes_td): static
+    public function setNbGroupesTd(int $nbGroupesTd): static
     {
-        $this->nb_groupes_td = $nb_groupes_td;
+        $this->nbGroupesTd = $nbGroupesTd;
 
         return $this;
     }
 
     public function getNbGroupesTp(): ?int
     {
-        return $this->nb_groupes_tp;
+        return $this->nbGroupesTp;
     }
 
-    public function setNbGroupesTp(int $nb_groupes_tp): static
+    public function setNbGroupesTp(int $nbGroupesTp): static
     {
-        $this->nb_groupes_tp = $nb_groupes_tp;
+        $this->nbGroupesTp = $nbGroupesTp;
 
         return $this;
     }
 
     public function getCodeElement(): ?string
     {
-        return $this->code_element;
+        return $this->codeElement;
     }
 
-    public function setCodeElement(?string $code_element): static
+    public function setCodeElement(?string $codeElement): static
     {
-        $this->code_element = $code_element;
+        $this->codeElement = $codeElement;
 
         return $this;
     }
@@ -208,29 +209,29 @@ class StructureSemestre
     }
 
     /**
-     * @return Collection<int, StructureScolarite>
+     * @return Collection<int, EtudiantScolarite>
      */
-    public function getStructureScolarites(): Collection
+    public function getEtudiantScolarites(): Collection
     {
-        return $this->structureScolarites;
+        return $this->etudiantScolarites;
     }
 
-    public function addStructureScolarite(StructureScolarite $structureScolarite): static
+    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
     {
-        if (!$this->structureScolarites->contains($structureScolarite)) {
-            $this->structureScolarites->add($structureScolarite);
-            $structureScolarite->setSemestre($this);
+        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
+            $this->etudiantScolarites->add($etudiantScolarite);
+            $etudiantScolarite->setSemestre($this);
         }
 
         return $this;
     }
 
-    public function removeStructureScolarite(StructureScolarite $structureScolarite): static
+    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
     {
-        if ($this->structureScolarites->removeElement($structureScolarite)) {
+        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
             // set the owning side to null (unless already changed)
-            if ($structureScolarite->getSemestre() === $this) {
-                $structureScolarite->setSemestre(null);
+            if ($etudiantScolarite->getSemestre() === $this) {
+                $etudiantScolarite->setSemestre(null);
             }
         }
 
