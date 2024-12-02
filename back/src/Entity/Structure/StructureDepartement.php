@@ -3,6 +3,7 @@
 namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\ApcReferentiel;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Traits\UuidTrait;
@@ -64,11 +65,18 @@ class StructureDepartement
     #[ORM\OneToMany(targetEntity: StructureDepartementPersonnel::class, mappedBy: 'departement')]
     private Collection $structureDepartementPersonnels;
 
+    /**
+     * @var Collection<int, ApcReferentiel>
+     */
+    #[ORM\OneToMany(targetEntity: ApcReferentiel::class, mappedBy: 'departement')]
+    private Collection $apcReferentiels;
+
     public function __construct()
     {
         $this->structureDiplomes = new ArrayCollection();
         $this->structureDepartementPersonnels = new ArrayCollection();
         $this->setOpt([]);
+        $this->apcReferentiels = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -233,5 +241,35 @@ class StructureDepartement
         $resolver->setAllowedTypes('edt', 'bool');
         $resolver->setAllowedTypes('stage', 'bool');
         $resolver->setAllowedTypes('resp_ri', 'string'); //todo: sauvegarder l'IRI de la personne ? pour faire le lien en front ?
+    }
+
+    /**
+     * @return Collection<int, ApcReferentiel>
+     */
+    public function getApcReferentiels(): Collection
+    {
+        return $this->apcReferentiels;
+    }
+
+    public function addApcReferentiel(ApcReferentiel $apcReferentiel): static
+    {
+        if (!$this->apcReferentiels->contains($apcReferentiel)) {
+            $this->apcReferentiels->add($apcReferentiel);
+            $apcReferentiel->setDepartement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeApcReferentiel(ApcReferentiel $apcReferentiel): static
+    {
+        if ($this->apcReferentiels->removeElement($apcReferentiel)) {
+            // set the owning side to null (unless already changed)
+            if ($apcReferentiel->getDepartement() === $this) {
+                $apcReferentiel->setDepartement(null);
+            }
+        }
+
+        return $this;
     }
 }

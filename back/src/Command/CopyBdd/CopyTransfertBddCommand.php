@@ -8,7 +8,7 @@ use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
-use App\Entity\Type\TypeDiplome;
+use App\Entity\Structure\StructureTypeDiplome;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\ValueObject\Adresse;
@@ -61,7 +61,7 @@ FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE personnel');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_departement_personnel');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant');
-        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE type_diplome');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_type_diplome');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_departement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_diplome');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee');
@@ -333,7 +333,7 @@ FOREIGN_KEY_CHECKS=1');
         $typeD = $this->em->executeQuery($sql)->fetchAllAssociative();
 
         foreach ($typeD as $type) {
-            $typeDiplome = new TypeDiplome();
+            $typeDiplome = new StructureTypeDiplome();
             $typeDiplome->setLibelle($type['libelle']);
             $typeDiplome->setSigle($type['sigle']);
             $typeDiplome->setApc((bool)$type['apc']);

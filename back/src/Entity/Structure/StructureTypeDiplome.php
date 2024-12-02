@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Entity\Type;
+namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
-use App\Entity\Structure\StructureDiplome;
+use App\Entity\ApcReferentiel;
 use App\Repository\Type\TypeDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TypeDiplomeRepository::class)]
 #[ApiResource]
-class TypeDiplome
+class StructureTypeDiplome
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -33,9 +33,16 @@ class TypeDiplome
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'typeDiplome')]
     private Collection $structureDiplomes;
 
+    /**
+     * @var Collection<int, ApcReferentiel>
+     */
+    #[ORM\OneToMany(targetEntity: ApcReferentiel::class, mappedBy: 'typeDiplome')]
+    private Collection $apcReferentiels;
+
     public function __construct()
     {
         $this->structureDiplomes = new ArrayCollection();
+        $this->apcReferentiels = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -103,6 +110,36 @@ class TypeDiplome
             // set the owning side to null (unless already changed)
             if ($structureDiplome->getTypeDiplome() === $this) {
                 $structureDiplome->setTypeDiplome(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ApcReferentiel>
+     */
+    public function getApcReferentiels(): Collection
+    {
+        return $this->apcReferentiels;
+    }
+
+    public function addApcReferentiel(ApcReferentiel $apcReferentiel): static
+    {
+        if (!$this->apcReferentiels->contains($apcReferentiel)) {
+            $this->apcReferentiels->add($apcReferentiel);
+            $apcReferentiel->setTypeDiplome($this);
+        }
+
+        return $this;
+    }
+
+    public function removeApcReferentiel(ApcReferentiel $apcReferentiel): static
+    {
+        if ($this->apcReferentiels->removeElement($apcReferentiel)) {
+            // set the owning side to null (unless already changed)
+            if ($apcReferentiel->getTypeDiplome() === $this) {
+                $apcReferentiel->setTypeDiplome(null);
             }
         }
 

@@ -2,6 +2,7 @@
 
 namespace App\Entity\Structure;
 
+use App\Entity\ApcParcours;
 use App\Entity\Users\Etudiant;
 use App\Repository\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -41,11 +42,18 @@ class StructureGroupe
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
     private ?Collection $enfants;
 
+    /**
+     * @var Collection<int, ApcParcours>
+     */
+    #[ORM\ManyToMany(targetEntity: ApcParcours::class, mappedBy: 'groupes')]
+    private Collection $apcParcours;
+
     public function __construct()
     {
         $this->etudiants = new ArrayCollection();
         $this->semestres = new ArrayCollection();
         $this->enfants = new ArrayCollection();
+        $this->apcParcours = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -186,6 +194,33 @@ class StructureGroupe
             if ($enfant->getParent() === $this) {
                 $enfant->setParent(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ApcParcours>
+     */
+    public function getApcParcours(): Collection
+    {
+        return $this->apcParcours;
+    }
+
+    public function addApcParcour(ApcParcours $apcParcour): static
+    {
+        if (!$this->apcParcours->contains($apcParcour)) {
+            $this->apcParcours->add($apcParcour);
+            $apcParcour->addGroupe($this);
+        }
+
+        return $this;
+    }
+
+    public function removeApcParcour(ApcParcours $apcParcour): static
+    {
+        if ($this->apcParcours->removeElement($apcParcour)) {
+            $apcParcour->removeGroupe($this);
         }
 
         return $this;

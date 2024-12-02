@@ -5,10 +5,11 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\ApcParcours;
+use App\Entity\ApcReferentiel;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
-use App\Entity\Type\TypeDiplome;
 use App\Entity\Users\Personnel;
 use App\Repository\StructureDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -84,7 +85,13 @@ class StructureDiplome
     private ?string $apogeeCodeDepartement = null;
 
     #[ORM\ManyToOne(inversedBy: 'structureDiplomes')]
-    private ?TypeDiplome $typeDiplome = null;
+    private ?StructureTypeDiplome $typeDiplome = null;
+
+    #[ORM\ManyToOne(inversedBy: 'diplomes')]
+    private ?ApcReferentiel $apcReferentiel = null;
+
+    #[ORM\ManyToOne(inversedBy: 'diplome')]
+    private ?ApcParcours $apcParcours = null;
 
     public function __construct()
     {
@@ -341,14 +348,38 @@ class StructureDiplome
         return $this;
     }
 
-    public function getTypeDiplome(): ?TypeDiplome
+    public function getTypeDiplome(): ?StructureTypeDiplome
     {
         return $this->typeDiplome;
     }
 
-    public function setTypeDiplome(?TypeDiplome $typeDiplome): static
+    public function setTypeDiplome(?StructureTypeDiplome $typeDiplome): static
     {
         $this->typeDiplome = $typeDiplome;
+
+        return $this;
+    }
+
+    public function getApcReferentiel(): ?ApcReferentiel
+    {
+        return $this->apcReferentiel;
+    }
+
+    public function setApcReferentiel(?ApcReferentiel $apcReferentiel): static
+    {
+        $this->apcReferentiel = $apcReferentiel;
+
+        return $this;
+    }
+
+    public function getApcParcours(): ?ApcParcours
+    {
+        return $this->apcParcours;
+    }
+
+    public function setApcParcours(?ApcParcours $apcParcours): static
+    {
+        $this->apcParcours = $apcParcours;
 
         return $this;
     }

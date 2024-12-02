@@ -5,6 +5,7 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\ApcNiveau;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Repository\StructureAnneeRepository;
@@ -64,11 +65,18 @@ class StructureAnnee
     #[ORM\Column(length: 10, nullable: true)]
     private ?string $apogeeCodeEtape = null;
 
+    /**
+     * @var Collection<int, ApcNiveau>
+     */
+    #[ORM\OneToMany(targetEntity: ApcNiveau::class, mappedBy: 'annee')]
+    private Collection $apcNiveaux;
+
     public function __construct()
     {
         $this->pn = new ArrayCollection();
         $this->structureSemestres = new ArrayCollection();
         $this->setOpt([]);
+        $this->apcNiveaux = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -225,6 +233,36 @@ class StructureAnnee
     public function setApogeeCodeEtape(?string $apogeeCodeEtape): static
     {
         $this->apogeeCodeEtape = $apogeeCodeEtape;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ApcNiveau>
+     */
+    public function getApcNiveaux(): Collection
+    {
+        return $this->apcNiveaux;
+    }
+
+    public function addApcNiveau(ApcNiveau $apcNiveau): static
+    {
+        if (!$this->apcNiveaux->contains($apcNiveau)) {
+            $this->apcNiveaux->add($apcNiveau);
+            $apcNiveau->setAnnee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeApcNiveau(ApcNiveau $apcNiveau): static
+    {
+        if ($this->apcNiveaux->removeElement($apcNiveau)) {
+            // set the owning side to null (unless already changed)
+            if ($apcNiveau->getAnnee() === $this) {
+                $apcNiveau->setAnnee(null);
+            }
+        }
 
         return $this;
     }
