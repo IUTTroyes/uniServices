@@ -5,6 +5,8 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OptionTrait;
 use App\Repository\StructureAnneeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -18,8 +20,12 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
         new GetCollection(normalizationContext: ['groups' => ['annee:read']]),
     ]
 )]
+#[ORM\HasLifecycleCallbacks()]
 class StructureAnnee
 {
+    use LifeCycleTrait;
+    use OptionTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -28,20 +34,14 @@ class StructureAnnee
     #[ORM\Column(length: 255)]
     private ?string $libelle = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $code_etape = null;
-
-    #[ORM\Column(length: 10, nullable: true)]
-    private ?string $code_version = null;
-
     #[ORM\Column]
-    private ?int $ordre = null;
+    private int $ordre = 0;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $libelle_long = null;
+    private ?string $libelleLong = null;
 
     #[ORM\Column]
-    private ?bool $actif = null;
+    private bool $actif = true;
 
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $couleur = null;
@@ -52,14 +52,17 @@ class StructureAnnee
     #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'structureAnnee')]
     private Collection $pn;
 
-    #[ORM\Column]
-    private array $opt = [];
-
     /**
      * @var Collection<int, StructureSemestre>
      */
     #[ORM\OneToMany(targetEntity: StructureSemestre::class, mappedBy: 'annee')]
     private Collection $structureSemestres;
+
+    #[ORM\Column(length: 3, nullable: true)]
+    private ?string $apogeeCodeVersion = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $apogeeCodeEtape = null;
 
     public function __construct()
     {
@@ -85,30 +88,6 @@ class StructureAnnee
         return $this;
     }
 
-    public function getCodeEtape(): ?string
-    {
-        return $this->code_etape;
-    }
-
-    public function setCodeEtape(?string $code_etape): static
-    {
-        $this->code_etape = $code_etape;
-
-        return $this;
-    }
-
-    public function getCodeVersion(): ?string
-    {
-        return $this->code_version;
-    }
-
-    public function setCodeVersion(?string $code_version): static
-    {
-        $this->code_version = $code_version;
-
-        return $this;
-    }
-
     public function getOrdre(): ?int
     {
         return $this->ordre;
@@ -123,12 +102,12 @@ class StructureAnnee
 
     public function getLibelleLong(): ?string
     {
-        return $this->libelle_long;
+        return $this->libelleLong;
     }
 
-    public function setLibelleLong(?string $libelle_long): static
+    public function setLibelleLong(?string $libelleLong): static
     {
-        $this->libelle_long = $libelle_long;
+        $this->libelleLong = $libelleLong;
 
         return $this;
     }
@@ -187,11 +166,6 @@ class StructureAnnee
         return $this;
     }
 
-    public function getOpt(): array
-    {
-        return $this->opt;
-    }
-
     /**
      * @return Collection<int, StructureSemestre>
      */
@@ -225,17 +199,32 @@ class StructureAnnee
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'alternance' => 1,
+            'alternance' => true,
         ]);
 
-        $resolver->setAllowedTypes('alternance', 'int');
+        $resolver->setAllowedTypes('alternance', 'bool');
     }
 
-    public function setOpt(array $opt): static
+    public function getApogeeCodeVersion(): ?string
     {
-        $resolver = new OptionsResolver();
-        $this->configureOptions($resolver);
-        $this->opt = $resolver->resolve($opt);
+        return $this->apogeeCodeVersion;
+    }
+
+    public function setApogeeCodeVersion(?string $apogeeCodeVersion): static
+    {
+        $this->apogeeCodeVersion = $apogeeCodeVersion;
+
+        return $this;
+    }
+
+    public function getApogeeCodeEtape(): ?string
+    {
+        return $this->apogeeCodeEtape;
+    }
+
+    public function setApogeeCodeEtape(?string $apogeeCodeEtape): static
+    {
+        $this->apogeeCodeEtape = $apogeeCodeEtape;
 
         return $this;
     }

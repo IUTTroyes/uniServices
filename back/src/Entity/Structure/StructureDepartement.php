@@ -3,6 +3,9 @@
 namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OptionTrait;
+use App\Entity\Traits\UuidTrait;
 use App\Repository\StructureDepartementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,8 +16,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDepartementRepository::class)]
 #[ApiResource]
+#[ORM\HasLifecycleCallbacks]
 class StructureDepartement
 {
+    use UuidTrait;
+    use LifeCycleTrait;
+    use OptionTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -26,16 +34,16 @@ class StructureDepartement
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $logo_name = null;
+    private ?string $logoName = null;
 
     #[ORM\Column(length: 16, nullable: true)]
-    private ?string $tel_contact = null;
+    private ?string $telContact = null;
 
     #[ORM\Column(length: 16, nullable: true)]
     private ?string $couleur = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $site_web = null;
+    private ?string $siteWeb = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $description = null;
@@ -43,10 +51,6 @@ class StructureDepartement
     #[ORM\Column]
     #[Groups(groups: ['structure_departement:read', 'personnel:read'])]
     private ?bool $actif = null;
-
-    #[ORM\Column]
-    #[Groups(groups: ['structure_departement:read'])]
-    private array $opt = [];
 
     /**
      * @var Collection<int, StructureDiplome>
@@ -86,24 +90,24 @@ class StructureDepartement
 
     public function getLogoName(): ?string
     {
-        return $this->logo_name;
+        return $this->logoName;
     }
 
-    public function setLogoName(?string $logo_name): static
+    public function setLogoName(?string $logoName): static
     {
-        $this->logo_name = $logo_name;
+        $this->logoName = $logoName;
 
         return $this;
     }
 
     public function getTelContact(): ?string
     {
-        return $this->tel_contact;
+        return $this->telContact;
     }
 
-    public function setTelContact(?string $tel_contact): static
+    public function setTelContact(?string $telContact): static
     {
-        $this->tel_contact = $tel_contact;
+        $this->telContact = $telContact;
 
         return $this;
     }
@@ -122,12 +126,12 @@ class StructureDepartement
 
     public function getSiteWeb(): ?string
     {
-        return $this->site_web;
+        return $this->siteWeb;
     }
 
-    public function setSiteWeb(?string $site_web): static
+    public function setSiteWeb(?string $siteWeb): static
     {
-        $this->site_web = $site_web;
+        $this->siteWeb = $siteWeb;
 
         return $this;
     }
@@ -154,11 +158,6 @@ class StructureDepartement
         $this->actif = $actif;
 
         return $this;
-    }
-
-    public function getOpt(): array
-    {
-        return $this->opt;
     }
 
     /**
@@ -224,24 +223,15 @@ class StructureDepartement
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'materiel' => 0,
-            'edt' => 0,
-            'stage' => 0,
-            'resp_ri' => 0,
+            'materiel' => false,
+            'edt' => false,
+            'stage' => false,
+            'resp_ri' => '',
         ]);
 
-        $resolver->setAllowedTypes('materiel', 'int');
-        $resolver->setAllowedTypes('edt', 'int');
-        $resolver->setAllowedTypes('stage', 'int');
-        $resolver->setAllowedTypes('resp_ri', 'int');
-    }
-
-    public function setOpt(array $opt): static
-    {
-        $resolver = new OptionsResolver();
-        $this->configureOptions($resolver);
-        $this->opt = $resolver->resolve($opt);
-
-        return $this;
+        $resolver->setAllowedTypes('materiel', 'bool');
+        $resolver->setAllowedTypes('edt', 'bool');
+        $resolver->setAllowedTypes('stage', 'bool');
+        $resolver->setAllowedTypes('resp_ri', 'string'); //todo: sauvegarder l'IRI de la personne ? pour faire le lien en front ?
     }
 }

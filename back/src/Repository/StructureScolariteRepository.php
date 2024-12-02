@@ -2,18 +2,18 @@
 
 namespace App\Repository;
 
-use App\Entity\Structure\StructureScolarite;
+use App\Entity\Etudiant\EtudiantScolarite;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<StructureScolarite>
+ * @extends ServiceEntityRepository<EtudiantScolarite>
  */
 class StructureScolariteRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, StructureScolarite::class);
+        parent::__construct($registry, EtudiantScolarite::class);
     }
 
     //    /**

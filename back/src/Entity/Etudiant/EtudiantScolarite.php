@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Entity\Structure;
+namespace App\Entity\Etudiant;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Structure\StructureAnneeUniversitaire;
+use App\Entity\Structure\StructureSemestre;
 use App\Entity\Users\Etudiant;
 use App\Repository\StructureScolariteRepository;
 use Doctrine\DBAL\Types\Types;
@@ -18,7 +20,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(normalizationContext: ['groups' => ['scolarite:read']]),
     ]
 )]
-class StructureScolarite
+class EtudiantScolarite
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -26,11 +28,11 @@ class StructureScolarite
     #[Groups(['scolarite:read', 'etudiant:read'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'structureScolarites')]
+    #[ORM\ManyToOne(inversedBy: 'etudiantScolarites')]
     #[ORM\JoinColumn(nullable: false)]
     private ?StructureSemestre $semestre = null;
 
-    #[ORM\ManyToOne(inversedBy: 'structureScolarites')]
+    #[ORM\ManyToOne(inversedBy: 'etudiantScolarites')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['scolarite:read'])]
     private ?Etudiant $etudiant = null;
@@ -49,7 +51,7 @@ class StructureScolarite
 
     #[ORM\Column]
     #[Groups(['scolarite:read'])]
-    private ?int $nb_absences = null;
+    private ?int $nbAbsences = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['scolarite:read'])]
@@ -61,11 +63,11 @@ class StructureScolarite
 
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:read'])]
-    private ?array $moyennes_matiere = null;
+    private ?array $moyennesMatiere = null;
 
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:read'])]
-    private ?array $moyennes_ue = null;
+    private ?array $moyennesUe = null;
 
     #[ORM\Column]
     #[Groups(['scolarite:read'])]
@@ -143,12 +145,12 @@ class StructureScolarite
 
     public function getNbAbsences(): ?int
     {
-        return $this->nb_absences;
+        return $this->nbAbsences;
     }
 
-    public function setNbAbsences(int $nb_absences): static
+    public function setNbAbsences(int $nbAbsences): static
     {
-        $this->nb_absences = $nb_absences;
+        $this->nbAbsences = $nbAbsences;
 
         return $this;
     }
@@ -179,24 +181,24 @@ class StructureScolarite
 
     public function getMoyennesMatiere(): ?array
     {
-        return $this->moyennes_matiere;
+        return $this->moyennesMatiere;
     }
 
-    public function setMoyennesMatiere(?array $moyennes_matiere): static
+    public function setMoyennesMatiere(?array $moyennesMatiere): static
     {
-        $this->moyennes_matiere = $moyennes_matiere;
+        $this->moyennesMatiere = $moyennesMatiere;
 
         return $this;
     }
 
     public function getMoyennesUe(): ?array
     {
-        return $this->moyennes_ue;
+        return $this->moyennesUe;
     }
 
-    public function setMoyennesUe(?array $moyennes_ue): static
+    public function setMoyennesUe(?array $moyennesUe): static
     {
-        $this->moyennes_ue = $moyennes_ue;
+        $this->moyennesUe = $moyennesUe;
 
         return $this;
     }

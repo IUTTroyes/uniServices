@@ -2,9 +2,9 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Structure\StructureScolarite;
-use App\Repository\StructureAnneeUniversitaireRepository;
+use App\Entity\Etudiant\EtudiantScolarite;
 use App\Repository\EtudiantRepository;
+use App\Repository\StructureAnneeUniversitaireRepository;
 use App\Repository\StructureSemestreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
@@ -48,7 +48,7 @@ class StructureScolariteFixtures extends Fixture implements OrderedFixtureInterf
         $anneeUniversitaire1 = $this->anneeUniversitaireRepository->findOneBy(['libelle' => '2023/2024']);
         $anneeUniversitaire2 = $this->anneeUniversitaireRepository->findOneBy(['libelle' => '2024/2025']);
 
-        $scolarite1 = new StructureScolarite();
+        $scolarite1 = new EtudiantScolarite();
         $scolarite1->setSemestre($semestre1)
             ->setEtudiant($etu1)
             ->setOrdre(1)
@@ -59,7 +59,7 @@ class StructureScolariteFixtures extends Fixture implements OrderedFixtureInterf
             ;
         $manager->persist($scolarite1);
 
-        $scolarite2 = new StructureScolarite();
+        $scolarite2 = new EtudiantScolarite();
         $scolarite2->setSemestre($semestre2)
             ->setEtudiant($etu1)
             ->setOrdre(2)
