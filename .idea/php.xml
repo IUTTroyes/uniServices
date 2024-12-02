@@ -179,9 +179,21 @@
       <path value="$PROJECT_DIR$/back/vendor/doctrine/doctrine-fixtures-bundle" />
       <path value="$PROJECT_DIR$/back/vendor/doctrine/data-fixtures" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/options-resolver" />
+      <path value="$PROJECT_DIR$/back/vendor/phpstan/phpstan" />
+      <path value="$PROJECT_DIR$/back/vendor/phpstan/extension-installer" />
+      <path value="$PROJECT_DIR$/back/vendor/phpstan/phpstan-doctrine" />
+      <path value="$PROJECT_DIR$/back/vendor/phpstan/phpstan-symfony" />
+      <path value="$PROJECT_DIR$/back/vendor/carbonphp/carbon-doctrine-types" />
+      <path value="$PROJECT_DIR$/back/vendor/nesbot/carbon" />
+      <path value="$PROJECT_DIR$/back/vendor/symfony/translation" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
+  <component name="PhpStan">
+    <PhpStan_settings>
+      <PhpStanConfiguration tool_path="$PROJECT_DIR$/back/vendor/bin/phpstan" />
+    </PhpStan_settings>
+  </component>
   <component name="PhpStanOptionsConfiguration">
     <option name="transferred" value="true" />
   </component>
