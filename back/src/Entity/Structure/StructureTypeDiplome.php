@@ -3,7 +3,7 @@
 namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
-use App\Entity\ApcReferentiel;
+use App\Entity\Apc\ApcReferentiel;
 use App\Repository\Type\TypeDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

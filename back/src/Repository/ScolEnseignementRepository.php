@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\ScolEnseignement;
+use App\Entity\Scolarite\ScolEnseignement;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

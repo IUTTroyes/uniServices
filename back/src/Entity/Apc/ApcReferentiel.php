@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Apc;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Structure\StructureDepartement;

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Apc;
 
+use App\Entity\Scolarite\ScolEnseignement;
 use App\Repository\ApcApprentissageCritiqueRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

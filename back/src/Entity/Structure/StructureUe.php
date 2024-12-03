@@ -2,8 +2,8 @@
 
 namespace App\Entity\Structure;
 
-use App\Entity\ApcCompetence;
-use App\Entity\ScolEnseignement;
+use App\Entity\Apc\ApcCompetence;
+use App\Entity\Scolarite\ScolEnseignement;
 use App\Repository\UeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

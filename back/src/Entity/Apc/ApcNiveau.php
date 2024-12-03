@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Apc;
 
 use App\Entity\Structure\StructureAnnee;
 use App\Repository\ApcNiveauRepository;
