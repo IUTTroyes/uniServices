@@ -120,6 +120,15 @@ const tabs = ref([
                 </div>
                 </div>
                 <div class="card-body">
+                    <div class="w-full flex justify-center mt-5 gap-5">
+                        <Button icon="pi pi-arrow-left" severity="secondary" aria-label="previousWeek" />
+                        <div class="flex flex-col">
+                        <Tag value="Semaine 49"></Tag>
+                        <small>Semaine de formation 15</small>
+                        </div>
+                        <Button icon="pi pi-arrow-right" severity="secondary" aria-label="nextWeek" />
+                    </div>
+
                     <Tabs value="0">
                         <TabList>
                             <Tab v-for="tab in tabs" :key="tab.title" :value="tab.value">{{ tab.title }}</Tab>
