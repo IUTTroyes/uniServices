@@ -2,13 +2,12 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import api from '@/axios';
 
-const token = localStorage.getItem('token');
-const tokenParts = token?.split('.');
-const payload = tokenParts ? JSON.parse(atob(tokenParts[1])) : {};
-const userId = payload.userId;
-const type = payload.type;
-
 export const useUsersStore = defineStore('users', () => {
+    const token = localStorage.getItem('token');
+    const tokenParts = token?.split('.');
+    const payload = tokenParts ? JSON.parse(atob(tokenParts[1])) : {};
+    const userId = payload.userId;
+    const type = payload.type;
     const user = ref([]);
     const departements = ref([]);
     const departementDefaut = ref({});
@@ -16,8 +15,8 @@ export const useUsersStore = defineStore('users', () => {
     const fetchUser = async () => {
         try {
             const response = await api.get(`/api/${type}/${userId}`);
-            // transformer user.photo_name en chemin vers l'image : "@/assets/photos_etudiants/" + user.photo_name
-            response.data.photo_name = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photo_name;
+            // transformer user.photoName en chemin vers l'image : "@/assets/photos_etudiants/" + user.photoName
+            response.data.photoName = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
             user.value = response.data;
             departements.value = response.data.structureDepartementPersonnels;
             // récupérer le département qui a defaut = true

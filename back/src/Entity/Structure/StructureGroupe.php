@@ -2,6 +2,7 @@
 
 namespace App\Entity\Structure;
 
+use App\Entity\ApcParcours;
 use App\Entity\Users\Etudiant;
 use App\Repository\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -17,44 +18,42 @@ class StructureGroupe
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $libelle = null;
+    private string $libelle;
 
-    #[ORM\Column(length: 50)]
-    private ?string $code_apogee = null;
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $codeApogee = null;
 
     #[ORM\Column(length: 10)]
-    private ?string $type = null;
+    private string $type;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?self $parent = null;
 
-    /**
-     * @var Collection<int, Etudiant>
-     */
     #[ORM\ManyToMany(targetEntity: Etudiant::class, inversedBy: 'structureGroupes')]
     private Collection $etudiants;
 
     #[ORM\Column(nullable: true)]
     private ?int $ordre = null;
 
-    /**
-     * @var Collection<int, StructureSemestre>
-     */
     #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'structureGroupes')]
     private Collection $semestres;
 
-    /**
-     * @var Collection<int, self>
-     */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
-    private ?Collection $enfants = null;
+    private ?Collection $enfants;
+
+    /**
+     * @var Collection<int, ApcParcours>
+     */
+    #[ORM\ManyToMany(targetEntity: ApcParcours::class, mappedBy: 'groupes')]
+    private Collection $apcParcours;
 
     public function __construct()
     {
         $this->etudiants = new ArrayCollection();
         $this->semestres = new ArrayCollection();
         $this->enfants = new ArrayCollection();
+        $this->apcParcours = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -76,12 +75,12 @@ class StructureGroupe
 
     public function getCodeApogee(): ?string
     {
-        return $this->code_apogee;
+        return $this->codeApogee;
     }
 
-    public function setCodeApogee(string $code_apogee): static
+    public function setCodeApogee(string $codeApogee): static
     {
-        $this->code_apogee = $code_apogee;
+        $this->codeApogee = $codeApogee;
 
         return $this;
     }
@@ -182,7 +181,7 @@ class StructureGroupe
     {
         if (!$this->enfants->contains($enfant)) {
             $this->enfants->add($enfant);
-            $enfant->setParent($this);
+            $enfant?->setParent($this);
         }
 
         return $this;
@@ -195,6 +194,33 @@ class StructureGroupe
             if ($enfant->getParent() === $this) {
                 $enfant->setParent(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ApcParcours>
+     */
+    public function getApcParcours(): Collection
+    {
+        return $this->apcParcours;
+    }
+
+    public function addApcParcour(ApcParcours $apcParcour): static
+    {
+        if (!$this->apcParcours->contains($apcParcour)) {
+            $this->apcParcours->add($apcParcour);
+            $apcParcour->addGroupe($this);
+        }
+
+        return $this;
+    }
+
+    public function removeApcParcour(ApcParcours $apcParcour): static
+    {
+        if ($this->apcParcours->removeElement($apcParcour)) {
+            $apcParcour->removeGroupe($this);
         }
 
         return $this;

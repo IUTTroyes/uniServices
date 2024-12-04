@@ -1,11 +1,14 @@
 <?php
 
-namespace App\Entity\Structure;
+namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Structure\StructureAnnee;
+use App\Entity\Structure\StructureDiplome;
 use App\Repository\StructurePnRepository;
+use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -27,10 +30,10 @@ class StructurePn
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $libelle = null;
+    private string $libelle;
 
     #[ORM\Column]
-    private ?int $annee_publication = null;
+    private int $anneePublication;
 
     #[ORM\ManyToOne(inversedBy: 'structurePns')]
     private ?StructureDiplome $diplome = null;
@@ -44,9 +47,13 @@ class StructurePn
     #[ORM\ManyToMany(targetEntity: StructureAnneeUniversitaire::class, mappedBy: 'pn')]
     private Collection $structureAnneeUniversitaires;
 
+    #[ORM\ManyToOne(inversedBy: 'pn')]
+    private ?ApcReferentiel $apcReferentiel = null;
+
     public function __construct()
     {
         $this->structureAnneeUniversitaires = new ArrayCollection();
+        $this->anneePublication = (int)(new DateTime('now'))->format('Y');
     }
 
     public function getId(): ?int
@@ -68,12 +75,12 @@ class StructurePn
 
     public function getAnneePublication(): ?int
     {
-        return $this->annee_publication;
+        return $this->anneePublication;
     }
 
-    public function setAnneePublication(int $annee_publication): static
+    public function setAnneePublication(int $anneePublication): static
     {
-        $this->annee_publication = $annee_publication;
+        $this->anneePublication = $anneePublication;
 
         return $this;
     }
@@ -125,6 +132,18 @@ class StructurePn
         if ($this->structureAnneeUniversitaires->removeElement($structureAnneeUniversitaire)) {
             $structureAnneeUniversitaire->removePn($this);
         }
+
+        return $this;
+    }
+
+    public function getApcReferentiel(): ?ApcReferentiel
+    {
+        return $this->apcReferentiel;
+    }
+
+    public function setApcReferentiel(?ApcReferentiel $apcReferentiel): static
+    {
+        $this->apcReferentiel = $apcReferentiel;
 
         return $this;
     }

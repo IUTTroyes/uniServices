@@ -2,39 +2,39 @@
 
 namespace App\Repository;
 
-use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\ApcParcours;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<EtudiantScolarite>
+ * @extends ServiceEntityRepository<ApcParcours>
  */
-class StructureScolariteRepository extends ServiceEntityRepository
+class ApcParcoursRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, EtudiantScolarite::class);
+        parent::__construct($registry, ApcParcours::class);
     }
 
     //    /**
-    //     * @return StructureScolarite[] Returns an array of StructureScolarite objects
+    //     * @return ApcParcours[] Returns an array of ApcParcours objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
+    //        return $this->createQueryBuilder('a')
+    //            ->andWhere('a.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
+    //            ->orderBy('a.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?StructureScolarite
+    //    public function findOneBySomeField($value): ?ApcParcours
     //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
+    //        return $this->createQueryBuilder('a')
+    //            ->andWhere('a.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Entity\Structure;
+namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\StructureAnneeUniversitaireRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -19,8 +21,11 @@ use Doctrine\ORM\Mapping as ORM;
         new GetCollection(normalizationContext: ['groups' => ['structure_annee_universitaire:read']]),
     ]
 )]
+#[ORM\HasLifecycleCallbacks]
 class StructureAnneeUniversitaire
 {
+    use LifeCycleTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -36,9 +41,9 @@ class StructureAnneeUniversitaire
     private ?string $commentaire = null;
 
     /**
-     * @var Collection<int, StructureScolarite>
+     * @var Collection<int, EtudiantScolarite>
      */
-    #[ORM\OneToMany(targetEntity: StructureScolarite::class, mappedBy: 'structureAnneeUniversitaire')]
+    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'structureAnneeUniversitaire')]
     private Collection $scolarites;
 
     /**
@@ -56,11 +61,18 @@ class StructureAnneeUniversitaire
     #[ORM\Column]
     private ?bool $actif = null;
 
+    /**
+     * @var Collection<int, ApcReferentiel>
+     */
+    #[ORM\OneToMany(targetEntity: ApcReferentiel::class, mappedBy: 'anneeUniv')]
+    private Collection $apcReferentiels;
+
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
         $this->pn = new ArrayCollection();
         $this->personnels = new ArrayCollection();
+        $this->apcReferentiels = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -105,14 +117,14 @@ class StructureAnneeUniversitaire
     }
 
     /**
-     * @return Collection<int, StructureScolarite>
+     * @return Collection<int, EtudiantScolarite>
      */
     public function getScolarites(): Collection
     {
         return $this->scolarites;
     }
 
-    public function addScolarite(StructureScolarite $scolarite): static
+    public function addScolarite(EtudiantScolarite $scolarite): static
     {
         if (!$this->scolarites->contains($scolarite)) {
             $this->scolarites->add($scolarite);
@@ -122,7 +134,7 @@ class StructureAnneeUniversitaire
         return $this;
     }
 
-    public function removeScolarite(StructureScolarite $scolarite): static
+    public function removeScolarite(EtudiantScolarite $scolarite): static
     {
         if ($this->scolarites->removeElement($scolarite)) {
             // set the owning side to null (unless already changed)
@@ -196,6 +208,36 @@ class StructureAnneeUniversitaire
     public function setActif(bool $actif): static
     {
         $this->actif = $actif;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ApcReferentiel>
+     */
+    public function getApcReferentiels(): Collection
+    {
+        return $this->apcReferentiels;
+    }
+
+    public function addApcReferentiel(ApcReferentiel $apcReferentiel): static
+    {
+        if (!$this->apcReferentiels->contains($apcReferentiel)) {
+            $this->apcReferentiels->add($apcReferentiel);
+            $apcReferentiel->setAnneeUniv($this);
+        }
+
+        return $this;
+    }
+
+    public function removeApcReferentiel(ApcReferentiel $apcReferentiel): static
+    {
+        if ($this->apcReferentiels->removeElement($apcReferentiel)) {
+            // set the owning side to null (unless already changed)
+            if ($apcReferentiel->getAnneeUniv() === $this) {
+                $apcReferentiel->setAnneeUniv(null);
+            }
+        }
 
         return $this;
     }

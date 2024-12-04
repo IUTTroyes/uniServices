@@ -2,39 +2,39 @@
 
 namespace App\Repository;
 
-use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Structure\StructureUe;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<EtudiantScolarite>
+ * @extends ServiceEntityRepository<StructureUe>
  */
-class StructureScolariteRepository extends ServiceEntityRepository
+class UeRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, EtudiantScolarite::class);
+        parent::__construct($registry, StructureUe::class);
     }
 
     //    /**
-    //     * @return StructureScolarite[] Returns an array of StructureScolarite objects
+    //     * @return StructureUe[] Returns an array of StructureUe objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
+    //        return $this->createQueryBuilder('u')
+    //            ->andWhere('u.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
+    //            ->orderBy('u.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?StructureScolarite
+    //    public function findOneBySomeField($value): ?StructureUe
     //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
+    //        return $this->createQueryBuilder('u')
+    //            ->andWhere('u.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

@@ -5,6 +5,12 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\ApcParcours;
+use App\Entity\ApcReferentiel;
+use App\Entity\StructurePn;
+use App\Entity\Traits\EduSignTrait;
+use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OptionTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\StructureDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,8 +26,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(normalizationContext: ['groups' => ['structure_diplome:read']]),
     ]
 )]
+#[ORM\HasLifecycleCallbacks]
 class StructureDiplome
 {
+    use EduSignTrait;
+    use LifeCycleTrait;
+    use OptionTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -29,50 +40,59 @@ class StructureDiplome
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $libelle = null;
+    private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome')]
-    private ?Personnel $responsable_diplome = null;
+    private ?Personnel $responsableDiplome = null;
 
-    #[ORM\ManyToOne(inversedBy: 'assistant_diplome')]
-    private ?Personnel $assistant_diplome = null;
-
-    #[ORM\Column]
-    private ?int $volume_horaire = null;
+    #[ORM\ManyToOne(inversedBy: 'assistantDiplome')]
+    private ?Personnel $assistantDiplome = null;
 
     #[ORM\Column]
-    private ?int $code_celcat_departement = null;
+    private int $volumeHoraire = 0;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $codeCelcatDepartement = null;
 
     #[ORM\Column(length: 40, nullable: true)]
     private ?string $sigle = null;
 
     #[ORM\Column]
-    private ?bool $actif = null;
+    private bool $actif = true;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     private ?self $parent = null;
 
-    /**
-     * @var Collection<int, self>
-     */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
-    private ?Collection $enfants = null;
+    private ?Collection $enfants;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $logo_partenaire = null;
+    private ?string $logoPartenaireName = null;
 
-    #[ORM\Column]
-    private array $opt = [];
-
-    /**
-     * @var Collection<int, StructurePn>
-     */
     #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome')]
     private Collection $structurePns;
 
     #[ORM\ManyToOne(inversedBy: 'structureDiplomes')]
     private ?StructureDepartement $departement = null;
+
+    #[ORM\Column(length: 3, nullable: true)]
+    private ?string $apogeeCodeVersion = null;
+
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $apogeeCodeDiplome = null;
+
+    #[ORM\Column(length: 3, nullable: true)]
+    private ?string $apogeeCodeDepartement = null;
+
+    #[ORM\ManyToOne(inversedBy: 'structureDiplomes')]
+    private ?StructureTypeDiplome $typeDiplome = null;
+
+    #[ORM\ManyToOne(inversedBy: 'diplomes')]
+    private ?ApcReferentiel $apcReferentiel = null;
+
+    #[ORM\ManyToOne(inversedBy: 'diplome')]
+    private ?ApcParcours $apcParcours = null;
 
     public function __construct()
     {
@@ -100,48 +120,48 @@ class StructureDiplome
 
     public function getResponsableDiplome(): ?Personnel
     {
-        return $this->responsable_diplome;
+        return $this->responsableDiplome;
     }
 
-    public function setResponsableDiplome(?Personnel $responsable_diplome): static
+    public function setResponsableDiplome(?Personnel $responsableDiplome): static
     {
-        $this->responsable_diplome = $responsable_diplome;
+        $this->responsableDiplome = $responsableDiplome;
 
         return $this;
     }
 
     public function getAssistantDiplome(): ?Personnel
     {
-        return $this->assistant_diplome;
+        return $this->assistantDiplome;
     }
 
-    public function setAssistantDiplome(?Personnel $assistant_diplome): static
+    public function setAssistantDiplome(?Personnel $assistantDiplome): static
     {
-        $this->assistant_diplome = $assistant_diplome;
+        $this->assistantDiplome = $assistantDiplome;
 
         return $this;
     }
 
     public function getVolumeHoraire(): ?int
     {
-        return $this->volume_horaire;
+        return $this->volumeHoraire;
     }
 
-    public function setVolumeHoraire(int $volume_horaire): static
+    public function setVolumeHoraire(int $volumeHoraire): static
     {
-        $this->volume_horaire = $volume_horaire;
+        $this->volumeHoraire = $volumeHoraire;
 
         return $this;
     }
 
     public function getCodeCelcatDepartement(): ?int
     {
-        return $this->code_celcat_departement;
+        return $this->codeCelcatDepartement;
     }
 
-    public function setCodeCelcatDepartement(int $code_celcat_departement): static
+    public function setCodeCelcatDepartement(?int $codeCelcatDepartement): static
     {
-        $this->code_celcat_departement = $code_celcat_departement;
+        $this->codeCelcatDepartement = $codeCelcatDepartement;
 
         return $this;
     }
@@ -214,19 +234,14 @@ class StructureDiplome
 
     public function getLogoPartenaire(): ?string
     {
-        return $this->logo_partenaire;
+        return $this->logoPartenaireName;
     }
 
-    public function setLogoPartenaire(?string $logo_partenaire): static
+    public function setLogoPartenaire(?string $logoPartenaireName): static
     {
-        $this->logo_partenaire = $logo_partenaire;
+        $this->logoPartenaireName = $logoPartenaireName;
 
         return $this;
-    }
-
-    public function getOpt(): array
-    {
-        return $this->opt;
     }
 
     /**
@@ -275,34 +290,97 @@ class StructureDiplome
     {
         $resolver->setDefaults([
             'nb_jours_saisie_absence' => 15,
-            'supp_absence' => 0,
-            'anonymat' => 0,
-            'commentaire_releve' => 0,
-            'espace_perso_visible' => 0,
+            'supp_absence' => true,
+            'anonymat' => false,
+            'commentaire_releve' => false,
+            'espace_perso_visible' => false,
             'semaine_visible' => 2,
-            'certif_qualite' => 0,
+            'certif_qualite' => true,
             'resp_qualite' => 0,
-            'update_celcat' => 0,
-            'saisie_cm_autorisee' => 1,
+            'update_celcat' => false,
+            'saisie_cm_autorisee' => true,
         ]);
 
         $resolver->setAllowedTypes('nb_jours_saisie_absence', 'int');
-        $resolver->setAllowedTypes('supp_absence', 'int');
-        $resolver->setAllowedTypes('anonymat', 'int');
-        $resolver->setAllowedTypes('commentaire_releve', 'int');
-        $resolver->setAllowedTypes('espace_perso_visible', 'int');
+        $resolver->setAllowedTypes('supp_absence', 'bool');
+        $resolver->setAllowedTypes('anonymat', 'bool');
+        $resolver->setAllowedTypes('commentaire_releve', 'bool');
+        $resolver->setAllowedTypes('espace_perso_visible', 'bool');
         $resolver->setAllowedTypes('semaine_visible', 'int');
-        $resolver->setAllowedTypes('certif_qualite', 'int');
+        $resolver->setAllowedTypes('certif_qualite', 'bool');
         $resolver->setAllowedTypes('resp_qualite', 'int');
-        $resolver->setAllowedTypes('update_celcat', 'int');
-        $resolver->setAllowedTypes('saisie_cm_autorisee', 'int');
+        $resolver->setAllowedTypes('update_celcat', 'bool');
+        $resolver->setAllowedTypes('saisie_cm_autorisee', 'bool');
     }
 
-    public function setOpt(array $opt): static
+    public function getApogeeCodeVersion(): ?string
     {
-        $resolver = new OptionsResolver();
-        $this->configureOptions($resolver);
-        $this->opt = $resolver->resolve($opt);
+        return $this->apogeeCodeVersion;
+    }
+
+    public function setApogeeCodeVersion(?string $apogeeCodeVersion): static
+    {
+        $this->apogeeCodeVersion = $apogeeCodeVersion;
+
+        return $this;
+    }
+
+    public function getApogeeCodeDiplome(): ?string
+    {
+        return $this->apogeeCodeDiplome;
+    }
+
+    public function setApogeeCodeDiplome(?string $apogeeCodeDiplome): static
+    {
+        $this->apogeeCodeDiplome = $apogeeCodeDiplome;
+
+        return $this;
+    }
+
+    public function getApogeeCodeDepartement(): ?string
+    {
+        return $this->apogeeCodeDepartement;
+    }
+
+    public function setApogeeCodeDepartement(?string $apogeeCodeDepartement): static
+    {
+        $this->apogeeCodeDepartement = $apogeeCodeDepartement;
+
+        return $this;
+    }
+
+    public function getTypeDiplome(): ?StructureTypeDiplome
+    {
+        return $this->typeDiplome;
+    }
+
+    public function setTypeDiplome(?StructureTypeDiplome $typeDiplome): static
+    {
+        $this->typeDiplome = $typeDiplome;
+
+        return $this;
+    }
+
+    public function getApcReferentiel(): ?ApcReferentiel
+    {
+        return $this->apcReferentiel;
+    }
+
+    public function setApcReferentiel(?ApcReferentiel $apcReferentiel): static
+    {
+        $this->apcReferentiel = $apcReferentiel;
+
+        return $this;
+    }
+
+    public function getApcParcours(): ?ApcParcours
+    {
+        return $this->apcParcours;
+    }
+
+    public function setApcParcours(?ApcParcours $apcParcours): static
+    {
+        $this->apcParcours = $apcParcours;
 
         return $this;
     }
