@@ -2,7 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Structure\StructureAnneeUniversitaire;
+use App\Entity\StructureAnneeUniversitaire;
 use App\Repository\PersonnelRepository;
 use App\Repository\StructurePnRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;

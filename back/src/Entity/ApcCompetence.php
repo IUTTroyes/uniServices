@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Apc;
+namespace App\Entity;
 
 use App\Entity\Structure\StructureUe;
 use App\Repository\ApcCompetenceRepository;
@@ -26,13 +26,13 @@ class ApcCompetence
     private ?string $couleur = null;
 
     #[ORM\ManyToOne(inversedBy: 'apcCompetences')]
-    private ?ApcReferentiel $referentiel = null;
+    private ?ApcReferentiel $apcReferentiel = null;
 
     /**
      * @var Collection<int, ApcNiveau>
      */
     #[ORM\OneToMany(targetEntity: ApcNiveau::class, mappedBy: 'apcCompetence')]
-    private Collection $niveau;
+    private Collection $apcNiveaux;
 
     #[ORM\Column]
     private array $composantesEssentielles = [];
@@ -48,7 +48,7 @@ class ApcCompetence
 
     public function __construct()
     {
-        $this->niveau = new ArrayCollection();
+        $this->apcNiveaux = new ArrayCollection();
         $this->ues = new ArrayCollection();
     }
 
@@ -93,14 +93,14 @@ class ApcCompetence
         return $this;
     }
 
-    public function getReferentiel(): ?ApcReferentiel
+    public function getApcReferentiel(): ?ApcReferentiel
     {
-        return $this->referentiel;
+        return $this->apcReferentiel;
     }
 
-    public function setReferentiel(?ApcReferentiel $referentiel): static
+    public function setApcReferentiel(?ApcReferentiel $apcReferentiel): static
     {
-        $this->referentiel = $referentiel;
+        $this->apcReferentiel = $apcReferentiel;
 
         return $this;
     }
@@ -108,27 +108,27 @@ class ApcCompetence
     /**
      * @return Collection<int, ApcNiveau>
      */
-    public function getNiveau(): Collection
+    public function getApcNiveaux(): Collection
     {
-        return $this->niveau;
+        return $this->apcNiveaux;
     }
 
-    public function addNiveau(ApcNiveau $niveau): static
+    public function addApcNiveau(ApcNiveau $apcNiveau): static
     {
-        if (!$this->niveau->contains($niveau)) {
-            $this->niveau->add($niveau);
-            $niveau->setApcCompetence($this);
+        if (!$this->apcNiveaux->contains($apcNiveau)) {
+            $this->apcNiveaux->add($apcNiveau);
+            $apcNiveau->setApcCompetence($this);
         }
 
         return $this;
     }
 
-    public function removeNiveau(ApcNiveau $niveau): static
+    public function removeApcNiveau(ApcNiveau $apcNiveau): static
     {
-        if ($this->niveau->removeElement($niveau)) {
+        if ($this->apcNiveaux->removeElement($apcNiveau)) {
             // set the owning side to null (unless already changed)
-            if ($niveau->getApcCompetence() === $this) {
-                $niveau->setApcCompetence(null);
+            if ($apcNiveau->getApcCompetence() === $this) {
+                $apcNiveau->setApcCompetence(null);
             }
         }
 

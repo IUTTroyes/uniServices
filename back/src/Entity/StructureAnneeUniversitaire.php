@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Structure;
+namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
@@ -61,11 +61,18 @@ class StructureAnneeUniversitaire
     #[ORM\Column]
     private ?bool $actif = null;
 
+    /**
+     * @var Collection<int, ApcReferentiel>
+     */
+    #[ORM\OneToMany(targetEntity: ApcReferentiel::class, mappedBy: 'anneeUniv')]
+    private Collection $apcReferentiels;
+
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
         $this->pn = new ArrayCollection();
         $this->personnels = new ArrayCollection();
+        $this->apcReferentiels = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -201,6 +208,36 @@ class StructureAnneeUniversitaire
     public function setActif(bool $actif): static
     {
         $this->actif = $actif;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ApcReferentiel>
+     */
+    public function getApcReferentiels(): Collection
+    {
+        return $this->apcReferentiels;
+    }
+
+    public function addApcReferentiel(ApcReferentiel $apcReferentiel): static
+    {
+        if (!$this->apcReferentiels->contains($apcReferentiel)) {
+            $this->apcReferentiels->add($apcReferentiel);
+            $apcReferentiel->setAnneeUniv($this);
+        }
+
+        return $this;
+    }
+
+    public function removeApcReferentiel(ApcReferentiel $apcReferentiel): static
+    {
+        if ($this->apcReferentiels->removeElement($apcReferentiel)) {
+            // set the owning side to null (unless already changed)
+            if ($apcReferentiel->getAnneeUniv() === $this) {
+                $apcReferentiel->setAnneeUniv(null);
+            }
+        }
 
         return $this;
     }

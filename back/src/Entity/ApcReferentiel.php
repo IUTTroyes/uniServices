@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Apc;
+namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Structure\StructureDepartement;
@@ -48,10 +48,27 @@ class ApcReferentiel
     #[ORM\OneToMany(targetEntity: ApcCompetence::class, mappedBy: 'referentiel')]
     private Collection $apcCompetences;
 
+    #[ORM\ManyToOne(inversedBy: 'apcReferentiels')]
+    private ?StructureAnneeUniversitaire $anneeUniv = null;
+
+    /**
+     * @var Collection<int, ApcParcours>
+     */
+    #[ORM\OneToMany(targetEntity: ApcParcours::class, mappedBy: 'apcReferentiel')]
+    private Collection $apcParcours;
+
+    /**
+     * @var Collection<int, StructurePn>
+     */
+    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'apcReferentiel')]
+    private Collection $pn;
+
     public function __construct()
     {
         $this->diplomes = new ArrayCollection();
         $this->apcCompetences = new ArrayCollection();
+        $this->apcParcours = new ArrayCollection();
+        $this->pn = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -173,6 +190,78 @@ class ApcReferentiel
             // set the owning side to null (unless already changed)
             if ($apcCompetence->getReferentiel() === $this) {
                 $apcCompetence->setReferentiel(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getAnneeUniv(): ?StructureAnneeUniversitaire
+    {
+        return $this->anneeUniv;
+    }
+
+    public function setAnneeUniv(?StructureAnneeUniversitaire $anneeUniv): static
+    {
+        $this->anneeUniv = $anneeUniv;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ApcParcours>
+     */
+    public function getApcParcours(): Collection
+    {
+        return $this->apcParcours;
+    }
+
+    public function addApcParcour(ApcParcours $apcParcour): static
+    {
+        if (!$this->apcParcours->contains($apcParcour)) {
+            $this->apcParcours->add($apcParcour);
+            $apcParcour->setApcReferentiel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeApcParcour(ApcParcours $apcParcour): static
+    {
+        if ($this->apcParcours->removeElement($apcParcour)) {
+            // set the owning side to null (unless already changed)
+            if ($apcParcour->getApcReferentiel() === $this) {
+                $apcParcour->setApcReferentiel(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructurePn>
+     */
+    public function getPn(): Collection
+    {
+        return $this->pn;
+    }
+
+    public function addPn(StructurePn $pn): static
+    {
+        if (!$this->pn->contains($pn)) {
+            $this->pn->add($pn);
+            $pn->setApcReferentiel($this);
+        }
+
+        return $this;
+    }
+
+    public function removePn(StructurePn $pn): static
+    {
+        if ($this->pn->removeElement($pn)) {
+            // set the owning side to null (unless already changed)
+            if ($pn->getApcReferentiel() === $this) {
+                $pn->setApcReferentiel(null);
             }
         }
 

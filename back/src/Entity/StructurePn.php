@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Entity\Structure;
+namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Structure\StructureAnnee;
+use App\Entity\Structure\StructureDiplome;
 use App\Repository\StructurePnRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -44,6 +46,9 @@ class StructurePn
      */
     #[ORM\ManyToMany(targetEntity: StructureAnneeUniversitaire::class, mappedBy: 'pn')]
     private Collection $structureAnneeUniversitaires;
+
+    #[ORM\ManyToOne(inversedBy: 'pn')]
+    private ?ApcReferentiel $apcReferentiel = null;
 
     public function __construct()
     {
@@ -127,6 +132,18 @@ class StructurePn
         if ($this->structureAnneeUniversitaires->removeElement($structureAnneeUniversitaire)) {
             $structureAnneeUniversitaire->removePn($this);
         }
+
+        return $this;
+    }
+
+    public function getApcReferentiel(): ?ApcReferentiel
+    {
+        return $this->apcReferentiel;
+    }
+
+    public function setApcReferentiel(?ApcReferentiel $apcReferentiel): static
+    {
+        $this->apcReferentiel = $apcReferentiel;
 
         return $this;
     }

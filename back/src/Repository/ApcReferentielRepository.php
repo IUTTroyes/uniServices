@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\Apc\ApcReferentiel;
+use App\Entity\ApcReferentiel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

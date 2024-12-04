@@ -3,7 +3,7 @@
 namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
-use App\Entity\Apc\ApcReferentiel;
+use App\Entity\ApcReferentiel;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Traits\UuidTrait;

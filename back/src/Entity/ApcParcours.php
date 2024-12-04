@@ -1,17 +1,21 @@
 <?php
 
-namespace App\Entity\Apc;
+namespace App\Entity;
 
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureGroupe;
+use App\Entity\Traits\OptionTrait;
 use App\Repository\ApcParcoursRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 #[ORM\Entity(repositoryClass: ApcParcoursRepository::class)]
 class ApcParcours
 {
+    use OptionTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -28,9 +32,6 @@ class ApcParcours
 
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $couleur = null;
-
-    #[ORM\Column]
-    private array $opt = [];
 
     /**
      * @var Collection<int, StructureDiplome>
@@ -50,11 +51,15 @@ class ApcParcours
     #[ORM\ManyToMany(targetEntity: ApcNiveau::class, mappedBy: 'apcParcours')]
     private Collection $apcNiveaux;
 
+    #[ORM\ManyToOne(inversedBy: 'apcParcours')]
+    private ?ApcReferentiel $apcReferentiel = null;
+
     public function __construct()
     {
         $this->diplome = new ArrayCollection();
         $this->groupes = new ArrayCollection();
         $this->apcNiveaux = new ArrayCollection();
+        $this->setOpt([]);
     }
 
     public function getId(): ?int
@@ -110,16 +115,13 @@ class ApcParcours
         return $this;
     }
 
-    public function getOpt(): array
+    public function configureOptions(OptionsResolver $resolver): void
     {
-        return $this->opt;
-    }
+        $resolver->setDefaults([
+            'formation_continue' => false,
+        ]);
 
-    public function setOpt(array $opt): static
-    {
-        $this->opt = $opt;
-
-        return $this;
+        $resolver->setAllowedTypes('formation_continue', 'bool');
     }
 
     /**
@@ -199,6 +201,18 @@ class ApcParcours
         if ($this->apcNiveaux->removeElement($apcNiveau)) {
             $apcNiveau->removeApcParcour($this);
         }
+
+        return $this;
+    }
+
+    public function getApcReferentiel(): ?ApcReferentiel
+    {
+        return $this->apcReferentiel;
+    }
+
+    public function setApcReferentiel(?ApcReferentiel $apcReferentiel): static
+    {
+        $this->apcReferentiel = $apcReferentiel;
 
         return $this;
     }

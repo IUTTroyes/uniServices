@@ -2,7 +2,7 @@
 
 namespace App\Entity\Scolarite;
 
-use App\Entity\Apc\ApcApprentissageCritique;
+use App\Entity\ApcApprentissageCritique;
 use App\Entity\Structure\StructureUe;
 use App\Repository\ScolEnseignementRepository;
 use Doctrine\Common\Collections\ArrayCollection;

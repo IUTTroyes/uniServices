@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Apc;
+namespace App\Entity;
 
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Repository\ApcApprentissageCritiqueRepository;
@@ -28,6 +28,9 @@ class ApcApprentissageCritique
      */
     #[ORM\ManyToMany(targetEntity: ScolEnseignement::class, mappedBy: 'apcApprentissageCritique')]
     private Collection $scolEnseignements;
+
+    #[ORM\ManyToOne(inversedBy: 'apcApprentissageCritique')]
+    private ?ApcNiveau $apcNiveau = null;
 
     public function __construct()
     {
@@ -86,6 +89,18 @@ class ApcApprentissageCritique
         if ($this->scolEnseignements->removeElement($scolEnseignement)) {
             $scolEnseignement->removeApcApprentissageCritique($this);
         }
+
+        return $this;
+    }
+
+    public function getApcNiveau(): ?ApcNiveau
+    {
+        return $this->apcNiveau;
+    }
+
+    public function setApcNiveau(?ApcNiveau $apcNiveau): static
+    {
+        $this->apcNiveau = $apcNiveau;
 
         return $this;
     }

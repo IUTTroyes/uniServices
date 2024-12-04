@@ -2,7 +2,7 @@
 
 namespace App\Entity\Structure;
 
-use App\Entity\Apc\ApcParcours;
+use App\Entity\ApcParcours;
 use App\Entity\Users\Etudiant;
 use App\Repository\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
