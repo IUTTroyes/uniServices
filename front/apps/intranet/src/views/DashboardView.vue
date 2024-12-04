@@ -1,6 +1,6 @@
 <script setup>
 import { useUsersStore } from "@/stores/users.js";
-import { onMounted, computed } from "vue";
+import { onMounted, computed, ref } from "vue";
 import { formatDateLong } from "common-helpers";
 
 const store = useUsersStore();
@@ -20,7 +20,31 @@ const initiales = computed(() =>
     store.user?.prenom?.charAt(0) + store.user?.nom?.charAt(0) || ''
 );
 
-console.log(store.user);
+const menu = ref();
+const items = ref([
+    {
+        label: 'Options',
+        items: [
+            {
+                label: 'Lien synchronisation ICAL',
+                icon: 'pi pi-calendar'
+            },
+            {
+                label: 'Chronologique',
+                icon: 'pi pi-clock'
+            }
+        ]
+    }
+]);
+
+const toggle = (event) => {
+    menu.value.toggle(event);
+};
+
+const tabs = ref([
+    { title: 'Personnel', content: 'Ici mon emploi du temps personnel', value: '0' },
+    { title: 'Département', content: 'Ici l\'emploi du temps du département', value: '1' },
+]);
 </script>
 
 <template>
@@ -28,7 +52,7 @@ console.log(store.user);
         <div class="m-5 mb-10">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
-                    <div class="w-16 bg-gray-200 rounded-full flex items-center justify-center">
+                    <div class="w-20 bg-violet-400 rounded-full flex items-center justify-center">
                         <template v-if="store.user.photoName">
                             <img :src="store.user.photoName" alt="photo de profil" class="rounded-full">
                         </template>
@@ -43,14 +67,70 @@ console.log(store.user);
                 </div>
             </div>
         </div>
-        <div class="grid grid-cols-2 gap-4">
+
+
+        <div class="grid grid-cols-1 gap-4">
             <div class="card h-full">
-                <div class="font-semibold text-xl mb-4">Card 1</div>
-                <p>Use this page to start from scratch and place your custom content.</p>
+                <div class="font-semibold text-xl mb-4">Dernières actualités du département</div>
+                <Stepper value="1">
+                    <StepItem value="1">
+                        <Step>Header I</Step>
+                        <StepPanel v-slot="{ activateCallback }">
+                            <div class="flex flex-col h-48">
+                                <div class="border-2 border-dashed border-surface-200 dark:border-surface-700 rounded bg-surface-50 dark:bg-surface-950 flex-auto flex justify-center items-center font-medium">Content I</div>
+                            </div>
+                            <div class="py-6">
+                                <Button label="Next" @click="activateCallback('2')" />
+                            </div>
+                        </StepPanel>
+                    </StepItem>
+                    <StepItem value="2">
+                        <Step>Header II</Step>
+                        <StepPanel v-slot="{ activateCallback }">
+                            <div class="flex flex-col h-48">
+                                <div class="border-2 border-dashed border-surface-200 dark:border-surface-700 rounded bg-surface-50 dark:bg-surface-950 flex-auto flex justify-center items-center font-medium">Content II</div>
+                            </div>
+                            <div class="flex py-6 gap-2">
+                                <Button label="Back" severity="secondary" @click="activateCallback('1')" />
+                                <Button label="Next" @click="activateCallback('3')" />
+                            </div>
+                        </StepPanel>
+                    </StepItem>
+                    <StepItem value="3">
+                        <Step>Header III</Step>
+                        <StepPanel v-slot="{ activateCallback }">
+                            <div class="flex flex-col h-48">
+                                <div class="border-2 border-dashed border-surface-200 dark:border-surface-700 rounded bg-surface-50 dark:bg-surface-950 flex-auto flex justify-center items-center font-medium">Content III</div>
+                            </div>
+                            <div class="py-6">
+                                <Button label="Back" severity="secondary" @click="activateCallback('2')" />
+                            </div>
+                        </StepPanel>
+                    </StepItem>
+                </Stepper>
             </div>
-            <div class="card">
-                <div class="font-semibold text-xl mb-4">Card 2</div>
-                <p>Use this page to start from scratch and place your custom content.</p>
+
+            <div class="card h-full">
+                <div class="card-header flex justify-between items-start">
+                <div class="font-semibold text-xl mb-4">Emploi du temps</div>
+                <div class="flex gap-2">
+                    <Button label="Vue Liste" />
+                    <Button type="button" severity="secondary" icon="pi pi-ellipsis-v" @click="toggle" aria-haspopup="true" aria-controls="overlay_menu" />
+                    <Menu ref="menu" id="overlay_menu" :model="items" :popup="true" />
+                </div>
+                </div>
+                <div class="card-body">
+                    <Tabs value="0">
+                        <TabList>
+                            <Tab v-for="tab in tabs" :key="tab.title" :value="tab.value">{{ tab.title }}</Tab>
+                        </TabList>
+                        <TabPanels>
+                            <TabPanel v-for="tab in tabs" :key="tab.content" :value="tab.value">
+                                <p class="m-0">{{ tab.content }}</p>
+                            </TabPanel>
+                        </TabPanels>
+                    </Tabs>
+                </div>
             </div>
         </div>
     </div>

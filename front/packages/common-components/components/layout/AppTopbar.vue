@@ -157,8 +157,12 @@ const toggleDeptMenu = (event) => {
             <span>Notifications</span>
           </button>
           <button type="button" class="layout-topbar-action layout-topbar-action-highlight"  @click="toggleProfileMenu" aria-haspopup="true" aria-controls="profile_menu">
-            <i class="pi pi-user"></i>
-            <span>Profile</span>
+            <template v-if="store.user.photoName">
+              <img :src="store.user.photoName" alt="photo de profil" class="rounded-full">
+            </template>
+            <template v-else>
+              <span class="text-gray-700 text-xl">{{ initiales }}</span>
+            </template>
           </button>
           <Menu ref="profileMenu" id="profile_menu" :model="profileItems" :popup="true" />
 
