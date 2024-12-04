@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\ApcApprentissageCritique;
+use App\Entity\Apc\ApcApprentissageCritique;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

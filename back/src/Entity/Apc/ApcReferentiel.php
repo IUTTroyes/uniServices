@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Apc;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
+use App\Entity\Structure\StructurePn;
 use App\Entity\Structure\StructureTypeDiplome;
 use App\Repository\ApcReferentielRepository;
 use Doctrine\Common\Collections\ArrayCollection;

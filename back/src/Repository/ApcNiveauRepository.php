@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\ApcNiveau;
+use App\Entity\Apc\ApcNiveau;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
