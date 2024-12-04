@@ -10,6 +10,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 #[ORM\Entity(repositoryClass: ScolEnseignementRepository::class)]
 class ScolEnseignement
@@ -45,17 +46,11 @@ class ScolEnseignement
     #[ORM\Column]
     private ?bool $suspendu = null;
 
-    #[ORM\Column]
-    private array $heuresPpn = [];
-
-    #[ORM\Column]
-    private array $heuresFormation = [];
+    #[ORM\Column(type: Types::JSON)]
+    private array $heures = [];
 
     #[ORM\Column]
     private ?int $nbNotes = null;
-
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $codeElement = null;
 
     #[ORM\Column]
     private ?bool $mutualisee = null;
@@ -208,28 +203,32 @@ class ScolEnseignement
         return $this;
     }
 
-    public function getHeuresPpn(): array
+    public function getHeures(): array
     {
-        return $this->heuresPpn;
+        return $this->heures;
     }
 
-    public function setHeuresPpn(array $heuresPpn): static
+    public function setHeures(array $heures): static
     {
-        $this->heuresPpn = $heuresPpn;
+        $resolver = new OptionsResolver();
+        $this->configureOptions($resolver);
+        $this->heures = $resolver->resolve($heures);
 
         return $this;
     }
 
-    public function getHeuresFormation(): array
+    public function configureOptions(OptionsResolver $resolver): void
     {
-        return $this->heuresFormation;
-    }
+        $resolver->setDefaults([
+            'heures' => [
+                'CM' => ['PN' => 0, 'IUT' => 0],
+                'TD' => ['PN' => 0, 'IUT' => 0],
+                'TP' => ['PN' => 0, 'IUT' => 0],
+                'Projet' => ['PN' => 0, 'IUT' => 0],
+            ],
+        ]);
 
-    public function setHeuresFormation(array $heuresFormation): static
-    {
-        $this->heuresFormation = $heuresFormation;
-
-        return $this;
+        $resolver->setAllowedTypes('heures', 'array');
     }
 
     public function getNbNotes(): ?int
@@ -240,18 +239,6 @@ class ScolEnseignement
     public function setNbNotes(int $nbNotes): static
     {
         $this->nbNotes = $nbNotes;
-
-        return $this;
-    }
-
-    public function getCodeElement(): ?string
-    {
-        return $this->codeElement;
-    }
-
-    public function setCodeElement(?string $codeElement): static
-    {
-        $this->codeElement = $codeElement;
 
         return $this;
     }

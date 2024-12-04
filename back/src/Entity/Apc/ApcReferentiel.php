@@ -32,9 +32,6 @@ class ApcReferentiel
     #[ORM\Column(nullable: true)]
     private ?int $anneePublication = null;
 
-    #[ORM\ManyToOne(inversedBy: 'apcReferentiels')]
-    private ?StructureTypeDiplome $typeDiplome = null;
-
     /**
      * @var Collection<int, StructureDiplome>
      */
@@ -110,18 +107,6 @@ class ApcReferentiel
     public function setAnneePublication(?int $anneePublication): static
     {
         $this->anneePublication = $anneePublication;
-
-        return $this;
-    }
-
-    public function getTypeDiplome(): ?StructureTypeDiplome
-    {
-        return $this->typeDiplome;
-    }
-
-    public function setTypeDiplome(?StructureTypeDiplome $typeDiplome): static
-    {
-        $this->typeDiplome = $typeDiplome;
 
         return $this;
     }
