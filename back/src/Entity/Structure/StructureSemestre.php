@@ -73,11 +73,18 @@ class StructureSemestre
     #[ORM\ManyToOne(inversedBy: 'structureSemestres')]
     private ?StructureAnnee $annee = null;
 
+    /**
+     * @var Collection<int, StructureUe>
+     */
+    #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'semestre')]
+    private Collection $structureUes;
+
     public function __construct()
     {
         $this->structureGroupes = new ArrayCollection();
         $this->etudiantScolarites = new ArrayCollection();
         $this->setOpt([]);
+        $this->structureUes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -285,5 +292,35 @@ class StructureSemestre
         $resolver->setAllowedTypes('bilan_semestre', 'bool');
         $resolver->setAllowedTypes('rattrapage', 'bool');
         $resolver->setAllowedTypes('mail_rattrapage', 'int');
+    }
+
+    /**
+     * @return Collection<int, StructureUe>
+     */
+    public function getStructureUes(): Collection
+    {
+        return $this->structureUes;
+    }
+
+    public function addStructureUe(StructureUe $structureUe): static
+    {
+        if (!$this->structureUes->contains($structureUe)) {
+            $this->structureUes->add($structureUe);
+            $structureUe->setSemestre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStructureUe(StructureUe $structureUe): static
+    {
+        if ($this->structureUes->removeElement($structureUe)) {
+            // set the owning side to null (unless already changed)
+            if ($structureUe->getSemestre() === $this) {
+                $structureUe->setSemestre(null);
+            }
+        }
+
+        return $this;
     }
 }
