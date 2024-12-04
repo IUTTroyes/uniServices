@@ -9,6 +9,8 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Users\Etudiant;
 use App\Repository\StructureScolariteRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -77,6 +79,17 @@ class EtudiantScolarite
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['scolarite:read'])]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
+
+    /**
+     * @var Collection<int, EtudiantAbsence>
+     */
+    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'scolarite', orphanRemoval: true)]
+    private Collection $etudiantAbsences;
+
+    public function __construct()
+    {
+        $this->etudiantAbsences = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -223,6 +236,36 @@ class EtudiantScolarite
     public function setStructureAnneeUniversitaire(?StructureAnneeUniversitaire $structureAnneeUniversitaire): static
     {
         $this->structureAnneeUniversitaire = $structureAnneeUniversitaire;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EtudiantAbsence>
+     */
+    public function getEtudiantAbsences(): Collection
+    {
+        return $this->etudiantAbsences;
+    }
+
+    public function addEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    {
+        if (!$this->etudiantAbsences->contains($etudiantAbsence)) {
+            $this->etudiantAbsences->add($etudiantAbsence);
+            $etudiantAbsence->setScolarite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    {
+        if ($this->etudiantAbsences->removeElement($etudiantAbsence)) {
+            // set the owning side to null (unless already changed)
+            if ($etudiantAbsence->getScolarite() === $this) {
+                $etudiantAbsence->setScolarite(null);
+            }
+        }
 
         return $this;
     }

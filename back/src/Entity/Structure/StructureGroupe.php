@@ -4,6 +4,7 @@ namespace App\Entity\Structure;
 
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Traits\ApogeeTrait;
+use App\Entity\Traits\EduSignTrait;
 use App\Entity\Users\Etudiant;
 use App\Repository\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -14,6 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 class StructureGroupe
 {
     use ApogeeTrait;
+    use EduSignTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
