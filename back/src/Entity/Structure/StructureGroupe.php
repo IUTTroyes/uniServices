@@ -3,6 +3,7 @@
 namespace App\Entity\Structure;
 
 use App\Entity\Apc\ApcParcours;
+use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Users\Etudiant;
 use App\Repository\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -12,6 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: StructureGroupeRepository::class)]
 class StructureGroupe
 {
+    use ApogeeTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -19,9 +22,6 @@ class StructureGroupe
 
     #[ORM\Column(length: 255)]
     private string $libelle;
-
-    #[ORM\Column(length: 50, nullable: true)]
-    private ?string $codeApogee = null;
 
     #[ORM\Column(length: 10)]
     private string $type;
@@ -69,18 +69,6 @@ class StructureGroupe
     public function setLibelle(string $libelle): static
     {
         $this->libelle = $libelle;
-
-        return $this;
-    }
-
-    public function getCodeApogee(): ?string
-    {
-        return $this->codeApogee;
-    }
-
-    public function setCodeApogee(string $codeApogee): static
-    {
-        $this->codeApogee = $codeApogee;
 
         return $this;
     }

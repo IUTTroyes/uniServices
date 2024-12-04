@@ -4,6 +4,7 @@ namespace App\Entity\Scolarite;
 
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Structure\StructureUe;
+use App\Entity\Traits\ApogeeTrait;
 use App\Repository\ScolEnseignementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,6 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ScolEnseignementRepository::class)]
 class ScolEnseignement
 {
+    use ApogeeTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
