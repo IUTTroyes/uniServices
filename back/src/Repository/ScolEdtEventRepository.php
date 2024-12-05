@@ -2,22 +2,22 @@
 
 namespace App\Repository;
 
-use App\Entity\Structure\StructureAnneeUniversitaire;
+use App\Entity\Scolarite\ScolEdtEvent;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<StructureAnneeUniversitaire>
+ * @extends ServiceEntityRepository<ScolEdtEvent>
  */
-class StructureAnneeUniversitaireRepository extends ServiceEntityRepository
+class ScolEdtEventRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, StructureAnneeUniversitaire::class);
+        parent::__construct($registry, ScolEdtEvent::class);
     }
 
     //    /**
-    //     * @return StructureAnneeUniversitaire[] Returns an array of StructureAnneeUniversitaire objects
+    //     * @return ScolEdtEvent[] Returns an array of ScolEdtEvent objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class StructureAnneeUniversitaireRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?StructureAnneeUniversitaire
+    //    public function findOneBySomeField($value): ?ScolEdtEvent
     //    {
     //        return $this->createQueryBuilder('s')
     //            ->andWhere('s.exampleField = :val')

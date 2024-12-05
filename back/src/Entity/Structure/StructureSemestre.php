@@ -6,6 +6,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Scolarite\ScolEdtEvent;
+use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
@@ -73,11 +75,32 @@ class StructureSemestre
     #[ORM\ManyToOne(inversedBy: 'structureSemestres')]
     private ?StructureAnnee $annee = null;
 
+    /**
+     * @var Collection<int, StructureUe>
+     */
+    #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'semestre')]
+    private Collection $structureUes;
+
+    /**
+     * @var Collection<int, ScolEvaluation>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'semestre')]
+    private Collection $scolEvaluations;
+
+    /**
+     * @var Collection<int, ScolEdtEvent>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'semestre')]
+    private Collection $scolEdtEvents;
+
     public function __construct()
     {
         $this->structureGroupes = new ArrayCollection();
         $this->etudiantScolarites = new ArrayCollection();
         $this->setOpt([]);
+        $this->structureUes = new ArrayCollection();
+        $this->scolEvaluations = new ArrayCollection();
+        $this->scolEdtEvents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -285,5 +308,95 @@ class StructureSemestre
         $resolver->setAllowedTypes('bilan_semestre', 'bool');
         $resolver->setAllowedTypes('rattrapage', 'bool');
         $resolver->setAllowedTypes('mail_rattrapage', 'int');
+    }
+
+    /**
+     * @return Collection<int, StructureUe>
+     */
+    public function getStructureUes(): Collection
+    {
+        return $this->structureUes;
+    }
+
+    public function addStructureUe(StructureUe $structureUe): static
+    {
+        if (!$this->structureUes->contains($structureUe)) {
+            $this->structureUes->add($structureUe);
+            $structureUe->setSemestre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStructureUe(StructureUe $structureUe): static
+    {
+        if ($this->structureUes->removeElement($structureUe)) {
+            // set the owning side to null (unless already changed)
+            if ($structureUe->getSemestre() === $this) {
+                $structureUe->setSemestre(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEvaluation>
+     */
+    public function getScolEvaluations(): Collection
+    {
+        return $this->scolEvaluations;
+    }
+
+    public function addScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if (!$this->scolEvaluations->contains($scolEvaluation)) {
+            $this->scolEvaluations->add($scolEvaluation);
+            $scolEvaluation->setSemestre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if ($this->scolEvaluations->removeElement($scolEvaluation)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEvaluation->getSemestre() === $this) {
+                $scolEvaluation->setSemestre(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEdtEvent>
+     */
+    public function getScolEdtEvents(): Collection
+    {
+        return $this->scolEdtEvents;
+    }
+
+    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
+            $this->scolEdtEvents->add($scolEdtEvent);
+            $scolEdtEvent->setSemestre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEdtEvent->getSemestre() === $this) {
+                $scolEdtEvent->setSemestre(null);
+            }
+        }
+
+        return $this;
     }
 }

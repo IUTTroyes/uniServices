@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Apc;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
+use App\Entity\Structure\StructurePn;
 use App\Entity\Structure\StructureTypeDiplome;
 use App\Repository\ApcReferentielRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -29,9 +31,6 @@ class ApcReferentiel
 
     #[ORM\Column(nullable: true)]
     private ?int $anneePublication = null;
-
-    #[ORM\ManyToOne(inversedBy: 'apcReferentiels')]
-    private ?StructureTypeDiplome $typeDiplome = null;
 
     /**
      * @var Collection<int, StructureDiplome>
@@ -108,18 +107,6 @@ class ApcReferentiel
     public function setAnneePublication(?int $anneePublication): static
     {
         $this->anneePublication = $anneePublication;
-
-        return $this;
-    }
-
-    public function getTypeDiplome(): ?StructureTypeDiplome
-    {
-        return $this->typeDiplome;
-    }
-
-    public function setTypeDiplome(?StructureTypeDiplome $typeDiplome): static
-    {
-        $this->typeDiplome = $typeDiplome;
 
         return $this;
     }

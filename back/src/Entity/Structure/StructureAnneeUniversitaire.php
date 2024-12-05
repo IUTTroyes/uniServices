@@ -1,11 +1,14 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Scolarite\ScolEdtEvent;
+use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\StructureAnneeUniversitaireRepository;
@@ -67,12 +70,26 @@ class StructureAnneeUniversitaire
     #[ORM\OneToMany(targetEntity: ApcReferentiel::class, mappedBy: 'anneeUniv')]
     private Collection $apcReferentiels;
 
+    /**
+     * @var Collection<int, ScolEvaluation>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'anneeUniv')]
+    private Collection $scolEvaluations;
+
+    /**
+     * @var Collection<int, ScolEdtEvent>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'anneeUniversitaire')]
+    private Collection $scolEdtEvents;
+
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
         $this->pn = new ArrayCollection();
         $this->personnels = new ArrayCollection();
         $this->apcReferentiels = new ArrayCollection();
+        $this->scolEvaluations = new ArrayCollection();
+        $this->scolEdtEvents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -236,6 +253,66 @@ class StructureAnneeUniversitaire
             // set the owning side to null (unless already changed)
             if ($apcReferentiel->getAnneeUniv() === $this) {
                 $apcReferentiel->setAnneeUniv(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEvaluation>
+     */
+    public function getScolEvaluations(): Collection
+    {
+        return $this->scolEvaluations;
+    }
+
+    public function addScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if (!$this->scolEvaluations->contains($scolEvaluation)) {
+            $this->scolEvaluations->add($scolEvaluation);
+            $scolEvaluation->setAnneeUniv($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if ($this->scolEvaluations->removeElement($scolEvaluation)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEvaluation->getAnneeUniv() === $this) {
+                $scolEvaluation->setAnneeUniv(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEdtEvent>
+     */
+    public function getScolEdtEvents(): Collection
+    {
+        return $this->scolEdtEvents;
+    }
+
+    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
+            $this->scolEdtEvents->add($scolEdtEvent);
+            $scolEdtEvent->setAnneeUniversitaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEdtEvent->getAnneeUniversitaire() === $this) {
+                $scolEdtEvent->setAnneeUniversitaire(null);
             }
         }
 

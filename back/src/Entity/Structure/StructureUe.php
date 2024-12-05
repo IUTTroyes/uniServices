@@ -2,7 +2,7 @@
 
 namespace App\Entity\Structure;
 
-use App\Entity\ApcCompetence;
+use App\Entity\Apc\ApcCompetence;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Repository\UeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -43,6 +43,9 @@ class StructureUe
      */
     #[ORM\ManyToMany(targetEntity: ScolEnseignement::class, mappedBy: 'ue')]
     private Collection $scolEnseignements;
+
+    #[ORM\ManyToOne(inversedBy: 'structureUes')]
+    private ?StructureSemestre $semestre = null;
 
     public function __construct()
     {
@@ -161,6 +164,18 @@ class StructureUe
         if ($this->scolEnseignements->removeElement($scolEnseignement)) {
             $scolEnseignement->removeUe($this);
         }
+
+        return $this;
+    }
+
+    public function getSemestre(): ?StructureSemestre
+    {
+        return $this->semestre;
+    }
+
+    public function setSemestre(?StructureSemestre $semestre): static
+    {
+        $this->semestre = $semestre;
 
         return $this;
     }

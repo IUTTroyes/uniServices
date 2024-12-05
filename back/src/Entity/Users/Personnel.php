@@ -5,9 +5,12 @@ namespace App\Entity\Users;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Etudiant\EtudiantAbsence;
+use App\Entity\Scolarite\ScolEdtEvent;
+use App\Entity\Scolarite\ScolEvaluation;
+use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
-use App\Entity\StructureAnneeUniversitaire;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Repository\PersonnelRepository;
 use App\ValueObject\Adresse;
@@ -34,11 +37,11 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private string $username;
 
     #[ORM\Column(length: 255)]
@@ -46,41 +49,41 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private ?string $password = null;
 
     #[ORM\Column(type: Types::JSON)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private ?string $photoName = null;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'responsableDiplome')]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private Collection $responsableDiplome;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'assistantDiplome')]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private Collection $assistantDiplome;
 
     #[ORM\ManyToOne(inversedBy: 'personnels')]
-        #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read'])]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
@@ -93,11 +96,35 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:read'])]
     private Collection $structureDepartementPersonnels;
 
+    /**
+     * @var Collection<int, EtudiantAbsence>
+     */
+    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'personnel')]
+    private Collection $etudiantAbsences;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $idEduSign = null;
+
+    /**
+     * @var Collection<int, ScolEvaluation>
+     */
+    #[ORM\ManyToMany(targetEntity: ScolEvaluation::class, mappedBy: 'personnelAutorise')]
+    private Collection $scolEvaluations;
+
+    /**
+     * @var Collection<int, ScolEdtEvent>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'personnel')]
+    private Collection $scolEdtEvents;
+
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
         $this->assistantDiplome = new ArrayCollection();
         $this->structureDepartementPersonnels = new ArrayCollection();
+        $this->etudiantAbsences = new ArrayCollection();
+        $this->scolEvaluations = new ArrayCollection();
+        $this->scolEdtEvents = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -327,5 +354,102 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return Adresse::fromArray($this->adressePersonnelle);
+    }
+
+    /**
+     * @return Collection<int, EtudiantAbsence>
+     */
+    public function getEtudiantAbsences(): Collection
+    {
+        return $this->etudiantAbsences;
+    }
+
+    public function addEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    {
+        if (!$this->etudiantAbsences->contains($etudiantAbsence)) {
+            $this->etudiantAbsences->add($etudiantAbsence);
+            $etudiantAbsence->setPersonnel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    {
+        if ($this->etudiantAbsences->removeElement($etudiantAbsence)) {
+            // set the owning side to null (unless already changed)
+            if ($etudiantAbsence->getPersonnel() === $this) {
+                $etudiantAbsence->setPersonnel(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getIdEduSign(): ?array
+    {
+        return $this->idEduSign;
+    }
+
+    public function setIdEduSign(?array $idEduSign): void
+    {
+        $this->idEduSign = $idEduSign;
+    }
+
+    /**
+     * @return Collection<int, ScolEvaluation>
+     */
+    public function getScolEvaluations(): Collection
+    {
+        return $this->scolEvaluations;
+    }
+
+    public function addScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if (!$this->scolEvaluations->contains($scolEvaluation)) {
+            $this->scolEvaluations->add($scolEvaluation);
+            $scolEvaluation->addPersonnelAutorise($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if ($this->scolEvaluations->removeElement($scolEvaluation)) {
+            $scolEvaluation->removePersonnelAutorise($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEdtEvent>
+     */
+    public function getScolEdtEvents(): Collection
+    {
+        return $this->scolEdtEvents;
+    }
+
+    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
+            $this->scolEdtEvents->add($scolEdtEvent);
+            $scolEdtEvent->setPersonnel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEdtEvent->getPersonnel() === $this) {
+                $scolEdtEvent->setPersonnel(null);
+            }
+        }
+
+        return $this;
     }
 }

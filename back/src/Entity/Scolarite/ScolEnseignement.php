@@ -2,17 +2,22 @@
 
 namespace App\Entity\Scolarite;
 
-use App\Entity\ApcApprentissageCritique;
+use App\Entity\Apc\ApcApprentissageCritique;
+use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Structure\StructureUe;
+use App\Entity\Traits\ApogeeTrait;
 use App\Repository\ScolEnseignementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 
 #[ORM\Entity(repositoryClass: ScolEnseignementRepository::class)]
 class ScolEnseignement
 {
+    use ApogeeTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -42,17 +47,11 @@ class ScolEnseignement
     #[ORM\Column]
     private ?bool $suspendu = null;
 
-    #[ORM\Column]
-    private array $heuresPpn = [];
-
-    #[ORM\Column]
-    private array $heuresFormation = [];
+    #[ORM\Column(type: Types::JSON)]
+    private array $heures = [];
 
     #[ORM\Column]
     private ?int $nbNotes = null;
-
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $codeElement = null;
 
     #[ORM\Column]
     private ?bool $mutualisee = null;
@@ -96,12 +95,33 @@ class ScolEnseignement
     #[ORM\ManyToMany(targetEntity: ApcApprentissageCritique::class, inversedBy: 'scolEnseignements')]
     private Collection $apcApprentissageCritique;
 
+    /**
+     * @var Collection<int, EtudiantAbsence>
+     */
+    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'enseignement')]
+    private Collection $etudiantAbsences;
+
+    /**
+     * @var Collection<int, ScolEvaluation>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'enseignement')]
+    private Collection $scolEvaluations;
+
+    /**
+     * @var Collection<int, ScolEdtEvent>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'enseignement')]
+    private Collection $scolEdtEvents;
+
     public function __construct()
     {
         $this->scolEnseignements = new ArrayCollection();
         $this->enfant = new ArrayCollection();
         $this->ue = new ArrayCollection();
         $this->apcApprentissageCritique = new ArrayCollection();
+        $this->etudiantAbsences = new ArrayCollection();
+        $this->scolEvaluations = new ArrayCollection();
+        $this->scolEdtEvents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -205,28 +225,32 @@ class ScolEnseignement
         return $this;
     }
 
-    public function getHeuresPpn(): array
+    public function getHeures(): array
     {
-        return $this->heuresPpn;
+        return $this->heures;
     }
 
-    public function setHeuresPpn(array $heuresPpn): static
+    public function setHeures(array $heures): static
     {
-        $this->heuresPpn = $heuresPpn;
+        $resolver = new OptionsResolver();
+        $this->configureOptions($resolver);
+        $this->heures = $resolver->resolve($heures);
 
         return $this;
     }
 
-    public function getHeuresFormation(): array
+    public function configureOptions(OptionsResolver $resolver): void
     {
-        return $this->heuresFormation;
-    }
+        $resolver->setDefaults([
+            'heures' => [
+                'CM' => ['PN' => 0, 'IUT' => 0],
+                'TD' => ['PN' => 0, 'IUT' => 0],
+                'TP' => ['PN' => 0, 'IUT' => 0],
+                'Projet' => ['PN' => 0, 'IUT' => 0],
+            ],
+        ]);
 
-    public function setHeuresFormation(array $heuresFormation): static
-    {
-        $this->heuresFormation = $heuresFormation;
-
-        return $this;
+        $resolver->setAllowedTypes('heures', 'array');
     }
 
     public function getNbNotes(): ?int
@@ -237,18 +261,6 @@ class ScolEnseignement
     public function setNbNotes(int $nbNotes): static
     {
         $this->nbNotes = $nbNotes;
-
-        return $this;
-    }
-
-    public function getCodeElement(): ?string
-    {
-        return $this->codeElement;
-    }
-
-    public function setCodeElement(?string $codeElement): static
-    {
-        $this->codeElement = $codeElement;
 
         return $this;
     }
@@ -429,6 +441,96 @@ class ScolEnseignement
     public function removeApcApprentissageCritique(ApcApprentissageCritique $apcApprentissageCritique): static
     {
         $this->apcApprentissageCritique->removeElement($apcApprentissageCritique);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EtudiantAbsence>
+     */
+    public function getEtudiantAbsences(): Collection
+    {
+        return $this->etudiantAbsences;
+    }
+
+    public function addEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    {
+        if (!$this->etudiantAbsences->contains($etudiantAbsence)) {
+            $this->etudiantAbsences->add($etudiantAbsence);
+            $etudiantAbsence->setEnseignement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    {
+        if ($this->etudiantAbsences->removeElement($etudiantAbsence)) {
+            // set the owning side to null (unless already changed)
+            if ($etudiantAbsence->getEnseignement() === $this) {
+                $etudiantAbsence->setEnseignement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEvaluation>
+     */
+    public function getScolEvaluations(): Collection
+    {
+        return $this->scolEvaluations;
+    }
+
+    public function addScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if (!$this->scolEvaluations->contains($scolEvaluation)) {
+            $this->scolEvaluations->add($scolEvaluation);
+            $scolEvaluation->setEnseignement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if ($this->scolEvaluations->removeElement($scolEvaluation)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEvaluation->getEnseignement() === $this) {
+                $scolEvaluation->setEnseignement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEdtEvent>
+     */
+    public function getScolEdtEvents(): Collection
+    {
+        return $this->scolEdtEvents;
+    }
+
+    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
+            $this->scolEdtEvents->add($scolEdtEvent);
+            $scolEdtEvent->setEnseignement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEdtEvent->getEnseignement() === $this) {
+                $scolEdtEvent->setEnseignement(null);
+            }
+        }
 
         return $this;
     }

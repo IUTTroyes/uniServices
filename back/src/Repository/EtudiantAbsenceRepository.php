@@ -2,39 +2,39 @@
 
 namespace App\Repository;
 
-use App\Entity\Apc\ApcNiveau;
+use App\Entity\Etudiant\EtudiantAbsence;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<ApcNiveau>
+ * @extends ServiceEntityRepository<EtudiantAbsence>
  */
-class ApcNiveauRepository extends ServiceEntityRepository
+class EtudiantAbsenceRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, ApcNiveau::class);
+        parent::__construct($registry, EtudiantAbsence::class);
     }
 
     //    /**
-    //     * @return ApcNiveau[] Returns an array of ApcNiveau objects
+    //     * @return EtudiantAbsence[] Returns an array of EtudiantAbsence objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
+    //        return $this->createQueryBuilder('e')
+    //            ->andWhere('e.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('a.id', 'ASC')
+    //            ->orderBy('e.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?ApcNiveau
+    //    public function findOneBySomeField($value): ?EtudiantAbsence
     //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
+    //        return $this->createQueryBuilder('e')
+    //            ->andWhere('e.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

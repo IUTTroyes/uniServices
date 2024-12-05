@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Apc;
 
 use App\Entity\Structure\StructureAnnee;
 use App\Repository\ApcNiveauRepository;
@@ -155,5 +155,17 @@ class ApcNiveau
         }
 
         return $this;
+    }
+
+    public function display(): string
+    {
+        $niv = match ($this->ordre) {
+            1 => self::NIVEAU_1,
+            2 => self::NIVEAU_2,
+            3 => self::NIVEAU_3,
+            default => null,
+        };
+
+        return $this->getApcCompetence()?->getNomCourt().' - Niveau '.$niv.'('.$this->ordre.')';
     }
 }

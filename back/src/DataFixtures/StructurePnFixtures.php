@@ -2,7 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\StructurePn;
+use App\Entity\Structure\StructurePn;
 use App\Repository\StructureDiplomeRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;

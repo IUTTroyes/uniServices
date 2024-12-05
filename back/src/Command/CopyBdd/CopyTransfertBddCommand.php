@@ -3,12 +3,12 @@
 namespace App\Command\CopyBdd;
 
 use App\Entity\Structure\StructureAnnee;
+use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Structure\StructureTypeDiplome;
-use App\Entity\StructureAnneeUniversitaire;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\ValueObject\Adresse;

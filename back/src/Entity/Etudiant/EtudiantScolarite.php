@@ -5,10 +5,13 @@ namespace App\Entity\Etudiant;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
-use App\Entity\StructureAnneeUniversitaire;
+use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Repository\StructureScolariteRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -22,6 +25,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 )]
 class EtudiantScolarite
 {
+    use UuidTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -77,6 +82,24 @@ class EtudiantScolarite
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['scolarite:read'])]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
+
+    /**
+     * @var Collection<int, EtudiantAbsence>
+     */
+    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'scolarite', orphanRemoval: true)]
+    private Collection $etudiantAbsences;
+
+    /**
+     * @var Collection<int, EtudiantNote>
+     */
+    #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'scolarite')]
+    private Collection $etudiantNotes;
+
+    public function __construct()
+    {
+        $this->etudiantAbsences = new ArrayCollection();
+        $this->etudiantNotes = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -223,6 +246,66 @@ class EtudiantScolarite
     public function setStructureAnneeUniversitaire(?StructureAnneeUniversitaire $structureAnneeUniversitaire): static
     {
         $this->structureAnneeUniversitaire = $structureAnneeUniversitaire;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EtudiantAbsence>
+     */
+    public function getEtudiantAbsences(): Collection
+    {
+        return $this->etudiantAbsences;
+    }
+
+    public function addEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    {
+        if (!$this->etudiantAbsences->contains($etudiantAbsence)) {
+            $this->etudiantAbsences->add($etudiantAbsence);
+            $etudiantAbsence->setScolarite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    {
+        if ($this->etudiantAbsences->removeElement($etudiantAbsence)) {
+            // set the owning side to null (unless already changed)
+            if ($etudiantAbsence->getScolarite() === $this) {
+                $etudiantAbsence->setScolarite(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EtudiantNote>
+     */
+    public function getEtudiantNotes(): Collection
+    {
+        return $this->etudiantNotes;
+    }
+
+    public function addEtudiantNote(EtudiantNote $etudiantNote): static
+    {
+        if (!$this->etudiantNotes->contains($etudiantNote)) {
+            $this->etudiantNotes->add($etudiantNote);
+            $etudiantNote->setScolarite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiantNote(EtudiantNote $etudiantNote): static
+    {
+        if ($this->etudiantNotes->removeElement($etudiantNote)) {
+            // set the owning side to null (unless already changed)
+            if ($etudiantNote->getScolarite() === $this) {
+                $etudiantNote->setScolarite(null);
+            }
+        }
 
         return $this;
     }

@@ -2,7 +2,10 @@
 
 namespace App\Entity\Structure;
 
-use App\Entity\ApcParcours;
+use App\Entity\Apc\ApcParcours;
+use App\Entity\Scolarite\ScolEdtEvent;
+use App\Entity\Traits\ApogeeTrait;
+use App\Entity\Traits\EduSignTrait;
 use App\Entity\Users\Etudiant;
 use App\Repository\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -12,6 +15,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: StructureGroupeRepository::class)]
 class StructureGroupe
 {
+    use ApogeeTrait;
+    use EduSignTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -19,9 +25,6 @@ class StructureGroupe
 
     #[ORM\Column(length: 255)]
     private string $libelle;
-
-    #[ORM\Column(length: 50, nullable: true)]
-    private ?string $codeApogee = null;
 
     #[ORM\Column(length: 10)]
     private string $type;
@@ -48,12 +51,19 @@ class StructureGroupe
     #[ORM\ManyToMany(targetEntity: ApcParcours::class, mappedBy: 'groupes')]
     private Collection $apcParcours;
 
+    /**
+     * @var Collection<int, ScolEdtEvent>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'groupe')]
+    private Collection $scolEdtEvents;
+
     public function __construct()
     {
         $this->etudiants = new ArrayCollection();
         $this->semestres = new ArrayCollection();
         $this->enfants = new ArrayCollection();
         $this->apcParcours = new ArrayCollection();
+        $this->scolEdtEvents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -69,18 +79,6 @@ class StructureGroupe
     public function setLibelle(string $libelle): static
     {
         $this->libelle = $libelle;
-
-        return $this;
-    }
-
-    public function getCodeApogee(): ?string
-    {
-        return $this->codeApogee;
-    }
-
-    public function setCodeApogee(string $codeApogee): static
-    {
-        $this->codeApogee = $codeApogee;
 
         return $this;
     }
@@ -221,6 +219,36 @@ class StructureGroupe
     {
         if ($this->apcParcours->removeElement($apcParcour)) {
             $apcParcour->removeGroupe($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEdtEvent>
+     */
+    public function getScolEdtEvents(): Collection
+    {
+        return $this->scolEdtEvents;
+    }
+
+    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
+            $this->scolEdtEvents->add($scolEdtEvent);
+            $scolEdtEvent->setGroupe($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEdtEvent->getGroupe() === $this) {
+                $scolEdtEvent->setGroupe(null);
+            }
         }
 
         return $this;
