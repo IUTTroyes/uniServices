@@ -1,6 +1,8 @@
 <script setup>
 import {ref} from "vue";
 
+import Edt from "@/components/Edt.vue";
+
 const menu = ref();
 const items = ref([
     {
@@ -22,53 +24,14 @@ const toggle = (event) => {
     menu.value.toggle(event);
 };
 
-const tabs = ref([
-    { title: 'Personnel', content: 'Ici mon emploi du temps personnel', value: '0' },
-    { title: 'Département', content: 'Ici l\'emploi du temps du département', value: '1' },
-]);
+const tabs = [
+    { title: 'Personnel', content: Edt, value: '0', data: { type: 'personnel', info: 'Données pour le personnel' } },
+    { title: 'Département', content: Edt, value: '1', data: { type: 'departement', info: 'Données pour le département' } },
+];
 </script>
 
 <template>
     <div class="grid grid-cols-1 gap-4">
-        <div class="card h-full">
-            <div class="font-semibold text-xl mb-4">Dernières actualités du département</div>
-            <Stepper value="1">
-                <StepItem value="1">
-                    <Step>Header I</Step>
-                    <StepPanel v-slot="{ activateCallback }">
-                        <div class="flex flex-col h-48">
-                            <div class="border-2 border-dashed border-surface-200 dark:border-surface-700 rounded bg-surface-50 dark:bg-surface-950 flex-auto flex justify-center items-center font-medium">Content I</div>
-                        </div>
-                        <div class="py-6">
-                            <Button label="Next" @click="activateCallback('2')" />
-                        </div>
-                    </StepPanel>
-                </StepItem>
-                <StepItem value="2">
-                    <Step>Header II</Step>
-                    <StepPanel v-slot="{ activateCallback }">
-                        <div class="flex flex-col h-48">
-                            <div class="border-2 border-dashed border-surface-200 dark:border-surface-700 rounded bg-surface-50 dark:bg-surface-950 flex-auto flex justify-center items-center font-medium">Content II</div>
-                        </div>
-                        <div class="flex py-6 gap-2">
-                            <Button label="Back" severity="secondary" @click="activateCallback('1')" />
-                            <Button label="Next" @click="activateCallback('3')" />
-                        </div>
-                    </StepPanel>
-                </StepItem>
-                <StepItem value="3">
-                    <Step>Header III</Step>
-                    <StepPanel v-slot="{ activateCallback }">
-                        <div class="flex flex-col h-48">
-                            <div class="border-2 border-dashed border-surface-200 dark:border-surface-700 rounded bg-surface-50 dark:bg-surface-950 flex-auto flex justify-center items-center font-medium">Content III</div>
-                        </div>
-                        <div class="py-6">
-                            <Button label="Back" severity="secondary" @click="activateCallback('2')" />
-                        </div>
-                    </StepPanel>
-                </StepItem>
-            </Stepper>
-        </div>
 
         <div class="card h-full">
             <div class="card-header flex justify-between items-start">
@@ -95,7 +58,7 @@ const tabs = ref([
                     </TabList>
                     <TabPanels>
                         <TabPanel v-for="tab in tabs" :key="tab.content" :value="tab.value">
-                            <p class="m-0">{{ tab.content }}</p>
+                            <component :is="tab.content" :data="tab.data" />
                         </TabPanel>
                     </TabPanels>
                 </Tabs>
