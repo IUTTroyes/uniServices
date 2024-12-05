@@ -4,6 +4,7 @@ namespace App\Entity\Etudiant;
 
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Traits\EduSignTrait;
+use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Repository\EtudiantAbsenceRepository;
@@ -13,6 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: EtudiantAbsenceRepository::class)]
 class EtudiantAbsence
 {
+    use UuidTrait;
     use EduSignTrait;
 
     #[ORM\Id]

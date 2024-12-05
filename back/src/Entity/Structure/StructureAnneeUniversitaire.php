@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\ScolEdtEvent;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
@@ -75,6 +76,12 @@ class StructureAnneeUniversitaire
     #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'anneeUniv')]
     private Collection $scolEvaluations;
 
+    /**
+     * @var Collection<int, ScolEdtEvent>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'anneeUniversitaire')]
+    private Collection $scolEdtEvents;
+
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
@@ -82,6 +89,7 @@ class StructureAnneeUniversitaire
         $this->personnels = new ArrayCollection();
         $this->apcReferentiels = new ArrayCollection();
         $this->scolEvaluations = new ArrayCollection();
+        $this->scolEdtEvents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -275,6 +283,36 @@ class StructureAnneeUniversitaire
             // set the owning side to null (unless already changed)
             if ($scolEvaluation->getAnneeUniv() === $this) {
                 $scolEvaluation->setAnneeUniv(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEdtEvent>
+     */
+    public function getScolEdtEvents(): Collection
+    {
+        return $this->scolEdtEvents;
+    }
+
+    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
+            $this->scolEdtEvents->add($scolEdtEvent);
+            $scolEdtEvent->setAnneeUniversitaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEdtEvent->getAnneeUniversitaire() === $this) {
+                $scolEdtEvent->setAnneeUniversitaire(null);
             }
         }
 

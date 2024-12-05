@@ -5,6 +5,7 @@ namespace App\Entity\Scolarite;
 use App\Entity\Etudiant\EtudiantNote;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
+use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\ScolEvaluationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -15,6 +16,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ScolEvaluationRepository::class)]
 class ScolEvaluation
 {
+    use UuidTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

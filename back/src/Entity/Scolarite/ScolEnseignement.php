@@ -4,6 +4,7 @@ namespace App\Entity\Scolarite;
 
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Etudiant\EtudiantAbsence;
+use App\Entity\ScolEdtEvent;
 use App\Entity\Structure\StructureUe;
 use App\Entity\Traits\ApogeeTrait;
 use App\Repository\ScolEnseignementRepository;
@@ -107,6 +108,12 @@ class ScolEnseignement
     #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'enseignement')]
     private Collection $scolEvaluations;
 
+    /**
+     * @var Collection<int, ScolEdtEvent>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'enseignement')]
+    private Collection $scolEdtEvents;
+
     public function __construct()
     {
         $this->scolEnseignements = new ArrayCollection();
@@ -115,6 +122,7 @@ class ScolEnseignement
         $this->apcApprentissageCritique = new ArrayCollection();
         $this->etudiantAbsences = new ArrayCollection();
         $this->scolEvaluations = new ArrayCollection();
+        $this->scolEdtEvents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -492,6 +500,36 @@ class ScolEnseignement
             // set the owning side to null (unless already changed)
             if ($scolEvaluation->getEnseignement() === $this) {
                 $scolEvaluation->setEnseignement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEdtEvent>
+     */
+    public function getScolEdtEvents(): Collection
+    {
+        return $this->scolEdtEvents;
+    }
+
+    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
+            $this->scolEdtEvents->add($scolEdtEvent);
+            $scolEdtEvent->setEnseignement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEdtEvent->getEnseignement() === $this) {
+                $scolEdtEvent->setEnseignement(null);
             }
         }
 

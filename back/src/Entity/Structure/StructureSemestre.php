@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\ScolEdtEvent;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
@@ -86,6 +87,12 @@ class StructureSemestre
     #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'semestre')]
     private Collection $scolEvaluations;
 
+    /**
+     * @var Collection<int, ScolEdtEvent>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'semestre')]
+    private Collection $scolEdtEvents;
+
     public function __construct()
     {
         $this->structureGroupes = new ArrayCollection();
@@ -93,6 +100,7 @@ class StructureSemestre
         $this->setOpt([]);
         $this->structureUes = new ArrayCollection();
         $this->scolEvaluations = new ArrayCollection();
+        $this->scolEdtEvents = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -356,6 +364,36 @@ class StructureSemestre
             // set the owning side to null (unless already changed)
             if ($scolEvaluation->getSemestre() === $this) {
                 $scolEvaluation->setSemestre(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEdtEvent>
+     */
+    public function getScolEdtEvents(): Collection
+    {
+        return $this->scolEdtEvents;
+    }
+
+    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
+            $this->scolEdtEvents->add($scolEdtEvent);
+            $scolEdtEvent->setSemestre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEdtEvent->getSemestre() === $this) {
+                $scolEdtEvent->setSemestre(null);
             }
         }
 

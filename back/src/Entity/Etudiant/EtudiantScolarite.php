@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
+use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Repository\StructureScolariteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -24,6 +25,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 )]
 class EtudiantScolarite
 {
+    use UuidTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

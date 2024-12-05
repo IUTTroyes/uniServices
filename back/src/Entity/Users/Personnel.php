@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Etudiant\EtudiantAbsence;
+use App\Entity\ScolEdtEvent;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartementPersonnel;
@@ -110,6 +111,12 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: ScolEvaluation::class, mappedBy: 'personnelAutorise')]
     private Collection $scolEvaluations;
 
+    /**
+     * @var Collection<int, ScolEdtEvent>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'personnel')]
+    private Collection $scolEdtEvents;
+
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
@@ -117,6 +124,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         $this->structureDepartementPersonnels = new ArrayCollection();
         $this->etudiantAbsences = new ArrayCollection();
         $this->scolEvaluations = new ArrayCollection();
+        $this->scolEdtEvents = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -410,6 +418,36 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->scolEvaluations->removeElement($scolEvaluation)) {
             $scolEvaluation->removePersonnelAutorise($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEdtEvent>
+     */
+    public function getScolEdtEvents(): Collection
+    {
+        return $this->scolEdtEvents;
+    }
+
+    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
+            $this->scolEdtEvents->add($scolEdtEvent);
+            $scolEdtEvent->setPersonnel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    {
+        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEdtEvent->getPersonnel() === $this) {
+                $scolEdtEvent->setPersonnel(null);
+            }
         }
 
         return $this;
