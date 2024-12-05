@@ -1,7 +1,8 @@
 <script setup>
-import {ref} from "vue";
-
-import Edt from "@/components/Edt.vue";
+import { ref, computed } from 'vue';
+import { startOfWeek, addDays, format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import Edt from '@/components/Edt.vue';
 
 const menu = ref();
 const items = ref([
@@ -24,15 +25,38 @@ const toggle = (event) => {
     menu.value.toggle(event);
 };
 
-const tabs = [
-    { title: 'Personnel', content: Edt, value: '0', data: { type: 'personnel', info: 'Données pour le personnel' } },
-    { title: 'Département', content: Edt, value: '1', data: { type: 'departement', info: 'Données pour le département' } },
-];
+const currentWeek = ref(new Date());
+
+const getWeekDays = (date) => {
+    const startDate = startOfWeek(date, { weekStartsOn: 1 });
+    return Array.from({ length: 5 }, (_, i) => {
+        const day = addDays(startDate, i);
+        return {
+            dayName: format(day, 'EEEE', { locale: fr }),
+            dayNumber: format(day, 'dd/MM', { locale: fr })
+        };
+    });
+};
+
+const weekNumber = computed(() => format(currentWeek.value, 'w', { locale: fr }));
+const days = computed(() => getWeekDays(currentWeek.value));
+
+const previousWeek = () => {
+    currentWeek.value = addDays(currentWeek.value, -7);
+};
+
+const nextWeek = () => {
+    currentWeek.value = addDays(currentWeek.value, 7);
+};
+
+const tabs = computed(() => [
+    { title: 'Personnel', content: Edt, value: '0', data: { type: 'personnel', info: 'Données pour le personnel', days: days.value } },
+    { title: 'Département', content: Edt, value: '1', data: { type: 'departement', info: 'Données pour le département', days: days.value } },
+]);
 </script>
 
 <template>
     <div class="grid grid-cols-1 gap-4">
-
         <div class="card h-full">
             <div class="card-header flex justify-between items-start">
                 <div class="font-semibold text-xl mb-4">Emploi du temps</div>
@@ -44,12 +68,12 @@ const tabs = [
             </div>
             <div class="card-body">
                 <div class="w-full flex justify-center mt-5 gap-5">
-                    <Button icon="pi pi-arrow-left" severity="secondary" aria-label="previousWeek" />
+                    <Button icon="pi pi-arrow-left" severity="secondary" aria-label="previousWeek" @click="previousWeek" />
                     <div class="flex flex-col">
-                        <Tag value="Semaine 49"></Tag>
-                        <small>Semaine de formation 15</small>
+                        <Tag :value="`Semaine ${weekNumber}`"></Tag>
+                        <small>Semaine de formation *à calculer*</small>
                     </div>
-                    <Button icon="pi pi-arrow-right" severity="secondary" aria-label="nextWeek" />
+                    <Button icon="pi pi-arrow-right" severity="secondary" aria-label="nextWeek" @click="nextWeek" />
                 </div>
 
                 <Tabs value="0">
@@ -68,5 +92,4 @@ const tabs = [
 </template>
 
 <style scoped lang="scss">
-
 </style>

@@ -1,19 +1,14 @@
 <script setup>
-import { defineProps } from 'vue';
-import { startOfWeek, addDays, format } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { defineProps, watch, ref } from 'vue';
 
 const props = defineProps({
     data: Object
 });
 
-const startDate = startOfWeek(new Date(), { weekStartsOn: 1 }); // Commence la semaine le lundi
-const days = Array.from({ length: 5 }, (_, i) => {
-    const date = addDays(startDate, i);
-    return {
-        dayName: format(date, 'EEEE', { locale: fr }),
-        dayNumber: format(date, 'dd/MM', { locale: fr })
-    };
+const days = ref(props.data.days);
+
+watch(() => props.data.days, (newDays) => {
+    days.value = newDays;
 });
 </script>
 
@@ -24,7 +19,7 @@ const days = Array.from({ length: 5 }, (_, i) => {
                 {{ day.dayName }} <span class="font-black">{{ day.dayNumber }}</span>
             </div>
             <div class="events">
-
+                <!-- Events content -->
             </div>
         </div>
     </div>
