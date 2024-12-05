@@ -128,6 +128,7 @@ class EtudiantAbsenceJustificatif
         $this->fichier = $fichier;
     }
 
+    //todo: le dépot d'un justificatif pour une date ultérieure doit-il être possible ? si oui : provoque la création d'une ou plusieurs absences pour la durée du justificatif. Impossible si pas de cours sur la période ?
     public function addAbsence(EtudiantAbsence $absence): static
     {
         if (!$this->absence->contains($absence)) {
