@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\ScolEdtEvent;
+use App\Entity\Scolarite\ScolEdtEvent;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

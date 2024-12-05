@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Entity;
+namespace App\Entity\Scolarite;
 
-use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;

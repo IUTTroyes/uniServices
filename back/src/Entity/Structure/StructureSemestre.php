@@ -6,7 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Etudiant\EtudiantScolarite;
-use App\Entity\ScolEdtEvent;
+use App\Entity\Scolarite\ScolEdtEvent;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;

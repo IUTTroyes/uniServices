@@ -3,7 +3,7 @@
 namespace App\Entity\Structure;
 
 use App\Entity\Apc\ApcParcours;
-use App\Entity\ScolEdtEvent;
+use App\Entity\Scolarite\ScolEdtEvent;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Users\Etudiant;

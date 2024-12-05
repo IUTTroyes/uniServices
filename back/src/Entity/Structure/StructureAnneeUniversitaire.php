@@ -7,7 +7,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Etudiant\EtudiantScolarite;
-use App\Entity\ScolEdtEvent;
+use App\Entity\Scolarite\ScolEdtEvent;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;

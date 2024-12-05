@@ -4,7 +4,6 @@ namespace App\Entity\Scolarite;
 
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Etudiant\EtudiantAbsence;
-use App\Entity\ScolEdtEvent;
 use App\Entity\Structure\StructureUe;
 use App\Entity\Traits\ApogeeTrait;
 use App\Repository\ScolEnseignementRepository;
