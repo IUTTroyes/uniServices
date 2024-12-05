@@ -47,6 +47,9 @@ class EtudiantAbsence
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dateJustification = null;
 
+    #[ORM\ManyToOne(inversedBy: 'absence')]
+    private ?EtudiantAbsenceJustificatif $etudiantAbsenceJustificatif = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -144,6 +147,18 @@ class EtudiantAbsence
     public function setDateJustification(?\DateTimeInterface $dateJustification): static
     {
         $this->dateJustification = $dateJustification;
+
+        return $this;
+    }
+
+    public function getEtudiantAbsenceJustificatif(): ?EtudiantAbsenceJustificatif
+    {
+        return $this->etudiantAbsenceJustificatif;
+    }
+
+    public function setEtudiantAbsenceJustificatif(?EtudiantAbsenceJustificatif $etudiantAbsenceJustificatif): static
+    {
+        $this->etudiantAbsenceJustificatif = $etudiantAbsenceJustificatif;
 
         return $this;
     }
