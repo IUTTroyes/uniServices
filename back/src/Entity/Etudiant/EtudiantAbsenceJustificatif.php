@@ -2,6 +2,7 @@
 
 namespace App\Entity\Etudiant;
 
+use App\Entity\Traits\UuidTrait;
 use App\Repository\EtudiantAbsenceJustificatifRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,6 +12,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: EtudiantAbsenceJustificatifRepository::class)]
 class EtudiantAbsenceJustificatif
 {
+    use UuidTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -29,7 +32,7 @@ class EtudiantAbsenceJustificatif
     private ?string $motif = null;
 
     #[ORM\Column(type: Types::SMALLINT)]
-    private ?int $etat = null;
+    private ?int $etat = 0;
 
     #[ORM\Column(nullable: true, length: 255)]
     private ?string $fichier = null;
