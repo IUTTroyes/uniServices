@@ -101,6 +101,12 @@ class ScolEnseignement
     #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'enseignement')]
     private Collection $etudiantAbsences;
 
+    /**
+     * @var Collection<int, ScolEvaluation>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'enseignement')]
+    private Collection $scolEvaluations;
+
     public function __construct()
     {
         $this->scolEnseignements = new ArrayCollection();
@@ -108,6 +114,7 @@ class ScolEnseignement
         $this->ue = new ArrayCollection();
         $this->apcApprentissageCritique = new ArrayCollection();
         $this->etudiantAbsences = new ArrayCollection();
+        $this->scolEvaluations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -455,6 +462,36 @@ class ScolEnseignement
             // set the owning side to null (unless already changed)
             if ($etudiantAbsence->getEnseignement() === $this) {
                 $etudiantAbsence->setEnseignement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEvaluation>
+     */
+    public function getScolEvaluations(): Collection
+    {
+        return $this->scolEvaluations;
+    }
+
+    public function addScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if (!$this->scolEvaluations->contains($scolEvaluation)) {
+            $this->scolEvaluations->add($scolEvaluation);
+            $scolEvaluation->setEnseignement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if ($this->scolEvaluations->removeElement($scolEvaluation)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEvaluation->getEnseignement() === $this) {
+                $scolEvaluation->setEnseignement(null);
             }
         }
 

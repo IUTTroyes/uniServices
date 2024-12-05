@@ -6,10 +6,10 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Etudiant\EtudiantAbsence;
+use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
-use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Repository\PersonnelRepository;
 use App\ValueObject\Adresse;
@@ -104,12 +104,19 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $idEduSign = null;
 
+    /**
+     * @var Collection<int, ScolEvaluation>
+     */
+    #[ORM\ManyToMany(targetEntity: ScolEvaluation::class, mappedBy: 'personnelAutorise')]
+    private Collection $scolEvaluations;
+
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
         $this->assistantDiplome = new ArrayCollection();
         $this->structureDepartementPersonnels = new ArrayCollection();
         $this->etudiantAbsences = new ArrayCollection();
+        $this->scolEvaluations = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -379,5 +386,32 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIdEduSign(?array $idEduSign): void
     {
         $this->idEduSign = $idEduSign;
+    }
+
+    /**
+     * @return Collection<int, ScolEvaluation>
+     */
+    public function getScolEvaluations(): Collection
+    {
+        return $this->scolEvaluations;
+    }
+
+    public function addScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if (!$this->scolEvaluations->contains($scolEvaluation)) {
+            $this->scolEvaluations->add($scolEvaluation);
+            $scolEvaluation->addPersonnelAutorise($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if ($this->scolEvaluations->removeElement($scolEvaluation)) {
+            $scolEvaluation->removePersonnelAutorise($this);
+        }
+
+        return $this;
     }
 }

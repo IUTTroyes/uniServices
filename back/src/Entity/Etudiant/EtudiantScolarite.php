@@ -86,9 +86,16 @@ class EtudiantScolarite
     #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'scolarite', orphanRemoval: true)]
     private Collection $etudiantAbsences;
 
+    /**
+     * @var Collection<int, EtudiantNote>
+     */
+    #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'scolarite')]
+    private Collection $etudiantNotes;
+
     public function __construct()
     {
         $this->etudiantAbsences = new ArrayCollection();
+        $this->etudiantNotes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -264,6 +271,36 @@ class EtudiantScolarite
             // set the owning side to null (unless already changed)
             if ($etudiantAbsence->getScolarite() === $this) {
                 $etudiantAbsence->setScolarite(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EtudiantNote>
+     */
+    public function getEtudiantNotes(): Collection
+    {
+        return $this->etudiantNotes;
+    }
+
+    public function addEtudiantNote(EtudiantNote $etudiantNote): static
+    {
+        if (!$this->etudiantNotes->contains($etudiantNote)) {
+            $this->etudiantNotes->add($etudiantNote);
+            $etudiantNote->setScolarite($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiantNote(EtudiantNote $etudiantNote): static
+    {
+        if ($this->etudiantNotes->removeElement($etudiantNote)) {
+            // set the owning side to null (unless already changed)
+            if ($etudiantNote->getScolarite() === $this) {
+                $etudiantNote->setScolarite(null);
             }
         }
 

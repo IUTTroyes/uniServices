@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
@@ -79,12 +80,19 @@ class StructureSemestre
     #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'semestre')]
     private Collection $structureUes;
 
+    /**
+     * @var Collection<int, ScolEvaluation>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'semestre')]
+    private Collection $scolEvaluations;
+
     public function __construct()
     {
         $this->structureGroupes = new ArrayCollection();
         $this->etudiantScolarites = new ArrayCollection();
         $this->setOpt([]);
         $this->structureUes = new ArrayCollection();
+        $this->scolEvaluations = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -318,6 +326,36 @@ class StructureSemestre
             // set the owning side to null (unless already changed)
             if ($structureUe->getSemestre() === $this) {
                 $structureUe->setSemestre(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEvaluation>
+     */
+    public function getScolEvaluations(): Collection
+    {
+        return $this->scolEvaluations;
+    }
+
+    public function addScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if (!$this->scolEvaluations->contains($scolEvaluation)) {
+            $this->scolEvaluations->add($scolEvaluation);
+            $scolEvaluation->setSemestre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEvaluation(ScolEvaluation $scolEvaluation): static
+    {
+        if ($this->scolEvaluations->removeElement($scolEvaluation)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEvaluation->getSemestre() === $this) {
+                $scolEvaluation->setSemestre(null);
             }
         }
 
