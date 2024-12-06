@@ -30,6 +30,15 @@ const semaines = [
     { name: 'Semaine 5', value: '5' },
     { name: 'Semaine 6', value: '6' }
 ];
+
+const groupes = [
+    { name: 'A', value: '1' },
+    { name: 'B', value: '2' },
+    { name: 'C', value: '3' },
+    { name: 'D', value: '4' },
+    { name: 'E', value: '5' },
+    { name: 'F', value: '6' }
+];
 </script>
 
 <template>
@@ -40,9 +49,14 @@ const semaines = [
 
     <Carousel :value="days" :numVisible="1" :numScroll="1">
         <template #item="slotProps">
-            <div class="bg-gray-200 bg-opacity-20 rounded-md m-3">
-                <div :class="['day text-center uppercase font-bold flex flex-col p-4', { 'bg-primary': currentDay === slotProps.data.dayNumber, active: currentDay === slotProps.data.dayNumber }]">
+            <div>
+                <div :class="['day text-center uppercase font-bold flex flex-col p-4 bg-gray-200 bg-opacity-20 rounded-md m-3', { 'bg-primary': currentDay === slotProps.data.dayNumber, active: currentDay === slotProps.data.dayNumber }]">
                     {{ slotProps.data.dayName }} <span class="font-black">{{ slotProps.data.dayNumber }}</span>
+                </div>
+                <div class="flex justify-between gap-4 m-4">
+                    <div v-for="(groupe, index) in groupes" class="text-center w-full p-4 bg-gray-200 bg-opacity-30 rounded-md-3 flex flex-col font-black">
+                        {{ groupe.name }}
+                    </div>
                 </div>
             </div>
         </template>
@@ -51,7 +65,6 @@ const semaines = [
 
 <style scoped>
 .active {
-    color: white;
     border-top-left-radius: 0.5rem;
     border-top-right-radius: 0.5rem;
 }
