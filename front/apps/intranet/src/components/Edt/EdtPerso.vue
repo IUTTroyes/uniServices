@@ -11,10 +11,6 @@ const currentDay = ref(props.data.currentDay);
 watch(() => props.data.days, (newDays) => {
     days.value = newDays;
     const currentDayExists = newDays.some(day => day.dayNumber === currentDay.value);
-    console.log(currentDay);
-    if (!currentDayExists) {
-        currentDay.value = null;
-    }
 });
 </script>
 

@@ -53,7 +53,7 @@ const nextWeek = () => {
 
 const tabs = computed(() => [
     { title: 'Personnel', content: EdtPerso, value: '0', data: { type: 'personnel', info: 'Données pour le personnel', days: days.value, currentDay: currentDay } },
-    { title: 'Département', content: EdtSemestre, value: '1', data: { type: 'departement', info: 'Données pour le département', days: days.value } },
+    { title: 'Département', content: EdtSemestre, value: '1', data: { type: 'departement', info: 'Données pour le département', days: days.value, currentDay: currentDay } },
 ]);
 </script>
 
