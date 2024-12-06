@@ -18,6 +18,16 @@ class ScolEnseignement
 {
     use ApogeeTrait;
 
+    public const TYPE_RESSOURCE = 1;
+    public const TYPE_SAE = 2;
+    public const TYPE_PROJET = 3;
+
+    private const TYPES = [
+        self::TYPE_RESSOURCE => 'ressource',
+        self::TYPE_SAE => 'sae',
+        self::TYPE_PROJET => 'projet',
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -49,6 +59,9 @@ class ScolEnseignement
 
     #[ORM\Column(type: Types::JSON)]
     private array $heures = [];
+
+    #[ORM\Column(type: Types::SMALLINT)]
+    private int $type = self::TYPE_RESSOURCE;
 
     #[ORM\Column]
     private ?int $nbNotes = null;
@@ -251,6 +264,27 @@ class ScolEnseignement
         ]);
 
         $resolver->setAllowedTypes('heures', 'array');
+    }
+
+    public function getType(): int
+    {
+        return $this->type;
+    }
+
+    public function setType(int $type): static
+    {
+        if (!array_key_exists($type, self::TYPES)) {
+            throw new \InvalidArgumentException('Invalid type');
+        }
+
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getTypeLabel(): string
+    {
+        return self::TYPES[$this->type];
     }
 
     public function getNbNotes(): ?int

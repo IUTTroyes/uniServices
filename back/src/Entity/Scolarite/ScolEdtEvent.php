@@ -244,18 +244,6 @@ class ScolEdtEvent
         return $this;
     }
 
-    public function getTypeMatiere(): ?string
-    {
-        return $this->typeMatiere;
-    }
-
-    public function setTypeMatiere(?string $typeMatiere): static
-    {
-        $this->typeMatiere = $typeMatiere;
-
-        return $this;
-    }
-
     public function getGroupe(): ?StructureGroupe
     {
         return $this->groupe;
