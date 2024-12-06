@@ -15,17 +15,17 @@ watch(() => props.data.days, (newDays) => {
 </script>
 
 <template>
-    <div class="calendar grid grid-cols-5 gap-4">
-        <div class="bg-gray-200 bg-opacity-20 rounded-md flex flex-col gap-5" v-for="(day, index) in days" :key="index">
-            <div
-                :class="['day text-center uppercase font-bold flex flex-col p-4', { 'bg-primary': currentDay === day.dayNumber, active: currentDay === day.dayNumber }]">
-                {{ day.dayName }} <span class="font-black">{{ day.dayNumber }}</span>
+
+    <Carousel :value="days" :numVisible="1" :numScroll="1">
+        <template #item="slotProps">
+            <div class="bg-gray-200 bg-opacity-20 rounded-md">
+                <div
+                    :class="['day text-center uppercase font-bold flex flex-col p-4', { 'bg-primary': currentDay === slotProps.data.dayNumber, active: currentDay === slotProps.data.dayNumber }]">
+                    {{ slotProps.data.dayName }} <span class="font-black">{{ slotProps.data.dayNumber }}</span>
+                </div>
             </div>
-            <div class="events">
-                <!-- Events content -->
-            </div>
-        </div>
-    </div>
+        </template>
+    </Carousel>
 </template>
 
 <style scoped>
