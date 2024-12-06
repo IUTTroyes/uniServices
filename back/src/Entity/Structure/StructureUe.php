@@ -4,6 +4,7 @@ namespace App\Entity\Structure;
 
 use App\Entity\Apc\ApcCompetence;
 use App\Entity\Scolarite\ScolEnseignement;
+use App\Entity\Scolarite\ScolEnseignementUe;
 use App\Repository\UeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -18,38 +19,38 @@ class StructureUe
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    private ?string $libelle = null;
+    private string $libelle = '';
 
     #[ORM\Column]
-    private ?int $numero = null;
+    private int $numero = 0;
 
     #[ORM\Column]
-    private ?int $nbEcts = null;
+    private float $nbEcts = 0;
 
     #[ORM\Column]
-    private ?bool $actif = null;
+    private bool $actif = true;
 
     #[ORM\Column]
-    private ?bool $bonification = null;
+    private bool $bonification = false;
 
     #[ORM\Column(length: 15)]
-    private ?string $codeElement = null;
+    private string $codeElement = '';
 
     #[ORM\ManyToOne(inversedBy: 'ues')]
     private ?ApcCompetence $apcCompetence = null;
 
-    /**
-     * @var Collection<int, ScolEnseignement>
-     */
-    #[ORM\ManyToMany(targetEntity: ScolEnseignement::class, mappedBy: 'ue')]
-    private Collection $scolEnseignements;
-
     #[ORM\ManyToOne(inversedBy: 'structureUes')]
     private ?StructureSemestre $semestre = null;
 
+    /**
+     * @var Collection<int, ScolEnseignementUe>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'ue')]
+    private Collection $scolEnseignementUes;
+
     public function __construct()
     {
-        $this->scolEnseignements = new ArrayCollection();
+        $this->scolEnseignementUes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -81,12 +82,12 @@ class StructureUe
         return $this;
     }
 
-    public function getNbEcts(): ?int
+    public function getNbEcts(): ?float
     {
         return $this->nbEcts;
     }
 
-    public function setNbEcts(int $nbEcts): static
+    public function setNbEcts(float $nbEcts): static
     {
         $this->nbEcts = $nbEcts;
 
@@ -141,33 +142,6 @@ class StructureUe
         return $this;
     }
 
-    /**
-     * @return Collection<int, ScolEnseignement>
-     */
-    public function getScolEnseignements(): Collection
-    {
-        return $this->scolEnseignements;
-    }
-
-    public function addScolEnseignement(ScolEnseignement $scolEnseignement): static
-    {
-        if (!$this->scolEnseignements->contains($scolEnseignement)) {
-            $this->scolEnseignements->add($scolEnseignement);
-            $scolEnseignement->addUe($this);
-        }
-
-        return $this;
-    }
-
-    public function removeScolEnseignement(ScolEnseignement $scolEnseignement): static
-    {
-        if ($this->scolEnseignements->removeElement($scolEnseignement)) {
-            $scolEnseignement->removeUe($this);
-        }
-
-        return $this;
-    }
-
     public function getSemestre(): ?StructureSemestre
     {
         return $this->semestre;
@@ -176,6 +150,36 @@ class StructureUe
     public function setSemestre(?StructureSemestre $semestre): static
     {
         $this->semestre = $semestre;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEnseignementUe>
+     */
+    public function getScolEnseignementUes(): Collection
+    {
+        return $this->scolEnseignementUes;
+    }
+
+    public function addScolEnseignementUe(ScolEnseignementUe $scolEnseignementUe): static
+    {
+        if (!$this->scolEnseignementUes->contains($scolEnseignementUe)) {
+            $this->scolEnseignementUes->add($scolEnseignementUe);
+            $scolEnseignementUe->setUe($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEnseignementUe(ScolEnseignementUe $scolEnseignementUe): static
+    {
+        if ($this->scolEnseignementUes->removeElement($scolEnseignementUe)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEnseignementUe->getUe() === $this) {
+                $scolEnseignementUe->setUe(null);
+            }
+        }
 
         return $this;
     }

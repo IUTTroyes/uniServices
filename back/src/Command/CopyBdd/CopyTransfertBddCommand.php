@@ -2,6 +2,8 @@
 
 namespace App\Command\CopyBdd;
 
+use App\Entity\Scolarite\ScolEnseignement;
+use App\Entity\Scolarite\ScolEnseignementUe;
 use App\Entity\Structure\StructureAnnee;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
@@ -9,8 +11,10 @@ use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Structure\StructureTypeDiplome;
+use App\Entity\Structure\StructureUe;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Enum\TypeEnseignementEnum;
 use App\ValueObject\Adresse;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -37,6 +41,8 @@ class CopyTransfertBddCommand extends Command
     protected array $tAnnees = [];
     protected array $tPersonnels = [];
     protected array $tSemestres = [];
+    protected array $tMatieres = [];
+    protected array $tUes = [];
 
     protected SymfonyStyle $io;
 
@@ -66,7 +72,10 @@ FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_diplome');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_semestre');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_ue');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee_universitaire');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_edt_event');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement');
         $this->entityManager->getConnection()->executeQuery('SET
 FOREIGN_KEY_CHECKS=1');
     }
@@ -88,7 +97,10 @@ FOREIGN_KEY_CHECKS=1');
         $this->addDiplomes();
         $this->addAnnee();
         $this->addSemestre();
-
+        $this->addUe();
+        //ue + APC
+        $this->addMatieres();
+        $this->addEdt();
 
         $this->io->success('Processus de recopie terminé.');
 
@@ -327,6 +339,29 @@ FOREIGN_KEY_CHECKS=1');
         $this->entityManager->flush();
     }
 
+    private function addUe(): void
+    {
+        $sql = "SELECT * FROM ue";
+        $ues = $this->em->executeQuery($sql)->fetchAllAssociative();
+
+        foreach ($ues as $u) {
+            $ue = new StructureUe();
+            $ue->setSemestre($this->tSemestres[$u['semestre_id']]);
+            $ue->setLibelle($u['libelle']);
+            $ue->setNumero((int)$u['numero_ue']);
+            $ue->setCodeElement($u['code_element']);
+            $ue->setActif((bool)$u['actif']);
+            $ue->setBonification((bool)$u['bonification']);
+            $ue->setNbEcts((float)$u['nb_ects']); //Apc?
+            $this->tUes[$u['id']] = $ue;
+
+            $this->entityManager->persist($ue);
+            $this->io->info('UE : ' . $u['libelle'] . ' ajouté pour insertion');
+        }
+
+        $this->entityManager->flush();
+    }
+
     private function addTypeDiplome(): void
     {
         $sql = "SELECT * FROM type_diplome";
@@ -537,4 +572,115 @@ FOREIGN_KEY_CHECKS=1');
 
         $this->entityManager->flush();
     }
+
+    private function addMatieres(): void
+    {
+        // matières, ressources, SAE
+        $sql = 'SELECT * FROM matiere WHERE matiere_parent_id IS NULL';
+        $matieres = $this->em->executeQuery($sql)->fetchAllAssociative();
+
+        foreach ($matieres as $mat) {
+            $matiere = new ScolEnseignement();
+            $matiere->setLibelle($mat['libelle']);
+            $matiere->setCodeMatiere($mat['code_matiere']);
+            $matiere->setCodeApogee($mat['code_element']);
+            $matiere->setHeures([
+                'heures' => [
+                    'CM' => ['PN' => (float)$mat['cm_ppn'], 'IUT' => (float)$mat['cm_formation']],
+                    'TD' => ['PN' => (float)$mat['td_ppn'], 'IUT' => (float)$mat['td_formation']],
+                    'TP' => ['PN' => (float)$mat['tp_ppn'], 'IUT' => (float)$mat['tp_formation']],
+                    'Projet' => ['PN' => 0, 'IUT' => 0],
+                ],
+            ]);
+            $matiere->setType(TypeEnseignementEnum::TYPE_MATIERE);
+            $matiere->setBonification((bool)$mat['pac']);
+            $matiere->setDescription($mat['description']);
+            $matiere->setNbNotes((int)$mat['nb_notes']);
+            $matiere->setLibelleCourt($mat['libelle_court']);
+            $matiere->setSuspendu((bool)$mat['suspendu']);
+            $matiere->setMutualisee((bool)$mat['mutualisee']);
+            $matiere->setMotsCles($mat['mots_cles']);
+            $matiere->setObjectif($mat['objectifs_module']);
+            $matiere->setPrerequis($mat['pre_requis']);
+
+            /*
+             * array:30 [
+  "ppn_id" => 1
+  "parcours_id" => null
+]
+             */
+            $this->entityManager->persist($matiere);
+            $this->tMatieres[$mat['id']] = $matiere;
+
+            if ($mat['ue_id'] !== null && $mat['ue_id'] !== '') {
+
+                $matiereUe = new ScolEnseignementUe(
+                    $matiere,
+                    $this->tUes[$mat['ue_id']],
+                );
+                $matiereUe->setCoefficient((float)$mat['coefficient']);
+                $matiereUe->setEcts((float)$mat['nb_ects']);
+                $this->entityManager->persist($matiereUe);
+
+            }
+
+            $this->io->info('Matière : ' . $mat['libelle'] . ' ajouté pour insertion');
+        }
+
+        $sql = 'SELECT * FROM matiere WHERE matiere_parent_id IS NOT NULL';
+        $matieres = $this->em->executeQuery($sql)->fetchAllAssociative();
+
+        foreach ($matieres as $mat) {
+            $matiere = new ScolEnseignement();
+            $matiere->setLibelle($mat['libelle']);
+            $matiere->setCodeMatiere($mat['code_matiere']);
+            $matiere->setCodeApogee($mat['code_element']);
+            $matiere->setHeures([
+                'heures' => [
+                    'CM' => ['PN' => (float)$mat['cm_ppn'], 'IUT' => (float)$mat['cm_formation']],
+                    'TD' => ['PN' => (float)$mat['td_ppn'], 'IUT' => (float)$mat['td_formation']],
+                    'TP' => ['PN' => (float)$mat['tp_ppn'], 'IUT' => (float)$mat['tp_formation']],
+                    'Projet' => ['PN' => 0, 'IUT' => 0],
+                ],
+            ]);
+            $matiere->setType(TypeEnseignementEnum::TYPE_MATIERE);
+            $matiere->setBonification((bool)$mat['pac']);
+            $matiere->setDescription($mat['description']);
+            $matiere->setNbNotes((int)$mat['nb_notes']);
+            $matiere->setLibelleCourt($mat['libelle_court']);
+            $matiere->setSuspendu((bool)$mat['suspendu']);
+            $matiere->setMutualisee((bool)$mat['mutualisee']);
+            $matiere->setMotsCles($mat['mots_cles']);
+            $matiere->setObjectif($mat['objectifs_module']);
+            $matiere->setPrerequis($mat['pre_requis']);
+            $matiere->setParent($this->tMatieres[$mat['matiere_parent_id']]);
+
+            /*
+             * array:30 [
+  "ppn_id" => 1
+  "parcours_id" => null
+]
+             */
+            $this->entityManager->persist($matiere);
+
+            if ($mat['ue_id'] !== null && $mat['ue_id'] !== '') {
+
+                $matiereUe = new ScolEnseignementUe(
+                    $matiere,
+                    $this->tUes[$mat['ue_id']],
+                );
+                $matiereUe->setCoefficient((float)$mat['coefficient']);
+                $matiereUe->setEcts((float)$mat['nb_ects']);
+                $this->entityManager->persist($matiereUe);
+
+            }
+
+            $this->io->info('Matière : ' . $mat['libelle'] . ' ajouté pour insertion');
+        }
+
+        $this->entityManager->flush();
+    }
+
+    private function addEdt(): void
+    {}
 }

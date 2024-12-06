@@ -4,8 +4,8 @@ namespace App\Entity\Scolarite;
 
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Etudiant\EtudiantAbsence;
-use App\Entity\Structure\StructureUe;
 use App\Entity\Traits\ApogeeTrait;
+use App\Enum\TypeEnseignementEnum;
 use App\Repository\ScolEnseignementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -17,16 +17,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 class ScolEnseignement
 {
     use ApogeeTrait;
-
-    public const TYPE_RESSOURCE = 1;
-    public const TYPE_SAE = 2;
-    public const TYPE_PROJET = 3;
-
-    private const TYPES = [
-        self::TYPE_RESSOURCE => 'ressource',
-        self::TYPE_SAE => 'sae',
-        self::TYPE_PROJET => 'projet',
-    ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -60,17 +50,14 @@ class ScolEnseignement
     #[ORM\Column(type: Types::JSON)]
     private array $heures = [];
 
-    #[ORM\Column(type: Types::SMALLINT)]
-    private int $type = self::TYPE_RESSOURCE;
+    #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
+    private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]
     private ?int $nbNotes = null;
 
     #[ORM\Column]
     private ?bool $mutualisee = null;
-
-    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'scolEnseignements')]
-    private ?self $parent = null;
 
     /**
      * @var Collection<int, self>
@@ -79,12 +66,12 @@ class ScolEnseignement
     private Collection $scolEnseignements;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfant')]
-    private ?self $scolEnseignement = null;
+    private ?self $parent = null;
 
     /**
      * @var Collection<int, self>
      */
-    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'scolEnseignement')]
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
     private Collection $enfant;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -95,12 +82,6 @@ class ScolEnseignement
 
     #[ORM\Column]
     private ?bool $bonification = null;
-
-    /**
-     * @var Collection<int, StructureUe>
-     */
-    #[ORM\ManyToMany(targetEntity: StructureUe::class, inversedBy: 'scolEnseignements')]
-    private Collection $ue;
 
     /**
      * @var Collection<int, ApcApprentissageCritique>
@@ -126,15 +107,21 @@ class ScolEnseignement
     #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'enseignement')]
     private Collection $scolEdtEvents;
 
+    /**
+     * @var Collection<int, ScolEnseignementUe>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'enseignement', cascade: ['persist', 'remove'])]
+    private Collection $scolEnseignementUes;
+
     public function __construct()
     {
         $this->scolEnseignements = new ArrayCollection();
         $this->enfant = new ArrayCollection();
-        $this->ue = new ArrayCollection();
         $this->apcApprentissageCritique = new ArrayCollection();
         $this->etudiantAbsences = new ArrayCollection();
         $this->scolEvaluations = new ArrayCollection();
         $this->scolEdtEvents = new ArrayCollection();
+        $this->scolEnseignementUes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -266,25 +253,16 @@ class ScolEnseignement
         $resolver->setAllowedTypes('heures', 'array');
     }
 
-    public function getType(): int
+    public function getType(): TypeEnseignementEnum
     {
         return $this->type;
     }
 
-    public function setType(int $type): static
+    public function setType(TypeEnseignementEnum $type): static
     {
-        if (!array_key_exists($type, self::TYPES)) {
-            throw new \InvalidArgumentException('Invalid type');
-        }
-
         $this->type = $type;
 
         return $this;
-    }
-
-    public function getTypeLabel(): string
-    {
-        return self::TYPES[$this->type];
     }
 
     public function getNbNotes(): ?int
@@ -432,30 +410,6 @@ class ScolEnseignement
     }
 
     /**
-     * @return Collection<int, StructureUe>
-     */
-    public function getUe(): Collection
-    {
-        return $this->ue;
-    }
-
-    public function addUe(StructureUe $ue): static
-    {
-        if (!$this->ue->contains($ue)) {
-            $this->ue->add($ue);
-        }
-
-        return $this;
-    }
-
-    public function removeUe(StructureUe $ue): static
-    {
-        $this->ue->removeElement($ue);
-
-        return $this;
-    }
-
-    /**
      * @return Collection<int, ApcApprentissageCritique>
      */
     public function getApcApprentissageCritique(): Collection
@@ -563,6 +517,36 @@ class ScolEnseignement
             // set the owning side to null (unless already changed)
             if ($scolEdtEvent->getEnseignement() === $this) {
                 $scolEdtEvent->setEnseignement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEnseignementUe>
+     */
+    public function getScolEnseignementUes(): Collection
+    {
+        return $this->scolEnseignementUes;
+    }
+
+    public function addScolEnseignementUe(ScolEnseignementUe $scolEnseignementUe): static
+    {
+        if (!$this->scolEnseignementUes->contains($scolEnseignementUe)) {
+            $this->scolEnseignementUes->add($scolEnseignementUe);
+            $scolEnseignementUe->setEnseignement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEnseignementUe(ScolEnseignementUe $scolEnseignementUe): static
+    {
+        if ($this->scolEnseignementUes->removeElement($scolEnseignementUe)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEnseignementUe->getEnseignement() === $this) {
+                $scolEnseignementUe->setEnseignement(null);
             }
         }
 

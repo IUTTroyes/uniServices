@@ -38,7 +38,7 @@ class StructureAnneeUniversitaire
     private ?string $libelle = null;
 
     #[ORM\Column]
-    private ?int $annee = null;
+    private int $annee;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire = null;
@@ -62,7 +62,7 @@ class StructureAnneeUniversitaire
     private Collection $personnels;
 
     #[ORM\Column]
-    private ?bool $actif = null;
+    private bool $actif = false;
 
     /**
      * @var Collection<int, ApcReferentiel>
@@ -90,6 +90,8 @@ class StructureAnneeUniversitaire
         $this->apcReferentiels = new ArrayCollection();
         $this->scolEvaluations = new ArrayCollection();
         $this->scolEdtEvents = new ArrayCollection();
+
+        $this->annee = (int) date('Y');
     }
 
     public function getId(): ?int
