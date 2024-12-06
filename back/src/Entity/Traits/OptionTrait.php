@@ -4,10 +4,12 @@ namespace App\Entity\Traits;
 
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 trait OptionTrait
 {
     #[ORM\Column]
+    #[Groups(['semestre:read'])]
     private array $opt = [];
 
     public function setOpt(array $opt): static

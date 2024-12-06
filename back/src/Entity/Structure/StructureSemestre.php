@@ -16,6 +16,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureSemestreRepository::class)]
 #[ApiResource(
@@ -34,63 +35,78 @@ class StructureSemestre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['semestre:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['semestre:read'])]
     private string $libelle;
 
     #[ORM\Column]
+    #[Groups(['semestre:read'])]
     private int $ordreAnnee = 0;
 
     #[ORM\Column]
+    #[Groups(['semestre:read'])]
     private int $ordreLmd = 0;
 
     #[ORM\Column]
+    #[Groups(['semestre:read'])]
     private bool $actif = true;
 
     #[ORM\Column]
+    #[Groups(['semestre:read'])]
     private int $nbGroupesCm = 1;
 
     #[ORM\Column]
+    #[Groups(['semestre:read'])]
     private int $nbGroupesTd = 1;
 
     #[ORM\Column()]
+    #[Groups(['semestre:read'])]
     private int $nbGroupesTp = 2;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['semestre:read'])]
     private ?string $codeElement = null;
 
     /**
      * @var Collection<int, StructureGroupe>
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, mappedBy: 'semestres')]
+    #[Groups(['semestre:read'])]
     private Collection $structureGroupes;
 
     /**
      * @var Collection<int, EtudiantScolarite>
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'semestre')]
+    #[Groups(['semestre:read'])]
     private Collection $etudiantScolarites;
 
     #[ORM\ManyToOne(inversedBy: 'structureSemestres')]
+    #[Groups(['semestre:read'])]
     private ?StructureAnnee $annee = null;
 
     /**
      * @var Collection<int, StructureUe>
      */
     #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'semestre')]
+    #[Groups(['semestre:read'])]
     private Collection $structureUes;
 
     /**
      * @var Collection<int, ScolEvaluation>
      */
     #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'semestre')]
+    #[Groups(['semestre:read'])]
     private Collection $scolEvaluations;
 
     /**
      * @var Collection<int, ScolEdtEvent>
      */
     #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'semestre')]
+    #[Groups(['semestre:read'])]
     private Collection $scolEdtEvents;
 
     public function __construct()

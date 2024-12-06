@@ -2,7 +2,8 @@
 import { ref, computed } from 'vue';
 import { startOfWeek, addDays, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import Edt from '@/components/Edt.vue';
+import EdtPerso from '@/components/Edt/EdtPerso.vue';
+import EdtSemestre from '@/components/Edt/EdtSemestre.vue';
 
 const menu = ref();
 const items = ref([
@@ -40,6 +41,7 @@ const getWeekDays = (date) => {
 
 const weekNumber = computed(() => format(currentWeek.value, 'w', { locale: fr }));
 const days = computed(() => getWeekDays(currentWeek.value));
+const currentDay = computed(() => format(new Date(), 'dd/MM', { locale: fr }));
 
 const previousWeek = () => {
     currentWeek.value = addDays(currentWeek.value, -7);
@@ -50,8 +52,8 @@ const nextWeek = () => {
 };
 
 const tabs = computed(() => [
-    { title: 'Personnel', content: Edt, value: '0', data: { type: 'personnel', info: 'Données pour le personnel', days: days.value } },
-    { title: 'Département', content: Edt, value: '1', data: { type: 'departement', info: 'Données pour le département', days: days.value } },
+    { title: 'Personnel', content: EdtPerso, value: '0', data: { type: 'personnel', info: 'Données pour le personnel', days: days.value, currentDay: currentDay } },
+    { title: 'Département', content: EdtSemestre, value: '1', data: { type: 'departement', info: 'Données pour le département', days: days.value } },
 ]);
 </script>
 

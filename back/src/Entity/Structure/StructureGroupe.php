@@ -11,6 +11,7 @@ use App\Repository\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureGroupeRepository::class)]
 class StructureGroupe
@@ -21,40 +22,49 @@ class StructureGroupe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['semestre:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['semestre:read'])]
     private string $libelle;
 
     #[ORM\Column(length: 10)]
+    #[Groups(['semestre:read'])]
     private string $type;
 
     #[ORM\ManyToOne(targetEntity: self::class)]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[Groups(['semestre:read'])]
     private ?self $parent = null;
 
     #[ORM\ManyToMany(targetEntity: Etudiant::class, inversedBy: 'structureGroupes')]
+    #[Groups(['semestre:read'])]
     private Collection $etudiants;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['semestre:read'])]
     private ?int $ordre = null;
 
     #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'structureGroupes')]
     private Collection $semestres;
 
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
+    #[Groups(['semestre:read'])]
     private ?Collection $enfants;
 
     /**
      * @var Collection<int, ApcParcours>
      */
     #[ORM\ManyToMany(targetEntity: ApcParcours::class, mappedBy: 'groupes')]
+    #[Groups(['semestre:read'])]
     private Collection $apcParcours;
 
     /**
      * @var Collection<int, ScolEdtEvent>
      */
     #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'groupe')]
+    #[Groups(['semestre:read'])]
     private Collection $scolEdtEvents;
 
     public function __construct()
