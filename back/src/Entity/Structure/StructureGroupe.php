@@ -7,7 +7,7 @@ use App\Entity\Scolarite\ScolEdtEvent;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Users\Etudiant;
-use App\Repository\StructureGroupeRepository;
+use App\Repository\Structure\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

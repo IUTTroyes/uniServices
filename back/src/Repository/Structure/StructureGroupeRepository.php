@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Structure;
 
-use App\Entity\Structure\StructureAnnee;
+use App\Entity\Structure\StructureGroupe;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<StructureAnnee>
+ * @extends ServiceEntityRepository<StructureGroupe>
  */
-class StructureAnneeRepository extends ServiceEntityRepository
+class StructureGroupeRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, StructureAnnee::class);
+        parent::__construct($registry, StructureGroupe::class);
     }
 
     //    /**
-    //     * @return StructureAnnee[] Returns an array of StructureAnnee objects
+    //     * @return StructureGroupe[] Returns an array of StructureGroupe objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class StructureAnneeRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?StructureAnnee
+    //    public function findOneBySomeField($value): ?StructureGroupe
     //    {
     //        return $this->createQueryBuilder('s')
     //            ->andWhere('s.exampleField = :val')

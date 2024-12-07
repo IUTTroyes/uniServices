@@ -6,7 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Users\Personnel;
-use App\Repository\StructureDepartementPersonnelRepository;
+use App\Repository\Structure\StructureDepartementPersonnelRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 

@@ -1,30 +1,21 @@
 <?php
 
-namespace App\Repository\Type;
+namespace App\Repository\Structure;
 
 use App\Entity\Structure\StructureTypeDiplome;
+use App\Repository\Traits\FindAllByIdArrayTrait;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
  * @extends ServiceEntityRepository<StructureTypeDiplome>
  */
-class TypeDiplomeRepository extends ServiceEntityRepository
+class StructureTypeDiplomeRepository extends ServiceEntityRepository
 {
+    use FindAllByIdArrayTrait;
+
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, StructureTypeDiplome::class);
-    }
-
-    public function findAllByIdArray(): array
-    {
-        $datas = $this->findAll();
-        $result = [];
-
-        foreach ($datas as $data) {
-            $result[$data->getId()] = $data;
-        }
-
-        return $result;
     }
 }

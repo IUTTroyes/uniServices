@@ -66,7 +66,7 @@ class CopyTransfertBddCommand extends Command
 FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE personnel');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_departement_personnel');
-        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant');
+       // $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_type_diplome');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_departement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_diplome');
@@ -76,6 +76,7 @@ FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee_universitaire');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_edt_event');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_ue');
         $this->entityManager->getConnection()->executeQuery('SET
 FOREIGN_KEY_CHECKS=1');
     }
@@ -98,10 +99,8 @@ FOREIGN_KEY_CHECKS=1');
         $this->addAnnee();
         $this->addSemestre();
         $this->addUe();
-        //APC
 
         $this->addMatieres();
-        $this->addApc();
         //$this->addRessources();
         //$this->addSae();
         $this->addEdt();
@@ -685,9 +684,4 @@ FOREIGN_KEY_CHECKS=1');
 
     private function addEdt(): void
     {}
-
-    private function addApc()
-    {
-
-    }
 }

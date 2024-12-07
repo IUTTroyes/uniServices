@@ -1,40 +1,40 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Structure;
 
-use App\Entity\Apc\ApcNiveau;
+use App\Entity\Structure\StructurePn;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<ApcNiveau>
+ * @extends ServiceEntityRepository<StructurePn>
  */
-class ApcNiveauRepository extends ServiceEntityRepository
+class StructurePnRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, ApcNiveau::class);
+        parent::__construct($registry, StructurePn::class);
     }
 
     //    /**
-    //     * @return ApcNiveau[] Returns an array of ApcNiveau objects
+    //     * @return StructurePn[] Returns an array of StructurePn objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
+    //        return $this->createQueryBuilder('s')
+    //            ->andWhere('s.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('a.id', 'ASC')
+    //            ->orderBy('s.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?ApcNiveau
+    //    public function findOneBySomeField($value): ?StructurePn
     //    {
-    //        return $this->createQueryBuilder('a')
-    //            ->andWhere('a.exampleField = :val')
+    //        return $this->createQueryBuilder('s')
+    //            ->andWhere('s.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

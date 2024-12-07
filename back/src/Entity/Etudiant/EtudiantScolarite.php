@@ -9,7 +9,7 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
-use App\Repository\StructureScolariteRepository;
+use App\Repository\Structure\StructureScolariteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

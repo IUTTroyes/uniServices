@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Apc;
 
-use App\Entity\Apc\ApcApprentissageCritique;
+use App\Entity\Apc\ApcNiveau;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<ApcApprentissageCritique>
+ * @extends ServiceEntityRepository<ApcNiveau>
  */
-class ApcApprentissageCritiqueRepository extends ServiceEntityRepository
+class ApcNiveauRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, ApcApprentissageCritique::class);
+        parent::__construct($registry, ApcNiveau::class);
     }
 
     //    /**
-    //     * @return ApcApprentissageCritique[] Returns an array of ApcApprentissageCritique objects
+    //     * @return ApcNiveau[] Returns an array of ApcNiveau objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class ApcApprentissageCritiqueRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?ApcApprentissageCritique
+    //    public function findOneBySomeField($value): ?ApcNiveau
     //    {
     //        return $this->createQueryBuilder('a')
     //            ->andWhere('a.exampleField = :val')

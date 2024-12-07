@@ -7,7 +7,7 @@ use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Traits\UuidTrait;
-use App\Repository\StructureDepartementRepository;
+use App\Repository\Structure\StructureDepartementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

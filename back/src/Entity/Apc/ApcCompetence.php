@@ -3,7 +3,7 @@
 namespace App\Entity\Apc;
 
 use App\Entity\Structure\StructureUe;
-use App\Repository\ApcCompetenceRepository;
+use App\Repository\Apc\ApcCompetenceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

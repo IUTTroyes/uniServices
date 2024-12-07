@@ -3,7 +3,7 @@
 namespace App\Entity\Apc;
 
 use App\Entity\Scolarite\ScolEnseignement;
-use App\Repository\ApcApprentissageCritiqueRepository;
+use App\Repository\Apc\ApcApprentissageCritiqueRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

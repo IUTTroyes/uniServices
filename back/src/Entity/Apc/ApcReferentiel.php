@@ -8,7 +8,7 @@ use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructurePn;
 use App\Entity\Structure\StructureTypeDiplome;
-use App\Repository\ApcReferentielRepository;
+use App\Repository\Apc\ApcReferentielRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

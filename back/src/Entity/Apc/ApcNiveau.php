@@ -3,7 +3,7 @@
 namespace App\Entity\Apc;
 
 use App\Entity\Structure\StructureAnnee;
-use App\Repository\ApcNiveauRepository;
+use App\Repository\Apc\ApcNiveauRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

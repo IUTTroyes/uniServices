@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Apc;
 
 use App\Entity\Apc\ApcParcours;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

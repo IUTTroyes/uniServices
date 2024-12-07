@@ -8,7 +8,7 @@ use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcNiveau;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
-use App\Repository\StructureAnneeRepository;
+use App\Repository\Structure\StructureAnneeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

@@ -5,7 +5,7 @@ namespace App\Entity\Apc;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\OptionTrait;
-use App\Repository\ApcParcoursRepository;
+use App\Repository\Apc\ApcParcoursRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
