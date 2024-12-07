@@ -90,7 +90,7 @@ FOREIGN_KEY_CHECKS=1');
 
         // Départements
         $this->addPersonnels();
-        //$this->addEtudiants();
+        $this->addEtudiants();
         $this->addTypeDiplome();
         $this->addDepartements();
         $this->addPersonnelsDepartements();
@@ -465,7 +465,7 @@ FOREIGN_KEY_CHECKS=1');
 
     private function addEtudiants(): void
     {
-        $sql = 'SELECT * FROM etudiant';
+        $sql = 'SELECT * FROM etudiant WHERE semestre_id IS NOT NULL'; // juste pour des datas
         $etudiants = $this->em->executeQuery($sql)->fetchAllAssociative();
 
         foreach ($etudiants as $etu) {
