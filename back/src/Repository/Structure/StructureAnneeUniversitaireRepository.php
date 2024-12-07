@@ -3,6 +3,7 @@
 namespace App\Repository\Structure;
 
 use App\Entity\Structure\StructureAnneeUniversitaire;
+use App\Repository\Traits\FindAllByIdArrayTrait;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -11,33 +12,9 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class StructureAnneeUniversitaireRepository extends ServiceEntityRepository
 {
+    use FindAllByIdArrayTrait;
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, StructureAnneeUniversitaire::class);
     }
-
-    //    /**
-    //     * @return StructureAnneeUniversitaire[] Returns an array of StructureAnneeUniversitaire objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?StructureAnneeUniversitaire
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
 }

@@ -5,6 +5,7 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Repository\Structure\StructureDepartementRepository;
@@ -23,6 +24,7 @@ class StructureDepartement
     use UuidTrait;
     use LifeCycleTrait;
     use OptionTrait;
+    use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

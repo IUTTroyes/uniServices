@@ -29,7 +29,7 @@ use Symfony\Component\Uid\UuidV4;
     name: 'copy:transfert-bdd:structure',
     description: 'Add a short description for your command',
 )]
-class CopyTransfertBddCommand extends Command
+class CopyTransfertBddStructureCommand extends Command
 {
     protected object $em;
 
@@ -39,7 +39,6 @@ class CopyTransfertBddCommand extends Command
     protected array $tTypeDiplomes = [];
     protected array $tDiplomes = [];
     protected array $tAnnees = [];
-    protected array $tPersonnels = [];
     protected array $tSemestres = [];
     protected array $tMatieres = [];
     protected array $tUes = [];
@@ -64,9 +63,6 @@ class CopyTransfertBddCommand extends Command
         // vider les tables de destination et les réinitialiser
         $this->entityManager->getConnection()->executeQuery('SET
 FOREIGN_KEY_CHECKS=0');
-        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE personnel');
-        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_departement_personnel');
-       // $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_type_diplome');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_departement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_diplome');
@@ -90,20 +86,15 @@ FOREIGN_KEY_CHECKS=1');
         $this->addAnneeUniversitaire();
 
         // Départements
-        $this->addPersonnels();
-        $this->addEtudiants();
         $this->addTypeDiplome();
         $this->addDepartements();
-        $this->addPersonnelsDepartements();
         $this->addDiplomes();
         $this->addAnnee();
         $this->addSemestre();
         $this->addUe();
-
         $this->addMatieres();
         //$this->addRessources();
         //$this->addSae();
-        $this->addEdt();
 
         $this->io->success('Processus de recopie terminé.');
 
@@ -121,6 +112,7 @@ FOREIGN_KEY_CHECKS=1');
             $anneeUniversitaire->setAnnee($annee['annee']);
             $anneeUniversitaire->setActif((bool)$annee['active']);
             $anneeUniversitaire->setCommentaire($annee['commentaire']);
+            $anneeUniversitaire->setOldId($annee['id']);
 
             $this->tAnneeUniversitaire[$annee['id']] = $anneeUniversitaire;
 
@@ -154,6 +146,7 @@ FOREIGN_KEY_CHECKS=1');
                 'edt' => (bool)$dept['opt_edt'],
                 'stage' => (bool)$dept['opt_stage'],
             ]);
+            $departement->setOldId($dept['id']);
 
             $this->tDepartements[$dept['id']] = $departement;
 
@@ -322,6 +315,7 @@ FOREIGN_KEY_CHECKS=1');
             $semestre->setNbGroupesTp((int)$sem['nb_groupes_tp']);
             $semestre->setKeyEduSign($sem['id_edu_sign']);
             $semestre->setCodeElement($sem['code_element']);
+            $semestre->setOldId($sem['id']);
 
             /*
              *   "id" => 1
@@ -378,197 +372,6 @@ FOREIGN_KEY_CHECKS=1');
 
             $this->entityManager->persist($typeDiplome);
             $this->io->info('Type Diplome : ' . $type['libelle'] . ' ajouté pour insertion');
-        }
-
-        $this->entityManager->flush();
-    }
-
-    private function addPersonnels(): void
-    {
-        $sql = 'SELECT * FROM personnel';
-        $personnels = $this->em->executeQuery($sql)->fetchAllAssociative();
-
-        foreach ($personnels as $pers) {
-            $personnel = new Personnel();
-            $personnel->setNom($pers['nom']);
-            $personnel->setPrenom($pers['prenom']);
-            $personnel->setMailUniv($pers['mail_univ']);
-            $personnel->setUsername($pers['username']);
-            $personnel->setPassword($pers['password']);
-            $personnel->setPhotoName($pers['photo_name']);
-            $personnel->setRoles(json_decode($pers['roles'], true) ?? []);
-            $personnel->setStructureAnneeUniversitaire($this->tAnneeUniversitaire[$pers['annee_universitaire_id']]);
-
-            // gestion des adresses
-            if ($pers['adresse_id'] !== null && $pers['adresse_id'] !== '') {
-                $sql = 'SELECT * FROM adresse WHERE id = ' . $pers['adresse_id'];
-                $adresse = $this->em->executeQuery($sql)->fetchAssociative();
-
-                $objAdresse = new Adresse(
-                    $adresse['adresse1'] ?? '',
-                    $adresse['adresse2'] ?? '',
-                    $adresse['adresse3'] ?? '',
-                    $adresse['code_postal'] ?? '',
-                    $adresse['ville'] ?? '',
-                    $adresse['pays'] ?? 'France'
-                );
-                $personnel->setAdressePersonnelle($objAdresse);
-            }
-
-            /*
-             * "id" => 1
-  "statut" => "vacataire"
-  "poste_interne" => null
-  "tel_bureau" => null
-  "responsabilites" => null
-  "domaines" => null
-  "entreprise" => null
-  "bureau1" => null
-  "bureau2" => null
-  "numero_harpege" => 18027
-  "initiales" => null
-  "cv_name" => ""
-  "nb_heures_service" => 384.0
-  "deleted" => 0
-  "couleur" => ""
-  "password" => "$2y$13$mNYMwSaTHH9vqqYjlsma4OXq5wQCr3aagR9bqT0.bpusnKKfcebI."
-  "slug" => "a.martinot"
-  "type_user" => "vacataire"
-  "site_univ" => null
-  "mail_perso" => "a.martinot@wanadoo.fr"
-  "site_perso" => null
-  "civilite" => "M."
-  "date_naissance" => "1956-06-17"
-  "tel1" => null
-  "tel2" => null
-  "remarque" => null
-  "signature" => null
-  "visible" => 1
-  "updated" => "2024-09-19 17:27:26"
-  "reset_token" => null
-  "signature_electronique" => null
-  "lieu_naissance" => "Chaumont"
-  "configuration" => null
-  "access_originaux" => 0
-  "id_edu_sign" => "{"3":"xwdv9d59utg5fafu"}"
-             */
-
-            $this->tPersonnels[$pers['id']] = $personnel;
-
-            $this->entityManager->persist($personnel);
-            $this->io->info('Personnel : ' . $pers['nom'] . ' ajouté pour insertion');
-        }
-
-        $this->entityManager->flush();
-    }
-
-    private function addEtudiants(): void
-    {
-        $sql = 'SELECT * FROM etudiant WHERE semestre_id IS NOT NULL'; // juste pour des datas
-        $etudiants = $this->em->executeQuery($sql)->fetchAllAssociative();
-
-        foreach ($etudiants as $etu) {
-            $etudiant = new Etudiant();
-            $etudiant->setNom($etu['nom']);
-            $etudiant->setPrenom($etu['prenom']);
-            $etudiant->setMailUniv($etu['mail_univ']);
-            $etudiant->setUsername($etu['username']);
-            $etudiant->setPhotoName($etu['photo_name']);
-            $etudiant->setPassword($etu['password']);
-            $etudiant->setRoles(json_decode($etu['roles'], true) ?? ["ROLE_ETUDIANT"]);
-
-            // gestion des adresses : adresse etudiante et adresse parentale
-            if ($etu['adresse_id'] !== null && $etu['adresse_id'] !== '') {
-                $sql = 'SELECT * FROM adresse WHERE id = ' . $etu['adresse_id'];
-                $adresse = $this->em->executeQuery($sql)->fetchAssociative();
-
-                $objAdresseEtudiante = new Adresse(
-                    $adresse['adresse1'] ?? '',
-                    $adresse['adresse2'] ?? '',
-                    $adresse['adresse3'] ?? '',
-                    $adresse['code_postal'] ?? '',
-                    $adresse['ville'] ?? '',
-                    $adresse['pays'] ?? 'France'
-                );
-                $etudiant->setAdresseEtudiante($objAdresseEtudiante);
-            }
-
-            if ($etu['adresse_parentale_id'] !== null && $etu['adresse_parentale_id'] !== '') {
-                $sql = 'SELECT * FROM adresse WHERE id = ' . $etu['adresse_parentale_id'];
-                $adresse = $this->em->executeQuery($sql)->fetchAssociative();
-
-                $objAdresseParentale = new Adresse(
-                    $adresse['adresse1'] ?? '',
-                    $adresse['adresse2'] ?? '',
-                    $adresse['adresse3'] ?? '',
-                    $adresse['code_postal'] ?? '',
-                    $adresse['ville'] ?? '',
-                    $adresse['pays'] ?? 'France'
-                );
-                $etudiant->setAdresseParentale($objAdresseParentale);
-            }
-
-
-            $this->entityManager->persist($etudiant);
-            $this->io->info('Etudiant : ' . $etu['nom'] . ' ajouté pour insertion');
-
-            /*
-             * "id" => 30
-  "semestre_id" => null
-  "bac_id" => null
-  "uuid" => "�G�Lo�C�"
-  "num_etudiant" => "21701820"
-  "num_ine" => "2410019804U"
-  "annee_bac" => 2017
-  "boursier" => 0
-  "demandeur_emploi" => 0
-  "deleted" => 0
-  "amenagements_particuliers" => null
-  "promotion" => 2019
-  "intitule_securite_sociale" => null
-  "adresse_securite_sociale" => null
-  "annee_sortie" => 2020
-  "slug" => "julie.bastard"
-  "type_user" => "etudiant"
-  "site_univ" => null
-  "mail_perso" => null
-  "site_perso" => null
-  "civilite" => "Mme"
-  "date_naissance" => "1999-09-13"
-  "tel1" => "06.46.29.77.06"
-  "tel2" => null
-  "remarque" => null
-  "signature" => null
-  "visible" => 1
-  "updated" => "2021-06-29 10:16:48"
-  "reset_token" => null
-  "departement_id" => 1
-  "login_specifique" => null
-  "formation_continue" => 0
-  "lieu_naissance" => null
-  "id_edu_sign" => null
-
-             */
-        }
-
-        $this->entityManager->flush();
-
-    }
-
-    private function addPersonnelsDepartements(): void
-    {
-        $sql = 'SELECT * FROM personnel_departement';
-        $persDepts = $this->em->executeQuery($sql)->fetchAllAssociative();
-
-        foreach ($persDepts as $persDept) {
-            $depPers = new StructureDepartementPersonnel();
-            $depPers->setDepartement($this->tDepartements[$persDept['departement_id']]);
-            $depPers->setPersonnel($this->tPersonnels[$persDept['personnel_id']]);
-            $depPers->setDefaut((bool)$persDept['defaut']);
-            $depPers->setRoles(json_decode($persDept['roles'], true) ?? []);
-
-            $this->entityManager->persist($depPers);
-            $this->io->info('Personnel : ' . $this->tPersonnels[$persDept['personnel_id']]->getNom() . ' ajouté au département ' . $this->tDepartements[$persDept['departement_id']]->getLibelle());
         }
 
         $this->entityManager->flush();
@@ -681,7 +484,4 @@ FOREIGN_KEY_CHECKS=1');
 
         $this->entityManager->flush();
     }
-
-    private function addEdt(): void
-    {}
 }

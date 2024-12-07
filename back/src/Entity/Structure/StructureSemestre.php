@@ -10,6 +10,7 @@ use App\Entity\Scolarite\ScolEdtEvent;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Repository\Structure\StructureSemestreRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -31,6 +32,7 @@ class StructureSemestre
     use LifeCycleTrait;
     use OptionTrait;
     use EduSignTrait;
+    use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

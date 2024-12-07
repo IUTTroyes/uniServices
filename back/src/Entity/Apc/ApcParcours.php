@@ -4,6 +4,7 @@ namespace App\Entity\Apc;
 
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureGroupe;
+use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Repository\Apc\ApcParcoursRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -15,6 +16,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 class ApcParcours
 {
     use OptionTrait;
+    use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

@@ -10,6 +10,7 @@ use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Scolarite\ScolEdtEvent;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OldIdTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -28,6 +29,7 @@ use Doctrine\ORM\Mapping as ORM;
 class StructureAnneeUniversitaire
 {
     use LifeCycleTrait;
+    use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
