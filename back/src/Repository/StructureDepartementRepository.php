@@ -16,28 +16,15 @@ class StructureDepartementRepository extends ServiceEntityRepository
         parent::__construct($registry, StructureDepartement::class);
     }
 
-    //    /**
-    //     * @return StructureDepartement[] Returns an array of StructureDepartement objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('d')
-    //            ->andWhere('d.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('d.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function findAllByIdArray(): array
+    {
+        $datas = $this->findAll();
+        $result = [];
 
-    //    public function findOneBySomeField($value): ?StructureDepartement
-    //    {
-    //        return $this->createQueryBuilder('d')
-    //            ->andWhere('d.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        foreach ($datas as $data) {
+            $result[$data->getId()] = $data;
+        }
+
+        return $result;
+    }
 }

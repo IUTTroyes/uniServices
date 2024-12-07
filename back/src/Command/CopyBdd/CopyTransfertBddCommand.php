@@ -26,7 +26,7 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Uid\UuidV4;
 
 #[AsCommand(
-    name: 'copy:transfert-bdd',
+    name: 'copy:transfert-bdd:structure',
     description: 'Add a short description for your command',
 )]
 class CopyTransfertBddCommand extends Command
@@ -98,8 +98,12 @@ FOREIGN_KEY_CHECKS=1');
         $this->addAnnee();
         $this->addSemestre();
         $this->addUe();
-        //ue + APC
+        //APC
+
         $this->addMatieres();
+        $this->addApc();
+        //$this->addRessources();
+        //$this->addSae();
         $this->addEdt();
 
         $this->io->success('Processus de recopie terminé.');
@@ -250,7 +254,6 @@ FOREIGN_KEY_CHECKS=1');
             $this->tDiplomes[$dip['id']] = $diplome;
 
             $this->entityManager->persist($diplome);
-            $this->io->info('Diplôme : ' . $dip['libelle'] . ' ajouté pour insertion');
         }
 
         $this->entityManager->flush();
@@ -278,7 +281,6 @@ FOREIGN_KEY_CHECKS=1');
             $this->tAnnees[$an['id']] = $annee;
 
             $this->entityManager->persist($annee);
-            $this->io->info('Année : ' . $an['libelle'] . ' ajouté pour insertion');
         }
 
         $this->entityManager->flush();
@@ -683,4 +685,9 @@ FOREIGN_KEY_CHECKS=1');
 
     private function addEdt(): void
     {}
+
+    private function addApc()
+    {
+
+    }
 }

@@ -16,28 +16,15 @@ class TypeDiplomeRepository extends ServiceEntityRepository
         parent::__construct($registry, StructureTypeDiplome::class);
     }
 
-    //    /**
-    //     * @return StructureTypeDiplome[] Returns an array of StructureTypeDiplome objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('t.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function findAllByIdArray(): array
+    {
+        $datas = $this->findAll();
+        $result = [];
 
-    //    public function findOneBySomeField($value): ?StructureTypeDiplome
-    //    {
-    //        return $this->createQueryBuilder('t')
-    //            ->andWhere('t.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        foreach ($datas as $data) {
+            $result[$data->getId()] = $data;
+        }
+
+        return $result;
+    }
 }

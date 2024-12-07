@@ -62,6 +62,9 @@ class ApcReferentiel
     #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'apcReferentiel')]
     private Collection $pn;
 
+    #[ORM\ManyToOne(inversedBy: 'apcReferentiels')]
+    private StructureTypeDiplome $typeDiplome;
+
     public function __construct()
     {
         $this->diplomes = new ArrayCollection();
@@ -165,7 +168,7 @@ class ApcReferentiel
     {
         if (!$this->apcCompetences->contains($apcCompetence)) {
             $this->apcCompetences->add($apcCompetence);
-            $apcCompetence->setReferentiel($this);
+            $apcCompetence->setApcReferentiel($this);
         }
 
         return $this;
@@ -175,8 +178,8 @@ class ApcReferentiel
     {
         if ($this->apcCompetences->removeElement($apcCompetence)) {
             // set the owning side to null (unless already changed)
-            if ($apcCompetence->getReferentiel() === $this) {
-                $apcCompetence->setReferentiel(null);
+            if ($apcCompetence->getApcReferentiel() === $this) {
+                $apcCompetence->setApcReferentiel(null);
             }
         }
 
@@ -251,6 +254,18 @@ class ApcReferentiel
                 $pn->setApcReferentiel(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getTypeDiplome(): StructureTypeDiplome
+    {
+        return $this->typeDiplome;
+    }
+
+    public function setTypeDiplome(StructureTypeDiplome $typeDiplome): static
+    {
+        $this->typeDiplome = $typeDiplome;
 
         return $this;
     }

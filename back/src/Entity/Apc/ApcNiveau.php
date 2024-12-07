@@ -26,9 +26,6 @@ class ApcNiveau
     #[ORM\Column]
     private ?int $ordre = null;
 
-    #[ORM\ManyToOne(inversedBy: 'apcNiveaux')]
-    private ?StructureAnnee $annee = null;
-
     /**
      * @var Collection<int, ApcParcours>
      */
@@ -44,10 +41,17 @@ class ApcNiveau
     #[ORM\OneToMany(targetEntity: ApcApprentissageCritique::class, mappedBy: 'apcNiveau')]
     private Collection $apcApprentissageCritique;
 
+    /**
+     * @var Collection<int, StructureAnnee>
+     */
+    #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'apcNiveau')]
+    private Collection $annees;
+
     public function __construct()
     {
         $this->apcParcours = new ArrayCollection();
         $this->apcApprentissageCritique = new ArrayCollection();
+        $this->annees = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -75,18 +79,6 @@ class ApcNiveau
     public function setOrdre(int $ordre): static
     {
         $this->ordre = $ordre;
-
-        return $this;
-    }
-
-    public function getAnnee(): ?StructureAnnee
-    {
-        return $this->annee;
-    }
-
-    public function setAnnee(?StructureAnnee $annee): static
-    {
-        $this->annee = $annee;
 
         return $this;
     }
@@ -167,5 +159,35 @@ class ApcNiveau
         };
 
         return $this->getApcCompetence()?->getNomCourt().' - Niveau '.$niv.'('.$this->ordre.')';
+    }
+
+    /**
+     * @return Collection<int, StructureAnnee>
+     */
+    public function getAnnees(): Collection
+    {
+        return $this->annees;
+    }
+
+    public function addAnnee(StructureAnnee $annee): static
+    {
+        if (!$this->annees->contains($annee)) {
+            $this->annees->add($annee);
+            $annee->setApcNiveau($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAnnee(StructureAnnee $annee): static
+    {
+        if ($this->annees->removeElement($annee)) {
+            // set the owning side to null (unless already changed)
+            if ($annee->getApcNiveau() === $this) {
+                $annee->setApcNiveau(null);
+            }
+        }
+
+        return $this;
     }
 }

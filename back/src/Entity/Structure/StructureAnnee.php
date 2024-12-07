@@ -65,18 +65,14 @@ class StructureAnnee
     #[ORM\Column(length: 10, nullable: true)]
     private ?string $apogeeCodeEtape = null;
 
-    /**
-     * @var Collection<int, ApcNiveau>
-     */
-    #[ORM\OneToMany(targetEntity: ApcNiveau::class, mappedBy: 'annee')]
-    private Collection $apcNiveaux;
+    #[ORM\ManyToOne(inversedBy: 'annees')]
+    private ?ApcNiveau $apcNiveau = null;
 
     public function __construct()
     {
         $this->pn = new ArrayCollection();
         $this->structureSemestres = new ArrayCollection();
         $this->setOpt([]);
-        $this->apcNiveaux = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -237,32 +233,14 @@ class StructureAnnee
         return $this;
     }
 
-    /**
-     * @return Collection<int, ApcNiveau>
-     */
-    public function getApcNiveaux(): Collection
+    public function getApcNiveau(): ?ApcNiveau
     {
-        return $this->apcNiveaux;
+        return $this->apcNiveau;
     }
 
-    public function addApcNiveau(ApcNiveau $apcNiveau): static
+    public function setApcNiveau(?ApcNiveau $apcNiveau): static
     {
-        if (!$this->apcNiveaux->contains($apcNiveau)) {
-            $this->apcNiveaux->add($apcNiveau);
-            $apcNiveau->setAnnee($this);
-        }
-
-        return $this;
-    }
-
-    public function removeApcNiveau(ApcNiveau $apcNiveau): static
-    {
-        if ($this->apcNiveaux->removeElement($apcNiveau)) {
-            // set the owning side to null (unless already changed)
-            if ($apcNiveau->getAnnee() === $this) {
-                $apcNiveau->setAnnee(null);
-            }
-        }
+        $this->apcNiveau = $apcNiveau;
 
         return $this;
     }
