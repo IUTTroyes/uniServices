@@ -5,6 +5,7 @@ namespace App\Entity\Scolarite;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Traits\ApogeeTrait;
+use App\Entity\Traits\OldIdTrait;
 use App\Enum\TypeEnseignementEnum;
 use App\Repository\ScolEnseignementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -17,6 +18,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 class ScolEnseignement
 {
     use ApogeeTrait;
+    use OldIdTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

@@ -12,6 +12,7 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OldIdTrait;
 use App\Repository\PersonnelRepository;
 use App\ValueObject\Adresse;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -33,6 +34,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 {
     use LifeCycleTrait;
+    use OldIdTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

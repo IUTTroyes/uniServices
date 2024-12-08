@@ -10,6 +10,7 @@ use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OldIdTrait;
 use App\Repository\EtudiantRepository;
 use App\ValueObject\Adresse;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -32,6 +33,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
 {
     use LifeCycleTrait;
     use EduSignTrait;
+    use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

@@ -101,6 +101,7 @@ FOREIGN_KEY_CHECKS=1');
             $personnel->setUsername($pers['username']);
             $personnel->setPassword($pers['password']);
             $personnel->setPhotoName($pers['photo_name']);
+            $personnel->setOldId($pers['id']);
             $personnel->setRoles(json_decode($pers['roles'], true) ?? []);
             $personnel->setStructureAnneeUniversitaire($this->tAnneeUniversitaire[$pers['annee_universitaire_id']]);
 
@@ -136,7 +137,6 @@ FOREIGN_KEY_CHECKS=1');
   "nb_heures_service" => 384.0
   "deleted" => 0
   "couleur" => ""
-  "password" => "$2y$13$mNYMwSaTHH9vqqYjlsma4OXq5wQCr3aagR9bqT0.bpusnKKfcebI."
   "slug" => "a.martinot"
   "type_user" => "vacataire"
   "site_univ" => null
@@ -169,7 +169,7 @@ FOREIGN_KEY_CHECKS=1');
 
     private function addEtudiants(): void
     {
-        $sql = 'SELECT * FROM etudiant WHERE semestre_id IS NOT NULL'; // juste pour des datas
+        $sql = 'SELECT * FROM etudiant WHERE semestre_id IS NOT NULL and annee_sortie = 0'; // juste pour des datas
         $etudiants = $this->em->executeQuery($sql)->fetchAllAssociative();
 
         foreach ($etudiants as $etu) {
@@ -179,6 +179,7 @@ FOREIGN_KEY_CHECKS=1');
             $etudiant->setMailUniv($etu['mail_univ']);
             $etudiant->setUsername($etu['username']);
             $etudiant->setPhotoName($etu['photo_name']);
+            $etudiant->setOldId($etu['id']);
             $etudiant->setPassword($etu['password']);
             $etudiant->setRoles(json_decode($etu['roles'], true) ?? ["ROLE_ETUDIANT"]);
 
