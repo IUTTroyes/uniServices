@@ -16,8 +16,8 @@ onMounted(async () => {
   await store.fetchUser();
   deptItems.value = store.departementsNotDefaut.map(departementPersonnel => ({
     label: departementPersonnel.departement.libelle,
-    id: departementPersonnel.departement.id,
-    command: () => changeDepartement(departementPersonnel.departement.id)
+    id: departementPersonnel.id,
+    command: () => changeDepartement(departementPersonnel.id)
   }));
 
   departementLabel.value = store.departementDefaut.departement.libelle;
@@ -97,8 +97,8 @@ const changeDepartement = async (departementId) => {
     departementLabel.value = store.departementDefaut.departement.libelle;
     deptItems.value = store.departementsNotDefaut.map(departementPersonnel => ({
       label: departementPersonnel.departement.libelle,
-      id: departementPersonnel.departement.id,
-      command: () => changeDepartement(departementPersonnel.departement.id)
+      id: departementPersonnel.id,
+      command: () => changeDepartement(departementPersonnel.id)
     }));
   } catch (error) {
     console.error('Error changing department:', error);

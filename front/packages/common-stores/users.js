@@ -31,52 +31,6 @@ export const useUsersStore = defineStore('users', () => {
 
     const changeDepartement = async (departementId) => {
         try {
-            // récupérer les départements du personnel
-            // const response = await api.get(`/api/structure_departement_personnels/by_personnel/${user.value.id}`);
-            // const departementPersonnels = response.data['member'];
-            // // récupérer le département sélectionné
-            // const departementPersonnel = departementPersonnels.find(departementPersonnel => departementPersonnel.departement.id === departementId);
-            // // récupérer le département qui a defaut = true
-            // const departementDefautCurrent = departementPersonnels.find(departementPersonnel => departementPersonnel.defaut === true);
-            //
-            // // on met à jour le département qui a defaut = true en le passant à false
-            // if (departementDefautCurrent) {
-            //     await api.patch(`/api/structure_departement_personnels/${departementDefautCurrent.id}`, {
-            //         defaut: false,
-            //     }, {
-            //         headers: {
-            //             'Content-Type': 'application/merge-patch+json'
-            //         }
-            //     });
-            //     departements.value = departements.value.map(departement => {
-            //         if (departement.id === departementDefautCurrent.id) {
-            //             return {
-            //                 ...departement,
-            //                 defaut: false
-            //             };
-            //         }
-            //         return departement;
-            //     });
-            // }
-            // // on met à jour le département sélectionné en le passant à true
-            // await api.patch(`/api/structure_departement_personnels/${departementPersonnel.id}`, {
-            //     defaut: true,
-            // }, {
-            //     headers: {
-            //         'Content-Type': 'application/merge-patch+json'
-            //     }
-            // });
-            //
-            // departements.value = departements.value.map(departement => {
-            //     if (departement.id === departementPersonnel.id) {
-            //         return {
-            //             ...departement,
-            //             defaut: true
-            //         };
-            //     }
-            //     return departement;
-            // });
-
             const response = await api.post(`/api/structure_departement_personnels/${departementId}/change_departement`, {
             }, {
                 headers: {
@@ -84,7 +38,6 @@ export const useUsersStore = defineStore('users', () => {
                 }
             });
             departements.value = response.data;
-            console.log(response.data);
 
             departementDefaut.value = departements.value.filter(departement => departement.defaut !== false);
             departementsNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
