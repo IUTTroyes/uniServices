@@ -186,6 +186,8 @@
       <path value="$PROJECT_DIR$/back/vendor/carbonphp/carbon-doctrine-types" />
       <path value="$PROJECT_DIR$/back/vendor/nesbot/carbon" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/translation" />
+      <path value="$PROJECT_DIR$/back/vendor/symfony/http-client-contracts" />
+      <path value="$PROJECT_DIR$/back/vendor/symfony/http-client" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />

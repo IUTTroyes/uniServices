@@ -181,6 +181,8 @@
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/phpstan/phpstan-doctrine" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/phpstan/phpstan-symfony" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/translation" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/http-client" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/http-client-contracts" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

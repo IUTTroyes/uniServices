@@ -1,19 +1,21 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
-import {defineProps, onMounted} from 'vue';
-import { ref, watch } from 'vue';
+import { defineProps, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useUsersStore } from "@/stores/users.js";
+import { useRoute } from 'vue-router';
 
 const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1];
 
 const store = useUsersStore();
+const route = useRoute();
 
 const deptItems = ref([]);
 const deptDefaut = ref();
 
 const load = ref(false);
 
-onMounted(async() => {
+onMounted(async () => {
   await store.fetchUser();
   deptItems.value = store.departements.map(departementPersonnel => ({
     label: departementPersonnel.departement.libelle,
@@ -78,7 +80,6 @@ const anneeItems = ref([
   }
 ]);
 
-
 const toggleProfileMenu = (event) => {
   profileMenu.value.toggle(event);
 };
@@ -95,13 +96,12 @@ const toggleDeptMenu = (event) => {
 <template>
   <div class="layout-topbar" v-if="load">
     <div class="layout-topbar-logo-container">
-      <button class="layout-menu-button layout-topbar-action" @click="onMenuToggle">
+      <button v-if="route.path !== '/portail'" class="layout-menu-button layout-topbar-action" @click="onMenuToggle">
         <i class="pi pi-bars"></i>
       </button>
       <router-link to="/" class="layout-topbar-logo">
         <img :src="logoUrl" alt="logo" /> <span>{{appName}}</span>
       </router-link>
-
       <button type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
         <span>Département {{store.departementDefaut.departement.libelle}}</span>
         <i class="pi pi-arrow-right-arrow-left"></i>
@@ -110,18 +110,18 @@ const toggleDeptMenu = (event) => {
     </div>
 
     <div class="layout-topbar-actions">
-      <div class="layout-topbar-search">
+      <div v-if="route.path !== '/portail'" class="layout-topbar-search">
         <IconField>
           <InputIcon class="pi pi-search" />
           <InputText v-model="search" placeholder="Recherche" />
         </IconField>
       </div>
 
-      <button type="button" class="layout-topbar-action-app">
+      <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action-app">
         <img src="@/assets/logo/logo_unifolio.png" alt="calendar" />
         <span>UniFolio</span>
       </button>
-      <button type="button" class="layout-topbar-action-app">
+      <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action-app">
         <img src="@/assets/logo/logo_unifolio.png" alt="calendar" />
         <span>Correcto</span>
       </button>
@@ -135,6 +135,7 @@ const toggleDeptMenu = (event) => {
       <button
           class="layout-topbar-menu-button layout-topbar-action"
           v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }"
+
       >
         <i class="pi pi-ellipsis-v"></i>
       </button>
@@ -142,7 +143,7 @@ const toggleDeptMenu = (event) => {
       <div class="layout-topbar-menu lg:block">
         <div class="layout-topbar-menu-content">
 
-          <button type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
+          <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
             <i class="pi pi-calendar"></i>
             <span>2024/2025</span>
           </button>
@@ -165,9 +166,9 @@ const toggleDeptMenu = (event) => {
             </template>
           </button>
           <Menu ref="profileMenu" id="profile_menu" :model="profileItems" :popup="true" />
-
         </div>
       </div>
+
     </div>
   </div>
 </template>
