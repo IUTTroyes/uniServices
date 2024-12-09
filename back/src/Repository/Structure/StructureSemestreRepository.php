@@ -1,21 +1,21 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Structure;
 
-use App\Entity\Users\Etudiant;
+use App\Entity\Structure\StructureSemestre;
 use App\Repository\Traits\FindAllByIdArrayTrait;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Etudiant>
+ * @extends ServiceEntityRepository<StructureSemestre>
  */
-class EtudiantRepository extends ServiceEntityRepository
+class StructureSemestreRepository extends ServiceEntityRepository
 {
     use FindAllByIdArrayTrait;
 
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Etudiant::class);
+        parent::__construct($registry, StructureSemestre::class);
     }
 }

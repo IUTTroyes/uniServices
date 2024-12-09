@@ -24,7 +24,7 @@ class ScolEdtEvent
     private ?int $id = null;
 
     #[ORM\Column(nullable: true)]
-    private ?int $semaine_formation = null;
+    private ?int $semaineFormation = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $jour = null;
@@ -45,7 +45,7 @@ class ScolEdtEvent
     private ?Personnel $personnel = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    private ?string $code_personnel = null;
+    private ?string $codePersonnel = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $libPersonnel = null;
@@ -93,7 +93,7 @@ class ScolEdtEvent
     private ?\DateTimeInterface $updatedEvent = null;
 
     #[ORM\Column]
-    private ?bool $evaluation = null;
+    private bool $evaluation = false;
 
     public function getId(): ?int
     {
@@ -102,12 +102,12 @@ class ScolEdtEvent
 
     public function getSemaineFormation(): ?int
     {
-        return $this->semaine_formation;
+        return $this->semaineFormation;
     }
 
-    public function setSemaineFormation(?int $semaine_formation): static
+    public function setSemaineFormation(?int $semaineFormation): static
     {
-        $this->semaine_formation = $semaine_formation;
+        $this->semaineFormation = $semaineFormation;
 
         return $this;
     }
@@ -186,12 +186,12 @@ class ScolEdtEvent
 
     public function getCodePersonnel(): ?string
     {
-        return $this->code_personnel;
+        return $this->codePersonnel;
     }
 
-    public function setCodePersonnel(?string $code_personnel): static
+    public function setCodePersonnel(?string $codePersonnel): static
     {
-        $this->code_personnel = $code_personnel;
+        $this->codePersonnel = $codePersonnel;
 
         return $this;
     }

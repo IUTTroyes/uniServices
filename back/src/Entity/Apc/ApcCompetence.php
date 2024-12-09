@@ -3,7 +3,8 @@
 namespace App\Entity\Apc;
 
 use App\Entity\Structure\StructureUe;
-use App\Repository\ApcCompetenceRepository;
+use App\Entity\Traits\OldIdTrait;
+use App\Repository\Apc\ApcCompetenceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -11,6 +12,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ApcCompetenceRepository::class)]
 class ApcCompetence
 {
+    use OldIdTrait; //a supprimer après transfert
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

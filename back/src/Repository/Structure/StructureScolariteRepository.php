@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Structure;
 
-use App\Entity\Structure\StructureSemestre;
+use App\Entity\Etudiant\EtudiantScolarite;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<StructureSemestre>
+ * @extends ServiceEntityRepository<EtudiantScolarite>
  */
-class StructureSemestreRepository extends ServiceEntityRepository
+class StructureScolariteRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, StructureSemestre::class);
+        parent::__construct($registry, EtudiantScolarite::class);
     }
 
     //    /**
-    //     * @return StructureSemestre[] Returns an array of StructureSemestre objects
+    //     * @return StructureScolarite[] Returns an array of StructureScolarite objects
     //     */
     //    public function findByExampleField($value): array
     //    {
@@ -31,7 +31,7 @@ class StructureSemestreRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?StructureSemestre
+    //    public function findOneBySomeField($value): ?StructureScolarite
     //    {
     //        return $this->createQueryBuilder('s')
     //            ->andWhere('s.exampleField = :val')

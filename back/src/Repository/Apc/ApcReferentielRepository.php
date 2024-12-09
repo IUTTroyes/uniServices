@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Apc;
 
 use App\Entity\Apc\ApcReferentiel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

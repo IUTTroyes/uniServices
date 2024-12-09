@@ -11,7 +11,7 @@ use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Users\Personnel;
-use App\Repository\StructureDiplomeRepository;
+use App\Repository\Structure\StructureDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

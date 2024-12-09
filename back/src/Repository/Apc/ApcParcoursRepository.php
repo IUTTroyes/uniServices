@@ -1,40 +1,40 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Apc;
 
-use App\Entity\Structure\StructurePn;
+use App\Entity\Apc\ApcParcours;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<StructurePn>
+ * @extends ServiceEntityRepository<ApcParcours>
  */
-class StructurePnRepository extends ServiceEntityRepository
+class ApcParcoursRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, StructurePn::class);
+        parent::__construct($registry, ApcParcours::class);
     }
 
     //    /**
-    //     * @return StructurePn[] Returns an array of StructurePn objects
+    //     * @return ApcParcours[] Returns an array of ApcParcours objects
     //     */
     //    public function findByExampleField($value): array
     //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
+    //        return $this->createQueryBuilder('a')
+    //            ->andWhere('a.exampleField = :val')
     //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
+    //            ->orderBy('a.id', 'ASC')
     //            ->setMaxResults(10)
     //            ->getQuery()
     //            ->getResult()
     //        ;
     //    }
 
-    //    public function findOneBySomeField($value): ?StructurePn
+    //    public function findOneBySomeField($value): ?ApcParcours
     //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
+    //        return $this->createQueryBuilder('a')
+    //            ->andWhere('a.exampleField = :val')
     //            ->setParameter('val', $value)
     //            ->getQuery()
     //            ->getOneOrNullResult()

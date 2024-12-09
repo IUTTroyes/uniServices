@@ -4,12 +4,12 @@ namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Apc\ApcReferentiel;
-use App\Repository\Type\TypeDiplomeRepository;
+use App\Repository\Structure\StructureTypeDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: TypeDiplomeRepository::class)]
+#[ORM\Entity(repositoryClass: StructureTypeDiplomeRepository::class)]
 #[ApiResource]
 class StructureTypeDiplome
 {

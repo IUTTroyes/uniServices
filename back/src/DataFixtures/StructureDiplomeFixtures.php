@@ -3,7 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Structure\StructureDiplome;
-use App\Repository\StructureDepartementRepository;
+use App\Repository\Structure\StructureDepartementRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;

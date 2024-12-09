@@ -6,7 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcReferentiel;
-use App\Repository\StructurePnRepository;
+use App\Repository\Structure\StructurePnRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

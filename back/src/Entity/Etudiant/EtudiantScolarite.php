@@ -9,7 +9,7 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
-use App\Repository\StructureScolariteRepository;
+use App\Repository\Structure\StructureScolariteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -56,7 +56,7 @@ class EtudiantScolarite
 
     #[ORM\Column]
     #[Groups(['scolarite:read'])]
-    private ?int $nbAbsences = null;
+    private int $nbAbsences = 0;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['scolarite:read'])]
@@ -64,7 +64,7 @@ class EtudiantScolarite
 
     #[ORM\Column]
     #[Groups(['scolarite:read'])]
-    private ?bool $public = null;
+    private bool $public = false;
 
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:read'])]
@@ -76,7 +76,7 @@ class EtudiantScolarite
 
     #[ORM\Column]
     #[Groups(['scolarite:read'])]
-    private ?bool $actif = null;
+    private bool $actif = false;
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
@@ -135,7 +135,7 @@ class EtudiantScolarite
         return $this->ordre;
     }
 
-    public function setOrdre(int $ordre): static
+    public function setOrdre(int $ordre = 0): static
     {
         $this->ordre = $ordre;
 
@@ -171,7 +171,7 @@ class EtudiantScolarite
         return $this->nbAbsences;
     }
 
-    public function setNbAbsences(int $nbAbsences): static
+    public function setNbAbsences(int $nbAbsences = 0): static
     {
         $this->nbAbsences = $nbAbsences;
 

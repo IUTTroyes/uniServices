@@ -10,8 +10,9 @@ use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Scolarite\ScolEdtEvent;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OldIdTrait;
 use App\Entity\Users\Personnel;
-use App\Repository\StructureAnneeUniversitaireRepository;
+use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -28,6 +29,7 @@ use Doctrine\ORM\Mapping as ORM;
 class StructureAnneeUniversitaire
 {
     use LifeCycleTrait;
+    use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -38,7 +40,7 @@ class StructureAnneeUniversitaire
     private ?string $libelle = null;
 
     #[ORM\Column]
-    private ?int $annee = null;
+    private int $annee;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire = null;
@@ -62,7 +64,7 @@ class StructureAnneeUniversitaire
     private Collection $personnels;
 
     #[ORM\Column]
-    private ?bool $actif = null;
+    private bool $actif = false;
 
     /**
      * @var Collection<int, ApcReferentiel>
@@ -90,6 +92,8 @@ class StructureAnneeUniversitaire
         $this->apcReferentiels = new ArrayCollection();
         $this->scolEvaluations = new ArrayCollection();
         $this->scolEdtEvents = new ArrayCollection();
+
+        $this->annee = (int) date('Y');
     }
 
     public function getId(): ?int

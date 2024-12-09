@@ -4,8 +4,8 @@ namespace App\DataFixtures;
 
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Repository\EtudiantRepository;
-use App\Repository\StructureAnneeUniversitaireRepository;
-use App\Repository\StructureSemestreRepository;
+use App\Repository\Structure\StructureAnneeUniversitaireRepository;
+use App\Repository\Structure\StructureSemestreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;

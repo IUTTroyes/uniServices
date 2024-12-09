@@ -4,7 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Structure\StructureAnnee;
 use App\Repository\PersonnelRepository;
-use App\Repository\StructurePnRepository;
+use App\Repository\Structure\StructurePnRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
