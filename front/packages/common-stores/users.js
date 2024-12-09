@@ -39,7 +39,9 @@ export const useUsersStore = defineStore('users', () => {
             });
             departements.value = response.data;
 
-            departementDefaut.value = departements.value.filter(departement => departement.defaut !== false);
+            // récupérer le département qui a defaut = true
+            departementDefaut.value = departements.value.find(departement => departement.defaut === true);
+            // récupérer les départements qui n'ont pas defaut = true
             departementsNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
         } catch (error) {
             console.error('Error changing department:', error);

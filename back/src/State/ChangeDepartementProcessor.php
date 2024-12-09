@@ -29,8 +29,6 @@ class ChangeDepartementProcessor implements ProcessorInterface
             $data->setDefaut(true);
             $this->entityManager->flush();
         }
-
-//        dd($data);
         return $this->structureDepartementPersonnelRepository->findBy(['personnel' => $data->getPersonnel()]);
     }
 }
