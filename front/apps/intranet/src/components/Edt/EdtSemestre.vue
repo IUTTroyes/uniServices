@@ -7,6 +7,8 @@ const props = defineProps({
 
 const days = ref(props.data.days);
 const currentDay = ref(props.data.currentDay);
+const selectedSemestre = ref('');
+const selectedDate = ref('');
 
 watch(() => props.data.days, (newDays) => {
     days.value = newDays;
@@ -43,8 +45,8 @@ const groupes = [
 
 <template>
     <div class="flex gap-4">
-        <Select v-model="selectedCity" :options="semestres" optionLabel="name" placeholder="Choisir un semestre" class="w-full md:w-56" />
-        <Select v-model="selectedCity" :options="semaines" optionLabel="name" placeholder="Choisir une semaine" class="w-full md:w-56" />
+        <Select v-model="selectedSemestre" :options="semestres" optionLabel="name" placeholder="Choisir un semestre" class="w-full md:w-56" />
+        <Select v-model="selectedDate" :options="semaines" optionLabel="name" placeholder="Choisir une semaine" class="w-full md:w-56" />
     </div>
 
     <Carousel :value="days" :numVisible="1" :numScroll="1">

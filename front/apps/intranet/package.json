@@ -13,6 +13,7 @@
         "common-components": "file:../../packages/common-components",
         "common-helpers": "file:../../packages/common-helpers",
         "common-styles": "file:../../packages/common-styles",
+        "common-stores": "file:../../packages/common-stores",
         "date-fns": "^4.1.0"
     },
     "devDependencies": {

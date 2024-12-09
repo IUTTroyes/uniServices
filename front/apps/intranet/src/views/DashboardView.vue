@@ -1,5 +1,5 @@
 <script setup>
-import { useUsersStore } from "@/stores/users.js";
+import { useUsersStore } from "common-stores";
 import { onMounted, computed, ref } from "vue";
 import { formatDateLong } from "common-helpers";
 

@@ -1,27 +1,26 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
-import { defineProps, onMounted } from 'vue';
+import { defineProps, onMounted, watch, computed } from 'vue';
 import { ref } from 'vue';
-import { useUsersStore } from "@/stores/users.js";
+import { useUsersStore } from "common-stores";
 import { useRoute } from 'vue-router';
-
-const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1];
 
 const store = useUsersStore();
 const route = useRoute();
 
 const deptItems = ref([]);
-const deptDefaut = ref();
-
 const load = ref(false);
+const departementLabel = ref('');
 
 onMounted(async () => {
   await store.fetchUser();
   deptItems.value = store.departements.map(departementPersonnel => ({
     label: departementPersonnel.departement.libelle,
-    id: departementPersonnel.departement.id
+    id: departementPersonnel.departement.id,
+    command: () => changeDepartement(departementPersonnel.departement.id)
   }));
 
+  departementLabel.value = store.departementDefaut.departement.libelle;
   load.value = true;
 });
 
@@ -91,6 +90,23 @@ const toggleAnneeMenu = (event) => {
 const toggleDeptMenu = (event) => {
   deptMenu.value.toggle(event);
 };
+
+const changeDepartement = async (departementId) => {
+  try {
+    await store.changeDepartement(departementId);
+    departementLabel.value = store.departementDefaut.departement.libelle;
+    console.log(store.departementDefaut.departement);
+  } catch (error) {
+    console.error('Error changing department:', error);
+  }
+};
+
+const initiales = computed(() => {
+  if (store.user && store.user.name) {
+    return store.user.name.split(' ').map(n => n[0]).join('');
+  }
+  return '';
+});
 </script>
 
 <template>
@@ -103,7 +119,7 @@ const toggleDeptMenu = (event) => {
         <img :src="logoUrl" alt="logo" /> <span>{{appName}}</span>
       </router-link>
       <button type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
-        <span>Département {{store.departementDefaut.departement.libelle}}</span>
+        <span>Département {{ departementLabel }}</span>
         <i class="pi pi-arrow-right-arrow-left"></i>
       </button>
       <Menu ref="deptMenu" id="dept_menu" :model="deptItems" :popup="true" />

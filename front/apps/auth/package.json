@@ -10,9 +10,10 @@
         "lint": "eslint --fix . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
     },
     "dependencies": {
+        "common-components": "file:../../packages/common-components",
         "common-helpers": "file:../../packages/common-helpers",
         "common-styles": "file:../../packages/common-styles",
-        "pinia": "^2.2.7"
+        "common-stores": "file:../../packages/common-stores"
     },
     "devDependencies": {
         "@vitejs/plugin-vue": "^5.1.4",
