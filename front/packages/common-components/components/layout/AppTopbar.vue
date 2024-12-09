@@ -94,7 +94,7 @@ const toggleDeptMenu = (event) => {
 const changeDepartement = async (departementId) => {
   try {
     await store.changeDepartement(departementId);
-    departementLabel.value = store.departementDefaut.libelle;
+    departementLabel.value = store.departementDefaut.departement.libelle;
     deptItems.value = store.departementsNotDefaut.map(departementPersonnel => ({
       label: departementPersonnel.departement.libelle,
       id: departementPersonnel.id,
