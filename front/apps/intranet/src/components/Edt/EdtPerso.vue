@@ -17,7 +17,7 @@ watch(() => props.data.days, (newDays) => {
 <template>
     <div class="calendar grid grid-cols-5 gap-4">
         <div class="surface-ground rounded-md flex flex-col gap-5" v-for="(day, index) in days" :key="index">
-            <div :class="['day text-center uppercase font-bold flex flex-col p-4 bg-opacity-20', { 'bg-primary': currentDay === day.dayNumber, active: currentDay === day.dayNumber }]">
+            <div :class="['day text-center uppercase font-bold flex flex-col p-4 bg-opacity-20', { 'bg-primary-light': currentDay === day.dayNumber, active: currentDay === day.dayNumber }]">
                 {{ day.dayName }} <span class="font-black">{{ day.dayNumber }}</span>
             </div>
             <div class="events">
@@ -30,6 +30,10 @@ watch(() => props.data.days, (newDays) => {
 <style scoped>
 .surface-ground {
     background-color: var(--surface-ground);
+}
+
+.bg-primary-light {
+    background-color: var(--p-tag-primary-background);
 }
 
 .active {

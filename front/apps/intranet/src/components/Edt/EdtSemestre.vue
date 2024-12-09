@@ -50,7 +50,7 @@ const groupes = [
     <Carousel :value="days" :numVisible="1" :numScroll="1">
         <template #item="slotProps">
             <div>
-                <div :class="['day text-center uppercase font-bold flex flex-col p-4 rounded-md m-3', { 'bg-primary': currentDay === slotProps.data.dayNumber, 'bg-opacity-20': currentDay === slotProps.data.dayNumber, active: currentDay === slotProps.data.dayNumber, 'surface-ground': currentDay !== slotProps.data.dayNumber }]">
+                <div :class="['day text-center uppercase font-bold flex flex-col p-4 rounded-md m-3', { 'bg-primary-light': currentDay === slotProps.data.dayNumber, active: currentDay === slotProps.data.dayNumber, 'surface-ground': currentDay !== slotProps.data.dayNumber }]">
                     {{ slotProps.data.dayName }} <span class="font-black">{{ slotProps.data.dayNumber }}</span>
                 </div>
                 <div class="flex justify-between gap-4 m-3">
@@ -66,6 +66,10 @@ const groupes = [
 <style scoped>
 .surface-ground {
     background-color: var(--surface-ground);
+}
+
+.bg-primary-light {
+    background-color: var(--p-tag-primary-background);
 }
 
 .active {
