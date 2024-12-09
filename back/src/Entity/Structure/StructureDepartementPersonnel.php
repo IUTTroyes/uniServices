@@ -5,6 +5,9 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Put;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,7 +17,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['structure_departement_personnel:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['structure_departement_personnel:read']]),
+        new GetCollection(
+            uriTemplate: '/structure_departement_personnels/by_personnel/{personnelId}',
+            uriVariables: [
+                'personnelId' => new Link(fromClass: Personnel::class, identifiers: ['id'], toProperty: 'personnel')
+            ],
+            normalizationContext: ['groups' => ['structure_departement_personnel:read']]
+        ),
+        new Patch(normalizationContext: ['groups' => ['structure_departement_personnel:read']])
     ]
 )]
 class StructureDepartementPersonnel
@@ -22,13 +32,14 @@ class StructureDepartementPersonnel
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(groups: ['personnel:read', 'structure_departement_personnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column]
     private array $roles = [];
 
     #[ORM\Column]
-    #[Groups(groups: ['personnel:read'])]
+    #[Groups(groups: ['personnel:read', 'structure_departement_personnel:read'])]
     private ?bool $defaut = null;
 
     #[ORM\ManyToOne(inversedBy: 'structureDepartementPersonnels')]
@@ -36,7 +47,7 @@ class StructureDepartementPersonnel
     private ?Personnel $personnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'structureDepartementPersonnels')]
-    #[Groups(groups: ['personnel:read'])]
+    #[Groups(groups: ['personnel:read', 'structure_departement_personnel:read'])]
     private ?StructureDepartement $departement = null;
 
     public function getId(): ?int
