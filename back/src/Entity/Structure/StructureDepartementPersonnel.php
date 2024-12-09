@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
@@ -24,7 +25,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             ],
             normalizationContext: ['groups' => ['structure_departement_personnel:read']]
         ),
-        new Patch(normalizationContext: ['groups' => ['structure_departement_personnel:read']])
+        new Post(processor: 'App\State\ChangeDepartementProcessor', normalizationContext: ['groups' => ['structure_departement_personnel:read']], uriTemplate: '/structure_departement_personnels/{id}/change_departement', inputFormats: ['json' => ['application/ld+json']], outputFormats: ['json' => ['application/ld+json']]),
     ]
 )]
 class StructureDepartementPersonnel
