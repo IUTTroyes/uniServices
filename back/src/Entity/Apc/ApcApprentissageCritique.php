@@ -3,6 +3,7 @@
 namespace App\Entity\Apc;
 
 use App\Entity\Scolarite\ScolEnseignement;
+use App\Entity\Traits\OldIdTrait;
 use App\Repository\Apc\ApcApprentissageCritiqueRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -12,6 +13,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: ApcApprentissageCritiqueRepository::class)]
 class ApcApprentissageCritique
 {
+    use OldIdTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

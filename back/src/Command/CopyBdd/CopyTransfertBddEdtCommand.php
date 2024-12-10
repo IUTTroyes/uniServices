@@ -38,7 +38,7 @@ class CopyTransfertBddEdtCommand extends Command
         protected EntityManagerInterface $entityManager,
         ManagerRegistry                  $managerRegistry,
         PersonnelRepository              $personnelRepository,
-        StructureSemestreRepository              $structureSemestreRepository,
+        StructureSemestreRepository      $structureSemestreRepository,
         ScolEnseignementRepository       $scolEnseignementRepository,
         protected HttpClientInterface    $httpClient,
         ParameterBagInterface            $params
@@ -83,7 +83,7 @@ FOREIGN_KEY_CHECKS=1');
 
         $this->effacerTables();
         $this->addEdtEventIntranet();
-        $this->addEdtEventCelcat();
+       // $this->addEdtEventCelcat();
 
         $this->io->success('Processus de recopie terminé.');
 
@@ -96,28 +96,30 @@ FOREIGN_KEY_CHECKS=1');
         $edts = $reponses->toArray();
 
         foreach ($edts as $ed) {
-            $edt = new ScolEdtEvent();
-            $edt->setUuid(UuidV4::v4());
-            $edt->setDebut(new \DateTime($ed['debut']));
-            $edt->setFin(new \DateTime($ed['fin']));
-            $edt->setSalle($ed['salle']);
-            $edt->setPersonnel($this->tPersonnels[$ed['prof']]);
-            $edt->setLibPersonnel($ed['libprof']);
-            $edt->setCodePersonnel($ed['codeRh']);
-           // $edt->setGroupe($this->tGroupes[$ed['groupe']]);
-            $edt->setType($ed['type']);
-            $edt->setCouleur($ed['couleur']);
-            $edt->setEvaluation($ed['evaluation']);
-            //$edt->setCodeGroupe($this->tGroupes[$ed['groupe']]->getCodeApogee());
-            $edt->setCodeModule($this->tMatieres[$ed['matiere']]->getCodeApogee());
-            $edt->setJour($ed['jour']);
-           // $edt->setLibGroupe($this->tGroupes[$ed['groupe']]->getLibelle());
-            $edt->setLibModule($this->tMatieres[$ed['matiere']]->getLibelle());
-            $edt->setSemestre($this->tSemestres[$ed['semestre']]);
+            if (array_key_exists($ed['prof'], $this->tPersonnels) && array_key_exists($ed['matiere'], $this->tMatieres)) {
+                $edt = new ScolEdtEvent();
+                $edt->setUuid(UuidV4::v4());
+                $edt->setDebut(new \DateTime($ed['debut']));
+                $edt->setFin(new \DateTime($ed['fin']));
+                $edt->setSalle($ed['salle']);
+                $edt->setPersonnel($this->tPersonnels[$ed['prof']]);
+                $edt->setLibPersonnel($ed['libprof']);
+                $edt->setCodePersonnel($ed['codeRh']);
+                // $edt->setGroupe($this->tGroupes[$ed['groupe']]);
+                $edt->setType($ed['type']);
+                $edt->setCouleur($ed['couleur']);
+                $edt->setEvaluation($ed['evaluation']);
+                //$edt->setCodeGroupe($this->tGroupes[$ed['groupe']]->getCodeApogee());
+                $edt->setCodeModule($this->tMatieres[$ed['matiere']]->getCodeApogee());
+                $edt->setEnseignement($this->tMatieres[$ed['matiere']]);
+                $edt->setJour($ed['jour']);
+                // $edt->setLibGroupe($this->tGroupes[$ed['groupe']]->getLibelle());
+                $edt->setLibModule($this->tMatieres[$ed['matiere']]->getLibelle());
+                $edt->setSemestre($this->tSemestres[$ed['semestre']]);
 
-
-
-
+                $this->entityManager->persist($edt);
+            }
         }
+        $this->entityManager->flush();
     }
 }
