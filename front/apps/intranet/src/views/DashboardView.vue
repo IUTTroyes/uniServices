@@ -27,6 +27,18 @@ onMounted(async() => {
 
 const isPersonnel = computed(() => store.userType === 'personnels');
 const isEtudiant = computed(() => store.userType === 'etudiants');
+
+const agendaEvents = ref([
+    { title: 'Conférence intéractive sur les émotions', date: '15/10/2020 | 10:30 - 14:00', icon: 'pi pi-shopping-cart' },
+    { title: 'Webinaire “Ma première rentrée à l’URCA”', date: '15/10/2020 | 14:00 - 16:00', icon: 'pi pi-cog' },
+    { title: 'Webinaire “Transition lycée-université”', date: '15/10/2020 | 16:15 - 18:00', icon: 'pi pi-shopping-cart' },
+]);
+const actuEvents = ref([
+    { title: 'Conférence intéractive sur les émotions', date: '15/10/2020 | 10:30 - 14:00', icon: 'pi pi-shopping-cart' },
+    { title: 'Webinaire “Ma première rentrée à l’URCA”', date: '15/10/2020 | 14:00 - 16:00', icon: 'pi pi-cog' },
+    { title: 'Webinaire “Transition lycée-université”', date: '15/10/2020 | 16:15 - 18:00', icon: 'pi pi-shopping-cart' },
+    { title: 'Conférence intéractive sur les émotions', date: '15/10/2020 | 10:30 - 14:00', icon: 'pi pi-shopping-cart' },
+]);
 </script>
 
 <template>
@@ -50,46 +62,62 @@ const isEtudiant = computed(() => store.userType === 'etudiants');
             </div>
         </div>
         <div class="card h-full">
-            <div class="font-semibold text-xl mb-4">Dernières actualités du département</div>
-            <Stepper value="1">
-                <StepItem value="1">
-                    <Step>Header I</Step>
-                    <StepPanel v-slot="{ activateCallback }">
-                        <div class="flex flex-col h-48">
-                            <div class="border-2 border-dashed border-surface-200 dark:border-surface-700 rounded bg-surface-50 dark:bg-surface-950 flex-auto flex justify-center items-center font-medium">Content I</div>
+            <div class="card-title mb-4">
+                <div class="font-semibold text-xl">Agenda de l'IUT</div>
+                <em>Les évènements à venir</em>
+            </div>
+            <div class="card-content flex justify-between gap-10 mb-8">
+                <div v-for="(event, index) in agendaEvents" class="p-4 rounded-md flex-1">
+                    <div>
+                        <div class="font-bold">
+                            {{ event.title }}
                         </div>
-                        <div class="py-6">
-                            <Button label="Next" @click="activateCallback('2')" />
+                        <div class="text-sm">
+                            {{ event.date }}
                         </div>
-                    </StepPanel>
-                </StepItem>
-                <StepItem value="2">
-                    <Step>Header II</Step>
-                    <StepPanel v-slot="{ activateCallback }">
-                        <div class="flex flex-col h-48">
-                            <div class="border-2 border-dashed border-surface-200 dark:border-surface-700 rounded bg-surface-50 dark:bg-surface-950 flex-auto flex justify-center items-center font-medium">Content II</div>
+                        <div>
+                            <p>
+                                {{ event.content }}
+                            </p>
                         </div>
-                        <div class="flex py-6 gap-2">
-                            <Button label="Back" severity="secondary" @click="activateCallback('1')" />
-                            <Button label="Next" @click="activateCallback('3')" />
+                        <Button class="bg-primary-light" label="En savoir plus" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-title mb-4">
+                <div class="font-semibold text-xl">Actualités</div>
+                <em>Les évènements passés</em>
+            </div>
+            <div class="flex justify-between gap-10">
+                <Card v-for="(event, index) in actuEvents" style="width: 25rem; overflow: hidden">
+                    <template #header class="p-card-header">
+                        <div class="h-32 w-full overflow-hidden flex items-center">
+                            <img alt="user header" src="@/assets/logo/logo_intranet_iut_troyes.svg" />
                         </div>
-                    </StepPanel>
-                </StepItem>
-                <StepItem value="3">
-                    <Step>Header III</Step>
-                    <StepPanel v-slot="{ activateCallback }">
-                        <div class="flex flex-col h-48">
-                            <div class="border-2 border-dashed border-surface-200 dark:border-surface-700 rounded bg-surface-50 dark:bg-surface-950 flex-auto flex justify-center items-center font-medium">Content III</div>
+                    </template>
+                    <template #title>{{event.title}}</template>
+                    <template #subtitle>{{event.date}}</template>
+                    <template #footer>
+                        <div class="flex gap-4 mt-1">
+                            <Button label="En savoir plus" class="bg-primary-light w-full" />
                         </div>
-                        <div class="py-6">
-                            <Button label="Back" severity="secondary" @click="activateCallback('2')" />
-                        </div>
-                    </StepPanel>
-                </StepItem>
-            </Stepper>
+                    </template>
+                </Card>
+            </div>
+
+
         </div>
 
         <DashboardPersonnel v-if="isPersonnel" />
         <DashboardEtudiant v-else-if="isEtudiant" />
     </div>
 </template>
+
+<style scoped>
+.bg-primary-light {
+    background-color: var(--p-tag-primary-background);
+    border: 1px solid var(--p-tag-primary-background);
+    color: var(--primary-color);
+}
+</style>
