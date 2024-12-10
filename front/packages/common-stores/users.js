@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import {onMounted, ref} from 'vue';
 import api from '@/axios';
 
 export const useUsersStore = defineStore('users', () => {
@@ -20,6 +20,19 @@ export const useUsersStore = defineStore('users', () => {
             response.data.photoName = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
             user.value = response.data;
             departements.value = response.data.structureDepartementPersonnels;
+
+            //si il n'y a pas de département qui a defaut = true
+            if (!departements.value.find(departement => departement.defaut === true)) {
+                // mettre le premier département par défaut
+                const response = await api.post(`/api/structure_departement_personnels/${departements.value[0].id}/change_departement`, {
+                }, {
+                    headers: {
+                        'Content-Type': 'application/ld+json'
+                    }
+                });
+                departements.value = response.data;
+            }
+
             // récupérer le département qui a defaut = true
             departementDefaut.value = departements.value.find(departement => departement.defaut === true);
             // récupérer les départements qui n'ont pas defaut = true
