@@ -68,7 +68,7 @@ const actuEvents = ref([
             </div>
             <div class="card-content flex justify-between gap-10 mb-8">
                 <div v-for="(event, index) in agendaEvents" class="p-4 rounded-md flex-1">
-                    <div>
+                    <div class="flex flex-col gap-2 items-start">
                         <div class="font-bold">
                             {{ event.title }}
                         </div>
@@ -99,8 +99,8 @@ const actuEvents = ref([
                     <template #title>{{event.title}}</template>
                     <template #subtitle>{{event.date}}</template>
                     <template #footer>
-                        <div class="flex gap-4 mt-1">
-                            <Button label="En savoir plus" class="bg-primary-light w-full" />
+                        <div>
+                            <Button label="En savoir plus" class="bg-primary-light" />
                         </div>
                     </template>
                 </Card>
