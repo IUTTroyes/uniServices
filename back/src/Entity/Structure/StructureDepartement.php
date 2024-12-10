@@ -8,6 +8,7 @@ use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Traits\UuidTrait;
+use App\Entity\Users\Etudiant;
 use App\Repository\Structure\StructureDepartementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -33,7 +34,7 @@ class StructureDepartement
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(groups: ['structure_departement:read', 'personnel:read', 'structure_departement_personnel:read'])]
+    #[Groups(groups: ['structure_departement:read', 'personnel:read', 'etudiant:read', 'structure_departement_personnel:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -73,12 +74,19 @@ class StructureDepartement
     #[ORM\OneToMany(targetEntity: ApcReferentiel::class, mappedBy: 'departement')]
     private Collection $apcReferentiels;
 
+    /**
+     * @var Collection<int, Etudiant>
+     */
+    #[ORM\OneToMany(targetEntity: Etudiant::class, mappedBy: 'departement')]
+    private Collection $etudiants;
+
     public function __construct()
     {
         $this->structureDiplomes = new ArrayCollection();
         $this->structureDepartementPersonnels = new ArrayCollection();
         $this->setOpt([]);
         $this->apcReferentiels = new ArrayCollection();
+        $this->etudiants = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -269,6 +277,36 @@ class StructureDepartement
             // set the owning side to null (unless already changed)
             if ($apcReferentiel->getDepartement() === $this) {
                 $apcReferentiel->setDepartement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Etudiant>
+     */
+    public function getEtudiants(): Collection
+    {
+        return $this->etudiants;
+    }
+
+    public function addEtudiant(Etudiant $etudiant): static
+    {
+        if (!$this->etudiants->contains($etudiant)) {
+            $this->etudiants->add($etudiant);
+            $etudiant->setDepartement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiant(Etudiant $etudiant): static
+    {
+        if ($this->etudiants->removeElement($etudiant)) {
+            // set the owning side to null (unless already changed)
+            if ($etudiant->getDepartement() === $this) {
+                $etudiant->setDepartement(null);
             }
         }
 

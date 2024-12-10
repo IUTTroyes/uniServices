@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
@@ -64,6 +65,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['etudiant:read'])]
     private ?string $photoName = null;
 
     /**
@@ -90,6 +92,10 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'etudiant')]
     private Collection $etudiantAbsences;
+
+    #[ORM\ManyToOne(inversedBy: 'etudiants')]
+    #[Groups(['etudiant:read'])]
+    private ?StructureDepartement $departement = null;
 
     public function __construct()
     {
@@ -322,6 +328,18 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
                 $etudiantAbsence->setEtudiant(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getDepartement(): ?StructureDepartement
+    {
+        return $this->departement;
+    }
+
+    public function setDepartement(?StructureDepartement $departement): static
+    {
+        $this->departement = $departement;
 
         return $this;
     }
