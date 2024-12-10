@@ -4,6 +4,7 @@ import { onMounted, computed, ref } from "vue";
 import { formatDateLong } from "common-helpers";
 
 import DashboardPersonnel from "@/components/Personnel/Dashboard.vue";
+import DashboardEtudiant from "@/components/Etudiant/Dashboard.vue";
 
 const store = useUsersStore();
 const date = '';
@@ -24,7 +25,8 @@ onMounted(async() => {
     );
 });
 
-const hasRolePermanent = computed(() => store.user.roles?.includes('ROLE_PERMANENT'));
+const isPersonnel = computed(() => store.userType === 'personnels');
+const isEtudiant = computed(() => store.userType === 'etudiants');
 </script>
 
 <template>
@@ -87,6 +89,7 @@ const hasRolePermanent = computed(() => store.user.roles?.includes('ROLE_PERMANE
             </Stepper>
         </div>
 
-        <DashboardPersonnel v-if="hasRolePermanent" />
+        <DashboardPersonnel v-if="isPersonnel" />
+        <DashboardEtudiant v-else-if="isEtudiant" />
     </div>
 </template>
