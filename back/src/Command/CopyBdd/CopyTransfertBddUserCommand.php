@@ -2,19 +2,9 @@
 
 namespace App\Command\CopyBdd;
 
-use App\Entity\Scolarite\ScolEnseignement;
-use App\Entity\Scolarite\ScolEnseignementUe;
-use App\Entity\Structure\StructureAnnee;
-use App\Entity\Structure\StructureAnneeUniversitaire;
-use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDepartementPersonnel;
-use App\Entity\Structure\StructureDiplome;
-use App\Entity\Structure\StructureSemestre;
-use App\Entity\Structure\StructureTypeDiplome;
-use App\Entity\Structure\StructureUe;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
-use App\Enum\TypeEnseignementEnum;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use App\Repository\Structure\StructureDepartementRepository;
 use App\ValueObject\Adresse;
@@ -25,7 +15,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Uid\UuidV4;
 
 #[AsCommand(
     name: 'copy:transfert-bdd:user',
@@ -182,6 +171,7 @@ FOREIGN_KEY_CHECKS=1');
             $etudiant->setOldId($etu['id']);
             $etudiant->setPassword($etu['password']);
             $etudiant->setRoles(json_decode($etu['roles'], true) ?? ["ROLE_ETUDIANT"]);
+            $etudiant->setDepartement($this->tDepartements[$etu['departement_id']]);
 
             // gestion des adresses : adresse etudiante et adresse parentale
             if ($etu['adresse_id'] !== null && $etu['adresse_id'] !== '') {

@@ -3,24 +3,9 @@
 namespace App\Command\CopyBdd;
 
 use App\Entity\Etudiant\EtudiantScolarite;
-use App\Entity\Scolarite\ScolEnseignement;
-use App\Entity\Scolarite\ScolEnseignementUe;
-use App\Entity\Structure\StructureAnnee;
-use App\Entity\Structure\StructureAnneeUniversitaire;
-use App\Entity\Structure\StructureDepartement;
-use App\Entity\Structure\StructureDepartementPersonnel;
-use App\Entity\Structure\StructureDiplome;
-use App\Entity\Structure\StructureSemestre;
-use App\Entity\Structure\StructureTypeDiplome;
-use App\Entity\Structure\StructureUe;
-use App\Entity\Users\Etudiant;
-use App\Entity\Users\Personnel;
-use App\Enum\TypeEnseignementEnum;
 use App\Repository\EtudiantRepository;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
-use App\Repository\Structure\StructureDepartementRepository;
 use App\Repository\Structure\StructureSemestreRepository;
-use App\ValueObject\Adresse;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;

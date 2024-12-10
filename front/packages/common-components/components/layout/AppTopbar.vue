@@ -9,19 +9,21 @@ const store = useUsersStore();
 const route = useRoute();
 
 const deptItems = ref([]);
-const load = ref(false);
 const departementLabel = ref('');
 
 onMounted(async () => {
   await store.fetchUser();
-  deptItems.value = store.departementsNotDefaut.map(departementPersonnel => ({
-    label: departementPersonnel.departement.libelle,
-    id: departementPersonnel.id,
-    command: () => changeDepartement(departementPersonnel.id)
-  }));
-
-  departementLabel.value = store.departementDefaut.departement.libelle;
-  load.value = true;
+  if (store.userType === 'personnels') {
+    deptItems.value = store.departementsNotDefaut.map(departementPersonnel => ({
+      label: departementPersonnel.departement.libelle,
+      id: departementPersonnel.id,
+      command: () => changeDepartement(departementPersonnel.id)
+    }));
+    departementLabel.value = store.departementDefaut.departement.libelle;
+  } else {
+    deptItems.value = [];
+    departementLabel.value = store.user.departement.libelle
+  }
 });
 
 const props = defineProps({
@@ -111,10 +113,11 @@ const initiales = computed(() => {
   }
   return '';
 });
+
 </script>
 
 <template>
-  <div class="layout-topbar" v-if="load">
+  <div class="layout-topbar">
     <div class="layout-topbar-logo-container">
       <button v-if="route.path !== '/portail'" class="layout-menu-button layout-topbar-action" @click="onMenuToggle">
         <i class="pi pi-bars"></i>
@@ -122,10 +125,13 @@ const initiales = computed(() => {
       <router-link to="/" class="layout-topbar-logo">
         <img :src="logoUrl" alt="logo" /> <span>{{appName}}</span>
       </router-link>
-      <button type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
+      <button v-if="store.userType === 'personnels'" type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
         <span>Département {{ departementLabel }}</span>
         <i class="pi pi-arrow-right-arrow-left"></i>
       </button>
+      <div v-else-if="store.userType === 'etudiants'">
+        <span>Département {{ departementLabel }}</span>
+      </div>
       <Menu ref="deptMenu" id="dept_menu" :model="deptItems" :popup="true" />
     </div>
 
@@ -163,7 +169,7 @@ const initiales = computed(() => {
       <div class="layout-topbar-menu lg:block">
         <div class="layout-topbar-menu-content">
 
-          <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
+          <button  v-if="route.path !== '/portail' && store.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
             <i class="pi pi-calendar"></i>
             <span>2024/2025</span>
           </button>
