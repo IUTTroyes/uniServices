@@ -62,6 +62,7 @@ const actuEvents = ref([
             </div>
         </div>
         <div class="card h-full">
+            <div class="absolute top-0 right-0 rounded-full bg-primary w-10 h-10"></div>
             <div class="card-title mb-4">
                 <div class="font-semibold text-xl">Agenda de l'IUT</div>
                 <em>Les évènements à venir</em>
