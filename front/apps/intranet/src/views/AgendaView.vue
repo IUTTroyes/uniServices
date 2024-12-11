@@ -62,7 +62,7 @@ const tabs = computed(() => [
 
 <template>
     <div class="grid grid-cols-1 gap-4">
-        <div class="card h-full">
+        <div class="card calendar-container">
             <div class="card-header flex justify-between items-start">
                 <div class="font-semibold text-xl mb-4">Emploi du temps</div>
                 <div class="flex gap-2">
@@ -96,3 +96,11 @@ const tabs = computed(() => [
         </div>
     </div>
 </template>
+
+<style scoped>
+
+.calendar-container {
+    height: 110%;
+}
+
+</style>
