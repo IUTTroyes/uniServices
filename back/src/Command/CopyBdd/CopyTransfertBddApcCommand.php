@@ -213,6 +213,7 @@ FOREIGN_KEY_CHECKS=1');
             $apc->setApcNiveau($this->tNiveaux[$ap['niveau_id']]);
             $apc->setLibelle($ap['libelle']);
             $apc->setCode($ap['code']);
+            $apc->setOldId($ap['id']);
 
             $this->entityManager->persist($apc);
             $this->io->info('Apprentissage critique ' . $ap['id'] . ' ajouté');

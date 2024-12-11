@@ -12,6 +12,7 @@ use App\Entity\Structure\StructureSemestre;
 use App\Entity\Structure\StructureTypeDiplome;
 use App\Entity\Structure\StructureUe;
 use App\Enum\TypeEnseignementEnum;
+use App\Repository\Apc\ApcApprentissageCritiqueRepository;
 use App\Repository\Apc\ApcCompetenceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -48,23 +49,29 @@ class CopyTransfertBddStructureCommand extends Command
     protected array $tCompetences = [];
     protected array $tUes = [];
     protected array $tSemestreUes = [];
+    protected array $tApprentissages = [];
 
     protected SymfonyStyle $io;
-//    protected string $base_url;
+    protected string $base_url;
 
 
     public function __construct(
         protected EntityManagerInterface $entityManager,
         ManagerRegistry                  $managerRegistry,
-ApcCompetenceRepository           $apcCompetenceRepository,
-//        protected HttpClientInterface $httpClient,
-//        ParameterBagInterface        $params
+        ApcApprentissageCritiqueRepository $apcApprentissageCritiqueRepository,
+        ApcCompetenceRepository          $apcCompetenceRepository,
+        protected HttpClientInterface    $httpClient,
+        ParameterBagInterface            $params
     )
     {
         parent::__construct();
         $this->tCompetences = $apcCompetenceRepository->findAllByOldIdArray();
-//        $this->base_url = $params->get('URL_INTRANET_V3');
-
+        $this->tApprentissages = $apcApprentissageCritiqueRepository->findAllByOldIdArray();
+        $this->base_url = $params->get('URL_INTRANET_V3');
+        $this->httpClient = HttpClient::create([
+            'verify_peer' => false,
+            'verify_host' => false,
+        ]);
         $this->em = $managerRegistry->getConnection('copy');
     }
 
@@ -100,7 +107,7 @@ FOREIGN_KEY_CHECKS=1');
 
         // Départements
 //        $this->addTypeDiplome();
-//        $this->addDepartements();
+        //       $this->addDepartements();
 //        $this->addDiplomes();
 //        $this->addAnnee();
 //        $this->addSemestre();
@@ -141,28 +148,28 @@ FOREIGN_KEY_CHECKS=1');
         $sql = "SELECT * FROM departement WHERE actif = 1";
         $departements = $this->em->executeQuery($sql)->fetchAllAssociative();
 
-            foreach ($departements as $dept) {
-                $departement = new StructureDepartement();
-                $departement->setUuid(new UuidV4());
-                $departement->setLibelle($dept['libelle']);
-                $departement->setLogoName($dept['logo_name']);
-                $departement->setTelContact($dept['tel_contact']);
-                $departement->setCouleur($dept['couleur']);
-                $departement->setSiteWeb($dept['site_web']);
-                $departement->setDescription($dept['description']);
-                $departement->setActif($dept['actif']);
-                $departement->setOpt([
-                    'materiel' => (bool)$dept['opt_materiel'],
-                    'edt' => (bool)$dept['opt_edt'],
-                    'stage' => (bool)$dept['opt_stage'],
-                ]);
-                $departement->setOldId($dept['id']);
+        foreach ($departements as $dept) {
+            $departement = new StructureDepartement();
+            $departement->setUuid(new UuidV4());
+            $departement->setLibelle($dept['libelle']);
+            $departement->setLogoName($dept['logo_name']);
+            $departement->setTelContact($dept['tel_contact']);
+            $departement->setCouleur($dept['couleur']);
+            $departement->setSiteWeb($dept['site_web']);
+            $departement->setDescription($dept['description']);
+            $departement->setActif($dept['actif']);
+            $departement->setOpt([
+                'materiel' => (bool)$dept['opt_materiel'],
+                'edt' => (bool)$dept['opt_edt'],
+                'stage' => (bool)$dept['opt_stage'],
+            ]);
+            $departement->setOldId($dept['id']);
 
-                $this->tDepartements[$dept['id']] = $departement;
+            $this->tDepartements[$dept['id']] = $departement;
 
-                $this->entityManager->persist($departement);
-                $this->io->info('Département : ' . $dept['libelle'] . ' ajouté pour insertion');
-            }
+            $this->entityManager->persist($departement);
+            $this->io->info('Département : ' . $dept['libelle'] . ' ajouté pour insertion');
+        }
 
         $this->entityManager->flush();
     }
@@ -507,10 +514,9 @@ FOREIGN_KEY_CHECKS=1');
     private function addRessources(): void
     {
         //todo: passer par http pour récupérer l'UE en fonction du semestre et pouvoir faire le lien. Trop compliqué sinon ici et pas fiable
-
+        $response = $this->httpClient->request('GET', $this->base_url . '/ressources');
+        $matieres = json_decode($response->getContent(), true);;
         // matières, ressources, SAE
-        $sql = 'SELECT * FROM apc_ressource WHERE ressource_parent = false';
-        $matieres = $this->em->executeQuery($sql)->fetchAllAssociative();
 
         foreach ($matieres as $mat) {
             $matiere = new ScolEnseignement();
@@ -548,26 +554,27 @@ FOREIGN_KEY_CHECKS=1');
             $this->tMatieres[$mat['id']] = $matiere;
 
             // récupérer les dépendances de ApcRessources : ApprentissagesCrtiques, Competences, semestre
-
-            $sqlApcCompetence = 'SELECT * FROM apc_ressource_competence WHERE ressource_id = ' . $mat['id'];
-            $apcCompetences = $this->em->executeQuery($sqlApcCompetence)->fetchAllAssociative();
-
-            foreach ($apcCompetences as $apcCompetence) {
-                dd($apcCompetence);
-                $apc = new ScolEnseignementUe(
-                    $matiere,
-                    $this->tSemestreUes[$apcCompetence['competence_id']],
-                );
-                $apc->setCoefficient((float)$apcCompetence['coefficient']);
-                $apc->setEcts((float)$apcCompetence['nb_ects']);
-                $this->entityManager->persist($apc);
+            if (array_key_exists('ues', $mat)) {
+                foreach ($mat['ues'] as $apcCompetence) {
+                    //dd($apcCompetence);
+                    if (array_key_exists($apcCompetence['ue_id'], $this->tUes)) {
+                        $apc = new ScolEnseignementUe(
+                            $matiere,
+                            $this->tUes[$apcCompetence['ue_id']],
+                        );
+                        $apc->setCoefficient((float)$apcCompetence['coefficient']);
+                        $apc->setEcts((float)$apcCompetence['coefficient']);
+                        //todo: parcours
+                        $this->entityManager->persist($apc);
+                    }
+                }
             }
 
             $sqlApcCritique = 'SELECT * FROM apc_ressource_apprentissage_critique WHERE ressource_id = ' . $mat['id'];
             $apcCritiques = $this->em->executeQuery($sqlApcCritique)->fetchAllAssociative();
 
             foreach ($apcCritiques as $apcCritique) {
-                $matiere->addApcApprentissageCritique($apcCritique['apprentissage_critique_id']);
+                $matiere->addApcApprentissageCritique($this->tApprentissages[$apcCritique['apprentissage_critique_id']]);
             }
 
             $this->io->info('Matière : ' . $mat['libelle'] . ' ajouté pour insertion');
