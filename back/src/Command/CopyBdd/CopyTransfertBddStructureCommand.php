@@ -84,13 +84,14 @@ class CopyTransfertBddStructureCommand extends Command
         // vider les tables de destination et les réinitialiser
         $this->entityManager->getConnection()->executeQuery('SET
 FOREIGN_KEY_CHECKS=0');
-//        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_type_diplome');
-//        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_departement');
-//        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_diplome');
-//        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee');
-//        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_semestre');
-//        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_ue');
-//        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee_universitaire');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_type_diplome');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_departement');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_diplome');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_semestre');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_ue');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee_universitaire');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_apc_apprentissage_critique');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_ue');
         $this->entityManager->getConnection()->executeQuery('SET
@@ -106,14 +107,14 @@ FOREIGN_KEY_CHECKS=1');
         $this->addAnneeUniversitaire();
 
         // Départements
-//        $this->addTypeDiplome();
-        //       $this->addDepartements();
-//        $this->addDiplomes();
-//        $this->addAnnee();
-//        $this->addSemestre();
-//        $this->addUe();
+        $this->addTypeDiplome();
+        $this->addDepartements();
+        $this->addDiplomes();
+        $this->addAnnee();
+        $this->addSemestre();
+        $this->addUe();
 //        $this->addMatieres();
-        $this->addRessources();
+//        $this->addRessources();
         //$this->addSae();
 
         $this->io->success('Processus de recopie terminé.');
@@ -368,7 +369,7 @@ FOREIGN_KEY_CHECKS=1');
             $ue->setBonification((bool)$u['bonification']);
             $ue->setNbEcts((float)$u['nb_ects']); //Apc?
             $this->tUes[$u['id']] = $ue;
-            if ($u['competence_id'] !== null) {
+            if (array_key_exists('competence_id', $u) && $u['competence_id'] !== null) {
                 if (array_key_exists($u['competence_id'], $this->tCompetences)) {
                     $ue->setApcCompetence($this->tCompetences[$u['competence_id']]);
                 }
