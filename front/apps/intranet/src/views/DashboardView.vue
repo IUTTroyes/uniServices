@@ -2,6 +2,7 @@
 import { useUsersStore } from "common-stores";
 import { onMounted, computed, ref } from "vue";
 import { formatDateLong } from "common-helpers";
+import api from '@/axios';
 
 import DashboardPersonnel from "@/components/Personnel/Dashboard.vue";
 import DashboardEtudiant from "@/components/Etudiant/Dashboard.vue";
@@ -9,6 +10,8 @@ import DashboardEtudiant from "@/components/Etudiant/Dashboard.vue";
 const store = useUsersStore();
 const date = '';
 const initiales = '';
+
+const actuEvents = ref([]);
 
 onMounted(async() => {
     await store.fetchUser();
@@ -23,6 +26,19 @@ onMounted(async() => {
     const initiales = computed(() =>
         store.user?.prenom?.charAt(0) + store.user?.nom?.charAt(0) || ''
     );
+
+    // requete axios pour recuperer les actualites
+    try {
+        const { data } = await api.get(`/api/actualites`);
+        actuEvents.value = data.map(actu => ({
+            title: actu.title,
+            date: actu.pubDate,
+            content: actu.description,
+            image: actu.image
+        }));
+    } catch (error) {
+        console.error('Error fetching actualites:', error);
+    }
 });
 
 const isPersonnel = computed(() => store.userType === 'personnels');
@@ -33,12 +49,7 @@ const agendaEvents = ref([
     { title: 'Webinaire “Ma première rentrée à l’URCA”', date: '15/10/2020 | 14:00 - 16:00', icon: 'pi pi-cog' },
     { title: 'Webinaire “Transition lycée-université”', date: '15/10/2020 | 16:15 - 18:00', icon: 'pi pi-shopping-cart' },
 ]);
-const actuEvents = ref([
-    { title: 'Conférence intéractive sur les émotions', date: '15/10/2020 | 10:30 - 14:00', icon: 'pi pi-shopping-cart' },
-    { title: 'Webinaire “Ma première rentrée à l’URCA”', date: '15/10/2020 | 14:00 - 16:00', icon: 'pi pi-cog' },
-    { title: 'Webinaire “Transition lycée-université”', date: '15/10/2020 | 16:15 - 18:00', icon: 'pi pi-shopping-cart' },
-    { title: 'Conférence intéractive sur les émotions', date: '15/10/2020 | 10:30 - 14:00', icon: 'pi pi-shopping-cart' },
-]);
+
 </script>
 
 <template>
@@ -91,10 +102,10 @@ const actuEvents = ref([
                 <em>Les évènements passés</em>
             </div>
             <div class="flex justify-between gap-10">
-                <Card v-for="(event, index) in actuEvents" style="width: 25rem; overflow: hidden">
+                <Card v-for="(event, index) in actuEvents" :key="index" style="width: 25rem; overflow: hidden">
                     <template #header class="p-card-header">
                         <div class="h-32 w-full overflow-hidden flex items-center">
-                            <img alt="user header" src="@/assets/logo/logo_intranet_iut_troyes.svg" />
+                            <img :alt="event.title" :src="event.image" />
                         </div>
                     </template>
                     <template #title>{{event.title}}</template>
@@ -106,8 +117,6 @@ const actuEvents = ref([
                     </template>
                 </Card>
             </div>
-
-
         </div>
 
         <DashboardPersonnel v-if="isPersonnel" />
