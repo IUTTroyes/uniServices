@@ -107,7 +107,7 @@ const agendaEvents = ref([
                 <em>Les évènements passés</em>
             </div>
             <div class="flex justify-between gap-10">
-                <Card v-for="(event, index) in actuEvents" :key="index" style="width: 25rem; overflow: hidden" class="flex flex-col justify-between">
+                <Card v-for="(event, index) in actuEvents" :key="index" style="width: 25rem" class="card-actus flex flex-col justify-between overflow-hidden w-25">
                     <template #header>
                         <div class="h-32 w-full overflow-hidden flex items-center">
                             <img :alt="event.title" :src="event.image" />
@@ -135,5 +135,10 @@ const agendaEvents = ref([
     background-color: var(--p-tag-primary-background);
     border: 1px solid var(--p-tag-primary-background);
     color: var(--primary-color);
+}
+
+.card-actus {
+    border: solid 1px var(--p-tag-primary-background);
+    box-shadow: none;
 }
 </style>
