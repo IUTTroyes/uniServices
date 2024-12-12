@@ -32,7 +32,12 @@ onMounted(async() => {
         const { data } = await api.get(`/api/actualites`);
         actuEvents.value = data.map(actu => ({
             title: actu.title,
-            date: actu.pubDate,
+            date: new Date(actu.pubDate).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }),
             content: actu.description,
             image: actu.image
         }));
@@ -102,16 +107,17 @@ const agendaEvents = ref([
                 <em>Les évènements passés</em>
             </div>
             <div class="flex justify-between gap-10">
-                <Card v-for="(event, index) in actuEvents" :key="index" style="width: 25rem; overflow: hidden">
-                    <template #header class="p-card-header">
+                <Card v-for="(event, index) in actuEvents" :key="index" style="width: 25rem; overflow: hidden" class="flex flex-col justify-between">
+                    <template #header>
                         <div class="h-32 w-full overflow-hidden flex items-center">
                             <img :alt="event.title" :src="event.image" />
                         </div>
+                        <div class="text-lg font-bold px-5 pt-3">{{event.title}}</div>
+                        <div class="text-sm px-5 text-muted-color">{{event.date}}</div>
                     </template>
-                    <template #title>{{event.title}}</template>
-                    <template #subtitle>{{event.date}}</template>
-                    <template #footer>
-                        <div>
+                    <template #content>
+                        <div class="flex flex-col justify-between gap-2">
+                            <div>{{event.content}}</div>
                             <Button label="En savoir plus" class="bg-primary-light" />
                         </div>
                     </template>

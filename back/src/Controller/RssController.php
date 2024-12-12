@@ -19,7 +19,7 @@ class RssController extends AbstractController
             if ($count >= 4) break;
             $data[] = [
                 'title' => (string) $actu->title,
-                'description' => (string) $actu->description,
+                'description' => html_entity_decode(mb_convert_encoding((string)$actu->description, 'UTF-8', 'ISO-8859-1')),
                 'link' => (string) $actu->link,
                 'pubDate' => (string) $actu->pubDate,
                 'image' => (string) $actu->enclosure['url'],
