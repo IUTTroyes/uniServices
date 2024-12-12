@@ -45,6 +45,7 @@ class StructureDepartementPersonnel
 
     #[ORM\ManyToOne(inversedBy: 'structureDepartementPersonnels')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(groups: ['structure_departement_personnel:read'])]
     private ?Personnel $personnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'structureDepartementPersonnels')]

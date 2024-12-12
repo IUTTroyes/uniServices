@@ -91,7 +91,6 @@ FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_semestre');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_ue');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee_universitaire');
-        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_apc_apprentissage_critique');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_ue');
         $this->entityManager->getConnection()->executeQuery('SET
@@ -108,7 +107,7 @@ FOREIGN_KEY_CHECKS=1');
 
         // Départements
         $this->addTypeDiplome();
-        $this->addDepartements();
+               $this->addDepartements();
         $this->addDiplomes();
         $this->addAnnee();
         $this->addSemestre();
@@ -368,13 +367,13 @@ FOREIGN_KEY_CHECKS=1');
             $ue->setActif((bool)$u['actif']);
             $ue->setBonification((bool)$u['bonification']);
             $ue->setNbEcts((float)$u['nb_ects']); //Apc?
-            $this->tUes[$u['id']] = $ue;
-            if (array_key_exists('competence_id', $u) && $u['competence_id'] !== null) {
-                if (array_key_exists($u['competence_id'], $this->tCompetences)) {
-                    $ue->setApcCompetence($this->tCompetences[$u['competence_id']]);
-                }
-                $this->tSemestreUes[$u['semestre_id']][$u['competence_id']] = $ue;
-            }
+//            $this->tUes[$u['id']] = $ue;
+//            if ($u['competence_id'] !== null) {
+//                if (array_key_exists($u['competence_id'], $this->tCompetences)) {
+//                    $ue->setApcCompetence($this->tCompetences[$u['competence_id']]);
+//                }
+//                $this->tSemestreUes[$u['semestre_id']][$u['competence_id']] = $ue;
+//            }
 
 
             $this->entityManager->persist($ue);
@@ -549,7 +548,6 @@ FOREIGN_KEY_CHECKS=1');
   "commentaire" => null
   "ressource_parent" => 0
   "has_coefficient_different" => 0
-
              */
             $this->entityManager->persist($matiere);
             $this->tMatieres[$mat['id']] = $matiere;
@@ -581,56 +579,56 @@ FOREIGN_KEY_CHECKS=1');
             $this->io->info('Matière : ' . $mat['libelle'] . ' ajouté pour insertion');
         }
 
-//        $sql = 'SELECT * FROM apc_ressource WHERE ressource_parent = true';
-//        $matieres = $this->em->executeQuery($sql)->fetchAllAssociative();
-//
-//        foreach ($matieres as $mat) {
-//            $matiere = new ScolEnseignement();
-//            $matiere->setLibelle($mat['libelle']);
-//            $matiere->setCodeMatiere($mat['code_matiere']);
-//            $matiere->setCodeApogee($mat['code_element']);
-//            $matiere->setHeures([
-//                'heures' => [
-//                    'CM' => ['PN' => (float)$mat['cm_ppn'], 'IUT' => (float)$mat['cm_formation']],
-//                    'TD' => ['PN' => (float)$mat['td_ppn'], 'IUT' => (float)$mat['td_formation']],
-//                    'TP' => ['PN' => (float)$mat['tp_ppn'], 'IUT' => (float)$mat['tp_formation']],
-//                    'Projet' => ['PN' => 0, 'IUT' => 0],
-//                ],
-//            ]);
-//            $matiere->setType(TypeEnseignementEnum::TYPE_MATIERE);
-//            $matiere->setBonification((bool)$mat['pac']);
-//            $matiere->setDescription($mat['description']);
-//            $matiere->setNbNotes((int)$mat['nb_notes']);
-//            $matiere->setLibelleCourt($mat['libelle_court']);
-//            $matiere->setSuspendu((bool)$mat['suspendu']);
-//            $matiere->setMutualisee((bool)$mat['mutualisee']);
-//            $matiere->setMotsCles($mat['mots_cles']);
-//            $matiere->setObjectif($mat['objectifs_module']);
-//            $matiere->setPrerequis($mat['pre_requis']);
-//            $matiere->setParent($this->tMatieres[$mat['matiere_parent_id']]);
-//
-//            /*
-//             * array:30 [
-//  "ppn_id" => 1
-//  "parcours_id" => null
-//]
-//             */
-//            $this->entityManager->persist($matiere);
-//
-//            if ($mat['ue_id'] !== null && $mat['ue_id'] !== '') {
-//
-//                $matiereUe = new ScolEnseignementUe(
-//                    $matiere,
-//                    $this->tUes[$mat['ue_id']],
-//                );
-//                $matiereUe->setCoefficient((float)$mat['coefficient']);
-//                $matiereUe->setEcts((float)$mat['nb_ects']);
-//                $this->entityManager->persist($matiereUe);
-//
-//            }
-//
-//            $this->io->info('Matière : ' . $mat['libelle'] . ' ajouté pour insertion');
-//        }
+        $sql = 'SELECT * FROM apc_ressource WHERE ressource_parent = true';
+        $matieres = $this->em->executeQuery($sql)->fetchAllAssociative();
+
+        foreach ($matieres as $mat) {
+            $matiere = new ScolEnseignement();
+            $matiere->setLibelle($mat['libelle']);
+            $matiere->setCodeMatiere($mat['code_matiere']);
+            $matiere->setCodeApogee($mat['code_element']);
+            $matiere->setHeures([
+                'heures' => [
+                    'CM' => ['PN' => (float)$mat['cm_ppn'], 'IUT' => (float)$mat['cm_formation']],
+                    'TD' => ['PN' => (float)$mat['td_ppn'], 'IUT' => (float)$mat['td_formation']],
+                    'TP' => ['PN' => (float)$mat['tp_ppn'], 'IUT' => (float)$mat['tp_formation']],
+                    'Projet' => ['PN' => 0, 'IUT' => 0],
+                ],
+            ]);
+            $matiere->setType(TypeEnseignementEnum::TYPE_MATIERE);
+            $matiere->setBonification((bool)$mat['pac']);
+            $matiere->setDescription($mat['description']);
+            $matiere->setNbNotes((int)$mat['nb_notes']);
+            $matiere->setLibelleCourt($mat['libelle_court']);
+            $matiere->setSuspendu((bool)$mat['suspendu']);
+            $matiere->setMutualisee((bool)$mat['mutualisee']);
+            $matiere->setMotsCles($mat['mots_cles']);
+            $matiere->setObjectif($mat['objectifs_module']);
+            $matiere->setPrerequis($mat['pre_requis']);
+            $matiere->setParent($this->tMatieres[$mat['matiere_parent_id']]);
+
+            /*
+             * array:30 [
+  "ppn_id" => 1
+  "parcours_id" => null
+]
+             */
+            $this->entityManager->persist($matiere);
+
+            if ($mat['ue_id'] !== null && $mat['ue_id'] !== '') {
+
+                $matiereUe = new ScolEnseignementUe(
+                    $matiere,
+                    $this->tUes[$mat['ue_id']],
+                );
+                $matiereUe->setCoefficient((float)$mat['coefficient']);
+                $matiereUe->setEcts((float)$mat['nb_ects']);
+                $this->entityManager->persist($matiereUe);
+
+            }
+
+            $this->io->info('Matière : ' . $mat['libelle'] . ' ajouté pour insertion');
+        }
 
         $this->entityManager->flush();
     }

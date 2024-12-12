@@ -171,7 +171,13 @@ FOREIGN_KEY_CHECKS=1');
             $etudiant->setOldId($etu['id']);
             $etudiant->setPassword($etu['password']);
             $etudiant->setRoles(json_decode($etu['roles'], true) ?? ["ROLE_ETUDIANT"]);
-            $etudiant->setDepartement($this->tDepartements[$etu['departement_id']]);
+            // si le dept existe dans la table de destination
+            foreach ($this->tDepartements as $departement) {
+                if ($departement->getOldId() === $etu['departement_id']) {
+                    $etudiant->setDepartement($departement);
+                    break;
+                }
+            }
 
             // gestion des adresses : adresse etudiante et adresse parentale
             if ($etu['adresse_id'] !== null && $etu['adresse_id'] !== '') {
@@ -258,13 +264,20 @@ FOREIGN_KEY_CHECKS=1');
 
         foreach ($persDepts as $persDept) {
             $depPers = new StructureDepartementPersonnel();
-            $depPers->setDepartement($this->tDepartements[$persDept['departement_id']]);
+//            $depPers->setDepartement($this->tDepartements[$persDept['departement_id']]);
+            // lier le département si departement.oldId === personnel_departement.departement_id
+            foreach ($this->tDepartements as $departement) {
+                if ($departement->getOldId() === $persDept['departement_id']) {
+                    $depPers->setDepartement($departement);
+                    break;
+                }
+            }
             $depPers->setPersonnel($this->tPersonnels[$persDept['personnel_id']]);
             $depPers->setDefaut((bool)$persDept['defaut']);
             $depPers->setRoles(json_decode($persDept['roles'], true) ?? []);
 
             $this->entityManager->persist($depPers);
-            $this->io->info('Personnel : ' . $this->tPersonnels[$persDept['personnel_id']]->getNom() . ' ajouté au département ' . $this->tDepartements[$persDept['departement_id']]->getLibelle());
+//            $this->io->info('Personnel : ' . $this->tPersonnels[$persDept['personnel_id']]->getNom() . ' ajouté au département ' . $this->tDepartements[$persDept['departement_id']]->getLibelle());
         }
 
         $this->entityManager->flush();

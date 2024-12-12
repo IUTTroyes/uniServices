@@ -15,7 +15,7 @@ onMounted(async () => {
   await store.fetchUser();
   if (store.userType === 'personnels') {
     deptItems.value = store.departementsNotDefaut.map(departementPersonnel => ({
-      label: departementPersonnel.departement.libelle,
+      label: departementPersonnel.departement ? departementPersonnel.departement.libelle : '',
       id: departementPersonnel.id,
       command: () => changeDepartement(departementPersonnel.id)
     }));

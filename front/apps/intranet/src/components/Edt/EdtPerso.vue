@@ -1,5 +1,5 @@
 <script setup>
-import {defineProps, watch, ref, useTemplateRef} from 'vue';
+import { defineProps, watch, ref } from 'vue';
 
 const props = defineProps({
     data: Object
@@ -13,15 +13,80 @@ watch(() => props.data.days, (newDays) => {
     const currentDayExists = newDays.some(day => day.dayNumber === currentDay.value);
 });
 
-const events = ref([
-    { id: 1, debut: '10/12/2024 08:00', fin: '10/12/2024 09:30', jour: 3, text: 'WS301D - Développer des parcours utilisateur au sein d\'un système d\'information', color: '#FBE4EE', colorFocus: '#fbc6e3' ,semestre: 'S3 Strat-UX Alt', groupe: 'CM', groupeColor: '#1f4ea6', salle: 'H018', showMenu: useTemplateRef('menu_1') },
-    { id: 2, debut: '10/12/2024 09:30', fin: '10/12/2024 12:30', jour: 3, text: 'WR601 - Entrepreneuriat', color: '#FBE4EE', colorFocus: '#fbc6e3', semestre: 'S3 Strat-UX Alt', groupe: 'TD CD', groupeColor: '#2d7315', salle: 'H201', showMenu: useTemplateRef('menu_2') },
-    { id: 3, debut: '10/12/2024 14:00', fin: '10/12/2024 18:30', jour: 3, text: 'WR602D - Hébergement et Cybersécurité', color: '#E1E2FE', colorFocus: '#b1b4ff', semestre: 'S3 DWebDi Alt', groupe: 'TP E', groupeColor: '#bd6910', salle: 'H201', showMenu: {} },
-    { id: 4, debut: '11/12/2024 14:00', fin: '11/12/2024 21:00', jour: 4, text: 'PTUT', color: '#FFEDD2', colorFocus: '#ffdeae', semestre: 'S1', groupe: 'TD EF', groupeColor: '#2d7315', salle: 'H201', showMenu: {} },
-    { id: 5, debut: '11/12/2024 09:30', fin: '11/12/2024 11:00', jour: 4, text: 'WR602D - Hébergement et Cybersécurité', color: '#E1E2FE', colorFocus: '#b1b4ff', semestre: 'S3 DWebDi Alt', groupe: 'TP E', groupeColor: '#bd6910', salle: 'H201', showMenu: {} },
-    { id: 6, debut: '11/12/2024 11:00', fin: '11/12/2024 12:30', jour: 4, text: 'PTUT', color: '#E1E2FE', colorFocus: '#b1b4ff', semestre: 'S3 DWebDi Alt', groupe: 'TP E', groupeColor: '#bd6910', salle: 'H201', showMenu: {} },
-    { id: 7, debut: '11/12/2024 11:00', fin: '11/12/2024 12:30', jour: 4, text: 'PTUT', color: '#FFEDD2', colorFocus: '#ffdeae', semestre: 'S1', groupe: 'TD EF', groupeColor: '#2d7315', salle: 'H201', showMenu: {} },
-]);
+const events = [
+    {
+        debut: '10/12/2024 08:00',
+        fin: '10/12/2024 09:30',
+        jour: 3,
+        text: 'WS301D - Développer des parcours utilisateur au sein d\'un système d\'information',
+        color: '#FBE4EE',
+        colorFocus: '#fbc6e3',
+        semestre: 'S3 Strat-UX Alt',
+        groupe: 'CM',
+        groupeColor: '#1f4ea6',
+        salle: 'H018'
+    },
+    {
+        debut: '10/12/2024 09:00',
+        fin: '10/12/2024 11:00',
+        jour: 3,
+        text: 'WS301D - Développer des parcours utilisateur au sein d\'un système d\'information',
+        color: '#FBE4EE',
+        colorFocus: '#fbc6e3',
+        semestre: 'S3 Strat-UX Alt',
+        groupe: 'CM',
+        groupeColor: '#1f4ea6',
+        salle: 'H018'
+    },
+    {
+        debut: '10/12/2024 09:30',
+        fin: '10/12/2024 12:30',
+        jour: 3,
+        text: 'WR601 - Entrepreneuriat',
+        color: '#FBE4EE',
+        colorFocus: '#fbc6e3',
+        semestre: 'S3 Strat-UX Alt',
+        groupe: 'TD CD',
+        groupeColor: '#2d7315',
+        salle: 'H201'
+    },
+    {
+        debut: '10/12/2024 14:00',
+        fin: '10/12/2024 18:30',
+        jour: 3,
+        text: 'WR602D - Hébergement et Cybersécurité',
+        color: '#E1E2FE',
+        colorFocus: '#b1b4ff',
+        semestre: 'S3 DWebDi Alt',
+        groupe: 'TP E',
+        groupeColor: '#bd6910',
+        salle: 'H201'
+    },
+    {
+        debut: '11/12/2024 08:00',
+        fin: '11/12/2024 12:30',
+        jour: 4,
+        text: 'PTUT',
+        color: '#FFEDD2',
+        colorFocus: '#ffdeae',
+        semestre: 'S1',
+        groupe: 'TD EF',
+        groupeColor: '#2d7315',
+        salle: 'H201'
+    },
+    {
+        debut: '11/12/2024 14:00',
+        fin: '11/12/2024 17:00',
+        jour: 4,
+        text: 'PTUT',
+        color: '#FFEDD2',
+        colorFocus: '#ffdeae',
+        semestre: 'S1',
+        groupe: 'TD EF',
+        groupeColor: '#2d7315',
+        salle: 'H201'
+    },
+];
 
 const calculatePosition = (time) => {
     const [hours, minutes] = time.split(':').map(Number);
@@ -32,23 +97,8 @@ const calculateHeight = (start, end) => {
     return calculatePosition(end) - calculatePosition(start);
 };
 
-const maxEndTime = Math.max(...events.value.map(event => calculatePosition(event.fin.split(' ')[1])));
+const maxEndTime = Math.max(...events.map(event => calculatePosition(event.fin.split(' ')[1])));
 const calendarHeight = Math.max(maxEndTime, calculatePosition('18:30'));
-
-const getOverlappingEvents = (dayIndex) => {
-    const dayEvents = events.value.filter(event => event.jour === dayIndex);
-    const overlappingEvents = [];
-
-    dayEvents.forEach((event, index) => {
-        const overlaps = dayEvents.filter((e, i) => i !== index && (
-            (calculatePosition(e.debut.split(' ')[1]) < calculatePosition(event.fin.split(' ')[1]) &&
-                calculatePosition(e.fin.split(' ')[1]) > calculatePosition(event.debut.split(' ')[1]))
-        ));
-        overlappingEvents.push({ event, overlaps });
-    });
-
-    return overlappingEvents;
-};
 
 const menu = ref();
 const itemsTest = ref([
@@ -76,45 +126,83 @@ const toggle = (edtEvent, event) => {
     menu.value.toggle(event);
     selected.value = edtEvent;
 };
+
+const assignColumns = (events) => {
+    const eventsByDay = events.reduce((acc, event) => {
+        if (!acc[event.jour]) {
+            acc[event.jour] = [];
+        }
+        acc[event.jour].push(event);
+        return acc;
+    }, {});
+
+    Object.values(eventsByDay).forEach(dayEvents => {
+        const columns = [];
+        dayEvents.forEach(event => {
+            let placed = false;
+            for (let i = 0; i < columns.length; i++) {
+                if (!columns[i].some(e => (calculatePosition(e.debut.split(' ')[1]) < calculatePosition(event.fin.split(' ')[1]) && calculatePosition(e.fin.split(' ')[1]) > calculatePosition(event.debut.split(' ')[1])))) {
+                    columns[i].push(event);
+                    event.column = i;
+                    placed = true;
+                    break;
+                }
+            }
+            if (!placed) {
+                columns.push([event]);
+                event.column = columns.length - 1;
+            }
+        });
+        dayEvents.columnsCount = columns.length;
+    });
+
+    return eventsByDay;
+};
+
+const eventsByDay = assignColumns(events);
+
+const hasOverlap = (event, dayEvents) => {
+    return dayEvents.some(e => e !== event && calculatePosition(e.debut.split(' ')[1]) < calculatePosition(event.fin.split(' ')[1]) && calculatePosition(e.fin.split(' ')[1]) > calculatePosition(event.debut.split(' ')[1]));
+};
 </script>
 
 <template>
     <div class="calendar grid grid-cols-5 gap-4" :style="{ height: calendarHeight + 'px' }">
         <div class="flex flex-col gap-5 light-surface-ground" v-for="(day, dayIndex) in days" :key="dayIndex">
-            <div :class="['day text-center uppercase font-bold flex flex-col p-4 bg-opacity-20 surface-ground rounded-md', { 'bg-primary-light': currentDay === day.dayNumber, active: currentDay === day.dayNumber }]">
+            <div
+                :class="['day text-center uppercase font-bold flex flex-col p-4 bg-opacity-20 surface-ground rounded-md', { 'bg-primary-light': currentDay === day.dayNumber, active: currentDay === day.dayNumber }]">
                 {{ day.dayName }} <span class="font-black">{{ day.dayNumber }}</span>
             </div>
             <div class="relative h-full">
-                <template v-for="(eventGroup, index) in getOverlappingEvents(dayIndex)" :key="index">
-                    <div v-for="(event, subIndex) in [eventGroup.event, ...eventGroup.overlaps]" :key="subIndex" class="event rounded-md absolute flex flex-col gap-1"
-                         :style="{ top: calculatePosition(event.debut.split(' ')[1]) + 'px', height: calculateHeight(event.debut.split(' ')[1], event.fin.split(' ')[1]) - 5 + 'px', backgroundColor: event.color, width: `calc(100% / ${eventGroup.overlaps.length + 1})`, left: `calc(${subIndex} * 100% / ${eventGroup.overlaps.length + 1})` }">
-                        <div class="event-header w-full p-2 rounded-t-md flex justify-between"
-                             :style="{ backgroundColor: event.colorFocus }">
-                            <div class="flex flex-col">
-                                <div v-if="event.text.length > 50" v-tooltip.top="`${event.text}`">
-                                    <span class="font-bold">{{ event.text.substring(0, 50) }}...</span>
+                <template v-for="(event, index) in events" :key="index">
+                    <template v-if="event.jour === dayIndex">
+                        <div class="event rounded-md absolute flex flex-col gap-1 opacity-90"
+                             :style="{ top: calculatePosition(event.debut.split(' ')[1]) + 'px', height: calculateHeight(event.debut.split(' ')[1], event.fin.split(' ')[1]) - 5 + 'px', backgroundColor: event.color, width: hasOverlap(event, eventsByDay[dayIndex]) ? `calc(100% / ${eventsByDay[dayIndex].columnsCount})` : '100%', left: hasOverlap(event, eventsByDay[dayIndex]) ? `calc((100% / ${eventsByDay[dayIndex].columnsCount}) * ${event.column})` : '0' }">
+                            <div class="event-header w-full p-2 rounded-t-md flex justify-between"
+                                 :style="{ backgroundColor: event.colorFocus }">
+                                <div class="flex flex-col">
+                                    <div v-if="event.text.length > 50" v-tooltip.top="`${event.text}`">
+                                        <span class="font-bold">{{ event.text.substring(0, 50) }}...</span>
+                                    </div>
+                                    <div v-else>
+                                        <span class="font-bold">{{ event.text }}</span>
+                                    </div>
+                                    <span>{{ event.debut.split(' ')[1] }} - {{ event.fin.split(' ')[1] }}</span>
                                 </div>
-                                <div v-else>
-                                    <span  class="font-bold">{{ event.text }}</span>
+                                <Button type="button" icon="pi pi-ellipsis-v" @click="toggle(event, $event)" aria-haspopup="true" aria-controls="overlay_menu" class="action-button"/>
+                            </div>
+                            <div class="event-body p-2">
+                                <div><span>{{ event.semestre }}</span></div>
+                                <div><span class="font-bold">{{ event.groupe }}</span> | <span>{{ event.salle }}</span>
                                 </div>
-                                <span class="text-sm">{{ event.debut.split(' ')[1] }} - {{ event.fin.split(' ')[1] }}</span>
-                            </div>
-                            <Button type="button" icon="pi pi-ellipsis-v" @click="toggle(event, $event)" aria-haspopup="true" aria-controls="overlay_menu" class="action-button"/>
-
-                        </div>
-                        <div class="event-body p-2 flex flex-col gap-2">
-                            <div>
-                                <div>{{ event.semestre }}</div>
-                                <div><span class="font-bold">{{ event.groupe }}</span> | <span>{{ event.salle }}</span></div>
                             </div>
                         </div>
-                    </div>
+                    </template>
                 </template>
             </div>
         </div>
     </div>
     <Menu ref="menu" id="overlay_menu" :model="itemsTest" :popup="true" />
-
 </template>
 
 <style scoped>
