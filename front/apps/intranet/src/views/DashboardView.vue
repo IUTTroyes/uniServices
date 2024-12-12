@@ -39,7 +39,8 @@ onMounted(async() => {
                 day: 'numeric'
             }),
             content: actu.description,
-            image: actu.image
+            image: actu.image,
+            link: actu.link
         }));
     } catch (error) {
         console.error('Error fetching actualites:', error);
@@ -55,6 +56,9 @@ const agendaEvents = ref([
     { title: 'Webinaire “Transition lycée-université”', date: '15/10/2020 | 16:15 - 18:00', icon: 'pi pi-shopping-cart' },
 ]);
 
+const redirectTo = (link) => {
+    window.open(link, '_blank')
+}
 </script>
 
 <template>
@@ -118,7 +122,7 @@ const agendaEvents = ref([
                     <template #content>
                         <div class="flex flex-col justify-between gap-2">
                             <div>{{event.content}}</div>
-                            <Button label="En savoir plus" class="bg-primary-light" />
+                            <Button label="En savoir plus" icon="pi pi-external-link" iconPos="right" class="bg-primary-light" @click="redirectTo(event.link)"/>
                         </div>
                     </template>
                 </Card>
