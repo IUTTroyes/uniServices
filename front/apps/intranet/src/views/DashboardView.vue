@@ -12,6 +12,7 @@ const date = '';
 const initiales = '';
 
 const actuEvents = ref([]);
+const agendaEvents = ref([]);
 
 onMounted(async() => {
     await store.fetchUser();
@@ -45,16 +46,29 @@ onMounted(async() => {
     } catch (error) {
         console.error('Error fetching actualites:', error);
     }
+
+    // requete axios pour recuperer l'agenda
+    try {
+        const { data } = await api.get(`/api/agenda`);
+        agendaEvents.value = data.map(agenda => ({
+            title: agenda.title,
+            date: new Date(agenda.pubDate).toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }),
+            content: agenda.description,
+            image: agenda.image,
+            link: agenda.link
+        }));
+    } catch (error) {
+        console.error('Error fetching agenda:', error);
+    }
 });
 
 const isPersonnel = computed(() => store.userType === 'personnels');
 const isEtudiant = computed(() => store.userType === 'etudiants');
-
-const agendaEvents = ref([
-    { title: 'Conférence intéractive sur les émotions', date: '15/10/2020 | 10:30 - 14:00', icon: 'pi pi-shopping-cart' },
-    { title: 'Webinaire “Ma première rentrée à l’URCA”', date: '15/10/2020 | 14:00 - 16:00', icon: 'pi pi-cog' },
-    { title: 'Webinaire “Transition lycée-université”', date: '15/10/2020 | 16:15 - 18:00', icon: 'pi pi-shopping-cart' },
-]);
 
 const redirectTo = (link) => {
     window.open(link, '_blank')
@@ -82,13 +96,12 @@ const redirectTo = (link) => {
             </div>
         </div>
         <div class="card h-full">
-            <div class="absolute top-0 right-0 rounded-full bg-primary w-10 h-10"></div>
             <div class="card-title mb-4">
                 <div class="font-semibold text-xl">Agenda de l'IUT</div>
                 <em>Les évènements à venir</em>
             </div>
             <div class="card-content flex justify-between gap-10 mb-8">
-                <div v-for="(event, index) in agendaEvents" class="p-4 rounded-md flex-1">
+                <div v-for="(event, index) in agendaEvents" class="p-4 rounded-md flex-1 flex flex-col justify-between gap-2">
                     <div class="flex flex-col gap-2 items-start">
                         <div class="font-bold">
                             {{ event.title }}
@@ -101,8 +114,8 @@ const redirectTo = (link) => {
                                 {{ event.content }}
                             </p>
                         </div>
-                        <Button class="bg-primary-light" label="En savoir plus" />
                     </div>
+                    <Button class="bg-primary-light" label="En savoir plus" icon="pi pi-external-link" iconPos="right"/>
                 </div>
             </div>
 

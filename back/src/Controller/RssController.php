@@ -9,9 +9,8 @@ use Symfony\Component\Routing\Attribute\Route;
 class RssController extends AbstractController
 {
     #[Route('/api/actualites', name: 'app_rss_actus')]
-    public function index(): Response
+    public function getActus(): Response
     {
-        // faire une requête vers : https://www.univ-reims.fr/iut-troyes/service/rss/getRss.php?type=news
         $actus = simplexml_load_file('https://www.univ-reims.fr/iut-troyes/service/rss/getRss.php?type=news');
         $data = [];
         $count = 0;
@@ -23,6 +22,27 @@ class RssController extends AbstractController
                 'link' => (string) $actu->link,
                 'pubDate' => (string) $actu->pubDate,
                 'image' => (string) $actu->enclosure['url'],
+            ];
+            $count++;
+        }
+
+        return $this->json($data);
+    }
+
+    #[Route('/api/agenda', name: 'app_rss_events')]
+    public function getEvents(): Response
+    {
+        $events = simplexml_load_file('https://www.univ-reims.fr/iut-troyes/service/rss/getRss.php?type=event');
+        $data = [];
+        $count = 0;
+        foreach ($events->channel->item as $event) {
+            if ($count >= 4) break;
+            $data[] = [
+                'title' => (string) $event->title,
+                'description' => html_entity_decode(mb_convert_encoding((string)$event->description, 'UTF-8', 'ISO-8859-1')),
+                'link' => (string) $event->link,
+                'pubDate' => (string) $event->pubDate,
+                'image' => (string) $event->enclosure['url'],
             ];
             $count++;
         }
