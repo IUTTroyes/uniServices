@@ -39,17 +39,9 @@ class CopyTransfertBddEnseignementsCommand extends Command
 {
     protected object $em;
 
-    /** @param array<int, StructureDepartement> $tDepartements */
-    protected array $tDepartements = [];
-    protected array $tAnneeUniversitaire = [];
-    protected array $tTypeDiplomes = [];
-    protected array $tDiplomes = [];
-    protected array $tAnnees = [];
-    protected array $tSemestres = [];
     protected array $tMatieres = [];
     protected array $tCompetences = [];
     protected array $tUes = [];
-    protected array $tSemestreUes = [];
     protected array $tApprentissages = [];
 
     protected SymfonyStyle $io;
@@ -102,7 +94,7 @@ FOREIGN_KEY_CHECKS=1');
         $this->effacerTables();
 
         // Départements
-        //$this->addMatieres();
+        $this->addMatieres();
         $this->addRessources();
         $this->addSaes();
 
@@ -268,6 +260,7 @@ FOREIGN_KEY_CHECKS=1');
   "has_coefficient_different" => 0
              */
             $this->entityManager->persist($matiere);
+            //todo: traiter les ressources enfants a ajouter dans l'API
            // $this->tMatieres[$mat['id']] = $matiere;
            // dump($mat['id']);
             // récupérer les dépendances de ApcRessources : ApprentissagesCrtiques, Competences, semestre
