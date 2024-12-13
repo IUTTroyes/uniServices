@@ -93,6 +93,19 @@ FOREIGN_KEY_CHECKS=1');
             $personnel->setOldId($pers['id']);
             $personnel->setRoles(json_decode($pers['roles'], true) ?? []);
             $personnel->setStructureAnneeUniversitaire($this->tAnneeUniversitaire[$pers['annee_universitaire_id']]);
+            $personnel->setEntreprise($pers['entreprise']);
+            $personnel->setTelBureau($pers['tel_bureau']);
+            $personnel->setDomaines([$pers['domaines']]);
+            $personnel->setBureau($pers['bureau1']);
+            $personnel->setNumeroHarpege($pers['numero_harpege']);
+            $personnel->setNbHeuresService($pers['nb_heures_service']);
+            $personnel->setMailPerso($pers['mail_perso']);
+            $personnel->setSitePerso($pers['site_perso']);
+            $personnel->setSiteUniv($pers['site_univ']);
+            $personnel->setAccesOriginaux((bool)$pers['access_originaux']);
+            $personnel->setResponsabilites($pers['responsabilites']);
+            $personnel->setPosteInterne($pers['poste_interne']);
+            $personnel->setStatut($pers['statut']);
 
             // gestion des adresses
             if ($pers['adresse_id'] !== null && $pers['adresse_id'] !== '') {

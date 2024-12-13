@@ -132,7 +132,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $entreprise = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    private ?string $tel_bureau = null;
+    private ?string $telBureau = null;
 
     #[ORM\Column(nullable: true)]
     private ?array $domaines = null;
@@ -528,12 +528,12 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getTelBureau(): ?string
     {
-        return $this->tel_bureau;
+        return $this->telBureau;
     }
 
-    public function setTelBureau(?string $tel_bureau): static
+    public function setTelBureau(?string $telBureau): static
     {
-        $this->tel_bureau = $tel_bureau;
+        $this->telBureau = $telBureau;
 
         return $this;
     }
