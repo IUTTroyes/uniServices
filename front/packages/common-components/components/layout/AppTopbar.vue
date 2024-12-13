@@ -51,7 +51,10 @@ const profileItems = ref([
     items: [
       {
         label: 'Profil',
-        icon: 'pi pi-user'
+        icon: 'pi pi-user',
+        command: () => {
+          window.location.href = '/intranet/profil';
+        }
       },
       {
         label: 'Paramètres',

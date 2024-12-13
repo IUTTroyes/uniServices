@@ -2,6 +2,7 @@ import { LayoutComponent } from 'common-components';
 import { createRouter, createWebHistory } from 'vue-router';
 import dashboardRoutes from './modules/dashboardRoutes';
 import agendaRoutes from "@/router/modules/agendaRoutes.js";
+import profilRoutes from "@/router/modules/profilRoutes.js";
 
 const intranetMenu = [
     {
@@ -30,7 +31,7 @@ const router = createRouter({
                 breadcrumbItems: route.meta.breadcrumb || []
             }),
             children: [
-                ...dashboardRoutes, ...agendaRoutes
+                ...dashboardRoutes, ...agendaRoutes, ...profilRoutes
             ]
         },
     ]
