@@ -117,7 +117,7 @@ const redirectTo = (link) => {
                             </p>
                         </div>
                     </div>
-                    <Button class="bg-primary-light" label="En savoir plus" icon="pi pi-external-link" iconPos="right"/>
+                    <Button class="bg-primary-light" label="En savoir plus" icon="pi pi-external-link" iconPos="right" @click="redirectTo(event.link)"/>
                 </div>
             </div>
 
