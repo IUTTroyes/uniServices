@@ -129,15 +129,19 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $scolEdtEvents;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['personnel:read'])]
     private ?string $entreprise = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['personnel:read'])]
     private ?string $telBureau = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['personnel:read'])]
     private ?array $domaines = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['personnel:read'])]
     private ?string $bureau = null;
 
     #[ORM\Column(nullable: true)]
@@ -150,21 +154,26 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $mailPerso = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['personnel:read'])]
     private ?string $sitePerso = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['personnel:read'])]
     private ?string $siteUniv = null;
 
     #[ORM\Column]
     private ?bool $accesOriginaux = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['personnel:read'])]
     private ?string $responsabilites = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['personnel:read'])]
     private ?string $posteInterne = null;
 
     #[ORM\Column(length: 15, nullable: true)]
+    #[Groups(['personnel:read'])]
     private ?string $statut = null;
 
     public function __construct()

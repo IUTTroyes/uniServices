@@ -8,8 +8,12 @@ const roles = ref([]);
 onMounted(async () => {
   await store.fetchUser();
   roles.value = store.user.displayRoles;
-  console.log(roles.value);
+  console.log(store.user);
 });
+
+const redirectTo = (link) => {
+  window.open(link, '_blank')
+}
 </script>
 
 <template>
@@ -19,16 +23,19 @@ onMounted(async () => {
         <div class="flex flex-col" style="width: 20%">
           <img :src="store.user.photoName" alt="photo de profil" class="rounded-full w-full">
           <div class="flex flex-col items-center gap-2">
-            <div class="role text-sm text-center rounded-md w-full font-bold" v-for="(role, index) in roles">{{role}}</div>
+            <div class="statut text-sm text-center rounded-md w-full font-bold">{{store.user.statut}}</div>
+            <div class="responsabilites text-sm text-center rounded-md w-full font-bold">{{store.user.responsabilites}}</div>
           </div>
         </div>
         <div class="profile-header-infos" style="width: 80%">
           <div>
             <div class="title">{{ store.user.prenom }} {{ store.user.nom }}</div>
-            <div class="text-muted-color">{{store.user.mailUniv}}</div>
+            <div class="text-muted-color">{{store.user.mailUniv}} <span v-if="store.user.telBureau">| {{store.user.telBureau}} </span><span v-if="store.user.posteInterne"> ({{store.user.posteInterne}})</span></div>
           </div>
-          <div>
+          <div class="flex flex-row gap-2">
             <Button label="Contacter" icon="pi pi-envelope" severity="contrast"/>
+            <Button v-if="store.user.sitePerso" label="Site Personnel" icon="pi pi-external-link" iconPos="right" severity="contrast" @click="redirectTo(store.user.sitePerso)"/>
+            <Button v-if="store.user.siteUniv" label="Site Universitaire" icon="pi pi-external-link" iconPos="right" severity="contrast" @click="redirectTo(store.user.siteUniv)"/>
           </div>
           <div class="w-1/2 h-10">
             <ul>
@@ -76,8 +83,14 @@ onMounted(async () => {
   background-color: var(--p-primary-100);
   color: black;
 
-  .role {
+  .statut {
     background-color: white;
+    padding: 0.5rem 2rem;
+    position: relative;
+    top: -2rem;
+  }
+  .responsabilites {
+    background-color: var(--p-yellow-400);
     padding: 0.5rem 2rem;
     position: relative;
     top: -2rem;
