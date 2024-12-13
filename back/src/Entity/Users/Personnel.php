@@ -36,6 +36,15 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     use LifeCycleTrait;
     use OldIdTrait;
 
+    private const ROLES = [
+        'ROLE_PERMANENT' => 'Permanent',
+        'ROLE_EDUSIGN' => 'EduSign',
+        'ROLE_RESP_DIPLOME' => 'Responsable de diplôme',
+        'ROLE_RESP_DEPARTEMENT' => 'Responsable de département',
+        'ROLE_ASSIST_DEPARTEMENT' => 'Assistant de département',
+        'ROLE_RESP_EDT' => 'Responsable des emplois du temps',
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -119,6 +128,45 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'personnel')]
     private Collection $scolEdtEvents;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $entreprise = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $tel_bureau = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?array $domaines = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $bureau = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $numeroHarpege = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $nbHeuresService = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $mailPerso = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $sitePerso = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $siteUniv = null;
+
+    #[ORM\Column]
+    private ?bool $accesOriginaux = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $responsabilites = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $posteInterne = null;
+
+    #[ORM\Column(length: 15, nullable: true)]
+    private ?string $statut = null;
+
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
@@ -192,6 +240,17 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         $this->password = $password;
 
         return $this;
+    }
+
+    #[Groups(['personnel:read'])]
+    public function getDisplayRoles(): array
+    {
+        $roles = [];
+        foreach ($this->roles as $role) {
+            $roles[] = self::ROLES[$role] ?? $role;
+        }
+
+        return $roles;
     }
 
     public function getRoles(): array
@@ -451,6 +510,162 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
                 $scolEdtEvent->setPersonnel(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEntreprise(): ?string
+    {
+        return $this->entreprise;
+    }
+
+    public function setEntreprise(?string $entreprise): static
+    {
+        $this->entreprise = $entreprise;
+
+        return $this;
+    }
+
+    public function getTelBureau(): ?string
+    {
+        return $this->tel_bureau;
+    }
+
+    public function setTelBureau(?string $tel_bureau): static
+    {
+        $this->tel_bureau = $tel_bureau;
+
+        return $this;
+    }
+
+    public function getDomaines(): ?array
+    {
+        return $this->domaines;
+    }
+
+    public function setDomaines(?array $domaines): static
+    {
+        $this->domaines = $domaines;
+
+        return $this;
+    }
+
+    public function getBureau(): ?string
+    {
+        return $this->bureau;
+    }
+
+    public function setBureau(?string $bureau): static
+    {
+        $this->bureau = $bureau;
+
+        return $this;
+    }
+
+    public function getNumeroHarpege(): ?int
+    {
+        return $this->numeroHarpege;
+    }
+
+    public function setNumeroHarpege(?int $numeroHarpege): static
+    {
+        $this->numeroHarpege = $numeroHarpege;
+
+        return $this;
+    }
+
+    public function getNbHeuresService(): ?int
+    {
+        return $this->nbHeuresService;
+    }
+
+    public function setNbHeuresService(?int $nbHeuresService): static
+    {
+        $this->nbHeuresService = $nbHeuresService;
+
+        return $this;
+    }
+
+    public function getMailPerso(): ?string
+    {
+        return $this->mailPerso;
+    }
+
+    public function setMailPerso(?string $mailPerso): static
+    {
+        $this->mailPerso = $mailPerso;
+
+        return $this;
+    }
+
+    public function getSitePerso(): ?string
+    {
+        return $this->sitePerso;
+    }
+
+    public function setSitePerso(?string $sitePerso): static
+    {
+        $this->sitePerso = $sitePerso;
+
+        return $this;
+    }
+
+    public function getSiteUniv(): ?string
+    {
+        return $this->siteUniv;
+    }
+
+    public function setSiteUniv(?string $siteUniv): static
+    {
+        $this->siteUniv = $siteUniv;
+
+        return $this;
+    }
+
+    public function isAccesOriginaux(): ?bool
+    {
+        return $this->accesOriginaux;
+    }
+
+    public function setAccesOriginaux(bool $accesOriginaux): static
+    {
+        $this->accesOriginaux = $accesOriginaux;
+
+        return $this;
+    }
+
+    public function getResponsabilites(): ?string
+    {
+        return $this->responsabilites;
+    }
+
+    public function setResponsabilites(?string $responsabilites): static
+    {
+        $this->responsabilites = $responsabilites;
+
+        return $this;
+    }
+
+    public function getPosteInterne(): ?string
+    {
+        return $this->posteInterne;
+    }
+
+    public function setPosteInterne(?string $posteInterne): static
+    {
+        $this->posteInterne = $posteInterne;
+
+        return $this;
+    }
+
+    public function getStatut(): ?string
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(?string $statut): static
+    {
+        $this->statut = $statut;
 
         return $this;
     }
