@@ -103,11 +103,13 @@ const redirectTo = (link) => {
             <div class="card-content flex justify-between gap-10 mb-8">
                 <div v-for="(event, index) in agendaEvents" class="p-4 rounded-md flex-1 flex flex-col justify-between gap-2">
                     <div class="flex flex-col gap-2 items-start">
-                        <div class="font-bold">
-                            {{ event.title }}
-                        </div>
-                        <div class="text-sm">
-                            {{ event.date }}
+                        <div>
+                            <div class="font-bold text-lg">
+                                {{ event.title }}
+                            </div>
+                            <div class="text-sm text-muted-color">
+                                {{ event.date }}
+                            </div>
                         </div>
                         <div>
                             <p>
