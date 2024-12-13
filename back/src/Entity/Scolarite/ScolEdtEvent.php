@@ -36,7 +36,7 @@ class ScolEdtEvent
     private ?\DateTimeInterface $fin = null;
 
     #[ORM\Column(length: 25)]
-    private ?string $salle = null;
+    private ?string $salle = '-';
 
     #[ORM\Column(length: 25, nullable: true)]
     private ?string $codeSalle = null;
@@ -56,7 +56,7 @@ class ScolEdtEvent
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $codeModule = null;
 
-    #[ORM\Column(length: 50, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $libModule = null;
 
     #[ORM\Column(length: 15, nullable: true)]

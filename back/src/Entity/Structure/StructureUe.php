@@ -3,15 +3,14 @@
 namespace App\Entity\Structure;
 
 use App\Entity\Apc\ApcCompetence;
-use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Scolarite\ScolEnseignementUe;
 use App\Entity\Traits\OldIdTrait;
-use App\Repository\UeRepository;
+use App\Repository\Structure\StructureUeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: UeRepository::class)]
+#[ORM\Entity(repositoryClass: StructureUeRepository::class)]
 class StructureUe
 {
     use OldIdTrait; //a supprimer après transfert

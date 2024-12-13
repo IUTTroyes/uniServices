@@ -368,6 +368,7 @@ FOREIGN_KEY_CHECKS=1');
                 $ue->setActif((bool)$u['actif']);
                 $ue->setBonification((bool)$u['bonification']);
                 $ue->setNbEcts((float)$u['nb_ects']); //Apc?
+                $ue->setOldId($u['id']);
 //            $this->tUes[$u['id']] = $ue;
 //            if ($u['competence_id'] !== null) {
 //                if (array_key_exists($u['competence_id'], $this->tCompetences)) {
