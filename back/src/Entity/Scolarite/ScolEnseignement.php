@@ -13,6 +13,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ScolEnseignementRepository::class)]
 class ScolEnseignement
@@ -23,12 +24,15 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['semestre:read:full'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['semestre:read:full'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
+    #[Groups(['semestre:read:full'])]
     private ?string $libelle_court = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -44,9 +48,11 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['semestre:read:full'])]
     private ?string $codeMatiere = null;
 
     #[ORM\Column]
+    #[Groups(['semestre:read:full'])]
     private ?bool $suspendu = null;
 
     #[ORM\Column(type: Types::JSON)]

@@ -5,10 +5,12 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureDiplomeRepository;
@@ -21,8 +23,15 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StructureDiplomeRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['structure_diplome:read']]),
+        new Get(normalizationContext: ['groups' => ['structure_diplome:read', 'structure_diplome:read:full']]),
         new GetCollection(normalizationContext: ['groups' => ['structure_diplome:read']]),
+        new GetCollection(
+            uriTemplate: '/diplomes-par-departement/{departementId}',
+            uriVariables: [
+                'departementId' => new Link(fromClass: StructureDepartement::class, identifiers: ['id'], toProperty: 'departement')
+            ],
+            normalizationContext: ['groups' => ['structure_diplome:read']]
+        ),
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
@@ -31,6 +40,7 @@ class StructureDiplome
     use EduSignTrait;
     use LifeCycleTrait;
     use OptionTrait;
+    use OldIdTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -39,6 +49,7 @@ class StructureDiplome
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['structure_diplome:read'])]
     private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome')]
@@ -48,15 +59,19 @@ class StructureDiplome
     private ?Personnel $assistantDiplome = null;
 
     #[ORM\Column]
+    #[Groups(['structure_diplome:read:full'])]
     private int $volumeHoraire = 0;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['structure_diplome:read:full'])]
     private ?int $codeCelcatDepartement = null;
 
     #[ORM\Column(length: 40, nullable: true)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $sigle = null;
 
     #[ORM\Column]
+    #[Groups(['structure_diplome:read'])]
     private bool $actif = true;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
@@ -69,22 +84,27 @@ class StructureDiplome
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $logoPartenaireName = null;
 
-    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome')]
+    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome', fetch: 'EAGER')]
+    #[Groups(['structure_diplome:read:full'])]
     private Collection $structurePns;
 
     #[ORM\ManyToOne(inversedBy: 'structureDiplomes')]
     private ?StructureDepartement $departement = null;
 
     #[ORM\Column(length: 3, nullable: true)]
+    #[Groups(['structure_diplome:read:full'])]
     private ?string $apogeeCodeVersion = null;
 
     #[ORM\Column(length: 10, nullable: true)]
+    #[Groups(['structure_diplome:read:full'])]
     private ?string $apogeeCodeDiplome = null;
 
     #[ORM\Column(length: 3, nullable: true)]
+    #[Groups(['structure_diplome:read:full'])]
     private ?string $apogeeCodeDepartement = null;
 
     #[ORM\ManyToOne(inversedBy: 'structureDiplomes')]
+    #[Groups(['structure_diplome:read'])]
     private ?StructureTypeDiplome $typeDiplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
