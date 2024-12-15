@@ -6,6 +6,7 @@ use App\Entity\Apc\ApcParcours;
 use App\Entity\Scolarite\ScolEdtEvent;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\EduSignTrait;
+use App\Entity\Traits\OldIdTrait;
 use App\Entity\Users\Etudiant;
 use App\Repository\Structure\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -18,6 +19,7 @@ class StructureGroupe
 {
     use ApogeeTrait;
     use EduSignTrait;
+    use OldIdTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

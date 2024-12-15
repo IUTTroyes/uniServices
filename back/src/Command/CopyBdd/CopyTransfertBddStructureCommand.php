@@ -6,6 +6,7 @@ use App\Entity\Structure\StructureAnnee;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
+use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructurePn;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Structure\StructureTypeDiplome;
@@ -116,6 +117,7 @@ FOREIGN_KEY_CHECKS=1');
         $this->addAnnee();
         $this->addSemestre();
         $this->addUe();
+        $this->addGroupes();
 
         $this->io->success('Processus de recopie terminé.');
 
@@ -430,5 +432,57 @@ FOREIGN_KEY_CHECKS=1');
         }
 
         $this->entityManager->flush();
+    }
+
+    private function addGroupes()
+    {
+        $reponses = $this->httpClient->request('GET', $this->base_url . '/groupes');
+        $groupes = $reponses->toArray();
+
+        foreach ($groupes as $groupe) {
+            /*
+             * "id": 9,
+"libelle": "CD",
+"codeApogee": "3TSR_2TD2",
+"ordre": 3,
+"typeGroupe": {
+"id": 9,
+"libelle": "TD",
+"defaut": true,
+"type": "TD",
+"mutualise": false,
+"semestre": [
+4
+]
+},
+"parcours": null,
+"enfants": []
+             */
+            $this->addEnfants($groupe, null);
+        }
+
+        $this->entityManager->flush();
+    }
+
+    private function addEnfants(mixed $groupe, ?StructureGroupe $structureGroupe): void
+    {
+        foreach ($groupe['enfants'] as $enfant) {
+            $enfantGroupe = new StructureGroupe();
+            $enfantGroupe->setLibelle($enfant['libelle']);
+            $enfantGroupe->setCodeApogee(substr($enfant['codeApogee'], 0, 25));
+            $enfantGroupe->setOrdre($enfant['ordre']);
+            $enfantGroupe->setType($enfant['typeGroupe']['libelle']); //todo: ou type ?
+            $enfantGroupe->setOldId($enfant['id']);
+            $enfantGroupe->setKeyEduSign($enfant['edusign']);
+            $enfantGroupe->setParent($structureGroupe);
+            //traiter les semestres
+            foreach ($enfant['typeGroupe']['semestres'] as $semestre) {
+                if (array_key_exists($semestre, $this->tSemestres)) {
+                    $enfantGroupe->addSemestre($this->tSemestres[$semestre]);
+                }
+            }
+            $this->entityManager->persist($enfantGroupe);
+            $this->addEnfants($enfant, $enfantGroupe);
+        }
     }
 }
