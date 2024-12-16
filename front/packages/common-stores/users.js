@@ -41,7 +41,8 @@ export const useUsersStore = defineStore('users', () => {
                 departementDefaut.value = departementPersonnelDefaut.value.departement;
                 localStorage.setItem('departement', departementDefaut.value.id);
                 // récupérer les départements qui n'ont pas defaut = true
-                departementsNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
+                departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
+                departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
             }
         } catch (error) {
             console.error('Error fetching user:', error);
@@ -50,7 +51,8 @@ export const useUsersStore = defineStore('users', () => {
 
     const changeDepartement = async (departementId) => {
         try {
-            const response = await api.post(`/api/structure_departement_personnels/${departementId}/change_departement`, {
+            const departementPersonnelId = departements.value.find(departement => departement.departement.id === departementId).id;
+            const response = await api.post(`/api/structure_departement_personnels/${departementPersonnelId}/change_departement`, {
             }, {
                 headers: {
                     'Content-Type': 'application/ld+json'
@@ -64,7 +66,7 @@ export const useUsersStore = defineStore('users', () => {
             localStorage.setItem('departement', departementDefaut.value.id);
             // récupérer les départements qui n'ont pas defaut = true
             departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
-            departementDefaut.value = departementPersonnelDefaut.value.departement;
+            departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
         } catch (error) {
             console.error('Error changing department:', error);
         }
@@ -75,6 +77,7 @@ export const useUsersStore = defineStore('users', () => {
         userType,
         departements,
         departementDefaut,
+        departementsPersonnelNotDefaut,
         departementsNotDefaut,
         getUser,
         changeDepartement
