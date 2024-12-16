@@ -6,6 +6,8 @@ import api from '@/axios';
 
 import DashboardPersonnel from "@/components/Personnel/Dashboard.vue";
 import DashboardEtudiant from "@/components/Etudiant/Dashboard.vue";
+import CardSkeleton from "@/components/Loader/CardSkeleton.vue";
+import ArticleSkeleton from "@/components/Loader/ArticleSkeleton.vue";
 
 const store = useUsersStore();
 const date = '';
@@ -108,30 +110,10 @@ const redirectTo = (link) => {
             </div>
             <div class="card-content flex justify-between gap-10 mb-8">
                 <div v-if="isLoadingAgenda" class="flex justify-between w-full gap-10">
-                    <div class="w-full">
-                        <Skeleton width="100%" class="mb-2"></Skeleton>
-                        <Skeleton width="50%" class="mb-2"></Skeleton>
-                        <Skeleton height="5rem" class="mb-2"></Skeleton>
-                        <Skeleton width="100%" height="2rem"></Skeleton>
-                    </div>
-                    <div class="w-full">
-                        <Skeleton width="100%" class="mb-2"></Skeleton>
-                        <Skeleton width="50%" class="mb-2"></Skeleton>
-                        <Skeleton height="5rem" class="mb-2"></Skeleton>
-                        <Skeleton width="100%" height="2rem"></Skeleton>
-                    </div>
-                    <div class="w-full">
-                        <Skeleton width="100%" class="mb-2"></Skeleton>
-                        <Skeleton width="50%" class="mb-2"></Skeleton>
-                        <Skeleton height="5rem" class="mb-2"></Skeleton>
-                        <Skeleton width="100%" height="2rem"></Skeleton>
-                    </div>
-                    <div class="w-full">
-                        <Skeleton width="100%" class="mb-2"></Skeleton>
-                        <Skeleton width="50%" class="mb-2"></Skeleton>
-                        <Skeleton height="5rem" class="mb-2"></Skeleton>
-                        <Skeleton width="100%" height="2rem"></Skeleton>
-                    </div>
+                    <ArticleSkeleton />
+                    <ArticleSkeleton />
+                    <ArticleSkeleton />
+                    <ArticleSkeleton />
                 </div>
                 <div v-else v-for="(event, index) in agendaEvents" class="p-4 rounded-md flex-1 flex flex-col justify-between gap-2">
                     <div class="flex flex-col gap-2 items-start">
@@ -159,30 +141,10 @@ const redirectTo = (link) => {
             </div>
             <div class="flex justify-between gap-10">
                 <div v-if="isLoadingActu" class="flex justify-between w-full gap-10">
-                    <div class="w-full">
-                        <Skeleton width="100%" height="5rem" class="mb-2"></Skeleton>
-                        <Skeleton width="50%" class="mb-2"></Skeleton>
-                        <Skeleton height="3rem" class="mb-2"></Skeleton>
-                        <Skeleton width="100%" height="2rem"></Skeleton>
-                    </div>
-                    <div class="w-full">
-                        <Skeleton width="100%" height="5rem" class="mb-2"></Skeleton>
-                        <Skeleton width="100%" class="mb-2"></Skeleton>
-                        <Skeleton height="3rem" class="mb-2"></Skeleton>
-                        <Skeleton width="100%" height="2rem"></Skeleton>
-                    </div>
-                    <div class="w-full">
-                        <Skeleton width="100%" height="5rem" class="mb-2"></Skeleton>
-                        <Skeleton width="100%" class="mb-2"></Skeleton>
-                        <Skeleton height="3rem" class="mb-2"></Skeleton>
-                        <Skeleton width="100%" height="2rem"></Skeleton>
-                    </div>
-                    <div class="w-full">
-                        <Skeleton width="100%" height="5rem" class="mb-2"></Skeleton>
-                        <Skeleton width="100%" class="mb-2"></Skeleton>
-                        <Skeleton height="3rem" class="mb-2"></Skeleton>
-                        <Skeleton width="100%" height="2rem"></Skeleton>
-                    </div>
+                    <CardSkeleton />
+                    <CardSkeleton />
+                    <CardSkeleton />
+                    <CardSkeleton />
                 </div>
                 <Card v-else v-for="(event, index) in actuEvents" :key="index" style="width: 25rem" class="card-actus flex flex-col justify-between overflow-hidden w-25">
                     <template #header>
