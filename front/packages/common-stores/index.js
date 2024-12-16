@@ -1,3 +1,4 @@
 import { useUsersStore } from './users';
+import { useSemestreStore } from './semestre';
 
-export { useUsersStore };
+export { useUsersStore, useSemestreStore };
