@@ -1,7 +1,7 @@
 <script setup>
-
 import { onMounted, ref } from 'vue'
 import { useSemestreStore } from 'common-stores'
+import api from '@/axios';
 
 const semestreStore = useSemestreStore()
 
@@ -13,28 +13,29 @@ const panels = ref([])
 
 onMounted(async () => {
     const departementId = localStorage.getItem('departement')
-    diplomes.value = await fetchDiplomes(departementId)
+    diplomes.value = await getDiplomes(departementId)
     console.log(diplomes.value)
 })
 
 const onPanelUpdate = async (newValue) => {
-    //parcourir les valeurs de newValue, regarder si c'est une clé présente dans panels, si non, fetch
+    //parcourir les valeurs de newValue, regarder si c'est une clé présente dans panels, si non, get
     newValue.forEach(async (value) => {
         if (!panels.value[value]) {
-            panels.value[value] = await semestreStore.fetchSemestre(value)
+            panels.value[value] = await semestreStore.getSemestre(value)
         }
     })
 }
 
-async function fetchDiplomes (departementId) {
-    const response = await fetch(`https://127.0.0.1:8000/api/diplomes-par-departement/${departementId}`)
-    return await response.json()
+async function getDiplomes (departementId) {
+    const response = await api.get(`/api/diplomes-par-departement/${departementId}`)
+    return await response.data
 }
 
 async function changeDiplome (diplome) {
     selectedDiplome.value = diplome
-    const response = await fetch(`https://127.0.0.1:8000/api/structure_diplomes/${diplome.id}`)
-    selectedDiplome.value = await response.json()
+    const response = await api.get(`/api/structure_diplomes/${diplome.id}`)
+    selectedDiplome.value = await response.data
+    console.log(selectedDiplome.value)
     selectedPn.value = null
     // parcours les structurePns dans selectedDiplome et prendre le plus récent par rapport à l'année de publication par défaut
     selectedPn.value = selectedDiplome.value.structurePns.reduce((prev, current) => {
