@@ -11,7 +11,9 @@ export const useUsersStore = defineStore('users', () => {
     const user = ref([]);
     const departements = ref([]);
     const departementDefaut = ref({});
+    const departementPersonnelDefaut = ref({});
     const departementsNotDefaut = ref({});
+    const departementsPersonnelNotDefaut = ref({});
 
     const getUser = async () => {
         try {
@@ -35,9 +37,9 @@ export const useUsersStore = defineStore('users', () => {
                 }
 
                 // récupérer le département qui a defaut = true
-                departementDefaut.value = departements.value.find(departement => departement.defaut === true);
-                console.log(departementDefaut.value.departement);
-                localStorage.setItem('departement', departementDefaut.value.departement.id);
+                departementPersonnelDefaut.value = departements.value.find(departement => departement.defaut === true);
+                departementDefaut.value = departementPersonnelDefaut.value.departement;
+                localStorage.setItem('departement', departementDefaut.value.id);
                 // récupérer les départements qui n'ont pas defaut = true
                 departementsNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
             }
@@ -57,9 +59,12 @@ export const useUsersStore = defineStore('users', () => {
             departements.value = response.data;
 
             // récupérer le département qui a defaut = true
-            departementDefaut.value = departements.value.find(departement => departement.defaut === true);
+            departementPersonnelDefaut.value = departements.value.find(departement => departement.defaut === true);
+            departementDefaut.value = departementPersonnelDefaut.value.departement;
+            localStorage.setItem('departement', departementDefaut.value.id);
             // récupérer les départements qui n'ont pas defaut = true
-            departementsNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
+            departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
+            departementDefaut.value = departementPersonnelDefaut.value.departement;
         } catch (error) {
             console.error('Error changing department:', error);
         }

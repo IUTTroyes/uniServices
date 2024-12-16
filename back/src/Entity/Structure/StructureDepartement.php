@@ -66,6 +66,7 @@ class StructureDepartement
      * @var Collection<int, StructureDepartementPersonnel>
      */
     #[ORM\OneToMany(targetEntity: StructureDepartementPersonnel::class, mappedBy: 'departement')]
+    #[Groups(groups: ['structure_departement:read'])]
     private Collection $structureDepartementPersonnels;
 
     /**
