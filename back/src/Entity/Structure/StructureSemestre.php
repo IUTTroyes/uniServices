@@ -22,7 +22,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StructureSemestreRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['semestre:read']]),
+        new Get(normalizationContext: ['groups' => ['semestre:read', 'semestre:read:full']]),
         new GetCollection(normalizationContext: ['groups' => ['semestre:read']]),
     ]
 )]
@@ -37,23 +37,23 @@ class StructureSemestre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full'])]
     private string $libelle;
 
     #[ORM\Column]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full'])]
     private int $ordreAnnee = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full'])]
     private int $ordreLmd = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full'])]
     private bool $actif = true;
 
     #[ORM\Column]
@@ -69,7 +69,7 @@ class StructureSemestre
     private int $nbGroupesTp = 2;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full'])]
     private ?string $codeElement = null;
 
     /**
@@ -94,7 +94,7 @@ class StructureSemestre
      * @var Collection<int, StructureUe>
      */
     #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'semestre')]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full'])]
     private Collection $structureUes;
 
     /**

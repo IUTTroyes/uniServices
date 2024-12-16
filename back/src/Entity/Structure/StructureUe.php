@@ -3,15 +3,15 @@
 namespace App\Entity\Structure;
 
 use App\Entity\Apc\ApcCompetence;
-use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Scolarite\ScolEnseignementUe;
 use App\Entity\Traits\OldIdTrait;
-use App\Repository\UeRepository;
+use App\Repository\Structure\StructureUeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
-#[ORM\Entity(repositoryClass: UeRepository::class)]
+#[ORM\Entity(repositoryClass: StructureUeRepository::class)]
 class StructureUe
 {
     use OldIdTrait; //a supprimer après transfert
@@ -19,24 +19,31 @@ class StructureUe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['semestre:read:full'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['semestre:read:full'])]
     private string $libelle = '';
 
     #[ORM\Column]
+    #[Groups(['semestre:read:full'])]
     private int $numero = 0;
 
     #[ORM\Column]
+    #[Groups(['semestre:read:full'])]
     private float $nbEcts = 0;
 
     #[ORM\Column]
+    #[Groups(['semestre:read:full'])]
     private bool $actif = true;
 
     #[ORM\Column]
+    #[Groups(['semestre:read:full'])]
     private bool $bonification = false;
 
     #[ORM\Column(length: 15)]
+    #[Groups(['semestre:read:full'])]
     private string $codeElement = '';
 
     #[ORM\ManyToOne(inversedBy: 'ues')]
@@ -49,6 +56,7 @@ class StructureUe
      * @var Collection<int, ScolEnseignementUe>
      */
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'ue')]
+    #[Groups(['semestre:read:full'])]
     private Collection $scolEnseignementUes;
 
     public function __construct()

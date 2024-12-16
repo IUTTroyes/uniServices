@@ -29,16 +29,15 @@ class StructurePn
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['structure_diplome:read:full'])]
     private string $libelle;
 
     #[ORM\Column]
+    #[Groups(['structure_diplome:read:full'])]
     private int $anneePublication;
 
     #[ORM\ManyToOne(inversedBy: 'structurePns')]
     private ?StructureDiplome $diplome = null;
-
-    #[ORM\ManyToOne(inversedBy: 'pn')]
-    private ?StructureAnnee $structureAnnee = null;
 
     /**
      * @var Collection<int, StructureAnneeUniversitaire>
@@ -49,10 +48,19 @@ class StructurePn
     #[ORM\ManyToOne(inversedBy: 'pn')]
     private ?ApcReferentiel $apcReferentiel = null;
 
-    public function __construct()
+    /**
+     * @var Collection<int, StructureAnnee>
+     */
+    #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'pn')]
+    #[Groups(['structure_diplome:read:full'])]
+    private Collection $structureAnnees;
+
+    public function __construct(StructureDiplome $diplome)
     {
         $this->structureAnneeUniversitaires = new ArrayCollection();
         $this->anneePublication = (int)(new DateTime('now'))->format('Y');
+        $this->structureAnnees = new ArrayCollection();
+        $this->setDiplome($diplome);
     }
 
     public function getId(): ?int
@@ -96,18 +104,6 @@ class StructurePn
         return $this;
     }
 
-    public function getStructureAnnee(): ?StructureAnnee
-    {
-        return $this->structureAnnee;
-    }
-
-    public function setStructureAnnee(?StructureAnnee $structureAnnee): static
-    {
-        $this->structureAnnee = $structureAnnee;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, StructureAnneeUniversitaire>
      */
@@ -143,6 +139,36 @@ class StructurePn
     public function setApcReferentiel(?ApcReferentiel $apcReferentiel): static
     {
         $this->apcReferentiel = $apcReferentiel;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureAnnee>
+     */
+    public function getStructureAnnees(): Collection
+    {
+        return $this->structureAnnees;
+    }
+
+    public function addStructureAnnee(StructureAnnee $structureAnnee): static
+    {
+        if (!$this->structureAnnees->contains($structureAnnee)) {
+            $this->structureAnnees->add($structureAnnee);
+            $structureAnnee->setPn($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStructureAnnee(StructureAnnee $structureAnnee): static
+    {
+        if ($this->structureAnnees->removeElement($structureAnnee)) {
+            // set the owning side to null (unless already changed)
+            if ($structureAnnee->getPn() === $this) {
+                $structureAnnee->setPn(null);
+            }
+        }
 
         return $this;
     }

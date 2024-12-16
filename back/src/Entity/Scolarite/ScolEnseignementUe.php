@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Structure\StructureUe;
 use App\Repository\Scolarite\ScolEnseignementUeRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ScolEnseignementUeRepository::class)]
 #[ApiResource]
@@ -14,9 +15,11 @@ class ScolEnseignementUe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['semestre:read:full'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolEnseignementUes')]
+    #[Groups(['semestre:read:full'])]
     private ?ScolEnseignement $enseignement;
 
     #[ORM\ManyToOne(inversedBy: 'scolEnseignementUes')]

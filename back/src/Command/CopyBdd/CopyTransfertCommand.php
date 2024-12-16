@@ -27,8 +27,11 @@ class CopyTransfertCommand extends Command
     {
         $this
             ->addOption('all', null, InputOption::VALUE_NONE, 'Execute all commands in order')
-            ->addOption('users', null, InputOption::VALUE_NONE, 'Execute only users')
+            ->addOption('edt', null, InputOption::VALUE_NONE, 'Execute only Edt')
+            ->addOption('user', null, InputOption::VALUE_NONE, 'Execute only users')
             ->addOption('structure', null, InputOption::VALUE_NONE, 'Execute only structure')
+            ->addOption('scolarite', null, InputOption::VALUE_NONE, 'Execute only structure')
+            ->addOption('enseignement', null, InputOption::VALUE_NONE, 'Execute only enseignements')
             ->addOption('apc', null, InputOption::VALUE_NONE, 'Execute only APC');
     }
 
@@ -36,19 +39,34 @@ class CopyTransfertCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        if (!$input->getOption('all') && !$input->getOption('users') && !$input->getOption('structure') && !$input->getOption('apc')) {
+        if (!$input->getOption('scolarite') && !$input->getOption('edt') && !$input->getOption('enseignement') && !$input->getOption('all') && !$input->getOption('user') && !$input->getOption('structure') && !$input->getOption('apc')) {
             $io->error('At least one option is required. Use --help to see available options.');
             return Command::FAILURE;
         }
 
-        if ($input->getOption('all')) {
-            $this->executeAll($io);
-        } elseif ($input->getOption('users')) {
-            $this->executeUsers($io);
-        } elseif ($input->getOption('structure')) {
-            $this->executeStructure($io);
-        } elseif ($input->getOption('apc')) {
-            $this->executeApc($io);
+        switch (true) {
+            case $input->getOption('all'):
+                $this->executeAll($io);
+                break;
+
+            case $input->getOption('user'):
+                $this->executeUsers($io);
+                break;
+
+            case $input->getOption('structure'):
+                $this->executeStructure($io);
+                break;
+
+            case $input->getOption('enseignement'):
+                $this->executeEnseignements($io);
+                break;
+
+            case $input->getOption('apc'):
+                $this->executeApc($io);
+                break;
+            case $input->getOption('edt'):
+                $this->executeEdt($io);
+                break;
         }
 
         $io->success('Transfert terminé.');
@@ -58,9 +76,12 @@ class CopyTransfertCommand extends Command
 
     private function executeAll(SymfonyStyle $io): void
     {
-        $this->executeUsers($io);
         $this->executeStructure($io);
         $this->executeApc($io);
+        $this->executeEnseignements($io);
+        $this->executeUsers($io);
+        $this->executeEdt($io);
+        $this->executeScolarite($io);
     }
 
     private function executeUsers(SymfonyStyle $io): int
@@ -69,6 +90,28 @@ class CopyTransfertCommand extends Command
         $command = $this->getApplication()?->find('copy:transfert-bdd:user');
         $arguments = [
             'command' => 'copy:transfert-bdd:user',
+        ];
+
+        $arrayInput = new ArrayInput($arguments);
+        $bufferedOutput = new BufferedOutput();
+
+        // Run the command
+        $returnCode = $command->run($arrayInput, $bufferedOutput);
+
+        // Get the output of the command
+        $content = $bufferedOutput->fetch();
+        $io->success('Output of the other command: ' . $content);
+
+
+        return $returnCode;
+    }
+
+    private function executeEnseignements(SymfonyStyle $io): int
+    {
+        $io->info('Executing enseignements (ressources, SAE, matières...');
+        $command = $this->getApplication()?->find('copy:transfert-bdd:enseignements');
+        $arguments = [
+            'command' => 'copy:transfert-bdd:enseignements',
         ];
 
         $arrayInput = new ArrayInput($arguments);
@@ -114,9 +157,69 @@ class CopyTransfertCommand extends Command
         return $returnCode;
     }
 
-    private function executeApc(SymfonyStyle $io): void
+    private function executeApc(SymfonyStyle $io): int
     {
-        // Logic to execute APC
         $io->info('Executing APC...');
+        $command = $this->getApplication()?->find('copy:transfert-bdd:apc');
+        $arguments = [
+            'command' => 'copy:transfert-bdd:apc',
+        ];
+
+        $arrayInput = new ArrayInput($arguments);
+        $bufferedOutput = new BufferedOutput();
+
+        // Run the command
+        $returnCode = $command->run($arrayInput, $bufferedOutput);
+
+        // Get the output of the command
+        $content = $bufferedOutput->fetch();
+        $io->success('Output of the other command: ' . $content);
+
+
+        return $returnCode;
+    }
+
+    private function executeEdt(SymfonyStyle $io): int
+    {
+        $io->info('Executing EDT...');
+        $command = $this->getApplication()?->find('copy:transfert-bdd:edt');
+        $arguments = [
+            'command' => 'copy:transfert-bdd:edt',
+        ];
+
+        $arrayInput = new ArrayInput($arguments);
+        $bufferedOutput = new BufferedOutput();
+
+        // Run the command
+        $returnCode = $command->run($arrayInput, $bufferedOutput);
+
+        // Get the output of the command
+        $content = $bufferedOutput->fetch();
+        $io->success('Output of the other command: ' . $content);
+
+
+        return $returnCode;
+    }
+
+    private function executeScolarite(SymfonyStyle $io): int
+    {
+        $io->info('Executing APC...');
+        $command = $this->getApplication()?->find('copy:transfert-bdd:scolarite');
+        $arguments = [
+            'command' => 'copy:transfert-bdd:scolarite',
+        ];
+
+        $arrayInput = new ArrayInput($arguments);
+        $bufferedOutput = new BufferedOutput();
+
+        // Run the command
+        $returnCode = $command->run($arrayInput, $bufferedOutput);
+
+        // Get the output of the command
+        $content = $bufferedOutput->fetch();
+        $io->success('Output of the other command: ' . $content);
+
+
+        return $returnCode;
     }
 }

@@ -13,6 +13,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: StructureAnneeRepository::class)]
 #[ApiResource(
@@ -30,12 +31,15 @@ class StructureAnnee
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['structure_diplome:read:full'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['structure_diplome:read:full'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
+    #[Groups(['structure_diplome:read:full'])]
     private int $ordre = 0;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -48,15 +52,10 @@ class StructureAnnee
     private ?string $couleur = null;
 
     /**
-     * @var Collection<int, StructurePn>
-     */
-    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'structureAnnee')]
-    private Collection $pn;
-
-    /**
      * @var Collection<int, StructureSemestre>
      */
     #[ORM\OneToMany(targetEntity: StructureSemestre::class, mappedBy: 'annee')]
+    #[Groups(['structure_diplome:read:full'])]
     private Collection $structureSemestres;
 
     #[ORM\Column(length: 3, nullable: true)]
@@ -68,9 +67,11 @@ class StructureAnnee
     #[ORM\ManyToOne(inversedBy: 'annees')]
     private ?ApcNiveau $apcNiveau = null;
 
+    #[ORM\ManyToOne(inversedBy: 'structureAnnees')]
+    private ?StructurePn $pn = null;
+
     public function __construct()
     {
-        $this->pn = new ArrayCollection();
         $this->structureSemestres = new ArrayCollection();
         $this->setOpt([]);
     }
@@ -136,36 +137,6 @@ class StructureAnnee
     public function setCouleur(?string $couleur): static
     {
         $this->couleur = $couleur;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, StructurePn>
-     */
-    public function getPn(): Collection
-    {
-        return $this->pn;
-    }
-
-    public function addPn(StructurePn $pn): static
-    {
-        if (!$this->pn->contains($pn)) {
-            $this->pn->add($pn);
-            $pn->setStructureAnnee($this);
-        }
-
-        return $this;
-    }
-
-    public function removePn(StructurePn $pn): static
-    {
-        if ($this->pn->removeElement($pn)) {
-            // set the owning side to null (unless already changed)
-            if ($pn->getStructureAnnee() === $this) {
-                $pn->setStructureAnnee(null);
-            }
-        }
 
         return $this;
     }
@@ -241,6 +212,18 @@ class StructureAnnee
     public function setApcNiveau(?ApcNiveau $apcNiveau): static
     {
         $this->apcNiveau = $apcNiveau;
+
+        return $this;
+    }
+
+    public function getPn(): ?StructurePn
+    {
+        return $this->pn;
+    }
+
+    public function setPn(?StructurePn $pn): static
+    {
+        $this->pn = $pn;
 
         return $this;
     }

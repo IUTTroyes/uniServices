@@ -6,6 +6,8 @@ use App\Entity\Structure\StructureAnnee;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
+use App\Entity\Structure\StructureGroupe;
+use App\Entity\Structure\StructurePn;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Structure\StructureTypeDiplome;
 use App\Entity\Structure\StructureUe;
@@ -48,12 +50,12 @@ class CopyTransfertBddStructureCommand extends Command
 
 
     public function __construct(
-        protected EntityManagerInterface $entityManager,
-        ManagerRegistry                  $managerRegistry,
+        protected EntityManagerInterface   $entityManager,
+        ManagerRegistry                    $managerRegistry,
         ApcApprentissageCritiqueRepository $apcApprentissageCritiqueRepository,
-        ApcCompetenceRepository          $apcCompetenceRepository,
-        protected HttpClientInterface    $httpClient,
-        ParameterBagInterface            $params
+        ApcCompetenceRepository            $apcCompetenceRepository,
+        protected HttpClientInterface      $httpClient,
+        ParameterBagInterface              $params
     )
     {
         parent::__construct();
@@ -81,6 +83,7 @@ FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_type_diplome');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_departement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_diplome');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_pn');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_semestre');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_ue');
@@ -91,8 +94,7 @@ FOREIGN_KEY_CHECKS=0');
 FOREIGN_KEY_CHECKS=1');
     }
 
-    protected
-    function execute(InputInterface $input, OutputInterface $output): int
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->io = new SymfonyStyle($input, $output);
 
@@ -115,6 +117,7 @@ FOREIGN_KEY_CHECKS=1');
         $this->addAnnee();
         $this->addSemestre();
         $this->addUe();
+        $this->addGroupes();
 
         $this->io->success('Processus de recopie terminé.');
 
@@ -206,7 +209,11 @@ FOREIGN_KEY_CHECKS=1');
                 $diplome->setApogeeCodeDiplome($dip['code_diplome']);
                 $diplome->setApogeeCodeVersion($dip['code_version']);
                 $diplome->setApogeeCodeDepartement($dip['code_departement']);
+                $diplome->setApogeeCodeDiplome($dip['code_diplome']);
+                $diplome->setApogeeCodeVersion($dip['code_version']);
+                $diplome->setApogeeCodeDepartement($dip['code_departement']);
                 $diplome->setTypeDiplome($this->tTypeDiplomes[$dip['type_diplome_id']]);
+                $diplome->setOldId($dip['id']);
 
                 /*
                  *  "id" => 1
@@ -218,53 +225,69 @@ FOREIGN_KEY_CHECKS=1');
                  */
                 $this->tDiplomes[$dip['id']] = $diplome;
 
+                //ajout d'un PN
+                $sql = "SELECT * FROM ppn WHERE diplome_id = " . $dip['id'] . " ORDER BY created DESC LIMIT 1";
+                $ppns = $this->em->executeQuery($sql)->fetchAllAssociative();
+
+                $pn = new StructurePn($diplome);
+                $diplome->addStructurePn($pn);
+                $pn->setLibelle($ppns[0]['libelle']);
+                $pn->setAnneePublication($ppns[0]['annee']);
+                //todo: referentiel APC
+                $this->entityManager->persist($pn);
                 $this->entityManager->persist($diplome);
                 $this->io->info('Diplôme : ' . $dip['libelle'] . ' ajouté pour insertion');
+
+                $sql = "SELECT * FROM diplome WHERE parent_id = " . $dip['id'];
+                $diplomesEnfants = $this->em->executeQuery($sql)->fetchAllAssociative();
+                foreach ($diplomesEnfants as $dipE) {
+                    $diplomeEnfant = new StructureDiplome();
+                    $diplomeEnfant->setDepartement($this->tDepartements[$dipE['departement_id']]);
+                    $diplomeEnfant->setLibelle($dipE['libelle']);
+                    $diplomeEnfant->setActif((bool)$dipE['actif']);
+                    $diplomeEnfant->setSigle($dipE['sigle']);
+                    $diplomeEnfant->setKeyEduSign($dipE['key_edu_sign']);
+                    $diplomeEnfant->setVolumeHoraire($dipE['volume_horaire']);
+                    $diplomeEnfant->setCodeCelcatDepartement($dipE['code_celcat_departement']);
+                    $diplomeEnfant->setLogoPartenaire($dipE['logo_partenaire']);
+                    $diplomeEnfant->setParent($diplome);
+                    $diplomeEnfant->setTypeDiplome($this->tTypeDiplomes[$dipE['type_diplome_id']]);
+                    $diplomeEnfant->setOldId($dipE['id']);
+                    $diplomeEnfant->setOpt([
+                        'nb_jours_saisie_absence' => $dipE['opt_nb_jours_saisie'],
+                        'supp_absence' => (bool)$dipE['opt_suppr_absence'],
+                        'anonymat' => (bool)$dipE['opt_anonymat'],
+                        'commentaire_releve' => (bool)$dipE['opt_commentaires_releve'],
+                        'espace_perso_visible' => (bool)$dipE['opt_espace_perso_visible'],
+                        'semaine_visible' => $dipE['opt_semaines_visibles'],
+                        'certif_qualite' => (bool)$dipE['opt_certifie_qualite'],
+                        'resp_qualite' => 0,
+                        'update_celcat' => (bool)$dipE['opt_update_celcat'],
+                        'saisie_cm_autorisee' => (bool)$dipE['saisie_cm_autorise'],
+                    ]);
+                    $diplomeEnfant->setApogeeCodeDiplome($dipE['code_diplome']);
+                    $diplomeEnfant->setApogeeCodeVersion($dipE['code_version']);
+                    $diplomeEnfant->setApogeeCodeDepartement($dipE['code_departement']);
+
+                    /*
+                      "responsable_diplome_id" => 200
+                      "assistant_diplome_id" => 360
+                      "opt_responsable_qualite_id" => 541
+                      "referentiel_id" => null
+                      "apc_parcours_id" => null
+                     */
+                    $this->tDiplomes[$dipE['id']] = $diplomeEnfant;
+                    //ajout d'un PN
+                    $pnE = new StructurePn($diplomeEnfant);
+                    $diplomeEnfant->addStructurePn($pnE);
+                    $pnE->setLibelle($ppns[0]['libelle']);
+                    $pnE->setAnneePublication($ppns[0]['annee']);
+                    //todo: referentiel APC
+                    $this->entityManager->persist($pnE);
+
+                    $this->entityManager->persist($diplomeEnfant);
+                }
             }
-        }
-
-        $sql = "SELECT * FROM diplome WHERE parent_id IS NOT NULL";
-        $diplomes = $this->em->executeQuery($sql)->fetchAllAssociative();
-        foreach ($diplomes as $dip) {
-            $diplome = new StructureDiplome();
-            $diplome->setDepartement($this->tDepartements[$dip['departement_id']]);
-            $diplome->setLibelle($dip['libelle']);
-            $diplome->setActif((bool)$dip['actif']);
-            $diplome->setSigle($dip['sigle']);
-            $diplome->setKeyEduSign($dip['key_edu_sign']);
-            $diplome->setVolumeHoraire($dip['volume_horaire']);
-            $diplome->setCodeCelcatDepartement($dip['code_celcat_departement']);
-            $diplome->setLogoPartenaire($dip['logo_partenaire']);
-            $diplome->setParent($this->tDiplomes[$dip['parent_id']]);
-            $diplome->setOpt([
-                'nb_jours_saisie_absence' => $dip['opt_nb_jours_saisie'],
-                'supp_absence' => (bool)$dip['opt_suppr_absence'],
-                'anonymat' => (bool)$dip['opt_anonymat'],
-                'commentaire_releve' => (bool)$dip['opt_commentaires_releve'],
-                'espace_perso_visible' => (bool)$dip['opt_espace_perso_visible'],
-                'semaine_visible' => $dip['opt_semaines_visibles'],
-                'certif_qualite' => (bool)$dip['opt_certifie_qualite'],
-                'resp_qualite' => 0,
-                'update_celcat' => (bool)$dip['opt_update_celcat'],
-                'saisie_cm_autorisee' => (bool)$dip['saisie_cm_autorise'],
-            ]);
-
-            /*
-             *  "id" => 1
-              "responsable_diplome_id" => 200
-              "assistant_diplome_id" => 360
-              "type_diplome_id" => 2
-              "code_version" => "111"
-              "code_departement" => "285"
-              "code_diplome" => "5PSP1"
-              "opt_responsable_qualite_id" => 541
-              "referentiel_id" => null
-              "parent_id" => null
-              "apc_parcours_id" => null
-             */
-            $this->tDiplomes[$dip['id']] = $diplome;
-
-            $this->entityManager->persist($diplome);
         }
 
         $this->entityManager->flush();
@@ -276,22 +299,25 @@ FOREIGN_KEY_CHECKS=1');
         $annees = $this->em->executeQuery($sql)->fetchAllAssociative();
 
         foreach ($annees as $an) {
-            $annee = new StructureAnnee();
-            // $annee->setDiplome($this->tDiplomes[$an['diplome_id']]);
-            $annee->setLibelle($an['libelle']);
-            $annee->setOrdre($an['ordre']);
-            $annee->setLibelleLong($an['libelle_long']);
-            $annee->setActif((bool)$an['actif']);
-            $annee->setCouleur($an['couleur']);
-            $annee->setOpt([
-                'alternance' => (bool)$an['opt_alternance'],
-            ]);
-            $annee->setApogeeCodeEtape($an['code_etape']);
-            $annee->setApogeeCodeVersion($an['code_version']);
+            if (array_key_exists($an['diplome_id'], $this->tDiplomes) && $this->tDiplomes[$an['diplome_id']]->getStructurePns()->count() > 0) {
+                $annee = new StructureAnnee();
+                $diplome = $this->tDiplomes[$an['diplome_id']];
+                $annee->setPn($diplome->getStructurePns()->first() ?? null);
+                $annee->setLibelle($an['libelle']);
+                $annee->setOrdre($an['ordre']);
+                $annee->setLibelleLong($an['libelle_long']);
+                $annee->setActif((bool)$an['actif']);
+                $annee->setCouleur($an['couleur']);
+                $annee->setOpt([
+                    'alternance' => (bool)$an['opt_alternance'],
+                ]);
+                $annee->setApogeeCodeEtape($an['code_etape']);
+                $annee->setApogeeCodeVersion($an['code_version']);
 
-            $this->tAnnees[$an['id']] = $annee;
+                $this->tAnnees[$an['id']] = $annee;
 
-            $this->entityManager->persist($annee);
+                $this->entityManager->persist($annee);
+            }
         }
 
         $this->entityManager->flush();
@@ -303,51 +329,53 @@ FOREIGN_KEY_CHECKS=1');
         $semestres = $this->em->executeQuery($sql)->fetchAllAssociative();
 
         foreach ($semestres as $sem) {
-            $semestre = new StructureSemestre();
-            $semestre->setOpt(
-                [
-                    'mail_releve' => (bool)$sem['opt_mail_releve'],
-                    'mail_modif_note' => (bool)$sem['opt_mail_modification_note'],
-                    'dest_mail_releve' => $sem['opt_dest_mail_releve_id'] ?? 0,
-                    'dest_mail_modif_note' => $sem['opt_dest_mail_modif_note_id'] ?? 0,
-                    'eval_visible' => (bool)$sem['opt_evaluation_visible'],
-                    'eval_modif' => (bool)$sem['opt_evaluation_modifiable'],
-                    'penalite_absence' => (float)$sem['opt_point_penalite_absence'],
-                    'mail_absence_resp' => (bool)$sem['opt_mail_absence_resp'],
-                    'dest_mail_absence_resp' => $sem['opt_dest_mail_absence_resp_id'] ?? 0,
-                    'mail_absence_etudiant' => (bool)$sem['opt_mail_absence_etudiant'],
-                    'opt_penalite_absence' => (bool)$sem['opt_penalite_absence'],
-                    'mail_assistante_justif_absence' => (bool)$sem['opt_mail_assistante_justificatif_absence'],
-                    'bilan_semestre' => (bool)$sem['opt_bilan_semestre'],
-                    'rattrapage' => (bool)$sem['opt_rattrapage'],
-                    'mail_rattrapage' => $sem['opt_mail_rattrapage'] ?? 0,
-                ]
-            );
+            if (array_key_exists($sem['annee_id'], $this->tAnnees)) {
+                $semestre = new StructureSemestre();
+                $semestre->setOpt(
+                    [
+                        'mail_releve' => (bool)$sem['opt_mail_releve'],
+                        'mail_modif_note' => (bool)$sem['opt_mail_modification_note'],
+                        'dest_mail_releve' => $sem['opt_dest_mail_releve_id'] ?? 0,
+                        'dest_mail_modif_note' => $sem['opt_dest_mail_modif_note_id'] ?? 0,
+                        'eval_visible' => (bool)$sem['opt_evaluation_visible'],
+                        'eval_modif' => (bool)$sem['opt_evaluation_modifiable'],
+                        'penalite_absence' => (float)$sem['opt_point_penalite_absence'],
+                        'mail_absence_resp' => (bool)$sem['opt_mail_absence_resp'],
+                        'dest_mail_absence_resp' => $sem['opt_dest_mail_absence_resp_id'] ?? 0,
+                        'mail_absence_etudiant' => (bool)$sem['opt_mail_absence_etudiant'],
+                        'opt_penalite_absence' => (bool)$sem['opt_penalite_absence'],
+                        'mail_assistante_justif_absence' => (bool)$sem['opt_mail_assistante_justificatif_absence'],
+                        'bilan_semestre' => (bool)$sem['opt_bilan_semestre'],
+                        'rattrapage' => (bool)$sem['opt_rattrapage'],
+                        'mail_rattrapage' => $sem['opt_mail_rattrapage'] ?? 0,
+                    ]
+                );
 
-            $semestre->setAnnee($this->tAnnees[$sem['annee_id']]);
-            $semestre->setLibelle($sem['libelle']);
-            $semestre->setOrdreAnnee($sem['ordre_annee']);
-            $semestre->setOrdreLmd($sem['ordre_lmd']);
-            $semestre->setActif((bool)$sem['actif']);
-            $semestre->setNbGroupesCm((int)$sem['nb_groupes_cm']);
-            $semestre->setNbGroupesTd((int)$sem['nb_groupes_td']);
-            $semestre->setNbGroupesTp((int)$sem['nb_groupes_tp']);
-            $semestre->setKeyEduSign($sem['id_edu_sign']);
-            $semestre->setCodeElement($sem['code_element']);
-            $semestre->setOldId($sem['id']);
+                $semestre->setAnnee($this->tAnnees[$sem['annee_id']]);
+                $semestre->setLibelle($sem['libelle']);
+                $semestre->setOrdreAnnee($sem['ordre_annee']);
+                $semestre->setOrdreLmd($sem['ordre_lmd']);
+                $semestre->setActif((bool)$sem['actif']);
+                $semestre->setNbGroupesCm((int)$sem['nb_groupes_cm']);
+                $semestre->setNbGroupesTd((int)$sem['nb_groupes_td']);
+                $semestre->setNbGroupesTp((int)$sem['nb_groupes_tp']);
+                $semestre->setKeyEduSign($sem['id_edu_sign']);
+                $semestre->setCodeElement($sem['code_element']);
+                $semestre->setOldId($sem['id']);
 
-            /*
-             *   "id" => 1
-  "ppn_actif_id" => 1
-  "created" => "2019-12-09 21:38:01"
-  "updated" => "2023-10-13 11:17:10"
-  "mois_debut" => 9
-             */
+                /*
+                 *   "id" => 1
+      "ppn_actif_id" => 1
+      "created" => "2019-12-09 21:38:01"
+      "updated" => "2023-10-13 11:17:10"
+      "mois_debut" => 9
+                 */
 
-            $this->tSemestres[$sem['id']] = $semestre;
+                $this->tSemestres[$sem['id']] = $semestre;
 
-            $this->entityManager->persist($semestre);
-            $this->io->info('Semestre : ' . $sem['libelle'] . ' ajouté pour insertion');
+                $this->entityManager->persist($semestre);
+                $this->io->info('Semestre : ' . $sem['libelle'] . ' ajouté pour insertion');
+            }
         }
 
         $this->entityManager->flush();
@@ -368,6 +396,7 @@ FOREIGN_KEY_CHECKS=1');
                 $ue->setActif((bool)$u['actif']);
                 $ue->setBonification((bool)$u['bonification']);
                 $ue->setNbEcts((float)$u['nb_ects']); //Apc?
+                $ue->setOldId($u['id']);
 //            $this->tUes[$u['id']] = $ue;
 //            if ($u['competence_id'] !== null) {
 //                if (array_key_exists($u['competence_id'], $this->tCompetences)) {
@@ -403,5 +432,57 @@ FOREIGN_KEY_CHECKS=1');
         }
 
         $this->entityManager->flush();
+    }
+
+    private function addGroupes()
+    {
+        $reponses = $this->httpClient->request('GET', $this->base_url . '/groupes');
+        $groupes = $reponses->toArray();
+
+        foreach ($groupes as $groupe) {
+            /*
+             * "id": 9,
+"libelle": "CD",
+"codeApogee": "3TSR_2TD2",
+"ordre": 3,
+"typeGroupe": {
+"id": 9,
+"libelle": "TD",
+"defaut": true,
+"type": "TD",
+"mutualise": false,
+"semestre": [
+4
+]
+},
+"parcours": null,
+"enfants": []
+             */
+            $this->addEnfants($groupe, null);
+        }
+
+        $this->entityManager->flush();
+    }
+
+    private function addEnfants(mixed $groupe, ?StructureGroupe $structureGroupe): void
+    {
+        foreach ($groupe['enfants'] as $enfant) {
+            $enfantGroupe = new StructureGroupe();
+            $enfantGroupe->setLibelle($enfant['libelle']);
+            $enfantGroupe->setCodeApogee(substr($enfant['codeApogee'], 0, 25));
+            $enfantGroupe->setOrdre($enfant['ordre']);
+            $enfantGroupe->setType($enfant['typeGroupe']['libelle']); //todo: ou type ?
+            $enfantGroupe->setOldId($enfant['id']);
+            $enfantGroupe->setKeyEduSign($enfant['edusign']);
+            $enfantGroupe->setParent($structureGroupe);
+            //traiter les semestres
+            foreach ($enfant['typeGroupe']['semestres'] as $semestre) {
+                if (array_key_exists($semestre, $this->tSemestres)) {
+                    $enfantGroupe->addSemestre($this->tSemestres[$semestre]);
+                }
+            }
+            $this->entityManager->persist($enfantGroupe);
+            $this->addEnfants($enfant, $enfantGroupe);
+        }
     }
 }
