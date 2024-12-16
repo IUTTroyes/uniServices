@@ -13,7 +13,7 @@ export const useUsersStore = defineStore('users', () => {
     const departementDefaut = ref({});
     const departementsNotDefaut = ref({});
 
-    const fetchUser = async () => {
+    const getUser = async () => {
         try {
             const response = await api.get(`/api/${userType}/${userId}`);
             // transformer user.photoName en chemin vers l'image : "@/assets/photos_etudiants/" + user.photoName
@@ -70,7 +70,7 @@ export const useUsersStore = defineStore('users', () => {
         departements,
         departementDefaut,
         departementsNotDefaut,
-        fetchUser,
+        getUser,
         changeDepartement
     };
 });

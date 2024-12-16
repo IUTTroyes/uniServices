@@ -12,7 +12,7 @@ const deptItems = ref([]);
 const departementLabel = ref('');
 
 onMounted(async () => {
-  await store.fetchUser();
+  await store.getUser();
   if (store.userType === 'personnels') {
     deptItems.value = store.departementsNotDefaut.map(departementPersonnel => ({
       label: departementPersonnel.departement ? departementPersonnel.departement.libelle : '',

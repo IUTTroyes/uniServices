@@ -13,9 +13,11 @@ const initiales = '';
 
 const actuEvents = ref([]);
 const agendaEvents = ref([]);
+const isLoadingActu = ref(true);
+const isLoadingAgenda = ref(true);
 
 onMounted(async() => {
-    await store.fetchUser();
+    await store.getUser();
 
     const date = new Date().toLocaleDateString('fr-FR', {
         weekday: 'long',
@@ -45,6 +47,8 @@ onMounted(async() => {
         }));
     } catch (error) {
         console.error('Error fetching actualites:', error);
+    } finally {
+        isLoadingActu.value = false;
     }
 
     // requete axios pour recuperer l'agenda
@@ -64,6 +68,8 @@ onMounted(async() => {
         }));
     } catch (error) {
         console.error('Error fetching agenda:', error);
+    } finally {
+        isLoadingAgenda.value = false;
     }
 });
 
@@ -101,7 +107,33 @@ const redirectTo = (link) => {
                 <em>Les évènements à venir</em>
             </div>
             <div class="card-content flex justify-between gap-10 mb-8">
-                <div v-for="(event, index) in agendaEvents" class="p-4 rounded-md flex-1 flex flex-col justify-between gap-2">
+                <div v-if="isLoadingAgenda" class="flex justify-between w-full gap-10">
+                    <div class="w-full">
+                        <Skeleton width="100%" class="mb-2"></Skeleton>
+                        <Skeleton width="50%" class="mb-2"></Skeleton>
+                        <Skeleton height="5rem" class="mb-2"></Skeleton>
+                        <Skeleton width="100%" height="2rem"></Skeleton>
+                    </div>
+                    <div class="w-full">
+                        <Skeleton width="100%" class="mb-2"></Skeleton>
+                        <Skeleton width="50%" class="mb-2"></Skeleton>
+                        <Skeleton height="5rem" class="mb-2"></Skeleton>
+                        <Skeleton width="100%" height="2rem"></Skeleton>
+                    </div>
+                    <div class="w-full">
+                        <Skeleton width="100%" class="mb-2"></Skeleton>
+                        <Skeleton width="50%" class="mb-2"></Skeleton>
+                        <Skeleton height="5rem" class="mb-2"></Skeleton>
+                        <Skeleton width="100%" height="2rem"></Skeleton>
+                    </div>
+                    <div class="w-full">
+                        <Skeleton width="100%" class="mb-2"></Skeleton>
+                        <Skeleton width="50%" class="mb-2"></Skeleton>
+                        <Skeleton height="5rem" class="mb-2"></Skeleton>
+                        <Skeleton width="100%" height="2rem"></Skeleton>
+                    </div>
+                </div>
+                <div v-else v-for="(event, index) in agendaEvents" class="p-4 rounded-md flex-1 flex flex-col justify-between gap-2">
                     <div class="flex flex-col gap-2 items-start">
                         <div>
                             <div class="font-bold text-lg">
@@ -126,7 +158,33 @@ const redirectTo = (link) => {
                 <em>Les évènements passés</em>
             </div>
             <div class="flex justify-between gap-10">
-                <Card v-for="(event, index) in actuEvents" :key="index" style="width: 25rem" class="card-actus flex flex-col justify-between overflow-hidden w-25">
+                <div v-if="isLoadingActu" class="flex justify-between w-full gap-10">
+                    <div class="w-full">
+                        <Skeleton width="100%" height="5rem" class="mb-2"></Skeleton>
+                        <Skeleton width="50%" class="mb-2"></Skeleton>
+                        <Skeleton height="3rem" class="mb-2"></Skeleton>
+                        <Skeleton width="100%" height="2rem"></Skeleton>
+                    </div>
+                    <div class="w-full">
+                        <Skeleton width="100%" height="5rem" class="mb-2"></Skeleton>
+                        <Skeleton width="100%" class="mb-2"></Skeleton>
+                        <Skeleton height="3rem" class="mb-2"></Skeleton>
+                        <Skeleton width="100%" height="2rem"></Skeleton>
+                    </div>
+                    <div class="w-full">
+                        <Skeleton width="100%" height="5rem" class="mb-2"></Skeleton>
+                        <Skeleton width="100%" class="mb-2"></Skeleton>
+                        <Skeleton height="3rem" class="mb-2"></Skeleton>
+                        <Skeleton width="100%" height="2rem"></Skeleton>
+                    </div>
+                    <div class="w-full">
+                        <Skeleton width="100%" height="5rem" class="mb-2"></Skeleton>
+                        <Skeleton width="100%" class="mb-2"></Skeleton>
+                        <Skeleton height="3rem" class="mb-2"></Skeleton>
+                        <Skeleton width="100%" height="2rem"></Skeleton>
+                    </div>
+                </div>
+                <Card v-else v-for="(event, index) in actuEvents" :key="index" style="width: 25rem" class="card-actus flex flex-col justify-between overflow-hidden w-25">
                     <template #header>
                         <div class="h-32 w-full overflow-hidden flex items-center">
                             <img :alt="event.title" :src="event.image" />
