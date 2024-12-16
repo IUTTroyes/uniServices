@@ -3,12 +3,11 @@ import { onMounted, ref } from 'vue';
 import { useUsersStore } from "common-stores";
 
 const store = useUsersStore();
-const roles = ref([]);
+const statut = ref([]);
 
 onMounted(async () => {
   await store.fetchUser();
-  roles.value = store.user.displayRoles;
-  console.log(store.user);
+  statut.value = store.user.displayStatut;
 });
 
 const redirectTo = (link) => {
@@ -20,11 +19,12 @@ const redirectTo = (link) => {
   <Card>
     <template #header>
       <div class="profile-header flex justify-start items-start gap-10 rounded-t-md w-full">
+        <Button class="editBtn" label="Editer mes informations" icon="pi pi-external-link" iconPos="right" @click=""/>
         <div class="flex flex-col" style="width: 20%">
           <img :src="store.user.photoName" alt="photo de profil" class="rounded-full w-full">
           <div class="flex flex-col items-center gap-2">
-            <div class="statut text-sm text-center rounded-md w-full font-bold">{{store.user.statut}}</div>
-            <div class="responsabilites text-sm text-center rounded-md w-full font-bold">{{store.user.responsabilites}}</div>
+            <div class="statut text-sm text-center rounded-md w-full font-bold">{{statut}}</div>
+            <div v-if="store.user.responsabilites" class="responsabilites text-sm text-center rounded-md w-full font-bold">{{store.user.responsabilites}}</div>
           </div>
         </div>
         <div class="profile-header-infos" style="width: 80%">
@@ -48,25 +48,10 @@ const redirectTo = (link) => {
     <template #content>
       <div class="profile-content">
         <div class="profile-content-item">
-          <h2>Informations personnelles</h2>
+          <h2 >Informations personnelles</h2>
           <div class="profile-content-item-row">
             <div class="profile-content-item-row-label">Nom</div>
             <div class="profile-content-item-row-value">{{ store.user.nom }}</div>
-          </div>
-          <div class="profile-content-item-row">
-            <div class="profile-content-item-row-label">Prénom</div>
-            <div class="profile-content-item-row-value">{{ store.user.prenom }}</div>
-          </div>
-          <div class="profile-content-item-row">
-            <div class="profile-content-item-row-label">Email</div>
-            <div class="profile-content-item-row-value">{{ store.user.email }}</div>
-          </div>
-        </div>
-        <div class="profile-content-item">
-          <h2>Informations professionnelles</h2>
-          <div class="profile-content-item-row">
-            <div class="profile-content-item-row-label">Départements</div>
-            <div class="profile-content-item-row-value" v-for="(departement, index) in store.departements" :key="index">{{ departement.departement.libelle }}</div>
           </div>
         </div>
       </div>
@@ -82,6 +67,13 @@ const redirectTo = (link) => {
   padding-right: 10rem;
   background-color: var(--p-primary-100);
   color: black;
+  position: relative;
+
+  .editBtn {
+    position: absolute;
+    right: 2rem;
+    top: 2rem;
+  }
 
   .statut {
     background-color: white;
