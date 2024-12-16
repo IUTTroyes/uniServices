@@ -14,7 +14,6 @@ const panels = ref([])
 onMounted(async () => {
     const departementId = localStorage.getItem('departement')
     diplomes.value = await getDiplomes(departementId)
-    console.log(diplomes.value)
 })
 
 const onPanelUpdate = async (newValue) => {

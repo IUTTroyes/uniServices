@@ -36,7 +36,8 @@ export const useUsersStore = defineStore('users', () => {
 
                 // récupérer le département qui a defaut = true
                 departementDefaut.value = departements.value.find(departement => departement.defaut === true);
-                localStorage.setItem('departement', departementDefaut.value.id);
+                console.log(departementDefaut.value.departement);
+                localStorage.setItem('departement', departementDefaut.value.departement.id);
                 // récupérer les départements qui n'ont pas defaut = true
                 departementsNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
             }
