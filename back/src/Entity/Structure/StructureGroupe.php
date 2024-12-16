@@ -2,6 +2,10 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Scolarite\ScolEdtEvent;
 use App\Entity\Traits\ApogeeTrait;
@@ -15,6 +19,12 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureGroupeRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['structure_diplome:read', 'structure_diplome:read:full']]),
+        new GetCollection(normalizationContext: ['groups' => ['structure_diplome:read']]),
+    ]
+)]
 class StructureGroupe
 {
     use ApogeeTrait;
