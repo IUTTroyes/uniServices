@@ -5,7 +5,7 @@ import api from '@/axios';
 export const useSemestreStore = defineStore('semestre', () => {
 
   const semestre = ref({});
-  const fetchSemestre = async (semestreId) => {
+  const getSemestre = async (semestreId) => {
     try {
       const response = await api.get(`/api/structure_semestres/${semestreId}`);
       semestre.value = response.data;
@@ -17,7 +17,7 @@ export const useSemestreStore = defineStore('semestre', () => {
   };
 
   return {
-    fetchSemestre,
+    getSemestre,
     semestre
   };
 })
