@@ -36,14 +36,18 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     use LifeCycleTrait;
     use OldIdTrait;
 
-    private const ROLES = [
-        'ROLE_PERMANENT' => 'Permanent',
-        'ROLE_EDUSIGN' => 'EduSign',
-        'ROLE_RESP_DIPLOME' => 'Responsable de diplôme',
-        'ROLE_RESP_DEPARTEMENT' => 'Responsable de département',
-        'ROLE_ASSIST_DEPARTEMENT' => 'Assistant de département',
-        'ROLE_RESP_EDT' => 'Responsable des emplois du temps',
-    ];
+    private const STATUT = [
+        'MCF' => 'Maître de conférences',
+        'PU' => 'Professeur des universités',
+        'ATER' => 'Attaché temporaire d\'enseignement et de recherche',
+        'PRAG' => 'Professeur agrégé',
+        'IE' => 'Ingénieur d\'études',
+        'ENSAM' => 'Enseignant associé',
+        'DO' => 'Doctorant',
+        'VAC' => 'Enseignant Vacataire',
+        'PRCE' => 'Professeur certifié',
+        'BIATSS' => 'Personnel Biatss',
+        ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -249,17 +253,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         $this->password = $password;
 
         return $this;
-    }
-
-    #[Groups(['personnel:read'])]
-    public function getDisplayRoles(): array
-    {
-        $roles = [];
-        foreach ($this->roles as $role) {
-            $roles[] = self::ROLES[$role] ?? $role;
-        }
-
-        return $roles;
     }
 
     public function getRoles(): array
@@ -677,5 +670,11 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         $this->statut = $statut;
 
         return $this;
+    }
+
+    #[Groups(['personnel:read'])]
+    public function getDisplayStatut(): ?string
+    {
+        return self::STATUT[$this->statut] ?? null;
     }
 }
