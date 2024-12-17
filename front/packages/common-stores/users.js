@@ -67,6 +67,7 @@ export const useUsersStore = defineStore('users', () => {
             // récupérer les départements qui n'ont pas defaut = true
             departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
             departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
+            window.location.reload();
         } catch (error) {
             console.error('Error changing department:', error);
         }

@@ -17,9 +17,9 @@ onMounted(async () => {
     diplomes.value = await getDiplomes(departementId)
 })
 
-watch(() => usersStore.departementDefaut.id, async (newDepartementId) => {
-    diplomes.value = await getDiplomes(newDepartementId)
-});
+// watch(() => usersStore.departementDefaut.id, async (newDepartementId) => {
+//     diplomes.value = await getDiplomes(newDepartementId)
+// });
 
 const onPanelUpdate = async (newValue) => {
     //parcourir les valeurs de newValue, regarder si c'est une clé présente dans panels, si non, get

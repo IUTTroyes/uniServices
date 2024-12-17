@@ -6,7 +6,7 @@ const store = useUsersStore();
 const statut = ref([]);
 
 onMounted(async () => {
-  await store.fetchUser();
+  await store.getUser();
   statut.value = store.user.displayStatut;
 });
 
@@ -23,7 +23,8 @@ const redirectTo = (link) => {
         <div class="flex flex-col" style="width: 20%">
           <img :src="store.user.photoName" alt="photo de profil" class="rounded-full w-full">
           <div class="flex flex-col items-center gap-2">
-            <div class="statut text-sm text-center rounded-md w-full font-bold">{{statut}}</div>
+            <div v-if="statut > 1" class="statut text-sm text-center rounded-md w-full font-bold bg-white px-4 py-2">{{statut}}</div>
+            <div v-else class="statut text-sm text-center rounded-md w-full font-bold py-2">Pas de statut</div>
             <div v-if="store.user.responsabilites" class="responsabilites text-sm text-center rounded-md w-full font-bold">{{store.user.responsabilites}}</div>
           </div>
         </div>
@@ -76,11 +77,12 @@ const redirectTo = (link) => {
   }
 
   .statut {
-    background-color: white;
-    padding: 0.5rem 2rem;
     position: relative;
     top: -2rem;
+    color: var(--text-color);
+    background-color: var(--surface-card);
   }
+
   .responsabilites {
     background-color: var(--p-yellow-400);
     padding: 0.5rem 2rem;

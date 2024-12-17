@@ -6,6 +6,7 @@ import api from '@/axios';
 
 import DashboardPersonnel from "@/components/Personnel/Dashboard.vue";
 import DashboardEtudiant from "@/components/Etudiant/Dashboard.vue";
+import EdtJour from "@/components/Edt/EdtJour.vue";
 import CardSkeleton from "@/components/Loader/CardSkeleton.vue";
 import ArticleSkeleton from "@/components/Loader/ArticleSkeleton.vue";
 
@@ -103,6 +104,16 @@ const redirectTo = (link) => {
                 </div>
             </div>
         </div>
+
+        <div class="card">
+            <div class="card-title mb-4">
+                <div class="font-semibold text-xl">Cours à venir</div>
+            </div>
+            <div class="card-content">
+                <EdtJour />
+            </div>
+        </div>
+
         <div class="card h-full">
             <div class="card-title mb-4">
                 <div class="font-semibold text-xl">Agenda de l'IUT</div>

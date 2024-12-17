@@ -25,5 +25,6 @@ const props = defineProps({
 <style scoped>
 .p-breadcrumb {
   background-color: transparent;
+  overflow-x: visible;
 }
 </style>
