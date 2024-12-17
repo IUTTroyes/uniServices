@@ -11,7 +11,9 @@ export const useUsersStore = defineStore('users', () => {
     const user = ref([]);
     const departements = ref([]);
     const departementDefaut = ref({});
+    const departementPersonnelDefaut = ref({});
     const departementsNotDefaut = ref({});
+    const departementsPersonnelNotDefaut = ref({});
 
     const getUser = async () => {
         try {
@@ -35,10 +37,12 @@ export const useUsersStore = defineStore('users', () => {
                 }
 
                 // récupérer le département qui a defaut = true
-                departementDefaut.value = departements.value.find(departement => departement.defaut === true);
+                departementPersonnelDefaut.value = departements.value.find(departement => departement.defaut === true);
+                departementDefaut.value = departementPersonnelDefaut.value.departement;
                 localStorage.setItem('departement', departementDefaut.value.id);
                 // récupérer les départements qui n'ont pas defaut = true
-                departementsNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
+                departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
+                departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
             }
         } catch (error) {
             console.error('Error fetching user:', error);
@@ -47,7 +51,8 @@ export const useUsersStore = defineStore('users', () => {
 
     const changeDepartement = async (departementId) => {
         try {
-            const response = await api.post(`/api/structure_departement_personnels/${departementId}/change_departement`, {
+            const departementPersonnelId = departements.value.find(departement => departement.departement.id === departementId).id;
+            const response = await api.post(`/api/structure_departement_personnels/${departementPersonnelId}/change_departement`, {
             }, {
                 headers: {
                     'Content-Type': 'application/ld+json'
@@ -56,9 +61,12 @@ export const useUsersStore = defineStore('users', () => {
             departements.value = response.data;
 
             // récupérer le département qui a defaut = true
-            departementDefaut.value = departements.value.find(departement => departement.defaut === true);
+            departementPersonnelDefaut.value = departements.value.find(departement => departement.defaut === true);
+            departementDefaut.value = departementPersonnelDefaut.value.departement;
+            localStorage.setItem('departement', departementDefaut.value.id);
             // récupérer les départements qui n'ont pas defaut = true
-            departementsNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
+            departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
+            departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
         } catch (error) {
             console.error('Error changing department:', error);
         }
@@ -69,6 +77,7 @@ export const useUsersStore = defineStore('users', () => {
         userType,
         departements,
         departementDefaut,
+        departementsPersonnelNotDefaut,
         departementsNotDefaut,
         getUser,
         changeDepartement

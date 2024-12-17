@@ -31,7 +31,7 @@ class StructureDepartementPersonnel
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(groups: ['personnel:read', 'structure_departement_personnel:read'])]
+    #[Groups(groups: ['personnel:read', 'structure_departement_personnel:read', 'structure_departement:read'])]
     private ?int $id = null;
 
     #[ORM\Column]

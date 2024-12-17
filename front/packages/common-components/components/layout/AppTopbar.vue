@@ -15,11 +15,11 @@ onMounted(async () => {
   await store.getUser();
   if (store.userType === 'personnels') {
     deptItems.value = store.departementsNotDefaut.map(departementPersonnel => ({
-      label: departementPersonnel.departement ? departementPersonnel.departement.libelle : '',
+      label: departementPersonnel.libelle,
       id: departementPersonnel.id,
       command: () => changeDepartement(departementPersonnel.id)
     }));
-    departementLabel.value = store.departementDefaut.departement.libelle;
+    departementLabel.value = store.departementDefaut.libelle;
   } else {
     deptItems.value = [];
     departementLabel.value = store.user.departement.libelle
@@ -99,9 +99,9 @@ const toggleDeptMenu = (event) => {
 const changeDepartement = async (departementId) => {
   try {
     await store.changeDepartement(departementId);
-    departementLabel.value = store.departementDefaut.departement.libelle;
+    departementLabel.value = store.departementDefaut.libelle;
     deptItems.value = store.departementsNotDefaut.map(departementPersonnel => ({
-      label: departementPersonnel.departement.libelle,
+      label: departementPersonnel.libelle,
       id: departementPersonnel.id,
       command: () => changeDepartement(departementPersonnel.id)
     }));
