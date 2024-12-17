@@ -84,6 +84,12 @@ class StructureAnneeUniversitaire
     #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'anneeUniversitaire')]
     private Collection $scolEdtEvents;
 
+    /**
+     * @var Collection<int, StructureCalendrier>
+     */
+    #[ORM\OneToMany(targetEntity: StructureCalendrier::class, mappedBy: 'structureAnneeUniversitaire')]
+    private Collection $structureCalendriers;
+
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
@@ -94,6 +100,7 @@ class StructureAnneeUniversitaire
         $this->scolEdtEvents = new ArrayCollection();
 
         $this->annee = (int) date('Y');
+        $this->structureCalendriers = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -317,6 +324,36 @@ class StructureAnneeUniversitaire
             // set the owning side to null (unless already changed)
             if ($scolEdtEvent->getAnneeUniversitaire() === $this) {
                 $scolEdtEvent->setAnneeUniversitaire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureCalendrier>
+     */
+    public function getStructureCalendriers(): Collection
+    {
+        return $this->structureCalendriers;
+    }
+
+    public function addStructureCalendrier(StructureCalendrier $structureCalendrier): static
+    {
+        if (!$this->structureCalendriers->contains($structureCalendrier)) {
+            $this->structureCalendriers->add($structureCalendrier);
+            $structureCalendrier->setStructureAnneeUniversitaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStructureCalendrier(StructureCalendrier $structureCalendrier): static
+    {
+        if ($this->structureCalendriers->removeElement($structureCalendrier)) {
+            // set the owning side to null (unless already changed)
+            if ($structureCalendrier->getStructureAnneeUniversitaire() === $this) {
+                $structureCalendrier->setStructureAnneeUniversitaire(null);
             }
         }
 

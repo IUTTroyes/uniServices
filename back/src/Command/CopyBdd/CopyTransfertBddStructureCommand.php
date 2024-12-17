@@ -4,6 +4,7 @@ namespace App\Command\CopyBdd;
 
 use App\Entity\Structure\StructureAnnee;
 use App\Entity\Structure\StructureAnneeUniversitaire;
+use App\Entity\Structure\StructureCalendrier;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureGroupe;
@@ -80,6 +81,7 @@ class CopyTransfertBddStructureCommand extends Command
         // vider les tables de destination et les réinitialiser
         $this->entityManager->getConnection()->executeQuery('SET
 FOREIGN_KEY_CHECKS=0');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_calendrier');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_type_diplome');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_departement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_diplome');
@@ -128,7 +130,7 @@ FOREIGN_KEY_CHECKS=1');
     {
         $sql = "SELECT * FROM annee_universitaire";
         $annees = $this->em->executeQuery($sql)->fetchAllAssociative();
-
+        $anneeActive = null;
         foreach ($annees as $annee) {
             $anneeUniversitaire = new StructureAnneeUniversitaire();
             $anneeUniversitaire->setLibelle($annee['libelle']);
@@ -136,6 +138,9 @@ FOREIGN_KEY_CHECKS=1');
             $anneeUniversitaire->setActif((bool)$annee['active']);
             $anneeUniversitaire->setCommentaire($annee['commentaire']);
             $anneeUniversitaire->setOldId($annee['id']);
+            if ($annee['active']) {
+                $anneeActive = $anneeUniversitaire;
+            }
 
             $this->tAnneeUniversitaire[$annee['id']] = $anneeUniversitaire;
 
@@ -143,6 +148,19 @@ FOREIGN_KEY_CHECKS=1');
             $this->io->info('Année Universitaire : ' . $annee['libelle'] . ' ajouté pour insertion');
         }
 
+        $this->entityManager->flush();
+
+        $sql = "SELECT * FROM calendrier WHERE annee_universitaire_id = " . $anneeActive->getOldId();
+        $annees = $this->em->executeQuery($sql)->fetchAllAssociative();
+
+        foreach ($annees as $annee) {
+            $calendrier = new StructureCalendrier();
+            $calendrier->setStructureAnneeUniversitaire($anneeActive);
+            $calendrier->setDateLundi(new \DateTime($annee['date_lundi']));
+            $calendrier->setSemaineFormation($annee['semaine_formation']);
+            $calendrier->setSemaineReelle($annee['semaine_reelle']);
+            $this->entityManager->persist($calendrier);
+        }
         $this->entityManager->flush();
     }
 
