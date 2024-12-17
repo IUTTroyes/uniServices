@@ -85,10 +85,10 @@ class StructureAnneeUniversitaire
     private Collection $scolEdtEvents;
 
     /**
-//     * @var Collection<int, StructureCalendrier>
-//     */
-//    #[ORM\OneToMany(targetEntity: StructureCalendrier::class, mappedBy: 'structureAnneeUniversitaire')]
-//    private Collection $structureCalendriers;
+     * @var Collection<int, StructureCalendrier>
+     */
+    #[ORM\OneToMany(targetEntity: StructureCalendrier::class, mappedBy: 'structureAnneeUniversitaire')]
+    private Collection $structureCalendriers;
 
     public function __construct()
     {
@@ -100,7 +100,7 @@ class StructureAnneeUniversitaire
         $this->scolEdtEvents = new ArrayCollection();
 
         $this->annee = (int) date('Y');
-//        $this->structureCalendriers = new ArrayCollection();
+        $this->structureCalendriers = new ArrayCollection();
     }
 
     public function getId(): ?int
