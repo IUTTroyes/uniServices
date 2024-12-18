@@ -55,7 +55,7 @@ class StructureAnnee
      * @var Collection<int, StructureSemestre>
      */
     #[ORM\OneToMany(targetEntity: StructureSemestre::class, mappedBy: 'annee')]
-    #[Groups(['structure_diplome:read:full'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
     private Collection $structureSemestres;
 
     #[ORM\Column(length: 3, nullable: true)]
@@ -69,6 +69,9 @@ class StructureAnnee
 
     #[ORM\ManyToOne(inversedBy: 'structureAnnees')]
     private ?StructurePn $pn = null;
+
+    #[ORM\ManyToOne(inversedBy: 'annees')]
+    private ?StructureDiplome $structureDiplome = null;
 
     public function __construct()
     {
@@ -174,7 +177,7 @@ class StructureAnnee
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'alternance' => true,
+            'alternance' => false,
         ]);
 
         $resolver->setAllowedTypes('alternance', 'bool');
@@ -224,6 +227,18 @@ class StructureAnnee
     public function setPn(?StructurePn $pn): static
     {
         $this->pn = $pn;
+
+        return $this;
+    }
+
+    public function getStructureDiplome(): ?StructureDiplome
+    {
+        return $this->structureDiplome;
+    }
+
+    public function setStructureDiplome(?StructureDiplome $structureDiplome): static
+    {
+        $this->structureDiplome = $structureDiplome;
 
         return $this;
     }

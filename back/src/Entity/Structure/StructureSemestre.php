@@ -37,15 +37,15 @@ class StructureSemestre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read', 'structure_diplome:read:full'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read', 'structure_diplome:read:full'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
     private string $libelle;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'structure_diplome:read:full'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
     private int $ordreAnnee = 0;
 
     #[ORM\Column]
@@ -53,7 +53,7 @@ class StructureSemestre
     private int $ordreLmd = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'structure_diplome:read:full'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
     private bool $actif = true;
 
     #[ORM\Column]

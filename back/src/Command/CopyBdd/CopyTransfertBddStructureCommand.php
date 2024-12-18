@@ -331,6 +331,7 @@ FOREIGN_KEY_CHECKS=1');
                 ]);
                 $annee->setApogeeCodeEtape($an['code_etape']);
                 $annee->setApogeeCodeVersion($an['code_version']);
+                $annee->setStructureDiplome($diplome);
 
                 $this->tAnnees[$an['id']] = $annee;
 

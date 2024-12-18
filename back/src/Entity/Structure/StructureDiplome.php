@@ -113,11 +113,19 @@ class StructureDiplome
     #[ORM\ManyToOne(inversedBy: 'diplome')]
     private ?ApcParcours $apcParcours = null;
 
+    /**
+     * @var Collection<int, StructureAnnee>
+     */
+    #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'structureDiplome')]
+    #[Groups(['structure_diplome:read'])]
+    private Collection $annees;
+
     public function __construct()
     {
         $this->enfants = new ArrayCollection();
         $this->structurePns = new ArrayCollection();
         $this->setOpt([]);
+        $this->annees = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -400,6 +408,36 @@ class StructureDiplome
     public function setApcParcours(?ApcParcours $apcParcours): static
     {
         $this->apcParcours = $apcParcours;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureAnnee>
+     */
+    public function getAnnees(): Collection
+    {
+        return $this->annees;
+    }
+
+    public function addAnnee(StructureAnnee $annee): static
+    {
+        if (!$this->annees->contains($annee)) {
+            $this->annees->add($annee);
+            $annee->setStructureDiplome($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAnnee(StructureAnnee $annee): static
+    {
+        if ($this->annees->removeElement($annee)) {
+            // set the owning side to null (unless already changed)
+            if ($annee->getStructureDiplome() === $this) {
+                $annee->setStructureDiplome(null);
+            }
+        }
 
         return $this;
     }

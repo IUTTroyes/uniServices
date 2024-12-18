@@ -1,10 +1,9 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
-import { useSemestreStore, useUsersStore } from 'common-stores'
+import { onMounted, ref } from 'vue'
+import { useSemestreStore } from 'common-stores'
 import api from '@/axios';
 
 const semestreStore = useSemestreStore()
-const usersStore = useUsersStore();
 
 const diplomes = ref([])
 const selectedDiplome = ref(null)
@@ -16,10 +15,6 @@ onMounted(async () => {
     const departementId = localStorage.getItem('departement')
     diplomes.value = await getDiplomes(departementId)
 })
-
-// watch(() => usersStore.departementDefaut.id, async (newDepartementId) => {
-//     diplomes.value = await getDiplomes(newDepartementId)
-// });
 
 const onPanelUpdate = async (newValue) => {
     //parcourir les valeurs de newValue, regarder si c'est une clé présente dans panels, si non, get
@@ -51,14 +46,12 @@ async function changeDiplome (diplome) {
 </script>
 
 <template>
-    <p>
-        <Button v-for="diplome in diplomes['member']" :key="diplome.id"
-                class="m-1"
-                @click="changeDiplome(diplome)" :aria-label="diplome.libelle"
-                :title="diplome.libelle">{{ diplome.typeDiplome.sigle }}<br>{{ diplome.sigle }}
-        </Button>
-    </p>
-
+    <Button v-for="diplome in diplomes['member']" :key="diplome.id"
+            class="m-1"
+            @click="changeDiplome(diplome)" :aria-label="diplome.libelle"
+            :title="diplome.libelle">{{ diplome.typeDiplome.sigle }}<br>{{ diplome.sigle }}
+    </Button>
+    <br>
     <Select v-if="selectedDiplome" v-model="selectedPn"
             :options="selectedDiplome.structurePns"
             optionLabel="libelle"

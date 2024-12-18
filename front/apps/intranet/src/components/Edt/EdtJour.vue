@@ -3,17 +3,17 @@ import { ref } from 'vue';
 
 // todo: requête pour récupérer l'evenement en cours et le suivant - si pas d'event en cours, on ne récupère que le suivant
 const events = ref([
-    {
-        debut: '2024-12-18T10:00:00',
-        fin: '2024-12-18T11:30:00',
-        text: 'WS301D - Développer des parcours utilisateur au sein d\'un système d\'information',
-        color: '#FFEDD2',
-        colorFocus: '#ffdeae',
-        semestre: 'S3 Strat-UX Alt',
-        groupe: 'TD GH',
-        groupeColor: '#1f4ea6',
-        salle: 'H018'
-    },
+    // {
+    //     debut: '2024-12-18T12:00:00',
+    //     fin: '2024-12-18T15:30:00',
+    //     text: 'WS301D - Développer des parcours utilisateur au sein d\'un système d\'information',
+    //     color: '#FFEDD2',
+    //     colorFocus: '#ffdeae',
+    //     semestre: 'S3 Strat-UX Alt',
+    //     groupe: 'TD GH',
+    //     groupeColor: '#1f4ea6',
+    //     salle: 'H018'
+    // },
     {
         debut: '2024-12-10T09:30:00',
         fin: '2024-12-10T11:00:00',

@@ -4,13 +4,6 @@ namespace App\Command\CopyBdd;
 
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Scolarite\ScolEnseignementUe;
-use App\Entity\Structure\StructureAnnee;
-use App\Entity\Structure\StructureAnneeUniversitaire;
-use App\Entity\Structure\StructureDepartement;
-use App\Entity\Structure\StructureDiplome;
-use App\Entity\Structure\StructureSemestre;
-use App\Entity\Structure\StructureTypeDiplome;
-use App\Entity\Structure\StructureUe;
 use App\Enum\TypeEnseignementEnum;
 use App\Repository\Apc\ApcApprentissageCritiqueRepository;
 use App\Repository\Apc\ApcCompetenceRepository;
@@ -24,11 +17,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Component\Uid\UuidV4;
-use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
-use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[AsCommand(
