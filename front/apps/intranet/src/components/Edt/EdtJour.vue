@@ -77,8 +77,8 @@ const isToday = (dateString) => {
                         <div class="text-lg font-bold">{{ event.salle }}</div>
                     </div>
                 </div>
-                <Tag v-if="index === 0" value="Événement en cours" severity="contrast" class="absolute right-2 bottom-2"/>
-                <Tag v-else-if="index !== 0 && event.text !== 'Aucun cours'" value="Prochain évènement" severity="contrast" class="absolute right-2 bottom-2"/>
+                <Tag v-if="index === 0" value="Événement en cours" class="absolute right-2 bottom-2 !text-white !bg-black"/>
+                <Tag v-else-if="index !== 0 && event.text !== 'Aucun cours'" value="Prochain évènement" class="absolute right-2 bottom-2 !text-white !bg-black"/>
             </div>
         </div>
     </div>
