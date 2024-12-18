@@ -32,9 +32,6 @@ const isEventOngoing = (event) => {
     const start = new Date(event.debut);
     const end = new Date(event.fin);
 
-    console.log(now, start, end);
-    console.log(now >= start && now <= end);
-
     return now >= start && now <= end;
 };
 
