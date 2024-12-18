@@ -1,5 +1,10 @@
-import { useUsersStore } from './users';
-import { useSemestreStore } from './semestre';
-import { useDiplomeStore} from "./diplomes";
+import { useUsersStore } from './stores/users'
+import { useSemestreStore } from './stores/semestre'
+import { useProfesseursStore } from './stores/professeurs'
+import { useMatieresStore } from './stores/matieres'
 
-export { useUsersStore, useSemestreStore, useDiplomeStore };
+export {
+  useUsersStore,
+  useSemestreStore,
+  useProfesseursStore,
+  useMatieresStore }

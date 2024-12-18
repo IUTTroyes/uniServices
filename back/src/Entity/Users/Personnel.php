@@ -64,7 +64,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['personnel:read'])]
     private ?string $password = null;
 
     #[ORM\Column(type: Types::JSON)]
@@ -165,9 +164,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:read'])]
     private ?string $siteUniv = null;
 
-    #[ORM\Column]
-    private ?bool $accesOriginaux = null;
-
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['personnel:read'])]
     private ?string $responsabilites = null;
@@ -179,6 +175,10 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 15, nullable: true)]
     #[Groups(['personnel:read'])]
     private ?string $statut = null;
+
+    #[ORM\Column(length: 3, nullable: true)]
+    #[Groups(['personnel:read'])]
+    private ?string $initiales = null;
 
     public function __construct()
     {
@@ -624,18 +624,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function isAccesOriginaux(): ?bool
-    {
-        return $this->accesOriginaux;
-    }
-
-    public function setAccesOriginaux(bool $accesOriginaux): static
-    {
-        $this->accesOriginaux = $accesOriginaux;
-
-        return $this;
-    }
-
     public function getResponsabilites(): ?string
     {
         return $this->responsabilites;
@@ -676,5 +664,17 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     public function getDisplayStatut(): ?string
     {
         return self::STATUT[$this->statut] ?? null;
+    }
+
+    public function getInitiales(): ?string
+    {
+        return $this->initiales;
+    }
+
+    public function setInitiales(?string $initiales): static
+    {
+        $this->initiales = $initiales;
+
+        return $this;
     }
 }
