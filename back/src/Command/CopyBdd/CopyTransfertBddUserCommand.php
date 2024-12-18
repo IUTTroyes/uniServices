@@ -90,6 +90,7 @@ FOREIGN_KEY_CHECKS=1');
             $personnel->setUsername($pers['username']);
             $personnel->setPassword($pers['password']);
             $personnel->setPhotoName($pers['photo_name']);
+            $personnel->setInitiales($pers['initiales']);
             $personnel->setOldId($pers['id']);
             $personnel->setRoles(json_decode($pers['roles'], true) ?? []);
             $personnel->setStructureAnneeUniversitaire($this->tAnneeUniversitaire[$pers['annee_universitaire_id']]);
