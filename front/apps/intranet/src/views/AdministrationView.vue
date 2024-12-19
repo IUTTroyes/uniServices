@@ -1,9 +1,6 @@
 <script setup>
 import {onMounted, ref} from "vue";
-import {useDiplomeStore} from "common-stores";
 import {getServiceDepartementSemestresActifs} from "common-requests";
-
-const diplomeStore = useDiplomeStore();
 
 const date = ref('');
 const absences = ref([]);
@@ -64,21 +61,35 @@ onMounted(async () => {
             </div>
 
             <div class="flex justify-between gap-10">
-                <div>
+                <div class="w-full">
                     <h3 class="text-xl">Formation Continue</h3>
                     <div v-for="semestreFc in semestresFc">
-                        <router-link to="/">{{semestreFc.libelle}}</router-link>
+                        <router-link to="/"><Button :label="semestreFc.libelle" variant="text" severity="contrast" class="underline"/></router-link>
                     </div>
                 </div>
-                <div>
+                <div class="w-full">
                     <h3 class="text-xl">Formation Initiale</h3>
                     <div v-for="semestreFi in semestresFi">
-                        <router-link to="/">{{semestreFi.libelle}}</router-link>
+                        <router-link to="/"><Button :label="semestreFi.libelle" variant="text" severity="contrast" class="underline"/></router-link>
                     </div>
                 </div>
-                <div>
+                <div class="w-full">
                     <h3 class="text-xl">Général</h3>
-                    <div></div>
+                    <div class="flex flex-col">
+                        <router-link to="/"><Button label="Tous les étudiants" variant="text" severity="contrast" class="underline"/></router-link>
+                        <router-link to="/">
+                            <Button label="Cohortes" variant="text" severity="contrast" class="underline"/>
+                        </router-link>
+                        <router-link to="/">
+                            <Button label="Mise à jour d'une sous-commission" variant="text" severity="contrast" class="underline"/>
+                        </router-link>
+                        <router-link to="/">
+                            <Button label="Ajouter des étudiants" variant="text" severity="contrast" class="underline"/>
+                        </router-link>
+                        <router-link to="/">
+                            <Button label="Activer/Désactiver des semestres" variant="text" severity="contrast" class="underline"/>
+                        </router-link>
+                    </div>
                 </div>
             </div>
         </div>
