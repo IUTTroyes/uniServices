@@ -2,9 +2,12 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use App\Entity\Apc\ApcNiveau;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
@@ -16,10 +19,18 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: StructureAnneeRepository::class)]
+#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['annee:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['annee:read']]),
+        new Get(normalizationContext: ['groups' => ['structure_annee:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['structure_annee:read']]),
+        new GetCollection(
+            uriTemplate: '/annees-par-diplome/{diplomeId}',
+            uriVariables: [
+                'diplomeId' => new Link(fromClass: StructureDiplome::class, identifiers: ['id'], toProperty: 'diplome')
+            ],
+            normalizationContext: ['groups' => ['structure_annee:read']]
+        )
     ]
 )]
 #[ORM\HasLifecycleCallbacks()]

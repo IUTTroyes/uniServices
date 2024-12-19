@@ -1,1 +1,1 @@
-export * from './structure_request/diplome';
+export * from './structure_services/diplomeService';

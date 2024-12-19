@@ -7,31 +7,32 @@ const diplomeStore = useDiplomeStore();
 const date = ref('');
 const absences = ref([]);
 const diplomes = ref([]);
-const annees = ref([]);
-const semestresFc = ref([]);
-const semestresFi = ref([]);
+// const annees = ref([]);
+// const semestresFc = ref([]);
+// const semestresFi = ref([]);
 
 onMounted(async () => {
     const departementId = localStorage.getItem('departement');
-    diplomes.value = await diplomeStore.getDiplomesActifs(departementId);
-    annees.value = diplomes.value.map(diplome => diplome.annees);
-    annees.value.forEach(annee => {
-        annee.forEach(a => {
-            if (a.opt.alternance) {
-                a.structureSemestres.forEach(semestre => {
-                    if (semestre.actif) {
-                        semestresFc.value.push(semestre);
-                    }
-                });
-            } else {
-                a.structureSemestres.forEach(semestre => {
-                    if (semestre.actif) {
-                        semestresFi.value.push(semestre);
-                    }
-                });
-            }
-        });
-    });
+    diplomes.value = await diplomeStore.getDepartementDiplomesActifs(departementId);
+
+    // annees.value = diplomes.value.map(diplome => diplome.annees);
+    // annees.value.forEach(annee => {
+    //     annee.forEach(a => {
+    //         if (a.opt.alternance) {
+    //             a.structureSemestres.forEach(semestre => {
+    //                 if (semestre.actif) {
+    //                     semestresFc.value.push(semestre);
+    //                 }
+    //             });
+    //         } else {
+    //             a.structureSemestres.forEach(semestre => {
+    //                 if (semestre.actif) {
+    //                     semestresFi.value.push(semestre);
+    //                 }
+    //             });
+    //         }
+    //     });
+    // });
 
 
     date.value = new Date().toLocaleDateString('fr-FR', {
@@ -81,18 +82,18 @@ onMounted(async () => {
             </div>
 
             <div class="flex justify-between gap-10">
-                <div>
-                    <h3 class="text-xl">Formation Continue</h3>
-                    <div v-for="semestreFc in semestresFc">
-                        <router-link to="/">{{semestreFc.libelle}}</router-link>
-                    </div>
-                </div>
-                <div>
-                    <h3 class="text-xl">Formation Initiale</h3>
-                    <div v-for="semestreFi in semestresFi">
-                        <router-link to="/">{{semestreFi.libelle}}</router-link>
-                    </div>
-                </div>
+<!--                <div>-->
+<!--                    <h3 class="text-xl">Formation Continue</h3>-->
+<!--                    <div v-for="semestreFc in semestresFc">-->
+<!--                        <router-link to="/">{{semestreFc.libelle}}</router-link>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <div>-->
+<!--                    <h3 class="text-xl">Formation Initiale</h3>-->
+<!--                    <div v-for="semestreFi in semestresFi">-->
+<!--                        <router-link to="/">{{semestreFi.libelle}}</router-link>-->
+<!--                    </div>-->
+<!--                </div>-->
                 <div>
                     <h3 class="text-xl">Général</h3>
                     <div></div>
