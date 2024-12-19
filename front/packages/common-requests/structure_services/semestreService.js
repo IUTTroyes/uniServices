@@ -5,4 +5,8 @@ const getServiceSemestres = async () => {
     return response.data['member'];
 }
 
-export { getServiceSemestres };
+const getServiceDepartementSemestresActifs = async (departementId) => {
+
+}
+
+export { getServiceSemestres, getServiceDepartementSemestresActifs };
