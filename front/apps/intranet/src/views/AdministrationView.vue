@@ -1,38 +1,20 @@
 <script setup>
 import {onMounted, ref} from "vue";
 import {useDiplomeStore} from "common-stores";
+import {getServiceDepartementSemestresActifs} from "common-requests";
 
 const diplomeStore = useDiplomeStore();
 
 const date = ref('');
 const absences = ref([]);
-const diplomes = ref([]);
-const annees = ref([]);
 const semestresFc = ref([]);
 const semestresFi = ref([]);
 
 onMounted(async () => {
     const departementId = localStorage.getItem('departement');
-    diplomes.value = await diplomeStore.getDepartementDiplomesActifs(departementId);
-
-    annees.value = diplomes.value.map(diplome => diplome.annees);
-    annees.value.forEach(annee => {
-        annee.forEach(a => {
-            if (a.opt.alternance) {
-                a.structureSemestres.forEach(semestre => {
-                    if (semestre.actif) {
-                        semestresFc.value.push(semestre);
-                    }
-                });
-            } else {
-                a.structureSemestres.forEach(semestre => {
-                    if (semestre.actif) {
-                        semestresFi.value.push(semestre);
-                    }
-                });
-            }
-        });
-    });
+    const semestres = await getServiceDepartementSemestresActifs(departementId);
+    semestresFc.value = semestres.semestresFc;
+    semestresFi.value = semestres.semestresFi;
 
 
     date.value = new Date().toLocaleDateString('fr-FR', {

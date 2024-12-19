@@ -2,6 +2,8 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -18,12 +20,14 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
+use ApiPlatform\Metadata\Link;
 
 #[ORM\Entity(repositoryClass: StructureSemestreRepository::class)]
+#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['semestre:read', 'semestre:read:full']]),
-        new GetCollection(normalizationContext: ['groups' => ['semestre:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['semestre:read']])
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
