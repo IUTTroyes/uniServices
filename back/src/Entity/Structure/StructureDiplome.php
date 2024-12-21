@@ -2,6 +2,8 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -21,7 +23,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDiplomeRepository::class)]
+#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ApiResource(
+    paginationEnabled: false,
     operations: [
         new Get(normalizationContext: ['groups' => ['structure_diplome:read', 'structure_diplome:read:full']]),
         new GetCollection(normalizationContext: ['groups' => ['structure_diplome:read']]),
@@ -31,9 +35,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
                 'departementId' => new Link(fromClass: StructureDepartement::class, identifiers: ['id'], toProperty: 'departement')
             ],
             normalizationContext: ['groups' => ['structure_diplome:read']]
-        ),
+        )
     ]
 )]
+
 #[ORM\HasLifecycleCallbacks]
 class StructureDiplome
 {

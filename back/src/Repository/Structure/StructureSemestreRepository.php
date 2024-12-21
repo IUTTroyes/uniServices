@@ -18,4 +18,15 @@ class StructureSemestreRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, StructureSemestre::class);
     }
+
+    public function findSemestresByDepartement($departementId)
+    {
+        return $this->createQueryBuilder('s')
+            ->join('s.annee', 'a')
+            ->join('a.structureDiplome', 'd')
+            ->where('d.departement = :departementId')
+            ->setParameter('departementId', $departementId)
+            ->getQuery()
+            ->getResult();
+    }
 }

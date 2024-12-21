@@ -11,23 +11,22 @@ import CardSkeleton from "@/components/Loader/CardSkeleton.vue";
 import ArticleSkeleton from "@/components/Loader/ArticleSkeleton.vue";
 
 const store = useUsersStore();
-const date = '';
 const initiales = '';
+const absences = ref([]);
 
 const actuEvents = ref([]);
 const agendaEvents = ref([]);
 const isLoadingActu = ref(true);
 const isLoadingAgenda = ref(true);
 
+const isPersonnel = computed(() => store.userType === 'personnels');
+const isEtudiant = computed(() => store.userType === 'etudiants');
+let isAssistant = ref(false);
+
 onMounted(async() => {
     await store.getUser();
 
-    const date = new Date().toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    isAssistant = computed(() => store.user.roles.includes('ROLE_ASSISTANT'));
 
     const initiales = computed(() =>
         store.user?.prenom?.charAt(0) + store.user?.nom?.charAt(0) || ''
@@ -76,8 +75,12 @@ onMounted(async() => {
     }
 });
 
-const isPersonnel = computed(() => store.userType === 'personnels');
-const isEtudiant = computed(() => store.userType === 'etudiants');
+absences.value = [
+    {semestre: 'S1', etudiant: 'John Doe', heure: '08:00', prof: 'Jane Doe', matiere: 'Maths'},
+    {semestre: 'S1', etudiant: 'John Doe', heure: '08:00', prof: 'Jane Doe', matiere: 'Maths'},
+    {semestre: 'S1', etudiant: 'John Doe', heure: '08:00', prof: 'Jane Doe', matiere: 'Maths'},
+    {semestre: 'S1', etudiant: 'John Doe', heure: '08:00', prof: 'Jane Doe', matiere: 'Maths'},
+];
 
 const redirectTo = (link) => {
     window.open(link, '_blank')
@@ -107,10 +110,35 @@ const redirectTo = (link) => {
 
         <div class="card">
             <div class="card-title mb-4">
-                <div class="font-semibold text-xl">Cours à venir</div>
+                <div class="font-semibold text-xl">Aujourd'hui</div>
             </div>
-            <div class="card-content">
-                <EdtJour />
+            <div class="card-content flex flex-col gap-16">
+                <div>
+                    <div class="text-lg text-muted-color font-semibold mb-2">Mes cours à venir</div>
+                    <EdtJour />
+                </div>
+                <hr v-if="isAssistant">
+                <div v-if="isAssistant" class="absences flex flex-col gap-2">
+                    <div class="text-lg text-muted-color font-semibold">Suivi des absences entre {{ new Date().getHours() < 13 ? '8h00 et 13h00' : '13h00 et 21h00' }}</div>
+
+                    <Message severity="info" icon="pi pi-info-circle">{{ absences.length }} absent.s sur la demie journée en cours.</Message>
+
+                    <DataTable :value="absences" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" stripedRows showGridlines tableStyle="min-width: 50rem"
+                               paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                               currentPageReportTemplate="{first} to {last} of {totalRecords}">
+                        <template #paginatorstart>
+                            <Button type="button" icon="pi pi-refresh" text />
+                        </template>
+                        <template #paginatorend>
+                            <Button type="button" icon="pi pi-download" text />
+                        </template>
+                        <Column field="semestre" header="Semestre" sortable style="width: 25%"></Column>
+                        <Column field="etudiant" header="Etudiant" sortable style="width: 25%"></Column>
+                        <Column field="heure" header="Heure" sortable style="width: 25%"></Column>
+                        <Column field="prof" header="Prof." sortable style="width: 25%"></Column>
+                        <Column field="matiere" header="Matière" sortable style="width: 25%"></Column>
+                    </DataTable>
+                </div>
             </div>
         </div>
 
