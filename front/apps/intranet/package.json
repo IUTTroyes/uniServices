@@ -1,24 +1,6 @@
 {
-    "name": "intranet",
-    "version": "4.1.0",
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "dev": "vite",
-        "build": "vite build",
-        "preview": "vite preview",
-        "lint": "eslint --fix . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore"
-    },
-    "dependencies": {
-        "common-components": "file:../../packages/common-components",
-        "common-helpers": "file:../../packages/common-helpers",
-        "common-styles": "file:../../packages/common-styles",
-        "common-stores": "file:../../packages/common-stores",
-        "common-requests": "file:../../packages/common-requests",
-        "date-fns": "^4.1.0"
-    },
-    "devDependencies": {
-        "@vitejs/plugin-vue": "^5.1.4",
-        "vite": "^5.4.8"
-    }
+    "name": "@uni-service/intranet",
+    "version": "0.1.0",
+    "main": "src/main.js",
+    "type": "module"
 }

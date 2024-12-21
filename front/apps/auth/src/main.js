@@ -1,7 +1,7 @@
 import { createApp } from 'vue';
 import { createPinia } from "pinia";
 import App from './App.vue';
-import 'common-styles/main.scss';
+import '@styles/main.scss';
 import router from './router';
 
 import Aura from '@primevue/themes/aura';
