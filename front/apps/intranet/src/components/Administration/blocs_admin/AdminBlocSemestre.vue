@@ -51,13 +51,13 @@ const selectSemestre = (semestre) => {
           <ul class="w-1/2">
             <li class="font-bold text-lg">Formation Initiale</li>
             <li v-for="semestreFi in semestresFi" :key="semestreFi.id" @click="selectSemestre(semestreFi)" class="cursor-pointer w-full border-b p-1">
-              <div class="hover:bg-surface-400 hover:bg-opacity-10 rounded-md w-full p-2" :class="{'bg-surface-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestreFi.id}">{{ semestreFi.libelle }}</div>
+              <div class="hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2" :class="{'bg-primary-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestreFi.id}">{{ semestreFi.libelle }}</div>
             </li>
           </ul >
           <ul class="w-1/2">
             <li class="font-bold text-lg">Formation Continue</li>
             <li v-for="semestreFc in semestresFc" :key="semestreFc.id" @click="selectSemestre(semestreFc)" class="cursor-pointer w-full border-b p-1">
-              <div class="hover:bg-surface-400 hover:bg-opacity-10 rounded-md w-full p-2" :class="{'bg-surface-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestreFc.id}">{{ semestreFc.libelle }}</div>
+              <div class="hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2" :class="{'bg-primary-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestreFc.id}">{{ semestreFc.libelle }}</div>
             </li>
           </ul>
         </div>
