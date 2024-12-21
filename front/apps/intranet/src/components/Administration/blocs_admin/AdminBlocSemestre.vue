@@ -46,7 +46,7 @@ const selectSemestre = (semestre) => {
       </template>
       <SimpleSkeleton v-if="isLoading" class="mt-4"/>
       <div v-else-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-      <div v-else class="flex gap-10 mt-6">
+      <div v-else class="flex gap-10 mt-4">
         <div class="w-1/2 flex gap-4">
           <ul class="w-1/2">
             <li class="font-bold text-lg">Formation Initiale</li>
