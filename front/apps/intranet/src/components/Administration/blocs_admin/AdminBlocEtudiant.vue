@@ -10,7 +10,7 @@
             <Fieldset class="w-full">
                 <template #legend>
                     <div class="flex items-center pl-2">
-                        <i class="pi pi-briefcase bg-primary-400 bg-opacity-20 rounded-full p-4 text-primary-500"/>
+                        <i class="pi pi-users bg-primary-400 bg-opacity-20 rounded-full p-4 text-primary-500"/>
                         <span class="font-bold p-2 capitalize">etudiants</span>
                     </div>
                 </template>
