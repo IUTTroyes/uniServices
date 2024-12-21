@@ -11,7 +11,7 @@ start-back:
 
 # Lancer le front-end (npm run dev:all)
 start-front:
-	cd $(FRONT_DIR) && npm run dev:all
+	cd $(FRONT_DIR) && pnpm dev
 
 # Lancer les deux simultanément grâce à `&`
 start-all:
