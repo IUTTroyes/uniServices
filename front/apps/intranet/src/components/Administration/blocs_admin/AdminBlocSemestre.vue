@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from "vue";
-import { getServiceDepartementSemestresActifs } from "common-requests";
+import { getServiceDepartementSemestresActifs } from "@requests";
 import SimpleSkeleton from "@/components/Loader/SimpleSkeleton.vue";
 
 const semestresFc = ref([]);

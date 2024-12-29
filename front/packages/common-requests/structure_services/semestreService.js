@@ -1,6 +1,6 @@
 import {onMounted, ref} from 'vue';
-import api from 'common-helpers/axios';
-import { useDiplomeStore } from 'common-stores';
+import api from '@helpers/axios';
+import { useDiplomeStore } from '@stores';
 
 const getServiceSemestres = async () => {
     const response = await api.get(`/api/structure_semestres`);

@@ -14,7 +14,7 @@ const password = ref('');
 const checked = ref(false);
 const handleSubmit = async () => {
     try {
-        const response = await axios.post('http://localhost:8000/api/login', {
+        const response = await axios.post('https://localhost:8000/api/login', {
             username: username.value,
             password: password.value
         });

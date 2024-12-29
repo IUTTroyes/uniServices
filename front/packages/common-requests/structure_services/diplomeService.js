@@ -1,4 +1,4 @@
-import api from 'common-helpers/axios';
+import api from '@helpers/axios';
 
 const getServiceAllDiplomes = async () => {
     const response = await api.get('/api/diplomes');

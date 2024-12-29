@@ -1,5 +1,5 @@
 <script setup>
-import { FooterComponent } from "common-components";
+import { FooterComponent } from "@components";
 </script>
 
 <template>

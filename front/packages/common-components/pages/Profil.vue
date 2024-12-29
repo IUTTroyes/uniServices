@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue';
-import { useUsersStore } from "common-stores";
+import { useUsersStore } from "@stores";
 
 const store = useUsersStore();
 const statut = ref([]);

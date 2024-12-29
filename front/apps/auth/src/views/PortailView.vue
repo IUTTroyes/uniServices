@@ -1,5 +1,5 @@
 <script setup>
-import { TopbarComponent } from 'common-components';
+import { TopbarComponent } from '@components';
 
 const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1];
 if (token) {

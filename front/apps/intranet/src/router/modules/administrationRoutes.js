@@ -1,4 +1,4 @@
-import {LayoutComponent} from "common-components";
+import {LayoutComponent} from "@components";
 
 export default [
     {

@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from 'vue'
-import { useSemestreStore } from 'common-stores'
+import { useSemestreStore } from '@stores'
 import api from '@/axios';
 
 const semestreStore = useSemestreStore()

@@ -4,7 +4,7 @@ import { startOfWeek, addDays, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import EdtPerso from '@/components/Edt/EdtPerso.vue';
 import EdtSemestre from '@/components/Edt/EdtSemestre.vue';
-import {useUsersStore} from "common-stores";
+import {useUsersStore} from "@stores";
 
 const store = useUsersStore();
 
