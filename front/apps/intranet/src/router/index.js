@@ -1,4 +1,4 @@
-import { LayoutComponent } from 'common-components';
+import { LayoutComponent } from '@components';
 import { createRouter, createWebHistory } from 'vue-router';
 import dashboardRoutes from './modules/dashboardRoutes';
 import agendaRoutes from "@/router/modules/agendaRoutes.js";

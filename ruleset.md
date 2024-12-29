@@ -18,3 +18,19 @@
 	```
 - Utiliser les *Skeleton* de primevue comme loader -> en faire des composants si nécessaire
 
+### Alias
+
+#### src
+
+Dans chaque projet front, l'alias `@` est utilisé pour accéder au dossier `src` du projet.
+
+#### Packages
+
+Pour accéder aux packages communs utiliser les alias suivants :
+
+- @components : pour les composants communs (ex: bouton, input, etc) dans le dossier ``common-components/``
+- @styles : pour les styles communs (ex: variables, mixins, etc) dans le dossier ``common-styles/``
+- @helpers : pour les fonctions communes (ex: formatage de date, etc) dans le dossier ``common-helpers/``
+- @stores : pour les stores communs (ex: auth, etc) dans le dossier ``common-stores/``
+- @requests : pour les requêtes API communes (ex: matières, diplômes, etc) dans le dossier ``common-requests/``
+

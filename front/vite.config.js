@@ -6,26 +6,10 @@ import { createProxyMiddleware } from 'http-proxy-middleware'
 import { PrimeVueResolver } from '@primevue/auto-import-resolver'
 import Components from 'unplugin-vue-components/vite'
 
-console.log('toto')
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const base = env.VITE_BASE || '/'
   const appName = env.VITE_SUB_PROJECT_NAME || ''
-
-  if (!appName) {
-    throw new Error('VITE_SUB_PROJECT_NAME environment variable is not set!')
-  }
-console.log('toto')
-  console.log(path.resolve(__dirname, `apps/${appName}/src`));
-
-  let alias = {
-    // '@': fileURLToPath(new URL(`./apps/${appName}/src`, import.meta.url)),
-    '@': path.resolve(__dirname, `./apps/${appName}/src`),
-    '@components': path.resolve(__dirname, './packages/common-components'),
-    '@styles': path.resolve(__dirname, './packages/common-styles'),
-    '@helpers': path.resolve(__dirname, './packages/common-helpers'),
-    '@stores': path.resolve(__dirname, './packages/common-stores'),
-  }
 
   return {
     optimizeDeps: {
@@ -39,7 +23,14 @@ console.log('toto')
     ],
     root: path.resolve(__dirname, `apps/${appName}`),
     resolve: {
-      alias: alias,
+      alias: {
+        '@': path.resolve(__dirname, `apps/${appName}/src`),
+        '@components': path.resolve(__dirname, 'packages/common-components'),
+        '@styles': path.resolve(__dirname, 'packages/common-styles'),
+        '@helpers': path.resolve(__dirname, 'packages/common-helpers'),
+        '@requests': path.resolve(__dirname, 'packages/common-requests'),
+        '@stores': path.resolve(__dirname, 'packages/common-stores'),
+      },
     },
     base: base,
     server: {

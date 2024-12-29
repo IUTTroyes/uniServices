@@ -1,4 +1,4 @@
-import api from 'common-helpers/axios';
+import api from '@helpers/axios';
 
 const getServiceDiplomeAnnees = async (diplomeId) => {
     const response = await api.get(`/api/annees-par-diplome/${diplomeId}`);

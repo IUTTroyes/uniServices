@@ -2,7 +2,7 @@
 import { useLayout } from './composables/layout.js';
 import { defineProps, onMounted, watch, computed } from 'vue';
 import { ref } from 'vue';
-import { useUsersStore } from "common-stores";
+import { useUsersStore } from "@stores";
 import { useRoute } from 'vue-router';
 
 const store = useUsersStore();

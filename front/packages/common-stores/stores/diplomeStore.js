@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getServiceDepartementDiplomesActifs } from 'common-requests'
+import { getServiceDepartementDiplomesActifs } from '@requests'
 
 export const useDiplomeStore = defineStore('diplome', () => {
 

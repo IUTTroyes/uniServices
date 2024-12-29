@@ -1,5 +1,5 @@
 <script setup>
-import { ProfilComponent } from 'common-components';
+import { ProfilComponent } from '@components';
 </script>
 
 <template>
