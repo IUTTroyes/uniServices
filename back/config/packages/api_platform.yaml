@@ -1,6 +1,10 @@
 api_platform:
     title: UniService API
     version: 0.0.1
+    mapping:
+        paths:
+            - '%kernel.project_dir%/src/ApiDto'
+            - '%kernel.project_dir%/src/Entity'
 #    eager_loading:
 #        max_joins: 100
     defaults:
