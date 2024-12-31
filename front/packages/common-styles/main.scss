@@ -7,7 +7,29 @@
   @apply flex flex-wrap;
 }
 
+.col-1 {
+  @apply w-1/12;
+}
+
+.col-2 {
+  @apply w-1/6;
+}
+
+.col-3 {
+  @apply w-1/4;
+}
+
+.col-4 {
+  @apply w-1/3;
+}
+
 .col-6 {
   @apply w-full md:w-1/2 sm:w-full;
 }
+
+.col-12 {
+  @apply w-full;
+}
+
+
 

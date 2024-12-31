@@ -52,7 +52,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
@@ -179,6 +179,9 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 3, nullable: true)]
     #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
     private ?string $initiales = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?array $contraintesEdt = null;
 
     public function __construct()
     {
@@ -680,6 +683,18 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     public function setInitiales(?string $initiales): static
     {
         $this->initiales = $initiales;
+
+        return $this;
+    }
+
+    public function getContraintesEdt(): ?array
+    {
+        return $this->contraintesEdt ?? [];
+    }
+
+    public function setContraintesEdt(?array $contraintesEdt): static
+    {
+        $this->contraintesEdt = $contraintesEdt;
 
         return $this;
     }

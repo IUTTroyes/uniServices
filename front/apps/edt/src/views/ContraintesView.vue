@@ -12,11 +12,11 @@ import { formatDateCourt } from '@helpers/date.js'
 const calendrierGeneral = ref(false)
 const isProfesseurContraintes = computed(() => !calendrierGeneral.value) ?? true
 const personnels = ref([])
-const selectedProfessor = ref('')
+const selectedProfessor = ref(null)
 const selectedWeek = ref(null)
 const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']
 const timeSlots = ref(['8h00', '9h30', '11h00', '14h00', '15h30', '17h00'])
-const constraints = ref({})
+const constraints = ref(null)
 const weeks = ref([]) // This will hold the available weeks
 const showConfigPanel = ref(false)
 const selectedCell = ref('') // Track the selected cell
@@ -47,25 +47,27 @@ onMounted(async () => {
   await weeksStore.fetchWeeks()
   weeks.value = weeksStore.weeks['member']
   selectedWeek.value = weeks.value[0]
+  updateCounts()
 })
 
 const updateCounts = () => {
-  availableCount.value = 0
   mandatoryCount.value = 0
   optionalCount.value = 0
+  console.log(constraints.value)
+  if (!constraints.value) {
+    availableCount.value = days.length * timeSlots.value.length
+    return
+  }
 
   Object.values(constraints.value).forEach((value) => {
     if (value.type === 'mandatory') {
       mandatoryCount.value++
     } else if (value.type === 'optional') {
       optionalCount.value++
-    } else {
-      availableCount.value++
     }
   })
 
-  availableCount.value =
-      days.length * timeSlots.value.length - mandatoryCount.value - optionalCount.value
+  availableCount.value = (days.length * timeSlots.value.length) - mandatoryCount.value - optionalCount.value
 }
 
 const toggleConstraint = (day, time) => {
@@ -96,10 +98,7 @@ const fetchConstraints = async (professorId, week) => {
     constraints.value = {}
     const response = await api.get(`/api/edt/personnels-contraintes/${selectedWeek.value.semaineFormation}?personnel=${professorId}`)
     const data = response.data
-
-    Object.entries(data).forEach(([key, value]) => {
-      constraints.value[key] = value
-    })
+    constraints.value = data.contraintes
 
     updateCounts()
   } catch (error) {
@@ -117,7 +116,7 @@ const toggleAllWeeks = () => {
 
 watch([selectedProfessor, selectedWeek], ([newProfessor, newWeek]) => {
   if (newProfessor && newWeek) {
-    fetchConstraints(newProfessor.id, newWeek.semaineFormation)
+    fetchConstraints(newProfessor.personnel.id, newWeek.semaineFormation)
   } else {
     constraints.value = {}
     updateCounts()
@@ -126,15 +125,11 @@ watch([selectedProfessor, selectedWeek], ([newProfessor, newWeek]) => {
 
 watch([selectedWeek], ([newWeek]) => {
   if (newWeek) {
-    fetchConstraints(selectedProfessor.value ? selectedProfessor.value.id : null, newWeek.semaineFormation)
+    fetchConstraints(selectedProfessor.value ? selectedProfessor.value.personnel.id : null, newWeek.semaineFormation)
   } else {
     constraints.value = {}
     updateCounts()
   }
-})
-
-onMounted(() => {
-  updateCounts()
 })
 
 const displayJour = (day) => {
@@ -160,15 +155,6 @@ const changeCalendrierGeneral = () => {
 
 <template>
   <div>
-    <InputBlock
-        id="calendrier-general"
-        label="Calendrier général"
-        v-model="calendrierGeneral"
-        type="checkbox"
-        help="Cocher pour afficher le calendrier général"
-        @change="changeCalendrierGeneral">
-
-    </InputBlock>
     <Card
         title="Contraintes de disponibilité"
     >
@@ -193,7 +179,7 @@ const changeCalendrierGeneral = () => {
     </Card>
 
     <Card
-        title="Saisir les contraintes de disponibilité"
+        :title="`Saisir les contraintes de disponibilité pour ${selectedProfessor?.personnel.display}, semaine ${selectedWeek?.semaineFormation}`"
     >
       <Alert v-if="!isSelectionValid"
              severity="warn">
@@ -258,20 +244,16 @@ const changeCalendrierGeneral = () => {
             <label for="cheese">Indiquez le type de contrainte</label>
             <RadioButtonGroup name="ingredient" class="flex flex-wrap gap-4">
               <div class="flex items-center gap-2">
-                <RadioButton inputId="cheese" value="Cheese"/>
-                <label for="cheese">Obligatoire</label>
+                <RadioButton inputId="mandatory" value="mandatory"/>
+                <label for="mandatory">Obligatoire</label>
               </div>
               <div class="flex items-center gap-2">
-                <RadioButton inputId="mushroom" value="Mushroom"/>
-                <label for="mushroom">Facultatif</label>
+                <RadioButton inputId="optional" value="optional"/>
+                <label for="optional">Facultatif</label>
               </div>
             </RadioButtonGroup>
           </div>
-          <label for="type-select">Type:</label>
-          <select v-model="configDetails.type">
-            <option value="mandatory">Obligatoire</option>
-            <option value="optional">Facultatif</option>
-          </select>
+
           <label for="duration-select">Durée:</label>
           <select v-model="configDetails.duration">
             <option value="slot">Créneau ({{ configDetails.time }})</option>
