@@ -1,5 +1,4 @@
 import { defineConfig, loadEnv } from 'vite'
-import { fileURLToPath } from 'url'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import { createProxyMiddleware } from 'http-proxy-middleware'

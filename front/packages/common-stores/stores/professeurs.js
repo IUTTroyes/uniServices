@@ -1,7 +1,7 @@
 // src/stores/professeurs.js
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import api from '@/axios';
+import api from '@helpers/axios';
 
 export const useProfesseursStore = defineStore('professeurs', () => {
   const professeurs = ref([])

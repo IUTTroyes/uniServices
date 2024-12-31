@@ -1,7 +1,7 @@
 // src/stores/matieres.js
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import api from '@/axios';
+import api from '@helpers/axios';
 
 export const useMatieresStore = defineStore('matieres', () => {
   const matieres = ref([])

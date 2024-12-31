@@ -1,7 +1,7 @@
 <script setup>
 import { useUsersStore } from "@stores";
 import { onMounted, computed, ref } from "vue";
-import { formatDateLong } from "@helpers";
+import { formatDateLong } from "@helpers/date.js";
 import api from '@/axios';
 
 import DashboardPersonnel from "@/components/Personnel/Dashboard.vue";

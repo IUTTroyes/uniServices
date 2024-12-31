@@ -9,6 +9,9 @@ FRONT_DIR=front
 start-back:
 	cd $(BACK_DIR) && symfony server:start
 
+start-storybook:
+	cd $(FRONT_DIR) && pnpm storybook
+
 # Lancer le front-end (npm run dev:all)
 start-front:
 	cd $(FRONT_DIR) && pnpm dev

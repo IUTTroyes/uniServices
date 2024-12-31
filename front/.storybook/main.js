@@ -1,4 +1,4 @@
-import { join, dirname } from 'path'
+import { join, dirname } from 'path';
 
 /**
  * This function is used to resolve the absolute path of a package.

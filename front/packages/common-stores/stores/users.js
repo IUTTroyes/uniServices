@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import {ref} from 'vue';
-import api from '@/axios';
+import api from '@helpers/axios';
 
 export const useUsersStore = defineStore('users', () => {
     const token = localStorage.getItem('token');

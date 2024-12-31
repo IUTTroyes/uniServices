@@ -2,3 +2,12 @@
 @import "layout/layout.scss";
 @import 'primeicons/primeicons.css';
 
+
+.row {
+  @apply flex flex-wrap;
+}
+
+.col-6 {
+  @apply w-full md:w-1/2 sm:w-full;
+}
+
