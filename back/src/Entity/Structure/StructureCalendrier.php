@@ -80,4 +80,16 @@ class StructureCalendrier
 
         return $this;
     }
+
+    public function getJours(): array
+    {
+        $jours = [];
+        $date = clone $this->dateLundi;
+        for ($i = 0; $i < 5; $i++) {
+            $jours[] = clone $date;
+            $date->modify('+1 day');
+        }
+
+        return $jours;
+    }
 }

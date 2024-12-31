@@ -23,6 +23,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
             ],
             normalizationContext: ['groups' => ['structure_departement_personnel:read']]
         ),
+        new GetCollection(
+            uriTemplate: '/structure_departement_personnels/by_departement/{departementId}',
+            uriVariables: [
+                'departementId' => new Link(fromClass: StructureDepartement::class, identifiers: ['id'], toProperty: 'departement')
+            ],
+            normalizationContext: ['groups' => ['structure_departement_personnel:read']]
+        ),
         new Post(processor: 'App\State\ChangeDepartementProcessor', normalizationContext: ['groups' => ['structure_departement_personnel:read']], uriTemplate: '/structure_departement_personnels/{id}/change_departement', inputFormats: ['json' => ['application/ld+json']], outputFormats: ['json' => ['application/ld+json']]),
     ]
 )]

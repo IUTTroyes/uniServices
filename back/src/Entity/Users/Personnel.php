@@ -60,7 +60,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -71,11 +71,11 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -177,7 +177,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $statut = null;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
     private ?string $initiales = null;
 
     public function __construct()
@@ -660,10 +660,16 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
     public function getDisplayStatut(): ?string
     {
         return self::STATUT[$this->statut] ?? null;
+    }
+
+    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
+    public function getDisplay(): string
+    {
+        return $this->prenom . ' ' . $this->nom;
     }
 
     public function getInitiales(): ?string
