@@ -174,16 +174,20 @@ const changeCalendrierGeneral = () => {
     >
       <div class="row">
         <div class="col-6 p-4">
-          <label for="professor-select">Choisir un professeur :</label>
-          <Select class="form-select d-block" v-model="selectedProfessor"
-                  :disabled="!isProfesseurContraintes"
-                  :options="personnels"
-                  optionLabel="personnel.display">
-          </Select>
+          <div class="flex flex-col gap-2">
+            <label for="professor-select">Choisir un professeur :</label>
+            <Select class="form-select d-block" v-model="selectedProfessor"
+                    :disabled="!isProfesseurContraintes"
+                    :options="personnels"
+                    optionLabel="personnel.display">
+            </Select>
+          </div>
         </div>
 
         <div class="col-6 p-4">
-          <SelectWeek @update:selectedWeek="handleWeekUpdate" current-week=""/>
+          <div class="flex flex-col gap-2">
+            <SelectWeek @update:selectedWeek="handleWeekUpdate" current-week=""/>
+          </div>
         </div>
       </div>
     </Card>
@@ -250,6 +254,19 @@ const changeCalendrierGeneral = () => {
           </div>
           <p>Jour: {{ configDetails.day }}</p>
           <p>Créneau: {{ configDetails.time }}</p>
+          <div class="flex flex-col gap-2">
+            <label for="cheese">Indiquez le type de contrainte</label>
+            <RadioButtonGroup name="ingredient" class="flex flex-wrap gap-4">
+              <div class="flex items-center gap-2">
+                <RadioButton inputId="cheese" value="Cheese"/>
+                <label for="cheese">Obligatoire</label>
+              </div>
+              <div class="flex items-center gap-2">
+                <RadioButton inputId="mushroom" value="Mushroom"/>
+                <label for="mushroom">Facultatif</label>
+              </div>
+            </RadioButtonGroup>
+          </div>
           <label for="type-select">Type:</label>
           <select v-model="configDetails.type">
             <option value="mandatory">Obligatoire</option>
