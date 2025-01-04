@@ -7,23 +7,25 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Edt\EdtContraintesSemestre;
+use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolarite;
-use App\Entity\Scolarite\ScolEdtEvent;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
+use App\Filter\SemestresFilter;
 use App\Repository\Structure\StructureSemestreRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
-use ApiPlatform\Metadata\Link;
 
 #[ORM\Entity(repositoryClass: StructureSemestreRepository::class)]
 #[ApiFilter(BooleanFilter::class, properties: ['actif'])]
+#[ApiFilter(SemestresFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['semestre:read', 'semestre:read:full']]),
@@ -109,11 +111,18 @@ class StructureSemestre
     private Collection $scolEvaluations;
 
     /**
-     * @var Collection<int, ScolEdtEvent>
+     * @var Collection<int, EdtEvent>
      */
-    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'semestre')]
+    #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'semestre')]
     #[Groups(['semestre:read'])]
     private Collection $scolEdtEvents;
+
+    /**
+     * @var Collection<int, EdtContraintesSemestre>
+     */
+    #[ORM\OneToMany(targetEntity: EdtContraintesSemestre::class, mappedBy: 'semestre')]
+    #[Groups(['semestre:read'])]
+    private Collection $edtContraintesSemestres;
 
     public function __construct()
     {
@@ -123,6 +132,7 @@ class StructureSemestre
         $this->structureUes = new ArrayCollection();
         $this->scolEvaluations = new ArrayCollection();
         $this->scolEdtEvents = new ArrayCollection();
+        $this->edtContraintesSemestres = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -393,14 +403,14 @@ class StructureSemestre
     }
 
     /**
-     * @return Collection<int, ScolEdtEvent>
+     * @return Collection<int, EdtEvent>
      */
     public function getScolEdtEvents(): Collection
     {
         return $this->scolEdtEvents;
     }
 
-    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    public function addScolEdtEvent(EdtEvent $scolEdtEvent): static
     {
         if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
             $this->scolEdtEvents->add($scolEdtEvent);
@@ -410,12 +420,42 @@ class StructureSemestre
         return $this;
     }
 
-    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    public function removeScolEdtEvent(EdtEvent $scolEdtEvent): static
     {
         if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
             // set the owning side to null (unless already changed)
             if ($scolEdtEvent->getSemestre() === $this) {
                 $scolEdtEvent->setSemestre(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EdtContraintesSemestre>
+     */
+    public function getEdtContraintesSemestres(): Collection
+    {
+        return $this->edtContraintesSemestres;
+    }
+
+    public function addEdtContraintesSemestre(EdtContraintesSemestre $edtContraintesSemestre): static
+    {
+        if (!$this->edtContraintesSemestres->contains($edtContraintesSemestre)) {
+            $this->edtContraintesSemestres->add($edtContraintesSemestre);
+            $edtContraintesSemestre->setSemestre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEdtContraintesSemestre(EdtContraintesSemestre $edtContraintesSemestre): static
+    {
+        if ($this->edtContraintesSemestres->removeElement($edtContraintesSemestre)) {
+            // set the owning side to null (unless already changed)
+            if ($edtContraintesSemestre->getSemestre() === $this) {
+                $edtContraintesSemestre->setSemestre(null);
             }
         }
 

@@ -2,7 +2,9 @@
 
 namespace App\Entity\Scolarite;
 
+use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Apc\ApcApprentissageCritique;
+use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -16,6 +18,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ScolEnseignementRepository::class)]
+#[ApiResource]
 class ScolEnseignement
 {
     use ApogeeTrait;
@@ -110,9 +113,9 @@ class ScolEnseignement
     private Collection $scolEvaluations;
 
     /**
-     * @var Collection<int, ScolEdtEvent>
+     * @var Collection<int, EdtEvent>
      */
-    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'enseignement')]
+    #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'enseignement')]
     private Collection $scolEdtEvents;
 
     /**
@@ -502,14 +505,14 @@ class ScolEnseignement
     }
 
     /**
-     * @return Collection<int, ScolEdtEvent>
+     * @return Collection<int, EdtEvent>
      */
     public function getScolEdtEvents(): Collection
     {
         return $this->scolEdtEvents;
     }
 
-    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    public function addScolEdtEvent(EdtEvent $scolEdtEvent): static
     {
         if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
             $this->scolEdtEvents->add($scolEdtEvent);
@@ -519,7 +522,7 @@ class ScolEnseignement
         return $this;
     }
 
-    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    public function removeScolEdtEvent(EdtEvent $scolEdtEvent): static
     {
         if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
             // set the owning side to null (unless already changed)

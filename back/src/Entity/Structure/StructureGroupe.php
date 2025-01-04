@@ -5,9 +5,8 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Link;
 use App\Entity\Apc\ApcParcours;
-use App\Entity\Scolarite\ScolEdtEvent;
+use App\Entity\Edt\EdtEvent;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -73,9 +72,9 @@ class StructureGroupe
     private Collection $apcParcours;
 
     /**
-     * @var Collection<int, ScolEdtEvent>
+     * @var Collection<int, EdtEvent>
      */
-    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'groupe')]
+    #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'groupe')]
     #[Groups(['semestre:read'])]
     private Collection $scolEdtEvents;
 
@@ -247,14 +246,14 @@ class StructureGroupe
     }
 
     /**
-     * @return Collection<int, ScolEdtEvent>
+     * @return Collection<int, EdtEvent>
      */
     public function getScolEdtEvents(): Collection
     {
         return $this->scolEdtEvents;
     }
 
-    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    public function addScolEdtEvent(EdtEvent $scolEdtEvent): static
     {
         if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
             $this->scolEdtEvents->add($scolEdtEvent);
@@ -264,7 +263,7 @@ class StructureGroupe
         return $this;
     }
 
-    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    public function removeScolEdtEvent(EdtEvent $scolEdtEvent): static
     {
         if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
             // set the owning side to null (unless already changed)

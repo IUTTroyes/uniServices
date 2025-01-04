@@ -6,8 +6,10 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcReferentiel;
+use App\Entity\Edt\EdtContraintesSemestre;
+use App\Entity\Edt\EdtCreneauxInterditsSemaine;
+use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolarite;
-use App\Entity\Scolarite\ScolEdtEvent;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -79,9 +81,9 @@ class StructureAnneeUniversitaire
     private Collection $scolEvaluations;
 
     /**
-     * @var Collection<int, ScolEdtEvent>
+     * @var Collection<int, EdtEvent>
      */
-    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'anneeUniversitaire')]
+    #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'anneeUniversitaire')]
     private Collection $scolEdtEvents;
 
     /**
@@ -89,6 +91,18 @@ class StructureAnneeUniversitaire
      */
     #[ORM\OneToMany(targetEntity: StructureCalendrier::class, mappedBy: 'structureAnneeUniversitaire')]
     private Collection $structureCalendriers;
+
+    /**
+     * @var Collection<int, EdtCreneauxInterditsSemaine>
+     */
+    #[ORM\OneToMany(targetEntity: EdtCreneauxInterditsSemaine::class, mappedBy: 'anneeUniversitaire')]
+    private Collection $edtCreneauxInterditsSemaines;
+
+    /**
+     * @var Collection<int, EdtContraintesSemestre>
+     */
+    #[ORM\OneToMany(targetEntity: EdtContraintesSemestre::class, mappedBy: 'anneeUniversitaire')]
+    private Collection $edtContraintesSemestres;
 
     public function __construct()
     {
@@ -101,6 +115,8 @@ class StructureAnneeUniversitaire
 
         $this->annee = (int) date('Y');
         $this->structureCalendriers = new ArrayCollection();
+        $this->edtCreneauxInterditsSemaines = new ArrayCollection();
+        $this->edtContraintesSemestres = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -301,14 +317,14 @@ class StructureAnneeUniversitaire
     }
 
     /**
-     * @return Collection<int, ScolEdtEvent>
+     * @return Collection<int, EdtEvent>
      */
     public function getScolEdtEvents(): Collection
     {
         return $this->scolEdtEvents;
     }
 
-    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    public function addScolEdtEvent(EdtEvent $scolEdtEvent): static
     {
         if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
             $this->scolEdtEvents->add($scolEdtEvent);
@@ -318,7 +334,7 @@ class StructureAnneeUniversitaire
         return $this;
     }
 
-    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    public function removeScolEdtEvent(EdtEvent $scolEdtEvent): static
     {
         if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
             // set the owning side to null (unless already changed)
@@ -354,6 +370,66 @@ class StructureAnneeUniversitaire
             // set the owning side to null (unless already changed)
             if ($structureCalendrier->getStructureAnneeUniversitaire() === $this) {
                 $structureCalendrier->setStructureAnneeUniversitaire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EdtCreneauxInterditsSemaine>
+     */
+    public function getEdtCreneauxInterditsSemaines(): Collection
+    {
+        return $this->edtCreneauxInterditsSemaines;
+    }
+
+    public function addEdtCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $edtCreneauxInterditsSemaine): static
+    {
+        if (!$this->edtCreneauxInterditsSemaines->contains($edtCreneauxInterditsSemaine)) {
+            $this->edtCreneauxInterditsSemaines->add($edtCreneauxInterditsSemaine);
+            $edtCreneauxInterditsSemaine->setAnneeUniversitaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEdtCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $edtCreneauxInterditsSemaine): static
+    {
+        if ($this->edtCreneauxInterditsSemaines->removeElement($edtCreneauxInterditsSemaine)) {
+            // set the owning side to null (unless already changed)
+            if ($edtCreneauxInterditsSemaine->getAnneeUniversitaire() === $this) {
+                $edtCreneauxInterditsSemaine->setAnneeUniversitaire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EdtContraintesSemestre>
+     */
+    public function getEdtContraintesSemestres(): Collection
+    {
+        return $this->edtContraintesSemestres;
+    }
+
+    public function addEdtContraintesSemestre(EdtContraintesSemestre $edtContraintesSemestre): static
+    {
+        if (!$this->edtContraintesSemestres->contains($edtContraintesSemestre)) {
+            $this->edtContraintesSemestres->add($edtContraintesSemestre);
+            $edtContraintesSemestre->setAnneeUniversitaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEdtContraintesSemestre(EdtContraintesSemestre $edtContraintesSemestre): static
+    {
+        if ($this->edtContraintesSemestres->removeElement($edtContraintesSemestre)) {
+            // set the owning side to null (unless already changed)
+            if ($edtContraintesSemestre->getAnneeUniversitaire() === $this) {
+                $edtContraintesSemestre->setAnneeUniversitaire(null);
             }
         }
 

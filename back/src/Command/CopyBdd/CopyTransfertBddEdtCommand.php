@@ -2,7 +2,7 @@
 
 namespace App\Command\CopyBdd;
 
-use App\Entity\Scolarite\ScolEdtEvent;
+use App\Entity\Edt\EdtEvent;
 use App\Repository\PersonnelRepository;
 use App\Repository\ScolEnseignementRepository;
 use App\Repository\Structure\StructureSemestreRepository;
@@ -97,7 +97,7 @@ FOREIGN_KEY_CHECKS=1');
 
         foreach ($edts as $ed) {
             if (array_key_exists($ed['prof'], $this->tPersonnels) && array_key_exists($ed['matiere'], $this->tMatieres)) {
-                $edt = new ScolEdtEvent();
+                $edt = new EdtEvent();
                 $edt->setUuid(UuidV4::v4());
                 $edt->setDebut(new \DateTime($ed['debut']));
                 $edt->setFin(new \DateTime($ed['fin']));

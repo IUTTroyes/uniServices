@@ -1,19 +1,29 @@
 <?php
 
-namespace App\Entity\Scolarite;
+namespace App\Entity\Edt;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Parameters;
+use ApiPlatform\Metadata\QueryParameter;
+use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
-use App\Repository\ScolEdtEventRepository;
+use App\Repository\Edt\EdtEventRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity(repositoryClass: ScolEdtEventRepository::class)]
-class ScolEdtEvent
+#[ApiResource(
+)]
+#[ApiFilter(SearchFilter::class, properties: ['semaineFormation' => 'exact', 'personnel' => 'exact'])]
+#[ORM\Entity(repositoryClass: EdtEventRepository::class)]
+class EdtEvent
 {
     use UuidTrait;
     use EduSignTrait;

@@ -48,8 +48,12 @@ class PersonnelsContraintesProvider implements ProviderInterface
 
         $contraintes = new PersonnelsContraintes();
         $contraintes->setSemaineFormation($semaine);
-        $contraintes->setPersonnel($personnel);
-        $contraintes->setContraintes($this->getContraintes($semaine, $personnel));
+        if ($personnel !== null) {
+            $contraintes->setPersonnel($personnel);
+            $contraintes->setContraintes($this->getContraintes($semaine, $personnel));
+        } else {
+            $contraintes->setContraintes([]); //récupérer les contraintes globales et tous les profs dans un tableau structuré ?
+        }
 
         // Retrieve the state from somewhere
         return $contraintes;

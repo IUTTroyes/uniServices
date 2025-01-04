@@ -5,8 +5,8 @@ namespace App\Entity\Users;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantAbsence;
-use App\Entity\Scolarite\ScolEdtEvent;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartementPersonnel;
@@ -126,9 +126,9 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $scolEvaluations;
 
     /**
-     * @var Collection<int, ScolEdtEvent>
+     * @var Collection<int, EdtEvent>
      */
-    #[ORM\OneToMany(targetEntity: ScolEdtEvent::class, mappedBy: 'personnel')]
+    #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'personnel')]
     private Collection $scolEdtEvents;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -490,14 +490,14 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, ScolEdtEvent>
+     * @return Collection<int, EdtEvent>
      */
     public function getScolEdtEvents(): Collection
     {
         return $this->scolEdtEvents;
     }
 
-    public function addScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    public function addScolEdtEvent(EdtEvent $scolEdtEvent): static
     {
         if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
             $this->scolEdtEvents->add($scolEdtEvent);
@@ -507,7 +507,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function removeScolEdtEvent(ScolEdtEvent $scolEdtEvent): static
+    public function removeScolEdtEvent(EdtEvent $scolEdtEvent): static
     {
         if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
             // set the owning side to null (unless already changed)

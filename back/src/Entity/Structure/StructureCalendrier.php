@@ -2,13 +2,19 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\Edt\EdtCreneauxInterditsSemaine;
+use App\Filter\SemaineFormationFilter;
 use App\Repository\Structure\StructureCalendrierRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StructureCalendrierRepository::class)]
 #[ApiResource]
+#[ApiFilter(SemaineFormationFilter::class)]
 class StructureCalendrier
 {
     #[ORM\Id]
@@ -27,6 +33,17 @@ class StructureCalendrier
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
     private ?\DateTimeInterface $dateLundi = null;
+
+    /**
+     * @var Collection<int, EdtCreneauxInterditsSemaine>
+     */
+    #[ORM\OneToMany(targetEntity: EdtCreneauxInterditsSemaine::class, mappedBy: 'semaine')]
+    private Collection $edtCreneauxInterditsSemaines;
+
+    public function __construct()
+    {
+        $this->edtCreneauxInterditsSemaines = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -91,5 +108,35 @@ class StructureCalendrier
         }
 
         return $jours;
+    }
+
+    /**
+     * @return Collection<int, EdtCreneauxInterditsSemaine>
+     */
+    public function getEdtCreneauxInterditsSemaines(): Collection
+    {
+        return $this->edtCreneauxInterditsSemaines;
+    }
+
+    public function addEdtCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $edtCreneauxInterditsSemaine): static
+    {
+        if (!$this->edtCreneauxInterditsSemaines->contains($edtCreneauxInterditsSemaine)) {
+            $this->edtCreneauxInterditsSemaines->add($edtCreneauxInterditsSemaine);
+            $edtCreneauxInterditsSemaine->setSemaine($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEdtCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $edtCreneauxInterditsSemaine): static
+    {
+        if ($this->edtCreneauxInterditsSemaines->removeElement($edtCreneauxInterditsSemaine)) {
+            // set the owning side to null (unless already changed)
+            if ($edtCreneauxInterditsSemaine->getSemaine() === $this) {
+                $edtCreneauxInterditsSemaine->setSemaine(null);
+            }
+        }
+
+        return $this;
     }
 }
