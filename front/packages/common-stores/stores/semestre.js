@@ -30,7 +30,7 @@ export const useSemestreStore = defineStore('semestre', () => {
 
   const getSemestresByDiplome = async (diplomeId, onlyActif = true) => {
     try {
-      const response = await api.get(`/api/structure_semestres/`);
+      const response = await api.get(`/api/structure_semestres?diplome=${diplomeId}`);
       semestres.value = await response.data;
       return semestres.value
     } catch (error) {
@@ -40,8 +40,9 @@ export const useSemestreStore = defineStore('semestre', () => {
 
   const getSemestresByDepartement = async (departementId, onlyActif = true) => {
     try {
-      const response = await api.get(`/api/structure_semestres/`);
+      const response = await api.get(`/api/structure_semestres?departement=${departementId}`);
       semestres.value = await response.data;
+      console.log(semestres.value)
 
       return semestres.value
     } catch (error) {
@@ -52,6 +53,8 @@ export const useSemestreStore = defineStore('semestre', () => {
   return {
     getSemestre,
     getSemestres,
+    getSemestresByDepartement,
+    getSemestresByDiplome,
     semestre,
     semestres
   };

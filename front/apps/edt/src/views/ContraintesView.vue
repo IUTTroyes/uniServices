@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import SelectWeek from '@/components/SelectWeek.vue'
-import InputBlock from '@components/components/InputBlock.vue'
 import Alert from '@components/components/Alert.vue'
 import Card from '@components/components/Card.vue'
 import { useWeeksStore } from '@/stores/weeksStore.js'

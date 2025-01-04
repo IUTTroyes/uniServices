@@ -2,9 +2,8 @@
 import { onMounted, ref, computed } from 'vue'
 import { useProfesseursStore, useSemestreStore, useMatieresStore } from '@stores'
 import SelectWeek from '@/components/SelectWeek.vue'
-import api from '@/axios.js'
-
-const baseUrl = import.meta.env.VITE_BASE_URL
+import api from '@helpers/axios.js'
+import Card from '@components/components/Card.vue'
 
 const groupData = ref([])
 
@@ -17,7 +16,7 @@ const selectedCourse = ref('')
 const selectedGroup = ref('')
 const availableCourses = ref([])
 const restrictedSlots = ref([])
-const currentWeek = ref()
+const currentWeek = ref(null)
 const selectedHighlightType = ref('course') // 'course' or 'professor'
 
 
@@ -39,26 +38,34 @@ const modalCourse = ref({
 })
 
 const handleWeekUpdate = (week) => {
+  console.log('week change', week)
   currentWeek.value = week
   loadWeek()
 }
 
 onMounted(async () => {
   try {
+    if (currentWeek.value === null) {
+      const response = await api.get('/api/structure_calendriers')
+      currentWeek.value = response.data['member'][0]
+
+    }
+
+
     await semestresStore.getSemestres()
 
     Object.values(semestresStore.semestres).forEach((semestre) => {
       size.value += semestre.sizeCm
-      groupData.value[semestre.nom] = semestre.listeGroupesTp.split(' ')
+      // groupData.value[semestre.nom] = semestre.listeGroupesTp.split(' ')
+      groupData.value[semestre.nom] =  ['A', 'B', 'C', 'D']
     })
-    if (currentWeek.value !== undefined) { //todo gérer le cas où currentWeek est undefined avec une valeur par défaut
-      //charge le calendrier de la semaine
+    if (currentWeek.value !== null) {
       _getSemaines(currentWeek.value.semaineFormation)
       _getCours(currentWeek.value.semaineFormation)
 
       await professorsStore.getProfesseurs()
       await matieresStore.getMatieres()
-      const response = await api.get(`/api/edt/personnels/contraintes/${currentWeek.value.semaineFormation}`)
+      const response = await api.get(`/api/edt/personnels-contraintes/${currentWeek.value.semaineFormation}`)
       constraints.value = await response.data
     }
   } catch (error) {
@@ -83,7 +90,7 @@ const saveRoom = () => {
   placedCourses.value[courseKey].room = modalCourse.value.room
 
   // mise à jour de la salle dans l'API
-  fetch(baseUrl + '/update-room/' + modalCourse.value.id, {
+  fetch(baseUrl + '/update-room/' + modalCourse.value.id, { //todo: ajouter semestre
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -102,7 +109,11 @@ const toggleSidebar = () => {
 const placedCourses = ref({})
 
 const filteredCourses = computed(() => {
-  return availableCourses.value.filter((course) => {
+  if (Object.values(availableCourses.value).length === 0) {
+    return []
+  }
+
+  return Object.values(availableCourses.value).filter((course) => {
     return (
         (selectedSemester.value === '' || course.group === selectedSemester.value) &&
         (selectedProfessor.value === '' || course.professor === selectedProfessor.value) &&
@@ -143,13 +154,14 @@ const resetFilters = () => {
 }
 
 const _getSemaines = async (currentWeek) => {
-  const data = await api.get(`/api/edt/get-semaine/${currentWeek}`).then((res) =>
-      res.data
+  const data = await api.get(`/api/structure_calendriers?semaineFormation=${currentWeek}`).then((res) =>
+      res.data['member'][0]
   )
-  restrictedSlots.value = data.restrictedSlots
-  days.value = data.days
+  console.log(data)
+  restrictedSlots.value = data.edtCreneauxInterditsSemaines
+  days.value = data.jours
 
-  placedCourses.value = await api.get(`/api/edt/get-cours-places/${currentWeek}`).then((res) =>
+  placedCourses.value = await api.get(`/api/edt_events?semaine=${currentWeek}`).then((res) =>
       res.data
   )
 
@@ -164,7 +176,7 @@ const _getSemaines = async (currentWeek) => {
 }
 
 const _getCours = async (numSemaine) => {
-  availableCourses.value = await api.get(`/api/edt/get-cours-semaine/${numSemaine}`).then((res) =>
+  availableCourses.value = await api.get(`/api/edt_progressions?semaine=${numSemaine}`).then((res) =>
       res.data
   )
 }
@@ -610,12 +622,11 @@ const groupToInt = (group) => {
 </script>
 
 <template>
-  <Card>
-    <template #header>
-      Emploi du temps semaine xxx
-    </template>
-    <template #content>
-      <div class="grid">
+  <Card
+      v-if="currentWeek"
+    :title="`Emploi du temps semaine ${currentWeek?.semaineFormation} (${currentWeek?.dateLundi})`"
+  >
+    <div class="row">
         <div class="col-6">
           <button @click="assignRoomsAutomatically">Assign Rooms Automatically</button>
         </div>
@@ -631,7 +642,7 @@ const groupToInt = (group) => {
         </div>
         <div class="flex flex-wrap gap-4 justify-center">
           <Button class="btn btn-primary d-block" @click="loadPreviousWeek">Semaine précédente</Button>
-          <SelectWeek @update:selectedWeek="handleWeekUpdate" :currentWeek="currentWeek"/>
+          <SelectWeek @update:selectedWeek="handleWeekUpdate" :currentWeek="currentWeek.semaineFormation" />
           <Button class="btn btn-primary d-block" @click="loadNextWeek">Semaine suivante</Button>
         </div>
 
@@ -741,7 +752,6 @@ const groupToInt = (group) => {
           </div>
         </div>
       </div>
-    </template>
   </Card>
   <!-- Sidebar Toggle Button -->
   <nav class="sidebar-toggle" @click="toggleSidebar">

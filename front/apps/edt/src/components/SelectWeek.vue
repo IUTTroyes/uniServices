@@ -15,6 +15,8 @@ const weeks = ref([])
 const selectedWeek = ref(1)
 
 onMounted(() => {
+  console.log('Fetching weeks...')
+  selectedWeek.value = props.currentWeek
   fetchWeeks()
 })
 
@@ -22,6 +24,7 @@ const fetchWeeks = async () => {
   try {
     await weeksStore.fetchWeeks()
     weeks.value = weeksStore.weeks
+    console.log('Weeks fetched:', weeks.value)
   } catch (error) {
     console.error('Error fetching weeks:', error)
   }

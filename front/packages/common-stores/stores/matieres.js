@@ -9,7 +9,7 @@ export const useMatieresStore = defineStore('matieres', () => {
 
   const getMatieres = async () => {
     try {
-      const response = await api.get('/api/scolarite_enseignements')
+      const response = await api.get('/api/scol_enseignements')
       matieres.value = response.data['member']
     } catch (error) {
       console.error('Error fetching matieres:', error)
