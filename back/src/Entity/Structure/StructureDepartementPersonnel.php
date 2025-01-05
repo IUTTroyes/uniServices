@@ -21,6 +21,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriVariables: [
                 'personnelId' => new Link(fromClass: Personnel::class, identifiers: ['id'], toProperty: 'personnel')
             ],
+            paginationEnabled: false,
             normalizationContext: ['groups' => ['structure_departement_personnel:read']]
         ),
         new GetCollection(
@@ -28,10 +29,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriVariables: [
                 'departementId' => new Link(fromClass: StructureDepartement::class, identifiers: ['id'], toProperty: 'departement')
             ],
+            paginationEnabled: false,
             normalizationContext: ['groups' => ['structure_departement_personnel:read']]
         ),
-        new Post(processor: 'App\State\ChangeDepartementProcessor', normalizationContext: ['groups' => ['structure_departement_personnel:read']], uriTemplate: '/structure_departement_personnels/{id}/change_departement', inputFormats: ['json' => ['application/ld+json']], outputFormats: ['json' => ['application/ld+json']]),
-    ]
+        new Post(uriTemplate: '/structure_departement_personnels/{id}/change_departement', inputFormats: ['json' => ['application/ld+json']], outputFormats: ['json' => ['application/ld+json']], normalizationContext: ['groups' => ['structure_departement_personnel:read']], processor: 'App\State\ChangeDepartementProcessor'),
+    ],
+    order: ['personnel.nom', 'departement.libelle']
 )]
 class StructureDepartementPersonnel
 {

@@ -27,8 +27,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['personnel:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['personnel:read']]),
-    ]
+        new GetCollection(
+            normalizationContext: ['groups' => ['personnel:read']],
+        ),
+    ],
+    order: ['nom' => 'ASC'],
 )]
 #[ORM\HasLifecycleCallbacks]
 class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
@@ -277,7 +280,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setPrenom(string $prenom): static
     {
-        $this->prenom = $prenom;
+        $this->prenom = ucwords(mb_strtolower($prenom));
 
         return $this;
     }
@@ -289,7 +292,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function setNom(string $nom): static
     {
-        $this->nom = $nom;
+        $this->nom = mb_strtoupper($nom);
 
         return $this;
     }
@@ -672,7 +675,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
     public function getDisplay(): string
     {
-        return $this->prenom . ' ' . $this->nom;
+        return $this->getPrenom() . ' ' . $this->getNom();
     }
 
     public function getInitiales(): ?string
