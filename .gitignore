@@ -1,3 +1,6 @@
 /back/var
 /back/vendor
 /front/node_modules/
+/front/apps/auth/public/common-images/
+/front/apps/edt/public/common-images/
+/front/apps/intranet/public/common-images/

@@ -1,13 +1,8 @@
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import Logo from '@components/components/Logo.vue'
 import axios from 'axios'
-
-const props = defineProps({
-  logoUrl: {
-    type: String,
-    required: true
-  }
-})
+import { tools } from '@config/uniServices.js'
 
 const username = ref('')
 const password = ref('')
@@ -28,6 +23,7 @@ const handleSubmit = async () => {
     // Handle login error (e.g., show error message)
   }
 }
+
 </script>
 
 <template>
@@ -35,48 +31,19 @@ const handleSubmit = async () => {
       class="bg bg-surface-50 dark:bg-surface-950 flex flex-wrap items-center justify-center min-h-screen overflow-hidden">
     <div class="login-container flex">
       <div class="info-section bg-black bg-opacity-60 text-white backdrop-blur-sm flex justify-start p-16 gap-4">
-        <img :src="logoUrl" alt="logo de l'iut" class="logo"/>
+        <Logo src="common-images/logo/logo_iut.png" alt="logo de l'iut" class="logo" />
         <h2>Bienvenue sur UniServices</h2>
         <p>Plateforme de gestion centralisée des services universitaires</p>
 
         <ul>
-          <li><img src="@/assets/logo/logo_intranet_iut_troyes.svg" alt="" class="logo">
+          <li v-for="tool in tools" :key="tool.name">
+            <Logo :src="tool.logo" alt="" class="logo_login" />
             <div>
                                 <span>
-                                Intranet
+                                {{ tool.name }}
                             </span>
               <p>
-                Gestion de la structure des formations et des étudiants
-              </p>
-            </div>
-          </li>
-          <li><img src="@/assets/logo/logo_unifolio.png" alt="" class="logo">
-            <div>
-                                <span>
-                                UniFolio
-                            </span>
-              <p>
-                Outil de création et de gestion de portfolios universitaires
-              </p>
-            </div>
-          </li>
-          <li><img src="@/assets/logo/logo_intranet_iut_troyes.svg" alt="" class="logo">
-            <div>
-                                <span>
-                                Correcto
-                            </span>
-              <p>
-                Plateforme de correction des travaux et des examens
-              </p>
-            </div>
-          </li>
-          <li><img src="@/assets/logo/logo_uniedt.png" alt="" class="logo">
-            <div>
-                                <span>
-                                UniEdt
-                            </span>
-              <p>
-                Plateforme de conception des emplois du temps et gestion des contraintes.
+                {{ tool.description }}
               </p>
             </div>
           </li>

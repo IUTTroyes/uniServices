@@ -25,7 +25,9 @@ export default defineConfig(({ mode }) => {
       alias: {
         '@': path.resolve(__dirname, `apps/${appName}/src`),
         '@components': path.resolve(__dirname, 'packages/common-components'),
+        '@config': path.resolve(__dirname, 'packages/common-global-data'),
         '@styles': path.resolve(__dirname, 'packages/common-styles'),
+        '@images': path.resolve(__dirname, 'packages/common-images'),
         '@helpers': path.resolve(__dirname, 'packages/common-helpers'),
         '@requests': path.resolve(__dirname, 'packages/common-requests'),
         '@stores': path.resolve(__dirname, 'packages/common-stores'),

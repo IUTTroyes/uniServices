@@ -1,9 +1,11 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
 import { defineProps, onMounted, watch, computed } from 'vue';
+import Logo from '@components/components/Logo.vue';
 import { ref } from 'vue';
 import { useUsersStore } from "@stores";
 import { useRoute } from 'vue-router';
+import { tools } from '@config/uniServices.js';
 
 const store = useUsersStore();
 const route = useRoute();
@@ -42,6 +44,7 @@ const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout();
 const search = ref('');
 
 const anneeMenu = ref();
+const toolsMenu = ref();
 const profileMenu = ref();
 const deptMenu = ref();
 
@@ -92,6 +95,10 @@ const toggleAnneeMenu = (event) => {
   anneeMenu.value.toggle(event);
 };
 
+const toggleToolsMenu = (event) => {
+  toolsMenu.value.toggle(event);
+};
+
 const toggleDeptMenu = (event) => {
   deptMenu.value.toggle(event);
 };
@@ -126,7 +133,7 @@ const initiales = computed(() => {
         <i class="pi pi-bars"></i>
       </button>
       <router-link to="/" class="layout-topbar-logo">
-        <img :src="logoUrl" alt="logo" /> <span>{{appName}}</span>
+        <Logo src="common-images/logo/logo_iut.png" alt="logo" /> <span>{{appName}}</span>
       </router-link>
       <button v-if="store.userType === 'personnels'" type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
         <span>Département {{ departementLabel }}</span>
@@ -146,14 +153,20 @@ const initiales = computed(() => {
         </IconField>
       </div>
 
-      <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action-app">
-        <img src="@/assets/logo/logo_unifolio.png" alt="calendar" />
-        <span>UniFolio</span>
+      <button  v-if="route.path !== '/portail' && store.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
+        <i class="pi pi-microsoft"></i>
+        <span>Applications</span>
       </button>
-      <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action-app">
-        <img src="@/assets/logo/logo_unifolio.png" alt="calendar" />
-        <span>Correcto</span>
-      </button>
+      <Menu ref="toolsMenu" id="tools_menu" :model="tools" :popup="true">
+        <template #item="{ item, props }">
+          <router-link v-if="item.url" v-slot="{ href, navigate }" :to="item.url" custom>
+            <a v-ripple :href="href" v-bind="props.action" @click="navigate">
+              <Logo :logo-url="item.logo" class="logo_menu" />
+              <span class="ml-2">{{ item.name }}</span>
+            </a>
+          </router-link>
+        </template>
+      </Menu>
 
       <div class="layout-config-menu">
         <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
