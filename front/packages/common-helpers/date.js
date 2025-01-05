@@ -10,3 +10,9 @@ export function formatDateLong(date) {
     day: 'numeric'
   });
 }
+
+export function jourDate(date) {
+  return new Date(date).toLocaleDateString('fr-FR', {
+    weekday: 'long'
+  });
+}

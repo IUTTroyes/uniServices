@@ -4,6 +4,8 @@ import { useProfesseursStore, useSemestreStore, useMatieresStore } from '@stores
 import SelectWeek from '@/components/SelectWeek.vue'
 import api from '@helpers/axios.js'
 import Card from '@components/components/Card.vue'
+import { formatDateCourt, jourDate } from '@helpers/date.js'
+import { getPersonnelsDepartement } from '@requests/user_services/personnelService.js'
 
 const groupData = ref([])
 
@@ -18,14 +20,15 @@ const availableCourses = ref([])
 const restrictedSlots = ref([])
 const currentWeek = ref(null)
 const selectedHighlightType = ref('course') // 'course' or 'professor'
+let departementId = null
 
-
-const professorsStore = useProfesseursStore()
 const matieresStore = useMatieresStore()
 const semestresStore = useSemestreStore()
 const coursesToReplace = ref([])
 const constraints = ref({})
 const size = ref(0)
+const semestres = ref([])
+const personnels = ref([])
 
 const isModalOpen = ref(false)
 const modalCourse = ref({
@@ -44,26 +47,30 @@ const handleWeekUpdate = (week) => {
 }
 
 onMounted(async () => {
+  departementId = localStorage.getItem('departement')
   try {
     if (currentWeek.value === null) {
       const response = await api.get('/api/structure_calendriers')
       currentWeek.value = response.data['member'][0]
-
     }
 
+    await semestresStore.getSemestresByDepartement(departementId)
+    semestres.value = semestresStore.semestres['member']
 
-    await semestresStore.getSemestres()
-
-    Object.values(semestresStore.semestres).forEach((semestre) => {
-      size.value += semestre.sizeCm
-      // groupData.value[semestre.nom] = semestre.listeGroupesTp.split(' ')
-      groupData.value[semestre.nom] =  ['A', 'B', 'C', 'D']
+    Object.values(semestres.value).forEach((semestre) => {
+      size.value += semestre.nbGroupesTp
+      // pour chaque nbTP faire un tableau de groupe
+      groupData.value[semestre.id] = []
+      for(let i = 0; i < semestre.nbGroupesTp; i++) {
+        groupData.value[semestre.id].push(String.fromCharCode(65 + i))
+      }
     })
+
     if (currentWeek.value !== null) {
       _getSemaines(currentWeek.value.semaineFormation)
       _getCours(currentWeek.value.semaineFormation)
 
-      await professorsStore.getProfesseurs()
+      personnels.value = await getPersonnelsDepartement(departementId)
       await matieresStore.getMatieres()
       const response = await api.get(`/api/edt/personnels-contraintes/${currentWeek.value.semaineFormation}`)
       constraints.value = await response.data
@@ -159,7 +166,12 @@ const _getSemaines = async (currentWeek) => {
   )
   console.log(data)
   restrictedSlots.value = data.edtCreneauxInterditsSemaines
-  days.value = data.jours
+  //parcours les jours de data et les transforme en objet
+  days.value = Object.keys(data.jours).map((key) => {
+    return { day: jourDate(data.jours[key]), dateFr: formatDateCourt(data.jours[key]) }
+  })
+
+  console.log(days.value)
 
   placedCourses.value = await api.get(`/api/edt_events?semaine=${currentWeek}`).then((res) =>
       res.data
@@ -619,16 +631,20 @@ const groupToInt = (group) => {
   // convert group letter to number
   return group.charCodeAt(0) - 64
 }
+
+const getTitleCard = () => {
+  return currentWeek.value ? 'Emploi du temps semaine ' + currentWeek.value.semaineFormation+ ' (' + formatDateCourt(currentWeek.value.dateLundi)+ ')' : 'Chargement...'
+}
 </script>
 
 <template>
   <Card
       v-if="currentWeek"
-    :title="`Emploi du temps semaine ${currentWeek?.semaineFormation} (${currentWeek?.dateLundi})`"
+    :title="getTitleCard()"
   >
     <div class="row">
         <div class="col-6">
-          <button @click="assignRoomsAutomatically">Assign Rooms Automatically</button>
+          <Button @click="assignRoomsAutomatically" severity="info" class="mt-1 mb-1">Assign Rooms Automatically</Button>
         </div>
         <div class="col-6">
           <label>
@@ -640,9 +656,9 @@ const groupToInt = (group) => {
             Par professeur
           </label>
         </div>
-        <div class="flex flex-wrap gap-4 justify-center">
+        <div class="flex flex-wrap gap-4 justify-center mb-2 mt-1">
           <Button class="btn btn-primary d-block" @click="loadPreviousWeek">Semaine précédente</Button>
-          <SelectWeek @update:selectedWeek="handleWeekUpdate" :currentWeek="currentWeek.semaineFormation" />
+          <SelectWeek @update:selectedWeek="handleWeekUpdate" :current-week="currentWeek" />
           <Button class="btn btn-primary d-block" @click="loadNextWeek">Semaine suivante</Button>
         </div>
 
@@ -652,19 +668,19 @@ const groupToInt = (group) => {
             <!-- Header Row: Semesters -->
             <div class="grid-header grid-time">Heure</div>
             <div
-                v-for="semestre in semestresStore.semestres"
+                v-for="semestre in semestres"
                 :key="semestre.id"
                 class="grid-header"
-                :style="{ gridColumn: `span ${semestre.sizeCm}` }"
+                :style="{ gridColumn: `span ${semestre.nbGroupesTp}` }"
             >
-              {{ semestre.nom }}
+              {{ semestre.libelle }}
             </div>
 
             <!-- Second Row: Group Headers -->
             <div class="grid-time"></div>
-            <template v-for="semestre in semestresStore.semestres" :key="'group-' + semestre.id">
+            <template v-for="semestre in semestres" :key="'group-' + semestre.id">
               <div
-                  v-for="group in semestre.listeGroupesTp.split(' ')"
+                  v-for="group in groupData[semestre.id]"
                   :key="semestre + group"
                   class="grid-header"
               >
@@ -675,60 +691,60 @@ const groupToInt = (group) => {
             <!-- Time Slots and Group Cells -->
             <template v-for="time in timeSlots" :key="time">
               <div class="grid-time">{{ time }}</div>
-              <template v-for="semestre in semestresStore.semestres" :key="'time-' + semestre.nom">
+              <template v-for="semestre in semestres" :key="'time-' + semestre.libelle">
                 <div
-                    v-for="group in semestre.listeGroupesTp.split(' ')"
-                    :key="time + semestre.nom + group"
+                    v-for="group in groupData[semestre.id]"
+                    :key="time + semestre.libelle + group"
                     class="grid-cell"
                     :style="{
                 backgroundColor: placedCourses[
-                  `${day.day}_${time}_${semestre.nom}_${groupToInt(group)}`
+                  `${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`
                 ]
-                  ? placedCourses[`${day.day}_${time}_${semestre.nom}_${groupToInt(group)}`].color
+                  ? placedCourses[`${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`].color
                   : ''
               }"
-                    @drop="onDrop($event, day.day, time, semestre.nom, groupToInt(group))"
-                    @mouseover="highlightSameCourses(day.day, time, semestre.nom, groupToInt(group))"
-                    @mouseout="clearSameCoursesHighlight(day.day, time, semestre.nom, groupToInt(group))"
+                    @drop="onDrop($event, day.day, time, semestre.libelle, groupToInt(group))"
+                    @mouseover="highlightSameCourses(day.day, time, semestre.libelle, groupToInt(group))"
+                    @mouseout="clearSameCoursesHighlight(day.day, time, semestre.libelle, groupToInt(group))"
                     @dragover.prevent
-                    :data-key="day.day + '_' + time + '_' + semestre.nom + '_' + groupToInt(group)"
+                    :data-key="day.day + '_' + time + '_' + semestre.libelle + '_' + groupToInt(group)"
                     draggable="true"
                     @dragstart="
                 onDragStart(
                   $event,
-                  placedCourses[`${day.day}_${time}_${semestre.nom}_${groupToInt(group)}`],
+                  placedCourses[`${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`],
                   'grid',
-                  `${day.day}_${time}_${semestre.nom}_${groupToInt(group)}`
+                  `${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`
                 )
               "
                     @dragend="clearHighlight"
                 >
-              <span v-if="placedCourses[`${day.day}_${time}_${semestre.nom}_${groupToInt(group)}`]">
+              <span v-if="placedCourses[`${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`]">
                 <span
                     v-html="
                     displayCourse(
-                      placedCourses[`${day.day}_${time}_${semestre.nom}_${groupToInt(group)}`]
+                      placedCourses[`${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`]
                     )
                   "
                 ></span>
                 <span
                     v-if="
-                    placedCourses[`${day.day}_${time}_${semestre.nom}_${groupToInt(group)}`]
+                    placedCourses[`${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`]
                       .blocked === false
                   "
                     @click="
                     openModal(
-                      placedCourses[`${day.day}_${time}_${semestre.nom}_${groupToInt(group)}`]
+                      placedCourses[`${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`]
                     )
                   "
                 >
                   -{{
-                    placedCourses[`${day.day}_${time}_${semestre.nom}_${groupToInt(group)}`].room
+                    placedCourses[`${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`].room
                   }}-
                 </span>
                 <button
                     v-if="
-                    placedCourses[`${day.day}_${time}_${semestre.nom}_${groupToInt(group)}`]
+                    placedCourses[`${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`]
                       .blocked === false
                   "
                     class="remove-btn"
@@ -736,9 +752,9 @@ const groupToInt = (group) => {
                     removeCourse(
                       day.day,
                       time,
-                      semestre.nom,
+                      semestre.libelle,
                       groupToInt(group),
-                      placedCourses[`${day.day}_${time}_${semestre.nom}_${groupToInt(group)}`]
+                      placedCourses[`${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`]
                         .groupCount
                     )
                   "
@@ -766,18 +782,21 @@ const groupToInt = (group) => {
       <div class="col-6">
         <select v-model="selectedSemester">
           <option value="">Semestre</option>
-          <option value="S1">Semestre 1</option>
-          <option value="S3">Semestre 3</option>
-          <option value="S5">Semestre 5</option>
+          <option
+              v-for="semestre in semestres"
+              :value="semestre.id"
+              :key="semestre.id"
+          >Semestre {{ semestre.libelle}}</option>
         </select>
       </div>
       <div class="col-6">
         <select v-model="selectedProfessor">
           <option value="">Professeur</option>
           <option
-              :value="professor.initiales"
-              v-for="professor in professorsStore.professors"
+
+              v-for="professor in personnels"
               :key="professor.initiales"
+              :value="professor.initiales"
           >
             {{ professor.initiales }}
           </option>
@@ -798,35 +817,17 @@ const groupToInt = (group) => {
       <div class="col-6">
         <select v-model="selectedGroup">
           <option value="">Groupe</option>
-          <option value="1">Groupe 1 / S1</option>
-          <option value="2">Groupe 2 / S1</option>
-          <option value="3">Groupe 3 / S1</option>
-          <option value="4">Groupe 4 / S1</option>
-          <option value="5">Groupe 5 / S1</option>
-          <option value="6">Groupe 6 / S1</option>
-          <option value="7">Groupe 7 / S1</option>
-          <option value="8">Groupe 8 / S1</option>
-          <option value="9">Groupe 1 / S3</option>
-          <option value="10">Groupe 2 / S3</option>
-          <option value="11">Groupe 3 / S3</option>
-          <option value="12">Groupe 4 / S3</option>
-          <option value="13">Groupe 5 / S3</option>
-          <option value="14">Groupe 6 / S3</option>
-          <option value="15">Groupe 7 / S3</option>
-          <option value="16">Groupe 8 / S3</option>
-          <option value="17">Groupe 1 / S5</option>
-          <option value="18">Groupe 2 / S5</option>
-          <option value="19">Groupe 3 / S5</option>
-          <option value="20">Groupe 4 / S5</option>
-          <option value="21">Groupe 5 / S5</option>
-          <option value="22">Groupe 6 / S5</option>
-          <option value="23">Groupe 7 / S5</option>
-          <option value="24">Groupe 8 / S5</option>
+          <option
+              v-for="group in groupData[selectedSemester]"
+              :value="group">
+            {{ group }}
+          </option>
+
         </select>
       </div>
       <div class="col-6"></div>
       <div class="col-6">
-        <button @click="resetFilters">Reset</button>
+        <Button @click="resetFilters" severity="warn">Eff. filtres</Button>
       </div>
     </div>
     <div class="list-group grid-container-available">

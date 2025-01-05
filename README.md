@@ -1,13 +1,48 @@
 # uniServices
 
-## Lancer la partie front
+## Auteurs
+
+- [@cyndelherolt](https://www.github.com/cyndelherolt)
+- [@dannebicque](https://www.github.com/dannebicque)
+
+## Description
+
+Projet de gestion de services universitaires. Refonte de l'intranet V3 pour le rendre plus modulaire et plus facile à maintenir.
+Ergonomie et UX repensée.
+
+## Installation
+
+### Prérequis
+
+
+## Commandes
+
+### Lancer la partie front
 
 ```bash
-npm run build:all => build toutes les applications
-npm run dev:all => lance toutes les applications en mode dev
+make start-front
+```
 
-npm run open:intranet => ouvre l'application intranet
-npm run open:auth => ouvre l'application auth
-npm run dev:intranet => lance l'application intranet en mode dev
-npm run dev:auth => lance l'application auth en mode dev
+### Lancer la partie back
+
+```bash
+make start-back
+```
+
+### Lancer le projet (front et back)
+
+```bash
+make start-all
+```
+
+### Arrêter le projet
+
+```bash
+make stop-all
+```
+
+### Lancer Storybook
+
+```bash 
+make start-storybook
 ```

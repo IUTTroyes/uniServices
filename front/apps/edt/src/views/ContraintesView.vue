@@ -171,12 +171,12 @@ const changeCalendrierGeneral = () => {
 
         <div class="col-6 p-4">
           <div class="flex flex-col gap-2">
-            <SelectWeek @update:selectedWeek="handleWeekUpdate" current-week=""/>
+            <SelectWeek @update:selectedWeek="handleWeekUpdate" :current-week="selectedWeek"/>
           </div>
         </div>
       </div>
     </Card>
-
+{{selectedProfessor}} - {{selectedWeek}}
     <Card
         :title="`Saisir les contraintes de disponibilité pour ${selectedProfessor?.personnel.display}, semaine ${selectedWeek?.semaineFormation}`"
     >
