@@ -1,0 +1,59 @@
+name: CI-Back
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-back:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: symfony_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2' # Symfony 7 est compatible avec PHP >= 8.1
+        extensions: mbstring, intl, pdo_mysql
+        coverage: none
+
+    - name: Setup Composer
+      run: composer self-update
+
+    - name: Install dependencies
+      working-directory: ./back
+      run: composer install --no-progress --no-interaction
+
+    - name: Set up .env.test file
+      working-directory: ./back
+      run: cp .env .env.test
+
+    - name: Run database migrations
+      working-directory: ./back
+      env:
+        DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/symfony_test'
+      run: php bin/console doctrine:migrations:migrate --no-interaction
+
+    - name: Run tests
+      working-directory: ./back
+      env:
+        DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/symfony_test'
+      run: ./vendor/bin/phpunit
