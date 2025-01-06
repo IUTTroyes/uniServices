@@ -3,7 +3,7 @@ export function formatDateCourt(date) {
 }
 
 export function formatDateLong(date) {
-  return new Date().toLocaleDateString('fr-FR', {
+  return new Date(date).toLocaleDateString('fr-FR', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',

@@ -5,7 +5,6 @@ import api from '@helpers/axios';
 
 export const useMatieresStore = defineStore('matieres', () => {
   const matieres = ref([])
-  const baseUrl = import.meta.env.VITE_BASE_URL
 
   const getMatieres = async () => {
     try {
