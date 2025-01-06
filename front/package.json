@@ -30,7 +30,8 @@
     "dev:auth": "VITE_SUB_PROJECT_NAME=auth vite --port 3000 --open",
     "dev:edt": "VITE_SUB_PROJECT_NAME=edt vite --port 3003",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "test": "vitest"
   },
   "keywords": [],
   "author": "",
@@ -60,6 +61,7 @@
     "storybook": "^8.4.7",
     "tailwindcss": "^3.4.6",
     "tailwindcss-primeui": "^0.3.2",
-    "unplugin-vue-components": "^0.28.0"
+    "unplugin-vue-components": "^0.28.0",
+    "vitest": "^2.1.8"
   }
 }
