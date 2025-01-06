@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { getServiceDepartementSemestresActifs } from "@requests";
-import SimpleSkeleton from "@/components/Loader/SimpleSkeleton.vue";
+import SimpleSkeleton from "@components/loader/SimpleSkeleton.vue";
 
 const semestresFc = ref([]);
 const semestresFi = ref([]);
@@ -28,6 +28,34 @@ onMounted(async () => {
 const selectSemestre = (semestre) => {
   selectedSemestre.value = semestre;
 };
+
+const panelMenuItems = [
+  { label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
+      { label: 'Liste des étudiants', icon: 'pi pi-list', command: () => {} },
+      { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', command: () => {} },
+    ] },
+  { label: 'Groupes', icon: 'pi pi-users', command: () => {}, items: [
+      { label: 'Composition des groupes', icon: 'pi pi-list',
+        command: () => {} },
+      { label: 'Structure des groupes', icon: 'pi pi-cog', command: () => {} },
+    ] },
+  { label: 'Absences', icon: 'pi pi-calendar', command: () => {}, items: [
+      { label: 'Liste des absences', icon: 'pi pi-list',
+        command: () => {} },
+      { label: 'Liste des justificatifs', icon: 'pi pi-folder-open', command: () => {} },
+      { label: 'Suivi des pointages de présence', icon: 'pi pi-eye', command: () => {} },
+    ] },
+  { label: 'Notes et Évaluations', icon: 'pi pi-book', command: () => {}, items: [
+      { label: 'Liste des notes', icon: 'pi pi-list', command: () => {} },
+      { label: 'Gestion des évaluations', icon: 'pi pi-cog', command: () => {} },
+      { label: 'Demandes de rattrapages', icon: 'pi pi-history', command: () => {} },
+      { label: 'Modalités du contrôle continu', icon: 'pi pi-map', command: () => {} },
+    ] },
+  { label: 'Fin de semestre', icon: 'pi pi-check', command: () => {}, items: [
+      { label: 'Préparation de la sous-commission', icon: 'pi pi-calculator', command: () => {} },
+      { label: 'Changement de semestre des étudiants', icon: 'pi pi-forward', command: () => {} },
+    ] },
+];
 </script>
 
 <template>
@@ -51,25 +79,19 @@ const selectSemestre = (semestre) => {
           <ul class="w-1/2">
             <li class="font-bold text-lg">Formation Initiale</li>
             <li v-for="semestreFi in semestresFi" :key="semestreFi.id" @click="selectSemestre(semestreFi)" class="cursor-pointer w-full border-b p-1">
-              <div class="hover:bg-surface-400 hover:bg-opacity-10 rounded-md w-full p-2" :class="{'bg-surface-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestreFi.id}">{{ semestreFi.libelle }}</div>
+              <div class="hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2" :class="{'bg-primary-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestreFi.id}">{{ semestreFi.libelle }}</div>
             </li>
           </ul >
           <ul class="w-1/2">
             <li class="font-bold text-lg">Formation Continue</li>
             <li v-for="semestreFc in semestresFc" :key="semestreFc.id" @click="selectSemestre(semestreFc)" class="cursor-pointer w-full border-b p-1">
-              <div class="hover:bg-surface-400 hover:bg-opacity-10 rounded-md w-full p-2" :class="{'bg-surface-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestreFc.id}">{{ semestreFc.libelle }}</div>
+              <div class="hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2" :class="{'bg-primary-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestreFc.id}">{{ semestreFc.libelle }}</div>
             </li>
           </ul>
         </div>
-        <div class="w-1/2" v-if="selectedSemestre">
+        <div class="w-1/2 " v-if="selectedSemestre">
           <h3 class="font-bold text-xl mb-4">Actions pour {{ selectedSemestre.libelle }}</h3>
-          <PanelMenu :model="[
-          { label: 'Étudiants', icon: 'pi pi-user', command: () => {} },
-          { label: 'Groupes', icon: 'pi pi-users', command: () => {} },
-          { label: 'Absences', icon: 'pi pi-calendar', command: () => {} },
-          { label: 'Notes', icon: 'pi pi-book', command: () => {} },
-          { label: 'Fin de semestre', icon: 'pi pi-check', command: () => {} },
-        ]" multiple class="custom-panelmenu-header" />
+          <PanelMenu :model="panelMenuItems" multiple/>
         </div>
       </div>
     </Fieldset>
