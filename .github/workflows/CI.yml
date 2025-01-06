@@ -10,24 +10,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: test
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16' # Ou une version compatible avec votre projet
+
+    - name: Install pnpm
+      run: npm install -g pnpm
 
     - name: Install front dependencies
-      run: cd /front && pnpm install
+      working-directory: ./front
+      run: pnpm install
 
     - name: Run frontend tests
-      run: cd /front && npm run test
+      working-directory: ./front
+      run: pnpm run test
