@@ -17,7 +17,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18.12.1' # Version minimum compatible avec pnpm
+        node-version: '18.12.1' # Version compatible avec pnpm
 
     - name: Install pnpm
       run: npm install -g pnpm
@@ -28,4 +28,4 @@ jobs:
 
     - name: Run frontend tests
       working-directory: ./front
-      run: pnpm run test
+      run: npm run test
