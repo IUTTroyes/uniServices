@@ -53,5 +53,10 @@ export default defineConfig(({ mode }) => {
         },
       },
     },
+    test: {
+      globals: true, // Utiliser les globales comme describe, it, etc.
+      environment: 'jsdom', // Utiliser un environnement DOM pour les tests
+      setupFiles: './vitest.setup.js', // Fichier de configuration pour Vitest
+    },
   }
 })
