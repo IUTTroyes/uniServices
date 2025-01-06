@@ -27,7 +27,7 @@ jobs:
     steps:
 
     - name: Install front dependencies
-      run: cd front && pnpm install
+      run: cd /front && pnpm install
 
     - name: Run frontend tests
-      run: cd front && npm run test
+      run: cd /front && npm run test
