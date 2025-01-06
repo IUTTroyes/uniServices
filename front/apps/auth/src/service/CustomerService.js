@@ -4305,7 +4305,7 @@ export const CustomerService = {
             },
             {
                 id: 1239,
-                name: 'Alex Loader',
+                name: 'Alex loader',
                 country: {
                     name: 'Italy',
                     code: 'it'

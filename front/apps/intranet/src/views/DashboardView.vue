@@ -7,12 +7,13 @@ import api from '@/axios';
 import DashboardPersonnel from "@/components/Personnel/Dashboard.vue";
 import DashboardEtudiant from "@/components/Etudiant/Dashboard.vue";
 import EdtJour from "@/components/Edt/EdtJour.vue";
-import CardSkeleton from "@/components/Loader/CardSkeleton.vue";
-import ArticleSkeleton from "@/components/Loader/ArticleSkeleton.vue";
+import CardSkeleton from "@components/loader/CardSkeleton.vue";
+import ArticleSkeleton from "@components/loader/ArticleSkeleton.vue";
 
 const store = useUsersStore();
 const initiales = '';
 const absences = ref([]);
+const date = new Date();
 
 const actuEvents = ref([]);
 const agendaEvents = ref([]);

@@ -30,26 +30,28 @@ const handleSubmit = async () => {
   <div
       class="bg bg-surface-50 dark:bg-surface-950 flex flex-wrap items-center justify-center min-h-screen overflow-hidden">
     <div class="login-container flex">
-      <div class="info-section bg-black bg-opacity-60 text-white backdrop-blur-sm flex justify-start p-16 gap-4">
-        <Logo src="common-images/logo/logo_iut.png" alt="logo de l'iut" class="logo" />
-        <h2>Bienvenue sur UniServices</h2>
-        <p>Plateforme de gestion centralisée des services universitaires</p>
+      <div class="info-section bg-black bg-opacity-60 text-white backdrop-blur-sm flex justify-start gap-4">
+        <div class="p-16">
+          <Logo src="common-images/logo/logo_iut.png" alt="logo de l'iut" class="logo" />
+          <h2>Bienvenue sur UniServices</h2>
+          <p>Plateforme de gestion centralisée des services universitaires</p>
 
-        <ul>
-          <li v-for="tool in tools" :key="tool.name">
-            <Logo :src="tool.logo" alt="" class="logo_login" />
-            <div>
+          <ul>
+            <li v-for="tool in tools" :key="tool.name">
+              <Logo :src="tool.logo" alt="" class="logo_login" />
+              <div>
                                 <span>
                                 {{ tool.name }}
                             </span>
-              <p>
-                {{ tool.description }}
-              </p>
-            </div>
-          </li>
-        </ul>
+                <p>
+                  {{ tool.description }}
+                </p>
+              </div>
+            </li>
+          </ul>
+        </div>
       </div>
-      <div class="form-section flex flex-col items-center justify-center">
+      <div class="form-section flex flex-col items-center justify-center h-full">
         <div class="form-container w-full bg-surface-0 dark:bg-surface-900 py-10 px-8 sm:px-20">
           <div class="text-center mb-8">
             <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4 uppercase">Connexion</div>

@@ -14,6 +14,7 @@
     "chart.js": "3.3.2",
     "date-fns": "^4.1.0",
     "pinia": "^2.2.6",
+    "pnpm": "^9.15.3",
     "primeicons": "^6.0.1",
     "primevue": "^4.0.0",
     "vite": "^5.4.8",
