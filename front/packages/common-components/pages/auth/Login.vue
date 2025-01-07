@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import axios from 'axios';
+import api from '@helpers/axios';
 
 const props = defineProps({
   logoUrl: {
@@ -14,7 +15,7 @@ const password = ref('');
 const checked = ref(false);
 const handleSubmit = async () => {
   try {
-    const response = await axios.post('http://localhost:8000/api/login', {
+    const response = await api.post('/api/login', {
       username: username.value,
       password: password.value
     });
