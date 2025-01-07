@@ -43,6 +43,10 @@ jobs:
       - name: Install back-end dependencies
         working-directory: ./back
         run: composer install --no-progress --no-interaction
+
+      - name: Install TLS
+        working-directory: ./back
+        run: symfony server:ca:install
   
       - name: Set up .env.test file
         working-directory: ./back
