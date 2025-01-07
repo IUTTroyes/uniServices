@@ -39,6 +39,9 @@ jobs:
   
       - name: Setup Composer
         run: composer self-update
+
+      - name: Setup Symfony CLI
+        run: sudo apt install symfony-cli
   
       - name: Install back-end dependencies
         working-directory: ./back
