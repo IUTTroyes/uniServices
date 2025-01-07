@@ -3,8 +3,12 @@ name: CI-Back
 on:
   push:
     branches: [main]
+    paths: 
+      - '/back/**'
   pull_request:
     branches: [main]
+    paths: 
+      - '/back/**'
 
 jobs:
   test-back:
