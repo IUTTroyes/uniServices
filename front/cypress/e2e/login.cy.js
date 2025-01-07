@@ -1,23 +1,17 @@
 describe('Login Test', () => {
-  it('Logs in as a guest', () => {
-    cy.visit('/auth/login')
+  it('Visits UniServices and logs in as a guest', () => {
+    cy.visit('http://localhost:3000')
 
-    cy.get('#username').type('guest')
-    cy.get('#password').type('guestpassword')
+    cy.contains('Connexion invité').click()
+
+    // Remplir les champs
+    cy.get('#username').type('hero0010')
+    cy.get('#password').type('test')
+
     cy.get('form').submit()
 
-    cy.intercept('POST', '/api/login').as('loginRequest')
-
-    cy.wait('@loginRequest').then((interception) => {
-      assert.isNotNull(interception.response.body, 'Login API call has data')
-      expect(interception.response.statusCode).to.eq(200)
-      expect(interception.response.body).to.have.property('data')
-      expect(interception.response.body.data).to.have.property('token')
-
-      const token = interception.response.body.data.token
-      cy.setCookie('token', token)
-    })
-
+    // Vérifier la réussite de la connexion et la redirection
     cy.url().should('include', '/auth/portail')
+    cy.getCookie('token').should('exist')
   })
 })
