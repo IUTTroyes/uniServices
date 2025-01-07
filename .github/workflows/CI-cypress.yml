@@ -84,7 +84,14 @@ jobs:
 
       - name: Start front servers
         working-directory: ./front
-        run: pnpm dev
+        run: pnpm dev &
+
+      - name: Wait for front-end server
+        run: |
+          until curl -s http://localhost:3000 > /dev/null; do
+            echo "Waiting for front-end server..."
+            sleep 1
+          done
   
       - name: Run Cypress tests
         working-directory: ./front
