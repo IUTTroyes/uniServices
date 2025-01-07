@@ -40,7 +40,7 @@ jobs:
       - name: Setup Composer
         run: composer self-update
   
-      - name: Install dependencies
+      - name: Install back-end dependencies
         working-directory: ./back
         run: composer install --no-progress --no-interaction
   
@@ -48,12 +48,28 @@ jobs:
         working-directory: ./back
         run: cp .env .env.test
 
-      - name: Run database migrations
+      - name: Run database migrations and load fixtures
         working-directory: ./back
         env:
           DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/cypress_test'
-        run: php bin/console make:migration && php bin/console doctrine:migrations:migrate --no-interaction && php bin/console d:f:l
+        run: |
+          php bin/console doctrine:database:create --if-not-exists --no-interaction
+          php bin/console doctrine:schema:update --force --no-interaction
+          php bin/console doctrine:fixtures:load --no-interaction
 
+      - name: Start Symfony server
+        working-directory: ./back
+        env:
+          DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/cypress_test'
+        run: php -S 127.0.0.1:8000 -t public/ &
+      
+      - name: Wait for Symfony server
+        run: |
+          until curl -s http://127.0.0.1:8000 > /dev/null; do
+            echo "Waiting for Symfony server..."
+            sleep 1
+          done
+  
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -62,10 +78,13 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm
   
-      - name: Install front dependencies
+      - name: Install front-end dependencies
         working-directory: ./front
         run: pnpm install
   
-      - name: Run cypress tests
+      - name: Run Cypress tests
         working-directory: ./front
-        run: npx run cypress
+        run: npx cypress run
+
+      - name: Stop Symfony server
+        run: kill $(lsof -t -i:8000)
