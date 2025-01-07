@@ -1,4 +1,4 @@
-name: CI-Cypress
+name: CI-Cypresss
 
 on:
   push:
