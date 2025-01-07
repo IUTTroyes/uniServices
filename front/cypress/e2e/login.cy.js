@@ -1,22 +1,24 @@
 describe('Login Test', () => {
-  it('Visits UniServices and logs in as a guest', () => {
+  beforeEach(() => {
     cy.visit('http://localhost:3000')
+  })
 
-    cy.contains('Connexion invité').click()
+  it('Logs in as a guest', () => {
+    cy.contains('Connexion invité').should('be.visible').click()
 
-    // Intercepter la requête API de login et répondre avec la fixture
+    // intercepte la requête POST vers /api/login et renvoie un fichier JSON
     cy.intercept('POST', 'https://localhost:8000/api/login', { fixture: 'login.json' }).as('loginRequest')
 
-    // Remplir les champs
-    cy.get('#username').type('user')
-    cy.get('#password').type('test')
+    // renseigne les champs du formulaire
+    cy.get('#username').should('be.visible').type('user')
+    cy.get('#password').should('be.visible').type('test')
 
     cy.get('form').submit()
 
-    // Attendre que la requête de login soit interceptée
-    cy.wait('@loginRequest')
+    // Attend la fin de la requête
+    cy.wait('@loginRequest').its('response.statusCode').should('eq', 200)
 
-    // Vérifier la réussite de la connexion et la redirection
+    // Vérifie que l'utilisateur est bien connecté
     cy.url().should('include', '/auth/portail')
     cy.getCookie('token').should('exist')
   })
