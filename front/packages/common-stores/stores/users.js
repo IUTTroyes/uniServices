@@ -16,6 +16,7 @@ export const useUsersStore = defineStore('users', () => {
     const departementsPersonnelNotDefaut = ref({});
 
     const getUser = async () => {
+        console.log(api.get(`/api/${userType}/${userId}`));
         try {
             const response = await api.get(`/api/${userType}/${userId}`);
             // transformer user.photoName en chemin vers l'image : "@/assets/photos_etudiants/" + user.photoName

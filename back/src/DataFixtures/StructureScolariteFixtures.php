@@ -9,6 +9,7 @@ use App\Repository\Structure\StructureSemestreRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\Uid\Uuid;
 
 class StructureScolariteFixtures extends Fixture implements OrderedFixtureInterface
 {
@@ -56,6 +57,7 @@ class StructureScolariteFixtures extends Fixture implements OrderedFixtureInterf
             ->setPublic(true)
             ->setActif(false)
             ->setStructureAnneeUniversitaire($anneeUniversitaire1)
+            ->setUuid(Uuid::v4())
             ;
         $manager->persist($scolarite1);
 
@@ -67,6 +69,7 @@ class StructureScolariteFixtures extends Fixture implements OrderedFixtureInterf
             ->setPublic(true)
             ->setActif(true)
             ->setStructureAnneeUniversitaire($anneeUniversitaire2)
+            ->setUuid(Uuid::v4())
             ;
         $manager->persist($scolarite2);
 

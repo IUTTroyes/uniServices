@@ -16,7 +16,7 @@ const type = payload.type;
 
 <template>
     <main>
-        <TopbarComponent app-name="Portail" :logo-url="logoUrl"/>
+        <TopbarComponent app-name="Portail" :logo-url/>
 
         <div id="features" class="py-6 px-6 lg:px-20 mt-8 mx-0 lg:mx-20">
             <div class="grid grid-cols-12 gap-4 justify-center">
@@ -43,48 +43,6 @@ const type = payload.type;
                         </div>
                     </div>
                 </a>
-
-<!--                <a href="http://localhost:3002" class="app col-span-12 md:col-span-12 lg:col-span-4 p-0 lg:pr-8 lg:pb-8 mt-6 lg:mt-0">-->
-<!--                    <div-->
-<!--                        style="height: 100%; padding: 2px; border-radius: 10px; background: linear-gradient(90deg, rgba(145, 226, 237, 0.2), rgba(251, 199, 145, 0.2)), linear-gradient(180deg, rgba(253, 228, 165, 0.2), rgba(172, 180, 223, 0.2))"-->
-<!--                    >-->
-<!--                        <div class="p-4 bg-surface-0 dark:bg-surface-900 h-full" style="border-radius: 8px">-->
-<!--                            <div class="flex items-center justify-center mb-4 bg-surface-100" style="width: 3.5rem; height: 3.5rem; border-radius: 10px">-->
-<!--                                <img src="@/assets/logo/logo_unifolio.png" alt="logo d'unifolio'">-->
-<!--                            </div>-->
-<!--                            <h5 class="mb-2 text-surface-900 dark:text-surface-0">UniFolio</h5>-->
-<!--                            <span class="text-surface-600 dark:text-surface-200">Création et gestion de portfolios universitaires</span>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </a>-->
-
-<!--                <div class="app col-span-12 md:col-span-12 lg:col-span-4 p-0 lg:pr-8 lg:pb-8 mt-6 lg:mt-0 disabled">-->
-<!--                    <div-->
-<!--                        style="height: 100%; padding: 2px; border-radius: 10px; background: linear-gradient(90deg, rgba(145, 226, 237, 0.2), rgba(251, 199, 145, 0.2)), linear-gradient(180deg, rgba(253, 228, 165, 0.2), rgba(172, 180, 223, 0.2))"-->
-<!--                    >-->
-<!--                        <div class="p-4 bg-surface-0 dark:bg-surface-900 h-full" style="border-radius: 8px">-->
-<!--                            <div class="flex items-center justify-center bg-surface-100 mb-4" style="width: 3.5rem; height: 3.5rem; border-radius: 10px">-->
-<!--                                <i class="pi pi-fw pi-palette !text-2xl text-cyan-700"></i>-->
-<!--                            </div>-->
-<!--                            <h5 class="mb-2 text-surface-900 dark:text-surface-0">Correcto</h5>-->
-<!--                            <span class="text-surface-600 dark:text-surface-200">Semper risus in hendrerit.</span>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
-
-<!--              <a href="http://localhost:3003/edt" class="app col-span-12 md:col-span-12 lg:col-span-4 p-0 lg:pr-8 lg:pb-8 mt-6 lg:mt-0">-->
-<!--                <div-->
-<!--                    style="height: 100%; padding: 2px; border-radius: 10px; background: linear-gradient(90deg, rgba(145, 226, 237, 0.2), rgba(251, 199, 145, 0.2)), linear-gradient(180deg, rgba(253, 228, 165, 0.2), rgba(172, 180, 223, 0.2))"-->
-<!--                >-->
-<!--                  <div class="p-4 bg-surface-0 dark:bg-surface-900 h-full" style="border-radius: 8px">-->
-<!--                    <div class="flex items-center justify-center mb-4 bg-surface-100" style="width: 3.5rem; height: 3.5rem; border-radius: 10px">-->
-<!--                      <img src="@/assets/logo/logo_unifolio.png" alt="logo d'UniEdt'">-->
-<!--                    </div>-->
-<!--                    <h5 class="mb-2 text-surface-900 dark:text-surface-0">UniEdt</h5>-->
-<!--                    <span class="text-surface-600 dark:text-surface-200">Création et gestion des emplois du temps</span>-->
-<!--                  </div>-->
-<!--                </div>-->
-<!--              </a>-->
             </div>
         </div>
 

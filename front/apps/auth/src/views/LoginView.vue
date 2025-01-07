@@ -7,7 +7,18 @@ import { tools } from '@config/uniServices.js'
 const username = ref('')
 const password = ref('')
 const checked = ref(false)
+const errorMessage = ref('')
+const isLoading = ref(false)
+
 const handleSubmit = async () => {
+  if (!username.value || !password.value) {
+    errorMessage.value = 'Veuillez remplir tous les champs'
+    return
+  }
+
+  isLoading.value = true
+  errorMessage.value = ''
+
   try {
     const response = await axios.post('https://localhost:8000/api/login', {
       username: username.value,
@@ -19,11 +30,16 @@ const handleSubmit = async () => {
     location.reload()
     location.href = '/auth/portail'
   } catch (error) {
+    if (error.response && error.response.status === 401) {
+      errorMessage.value = 'Login incorrect ou mot de passe incorrect'
+    } else {
+      errorMessage.value = 'Une erreur est survenue, veuillez contacter l\'administrateur du site'
+    }
     console.error('Login failed:', error.response.data)
-    // Handle login error (e.g., show error message)
+  } finally {
+    isLoading.value = false
   }
 }
-
 </script>
 
 <template>
@@ -68,11 +84,12 @@ const handleSubmit = async () => {
               <label for="username">Login</label>
             </IftaLabel>
             <IftaLabel>
-              <Password v-model="password" inputId="password" :feedback="false" class="w-full mb-8 pwd" toggleMask/>
+              <Password v-model="password" inputId="password" :feedback="false" class="w-full mb-2 pwd" toggleMask/>
               <label for="password">Password</label>
             </IftaLabel>
 
             <div class="flex flex-col justify-between mb-4 gap-4">
+              <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
               <div class="flex items-center">
                 <Checkbox v-model="checked" id="rememberme1" binary class="mr-2"></Checkbox>
                 <label for="rememberme1">Se souvenir de moi</label>
@@ -80,7 +97,7 @@ const handleSubmit = async () => {
               <span
                   class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié ?</span>
             </div>
-            <Button label='Connexion invité' class="w-full" type="submit" severity="secondary"></Button>
+            <Button :label="isLoading ? 'Connexion...' : 'Connexion invité'" class="w-full" type="submit" severity="secondary" :disabled="isLoading"></Button>
           </form>
           <small class="text-muted-color">En cas de problème de connexion, contactez le support à cette adresse :
             intranet.iut-troyes@univ-reims.fr</small>
@@ -170,5 +187,11 @@ hr {
 .p-password {
   flex-direction: column;
   justify-content: flex-start;
+}
+
+.error-message {
+  color: red;
+  margin-top: 1rem;
+  text-align: center;
 }
 </style>
