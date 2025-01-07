@@ -32,14 +32,18 @@ class StructurePnFixtures extends Fixture implements OrderedFixtureInterface
         $diplome1 = $this->diplomeRepository->findOneBy(['sigle' => 'MMI']);
         $diplome2 = $this->diplomeRepository->findOneBy(['sigle' => 'MMI DWeb-Di FC']);
 
-        $pn1 = new StructurePn();
+        $pn1 = new StructurePn(
+            $diplome1
+        );
         $pn1->setLibelle('PN BUT MMI ')
             ->setAnneePublication(2022)
             ->setDiplome($diplome1)
         ;
         $manager->persist($pn1);
 
-        $pn2 = new StructurePn();
+        $pn2 = new StructurePn(
+            $diplome2
+        );
         $pn2->setLibelle('PN BUT MMI DWEB')
             ->setAnneePublication(2024)
             ->setDiplome($diplome2)
