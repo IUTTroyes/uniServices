@@ -1,4 +1,4 @@
-name: CI-Cypresss
+name: CI-Cypress
 
 on:
   push:
@@ -61,11 +61,11 @@ jobs:
         working-directory: ./back
         env:
           DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/cypress_test'
-        run: php -S 127.0.0.1:8000 -t public/ &
+        run: symfony serve &
       
       - name: Wait for Symfony server
         run: |
-          until curl -s http://127.0.0.1:8000 > /dev/null; do
+          until curl -s https://127.0.0.1:8000 > /dev/null; do
             echo "Waiting for Symfony server..."
             sleep 1
           done
