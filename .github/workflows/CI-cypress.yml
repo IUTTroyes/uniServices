@@ -11,49 +11,61 @@ on:
 jobs:
   cypress:
     runs-on: ubuntu-latest
+
     services:
-      db:
+      mysql:
         image: mysql:8.0
-        ports:
-          - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: test_db
+          MYSQL_DATABASE: cypress_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Set up PHP
+  
+      - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.2'
+          php-version: '8.2' # Symfony 7 est compatible avec PHP >= 8.1
           extensions: mbstring, intl, pdo_mysql
           coverage: none
-
+  
+      - name: Setup Composer
+        run: composer self-update
+  
       - name: Install dependencies
         working-directory: ./back
         run: composer install --no-progress --no-interaction
-
-      - name: Set up database
+  
+      - name: Set up .env.test file
         working-directory: ./back
-        run: |
-          php bin/console doctrine:database:create --env=test
-          php bin/console doctrine:schema:update --force --env=test
-          php bin/console doctrine:fixtures:load --env=test --no-interaction
+        run: cp .env .env.test
+
+      - name: Run database migrations
+        working-directory: ./back
+        env:
+          DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/cypress_test'
+        run: php bin/console make:migration && php bin/console doctrine:migrations:migrate --no-interaction && php bin/console d:f:l
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18.12.1' # Version compatible avec pnpm
-
+  
       - name: Install pnpm
         run: npm install -g pnpm
-
+  
       - name: Install front dependencies
         working-directory: ./front
         run: pnpm install
-
-      - name: Run Cypress tests
+  
+      - name: Run cypress tests
         working-directory: ./front
-        run: npx cypress run
+        run: npx run cypress
