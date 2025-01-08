@@ -1,4 +1,7 @@
 name: CI-Cypress
+env:
+  CI: true
+  FORCE_COLOR: 1
 
 on:
   push:
@@ -29,20 +32,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-  
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
           extensions: mbstring, intl, pdo_mysql
           coverage: none
-  
+
       - name: Setup Composer
         run: composer self-update
 
       - name: Setup Symfony CLI
         run: curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh' | sudo -E bash && sudo apt install symfony-cli
-  
+
       - name: Install back-end dependencies
         working-directory: ./back
         run: composer install --no-progress --no-interaction
@@ -50,7 +53,7 @@ jobs:
       - name: Install TLS
         working-directory: ./back
         run: symfony server:ca:install
-  
+
       - name: Set up .env.test file
         working-directory: ./back
         run: cp .env .env.test
@@ -69,22 +72,22 @@ jobs:
         env:
           DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/cypress_test'
         run: symfony serve &
-      
+
       - name: Wait for Symfony server
         run: |
           until curl -s https://127.0.0.1:8000 > /dev/null; do
             echo "Waiting for Symfony server..."
             sleep 1
           done
-  
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18.12.1' # Version compatible avec pnpm
-  
+
       - name: Install pnpm
         run: npm install -g pnpm
-  
+
       - name: Install front-end dependencies
         working-directory: ./front
         run: pnpm install --no-frozen-lockfile
@@ -99,7 +102,7 @@ jobs:
             echo "Waiting for front-end server..."
             sleep 1
           done
-  
+
       - name: Run Cypress tests
         working-directory: ./front
         run: npx cypress run

@@ -30,6 +30,7 @@ const handleSubmit = async () => {
     location.reload()
     location.href = '/auth/portail'
   } catch (error) {
+    console.log(error)
     if (error.response && error.response.status === 401) {
       errorMessage.value = 'Login incorrect ou mot de passe incorrect'
     } else {
