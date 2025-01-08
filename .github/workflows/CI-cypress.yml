@@ -1,5 +1,8 @@
 name: CI-Cypress
-
+env:
+  CI: true
+  FORCE_COLOR: 1
+  
 on:
   push:
     branches:
@@ -65,6 +68,7 @@ jobs:
           php bin/console doctrine:schema:update --force --no-interaction  --env=test
           php bin/console doctrine:fixtures:load --no-interaction  --env=test
 
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
@@ -87,6 +91,13 @@ jobs:
             sleep 1
           done
 
+      - name: Wait for Symfony server
+        run: |
+          until curl -s https://127.0.0.1:8000 > /dev/null; do
+            echo "Waiting for Symfony server..."
+            sleep 1
+          done
+          
       - name: Wait for Symfony server
         run: |
           until curl -s https://127.0.0.1:8000 > /dev/null; do
