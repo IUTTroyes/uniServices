@@ -106,6 +106,7 @@ jobs:
           done
 
       - name: Run Cypress tests
+        uses: cypress-io/github-action@v6
         #run: npx cypress run
         with:
           working-directory: ./front
