@@ -2,7 +2,7 @@ name: CI-Cypress
 env:
   CI: true
   FORCE_COLOR: 1
-  
+
 on:
   push:
     branches:
@@ -97,7 +97,7 @@ jobs:
             echo "Waiting for Symfony server..."
             sleep 1
           done
-          
+
       - name: Wait for Symfony server
         run: |
           until curl -s https://127.0.0.1:8000 > /dev/null; do
@@ -108,6 +108,27 @@ jobs:
       - name: Run Cypress tests
         working-directory: ./front
         run: npx cypress run
+        with:
+          # Starts web server for E2E tests - replace with your own server invocation
+          # https://docs.cypress.io/guides/continuous-integration/introduction#Boot-your-server
+          start: npm start
+          # Records to Cypress Cloud
+          # https://docs.cypress.io/guides/cloud/projects#Set-up-a-project-to-record
+          record: true
+          parallel: true # Runs test in parallel using settings above
+        env:
+          # For recording and parallelization to work you must set your CYPRESS_RECORD_KEY
+          # in GitHub repo → Settings → Secrets → Actions
+          CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          # Creating a token https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Upload Cypress artifacts (optional)
+      - name: Upload Cypress Results
+        uses: actions/upload-artifact@v3
+        with:
+          name: cypress-results
+          path: frontend/cypress/reports
 
       - name: Stop Symfony server
         run: symfony server:stop
