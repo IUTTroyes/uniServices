@@ -82,21 +82,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: run servers
-        run: make start-all &
-
-      - name: Wait for front-end server
-        run: |
-          until curl -s http://localhost:3000 > /dev/null; do
-            echo "Waiting for front-end server..."
-            sleep 1
-          done
-
-      - name: Wait for Symfony server
-        run: |
-          until curl -s https://127.0.0.1:8000 > /dev/null; do
-            echo "Waiting for Symfony server..."
-            sleep 1
-          done
+        run: make start-back &
 
       - name: Wait for Symfony server
         run: |
@@ -109,10 +95,11 @@ jobs:
         uses: cypress-io/github-action@v6
         #run: npx cypress run
         with:
-          working-directory: ./front
+          working-directory: ./front   
           # Starts web server for E2E tests - replace with your own server invocation
           # https://docs.cypress.io/guides/continuous-integration/introduction#Boot-your-server
-          start: npm start
+          start: ../make start-front
+          wait-on: 'http://localhost:3000' # Waits for above
           # Records to Cypress Cloud
           # https://docs.cypress.io/guides/cloud/projects#Set-up-a-project-to-record
           record: true
