@@ -13,6 +13,55 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, pdo_mysql
+          coverage: none
+
+      - name: Setup Composer
+        run: composer self-update
+
+      - name: Setup Symfony CLI
+        run: curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh' | sudo -E bash && sudo apt install symfony-cli
+
+      - name: Install back-end dependencies
+        working-directory: ./back
+        run: composer install --no-progress --no-interaction
+
+      - name: Install TLS
+        working-directory: ./back
+        run: symfony server:ca:install
+
+      - name: Set up .env.test file
+        working-directory: ./back
+        run: cp .env .env.test
+
+      - name: Run database migrations and load fixtures
+        working-directory: ./back
+        env:
+          APP_ENV: 'test'
+          DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/cypress_test'
+        run: |
+          php bin/console doctrine:database:create --if-not-exists --no-interaction  --env=test
+          php bin/console doctrine:schema:update --force --no-interaction  --env=test
+          php bin/console doctrine:fixtures:load --no-interaction  --env=test
+
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18.12.1' # Version compatible avec pnpm
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install front-end dependencies
+        working-directory: ./front
+        run: pnpm install --no-frozen-lockfile
+        
       - name: Cypress run
         # Uses the official Cypress GitHub action https://github.com/cypress-io/github-action
         uses: cypress-io/github-action@v6
@@ -20,8 +69,9 @@ jobs:
           working-directory: ./front
           # Starts web server for E2E tests - replace with your own server invocation
           # https://docs.cypress.io/guides/continuous-integration/introduction#Boot-your-server
-          start: npm start
+          start: make start-all
           wait-on: 'http://localhost:3000' # Waits for above
+          
           # Records to Cypress Cloud
           # https://docs.cypress.io/guides/cloud/projects#Set-up-a-project-to-record
           record: true
