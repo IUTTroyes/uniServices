@@ -106,9 +106,9 @@ jobs:
           done
 
       - name: Run Cypress tests
-        working-directory: ./front
-        run: npx cypress run
+        #run: npx cypress run
         with:
+          working-directory: ./front
           # Starts web server for E2E tests - replace with your own server invocation
           # https://docs.cypress.io/guides/continuous-integration/introduction#Boot-your-server
           start: npm start
