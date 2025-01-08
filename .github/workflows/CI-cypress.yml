@@ -58,24 +58,12 @@ jobs:
       - name: Run database migrations and load fixtures
         working-directory: ./back
         env:
+          APP_ENV: 'test'
           DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/cypress_test'
         run: |
           php bin/console doctrine:database:create --if-not-exists --no-interaction  --env=test
           php bin/console doctrine:schema:update --force --no-interaction  --env=test
           php bin/console doctrine:fixtures:load --no-interaction  --env=test
-
-      - name: Start Symfony server
-        working-directory: ./back
-        env:
-          DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/cypress_test'
-        run: symfony serve &
-
-      - name: Wait for Symfony server
-        run: |
-          until curl -s https://127.0.0.1:8000 > /dev/null; do
-            echo "Waiting for Symfony server..."
-            sleep 1
-          done
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -89,9 +77,8 @@ jobs:
         working-directory: ./front
         run: pnpm install --no-frozen-lockfile
 
-      - name: Start front servers
-        working-directory: ./front
-        run: pnpm dev &
+      - name: run servers
+        run: make start-all &
 
       - name: Wait for front-end server
         run: |
@@ -100,8 +87,12 @@ jobs:
             sleep 1
           done
 
-      - name: run servers
-        run: make start:all
+      - name: Wait for Symfony server
+        run: |
+          until curl -s https://127.0.0.1:8000 > /dev/null; do
+            echo "Waiting for Symfony server..."
+            sleep 1
+          done
 
       - name: Run Cypress tests
         working-directory: ./front

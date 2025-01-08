@@ -10,6 +10,9 @@ describe('Login Test', () => {
 
     cy.get('form').submit()
 
+    // Vérifier le message d'erreur
+    cy.get('.error-message').should('contain', 'Login incorrect ou mot de passe incorrect')
+
     // Vérifier la réussite de la connexion et la redirection
     cy.url().should('include', '/auth/portail')
     cy.getCookie('token').should('exist')
