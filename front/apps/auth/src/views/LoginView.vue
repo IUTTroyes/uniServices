@@ -30,13 +30,18 @@ const handleSubmit = async () => {
     location.reload()
     location.href = '/auth/portail'
   } catch (error) {
-    console.log(error)
-    if (error.response && error.response.status === 401) {
-      errorMessage.value = 'Login incorrect ou mot de passe incorrect'
-    } else {
-      errorMessage.value = 'Une erreur est survenue, veuillez contacter l\'administrateur du site'
+    console.error('Login failed:', error) // Log the entire error object
+    if (error.response) {
+      console.error('Error response data:', error.response.data)
+      console.error('Error response status:', error.response.status)
+      console.error('Error response headers:', error.response.headers)
     }
-    console.error('Login failed:', error.response.data)
+    if (error.request) {
+      console.error('Error request:', error.request)
+    }
+    errorMessage.value = error.response && error.response.status === 401
+        ? 'Login incorrect ou mot de passe incorrect'
+        : 'Une erreur est survenue, veuillez contacter l\'administrateur du site'
   } finally {
     isLoading.value = false
   }
@@ -47,7 +52,7 @@ const handleSubmit = async () => {
   <div
       class="bg bg-surface-50 dark:bg-surface-950 flex flex-wrap items-center justify-center min-h-screen overflow-hidden">
     <div class="login-container flex">
-      <div class="info-section bg-black bg-opacity-60 text-white backdrop-blur-sm flex justify-start gap-4">
+      <div class="info-section bg-black bg-opacity-60 text-white backdrop-blur-sm flex justify-start gap-4 h-full">
         <div class="p-16">
           <Logo src="common-images/logo/logo_iut.png" alt="logo de l'iut" class="logo" />
           <h2>Bienvenue sur UniServices</h2>
@@ -68,8 +73,8 @@ const handleSubmit = async () => {
           </ul>
         </div>
       </div>
-      <div class="form-section flex flex-col items-center justify-center h-full">
-        <div class="form-container w-full bg-surface-0 dark:bg-surface-900 py-10 px-8 sm:px-20">
+      <div class="form-section flex flex-col items-center justify-center min-h-full">
+        <div class="form-container w-full bg-surface-0 dark:bg-surface-900 py-10 px-8 sm:px-20 h-full">
           <div class="text-center mb-8">
             <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4 uppercase">Connexion</div>
             <span class="text-muted-color font-medium">Etudiants, personnels de l'Université et vacataires, connectez-vous avec l'authentification de l'Université.</span>
