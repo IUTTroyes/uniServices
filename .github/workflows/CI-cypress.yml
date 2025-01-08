@@ -59,7 +59,7 @@ jobs:
         run: cp .env .env.test
 
       - name: Generate JWT token
-        working-directory: .back
+        working-directory: ./back
         run: php bin/console lexik:jwt:generate-keypair  
 
       - name: Run database migrations and load fixtures
