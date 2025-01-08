@@ -77,7 +77,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: run servers
-        run: make start-all
+        run: make start-all &
 
       - name: Wait for front-end server
         run: |
