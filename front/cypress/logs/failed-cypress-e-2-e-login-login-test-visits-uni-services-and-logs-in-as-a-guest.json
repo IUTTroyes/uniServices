@@ -1,0 +1,23 @@
+{
+  "specName": "cypress/e2e/login.cy.js",
+  "title": "Visits UniServices and logs in as a guest",
+  "suiteName": "Login Test",
+  "testName": "Login Test Visits UniServices and logs in as a guest",
+  "testError": "Timed out retrying after 4000ms: expected 'http://localhost:3000/auth/login' to include '/auth/portail'",
+  "testCommands": [
+    "visit http://localhost:3000",
+    "contains Connexion invité",
+    "click ",
+    "get #username",
+    "type hero0010",
+    "get #password",
+    "type test",
+    "get form",
+    "submit ",
+    "request ",
+    "get .error-message",
+    "assert expected **<div.error-message>** to contain **Login incorrect ou mot de passe incorrect**",
+    "url ",
+    "assert expected **http://localhost:3000/auth/login** to include **/auth/portail**"
+  ]
+}
