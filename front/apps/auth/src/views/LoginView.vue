@@ -30,12 +30,18 @@ const handleSubmit = async () => {
     location.reload()
     location.href = '/auth/portail'
   } catch (error) {
-    if (error.response && error.response.status === 401) {
-      errorMessage.value = 'Login incorrect ou mot de passe incorrect'
-    } else {
-      errorMessage.value = 'Une erreur est survenue, veuillez contacter l\'administrateur du site'
+    console.error('Login failed:', error) // Log the entire error object
+    if (error.response) {
+      console.error('Error response data:', error.response.data)
+      console.error('Error response status:', error.response.status)
+      console.error('Error response headers:', error.response.headers)
     }
-    console.error('Login failed:', error.response.data)
+    if (error.request) {
+      console.error('Error request:', error.request)
+    }
+    errorMessage.value = error.response && error.response.status === 401
+        ? 'Login incorrect ou mot de passe incorrect'
+        : 'Une erreur est survenue, veuillez contacter l\'administrateur du site'
   } finally {
     isLoading.value = false
   }
