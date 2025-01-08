@@ -64,9 +64,9 @@ jobs:
           APP_ENV: 'test'
           DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/cypress_test'
         run: |
-          php bin/console doctrine:database:create --if-not-exists --no-interaction  --env=test
-          php bin/console doctrine:schema:update --force --no-interaction  --env=test
-          php bin/console doctrine:fixtures:load --no-interaction  --env=test
+          php bin/console doctrine:database:create --if-not-exists --no-interaction
+          php bin/console doctrine:schema:update --force --no-interaction
+          php bin/console doctrine:fixtures:load --no-interaction
 
 
       - name: Setup Node.js
