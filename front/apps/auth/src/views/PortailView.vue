@@ -28,7 +28,8 @@ const type = payload.type;
                 <a
                     v-for="tool in tools"
                     :key="tool.name"
-                    :href="tool.url" class="app col-span-12 md:col-span-12 lg:col-span-4 p-0 lg:pr-8 lg:pb-8 mt-6 lg:mt-0">
+                    :class="['app', tool.name]"
+                    :href="tool.url" class="col-span-12 md:col-span-12 lg:col-span-4 p-0 lg:pr-8 lg:pb-8 mt-6 lg:mt-0">
                     <div
                         style="height: 100%; padding: 2px; border-radius: 10px; background: linear-gradient(90deg, rgba(253, 228, 165, 0.2), rgba(192,187,205,0.2)), linear-gradient(180deg, rgba(253, 228, 165, 0.2), rgba(192,187,205,0.2))"
                     >
