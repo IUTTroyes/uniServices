@@ -27,7 +27,7 @@ class OreofSynchroCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('all-diplome', null, InputOption::VALUE_NONE, 'Affichage ou synchronisation de tous les diplômes')
+            ->addOption('all-diplomes', null, InputOption::VALUE_NONE, 'Affichage ou synchronisation de tous les diplômes')
             ->addOption('diplome', null, InputOption::VALUE_REQUIRED, 'Synchroniser un diplôme spécifique par son ID')
             ->addOption('parcours', null, InputOption::VALUE_REQUIRED, 'Synchronise un parcours d\'un diplôme')
             ->addOption('annee', null, InputOption::VALUE_OPTIONAL, 'Année de synchronisation', date('Y'))
@@ -38,8 +38,14 @@ class OreofSynchroCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
 
-        if ($input->getOption('all-diplome') && $input->getOption('diplome')) {
-            $io->error('Les options --all-diplome et --diplome ne peuvent pas être utilisées ensemble.');
+        // il faut au moins une option (hors année)
+        if (!$input->getOption('all-diplomes') && !$input->getOption('diplome') && !$input->getOption('parcours')) {
+            $io->error('Vous devez spécifier au moins une option.');
+            return Command::FAILURE;
+        }
+
+        if ($input->getOption('all-diplomes') && $input->getOption('diplome')) {
+            $io->error('Les options --all-diplomes et --diplome ne peuvent pas être utilisées ensemble.');
             return Command::FAILURE;
         }
 
@@ -52,7 +58,7 @@ class OreofSynchroCommand extends Command
 
         $annee = $input->getOption('annee') ?: date('Y');
 
-        if ($input->getOption('all-diplome')) {
+        if ($input->getOption('all-diplomes')) {
             // Logique pour la synchronisation de tous les diplômes
             $io->info('Synchronisation de tous les diplômes.');
             $this->synchroOreof->syncAllDiplomes();

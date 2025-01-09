@@ -125,6 +125,9 @@ class StructureDiplome
     #[Groups(['structure_diplome:read'])]
     private Collection $annees;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $cleOreof = null;
+
     public function __construct()
     {
         $this->enfants = new ArrayCollection();
@@ -443,6 +446,18 @@ class StructureDiplome
                 $annee->setStructureDiplome(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getCleOreof(): ?int
+    {
+        return $this->cleOreof;
+    }
+
+    public function setCleOreof(?int $cleOreof): static
+    {
+        $this->cleOreof = $cleOreof;
 
         return $this;
     }
