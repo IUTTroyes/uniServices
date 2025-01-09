@@ -83,7 +83,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Set environment variables
-        run: echo "VITE_BASE_URL=http://localhost:3000" >> $GITHUB_ENV
+        run: echo "VITE_BASE_URL=https://127.0.0.1:8000" >> $GITHUB_ENV
 
       - name: run servers
         run: make start-back &
