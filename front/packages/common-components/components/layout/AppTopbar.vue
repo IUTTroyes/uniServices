@@ -133,7 +133,7 @@ const initiales = computed(() => {
         <i class="pi pi-bars"></i>
       </button>
       <router-link to="/" class="layout-topbar-logo">
-        <Logo src="common-images/logo/logo_iut.png" alt="logo" /> <span>{{appName}}</span>
+        <Logo src="common-images/logo/logo_iut.png" alt="logo" class="rounded-xl p-2"/> <span>{{appName}}</span>
       </router-link>
       <button v-if="store.userType === 'personnels'" type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
         <span>Département {{ departementLabel }}</span>
@@ -153,18 +153,18 @@ const initiales = computed(() => {
         </IconField>
       </div>
 
-<button v-if="route.path !== '/portail' && store.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
-  <i class="pi pi-microsoft"></i>
-  <span>Applications</span>
-</button>
-<Menu ref="toolsMenu" id="tools_menu" :model="tools" :popup="true">
-  <template #item="{ item, props }">
-    <a v-if="item.url" :href="item.url" v-ripple v-bind="props.action">
-      <Logo :logo-url="item.logo" class="logo_menu" />
-      <span class="ml-2">{{ item.name }}</span>
-    </a>
-  </template>
-</Menu>
+      <button v-if="route.path !== '/portail' && store.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
+        <i class="pi pi-microsoft"></i>
+        <span>Applications</span>
+      </button>
+      <Menu ref="toolsMenu" id="tools_menu" :model="tools" :popup="true">
+        <template #item="{ item, props }">
+          <a v-if="item.url" :href="item.url" v-ripple v-bind="props.action">
+            <Logo :logo-url="item.logo" class="logo_menu" />
+            <span class="ml-2">{{ item.name }}</span>
+          </a>
+        </template>
+      </Menu>
 
       <div class="layout-config-menu">
         <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
