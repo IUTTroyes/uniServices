@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
     paths: 
-    - './front/**'
+    - 'front/**'
   pull_request:
     branches: [main]
     paths: 
