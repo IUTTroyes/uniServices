@@ -154,7 +154,7 @@ const initiales = computed(() => {
       </div>
 
       <button v-if="route.path !== '/portail' && store.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
-        <i class="pi pi-microsoft"></i>
+        <i class="pi pi-microsoft text-primary"></i>
         <span>Applications</span>
       </button>
       <Menu ref="toolsMenu" id="tools_menu" :model="tools" :popup="true">
