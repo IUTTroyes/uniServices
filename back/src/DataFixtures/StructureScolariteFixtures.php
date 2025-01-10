@@ -44,7 +44,7 @@ class StructureScolariteFixtures extends Fixture implements OrderedFixtureInterf
         $semestre3 = $this->semestreRepository->findOneBy(['libelle' => 'S3 - DWeb-DI FC']);
         $semestre4 = $this->semestreRepository->findOneBy(['libelle' => 'S4 - DWeb-DI FC']);
 
-        $etu1 = $this->etudiantRepository->findOneBy(['username' => 'hero0005']);
+        $etu1 = $this->etudiantRepository->findOneBy(['username' => 'etudiant']);
 
         $anneeUniversitaire1 = $this->anneeUniversitaireRepository->findOneBy(['libelle' => '2023/2024']);
         $anneeUniversitaire2 = $this->anneeUniversitaireRepository->findOneBy(['libelle' => '2024/2025']);
