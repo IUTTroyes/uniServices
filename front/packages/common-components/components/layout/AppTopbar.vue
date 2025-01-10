@@ -153,20 +153,18 @@ const initiales = computed(() => {
         </IconField>
       </div>
 
-      <button  v-if="route.path !== '/portail' && store.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
-        <i class="pi pi-microsoft"></i>
-        <span>Applications</span>
-      </button>
-      <Menu ref="toolsMenu" id="tools_menu" :model="tools" :popup="true">
-        <template #item="{ item, props }">
-          <router-link v-if="item.url" v-slot="{ href, navigate }" :to="item.url" custom>
-            <a v-ripple :href="href" v-bind="props.action" @click="navigate">
-              <Logo :logo-url="item.logo" class="logo_menu" />
-              <span class="ml-2">{{ item.name }}</span>
-            </a>
-          </router-link>
-        </template>
-      </Menu>
+<button v-if="route.path !== '/portail' && store.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
+  <i class="pi pi-microsoft"></i>
+  <span>Applications</span>
+</button>
+<Menu ref="toolsMenu" id="tools_menu" :model="tools" :popup="true">
+  <template #item="{ item, props }">
+    <a v-if="item.url" :href="item.url" v-ripple v-bind="props.action">
+      <Logo :logo-url="item.logo" class="logo_menu" />
+      <span class="ml-2">{{ item.name }}</span>
+    </a>
+  </template>
+</Menu>
 
       <div class="layout-config-menu">
         <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
