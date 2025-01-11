@@ -58,7 +58,7 @@ const redirectTo = (link) => {
                     {{ store.user.prenom }} {{ store.user.nom }}
                   </div>
                   <Tag v-if="store.user.statut" :value="store.user.displayStatut" severity="info" rounded/>
-                  <Tag v-for="domaine in store.user.domaines" v-if="store.user.domaines.length > 1" :value="domaine" severity="secondary" rounded class="capitalize"/>
+                  <Tag v-for="domaine in store.user.domaines" v-if="store.user.domaines && store.user.domaines.length > 1" :value="domaine" severity="secondary" rounded class="capitalize"/>
                 </div>
                 <div v-if="store.user.responsabilites" class="text-lg border-b w-fit pr-6 pb-1">{{store.user.responsabilites}}</div>
 
