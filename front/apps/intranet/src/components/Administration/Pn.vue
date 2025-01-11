@@ -47,7 +47,7 @@ async function changeDiplome (diplome) {
 
 <template>
     <div class="card">
-      <Button v-for="diplome in diplomes['member']" :key="diplome.id" severity="secondary"
+      <Button v-for="diplome in diplomes['member']" :key="diplome.id" severity="secondary" size="small"
               class="m-1"
               @click="changeDiplome(diplome)" :aria-label="diplome.libelle"
               :title="diplome.libelle">{{ diplome.typeDiplome.sigle }}<br>{{ diplome.sigle }}

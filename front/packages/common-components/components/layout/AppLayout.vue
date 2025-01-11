@@ -90,9 +90,9 @@ function goBack() {
     <app-topbar :logo-url :app-name></app-topbar>
     <app-sidebar :menu-items="menuItems"></app-sidebar>
     <div class="layout-main-container">
-      <div class="flex justify-between">
+      <div class="flex justify-between items-center">
         <app-breadcrumb v-if="breadcrumbItems" :items="breadcrumbItems"></app-breadcrumb>
-        <Button v-if="showBackButton" @click="goBack" severity="primary" rounded icon="pi pi-arrow-left"></Button>
+        <Button v-if="showBackButton" @click="goBack" severity="contrast" label="Retour" size="small" icon="pi pi-arrow-left" class="h-fit"></Button>
       </div>
       <div class="layout-main">
         <router-view></router-view>
