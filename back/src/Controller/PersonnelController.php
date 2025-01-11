@@ -11,6 +11,6 @@ class PersonnelController extends AbstractController
     #[Route('/api/statuts', name: 'api_statuts', methods: ['GET'])]
     public function getStatuts(): JsonResponse
     {
-        return new JsonResponse(array_values(\App\Entity\Users\Personnel::STATUT));
+        return new JsonResponse(\App\Entity\Users\Personnel::STATUT);
     }
 }

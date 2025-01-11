@@ -76,6 +76,31 @@ export const useUsersStore = defineStore('users', () => {
         }
     };
 
+    const updateUser = async (data) => {
+        // si domaines n'est pas un tableau
+        if (!Array.isArray(data.domaines)) {
+            // séparer les domaines en utilisant la virgule comme séparateur
+            data.domaines = data.domaines.split(',');
+        }
+        // convertir structureDepartementPersonnels en IRI
+        if (data.structureDepartementPersonnels) {
+            data.structureDepartementPersonnels = data.structureDepartementPersonnels.map(departement => `/api/structure_departement_personnels/${departement.id}`);
+        }
+        // récupérer uniquement le nom de la photo entre la fin de user.photoName et le dernier "/"
+        data.photoName = data.photoName.substring(data.photoName.lastIndexOf('/') + 1);
+
+        try {
+            const response = await api.patch(`/api/${userType}/${userId}`, data, {
+                headers: {
+                    'Content-Type': 'application/merge-patch+json'
+                }
+            });
+            user.value = response.data;
+        } catch (error) {
+            console.error('Error updating user:', error);
+        }
+    };
+
     return {
         user,
         userType,
@@ -85,6 +110,7 @@ export const useUsersStore = defineStore('users', () => {
         departementsNotDefaut,
         getUser,
         changeDepartement,
+        updateUser,
         statuts
     };
 });

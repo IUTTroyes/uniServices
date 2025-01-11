@@ -10,10 +10,11 @@ const selectedStatut = ref(null);
 
 onMounted(async () => {
   await store.getUser();
-  statuts.value = store.statuts.data.map(statut => ({ label: statut, value: statut }));
+  statuts.value = Object.entries(store.statuts.data).map(([key, value]) => ({ label: value, value: key }));
+  console.log(statuts.value);
   // ajouter "autre" dans les statuts
   statuts.value.push({ label: 'Autre', value: 'Autre' });
-  selectedStatut.value = statuts.value.find(statut => statut.value === store.user.displayStatut) || null;
+  selectedStatut.value = statuts.value.find(statut => statut.value === store.user.statut) || null;
 });
 
 const toggleEditMode = () => {
@@ -21,9 +22,17 @@ const toggleEditMode = () => {
 };
 
 const saveChanges = async () => {
-  // Logic to save changes
-  await store.updateUser();
-  isEditMode.value = false;
+  try {
+    if (selectedStatut.value.value === 'Autre') {
+      store.user.statut = selectedStatut.value.label;
+    } else {
+      store.user.statut = selectedStatut.value.value;
+    }
+    await store.updateUser(store.user);
+    isEditMode.value = false;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const redirectTo = (link) => {
@@ -58,7 +67,7 @@ const redirectTo = (link) => {
                     {{ store.user.prenom }} {{ store.user.nom }}
                   </div>
                   <Tag v-if="store.user.statut" :value="store.user.displayStatut" severity="info" rounded/>
-                  <Tag v-for="domaine in store.user.domaines" v-if="store.user.domaines && store.user.domaines.length > 1" :value="domaine" severity="secondary" rounded class="capitalize"/>
+                  <Tag v-for="domaine in store.user.domaines" v-if="store.user.domaines && store.user.domaines.length > 0" :value="domaine" severity="secondary" rounded class="capitalize"/>
                 </div>
                 <div v-if="store.user.responsabilites" class="text-lg border-b w-fit pr-6 pb-1">{{store.user.responsabilites}}</div>
 
