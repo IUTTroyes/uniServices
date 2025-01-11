@@ -87,7 +87,7 @@ function goBack() {
 
 <template>
   <div class="layout-wrapper" :class="containerClass">
-    <app-topbar :logo-url :app-name></app-topbar>
+    <app-topbar :logo-url="logoUrl" :app-name></app-topbar>
     <app-sidebar :menu-items="menuItems"></app-sidebar>
     <div class="layout-main-container">
       <div class="flex justify-between items-center">

@@ -18,7 +18,7 @@ const edtMenu = [
   }
 ]
 
-const logoUrl = new URL('@/assets/logo/logo_intranet_iut_troyes.svg', import.meta.url).href
+const logoUrl = new URL('@/assets/logo/logo_unifolio.png', import.meta.url).href
 
 const appName = 'Edt'
 
