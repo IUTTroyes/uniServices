@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LoginView from "@/views/LoginView.vue";
 import AppPortail from "@/views/PortailView.vue";
+import AppProfil from "@/views/ProfilView.vue";
 
 
 const router = createRouter({
@@ -24,6 +25,10 @@ const router = createRouter({
         {
             path: '/portail',
             component: AppPortail,
+        },
+        {
+            path: '/profil',
+            component: AppProfil,
         }
     ]
 });

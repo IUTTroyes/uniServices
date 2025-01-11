@@ -151,6 +151,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $bureau = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['personnel:read'])]
     private ?int $numeroHarpege = null;
 
     #[ORM\Column(nullable: true)]

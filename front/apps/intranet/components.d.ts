@@ -23,6 +23,7 @@ declare module 'vue' {
     CardSkeleton: typeof import('./src/components/loader/CardSkeleton.vue')['default']
     Carousel: typeof import('primevue/carousel')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
+    Chip: typeof import('primevue/chip')['default']
     Column: typeof import('primevue/column')['default']
     Dashboard: typeof import('./src/components/Etudiant/Dashboard.vue')['default']
     DataTable: typeof import('primevue/datatable')['default']
