@@ -55,7 +55,7 @@ const redirectTo = (link) => {
         </template>
         <div class="mt-4 gap-4 flex flex-col md:flex-row items-center">
           <div class="w-full md:w-1/6 flex justify-center">
-            <img :src="store.user.photoName" alt="photo de profil" class="rounded-full w-24 h-24 md:w-auto md:h-auto">
+            <img :src="store.userPhoto" alt="photo de profil" class="rounded-full w-24 h-24 md:w-auto md:h-auto">
           </div>
           <div class="w-full md:w-3/6 flex flex-col gap-4">
 

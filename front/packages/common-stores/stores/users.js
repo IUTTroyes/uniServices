@@ -9,6 +9,7 @@ export const useUsersStore = defineStore('users', () => {
     const userId = payload.userId;
     const userType = payload.type;
     const user = ref([]);
+    const userPhoto = ref([]);
     const departements = ref([]);
     const departementDefaut = ref({});
     const departementPersonnelDefaut = ref({});
@@ -20,7 +21,7 @@ export const useUsersStore = defineStore('users', () => {
         try {
             const response = await api.get(`/api/${userType}/${userId}`);
             // transformer user.photoName en chemin vers l'image : "@/assets/photos_etudiants/" + user.photoName
-            response.data.photoName = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
+            userPhoto.value = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
             user.value = response.data;
 
             if (userType === 'personnels') {
@@ -87,7 +88,8 @@ export const useUsersStore = defineStore('users', () => {
             data.structureDepartementPersonnels = data.structureDepartementPersonnels.map(departement => `/api/structure_departement_personnels/${departement.id}`);
         }
         // récupérer uniquement le nom de la photo entre la fin de user.photoName et le dernier "/"
-        data.photoName = data.photoName.substring(data.photoName.lastIndexOf('/') + 1);
+        // data.photoName = data.photoName.substring(data.photoName.lastIndexOf('/') + 1);
+        console.log(data.photoName);
 
         try {
             const response = await api.patch(`/api/${userType}/${userId}`, data, {
@@ -109,6 +111,7 @@ export const useUsersStore = defineStore('users', () => {
         departementsPersonnelNotDefaut,
         departementsNotDefaut,
         getUser,
+        userPhoto,
         changeDepartement,
         updateUser,
         statuts
