@@ -39,7 +39,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     use LifeCycleTrait;
     use OldIdTrait;
 
-    private const STATUT = [
+    public const STATUT = [
         'MCF' => 'Maître de conférences',
         'PU' => 'Professeur des universités',
         'ATER' => 'Attaché temporaire d\'enseignement et de recherche',

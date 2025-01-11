@@ -14,9 +14,9 @@ export const useUsersStore = defineStore('users', () => {
     const departementPersonnelDefaut = ref({});
     const departementsNotDefaut = ref({});
     const departementsPersonnelNotDefaut = ref({});
+    const statuts = ref([]);
 
     const getUser = async () => {
-        console.log(api.get(`/api/${userType}/${userId}`));
         try {
             const response = await api.get(`/api/${userType}/${userId}`);
             // transformer user.photoName en chemin vers l'image : "@/assets/photos_etudiants/" + user.photoName
@@ -44,6 +44,8 @@ export const useUsersStore = defineStore('users', () => {
                 // récupérer les départements qui n'ont pas defaut = true
                 departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
                 departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
+
+                statuts.value = await api.get(`/api/statuts`);
             }
         } catch (error) {
             console.error('Error fetching user:', error);
@@ -82,6 +84,7 @@ export const useUsersStore = defineStore('users', () => {
         departementsPersonnelNotDefaut,
         departementsNotDefaut,
         getUser,
-        changeDepartement
+        changeDepartement,
+        statuts
     };
 });
