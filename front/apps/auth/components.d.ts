@@ -21,6 +21,7 @@ declare module 'vue' {
     Password: typeof import('primevue/password')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    Select: typeof import('primevue/select')['default']
     Tag: typeof import('primevue/tag')['default']
     Toast: typeof import('primevue/toast')['default']
   }
