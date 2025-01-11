@@ -19,6 +19,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureAnneeUniversitaireRepository::class)]
 #[ApiResource(
@@ -36,12 +37,15 @@ class StructureAnneeUniversitaire
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['structure_annee_universitaire:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
+    #[Groups(['structure_annee_universitaire:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
+    #[Groups(['structure_annee_universitaire:read'])]
     private int $annee;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -66,6 +70,7 @@ class StructureAnneeUniversitaire
     private Collection $personnels;
 
     #[ORM\Column]
+    #[Groups(['structure_annee_universitaire:read'])]
     private bool $actif = false;
 
     /**

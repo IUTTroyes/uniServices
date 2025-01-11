@@ -3,28 +3,44 @@ import { useLayout } from './composables/layout.js';
 import { defineProps, onMounted, watch, computed } from 'vue';
 import Logo from '@components/components/Logo.vue';
 import { ref } from 'vue';
-import { useUsersStore } from "@stores";
+import { useUsersStore, useAnneeUnivStore } from "@stores";
 import { useRoute } from 'vue-router';
 import { tools } from '@config/uniServices.js';
 
-const store = useUsersStore();
+const userStore = useUsersStore();
+const anneeUnivStore = useAnneeUnivStore();
 const route = useRoute();
 
 const deptItems = ref([]);
 const departementLabel = ref('');
+const anneesUniv = ref([]);
+const anneeItems = ref([
+  {
+    label: 'Années universitaires',
+    items: []
+  }
+]);
 
 onMounted(async () => {
-  await store.getUser();
-  if (store.userType === 'personnels') {
-    deptItems.value = store.departementsNotDefaut.map(departementPersonnel => ({
+  await anneeUnivStore.getAllAnneesUniv();
+  anneesUniv.value = anneeUnivStore.anneesUniv.map(annee => ({
+    label: annee.libelle,
+  }));
+  // trier les années universitaires par ordre décroissant
+  anneesUniv.value.sort((a, b) => b.label.localeCompare(a.label));
+  anneeItems.value[0].items = anneesUniv.value;
+
+  await userStore.getUser();
+  if (userStore.userType === 'personnels') {
+    deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
       label: departementPersonnel.libelle,
       id: departementPersonnel.id,
       command: () => changeDepartement(departementPersonnel.id)
     }));
-    departementLabel.value = store.departementDefaut.libelle;
+    departementLabel.value = userStore.departementDefaut.libelle;
   } else {
     deptItems.value = [];
-    departementLabel.value = store.user.departement.libelle
+    departementLabel.value = userStore.user.departement.libelle
   }
 });
 
@@ -76,17 +92,6 @@ const profileItems = ref([
   }
 ]);
 
-const anneeItems = ref([
-  {
-    label: 'Années universitaires',
-    items: [
-      {
-        label: '2023/2024',
-      }
-    ]
-  }
-]);
-
 const toggleProfileMenu = (event) => {
   profileMenu.value.toggle(event);
 };
@@ -105,9 +110,9 @@ const toggleDeptMenu = (event) => {
 
 const changeDepartement = async (departementId) => {
   try {
-    await store.changeDepartement(departementId);
-    departementLabel.value = store.departementDefaut.libelle;
-    deptItems.value = store.departementsNotDefaut.map(departementPersonnel => ({
+    await userStore.changeDepartement(departementId);
+    departementLabel.value = userStore.departementDefaut.libelle;
+    deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
       label: departementPersonnel.libelle,
       id: departementPersonnel.id,
       command: () => changeDepartement(departementPersonnel.id)
@@ -118,8 +123,8 @@ const changeDepartement = async (departementId) => {
 };
 
 const initiales = computed(() => {
-  if (store.user && store.user.name) {
-    return store.user.name.split(' ').map(n => n[0]).join('');
+  if (userStore.user && userStore.user.name) {
+    return userStore.user.name.split(' ').map(n => n[0]).join('');
   }
   return '';
 });
@@ -135,11 +140,11 @@ const initiales = computed(() => {
       <router-link to="/" class="layout-topbar-logo">
         <Logo :logoUrl="props.logoUrl" alt="logo" class="rounded-xl p-2"/> <span class="text-lg">{{appName}}</span>
       </router-link>
-      <button v-if="store.userType === 'personnels'" type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
+      <button v-if="userStore.userType === 'personnels'" type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
         <span>Département {{ departementLabel }}</span>
         <i class="pi pi-arrow-right-arrow-left"></i>
       </button>
-      <div v-else-if="store.userType === 'etudiants'">
+      <div v-else-if="userStore.userType === 'etudiants'">
         <span>Département {{ departementLabel }}</span>
       </div>
       <Menu ref="deptMenu" id="dept_menu" :model="deptItems" :popup="true" />
@@ -153,7 +158,7 @@ const initiales = computed(() => {
         </IconField>
       </div>
 
-      <button v-if="route.path !== '/portail' && store.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
+      <button v-if="route.path !== '/portail' && userStore.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
         <i class="pi pi-microsoft text-primary"></i>
         <span>Applications</span>
       </button>
@@ -183,7 +188,7 @@ const initiales = computed(() => {
       <div class="layout-topbar-menu lg:block">
         <div class="layout-topbar-menu-content">
 
-          <button  v-if="route.path !== '/portail' && store.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
+          <button  v-if="route.path !== '/portail' && userStore.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
             <i class="pi pi-calendar"></i>
             <span>2024/2025</span>
           </button>
@@ -198,8 +203,8 @@ const initiales = computed(() => {
             <span>Notifications</span>
           </button>
           <button type="button" class="layout-topbar-action layout-topbar-action-highlight"  @click="toggleProfileMenu" aria-haspopup="true" aria-controls="profile_menu">
-            <template v-if="store.userPhoto">
-              <img :src="store.userPhoto" alt="photo de profil" class="rounded-full">
+            <template v-if="userStore.userPhoto">
+              <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full">
             </template>
             <template v-else>
               <span class="text-gray-700 text-xl">{{ initiales }}</span>
