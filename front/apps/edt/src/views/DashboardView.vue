@@ -29,8 +29,8 @@ const redirectTo = (link) => {
             <div class="flex items-center justify-between">
                 <div class="flex items-center">
                     <div class="w-20 bg-violet-400 rounded-full flex items-center justify-center">
-                        <template v-if="store.user.photoName">
-                            <img :src="store.user.photoName" alt="photo de profil" class="rounded-full">
+                        <template v-if="store.userPhoto">
+                            <img :src="store.userPhoto" alt="photo de profil" class="rounded-full">
                         </template>
                         <template v-else>
                             <span class="text-gray-700 text-xl">{{ initiales }}</span>
