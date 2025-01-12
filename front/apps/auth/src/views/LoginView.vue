@@ -54,17 +54,17 @@ const handleSubmit = async () => {
     <div class="login-container flex">
       <div class="info-section bg-black bg-opacity-60 text-white backdrop-blur-sm flex justify-start gap-4 h-full">
         <div class="p-16">
-          <Logo logo-url="common-images/logo/logo_iut.png" alt="logo de l'iut" class="logo" />
+          <Logo logo-url="common-images/logo/logo_iut.png" alt="logo de l'iut" class="logo"/>
           <h2>Bienvenue sur UniServices</h2>
           <p>Plateforme de gestion centralisée des services universitaires</p>
 
           <ul>
             <li v-for="tool in tools" :key="tool.name">
-              <Logo :logo-url="tool.logo" alt="" class="logo_login" />
+              <Logo :logo-url="tool.logo" alt="" class="logo_login"/>
               <div>
-                                <span>
-                                {{ tool.name }}
-                            </span>
+                <span>
+                  {{ tool.name }}
+                </span>
                 <p>
                   {{ tool.description }}
                 </p>
@@ -103,7 +103,8 @@ const handleSubmit = async () => {
               <span
                   class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié ?</span>
             </div>
-            <Button :label="isLoading ? 'Connexion...' : 'Connexion invité'" class="w-full" type="submit" severity="secondary" :disabled="isLoading"></Button>
+            <Button :label="isLoading ? 'Connexion...' : 'Connexion invité'" class="w-full" type="submit"
+                    severity="secondary" :disabled="isLoading"></Button>
           </form>
           <small class="text-muted-color">En cas de problème de connexion, contactez le support à cette adresse :
             intranet.iut-troyes@univ-reims.fr</small>
