@@ -1,10 +1,11 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
 import AppBreadcrumb from "./AppBreadcrumb.vue";
+import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps({
   menuItems: {
