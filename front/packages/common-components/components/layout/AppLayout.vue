@@ -1,19 +1,15 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
-import { computed, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { computed, ref, watch, onMounted } from 'vue';
 import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
 import AppBreadcrumb from "./AppBreadcrumb.vue";
+import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps({
   menuItems: {
     type: Array,
-    required: true
-  },
-  logoUrl: {
-    type: String,
     required: true
   },
   appName: {
@@ -87,7 +83,7 @@ function goBack() {
 
 <template>
   <div class="layout-wrapper" :class="containerClass">
-    <app-topbar :logo-url="logoUrl" :app-name></app-topbar>
+    <app-topbar :app-name></app-topbar>
     <app-sidebar :menu-items="menuItems"></app-sidebar>
     <div class="layout-main-container">
       <div class="flex justify-between items-center">

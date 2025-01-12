@@ -45,10 +45,6 @@ onMounted(async () => {
 });
 
 const props = defineProps({
-  logoUrl: {
-    type: String,
-    required: true
-  },
   appName: {
     type: String,
     required: true
@@ -143,7 +139,7 @@ const isEnabled = (item) => {
         <i class="pi pi-bars"></i>
       </button>
       <router-link to="/" class="layout-topbar-logo">
-        <Logo :logoUrl="props.logoUrl" alt="logo" class="rounded-xl p-2"/> <span class="text-lg">{{appName}}</span>
+        <Logo src="common-images/logo/logo_iut.png" alt="logo" class="rounded-xl p-2"/> <span class="text-lg">{{appName}}</span>
       </router-link>
       <button v-if="userStore.userType === 'personnels'" type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
         <span>Département {{ departementLabel }}</span>

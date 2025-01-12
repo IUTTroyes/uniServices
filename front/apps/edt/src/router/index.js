@@ -18,8 +18,6 @@ const edtMenu = [
   }
 ]
 
-const logoUrl = new URL('@/assets/logo/logo_unifolio.png', import.meta.url).href
-
 const appName = 'Edt'
 
 const router = createRouter({
@@ -30,7 +28,6 @@ const router = createRouter({
       component: LayoutComponent,
       props: route => ({
         menuItems: edtMenu,
-        logoUrl: logoUrl,
         appName: appName,
         breadcrumbItems: route.meta.breadcrumb || []
       }),
