@@ -62,6 +62,7 @@ export default function useProgressions () {
     fetchProgressions,
     addProgression,
     updateProgression,
+    duplicateProgression,
     deleteProgression
   }
 }
