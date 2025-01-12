@@ -35,6 +35,7 @@ class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
             ->setRoles(["ROLE_PERMANENT", "ROLE_EDUSIGN", "ROLE_ASSISTANT"])
             ->setPrenom('John')
             ->setNom('DOE')
+            ->setApplications(['uniTranet'])
             ->setPhotoName('noimage.png')
         ;
         $manager->persist($personnel);
