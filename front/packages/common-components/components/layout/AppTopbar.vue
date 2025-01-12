@@ -1,6 +1,6 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
-import { defineProps, onMounted, watch, computed } from 'vue';
+import { onMounted, watch, computed } from 'vue';
 import Logo from '@components/components/Logo.vue';
 import { ref } from 'vue';
 import { useUsersStore } from "@stores";
@@ -29,10 +29,10 @@ onMounted(async () => {
 });
 
 const props = defineProps({
-  logoUrl: {
-    type: String,
-    required: true
-  },
+  // logoUrl: {
+  //   type: String,
+  //   required: true
+  // },
   appName: {
     type: String,
     required: true
@@ -124,6 +124,11 @@ const initiales = computed(() => {
   return '';
 });
 
+const isEnabled = (item) => {
+  console.log(item)
+  return store.applications.includes(item.name);
+};
+
 </script>
 
 <template>
@@ -159,7 +164,7 @@ const initiales = computed(() => {
       </button>
       <Menu ref="toolsMenu" id="tools_menu" :model="tools" :popup="true">
         <template #item="{ item, props }">
-          <router-link v-if="item.url" v-slot="{ href, navigate }" :to="item.url" custom>
+          <router-link v-if="item.url && isEnabled(item)" v-slot="{ href, navigate }" :to="item.url" custom>
             <a v-ripple :href="href" v-bind="props.action" @click="navigate">
               <Logo :logo-url="item.logo" class="logo_menu" />
               <span class="ml-2">{{ item.name }}</span>
