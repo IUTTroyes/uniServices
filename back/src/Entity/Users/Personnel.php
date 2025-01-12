@@ -5,6 +5,8 @@ namespace App\Entity\Users;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Put;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Scolarite\ScolEvaluation;
@@ -30,6 +32,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(
             normalizationContext: ['groups' => ['personnel:read']],
         ),
+        new Patch(normalizationContext: ['groups' => ['personnel:read']]),
     ],
     order: ['nom' => 'ASC'],
 )]
@@ -39,7 +42,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     use LifeCycleTrait;
     use OldIdTrait;
 
-    private const STATUT = [
+    public const STATUT = [
         'MCF' => 'Maître de conférences',
         'PU' => 'Professeur des universités',
         'ATER' => 'Attaché temporaire d\'enseignement et de recherche',
@@ -151,6 +154,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $bureau = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['personnel:read'])]
     private ?int $numeroHarpege = null;
 
     #[ORM\Column(nullable: true)]

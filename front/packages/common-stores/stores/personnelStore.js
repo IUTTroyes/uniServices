@@ -1,4 +1,4 @@
-// src/stores/professeurs.js
+// src/stores/personnelStore.js
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import api from '@helpers/axios';

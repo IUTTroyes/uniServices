@@ -1,7 +1,8 @@
-import { useUsersStore } from './stores/users'
-import { useSemestreStore } from './stores/semestre'
-import { useProfesseursStore } from './stores/professeurs'
-import { useMatieresStore } from './stores/matieres'
+import { useUsersStore } from './stores/userStore'
+import { useSemestreStore } from './stores/semestreStore'
+import { useProfesseursStore } from './stores/personnelStore'
+import { useMatieresStore } from './stores/matiereStore'
+import { useAnneeUnivStore } from './stores/anneeUnivStore'
 import { useDiplomeStore} from "./stores/diplomeStore";
 
 export {
@@ -9,5 +10,6 @@ export {
   useSemestreStore,
   useProfesseursStore,
   useMatieresStore,
-  useDiplomeStore
+  useDiplomeStore,
+  useAnneeUnivStore
 }

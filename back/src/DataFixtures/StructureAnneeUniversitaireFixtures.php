@@ -33,7 +33,7 @@ class StructureAnneeUniversitaireFixtures extends Fixture implements OrderedFixt
 
     public function load(ObjectManager $manager): void
     {
-        $personnel = $this->personnelRepository->findOneBy(['username' => 'hero0010']);
+        $personnel = $this->personnelRepository->findOneBy(['username' => 'personnel']);
 
         $pn1 = $this->pnRepository->findOneBy(['libelle' => 'PN BUT MMI ']);
         $pn2 = $this->pnRepository->findOneBy(['libelle' => 'PN BUT MMI DWEB']);

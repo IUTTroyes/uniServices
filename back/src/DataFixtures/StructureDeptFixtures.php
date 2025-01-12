@@ -48,7 +48,7 @@ class StructureDeptFixtures extends Fixture implements OrderedFixtureInterface
             ->setUuid(new UuidV4());
         $manager->persist($departement2);
 
-        $personnel = $this->personnelRepository->findOneBy(['username' => 'hero0010']);
+        $personnel = $this->personnelRepository->findOneBy(['username' => 'personnel']);
 
         $personnelDepartement1 = new StructureDepartementPersonnel();
         $personnelDepartement1->setPersonnel($personnel)

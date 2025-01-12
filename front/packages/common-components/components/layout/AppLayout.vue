@@ -22,15 +22,22 @@ const props = defineProps({
 });
 
 const { layoutConfig, layoutState, isSidebarActive, resetMenu } = useLayout();
-
 const outsideClickListener = ref(null);
+const route = useRoute();
+const router = useRouter();
+const showBackButton = ref(false);
 
-watch(isSidebarActive, (newVal) => {
-  if (newVal) {
-    bindOutsideClickListener();
-  } else {
-    unbindOutsideClickListener();
-  }
+const updateBackButtonVisibility = (path) => {
+  const segments = path.split('/').filter(Boolean);
+  showBackButton.value = segments.length >= 2;
+};
+
+onMounted(() => {
+  updateBackButtonVisibility(route.path);
+});
+
+watch(route, (newRoute) => {
+  updateBackButtonVisibility(newRoute.path);
 });
 
 const containerClass = computed(() => {
@@ -67,6 +74,10 @@ function isOutsideClicked(event) {
 
   return !(sidebarEl.isSameNode(event.target) || sidebarEl.contains(event.target) || topbarEl.isSameNode(event.target) || topbarEl.contains(event.target));
 }
+
+function goBack() {
+  router.back();
+}
 </script>
 
 <template>
@@ -74,7 +85,10 @@ function isOutsideClicked(event) {
     <app-topbar :app-name></app-topbar>
     <app-sidebar :menu-items="menuItems"></app-sidebar>
     <div class="layout-main-container">
-      <app-breadcrumb v-if="breadcrumbItems" :items="breadcrumbItems"></app-breadcrumb>
+      <div class="flex justify-between items-center">
+        <app-breadcrumb v-if="breadcrumbItems" :items="breadcrumbItems"></app-breadcrumb>
+        <Button v-if="showBackButton" @click="goBack" severity="contrast" label="Retour" size="small" icon="pi pi-arrow-left" class="h-fit"></Button>
+      </div>
       <div class="layout-main">
         <router-view></router-view>
       </div>

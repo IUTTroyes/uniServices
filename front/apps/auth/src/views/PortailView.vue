@@ -1,6 +1,6 @@
 <script setup>
 import { TopbarComponent } from '@components'
-import { useUsersStore } from '@stores/stores/users.js'
+import { useUsersStore } from '@stores/stores/userStore.js'
 import { tools } from '@config/uniServices.js'
 import Logo from '@components/components/Logo.vue'
 import { onMounted } from 'vue'

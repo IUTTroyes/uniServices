@@ -4,11 +4,11 @@ on:
   push:
     branches: [main]
     paths: 
-    - '/front/**'
+    - 'front/**'
   pull_request:
     branches: [main]
     paths: 
-    - '/front/**'
+    - 'front/**'
 
 jobs:
   build:
@@ -28,7 +28,7 @@ jobs:
 
     - name: Install front dependencies
       working-directory: ./front
-      run: pnpm install
+      run: pnpm install --no-frozen-lockfile
 
     - name: Run frontend tests
       working-directory: ./front

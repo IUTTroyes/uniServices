@@ -6,7 +6,7 @@ env:
 on:
   push:
     branches:
-      - main
+      - feat/CI
   pull_request:
     branches:
       - main
@@ -60,7 +60,7 @@ jobs:
 
       - name: Generate JWT token
         working-directory: ./back
-        run: php bin/console lexik:jwt:generate-keypair  
+        run: php bin/console lexik:jwt:generate-keypair
 
       - name: Run database migrations and load fixtures
         working-directory: ./back
@@ -82,6 +82,9 @@ jobs:
         working-directory: ./front
         run: pnpm install --no-frozen-lockfile
 
+      - name: Set environment variables
+        run: echo "VITE_BASE_URL=https://127.0.0.1:8000" >> $GITHUB_ENV
+
       - name: run servers
         run: make start-back &
 
@@ -96,7 +99,7 @@ jobs:
         uses: cypress-io/github-action@v6
         #run: npx cypress run
         with:
-          working-directory: ./front   
+          working-directory: ./front
           # Starts web server for E2E tests - replace with your own server invocation
           # https://docs.cypress.io/guides/continuous-integration/introduction#Boot-your-server
           start: npm run dev

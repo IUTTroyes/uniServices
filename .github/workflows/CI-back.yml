@@ -4,11 +4,11 @@ on:
   push:
     branches: [main]
     paths: 
-      - '/back/**'
+      - 'back/**'
   pull_request:
     branches: [main]
     paths: 
-      - '/back/**'
+      - 'back/**'
 
 jobs:
   test-back:

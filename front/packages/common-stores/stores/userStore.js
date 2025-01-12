@@ -10,18 +10,19 @@ export const useUsersStore = defineStore('users', () => {
     const userType = payload.type;
     const applications = ref([]);
     const user = ref([]);
+    const userPhoto = ref([]);
     const departements = ref([]);
     const departementDefaut = ref({});
     const departementPersonnelDefaut = ref({});
     const departementsNotDefaut = ref({});
     const departementsPersonnelNotDefaut = ref({});
+    const statuts = ref([]);
 
     const getUser = async () => {
-        console.log(api.get(`/api/${userType}/${userId}`));
         try {
             const response = await api.get(`/api/${userType}/${userId}`);
             // transformer user.photoName en chemin vers l'image : "@/assets/photos_etudiants/" + user.photoName
-            response.data.photoName = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
+            userPhoto.value = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
             user.value = response.data;
             console.log(user.value);
             applications.value = response.data.applications;
@@ -47,6 +48,8 @@ export const useUsersStore = defineStore('users', () => {
                 // récupérer les départements qui n'ont pas defaut = true
                 departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
                 departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
+
+                statuts.value = await api.get(`/api/statuts`);
             }
         } catch (error) {
             console.error('Error fetching user:', error);
@@ -77,6 +80,32 @@ export const useUsersStore = defineStore('users', () => {
         }
     };
 
+    const updateUser = async (data) => {
+        // si domaines n'est pas un tableau
+        if (!Array.isArray(data.domaines)) {
+            // séparer les domaines en utilisant la virgule comme séparateur
+            data.domaines = data.domaines.split(',');
+        }
+        // convertir structureDepartementPersonnels en IRI
+        if (data.structureDepartementPersonnels) {
+            data.structureDepartementPersonnels = data.structureDepartementPersonnels.map(departement => `/api/structure_departement_personnels/${departement.id}`);
+        }
+        // récupérer uniquement le nom de la photo entre la fin de user.photoName et le dernier "/"
+        // data.photoName = data.photoName.substring(data.photoName.lastIndexOf('/') + 1);
+        console.log(data.photoName);
+
+        try {
+            const response = await api.patch(`/api/${userType}/${userId}`, data, {
+                headers: {
+                    'Content-Type': 'application/merge-patch+json'
+                }
+            });
+            user.value = response.data;
+        } catch (error) {
+            console.error('Error updating user:', error);
+        }
+    };
+
     return {
         user,
         userType,
@@ -86,6 +115,9 @@ export const useUsersStore = defineStore('users', () => {
         departementsPersonnelNotDefaut,
         departementsNotDefaut,
         getUser,
-        changeDepartement
+        userPhoto,
+        changeDepartement,
+        updateUser,
+        statuts
     };
 });
