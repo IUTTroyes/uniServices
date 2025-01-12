@@ -44,7 +44,7 @@ const isDisabled = (tool) => {
 
 <template>
   <main>
-    <TopbarComponent app-name="Portail" :logo-url/>
+    <TopbarComponent app-name="Portail" />
 
     <div id="features" class="py-6 px-6 lg:px-20 mt-8 mx-0 lg:mx-20">
       <div class="grid grid-cols-12 gap-4 justify-center">

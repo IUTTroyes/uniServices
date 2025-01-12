@@ -29,10 +29,6 @@ onMounted(async () => {
 });
 
 const props = defineProps({
-  // logoUrl: {
-  //   type: String,
-  //   required: true
-  // },
   appName: {
     type: String,
     required: true

@@ -11,10 +11,6 @@ const props = defineProps({
     type: Array,
     required: true
   },
-  logoUrl: {
-    type: String,
-    required: true
-  },
   appName: {
     type: String,
     required: true
@@ -75,7 +71,7 @@ function isOutsideClicked(event) {
 
 <template>
   <div class="layout-wrapper" :class="containerClass">
-    <app-topbar :logo-url :app-name></app-topbar>
+    <app-topbar :app-name></app-topbar>
     <app-sidebar :menu-items="menuItems"></app-sidebar>
     <div class="layout-main-container">
       <app-breadcrumb v-if="breadcrumbItems" :items="breadcrumbItems"></app-breadcrumb>
