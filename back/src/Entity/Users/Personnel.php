@@ -190,6 +190,10 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?array $contraintesEdt = null;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['personnel:read'])]
+    private ?array $applications = null;
+
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
@@ -702,6 +706,18 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     public function setContraintesEdt(?array $contraintesEdt): static
     {
         $this->contraintesEdt = $contraintesEdt;
+
+        return $this;
+    }
+
+    public function getApplications(): ?array
+    {
+        return $this->applications ?? ['UniTranet'];
+    }
+
+    public function setApplications(?array $applications): static
+    {
+        $this->applications = $applications;
 
         return $this;
     }

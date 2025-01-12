@@ -8,6 +8,7 @@ export const useUsersStore = defineStore('users', () => {
     const payload = tokenParts ? JSON.parse(atob(tokenParts[1])) : {};
     const userId = payload.userId;
     const userType = payload.type;
+    const applications = ref([]);
     const user = ref([]);
     const userPhoto = ref([]);
     const departements = ref([]);
@@ -23,6 +24,8 @@ export const useUsersStore = defineStore('users', () => {
             // transformer user.photoName en chemin vers l'image : "@/assets/photos_etudiants/" + user.photoName
             userPhoto.value = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
             user.value = response.data;
+            console.log(user.value);
+            applications.value = response.data.applications;
 
             if (userType === 'personnels') {
                 departements.value = response.data.structureDepartementPersonnels;
@@ -106,6 +109,7 @@ export const useUsersStore = defineStore('users', () => {
     return {
         user,
         userType,
+        applications,
         departements,
         departementDefaut,
         departementsPersonnelNotDefaut,

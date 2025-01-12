@@ -1,6 +1,6 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
-import { defineProps, onMounted, watch, computed } from 'vue';
+import { onMounted, watch, computed } from 'vue';
 import Logo from '@components/components/Logo.vue';
 import { ref } from 'vue';
 import { useUsersStore, useAnneeUnivStore } from "@stores";
@@ -129,6 +129,11 @@ const initiales = computed(() => {
   return '';
 });
 
+const isEnabled = (item) => {
+  console.log(item)
+  return userStore.applications.includes(item.name);
+};
+
 </script>
 
 <template>
@@ -164,7 +169,7 @@ const initiales = computed(() => {
       </button>
       <Menu ref="toolsMenu" id="tools_menu" :model="tools" :popup="true">
         <template #item="{ item, props }">
-          <a v-if="item.url" :href="item.url" v-ripple v-bind="props.action">
+          <a v-if="item.url && isEnabled(item)" :href="item.url" v-ripple v-bind="props.action">
             <Logo :logo-url="item.logo" class="logo_menu" />
             <span class="ml-2">{{ item.name }}</span>
           </a>
