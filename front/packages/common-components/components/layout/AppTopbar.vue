@@ -48,6 +48,10 @@ const props = defineProps({
   appName: {
     type: String,
     required: true
+  },
+  logoUrl: {
+    type: String,
+    required: false
   }
 });
 
@@ -139,7 +143,7 @@ const isEnabled = (item) => {
         <i class="pi pi-bars"></i>
       </button>
       <router-link to="/" class="layout-topbar-logo">
-        <Logo logo-url="common-images/logo/logo_iut.png" alt="logo" class="rounded-xl p-2"/> <span class="text-lg">{{appName}}</span>
+        <Logo :logoUrl="logoUrl" alt="logo" class="rounded-xl p-2"/> <span class="text-lg">{{appName}}</span>
       </router-link>
       <button v-if="userStore.userType === 'personnels'" type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
         <span>Département {{ departementLabel }}</span>

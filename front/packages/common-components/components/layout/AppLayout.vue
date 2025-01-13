@@ -19,6 +19,10 @@ const props = defineProps({
   breadcrumbItems: {
     type: Array,
     required: false
+  },
+  logoUrl: {
+    type: String,
+    required: false
   }
 });
 
@@ -83,7 +87,7 @@ function goBack() {
 
 <template>
   <div class="layout-wrapper" :class="containerClass">
-    <app-topbar :app-name></app-topbar>
+    <app-topbar :app-name :logo-url></app-topbar>
     <app-sidebar :menu-items="menuItems"></app-sidebar>
     <div class="layout-main-container">
       <div class="flex justify-between items-center">

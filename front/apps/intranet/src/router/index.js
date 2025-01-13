@@ -17,6 +17,7 @@ const intranetMenu = [
 ];
 
 const appName = 'Intranet';
+const logoUrl = new URL('@/assets/logo/logo_intranet_iut_troyes.svg', import.meta.url).href;
 
 const router = createRouter({
     history: createWebHistory('/intranet/'),
@@ -26,6 +27,7 @@ const router = createRouter({
             component: LayoutComponent,
             props: route => ({
                 menuItems: intranetMenu,
+                logoUrl: logoUrl,
                 appName: appName,
                 breadcrumbItems: route.meta.breadcrumb || []
             }),
