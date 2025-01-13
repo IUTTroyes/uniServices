@@ -55,7 +55,9 @@ export const useUsersStore = defineStore('users', () => {
             }
             if (userType === 'etudiants') {
                 scolariteActif.value = await getEtudiantScolariteActif(userId);
-                console.log(scolariteActif.value);
+                departementDefaut.value = scolariteActif.value[0].departement;
+                // ajouter le département par défaut dans le user
+                user.value.departement = departementDefaut.value;
             }
         } catch (error) {
             console.error('Error fetching user:', error);

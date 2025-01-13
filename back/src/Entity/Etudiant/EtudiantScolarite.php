@@ -118,6 +118,7 @@ class EtudiantScolarite
     private Collection $groupes;
 
     #[ORM\ManyToOne(inversedBy: 'etudiantScolarites')]
+    #[Groups(['scolarite:read'])]
     private ?StructureDepartement $departement = null;
 
     public function __construct()

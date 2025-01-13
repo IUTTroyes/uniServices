@@ -39,6 +39,7 @@ onMounted(async () => {
     }));
     departementLabel.value = userStore.departementDefaut.libelle;
   } else {
+    console.log('user', userStore.user);
     deptItems.value = [];
     departementLabel.value = userStore.user.departement.libelle
   }

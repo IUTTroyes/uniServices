@@ -31,11 +31,11 @@ class StructureDepartement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(groups: ['structure_departement:read', 'personnel:read', 'structure_departement_personnel:read'])]
+    #[Groups(groups: ['structure_departement:read', 'personnel:read', 'structure_departement_personnel:read', 'scoralite:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(groups: ['structure_departement:read', 'personnel:read', 'etudiant:read', 'structure_departement_personnel:read'])]
+    #[Groups(groups: ['structure_departement:read', 'personnel:read', 'etudiant:read', 'structure_departement_personnel:read', 'scolarite:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
