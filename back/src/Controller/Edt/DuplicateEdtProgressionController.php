@@ -19,6 +19,7 @@ class DuplicateEdtProgressionController extends AbstractController
 
     public function __invoke(Request $request, int $id): JsonResponse
     {
+        //todo: ajouter un voter pour vérifier que l'utilisateur a le droit de dupliquer une ressource
         $original = $this->edtProgressionRepository->find($id);
 
         if (!$original) {
