@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Edt\EdtContraintesSemestre;
 use App\Entity\Edt\EdtEvent;
+use App\Entity\Edt\EdtProgression;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\EduSignTrait;
@@ -124,6 +125,12 @@ class StructureSemestre
     #[Groups(['semestre:read'])]
     private Collection $edtContraintesSemestres;
 
+    /**
+     * @var Collection<int, EdtProgression>
+     */
+    #[ORM\OneToMany(targetEntity: EdtProgression::class, mappedBy: 'semestre')]
+    private Collection $edtProgressions;
+
     public function __construct()
     {
         $this->structureGroupes = new ArrayCollection();
@@ -133,6 +140,7 @@ class StructureSemestre
         $this->scolEvaluations = new ArrayCollection();
         $this->scolEdtEvents = new ArrayCollection();
         $this->edtContraintesSemestres = new ArrayCollection();
+        $this->edtProgressions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -456,6 +464,36 @@ class StructureSemestre
             // set the owning side to null (unless already changed)
             if ($edtContraintesSemestre->getSemestre() === $this) {
                 $edtContraintesSemestre->setSemestre(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EdtProgression>
+     */
+    public function getEdtProgressions(): Collection
+    {
+        return $this->edtProgressions;
+    }
+
+    public function addEdtProgression(EdtProgression $edtProgression): static
+    {
+        if (!$this->edtProgressions->contains($edtProgression)) {
+            $this->edtProgressions->add($edtProgression);
+            $edtProgression->setSemestre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEdtProgression(EdtProgression $edtProgression): static
+    {
+        if ($this->edtProgressions->removeElement($edtProgression)) {
+            // set the owning side to null (unless already changed)
+            if ($edtProgression->getSemestre() === $this) {
+                $edtProgression->setSemestre(null);
             }
         }
 
