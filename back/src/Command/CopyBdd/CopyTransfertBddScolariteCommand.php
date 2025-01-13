@@ -5,6 +5,8 @@ namespace App\Command\CopyBdd;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Repository\EtudiantRepository;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
+use App\Repository\Structure\StructureDepartementRepository;
+use App\Repository\Structure\StructureGroupeRepository;
 use App\Repository\Structure\StructureSemestreRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -29,6 +31,9 @@ class CopyTransfertBddScolariteCommand extends Command
     protected array $tEtudiants = [];
     protected array $tAnneeUniversitaire = [];
     protected array $tSemestres = [];
+    protected array $tDepartements = [];
+
+    protected array $tGroupes = [];
     protected string $base_url;
 
 
@@ -41,6 +46,8 @@ class CopyTransfertBddScolariteCommand extends Command
         StructureSemestreRepository           $structureSemestreRepository,
         EtudiantRepository                    $etudiantRepository,
         protected HttpClientInterface         $httpClient,
+        StructureDepartementRepository $structureDepartementRepository,
+        StructureGroupeRepository $structureGroupeRepository,
         ParameterBagInterface                 $params
     )
     {
@@ -49,6 +56,8 @@ class CopyTransfertBddScolariteCommand extends Command
         $this->tAnneeUniversitaire = $structureAnneeUniversitaireRepository->findAllByOldIdArray();
         $this->tSemestres = $structureSemestreRepository->findAllByOldIdArray();
         $this->tEtudiants = $etudiantRepository->findAllByOldIdArray();
+        $this->tDepartements = $structureDepartementRepository->findAllByIdArray();
+        $this->tGroupes = $structureGroupeRepository->findAllByOldIdArray();
         $this->base_url = $params->get('URL_INTRANET_V3');
         $this->httpClient = HttpClient::create([
             'verify_peer' => false,
@@ -69,6 +78,12 @@ FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant_scolarite');
         $this->entityManager->getConnection()->executeQuery('SET
 FOREIGN_KEY_CHECKS=1');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant_scolarite_structure_semestre');
+        $this->entityManager->getConnection()->executeQuery('SET
+FOREIGN_KEY_CHECKS=1');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant_scolarite_structure_groupe');
+        $this->entityManager->getConnection()->executeQuery('SET
+FOREIGN_KEY_CHECKS=1');
     }
 
     protected
@@ -86,38 +101,61 @@ FOREIGN_KEY_CHECKS=1');
 
     private function addEtudiantScolarite(): void
     {
-        $sql = 'SELECT * FROM etudiant WHERE semestre_id IS NOT NULL and annee_sortie = 0'; // juste pour des datas
+        $sql = 'SELECT * FROM etudiant WHERE semestre_id IS NOT NULL and annee_sortie = 0';
         $etudiants = $this->em->executeQuery($sql)->fetchAllAssociative();
 
         foreach ($etudiants as $etu) {
-            //récupérer la scolarité de l'étudiant concerné (passe par le Http car des traitement sont fait en amont)
             $response = $this->httpClient->request('GET', $this->base_url . '/etudiant/' . $etu['id']);
             $scols = json_decode($response->getContent(), true);
 
             foreach ($scols as $scol) {
-                if (array_key_exists($scol['annee'], $this->tAnneeUniversitaire)) {
-                    $scolarite = new EtudiantScolarite();
-                    $scolarite->setUuid(UuidV4::v4());
-                    $scolarite->setEtudiant($this->tEtudiants[$etu['id']]);
-
-                    $scolarite->setStructureAnneeUniversitaire($this->tAnneeUniversitaire[$scol['annee']]);
-
-                    $scolarite->setSemestre($this->tSemestres[$scol['semestre']]);
-                    $scolarite->setOrdre($scol['ordre'] ?? 0);
-                    // $scolarite->setDecision($scol['decision']);
-                    $scolarite->setProposition($scol['proposition']);
-                    $scolarite->setMoyenne($scol['moyenne']);
-                    $scolarite->setNbAbsences($scol['nbAbsences']);
-                    $scolarite->setCommentaire($scol['commentaire']);
-                    $scolarite->setPublic($scol['diffuse']);
-                    $scolarite->setMoyennesMatiere($scol['moyennesMatieres']);
-                    $scolarite->setMoyennesUe($scol['moyennesUes']);
-                    $this->entityManager->persist($scolarite);
+                if (!array_key_exists($scol['annee'], $this->tAnneeUniversitaire)) {
+                    continue;
                 }
+
+                $scolarite = new EtudiantScolarite();
+                $scolarite->setUuid(UuidV4::v4());
+                $scolarite->setEtudiant($this->tEtudiants[$etu['id']]);
+                $scolarite->setStructureAnneeUniversitaire($this->tAnneeUniversitaire[$scol['annee']]);
+
+                foreach ($this->tSemestres as $semestre) {
+                    if ($semestre->getOldId() === $scol['semestre']) {
+                        $scolarite->addSemestre($semestre);
+                        break;
+                    }
+                }
+
+                $scolarite->setOrdre($scol['ordre'] ?? 0);
+                $scolarite->setProposition($scol['proposition']);
+                $scolarite->setMoyenne($scol['moyenne']);
+                $scolarite->setNbAbsences($scol['nbAbsences']);
+                $scolarite->setCommentaire($scol['commentaire']);
+                $scolarite->setPublic($scol['diffuse']);
+                $scolarite->setMoyennesMatiere($scol['moyennesMatieres']);
+                $scolarite->setMoyennesUe($scol['moyennesUes']);
+
+                foreach ($this->tDepartements as $departement) {
+                    if ($departement->getOldId() === $etu['departement_id']) {
+                        $scolarite->setDepartement($departement);
+                        break;
+                    }
+                }
+
+                if ($scol['groupes']) {
+                    foreach ($scol['groupes'] as $groupe) {
+                        foreach ($this->tGroupes as $groupeDest) {
+                            if ($groupeDest->getOldId() === $groupe) {
+                                $scolarite->addGroupe($groupeDest);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                $this->entityManager->persist($scolarite);
             }
-            $this->entityManager->flush();
         }
 
-
+        $this->entityManager->flush();
     }
 }

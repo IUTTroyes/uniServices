@@ -3,6 +3,7 @@
 namespace App\Repository\Structure;
 
 use App\Entity\Structure\StructureGroupe;
+use App\Repository\Traits\FindAllByIdArrayTrait;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -11,6 +12,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class StructureGroupeRepository extends ServiceEntityRepository
 {
+    use FindAllByIdArrayTrait;
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, StructureGroupe::class);
