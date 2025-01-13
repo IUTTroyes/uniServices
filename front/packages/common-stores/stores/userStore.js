@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import {ref} from 'vue';
 import api from '@helpers/axios';
+import { getEtudiantScolariteActif } from "@requests";
 
 export const useUsersStore = defineStore('users', () => {
     const token = localStorage.getItem('token');
@@ -17,6 +18,7 @@ export const useUsersStore = defineStore('users', () => {
     const departementsNotDefaut = ref({});
     const departementsPersonnelNotDefaut = ref({});
     const statuts = ref([]);
+    const scolariteActif = ref({});
 
     const getUser = async () => {
         try {
@@ -50,6 +52,10 @@ export const useUsersStore = defineStore('users', () => {
                 departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
 
                 statuts.value = await api.get(`/api/statuts`);
+            }
+            if (userType === 'etudiants') {
+                scolariteActif.value = await getEtudiantScolariteActif(userId);
+                console.log(scolariteActif.value);
             }
         } catch (error) {
             console.error('Error fetching user:', error);

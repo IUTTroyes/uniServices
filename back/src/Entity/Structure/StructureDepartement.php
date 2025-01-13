@@ -4,6 +4,7 @@ namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Apc\ApcReferentiel;
+use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
@@ -81,6 +82,12 @@ class StructureDepartement
     #[ORM\OneToMany(targetEntity: Etudiant::class, mappedBy: 'departement')]
     private Collection $etudiants;
 
+    /**
+     * @var Collection<int, EtudiantScolarite>
+     */
+    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'departement')]
+    private Collection $etudiantScolarites;
+
     public function __construct()
     {
         $this->structureDiplomes = new ArrayCollection();
@@ -88,6 +95,7 @@ class StructureDepartement
         $this->setOpt([]);
         $this->apcReferentiels = new ArrayCollection();
         $this->etudiants = new ArrayCollection();
+        $this->etudiantScolarites = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -308,6 +316,36 @@ class StructureDepartement
             // set the owning side to null (unless already changed)
             if ($etudiant->getDepartement() === $this) {
                 $etudiant->setDepartement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EtudiantScolarite>
+     */
+    public function getEtudiantScolarites(): Collection
+    {
+        return $this->etudiantScolarites;
+    }
+
+    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    {
+        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
+            $this->etudiantScolarites->add($etudiantScolarite);
+            $etudiantScolarite->setDepartement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    {
+        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
+            // set the owning side to null (unless already changed)
+            if ($etudiantScolarite->getDepartement() === $this) {
+                $etudiantScolarite->setDepartement(null);
             }
         }
 

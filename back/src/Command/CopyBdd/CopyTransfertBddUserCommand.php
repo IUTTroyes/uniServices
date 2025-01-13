@@ -28,14 +28,13 @@ class CopyTransfertBddUserCommand extends Command
     protected array $tAnneeUniversitaire = [];
     protected array $tDepartements = [];
 
-
     protected SymfonyStyle $io;
 
     public function __construct(
         protected EntityManagerInterface $entityManager,
         ManagerRegistry                  $managerRegistry,
         StructureAnneeUniversitaireRepository $structureAnneeUniversitaireRepository,
-        StructureDepartementRepository $structureDepartementRepository
+        StructureDepartementRepository $structureDepartementRepository,
     )
     {
         parent::__construct();
@@ -187,13 +186,6 @@ FOREIGN_KEY_CHECKS=1');
             $etudiant->setOldId($etu['id']);
             $etudiant->setPassword($etu['password']);
             $etudiant->setRoles(json_decode($etu['roles'], true) ?? ["ROLE_ETUDIANT"]);
-            // si le dept existe dans la table de destination
-            foreach ($this->tDepartements as $departement) {
-                if ($departement->getOldId() === $etu['departement_id']) {
-                    $etudiant->setDepartement($departement);
-                    break;
-                }
-            }
 
             // gestion des adresses : adresse etudiante et adresse parentale
             if ($etu['adresse_id'] !== null && $etu['adresse_id'] !== '') {

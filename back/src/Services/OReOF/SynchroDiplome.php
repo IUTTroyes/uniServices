@@ -6,7 +6,6 @@ use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
 use App\Repository\Structure\StructureDiplomeRepository;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class SynchroDiplome

@@ -85,13 +85,6 @@ class StructureSemestre
     #[Groups(['semestre:read'])]
     private Collection $structureGroupes;
 
-    /**
-     * @var Collection<int, EtudiantScolarite>
-     */
-    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'semestre')]
-    #[Groups(['semestre:read'])]
-    private Collection $etudiantScolarites;
-
     #[ORM\ManyToOne(inversedBy: 'structureSemestres')]
     #[Groups(['semestre:read'])]
     private ?StructureAnnee $annee = null;
@@ -124,15 +117,21 @@ class StructureSemestre
     #[Groups(['semestre:read'])]
     private Collection $edtContraintesSemestres;
 
+    /**
+     * @var Collection<int, EtudiantScolarite>
+     */
+    #[ORM\ManyToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'semestres')]
+    private Collection $etudiantScolarites;
+
     public function __construct()
     {
         $this->structureGroupes = new ArrayCollection();
-        $this->etudiantScolarites = new ArrayCollection();
         $this->setOpt([]);
         $this->structureUes = new ArrayCollection();
         $this->scolEvaluations = new ArrayCollection();
         $this->scolEdtEvents = new ArrayCollection();
         $this->edtContraintesSemestres = new ArrayCollection();
+        $this->etudiantScolarites = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -258,36 +257,6 @@ class StructureSemestre
     {
         if ($this->structureGroupes->removeElement($structureGroupe)) {
             $structureGroupe->removeSemestre($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, EtudiantScolarite>
-     */
-    public function getEtudiantScolarites(): Collection
-    {
-        return $this->etudiantScolarites;
-    }
-
-    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
-    {
-        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
-            $this->etudiantScolarites->add($etudiantScolarite);
-            $etudiantScolarite->setSemestre($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
-    {
-        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
-            // set the owning side to null (unless already changed)
-            if ($etudiantScolarite->getSemestre() === $this) {
-                $etudiantScolarite->setSemestre(null);
-            }
         }
 
         return $this;
@@ -457,6 +426,33 @@ class StructureSemestre
             if ($edtContraintesSemestre->getSemestre() === $this) {
                 $edtContraintesSemestre->setSemestre(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EtudiantScolarite>
+     */
+    public function getEtudiantScolarites(): Collection
+    {
+        return $this->etudiantScolarites;
+    }
+
+    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    {
+        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
+            $this->etudiantScolarites->add($etudiantScolarite);
+            $etudiantScolarite->addSemestre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    {
+        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
+            $etudiantScolarite->removeSemestre($this);
         }
 
         return $this;

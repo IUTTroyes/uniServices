@@ -2,10 +2,15 @@
 
 namespace App\Entity\Etudiant;
 
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Link;
 use App\Entity\Structure\StructureAnneeUniversitaire;
+use App\Entity\Structure\StructureDepartement;
+use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
@@ -17,10 +22,19 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureScolariteRepository::class)]
+#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['scolarite:read']]),
         new GetCollection(normalizationContext: ['groups' => ['scolarite:read']]),
+        new GetCollection(
+            uriTemplate: '/etudiant_scolarites/by_etudiant/{etudiantId}',
+            uriVariables: [
+                'etudiantId' => new Link(fromClass: Etudiant::class, identifiers: ['id'], toProperty: 'etudiant')
+            ],
+            paginationEnabled: false,
+            normalizationContext: ['groups' => ['scolarite:read']]
+        ),
     ]
 )]
 class EtudiantScolarite
@@ -32,10 +46,6 @@ class EtudiantScolarite
     #[ORM\Column]
     #[Groups(['scolarite:read', 'etudiant:read'])]
     private ?int $id = null;
-
-    #[ORM\ManyToOne(inversedBy: 'etudiantScolarites')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?StructureSemestre $semestre = null;
 
     #[ORM\ManyToOne(inversedBy: 'etudiantScolarites')]
     #[ORM\JoinColumn(nullable: false)]
@@ -95,27 +105,32 @@ class EtudiantScolarite
     #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'scolarite')]
     private Collection $etudiantNotes;
 
+    /**
+     * @var Collection<int, StructureSemestre>
+     */
+    #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'etudiantScolarites')]
+    private Collection $semestres;
+
+    /**
+     * @var Collection<int, StructureGroupe>
+     */
+    #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'etudiantScolarites')]
+    private Collection $groupes;
+
+    #[ORM\ManyToOne(inversedBy: 'etudiantScolarites')]
+    private ?StructureDepartement $departement = null;
+
     public function __construct()
     {
         $this->etudiantAbsences = new ArrayCollection();
         $this->etudiantNotes = new ArrayCollection();
+        $this->semestres = new ArrayCollection();
+        $this->groupes = new ArrayCollection();
     }
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getSemestre(): ?StructureSemestre
-    {
-        return $this->semestre;
-    }
-
-    public function setSemestre(?StructureSemestre $semestre): static
-    {
-        $this->semestre = $semestre;
-
-        return $this;
     }
 
     public function getEtudiant(): ?Etudiant
@@ -306,6 +321,66 @@ class EtudiantScolarite
                 $etudiantNote->setScolarite(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureSemestre>
+     */
+    public function getSemestres(): Collection
+    {
+        return $this->semestres;
+    }
+
+    public function addSemestre(StructureSemestre $semestre): static
+    {
+        if (!$this->semestres->contains($semestre)) {
+            $this->semestres->add($semestre);
+        }
+
+        return $this;
+    }
+
+    public function removeSemestre(StructureSemestre $semestre): static
+    {
+        $this->semestres->removeElement($semestre);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureGroupe>
+     */
+    public function getGroupes(): Collection
+    {
+        return $this->groupes;
+    }
+
+    public function addGroupe(StructureGroupe $groupe): static
+    {
+        if (!$this->groupes->contains($groupe)) {
+            $this->groupes->add($groupe);
+        }
+
+        return $this;
+    }
+
+    public function removeGroupe(StructureGroupe $groupe): static
+    {
+        $this->groupes->removeElement($groupe);
+
+        return $this;
+    }
+
+    public function getDepartement(): ?StructureDepartement
+    {
+        return $this->departement;
+    }
+
+    public function setDepartement(?StructureDepartement $departement): static
+    {
+        $this->departement = $departement;
 
         return $this;
     }

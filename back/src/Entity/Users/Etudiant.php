@@ -7,8 +7,6 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Etudiant\EtudiantScolarite;
-use App\Entity\Structure\StructureDepartement;
-use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -21,6 +19,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\MaxDepth;
 
 #[ORM\Entity(repositoryClass: EtudiantRepository::class)]
 #[ApiResource(
@@ -69,16 +68,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $photoName = null;
 
     /**
-     * @var Collection<int, StructureGroupe>
-     */
-    #[ORM\ManyToMany(targetEntity: StructureGroupe::class, mappedBy: 'etudiants')]
-    private Collection $structureGroupes;
-
-    /**
      * @var Collection<int, EtudiantScolarite>
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'etudiant', orphanRemoval: true)]
     #[Groups(['etudiant:read'])]
+    #[MaxDepth(1)]
     private Collection $etudiantScolarites;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
@@ -93,13 +87,12 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'etudiant')]
     private Collection $etudiantAbsences;
 
-    #[ORM\ManyToOne(inversedBy: 'etudiants')]
+    #[ORM\Column(nullable: true)]
     #[Groups(['etudiant:read'])]
-    private ?StructureDepartement $departement = null;
+    private ?array $applications = null;
 
     public function __construct()
     {
-        $this->structureGroupes = new ArrayCollection();
         $this->etudiantScolarites = new ArrayCollection();
         $this->etudiantAbsences = new ArrayCollection();
     }
@@ -218,33 +211,6 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
-     * @return Collection<int, StructureGroupe>
-     */
-    public function getStructureGroupes(): Collection
-    {
-        return $this->structureGroupes;
-    }
-
-    public function addStructureGroupe(StructureGroupe $structureGroupe): static
-    {
-        if (!$this->structureGroupes->contains($structureGroupe)) {
-            $this->structureGroupes->add($structureGroupe);
-            $structureGroupe->addEtudiant($this);
-        }
-
-        return $this;
-    }
-
-    public function removeStructureGroupe(StructureGroupe $structureGroupe): static
-    {
-        if ($this->structureGroupes->removeElement($structureGroupe)) {
-            $structureGroupe->removeEtudiant($this);
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection<int, EtudiantScolarite>
      */
     public function getEtudiantScolarites(): Collection
@@ -332,14 +298,14 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getDepartement(): ?StructureDepartement
+    public function getApplications(): ?array
     {
-        return $this->departement;
+        return $this->applications ?? ['UniTranet'];
     }
 
-    public function setDepartement(?StructureDepartement $departement): static
+    public function setApplications(?array $applications): static
     {
-        $this->departement = $departement;
+        $this->applications = $applications;
 
         return $this;
     }
