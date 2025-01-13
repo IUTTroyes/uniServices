@@ -19,6 +19,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Serializer\Attribute\MaxDepth;
 
 #[ORM\Entity(repositoryClass: EtudiantRepository::class)]
 #[ApiResource(
@@ -71,6 +72,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'etudiant', orphanRemoval: true)]
     #[Groups(['etudiant:read'])]
+    #[MaxDepth(1)]
     private Collection $etudiantScolarites;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
@@ -84,6 +86,10 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'etudiant')]
     private Collection $etudiantAbsences;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['etudiant:read'])]
+    private ?array $applications = null;
 
     public function __construct()
     {
@@ -288,6 +294,18 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
                 $etudiantAbsence->setEtudiant(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getApplications(): ?array
+    {
+        return $this->applications ?? ['UniTranet'];
+    }
+
+    public function setApplications(?array $applications): static
+    {
+        $this->applications = $applications;
 
         return $this;
     }
