@@ -40,11 +40,22 @@ const isDisabled = (tool) => {
 
   return 'disabled'
 }
+
+const props = defineProps({
+  appName: {
+    type: String,
+    required: true
+  },
+  logoUrl: {
+    type: String,
+    required: false
+  }
+})
 </script>
 
 <template>
   <main>
-    <TopbarComponent app-name="Portail" />
+    <TopbarComponent :app-name :logo-url />
 
     <div id="features" class="py-6 px-6 lg:px-20 mt-8 mx-0 lg:mx-20">
       <div class="grid grid-cols-12 gap-4 justify-center">

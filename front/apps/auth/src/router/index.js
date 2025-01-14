@@ -3,7 +3,6 @@ import LoginView from "@/views/LoginView.vue";
 import AppPortail from "@/views/PortailView.vue";
 import AppProfil from "@/views/ProfilView.vue";
 
-
 const router = createRouter({
     history: createWebHistory('/auth'),
     routes: [
@@ -25,6 +24,10 @@ const router = createRouter({
         {
             path: '/portail',
             component: AppPortail,
+            props: route => ({
+                logoUrl: 'common-images/logo/logo_iut.png',
+                appName: 'Portail',
+            }),
         },
         {
             path: '/profil',
