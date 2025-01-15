@@ -2,7 +2,7 @@
 import { useUsersStore } from "@stores";
 import { onMounted, computed, ref } from "vue";
 import { formatDateLong } from "@helpers/date.js";
-import api from '@/axios';
+import api from '@helpers/axios.js';
 
 import DashboardPersonnel from "@/components/Personnel/Dashboard.vue";
 import DashboardEtudiant from "@/components/Etudiant/Dashboard.vue";
