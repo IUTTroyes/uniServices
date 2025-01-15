@@ -46,7 +46,7 @@ class StructureAnnee
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['structure_diplome:read:full'])]
+    #[Groups(['structure_diplome:read:full', 'scolarite:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]

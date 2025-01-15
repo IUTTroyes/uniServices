@@ -43,11 +43,11 @@ class StructureSemestre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read'])]
     private string $libelle;
 
     #[ORM\Column]
@@ -86,7 +86,7 @@ class StructureSemestre
     private Collection $structureGroupes;
 
     #[ORM\ManyToOne(inversedBy: 'structureSemestres')]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'scolarite:read'])]
     private ?StructureAnnee $annee = null;
 
     /**

@@ -109,12 +109,14 @@ class EtudiantScolarite
      * @var Collection<int, StructureSemestre>
      */
     #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'etudiantScolarites')]
+    #[Groups(['scolarite:read'])]
     private Collection $semestres;
 
     /**
      * @var Collection<int, StructureGroupe>
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'etudiantScolarites')]
+    #[Groups(['scolarite:read'])]
     private Collection $groupes;
 
     #[ORM\ManyToOne(inversedBy: 'etudiantScolarites')]
