@@ -162,7 +162,7 @@ const isEnabled = (item) => {
         </IconField>
       </div>
 
-      <button v-if="route.path !== '/portail' && userStore.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
+      <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
         <i class="pi pi-microsoft text-primary"></i>
         <span>Applications</span>
       </button>
