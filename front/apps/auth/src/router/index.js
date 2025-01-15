@@ -32,6 +32,10 @@ const router = createRouter({
         {
             path: '/profil',
             component: AppProfil,
+            props: route => ({
+                logoUrl: 'common-images/logo/logo_iut.png',
+                appName: 'Profil',
+            }),
         }
     ]
 });
