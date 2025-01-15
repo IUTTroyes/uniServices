@@ -1,7 +1,6 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useUsersStore } from "@stores";
-import { InputText, Button, Textarea } from 'primevue';
 
 const store = useUsersStore();
 const statuts = ref([]);
@@ -9,13 +8,12 @@ const isEditMode = ref(false);
 const selectedStatut = ref(null);
 
 onMounted(async () => {
-  await store.getUser();
-  statuts.value = Object.entries(store.statuts.data).map(([key, value]) => ({ label: value, value: key }));
-  console.log(statuts.value);
-  // ajouter "autre" dans les statuts
+  await store.getStatuts();
+  statuts.value = Object.entries(store.statuts).map(([key, value]) => ({ label: value, value: key }));
   statuts.value.push({ label: 'Autre', value: 'Autre' });
-  selectedStatut.value = statuts.value.find(statut => statut.value === store.user.statut) || null;
+  selectedStatut.value = statuts.value.find(statut => statut.value === store.user.statut);
 });
+
 
 const toggleEditMode = () => {
   isEditMode.value = !isEditMode.value;

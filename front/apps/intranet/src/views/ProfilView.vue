@@ -1,9 +1,16 @@
 <script setup>
-import { ProfilComponent } from '@components';
+import { ProfilPersonnelComponent, ProfilEtudiantComponent } from '@components';
+import {useUsersStore} from "@stores";
+import {computed} from "vue";
+
+const store = useUsersStore();
+const isPersonnel = computed(() => store.userType === 'personnels');
+const isEtudiant = computed(() => store.userType === 'etudiants');
 </script>
 
 <template>
-    <ProfilComponent />
+  <ProfilPersonnelComponent v-if="isPersonnel" />
+  <ProfilEtudiantComponent v-if="isEtudiant" />
 </template>
 
 <style>
