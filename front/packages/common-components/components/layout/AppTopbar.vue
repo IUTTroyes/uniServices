@@ -4,12 +4,13 @@ import { onMounted, watch, computed } from 'vue';
 import Logo from '@components/components/Logo.vue';
 import { ref } from 'vue';
 import { useUsersStore, useAnneeUnivStore } from "@stores";
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { tools } from '@config/uniServices.js';
 
-const userStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
+const userStore = useUsersStore();
 const route = useRoute();
+const router = useRouter();
 
 const deptItems = ref([]);
 const departementLabel = ref('');
@@ -22,7 +23,12 @@ const anneeItems = ref([
 ]);
 
 onMounted(async () => {
-  await userStore.getUser();
+  if (userStore.user.length < 1) {
+    await userStore.getUser();
+    console.log('userStore.user', userStore.user);
+  } else {
+    console.log('persistUserStore.user', userStore.user);
+  }
 
   await anneeUnivStore.getAllAnneesUniv();
   anneesUniv.value = anneeUnivStore.anneesUniv.map(annee => ({
@@ -72,8 +78,9 @@ const profileItems = ref([
         label: 'Profil',
         icon: 'pi pi-user',
         command: () => {
-          window.location.href = '/profil';
+          router.push('/profil');
         }
+        // route: '/profil'
       },
       {
         label: 'Paramètres',

@@ -1,6 +1,6 @@
 <script setup>
 import { TopbarComponent } from '@components';
-import { useUsersStore } from '@stores/stores/userStore.js';
+import {useUsersStore} from "@stores";
 import { tools } from '@config/uniServices.js';
 import Logo from '@components/components/Logo.vue';
 import { onMounted } from 'vue';
@@ -16,8 +16,8 @@ const type = payload.type;
 const userStore = useUsersStore();
 
 onMounted(async () => {
-  await userStore.getUser();
-  console.log('userStore', userStore.user);
+  // await userStore.getUser();
+  // console.log('userStore', userStore.user);
 });
 
 const isEnabledUrl = (tool) => {
@@ -34,16 +34,7 @@ const isDisabled = (tool) => {
   return 'disabled';
 };
 
-const props = defineProps({
-  appName: {
-    type: String,
-    required: true
-  },
-  logoUrl: {
-    type: String,
-    required: false
-  }
-});
+
 </script>
 
 <template>

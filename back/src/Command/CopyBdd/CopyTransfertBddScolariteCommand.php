@@ -105,10 +105,21 @@ FOREIGN_KEY_CHECKS=1');
         $etudiants = $this->em->executeQuery($sql)->fetchAllAssociative();
 
         foreach ($etudiants as $etu) {
+//            if ($etu['id'] === 4470) {
+//                $response = $this->httpClient->request('GET', $this->base_url . '/etudiant/' . $etu['id']);
+//                $scols = json_decode($response->getContent(), true);
+//                foreach ($scols as $scol) {
+//                    dd($scol);
+//                }
+//            } else {
+//                continue;
+//            }
+
             $response = $this->httpClient->request('GET', $this->base_url . '/etudiant/' . $etu['id']);
             $scols = json_decode($response->getContent(), true);
 
             foreach ($scols as $scol) {
+
                 if (!array_key_exists($scol['annee'], $this->tAnneeUniversitaire)) {
                     continue;
                 }
@@ -146,7 +157,6 @@ FOREIGN_KEY_CHECKS=1');
                         foreach ($this->tGroupes as $groupeDest) {
                             if ($groupeDest->getOldId() === $groupe) {
                                 $scolarite->addGroupe($groupeDest);
-                                break;
                             }
                         }
                     }

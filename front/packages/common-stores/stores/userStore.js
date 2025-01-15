@@ -22,13 +22,10 @@ export const useUsersStore = defineStore('users', () => {
 
     const getUser = async () => {
         try {
-            if (user.length < 1) {
-                const response = await api.get(`/api/${userType}/${userId}`);
-                // transformer user.photoName en chemin vers l'image : "@/assets/photos_etudiants/" + user.photoName
-                userPhoto.value = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
-                user.value = response.data;
-                console.log(user.value);
-            }
+            const response = await api.get(`/api/${userType}/${userId}`);
+            // transformer user.photoName en chemin vers l'image : "@/assets/photos_etudiants/" + user.photoName
+            userPhoto.value = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
+            user.value = response.data;
             applications.value = response.data.applications;
 
             if (userType === 'personnels') {

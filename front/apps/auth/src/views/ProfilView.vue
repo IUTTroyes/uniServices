@@ -21,8 +21,6 @@ const props = defineProps({
 const store = useUsersStore();
 const isPersonnel = computed(() => store.userType === 'personnels');
 const isEtudiant = computed(() => store.userType === 'etudiants');
-
-console.log('store.user', store.departements);
 </script>
 
 <template>
