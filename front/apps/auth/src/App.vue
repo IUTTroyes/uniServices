@@ -1,12 +1,7 @@
-<script setup>
-import { FooterComponent } from "@components";
-</script>
+<script setup></script>
 
 <template>
     <router-view />
-
-    <FooterComponent />
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

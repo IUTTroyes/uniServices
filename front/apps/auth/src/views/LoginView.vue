@@ -1,51 +1,51 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import Logo from '@components/components/Logo.vue'
-import axios from 'axios'
-import { tools } from '@config/uniServices.js'
+import { onMounted, ref } from 'vue';
+import Logo from '@components/components/Logo.vue';
+import axios from 'axios';
+import { tools } from '@config/uniServices.js';
 
-const username = ref('')
-const password = ref('')
-const checked = ref(false)
-const errorMessage = ref('')
-const isLoading = ref(false)
+const username = ref('');
+const password = ref('');
+const checked = ref(false);
+const errorMessage = ref('');
+const isLoading = ref(false);
 
 const handleSubmit = async () => {
   if (!username.value || !password.value) {
-    errorMessage.value = 'Veuillez remplir tous les champs'
-    return
+    errorMessage.value = 'Veuillez remplir tous les champs';
+    return;
   }
 
-  isLoading.value = true
-  errorMessage.value = ''
+  isLoading.value = true;
+  errorMessage.value = '';
 
   try {
     const response = await axios.post('https://127.0.0.1:8000/api/login', {
       username: username.value,
       password: password.value
-    })
-    console.log('Login successful:', response.data)
-    localStorage.setItem('token', response.data.token)
-    document.cookie = `token=${response.data.token}; path=/; domain=.localhost; secure; SameSite=Lax`
-    location.reload()
-    location.href = '/auth/portail'
+    });
+    localStorage.setItem('token', response.data.token);
+    document.cookie = `token=${response.data.token}; path=/; domain=.localhost; secure; SameSite=Lax`;
+
+    location.reload();
+    location.href = '/auth/portail';
   } catch (error) {
-    console.error('Login failed:', error) // Log the entire error object
+    console.error('Login failed:', error);
     if (error.response) {
-      console.error('Error response data:', error.response.data)
-      console.error('Error response status:', error.response.status)
-      console.error('Error response headers:', error.response.headers)
+      console.error('Error response data:', error.response.data);
+      console.error('Error response status:', error.response.status);
+      console.error('Error response headers:', error.response.headers);
     }
     if (error.request) {
-      console.error('Error request:', error.request)
+      console.error('Error request:', error.request);
     }
     errorMessage.value = error.response && error.response.status === 401
-        ? 'Login incorrect ou mot de passe incorrect'
-        : 'Une erreur est survenue, veuillez contacter l\'administrateur du site'
+      ? 'Login incorrect ou mot de passe incorrect'
+      : 'Une erreur est survenue, veuillez contacter l\'administrateur du site';
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 </script>
 
 <template>

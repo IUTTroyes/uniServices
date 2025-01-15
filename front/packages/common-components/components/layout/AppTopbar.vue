@@ -22,15 +22,15 @@ const anneeItems = ref([
 ]);
 
 onMounted(async () => {
+  await userStore.getUser();
+
   await anneeUnivStore.getAllAnneesUniv();
   anneesUniv.value = anneeUnivStore.anneesUniv.map(annee => ({
     label: annee.libelle,
   }));
-  // trier les années universitaires par ordre décroissant
   anneesUniv.value.sort((a, b) => b.label.localeCompare(a.label));
   anneeItems.value[0].items = anneesUniv.value;
 
-  await userStore.getUser();
   if (userStore.userType === 'personnels') {
     deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
       label: departementPersonnel.libelle,
@@ -39,9 +39,8 @@ onMounted(async () => {
     }));
     departementLabel.value = userStore.departementDefaut.libelle;
   } else {
-    console.log('user', userStore.user);
     deptItems.value = [];
-    departementLabel.value = userStore.user.departement.libelle
+    departementLabel.value = userStore.user.departement.libelle;
   }
 });
 
@@ -53,7 +52,7 @@ const props = defineProps({
   logoUrl: {
     type: String,
     required: false
-  }
+  },
 });
 
 const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout();
@@ -131,10 +130,9 @@ const initiales = computed(() => {
 });
 
 const isEnabled = (item) => {
-  console.log(item)
+  console.log(item);
   return userStore.applications.includes(item.name);
 };
-
 </script>
 
 <template>

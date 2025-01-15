@@ -25,8 +25,6 @@ const isEtudiant = computed(() => store.userType === 'etudiants');
 let isAssistant = ref(false);
 
 onMounted(async() => {
-    await store.getUser();
-
     isAssistant = computed(() => store.user.roles.includes('ROLE_ASSISTANT'));
 
     const initiales = computed(() =>

@@ -1,131 +1,110 @@
 import { defineStore } from 'pinia';
-import {ref} from 'vue';
 import api from '@helpers/axios';
 import { getEtudiantScolariteActif } from "@requests";
 
-export const useUsersStore = defineStore('users', () => {
-    const token = localStorage.getItem('token');
-    const tokenParts = token?.split('.');
-    const payload = tokenParts ? JSON.parse(atob(tokenParts[1])) : {};
-    const userId = payload.userId;
-    const userType = payload.type;
-    const applications = ref([]);
-    const user = ref([]);
-    const userPhoto = ref([]);
-    const departements = ref([]);
-    const departementDefaut = ref({});
-    const departementPersonnelDefaut = ref({});
-    const departementsNotDefaut = ref({});
-    const departementsPersonnelNotDefaut = ref({});
-    const statuts = ref([]);
-    const scolariteActif = ref({});
-
-    const getUser = async () => {
-        try {
-            const response = await api.get(`/api/${userType}/${userId}`);
-            // transformer user.photoName en chemin vers l'image : "@/assets/photos_etudiants/" + user.photoName
-            userPhoto.value = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
-            user.value = response.data;
-            console.log(user.value);
-            applications.value = response.data.applications;
-
-            if (userType === 'personnels') {
-                departements.value = response.data.structureDepartementPersonnels;
-
-                //si il n'y a pas de département qui a defaut = true
-                if (!departements.value.find(departement => departement.defaut === true)) {
-                    // mettre le premier département par défaut
-                    const response = await api.post(`/api/structure_departement_personnels/${departements.value[0].id}/change_departement`, {}, {
-                        headers: {
-                            'Content-Type': 'application/ld+json'
-                        }
-                    });
-                    departements.value = response.data;
-                }
-
-                // récupérer le département qui a defaut = true
-                departementPersonnelDefaut.value = departements.value.find(departement => departement.defaut === true);
-                departementDefaut.value = departementPersonnelDefaut.value.departement;
-                localStorage.setItem('departement', departementDefaut.value.id);
-                // récupérer les départements qui n'ont pas defaut = true
-                departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
-                departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
-
-                statuts.value = await api.get(`/api/statuts`);
+export const useUsersStore = defineStore('users', {
+    state: () => ({
+        token: localStorage.getItem('token'),
+        payload: localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token').split('.')[1])) : {},
+        userId: localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token').split('.')[1])).userId : null,
+        userType: localStorage.getItem('token') ? JSON.parse(atob(localStorage.getItem('token').split('.')[1])).type : null,
+        applications: [],
+        user: [],
+        userPhoto: [],
+        departements: [],
+        departementDefaut: {},
+        departementPersonnelDefaut: {},
+        departementsNotDefaut: {},
+        departementsPersonnelNotDefaut: {},
+        statuts: [],
+        scolariteActif: {}
+    }),
+    actions: {
+        async getUser() {
+            if (this.user && this.user.length > 0) {
+                console.log('getUser called but user already present');
+                console.log(this.user);
+                // Les données de l'utilisateur sont déjà présentes, pas besoin de refaire l'appel API
+                return;
             }
-            if (userType === 'etudiants') {
-                scolariteActif.value = await getEtudiantScolariteActif(userId);
-                departementDefaut.value = scolariteActif.value[0].departement;
-                // ajouter le département par défaut dans le user
-                user.value.departement = departementDefaut.value;
+            try {
+                console.log('getUser called');
+                const response = await api.get(`/api/${this.userType}/${this.userId}`);
+                this.userPhoto = `http://localhost:3001/intranet/src/assets/photos_etudiants/${response.data.photoName}`;
+                this.user = response.data;
+                this.applications = response.data.applications;
+
+                if (this.userType === 'personnels') {
+                    this.departements = response.data.structureDepartementPersonnels;
+
+                    if (!this.departements.find(departement => departement.defaut)) {
+                        const postResponse = await api.post(`/api/structure_departement_personnels/${this.departements[0].id}/change_departement`, {}, {
+                            headers: { 'Content-Type': 'application/ld+json' }
+                        });
+                        this.departements = postResponse.data;
+                    }
+
+                    this.departementPersonnelDefaut = this.departements.find(departement => departement.defaut);
+                    this.departementDefaut = this.departementPersonnelDefaut.departement;
+                    localStorage.setItem('departement', this.departementDefaut.id);
+                    this.departementsPersonnelNotDefaut = this.departements.filter(departement => !departement.defaut);
+                    this.departementsNotDefaut = this.departementsPersonnelNotDefaut.map(departement => departement.departement);
+                }
+
+                if (this.userType === 'etudiants') {
+                    console.log(this.user);
+                    const scolariteActifData = await getEtudiantScolariteActif(this.userId);
+                    this.scolariteActif = scolariteActifData[0];
+                    this.departementDefaut = this.scolariteActif.departement;
+                    this.user.departement = this.departementDefaut;
+                }
+            } catch (error) {
+                console.error('Error fetching user:', error);
             }
-        } catch (error) {
-            console.error('Error fetching user:', error);
-        }
-    };
+        },
+        async getStatuts() {
+            try {
+                const response = await api.get(`/api/statuts`);
+                this.statuts = response.data;
+            } catch (error) {
+                console.error('Error fetching statuts:', error);
+            }
+        },
+        async changeDepartement(departementId) {
+            try {
+                const departementPersonnelId = this.departements.find(departement => departement.departement.id === departementId).id;
+                const response = await api.post(`/api/structure_departement_personnels/${departementPersonnelId}/change_departement`, {}, {
+                    headers: { 'Content-Type': 'application/ld+json' }
+                });
+                this.departements = response.data;
 
-    const changeDepartement = async (departementId) => {
-        try {
-            const departementPersonnelId = departements.value.find(departement => departement.departement.id === departementId).id;
-            const response = await api.post(`/api/structure_departement_personnels/${departementPersonnelId}/change_departement`, {
-            }, {
-                headers: {
-                    'Content-Type': 'application/ld+json'
-                }
-            });
-            departements.value = response.data;
+                this.departementPersonnelDefaut = this.departements.find(departement => departement.defaut);
+                this.departementDefaut = this.departementPersonnelDefaut.departement;
+                localStorage.setItem('departement', this.departementDefaut.id);
+                this.departementsPersonnelNotDefaut = this.departements.filter(departement => !departement.defaut);
+                this.departementsNotDefaut = this.departementsPersonnelNotDefaut.map(departement => departement.departement);
+            } catch (error) {
+                console.error('Error changing department:', error);
+            }
+        },
+        async updateUser(data) {
+            if (!Array.isArray(data.domaines)) {
+                data.domaines = data.domaines.split(',');
+            }
+            if (data.structureDepartementPersonnels) {
+                data.structureDepartementPersonnels = data.structureDepartementPersonnels.map(departement => `/api/structure_departement_personnels/${departement.id}`);
+            }
+            data.photoName = data.photoName.substring(data.photoName.lastIndexOf('/') + 1);
+            console.log(data.photoName);
 
-            // récupérer le département qui a defaut = true
-            departementPersonnelDefaut.value = departements.value.find(departement => departement.defaut === true);
-            departementDefaut.value = departementPersonnelDefaut.value.departement;
-            localStorage.setItem('departement', departementDefaut.value.id);
-            // récupérer les départements qui n'ont pas defaut = true
-            departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
-            departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
-            window.location.reload();
-        } catch (error) {
-            console.error('Error changing department:', error);
+            try {
+                const response = await api.patch(`/api/${this.userType}/${this.userId}`, data, {
+                    headers: { 'Content-Type': 'application/merge-patch+json' }
+                });
+                this.user = response.data;
+            } catch (error) {
+                console.error('Error updating user:', error);
+            }
         }
-    };
-
-    const updateUser = async (data) => {
-        // si domaines n'est pas un tableau
-        if (!Array.isArray(data.domaines)) {
-            // séparer les domaines en utilisant la virgule comme séparateur
-            data.domaines = data.domaines.split(',');
-        }
-        // convertir structureDepartementPersonnels en IRI
-        if (data.structureDepartementPersonnels) {
-            data.structureDepartementPersonnels = data.structureDepartementPersonnels.map(departement => `/api/structure_departement_personnels/${departement.id}`);
-        }
-        // récupérer uniquement le nom de la photo entre la fin de user.photoName et le dernier "/"
-        // data.photoName = data.photoName.substring(data.photoName.lastIndexOf('/') + 1);
-        console.log(data.photoName);
-
-        try {
-            const response = await api.patch(`/api/${userType}/${userId}`, data, {
-                headers: {
-                    'Content-Type': 'application/merge-patch+json'
-                }
-            });
-            user.value = response.data;
-        } catch (error) {
-            console.error('Error updating user:', error);
-        }
-    };
-
-    return {
-        user,
-        userType,
-        applications,
-        departements,
-        departementDefaut,
-        departementsPersonnelNotDefaut,
-        departementsNotDefaut,
-        getUser,
-        userPhoto,
-        changeDepartement,
-        updateUser,
-        statuts
-    };
+    }
 });
