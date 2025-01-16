@@ -1,15 +1,15 @@
 <script setup>
-import { useLayout } from './composables/layout.js';
-import { onMounted, watch, computed } from 'vue';
+import {useLayout} from './composables/layout.js';
+import {computed, onMounted, ref, watch} from 'vue';
 import Logo from '@components/components/Logo.vue';
-import { ref } from 'vue';
-import { useUsersStore, useAnneeUnivStore } from "@stores";
-import { useRoute } from 'vue-router';
-import { tools } from '@config/uniServices.js';
+import {useAnneeUnivStore, useUsersStore} from "@stores";
+import {useRoute, useRouter} from 'vue-router';
+import {tools} from '@config/uniServices.js';
 
-const userStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
+const userStore = useUsersStore();
 const route = useRoute();
+const router = useRouter();
 
 const deptItems = ref([]);
 const departementLabel = ref('');
@@ -22,28 +22,39 @@ const anneeItems = ref([
 ]);
 
 onMounted(async () => {
-  await anneeUnivStore.getAllAnneesUniv();
-  anneesUniv.value = anneeUnivStore.anneesUniv.map(annee => ({
-    label: annee.libelle,
-  }));
-  // trier les années universitaires par ordre décroissant
-  anneesUniv.value.sort((a, b) => b.label.localeCompare(a.label));
-  anneeItems.value[0].items = anneesUniv.value;
-
-  await userStore.getUser();
-  if (userStore.userType === 'personnels') {
-    deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
-      label: departementPersonnel.libelle,
-      id: departementPersonnel.id,
-      command: () => changeDepartement(departementPersonnel.id)
-    }));
-    departementLabel.value = userStore.departementDefaut.libelle;
-  } else {
-    console.log('user', userStore.user);
-    deptItems.value = [];
-    departementLabel.value = userStore.user.departement.libelle
-  }
+  await fetchData();
 });
+
+watch(() => userStore.user, async () => {
+  await fetchData();
+});
+
+const fetchData = async () => {
+  try {
+    if (userStore.user) {
+      await anneeUnivStore.getAllAnneesUniv();
+      const sortedAnnees = anneeUnivStore.anneesUniv.map(annee => ({
+        label: annee.libelle,
+      })).sort((a, b) => b.label.localeCompare(a.label));
+      anneesUniv.value = sortedAnnees;
+      anneeItems.value[0].items = sortedAnnees;
+
+      if (userStore.userType === 'personnels') {
+        deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
+          label: departementPersonnel.libelle,
+          id: departementPersonnel.id,
+          command: () => changeDepartement(departementPersonnel.id)
+        }));
+        departementLabel.value = userStore.departementDefaut.libelle;
+      } else {
+        deptItems.value = [];
+        departementLabel.value = userStore.user.departement.libelle;
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+};
 
 const props = defineProps({
   appName: {
@@ -53,7 +64,7 @@ const props = defineProps({
   logoUrl: {
     type: String,
     required: false
-  }
+  },
 });
 
 const { onMenuToggle, toggleDarkMode, isDarkTheme } = useLayout();
@@ -73,7 +84,7 @@ const profileItems = ref([
         label: 'Profil',
         icon: 'pi pi-user',
         command: () => {
-          window.location.href = '/profil';
+          router.push('/profil');
         }
       },
       {
@@ -112,12 +123,12 @@ const toggleDeptMenu = (event) => {
 const changeDepartement = async (departementId) => {
   try {
     await userStore.changeDepartement(departementId);
-    departementLabel.value = userStore.departementDefaut.libelle;
     deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
       label: departementPersonnel.libelle,
       id: departementPersonnel.id,
       command: () => changeDepartement(departementPersonnel.id)
     }));
+    departementLabel.value = userStore.departementDefaut.libelle;
   } catch (error) {
     console.error('Error changing department:', error);
   }
@@ -131,10 +142,8 @@ const initiales = computed(() => {
 });
 
 const isEnabled = (item) => {
-  console.log(item)
   return userStore.applications.includes(item.name);
 };
-
 </script>
 
 <template>
@@ -144,7 +153,7 @@ const isEnabled = (item) => {
         <i class="pi pi-bars"></i>
       </button>
       <router-link to="/" class="layout-topbar-logo">
-        <Logo :logoUrl="logoUrl" alt="logo" class="rounded-xl p-2"/> <span class="text-lg">{{appName}}</span>
+        <Logo :logo-url="logoUrl" alt="logo" class="rounded-xl p-2"/> <span class="text-lg">{{appName}}</span>
       </router-link>
       <button v-if="userStore.userType === 'personnels'" type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
         <span>Département {{ departementLabel }}</span>
@@ -164,7 +173,7 @@ const isEnabled = (item) => {
         </IconField>
       </div>
 
-      <button v-if="route.path !== '/portail' && userStore.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
+      <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
         <i class="pi pi-microsoft text-primary"></i>
         <span>Applications</span>
       </button>

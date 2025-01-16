@@ -53,6 +53,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(type: Types::JSON)]
+    #[Groups(['etudiant:read'])]
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
@@ -86,6 +87,52 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'etudiant')]
     private Collection $etudiantAbsences;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['etudiant:read'])]
+    private ?string $site_perso = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['etudiant:read'])]
+    private ?string $site_univ = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['etudiant:read'])]
+    private ?string $num_etudiant = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['etudiant:read'])]
+    private ?string $num_ine = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $annee_bac = null;
+
+    #[ORM\Column]
+    private ?bool $boursier = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $amenagements_particuliers = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['etudiant:read'])]
+    private ?int $promotion = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $annee_sortie = null;
+
+    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $date_naissance = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['etudiant:read'])]
+    private ?string $tel1 = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['etudiant:read'])]
+    private ?string $tel2 = null;
+
+    #[ORM\Column(length: 150, nullable: true)]
+    private ?string $lieu_naissance = null;
 
     #[ORM\Column(nullable: true)]
     #[Groups(['etudiant:read'])]
@@ -306,6 +353,162 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     public function setApplications(?array $applications): static
     {
         $this->applications = $applications;
+
+        return $this;
+    }
+
+    public function getSitePerso(): ?string
+    {
+        return $this->site_perso;
+    }
+
+    public function setSitePerso(?string $site_perso): static
+    {
+        $this->site_perso = $site_perso;
+
+        return $this;
+    }
+
+    public function getSiteUniv(): ?string
+    {
+        return $this->site_univ;
+    }
+
+    public function setSiteUniv(?string $site_univ): static
+    {
+        $this->site_univ = $site_univ;
+
+        return $this;
+    }
+
+    public function getNumEtudiant(): ?string
+    {
+        return $this->num_etudiant;
+    }
+
+    public function setNumEtudiant(?string $num_etudiant): static
+    {
+        $this->num_etudiant = $num_etudiant;
+
+        return $this;
+    }
+
+    public function getNumIne(): ?string
+    {
+        return $this->num_ine;
+    }
+
+    public function setNumIne(?string $num_ine): static
+    {
+        $this->num_ine = $num_ine;
+
+        return $this;
+    }
+
+    public function getAnneeBac(): ?int
+    {
+        return $this->annee_bac;
+    }
+
+    public function setAnneeBac(?int $annee_bac): static
+    {
+        $this->annee_bac = $annee_bac;
+
+        return $this;
+    }
+
+    public function isBoursier(): ?bool
+    {
+        return $this->boursier;
+    }
+
+    public function setBoursier(bool $boursier): static
+    {
+        $this->boursier = $boursier;
+
+        return $this;
+    }
+
+    public function getAmenagementsParticuliers(): ?string
+    {
+        return $this->amenagements_particuliers;
+    }
+
+    public function setAmenagementsParticuliers(?string $amenagements_particuliers): static
+    {
+        $this->amenagements_particuliers = $amenagements_particuliers;
+
+        return $this;
+    }
+
+    public function getPromotion(): ?int
+    {
+        return $this->promotion;
+    }
+
+    public function setPromotion(?int $promotion): static
+    {
+        $this->promotion = $promotion;
+
+        return $this;
+    }
+
+    public function getAnneeSortie(): ?int
+    {
+        return $this->annee_sortie;
+    }
+
+    public function setAnneeSortie(?int $annee_sortie): static
+    {
+        $this->annee_sortie = $annee_sortie;
+
+        return $this;
+    }
+
+    public function getDateNaissance(): ?\DateTimeInterface
+    {
+        return $this->date_naissance;
+    }
+
+    public function setDateNaissance(?\DateTimeInterface $date_naissance): static
+    {
+        $this->date_naissance = $date_naissance;
+
+        return $this;
+    }
+
+    public function getTel1(): ?string
+    {
+        return $this->tel1;
+    }
+
+    public function setTel1(?string $tel1): static
+    {
+        $this->tel1 = $tel1;
+
+        return $this;
+    }
+
+    public function getTel2(): ?string
+    {
+        return $this->tel2;
+    }
+
+    public function setTel2(?string $tel2): static
+    {
+        $this->tel2 = $tel2;
+
+        return $this;
+    }
+
+    public function getLieuNaissance(): ?string
+    {
+        return $this->lieu_naissance;
+    }
+
+    public function setLieuNaissance(?string $lieu_naissance): static
+    {
+        $this->lieu_naissance = $lieu_naissance;
 
         return $this;
     }

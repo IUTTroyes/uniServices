@@ -33,15 +33,15 @@ class StructureGroupe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'scolarite:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'scolarite:read'])]
     private string $libelle;
 
     #[ORM\Column(length: 10)]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'scolarite:read'])]
     private string $type;
 
     #[ORM\ManyToOne(targetEntity: self::class)]

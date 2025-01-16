@@ -56,10 +56,12 @@ class EtudiantScolarite
     #[Groups(['scolarite:read'])]
     private ?int $ordre = null;
 
+    // prop. annuelle
     #[ORM\Column(length: 10, nullable: true)]
     #[Groups(['scolarite:read'])]
     private ?string $proposition = null;
 
+    // switch rel. scol.semestre
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:read'])]
     private ?float $moyenne = null;
@@ -76,14 +78,17 @@ class EtudiantScolarite
     #[Groups(['scolarite:read'])]
     private bool $public = false;
 
+    // switch rel. scol.semestre
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:read'])]
     private ?array $moyennesMatiere = null;
 
+    // moyennes annuelles
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:read'])]
     private ?array $moyennesUe = null;
 
+    // off
     #[ORM\Column]
     #[Groups(['scolarite:read'])]
     private bool $actif = false;
@@ -93,12 +98,14 @@ class EtudiantScolarite
     #[Groups(['scolarite:read'])]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
 
+    // switch rel. scol.semestre
     /**
      * @var Collection<int, EtudiantAbsence>
      */
     #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'scolarite', orphanRemoval: true)]
     private Collection $etudiantAbsences;
 
+    // switch rel. scol.semestre
     /**
      * @var Collection<int, EtudiantNote>
      */
@@ -109,12 +116,14 @@ class EtudiantScolarite
      * @var Collection<int, StructureSemestre>
      */
     #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'etudiantScolarites')]
+    #[Groups(['scolarite:read'])]
     private Collection $semestres;
 
     /**
      * @var Collection<int, StructureGroupe>
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'etudiantScolarites')]
+    #[Groups(['scolarite:read'])]
     private Collection $groupes;
 
     #[ORM\ManyToOne(inversedBy: 'etudiantScolarites')]

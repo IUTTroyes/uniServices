@@ -1,7 +1,6 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useUsersStore } from "@stores";
-import { InputText, Button, Textarea } from 'primevue';
 
 const store = useUsersStore();
 const statuts = ref([]);
@@ -9,12 +8,10 @@ const isEditMode = ref(false);
 const selectedStatut = ref(null);
 
 onMounted(async () => {
-  await store.getUser();
-  statuts.value = Object.entries(store.statuts.data).map(([key, value]) => ({ label: value, value: key }));
-  console.log(statuts.value);
-  // ajouter "autre" dans les statuts
-  statuts.value.push({ label: 'Autre', value: 'Autre' });
-  selectedStatut.value = statuts.value.find(statut => statut.value === store.user.statut) || null;
+  await store.getStatuts();
+  statuts.value = Object.entries(store.statuts).map(([key, value]) => ({ label: value, value: key }));
+  console.log('statuts', statuts.value);
+  selectedStatut.value = statuts.value.find(statut => statut.value === store.user.statut);
 });
 
 const toggleEditMode = () => {
@@ -24,7 +21,7 @@ const toggleEditMode = () => {
 const saveChanges = async () => {
   try {
     if (selectedStatut.value.value === 'Autre') {
-      store.user.statut = selectedStatut.value.label;
+      store.user.statut = null;
     } else {
       store.user.statut = selectedStatut.value.value;
     }
@@ -58,8 +55,6 @@ const redirectTo = (link) => {
             <img :src="store.userPhoto" alt="photo de profil" class="rounded-full w-24 h-24 md:w-auto md:h-auto">
           </div>
           <div class="w-full md:w-3/6 flex flex-col gap-4">
-
-
             <div v-if="!isEditMode" class="flex flex-col gap-4">
               <div class="flex flex-col gap-2">
                 <div class="flex flex-col md:flex-row gap-2">
@@ -70,7 +65,6 @@ const redirectTo = (link) => {
                   <Tag v-for="domaine in store.user.domaines" v-if="store.user.domaines && store.user.domaines.length > 0" :value="domaine" severity="secondary" rounded class="capitalize"/>
                 </div>
                 <div v-if="store.user.responsabilites" class="text-lg border-b w-fit pr-6 pb-1">{{store.user.responsabilites}}</div>
-
                 <div class="text-sm opacity-80 pt-1 flex flex-row w-full flex-wrap gap-2">
                   <span v-if="store.user.numeroHarpege">Numéro Harpege : {{store.user.numeroHarpege}} </span>
                   <span v-if="store.user.mailUniv">•</span>
@@ -112,14 +106,14 @@ const redirectTo = (link) => {
                 <IftaLabel class="w-full">
                   <InputText class="w-full" v-model="store.user.domaines" placeholder="Domaines" />
                   <label for="domaines">Domaines</label>
-                  <help-text class="text-muted-color text-sm">Les domaines sont séparés par des virgules</help-text>
+                  <div class="text-muted-color text-sm">Les domaines sont séparés par des virgules</div>
                 </IftaLabel>
               </div>
               <div>
                 <IftaLabel>
                   <InputText class="w-full" v-model="store.user.responsabilites" placeholder="Responsabilités" />
                   <label for="responsabilites">Responsabilités</label>
-                  <help-text class="text-muted-color text-sm">Les responsabilités sont séparées par des virgules</help-text>
+                  <div class="text-muted-color text-sm">Les responsabilités sont séparées par des virgules</div>
                 </IftaLabel>
               </div>
               <div class="flex gap-2 flex-wrap">
@@ -161,7 +155,7 @@ const redirectTo = (link) => {
             <div class="flex flex-col gap-2">
               <div class="text-lg font-bold">Départements</div>
               <div class="flex flex-col gap-2 max-h-40 overflow-y-scroll">
-                <Tag :key="index" :value="store.departementDefaut.libelle" severity="info" rounded/>
+                <Tag :value="store.departementDefaut.libelle" severity="info" rounded/>
                 <Tag v-for="(departement, index) in store.departementsNotDefaut" :key="index" :value="departement.libelle" severity="primary" rounded/>
               </div>
             </div>

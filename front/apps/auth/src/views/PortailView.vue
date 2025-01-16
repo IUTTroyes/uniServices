@@ -1,50 +1,51 @@
 <script setup>
-import { TopbarComponent } from '@components'
-import { useUsersStore } from '@stores/stores/userStore.js'
-import { tools } from '@config/uniServices.js'
-import Logo from '@components/components/Logo.vue'
-import { onMounted } from 'vue'
+import { TopbarComponent } from '@components';
+import {useUsersStore} from "@stores";
+import { tools } from '@config/uniServices.js';
+import Logo from '@components/components/Logo.vue';
+import { onMounted } from 'vue';
 
-const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1]
+const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1];
 if (token) {
-  localStorage.setItem
-  ('token', token)
+  localStorage.setItem('token', token);
 }
-const tokenParts = token?.split('.')
-const payload = tokenParts ? JSON.parse(atob(tokenParts[1])) : {}
-const username = payload.username
-const type = payload.type
-const userStore = useUsersStore()
 
-onMounted(async () => {
-  await userStore.getUser()
-console.log(userStore.applications)
-})
+const tokenParts = token?.split('.');
+const payload = tokenParts ? JSON.parse(atob(tokenParts[1])) : {};
+const username = payload.username;
+const type = payload.type;
+const userStore = useUsersStore();
 
 const isEnabledUrl = (tool) => {
-  // vérifier si userStore.applications contient tool.name
   if (userStore.applications.includes(tool.name)) {
-    return tool.url
+    return tool.url;
   }
-
-  return '#'
-}
+  return '#';
+};
 
 const isDisabled = (tool) => {
-  console.log(userStore.applications)
-  console.log(tool)
-  // vérifier si userStore.applications contient tool.name
   if (userStore.applications.includes(tool.name)) {
-    return ''
+    return '';
   }
+  return 'disabled';
+};
 
-  return 'disabled'
-}
+const props = defineProps({
+  appName: {
+    type: String,
+    required: true
+  },
+  logoUrl: {
+    type: String,
+    required: false
+  }
+});
+
 </script>
 
 <template>
   <main>
-    <TopbarComponent app-name="Portail" />
+    <TopbarComponent :app-name :logo-url/>
 
     <div id="features" class="py-6 px-6 lg:px-20 mt-8 mx-0 lg:mx-20">
       <div class="grid grid-cols-12 gap-4 justify-center">

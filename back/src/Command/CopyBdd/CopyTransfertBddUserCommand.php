@@ -186,6 +186,19 @@ FOREIGN_KEY_CHECKS=1');
             $etudiant->setOldId($etu['id']);
             $etudiant->setPassword($etu['password']);
             $etudiant->setRoles(json_decode($etu['roles'], true) ?? ["ROLE_ETUDIANT"]);
+            $etudiant->setSitePerso($etu['site_perso']);
+            $etudiant->setSiteUniv($etu['site_univ']);
+            $etudiant->setNumEtudiant($etu['num_etudiant']);
+            $etudiant->setNumIne($etu['num_ine']);
+            $etudiant->setAnneeBac($etu['annee_bac']);
+            $etudiant->setBoursier((bool)$etu['boursier']);
+            $etudiant->setAmenagementsParticuliers($etu['amenagements_particuliers']);
+            $etudiant->setPromotion($etu['promotion']);
+            $etudiant->setAnneeSortie($etu['annee_sortie']);
+            $etudiant->setDateNaissance(new \DateTime($etu['date_naissance']));
+            $etudiant->setTel1($etu['tel1']);
+            $etudiant->setTel2($etu['tel2']);
+            $etudiant->setLieuNaissance($etu['lieu_naissance']);
 
             // gestion des adresses : adresse etudiante et adresse parentale
             if ($etu['adresse_id'] !== null && $etu['adresse_id'] !== '') {

@@ -1,13 +1,36 @@
 <script setup>
-import { ProfilComponent, TopbarComponent } from '@components';
+import { ProfilPersonnelComponent, ProfilEtudiantComponent, TopbarComponent } from '@components';
+import {useUsersStore} from "@stores";
+import {computed} from "vue";
+
+const props = defineProps({
+  logoUrl: {
+    type: String,
+    default: '/assets/logo.png',
+  },
+  appName: {
+    type: String,
+    default: 'App',
+  },
+  user: {
+    type: Object,
+    default: () => ({}),
+  }
+});
+
+const store = useUsersStore();
+const isPersonnel = computed(() => store.userType === 'personnels');
+const isEtudiant = computed(() => store.userType === 'etudiants');
 </script>
 
 <template>
-  <main>
-    <TopbarComponent app-name="Portail" :logo-url/>
-
-    <ProfilComponent />
-  </main>
+  <TopbarComponent :app-name :logo-url/>
+  <div class="layout-main-container mt-16">
+    <main class="layout-main">
+      <ProfilPersonnelComponent v-if="isPersonnel" />
+      <ProfilEtudiantComponent v-if="isEtudiant" />
+    </main>
+  </div>
 </template>
 
 <style>

@@ -1,9 +1,9 @@
 import { LayoutComponent } from '@components';
 import { createRouter, createWebHistory } from 'vue-router';
 import dashboardRoutes from './modules/dashboardRoutes';
-import agendaRoutes from "@/router/modules/agendaRoutes.js";
-import profilRoutes from "@/router/modules/profilRoutes.js";
-import administrationRoutes from '@/router/modules/administrationRoutes.js'
+import agendaRoutes from "./modules/agendaRoutes.js";
+import profilRoutes from "./modules/profilRoutes.js";
+import administrationRoutes from "./modules/administrationRoutes.js";
 
 const intranetMenu = [
     {
@@ -17,7 +17,6 @@ const intranetMenu = [
 ];
 
 const appName = 'Intranet';
-const logoUrl = new URL('@/assets/logo/logo_intranet_iut_troyes.svg', import.meta.url).href;
 
 const router = createRouter({
     history: createWebHistory('/intranet/'),
@@ -27,7 +26,7 @@ const router = createRouter({
             component: LayoutComponent,
             props: route => ({
                 menuItems: intranetMenu,
-                logoUrl: logoUrl,
+                logoUrl: 'common-images/logo/logo_intranet_iut_troyes.svg',
                 appName: appName,
                 breadcrumbItems: route.meta.breadcrumb || []
             }),
