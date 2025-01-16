@@ -1,32 +1,29 @@
 <script setup>
 import { TopbarComponent } from "@components";
-import {ref, computed, onMounted} from "vue";
+import {ref, computed, onMounted, watch} from "vue";
 import { useRoute } from 'vue-router';
 import {useUsersStore} from "@stores";
 
 const userStore = useUsersStore();
-
-
+const route = useRoute();
 const appName = ref('App');
 const logoUrl = ref('/assets/logo.png');
 
-const route = useRoute();
-const isLogin = computed(() => route.path === '/login');
+const isLogin = ref(false);
+isLogin.value = computed(() => route.path === '/login');
 
-onMounted(async () => {
-  // if (userStore.user.length < 1) {
-    await userStore.getUser();
-    console.log('userStore.user', userStore.user);
-  // } else {
-  //   console.log('persistUserStore.user', userStore.user);
-  // }
+watch(() => route.path, (path) => {
+  isLogin.value = path === '/login';
+  console.log('isLogin', isLogin.value);
+
+  if (!isLogin.value) {
+    userStore.getUser();
+  }
 });
+
 </script>
 
 <template>
-<!--  <div v-if="!isLogin">-->
-<!--    <TopbarComponent :app-name="appName" :logo-url="logoUrl"/>-->
-<!--  </div>-->
   <router-view />
 </template>
 

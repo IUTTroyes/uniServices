@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import {ref} from 'vue';
+import { ref } from 'vue';
 import api from '@helpers/axios';
 import { getEtudiantScolariteActif } from "@requests";
 
@@ -10,7 +10,7 @@ export const useUsersStore = defineStore('users', () => {
     const userId = payload.userId;
     const userType = payload.type;
     const applications = ref([]);
-    const user = ref([]);
+    const user = ref(null);
     const userPhoto = ref([]);
     const departements = ref([]);
     const departementDefaut = ref({});
@@ -21,19 +21,20 @@ export const useUsersStore = defineStore('users', () => {
     const scolariteActif = ref({});
 
     const getUser = async () => {
+        if (user.value) {
+            console.log('User already fetched');
+            return;
+        }
         try {
+            console.log('Fetching user');
             const response = await api.get(`/api/${userType}/${userId}`);
-            // transformer user.photoName en chemin vers l'image : "@/assets/photos_etudiants/" + user.photoName
             userPhoto.value = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
             user.value = response.data;
             applications.value = response.data.applications;
 
             if (userType === 'personnels') {
                 departements.value = response.data.structureDepartementPersonnels;
-
-                //si il n'y a pas de département qui a defaut = true
                 if (!departements.value.find(departement => departement.defaut === true)) {
-                    // mettre le premier département par défaut
                     const response = await api.post(`/api/structure_departement_personnels/${departements.value[0].id}/change_departement`, {}, {
                         headers: {
                             'Content-Type': 'application/ld+json'
@@ -41,26 +42,22 @@ export const useUsersStore = defineStore('users', () => {
                     });
                     departements.value = response.data;
                 }
-
-                // récupérer le département qui a defaut = true
                 departementPersonnelDefaut.value = departements.value.find(departement => departement.defaut === true);
                 departementDefaut.value = departementPersonnelDefaut.value.departement;
                 localStorage.setItem('departement', departementDefaut.value.id);
-                // récupérer les départements qui n'ont pas defaut = true
                 departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
                 departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
-                statuts.value = await api.get(`/api/statuts`);
             }
             if (userType === 'etudiants') {
                 scolariteActif.value = await getEtudiantScolariteActif(userId);
                 departementDefaut.value = scolariteActif.value[0].departement;
-                // ajouter le département par défaut dans le user
                 user.value.departement = departementDefaut.value;
             }
         } catch (error) {
             console.error('Error fetching user:', error);
         }
     };
+
     const changeDepartement = async (departementId) => {
         try {
             const departementPersonnelId = departements.value.find(departement => departement.departement.id === departementId).id;
@@ -72,12 +69,12 @@ export const useUsersStore = defineStore('users', () => {
             });
             departements.value = response.data;
             // récupérer le département qui a defaut = true
-            departementPersonnelDefaut.value = departements.value.find(departement => departement.defaut === true);
+            departementPersonnelDefaut.value = await departements.value.find(departement => departement.defaut === true);
             departementDefaut.value = departementPersonnelDefaut.value.departement;
             localStorage.setItem('departement', departementDefaut.value.id);
             // récupérer les départements qui n'ont pas defaut = true
-            departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
-            departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
+            departementsPersonnelNotDefaut.value = await departements.value.filter(departement => departement.defaut === false);
+            departementsNotDefaut.value = await departementsPersonnelNotDefaut.value.map(departement => departement.departement);
             window.location.reload();
         } catch (error) {
             console.error('Error changing department:', error);
@@ -108,6 +105,16 @@ export const useUsersStore = defineStore('users', () => {
             console.error('Error updating user:', error);
         }
     };
+
+    const getStatuts = async () => {
+        try {
+            const response = await api.get(`/api/statuts`);
+            statuts.value = response.data;
+        } catch (error) {
+            console.error('Error fetching statuts:', error);
+        }
+    };
+
     return {
         user,
         userType,
@@ -120,6 +127,7 @@ export const useUsersStore = defineStore('users', () => {
         userPhoto,
         changeDepartement,
         updateUser,
-        statuts
+        getStatuts,
+        statuts,
     };
 });

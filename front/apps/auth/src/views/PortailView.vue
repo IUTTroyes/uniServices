@@ -9,16 +9,12 @@ const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.
 if (token) {
   localStorage.setItem('token', token);
 }
+
 const tokenParts = token?.split('.');
 const payload = tokenParts ? JSON.parse(atob(tokenParts[1])) : {};
 const username = payload.username;
 const type = payload.type;
 const userStore = useUsersStore();
-
-onMounted(async () => {
-  // await userStore.getUser();
-  // console.log('userStore', userStore.user);
-});
 
 const isEnabledUrl = (tool) => {
   if (userStore.applications.includes(tool.name)) {
@@ -34,6 +30,16 @@ const isDisabled = (tool) => {
   return 'disabled';
 };
 
+const props = defineProps({
+  appName: {
+    type: String,
+    required: true
+  },
+  logoUrl: {
+    type: String,
+    required: false
+  }
+});
 
 </script>
 

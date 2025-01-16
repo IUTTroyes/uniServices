@@ -1,8 +1,7 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
-import { onMounted, watch, computed } from 'vue';
+import { onMounted, watch, computed, ref } from 'vue';
 import Logo from '@components/components/Logo.vue';
-import { ref } from 'vue';
 import { useUsersStore, useAnneeUnivStore } from "@stores";
 import { useRoute, useRouter } from 'vue-router';
 import { tools } from '@config/uniServices.js';
@@ -23,32 +22,39 @@ const anneeItems = ref([
 ]);
 
 onMounted(async () => {
-  if (userStore.user.length < 1) {
-    await userStore.getUser();
-    console.log('userStore.user', userStore.user);
-  } else {
-    console.log('persistUserStore.user', userStore.user);
-  }
-
-  await anneeUnivStore.getAllAnneesUniv();
-  anneesUniv.value = anneeUnivStore.anneesUniv.map(annee => ({
-    label: annee.libelle,
-  }));
-  anneesUniv.value.sort((a, b) => b.label.localeCompare(a.label));
-  anneeItems.value[0].items = anneesUniv.value;
-
-  if (userStore.userType === 'personnels') {
-    deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
-      label: departementPersonnel.libelle,
-      id: departementPersonnel.id,
-      command: () => changeDepartement(departementPersonnel.id)
-    }));
-    departementLabel.value = userStore.departementDefaut.libelle;
-  } else {
-    deptItems.value = [];
-    departementLabel.value = userStore.user.departement.libelle;
-  }
+  await fetchData();
 });
+
+watch(() => userStore.user, async () => {
+  await fetchData();
+});
+
+const fetchData = async () => {
+  try {
+    if (userStore.user) {
+      await anneeUnivStore.getAllAnneesUniv();
+      const sortedAnnees = anneeUnivStore.anneesUniv.map(annee => ({
+        label: annee.libelle,
+      })).sort((a, b) => b.label.localeCompare(a.label));
+      anneesUniv.value = sortedAnnees;
+      anneeItems.value[0].items = sortedAnnees;
+
+      if (userStore.userType === 'personnels') {
+        deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
+          label: departementPersonnel.libelle,
+          id: departementPersonnel.id,
+          command: () => changeDepartement(departementPersonnel.id)
+        }));
+        departementLabel.value = userStore.departementDefaut.libelle;
+      } else {
+        deptItems.value = [];
+        departementLabel.value = userStore.user.departement.libelle;
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+};
 
 const props = defineProps({
   appName: {
@@ -80,7 +86,6 @@ const profileItems = ref([
         command: () => {
           router.push('/profil');
         }
-        // route: '/profil'
       },
       {
         label: 'Paramètres',
@@ -118,12 +123,13 @@ const toggleDeptMenu = (event) => {
 const changeDepartement = async (departementId) => {
   try {
     await userStore.changeDepartement(departementId);
-    departementLabel.value = userStore.departementDefaut.libelle;
-    deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
+    const updatedDeptItems = userStore.departementsNotDefaut.map(departementPersonnel => ({
       label: departementPersonnel.libelle,
       id: departementPersonnel.id,
       command: () => changeDepartement(departementPersonnel.id)
     }));
+    deptItems.value = updatedDeptItems;
+    departementLabel.value = userStore.departementDefaut.libelle;
   } catch (error) {
     console.error('Error changing department:', error);
   }
@@ -137,7 +143,6 @@ const initiales = computed(() => {
 });
 
 const isEnabled = (item) => {
-  console.log(item);
   return userStore.applications.includes(item.name);
 };
 </script>
@@ -226,5 +231,9 @@ const isEnabled = (item) => {
       </div>
 
     </div>
+  </div>
+
+  <div class="absolute top-1/2 w-1/2 ">
+    {{ deptItems ?? 'rien' }}
   </div>
 </template>

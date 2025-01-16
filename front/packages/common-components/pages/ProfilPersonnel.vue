@@ -8,10 +8,12 @@ const isEditMode = ref(false);
 const selectedStatut = ref(null);
 
 onMounted(async () => {
-  await store.getStatuts();
-  statuts.value = Object.entries(store.statuts).map(([key, value]) => ({ label: value, value: key }));
-  statuts.value.push({ label: 'Autre', value: 'Autre' });
-  selectedStatut.value = statuts.value.find(statut => statut.value === store.user.statut);
+  // await store.getStatuts();
+  // console.log('store.statuts', store.statuts);
+  // statuts.value = store.statuts.map(statut => ({
+  //   label: statut.libelle,
+  //   value: statut.id
+  // }));
 });
 
 
@@ -110,14 +112,14 @@ const redirectTo = (link) => {
                 <IftaLabel class="w-full">
                   <InputText class="w-full" v-model="store.user.domaines" placeholder="Domaines" />
                   <label for="domaines">Domaines</label>
-                  <help-text class="text-muted-color text-sm">Les domaines sont séparés par des virgules</help-text>
+                  <div class="text-muted-color text-sm">Les domaines sont séparés par des virgules</div>
                 </IftaLabel>
               </div>
               <div>
                 <IftaLabel>
                   <InputText class="w-full" v-model="store.user.responsabilites" placeholder="Responsabilités" />
                   <label for="responsabilites">Responsabilités</label>
-                  <help-text class="text-muted-color text-sm">Les responsabilités sont séparées par des virgules</help-text>
+                  <div class="text-muted-color text-sm">Les responsabilités sont séparées par des virgules</div>
                 </IftaLabel>
               </div>
               <div class="flex gap-2 flex-wrap">
@@ -159,7 +161,7 @@ const redirectTo = (link) => {
             <div class="flex flex-col gap-2">
               <div class="text-lg font-bold">Départements</div>
               <div class="flex flex-col gap-2 max-h-40 overflow-y-scroll">
-                <Tag :key="index" :value="store.departementDefaut.libelle" severity="info" rounded/>
+<!--                <Tag :key="index" :value="store.departementDefaut.libelle" severity="info" rounded/>-->
                 <Tag v-for="(departement, index) in store.departementsNotDefaut" :key="index" :value="departement.libelle" severity="primary" rounded/>
               </div>
             </div>

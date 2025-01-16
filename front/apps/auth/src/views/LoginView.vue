@@ -40,8 +40,8 @@ const handleSubmit = async () => {
       console.error('Error request:', error.request);
     }
     errorMessage.value = error.response && error.response.status === 401
-      ? 'Login incorrect ou mot de passe incorrect'
-      : 'Une erreur est survenue, veuillez contacter l\'administrateur du site';
+        ? 'Login incorrect ou mot de passe incorrect'
+        : 'Une erreur est survenue, veuillez contacter l\'administrateur du site';
   } finally {
     isLoading.value = false;
   }

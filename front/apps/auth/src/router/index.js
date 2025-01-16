@@ -26,7 +26,7 @@ const router = createRouter({
             component: AppPortail,
             props: route => ({
                 logoUrl: 'common-images/logo/logo_iut.png',
-                appName: 'Portail',
+                appName: 'Uniservices',
             }),
         },
         {
