@@ -1,10 +1,10 @@
 <script setup>
-import { useLayout } from './composables/layout.js';
-import { onMounted, watch, computed, ref } from 'vue';
+import {useLayout} from './composables/layout.js';
+import {computed, onMounted, ref, watch} from 'vue';
 import Logo from '@components/components/Logo.vue';
-import { useUsersStore, useAnneeUnivStore } from "@stores";
-import { useRoute, useRouter } from 'vue-router';
-import { tools } from '@config/uniServices.js';
+import {useAnneeUnivStore, useUsersStore} from "@stores";
+import {useRoute, useRouter} from 'vue-router';
+import {tools} from '@config/uniServices.js';
 
 const anneeUnivStore = useAnneeUnivStore();
 const userStore = useUsersStore();
@@ -123,12 +123,11 @@ const toggleDeptMenu = (event) => {
 const changeDepartement = async (departementId) => {
   try {
     await userStore.changeDepartement(departementId);
-    const updatedDeptItems = userStore.departementsNotDefaut.map(departementPersonnel => ({
+    deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
       label: departementPersonnel.libelle,
       id: departementPersonnel.id,
       command: () => changeDepartement(departementPersonnel.id)
     }));
-    deptItems.value = updatedDeptItems;
     departementLabel.value = userStore.departementDefaut.libelle;
   } catch (error) {
     console.error('Error changing department:', error);
@@ -231,9 +230,5 @@ const isEnabled = (item) => {
       </div>
 
     </div>
-  </div>
-
-  <div class="absolute top-1/2 w-1/2 ">
-    {{ deptItems ?? 'rien' }}
   </div>
 </template>

@@ -1,5 +1,4 @@
 <script setup>
-import { TopbarComponent } from "@components";
 import {ref, computed, onMounted, watch} from "vue";
 import { useRoute } from 'vue-router';
 import {useUsersStore} from "@stores";

@@ -80,6 +80,7 @@ export const useUsersStore = defineStore('users', () => {
             console.error('Error changing department:', error);
         }
     };
+
     const updateUser = async (data) => {
         // si domaines n'est pas un tableau
         if (!Array.isArray(data.domaines)) {
