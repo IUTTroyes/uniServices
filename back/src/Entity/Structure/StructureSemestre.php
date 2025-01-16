@@ -9,7 +9,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Edt\EdtContraintesSemestre;
 use App\Entity\Edt\EdtEvent;
-use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
@@ -117,11 +117,8 @@ class StructureSemestre
     #[Groups(['semestre:read'])]
     private Collection $edtContraintesSemestres;
 
-    /**
-     * @var Collection<int, EtudiantScolarite>
-     */
-    #[ORM\ManyToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'semestres')]
-    private Collection $etudiantScolarites;
+    #[ORM\OneToOne(mappedBy: 'structure_semestre', cascade: ['persist', 'remove'])]
+    private ?EtudiantScolariteSemestre $etudiantScolariteSemestre = null;
 
     public function __construct()
     {
@@ -131,7 +128,6 @@ class StructureSemestre
         $this->scolEvaluations = new ArrayCollection();
         $this->scolEdtEvents = new ArrayCollection();
         $this->edtContraintesSemestres = new ArrayCollection();
-        $this->etudiantScolarites = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -431,29 +427,19 @@ class StructureSemestre
         return $this;
     }
 
-    /**
-     * @return Collection<int, EtudiantScolarite>
-     */
-    public function getEtudiantScolarites(): Collection
+    public function getEtudiantScolariteSemestre(): ?EtudiantScolariteSemestre
     {
-        return $this->etudiantScolarites;
+        return $this->etudiantScolariteSemestre;
     }
 
-    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    public function setEtudiantScolariteSemestre(EtudiantScolariteSemestre $etudiantScolariteSemestre): static
     {
-        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
-            $this->etudiantScolarites->add($etudiantScolarite);
-            $etudiantScolarite->addSemestre($this);
+        // set the owning side of the relation if necessary
+        if ($etudiantScolariteSemestre->getStructureSemestre() !== $this) {
+            $etudiantScolariteSemestre->setStructureSemestre($this);
         }
 
-        return $this;
-    }
-
-    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
-    {
-        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
-            $etudiantScolarite->removeSemestre($this);
-        }
+        $this->etudiantScolariteSemestre = $etudiantScolariteSemestre;
 
         return $this;
     }

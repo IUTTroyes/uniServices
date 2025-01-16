@@ -36,6 +36,10 @@ class EtudiantNote
     #[ORM\Column(nullable: true)]
     private ?array $historique = null;
 
+    #[ORM\ManyToOne(inversedBy: 'etudiant_note')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?EtudiantScolariteSemestre $etudiantScolariteSemestre = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -109,6 +113,18 @@ class EtudiantNote
     public function setHistorique(?array $historique): static
     {
         $this->historique = $historique;
+
+        return $this;
+    }
+
+    public function getEtudiantScolariteSemestre(): ?EtudiantScolariteSemestre
+    {
+        return $this->etudiantScolariteSemestre;
+    }
+
+    public function setEtudiantScolariteSemestre(?EtudiantScolariteSemestre $etudiantScolariteSemestre): static
+    {
+        $this->etudiantScolariteSemestre = $etudiantScolariteSemestre;
 
         return $this;
     }
