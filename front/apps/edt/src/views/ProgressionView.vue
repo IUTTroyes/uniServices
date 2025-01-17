@@ -207,7 +207,6 @@ const generateSlots = async () => {
         optionLabel="libelle"
         optionValue="id"
         placeholder="Choisir un semestre"
-        class="w-full md:w-56"
       />
     </div>
     <div class="col-2">
@@ -232,7 +231,6 @@ const generateSlots = async () => {
         optionLabel="code"
         optionValue="@id"
         placeholder="Choisir une matière"
-        class="w-full md:w-56"
       />
     </div>
     <div class="col-3">

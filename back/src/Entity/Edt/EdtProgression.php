@@ -8,12 +8,6 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use ApiPlatform\OpenApi\Model\Operation;
-use ApiPlatform\OpenApi\Model\Parameter;
-use ApiPlatform\OpenApi\Model\Response;
-use App\Entity\Scolarite\ScolEnseignement;
-use App\Entity\Structure\StructureSemestre;
-use App\Entity\Users\Personnel;
 use App\Repository\Edt\EdtProgressionRepository;
 use Doctrine\ORM\Mapping as ORM;
 
