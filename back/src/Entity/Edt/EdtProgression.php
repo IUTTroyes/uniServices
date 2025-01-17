@@ -8,9 +8,6 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use ApiPlatform\OpenApi\Model\Operation;
-use ApiPlatform\OpenApi\Model\Parameter;
-use ApiPlatform\OpenApi\Model\Response;
 use App\Repository\Edt\EdtProgressionRepository;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -38,8 +35,41 @@ class EdtProgression
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?array $progression = null;
+
+    #[ORM\Column]
+    private ?string $grTd = '';
+
+    #[ORM\Column]
+    private ?string $grTp = '';
+
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getGrTd(): ?string
+    {
+        return $this->grTd ?? '';
+    }
+
+    public function setGrTd(string $grTd): static
+    {
+        $this->grTd = $grTd;
+
+        return $this;
+    }
+
+    public function getGrTp(): ?string
+    {
+        return $this->grTp ?? '';
+    }
+
+    public function setGrTp(string $grTp): static
+    {
+        $this->grTp = $grTp;
+
+        return $this;
     }
 }

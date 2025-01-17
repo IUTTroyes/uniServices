@@ -10,6 +10,7 @@ use App\Entity\Edt\EdtContraintesSemestre;
 use App\Entity\Edt\EdtCreneauxInterditsSemaine;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -109,6 +110,12 @@ class StructureAnneeUniversitaire
     #[ORM\OneToMany(targetEntity: EdtContraintesSemestre::class, mappedBy: 'anneeUniversitaire')]
     private Collection $edtContraintesSemestres;
 
+    /**
+     * @var Collection<int, Previsionnel>
+     */
+    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'anneeUniversitaire')]
+    private Collection $previsionnels;
+
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
@@ -122,6 +129,7 @@ class StructureAnneeUniversitaire
         $this->structureCalendriers = new ArrayCollection();
         $this->edtCreneauxInterditsSemaines = new ArrayCollection();
         $this->edtContraintesSemestres = new ArrayCollection();
+        $this->previsionnels = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -435,6 +443,36 @@ class StructureAnneeUniversitaire
             // set the owning side to null (unless already changed)
             if ($edtContraintesSemestre->getAnneeUniversitaire() === $this) {
                 $edtContraintesSemestre->setAnneeUniversitaire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Previsionnel>
+     */
+    public function getPrevisionnels(): Collection
+    {
+        return $this->previsionnels;
+    }
+
+    public function addPrevisionnel(Previsionnel $previsionnel): static
+    {
+        if (!$this->previsionnels->contains($previsionnel)) {
+            $this->previsionnels->add($previsionnel);
+            $previsionnel->setAnneeUniversitaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removePrevisionnel(Previsionnel $previsionnel): static
+    {
+        if ($this->previsionnels->removeElement($previsionnel)) {
+            // set the owning side to null (unless already changed)
+            if ($previsionnel->getAnneeUniversitaire() === $this) {
+                $previsionnel->setAnneeUniversitaire(null);
             }
         }
 
