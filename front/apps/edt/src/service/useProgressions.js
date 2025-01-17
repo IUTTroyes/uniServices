@@ -7,7 +7,8 @@ export default function useProgressions () {
   const fetchProgressions = async () => {
     console.log('fetching progressions')
     try {
-      const response = await api.get('/api/edt_progressions')
+      const departementId = localStorage.getItem('departement')
+      const response = await api.get(`/api/previsionnels/?departement=${departementId}`)
       progressions.value = response.data['member']
     } catch (error) {
       console.error('Error fetching progressions:', error)
@@ -41,7 +42,7 @@ export default function useProgressions () {
   const updateProgression = async (progression) => {
     console.log('updating progression')
     try {
-      await api.put(`/api/edt_progressions/${progression.id}`, progression)
+      await api.put(`/api/edt_progressions/${progression.id}`, progression, { headers: { 'Content-Type': 'application/ld+json' } })
     } catch (error) {
       console.error('Error updating progression:', error)
     }

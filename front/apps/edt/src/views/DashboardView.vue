@@ -6,8 +6,6 @@ import { formatDateLong } from "@helpers/date.js";
 const store = useUsersStore();
 
 onMounted(async() => {
-    await store.getUser();
-
     // si étudiant on redirige vers la page d'accueil
     if (store.userType === 'etudiants') {
         redirectTo('https://www.google.com');
@@ -24,7 +22,7 @@ const redirectTo = (link) => {
 </script>
 
 <template>
-    <div>
+    <div v-if="store.user">
         <div class="m-5 mb-10">
             <div class="flex items-center justify-between">
                 <div class="flex items-center">

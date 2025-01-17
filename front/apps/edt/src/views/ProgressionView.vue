@@ -1,18 +1,18 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useProfesseursStore,
+import {
   useSemestreStore,
   useMatieresStore} from '@stores'
 import useProgressions from '@/service/useProgressions.js'
 import { useWeeksStore } from '@/stores/weeksStore.js'
+import { formatDateCourt } from '@helpers/date.js'
+import { getPersonnelsDepartement } from '@requests/user_services/personnelService.js'
 
-const professorsStore = useProfesseursStore()
 const matieresStore = useMatieresStore()
-const { progressions, fetchProgressions, addProgression, updateProgression,
-  deleteProgression, duplicateProgression } = useProgressions()
+const { progressions, fetchProgressions, updateProgression } = useProgressions()
 const weeksStore = useWeeksStore()
 const semestreStore = useSemestreStore()
-
+const personnels = ref([])
 const weeks = ref([])
 const semestres = ref([])
 const semesterFilter = ref('')
@@ -20,23 +20,24 @@ const parcoursFilter = ref('')
 const searchFilter = ref('')
 const professorFilter = ref('')
 const subjectFilter = ref('')
-
+const isLoaded = ref(false)
 const sortColumn = ref('matiere')
 const sortOrder = ref('asc')
 
 onMounted(async () => {
   try {
     // Load data
-    await professorsStore.getProfesseurs()
     await matieresStore.getMatieres()
     await fetchProgressions()
     await weeksStore.fetchWeeks()
     const departementId = localStorage.getItem('departement')
+    personnels.value = await getPersonnelsDepartement(departementId)
     await semestreStore.getSemestresByDepartement(departementId)
     semestres.value = semestreStore.semestres['member']
-
     weeks.value = weeksStore.weeks['member']
+    console.log(weeks.value)
     sortProgressions() // Apply default sort
+    isLoaded.value = true
   } catch (error) {
     console.error('Error loading data:', error)
   }
@@ -64,37 +65,15 @@ const sortProgressions = () => {
   })
 }
 
-const duplicateRow = async (row) => {
-  try {
-    // Call the API to duplicate the new row
-    await duplicateProgression(row)
-  } catch (error) {
-    console.error('Error duplicating row:', error)
-  }
-}
-
 const isWeekRestricted = (semestre, week) => {
   // semestre est une IRI, récupérer l'objet depuis semestresStores.semestres
   semestre = semestres.value.find((s) => s['@id'] === semestre)
 
   let restrictedSlots = {}
-  restrictedSlots = week.restrictedSlots
+  restrictedSlots = week.edtCreneauxInterditsSemaines
 
   if (!semestre || !restrictedSlots[semestre.nom]) return false
   return true
-}
-
-const addRow = async () => {
-  //ajout dans l'API et récupération de l'id puis ajout dans le store
-  const newId = await addProgression({
-    professeur: '',
-    nbCm: 0,
-    nbTd: 0,
-    grTd: '',
-    nbTp: 0,
-    grTp: '',
-    progression: Array(5).fill('')
-  })
 }
 
 // const updateProgression = async (row) => {
@@ -167,12 +146,9 @@ const sumColumn = (type) => {
 }
 
 const toUpperCase = (row, week) => {
-  row.progression[week] = row.progression[week].trim().toUpperCase()
-}
-
-const confirmDelete = async (id) => {
-  if (confirm('Vous êtes sûr de vouloir supprimer cette progression ?')) {
-    await deleteProgression(id)
+  // uniquement si row.progression[week] est non null
+  if (row.progression[week]) {
+    row.progression[week] = row.progression[week].toUpperCase()
   }
 }
 
@@ -196,7 +172,7 @@ const filteredProgressions = computed(() => {
     const matchesParcours =
         parcoursFilter.value === '' || row.parcours.includes(parcoursFilter.value)
     const matchesProfessor =
-        professorFilter.value === '' || row.professeur.includes(professorFilter.value)
+        professorFilter.value === '' || row.personnel.includes(professorFilter.value)
     const matchesSubject =
         subjectFilter.value === '' ||
         (typeof row.matiere !== 'undefined' && row.matiere.includes(subjectFilter.value))
@@ -221,14 +197,14 @@ const generateSlots = async () => {
 </script>
 
 <template>
-  <div class="row">
+  <div class="row" v-if="isLoaded">
     <div class="col-2">
       <label for="semesterFilter">Semestre</label><br />
       <Select
         v-model="semesterFilter"
         filter
         :options="semestres"
-        optionLabel="display"
+        optionLabel="libelle"
         optionValue="id"
         placeholder="Choisir un semestre"
         class="w-full md:w-56"
@@ -272,7 +248,6 @@ const generateSlots = async () => {
     <table>
       <thead>
         <tr>
-          <th class="fixed-column" style="width: 100px !important">&nbsp;</th>
           <th
             class="fixed-column filterable-column"
             @click="sortByColumn('semestre')"
@@ -312,8 +287,9 @@ const generateSlots = async () => {
           <th class="fixed-column" style="width: 50px">nb TP</th>
           <th class="fixed-column">gr TP</th>
           <th class="fixed-column">Etat</th>
-          <th v-for="week in weeks" :key="week.week">
-            Semaine {{ week.week }}<br />{{week}}
+          <th v-for="week in weeks" :key="week.semaineFormation">
+            Semaine {{ week.semaineFormation }} ({{ week.semaineReelle}})<br />
+            {{ formatDateCourt(week.dateLundi) }}
 
           </th>
         </tr>
@@ -322,24 +298,6 @@ const generateSlots = async () => {
       <tbody>
         <tr v-for="(row, index) in filteredProgressions" :key="index">
           <td class="fixed-column">
-            <Button
-              icon="pi pi-times"
-              severity="danger"
-              size="small"
-              aria-label="Supprimer"
-              style="height: 10px"
-              @click="confirmDelete(row)"
-            />
-            <Button
-              icon="pi pi-copy"
-              @click="duplicateRow(row)"
-              size="small"
-              style="height: 10px"
-              severity="warn"
-              aria-label="Dupliquer"
-            />
-          </td>
-          <td class="fixed-column">
             <select v-model="row.semestre" @change="updateProgression(row)">
               <option value=""></option>
               <option
@@ -347,7 +305,7 @@ const generateSlots = async () => {
                 v-for="semestre in semestres"
                 :key="semestre.id"
               >
-                {{ semestre.nom }}
+                {{ semestre.libelle }}
               </option>
             </select>
           </td>
@@ -368,14 +326,14 @@ const generateSlots = async () => {
             </select>
           </td>
           <td class="fixed-column">
-            <select v-model="row.professeur" @change="updateProgression(row)">
+            <select v-model="row.personnel" @change="updateProgression(row)">
               <option value=""></option>
               <option
-                :value="professor.initiales"
-                v-for="professor in professorsStore.professors"
-                :key="professor.initiales"
+                :value="professor.personnel['@id']"
+                v-for="professor in personnels"
+                :key="professor.personnel.initiales"
               >
-                {{ professor.initiales }}
+                {{ professor.personnel.initiales }}
               </option>
             </select>
           </td>
@@ -395,19 +353,19 @@ const generateSlots = async () => {
             <input type="text" v-model.lazy="row.grTp" @change="updateProgression(row)" />
           </td>
           <td class="fixed-column">
-            <span v-if="isOkRow(row)" class="badge bg-success">OK</span>
-            <span v-else class="badge bg-danger">KO</span>
+            <Tag v-if="isOkRow(row)" severity="success" value="OK"></Tag>
+            <Tag v-else severity="danger" value="KO"></Tag>
           </td>
           <td
             v-for="week in weeks"
-            :key="week.week"
+            :key="week.semaineFormation"
             :class="{ 'restricted-cell': isWeekRestricted(row.semestre, week) }"
           >
             <input
               type="text"
-              v-model.lazy="row.progression[week.week]"
+              v-model.lazy="row.progression[week.semaineFormation]"
               v-if="!isWeekRestricted(row.semestre, week)"
-              @input="toUpperCase(row, week.week)"
+              @input="toUpperCase(row, week.semaineFormation)"
               @change="updateProgression(row)"
             />
           </td>
@@ -429,9 +387,6 @@ const generateSlots = async () => {
         </tr>
       </tfoot>
     </table>
-    <div class="mt-2">
-      <Button severity="success" size="small" @click="addRow">+ Ajouter une ligne</Button>
-    </div>
   </div>
   <div class="row mt-2">
     <Button label="Générer les créneaux" icon="pi pi-check" @click="generateSlots" />
