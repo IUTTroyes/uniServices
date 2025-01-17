@@ -1,13 +1,4 @@
-<script setup>
-import {onMounted} from "vue";
-import {useUsersStore} from "@stores";
-
-const userStore = useUsersStore();
-
-onMounted(() => {
-  userStore.getUser();
-});
-</script>
+<script setup></script>
 
 <template>
     <router-view />

@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LoginView from "@/views/LoginView.vue";
 import AppPortail from "@/views/PortailView.vue";
 import AppProfil from "@/views/ProfilView.vue";
+import { useUsersStore } from "@stores/stores/userStore";
 
 const router = createRouter({
     history: createWebHistory('/auth'),
@@ -19,6 +20,7 @@ const router = createRouter({
         },
         {
             path: '/login',
+            name: 'login',
             component: LoginView,
         },
         {
@@ -40,8 +42,25 @@ const router = createRouter({
     ]
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async(to, from, next) => {
     const token = localStorage.getItem('token');
+    const userStore = useUsersStore();
+
+    if (!userStore.isLoaded && !userStore.isLoading) {
+        try {
+            // si la route est login, on ne charge pas l'utilisateur
+            if (to.path === '/login') {
+                return next();
+            }
+            await userStore.getUser()
+            console.log('hello');
+            console.log(userStore.isLoaded);
+            console.log(userStore.isLoading);
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('logout')) {

@@ -1,19 +1,6 @@
 <script setup>
 import { useUsersStore } from "@stores";
 import { computed } from "vue";
-import ArticleSkeleton from "@components/loader/ArticleSkeleton.vue";
-import Error from "@components/components/Error.vue";
-
-const props = defineProps({
-  loading: {
-    type: Boolean,
-    required: true
-  },
-  error: {
-    type: Object,
-    default: null
-  }
-});
 
 const userStore = useUsersStore();
 const user = computed(() => userStore.user);
@@ -38,9 +25,7 @@ const redirectTo = (link) => {
           </div>
         </template>
         <div class="mt-4 gap-4 flex flex-col md:flex-row items-center">
-          <ArticleSkeleton v-if="props.loading" />
-          <Error v-else-if="props.error" :message="props.error.message" />
-          <div v-else class="flex flex-col gap-2">
+          <div class="flex flex-col gap-2">
             <div class="mt-4 gap-4 flex flex-col md:flex-row items-center">
               <div class="w-full md:w-1/6 flex justify-center">
                 <img :src="userPhoto" alt="photo de profil" class="rounded-full w-24 h-24 md:w-auto md:h-auto">

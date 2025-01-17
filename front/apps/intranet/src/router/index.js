@@ -4,6 +4,7 @@ import dashboardRoutes from './modules/dashboardRoutes';
 import agendaRoutes from "./modules/agendaRoutes.js";
 import profilRoutes from "./modules/profilRoutes.js";
 import administrationRoutes from "./modules/administrationRoutes.js";
+import {useUsersStore} from "@stores";
 
 const intranetMenu = [
     {
@@ -38,6 +39,54 @@ const router = createRouter({
             ]
         },
     ]
+});
+
+router.beforeEach(async(to, from, next) => {
+    const token = localStorage.getItem('token');
+    const userStore = useUsersStore();
+
+    if (!userStore.isLoaded && !userStore.isLoading) {
+        try {
+            // si la route est login, on ne charge pas l'utilisateur
+            if (to.path === '/login') {
+                return next();
+            }
+            await userStore.getUser()
+            console.log('hello');
+            console.log(userStore.isLoaded);
+            console.log(userStore.isLoading);
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('logout')) {
+        localStorage.removeItem('token');
+        window.location.replace('http://localhost:3000/auth/login');
+    }
+
+    if (token) {
+        const tokenParts = token.split('.');
+        const payload = JSON.parse(atob(tokenParts[1]));
+        const exp = payload.exp * 1000; // Convert to milliseconds
+
+        if (Date.now() >= exp) {
+            localStorage.removeItem('token');
+            return window.location.href = 'http://localhost:3000/auth/login';
+        }
+
+        if (to.path === '/login') {
+            return next('/portail');
+        }
+    }
+
+    if (!token && to.path !== '/login') {
+        return window.location.href = 'http://localhost:3000/auth/login';
+    }
+
+    next();
 });
 
 export default router;

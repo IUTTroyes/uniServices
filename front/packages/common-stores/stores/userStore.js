@@ -20,11 +20,14 @@ export const useUsersStore = defineStore('users', () => {
     const statuts = ref([]);
     const scolariteActif = ref({});
 
+    const isLoading = ref(false);
+    const isLoaded = ref(false);
+
     const getUser = async () => {
-        if (user.value) {
-            console.log('User already fetched');
+        if (isLoaded.value) {
             return;
         }
+        isLoading.value = true;
         try {
             console.log('Fetching user');
             const response = await api.get(`/api/${userType}/${userId}`);
@@ -51,8 +54,11 @@ export const useUsersStore = defineStore('users', () => {
                 scolariteActif.value = await getEtudiantScolariteActif(userId);
                 departementDefaut.value = scolariteActif.value[0].departement;
             }
+            isLoaded.value = true;
         } catch (error) {
             console.error('Error fetching user:', error);
+        } finally {
+            isLoading.value = false;
         }
     };
 
@@ -128,6 +134,8 @@ export const useUsersStore = defineStore('users', () => {
         updateUser,
         getStatuts,
         statuts,
-        scolariteActif
+        scolariteActif,
+        isLoading,
+        isLoaded
     };
 });
