@@ -117,8 +117,8 @@ class StructureSemestre
     #[Groups(['semestre:read'])]
     private Collection $edtContraintesSemestres;
 
-    #[ORM\OneToOne(mappedBy: 'structure_semestre', cascade: ['persist', 'remove'])]
-    private ?EtudiantScolariteSemestre $etudiantScolariteSemestre = null;
+    #[ORM\OneToMany(mappedBy: 'structure_semestre', targetEntity: EtudiantScolariteSemestre::class, cascade: ['persist'])]
+    private Collection $etudiantScolariteSemestre;
 
     public function __construct()
     {
@@ -128,6 +128,7 @@ class StructureSemestre
         $this->scolEvaluations = new ArrayCollection();
         $this->scolEdtEvents = new ArrayCollection();
         $this->edtContraintesSemestres = new ArrayCollection();
+        $this->etudiantScolariteSemestre = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -427,20 +428,13 @@ class StructureSemestre
         return $this;
     }
 
-    public function getEtudiantScolariteSemestre(): ?EtudiantScolariteSemestre
+    public function getEtudiantScolariteSemestre(): Collection
     {
         return $this->etudiantScolariteSemestre;
     }
 
-    public function setEtudiantScolariteSemestre(EtudiantScolariteSemestre $etudiantScolariteSemestre): static
+    public function setEtudiantScolariteSemestre(Collection $etudiantScolariteSemestre): void
     {
-        // set the owning side of the relation if necessary
-        if ($etudiantScolariteSemestre->getStructureSemestre() !== $this) {
-            $etudiantScolariteSemestre->setStructureSemestre($this);
-        }
-
         $this->etudiantScolariteSemestre = $etudiantScolariteSemestre;
-
-        return $this;
     }
 }
