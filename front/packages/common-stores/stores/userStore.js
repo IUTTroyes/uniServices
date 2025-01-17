@@ -44,14 +44,12 @@ export const useUsersStore = defineStore('users', () => {
                 }
                 departementPersonnelDefaut.value = departements.value.find(departement => departement.defaut === true);
                 departementDefaut.value = departementPersonnelDefaut.value.departement;
-                localStorage.setItem('departement', departementDefaut.value.id);
                 departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
                 departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
             }
             if (userType === 'etudiants') {
                 scolariteActif.value = await getEtudiantScolariteActif(userId);
                 departementDefaut.value = scolariteActif.value[0].departement;
-                user.value.departement = departementDefaut.value;
             }
         } catch (error) {
             console.error('Error fetching user:', error);
@@ -130,5 +128,6 @@ export const useUsersStore = defineStore('users', () => {
         updateUser,
         getStatuts,
         statuts,
+        scolariteActif
     };
 });

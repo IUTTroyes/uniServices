@@ -11,7 +11,6 @@ use ApiPlatform\Metadata\Link;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureGroupe;
-use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Repository\Structure\StructureScolariteRepository;
@@ -88,36 +87,10 @@ class EtudiantScolarite
     #[Groups(['scolarite:read'])]
     private ?array $moyennesUe = null;
 
-    // off
-    #[ORM\Column]
-    #[Groups(['scolarite:read'])]
-    private bool $actif = false;
-
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['scolarite:read'])]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
-
-    // switch rel. scol.semestre
-    /**
-     * @var Collection<int, EtudiantAbsence>
-     */
-    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'scolarite', orphanRemoval: true)]
-    private Collection $etudiantAbsences;
-
-    // switch rel. scol.semestre
-    /**
-     * @var Collection<int, EtudiantNote>
-     */
-    #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'scolarite')]
-    private Collection $etudiantNotes;
-
-    /**
-     * @var Collection<int, StructureSemestre>
-     */
-    #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'etudiantScolarites')]
-    #[Groups(['scolarite:read'])]
-    private Collection $semestres;
 
     /**
      * @var Collection<int, StructureGroupe>
@@ -130,11 +103,11 @@ class EtudiantScolarite
     #[Groups(['scolarite:read'])]
     private ?StructureDepartement $departement = null;
 
+    #[ORM\OneToOne(mappedBy: 'etudiant_scolarite', cascade: ['persist', 'remove'])]
+    private ?EtudiantScolariteSemestre $etudiantScolariteSemestre = null;
+
     public function __construct()
     {
-        $this->etudiantAbsences = new ArrayCollection();
-        $this->etudiantNotes = new ArrayCollection();
-        $this->semestres = new ArrayCollection();
         $this->groupes = new ArrayCollection();
     }
 
@@ -251,18 +224,6 @@ class EtudiantScolarite
         return $this;
     }
 
-    public function isActif(): ?bool
-    {
-        return $this->actif;
-    }
-
-    public function setActif(bool $actif): static
-    {
-        $this->actif = $actif;
-
-        return $this;
-    }
-
     public function getStructureAnneeUniversitaire(): ?StructureAnneeUniversitaire
     {
         return $this->structureAnneeUniversitaire;
@@ -271,90 +232,6 @@ class EtudiantScolarite
     public function setStructureAnneeUniversitaire(?StructureAnneeUniversitaire $structureAnneeUniversitaire): static
     {
         $this->structureAnneeUniversitaire = $structureAnneeUniversitaire;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, EtudiantAbsence>
-     */
-    public function getEtudiantAbsences(): Collection
-    {
-        return $this->etudiantAbsences;
-    }
-
-    public function addEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
-    {
-        if (!$this->etudiantAbsences->contains($etudiantAbsence)) {
-            $this->etudiantAbsences->add($etudiantAbsence);
-            $etudiantAbsence->setScolarite($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
-    {
-        if ($this->etudiantAbsences->removeElement($etudiantAbsence)) {
-            // set the owning side to null (unless already changed)
-            if ($etudiantAbsence->getScolarite() === $this) {
-                $etudiantAbsence->setScolarite(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, EtudiantNote>
-     */
-    public function getEtudiantNotes(): Collection
-    {
-        return $this->etudiantNotes;
-    }
-
-    public function addEtudiantNote(EtudiantNote $etudiantNote): static
-    {
-        if (!$this->etudiantNotes->contains($etudiantNote)) {
-            $this->etudiantNotes->add($etudiantNote);
-            $etudiantNote->setScolarite($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEtudiantNote(EtudiantNote $etudiantNote): static
-    {
-        if ($this->etudiantNotes->removeElement($etudiantNote)) {
-            // set the owning side to null (unless already changed)
-            if ($etudiantNote->getScolarite() === $this) {
-                $etudiantNote->setScolarite(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, StructureSemestre>
-     */
-    public function getSemestres(): Collection
-    {
-        return $this->semestres;
-    }
-
-    public function addSemestre(StructureSemestre $semestre): static
-    {
-        if (!$this->semestres->contains($semestre)) {
-            $this->semestres->add($semestre);
-        }
-
-        return $this;
-    }
-
-    public function removeSemestre(StructureSemestre $semestre): static
-    {
-        $this->semestres->removeElement($semestre);
 
         return $this;
     }
@@ -391,6 +268,23 @@ class EtudiantScolarite
     public function setDepartement(?StructureDepartement $departement): static
     {
         $this->departement = $departement;
+
+        return $this;
+    }
+
+    public function getEtudiantScolariteSemestre(): ?EtudiantScolariteSemestre
+    {
+        return $this->etudiantScolariteSemestre;
+    }
+
+    public function setEtudiantScolariteSemestre(EtudiantScolariteSemestre $etudiantScolariteSemestre): static
+    {
+        // set the owning side of the relation if necessary
+        if ($etudiantScolariteSemestre->getEtudiantScolarite() !== $this) {
+            $etudiantScolariteSemestre->setEtudiantScolarite($this);
+        }
+
+        $this->etudiantScolariteSemestre = $etudiantScolariteSemestre;
 
         return $this;
     }

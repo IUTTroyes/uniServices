@@ -1,8 +1,24 @@
 <script setup>
-import { onMounted, ref } from 'vue';
 import { useUsersStore } from "@stores";
+import { computed } from "vue";
+import ArticleSkeleton from "@components/loader/ArticleSkeleton.vue";
+import Error from "@components/components/Error.vue";
 
-const store = useUsersStore();
+const props = defineProps({
+  loading: {
+    type: Boolean,
+    required: true
+  },
+  error: {
+    type: Object,
+    default: null
+  }
+});
+
+const userStore = useUsersStore();
+const user = computed(() => userStore.user);
+const userPhoto = computed(() => userStore.userPhoto);
+const scolariteActif = computed(() => userStore.scolariteActif);
 
 const redirectTo = (link) => {
   window.open(link, '_blank');
@@ -21,36 +37,40 @@ const redirectTo = (link) => {
             </div>
           </div>
         </template>
-        <div class="flex flex-col gap-2">
-          <div class="mt-4 gap-4 flex flex-col md:flex-row items-center">
-            <div class="w-full md:w-1/6 flex justify-center">
-              <img :src="store.userPhoto" alt="photo de profil" class="rounded-full w-24 h-24 md:w-auto md:h-auto">
-            </div>
-            <div class="w-full md:w-3/6 flex flex-col gap-4">
-              <div class="flex flex-col gap-2">
-                <div class="flex flex-col md:flex-row gap-2">
-                  <div class="title text text-2xl font-bold">
-                    {{ store.user.prenom }} {{ store.user.nom }}
-                  </div>
-                  <Tag v-if="store.scolariteActif.semestres" v-for="semestre in store.scolariteActif.semestres" :value="semestre.annee.libelle" severity="primary" rounded/>
-                  <Tag v-if="store.scolariteActif.semestres" v-for="semestre in store.scolariteActif.semestres" :value="semestre.libelle" severity="info" rounded/>
-                  <Tag v-if="store.scolariteActif.groupes" v-for="groupe in store.scolariteActif.groupes" :value="groupe.libelle" severity="secondary" rounded/>
-                </div>
-                <div class="text-sm opacity-80 pt-1 flex flex-row w-full flex-wrap gap-2">
-                  <span v-if="store.user.tel1">tél. : {{store.user.tel1}} </span>
-                  <span v-if="store.user.tel2">•</span>
-                  <span v-if="store.user.tel2">{{store.user.tel2}} </span>
-                  <span v-if="store.user.num_etudiant">•</span>
-                  <span v-if="store.user.num_etudiant">n° etudiant : {{store.user.num_etudiant}} </span>
-                  <span v-if="store.user.num_ine">•</span>
-                  <span v-if="store.user.num_ine">INE : {{store.user.num_ine}} </span>
-                </div>
+        <div class="mt-4 gap-4 flex flex-col md:flex-row items-center">
+          <ArticleSkeleton v-if="props.loading" />
+          <Error v-else-if="props.error" :message="props.error.message" />
+          <div v-else class="flex flex-col gap-2">
+            <div class="mt-4 gap-4 flex flex-col md:flex-row items-center">
+              <div class="w-full md:w-1/6 flex justify-center">
+                <img :src="userPhoto" alt="photo de profil" class="rounded-full w-24 h-24 md:w-auto md:h-auto">
               </div>
+              <div class="w-full md:w-3/6 flex flex-col gap-4">
+                <div class="flex flex-col gap-2">
+                  <div class="flex flex-col md:flex-row gap-2">
+                    <div class="title text text-2xl font-bold">
+                      <span v-if="user">{{ user.prenom }} {{ user.nom }}</span>
+                    </div>
+                    <Tag v-if="scolariteActif.semestres" v-for="semestre in scolariteActif.semestres" :value="semestre.annee.libelle" severity="primary" rounded/>
+                    <Tag v-if="scolariteActif.semestres" v-for="semestre in scolariteActif.semestres" :value="semestre.libelle" severity="info" rounded/>
+                    <Tag v-if="scolariteActif.groupes" v-for="groupe in scolariteActif.groupes" :value="groupe.libelle" severity="secondary" rounded/>
+                  </div>
+                  <div class="text-sm opacity-80 pt-1 flex flex-row w-full flex-wrap gap-2">
+                    <span v-if="user && user.tel1">tél. : {{user.tel1}} </span>
+                    <span v-if="user && user.tel2">•</span>
+                    <span v-if="user && user.tel2">{{user.tel2}} </span>
+                    <span v-if="user && user.num_etudiant">•</span>
+                    <span v-if="user && user.num_etudiant">n° etudiant : {{user.num_etudiant}} </span>
+                    <span v-if="user && user.num_ine">•</span>
+                    <span v-if="user && user.num_ine">INE : {{user.num_ine}} </span>
+                  </div>
+                </div>
                 <div class="flex flex-col md:flex-row gap-2">
                   <Button label="Contacter" icon="pi pi-envelope" severity="contrast"/>
-                  <Button v-if="store.user.site_perso" label="Site Personnel" icon="pi pi-external-link" iconPos="right" severity="contrast" @click="redirectTo(store.user.site_perso)"/>
-                  <Button v-if="store.user.site_univ" label="Portfolio Universitaire" icon="pi pi-external-link" iconPos="right" severity="contrast" @click="redirectTo(store.user.site_univ)"/>
+                  <Button v-if="user && user.site_perso" label="Site Personnel" icon="pi pi-external-link" iconPos="right" severity="contrast" @click="redirectTo(user.site_perso)"/>
+                  <Button v-if="user && user.site_univ" label="Portfolio Universitaire" icon="pi pi-external-link" iconPos="right" severity="contrast" @click="redirectTo(user.site_univ)"/>
                 </div>
+              </div>
             </div>
           </div>
         </div>

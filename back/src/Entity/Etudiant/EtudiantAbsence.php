@@ -50,6 +50,10 @@ class EtudiantAbsence
     #[ORM\ManyToOne(inversedBy: 'absence')]
     private ?EtudiantAbsenceJustificatif $etudiantAbsenceJustificatif = null;
 
+    #[ORM\ManyToOne(inversedBy: 'etudiant_absence')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    private ?EtudiantScolariteSemestre $etudiantScolariteSemestre = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -159,6 +163,18 @@ class EtudiantAbsence
     public function setEtudiantAbsenceJustificatif(?EtudiantAbsenceJustificatif $etudiantAbsenceJustificatif): static
     {
         $this->etudiantAbsenceJustificatif = $etudiantAbsenceJustificatif;
+
+        return $this;
+    }
+
+    public function getEtudiantScolariteSemestre(): ?EtudiantScolariteSemestre
+    {
+        return $this->etudiantScolariteSemestre;
+    }
+
+    public function setEtudiantScolariteSemestre(?EtudiantScolariteSemestre $etudiantScolariteSemestre): static
+    {
+        $this->etudiantScolariteSemestre = $etudiantScolariteSemestre;
 
         return $this;
     }

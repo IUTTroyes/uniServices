@@ -31,14 +31,15 @@ watch(() => userStore.user, async () => {
 
 const fetchData = async () => {
   try {
-    if (userStore.user) {
-      await anneeUnivStore.getAllAnneesUniv();
-      const sortedAnnees = anneeUnivStore.anneesUniv.map(annee => ({
-        label: annee.libelle,
-      })).sort((a, b) => b.label.localeCompare(a.label));
-      anneesUniv.value = sortedAnnees;
-      anneeItems.value[0].items = sortedAnnees;
+    await anneeUnivStore.getAllAnneesUniv();
+    const sortedAnnees = anneeUnivStore.anneesUniv.map(annee => ({
+      label: annee.libelle,
+    })).sort((a, b) => b.label.localeCompare(a.label));
+    anneesUniv.value = sortedAnnees;
+    anneeItems.value[0].items = sortedAnnees;
 
+
+    if (userStore.user) {
       if (userStore.userType === 'personnels') {
         deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
           label: departementPersonnel.libelle,
@@ -48,7 +49,8 @@ const fetchData = async () => {
         departementLabel.value = userStore.departementDefaut.libelle;
       } else {
         deptItems.value = [];
-        departementLabel.value = userStore.user.departement.libelle;
+        departementLabel.value = userStore.departementDefaut.libelle;
+        console.log('departementLabel', departementLabel.value);
       }
     }
   } catch (error) {

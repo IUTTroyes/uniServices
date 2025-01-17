@@ -3,6 +3,7 @@
 namespace App\Command\CopyBdd;
 
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Repository\EtudiantRepository;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use App\Repository\Structure\StructureDepartementRepository;
@@ -77,8 +78,8 @@ class CopyTransfertBddScolariteCommand extends Command
 FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant_scolarite');
         $this->entityManager->getConnection()->executeQuery('SET
-FOREIGN_KEY_CHECKS=1');
-        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant_scolarite_structure_semestre');
+FOREIGN_KEY_CHECKS=0');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant_scolarite_semestre');
         $this->entityManager->getConnection()->executeQuery('SET
 FOREIGN_KEY_CHECKS=1');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant_scolarite_structure_groupe');
@@ -105,16 +106,6 @@ FOREIGN_KEY_CHECKS=1');
         $etudiants = $this->em->executeQuery($sql)->fetchAllAssociative();
 
         foreach ($etudiants as $etu) {
-//            if ($etu['id'] === 4470) {
-//                $response = $this->httpClient->request('GET', $this->base_url . '/etudiant/' . $etu['id']);
-//                $scols = json_decode($response->getContent(), true);
-//                foreach ($scols as $scol) {
-//                    dd($scol);
-//                }
-//            } else {
-//                continue;
-//            }
-
             $response = $this->httpClient->request('GET', $this->base_url . '/etudiant/' . $etu['id']);
             $scols = json_decode($response->getContent(), true);
 
@@ -128,13 +119,6 @@ FOREIGN_KEY_CHECKS=1');
                 $scolarite->setUuid(UuidV4::v4());
                 $scolarite->setEtudiant($this->tEtudiants[$etu['id']]);
                 $scolarite->setStructureAnneeUniversitaire($this->tAnneeUniversitaire[$scol['annee']]);
-
-                foreach ($this->tSemestres as $semestre) {
-                    if ($semestre->getOldId() === $scol['semestre']) {
-                        $scolarite->addSemestre($semestre);
-                        break;
-                    }
-                }
 
                 $scolarite->setOrdre($scol['ordre'] ?? 0);
                 $scolarite->setProposition($scol['proposition']);
@@ -162,10 +146,20 @@ FOREIGN_KEY_CHECKS=1');
                     }
                 }
 
+                // Create EtudiantScolariteSemestre
+                foreach ($this->tSemestres as $semestre) {
+                    if ($semestre->getOldId() === $scol['semestre']) {
+                        $etudiantScolariteSemestre = new EtudiantScolariteSemestre();
+                        $etudiantScolariteSemestre->setEtudiantScolarite($scolarite);
+                        $etudiantScolariteSemestre->setStructureSemestre($semestre);
+                        $this->entityManager->persist($etudiantScolariteSemestre);
+                        break;
+                    }
+                }
+
                 $this->entityManager->persist($scolarite);
             }
         }
-
         $this->entityManager->flush();
     }
 }

@@ -9,9 +9,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Edt\EdtContraintesSemestre;
 use App\Entity\Edt\EdtEvent;
-use App\Entity\Edt\EdtProgression;
-use App\Entity\Etudiant\EtudiantScolarite;
-use App\Entity\Previsionnel\Previsionnel;
+use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
@@ -119,17 +117,8 @@ class StructureSemestre
     #[Groups(['semestre:read'])]
     private Collection $edtContraintesSemestres;
 
-    /**
-     * @var Collection<int, EtudiantScolarite>
-     */
-    #[ORM\ManyToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'semestres')]
-    private Collection $etudiantScolarites;
-
-    /**
-     * @var Collection<int, Previsionnel>
-     */
-    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'semestre')]
-    private Collection $previsionnels;
+    #[ORM\OneToOne(mappedBy: 'structure_semestre', cascade: ['persist', 'remove'])]
+    private ?EtudiantScolariteSemestre $etudiantScolariteSemestre = null;
 
     public function __construct()
     {
@@ -139,8 +128,6 @@ class StructureSemestre
         $this->scolEvaluations = new ArrayCollection();
         $this->scolEdtEvents = new ArrayCollection();
         $this->edtContraintesSemestres = new ArrayCollection();
-        $this->etudiantScolarites = new ArrayCollection();
-        $this->previsionnels = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -440,59 +427,19 @@ class StructureSemestre
         return $this;
     }
 
-    /**
-     * @return Collection<int, EtudiantScolarite>
-     */
-    public function getEtudiantScolarites(): Collection
+    public function getEtudiantScolariteSemestre(): ?EtudiantScolariteSemestre
     {
-        return $this->etudiantScolarites;
+        return $this->etudiantScolariteSemestre;
     }
 
-    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    public function setEtudiantScolariteSemestre(EtudiantScolariteSemestre $etudiantScolariteSemestre): static
     {
-        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
-            $this->etudiantScolarites->add($etudiantScolarite);
-            $etudiantScolarite->addSemestre($this);
+        // set the owning side of the relation if necessary
+        if ($etudiantScolariteSemestre->getStructureSemestre() !== $this) {
+            $etudiantScolariteSemestre->setStructureSemestre($this);
         }
 
-        return $this;
-    }
-
-    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
-    {
-        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
-            $etudiantScolarite->removeSemestre($this);
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, Previsionnel>
-     */
-    public function getPrevisionnels(): Collection
-    {
-        return $this->previsionnels;
-    }
-
-    public function addPrevisionnel(Previsionnel $previsionnel): static
-    {
-        if (!$this->previsionnels->contains($previsionnel)) {
-            $this->previsionnels->add($previsionnel);
-            $previsionnel->setSemestre($this);
-        }
-
-        return $this;
-    }
-
-    public function removePrevisionnel(Previsionnel $previsionnel): static
-    {
-        if ($this->previsionnels->removeElement($previsionnel)) {
-            // set the owning side to null (unless already changed)
-            if ($previsionnel->getSemestre() === $this) {
-                $previsionnel->setSemestre(null);
-            }
-        }
+        $this->etudiantScolariteSemestre = $etudiantScolariteSemestre;
 
         return $this;
     }

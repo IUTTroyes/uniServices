@@ -4,6 +4,14 @@ import {useUsersStore} from "@stores";
 import {computed} from "vue";
 
 const props = defineProps({
+  loading: {
+    type: Boolean,
+    required: true
+  },
+  error: {
+    type: Object,
+    default: null
+  },
   logoUrl: {
     type: String,
     default: '/assets/logo.png',
@@ -28,7 +36,7 @@ const isEtudiant = computed(() => store.userType === 'etudiants');
   <div class="layout-main-container mt-16">
     <main class="layout-main">
       <ProfilPersonnelComponent v-if="isPersonnel" />
-      <ProfilEtudiantComponent v-if="isEtudiant" />
+      <ProfilEtudiantComponent :loading :error v-if="isEtudiant" />
     </main>
   </div>
 </template>
