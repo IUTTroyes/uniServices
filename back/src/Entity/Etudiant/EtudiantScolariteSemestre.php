@@ -18,10 +18,6 @@ class EtudiantScolariteSemestre
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(inversedBy: 'etudiantScolariteSemestre', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?EtudiantScolarite $etudiant_scolarite = null;
-
     #[ORM\ManyToOne(inversedBy: 'etudiantScolariteSemestre', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?StructureSemestre $structure_semestre = null;
@@ -38,6 +34,9 @@ class EtudiantScolariteSemestre
     #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'etudiantScolariteSemestre')]
     private Collection $etudiant_note;
 
+    #[ORM\ManyToOne(inversedBy: 'scolarite_semestre')]
+    private ?EtudiantScolarite $etudiantScolarite = null;
+
     public function __construct()
     {
         $this->etudiant_absence = new ArrayCollection();
@@ -47,18 +46,6 @@ class EtudiantScolariteSemestre
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getEtudiantScolarite(): ?EtudiantScolarite
-    {
-        return $this->etudiant_scolarite;
-    }
-
-    public function setEtudiantScolarite(EtudiantScolarite $etudiant_scolarite): static
-    {
-        $this->etudiant_scolarite = $etudiant_scolarite;
-
-        return $this;
     }
 
     public function getStructureSemestre(): ?StructureSemestre
@@ -129,6 +116,18 @@ class EtudiantScolariteSemestre
                 $etudiantNote->setEtudiantScolariteSemestre(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getEtudiantScolarite(): ?EtudiantScolarite
+    {
+        return $this->etudiantScolarite;
+    }
+
+    public function setEtudiantScolarite(?EtudiantScolarite $etudiantScolarite): static
+    {
+        $this->etudiantScolarite = $etudiantScolarite;
 
         return $this;
     }
