@@ -53,9 +53,6 @@ router.beforeEach(async(to, from, next) => {
                 return next();
             }
             await userStore.getUser()
-            console.log('hello');
-            console.log(userStore.isLoaded);
-            console.log(userStore.isLoading);
 
         } catch (error) {
             console.error(error);
