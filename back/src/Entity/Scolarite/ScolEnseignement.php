@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantAbsence;
+use App\Entity\Previsionnel\Previsionnel;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Enum\TypeEnseignementEnum;
@@ -124,6 +125,12 @@ class ScolEnseignement
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'enseignement', cascade: ['persist', 'remove'])]
     private Collection $scolEnseignementUes;
 
+    /**
+     * @var Collection<int, Previsionnel>
+     */
+    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'matiere')]
+    private Collection $previsionnels;
+
     public function __construct()
     {
         $this->scolEnseignements = new ArrayCollection();
@@ -133,6 +140,7 @@ class ScolEnseignement
         $this->scolEvaluations = new ArrayCollection();
         $this->scolEdtEvents = new ArrayCollection();
         $this->scolEnseignementUes = new ArrayCollection();
+        $this->previsionnels = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -558,6 +566,36 @@ class ScolEnseignement
             // set the owning side to null (unless already changed)
             if ($scolEnseignementUe->getEnseignement() === $this) {
                 $scolEnseignementUe->setEnseignement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Previsionnel>
+     */
+    public function getPrevisionnels(): Collection
+    {
+        return $this->previsionnels;
+    }
+
+    public function addPrevisionnel(Previsionnel $previsionnel): static
+    {
+        if (!$this->previsionnels->contains($previsionnel)) {
+            $this->previsionnels->add($previsionnel);
+            $previsionnel->setMatiere($this);
+        }
+
+        return $this;
+    }
+
+    public function removePrevisionnel(Previsionnel $previsionnel): static
+    {
+        if ($this->previsionnels->removeElement($previsionnel)) {
+            // set the owning side to null (unless already changed)
+            if ($previsionnel->getMatiere() === $this) {
+                $previsionnel->setMatiere(null);
             }
         }
 

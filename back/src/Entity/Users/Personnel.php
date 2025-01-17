@@ -8,7 +8,9 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Edt\EdtEvent;
+use App\Entity\Edt\EdtProgression;
 use App\Entity\Etudiant\EtudiantAbsence;
+use App\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartementPersonnel;
@@ -194,6 +196,13 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:read'])]
     private ?array $applications = null;
 
+
+    /**
+     * @var Collection<int, Previsionnel>
+     */
+    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'personnel')]
+    private Collection $previsionnels;
+
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
@@ -202,6 +211,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         $this->etudiantAbsences = new ArrayCollection();
         $this->scolEvaluations = new ArrayCollection();
         $this->scolEdtEvents = new ArrayCollection();
+        $this->previsionnels = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -718,6 +728,36 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     public function setApplications(?array $applications): static
     {
         $this->applications = $applications;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Previsionnel>
+     */
+    public function getPrevisionnels(): Collection
+    {
+        return $this->previsionnels;
+    }
+
+    public function addPrevisionnel(Previsionnel $previsionnel): static
+    {
+        if (!$this->previsionnels->contains($previsionnel)) {
+            $this->previsionnels->add($previsionnel);
+            $previsionnel->setPersonnel($this);
+        }
+
+        return $this;
+    }
+
+    public function removePrevisionnel(Previsionnel $previsionnel): static
+    {
+        if ($this->previsionnels->removeElement($previsionnel)) {
+            // set the owning side to null (unless already changed)
+            if ($previsionnel->getPersonnel() === $this) {
+                $previsionnel->setPersonnel(null);
+            }
+        }
 
         return $this;
     }

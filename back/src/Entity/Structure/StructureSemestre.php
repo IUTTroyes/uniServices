@@ -11,6 +11,7 @@ use App\Entity\Edt\EdtContraintesSemestre;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Edt\EdtProgression;
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
@@ -125,10 +126,10 @@ class StructureSemestre
     private Collection $etudiantScolarites;
 
     /**
-     * @var Collection<int, EdtProgression>
+     * @var Collection<int, Previsionnel>
      */
-    #[ORM\OneToMany(targetEntity: EdtProgression::class, mappedBy: 'semestre')]
-    private Collection $edtProgressions;
+    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'semestre')]
+    private Collection $previsionnels;
 
     public function __construct()
     {
@@ -138,8 +139,8 @@ class StructureSemestre
         $this->scolEvaluations = new ArrayCollection();
         $this->scolEdtEvents = new ArrayCollection();
         $this->edtContraintesSemestres = new ArrayCollection();
-        $this->edtProgressions = new ArrayCollection();
         $this->etudiantScolarites = new ArrayCollection();
+        $this->previsionnels = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -467,29 +468,29 @@ class StructureSemestre
     }
 
     /**
-     * @return Collection<int, EdtProgression>
+     * @return Collection<int, Previsionnel>
      */
-    public function getEdtProgressions(): Collection
+    public function getPrevisionnels(): Collection
     {
-        return $this->edtProgressions;
+        return $this->previsionnels;
     }
 
-    public function addEdtProgression(EdtProgression $edtProgression): static
+    public function addPrevisionnel(Previsionnel $previsionnel): static
     {
-        if (!$this->edtProgressions->contains($edtProgression)) {
-            $this->edtProgressions->add($edtProgression);
-            $edtProgression->setSemestre($this);
+        if (!$this->previsionnels->contains($previsionnel)) {
+            $this->previsionnels->add($previsionnel);
+            $previsionnel->setSemestre($this);
         }
 
         return $this;
     }
 
-    public function removeEdtProgression(EdtProgression $edtProgression): static
+    public function removePrevisionnel(Previsionnel $previsionnel): static
     {
-        if ($this->edtProgressions->removeElement($edtProgression)) {
+        if ($this->previsionnels->removeElement($previsionnel)) {
             // set the owning side to null (unless already changed)
-            if ($edtProgression->getSemestre() === $this) {
-                $edtProgression->setSemestre(null);
+            if ($previsionnel->getSemestre() === $this) {
+                $previsionnel->setSemestre(null);
             }
         }
 

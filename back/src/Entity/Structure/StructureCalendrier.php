@@ -15,6 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: StructureCalendrierRepository::class)]
 #[ApiResource(
     paginationEnabled: false
+    //todo: filtrer en direct possible puisque semaineFormation est un champ de la table ?
 )]
 #[ApiFilter(SemaineFormationFilter::class)]
 class StructureCalendrier
