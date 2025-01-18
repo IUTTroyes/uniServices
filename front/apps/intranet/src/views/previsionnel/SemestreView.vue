@@ -11,7 +11,7 @@ const anneesUniversitaires = ref([]);
 const selectedAnneeUniversitaire = ref(null);
 
 onMounted(async () => {
-  await semestreStore.getSemestresByDepartement(departementId, );
+  await semestreStore.getSemestresByDepartement(departementId, true);
   semestres.value = semestreStore.semestres;
   console.log(semestres.value);
 
@@ -19,6 +19,9 @@ onMounted(async () => {
   anneesUniversitaires.value = anneeUnivStore.anneesUniv;
   // trier les années universitaires par ordre décroissant
   anneesUniversitaires.value.sort((a, b) => b.id - a.id);
+
+  await anneeUnivStore.getCurrentAnneeUniv();
+  selectedAnneeUniversitaire.value = anneeUnivStore.anneeUniv;
 });
 </script>
 
@@ -27,7 +30,7 @@ onMounted(async () => {
     <div class="flex justify-between gap-10">
       <div class="flex gap-6 w-1/2">
         <Select v-model="selectedSemestre" :options="semestres" optionLabel="libelle" placeholder="Sélectionner un semestre" class="w-1/2" />
-        <Select v-model="selectedAnnee" :options="anneesUniversitaires" optionLabel="libelle" placeholder="Sélectionner une année universitaire" class="w-1/2"/>
+        <Select v-model="selectedAnneeUniversitaire" :options="anneesUniversitaires" optionLabel="libelle" placeholder="Sélectionner une année universitaire" class="w-1/2"/>
       </div>
       <Button label="Saisir le prévisionnel" icon="pi pi-plus" />
     </div>
