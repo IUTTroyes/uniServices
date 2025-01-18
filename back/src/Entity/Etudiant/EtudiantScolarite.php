@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureGroupe;
@@ -21,19 +22,14 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureScolariteRepository::class)]
-#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['scolarite:read']]),
         new GetCollection(normalizationContext: ['groups' => ['scolarite:read']]),
         new GetCollection(
-            uriTemplate: '/etudiant_scolarites/by_etudiant/{etudiantId}',
-            uriVariables: [
-                'etudiantId' => new Link(fromClass: Etudiant::class, identifiers: ['id'], toProperty: 'etudiant')
-            ],
-            paginationEnabled: false,
-            normalizationContext: ['groups' => ['scolarite:read']]
-        ),
+            normalizationContext: ['groups' => ['scolarite:read']],
+            uriTemplate: '/etudiant_scolarites/etudiant/{etudiant}/structureAnneeUniversitaire/{structureAnneeUniversitaire}',
+        )
     ]
 )]
 class EtudiantScolarite

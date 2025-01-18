@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import api from '@helpers/axios';
 import { getEtudiantScolariteActif } from "@requests";
+import { useAnneeUnivStore } from '@stores';
 
 export const useUsersStore = defineStore('users', () => {
     const token = localStorage.getItem('token');
@@ -19,9 +20,12 @@ export const useUsersStore = defineStore('users', () => {
     const departementsPersonnelNotDefaut = ref({});
     const statuts = ref([]);
     const scolariteActif = ref({});
+    const currentAnneeUniv = ref({});
 
     const isLoading = ref(false);
     const isLoaded = ref(false);
+
+    const anneeUnivStore = useAnneeUnivStore();
 
     const getUser = async () => {
         if (isLoaded.value) {
@@ -51,7 +55,10 @@ export const useUsersStore = defineStore('users', () => {
                 departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
             }
             if (userType === 'etudiants') {
-                scolariteActif.value = await getEtudiantScolariteActif(userId);
+                await anneeUnivStore.getCurrentAnneeUniv();
+                currentAnneeUniv.value = anneeUnivStore.anneeUniv;
+
+                scolariteActif.value = await getEtudiantScolariteActif(userId, currentAnneeUniv.value.id);
                 departementDefaut.value = scolariteActif.value[0].departement;
             }
             isLoaded.value = true;
