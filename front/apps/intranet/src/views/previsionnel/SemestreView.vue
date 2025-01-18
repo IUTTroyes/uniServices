@@ -13,7 +13,7 @@ const selectedAnneeUniversitaire = ref(null);
 onMounted(async () => {
   await semestreStore.getSemestresByDepartement(departementId, true);
   semestres.value = semestreStore.semestres;
-  console.log(semestres.value);
+  selectedSemestre.value = semestres.value[0];
 
   await anneeUnivStore.getAllAnneesUniv();
   anneesUniversitaires.value = anneeUnivStore.anneesUniv;
@@ -29,8 +29,14 @@ onMounted(async () => {
   <div class="px-4 py-12">
     <div class="flex justify-between gap-10">
       <div class="flex gap-6 w-1/2">
-        <Select v-model="selectedSemestre" :options="semestres" optionLabel="libelle" placeholder="Sélectionner un semestre" class="w-1/2" />
-        <Select v-model="selectedAnneeUniversitaire" :options="anneesUniversitaires" optionLabel="libelle" placeholder="Sélectionner une année universitaire" class="w-1/2"/>
+        <IftaLabel class="w-1/2">
+        <Select v-model="selectedSemestre" :options="semestres" optionLabel="libelle" placeholder="Sélectionner un semestre" class="w-full"/>
+          <label for="semestre">Semestre</label>
+        </IftaLabel>
+        <IftaLabel class="w-1/2">
+          <Select v-model="selectedAnneeUniversitaire" :options="anneesUniversitaires" optionLabel="libelle" placeholder="Sélectionner une année universitaire" class="w-full"/>
+          <label for="anneeUniversitaire">Année universitaire</label>
+        </IftaLabel>
       </div>
       <Button label="Saisir le prévisionnel" icon="pi pi-plus" />
     </div>
