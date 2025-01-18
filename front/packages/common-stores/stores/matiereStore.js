@@ -15,6 +15,9 @@ export const useMatieresStore = defineStore('matieres', () => {
     }
   }
 
+  const getMatieresSemestre = async (semestreId) => {
+  //   todo: requête pour récupérer les matières d'un semestre -> via le pn ?
+  }
 
   // const addMatiere = async (matiere) => {
   //   try {

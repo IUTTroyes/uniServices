@@ -15,7 +15,7 @@ class SemestresFilter extends AbstractFilter
 {
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
-        if (('diplome' !== $property && 'departement' !== $property) || null === $value) {
+        if (('diplome' !== $property && 'departement' !== $property) && 'actifs' !== $property || null === $value) {
             return;
         }
 
@@ -37,6 +37,11 @@ class SemestresFilter extends AbstractFilter
                 ->setParameter('departement', $value)
                 ->orderBy(sprintf('%s.ordreLmd', $alias), 'ASC')
                 ->addOrderBy(sprintf('%s.libelle', $alias), 'ASC')
+            ;
+        } else if ('actif' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.actif = :actif', $alias))
+                ->setParameter('actif', $value)
             ;
         }
     }

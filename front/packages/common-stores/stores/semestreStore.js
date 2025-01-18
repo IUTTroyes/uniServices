@@ -1,17 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import api from '@helpers/axios';
+import { getServiceSemestre, getServiceSemestres, getServiceDepartementSemestres } from "@requests";
 
 export const useSemestreStore = defineStore('semestre', () => {
 
   const semestre = ref({});
   const semestres = ref({});
+
   const getSemestre = async (semestreId) => {
     try {
-      const response = await api.get(`/api/structure_semestres/${semestreId}`);
-      semestre.value = response.data;
-
-      return semestre.value
+      semestre.value = await getServiceSemestre(semestreId);
     } catch (error) {
       console.error('Error fetching user:', error);
     }
@@ -19,10 +18,7 @@ export const useSemestreStore = defineStore('semestre', () => {
 
   const getSemestres = async () => {
     try {
-      const response = await api.get(`/api/structure_semestres/`);
-      semestres.value = response.data;
-
-      return semestres.value
+      semestres.value = await getServiceSemestres();
     } catch (error) {
       console.error('Error fetching user:', error);
     }
@@ -38,13 +34,10 @@ export const useSemestreStore = defineStore('semestre', () => {
     }
   };
 
-  const getSemestresByDepartement = async (departementId, onlyActif = true) => {
+  const getSemestresByDepartement = async (departementId, onlyActif) => {
     try {
-      const response = await api.get(`/api/structure_semestres?departement=${departementId}`);
-      semestres.value = await response.data;
-      console.log(semestres.value)
-
-      return semestres.value
+      semestres.value = await getServiceDepartementSemestres(departementId, onlyActif);
+      console.log(semestres.value);
     } catch (error) {
       console.error('Error fetching user:', error);
     }
