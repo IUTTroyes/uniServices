@@ -26,7 +26,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['scolarite:read']]),
         new GetCollection(normalizationContext: ['groups' => ['scolarite:read']]),
-        new GetCollection(
+        new Get(
             normalizationContext: ['groups' => ['scolarite:read']],
             uriTemplate: '/etudiant_scolarites/etudiant/{etudiant}/structureAnneeUniversitaire/{structureAnneeUniversitaire}',
         )
@@ -103,6 +103,7 @@ class EtudiantScolarite
      * @var Collection<int, EtudiantScolariteSemestre>
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'etudiantScolarite')]
+    #[Groups(['scolarite:read'])]
     private Collection $scolarite_semestre;
 
     public function __construct()

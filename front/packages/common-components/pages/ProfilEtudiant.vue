@@ -7,6 +7,18 @@ const user = computed(() => userStore.user);
 const userPhoto = computed(() => userStore.userPhoto);
 const scolariteActif = computed(() => userStore.scolariteActif);
 
+const annees = computed(() => {
+  return scolariteActif.value.scolarite_semestre.map(semestre => semestre.structure_semestre.annee.libelle);
+});
+
+const semestres = computed(() => {
+  return scolariteActif.value.scolarite_semestre.map(semestre => semestre.structure_semestre.libelle);
+});
+
+const groupes = computed(() => {
+  return scolariteActif.value.groupes.map(groupe => groupe.libelle);
+});
+
 const redirectTo = (link) => {
   window.open(link, '_blank');
 };
@@ -36,9 +48,9 @@ const redirectTo = (link) => {
                     <div class="title text text-2xl font-bold">
                       <span v-if="user">{{ user.prenom }} {{ user.nom }}</span>
                     </div>
-                    <Tag v-if="scolariteActif.semestres" v-for="semestre in scolariteActif.semestres" :value="semestre.annee.libelle" severity="primary" rounded/>
-                    <Tag v-if="scolariteActif.semestres" v-for="semestre in scolariteActif.semestres" :value="semestre.libelle" severity="info" rounded/>
-                    <Tag v-if="scolariteActif.groupes" v-for="groupe in scolariteActif.groupes" :value="groupe.libelle" severity="secondary" rounded/>
+                    <Tag v-for="annee in annees" :key="annee" :value="annee" severity="primary" rounded/>
+                    <Tag v-for="semestre in semestres" :key="semestre" :value="semestre" severity="info" rounded/>
+                    <Tag v-for="groupe in groupes" :key="groupe" :value="groupe" severity="secondary" rounded/>
                   </div>
                   <div class="text-sm opacity-80 pt-1 flex flex-row w-full flex-wrap gap-2">
                     <span v-if="user && user.tel1">tél. : {{user.tel1}} </span>

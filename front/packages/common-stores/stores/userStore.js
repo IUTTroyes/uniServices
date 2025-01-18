@@ -59,7 +59,7 @@ export const useUsersStore = defineStore('users', () => {
                 currentAnneeUniv.value = anneeUnivStore.anneeUniv;
 
                 scolariteActif.value = await getEtudiantScolariteActif(userId, currentAnneeUniv.value.id);
-                departementDefaut.value = scolariteActif.value[0].departement;
+                departementDefaut.value = scolariteActif.value.departement;
             }
             isLoaded.value = true;
         } catch (error) {

@@ -8,6 +8,7 @@ use App\Repository\EtudiantScolariteSemestreRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantScolariteSemestreRepository::class)]
 #[ApiResource]
@@ -20,6 +21,7 @@ class EtudiantScolariteSemestre
 
     #[ORM\ManyToOne(inversedBy: 'etudiantScolariteSemestre', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['scolarite:read'])]
     private ?StructureSemestre $structure_semestre = null;
 
     /**
