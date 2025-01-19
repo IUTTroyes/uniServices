@@ -15,34 +15,11 @@ export default function useProgressions () {
     }
   }
 
-  const addProgression = async (progression) => {
-    console.log('adding progression')
-    try {
-      const response = await api.post(
-        '/api/edt_progressions',
-        progression,
-        { headers: { 'Content-Type': 'application/ld+json' } })
-      progressions.value.push(response.data)
-    } catch (error) {
-      console.error('Error adding progression:', error)
-    }
-  }
-
-  const duplicateProgression = async (progression) => {
-    try {
-      const response = await api.post(
-        `/api/edt_progressions/${progression.id}/duplicate`,
-        {},)
-      progressions.value.push(response.data)
-    } catch (error) {
-      console.error('Error adding progression:', error)
-    }
-  }
-
   const updateProgression = async (progression) => {
     console.log('updating progression')
+    console.log(progression)
     try {
-      await api.put(`/api/edt_progressions/${progression.id}`, progression, { headers: { 'Content-Type': 'application/ld+json' } })
+      await api.put(`/api/edt_progressions/${progression.progression.id}`, progression.progression, { headers: { 'Content-Type': 'application/ld+json' } })
     } catch (error) {
       console.error('Error updating progression:', error)
     }
@@ -61,9 +38,7 @@ export default function useProgressions () {
   return {
     progressions,
     fetchProgressions,
-    addProgression,
     updateProgression,
-    duplicateProgression,
     deleteProgression
   }
 }
