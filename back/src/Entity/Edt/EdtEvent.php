@@ -2,6 +2,7 @@
 
 namespace App\Entity\Edt;
 
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
@@ -10,19 +11,24 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\EduSignTrait;
+use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\Edt\EdtEventRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Uid\UuidV4;
 
 #[ApiResource(
 )]
 #[ApiFilter(SearchFilter::class, properties: ['semaineFormation' => 'exact', 'personnel' => 'exact'])]
+#[ApiFilter(BooleanFilter::class, properties: ['aPlacer'])]
 #[ORM\Entity(repositoryClass: EdtEventRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 class EdtEvent
 {
     use UuidTrait;
+    use LifeCycleTrait;
     use EduSignTrait;
 
     #[ORM\Id]
@@ -66,9 +72,6 @@ class EdtEvent
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $libModule = null;
 
-    #[ORM\Column(length: 15, nullable: true)]
-    private ?string $typeMatiere = null;
-
     #[ORM\ManyToOne(inversedBy: 'scolEdtEvents')]
     private ?StructureGroupe $groupe = null;
 
@@ -101,6 +104,16 @@ class EdtEvent
 
     #[ORM\Column]
     private bool $evaluation = false;
+
+    #[ORM\Column]
+    private ?bool $aPlacer = true;
+
+    #[ORM\Column(nullable: true)]
+    private ?int $ordreSeance = null;
+
+    public function __construct() {
+        $this->uuid = new UuidV4();
+    }
 
     public function getId(): ?int
     {
@@ -379,6 +392,30 @@ class EdtEvent
     public function setEvaluation(bool $evaluation): static
     {
         $this->evaluation = $evaluation;
+
+        return $this;
+    }
+
+    public function isAPlacer(): ?bool
+    {
+        return $this->aPlacer;
+    }
+
+    public function setAPlacer(bool $aPlacer): static
+    {
+        $this->aPlacer = $aPlacer;
+
+        return $this;
+    }
+
+    public function getOrdreSeance(): ?int
+    {
+        return $this->ordreSeance;
+    }
+
+    public function setOrdreSeance(?int $ordreSeance): static
+    {
+        $this->ordreSeance = $ordreSeance;
 
         return $this;
     }

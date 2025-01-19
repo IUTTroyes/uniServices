@@ -31,6 +31,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(PrevisionnelFilter::class)]
 class Previsionnel
 {
+    public const DUREE_SEANCE = 1.5;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -77,11 +79,11 @@ class Previsionnel
     #[Groups(['previsionnel:read'])]
     private ?ScolEnseignement $matiere = null;
 
-    #[ORM\OneToOne(cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(cascade: ['persist', 'remove'], fetch: 'EAGER')]
     #[Groups(['previsionnel:read'])]
     private ?EdtProgression $progression = null;
 
-    #[ORM\ManyToOne(inversedBy: 'previsionnels')]
+    #[ORM\ManyToOne()]
     #[Groups(['previsionnel:read'])]
     private ?StructureSemestre $semestre = null;
 
@@ -232,5 +234,23 @@ class Previsionnel
         $this->semestre = $semestre;
 
         return $this;
+    }
+
+    #[Groups(['previsionnel:read'])]
+    public function getNbSeanceCm(): ?float
+    {
+        return $this->nbHCm / self::DUREE_SEANCE;
+    }
+
+    #[Groups(['previsionnel:read'])]
+    public function getNbSeanceTd(): ?float
+    {
+        return $this->nbHTd / self::DUREE_SEANCE;
+    }
+
+    #[Groups(['previsionnel:read'])]
+    public function getNbSeanceTp(): ?float
+    {
+        return $this->nbHTp / self::DUREE_SEANCE;
     }
 }

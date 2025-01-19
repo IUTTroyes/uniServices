@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Controller;
+namespace App\Controller\Edt;
 
 use App\Entity\Edt\EdtContraintesSemestre;
 use App\Repository\Edt\EdtContraintesSemestreRepository;
@@ -52,7 +52,7 @@ class EdtCalendrierContraintesController extends AbstractController
         }
 
         $tContraintes = $contraintes->getContraintes() ?? [];
-        $tContraintes[$semaine->getSemaineFormation()] = ['type' => $data['contrainte']];
+        $tContraintes[$semaine->getId()] = ['type' => $data['contrainte']];
         $contraintes->setContraintes($tContraintes);
 
         $entityManager->flush();

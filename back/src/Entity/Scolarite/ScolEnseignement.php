@@ -350,18 +350,6 @@ class ScolEnseignement
         return $this;
     }
 
-    public function getScolEnseignement(): ?self
-    {
-        return $this->scolEnseignement;
-    }
-
-    public function setScolEnseignement(?self $scolEnseignement): static
-    {
-        $this->scolEnseignement = $scolEnseignement;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, self>
      */

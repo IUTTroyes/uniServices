@@ -2,7 +2,6 @@
 
 namespace App\Controller\Edt;
 
-use App\Entity\Edt\EdtProgression;
 use App\Repository\Edt\EdtProgressionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
