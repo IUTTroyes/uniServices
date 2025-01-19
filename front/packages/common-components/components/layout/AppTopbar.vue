@@ -50,7 +50,6 @@ const fetchData = async () => {
       } else {
         deptItems.value = [];
         departementLabel.value = userStore.departementDefaut.libelle;
-        console.log('departementLabel', departementLabel.value);
       }
     }
   } catch (error) {

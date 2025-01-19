@@ -59,6 +59,8 @@ class StructureUe
     #[Groups(['semestre:read:full'])]
     private Collection $scolEnseignementUes;
 
+    // todo: add coeff. ?
+
     public function __construct()
     {
         $this->scolEnseignementUes = new ArrayCollection();

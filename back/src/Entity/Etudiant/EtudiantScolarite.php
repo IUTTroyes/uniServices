@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureGroupe;
@@ -21,19 +22,14 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureScolariteRepository::class)]
-#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['scolarite:read']]),
         new GetCollection(normalizationContext: ['groups' => ['scolarite:read']]),
-        new GetCollection(
-            uriTemplate: '/etudiant_scolarites/by_etudiant/{etudiantId}',
-            uriVariables: [
-                'etudiantId' => new Link(fromClass: Etudiant::class, identifiers: ['id'], toProperty: 'etudiant')
-            ],
-            paginationEnabled: false,
-            normalizationContext: ['groups' => ['scolarite:read']]
-        ),
+        new Get(
+            normalizationContext: ['groups' => ['scolarite:read']],
+            uriTemplate: '/etudiant_scolarites/etudiant/{etudiant}/structureAnneeUniversitaire/{structureAnneeUniversitaire}',
+        )
     ]
 )]
 class EtudiantScolarite
@@ -103,12 +99,17 @@ class EtudiantScolarite
     #[Groups(['scolarite:read'])]
     private ?StructureDepartement $departement = null;
 
-    #[ORM\OneToOne(mappedBy: 'etudiant_scolarite', cascade: ['persist', 'remove'])]
-    private ?EtudiantScolariteSemestre $etudiantScolariteSemestre = null;
+    /**
+     * @var Collection<int, EtudiantScolariteSemestre>
+     */
+    #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'etudiantScolarite')]
+    #[Groups(['scolarite:read'])]
+    private Collection $scolarite_semestre;
 
     public function __construct()
     {
         $this->groupes = new ArrayCollection();
+        $this->scolarite_semestre = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -272,19 +273,32 @@ class EtudiantScolarite
         return $this;
     }
 
-    public function getEtudiantScolariteSemestre(): ?EtudiantScolariteSemestre
+    /**
+     * @return Collection<int, EtudiantScolariteSemestre>
+     */
+    public function getScolariteSemestre(): Collection
     {
-        return $this->etudiantScolariteSemestre;
+        return $this->scolarite_semestre;
     }
 
-    public function setEtudiantScolariteSemestre(EtudiantScolariteSemestre $etudiantScolariteSemestre): static
+    public function addScolariteSemestre(EtudiantScolariteSemestre $scolariteSemestre): static
     {
-        // set the owning side of the relation if necessary
-        if ($etudiantScolariteSemestre->getEtudiantScolarite() !== $this) {
-            $etudiantScolariteSemestre->setEtudiantScolarite($this);
+        if (!$this->scolarite_semestre->contains($scolariteSemestre)) {
+            $this->scolarite_semestre->add($scolariteSemestre);
+            $scolariteSemestre->setEtudiantScolarite($this);
         }
 
-        $this->etudiantScolariteSemestre = $etudiantScolariteSemestre;
+        return $this;
+    }
+
+    public function removeScolariteSemestre(EtudiantScolariteSemestre $scolariteSemestre): static
+    {
+        if ($this->scolarite_semestre->removeElement($scolariteSemestre)) {
+            // set the owning side to null (unless already changed)
+            if ($scolariteSemestre->getEtudiantScolarite() === $this) {
+                $scolariteSemestre->setEtudiantScolarite(null);
+            }
+        }
 
         return $this;
     }

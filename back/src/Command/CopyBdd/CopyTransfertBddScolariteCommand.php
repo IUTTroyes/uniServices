@@ -153,7 +153,6 @@ FOREIGN_KEY_CHECKS=1');
                         $etudiantScolariteSemestre->setEtudiantScolarite($scolarite);
                         $etudiantScolariteSemestre->setStructureSemestre($semestre);
                         $this->entityManager->persist($etudiantScolariteSemestre);
-                        break;
                     }
                 }
 

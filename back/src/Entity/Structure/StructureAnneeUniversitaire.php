@@ -2,6 +2,8 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -23,6 +25,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureAnneeUniversitaireRepository::class)]
+#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['structure_annee_universitaire:read']]),
