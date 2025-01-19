@@ -7,6 +7,7 @@ import useProgressions from '@/service/useProgressions.js'
 import { useWeeksStore } from '@/stores/weeksStore.js'
 import { formatDateCourt } from '@helpers/date.js'
 import { getPersonnelsDepartement } from '@requests/user_services/personnelService.js'
+import api from '@helpers/axios.js'
 
 const matieresStore = useMatieresStore()
 const { progressions, fetchProgressions, updateProgression } = useProgressions()
@@ -16,7 +17,6 @@ const personnels = ref([])
 const weeks = ref([])
 const semestres = ref([])
 const semesterFilter = ref('')
-const parcoursFilter = ref('')
 const searchFilter = ref('')
 const professorFilter = ref('')
 const subjectFilter = ref('')
@@ -66,28 +66,37 @@ const sortProgressions = () => {
 }
 
 const isWeekRestricted = (semestre, week) => {
+  // console.log(semestre)
+  // console.log(week)
   // semestre est une IRI, récupérer l'objet depuis semestresStores.semestres
   semestre = semestres.value.find((s) => s['@id'] === semestre)
-
   let restrictedSlots = {}
-  restrictedSlots = week.edtCreneauxInterditsSemaines
-
-  if (!semestre || !restrictedSlots[semestre.nom]) return false
-  return true
+  semestre.edtContraintesSemestres.forEach((data) => {
+    const contraintes = data.contraintes
+    Object.entries(contraintes).forEach(([weekId, contrainte]) => {
+      console.log(weekId)
+      if (parseInt(weekId) === week.id) {
+        restrictedSlots = contrainte.type
+      }
+    })
+  })
+//cumuler avec les contraintes des Week ? ou plus nécessaire
+  // si 'vacances' ou 'entreprise' ou 'SAE' ou 'contraintes' alors true
+  return restrictedSlots === 'vacances' || restrictedSlots === 'entreprise'
 }
 
-// const updateProgression = async (row) => {
-//   try {
-//     await updateProgression(row)
-//   } catch (error) {
-//     console.error('Error updating progression:', error)
-//   }
-// }
+const updateProgressionWeek = async (row, week) => {
+  try {
+    toUpperCase(row, week)
+    await updateProgression(row)
+  } catch (error) {
+    console.error('Error updating progression:', error)
+  }
+}
 
 const isOkRow = (row) => {
-  if (!row.progression) return false
-  if (row.nbCm === 0 && row.nbTd === 0 && row.nbTp === 0) return false
-
+  if (!row.progression.progression) return false
+  if (row.nbSeanceCm === 0 && row.nbSeanceTd === 0 && row.nbSeanceTp === 0) return false
   // vérifier si sur les semaines, il y a l'ensemble des séances de CM, TD et TP de planifiées
   let cmSessions = 0
   let tdSessions = 0
@@ -98,7 +107,7 @@ const isOkRow = (row) => {
   let sessionsTP = []
 
   // Iterate over each session in the progression array
-  row.progression.forEach((session) => {
+  row.progression.progression.forEach((session) => {
     if (session) {
       session.split(' ').forEach((type) => {
         if (type.includes('CM')) {
@@ -123,7 +132,7 @@ const isOkRow = (row) => {
     return false
 
   // vérification
-  return cmSessions === row.nbCm && tdSessions === row.nbTd && tpSessions === row.nbTp
+  return cmSessions === row.nbSeanceCm && tdSessions === row.nbSeanceTd && tpSessions === row.nbSeanceTp
 }
 
 const isSequential = (sessions) => {
@@ -142,19 +151,20 @@ const isSequential = (sessions) => {
 }
 
 const sumColumn = (type) => {
-  return progressions.value.reduce((sum, row) => sum + row[`nb${type}`], 0)
+  return progressions.value.reduce((sum, row) => sum + row[`nbSeance${type}`], 0)
 }
 
 const toUpperCase = (row, week) => {
+  console.log('week', week)
+  console.log('row', row.progression.progression[week])
   // uniquement si row.progression[week] est non null
-  if (row.progression[week]) {
-    row.progression[week] = row.progression[week].toUpperCase()
+  if (row.progression.progression[week]) {
+    row.progression.progression[week] = row.progression.progression[week].toUpperCase()
   }
 }
 
 const clearFilters = () => {
   semesterFilter.value = ''
-  parcoursFilter.value = ''
   professorFilter.value = ''
   subjectFilter.value = ''
   searchFilter.value = ''
@@ -169,25 +179,26 @@ const filteredProgressions = computed(() => {
   return progressions.value.filter((row) => {
     const matchesSemester =
         semesterFilter.value === '' || row.semestre.includes(semesterFilter.value)
-    const matchesParcours =
-        parcoursFilter.value === '' || row.parcours.includes(parcoursFilter.value)
     const matchesProfessor =
         professorFilter.value === '' || row.personnel.includes(professorFilter.value)
     const matchesSubject =
+        subjectFilter.value === '' || row.matiere.includes(subjectFilter.value)
         subjectFilter.value === '' ||
         (typeof row.matiere !== 'undefined' && row.matiere.includes(subjectFilter.value))
     const matchesSearch =
         searchFilter.value === '' ||
         Object.values(row).some((value) => value.toString().includes(searchFilter.value))
-    return matchesSemester && matchesParcours && matchesProfessor && matchesSubject && matchesSearch
+    return matchesSemester && matchesProfessor && matchesSubject && matchesSearch
   })
 })
 
 const generateSlots = async () => {
   if (confirm('Vous êtes sûr de vouloir générer les créneaux ?')) {
     try {
-      await useProgressions.generateSlots()
-      alert('Les créneaux ont été générés avec succès.')
+      const reponse = await api.post('/api/edt_genere_slots')
+      console.log(reponse)
+      //todo: récupérer le nb de créneaux générés
+      alert(reponse.data.message)
     } catch (error) {
       console.error('Error generating slots:', error)
       alert('Une erreur est survenue lors de la génération des créneaux.')
@@ -205,13 +216,9 @@ const generateSlots = async () => {
         filter
         :options="semestres"
         optionLabel="libelle"
-        optionValue="id"
+        optionValue="@id"
         placeholder="Choisir un semestre"
       />
-    </div>
-    <div class="col-2">
-      <label for="parcoursFilter">Parcours</label><br />
-      <InputText id="parcoursFilter" v-model="parcoursFilter" placeholder="Filtrer par parcours" />
     </div>
     <div class="col-2">
       <label for="professorFilter">Professeur</label><br />
@@ -336,19 +343,19 @@ const generateSlots = async () => {
             </select>
           </td>
           <td class="fixed-column" style="width: 50px">
-            <input type="number" v-model.lazy="row.nbCm" @change="updateProgression(row)" />
+            {{ row.nbSeanceCm }}
           </td>
           <td class="fixed-column" style="width: 100px">
-            <input type="number" v-model.lazy="row.nbTd" @change="updateProgression(row)" />
+            {{ row.nbSeanceTd }}
           </td>
           <td class="fixed-column">
-            <input type="text" v-model.lazy="row.grTd" @change="updateProgression(row)" />
+            <input type="text" v-model.lazy="row.progression.grTd" @change="updateProgression(row)" />
           </td>
           <td class="fixed-column" style="width: 100px">
-            <input type="number" v-model.lazy="row.nbTp" @change="updateProgression(row)" />
+            {{ row.nbSeanceTp }}
           </td>
           <td class="fixed-column">
-            <input type="text" v-model.lazy="row.grTp" @change="updateProgression(row)" />
+            <input type="text" v-model.lazy="row.progression.grTp" @change="updateProgression(row)" />
           </td>
           <td class="fixed-column">
             <Tag v-if="isOkRow(row)" severity="success" value="OK"></Tag>
@@ -361,17 +368,15 @@ const generateSlots = async () => {
           >
             <input
               type="text"
-              v-model.lazy="row.progression[week.semaineFormation]"
+              v-model.lazy="row.progression.progression[week.semaineFormation]"
               v-if="!isWeekRestricted(row.semestre, week)"
-              @input="toUpperCase(row, week.semaineFormation)"
-              @change="updateProgression(row)"
+              @change="updateProgressionWeek(row, week.semaineFormation)"
             />
           </td>
         </tr>
       </tbody>
       <tfoot>
         <tr>
-          <td class="fixed-column"></td>
           <td class="fixed-column"></td>
           <td class="fixed-column"></td>
           <td class="fixed-column">Total</td>

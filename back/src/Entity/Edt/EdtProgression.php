@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Repository\Edt\EdtProgressionRepository;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EdtProgressionRepository::class)]
 // ajouter une option de type Post qui va dupliquer une ressource sur l'URL /edt_progressions/{id}/duplicate
@@ -18,11 +19,6 @@ use Doctrine\ORM\Mapping as ORM;
     operations: [
         new GetCollection(),
         new Post(),
-        new Post(
-            name: 'duplicate',
-            uriTemplate: '/edt_progressions/{id}/duplicate',
-            controller: 'App\Controller\Edt\DuplicateEdtProgressionController',
-        ),
         new Get(),
         new Put(),
         new Delete(),
@@ -33,15 +29,19 @@ class EdtProgression
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['previsionnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['previsionnel:read'])]
     private ?array $progression = null;
 
     #[ORM\Column]
+    #[Groups(['previsionnel:read'])]
     private ?string $grTd = '';
 
     #[ORM\Column]
+    #[Groups(['previsionnel:read'])]
     private ?string $grTp = '';
 
     public function getId(): ?int
@@ -69,6 +69,18 @@ class EdtProgression
     public function setGrTp(string $grTp): static
     {
         $this->grTp = $grTp;
+
+        return $this;
+    }
+
+    public function getProgression(): ?array
+    {
+        return $this->progression ?? [];
+    }
+
+    public function setProgression(array $progression): static
+    {
+        $this->progression = $progression;
 
         return $this;
     }

@@ -120,6 +120,8 @@ class StructureSemestre
     #[ORM\OneToMany(mappedBy: 'structure_semestre', targetEntity: EtudiantScolariteSemestre::class, cascade: ['persist'])]
     private Collection $etudiantScolariteSemestre;
 
+
+
     public function __construct()
     {
         $this->structureGroupes = new ArrayCollection();

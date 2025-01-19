@@ -6,6 +6,7 @@ import { formatDateCourt } from '@helpers/date.js'
 import api from '@helpers/axios.js'
 import { useSemestreStore } from '@stores'
 import Card from '@components/components/Card.vue'
+import { count } from 'rxjs'
 
 const weeks = ref([]) // This will hold the available weeks
 const semestres = ref([]) // This will hold the available semestres
@@ -64,6 +65,21 @@ const updateContrainte = async (weekId, semestreId) => {
   })
 
 }
+
+const calculateNbSemaines = (semestreId) => {
+  let nbWeek = 0
+  Object.entries(selectedValues.value).forEach(week => {
+    console.log(week)
+
+    console.log(parseInt(week[0].split('-')[1]))
+    console.log(semestreId)
+    if (parseInt(week[0].split('-')[1]) === semestreId) {
+      nbWeek++
+    }
+  })
+
+  return weeks.value.length - nbWeek
+}
 </script>
 
 <template>
@@ -80,12 +96,22 @@ const updateContrainte = async (weekId, semestreId) => {
         <th
             v-for="semestre in semestres"
             :key="semestre.id"
-            class="border border-slate-600">{{ semestre.libelle }}</th>
+            class="border border-slate-600">{{ semestre.libelle }}
+        </th>
+      </tr>
+      <tr>
+        <th colspan="2" class="border border-slate-600">Nb semaines</th>
+        <th
+            v-for="semestre in semestres"
+            :key="semestre.id"
+            class="border border-slate-600">
+          {{ calculateNbSemaines(semestre.id) }} libre(s)
+        </th>
       </tr>
       </thead>
       <tbody>
       <tr v-for="week in weeks" :key="week.id">
-        <td class="border border-slate-700">{{ week.id }}</td>
+        <td class="border border-slate-700">{{ week.semaineFormation }}</td>
         <td class="border border-slate-700">{{ formatDateCourt(week.dateLundi) }}</td>
         <td
             v-for="semestre in semestres"

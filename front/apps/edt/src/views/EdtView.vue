@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
-import { useProfesseursStore, useSemestreStore, useMatieresStore } from '@stores'
+import { onMounted, ref, computed, isProxy, toRaw } from 'vue'
+import { useSemestreStore, useMatieresStore } from '@stores'
 import SelectWeek from '@/components/SelectWeek.vue'
 import api from '@helpers/axios.js'
 import Card from '@components/components/Card.vue'
@@ -16,7 +16,7 @@ const selectedSemester = ref('')
 const selectedProfessor = ref('')
 const selectedCourse = ref('')
 const selectedGroup = ref('')
-const availableCourses = ref([])
+const availableCourses = ref({})
 const restrictedSlots = ref([])
 const currentWeek = ref(null)
 const selectedHighlightType = ref('course') // 'course' or 'professor'
@@ -41,7 +41,6 @@ const modalCourse = ref({
 })
 
 const handleWeekUpdate = (week) => {
-  console.log('week change', week)
   currentWeek.value = week
   loadWeek()
 }
@@ -116,7 +115,7 @@ const toggleSidebar = () => {
 const placedCourses = ref({})
 
 const filteredCourses = computed(() => {
-  if (Object.values(availableCourses.value).length === 0) {
+  if (availableCourses.value.length === 0) {
     return []
   }
 
@@ -137,20 +136,22 @@ const displayCourse = (course) => {
   return `${course.matiere} <br> ${course.professor} <br>`
 }
 
-const displayCourseListe = (course) => {
-  let groupe = ''
-  if (course.groupCount === 1) {
-    groupe = 'TP ' + String.fromCharCode(64 + course.groupIndex)
-  } else if (course.groupCount === 2) {
-    groupe =
-        'TD ' +
-        String.fromCharCode(64 + course.groupIndex) +
-        String.fromCharCode(65 + course.groupIndex)
-  } else {
-    groupe = 'CM'
+const groupeSize = (course) => {
+  switch (course.type) {
+    case 'CM':
+      return 8//groupData.value[semestre.id] //todo: doit dépendre du CM ou ajouter une entrée/propriété dans la base de données
+    case 'TD':
+      return 2
+    case 'TP':
+      return 1
+    default:
+      return 1
   }
+}
+const displayCourseListe = (course) => {
+  let groupe = course.type + ' ' + course.libGroupe
 
-  return `${course.matiere} <br> ${course.professor} <br> ${course.group} <br> ${groupe}`
+  return `${course.libModule.trim()} <br> ${course.libPersonnel.trim()} <br> ${groupe.trim()}`
 }
 
 const resetFilters = () => {
@@ -164,23 +165,20 @@ const _getSemaines = async (currentWeek) => {
   const data = await api.get(`/api/structure_calendriers?semaineFormation=${currentWeek}`).then((res) =>
       res.data['member'][0]
   )
-  console.log(data)
   restrictedSlots.value = data.edtCreneauxInterditsSemaines
   //parcours les jours de data et les transforme en objet
   days.value = Object.keys(data.jours).map((key) => {
     return { day: jourDate(data.jours[key]), dateFr: formatDateCourt(data.jours[key]) }
   })
 
-  console.log(days.value)
-
-  placedCourses.value = await api.get(`/api/edt_events?semaine=${currentWeek}`).then((res) =>
+  placedCourses.value = await api.get(`/api/edt_events?semaineFormation=${currentWeek}&aPlacer=false`).then((res) =>
       res.data
   )
 
   Object.keys(placedCourses.value).forEach(async (key) => {
     const course = await placedCourses.value[key]
     if (course.blocked === false) {
-      mergeCells(course.day, course.time, course.group, course.groupIndex, course.groupCount)
+      mergeCells(course.day, course.time, course.group, course.groupIndex, groupeSize(course))
     }
   })
 
@@ -188,14 +186,13 @@ const _getSemaines = async (currentWeek) => {
 }
 
 const _getCours = async (numSemaine) => {
-  availableCourses.value = await api.get(`/api/edt_progressions?semaine=${numSemaine}`).then((res) =>
-      res.data
-  )
+  const res = await api.get(`/api/edt_events?semaineFormation=${numSemaine}&aPlacer=true`)
+  availableCourses.value = await res.data['member']
+  console.log(availableCourses.value)
 }
 
 const loadWeek = async () => {
   try {
-    console.log(currentWeek.value)
     if (currentWeek.value === undefined) {
       return
     }
@@ -217,7 +214,7 @@ const verifyAndResetGrid = () => {
           course.time,
           course.group,
           course.groupIndex,
-          course.groupCount,
+          groupeSize(course),
           true
       )
     }
@@ -232,7 +229,7 @@ const loadPreviousWeek = () => {
 }
 
 const loadNextWeek = () => {
-  currentWeek.value += 1
+  currentWeek.value += 1//todo: currentWeel est un objet
   loadWeek()
 }
 
@@ -263,7 +260,7 @@ const handleDropFromAvailableCourses = (courseId, day, time, semestre, groupNumb
   const course = availableCourses.value[courseIndex]
 
   if (course && course.group === semestre && course.groupIndex === groupNumber) {
-    const groupSpan = course.groupCount
+    const groupSpan = groupeSize(course)
 
     if (groupNumber <= groupData.value[semestre].length - groupSpan + 1) {
       mergeCells(day, time, semestre, groupNumber, groupSpan)
@@ -299,7 +296,7 @@ const handleDropFromGrid = (courseId, day, time, semestre, groupNumber, originSl
   const course = placedCourses.value[originSlot]
 
   if (course && course.group === semestre && course.groupIndex === groupNumber) {
-    const groupSpan = course.groupCount
+    const groupSpan = groupeSize(course)
 
     if (groupNumber <= groupData.value[semestre].length - groupSpan + 1) {
       removeCourse(
@@ -307,7 +304,7 @@ const handleDropFromGrid = (courseId, day, time, semestre, groupNumber, originSl
           course.time,
           course.group,
           course.groupIndex,
-          course.groupCount,
+          groupeSize(course),
           true
       )
       mergeCells(day, time, semestre, groupNumber, groupSpan)
@@ -420,11 +417,9 @@ const applyRestrictions = () => {
     })
   })
 
-  console.log(restrictedSlots.value)
   Object.keys(restrictedSlots.value).forEach((key) => {
     restrictedSlots.value[key].forEach((slot) => {
       const { type, slot: timeSlot, semester, days, groups, period, motif } = slot
-      console.log(days)
       days.forEach((day) => {
         if (type === 'generic') {
           // dans ce cas tous les semestres, tous les groupes
@@ -459,8 +454,6 @@ const applyRestrictions = () => {
               })
             })
           } else {
-            console.log(key)
-            console.log(groupData.value)
             times.forEach((time) => {
               groupData.value[key].forEach((groupNumber) => {
                 blockSlot(day, time, key, groupToInt(groupNumber), motif)
@@ -485,7 +478,11 @@ const isProfessorAvailable = (professor, day, time) => {
 }
 
 const highlightValidCells = (course) => {
-  const { group, groupIndex, groupCount, professor } = course
+  const group = course.groupe
+  const groupIndex = course.indexGroupe
+  const groupCount = groupeSize(course)
+  const professor = course.personnel
+
   const professorConstraints = constraints.value[professor] || { mandatory: [], optional: [] }
 
   days.value.forEach((day) => {
@@ -500,6 +497,7 @@ const highlightValidCells = (course) => {
 
       for (let i = 0; i < groupCount; i++) {
         const cellKey = `${day.day}_${time}_${group}_${groupIndex + i}`
+        console.log(cellKey)
         const cell = document.querySelector(`[data-key="${cellKey}"]`)
 
         if (cell && !placedCourses.value[cellKey]) {
@@ -754,8 +752,7 @@ const getTitleCard = () => {
                       time,
                       semestre.libelle,
                       groupToInt(group),
-                      placedCourses[`${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`]
-                        .groupCount
+                      groupeSize(placedCourses[`${day.day}_${time}_${semestre.libelle}_${groupToInt(group)}`])
                     )
                   "
                 >
@@ -836,8 +833,8 @@ const getTitleCard = () => {
           :key="course.id"
           class="list-group-item grid-item-available"
           :style="{
-          gridColumn: `span ${course.groupCount}`,
-          backgroundColor: course.color,
+          gridColumn: `span ${groupeSize(course)}`,
+          backgroundColor: course.couleur,
           cursor: 'move'
         }"
           draggable="true"
@@ -855,7 +852,7 @@ const getTitleCard = () => {
           v-for="course in coursesToReplace"
           :key="course.id"
           class="list-group-item grid-item-replace"
-          :style="{ backgroundColor: course.color }"
+          :style="{ backgroundColor: course.couleur }"
       >
         <span v-html="displayCourseListe(course)" class="course-replace"></span>
         <span>Semaine d'origine: {{ course.originalWeek }}</span>
