@@ -37,7 +37,6 @@ export const useSemestreStore = defineStore('semestre', () => {
   const getSemestresByDepartement = async (departementId, onlyActif) => {
     try {
       semestres.value = await getServiceDepartementSemestres(departementId, onlyActif);
-      console.log(semestres.value);
     } catch (error) {
       console.error('Error fetching user:', error);
     }

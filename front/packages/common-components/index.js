@@ -4,6 +4,9 @@ import FooterComponent from './components/layout/AppFooter.vue';
 import TopbarComponent from './components/layout/AppTopbar.vue';
 import ProfilPersonnelComponent from "./pages/ProfilPersonnel.vue";
 import ProfilEtudiantComponent from "@components/pages/ProfilEtudiant.vue";
+import SimpleSkeleton from '@components/loader/SimpleSkeleton.vue';
+import ArticleSkeleton from '@components/loader/ArticleSkeleton.vue';
+import ListSkeleton from '@components/loader/ListSkeleton.vue';
 
 export {
   LayoutComponent,
@@ -11,5 +14,8 @@ export {
   FooterComponent,
   TopbarComponent,
   ProfilPersonnelComponent,
-  ProfilEtudiantComponent
+  ProfilEtudiantComponent,
+  SimpleSkeleton,
+  ArticleSkeleton,
+  ListSkeleton
 };
