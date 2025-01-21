@@ -4,6 +4,7 @@ import path from 'path'
 import { createProxyMiddleware } from 'http-proxy-middleware'
 import { PrimeVueResolver } from '@primevue/auto-import-resolver'
 import Components from 'unplugin-vue-components/vite'
+import vueDevTools from 'vite-plugin-vue-devtools'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -15,6 +16,7 @@ export default defineConfig(({ mode }) => {
       noDiscovery: true
     },
     plugins: [
+        vueDevTools(),
       vue(),
       Components({
         resolvers: [PrimeVueResolver()]

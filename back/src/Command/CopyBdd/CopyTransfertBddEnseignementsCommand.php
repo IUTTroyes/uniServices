@@ -121,6 +121,7 @@ FOREIGN_KEY_CHECKS=1');
                 $matiere->setMotsCles($mat['mots_cles']);
                 $matiere->setObjectif($mat['objectifs_module']);
                 $matiere->setPrerequis($mat['pre_requis']);
+                $matiere->setOldId($mat['id']);
 
                 /*
                  * array:30 [
@@ -175,6 +176,7 @@ FOREIGN_KEY_CHECKS=1');
                 $matiere->setObjectif($mat['objectifs_module']);
                 $matiere->setPrerequis($mat['pre_requis']);
                 $matiere->setParent($this->tMatieres[$mat['matiere_parent_id']]);
+                $matiere->setOldId($mat['id']);
 
                 /*
                  * array:30 [
