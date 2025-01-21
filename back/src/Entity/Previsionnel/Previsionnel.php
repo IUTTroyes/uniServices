@@ -83,10 +83,6 @@ class Previsionnel
     #[Groups(['previsionnel:read'])]
     private ?EdtProgression $progression = null;
 
-    #[ORM\ManyToOne()]
-    #[Groups(['previsionnel:read'])]
-    private ?StructureSemestre $semestre = null;
-
     public function getId(): ?int
     {
         return $this->id;
@@ -220,18 +216,6 @@ class Previsionnel
     public function setProgression(?EdtProgression $progression): static
     {
         $this->progression = $progression;
-
-        return $this;
-    }
-
-    public function getSemestre(): ?StructureSemestre
-    {
-        return $this->semestre;
-    }
-
-    public function setSemestre(?StructureSemestre $semestre): static
-    {
-        $this->semestre = $semestre;
 
         return $this;
     }

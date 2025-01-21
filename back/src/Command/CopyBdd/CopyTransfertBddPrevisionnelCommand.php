@@ -85,12 +85,31 @@ FOREIGN_KEY_CHECKS=1');
         return Command::SUCCESS;
     }
 
+    private function fetchAllPages(string $url): array
+    {
+        $page = 1;
+        $limit = 50;
+        $allData = [];
+
+        do {
+            $response = $this->httpClient->request('GET', $url, [
+                'query' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                ],
+                'timeout' => 600,
+            ]);
+            $data = json_decode($response->getContent(), true);
+            $allData = array_merge($allData, $data);
+            $page++;
+        } while (count($data) === $limit);
+
+        return $allData;
+    }
+
     private function addPrevisMatiere(): int
     {
-        $response = $this->httpClient->request('GET', $this->base_url . '/previsionnels/matiere', [
-            'timeout' => 600,
-        ]);
-        $previs = json_decode($response->getContent(), true);
+        $previs = $this->fetchAllPages($this->base_url . '/previsionnels/matiere');
 
         foreach ($previs as $previ) {
             $matiere = $this->scolEnseignementRepository->findOneBy(['oldId' => $previ['matiere']['id'], 'type' => $previ['matiere']['type']]);
@@ -113,7 +132,6 @@ FOREIGN_KEY_CHECKS=1');
 
             $this->entityManager->persist($previsionnel);
         }
-
 
         $this->entityManager->flush();
 
@@ -122,10 +140,7 @@ FOREIGN_KEY_CHECKS=1');
 
     private function addPrevisRessource(): int
     {
-        $response = $this->httpClient->request('GET', $this->base_url . '/previsionnels/ressource', [
-            'timeout' => 600,
-        ]);
-        $previs = json_decode($response->getContent(), true);
+        $previs = $this->fetchAllPages($this->base_url . '/previsionnels/ressource');
 
         foreach ($previs as $previ) {
             $matiere = $this->scolEnseignementRepository->findOneBy(['oldId' => $previ['matiere']['id'], 'type' => $previ['matiere']['type']]);
@@ -148,7 +163,6 @@ FOREIGN_KEY_CHECKS=1');
 
             $this->entityManager->persist($previsionnel);
         }
-
 
         $this->entityManager->flush();
 
@@ -157,10 +171,7 @@ FOREIGN_KEY_CHECKS=1');
 
     private function addPrevisSae(): int
     {
-        $response = $this->httpClient->request('GET', $this->base_url . '/previsionnels/sae', [
-            'timeout' => 600,
-        ]);
-        $previs = json_decode($response->getContent(), true);
+        $previs = $this->fetchAllPages($this->base_url . '/previsionnels/sae');
 
         foreach ($previs as $previ) {
             $matiere = $this->scolEnseignementRepository->findOneBy(['oldId' => $previ['matiere']['id'], 'type' => $previ['matiere']['type']]);
@@ -183,7 +194,6 @@ FOREIGN_KEY_CHECKS=1');
 
             $this->entityManager->persist($previsionnel);
         }
-
 
         $this->entityManager->flush();
 
