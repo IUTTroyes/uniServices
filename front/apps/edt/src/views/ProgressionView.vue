@@ -6,7 +6,7 @@ import {
 import useProgressions from '@/service/useProgressions.js'
 import { useWeeksStore } from '@/stores/weeksStore.js'
 import { formatDateCourt } from '@helpers/date.js'
-import { getPersonnelsDepartement } from '@requests/user_services/personnelService.js'
+import { getPersonnelsDepartementService } from '@requests/user_services/personnelService.js'
 import api from '@helpers/axios.js'
 
 const matieresStore = useMatieresStore()
@@ -31,7 +31,7 @@ onMounted(async () => {
     await fetchProgressions()
     await weeksStore.fetchWeeks()
     const departementId = localStorage.getItem('departement')
-    personnels.value = await getPersonnelsDepartement(departementId)
+    personnels.value = await getPersonnelsDepartementService(departementId)
     await semestreStore.getSemestresByDepartement(departementId)
     semestres.value = semestreStore.semestres['member']
     weeks.value = weeksStore.weeks['member']

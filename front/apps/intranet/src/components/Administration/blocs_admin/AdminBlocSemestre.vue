@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref } from "vue";
-import { getServiceDepartementSemestresActifs } from "@requests";
+import { getDepartementSemestresActifsService } from "@requests";
 import SimpleSkeleton from "@components/loader/SimpleSkeleton.vue";
 
 const semestresFc = ref([]);
@@ -12,7 +12,7 @@ const errorMessage = ref('');
 onMounted(async () => {
   try {
     const departementId = localStorage.getItem('departement');
-    const semestres = await getServiceDepartementSemestresActifs(departementId);
+    const semestres = await getDepartementSemestresActifsService(departementId);
     semestresFc.value = semestres.semestresFc;
     semestresFi.value = semestres.semestresFi;
     if (semestresFi.value.length > 0) {

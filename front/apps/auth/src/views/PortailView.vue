@@ -12,8 +12,6 @@ if (token) {
 
 const tokenParts = token?.split('.');
 const payload = tokenParts ? JSON.parse(atob(tokenParts[1])) : {};
-const username = payload.username;
-const type = payload.type;
 const userStore = useUsersStore();
 
 const isEnabledUrl = (tool) => {

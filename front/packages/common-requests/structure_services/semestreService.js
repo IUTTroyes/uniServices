@@ -2,17 +2,17 @@ import {onMounted, ref} from 'vue';
 import api from '@helpers/axios';
 import { useDiplomeStore } from '@stores';
 
-const getServiceSemestres = async () => {
+const getSemestresService = async () => {
     const response = await api.get(`/api/structure_semestres`);
     return response.data.member;
 }
 
-const getServiceSemestre = async (semestreId) => {
+const getSemestreService = async (semestreId) => {
     const response = await api.get(`/api/structure_semestres/${semestreId}`);
     return response.data;
 }
 
-const getServiceDepartementSemestresActifs = async (departementId) => {
+const getDepartementSemestresActifsService = async (departementId) => {
     const diplomes = ref([]);
     const annees = ref([]);
     const semestresFc = ref([]);
@@ -45,9 +45,9 @@ const getServiceDepartementSemestresActifs = async (departementId) => {
     };
 }
 
-const getServiceDepartementSemestres = async (departementId, onlyActif) => {
+const getDepartementSemestresService = async (departementId, onlyActif) => {
     const response = await api.get(`/api/structure_semestres?departement=${departementId}&actif=${onlyActif}`);
     return response.data.member;
 }
 
-export { getServiceSemestres, getServiceSemestre, getServiceDepartementSemestres, getServiceDepartementSemestresActifs };
+export { getSemestresService, getSemestreService, getDepartementSemestresService, getDepartementSemestresActifsService };

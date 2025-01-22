@@ -1,8 +1,9 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import api from '@helpers/axios';
-import { getEtudiantScolariteActif } from "@requests";
+import { getEtudiantScolariteActifService } from "@requests";
 import { useAnneeUnivStore } from '@stores';
+import { getUserService } from "@requests/user_services/userService";
 
 export const useUsersStore = defineStore('users', () => {
     const token = localStorage.getItem('token');
@@ -34,13 +35,13 @@ export const useUsersStore = defineStore('users', () => {
         isLoading.value = true;
         try {
             console.log('Fetching user');
-            const response = await api.get(`/api/${userType}/${userId}`);
-            userPhoto.value = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
-            user.value = response.data;
-            applications.value = response.data.applications;
+            user.value = await getUserService(userType, userId);
+            console.log(user.value)
+            userPhoto.value = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + user.value.photoName;
+            applications.value = user.value.applications;
 
             if (userType === 'personnels') {
-                departements.value = response.data.structureDepartementPersonnels;
+                departements.value = user.value.structureDepartementPersonnels;
                 if (!departements.value.find(departement => departement.defaut === true)) {
                     const response = await api.post(`/api/structure_departement_personnels/${departements.value[0].id}/change_departement`, {}, {
                         headers: {
@@ -58,7 +59,7 @@ export const useUsersStore = defineStore('users', () => {
                 await anneeUnivStore.getCurrentAnneeUniv();
                 currentAnneeUniv.value = anneeUnivStore.anneeUniv;
 
-                scolariteActif.value = await getEtudiantScolariteActif(userId, currentAnneeUniv.value.id);
+                scolariteActif.value = await getEtudiantScolariteActifService(userId, currentAnneeUniv.value.id);
                 departementDefaut.value = scolariteActif.value.departement;
             }
             isLoaded.value = true;

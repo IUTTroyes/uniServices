@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import api from '@helpers/axios';
-import { getServiceSemestre, getServiceSemestres, getServiceDepartementSemestres } from "@requests";
+import { getSemestreService, getSemestresService, getDepartementSemestresService } from "@requests";
 
 export const useSemestreStore = defineStore('semestre', () => {
 
@@ -10,7 +10,7 @@ export const useSemestreStore = defineStore('semestre', () => {
 
   const getSemestre = async (semestreId) => {
     try {
-      semestre.value = await getServiceSemestre(semestreId);
+      semestre.value = await getSemestreService(semestreId);
     } catch (error) {
       console.error('Error fetching user:', error);
     }
@@ -18,7 +18,7 @@ export const useSemestreStore = defineStore('semestre', () => {
 
   const getSemestres = async () => {
     try {
-      semestres.value = await getServiceSemestres();
+      semestres.value = await getSemestresService();
     } catch (error) {
       console.error('Error fetching user:', error);
     }
@@ -36,7 +36,7 @@ export const useSemestreStore = defineStore('semestre', () => {
 
   const getSemestresByDepartement = async (departementId, onlyActif) => {
     try {
-      semestres.value = await getServiceDepartementSemestres(departementId, onlyActif);
+      semestres.value = await getDepartementSemestresService(departementId, onlyActif);
     } catch (error) {
       console.error('Error fetching user:', error);
     }
