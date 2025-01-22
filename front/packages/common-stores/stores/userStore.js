@@ -1,8 +1,13 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import api from '@helpers/axios';
-import { getEtudiantScolariteActifService, getUserService, changeDepartementActifService, updateUserService, getAllStatutsService } from "@requests";
-import { useAnneeUnivStore } from '@stores';
+import {defineStore} from 'pinia';
+import {ref} from 'vue';
+import {
+    changeDepartementActifService,
+    getAllStatutsService,
+    getEtudiantScolariteActifService,
+    getUserService,
+    updateUserService
+} from "@requests";
+import {useAnneeUnivStore} from '@stores';
 
 export const useUsersStore = defineStore('users', () => {
     const token = localStorage.getItem('token');
@@ -35,7 +40,6 @@ export const useUsersStore = defineStore('users', () => {
         try {
             console.log('Fetching user');
             user.value = await getUserService(userType, userId);
-            console.log(user.value)
             userPhoto.value = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + user.value.photoName;
             applications.value = user.value.applications;
 
@@ -85,29 +89,29 @@ export const useUsersStore = defineStore('users', () => {
     };
 
     const updateUser = async (data) => {
+        isLoading.value = true;
         // si domaines n'est pas un tableau
         if (!Array.isArray(data.domaines)) {
             // séparer les domaines en utilisant la virgule comme séparateur
             data.domaines = data.domaines.split(',');
         }
-
         // convertir structureDepartementPersonnels en IRI
         if (data.structureDepartementPersonnels) {
             data.structureDepartementPersonnels = data.structureDepartementPersonnels.map(departement => `/api/structure_departement_personnels/${departement.id}`);
         }
-
         try {
-            const response = await updateUserService(userType, userId, data);
-            user.value = response.data;
+            const updatedUser = await updateUserService(userType, userId, data);
+            user.value = updatedUser;
         } catch (error) {
             console.error('Error updating user:', error);
+        } finally {
+            isLoading.value = false;
         }
     };
 
     const getStatuts = async () => {
         try {
-            const response = await getAllStatutsService();
-            statuts.value = response;
+            statuts.value = await getAllStatutsService();
         } catch (error) {
             console.error('Error fetching statuts:', error);
         }
