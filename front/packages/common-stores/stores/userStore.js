@@ -1,9 +1,8 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import api from '@helpers/axios';
-import { getEtudiantScolariteActifService } from "@requests";
+import { getEtudiantScolariteActifService, getUserService, changeDepartementActifService, updateUserService, getAllStatutsService } from "@requests";
 import { useAnneeUnivStore } from '@stores';
-import { getUserService } from "@requests/user_services/userService";
 
 export const useUsersStore = defineStore('users', () => {
     const token = localStorage.getItem('token');
@@ -43,11 +42,8 @@ export const useUsersStore = defineStore('users', () => {
             if (userType === 'personnels') {
                 departements.value = user.value.structureDepartementPersonnels;
                 if (!departements.value.find(departement => departement.defaut === true)) {
-                    const response = await api.post(`/api/structure_departement_personnels/${departements.value[0].id}/change_departement`, {}, {
-                        headers: {
-                            'Content-Type': 'application/ld+json'
-                        }
-                    });
+                    const firstDepartement = departements.value[0];
+                    const response = await changeDepartementActifService(firstDepartement.id);
                     departements.value = response.data;
                 }
                 departementPersonnelDefaut.value = departements.value.find(departement => departement.defaut === true);
@@ -73,12 +69,7 @@ export const useUsersStore = defineStore('users', () => {
     const changeDepartement = async (departementId) => {
         try {
             const departementPersonnelId = departements.value.find(departement => departement.departement.id === departementId).id;
-            const response = await api.post(`/api/structure_departement_personnels/${departementPersonnelId}/change_departement`, {
-            }, {
-                headers: {
-                    'Content-Type': 'application/ld+json'
-                }
-            });
+            const response = await changeDepartementActifService(departementPersonnelId);
             departements.value = response.data;
             // récupérer le département qui a defaut = true
             departementPersonnelDefaut.value = await departements.value.find(departement => departement.defaut === true);
@@ -99,20 +90,14 @@ export const useUsersStore = defineStore('users', () => {
             // séparer les domaines en utilisant la virgule comme séparateur
             data.domaines = data.domaines.split(',');
         }
+
         // convertir structureDepartementPersonnels en IRI
         if (data.structureDepartementPersonnels) {
             data.structureDepartementPersonnels = data.structureDepartementPersonnels.map(departement => `/api/structure_departement_personnels/${departement.id}`);
         }
-        // récupérer uniquement le nom de la photo entre la fin de user.photoName et le dernier "/"
-        // data.photoName = data.photoName.substring(data.photoName.lastIndexOf('/') + 1);
-        console.log(data.photoName);
 
         try {
-            const response = await api.patch(`/api/${userType}/${userId}`, data, {
-                headers: {
-                    'Content-Type': 'application/merge-patch+json'
-                }
-            });
+            const response = await updateUserService(userType, userId, data);
             user.value = response.data;
         } catch (error) {
             console.error('Error updating user:', error);
@@ -121,8 +106,8 @@ export const useUsersStore = defineStore('users', () => {
 
     const getStatuts = async () => {
         try {
-            const response = await api.get(`/api/statuts`);
-            statuts.value = response.data;
+            const response = await getAllStatutsService();
+            statuts.value = response;
         } catch (error) {
             console.error('Error fetching statuts:', error);
         }
