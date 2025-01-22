@@ -72,10 +72,10 @@ export const useUsersStore = defineStore('users', () => {
 
     const changeDepartement = async (departementId) => {
         try {
-            const departementPersonnelId = departements.value.find(departement => departement.departement.id === departementId).id;
-            const response = await changeDepartementActifService(departementPersonnelId);
-            departements.value = response.data;
+            const departementPersonnelId = await departements.value.find(departement => departement.departement.id === departementId).id;
+            departements.value = await changeDepartementActifService(departementPersonnelId);
             // récupérer le département qui a defaut = true
+            console.log(departements.value);
             departementPersonnelDefaut.value = await departements.value.find(departement => departement.defaut === true);
             departementDefaut.value = departementPersonnelDefaut.value.departement;
             localStorage.setItem('departement', departementDefaut.value.id);

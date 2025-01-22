@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import LoginView from "@/views/LoginView.vue";
 import AppPortail from "@/views/PortailView.vue";
 import AppProfil from "@/views/ProfilView.vue";
-import { useUsersStore } from "@stores/stores/userStore";
+import { useUsersStore } from "@stores/user_stores/userStore.js";
 
 const router = createRouter({
     history: createWebHistory('/auth'),

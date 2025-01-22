@@ -28,7 +28,7 @@ const userInitiales = computed(
     () => userStore.user?.prenom?.charAt(0) + userStore.user?.nom?.charAt(0) || ""
 );
 
-const fetchActualites = async () => {
+const getActualites = async () => {
   try {
     actuEvents.value = await getActualitesService();
   } catch (error) {
@@ -38,7 +38,7 @@ const fetchActualites = async () => {
   }
 };
 
-const fetchAgenda = async () => {
+const getAgenda = async () => {
   try {
     agendaEvents.value = await getAgendaService();
   } catch (error) {
@@ -56,7 +56,7 @@ const generateMockAbsences = () => [
 ];
 
 onMounted(async () => {
-  await Promise.all([fetchActualites(), fetchAgenda()]);
+  await Promise.all([getActualites(), getAgenda()]);
   initiales.value = userInitiales.value;
   absences.value = generateMockAbsences();
 });
