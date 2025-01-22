@@ -6,3 +6,4 @@ export * from './structure_services/anneeUnivService';
 export * from './user_services/etudiantService';
 export * from './user_services/personnelService';
 export * from './user_services/userService';
+export * from './ext_data_services/siteIutService';

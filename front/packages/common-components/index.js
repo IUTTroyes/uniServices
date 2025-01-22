@@ -7,6 +7,7 @@ import ProfilEtudiantComponent from "@components/pages/ProfilEtudiant.vue";
 import SimpleSkeleton from '@components/loader/SimpleSkeleton.vue';
 import ArticleSkeleton from '@components/loader/ArticleSkeleton.vue';
 import ListSkeleton from '@components/loader/ListSkeleton.vue';
+import CardSkeleton from "@components/loader/CardSkeleton.vue";
 
 export {
   LayoutComponent,
@@ -17,5 +18,6 @@ export {
   ProfilEtudiantComponent,
   SimpleSkeleton,
   ArticleSkeleton,
-  ListSkeleton
+  ListSkeleton,
+  CardSkeleton
 };
