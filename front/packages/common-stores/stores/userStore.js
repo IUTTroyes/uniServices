@@ -40,7 +40,7 @@ export const useUsersStore = defineStore('users', () => {
         try {
             console.log('Fetching user');
             user.value = await getUserService(userType, userId);
-            userPhoto.value = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + user.value.photoName;
+            userPhoto.value = "common-images/photos_etudiants/" + user.value.photoName;
             applications.value = user.value.applications;
 
             if (userType === 'personnels') {
