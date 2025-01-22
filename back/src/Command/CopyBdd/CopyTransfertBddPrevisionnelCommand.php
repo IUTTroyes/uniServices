@@ -27,7 +27,7 @@ class CopyTransfertBddPrevisionnelCommand extends Command
 
     protected array $tPersonnels = [];
     protected array $tAnneeUniversitaire = [];
-    protected array $tMatieres = [];
+    protected array $tEnseignements = [];
 
     protected SymfonyStyle $io;
     protected string $base_url;
@@ -76,7 +76,7 @@ FOREIGN_KEY_CHECKS=1');
 
         $this->effacerTables();
 
-        $this->addPrevisMatiere();
+        $this->addPrevisEnseignement();
         $this->addPrevisRessource();
         $this->addPrevisSae();
 
@@ -107,12 +107,12 @@ FOREIGN_KEY_CHECKS=1');
         return $allData;
     }
 
-    private function addPrevisMatiere(): int
+    private function addPrevisEnseignement(): int
     {
         $previs = $this->fetchAllPages($this->base_url . '/previsionnels/matiere');
 
         foreach ($previs as $previ) {
-            $matiere = $this->scolEnseignementRepository->findOneBy(['oldId' => $previ['matiere']['id'], 'type' => $previ['matiere']['type']]);
+            $enseignement = $this->scolEnseignementRepository->findOneBy(['oldId' => $previ['matiere']['id'], 'type' => $previ['matiere']['type']]);
 
             $previsionnel = new Previsionnel();
             if (array_key_exists($previ['personnel'], $this->tPersonnels)) {
@@ -121,11 +121,16 @@ FOREIGN_KEY_CHECKS=1');
             if (array_key_exists($previ['annee'], $this->tAnneeUniversitaire)) {
                 $previsionnel->setAnneeUniversitaire($this->tAnneeUniversitaire[$previ['annee']]);
             }
-            $previsionnel->setMatiere($matiere);
+            $previsionnel->setEnseignement($enseignement);
             $previsionnel->setReferent($previ['referent']);
-            $previsionnel->setNbHCm($previ['nbHCm']);
-            $previsionnel->setNbHTd($previ['nbHTd']);
-            $previsionnel->setNbHTp($previ['nbHTp']);
+            $previsionnel->setHeures([
+                'heures' => [
+                    'CM' => $previ['nbHCm'],
+                    'TD' => $previ['nbHTd'],
+                    'TP' => $previ['nbHTp'],
+                    'Projet' => 0,
+                ]
+            ]);
             $previsionnel->setNbGrCm($previ['nbGrCm']);
             $previsionnel->setNbGrTd($previ['nbGrTd']);
             $previsionnel->setNbGrTp($previ['nbGrTp']);
@@ -143,7 +148,7 @@ FOREIGN_KEY_CHECKS=1');
         $previs = $this->fetchAllPages($this->base_url . '/previsionnels/ressource');
 
         foreach ($previs as $previ) {
-            $matiere = $this->scolEnseignementRepository->findOneBy(['oldId' => $previ['matiere']['id'], 'type' => $previ['matiere']['type']]);
+            $enseignement = $this->scolEnseignementRepository->findOneBy(['oldId' => $previ['matiere']['id'], 'type' => $previ['matiere']['type']]);
 
             $previsionnel = new Previsionnel();
             if (array_key_exists($previ['personnel'], $this->tPersonnels)) {
@@ -152,11 +157,16 @@ FOREIGN_KEY_CHECKS=1');
             if (array_key_exists($previ['annee'], $this->tAnneeUniversitaire)) {
                 $previsionnel->setAnneeUniversitaire($this->tAnneeUniversitaire[$previ['annee']]);
             }
-            $previsionnel->setMatiere($matiere);
+            $previsionnel->setEnseignement($enseignement);
             $previsionnel->setReferent($previ['referent']);
-            $previsionnel->setNbHCm($previ['nbHCm']);
-            $previsionnel->setNbHTd($previ['nbHTd']);
-            $previsionnel->setNbHTp($previ['nbHTp']);
+            $previsionnel->setHeures([
+                'heures' => [
+                    'CM' => $previ['nbHCm'],
+                    'TD' => $previ['nbHTd'],
+                    'TP' => $previ['nbHTp'],
+                    'Projet' => 0,
+                ]
+            ]);
             $previsionnel->setNbGrCm($previ['nbGrCm']);
             $previsionnel->setNbGrTd($previ['nbGrTd']);
             $previsionnel->setNbGrTp($previ['nbGrTp']);
@@ -174,7 +184,7 @@ FOREIGN_KEY_CHECKS=1');
         $previs = $this->fetchAllPages($this->base_url . '/previsionnels/sae');
 
         foreach ($previs as $previ) {
-            $matiere = $this->scolEnseignementRepository->findOneBy(['oldId' => $previ['matiere']['id'], 'type' => $previ['matiere']['type']]);
+            $enseignement = $this->scolEnseignementRepository->findOneBy(['oldId' => $previ['matiere']['id'], 'type' => $previ['matiere']['type']]);
 
             $previsionnel = new Previsionnel();
             if (array_key_exists($previ['personnel'], $this->tPersonnels)) {
@@ -183,11 +193,16 @@ FOREIGN_KEY_CHECKS=1');
             if (array_key_exists($previ['annee'], $this->tAnneeUniversitaire)) {
                 $previsionnel->setAnneeUniversitaire($this->tAnneeUniversitaire[$previ['annee']]);
             }
-            $previsionnel->setMatiere($matiere);
+            $previsionnel->setEnseignement($enseignement);
             $previsionnel->setReferent($previ['referent']);
-            $previsionnel->setNbHCm($previ['nbHCm']);
-            $previsionnel->setNbHTd($previ['nbHTd']);
-            $previsionnel->setNbHTp($previ['nbHTp']);
+            $previsionnel->setHeures([
+                'heures' => [
+                    'CM' => $previ['nbHCm'],
+                    'TD' => $previ['nbHTd'],
+                    'TP' => $previ['nbHTp'],
+                    'Projet' => 0,
+                ]
+            ]);
             $previsionnel->setNbGrCm($previ['nbGrCm']);
             $previsionnel->setNbGrTd($previ['nbGrTd']);
             $previsionnel->setNbGrTp($previ['nbGrTp']);

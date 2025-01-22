@@ -5,10 +5,12 @@ namespace App\Filter;
 use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
+use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnnee;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
+use App\Entity\Structure\StructureUe;
 use Doctrine\ORM\QueryBuilder;
 use ApiPlatform\Metadata\ApiFilter;
 use Symfony\Component\PropertyInfo\Type;
@@ -47,7 +49,11 @@ class PrevisionnelFilter extends AbstractFilter
 
         if ('semestre' === $property) {
             $queryBuilder
-                ->andWhere(sprintf('%s.semestre = :semestre', $alias))
+                ->join(ScolEnseignement::class, 'se', 'WITH', sprintf('%s.enseignement = se.id', $alias))
+                ->join('se.scolEnseignementUes', 'seue')
+                ->join(StructureUe::class, 'ue', 'WITH', 'seue.ue = ue.id')
+                ->join(StructureSemestre::class, 'ss', 'WITH', 'ue.semestre = ss.id')
+                ->andWhere('ss.id = :semestre')
                 ->setParameter('semestre', $value)
             ;
         }

@@ -53,7 +53,7 @@ class ScolEnseignement
 
     #[ORM\Column(length: 20, nullable: true)]
     #[Groups(['semestre:read:full'])]
-    private ?string $codeMatiere = null;
+    private ?string $codeEnseignement = null;
 
     #[ORM\Column]
     #[Groups(['semestre:read:full'])]
@@ -129,7 +129,7 @@ class ScolEnseignement
     /**
      * @var Collection<int, Previsionnel>
      */
-    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'matiere')]
+    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'enseignement')]
     private Collection $previsionnels;
 
     public function __construct()
@@ -221,14 +221,14 @@ class ScolEnseignement
         return $this;
     }
 
-    public function getCodeMatiere(): ?string
+    public function getCodeEnseignement(): ?string
     {
-        return $this->codeMatiere;
+        return $this->codeEnseignement;
     }
 
-    public function setCodeMatiere(?string $codeMatiere): static
+    public function setCodeEnseignement(?string $codeEnseignement): static
     {
-        $this->codeMatiere = $codeMatiere;
+        $this->codeEnseignement = $codeEnseignement;
 
         return $this;
     }
@@ -573,7 +573,7 @@ class ScolEnseignement
     {
         if (!$this->previsionnels->contains($previsionnel)) {
             $this->previsionnels->add($previsionnel);
-            $previsionnel->setMatiere($this);
+            $previsionnel->setEnseignement($this);
         }
 
         return $this;
@@ -583,8 +583,8 @@ class ScolEnseignement
     {
         if ($this->previsionnels->removeElement($previsionnel)) {
             // set the owning side to null (unless already changed)
-            if ($previsionnel->getMatiere() === $this) {
-                $previsionnel->setMatiere(null);
+            if ($previsionnel->getEnseignement() === $this) {
+                $previsionnel->setEnseignement(null);
             }
         }
 

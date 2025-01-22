@@ -14,7 +14,9 @@ use App\Entity\Structure\StructureSemestre;
 use App\Entity\Users\Personnel;
 use App\Filter\PrevisionnelFilter;
 use App\Repository\Previsionnel\PrevisionnelRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PrevisionnelRepository::class)]
@@ -51,17 +53,8 @@ class Previsionnel
     #[Groups(['previsionnel:read'])]
     private ?bool $referent = null;
 
-    #[ORM\Column]
-    #[Groups(['previsionnel:read'])]
-    private ?float $nbHCm = null;
-
-    #[ORM\Column]
-    #[Groups(['previsionnel:read'])]
-    private ?float $nbHTd = null;
-
-    #[ORM\Column]
-    #[Groups(['previsionnel:read'])]
-    private ?float $nbHTp = null;
+    #[ORM\Column(type: Types::JSON)]
+    private array $heures = [];
 
     #[ORM\Column]
     #[Groups(['previsionnel:read'])]
@@ -77,7 +70,7 @@ class Previsionnel
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
     #[Groups(['previsionnel:read'])]
-    private ?ScolEnseignement $matiere = null;
+    private ?ScolEnseignement $enseignement = null;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'], fetch: 'EAGER')]
     #[Groups(['previsionnel:read'])]
@@ -196,14 +189,14 @@ class Previsionnel
         return $this;
     }
 
-    public function getMatiere(): ?ScolEnseignement
+    public function getEnseignement(): ?ScolEnseignement
     {
-        return $this->matiere;
+        return $this->enseignement;
     }
 
-    public function setMatiere(?ScolEnseignement $matiere): static
+    public function setEnseignement(?ScolEnseignement $enseignement): static
     {
-        $this->matiere = $matiere;
+        $this->enseignement = $enseignement;
 
         return $this;
     }
@@ -236,5 +229,33 @@ class Previsionnel
     public function getNbSeanceTp(): ?float
     {
         return $this->nbHTp / self::DUREE_SEANCE;
+    }
+
+    public function getHeures(): array
+    {
+        return $this->heures;
+    }
+
+    public function setHeures(array $heures): static
+    {
+        $resolver = new OptionsResolver();
+        $this->configureOptions($resolver);
+        $this->heures = $resolver->resolve($heures);
+
+        return $this;
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'heures' => [
+                'CM' =>  0,
+                'TD' => 0,
+                'TP' => 0,
+                'Projet' => 0,
+            ],
+        ]);
+
+        $resolver->setAllowedTypes('heures', 'array');
     }
 }
