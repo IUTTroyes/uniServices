@@ -117,42 +117,6 @@ class Previsionnel
         return $this;
     }
 
-    public function getNbHCm(): ?float
-    {
-        return $this->nbHCm;
-    }
-
-    public function setNbHCm(float $nbHCm): static
-    {
-        $this->nbHCm = $nbHCm;
-
-        return $this;
-    }
-
-    public function getNbHTd(): ?float
-    {
-        return $this->nbHTd;
-    }
-
-    public function setNbHTd(float $nbHTd): static
-    {
-        $this->nbHTd = $nbHTd;
-
-        return $this;
-    }
-
-    public function getNbHTp(): ?float
-    {
-        return $this->nbHTp;
-    }
-
-    public function setNbHTp(float $nbHTp): static
-    {
-        $this->nbHTp = $nbHTp;
-
-        return $this;
-    }
-
     public function getNbGrCm(): ?int
     {
         return $this->nbGrCm;
@@ -213,22 +177,19 @@ class Previsionnel
         return $this;
     }
 
-    #[Groups(['previsionnel:read'])]
     public function getNbSeanceCm(): ?float
     {
-        return $this->nbHCm / self::DUREE_SEANCE;
+        return $this->heures['CM'] / self::DUREE_SEANCE;
     }
 
-    #[Groups(['previsionnel:read'])]
     public function getNbSeanceTd(): ?float
     {
-        return $this->nbHTd / self::DUREE_SEANCE;
+        return $this->heures['TD'] / self::DUREE_SEANCE;
     }
 
-    #[Groups(['previsionnel:read'])]
     public function getNbSeanceTp(): ?float
     {
-        return $this->nbHTp / self::DUREE_SEANCE;
+        return $this->heures['TP'] / self::DUREE_SEANCE;
     }
 
     public function getHeures(): array
