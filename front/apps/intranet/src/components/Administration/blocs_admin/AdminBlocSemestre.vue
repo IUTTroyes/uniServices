@@ -2,9 +2,10 @@
 import { onMounted, ref } from "vue";
 import { getDepartementSemestresService } from "@requests";
 import { ListSkeleton } from "@components";
-import { useUsersStore } from "@stores";
+import { useUsersStore, useSemestreStore } from "@stores";
 
 const userStore = useUsersStore();
+const semestreStore = useSemestreStore();
 const semestresFc = ref([]);
 const semestresFi = ref([]);
 const selectedSemestre = ref(null);
