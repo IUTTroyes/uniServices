@@ -9,19 +9,53 @@ const buildSemestrePreviService = async (previ) => {
     const groupedPrevi = {};
 
     previ.forEach(item => {
-        if (!item.enseignement) {
-            return; // Ignorer les éléments sans enseignement
-        }
-
-        const enseignementId = item.enseignement['@id'];
+        const enseignementId = item.enseignement ? item.enseignement['@id'] : null;
         if (!groupedPrevi[enseignementId]) {
             groupedPrevi[enseignementId] = { ...item, personnel: [] };
         }
 
+        const heuresMaquette = item.enseignement ? item.enseignement.heures.heures : {
+            "CM": { "IUT": 0 },
+            "TD": { "IUT": 0 },
+            "TP": { "IUT": 0 },
+            "Projet": { "IUT": 0 }
+        };
+        const heuresPrevi = item.heures.heures;
+
+        groupedPrevi[enseignementId].heures = {
+            "CM": {
+                "Maquette": heuresMaquette.CM.IUT,
+                "Previ": heuresPrevi.CM
+            },
+            "TD": {
+                "Maquette": heuresMaquette.TD.IUT,
+                "Previ": heuresPrevi.TD
+            },
+            "TP": {
+                "Maquette": heuresMaquette.TP.IUT,
+                "Previ": heuresPrevi.TP
+            },
+            "Projet": {
+                "Maquette": heuresMaquette.Projet.IUT,
+                "Previ": heuresPrevi.Projet
+            }
+        };
         groupedPrevi[enseignementId].personnel.push(item.personnel);
     });
 
     return Object.values(groupedPrevi);
 }
 
-export { getSemestrePreviService, buildSemestrePreviService };
+const calcTotalHeures = (heures) => {
+    let totalHeures = 0;
+    if (heures && heures.heures) {
+        for (const key in heures.heures) {
+            if (heures.heures.hasOwnProperty(key) && typeof heures.heures[key] === 'number') {
+                totalHeures += heures.heures[key];
+            }
+        }
+    }
+    return totalHeures;
+}
+
+export { getSemestrePreviService, buildSemestrePreviService, calcTotalHeures };
