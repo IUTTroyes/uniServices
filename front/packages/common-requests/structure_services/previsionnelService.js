@@ -5,4 +5,23 @@ const getSemestrePreviService = async (semestreId) => {
     return response.data.member;
 }
 
-export { getSemestrePreviService };
+const buildSemestrePreviService = async (previ) => {
+    const groupedPrevi = {};
+
+    previ.forEach(item => {
+        if (!item.enseignement) {
+            return; // Ignorer les éléments sans enseignement
+        }
+
+        const enseignementId = item.enseignement['@id'];
+        if (!groupedPrevi[enseignementId]) {
+            groupedPrevi[enseignementId] = { ...item, personnel: [] };
+        }
+
+        groupedPrevi[enseignementId].personnel.push(item.personnel);
+    });
+
+    return Object.values(groupedPrevi);
+}
+
+export { getSemestrePreviService, buildSemestrePreviService };

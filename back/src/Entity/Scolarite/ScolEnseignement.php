@@ -32,11 +32,11 @@ class ScolEnseignement
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read'])]
     private ?string $libelle_court = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -52,7 +52,7 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
@@ -63,7 +63,7 @@ class ScolEnseignement
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read'])]
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]
