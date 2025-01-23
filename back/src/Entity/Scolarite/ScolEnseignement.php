@@ -60,6 +60,7 @@ class ScolEnseignement
     private ?bool $suspendu = null;
 
     #[ORM\Column(type: Types::JSON)]
+    #[Groups(['semestre:read:full', 'previsionnel:read'])]
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
