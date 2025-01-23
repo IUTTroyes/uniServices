@@ -139,19 +139,19 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
 
         <Column class="bg-purple-50" field="heures.CM.Maquette" header="Maquette" />
         <Column class="bg-purple-50" field="heures.CM.Previ" header="Previ" />
-        <Column class="bg-purple-50" field="heures.CM.Previ" header="Diff" />
+        <Column class="bg-purple-50" field="0" header="Diff" />
 
         <Column class="bg-green-50" field="heures.TD.Maquette" header="Maquette" />
         <Column class="bg-green-50" field="heures.TD.Previ" header="Previ" />
-        <Column class="bg-green-50" field="heures.TD.Previ" header="Diff" />
+        <Column class="bg-green-50" field="0" header="Diff" />
 
         <Column class="bg-amber-50" field="heures.TP.Maquette" header="Maquette" />
         <Column class="bg-amber-50" field="heures.TP.Previ" header="Previ" />
-        <Column class="bg-amber-50" field="heures.TP.Previ" header="Diff" />
+        <Column class="bg-amber-50" field="0" header="Diff" />
 
-        <Column field="total" header="Maquette" />
+        <Column field="0" header="Maquette" />
         <Column field="total" header="Previ" />
-        <Column field="total" header="Diff" />
+        <Column field="0" header="Diff" />
       </DataTable>
 
       <Message v-else severity="error" icon="pi pi-times-circle">
