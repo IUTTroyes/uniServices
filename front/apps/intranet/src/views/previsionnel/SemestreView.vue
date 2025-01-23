@@ -104,11 +104,23 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
       <DataTable v-if="previGrouped?.length > 0" :value="previGrouped" tableStyle="min-width: 50rem">
+        <ColumnGroup type="header">
+          <Row>
+            <Column header="Code" :colspan="1"/>
+            <Column header="Nom" :colspan="1"/>
+            <Column header="Type" :colspan="1"/>
+            <Column header="Nb intervenants" :colspan="1"/>
+            <Column header="CM" :colspan="2" class="!bg-purple-50"/>
+            <Column header="TD" :colspan="2" class="!bg-green-50"/>
+            <Column header="TP" :colspan="2" class="!bg-amber-50"/>
+            <Column header="Total" :colspan="1"/>
+          </Row>
+        </ColumnGroup>
+
         <Column field="enseignement.codeEnseignement" header="Code" />
         <Column field="enseignement.libelle" header="Nom" />
         <Column field="enseignement.type" header="Type" />
         <Column field="personnel.length" header="Nb intervenants" />
-
 
         <Column class="bg-purple-50" field="heures.CM.Maquette" header="CM Maquette" />
         <Column class="bg-purple-50" field="heures.CM.Previ" header="CM Previ" />
