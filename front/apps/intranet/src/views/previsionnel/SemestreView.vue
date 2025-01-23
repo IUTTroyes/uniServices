@@ -103,7 +103,10 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
           <Column field="enseignement.libelle" header="Nom" />
           <Column field="enseignement.type" header="Type" />
           <Column field="personnel.length" header="Nb intervenants" />
-          <Column field="heures" header="Heures" />
+          <Column class="bg-purple-50" field="heures.heures.CM" header="CM" />
+          <Column class="bg-green-50" field="heures.heures.TD" header="TD" />
+          <Column class="bg-amber-50" field="heures.heures.TP" header="TP" />
+          <Column field="heures.heures.CM" header="Total" />
         </DataTable>
 
         <Message v-else severity="error" icon="pi pi-times-circle">
