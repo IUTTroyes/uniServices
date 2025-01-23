@@ -7,6 +7,7 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnnee;
+use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
@@ -42,7 +43,8 @@ class PrevisionnelFilter extends AbstractFilter
 
         if ('anneeUniversitaire' === $property) {
             $queryBuilder
-                ->andWhere(sprintf('%s.anneeUniversitaire = :anneeUniversitaire', $alias))
+                ->join(sprintf('%s.anneeUniversitaire', $alias), 'au')
+                ->andWhere('au.id = :anneeUniversitaire')
                 ->setParameter('anneeUniversitaire', $value)
             ;
         }

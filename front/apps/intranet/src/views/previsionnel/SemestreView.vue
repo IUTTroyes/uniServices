@@ -37,13 +37,12 @@ const getPrevi = async (semestreId) => {
     isLoadingPrevisionnel.value = true;
     await semestreStore.getSemestre(semestreId);
     semestreDetails.value = semestreStore.semestre;
-    // todo : récupérer le prévisionnel de l'année universitaire
 
-    previSemestre.value = await getSemestrePreviService(selectedSemestre.value.id, selectedAnneeUniv.id);
+    previSemestre.value = await getSemestrePreviService(selectedSemestre.value.id, selectedAnneeUniv.value.id);
     isLoadingPrevisionnel.value = false;
 
     previGrouped.value = await buildSemestrePreviService(previSemestre.value);
-    console.log('groupedPrevi', previGrouped.value);
+    // console.log('groupedPrevi', previGrouped.value);
   }
 };
 
@@ -69,8 +68,7 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
 </script>
 
 <template>
-  <div class="px-4 py-12">
-    <div>
+  <div class="px-4 py-12 flex flex-col gap-6">
       <div class="flex justify-between gap-10">
         <div class="flex gap-6 w-1/2">
           <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/2" />
@@ -98,20 +96,20 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
         </div>
         <Button label="Saisir le prévisionnel" icon="pi pi-plus" />
       </div>
-      <ListSkeleton
-          v-if="isLoadingPrevisionnel"
-          class="mt-6"
-      />
+      <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
       <div v-else>
-        <DataTable :value="previGrouped" tableStyle="min-width: 50rem">
-          <Column field="enseignement.codeEnseignement" header="Code"></Column>
-          <Column field="enseignement.libelle" header="Nom"></Column>
-          <Column field="enseignement.type" header="Type"></Column>
-          <Column field="personnel.length" header="Nb intervenants"></Column>
-          <Column field="heures" header="Heures"></Column>
+        <DataTable v-if="previGrouped?.length > 0" :value="previGrouped" tableStyle="min-width: 50rem">
+          <Column field="enseignement.codeEnseignement" header="Code" />
+          <Column field="enseignement.libelle" header="Nom" />
+          <Column field="enseignement.type" header="Type" />
+          <Column field="personnel.length" header="Nb intervenants" />
+          <Column field="heures" header="Heures" />
         </DataTable>
+
+        <Message v-else severity="error" icon="pi pi-times-circle">
+          Aucun prévisionnel pour cette année universitaire et ce semestre
+        </Message>
       </div>
-    </div>
   </div>
 </template>
 
