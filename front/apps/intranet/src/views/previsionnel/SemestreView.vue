@@ -104,22 +104,54 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
       <DataTable v-if="previGrouped?.length > 0" :value="previGrouped" tableStyle="min-width: 50rem">
+        <ColumnGroup type="header">
+          <Row>
+            <Column header="" :colspan="4"/>
+            <Column header="CM" :colspan="3" class="!bg-purple-50"/>
+            <Column header="TD" :colspan="3" class="!bg-green-50"/>
+            <Column header="TP" :colspan="3" class="!bg-amber-50"/>
+            <Column header="Total" :colspan="3"/>
+          </Row>
+          <Row>
+            <Column header="Code" :colspan="1"/>
+            <Column header="Nom" :colspan="1"/>
+            <Column header="Type" :colspan="1"/>
+            <Column header="Nb intervenants" :colspan="1"/>
+            <Column header="Maquette" :colspan="1" class="!bg-purple-50"/>
+            <Column header="Previ" :colspan="1" class="!bg-purple-50"/>
+            <Column header="Diff" :colspan="1" class="!bg-purple-50"/>
+            <Column header="Maquette" :colspan="1" class="!bg-green-50"/>
+            <Column header="Previ" :colspan="1" class="!bg-green-50"/>
+            <Column header="Diff" :colspan="1" class="!bg-green-50"/>
+            <Column header="Maquette" :colspan="1" class="!bg-amber-50"/>
+            <Column header="Previ" :colspan="1" class="!bg-amber-50"/>
+            <Column header="Diff" :colspan="1" class="!bg-amber-50"/>
+            <Column header="Maquette" :colspan="1"/>
+            <Column header="Previ" :colspan="1"/>
+            <Column header="Diff" :colspan="1"/>
+          </Row>
+        </ColumnGroup>
+
         <Column field="enseignement.codeEnseignement" header="Code" />
         <Column field="enseignement.libelle" header="Nom" />
         <Column field="enseignement.type" header="Type" />
         <Column field="personnel.length" header="Nb intervenants" />
 
+        <Column class="bg-purple-50" field="heures.CM.Maquette" header="Maquette" />
+        <Column class="bg-purple-50" field="heures.CM.Previ" header="Previ" />
+        <Column class="bg-purple-50" field="heures.CM.Previ" header="Diff" />
 
-        <Column class="bg-purple-50" field="heures.CM.Maquette" header="CM Maquette" />
-        <Column class="bg-purple-50" field="heures.CM.Previ" header="CM Previ" />
+        <Column class="bg-green-50" field="heures.TD.Maquette" header="Maquette" />
+        <Column class="bg-green-50" field="heures.TD.Previ" header="Previ" />
+        <Column class="bg-green-50" field="heures.TD.Previ" header="Diff" />
 
-        <Column class="bg-green-50" field="heures.TD.Maquette" header="TD Maquette" />
-        <Column class="bg-green-50" field="heures.TD.Previ" header="TD Previ" />
+        <Column class="bg-amber-50" field="heures.TP.Maquette" header="Maquette" />
+        <Column class="bg-amber-50" field="heures.TP.Previ" header="Previ" />
+        <Column class="bg-amber-50" field="heures.TP.Previ" header="Diff" />
 
-        <Column class="bg-amber-50" field="heures.TP.Maquette" header="TP Maquette" />
-        <Column class="bg-amber-50" field="heures.TP.Previ" header="TP Previ" />
-
-        <Column field="total" header="Total" />
+        <Column field="total" header="Maquette" />
+        <Column field="total" header="Previ" />
+        <Column field="total" header="Diff" />
       </DataTable>
 
       <Message v-else severity="error" icon="pi pi-times-circle">
