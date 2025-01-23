@@ -10,7 +10,6 @@ use ApiPlatform\Metadata\Patch;
 use App\Entity\Edt\EdtProgression;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
-use App\Entity\Structure\StructureSemestre;
 use App\Entity\Users\Personnel;
 use App\Filter\PrevisionnelFilter;
 use App\Repository\Previsionnel\PrevisionnelRepository;
@@ -54,6 +53,7 @@ class Previsionnel
     private ?bool $referent = null;
 
     #[ORM\Column(type: Types::JSON)]
+    #[Groups(['previsionnel:read'])]
     private array $heures = [];
 
     #[ORM\Column]

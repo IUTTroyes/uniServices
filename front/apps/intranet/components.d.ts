@@ -37,6 +37,7 @@ declare module 'vue' {
     InputText: typeof import('primevue/inputtext')['default']
     Menu: typeof import('primevue/menu')['default']
     Message: typeof import('primevue/message')['default']
+    MultiSelect: typeof import('primevue/multiselect')['default']
     PanelMenu: typeof import('primevue/panelmenu')['default']
     Pn: typeof import('./src/components/Administration/Pn.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

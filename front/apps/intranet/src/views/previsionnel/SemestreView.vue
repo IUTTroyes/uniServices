@@ -2,7 +2,7 @@
 import { useSemestreStore, useAnneeUnivStore } from "@stores";
 import { computed, onMounted, ref, watch } from "vue";
 import { SimpleSkeleton, ListSkeleton } from "@components";
-import { getSemestrePreviService} from "@requests";
+import { getSemestrePreviService, buildSemestrePreviService } from "@requests";
 
 const semestreStore = useSemestreStore();
 const anneeUnivStore = useAnneeUnivStore();
@@ -14,14 +14,13 @@ const semestreDetails = ref(null);
 
 const anneesUnivList = ref([]);
 const selectedAnneeUniv = ref(null);
-const matieresSemestre = ref([]);
 
 const isLoadingSemestres = ref(false);
 const isLoadingAnneesUniv = ref(false);
-const isLoadingSemestreDetails = ref(false);
 const isLoadingPrevisionnel = ref(true);
 
 const previSemestre = ref(null);
+const previGrouped = ref(null);
 
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
@@ -33,16 +32,18 @@ const getSemestres = async () => {
   isLoadingSemestres.value = false;
 };
 
-const getSelectedSemestre = async (semestreId) => {
+const getPrevi = async (semestreId) => {
   if (semestreId) {
-    isLoadingSemestreDetails.value = true;
+    isLoadingPrevisionnel.value = true;
     await semestreStore.getSemestre(semestreId);
     semestreDetails.value = semestreStore.semestre;
-    isLoadingSemestreDetails.value = false;
-
     // todo : récupérer le prévisionnel de l'année universitaire
-    previSemestre.value = await getSemestrePreviService(selectedSemestre.value.id);
-    console.log(previSemestre);
+
+    previSemestre.value = await getSemestrePreviService(selectedSemestre.value.id, selectedAnneeUniv.id);
+    isLoadingPrevisionnel.value = false;
+
+    previGrouped.value = await buildSemestrePreviService(previSemestre.value);
+    console.log('groupedPrevi', previGrouped.value);
   }
 };
 
@@ -57,15 +58,12 @@ const getAnneesUniv = async () => {
 
 onMounted(async () => {
   await getSemestres();
-  if (selectedSemestre.value) {
-    await getSelectedSemestre(selectedSemestre.value.id);
-  }
   await getAnneesUniv();
 });
 
-watch(selectedSemestre, async (newValue) => {
-  if (newValue) {
-    await getSelectedSemestre(newValue.id);
+watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv]) => {
+  if (newSemestre && newAnneeUniv) {
+    await getPrevi(newSemestre.id, newAnneeUniv.id);
   }
 });
 </script>
@@ -105,6 +103,13 @@ watch(selectedSemestre, async (newValue) => {
           class="mt-6"
       />
       <div v-else>
+        <DataTable :value="previGrouped" tableStyle="min-width: 50rem">
+          <Column field="enseignement.codeEnseignement" header="Code"></Column>
+          <Column field="enseignement.libelle" header="Nom"></Column>
+          <Column field="enseignement.type" header="Type"></Column>
+          <Column field="personnel.length" header="Nb intervenants"></Column>
+          <Column field="heures" header="Heures"></Column>
+        </DataTable>
       </div>
     </div>
   </div>

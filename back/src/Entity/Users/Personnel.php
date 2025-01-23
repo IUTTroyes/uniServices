@@ -6,9 +6,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Put;
 use App\Entity\Edt\EdtEvent;
-use App\Entity\Edt\EdtProgression;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
@@ -60,7 +58,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
@@ -79,11 +77,11 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -690,7 +688,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return self::STATUT[$this->statut] ?? null;
     }
 
-    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read'])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();
