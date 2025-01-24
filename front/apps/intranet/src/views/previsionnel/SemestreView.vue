@@ -23,6 +23,13 @@ const isLoadingPrevisionnel = ref(true);
 const previSemestre = ref(null);
 const previGrouped = ref(null);
 
+const size = ref({ label: 'Normal', value: 'null' });
+const sizeOptions = ref([
+  { label: 'Petit', value: 'small' },
+  { label: 'Normal', value: 'null' },
+  { label: 'Large', value: 'large' }
+]);
+
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
   await semestreStore.getSemestresByDepartement(departementId, true);
@@ -102,7 +109,10 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
     </div>
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
-      <DataTable v-if="previGrouped?.length > 0" :value="previGrouped" tableStyle="min-width: 50rem" striped-rows scrollable>
+      <div class="flex w-full justify-center m-6">
+        <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
+      </div>
+      <DataTable v-if="previGrouped?.length > 0" :value="previGrouped" tableStyle="min-width: 50rem" striped-rows scrollable :size="size.value" show-gridlines>
         <ColumnGroup type="header">
           <Row>
             <Column header="" :colspan="4"/>
