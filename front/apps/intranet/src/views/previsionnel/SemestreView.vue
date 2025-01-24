@@ -119,6 +119,7 @@ watch(searchTerm, (newTerm) => {
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
       <div class="flex w-full justify-between my-6">
+        <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
         <div class="flex justify-end">
           <IconField>
             <InputIcon>
@@ -127,12 +128,11 @@ watch(searchTerm, (newTerm) => {
             <InputText v-model="searchTerm" placeholder="Rechercher par matière" />
           </IconField>
         </div>
-        <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
       </div>
       <DataTable v-if="previGrouped?.length > 0" :value="previGrouped" :filters="filters" tableStyle="min-width: 50rem" striped-rows scrollable :size="size.value">
         <ColumnGroup type="header">
           <Row>
-            <Column header="" :colspan="4"/>
+            <Column :header="`Prévisionnel du semestre ${selectedSemestre?.libelle}`" :colspan="4" class="text-black text-xl"/>
             <Column header="CM" :colspan="3" class="!bg-purple-50"/>
             <Column header="TD" :colspan="3" class="!bg-green-50"/>
             <Column header="TP" :colspan="3" class="!bg-amber-50"/>
@@ -142,10 +142,10 @@ watch(searchTerm, (newTerm) => {
             <Column header="Code" :colspan="1" sortable field="enseignement.codeEnseignement"/>
             <Column header="Nom" :colspan="1" sortable field="enseignement.libelle"/>
             <Column header="Type" :colspan="1" sortable field="enseignement.type"/>
-            <Column header="Nb intervenants" :colspan="1"/>
+            <Column header="Nb profs" :colspan="1"/>
             <Column header="Maq." :colspan="1" class="!bg-purple-50"/>
-            <Column header="Prévi" :colspan="1" class="!bg-purple-50"/>
-            <Column header="Diff" :colspan="1" class="!bg-purple-50" sortable field="heures.CM.Diff"/>
+            <Column header="Prévi." :colspan="1" class="!bg-purple-50"/>
+            <Column header="Diff." :colspan="1" class="!bg-purple-50" sortable field="heures.CM.Diff"/>
             <Column header="Maq." :colspan="1" class="!bg-green-50"/>
             <Column header="Prévi." :colspan="1" class="!bg-green-50"/>
             <Column header="Diff." :colspan="1" class="!bg-green-50" sortable field="heures.TD.Diff"/>
