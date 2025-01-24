@@ -1,8 +1,8 @@
 <script setup>
-import { useSemestreStore, useAnneeUnivStore, useUsersStore } from "@stores";
-import { computed, onMounted, ref, watch } from "vue";
-import { SimpleSkeleton, ListSkeleton } from "@components";
-import { getSemestrePreviService, buildSemestrePreviService, calcTotalHeures } from "@requests";
+import { ref, computed, onMounted, watch } from 'vue';
+import { useSemestreStore, useAnneeUnivStore, useUsersStore } from '@stores';
+import { SimpleSkeleton, ListSkeleton } from '@components';
+import { getSemestrePreviService, buildSemestrePreviService, calcTotalHeures } from '@requests';
 
 const usersStore = useUsersStore();
 const semestreStore = useSemestreStore();
@@ -22,6 +22,18 @@ const isLoadingPrevisionnel = ref(true);
 
 const previSemestre = ref(null);
 const previGrouped = ref(null);
+
+const size = ref({ label: 'Normal', value: 'null' });
+const sizeOptions = ref([
+  { label: 'Petit', value: 'small' },
+  { label: 'Normal', value: 'null' },
+  { label: 'Large', value: 'large' }
+]);
+
+const searchTerm = ref('');
+const filters = ref({
+  'enseignement.libelle': { value: null, matchMode: 'contains' }
+});
 
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
@@ -69,6 +81,10 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
     await getPrevi(newSemestre.id, newAnneeUniv.id);
   }
 });
+
+watch(searchTerm, (newTerm) => {
+  filters.value['enseignement.libelle'].value = newTerm;
+});
 </script>
 
 <template>
@@ -102,7 +118,18 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
     </div>
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
-      <DataTable v-if="previGrouped?.length > 0" :value="previGrouped" tableStyle="min-width: 50rem" striped-rows scrollable>
+      <div class="flex w-full justify-between my-6">
+        <div class="flex justify-end">
+          <IconField>
+            <InputIcon>
+              <i class="pi pi-search" />
+            </InputIcon>
+            <InputText v-model="searchTerm" placeholder="Rechercher par matière" />
+          </IconField>
+        </div>
+        <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
+      </div>
+      <DataTable v-if="previGrouped?.length > 0" :value="previGrouped" :filters="filters" tableStyle="min-width: 50rem" striped-rows scrollable :size="size.value">
         <ColumnGroup type="header">
           <Row>
             <Column header="" :colspan="4"/>
@@ -112,22 +139,22 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
             <Column header="Total" :colspan="3"/>
           </Row>
           <Row>
-            <Column header="Code" :colspan="1"/>
-            <Column header="Nom" :colspan="1"/>
-            <Column header="Type" :colspan="1"/>
-            <Column header="Intervenants" :colspan="1"/>
+            <Column header="Code" :colspan="1" sortable field="enseignement.codeEnseignement"/>
+            <Column header="Nom" :colspan="1" sortable field="enseignement.libelle"/>
+            <Column header="Type" :colspan="1" sortable field="enseignement.type"/>
+            <Column header="Nb intervenants" :colspan="1"/>
             <Column header="Maq." :colspan="1" class="!bg-purple-50"/>
             <Column header="Prévi" :colspan="1" class="!bg-purple-50"/>
-            <Column header="Diff" :colspan="1" class="!bg-purple-50"/>
+            <Column header="Diff" :colspan="1" class="!bg-purple-50" sortable field="heures.CM.Diff"/>
             <Column header="Maq." :colspan="1" class="!bg-green-50"/>
             <Column header="Prévi." :colspan="1" class="!bg-green-50"/>
-            <Column header="Diff." :colspan="1" class="!bg-green-50"/>
+            <Column header="Diff." :colspan="1" class="!bg-green-50" sortable field="heures.TD.Diff"/>
             <Column header="Maq." :colspan="1" class="!bg-amber-50"/>
             <Column header="Previ" :colspan="1" class="!bg-amber-50"/>
-            <Column header="Diff" :colspan="1" class="!bg-amber-50"/>
+            <Column header="Diff" :colspan="1" class="!bg-amber-50" sortable field="heures.TP.Diff"/>
             <Column header="Maq." :colspan="1"/>
             <Column header="Prévi." :colspan="1"/>
-            <Column header="Diff." :colspan="1"/>
+            <Column header="Diff." :colspan="1" sortable field="heures.Total.Diff"/>
           </Row>
         </ColumnGroup>
 
@@ -146,7 +173,7 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
             {{ slotProps.data.heures.CM.Previ }} h
           </template>
         </Column>
-        <Column class="bg-purple-50" field="heures.CM.Diff" header="Diff">
+        <Column class="bg-purple-50" field="heures.CM.Diff" header="Diff" sortable>
           <template #body="slotProps">
             <Tag
                 class="w-full"
