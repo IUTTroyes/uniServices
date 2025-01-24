@@ -118,140 +118,141 @@ watch(searchTerm, (newTerm) => {
     </div>
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
-      <div class="flex w-full justify-between my-6">
-        <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
-        <div class="flex justify-end">
-          <IconField>
-            <InputIcon>
-              <i class="pi pi-search" />
-            </InputIcon>
-            <InputText v-model="searchTerm" placeholder="Rechercher par matière" />
-          </IconField>
+      <div v-if="previGrouped?.length > 0">
+        <div class="flex w-full justify-between my-6">
+          <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
+          <div class="flex justify-end">
+            <IconField>
+              <InputIcon>
+                <i class="pi pi-search" />
+              </InputIcon>
+              <InputText v-model="searchTerm" placeholder="Rechercher par matière" />
+            </IconField>
+          </div>
         </div>
+        <DataTable :value="previGrouped" :filters="filters" tableStyle="min-width: 50rem" striped-rows scrollable :size="size.value">
+          <ColumnGroup type="header">
+            <Row>
+              <Column :header="`Prévisionnel du semestre ${selectedSemestre?.libelle}`" :colspan="4" class="text-black text-xl"/>
+              <Column header="CM" :colspan="3" class="!bg-purple-400 !bg-opacity-10"/>
+              <Column header="TD" :colspan="3" class="!bg-green-400 !bg-opacity-10"/>
+              <Column header="TP" :colspan="3" class="!bg-amber-400 !bg-opacity-10"/>
+              <Column header="Total" :colspan="3"/>
+            </Row>
+            <Row>
+              <Column header="Code" :colspan="1" sortable field="enseignement.codeEnseignement"/>
+              <Column header="Nom" :colspan="1" sortable field="enseignement.libelle"/>
+              <Column header="Type" :colspan="1" sortable field="enseignement.type"/>
+              <Column header="Nb profs" :colspan="1"/>
+              <Column header="Maq." :colspan="1" class="!bg-purple-400 !bg-opacity-10"/>
+              <Column header="Prévi." :colspan="1" class="!bg-purple-400 !bg-opacity-10"/>
+              <Column header="Diff." :colspan="1" class="!bg-purple-400 !bg-opacity-10" sortable field="heures.CM.Diff"/>
+              <Column header="Maq." :colspan="1" class="!bg-green-400 !bg-opacity-10"/>
+              <Column header="Prévi." :colspan="1" class="!bg-green-400 !bg-opacity-10"/>
+              <Column header="Diff." :colspan="1" class="!bg-green-400 !bg-opacity-10" sortable field="heures.TD.Diff"/>
+              <Column header="Maq." :colspan="1" class="!bg-amber-400 !bg-opacity-10"/>
+              <Column header="Previ" :colspan="1" class="!bg-amber-400 !bg-opacity-10"/>
+              <Column header="Diff" :colspan="1" class="!bg-amber-400 !bg-opacity-10" sortable field="heures.TP.Diff"/>
+              <Column header="Maq." :colspan="1"/>
+              <Column header="Prévi." :colspan="1"/>
+              <Column header="Diff." :colspan="1" sortable field="heures.Total.Diff"/>
+            </Row>
+          </ColumnGroup>
+
+          <Column field="enseignement.codeEnseignement" header="Code" />
+          <Column field="enseignement.libelle" header="Nom" />
+          <Column field="enseignement.type" header="Type" />
+          <Column field="personnel.length" header="Nb intervenants" />
+
+          <Column class="bg-purple-400 bg-opacity-10" field="heures.CM.Maquette" header="Maquette">
+            <template #body="slotProps">
+              {{ slotProps.data.heures.CM.Maquette }} h
+            </template>
+          </Column>
+          <Column class="bg-purple-400 bg-opacity-10" field="heures.CM.Previ" header="Previ">
+            <template #body="slotProps">
+              {{ slotProps.data.heures.CM.Previ }} h
+            </template>
+          </Column>
+          <Column class="bg-purple-400 bg-opacity-10" field="heures.CM.Diff" header="Diff" sortable>
+            <template #body="slotProps">
+              <Tag
+                  class="w-full"
+                  :severity="slotProps.data.heures.CM.Diff === 0 ? 'success' : (slotProps.data.heures.CM.Diff < 0 ? 'warn' : 'danger')"
+                  :icon="slotProps.data.heures.CM.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.CM.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
+              >
+                {{ slotProps.data.heures.CM.Diff ?? 0 }} h
+              </Tag>
+            </template>
+          </Column>
+
+          <Column class="bg-green-400 bg-opacity-10" field="heures.TD.Maquette" header="Maquette">
+            <template #body="slotProps">
+              {{ slotProps.data.heures.TD.Maquette }} h
+            </template>
+          </Column>
+          <Column class="bg-green-400 bg-opacity-10" field="heures.TD.Previ" header="Previ">
+            <template #body="slotProps">
+              {{ slotProps.data.heures.TD.Previ }} h
+            </template>
+          </Column>
+          <Column class="bg-green-400 bg-opacity-10" field="heures.TD.Diff" header="Diff">
+            <template #body="slotProps">
+              <Tag
+                  class="w-full"
+                  :severity="slotProps.data.heures.TD.Diff === 0 ? 'success' : (slotProps.data.heures.TD.Diff < 0 ? 'warn' : 'danger')"
+                  :icon="slotProps.data.heures.TD.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.TD.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
+              >
+                {{ slotProps.data.heures.TD.Diff ?? 0 }} h
+              </Tag>
+            </template>
+          </Column>
+
+          <Column class="bg-amber-400 bg-opacity-10" field="heures.TP.Maquette" header="Maquette">
+            <template #body="slotProps">
+              {{ slotProps.data.heures.TP.Maquette }} h
+            </template>
+          </Column>
+          <Column class="bg-amber-400 bg-opacity-10" field="heures.TP.Previ" header="Previ">
+            <template #body="slotProps">
+              {{ slotProps.data.heures.TP.Previ }} h
+            </template>
+          </Column>
+          <Column class="bg-amber-400 bg-opacity-10" field="heures.TP.Diff" header="Diff">
+            <template #body="slotProps">
+              <Tag
+                  class="w-full"
+                  :severity="slotProps.data.heures.TP.Diff === 0 ? 'success' : (slotProps.data.heures.TP.Diff < 0 ? 'warn' : 'danger')"
+                  :icon="slotProps.data.heures.TP.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.TP.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
+              >
+                {{ slotProps.data.heures.TP.Diff ?? 0 }} h
+              </Tag>
+            </template>
+          </Column>
+
+          <Column field="heures.Total.Maquette" header="Maquette">
+            <template #body="slotProps">
+              {{ slotProps.data.heures.Total.Maquette }} h
+            </template>
+          </Column>
+          <Column field="heures.Total.Previ" header="Previ">
+            <template #body="slotProps">
+              {{ slotProps.data.heures.Total.Previ }} h
+            </template>
+          </Column>
+          <Column field="heures.Total.Diff" header="Diff">
+            <template #body="slotProps">
+              <Tag
+                  class="w-full"
+                  :severity="slotProps.data.heures.Total.Diff === 0 ? 'success' : (slotProps.data.heures.Total.Diff < 0 ? 'warn' : 'danger')"
+                  :icon="slotProps.data.heures.Total.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.Total.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
+              >
+                {{ slotProps.data.heures.Total.Diff ?? 0 }} h
+              </Tag>
+            </template>
+          </Column>
+        </DataTable>
       </div>
-      <DataTable v-if="previGrouped?.length > 0" :value="previGrouped" :filters="filters" tableStyle="min-width: 50rem" striped-rows scrollable :size="size.value">
-        <ColumnGroup type="header">
-          <Row>
-            <Column :header="`Prévisionnel du semestre ${selectedSemestre?.libelle}`" :colspan="4" class="text-black text-xl"/>
-            <Column header="CM" :colspan="3" class="!bg-purple-50"/>
-            <Column header="TD" :colspan="3" class="!bg-green-50"/>
-            <Column header="TP" :colspan="3" class="!bg-amber-50"/>
-            <Column header="Total" :colspan="3"/>
-          </Row>
-          <Row>
-            <Column header="Code" :colspan="1" sortable field="enseignement.codeEnseignement"/>
-            <Column header="Nom" :colspan="1" sortable field="enseignement.libelle"/>
-            <Column header="Type" :colspan="1" sortable field="enseignement.type"/>
-            <Column header="Nb profs" :colspan="1"/>
-            <Column header="Maq." :colspan="1" class="!bg-purple-50"/>
-            <Column header="Prévi." :colspan="1" class="!bg-purple-50"/>
-            <Column header="Diff." :colspan="1" class="!bg-purple-50" sortable field="heures.CM.Diff"/>
-            <Column header="Maq." :colspan="1" class="!bg-green-50"/>
-            <Column header="Prévi." :colspan="1" class="!bg-green-50"/>
-            <Column header="Diff." :colspan="1" class="!bg-green-50" sortable field="heures.TD.Diff"/>
-            <Column header="Maq." :colspan="1" class="!bg-amber-50"/>
-            <Column header="Previ" :colspan="1" class="!bg-amber-50"/>
-            <Column header="Diff" :colspan="1" class="!bg-amber-50" sortable field="heures.TP.Diff"/>
-            <Column header="Maq." :colspan="1"/>
-            <Column header="Prévi." :colspan="1"/>
-            <Column header="Diff." :colspan="1" sortable field="heures.Total.Diff"/>
-          </Row>
-        </ColumnGroup>
-
-        <Column field="enseignement.codeEnseignement" header="Code" />
-        <Column field="enseignement.libelle" header="Nom" />
-        <Column field="enseignement.type" header="Type" />
-        <Column field="personnel.length" header="Nb intervenants" />
-
-        <Column class="bg-purple-50" field="heures.CM.Maquette" header="Maquette">
-          <template #body="slotProps">
-            {{ slotProps.data.heures.CM.Maquette }} h
-          </template>
-        </Column>
-        <Column class="bg-purple-50" field="heures.CM.Previ" header="Previ">
-          <template #body="slotProps">
-            {{ slotProps.data.heures.CM.Previ }} h
-          </template>
-        </Column>
-        <Column class="bg-purple-50" field="heures.CM.Diff" header="Diff" sortable>
-          <template #body="slotProps">
-            <Tag
-                class="w-full"
-                :severity="slotProps.data.heures.CM.Diff === 0 ? 'success' : (slotProps.data.heures.CM.Diff < 0 ? 'warn' : 'danger')"
-                :icon="slotProps.data.heures.CM.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.CM.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
-            >
-              {{ slotProps.data.heures.CM.Diff ?? 0 }} h
-            </Tag>
-          </template>
-        </Column>
-
-        <Column class="bg-green-50" field="heures.TD.Maquette" header="Maquette">
-          <template #body="slotProps">
-            {{ slotProps.data.heures.TD.Maquette }} h
-          </template>
-        </Column>
-        <Column class="bg-green-50" field="heures.TD.Previ" header="Previ">
-          <template #body="slotProps">
-            {{ slotProps.data.heures.TD.Previ }} h
-          </template>
-        </Column>
-        <Column class="bg-green-50" field="heures.TD.Diff" header="Diff">
-          <template #body="slotProps">
-            <Tag
-                class="w-full"
-                :severity="slotProps.data.heures.TD.Diff === 0 ? 'success' : (slotProps.data.heures.TD.Diff < 0 ? 'warn' : 'danger')"
-                :icon="slotProps.data.heures.TD.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.TD.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
-            >
-              {{ slotProps.data.heures.TD.Diff ?? 0 }} h
-            </Tag>
-          </template>
-        </Column>
-
-        <Column class="bg-amber-50" field="heures.TP.Maquette" header="Maquette">
-          <template #body="slotProps">
-            {{ slotProps.data.heures.TP.Maquette }} h
-          </template>
-        </Column>
-        <Column class="bg-amber-50" field="heures.TP.Previ" header="Previ">
-          <template #body="slotProps">
-            {{ slotProps.data.heures.TP.Previ }} h
-          </template>
-        </Column>
-        <Column class="bg-amber-50" field="heures.TP.Diff" header="Diff">
-          <template #body="slotProps">
-            <Tag
-                class="w-full"
-                :severity="slotProps.data.heures.TP.Diff === 0 ? 'success' : (slotProps.data.heures.TP.Diff < 0 ? 'warn' : 'danger')"
-                :icon="slotProps.data.heures.TP.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.TP.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
-            >
-              {{ slotProps.data.heures.TP.Diff ?? 0 }} h
-            </Tag>
-          </template>
-        </Column>
-
-        <Column field="heures.Total.Maquette" header="Maquette">
-          <template #body="slotProps">
-            {{ slotProps.data.heures.Total.Maquette }} h
-          </template>
-        </Column>
-        <Column field="heures.Total.Previ" header="Previ">
-          <template #body="slotProps">
-            {{ slotProps.data.heures.Total.Previ }} h
-          </template>
-        </Column>
-        <Column field="heures.Total.Diff" header="Diff">
-          <template #body="slotProps">
-            <Tag
-                class="w-full"
-                :severity="slotProps.data.heures.Total.Diff === 0 ? 'success' : (slotProps.data.heures.Total.Diff < 0 ? 'warn' : 'danger')"
-                :icon="slotProps.data.heures.Total.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.Total.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
-            >
-              {{ slotProps.data.heures.Total.Diff ?? 0 }} h
-            </Tag>
-          </template>
-        </Column>
-      </DataTable>
-
       <Message v-else severity="error" icon="pi pi-times-circle">
         Aucun prévisionnel pour cette année universitaire et ce semestre
       </Message>
