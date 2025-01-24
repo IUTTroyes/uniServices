@@ -105,6 +105,14 @@ const columns = ref([
   { header: 'Prévi.', field: 'heures.Total.Previ', colspan: 1 },
   { header: 'Diff.', field: 'heures.Total.Diff', sortable: true, colspan: 1, tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
 ]);
+
+const subColumns = ref([
+  { header: 'CM', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
+  { header: 'TD', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
+  { header: 'TP', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
+  { header: 'Total', colspan: 3 }
+]);
+
 </script>
 
 <template>
@@ -150,7 +158,7 @@ const columns = ref([
             </IconField>
           </div>
         </div>
-        <PrevisionnelTable :columns="columns" :data="previGrouped" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`" />
+        <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :subColumns="subColumns" :data="previGrouped" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`" />
       </div>
       <Message v-else severity="error" icon="pi pi-times-circle">
         Aucun prévisionnel pour cette année universitaire et ce semestre
