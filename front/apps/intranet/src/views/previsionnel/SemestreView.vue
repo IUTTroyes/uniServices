@@ -155,7 +155,7 @@ watch(searchTerm, (newTerm) => {
               <Column header="Diff" :colspan="1" class="!bg-amber-400 !bg-opacity-10" sortable field="heures.TP.Diff"/>
               <Column header="Maq." :colspan="1"/>
               <Column header="Prévi." :colspan="1"/>
-              <Column header="Diff." :colspan="1" sortable field="heures.Total.Diff"/>
+              <Column header="Diff." :colspan="1" sortable field="heures.Total.Diff" class=""/>
             </Row>
           </ColumnGroup>
 
@@ -177,9 +177,10 @@ watch(searchTerm, (newTerm) => {
           <Column class="bg-purple-400 bg-opacity-10" field="heures.CM.Diff" header="Diff" sortable>
             <template #body="slotProps">
               <Tag
-                  class="w-full"
+                  class="w-max"
                   :severity="slotProps.data.heures.CM.Diff === 0 ? 'success' : (slotProps.data.heures.CM.Diff < 0 ? 'warn' : 'danger')"
                   :icon="slotProps.data.heures.CM.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.CM.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
+                  :class="slotProps.data.heures.CM.Diff === 0 ? '!bg-green-400 !text-white' : (slotProps.data.heures.CM.Diff < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white')"
               >
                 {{ slotProps.data.heures.CM.Diff ?? 0 }} h
               </Tag>
@@ -199,9 +200,10 @@ watch(searchTerm, (newTerm) => {
           <Column class="bg-green-400 bg-opacity-10" field="heures.TD.Diff" header="Diff">
             <template #body="slotProps">
               <Tag
-                  class="w-full"
+                  class="w-max"
                   :severity="slotProps.data.heures.TD.Diff === 0 ? 'success' : (slotProps.data.heures.TD.Diff < 0 ? 'warn' : 'danger')"
                   :icon="slotProps.data.heures.TD.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.TD.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
+                  :class="slotProps.data.heures.CM.Diff === 0 ? '!bg-green-400 !text-white' : (slotProps.data.heures.CM.Diff < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white')"
               >
                 {{ slotProps.data.heures.TD.Diff ?? 0 }} h
               </Tag>
@@ -221,9 +223,10 @@ watch(searchTerm, (newTerm) => {
           <Column class="bg-amber-400 bg-opacity-10" field="heures.TP.Diff" header="Diff">
             <template #body="slotProps">
               <Tag
-                  class="w-full"
+                  class="w-max"
                   :severity="slotProps.data.heures.TP.Diff === 0 ? 'success' : (slotProps.data.heures.TP.Diff < 0 ? 'warn' : 'danger')"
                   :icon="slotProps.data.heures.TP.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.TP.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
+                  :class="slotProps.data.heures.CM.Diff === 0 ? '!bg-green-400 !text-white' : (slotProps.data.heures.CM.Diff < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white')"
               >
                 {{ slotProps.data.heures.TP.Diff ?? 0 }} h
               </Tag>
@@ -243,9 +246,10 @@ watch(searchTerm, (newTerm) => {
           <Column field="heures.Total.Diff" header="Diff">
             <template #body="slotProps">
               <Tag
-                  class="w-full"
+                  class="w-max"
                   :severity="slotProps.data.heures.Total.Diff === 0 ? 'success' : (slotProps.data.heures.Total.Diff < 0 ? 'warn' : 'danger')"
                   :icon="slotProps.data.heures.Total.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.Total.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
+                  :class="slotProps.data.heures.CM.Diff === 0 ? '!bg-green-400 !text-white' : (slotProps.data.heures.CM.Diff < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white')"
               >
                 {{ slotProps.data.heures.Total.Diff ?? 0 }} h
               </Tag>

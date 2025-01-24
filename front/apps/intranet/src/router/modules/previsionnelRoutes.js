@@ -11,6 +11,6 @@ export default [
   },
   {
     path: 'matiere',
-    component: () => import('@/views/previsionnel/MatiereView.vue'),
+    component: () => import('@/views/previsionnel/PrevisionnelMatiereView.vue'),
   }
 ]
