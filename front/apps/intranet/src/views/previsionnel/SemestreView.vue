@@ -134,9 +134,9 @@ watch(searchTerm, (newTerm) => {
           <ColumnGroup type="header">
             <Row>
               <Column :header="`Prévisionnel du semestre ${selectedSemestre?.libelle}`" :colspan="4" class="text-black text-xl"/>
-              <Column header="CM" :colspan="3" class="!bg-purple-400 !bg-opacity-10"/>
-              <Column header="TD" :colspan="3" class="!bg-green-400 !bg-opacity-10"/>
-              <Column header="TP" :colspan="3" class="!bg-amber-400 !bg-opacity-10"/>
+              <Column header="CM" :colspan="3" class="!bg-purple-400 !bg-opacity-20"/>
+              <Column header="TD" :colspan="3" class="!bg-green-400 !bg-opacity-20"/>
+              <Column header="TP" :colspan="3" class="!bg-amber-400 !bg-opacity-20"/>
               <Column header="Total" :colspan="3"/>
             </Row>
             <Row>
@@ -144,15 +144,15 @@ watch(searchTerm, (newTerm) => {
               <Column header="Nom" :colspan="1" sortable field="enseignement.libelle"/>
               <Column header="Type" :colspan="1" sortable field="enseignement.type"/>
               <Column header="Nb profs" :colspan="1"/>
-              <Column header="Maq." :colspan="1" class="!bg-purple-400 !bg-opacity-10"/>
-              <Column header="Prévi." :colspan="1" class="!bg-purple-400 !bg-opacity-10"/>
-              <Column header="Diff." :colspan="1" class="!bg-purple-400 !bg-opacity-10" sortable field="heures.CM.Diff"/>
-              <Column header="Maq." :colspan="1" class="!bg-green-400 !bg-opacity-10"/>
-              <Column header="Prévi." :colspan="1" class="!bg-green-400 !bg-opacity-10"/>
-              <Column header="Diff." :colspan="1" class="!bg-green-400 !bg-opacity-10" sortable field="heures.TD.Diff"/>
-              <Column header="Maq." :colspan="1" class="!bg-amber-400 !bg-opacity-10"/>
-              <Column header="Previ" :colspan="1" class="!bg-amber-400 !bg-opacity-10"/>
-              <Column header="Diff" :colspan="1" class="!bg-amber-400 !bg-opacity-10" sortable field="heures.TP.Diff"/>
+              <Column header="Maq." :colspan="1" class="!bg-purple-400 !bg-opacity-20"/>
+              <Column header="Prévi." :colspan="1" class="!bg-purple-400 !bg-opacity-20"/>
+              <Column header="Diff." :colspan="1" class="!bg-purple-400 !bg-opacity-20" sortable field="heures.CM.Diff"/>
+              <Column header="Maq." :colspan="1" class="!bg-green-400 !bg-opacity-20"/>
+              <Column header="Prévi." :colspan="1" class="!bg-green-400 !bg-opacity-20"/>
+              <Column header="Diff." :colspan="1" class="!bg-green-400 !bg-opacity-20" sortable field="heures.TD.Diff"/>
+              <Column header="Maq." :colspan="1" class="!bg-amber-400 !bg-opacity-20"/>
+              <Column header="Previ" :colspan="1" class="!bg-amber-400 !bg-opacity-20"/>
+              <Column header="Diff" :colspan="1" class="!bg-amber-400 !bg-opacity-20" sortable field="heures.TP.Diff"/>
               <Column header="Maq." :colspan="1"/>
               <Column header="Prévi." :colspan="1"/>
               <Column header="Diff." :colspan="1" sortable field="heures.Total.Diff" class=""/>
@@ -164,17 +164,17 @@ watch(searchTerm, (newTerm) => {
           <Column field="enseignement.type" header="Type" />
           <Column field="personnel.length" header="Nb intervenants" />
 
-          <Column class="bg-purple-400 bg-opacity-10" field="heures.CM.Maquette" header="Maquette">
+          <Column class="bg-purple-400 bg-opacity-20" field="heures.CM.Maquette" header="Maquette">
             <template #body="slotProps">
               {{ slotProps.data.heures.CM.Maquette }} h
             </template>
           </Column>
-          <Column class="bg-purple-400 bg-opacity-10" field="heures.CM.Previ" header="Previ">
+          <Column class="bg-purple-400 bg-opacity-20" field="heures.CM.Previ" header="Previ">
             <template #body="slotProps">
               {{ slotProps.data.heures.CM.Previ }} h
             </template>
           </Column>
-          <Column class="bg-purple-400 bg-opacity-10" field="heures.CM.Diff" header="Diff" sortable>
+          <Column class="bg-purple-400 bg-opacity-20" field="heures.CM.Diff" header="Diff" sortable>
             <template #body="slotProps">
               <Tag
                   class="w-max"
@@ -187,46 +187,46 @@ watch(searchTerm, (newTerm) => {
             </template>
           </Column>
 
-          <Column class="bg-green-400 bg-opacity-10" field="heures.TD.Maquette" header="Maquette">
+          <Column class="bg-green-400 bg-opacity-20" field="heures.TD.Maquette" header="Maquette">
             <template #body="slotProps">
               {{ slotProps.data.heures.TD.Maquette }} h
             </template>
           </Column>
-          <Column class="bg-green-400 bg-opacity-10" field="heures.TD.Previ" header="Previ">
+          <Column class="bg-green-400 bg-opacity-20" field="heures.TD.Previ" header="Previ">
             <template #body="slotProps">
               {{ slotProps.data.heures.TD.Previ }} h
             </template>
           </Column>
-          <Column class="bg-green-400 bg-opacity-10" field="heures.TD.Diff" header="Diff">
+          <Column class="bg-green-400 bg-opacity-20" field="heures.TD.Diff" header="Diff">
             <template #body="slotProps">
               <Tag
                   class="w-max"
                   :severity="slotProps.data.heures.TD.Diff === 0 ? 'success' : (slotProps.data.heures.TD.Diff < 0 ? 'warn' : 'danger')"
                   :icon="slotProps.data.heures.TD.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.TD.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
-                  :class="slotProps.data.heures.CM.Diff === 0 ? '!bg-green-400 !text-white' : (slotProps.data.heures.CM.Diff < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white')"
+                  :class="slotProps.data.heures.TD.Diff === 0 ? '!bg-green-400 !text-white' : (slotProps.data.heures.TD.Diff < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white')"
               >
                 {{ slotProps.data.heures.TD.Diff ?? 0 }} h
               </Tag>
             </template>
           </Column>
 
-          <Column class="bg-amber-400 bg-opacity-10" field="heures.TP.Maquette" header="Maquette">
+          <Column class="bg-amber-400 bg-opacity-20" field="heures.TP.Maquette" header="Maquette">
             <template #body="slotProps">
               {{ slotProps.data.heures.TP.Maquette }} h
             </template>
           </Column>
-          <Column class="bg-amber-400 bg-opacity-10" field="heures.TP.Previ" header="Previ">
+          <Column class="bg-amber-400 bg-opacity-20" field="heures.TP.Previ" header="Previ">
             <template #body="slotProps">
               {{ slotProps.data.heures.TP.Previ }} h
             </template>
           </Column>
-          <Column class="bg-amber-400 bg-opacity-10" field="heures.TP.Diff" header="Diff">
+          <Column class="bg-amber-400 bg-opacity-20" field="heures.TP.Diff" header="Diff">
             <template #body="slotProps">
               <Tag
                   class="w-max"
                   :severity="slotProps.data.heures.TP.Diff === 0 ? 'success' : (slotProps.data.heures.TP.Diff < 0 ? 'warn' : 'danger')"
                   :icon="slotProps.data.heures.TP.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.TP.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
-                  :class="slotProps.data.heures.CM.Diff === 0 ? '!bg-green-400 !text-white' : (slotProps.data.heures.CM.Diff < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white')"
+                  :class="slotProps.data.heures.TP.Diff === 0 ? '!bg-green-400 !text-white' : (slotProps.data.heures.TP.Diff < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white')"
               >
                 {{ slotProps.data.heures.TP.Diff ?? 0 }} h
               </Tag>
@@ -249,7 +249,7 @@ watch(searchTerm, (newTerm) => {
                   class="w-max"
                   :severity="slotProps.data.heures.Total.Diff === 0 ? 'success' : (slotProps.data.heures.Total.Diff < 0 ? 'warn' : 'danger')"
                   :icon="slotProps.data.heures.Total.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.Total.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
-                  :class="slotProps.data.heures.CM.Diff === 0 ? '!bg-green-400 !text-white' : (slotProps.data.heures.CM.Diff < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white')"
+                  :class="slotProps.data.heures.Total.Diff === 0 ? '!bg-green-400 !text-white' : (slotProps.data.heures.Total.Diff < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white')"
               >
                 {{ slotProps.data.heures.Total.Diff ?? 0 }} h
               </Tag>
