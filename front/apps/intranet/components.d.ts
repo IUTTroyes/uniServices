@@ -17,6 +17,7 @@ declare module 'vue' {
     AdminBlocPn: typeof import('./src/components/Administration/blocs_admin/AdminBlocPn.vue')['default']
     AdminBlocSemestre: typeof import('./src/components/Administration/blocs_admin/AdminBlocSemestre.vue')['default']
     ArticleSkeleton: typeof import('./src/components/loader/ArticleSkeleton.vue')['default']
+    Badge: typeof import('primevue/badge')['default']
     Breadcrumb: typeof import('primevue/breadcrumb')['default']
     Button: typeof import('primevue/button')['default']
     Card: typeof import('primevue/card')['default']

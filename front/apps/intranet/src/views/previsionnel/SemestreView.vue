@@ -46,7 +46,6 @@ const getPrevi = async (semestreId) => {
     });
 
     previGrouped.value = await buildSemestrePreviService(previSemestre.value);
-    console.log(previGrouped.value);
     isLoadingPrevisionnel.value = false;
   }
 };
@@ -103,7 +102,7 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
     </div>
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
-      <DataTable v-if="previGrouped?.length > 0" :value="previGrouped" tableStyle="min-width: 50rem">
+      <DataTable v-if="previGrouped?.length > 0" :value="previGrouped" tableStyle="min-width: 50rem" striped-rows scrollable>
         <ColumnGroup type="header">
           <Row>
             <Column header="" :colspan="4"/>
@@ -116,19 +115,19 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
             <Column header="Code" :colspan="1"/>
             <Column header="Nom" :colspan="1"/>
             <Column header="Type" :colspan="1"/>
-            <Column header="Nb intervenants" :colspan="1"/>
-            <Column header="Maquette" :colspan="1" class="!bg-purple-50"/>
-            <Column header="Previ" :colspan="1" class="!bg-purple-50"/>
+            <Column header="Intervenants" :colspan="1"/>
+            <Column header="Maq." :colspan="1" class="!bg-purple-50"/>
+            <Column header="Prévi" :colspan="1" class="!bg-purple-50"/>
             <Column header="Diff" :colspan="1" class="!bg-purple-50"/>
-            <Column header="Maquette" :colspan="1" class="!bg-green-50"/>
-            <Column header="Previ" :colspan="1" class="!bg-green-50"/>
-            <Column header="Diff" :colspan="1" class="!bg-green-50"/>
-            <Column header="Maquette" :colspan="1" class="!bg-amber-50"/>
+            <Column header="Maq." :colspan="1" class="!bg-green-50"/>
+            <Column header="Prévi." :colspan="1" class="!bg-green-50"/>
+            <Column header="Diff." :colspan="1" class="!bg-green-50"/>
+            <Column header="Maq." :colspan="1" class="!bg-amber-50"/>
             <Column header="Previ" :colspan="1" class="!bg-amber-50"/>
             <Column header="Diff" :colspan="1" class="!bg-amber-50"/>
-            <Column header="Maquette" :colspan="1"/>
-            <Column header="Previ" :colspan="1"/>
-            <Column header="Diff" :colspan="1"/>
+            <Column header="Maq." :colspan="1"/>
+            <Column header="Prévi." :colspan="1"/>
+            <Column header="Diff." :colspan="1"/>
           </Row>
         </ColumnGroup>
 
@@ -137,21 +136,93 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
         <Column field="enseignement.type" header="Type" />
         <Column field="personnel.length" header="Nb intervenants" />
 
-        <Column class="bg-purple-50" field="heures.CM.Maquette" header="Maquette" />
-        <Column class="bg-purple-50" field="heures.CM.Previ" header="Previ" />
-        <Column class="bg-purple-50" field="0" header="Diff" />
+        <Column class="bg-purple-50" field="heures.CM.Maquette" header="Maquette">
+          <template #body="slotProps">
+            {{ slotProps.data.heures.CM.Maquette }} h
+          </template>
+        </Column>
+        <Column class="bg-purple-50" field="heures.CM.Previ" header="Previ">
+          <template #body="slotProps">
+            {{ slotProps.data.heures.CM.Previ }} h
+          </template>
+        </Column>
+        <Column class="bg-purple-50" field="heures.CM.Diff" header="Diff">
+          <template #body="slotProps">
+            <Tag
+                class="w-full"
+                :severity="slotProps.data.heures.CM.Diff === 0 ? 'success' : (slotProps.data.heures.CM.Diff < 0 ? 'warn' : 'danger')"
+                :icon="slotProps.data.heures.CM.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.CM.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
+            >
+              {{ slotProps.data.heures.CM.Diff ?? 0 }} h
+            </Tag>
+          </template>
+        </Column>
 
-        <Column class="bg-green-50" field="heures.TD.Maquette" header="Maquette" />
-        <Column class="bg-green-50" field="heures.TD.Previ" header="Previ" />
-        <Column class="bg-green-50" field="0" header="Diff" />
+        <Column class="bg-green-50" field="heures.TD.Maquette" header="Maquette">
+          <template #body="slotProps">
+            {{ slotProps.data.heures.TD.Maquette }} h
+          </template>
+        </Column>
+        <Column class="bg-green-50" field="heures.TD.Previ" header="Previ">
+          <template #body="slotProps">
+            {{ slotProps.data.heures.TD.Previ }} h
+          </template>
+        </Column>
+        <Column class="bg-green-50" field="heures.TD.Diff" header="Diff">
+          <template #body="slotProps">
+            <Tag
+                class="w-full"
+                :severity="slotProps.data.heures.TD.Diff === 0 ? 'success' : (slotProps.data.heures.TD.Diff < 0 ? 'warn' : 'danger')"
+                :icon="slotProps.data.heures.TD.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.TD.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
+            >
+              {{ slotProps.data.heures.TD.Diff ?? 0 }} h
+            </Tag>
+          </template>
+        </Column>
 
-        <Column class="bg-amber-50" field="heures.TP.Maquette" header="Maquette" />
-        <Column class="bg-amber-50" field="heures.TP.Previ" header="Previ" />
-        <Column class="bg-amber-50" field="0" header="Diff" />
+        <Column class="bg-amber-50" field="heures.TP.Maquette" header="Maquette">
+          <template #body="slotProps">
+            {{ slotProps.data.heures.TP.Maquette }} h
+          </template>
+        </Column>
+        <Column class="bg-amber-50" field="heures.TP.Previ" header="Previ">
+          <template #body="slotProps">
+            {{ slotProps.data.heures.TP.Previ }} h
+          </template>
+        </Column>
+        <Column class="bg-amber-50" field="heures.TP.Diff" header="Diff">
+          <template #body="slotProps">
+            <Tag
+                class="w-full"
+                :severity="slotProps.data.heures.TP.Diff === 0 ? 'success' : (slotProps.data.heures.TP.Diff < 0 ? 'warn' : 'danger')"
+                :icon="slotProps.data.heures.TP.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.TP.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
+            >
+              {{ slotProps.data.heures.TP.Diff ?? 0 }} h
+            </Tag>
+          </template>
+        </Column>
 
-        <Column field="0" header="Maquette" />
-        <Column field="total" header="Previ" />
-        <Column field="0" header="Diff" />
+        <Column field="heures.Total.Maquette" header="Maquette">
+          <template #body="slotProps">
+            {{ slotProps.data.heures.Total.Maquette }} h
+          </template>
+        </Column>
+        <Column field="heures.Total.Previ" header="Previ">
+          <template #body="slotProps">
+            {{ slotProps.data.heures.Total.Previ }} h
+          </template>
+        </Column>
+        <Column field="heures.Total.Diff" header="Diff">
+          <template #body="slotProps">
+            <Tag
+                class="w-full"
+                :severity="slotProps.data.heures.Total.Diff === 0 ? 'success' : (slotProps.data.heures.Total.Diff < 0 ? 'warn' : 'danger')"
+                :icon="slotProps.data.heures.Total.Diff === 0 ? 'pi pi-check' : (slotProps.data.heures.Total.Diff < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')"
+            >
+              {{ slotProps.data.heures.Total.Diff ?? 0 }} h
+            </Tag>
+          </template>
+        </Column>
       </DataTable>
 
       <Message v-else severity="error" icon="pi pi-times-circle">
