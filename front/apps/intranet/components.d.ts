@@ -42,6 +42,8 @@ declare module 'vue' {
     MultiSelect: typeof import('primevue/multiselect')['default']
     PanelMenu: typeof import('primevue/panelmenu')['default']
     Pn: typeof import('./src/components/Administration/Pn.vue')['default']
+    PrevisionnelTable: typeof import('./src/components/Previsionnel/PrevisionnelTable.vue')['default']
+    PrevisionnelTableComponent: typeof import('./src/components/Previsionnel/PrevisionnelTableComponent.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Row: typeof import('primevue/row')['default']
