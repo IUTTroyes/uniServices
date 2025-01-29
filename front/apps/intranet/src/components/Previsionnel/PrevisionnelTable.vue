@@ -10,9 +10,17 @@ const props = defineProps({
     type: Array,
     required: true
   },
-  subColumns: {
+  topHeaderCols: {
     type: Array,
-    required: true
+    required: false
+  },
+  footerCols: {
+    type: Array,
+    required: false
+  },
+  footerRows: {
+    type: Array,
+    required: false
   },
   data: {
     type: Array,
@@ -38,11 +46,11 @@ const getFieldValue = (data, field) => {
 </script>
 
 <template>
-  <DataTable :value="props.data" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows scrollable :size="props.size">
+  <DataTable :value="props.data" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows scrollable :size="props.size" show-gridlines>
     <ColumnGroup type="header">
       <Row>
         <Column :header="props.headerTitle" :colspan="4" class="text-xl"/>
-        <Column v-for="(subCol, index) in props.subColumns" :key="index" :header="subCol.header" :colspan="subCol.colspan" :class="subCol.class"/>
+        <Column v-for="(topHeaderCol, index) in props.topHeaderCols" :key="index" :header="topHeaderCol.header" :colspan="topHeaderCol.colspan" :class="topHeaderCol.class"/>
       </Row>
       <Row>
         <Column v-for="(col, index) in props.columns" :key="index" :header="col.header" :colspan="col.colspan" :sortable="col.sortable" :field="col.field" :class="col.class"/>
@@ -56,6 +64,14 @@ const getFieldValue = (data, field) => {
         <span v-else>{{ getFieldValue(slotProps.data, col.field) }}</span>
       </template>
     </Column>
+    <ColumnGroup type="footer">
+      <Row>
+        <Column v-for="(footerRow, index) in props.footerRows" :key="index" :footer="footerRow.footer" :colspan="footerRow.colspan" :class="footerRow.class"/>
+      </Row>
+      <Row>
+        <Column v-for="(footerCol, index) in props.footerCols" :key="index" :footer="footerCol.footer" :colspan="footerCol.colspan"/>
+      </Row>
+    </ColumnGroup>
   </DataTable>
 </template>
 

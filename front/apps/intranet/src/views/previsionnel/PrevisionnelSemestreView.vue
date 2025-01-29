@@ -24,6 +24,11 @@ const isLoadingPrevisionnel = ref(true);
 const previSemestre = ref(null);
 const previGrouped = ref(null);
 
+const totalCM = ref(null);
+const totalTD = ref(null);
+const totalTP = ref(null);
+const totalTotal = ref(null);
+
 const size = ref({ label: 'Normal', value: 'null' });
 const sizeOptions = ref([
   { label: 'Petit', value: 'small' },
@@ -106,12 +111,60 @@ const columns = ref([
   { header: 'Diff.', field: 'heures.Total.Diff', sortable: true, colspan: 1, tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
 ]);
 
-const subColumns = ref([
+const topHeaderCols = ref([
   { header: 'CM', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
   { header: 'TD', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
   { header: 'TP', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
   { header: 'Total', colspan: 3 }
 ]);
+
+const footerRows = ref([
+  { footer: 'Synthèse', colspan: 16, class: '!text-center !font-bold'},
+]);
+
+//todo: passer dans le service :)
+// faire le total des CM Maquette, Prévi, Diff
+totalCM.value = computed(() => {
+  const totalMaq = previGrouped.value.reduce((acc, previ) => acc + previ.heures.CM.Maquette, 0);
+  const totalPrev = previGrouped.value.reduce((acc, previ) => acc + previ.heures.CM.Previ, 0);
+  const totalDiff = previGrouped.value.reduce((acc, previ) => acc + previ.heures.CM.Diff, 0);
+  return [totalMaq, totalPrev, totalDiff];
+});
+
+// faire le total des TD Maquette, Prévi, Diff
+totalTD.value = computed(() => {
+  const totalMaq = previGrouped.value.reduce((acc, previ) => acc + previ.heures.TD.Maquette, 0);
+  const totalPrev = previGrouped.value.reduce((acc, previ) => acc + previ.heures.TD.Previ, 0);
+  const totalDiff = previGrouped.value.reduce((acc, previ) => acc + previ.heures.TD.Diff, 0);
+  return [totalMaq, totalPrev, totalDiff];
+});
+
+// faire le total des TP Maquette, Prévi, Diff
+totalTP.value = computed(() => {
+  const totalMaq = previGrouped.value.reduce((acc, previ) => acc + previ.heures.TP.Maquette, 0);
+  const totalPrev = previGrouped.value.reduce((acc, previ) => acc + previ.heures.TP.Previ, 0);
+  const totalDiff = previGrouped.value.reduce((acc, previ) => acc + previ.heures.TP.Diff, 0);
+  return [totalMaq, totalPrev, totalDiff];
+});
+
+// faire le total des Total Maquette, Prévi, Diff
+totalTotal.value = computed(() => {
+  const totalMaq = previGrouped.value.reduce((acc, previ) => acc + previ.heures.Total.Maquette, 0);
+  const totalPrev = previGrouped.value.reduce((acc, previ) => acc + previ.heures.Total.Previ, 0);
+  const totalDiff = previGrouped.value.reduce((acc, previ) => acc + previ.heures.Total.Diff, 0);
+  return [totalMaq, totalPrev, totalDiff];
+});
+
+console.log('totalCM', totalCM);
+const footerCols = ref([
+  { footer: 'Total', colspan: 4 },
+  { footer: totalCM.value[0], colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
+  { footer: totalCM.value[1], colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
+  { footer: totalCM.value[2], colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
+  { footer: totalTD.value[0], colspan: 1, class: '!bg-green 400 !bg-opacity-20' },
+
+]);
+
 
 </script>
 
@@ -158,7 +211,7 @@ const subColumns = ref([
             </IconField>
           </div>
         </div>
-        <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :subColumns="subColumns" :data="previGrouped" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`" />
+        <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :footerRows="footerRows" :footerCols="footerCols" :data="previGrouped" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`" />
       </div>
       <Message v-else severity="error" icon="pi pi-times-circle">
         Aucun prévisionnel pour cette année universitaire et ce semestre
