@@ -5,6 +5,25 @@ const getSemestrePreviService = async (semestreId, anneeUnivId) => {
     return response.data.member;
 }
 
+const calcTotalHeuresByType = (previGrouped, type) => {
+    const totalMaq = previGrouped.reduce((acc, previ) => acc + previ.heures[type].Maquette, 0);
+    const totalPrev = previGrouped.reduce((acc, previ) => acc + previ.heures[type].Previ, 0);
+    const totalDiff = previGrouped.reduce((acc, previ) => acc + previ.heures[type].Diff, 0);
+    return [totalMaq, totalPrev, totalDiff];
+};
+
+const calcTotalHeures = (heures) => {
+    let totalHeures = 0;
+    if (heures) {
+        for (const key in heures) {
+            if (heures.hasOwnProperty(key) && typeof heures[key] === 'number') {
+                totalHeures += heures[key];
+            }
+        }
+    }
+    return totalHeures;
+}
+
 const buildSemestrePreviService = async (previ) => {
     const groupedPrevi = {};
     previ.forEach(item => {
@@ -78,19 +97,14 @@ const buildSemestrePreviService = async (previ) => {
             }
         }
     });
-    return Object.values(groupedPrevi);
-};
+    const previGrouped = Object.values(groupedPrevi);
+    const totalCM = calcTotalHeuresByType(previGrouped, 'CM');
+    const totalTD = calcTotalHeuresByType(previGrouped, 'TD');
+    const totalTP = calcTotalHeuresByType(previGrouped, 'TP');
+    const totalProjet = calcTotalHeuresByType(previGrouped, 'Projet');
+    const totalTotal = calcTotalHeuresByType(previGrouped, 'Total');
 
-const calcTotalHeures = (heures) => {
-    let totalHeures = 0;
-    if (heures) {
-        for (const key in heures) {
-            if (heures.hasOwnProperty(key) && typeof heures[key] === 'number') {
-                totalHeures += heures[key];
-            }
-        }
-    }
-    return totalHeures;
-}
+    return { previGrouped, totalCM, totalTD, totalTP, totalProjet, totalTotal };
+};
 
 export { getSemestrePreviService, buildSemestrePreviService, calcTotalHeures };
