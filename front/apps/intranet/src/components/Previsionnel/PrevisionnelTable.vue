@@ -59,9 +59,9 @@ const getFieldValue = (data, field) => {
     <Column v-for="(col, index) in props.columns" :key="index" :field="col.field" :header="col.header" :sortable="col.sortable" :class="col.class">
       <template #body="slotProps">
         <Tag v-if="col.tag" class="w-max" :class="col.tagClass(getFieldValue(slotProps.data, col.field))" :severity="col.tagSeverity(getFieldValue(slotProps.data, col.field))" :icon="col.tagIcon(getFieldValue(slotProps.data, col.field))">
-          {{ getFieldValue(slotProps.data, col.field) }} h
+          {{ getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit"> {{ col.unit }}</span>
         </Tag>
-        <span v-else>{{ getFieldValue(slotProps.data, col.field) }}</span>
+        <span v-else>{{ getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit"> {{ col.unit }}</span></span>
       </template>
     </Column>
     <ColumnGroup type="footer">
@@ -69,7 +69,14 @@ const getFieldValue = (data, field) => {
         <Column v-for="(footerRow, index) in props.footerRows" :key="index" :footer="footerRow.footer" :colspan="footerRow.colspan" :class="footerRow.class"/>
       </Row>
       <Row>
-        <Column v-for="(footerCol, index) in props.footerCols" :key="index" :footer="footerCol.footer" :colspan="footerCol.colspan"/>
+        <Column v-for="(footerCol, index) in props.footerCols" :key="index"  :colspan="footerCol.colspan" :class="footerCol.class">
+          <template #footer="slotProps">
+            <Tag v-if="footerCol.tag" class="w-max" :class="footerCol.tagClass(footerCol.footer)" :severity="footerCol.tagSeverity(footerCol.footer)" :icon="footerCol.tagIcon(footerCol.footer)">
+              {{ footerCol.footer }}<span v-if="footerCol.unit"> {{ footerCol.unit }}</span>
+            </Tag>
+            <span class="w-fit" v-else>{{ footerCol.footer }}<span v-if="footerCol.unit"> {{ footerCol.unit }}</span></span>
+          </template>
+        </Column>
       </Row>
     </ColumnGroup>
   </DataTable>

@@ -101,9 +101,10 @@ const buildSemestrePreviService = async (previ) => {
     const totalCM = calcTotalHeuresByType(previGrouped, 'CM');
     const totalTD = calcTotalHeuresByType(previGrouped, 'TD');
     const totalTP = calcTotalHeuresByType(previGrouped, 'TP');
+    const totalProjet = calcTotalHeuresByType(previGrouped, 'Projet');
     const totalTotal = calcTotalHeuresByType(previGrouped, 'Total');
 
-    return { previGrouped, totalCM, totalTD, totalTP, totalTotal };
+    return { previGrouped, totalCM, totalTD, totalTP, totalProjet, totalTotal };
 };
 
 export { getSemestrePreviService, buildSemestrePreviService, calcTotalHeures };

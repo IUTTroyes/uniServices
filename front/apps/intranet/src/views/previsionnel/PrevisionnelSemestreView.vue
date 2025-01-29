@@ -27,9 +27,10 @@ const previGrouped = ref(null);
 const totalCM = ref([]);
 const totalTD = ref([]);
 const totalTP = ref([]);
+const totalProjet = ref([]);
 const totalTotal = ref([]);
 
-const size = ref({ label: 'Normal', value: 'null' });
+const size = ref({ label: 'Petit', value: 'small' });
 const sizeOptions = ref([
   { label: 'Petit', value: 'small' },
   { label: 'Normal', value: 'null' },
@@ -63,9 +64,13 @@ const getPrevi = async (semestreId) => {
       previ.total = calcTotalHeures(previ.heures);
     });
 
-    previGrouped.value = (await buildSemestrePreviService(previSemestre.value)).previGrouped;
-    console.log('previGrouped', previGrouped.value);
-
+    const { previGrouped: grouped, totalCM: cm, totalTD: td, totalTP: tp, totalProjet: projet, totalTotal: total } = await buildSemestrePreviService(previSemestre.value);
+    previGrouped.value = grouped;
+    totalCM.value = cm;
+    totalTD.value = td;
+    totalTP.value = tp;
+    totalProjet.value = projet;
+    totalTotal.value = total;
 
     isLoadingPrevisionnel.value = false;
   }
@@ -100,21 +105,21 @@ const columns = ref([
   { header: 'Nom', field: 'enseignement.libelle', sortable: true, colspan: 1 },
   { header: 'Type', field: 'enseignement.type', sortable: true, colspan: 1 },
   { header: 'Nb profs', field: 'personnel.length', colspan: 1 },
-  { header: 'Maq.', field: 'heures.CM.Maquette', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
-  { header: 'Prévi.', field: 'heures.CM.Previ', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
-  { header: 'Diff.', field: 'heures.CM.Diff', sortable: true, colspan: 1, class: '!bg-purple-400 !bg-opacity-20', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-  { header: 'Maq.', field: 'heures.TD.Maquette', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
-  { header: 'Prévi.', field: 'heures.TD.Previ', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
-  { header: 'Diff.', field: 'heures.TD.Diff', sortable: true, colspan: 1, class: '!bg-green-400 !bg-opacity-20', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-  { header: 'Maq.', field: 'heures.TP.Maquette', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
-  { header: 'Prévi.', field: 'heures.TP.Previ', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
-  { header: 'Diff.', field: 'heures.TP.Diff', sortable: true, colspan: 1, class: '!bg-amber-400 !bg-opacity-20', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-  { header: 'Maq.', field: 'heures.Projet.Maquette', colspan: 1, class: '!bg-cyan-400 !bg-opacity-20' },
-  { header: 'Prévi.', field: 'heures.Projet.Previ', colspan: 1, class: '!bg-cyan-400 !bg-opacity-20' },
-  { header: 'Diff.', field: 'heures.Projet.Diff', sortable: true, colspan: 1, class: '!bg-cyan-400 !bg-opacity-20', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-  { header: 'Maq.', field: 'heures.Total.Maquette', colspan: 1 },
-  { header: 'Prévi.', field: 'heures.Total.Previ', colspan: 1 },
-  { header: 'Diff.', field: 'heures.Total.Diff', sortable: true, colspan: 1, tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { header: 'Maq.', field: 'heures.CM.Maquette', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
+  { header: 'Prévi.', field: 'heures.CM.Previ', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Diff.', field: 'heures.CM.Diff', sortable: true, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { header: 'Maq.', field: 'heures.TD.Maquette', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Prévi.', field: 'heures.TD.Previ', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Diff.', field: 'heures.TD.Diff', sortable: true, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { header: 'Maq.', field: 'heures.TP.Maquette', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Prévi.', field: 'heures.TP.Previ', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Diff.', field: 'heures.TP.Diff', sortable: true, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { header: 'Maq.', field: 'heures.Projet.Maquette', colspan: 1, class: '!bg-cyan-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Prévi.', field: 'heures.Projet.Previ', colspan: 1, class: '!bg-cyan-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Diff.', field: 'heures.Projet.Diff', sortable: true, colspan: 1, class: '!bg-cyan-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { header: 'Maq.', field: 'heures.Total.Maquette', colspan: 1, unit: ' h' },
+  { header: 'Prévi.', field: 'heures.Total.Previ', colspan: 1, unit: ' h' },
+  { header: 'Diff.', field: 'heures.Total.Diff', sortable: true, colspan: 1, unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
 ]);
 
 const topHeaderCols = ref([
@@ -126,54 +131,27 @@ const topHeaderCols = ref([
 ]);
 
 const footerRows = ref([
-  { footer: 'Synthèse', colspan: 16, class: '!text-center !font-bold'},
+  { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
 ]);
 
-
-//todo: passer dans le service :)
-// faire le total des CM Maquette, Prévi, Diff
-totalCM.value = computed(() => {
-  const totalMaq = previGrouped.value.reduce((acc, previ) => acc + previ.heures.CM.Maquette, 0);
-  const totalPrev = previGrouped.value.reduce((acc, previ) => acc + previ.heures.CM.Previ, 0);
-  const totalDiff = previGrouped.value.reduce((acc, previ) => acc + previ.heures.CM.Diff, 0);
-  return [totalMaq, totalPrev, totalDiff];
-});
-
-// faire le total des TD Maquette, Prévi, Diff
-totalTD.value = computed(() => {
-  const totalMaq = previGrouped.value.reduce((acc, previ) => acc + previ.heures.TD.Maquette, 0);
-  const totalPrev = previGrouped.value.reduce((acc, previ) => acc + previ.heures.TD.Previ, 0);
-  const totalDiff = previGrouped.value.reduce((acc, previ) => acc + previ.heures.TD.Diff, 0);
-  return [totalMaq, totalPrev, totalDiff];
-});
-
-// faire le total des TP Maquette, Prévi, Diff
-totalTP.value = computed(() => {
-  const totalMaq = previGrouped.value.reduce((acc, previ) => acc + previ.heures.TP.Maquette, 0);
-  const totalPrev = previGrouped.value.reduce((acc, previ) => acc + previ.heures.TP.Previ, 0);
-  const totalDiff = previGrouped.value.reduce((acc, previ) => acc + previ.heures.TP.Diff, 0);
-  return [totalMaq, totalPrev, totalDiff];
-});
-
-// faire le total des Total Maquette, Prévi, Diff
-totalTotal.value = computed(() => {
-  const totalMaq = previGrouped.value.reduce((acc, previ) => acc + previ.heures.Total.Maquette, 0);
-  const totalPrev = previGrouped.value.reduce((acc, previ) => acc + previ.heures.Total.Previ, 0);
-  const totalDiff = previGrouped.value.reduce((acc, previ) => acc + previ.heures.Total.Diff, 0);
-  return [totalMaq, totalPrev, totalDiff];
-});
-
-// console.log('totalCM', totalCM.value);
-const footerCols = ref([
+const footerCols = computed(() => [
   { footer: 'Total', colspan: 4 },
-  { footer: totalCM.value[0], colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
-  { footer: totalCM.value[1], colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
-  { footer: totalCM.value[2], colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
-  { footer: totalTD.value[0], colspan: 1, class: '!bg-green 400 !bg-opacity-20' },
-
+  { footer: totalCM.value[0], colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: totalCM.value[1], colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: totalCM.value[2], colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { footer: totalTD.value[0], colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: totalTD.value[1], colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: totalTD.value[2], colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { footer: totalTP.value[0], colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: totalTP.value[1], colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: totalTP.value[2], colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { footer: totalProjet.value[0], colspan: 1, class: '!bg-cyan-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: totalProjet.value[1], colspan: 1, class: '!bg-cyan-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: totalProjet.value[2], colspan: 1, class: '!bg-cyan-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { footer: totalTotal.value[0], colspan: 1, class: '!text-nowrap', unit: ' h' },
+  { footer: totalTotal.value[1], colspan: 1, class: '!text-nowrap', unit: ' h' },
+  { footer: totalTotal.value[2], colspan: 1, unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
 ]);
-
-
 </script>
 
 <template>
