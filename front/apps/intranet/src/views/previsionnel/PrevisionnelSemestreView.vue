@@ -24,10 +24,10 @@ const isLoadingPrevisionnel = ref(true);
 const previSemestre = ref(null);
 const previGrouped = ref(null);
 
-const totalCM = ref(null);
-const totalTD = ref(null);
-const totalTP = ref(null);
-const totalTotal = ref(null);
+const totalCM = ref([]);
+const totalTD = ref([]);
+const totalTP = ref([]);
+const totalTotal = ref([]);
 
 const size = ref({ label: 'Normal', value: 'null' });
 const sizeOptions = ref([
@@ -63,7 +63,10 @@ const getPrevi = async (semestreId) => {
       previ.total = calcTotalHeures(previ.heures);
     });
 
-    previGrouped.value = await buildSemestrePreviService(previSemestre.value);
+    previGrouped.value = (await buildSemestrePreviService(previSemestre.value)).previGrouped;
+    console.log('previGrouped', previGrouped.value);
+
+
     isLoadingPrevisionnel.value = false;
   }
 };
@@ -106,6 +109,9 @@ const columns = ref([
   { header: 'Maq.', field: 'heures.TP.Maquette', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
   { header: 'Prévi.', field: 'heures.TP.Previ', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
   { header: 'Diff.', field: 'heures.TP.Diff', sortable: true, colspan: 1, class: '!bg-amber-400 !bg-opacity-20', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { header: 'Maq.', field: 'heures.Projet.Maquette', colspan: 1, class: '!bg-cyan-400 !bg-opacity-20' },
+  { header: 'Prévi.', field: 'heures.Projet.Previ', colspan: 1, class: '!bg-cyan-400 !bg-opacity-20' },
+  { header: 'Diff.', field: 'heures.Projet.Diff', sortable: true, colspan: 1, class: '!bg-cyan-400 !bg-opacity-20', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
   { header: 'Maq.', field: 'heures.Total.Maquette', colspan: 1 },
   { header: 'Prévi.', field: 'heures.Total.Previ', colspan: 1 },
   { header: 'Diff.', field: 'heures.Total.Diff', sortable: true, colspan: 1, tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
@@ -115,12 +121,14 @@ const topHeaderCols = ref([
   { header: 'CM', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
   { header: 'TD', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
   { header: 'TP', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
+  { header: 'Projet', colspan: 3, class: '!bg-cyan-400 !bg-opacity-20' },
   { header: 'Total', colspan: 3 }
 ]);
 
 const footerRows = ref([
   { footer: 'Synthèse', colspan: 16, class: '!text-center !font-bold'},
 ]);
+
 
 //todo: passer dans le service :)
 // faire le total des CM Maquette, Prévi, Diff
@@ -155,7 +163,7 @@ totalTotal.value = computed(() => {
   return [totalMaq, totalPrev, totalDiff];
 });
 
-console.log('totalCM', totalCM);
+// console.log('totalCM', totalCM.value);
 const footerCols = ref([
   { footer: 'Total', colspan: 4 },
   { footer: totalCM.value[0], colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },

@@ -76,5 +76,4 @@ const getFieldValue = (data, field) => {
 </template>
 
 <style scoped>
-/* Ajoutez ici vos styles personnalisés */
 </style>
