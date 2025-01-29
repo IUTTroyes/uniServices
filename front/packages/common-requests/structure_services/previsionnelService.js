@@ -5,6 +5,11 @@ const getSemestrePreviService = async (semestreId, anneeUnivId) => {
     return response.data.member;
 }
 
+const getMatierePreviService = async (matiereId, anneeUnivId) => {
+    const response = await api.get(`/api/previsionnels?anneeUniversitaire=${anneeUnivId}&enseignement=${matiereId}`);
+    return response.data.member;
+}
+
 const calcTotalHeuresByType = (previGrouped, type) => {
     const totalMaq = previGrouped.reduce((acc, previ) => acc + previ.heures[type].Maquette, 0);
     const totalPrev = previGrouped.reduce((acc, previ) => acc + previ.heures[type].Previ, 0);

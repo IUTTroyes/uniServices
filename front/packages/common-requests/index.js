@@ -8,3 +8,4 @@ export * from './user_services/personnelService';
 export * from './user_services/userService';
 export * from './ext_data_services/siteIutService';
 export * from './structure_services/previsionnelService';
+export * from './scol_services/enseignementService';
