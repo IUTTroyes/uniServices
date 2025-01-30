@@ -40,39 +40,63 @@ const filters = ref({
 
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
-  await semestreStore.getSemestresByDepartement(departementId, true);
-  semestresList.value = semestreStore.semestres;
-  if (semestresList.value.length > 0) {
-    selectedSemestre.value = semestresList.value[0];
+  try {
+    await semestreStore.getSemestresByDepartement(departementId, true);
+    semestresList.value = semestreStore.semestres || [];
+    if (semestresList.value.length > 0) {
+      selectedSemestre.value = semestresList.value[0];
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des semestres:', error);
+  } finally {
+    isLoadingSemestres.value = false;
   }
-  isLoadingSemestres.value = false;
 };
 
 const getEnseignements = async () => {
   isLoadingEnseignements.value = true;
-  await enseignementStore.getMatieresSemestre(selectedSemestre.value.id);
-  EnseignementsList.value = enseignementStore.enseignements;
-  if (EnseignementsList.value.length > 0) {
-    selectedEnseignement.value = EnseignementsList.value[0];
+  try {
+    if (selectedSemestre.value) {
+      await enseignementStore.getMatieresSemestre(selectedSemestre.value.id);
+    }
+    EnseignementsList.value = enseignementStore.enseignements;
+    if (EnseignementsList.value.length > 0) {
+      selectedEnseignement.value = EnseignementsList.value[0];
+    } else {
+      selectedEnseignement.value = null;
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des matières:', error);
+  } finally {
+    isLoadingEnseignements.value = false;
   }
-  isLoadingEnseignements.value = false;
 };
 
 const getAnneesUniv = async () => {
   isLoadingAnneesUniv.value = true;
-  await anneeUnivStore.getAllAnneesUniv();
-  anneesUnivList.value = anneeUnivStore.anneesUniv.sort((a, b) => b.id - a.id);
-  await anneeUnivStore.getCurrentAnneeUniv();
-  selectedAnneeUniv.value = anneeUnivStore.anneeUniv;
-  isLoadingAnneesUniv.value = false;
+  try {
+    await anneeUnivStore.getAllAnneesUniv();
+    anneesUnivList.value = anneeUnivStore.anneesUniv.sort((a, b) => b.id - a.id);
+    await anneeUnivStore.getCurrentAnneeUniv();
+    selectedAnneeUniv.value = anneeUnivStore.anneeUniv;
+  } catch (error) {
+    console.error('Erreur lors du chargement des années universitaires:', error);
+  } finally {
+    isLoadingAnneesUniv.value = false;
+  }
 };
 
 const getPrevi = async (semestreId) => {
   if (semestreId) {
     isLoadingPrevisionnel.value = true;
     await semestreStore.getSemestre(semestreId);
-
-    previSemestreMatiere.value = await getSemestreEnseignementPreviService(selectedSemestre.value.id, selectedEnseignement.value.id, selectedAnneeUniv.value.id);
+    if (selectedEnseignement.value) {
+      previSemestreMatiere.value = await getSemestreEnseignementPreviService(
+          selectedSemestre.value.id,
+          selectedEnseignement.value.id,
+          selectedAnneeUniv.value.id
+      );
+    }
     builtPrevi.value = await buildSemestreMatierePreviService(previSemestreMatiere.value);
 
     console.log(builtPrevi);
@@ -88,10 +112,11 @@ onMounted(async () => {
 });
 
 watch([selectedSemestre, selectedAnneeUniv, selectedEnseignement], async ([newSemestre, newAnneeUniv, newEnseignement]) => {
-  if (newSemestre && newAnneeUniv && newEnseignement) {
-    // await getEnseignements();
-    await getPrevi(newSemestre.id, newAnneeUniv.id);
-  }
+  if (!newSemestre || !newAnneeUniv || !newEnseignement) return;
+  await getPrevi(newSemestre.id, newAnneeUniv.id);
+});
+watch(selectedSemestre, async (newSemestre) => {
+  await getEnseignements();
 });
 
 const columns = ref([
@@ -115,10 +140,11 @@ const topHeaderCols = ref([
 ]);
 
 const footerRows = ref([
-  // { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
+  { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold' },
 ]);
 
 const footerCols = computed(() => [
+
 ]);
 </script>
 
