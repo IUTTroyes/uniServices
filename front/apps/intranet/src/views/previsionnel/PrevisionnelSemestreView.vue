@@ -197,7 +197,7 @@ const footerCols = computed(() => [
             </IconField>
           </div>
         </div>
-        <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :footerRows="footerRows" :footerCols="footerCols" :data="previGrouped" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`" />
+        <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :footerRows="footerRows" :footerCols="footerCols" :data="previGrouped" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`"  :headerTitlecolspan="4"/>
       </div>
       <Message v-else severity="error" icon="pi pi-times-circle">
         Aucun prévisionnel pour cette année universitaire et ce semestre

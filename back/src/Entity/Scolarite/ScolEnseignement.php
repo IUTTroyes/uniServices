@@ -65,7 +65,7 @@ class ScolEnseignement
     private ?bool $suspendu = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['semestre:read:full', 'previsionnel:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read'])]
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
@@ -329,64 +329,24 @@ class ScolEnseignement
         return $this;
     }
 
-    /**
-     * @return Collection<int, self>
-     */
     public function getScolEnseignements(): Collection
     {
         return $this->scolEnseignements;
     }
 
-    public function addScolEnseignement(self $scolEnseignement): static
+    public function setScolEnseignements(Collection $scolEnseignements): void
     {
-        if (!$this->scolEnseignements->contains($scolEnseignement)) {
-            $this->scolEnseignements->add($scolEnseignement);
-            $scolEnseignement->setParent($this);
-        }
-
-        return $this;
+        $this->scolEnseignements = $scolEnseignements;
     }
 
-    public function removeScolEnseignement(self $scolEnseignement): static
-    {
-        if ($this->scolEnseignements->removeElement($scolEnseignement)) {
-            // set the owning side to null (unless already changed)
-            if ($scolEnseignement->getParent() === $this) {
-                $scolEnseignement->setParent(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, self>
-     */
     public function getEnfant(): Collection
     {
         return $this->enfant;
     }
 
-    public function addEnfant(self $enfant): static
+    public function setEnfant(Collection $enfant): void
     {
-        if (!$this->enfant->contains($enfant)) {
-            $this->enfant->add($enfant);
-            $enfant->setScolEnseignement($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEnfant(self $enfant): static
-    {
-        if ($this->enfant->removeElement($enfant)) {
-            // set the owning side to null (unless already changed)
-            if ($enfant->getScolEnseignement() === $this) {
-                $enfant->setScolEnseignement(null);
-            }
-        }
-
-        return $this;
+        $this->enfant = $enfant;
     }
 
     public function getLivrables(): ?string

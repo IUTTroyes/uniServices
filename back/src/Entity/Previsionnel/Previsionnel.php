@@ -56,17 +56,9 @@ class Previsionnel
     #[Groups(['previsionnel:read', 'scol_enseignement:read'])]
     private array $heures = [];
 
-    #[ORM\Column]
+    #[ORM\Column(type: Types::JSON)]
     #[Groups(['previsionnel:read', 'scol_enseignement:read'])]
-    private ?int $nbGrCm = null;
-
-    #[ORM\Column]
-    #[Groups(['previsionnel:read', 'scol_enseignement:read'])]
-    private ?int $nbGrTd = null;
-
-    #[ORM\Column]
-    #[Groups(['previsionnel:read', 'scol_enseignement:read'])]
-    private ?int $nbGrTp = null;
+    private ?array $groupes = [];
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
     #[Groups(['previsionnel:read'])]
@@ -113,42 +105,6 @@ class Previsionnel
     public function setReferent(bool $referent): static
     {
         $this->referent = $referent;
-
-        return $this;
-    }
-
-    public function getNbGrCm(): ?int
-    {
-        return $this->nbGrCm;
-    }
-
-    public function setNbGrCm(int $nbGrCm): static
-    {
-        $this->nbGrCm = $nbGrCm;
-
-        return $this;
-    }
-
-    public function getNbGrTd(): ?int
-    {
-        return $this->nbGrTd;
-    }
-
-    public function setNbGrTd(int $nbGrTd): static
-    {
-        $this->nbGrTd = $nbGrTd;
-
-        return $this;
-    }
-
-    public function getNbGrTp(): ?int
-    {
-        return $this->nbGrTp;
-    }
-
-    public function setNbGrTp(int $nbGrTp): static
-    {
-        $this->nbGrTp = $nbGrTp;
 
         return $this;
     }
@@ -200,13 +156,13 @@ class Previsionnel
     public function setHeures(array $heures): static
     {
         $resolver = new OptionsResolver();
-        $this->configureOptions($resolver);
+        $this->configureOptionsHeures($resolver);
         $this->heures = $resolver->resolve($heures);
 
         return $this;
     }
 
-    public function configureOptions(OptionsResolver $resolver): void
+    public function configureOptionsHeures(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'heures' => [
@@ -218,5 +174,32 @@ class Previsionnel
         ]);
 
         $resolver->setAllowedTypes('heures', 'array');
+    }
+
+    public function getGroupes(): array
+    {
+        return $this->groupes;
+    }
+
+    public function setGroupes(?array $groupes): static
+    {
+        $resolver = new OptionsResolver();
+        $this->configureOptionsGroupes($resolver);
+        $this->groupes = $resolver->resolve($groupes);
+
+        return $this;
+    }
+
+    public function configureOptionsGroupes(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'groupes' => [
+                'CM' =>  0,
+                'TD' => 0,
+                'TP' => 0,
+            ],
+        ]);
+
+        $resolver->setAllowedTypes('groupes', 'array');
     }
 }

@@ -37,6 +37,10 @@ const props = defineProps({
   headerTitle: {
     type: String,
     required: true
+  },
+  headerTitlecolspan: {
+    type: Number,
+    required: true
   }
 });
 
@@ -49,7 +53,7 @@ const getFieldValue = (data, field) => {
   <DataTable :value="props.data" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows scrollable :size="props.size" show-gridlines>
     <ColumnGroup type="header">
       <Row>
-        <Column :header="props.headerTitle" :colspan="4" class="text-xl"/>
+        <Column :header="props.headerTitle" :colspan="headerTitlecolspan" class="text-xl"/>
         <Column v-for="(topHeaderCol, index) in props.topHeaderCols" :key="index" :header="topHeaderCol.header" :colspan="topHeaderCol.colspan" :class="topHeaderCol.class"/>
       </Row>
       <Row>

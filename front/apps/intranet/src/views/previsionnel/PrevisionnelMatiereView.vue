@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useSemestreStore, useAnneeUnivStore, useUsersStore, useEnseignementsStore } from '@stores';
 import { SimpleSkeleton, ListSkeleton } from '@components';
-import { getSemestrePreviService, buildSemestrePreviService, calcTotalHeures } from '@requests';
+import { getSemestreEnseignementPreviService, buildSemestreMatierePreviService, calcTotalHeures } from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 
 const usersStore = useUsersStore();
@@ -15,7 +15,6 @@ const semestresList = ref([]);
 const EnseignementsList = ref([]);
 const selectedSemestre = ref(null);
 const selectedEnseignement = ref(null);
-const semestreDetails = ref(null);
 
 const anneesUnivList = ref([]);
 const selectedAnneeUniv = ref(null);
@@ -25,14 +24,8 @@ const isLoadingEnseignements = ref(false);
 const isLoadingAnneesUniv = ref(false);
 const isLoadingPrevisionnel = ref(true);
 
-const previSemestre = ref(null);
-const previGrouped = ref(null);
-
-const totalCM = ref([]);
-const totalTD = ref([]);
-const totalTP = ref([]);
-const totalProjet = ref([]);
-const totalTotal = ref([]);
+const previSemestreMatiere = ref(null);
+const builtPrevi = ref(null);
 
 const size = ref({ label: 'Petit', value: 'small' });
 const sizeOptions = ref([
@@ -41,7 +34,6 @@ const sizeOptions = ref([
   { label: 'Large', value: 'large' }
 ]);
 
-const searchTerm = ref('');
 const filters = ref({
   'enseignement.libelle': { value: null, matchMode: 'contains' }
 });
@@ -79,21 +71,11 @@ const getPrevi = async (semestreId) => {
   if (semestreId) {
     isLoadingPrevisionnel.value = true;
     await semestreStore.getSemestre(semestreId);
-    semestreDetails.value = semestreStore.semestre;
 
-    previSemestre.value = await getSemestrePreviService(selectedSemestre.value.id, selectedAnneeUniv.value.id);
+    previSemestreMatiere.value = await getSemestreEnseignementPreviService(selectedSemestre.value.id, selectedEnseignement.value.id, selectedAnneeUniv.value.id);
+    builtPrevi.value = await buildSemestreMatierePreviService(previSemestreMatiere.value);
 
-    previSemestre.value.forEach((previ) => {
-      previ.total = calcTotalHeures(previ.heures);
-    });
-
-    const { previGrouped: grouped, totalCM: cm, totalTD: td, totalTP: tp, totalProjet: projet, totalTotal: total } = await buildSemestrePreviService(previSemestre.value);
-    previGrouped.value = grouped;
-    totalCM.value = cm;
-    totalTD.value = td;
-    totalTP.value = tp;
-    totalProjet.value = projet;
-    totalTotal.value = total;
+    console.log(builtPrevi);
 
     isLoadingPrevisionnel.value = false;
   }
@@ -105,25 +87,35 @@ onMounted(async () => {
   await getAnneesUniv();
 });
 
-watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv]) => {
-  if (newSemestre && newAnneeUniv) {
-    await getEnseignements();
+watch([selectedSemestre, selectedAnneeUniv, selectedEnseignement], async ([newSemestre, newAnneeUniv, newEnseignement]) => {
+  if (newSemestre && newAnneeUniv && newEnseignement) {
+    // await getEnseignements();
     await getPrevi(newSemestre.id, newAnneeUniv.id);
   }
 });
 
-watch(searchTerm, (newTerm) => {
-  filters.value['enseignement.libelle'].value = newTerm;
-});
-
 const columns = ref([
-  ]);
+  { header: 'Intervenant', field: 'personnel.display', sortable: true, colspan: 1 },
+  { header: 'Nb H/Gr.', field: 'heuresGroupes.CM.NbH/Gr', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
+  { header: 'Nb Gr.', field: 'heuresGroupes.CM.NbGr', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap'},
+  { header: 'Nb Seance/Gr.', field: 'heuresGroupes.CM.NbSeance/Gr', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap'},
+  { header: 'Nb H/Gr.', field: 'heuresGroupes.TD.NbH/Gr', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
+  { header: 'Nb Gr.', field: 'heuresGroupes.TD.NbGr', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap'},
+  { header: 'Nb Seance/Gr.', field: 'heuresGroupes.TD.NbSeance/Gr', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap'},
+  { header: 'Nb H/Gr.', field: 'heuresGroupes.TP.NbH/Gr', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
+  { header: 'Nb Gr.', field: 'heuresGroupes.TP.NbGr', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap'},
+  { header: 'Nb Seance/Gr.', field: 'heuresGroupes.TP.NbSeance/Gr', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap'},
+
+]);
 
 const topHeaderCols = ref([
-  ]);
+  { header: 'CM', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
+  { header: 'TD', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
+  { header: 'TP', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' }
+]);
 
 const footerRows = ref([
-  { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
+  // { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
 ]);
 
 const footerCols = computed(() => [
@@ -172,22 +164,24 @@ const footerCols = computed(() => [
     </div>
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
-      <div v-if="previGrouped?.length > 0">
+      <Message severity="info" icon="pi pi-info-circle" class="w-fit mx-auto my-2 px-3">
+        <div class="flex gap-6">
+          Nombre d'heures attendu :
+          <span class="font-bold">CM : {{ selectedEnseignement.heures.heures.CM.PN }} h</span>
+          <span class="font-bold">TD : {{ selectedEnseignement.heures.heures.TD.PN }} h</span>
+          <span class="font-bold">TP : {{ selectedEnseignement.heures.heures.TP.PN }} h</span>
+          <!--          <span>Projet : {{ selectedEnseignement.heures.heures.Projet.PN }} h</span>-->
+        </div>
+      </Message>
+
+      <div v-if="builtPrevi?.length > 0">
         <div class="flex w-full justify-between my-6">
           <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
-<!--          <div class="flex justify-end">-->
-<!--            <IconField>-->
-<!--              <InputIcon>-->
-<!--                <i class="pi pi-search" />-->
-<!--              </InputIcon>-->
-<!--              <InputText v-model="searchTerm" placeholder="Rechercher par matière" />-->
-<!--            </IconField>-->
-<!--          </div>-->
         </div>
-        <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :footerRows="footerRows" :footerCols="footerCols" :data="previGrouped" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`" />
+        <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :footerRows="footerRows" :footerCols="footerCols" :data="builtPrevi" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle} pour la matière ${selectedEnseignement.libelle}`" :headerTitlecolspan="1" />
       </div>
       <Message v-else severity="error" icon="pi pi-times-circle">
-        Aucun prévisionnel pour cette année universitaire et cette matière
+        Aucun prévisionnel pour cette année universitaire avec ce semestre et cette matière
       </Message>
     </div>
   </div>
