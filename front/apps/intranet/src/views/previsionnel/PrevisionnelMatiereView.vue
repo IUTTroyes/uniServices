@@ -130,7 +130,6 @@ const columns = ref([
   { header: 'Nb H/Gr.', field: 'heuresGroupes.TP.NbH/Gr', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
   { header: 'Nb Gr.', field: 'heuresGroupes.TP.NbGr', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap'},
   { header: 'Nb Seance/Gr.', field: 'heuresGroupes.TP.NbSeance/Gr', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap'},
-
 ]);
 
 const topHeaderCols = ref([
@@ -204,7 +203,17 @@ const footerCols = computed(() => [
         <div class="flex w-full justify-between my-6">
           <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
         </div>
-        <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :footerRows="footerRows" :footerCols="footerCols" :data="builtPrevi" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle} pour la matière ${selectedEnseignement.libelle}`" :headerTitlecolspan="1" />
+        <PrevisionnelTable
+            origin="previMatiereSynthese"
+            :columns="columns"
+            :topHeaderCols="topHeaderCols"
+            :footerCols="footerCols"
+            :footerRows="footerRows"
+            :data="builtPrevi"
+            :filters="filters"
+            :size="size.value"
+            :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle} pour la matière ${selectedEnseignement.libelle}`"
+            :headerTitlecolspan="1"/>
       </div>
       <Message v-else severity="error" icon="pi pi-times-circle">
         Aucun prévisionnel pour cette année universitaire avec ce semestre et cette matière
