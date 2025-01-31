@@ -14,6 +14,10 @@ const props = defineProps({
     type: Array,
     required: false
   },
+  additionalRows: {
+    type: Array,
+    required: false
+  },
   footerCols: {
     type: Array,
     required: false
@@ -73,11 +77,17 @@ const getFieldValue = (data, field) => {
         </slot>
       </template>
     </Column>
+
     <!-- Groupe de colonnes pour le pied de page -->
-    <ColumnGroup v-if="footerCols.length > 0 || footerRows.length > 0" type="footer">
+    <ColumnGroup v-if="footerCols.length > 0 || footerRows.length > 0 || additionalRows.length > 0" type="footer">
       <Row>
         <Column v-for="(footerRow, index) in props.footerRows" :key="index" :footer="footerRow.footer" :colspan="footerRow.colspan" :class="footerRow.class"/>
       </Row>
+
+      <Row v-for="(data, index) in props.additionalRows" :key="index">
+        <Column v-for="d in data" :footer="d.footer" :colspan="d.colspan" :class="d.class"/>
+      </Row>
+
       <Row>
         <Column v-for="(footerCol, index) in props.footerCols" :key="index"  :colspan="footerCol.colspan" :class="footerCol.class">
           <template #footer="slotProps">
@@ -96,3 +106,4 @@ const getFieldValue = (data, field) => {
 
 <style scoped>
 </style>
+

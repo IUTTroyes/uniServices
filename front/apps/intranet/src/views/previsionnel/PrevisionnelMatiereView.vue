@@ -138,8 +138,48 @@ const topHeaderCols = ref([
   { header: 'TP', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' }
 ]);
 
+const additionalRows = ref([
+    [
+      { footer: '', colspan: 1 },
+      { footer: 'Nb h attendu', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
+      { footer: 'Nb h saisi', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
+      { footer: 'Diff.', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
+    ],
+  [
+    { footer: 'Vérification du total d’heures par étudiant', colspan: 1 },
+    { footer: '18', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
+    { footer: '18', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
+    { footer:'0', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
+    { footer:'18', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
+    { footer: '18', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
+    { footer:'0', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
+    { footer:'18', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
+    { footer: '18', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
+    { footer:'0', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
+  ],
+    [
+      { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold' },
+    ],
+  [
+    { footer: 'Total', colspan: 1 },
+    { footer:'10', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
+    { footer: '10', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
+    { footer: '10', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
+  ],
+  [
+    { footer: 'Total d\'heures par etudiant', colspan: 1 },
+    { footer:'10', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
+    { footer: '10', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
+    { footer: '10', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
+  ],
+  [
+    { footer: 'Total d\'heures équivalent TD', colspan: 1 },
+    { footer:'10', colspan: 9, class: '!text-center' },
+  ],
+]);
+
 const footerRows = ref([
-  { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold' },
+  { footer: '', colspan: 19, class: '!text-center !font-bold' },
 ]);
 
 const footerCols = computed(() => [
@@ -213,7 +253,9 @@ const footerCols = computed(() => [
             :filters="filters"
             :size="size.value"
             :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle} pour la matière ${selectedEnseignement.libelle}`"
-            :headerTitlecolspan="1"/>
+            :headerTitlecolspan="1"
+            :additionalRows="additionalRows"
+            :additionalFooterRows="additionalFooterRows"/>
       </div>
       <Message v-else severity="error" icon="pi pi-times-circle">
         Aucun prévisionnel pour cette année universitaire avec ce semestre et cette matière
@@ -221,3 +263,4 @@ const footerCols = computed(() => [
     </div>
   </div>
 </template>
+
