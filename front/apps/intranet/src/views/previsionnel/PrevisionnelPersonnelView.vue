@@ -2,7 +2,6 @@
 </script>
 
 <template>
-<div>par personnel</div>
 </template>
 
 <style scoped>

@@ -50,6 +50,7 @@ class StructureUe
     private ?ApcCompetence $apcCompetence = null;
 
     #[ORM\ManyToOne(inversedBy: 'structureUes')]
+    #[Groups(['scol_enseignement:read'])]
     private ?StructureSemestre $semestre = null;
 
     /**

@@ -5,6 +5,11 @@ const getSemestrePreviService = async (semestreId, anneeUnivId) => {
     return response.data.member;
 }
 
+const getSemestreEnseignementPreviService = async (semestreId, enseignementId, anneeUnivId) => {
+    const response = await api.get(`/api/previsionnels?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}&enseignement=${enseignementId}`);
+    return response.data.member;
+}
+
 const calcTotalHeuresByType = (previGrouped, type) => {
     const totalMaq = previGrouped.reduce((acc, previ) => acc + previ.heures[type].Maquette, 0);
     const totalPrev = previGrouped.reduce((acc, previ) => acc + previ.heures[type].Previ, 0);
@@ -107,4 +112,27 @@ const buildSemestrePreviService = async (previ) => {
     return { previGrouped, totalCM, totalTD, totalTP, totalProjet, totalTotal };
 };
 
-export { getSemestrePreviService, buildSemestrePreviService, calcTotalHeures };
+const buildSemestreMatierePreviService = async (previ) => {
+    previ.forEach(item => {
+        item.heuresGroupes = {
+            "CM": {
+                "NbH/Gr": item.heures.heures.CM,
+                "NbGr": item.groupes.groupes.CM,
+                "NbSeance/Gr": item.heures.heures.CM*item.groupes.groupes.CM,
+            },
+            "TD": {
+                "NbH/Gr": item.heures.heures.TD,
+                "NbGr": item.groupes.groupes.TD,
+                "NbSeance/Gr": item.heures.heures.TD*item.groupes.groupes.TD,
+            },
+            "TP": {
+                "NbH/Gr": item.heures.heures.TP,
+                "NbGr": item.groupes.groupes.TP,
+                "NbSeance/Gr": item.heures.heures.TP*item.groupes.groupes.TP,
+            },
+        }
+    });
+    return previ;
+}
+
+export { getSemestrePreviService, getSemestreEnseignementPreviService, buildSemestrePreviService, buildSemestreMatierePreviService, calcTotalHeures };

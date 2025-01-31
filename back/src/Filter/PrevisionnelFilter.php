@@ -25,6 +25,7 @@ class PrevisionnelFilter extends AbstractFilter
         'departement' => 'departement',
         'diplome' => 'diplome',
         'semestre' => 'semestre',
+        'enseignement' => 'enseignement',
     ];
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
@@ -57,6 +58,13 @@ class PrevisionnelFilter extends AbstractFilter
                 ->join(StructureSemestre::class, 'ss', 'WITH', 'ue.semestre = ss.id')
                 ->andWhere('ss.id = :semestre')
                 ->setParameter('semestre', $value)
+            ;
+        }
+
+        if ('enseignement' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.enseignement = :enseignement', $alias))
+                ->setParameter('enseignement', $value)
             ;
         }
 

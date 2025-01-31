@@ -1,27 +1,32 @@
-// src/stores/matiereStore.js
+// src/stores/enseignementStore.js
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import api from '@helpers/axios';
+import { getAllEnseignementService, getEnseignementSemestreService } from "@requests";
 
-export const useMatieresStore = defineStore('matieres', () => {
-  const matieres = ref([])
+export const useEnseignementsStore = defineStore('enseignements', () => {
+  const enseignements = ref([])
 
   const getMatieres = async () => {
     try {
-      const response = await api.get('/api/scol_enseignements')
-      matieres.value = response.data['member']
+      const response = await getAllEnseignementService();
+      enseignements.value = response.data
     } catch (error) {
-      console.error('Error fetching matieres:', error)
+      console.error('Error fetching enseignements:', error)
     }
   }
 
   const getMatieresSemestre = async (semestreId) => {
-  //   todo: requête pour récupérer les matières d'un semestre -> via le pn ?
+    try {
+      enseignements.value = await getEnseignementSemestreService(semestreId);
+    } catch (error) {
+      console.error('Error fetching enseignements:', error)
+    }
   }
 
   // const addMatiere = async (matiere) => {
   //   try {
-  //     const response = await apit.post('/api/matieres', {
+  //     const response = await apit.post('/api/enseignements', {
   //       method: 'POST',
   //       headers: {
   //         'Content-Type': 'application/ld+json'
@@ -29,7 +34,7 @@ export const useMatieresStore = defineStore('matieres', () => {
   //       body: JSON.stringify(matiere)
   //     }).then((res) => res.json())
   //     console.log(response)
-  //     matieres.value.push(response.data)
+  //     enseignements.value.push(response.data)
   //   } catch (error) {
   //     console.error('Error adding matiere:', error)
   //   }
@@ -37,10 +42,10 @@ export const useMatieresStore = defineStore('matieres', () => {
   //
   // const deleteMatiere = async (id) => {
   //   try {
-  //     await fetch(baseUrl + `/api/matieres/${id}`, {
+  //     await fetch(baseUrl + `/api/enseignements/${id}`, {
   //       method: 'DELETE'
   //     })
-  //     matieres.value = matieres.value.filter((prof) => prof.id !== id)
+  //     enseignements.value = enseignements.value.filter((prof) => prof.id !== id)
   //   } catch (error) {
   //     console.error('Error deleting matiere:', error)
   //   }
@@ -48,10 +53,10 @@ export const useMatieresStore = defineStore('matieres', () => {
   //
   // const updateMatiere = async (matiere) => {
   //   try {
-  //     const response = await fetch(`/api/matieres/${matiere.id}`, matiere)
-  //     const index = matieres.value.findIndex((prof) => prof.id === matiere.id)
+  //     const response = await fetch(`/api/enseignements/${matiere.id}`, matiere)
+  //     const index = enseignements.value.findIndex((prof) => prof.id === matiere.id)
   //     if (index !== -1) {
-  //       matieres.value[index] = response.data
+  //       enseignements.value[index] = response.data
   //     }
   //   } catch (error) {
   //     console.error('Error updating matiere:', error)
@@ -59,8 +64,9 @@ export const useMatieresStore = defineStore('matieres', () => {
   // }
 
   return {
-    matieres,
+    enseignements,
     getMatieres,
+    getMatieresSemestre,
     // addMatiere,
     // deleteMatiere,
     // updateMatiere

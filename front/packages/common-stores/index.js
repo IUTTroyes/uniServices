@@ -1,7 +1,7 @@
 import { useUsersStore } from './user_stores/userStore'
 import { useSemestreStore } from './structure_stores/semestreStore'
 import { useProfesseursStore } from './user_stores/personnelStore'
-import { useMatieresStore } from './scol_stores/matiereStore'
+import { useEnseignementsStore } from './scol_stores/enseignementStore'
 import { useAnneeUnivStore } from './structure_stores/anneeUnivStore'
 import { useDiplomeStore} from "./structure_stores/diplomeStore";
 
@@ -9,7 +9,7 @@ export {
   useUsersStore,
   useSemestreStore,
   useProfesseursStore,
-  useMatieresStore,
+  useEnseignementsStore,
   useDiplomeStore,
   useAnneeUnivStore
 }

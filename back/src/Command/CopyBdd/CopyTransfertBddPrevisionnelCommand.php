@@ -131,9 +131,13 @@ FOREIGN_KEY_CHECKS=1');
                     'Projet' => 0,
                 ]
             ]);
-            $previsionnel->setNbGrCm($previ['nbGrCm']);
-            $previsionnel->setNbGrTd($previ['nbGrTd']);
-            $previsionnel->setNbGrTp($previ['nbGrTp']);
+            $previsionnel->setGroupes([
+                'groupes' => [
+                    'CM' => $previ['nbGrCm'],
+                    'TD' => $previ['nbGrTd'],
+                    'TP' => $previ['nbGrTp'],
+                ]
+            ]);
 
             $this->entityManager->persist($previsionnel);
         }
@@ -167,9 +171,13 @@ FOREIGN_KEY_CHECKS=1');
                     'Projet' => 0,
                 ]
             ]);
-            $previsionnel->setNbGrCm($previ['nbGrCm']);
-            $previsionnel->setNbGrTd($previ['nbGrTd']);
-            $previsionnel->setNbGrTp($previ['nbGrTp']);
+            $previsionnel->setGroupes([
+                'groupes' => [
+                    'CM' => $previ['nbGrCm'],
+                    'TD' => $previ['nbGrTd'],
+                    'TP' => $previ['nbGrTp'],
+                ]
+            ]);
 
             $this->entityManager->persist($previsionnel);
         }
@@ -203,9 +211,13 @@ FOREIGN_KEY_CHECKS=1');
                     'Projet' => 0,
                 ]
             ]);
-            $previsionnel->setNbGrCm($previ['nbGrCm']);
-            $previsionnel->setNbGrTd($previ['nbGrTd']);
-            $previsionnel->setNbGrTp($previ['nbGrTp']);
+            $previsionnel->setGroupes([
+                'groupes' => [
+                    'CM' => $previ['nbGrCm'],
+                    'TD' => $previ['nbGrTd'],
+                    'TP' => $previ['nbGrTp'],
+                ]
+            ]);
 
             $this->entityManager->persist($previsionnel);
         }
