@@ -7,12 +7,14 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use App\ApiDto\Previsionnel\PrevisionnelSemestreDto;
 use App\Entity\Edt\EdtProgression;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Users\Personnel;
 use App\Filter\PrevisionnelFilter;
 use App\Repository\Previsionnel\PrevisionnelRepository;
+use App\State\Previsionnel\PrevisionnelSemestreProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -24,7 +26,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['previsionnel:read']]),
         new GetCollection(
-            normalizationContext: ['groups' => ['previsionnel:read']],
+            normalizationContext: ['groups' => ['previsionnel:read']]
+        ),
+        new GetCollection(
+            uriTemplate: '/previsionnels_semestre',
+            normalizationContext: ['groups' => ['previsionnel_semestre:read']],
+            provider: PrevisionnelSemestreProvider::class,
+            output: PrevisionnelSemestreDto::class,
         ),
         new Patch(normalizationContext: ['groups' => ['previsionnel:read']]),
     ],
@@ -53,7 +61,7 @@ class Previsionnel
     private ?bool $referent = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['previsionnel:read', 'scol_enseignement:read'])]
+    #[Groups(['previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
     private array $heures = [];
 
     #[ORM\Column(type: Types::JSON)]
@@ -61,7 +69,7 @@ class Previsionnel
     private ?array $groupes = [];
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
-    #[Groups(['previsionnel:read'])]
+    #[Groups(['previsionnel:read', 'previsionnel_semestre:read'])]
     private ?ScolEnseignement $enseignement = null;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'], fetch: 'EAGER')]
