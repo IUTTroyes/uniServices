@@ -141,9 +141,15 @@ const topHeaderCols = ref([
 const additionalRows = ref([
     [
       { footer: '', colspan: 1 },
-      { footer: 'Nb h attendu', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
-      { footer: 'Nb h saisi', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
-      { footer: 'Diff.', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
+      { footer: 'Nb h attendu', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
+      { footer: 'Nb h saisi', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
+      { footer: 'Diff.', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
+      { footer: 'Nb h attendu', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
+      { footer: 'Nb h saisi', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
+      { footer: 'Diff.', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
+      { footer: 'Nb h attendu', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
+      { footer: 'Nb h saisi', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
+      { footer: 'Diff.', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
     ],
   [
     { footer: 'Vérification du total d’heures par étudiant', colspan: 1 },

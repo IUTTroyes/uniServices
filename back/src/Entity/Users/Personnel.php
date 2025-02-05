@@ -77,11 +77,11 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]

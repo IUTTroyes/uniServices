@@ -32,7 +32,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
             paginationEnabled: false,
             normalizationContext: ['groups' => ['structure_departement_personnel:read']]
         ),
-        new Post(uriTemplate: '/structure_departement_personnels/{id}/change_departement', inputFormats: ['json' => ['application/ld+json']], outputFormats: ['json' => ['application/ld+json']], normalizationContext: ['groups' => ['structure_departement_personnel:read']], processor: 'App\State\ChangeDepartementProcessor'),
+        new Post(uriTemplate: '/structure_departement_personnels/{id}/change_departement',
+            inputFormats: ['json' => ['application/ld+json']],
+            outputFormats: ['json' => ['application/ld+json']],
+            normalizationContext: ['groups' => ['structure_departement_personnel:read']],
+            processor: 'App\State\ChangeDepartementProcessor'),
     ],
     order: ['personnel.nom', 'departement.libelle']
 )]
