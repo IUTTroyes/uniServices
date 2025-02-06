@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useSemestreStore, useAnneeUnivStore, useUsersStore, useEnseignementsStore } from '@stores';
 import { SimpleSkeleton, ListSkeleton } from '@components';
-import { getSemestreEnseignementPreviService, buildSemestreMatierePreviService, calcTotalHeures } from '@requests';
+import { getSemestreEnseignementPreviService, buildSemestreMatierePreviService } from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 
 const usersStore = useUsersStore();
@@ -237,11 +237,10 @@ const footerCols = computed(() => [
     <div v-else>
       <Message severity="info" icon="pi pi-info-circle" class="w-fit mx-auto my-2 px-3">
         <div class="flex gap-6">
-          Nombre d'heures attendu :
+          Nombre d'heures par étudiant attendu :
           <span class="font-bold">CM : {{ selectedEnseignement.heures.heures.CM.PN }} h</span>
           <span class="font-bold">TD : {{ selectedEnseignement.heures.heures.TD.PN }} h</span>
           <span class="font-bold">TP : {{ selectedEnseignement.heures.heures.TP.PN }} h</span>
-          <!--          <span>Projet : {{ selectedEnseignement.heures.heures.Projet.PN }} h</span>-->
         </div>
       </Message>
 
