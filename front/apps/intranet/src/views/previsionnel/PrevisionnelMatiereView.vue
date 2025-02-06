@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useSemestreStore, useAnneeUnivStore, useUsersStore, useEnseignementsStore } from '@stores';
 import { SimpleSkeleton, ListSkeleton } from '@components';
-import { getSemestreEnseignementPreviService, buildSemestreMatierePreviService } from '@requests';
+import { getSemestreEnseignementPreviService } from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 
 const usersStore = useUsersStore();
@@ -137,57 +137,35 @@ const topHeaderCols = ref([
 ]);
 
 const additionalRows = ref([
-    [
-      { footer: '', colspan: 1 },
-      { footer: 'Nb h attendu', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
-      { footer: 'Nb h saisi', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
-      { footer: 'Diff.', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
-      { footer: 'Nb h attendu', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
-      { footer: 'Nb h saisi', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
-      { footer: 'Diff.', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
-      { footer: 'Nb h attendu', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
-      { footer: 'Nb h saisi', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
-      { footer: 'Diff.', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
-    ],
   [
-    { footer: 'Vérification du total d’heures par étudiant', colspan: 1 },
-    { footer: '18', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
-    { footer: '18', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
-    { footer:'0', colspan: 1, class: '!bg-purple-400 !bg-opacity-20' },
-    { footer:'18', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
-    { footer: '18', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
-    { footer:'0', colspan: 1, class: '!bg-green-400 !bg-opacity-20' },
-    { footer:'18', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
-    { footer: '18', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
-    { footer:'0', colspan: 1, class: '!bg-amber-400 !bg-opacity-20' },
-  ],
-    [
-      { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold' },
-    ],
-  [
-    { footer: 'Total', colspan: 1 },
-    { footer:'10', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
-    { footer: '10', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
-    { footer: '10', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
-  ],
-  [
-    { footer: 'Total d\'heures par etudiant', colspan: 1 },
-    { footer:'10', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
-    { footer: '10', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
-    { footer: '10', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
-  ],
-  [
-    { footer: 'Total d\'heures équivalent TD', colspan: 1 },
-    { footer:'10', colspan: 9, class: '!text-center' },
-  ],
+    { footer: '', colspan: 1, class: '!text-center !font-bold'},
+    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: 'Nb hr saisi', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap' },
+    { footer: 'Diff', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap' },
+    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: 'Nb hr saisi', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap' },
+    { footer: 'Diff', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap' },
+    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: 'Nb hr saisi', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap' },
+    { footer: 'Diff', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap' },
+  ]
 ]);
 
 const footerRows = ref([
-  { footer: '', colspan: 19, class: '!text-center !font-bold' },
+  { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
 ]);
 
 const footerCols = computed(() => [
-
+  { footer: 'Vérification du total d\'heures par étudiant', header: 'hello', colspan: 1 },
+  { footer: previSemestreMatiere.value[1].CM.NbHrAttendu, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestreMatiere.value[1].CM.NbHrSaisi, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestreMatiere.value[1].CM.Diff, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { footer: previSemestreMatiere.value[1].TD.NbHrAttendu, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestreMatiere.value[1].TD.NbHrSaisi, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestreMatiere.value[1].TD.Diff, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { footer: previSemestreMatiere.value[1].TP.NbHrAttendu, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestreMatiere.value[1].TP.NbHrSaisi, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestreMatiere.value[1].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
 ]);
 </script>
 
@@ -250,15 +228,14 @@ const footerCols = computed(() => [
             origin="previMatiereSynthese"
             :columns="columns"
             :topHeaderCols="topHeaderCols"
+            :additionalRows="additionalRows"
             :footerCols="footerCols"
             :footerRows="footerRows"
             :data="previSemestreMatiere[0]"
             :filters="filters"
             :size="size.value"
             :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle} pour la matière ${selectedEnseignement.libelle}`"
-            :headerTitlecolspan="1"
-            :additionalRows="additionalRows"
-            :additionalFooterRows="additionalFooterRows"/>
+            :headerTitlecolspan="1"/>
       </div>
       <Message v-else severity="error" icon="pi pi-times-circle">
         Aucun prévisionnel pour cette année universitaire avec ce semestre et cette matière

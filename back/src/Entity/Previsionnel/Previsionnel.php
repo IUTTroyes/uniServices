@@ -48,7 +48,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(PrevisionnelFilter::class)]
 class Previsionnel
 {
-    public const DUREE_SEANCE = 1.5;
+    //todo: régler en fonction du dept ou enlever le champ ?
+    public const DUREE_SEANCE = 1;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
