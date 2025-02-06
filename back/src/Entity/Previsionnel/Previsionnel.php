@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use App\ApiDto\Previsionnel\PrevisionnelMatiereDto;
 use App\ApiDto\Previsionnel\PrevisionnelSemestreDto;
 use App\Entity\Edt\EdtProgression;
 use App\Entity\Scolarite\ScolEnseignement;
@@ -14,6 +15,7 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Users\Personnel;
 use App\Filter\PrevisionnelFilter;
 use App\Repository\Previsionnel\PrevisionnelRepository;
+use App\State\Previsionnel\PrevisionnelMatiereProvider;
 use App\State\Previsionnel\PrevisionnelSemestreProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -34,6 +36,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
             provider: PrevisionnelSemestreProvider::class,
             output: PrevisionnelSemestreDto::class,
         ),
+        new GetCollection(
+            uriTemplate: '/previsionnels_enseignement',
+            normalizationContext: ['groups' => ['previsionnel_matiere:read']],
+            provider: PrevisionnelMatiereProvider::class,
+            output: PrevisionnelMatiereDto::class,
+        ),
         new Patch(normalizationContext: ['groups' => ['previsionnel:read']]),
     ],
 )]
@@ -49,7 +57,7 @@ class Previsionnel
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
-    #[Groups(['previsionnel:read', 'scol_enseignement:read'])]
+    #[Groups(['previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_matiere:read'])]
     private ?Personnel $personnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]

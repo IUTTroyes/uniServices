@@ -23,9 +23,9 @@ class PrevisionnelFilter extends AbstractFilter
         'personnel' => 'personnel',
         'anneeUniversitaire' => 'anneeUniversitaire',
         'departement' => 'departement',
-        'diplome' => 'diplome',
         'semestre' => 'semestre',
         'enseignement' => 'enseignement',
+        'diplome' => 'diplome',
     ];
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
@@ -132,7 +132,15 @@ class PrevisionnelFilter extends AbstractFilter
                 'openapi' => [
                     'description' => 'Filter by semestre',
                 ],
-            ]
+            ],
+            'enseignement' => [
+                'property' => 'enseignement',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by enseignement',
+                ],
+            ],
         ];
     }
 }

@@ -77,11 +77,11 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_matiere:read'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_matiere:read'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -688,7 +688,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return self::STATUT[$this->statut] ?? null;
     }
 
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'previsionnel_matiere:read'])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();
