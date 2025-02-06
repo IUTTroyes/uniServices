@@ -96,17 +96,17 @@ class PrevisionnelMatiereProvider implements ProviderInterface
                 'CM' => [
                     'NbHrGrp' => $item->getHeures()['heures']['CM'],
                     'NbGrp' => $item->getGroupes()['groupes']['CM'],
-                    'NbSeanceGrp' => $item->getHeures()['heures']['CM'] * $item->getGroupes()['groupes']['CM'],
+                    'NbSeanceGrp' => $item->getHeures()['heures']['CM'] / $item::DUREE_SEANCE,
                 ],
                 'TD' => [
                     'NbHrGrp' => $item->getHeures()['heures']['TD'],
                     'NbGrp' => $item->getGroupes()['groupes']['TD'],
-                    'NbSeanceGrp' => $item->getHeures()['heures']['TD'] * $item->getGroupes()['groupes']['TD'],
+                    'NbSeanceGrp' => $item->getHeures()['heures']['TD'] / $item::DUREE_SEANCE,
                 ],
                 'TP' => [
                     'NbHrGrp' => $item->getHeures()['heures']['TP'],
                     'NbGrp' => $item->getGroupes()['groupes']['TP'],
-                    'NbSeanceGrp' => $item->getHeures()['heures']['TP'] * $item->getGroupes()['groupes']['TP'],
+                    'NbSeanceGrp' => $item->getHeures()['heures']['TP'] / $item::DUREE_SEANCE,
                 ],
             ]
         );

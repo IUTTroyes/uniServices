@@ -688,7 +688,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return self::STATUT[$this->statut] ?? null;
     }
 
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'previsionnel_matiere:read'])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();

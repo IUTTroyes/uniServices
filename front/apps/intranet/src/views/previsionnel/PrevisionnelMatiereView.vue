@@ -25,7 +25,6 @@ const isLoadingAnneesUniv = ref(false);
 const isLoadingPrevisionnel = ref(true);
 
 const previSemestreMatiere = ref(null);
-const builtPrevi = ref(null);
 
 const size = ref({ label: 'Petit', value: 'small' });
 const sizeOptions = ref([
@@ -97,9 +96,8 @@ const getPrevi = async (semestreId) => {
           selectedAnneeUniv.value.id
       );
     }
-    builtPrevi.value = await buildSemestreMatierePreviService(previSemestreMatiere.value);
 
-    console.log(builtPrevi);
+    console.log('previSemestreMatiere', previSemestreMatiere.value);
 
     isLoadingPrevisionnel.value = false;
   }
@@ -121,15 +119,15 @@ watch(selectedSemestre, async (newSemestre) => {
 
 const columns = ref([
   { header: 'Intervenant', field: 'personnel.display', sortable: true, colspan: 1 },
-  { header: 'Nb H/Gr.', field: 'heuresGroupes.CM.NbH/Gr', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
-  { header: 'Nb Gr.', field: 'heuresGroupes.CM.NbGr', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap'},
-  { header: 'Nb Seance/Gr.', field: 'heuresGroupes.CM.NbSeance/Gr', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap'},
-  { header: 'Nb H/Gr.', field: 'heuresGroupes.TD.NbH/Gr', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
-  { header: 'Nb Gr.', field: 'heuresGroupes.TD.NbGr', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap'},
-  { header: 'Nb Seance/Gr.', field: 'heuresGroupes.TD.NbSeance/Gr', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap'},
-  { header: 'Nb H/Gr.', field: 'heuresGroupes.TP.NbH/Gr', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
-  { header: 'Nb Gr.', field: 'heuresGroupes.TP.NbGr', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap'},
-  { header: 'Nb Seance/Gr.', field: 'heuresGroupes.TP.NbSeance/Gr', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap'},
+  { header: 'Nb H/Gr.', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
+  { header: 'Nb Gr.', field: 'heures.CM.NbGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap'},
+  { header: 'Nb Seance/Gr.', field: 'heures.CM.NbSeanceGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap'},
+  { header: 'Nb H/Gr.', field: 'heures.TD.NbHrGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
+  { header: 'Nb Gr.', field: 'heures.TD.NbGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap'},
+  { header: 'Nb Seance/Gr.', field: 'heures.TD.NbSeanceGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap'},
+  { header: 'Nb H/Gr.', field: 'heures.TP.NbHrGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
+  { header: 'Nb Gr.', field: 'heures.TP.NbGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap'},
+  { header: 'Nb Seance/Gr.', field: 'heures.TP.NbSeanceGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap'},
 ]);
 
 const topHeaderCols = ref([
@@ -244,7 +242,7 @@ const footerCols = computed(() => [
         </div>
       </Message>
 
-      <div v-if="builtPrevi?.length > 0">
+      <div v-if="previSemestreMatiere[0].length > 0">
         <div class="flex w-full justify-between my-6">
           <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
         </div>
@@ -254,7 +252,7 @@ const footerCols = computed(() => [
             :topHeaderCols="topHeaderCols"
             :footerCols="footerCols"
             :footerRows="footerRows"
-            :data="builtPrevi"
+            :data="previSemestreMatiere[0]"
             :filters="filters"
             :size="size.value"
             :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle} pour la matière ${selectedEnseignement.libelle}`"

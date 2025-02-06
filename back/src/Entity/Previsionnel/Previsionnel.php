@@ -37,7 +37,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             output: PrevisionnelSemestreDto::class,
         ),
         new GetCollection(
-            uriTemplate: '/previsionnels_matiere',
+            uriTemplate: '/previsionnels_enseignement',
             normalizationContext: ['groups' => ['previsionnel_matiere:read']],
             provider: PrevisionnelMatiereProvider::class,
             output: PrevisionnelMatiereDto::class,

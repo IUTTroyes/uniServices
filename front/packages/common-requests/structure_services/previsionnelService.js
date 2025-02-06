@@ -6,7 +6,7 @@ const getSemestrePreviService = async (semestreId, anneeUnivId) => {
 }
 
 const getSemestreEnseignementPreviService = async (semestreId, enseignementId, anneeUnivId) => {
-    const response = await api.get(`/api/previsionnels?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}&enseignement=${enseignementId}`);
+    const response = await api.get(`/api/previsionnels_enseignement?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}&enseignement=${enseignementId}`);
     return response.data.member;
 }
 
