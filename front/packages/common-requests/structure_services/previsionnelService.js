@@ -10,30 +10,4 @@ const getSemestreEnseignementPreviService = async (semestreId, enseignementId, a
     return response.data.member;
 }
 
-const buildSemestreMatierePreviService = async (previ) => {
-    previ.forEach(item => {
-        item.heuresGroupes = {
-            "CM": {
-                "NbH/Gr": item.heures.heures.CM,
-                "NbGr": item.groupes.groupes.CM,
-                "NbSeance/Gr": item.heures.heures.CM*item.groupes.groupes.CM,
-                "NbHAttendu": item.enseignement.heures.heures.CM.IUT
-            },
-            "TD": {
-                "NbH/Gr": item.heures.heures.TD,
-                "NbGr": item.groupes.groupes.TD,
-                "NbSeance/Gr": item.heures.heures.TD*item.groupes.groupes.TD,
-                "NbHAttendu": item.enseignement.heures.heures.TD.IUT
-            },
-            "TP": {
-                "NbH/Gr": item.heures.heures.TP,
-                "NbGr": item.groupes.groupes.TP,
-                "NbSeance/Gr": item.heures.heures.TP*item.groupes.groupes.TP,
-                "NbHAttendu": item.enseignement.heures.heures.TP.IUT
-            },
-        }
-    });
-    return previ;
-}
-
-export { getSemestrePreviService, getSemestreEnseignementPreviService, buildSemestreMatierePreviService };
+export { getSemestrePreviService, getSemestreEnseignementPreviService };
