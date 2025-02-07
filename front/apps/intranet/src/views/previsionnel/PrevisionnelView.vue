@@ -1,10 +1,18 @@
 <script setup>
+import {onMounted} from "vue";
+import router from "@/router";
 
 const items = [
   { label: 'Par semestre', icon: 'pi pi-list', route: '/administration/previsionnel/semestre' },
   { label: 'Par enseignant', icon: 'pi pi-clock', route: '/administration/previsionnel/personnel' },
   { label: 'Par matière', icon: 'pi pi-money-bill', route: '/administration/previsionnel/matiere' },
 ];
+
+onMounted(() => {
+  if (items.length > 0) {
+    router.push(items[0].route);
+  }
+});
 </script>
 
 <template>

@@ -17,6 +17,7 @@
 	api.get(`/api/hello`)
 	```
 - Utiliser les *Skeleton* de primevue comme loader -> en faire des composants si nécessaire
+- Inclure 'Service' à la fin du nom des méthodes qui font les requêtes API (dans le dossier ``common-requests/``) exemple : `getUserService`
 
 ### Alias
 

@@ -1,0 +1,13 @@
+import api from '@helpers/axios';
+
+const getAllEnseignementService = async () => {
+    const response = await api.get('/api/scol_enseignements');
+    return response.data.member;
+}
+
+const getEnseignementSemestreService = async (semestreId) => {
+    const response = await api.get(`api/scol_enseignements?semestre=${semestreId}`);
+    return response.data.member;
+}
+
+export { getAllEnseignementService, getEnseignementSemestreService };

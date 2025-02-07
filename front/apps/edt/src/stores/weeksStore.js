@@ -1,4 +1,4 @@
-// src/stores/matiereStore.js
+// src/stores/enseignementStore.js
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import api from '@helpers/axios';

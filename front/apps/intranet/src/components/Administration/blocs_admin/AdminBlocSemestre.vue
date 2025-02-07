@@ -1,33 +1,16 @@
 <script setup>
 import { onMounted, ref } from "vue";
-import { getServiceDepartementSemestresActifs } from "@requests";
-import SimpleSkeleton from "@components/loader/SimpleSkeleton.vue";
+import { getDepartementSemestresService } from "@requests";
+import { ListSkeleton } from "@components";
+import { useUsersStore, useSemestreStore } from "@stores";
 
+const userStore = useUsersStore();
+const semestreStore = useSemestreStore();
 const semestresFc = ref([]);
 const semestresFi = ref([]);
 const selectedSemestre = ref(null);
 const isLoading = ref(true);
 const errorMessage = ref('');
-
-onMounted(async () => {
-  try {
-    const departementId = localStorage.getItem('departement');
-    const semestres = await getServiceDepartementSemestresActifs(departementId);
-    semestresFc.value = semestres.semestresFc;
-    semestresFi.value = semestres.semestresFi;
-    if (semestresFi.value.length > 0) {
-      selectedSemestre.value = semestresFi.value[0];
-    }
-  } catch (error) {
-    errorMessage.value = 'Erreur lors de la récupération des semestres.';
-  } finally {
-    isLoading.value = false;
-  }
-});
-
-const selectSemestre = (semestre) => {
-  selectedSemestre.value = semestre;
-};
 
 const panelMenuItems = [
   { label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
@@ -56,12 +39,34 @@ const panelMenuItems = [
       { label: 'Changement de semestre des étudiants', icon: 'pi pi-forward', command: () => {} },
     ] },
 ];
+
+const getSemestres = async () => {
+  try {
+    const departementId = userStore.departementDefaut.id;
+    const semestres = await getDepartementSemestresService(departementId, true);
+    semestresFc.value = semestres.filter(semestre => semestre.annee.opt.alternance);
+    semestresFi.value = semestres.filter(semestre => !semestre.annee.opt.alternance);
+    if (semestresFi.value.length > 0) {
+      selectedSemestre.value = semestresFi.value[0];
+    }
+  } catch (error) {
+    errorMessage.value = 'Erreur lors de la récupération des semestres.';
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(
+  getSemestres
+);
+
+const selectSemestre = (semestre) => {
+  selectedSemestre.value = semestre;
+};
 </script>
 
 <template>
-  <SimpleSkeleton v-if="isLoading" class="mt-4"/>
-  <div v-else-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-  <div v-else class="flex justify-between gap-10">
+  <div class="flex justify-between gap-10">
     <Fieldset class="w-full">
       <template #legend>
         <div class="flex items-center pl-2">
@@ -72,20 +77,21 @@ const panelMenuItems = [
           </div>
         </div>
       </template>
-      <SimpleSkeleton v-if="isLoading" class="mt-4"/>
+      <ListSkeleton v-if="isLoading" class="mt-4"/>
       <div v-else-if="errorMessage" class="error-message">{{ errorMessage }}</div>
       <div v-else class="flex gap-10 mt-4">
         <div class="w-1/2 flex gap-4">
-          <ul class="w-1/2">
-            <li class="font-bold text-lg">Formation Initiale</li>
-            <li v-for="semestreFi in semestresFi" :key="semestreFi.id" @click="selectSemestre(semestreFi)" class="cursor-pointer w-full border-b p-1">
-              <div class="hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2" :class="{'bg-primary-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestreFi.id}">{{ semestreFi.libelle }}</div>
-            </li>
-          </ul >
-          <ul class="w-1/2">
-            <li class="font-bold text-lg">Formation Continue</li>
-            <li v-for="semestreFc in semestresFc" :key="semestreFc.id" @click="selectSemestre(semestreFc)" class="cursor-pointer w-full border-b p-1">
-              <div class="hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2" :class="{'bg-primary-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestreFc.id}">{{ semestreFc.libelle }}</div>
+          <ul v-for="(semesters, type) in { 'Formation Initiale': semestresFi, 'Formation Continue': semestresFc }"
+              :key="type" class="w-1/2">
+            <li class="font-bold text-lg">{{ type }}</li>
+            <li v-for="semestre in semesters"
+                :key="semestre.id"
+                @click="selectSemestre(semestre)"
+                class="cursor-pointer w-full border-b p-1">
+              <div class="hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2"
+                   :class="{'bg-primary-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestre.id}">
+                {{ semestre.libelle }}
+              </div>
             </li>
           </ul>
         </div>

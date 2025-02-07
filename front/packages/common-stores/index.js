@@ -1,15 +1,15 @@
-import { useUsersStore } from './stores/userStore'
-import { useSemestreStore } from './stores/semestreStore'
-import { useProfesseursStore } from './stores/personnelStore'
-import { useMatieresStore } from './stores/matiereStore'
-import { useAnneeUnivStore } from './stores/anneeUnivStore'
-import { useDiplomeStore} from "./stores/diplomeStore";
+import { useUsersStore } from './user_stores/userStore'
+import { useSemestreStore } from './structure_stores/semestreStore'
+import { useProfesseursStore } from './user_stores/personnelStore'
+import { useEnseignementsStore } from './scol_stores/enseignementStore'
+import { useAnneeUnivStore } from './structure_stores/anneeUnivStore'
+import { useDiplomeStore} from "./structure_stores/diplomeStore";
 
 export {
   useUsersStore,
   useSemestreStore,
   useProfesseursStore,
-  useMatieresStore,
+  useEnseignementsStore,
   useDiplomeStore,
   useAnneeUnivStore
 }

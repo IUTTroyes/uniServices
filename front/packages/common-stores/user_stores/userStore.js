@@ -1,8 +1,13 @@
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import api from '@helpers/axios';
-import { getEtudiantScolariteActif } from "@requests";
-import { useAnneeUnivStore } from '@stores';
+import {defineStore} from 'pinia';
+import {ref} from 'vue';
+import {
+    changeDepartementActifService,
+    getAllStatutsService,
+    getEtudiantScolariteActifService,
+    getUserService,
+    updateUserService
+} from "@requests";
+import {useAnneeUnivStore} from '@stores';
 
 export const useUsersStore = defineStore('users', () => {
     const token = localStorage.getItem('token');
@@ -34,19 +39,15 @@ export const useUsersStore = defineStore('users', () => {
         isLoading.value = true;
         try {
             console.log('Fetching user');
-            const response = await api.get(`/api/${userType}/${userId}`);
-            userPhoto.value = "http://localhost:3001/intranet/src/assets/photos_etudiants/" + response.data.photoName;
-            user.value = response.data;
-            applications.value = response.data.applications;
+            user.value = await getUserService(userType, userId);
+            userPhoto.value = "common-images/photos_etudiants/" + user.value.photoName;
+            applications.value = user.value.applications;
 
             if (userType === 'personnels') {
-                departements.value = response.data.structureDepartementPersonnels;
+                departements.value = user.value.structureDepartementPersonnels;
                 if (!departements.value.find(departement => departement.defaut === true)) {
-                    const response = await api.post(`/api/structure_departement_personnels/${departements.value[0].id}/change_departement`, {}, {
-                        headers: {
-                            'Content-Type': 'application/ld+json'
-                        }
-                    });
+                    const firstDepartement = departements.value[0];
+                    const response = await changeDepartementActifService(firstDepartement.id);
                     departements.value = response.data;
                 }
                 departementPersonnelDefaut.value = departements.value.find(departement => departement.defaut === true);
@@ -58,7 +59,7 @@ export const useUsersStore = defineStore('users', () => {
                 await anneeUnivStore.getCurrentAnneeUniv();
                 currentAnneeUniv.value = anneeUnivStore.anneeUniv;
 
-                scolariteActif.value = await getEtudiantScolariteActif(userId, currentAnneeUniv.value.id);
+                scolariteActif.value = await getEtudiantScolariteActifService(userId, currentAnneeUniv.value.id);
                 departementDefaut.value = scolariteActif.value.departement;
             }
             isLoaded.value = true;
@@ -71,15 +72,10 @@ export const useUsersStore = defineStore('users', () => {
 
     const changeDepartement = async (departementId) => {
         try {
-            const departementPersonnelId = departements.value.find(departement => departement.departement.id === departementId).id;
-            const response = await api.post(`/api/structure_departement_personnels/${departementPersonnelId}/change_departement`, {
-            }, {
-                headers: {
-                    'Content-Type': 'application/ld+json'
-                }
-            });
-            departements.value = response.data;
+            const departementPersonnelId = await departements.value.find(departement => departement.departement.id === departementId).id;
+            departements.value = await changeDepartementActifService(departementPersonnelId);
             // récupérer le département qui a defaut = true
+            console.log(departements.value);
             departementPersonnelDefaut.value = await departements.value.find(departement => departement.defaut === true);
             departementDefaut.value = departementPersonnelDefaut.value.departement;
             localStorage.setItem('departement', departementDefaut.value.id);
@@ -93,6 +89,7 @@ export const useUsersStore = defineStore('users', () => {
     };
 
     const updateUser = async (data) => {
+        isLoading.value = true;
         // si domaines n'est pas un tableau
         if (!Array.isArray(data.domaines)) {
             // séparer les domaines en utilisant la virgule comme séparateur
@@ -102,26 +99,19 @@ export const useUsersStore = defineStore('users', () => {
         if (data.structureDepartementPersonnels) {
             data.structureDepartementPersonnels = data.structureDepartementPersonnels.map(departement => `/api/structure_departement_personnels/${departement.id}`);
         }
-        // récupérer uniquement le nom de la photo entre la fin de user.photoName et le dernier "/"
-        // data.photoName = data.photoName.substring(data.photoName.lastIndexOf('/') + 1);
-        console.log(data.photoName);
-
         try {
-            const response = await api.patch(`/api/${userType}/${userId}`, data, {
-                headers: {
-                    'Content-Type': 'application/merge-patch+json'
-                }
-            });
-            user.value = response.data;
+            const updatedUser = await updateUserService(userType, userId, data);
+            user.value = updatedUser;
         } catch (error) {
             console.error('Error updating user:', error);
+        } finally {
+            isLoading.value = false;
         }
     };
 
     const getStatuts = async () => {
         try {
-            const response = await api.get(`/api/statuts`);
-            statuts.value = response.data;
+            statuts.value = await getAllStatutsService();
         } catch (error) {
             console.error('Error fetching statuts:', error);
         }

@@ -7,16 +7,19 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use App\ApiDto\Previsionnel\PrevisionnelMatiereDto;
+use App\ApiDto\Previsionnel\PrevisionnelSemestreDto;
 use App\Entity\Edt\EdtProgression;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
-use App\Entity\Structure\StructureSemestre;
 use App\Entity\Users\Personnel;
 use App\Filter\PrevisionnelFilter;
 use App\Repository\Previsionnel\PrevisionnelRepository;
-use App\State\DtoPrevisionnel;
-use App\State\PrevisionnelProvider;
+use App\State\Previsionnel\PrevisionnelMatiereProvider;
+use App\State\Previsionnel\PrevisionnelSemestreProvider;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PrevisionnelRepository::class)]
@@ -25,9 +28,19 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['previsionnel:read']]),
         new GetCollection(
-            normalizationContext: ['groups' => ['previsionnel:read']],
-            output: DtoPrevisionnel::class,
-            provider: PrevisionnelProvider::class
+            normalizationContext: ['groups' => ['previsionnel:read']]
+        ),
+        new GetCollection(
+            uriTemplate: '/previsionnels_semestre',
+            normalizationContext: ['groups' => ['previsionnel_semestre:read']],
+            provider: PrevisionnelSemestreProvider::class,
+            output: PrevisionnelSemestreDto::class,
+        ),
+        new GetCollection(
+            uriTemplate: '/previsionnels_enseignement',
+            normalizationContext: ['groups' => ['previsionnel_matiere:read']],
+            provider: PrevisionnelMatiereProvider::class,
+            output: PrevisionnelMatiereDto::class,
         ),
         new Patch(normalizationContext: ['groups' => ['previsionnel:read']]),
     ],
@@ -35,7 +48,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(PrevisionnelFilter::class)]
 class Previsionnel
 {
-    public const DUREE_SEANCE = 1.5;
+    //todo: régler en fonction du dept ou enlever le champ ?
+    public const DUREE_SEANCE = 1;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -44,7 +58,7 @@ class Previsionnel
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
-    #[Groups(['previsionnel:read'])]
+    #[Groups(['previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_matiere:read'])]
     private ?Personnel $personnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
@@ -55,41 +69,21 @@ class Previsionnel
     #[Groups(['previsionnel:read'])]
     private ?bool $referent = null;
 
-    #[ORM\Column]
-    #[Groups(['previsionnel:read'])]
-    private ?float $nbHCm = null;
+    #[ORM\Column(type: Types::JSON)]
+    #[Groups(['previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
+    private array $heures = [];
 
-    #[ORM\Column]
-    #[Groups(['previsionnel:read'])]
-    private ?float $nbHTd = null;
-
-    #[ORM\Column]
-    #[Groups(['previsionnel:read'])]
-    private ?float $nbHTp = null;
-
-    #[ORM\Column]
-    #[Groups(['previsionnel:read'])]
-    private ?int $nbGrCm = null;
-
-    #[ORM\Column]
-    #[Groups(['previsionnel:read'])]
-    private ?int $nbGrTd = null;
-
-    #[ORM\Column]
-    #[Groups(['previsionnel:read'])]
-    private ?int $nbGrTp = null;
+    #[ORM\Column(type: Types::JSON)]
+    #[Groups(['previsionnel:read', 'scol_enseignement:read'])]
+    private ?array $groupes = [];
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
-    #[Groups(['previsionnel:read'])]
-    private ?ScolEnseignement $matiere = null;
+    #[Groups(['previsionnel:read', 'previsionnel_semestre:read'])]
+    private ?ScolEnseignement $enseignement = null;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'], fetch: 'EAGER')]
     #[Groups(['previsionnel:read'])]
     private ?EdtProgression $progression = null;
-
-    #[ORM\ManyToOne()]
-    #[Groups(['previsionnel:read'])]
-    private ?StructureSemestre $semestre = null;
 
     public function getId(): ?int
     {
@@ -132,86 +126,14 @@ class Previsionnel
         return $this;
     }
 
-    public function getNbHCm(): ?float
+    public function getEnseignement(): ?ScolEnseignement
     {
-        return $this->nbHCm;
+        return $this->enseignement;
     }
 
-    public function setNbHCm(float $nbHCm): static
+    public function setEnseignement(?ScolEnseignement $enseignement): static
     {
-        $this->nbHCm = $nbHCm;
-
-        return $this;
-    }
-
-    public function getNbHTd(): ?float
-    {
-        return $this->nbHTd;
-    }
-
-    public function setNbHTd(float $nbHTd): static
-    {
-        $this->nbHTd = $nbHTd;
-
-        return $this;
-    }
-
-    public function getNbHTp(): ?float
-    {
-        return $this->nbHTp;
-    }
-
-    public function setNbHTp(float $nbHTp): static
-    {
-        $this->nbHTp = $nbHTp;
-
-        return $this;
-    }
-
-    public function getNbGrCm(): ?int
-    {
-        return $this->nbGrCm;
-    }
-
-    public function setNbGrCm(int $nbGrCm): static
-    {
-        $this->nbGrCm = $nbGrCm;
-
-        return $this;
-    }
-
-    public function getNbGrTd(): ?int
-    {
-        return $this->nbGrTd;
-    }
-
-    public function setNbGrTd(int $nbGrTd): static
-    {
-        $this->nbGrTd = $nbGrTd;
-
-        return $this;
-    }
-
-    public function getNbGrTp(): ?int
-    {
-        return $this->nbGrTp;
-    }
-
-    public function setNbGrTp(int $nbGrTp): static
-    {
-        $this->nbGrTp = $nbGrTp;
-
-        return $this;
-    }
-
-    public function getMatiere(): ?ScolEnseignement
-    {
-        return $this->matiere;
-    }
-
-    public function setMatiere(?ScolEnseignement $matiere): static
-    {
-        $this->matiere = $matiere;
+        $this->enseignement = $enseignement;
 
         return $this;
     }
@@ -228,33 +150,73 @@ class Previsionnel
         return $this;
     }
 
-    public function getSemestre(): ?StructureSemestre
+    public function getNbSeanceCm(): ?float
     {
-        return $this->semestre;
+        return $this->heures['CM'] / self::DUREE_SEANCE;
     }
 
-    public function setSemestre(?StructureSemestre $semestre): static
+    public function getNbSeanceTd(): ?float
     {
-        $this->semestre = $semestre;
+        return $this->heures['TD'] / self::DUREE_SEANCE;
+    }
+
+    public function getNbSeanceTp(): ?float
+    {
+        return $this->heures['TP'] / self::DUREE_SEANCE;
+    }
+
+    public function getHeures(): array
+    {
+        return $this->heures;
+    }
+
+    public function setHeures(array $heures): static
+    {
+        $resolver = new OptionsResolver();
+        $this->configureOptionsHeures($resolver);
+        $this->heures = $resolver->resolve($heures);
 
         return $this;
     }
 
-    #[Groups(['previsionnel:read'])]
-    public function getNbSeanceCm(): ?float
+    public function configureOptionsHeures(OptionsResolver $resolver): void
     {
-        return $this->nbHCm / self::DUREE_SEANCE;
+        $resolver->setDefaults([
+            'heures' => [
+                'CM' =>  0,
+                'TD' => 0,
+                'TP' => 0,
+                'Projet' => 0,
+            ],
+        ]);
+
+        $resolver->setAllowedTypes('heures', 'array');
     }
 
-    #[Groups(['previsionnel:read'])]
-    public function getNbSeanceTd(): ?float
+    public function getGroupes(): array
     {
-        return $this->nbHTd / self::DUREE_SEANCE;
+        return $this->groupes;
     }
 
-    #[Groups(['previsionnel:read'])]
-    public function getNbSeanceTp(): ?float
+    public function setGroupes(?array $groupes): static
     {
-        return $this->nbHTp / self::DUREE_SEANCE;
+        $resolver = new OptionsResolver();
+        $this->configureOptionsGroupes($resolver);
+        $this->groupes = $resolver->resolve($groupes);
+
+        return $this;
+    }
+
+    public function configureOptionsGroupes(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'groupes' => [
+                'CM' =>  0,
+                'TD' => 0,
+                'TP' => 0,
+            ],
+        ]);
+
+        $resolver->setAllowedTypes('groupes', 'array');
     }
 }

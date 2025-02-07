@@ -5,10 +5,13 @@ namespace App\Filter;
 use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
+use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnnee;
+use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
+use App\Entity\Structure\StructureUe;
 use Doctrine\ORM\QueryBuilder;
 use ApiPlatform\Metadata\ApiFilter;
 use Symfony\Component\PropertyInfo\Type;
@@ -20,8 +23,9 @@ class PrevisionnelFilter extends AbstractFilter
         'personnel' => 'personnel',
         'anneeUniversitaire' => 'anneeUniversitaire',
         'departement' => 'departement',
-        'diplome' => 'diplome',
         'semestre' => 'semestre',
+        'enseignement' => 'enseignement',
+        'diplome' => 'diplome',
     ];
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
@@ -40,15 +44,27 @@ class PrevisionnelFilter extends AbstractFilter
 
         if ('anneeUniversitaire' === $property) {
             $queryBuilder
-                ->andWhere(sprintf('%s.anneeUniversitaire = :anneeUniversitaire', $alias))
+                ->join(sprintf('%s.anneeUniversitaire', $alias), 'au')
+                ->andWhere('au.id = :anneeUniversitaire')
                 ->setParameter('anneeUniversitaire', $value)
             ;
         }
 
         if ('semestre' === $property) {
             $queryBuilder
-                ->andWhere(sprintf('%s.semestre = :semestre', $alias))
+                ->join(ScolEnseignement::class, 'se', 'WITH', sprintf('%s.enseignement = se.id', $alias))
+                ->join('se.scolEnseignementUes', 'seue')
+                ->join(StructureUe::class, 'ue', 'WITH', 'seue.ue = ue.id')
+                ->join(StructureSemestre::class, 'ss', 'WITH', 'ue.semestre = ss.id')
+                ->andWhere('ss.id = :semestre')
                 ->setParameter('semestre', $value)
+            ;
+        }
+
+        if ('enseignement' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.enseignement = :enseignement', $alias))
+                ->setParameter('enseignement', $value)
             ;
         }
 
@@ -116,7 +132,15 @@ class PrevisionnelFilter extends AbstractFilter
                 'openapi' => [
                     'description' => 'Filter by semestre',
                 ],
-            ]
+            ],
+            'enseignement' => [
+                'property' => 'enseignement',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by enseignement',
+                ],
+            ],
         ];
     }
 }

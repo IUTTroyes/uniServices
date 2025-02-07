@@ -3,14 +3,14 @@ import { LayoutComponent } from '@components'
 export default [
   {
     path: 'semestre',
-    component: () => import('@/views/previsionnel/SemestreView.vue'),
+    component: () => import('@/views/previsionnel/PrevisionnelSemestreView.vue'),
   },
   {
     path: 'personnel',
-    component: () => import('@/views/previsionnel/PersonnelView.vue'),
+    component: () => import('@/views/previsionnel/PrevisionnelPersonnelView.vue'),
   },
   {
     path: 'matiere',
-    component: () => import('@/views/previsionnel/MatiereView.vue'),
+    component: () => import('@/views/previsionnel/PrevisionnelMatiereView.vue'),
   }
 ]

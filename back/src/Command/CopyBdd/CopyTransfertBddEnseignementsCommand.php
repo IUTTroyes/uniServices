@@ -101,7 +101,7 @@ FOREIGN_KEY_CHECKS=1');
             if (array_key_exists($mat['ue_id'], $this->tUes)) {
                 $matiere = new ScolEnseignement();
                 $matiere->setLibelle($mat['libelle']);
-                $matiere->setCodeMatiere($mat['code_matiere']);
+                $matiere->setCodeEnseignement($mat['code_matiere']);
                 $matiere->setCodeApogee($mat['code_element']);
                 $matiere->setHeures([
                     'heures' => [
@@ -121,6 +121,7 @@ FOREIGN_KEY_CHECKS=1');
                 $matiere->setMotsCles($mat['mots_cles']);
                 $matiere->setObjectif($mat['objectifs_module']);
                 $matiere->setPrerequis($mat['pre_requis']);
+                $matiere->setOldId($mat['id']);
 
                 /*
                  * array:30 [
@@ -154,7 +155,7 @@ FOREIGN_KEY_CHECKS=1');
             if (array_key_exists($mat['ue_id'], $this->tUes)) {
                 $matiere = new ScolEnseignement();
                 $matiere->setLibelle($mat['libelle']);
-                $matiere->setCodeMatiere($mat['code_matiere']);
+                $matiere->setCodeEnseignement($mat['code_matiere']);
                 $matiere->setCodeApogee($mat['code_element']);
                 $matiere->setHeures([
                     'heures' => [
@@ -175,6 +176,7 @@ FOREIGN_KEY_CHECKS=1');
                 $matiere->setObjectif($mat['objectifs_module']);
                 $matiere->setPrerequis($mat['pre_requis']);
                 $matiere->setParent($this->tMatieres[$mat['matiere_parent_id']]);
+                $matiere->setOldId($mat['id']);
 
                 /*
                  * array:30 [
@@ -219,7 +221,7 @@ FOREIGN_KEY_CHECKS=1');
         foreach ($matieres as $mat) {
             $matiere = new ScolEnseignement();
             $matiere->setLibelle($mat['libelle']);
-            $matiere->setCodeMatiere($mat['code_matiere']);
+            $matiere->setCodeEnseignement($mat['code_matiere']);
             $matiere->setCodeApogee($mat['code_element']);
             $matiere->setHeures([
                 'heures' => [
@@ -293,7 +295,7 @@ FOREIGN_KEY_CHECKS=1');
 //        foreach ($matieres as $mat) {
 //            $matiere = new ScolEnseignement();
 //            $matiere->setLibelle($mat['libelle']);
-//            $matiere->setCodeMatiere($mat['code_matiere']);
+//            $matiere->setCodeEnseignement($mat['code_matiere']);
 //            $matiere->setCodeApogee($mat['code_element']);
 //            $matiere->setHeures([
 //                'heures' => [
@@ -363,7 +365,7 @@ FOREIGN_KEY_CHECKS=1');
         foreach ($matieres as $mat) {
             $matiere = new ScolEnseignement();
             $matiere->setLibelle($mat['libelle']);
-            $matiere->setCodeMatiere($mat['code_matiere']);
+            $matiere->setCodeEnseignement($mat['code_matiere']);
             $matiere->setCodeApogee($mat['code_element']);
             $matiere->setHeures([
                 'heures' => [

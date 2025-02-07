@@ -2,6 +2,7 @@
 
 namespace App\Entity\Scolarite;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Edt\EdtEvent;
@@ -10,6 +11,7 @@ use App\Entity\Previsionnel\Previsionnel;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Enum\TypeEnseignementEnum;
+use App\Filter\EnseignementFilter;
 use App\Repository\ScolEnseignementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -19,7 +21,10 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ScolEnseignementRepository::class)]
-#[ApiResource]
+#[ApiFilter(EnseignementFilter::class)]
+#[ApiResource(
+    normalizationContext: ['groups' => ['scol_enseignement:read']],
+)]
 class ScolEnseignement
 {
     use ApogeeTrait;
@@ -28,15 +33,15 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'scol_enseignement:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read'])]
     private ?string $libelle_court = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -52,17 +57,19 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['semestre:read:full'])]
-    private ?string $codeMatiere = null;
+    #[Groups(['semestre:read:full', 'previsionnel:read'])]
+    private ?string $codeEnseignement = null;
 
     #[ORM\Column]
     #[Groups(['semestre:read:full'])]
     private ?bool $suspendu = null;
 
     #[ORM\Column(type: Types::JSON)]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read'])]
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read'])]
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]
@@ -123,12 +130,14 @@ class ScolEnseignement
      * @var Collection<int, ScolEnseignementUe>
      */
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'enseignement', cascade: ['persist', 'remove'])]
+    #[Groups(['scol_enseignement:read'])]
     private Collection $scolEnseignementUes;
 
     /**
      * @var Collection<int, Previsionnel>
      */
-    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'matiere')]
+    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'enseignement')]
+    #[Groups(['scol_enseignement:read'])]
     private Collection $previsionnels;
 
     public function __construct()
@@ -220,14 +229,14 @@ class ScolEnseignement
         return $this;
     }
 
-    public function getCodeMatiere(): ?string
+    public function getCodeEnseignement(): ?string
     {
-        return $this->codeMatiere;
+        return $this->codeEnseignement;
     }
 
-    public function setCodeMatiere(?string $codeMatiere): static
+    public function setCodeEnseignement(?string $codeEnseignement): static
     {
-        $this->codeMatiere = $codeMatiere;
+        $this->codeEnseignement = $codeEnseignement;
 
         return $this;
     }
@@ -320,64 +329,24 @@ class ScolEnseignement
         return $this;
     }
 
-    /**
-     * @return Collection<int, self>
-     */
     public function getScolEnseignements(): Collection
     {
         return $this->scolEnseignements;
     }
 
-    public function addScolEnseignement(self $scolEnseignement): static
+    public function setScolEnseignements(Collection $scolEnseignements): void
     {
-        if (!$this->scolEnseignements->contains($scolEnseignement)) {
-            $this->scolEnseignements->add($scolEnseignement);
-            $scolEnseignement->setParent($this);
-        }
-
-        return $this;
+        $this->scolEnseignements = $scolEnseignements;
     }
 
-    public function removeScolEnseignement(self $scolEnseignement): static
-    {
-        if ($this->scolEnseignements->removeElement($scolEnseignement)) {
-            // set the owning side to null (unless already changed)
-            if ($scolEnseignement->getParent() === $this) {
-                $scolEnseignement->setParent(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, self>
-     */
     public function getEnfant(): Collection
     {
         return $this->enfant;
     }
 
-    public function addEnfant(self $enfant): static
+    public function setEnfant(Collection $enfant): void
     {
-        if (!$this->enfant->contains($enfant)) {
-            $this->enfant->add($enfant);
-            $enfant->setScolEnseignement($this);
-        }
-
-        return $this;
-    }
-
-    public function removeEnfant(self $enfant): static
-    {
-        if ($this->enfant->removeElement($enfant)) {
-            // set the owning side to null (unless already changed)
-            if ($enfant->getScolEnseignement() === $this) {
-                $enfant->setScolEnseignement(null);
-            }
-        }
-
-        return $this;
+        $this->enfant = $enfant;
     }
 
     public function getLivrables(): ?string
@@ -572,7 +541,7 @@ class ScolEnseignement
     {
         if (!$this->previsionnels->contains($previsionnel)) {
             $this->previsionnels->add($previsionnel);
-            $previsionnel->setMatiere($this);
+            $previsionnel->setEnseignement($this);
         }
 
         return $this;
@@ -582,8 +551,8 @@ class ScolEnseignement
     {
         if ($this->previsionnels->removeElement($previsionnel)) {
             // set the owning side to null (unless already changed)
-            if ($previsionnel->getMatiere() === $this) {
-                $previsionnel->setMatiere(null);
+            if ($previsionnel->getEnseignement() === $this) {
+                $previsionnel->setEnseignement(null);
             }
         }
 
