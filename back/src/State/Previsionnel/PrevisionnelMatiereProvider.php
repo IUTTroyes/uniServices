@@ -53,17 +53,17 @@ class PrevisionnelMatiereProvider implements ProviderInterface
                 'CM' => [
                     'NbHrAttendu' => $nbHrAttenduCM,
                     'NbHrSaisi' => $nbHrSaisiCM,
-                    'Diff' => $nbHrAttenduCM - $nbHrSaisiCM,
+                    'Diff' => $nbHrSaisiCM - $nbHrAttenduCM,
                 ],
                 'TD' => [
                     'NbHrAttendu' => $nbHrAttenduTD,
                     'NbHrSaisi' => $nbHrSaisiTD,
-                    'Diff' => $nbHrAttenduTD - $nbHrSaisiTD,
+                    'Diff' => $nbHrSaisiTD - $nbHrAttenduTD,
                 ],
                 'TP' => [
                     'NbHrAttendu' => $nbHrAttenduTP,
                     'NbHrSaisi' => $nbHrSaisiTP,
-                    'Diff' => $nbHrAttenduTP - $nbHrSaisiTP,
+                    'Diff' => $nbHrSaisiTP - $nbHrAttenduTP,
                 ],
             ];
 
@@ -71,11 +71,11 @@ class PrevisionnelMatiereProvider implements ProviderInterface
                 'TotalCM' => $totalCM,
                 'TotalTD' => $totalTD,
                 'TotalTP' => $totalTP,
-                ];
+            ];
 
             $output['TotalEquTd'] = [
                 'TotalClassique' => $totalCM + $totalTD + $totalTP,
-                'TotalTd' => $totalCM * $item::DUREE_SEANCE + $totalTD + $totalTP,
+                'TotalTd' => $totalCM * $item->getEnseignement()::MAJORATION_CM + $totalTD + $totalTP,
             ];
 
             return $output;
