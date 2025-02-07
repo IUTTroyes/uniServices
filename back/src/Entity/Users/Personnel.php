@@ -17,6 +17,7 @@ use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
+use App\Enum\StatutEnum;
 use App\Repository\PersonnelRepository;
 use App\ValueObject\Adresse;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -44,18 +45,19 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     use LifeCycleTrait;
     use OldIdTrait;
 
-    public const STATUT = [
-        'MCF' => 'Maître de conférences',
-        'PU' => 'Professeur des universités',
-        'ATER' => 'Attaché temporaire d\'enseignement et de recherche',
-        'PRAG' => 'Professeur agrégé',
-        'IE' => 'Ingénieur d\'études',
-        'ENSAM' => 'Enseignant associé',
-        'DO' => 'Doctorant',
-        'VAC' => 'Enseignant Vacataire',
-        'PRCE' => 'Professeur certifié',
-        'BIATSS' => 'Personnel Biatss',
-        ];
+/* @depreacted("Utiliser le StatutEnum") */
+//    public const STATUT = [
+//        'MCF' => 'Maître de conférences',
+//        'PU' => 'Professeur des universités',
+//        'ATER' => 'Attaché temporaire d\'enseignement et de recherche',
+//        'PRAG' => 'Professeur agrégé',
+//        'IE' => 'Ingénieur d\'études',
+//        'ENSAM' => 'Enseignant associé',
+//        'DO' => 'Doctorant',
+//        'VAC' => 'Enseignant Vacataire',
+//        'PRCE' => 'Professeur certifié',
+//        'BIATSS' => 'Personnel Biatss',
+//        ];
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -181,9 +183,9 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:read'])]
     private ?string $posteInterne = null;
 
-    #[ORM\Column(length: 15, nullable: true)]
+    #[ORM\Column(length: 15, nullable: true, enumType: StatutEnum::class)]
     #[Groups(['personnel:read'])]
-    private ?string $statut = null;
+    private ?StatutEnum $statut = null;
 
     #[ORM\Column(length: 3, nullable: true)]
     #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
@@ -672,12 +674,12 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getStatut(): ?string
+    public function getStatut(): ?StatutEnum
     {
         return $this->statut;
     }
 
-    public function setStatut(?string $statut): static
+    public function setStatut(?StatutEnum $statut): static
     {
         $this->statut = $statut;
 
@@ -687,7 +689,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
     public function getDisplayStatut(): ?string
     {
-        return self::STATUT[$this->statut] ?? null;
+        return $this->statut->getLibelle() ?? '-';
     }
 
     #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
@@ -760,5 +762,10 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    #[Groups(['personnel:read'])]
+    public function getStatutSeverity(): string {
+        return $this->statut->getBadge();
     }
 }

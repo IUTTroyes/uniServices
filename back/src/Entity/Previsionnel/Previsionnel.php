@@ -14,6 +14,8 @@ use App\Entity\Structure\StructureSemestre;
 use App\Entity\Users\Personnel;
 use App\Filter\PrevisionnelFilter;
 use App\Repository\Previsionnel\PrevisionnelRepository;
+use App\State\DtoPrevisionnel;
+use App\State\PrevisionnelProvider;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -24,6 +26,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['previsionnel:read']]),
         new GetCollection(
             normalizationContext: ['groups' => ['previsionnel:read']],
+            output: DtoPrevisionnel::class,
+            provider: PrevisionnelProvider::class
         ),
         new Patch(normalizationContext: ['groups' => ['previsionnel:read']]),
     ],
