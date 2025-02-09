@@ -136,7 +136,7 @@ const topHeaderCols = ref([
   { header: 'TP', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' }
 ]);
 
-const additionalRows = ref([
+const additionalRows = computed(() => [
   [
     { footer: '', colspan: 1, class: '!text-center !font-bold'},
     { footer: 'Nb hr attendu', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
@@ -148,7 +148,35 @@ const additionalRows = ref([
     { footer: 'Nb hr attendu', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: 'Nb hr saisi', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap' },
     { footer: 'Diff', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap' },
-  ]
+  ],
+  [
+    { footer: 'Vérification du total d\'heures par étudiant', colspan: 1 },
+    { footer: previSemestreMatiere.value[1].CM.NbHrAttendu, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestreMatiere.value[1].CM.NbHrSaisi, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestreMatiere.value[1].CM.Diff, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+    { footer: previSemestreMatiere.value[1].TD.NbHrAttendu, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestreMatiere.value[1].TD.NbHrSaisi, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestreMatiere.value[1].TD.Diff, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+    { footer: previSemestreMatiere.value[1].TP.NbHrAttendu, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestreMatiere.value[1].TP.NbHrSaisi, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestreMatiere.value[1].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  ],
+  [
+    { footer: 'Total d\'heures par type de groupe', colspan: 1},
+    { footer: previSemestreMatiere.value[2].TotalCM, colspan: 3, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !text-center', unit: ' h' },
+    { footer: previSemestreMatiere.value[2].TotalTD, colspan: 3, class: '!bg-green-400 !bg-opacity-20 !text-nowrap !text-center', unit: ' h' },
+    { footer: previSemestreMatiere.value[2].TotalTP, colspan: 3, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap !text-center', unit: ' h' },
+  ],
+  [
+    { footer: '', colspan: 1},
+    { footer: 'Classique', colspan: 4, class: '!text-nowrap !text-center font-bold' },
+    { footer: 'Équivalent TD', colspan: 5, class: '!text-nowrap !text-center font-bold' },
+  ],
+  [
+    { footer: 'Total d\'heures', colspan: 1},
+    { footer: previSemestreMatiere.value[3].TotalClassique, colspan: 4, class: '!text-nowrap !text-center', unit: ' h' },
+    { footer: previSemestreMatiere.value[3].TotalTd, colspan: 5, class: '!text-nowrap !text-center', unit: ' h' },
+  ],
 ]);
 
 const footerRows = ref([
@@ -156,16 +184,7 @@ const footerRows = ref([
 ]);
 
 const footerCols = computed(() => [
-  { footer: 'Vérification du total d\'heures par étudiant', header: 'hello', colspan: 1 },
-  { footer: previSemestreMatiere.value[1].CM.NbHrAttendu, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { footer: previSemestreMatiere.value[1].CM.NbHrSaisi, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { footer: previSemestreMatiere.value[1].CM.Diff, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-  { footer: previSemestreMatiere.value[1].TD.NbHrAttendu, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { footer: previSemestreMatiere.value[1].TD.NbHrSaisi, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { footer: previSemestreMatiere.value[1].TD.Diff, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-  { footer: previSemestreMatiere.value[1].TP.NbHrAttendu, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { footer: previSemestreMatiere.value[1].TP.NbHrSaisi, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { footer: previSemestreMatiere.value[1].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+
 ]);
 </script>
 

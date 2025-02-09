@@ -30,6 +30,8 @@ class ScolEnseignement
     use ApogeeTrait;
     use OldIdTrait;
 
+    public const MAJORATION_CM = 1.5;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
