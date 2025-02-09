@@ -24,7 +24,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PrevisionnelRepository::class)]
 #[ApiResource(
-    paginationEnabled: false,
     operations: [
         new Get(normalizationContext: ['groups' => ['previsionnel:read']]),
         new GetCollection(
@@ -33,17 +32,18 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(
             uriTemplate: '/previsionnels_semestre',
             normalizationContext: ['groups' => ['previsionnel_semestre:read']],
-            provider: PrevisionnelSemestreProvider::class,
             output: PrevisionnelSemestreDto::class,
+            provider: PrevisionnelSemestreProvider::class,
         ),
         new GetCollection(
             uriTemplate: '/previsionnels_enseignement',
             normalizationContext: ['groups' => ['previsionnel_matiere:read']],
-            provider: PrevisionnelMatiereProvider::class,
             output: PrevisionnelMatiereDto::class,
+            provider: PrevisionnelMatiereProvider::class,
         ),
         new Patch(normalizationContext: ['groups' => ['previsionnel:read']]),
     ],
+    paginationEnabled: false,
 )]
 #[ApiFilter(PrevisionnelFilter::class)]
 class Previsionnel
@@ -84,6 +84,11 @@ class Previsionnel
     #[ORM\OneToOne(cascade: ['persist', 'remove'], fetch: 'EAGER')]
     #[Groups(['previsionnel:read'])]
     private ?EdtProgression $progression = null;
+
+    public function __construct()
+    {
+
+    }
 
     public function getId(): ?int
     {
@@ -190,6 +195,10 @@ class Previsionnel
             ],
         ]);
 
+        $resolver->setAllowedTypes('CM', 'float');
+        $resolver->setAllowedTypes('TD', 'float');
+        $resolver->setAllowedTypes('TP', 'float');
+        $resolver->setAllowedTypes('Projet', 'float');
         $resolver->setAllowedTypes('heures', 'array');
     }
 
@@ -217,6 +226,9 @@ class Previsionnel
             ],
         ]);
 
+        $resolver->setAllowedTypes('CM', 'int');
+        $resolver->setAllowedTypes('TD', 'int');
+        $resolver->setAllowedTypes('TP', 'int');
         $resolver->setAllowedTypes('groupes', 'array');
     }
 }
