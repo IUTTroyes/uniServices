@@ -14,6 +14,7 @@ enum StatutEnum : string implements BadgeEnumInterface
     case VAC = 'vacataire';
     case PRCE = 'PRCE';
     case BIATSS = 'BIATSS';
+    case CTR = 'contractuel';
     case AUTRE = 'Autre';
 
     public function getBadge(): string
@@ -29,6 +30,7 @@ enum StatutEnum : string implements BadgeEnumInterface
             self::VAC => 'success',
             self::PRCE => 'info',
             self::BIATSS => 'warn',
+            self::CTR => 'secondary',
             self::AUTRE => 'secondary',
         };
     }
@@ -46,6 +48,7 @@ enum StatutEnum : string implements BadgeEnumInterface
             self::VAC => 'Enseignant Vacataire',
             self::PRCE => 'Professeur certifié',
             self::BIATSS => 'Personnel Biatss',
+            self::CTR => 'Contractuel',
             self::AUTRE => 'Autre',
         };
     }
