@@ -17,6 +17,24 @@ enum StatutEnum : string implements BadgeEnumInterface
     case CTR = 'contractuel';
     case AUTRE = 'Autre';
 
+    public static function getStatuts(): array
+    {
+        return [
+            self::MCF->getLibelle(),
+            self::PU->getLibelle(),
+            self::ATER->getLibelle(),
+            self::PRAG->getLibelle(),
+            self::IE->getLibelle(),
+            self::ENSAM->getLibelle(),
+            self::DO->getLibelle(),
+            self::VAC->getLibelle(),
+            self::PRCE->getLibelle(),
+            self::BIATSS->getLibelle(),
+            self::CTR->getLibelle(),
+            self::AUTRE->getLibelle(),
+        ];
+    }
+
     public function getBadge(): string
     {
         return match ($this) {
