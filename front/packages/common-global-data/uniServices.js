@@ -16,8 +16,7 @@ export const tools = [
     description: "Plateforme de correction des travaux et des examens.",
     url: "http://localhost:3004/correcto",
     logo: "common-images/logo/logo_correcto.png",
-  }
-  ,
+  },
   {
     name: "UniEdt",
     description: "Plateforme de conception des emplois du temps et gestion des contraintes.",
@@ -25,3 +24,19 @@ export const tools = [
     logo: "common-images/logo/logo_uniedt.png",
   }
 ]
+
+export const statuts = [
+  { label: 'Maître de conférences', value: 'MCF', severity: 'info' },
+  { label: 'Professeur des universités', value: 'PU', severity: 'info' },
+  { label: 'ATER', value: 'ATER', severity: 'primary' },
+  { label: 'PRAG', value: 'PRAG', severity: 'info' },
+  { label: 'IE', value: 'IE', severity: 'success' },
+  { label: 'ENSAM', value: 'ENSAM', severity: 'primary' },
+  { label: 'DO', value: 'DO', severity: 'primary' },
+  { label: 'Vacataire', value: 'VAC', severity: 'success' },
+  { label: 'PRCE', value: 'PRCE', severity: 'info' },
+  { label: 'BIATSS', value: 'BIATSS', severity: 'warn' },
+  { label: 'Autre', value: 'AUTRE', severity: 'secondary' }
+]
+
+
