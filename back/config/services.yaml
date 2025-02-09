@@ -12,6 +12,9 @@ services:
         autowire: true      # Automatically injects dependencies in your services.
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
+    App\Enum\StatutEnum:
+        public: true
+
     # makes classes in src/ available to be used as services
     acme_api.event.jwt_created_listener:
         class: App\EventListener\JWTCreatedListener
