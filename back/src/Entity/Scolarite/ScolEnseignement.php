@@ -82,16 +82,10 @@ class ScolEnseignement
      * @var Collection<int, self>
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
-    private Collection $scolEnseignements;
+    private Collection $enfants;
 
-    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfant')]
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     private ?self $parent = null;
-
-    /**
-     * @var Collection<int, self>
-     */
-    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
-    private Collection $enfant;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $livrables = null;
@@ -142,8 +136,7 @@ class ScolEnseignement
 
     public function __construct()
     {
-        $this->scolEnseignements = new ArrayCollection();
-        $this->enfant = new ArrayCollection();
+        $this->enfants = new ArrayCollection();
         $this->apcApprentissageCritique = new ArrayCollection();
         $this->etudiantAbsences = new ArrayCollection();
         $this->scolEvaluations = new ArrayCollection();
@@ -327,26 +320,6 @@ class ScolEnseignement
         $this->parent = $parent;
 
         return $this;
-    }
-
-    public function getScolEnseignements(): Collection
-    {
-        return $this->scolEnseignements;
-    }
-
-    public function setScolEnseignements(Collection $scolEnseignements): void
-    {
-        $this->scolEnseignements = $scolEnseignements;
-    }
-
-    public function getEnfant(): Collection
-    {
-        return $this->enfant;
-    }
-
-    public function setEnfant(Collection $enfant): void
-    {
-        $this->enfant = $enfant;
     }
 
     public function getLivrables(): ?string
@@ -553,6 +526,36 @@ class ScolEnseignement
             // set the owning side to null (unless already changed)
             if ($previsionnel->getEnseignement() === $this) {
                 $previsionnel->setEnseignement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEnseignement>
+     */
+    public function getEnfants(): Collection
+    {
+        return $this->enfants;
+    }
+
+    public function addEnfant(ScolEnseignement $enfant): static
+    {
+        if (!$this->enfants->contains($enfant)) {
+            $this->enfants->add($enfant);
+            $enfant->setParent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEnfant(ScolEnseignement $enfant): static
+    {
+        if ($this->enfants->removeElement($enfant)) {
+            // set the owning side to null (unless already changed)
+            if ($enfant->getParent() === $this) {
+                $enfant->setParent(null);
             }
         }
 

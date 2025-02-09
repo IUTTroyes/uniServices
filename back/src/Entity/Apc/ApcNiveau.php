@@ -32,7 +32,7 @@ class ApcNiveau
     #[ORM\ManyToMany(targetEntity: ApcParcours::class, inversedBy: 'apcNiveaux')]
     private Collection $apcParcours;
 
-    #[ORM\ManyToOne(inversedBy: 'niveau')]
+    #[ORM\ManyToOne(inversedBy: 'apcNiveaux')]
     private ?ApcCompetence $apcCompetence = null;
 
     /**
