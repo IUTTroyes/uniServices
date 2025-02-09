@@ -1,7 +1,9 @@
 <script setup></script>
 
 <template>
-    <router-view />
+  <ConfirmDialog></ConfirmDialog>
+
+  <router-view />
 </template>
 
 <style scoped></style>
