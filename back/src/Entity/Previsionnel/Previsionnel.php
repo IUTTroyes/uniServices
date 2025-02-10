@@ -28,7 +28,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PrevisionnelRepository::class)]
 #[ApiResource(
-    paginationEnabled: false,
     operations: [
         new Get(normalizationContext: ['groups' => ['previsionnel:read']]),
         new GetCollection(
@@ -60,6 +59,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
         new Patch(normalizationContext: ['groups' => ['previsionnel:read']]),
     ],
+    paginationEnabled: false,
 )]
 #[ApiFilter(PrevisionnelFilter::class)]
 class Previsionnel
@@ -100,6 +100,11 @@ class Previsionnel
     #[ORM\OneToOne(cascade: ['persist', 'remove'], fetch: 'EAGER')]
     #[Groups(['previsionnel:read'])]
     private ?EdtProgression $progression = null;
+
+    public function __construct()
+    {
+
+    }
 
     public function getId(): ?int
     {

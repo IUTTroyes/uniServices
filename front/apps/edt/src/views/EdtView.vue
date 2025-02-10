@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, computed, isProxy, toRaw } from 'vue'
-import { useSemestreStore, useMatieresStore } from '@stores'
+import { useSemestreStore, useEnseignementsStore } from '@stores'
 import SelectWeek from '@/components/SelectWeek.vue'
 import api from '@helpers/axios.js'
 import Card from '@components/components/Card.vue'
@@ -22,7 +22,7 @@ const currentWeek = ref(null)
 const selectedHighlightType = ref('course') // 'course' or 'professor'
 let departementId = null
 
-const matieresStore = useMatieresStore()
+const matieresStore = useEnseignementsStore()
 const semestresStore = useSemestreStore()
 const coursesToReplace = ref([])
 const constraints = ref({})

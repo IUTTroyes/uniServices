@@ -44,7 +44,7 @@ class StructureGroupe
     #[Groups(['semestre:read', 'scolarite:read'])]
     private string $type;
 
-    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     #[Groups(['semestre:read'])]
     private ?self $parent = null;

@@ -40,7 +40,7 @@ class EtudiantAbsence
     #[ORM\ManyToOne(inversedBy: 'etudiantAbsences')]
     private ?ScolEnseignement $enseignement = null;
 
-    #[ORM\ManyToOne(inversedBy: 'etudiantAbsences')]
+    #[ORM\ManyToOne()]
     #[ORM\JoinColumn(nullable: false)]
     private ?EtudiantScolarite $scolarite = null;
 

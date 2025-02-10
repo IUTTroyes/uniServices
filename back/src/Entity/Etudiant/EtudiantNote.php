@@ -27,7 +27,7 @@ class EtudiantNote
     #[ORM\ManyToOne(inversedBy: 'etudiantNotes')]
     private ?ScolEvaluation $evaluation = null;
 
-    #[ORM\ManyToOne(inversedBy: 'etudiantNotes')]
+    #[ORM\ManyToOne()]
     private ?EtudiantScolarite $scolarite = null;
 
     #[ORM\Column]
