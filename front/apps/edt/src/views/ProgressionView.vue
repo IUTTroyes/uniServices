@@ -2,14 +2,14 @@
 import { ref, onMounted, computed } from 'vue'
 import {
   useSemestreStore,
-  useMatieresStore} from '@stores'
+  useEnseignementsStore} from '@stores'
 import useProgressions from '@/service/useProgressions.js'
 import { useWeeksStore } from '@/stores/weeksStore.js'
 import { formatDateCourt } from '@helpers/date.js'
 import { getPersonnelsDepartementService } from '@requests/user_services/personnelService.js'
 import api from '@helpers/axios.js'
 
-const matieresStore = useMatieresStore()
+const matieresStore = useEnseignementsStore()
 const { progressions, fetchProgressions, updateProgression } = useProgressions()
 const weeksStore = useWeeksStore()
 const semestreStore = useSemestreStore()

@@ -44,7 +44,7 @@ class ApcReferentiel
     /**
      * @var Collection<int, ApcCompetence>
      */
-    #[ORM\OneToMany(targetEntity: ApcCompetence::class, mappedBy: 'referentiel')]
+    #[ORM\OneToMany(targetEntity: ApcCompetence::class, mappedBy: 'apcReferentiel')]
     private Collection $apcCompetences;
 
     #[ORM\ManyToOne(inversedBy: 'apcReferentiels')]
