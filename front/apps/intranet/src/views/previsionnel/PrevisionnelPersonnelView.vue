@@ -75,7 +75,7 @@ const columns = ref([
   {
     header: 'Diff.',
     field: 'heures.Diff',
-    sortable: true,
+    sortable: false,
     colspan: 1,
     class: '!text-nowrap',
     unit: ' h',

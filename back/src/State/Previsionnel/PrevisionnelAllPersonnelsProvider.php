@@ -76,6 +76,7 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
 
                 if ($group['statut'] === 'Enseignant Vacataire' && $total < $group['nbHeuresService']) {
                     $diff = 'Peut rester '.$total - $group['nbHeuresService'];
+
                     // enlever le signe négatif si le nombre est négatif
                     $diff = str_replace('-', '', $diff);
                 } elseif ($group['statut'] === 'Enseignant Vacataire' && $total > $group['nbHeuresService']) {
