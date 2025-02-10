@@ -7,9 +7,9 @@ use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\ApiDto\Previsionnel\PrevisionnelMatiereDto;
+use App\ApiDto\Previsionnel\PrevisionnelEnseignementDto;
 
-class PrevisionnelMatiereProvider implements ProviderInterface
+class PrevisionnelEnseignementProvider implements ProviderInterface
 {
 
     public function __construct(
@@ -24,6 +24,12 @@ class PrevisionnelMatiereProvider implements ProviderInterface
         if ($operation instanceof GetCollection) {
             $data = $this->collectionProvider->provide($operation, $uriVariables, $context);
 
+            if (empty($data)) {
+                $output['previ'] = [];
+
+                return $output;
+            }
+
             $output = [];
             $nbHrAttenduCM = 0;
             $nbHrSaisiCM = 0;
@@ -35,18 +41,20 @@ class PrevisionnelMatiereProvider implements ProviderInterface
             $totalTD = 0;
             $totalTP = 0;
             foreach ($data as $item) {
-                $nbHrAttenduCM = $item->getEnseignement()->getHeures()['heures']['CM']['IUT'];
-                $nbHrSaisiCM += $item->getHeures()['heures']['CM'];
-                $nbHrAttenduTD = $item->getEnseignement()->getHeures()['heures']['TD']['IUT'];
-                $nbHrSaisiTD += $item->getHeures()['heures']['TD'];
-                $nbHrAttenduTP = $item->getEnseignement()->getHeures()['heures']['TP']['IUT'];
-                $nbHrSaisiTP += $item->getHeures()['heures']['TP'];
+                if ($item->getPersonnel()) {
+                    $nbHrAttenduCM = $item->getEnseignement()->getHeures()['heures']['CM']['IUT'];
+                    $nbHrSaisiCM += $item->getHeures()['heures']['CM'];
+                    $nbHrAttenduTD = $item->getEnseignement()->getHeures()['heures']['TD']['IUT'];
+                    $nbHrSaisiTD += $item->getHeures()['heures']['TD'];
+                    $nbHrAttenduTP = $item->getEnseignement()->getHeures()['heures']['TP']['IUT'];
+                    $nbHrSaisiTP += $item->getHeures()['heures']['TP'];
 
-                $totalCM += $item->getHeures()['heures']['CM'] * $item->getGroupes()['groupes']['CM'];
-                $totalTD += $item->getHeures()['heures']['TD'] * $item->getGroupes()['groupes']['TD'];
-                $totalTP += $item->getHeures()['heures']['TP'] * $item->getGroupes()['groupes']['TP'];
+                    $totalCM += $item->getHeures()['heures']['CM'] * $item->getGroupes()['groupes']['CM'];
+                    $totalTD += $item->getHeures()['heures']['TD'] * $item->getGroupes()['groupes']['TD'];
+                    $totalTP += $item->getHeures()['heures']['TP'] * $item->getGroupes()['groupes']['TP'];
 
-                $output['previ'][] = $this->toDto($item);
+                    $output['previ'][] = $this->toDto($item);
+                }
             }
 
             $output['verifTotalEtudiant'] = [
@@ -88,7 +96,7 @@ class PrevisionnelMatiereProvider implements ProviderInterface
 
     public function toDto($item)
     {
-        $prevMatiere = new PrevisionnelMatiereDto();
+        $prevMatiere = new PrevisionnelEnseignementDto();
         $prevMatiere->setLibelle($item->getEnseignement()->getLibelle());
         $prevMatiere->setPersonnel($item->getPersonnel());
         $prevMatiere->setHeures(

@@ -7,7 +7,9 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
-use App\ApiDto\Previsionnel\PrevisionnelMatiereDto;
+use App\ApiDto\Previsionnel\PrevisionnelAllPersonnelsDto;
+use App\ApiDto\Previsionnel\PrevisionnelEnseignementDto;
+use App\ApiDto\Previsionnel\PrevisionnelPersonnelDto;
 use App\ApiDto\Previsionnel\PrevisionnelSemestreDto;
 use App\Entity\Edt\EdtProgression;
 use App\Entity\Scolarite\ScolEnseignement;
@@ -15,7 +17,9 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Users\Personnel;
 use App\Filter\PrevisionnelFilter;
 use App\Repository\Previsionnel\PrevisionnelRepository;
-use App\State\Previsionnel\PrevisionnelMatiereProvider;
+use App\State\Previsionnel\PrevisionnelAllPersonnelsProvider;
+use App\State\Previsionnel\PrevisionnelEnseignementProvider;
+use App\State\Previsionnel\PrevisionnelPersonnelProvider;
 use App\State\Previsionnel\PrevisionnelSemestreProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -37,9 +41,21 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
         new GetCollection(
             uriTemplate: '/previsionnels_enseignement',
-            normalizationContext: ['groups' => ['previsionnel_matiere:read']],
-            output: PrevisionnelMatiereDto::class,
-            provider: PrevisionnelMatiereProvider::class,
+            normalizationContext: ['groups' => ['previsionnel_enseignement:read']],
+            output: PrevisionnelEnseignementDto::class,
+            provider: PrevisionnelEnseignementProvider::class,
+        ),
+        new GetCollection(
+            uriTemplate: '/previsionnels_all_personnels',
+            normalizationContext: ['groups' => ['previsionnel_all_personnels:read']],
+            output: PrevisionnelAllPersonnelsDto::class,
+            provider: PrevisionnelAllPersonnelsProvider::class,
+        ),
+        new GetCollection(
+            uriTemplate: '/previsionnels_personnel',
+            normalizationContext: ['groups' => ['previsionnel_personnel:read']],
+            output: PrevisionnelPersonnelDto::class,
+            provider: PrevisionnelPersonnelProvider::class,
         ),
         new Patch(normalizationContext: ['groups' => ['previsionnel:read']]),
     ],
@@ -58,7 +74,7 @@ class Previsionnel
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
-    #[Groups(['previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_matiere:read'])]
+    #[Groups(['previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
     private ?Personnel $personnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
@@ -70,7 +86,7 @@ class Previsionnel
     private ?bool $referent = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
+    #[Groups(['previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read','previsionnel_all_personnels:read', 'previsionnel_personnel:read'])]
     private array $heures = [];
 
     #[ORM\Column(type: Types::JSON)]
@@ -78,7 +94,7 @@ class Previsionnel
     private ?array $groupes = [];
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
-    #[Groups(['previsionnel:read', 'previsionnel_semestre:read'])]
+    #[Groups(['previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'previsionnel_personnel:read'])]
     private ?ScolEnseignement $enseignement = null;
 
     #[ORM\OneToOne(cascade: ['persist', 'remove'], fetch: 'EAGER')]

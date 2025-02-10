@@ -18,6 +18,9 @@ enum StatutEnum : string implements BadgeEnumInterface
     case CDD = 'contractuel';
     case PRCE = 'PRCE';
     case BIATSS = 'BIATSS';
+    case PRO = 'PRO';
+    case TEC = 'TEC';
+    case ADM = 'ADM';
     case AUTRE = 'Autre';
 
     public static function getStatuts(): array
@@ -33,6 +36,10 @@ enum StatutEnum : string implements BadgeEnumInterface
             self::VAC->getLibelle(),
             self::PRCE->getLibelle(),
             self::BIATSS->getLibelle(),
+            self::PRO->getLibelle(),
+            self::TEC->getLibelle(),
+            self::ADM->getLibelle(),
+            self::CDD->getLibelle(),
             self::AUTRE->getLibelle(),
         ];
     }
@@ -54,7 +61,10 @@ enum StatutEnum : string implements BadgeEnumInterface
             self::VAC => 'success',
             self::PRCE => 'info',
             self::BIATSS => 'warn',
-            self::CTR => 'secondary',
+            self::PRO => 'primary',
+            self::TEC => 'warn',
+            self::ADM => 'secondary',
+            self::CDD => 'success',
             self::AUTRE => 'secondary',
         };
     }
@@ -76,6 +86,10 @@ enum StatutEnum : string implements BadgeEnumInterface
             self::VAC => 'Enseignant Vacataire',
             self::PRCE => 'Professeur certifié',
             self::BIATSS => 'Personnel Biatss',
+            self::PRO => 'Intervenant Professionnel',
+            self::TEC => 'Technicien',
+            self::ADM => 'Administratif',
+            self::CDD => 'Contractuel',
             self::AUTRE => 'Autre',
         };
     }

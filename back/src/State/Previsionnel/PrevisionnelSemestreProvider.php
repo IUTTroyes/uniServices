@@ -103,7 +103,7 @@ class PrevisionnelSemestreProvider implements ProviderInterface
         return $this->toDto($data);
     }
 
-    public function toDto($group)
+    public function toDto($group): PrevisionnelSemestreDto
     {
         $prevSem = new PrevisionnelSemestreDto();
         $prevSem->setCodeEnseignement($group['enseignement']->getCodeApogee());

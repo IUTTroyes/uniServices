@@ -10,4 +10,14 @@ const getSemestreEnseignementPreviService = async (semestreId, enseignementId, a
     return response.data.member;
 }
 
-export { getSemestrePreviService, getSemestreEnseignementPreviService };
+const getAnneeUnivPreviService = async (departementId, anneeUnivId) => {
+    const response = await api.get(`/api/previsionnels_all_personnels?anneeUniversitaire=${anneeUnivId}&departement=${departementId}`);
+    return response.data.member;
+}
+
+const getPersonnelPreviService = async (personnelId, anneeUnivId) => {
+    const response = await api.get(`/api/previsionnels_personnel?anneeUniversitaire=${anneeUnivId}&personnel=${personnelId}`);
+    return response.data.member;
+}
+
+export { getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService };
