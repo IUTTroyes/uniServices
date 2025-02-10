@@ -6,15 +6,15 @@ use App\Entity\Users\Personnel;
 use App\Enum\TypeEnseignementEnum;
 use Symfony\Component\Serializer\Attribute\Groups;
 
-class PrevisionnelMatiereDto
+class PrevisionnelEnseignementDto
 {
-    #[Groups(['previsionnel_matiere:read'])]
+    #[Groups(['previsionnel_enseignement:read'])]
     protected string $libelle;
-    #[Groups(['previsionnel_matiere:read'])]
+    #[Groups(['previsionnel_enseignement:read'])]
     protected Personnel $personnel;
-    #[Groups(['previsionnel_matiere:read'])]
+    #[Groups(['previsionnel_enseignement:read'])]
     protected TypeEnseignementEnum $typeEnseignement;
-    #[Groups(['previsionnel_matiere:read'])]
+    #[Groups(['previsionnel_enseignement:read'])]
     protected array $heures = [];
 
     public function getPersonnel(): Personnel

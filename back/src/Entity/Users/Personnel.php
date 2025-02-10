@@ -79,11 +79,11 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_matiere:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_matiere:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -160,6 +160,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $numeroHarpege = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
     private ?int $nbHeuresService = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -182,7 +183,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $posteInterne = null;
 
     #[ORM\Column(length: 15, nullable: true, enumType: StatutEnum::class)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
     private ?StatutEnum $statut = null;
 
     #[ORM\Column(length: 3, nullable: true)]
@@ -690,7 +691,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->statut->getLibelle() ?? '-';
     }
 
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'previsionnel_matiere:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();

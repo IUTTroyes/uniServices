@@ -79,7 +79,10 @@ class PrevisionnelFilter extends AbstractFilter
 
         if ('departement' === $property) {
             $queryBuilder
-                ->innerJoin(StructureSemestre::class, 'ss', 'WITH', sprintf('%s.semestre = ss.id', $alias))
+                ->join(ScolEnseignement::class, 'se', 'WITH', sprintf('%s.enseignement = se.id', $alias))
+                ->join('se.scolEnseignementUes', 'seue')
+                ->join(StructureUe::class, 'ue', 'WITH', 'seue.ue = ue.id')
+                ->join(StructureSemestre::class, 'ss', 'WITH', 'ue.semestre = ss.id')
                 ->innerJoin(StructureAnnee::class, 'sa', 'WITH', 'ss.annee = sa.id')
                 ->innerJoin(StructureDiplome::class, 'sd', 'WITH', 'sa.structureDiplome = sd.id')
                 ->innerJoin(StructureDepartement::class, 'sde', 'WITH', 'sd.departement = sde.id')
