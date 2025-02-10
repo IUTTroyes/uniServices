@@ -6,7 +6,6 @@ import { getAnneeUnivPreviService } from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 
 const usersStore = useUsersStore();
-const semestreStore = useSemestreStore();
 const anneeUnivStore = useAnneeUnivStore();
 const departementId = usersStore.departementDefaut.id;
 
@@ -82,15 +81,29 @@ const columns = ref([
     unit: ' h',
     tag: true,
     tagClass: (value) => {
-      if (value === 'Dépassement de '+value) {
-        return '!bg-pink-500 !text-white';
+      if (typeof value === 'string' && value.includes('Dépassement')) {
+        return '!bg-amber-400 !text-white';
       } else {
         return value === 0 ? '!bg-blue-400 !text-white' : (value < 0 ? '!bg-red-400 !text-white' : '!bg-green-400 !text-white');
       }
     },
-    tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'success'),
-    tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up')
-  },
+    tagSeverity: (value) => {
+      if (typeof value === 'string' && value.includes('Dépassement')) {
+        return 'warn';
+      } else {
+        return value === 0 ? 'success' : (value < 0 ? 'warn' : 'success');
+      }
+    },
+    tagIcon: (value) => {
+      if (typeof value === 'string' && value.includes('Dépassement')) {
+        return 'pi pi-exclamation-triangle';
+      } if (typeof value === 'string' && value.includes('Peut rester')) {
+        return 'pi pi-check';
+      } else {
+        return value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up');
+      }
+      }
+    },
 ]);
 
 const topHeaderCols = ref([
