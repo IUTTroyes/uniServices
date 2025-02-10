@@ -29,12 +29,9 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
             $heuresTD = 0;
             $heuresTP = 0;
 
-            $total = 0;
-
             $totalCM = 0;
             $totalTD = 0;
             $totalTP = 0;
-            $totalTotal = 0;
 
             $count = 0;
 
@@ -52,7 +49,8 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                         $groupedData[$personnelId] = [
                             'count' => $count++,
                             'personnel' => $item->getPersonnel(),
-                            'statut' => $item->getPersonnel()->getStatut()->getLibelle(),
+                            'statutLibelle' => $item->getPersonnel()->getStatut()->getLibelle(),
+                            'statutBadge' => $item->getPersonnel()->getStatut()->getBadge(),
                             'heures' => [
                                 'CM' => $heuresCM,
                                 'TD' => $heuresTD,
@@ -74,12 +72,12 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                 $total = $group['heures']['CM'] + $group['heures']['TD'] + $group['heures']['TP'];
                 $group['heures']['Total'] = $total;
 
-                if ($group['statut'] === 'Enseignant Vacataire' && $total < $group['nbHeuresService']) {
+                if ($group['statutLibelle'] === 'Enseignant Vacataire' && $total < $group['nbHeuresService']) {
                     $diff = 'Peut rester '.$total - $group['nbHeuresService'];
 
                     // enlever le signe négatif si le nombre est négatif
                     $diff = str_replace('-', '', $diff);
-                } elseif ($group['statut'] === 'Enseignant Vacataire' && $total > $group['nbHeuresService']) {
+                } elseif ($group['statutLibelle'] === 'Enseignant Vacataire' && $total > $group['nbHeuresService']) {
                     $diff = 'Dépassement de '.$total - $group['nbHeuresService'];
                 }
                 else {
@@ -118,6 +116,7 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
         $prevMatiere->setPersonnel($group['personnel']);
         $prevMatiere->setHeures($group['heures']);
         $prevMatiere->setCount($group['count']);
+        $prevMatiere->setStatut($group['statutBadge']);
 
         return $prevMatiere;
     }

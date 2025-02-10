@@ -16,6 +16,18 @@ class PrevisionnelAllPersonnelsDto
     protected array $heures = [];
     #[Groups(['previsionnel_all_personnels:read'])]
     protected int $count;
+    #[Groups(['previsionnel_all_personnels:read'])]
+    protected string $statut;
+
+    public function getStatut(): string
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(string $statut): void
+    {
+        $this->statut = $statut;
+    }
 
     public function getCount(): int
     {
