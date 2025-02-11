@@ -184,7 +184,6 @@ const footerRows = ref([
 ]);
 
 const footerCols = computed(() => [
-
 ]);
 </script>
 

@@ -46,7 +46,7 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                         $nbHeuresService = $item->getPersonnel()->getNbHeuresService();
                         $affectation = true;
                     } else {
-                        $nbHeuresService = 'Non affecté à ce département';
+                        $nbHeuresService = 'Service réalisé dans un autre département';
                         $affectation = false;
                     }
 
@@ -95,7 +95,7 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                     if ($group['affectation']) {
                         $diff = $total - $group['nbHeuresService'];
                     } else {
-                        $diff = 'Non affecté à ce département';
+                        $diff = 'Service réalisé dans un autre département';
                     }
                 }
                 $group['heures']['Diff'] = $diff;
