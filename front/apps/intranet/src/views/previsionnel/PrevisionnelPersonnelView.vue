@@ -89,7 +89,7 @@ const columns = ref([
       }
     }
   },
-  { header: 'Service', field: 'personnel.nbHeuresService', sortable: true, colspan: 1 },
+  { header: 'Service', field: 'service', sortable: true, colspan: 1, unit: ' h' },
   { header: 'CM', field: 'heures.CM', sortable: true, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
   { header: 'TD', field: 'heures.TD', sortable: true, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
   { header: 'TP', field: 'heures.TP', sortable: true, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
@@ -103,6 +103,9 @@ const columns = ref([
     unit: ' h',
     tag: true,
     tagClass: (value) => {
+      if (typeof value === 'string' && value.includes('Non affecté')) {
+        return '!bg-gray-100 !text-gray-800';
+      }
       if (typeof value === 'string' && value.includes('Dépassement')) {
         return '!bg-amber-400 !text-white';
       } else {
@@ -110,6 +113,9 @@ const columns = ref([
       }
     },
     tagSeverity: (value) => {
+      if (typeof value === 'string' && value.includes('Non affecté')) {
+        return 'secondary';
+      }
       if (typeof value === 'string' && value.includes('Dépassement')) {
         return 'warn';
       } else {
@@ -117,6 +123,9 @@ const columns = ref([
       }
     },
     tagIcon: (value) => {
+      if (typeof value === 'string' && value.includes('Non affecté')) {
+        return '';
+      }
       if (typeof value === 'string' && value.includes('Dépassement')) {
         return 'pi pi-exclamation-triangle';
       } if (typeof value === 'string' && value.includes('Peut rester')) {

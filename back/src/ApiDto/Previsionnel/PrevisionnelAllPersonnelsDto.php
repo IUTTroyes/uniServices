@@ -18,6 +18,18 @@ class PrevisionnelAllPersonnelsDto
     protected int $count;
     #[Groups(['previsionnel_all_personnels:read'])]
     protected string $statut;
+    #[Groups(['previsionnel_all_personnels:read'])]
+    protected mixed $service;
+
+    public function getService(): mixed
+    {
+        return $this->service;
+    }
+
+    public function setService(mixed $service): void
+    {
+        $this->service = $service;
+    }
 
     public function getStatut(): string
     {
