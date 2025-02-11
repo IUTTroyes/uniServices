@@ -44,15 +44,15 @@ enum StatutEnum : string implements BadgeEnumInterface
     public function getBadge(): string
     {
         return match ($this) {
-            self::MCF => 'info',
-            self::PU => 'info',
+            self::MCF => 'success',
+            self::PU => 'success',
             self::ATER => 'primary',
-            self::PRAG => 'info',
-            self::IE => 'success',
+            self::PRAG => 'success',
+            self::IE => 'info',
             self::ENSAM => 'primary',
             self::DO => 'primary',
-            self::VAC => 'success',
-            self::PRCE => 'info',
+            self::VAC => 'info',
+            self::PRCE => 'success',
             self::BIATSS => 'warn',
             self::PRO => 'primary',
             self::TEC => 'warn',

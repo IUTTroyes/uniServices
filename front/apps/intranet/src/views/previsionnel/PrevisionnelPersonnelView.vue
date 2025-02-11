@@ -66,27 +66,23 @@ watch(selectedAnneeUniv, async (newAnneeUniv) => {
 
 const columns = ref([
   { header: 'Intervenant', field: 'libelle', sortable: true, colspan: 1 },
-    // todo: réussir à récupérer le Badge de statut pour appliquer la couleur
-  { header: 'Catégorie', field: 'personnel.statut', sortable: true, colspan: 1,
+  {
+    header: 'Catégorie',
+    field: 'personnel',
+    sortable: false,
+    colspan: 1,
     tag: true,
     tagClass: (value) => {
-      if (typeof value === 'string' && value.includes('vacataire')) {
-        return '!bg-blue-400 !text-white';
-      } else {
-        return value === 'ADM' ? '!bg-red-400 !text-white' : (value === 'TEC' || value === 'ADM' || value === 'BIATSS') ? '!bg-red-400 !text-white' : value === 'Vacataire' ? '!bg-amber-400 !text-white' : '!bg-green-400 !text-white';
-      }
+      return value.class;
     },
     tagSeverity: (value) => {
-      if (typeof value === 'string' && value.includes('vacataire')) {
-        return 'info';
-      } else {
-        return value === 'Vacataire' ? 'warn' : 'success';
-      }
+      return value.statutSeverity;
     },
     tagIcon: (value) => {
-      if (typeof value === 'string' && value.includes('Dépassement')) {
-        return 'pi pi-exclamation-triangle';
-      }
+      return value.icon;
+    },
+    tagContent: (value) => {
+      return value.statut;
     }
   },
   { header: 'Service', field: 'service', sortable: true, colspan: 1, unit: ' h' },
@@ -103,7 +99,7 @@ const columns = ref([
     unit: ' h',
     tag: true,
     tagClass: (value) => {
-      if (typeof value === 'string' && value.includes('Non affecté')) {
+      if (typeof value === 'string' && value.includes('autre département')) {
         return '!bg-gray-100 !text-gray-800';
       }
       if (typeof value === 'string' && value.includes('Dépassement')) {
@@ -113,7 +109,7 @@ const columns = ref([
       }
     },
     tagSeverity: (value) => {
-      if (typeof value === 'string' && value.includes('Non affecté')) {
+      if (typeof value === 'string' && value.includes('autre département')) {
         return 'secondary';
       }
       if (typeof value === 'string' && value.includes('Dépassement')) {
@@ -123,7 +119,7 @@ const columns = ref([
       }
     },
     tagIcon: (value) => {
-      if (typeof value === 'string' && value.includes('Non affecté')) {
+      if (typeof value === 'string' && value.includes('autre département')) {
         return '';
       }
       if (typeof value === 'string' && value.includes('Dépassement')) {
@@ -133,32 +129,39 @@ const columns = ref([
       } else {
         return value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up');
       }
-      }
-    },
+    }
+  },
 ]);
 
 const topHeaderCols = ref([
 ]);
 
 const additionalRows = computed(() => [
-    [
-      { footer: 'Total', colspan: 3 },
-      { footer: previSemestreAnneeUniv.value[1].TotalCM, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-      { footer: previSemestreAnneeUniv.value[1].TotalTD, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-      { footer: previSemestreAnneeUniv.value[1].TotalTP, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-      { footer: previSemestreAnneeUniv.value[1].TotalTotal, colspan: 1, class: '!text-nowrap', unit: ' h' },
-      { footer: '', colspan: 1 },
-    ],
-    [
-      { footer: 'Répartition', colspan: 19, class: '!text-center !font-bold'},
-    ],
-    [
-      { footer: 'Répartition du total d\'heures entre les catégories', colspan: 3 },
-      { footer: 'Permanent', colspan: 1 },
-      { footer: 'Vacataire', colspan: 1 },
-      { footer: 'Autre', colspan: 1 },
-      { footer: '', colspan: 2 },
-        ],
+  [
+    { footer: 'Total', colspan: 3 },
+    { footer: previSemestreAnneeUniv.value[1].TotalCM, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestreAnneeUniv.value[1].TotalTD, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestreAnneeUniv.value[1].TotalTP, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestreAnneeUniv.value[1].TotalTotal, colspan: 1, class: '!text-nowrap', unit: ' h' },
+    { footer: '', colspan: 1 },
+  ],
+  [
+    { footer: 'Répartition', colspan: 19, class: '!text-center !font-bold'},
+  ],
+  [
+    { footer: '', colspan: 3 },
+    { footer: 'Permanent', colspan: 1 },
+    { footer: 'Vacataire', colspan: 1 },
+    { footer: 'Autre', colspan: 1 },
+    { footer: '', colspan: 2 },
+  ],
+  [
+    { footer: 'Répartition du total d\'heures entre les catégories', colspan: 3 },
+    { footer: previSemestreAnneeUniv.value[2].Permanent, colspan: 1, unit: ' %' },
+    { footer: previSemestreAnneeUniv.value[2].Vacataire, colspan: 1, unit: ' %' },
+    { footer: previSemestreAnneeUniv.value[2].Autre, colspan: 1, unit: ' %' },
+    { footer: '', colspan: 2 },
+  ],
 ]);
 
 const footerRows = ref([

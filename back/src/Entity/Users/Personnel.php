@@ -763,7 +763,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
     public function getStatutSeverity(): string {
         return $this->statut->getBadge();
     }
