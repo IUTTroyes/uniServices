@@ -71,9 +71,9 @@ const getFieldValue = (data, field) => {
       <template #body="slotProps">
         <slot :name="`body-${col.field}`" :data="slotProps.data" :value="getFieldValue(slotProps.data, col.field)">
           <Tag v-if="col.tag" class="w-max" :class="col.tagClass(getFieldValue(slotProps.data, col.field))" :severity="col.tagSeverity(getFieldValue(slotProps.data, col.field))" :icon="col.tagIcon(getFieldValue(slotProps.data, col.field))">
-            {{ getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit"> {{ col.unit }}</span>
+            {{ getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && col.tagSeverity(getFieldValue(slotProps.data, col.field)) !== 'secondary'"> {{ col.unit }}</span>
           </Tag>
-          <span v-else>{{ getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit"> {{ col.unit }}</span></span>
+          <span v-else>{{ getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && !(typeof getFieldValue(slotProps.data, col.field) === 'string' && getFieldValue(slotProps.data, col.field).includes('Non affecté'))"> {{ col.unit }}</span></span>
         </slot>
       </template>
     </Column>
@@ -89,7 +89,7 @@ const getFieldValue = (data, field) => {
           <template #footer="slotProps">
             <slot :name="`footer-${d.field}`" :value="d.footer">
               <Tag v-if="d.tag" class="w-max" :class="d.tagClass(d.footer)" :severity="d.tagSeverity(d.footer)" :icon="d.tagIcon(d.footer)">
-                {{ d.footer }}<span v-if="d.unit"> {{ d.unit }}</span>
+                {{ d.footer }}<span v-if="d.unit && d.tagSeverity(d.footer) !== 'secondary'"> {{ d.unit }}</span>
               </Tag>
               <span class="w-fit" v-else>{{ d.footer }}<span v-if="d.unit"> {{ d.unit }}</span></span>
             </slot>

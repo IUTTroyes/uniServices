@@ -66,8 +66,30 @@ watch(selectedAnneeUniv, async (newAnneeUniv) => {
 
 const columns = ref([
   { header: 'Intervenant', field: 'libelle', sortable: true, colspan: 1 },
-  { header: 'Catégorie', field: 'personnel.statut', sortable: true, colspan: 1 },
-  { header: 'Service', field: 'personnel.nbHeuresService', sortable: true, colspan: 1 },
+    // todo: réussir à récupérer le Badge de statut pour appliquer la couleur
+  { header: 'Catégorie', field: 'personnel.statut', sortable: true, colspan: 1,
+    tag: true,
+    tagClass: (value) => {
+      if (typeof value === 'string' && value.includes('vacataire')) {
+        return '!bg-blue-400 !text-white';
+      } else {
+        return value === 'ADM' ? '!bg-red-400 !text-white' : (value === 'TEC' || value === 'ADM' || value === 'BIATSS') ? '!bg-red-400 !text-white' : value === 'Vacataire' ? '!bg-amber-400 !text-white' : '!bg-green-400 !text-white';
+      }
+    },
+    tagSeverity: (value) => {
+      if (typeof value === 'string' && value.includes('vacataire')) {
+        return 'info';
+      } else {
+        return value === 'Vacataire' ? 'warn' : 'success';
+      }
+    },
+    tagIcon: (value) => {
+      if (typeof value === 'string' && value.includes('Dépassement')) {
+        return 'pi pi-exclamation-triangle';
+      }
+    }
+  },
+  { header: 'Service', field: 'service', sortable: true, colspan: 1, unit: ' h' },
   { header: 'CM', field: 'heures.CM', sortable: true, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
   { header: 'TD', field: 'heures.TD', sortable: true, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
   { header: 'TP', field: 'heures.TP', sortable: true, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
@@ -81,6 +103,9 @@ const columns = ref([
     unit: ' h',
     tag: true,
     tagClass: (value) => {
+      if (typeof value === 'string' && value.includes('Non affecté')) {
+        return '!bg-gray-100 !text-gray-800';
+      }
       if (typeof value === 'string' && value.includes('Dépassement')) {
         return '!bg-amber-400 !text-white';
       } else {
@@ -88,6 +113,9 @@ const columns = ref([
       }
     },
     tagSeverity: (value) => {
+      if (typeof value === 'string' && value.includes('Non affecté')) {
+        return 'secondary';
+      }
       if (typeof value === 'string' && value.includes('Dépassement')) {
         return 'warn';
       } else {
@@ -95,6 +123,9 @@ const columns = ref([
       }
     },
     tagIcon: (value) => {
+      if (typeof value === 'string' && value.includes('Non affecté')) {
+        return '';
+      }
       if (typeof value === 'string' && value.includes('Dépassement')) {
         return 'pi pi-exclamation-triangle';
       } if (typeof value === 'string' && value.includes('Peut rester')) {

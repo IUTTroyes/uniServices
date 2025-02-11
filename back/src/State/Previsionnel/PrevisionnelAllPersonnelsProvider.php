@@ -9,13 +9,15 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\ApiDto\Previsionnel\PrevisionnelAllPersonnelsDto;
 use App\ApiDto\Previsionnel\PrevisionnelEnseignementDto;
+use App\Repository\Structure\StructureDepartementPersonnelRepository;
 
 class PrevisionnelAllPersonnelsProvider implements ProviderInterface
 {
 
     public function __construct(
         private CollectionProvider $collectionProvider,
-        private ItemProvider $itemProvider
+        private ItemProvider $itemProvider,
+        private StructureDepartementPersonnelRepository $structureDepartementPersonnelRepository
     )
     {
     }
@@ -29,12 +31,9 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
             $heuresTD = 0;
             $heuresTP = 0;
 
-            $total = 0;
-
             $totalCM = 0;
             $totalTD = 0;
             $totalTP = 0;
-            $totalTotal = 0;
 
             $count = 0;
 
@@ -44,6 +43,17 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                 if ($item->getPersonnel()) {
                     $personnelId = $item->getPersonnel()->getId();
 
+                    $departement = $this->structureDepartementPersonnelRepository->findOneBy(['personnel' => $item->getPersonnel()->getId(), 'departement' => $context['filters']['departement']]);
+                    $departementAffectation = $this->structureDepartementPersonnelRepository->findOneByPersonnelAffectation($item->getPersonnel()->getId());
+
+                    if ($departementAffectation && $departement->getId() === $departementAffectation->getId() || $item->getPersonnel()->getStatut()->getLibelle() === 'Enseignant Vacataire') {
+                        $nbHeuresService = $item->getPersonnel()->getNbHeuresService();
+                        $affectation = true;
+                    } else {
+                        $nbHeuresService = 'Non affecté à ce département';
+                        $affectation = false;
+                    }
+
                     if (!isset($groupedData[$personnelId])) {
                         $heuresCM += $item->getHeures()['heures']['CM'];
                         $heuresTD += $item->getHeures()['heures']['TD'];
@@ -52,13 +62,15 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                         $groupedData[$personnelId] = [
                             'count' => $count++,
                             'personnel' => $item->getPersonnel(),
-                            'statut' => $item->getPersonnel()->getStatut()->getLibelle(),
+                            'statutLibelle' => $item->getPersonnel()->getStatut()->getLibelle(),
+                            'statutBadge' => $item->getPersonnel()->getStatut()->getBadge(),
                             'heures' => [
                                 'CM' => $heuresCM,
                                 'TD' => $heuresTD,
                                 'TP' => $heuresTP,
                             ],
-                            'nbHeuresService' => $item->getPersonnel()->getNbHeuresService(),
+                            'nbHeuresService' => $nbHeuresService,
+                            'affectation' => $affectation
                         ];
                     }
 
@@ -74,51 +86,57 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                 $total = $group['heures']['CM'] + $group['heures']['TD'] + $group['heures']['TP'];
                 $group['heures']['Total'] = $total;
 
-                if ($group['statut'] === 'Enseignant Vacataire' && $total < $group['nbHeuresService']) {
+                if ($group['statutLibelle'] === 'Enseignant Vacataire' && $total < $group['nbHeuresService']) {
                     $diff = 'Peut rester '.$total - $group['nbHeuresService'];
 
                     // enlever le signe négatif si le nombre est négatif
                     $diff = str_replace('-', '', $diff);
-                } elseif ($group['statut'] === 'Enseignant Vacataire' && $total > $group['nbHeuresService']) {
+                } elseif ($group['statutLibelle'] === 'Enseignant Vacataire' && $total > $group['nbHeuresService']) {
                     $diff = 'Dépassement de '.$total - $group['nbHeuresService'];
                 }
                 else {
-                    $diff = $total - $group['nbHeuresService'];
-                }
-                $group['heures']['Diff'] = $diff;
+                    if ($group['affectation']) {
+                        $diff = $group['nbHeuresService'] - $total;
+                    } else {
+                        $diff = 'Non affecté à ce département';
+                    }
+                    }
+                    $group['heures']['Diff'] = $diff;
 
-                $output['previ'][] = $this->toDto($group);
+                    $output['previ'][] = $this->toDto($group);
+                }
+
+                $totalTotal = $totalCM + $totalTD + $totalTP;
+                $output['Total'] = [
+                    'TotalCM' => $totalCM,
+                    'TotalTD' => $totalTD,
+                    'TotalTP' => $totalTP,
+                    'TotalTotal' => $totalTotal,
+                ];
+
+                // trier par nom de personnel
+                usort($output['previ'], function ($a, $b) {
+                    return $a->getLibelle() <=> $b->getLibelle();
+                });
+
+                return $output;
+            } else {
+                $data = $this->itemProvider->provide($operation, $uriVariables, $context);
             }
 
-            $totalTotal = $totalCM + $totalTD + $totalTP;
-            $output['Total'] = [
-                'TotalCM' => $totalCM,
-                'TotalTD' => $totalTD,
-                'TotalTP' => $totalTP,
-                'TotalTotal' => $totalTotal,
-            ];
-
-            // trier par nom de personnel
-            usort($output['previ'], function ($a, $b) {
-                return $a->getLibelle() <=> $b->getLibelle();
-            });
-
-            return $output;
-        } else {
-            $data = $this->itemProvider->provide($operation, $uriVariables, $context);
+            return $this->toDto($data);
         }
 
-        return $this->toDto($data);
-    }
-
-    public function toDto($group): PrevisionnelAllPersonnelsDto
+        public function toDto($group): PrevisionnelAllPersonnelsDto
     {
         $prevMatiere = new PrevisionnelAllPersonnelsDto();
         $prevMatiere->setLibelle($group['personnel']->getNom().' '.$group['personnel']->getPrenom());
         $prevMatiere->setPersonnel($group['personnel']);
         $prevMatiere->setHeures($group['heures']);
         $prevMatiere->setCount($group['count']);
+        $prevMatiere->setStatut($group['statutBadge']);
+        $prevMatiere->setService($group['nbHeuresService']);
 
         return $prevMatiere;
     }
-}
+    }

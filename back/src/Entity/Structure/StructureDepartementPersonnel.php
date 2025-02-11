@@ -64,6 +64,9 @@ class StructureDepartementPersonnel
     #[Groups(groups: ['personnel:read', 'structure_departement_personnel:read'])]
     private ?StructureDepartement $departement = null;
 
+    #[ORM\Column]
+    private bool $affectation = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -113,6 +116,18 @@ class StructureDepartementPersonnel
     public function setDepartement(?StructureDepartement $departement): static
     {
         $this->departement = $departement;
+
+        return $this;
+    }
+
+    public function isAffectation(): bool
+    {
+        return $this->affectation;
+    }
+
+    public function setAffectation(bool $affectation): static
+    {
+        $this->affectation = $affectation;
 
         return $this;
     }
