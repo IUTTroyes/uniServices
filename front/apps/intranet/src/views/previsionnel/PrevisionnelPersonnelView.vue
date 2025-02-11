@@ -141,6 +141,24 @@ const topHeaderCols = ref([
 ]);
 
 const additionalRows = computed(() => [
+    [
+      { footer: 'Total', colspan: 3 },
+      { footer: previSemestreAnneeUniv.value[1].TotalCM, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+      { footer: previSemestreAnneeUniv.value[1].TotalTD, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+      { footer: previSemestreAnneeUniv.value[1].TotalTP, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+      { footer: previSemestreAnneeUniv.value[1].TotalTotal, colspan: 1, class: '!text-nowrap', unit: ' h' },
+      { footer: '', colspan: 1 },
+    ],
+    [
+      { footer: 'Répartition', colspan: 19, class: '!text-center !font-bold'},
+    ],
+    [
+      { footer: 'Répartition du total d\'heures entre les catégories', colspan: 3 },
+      { footer: 'Permanent', colspan: 1 },
+      { footer: 'Vacataire', colspan: 1 },
+      { footer: 'Autre', colspan: 1 },
+      { footer: '', colspan: 2 },
+        ],
 ]);
 
 const footerRows = ref([
