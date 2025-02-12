@@ -44,33 +44,35 @@ class PrevisionnelSemestreProvider implements ProviderInterface
 
             $groupedData = [];
             foreach ($data as $item) {
-                $enseignementId = $item->getEnseignement()->getId();
+                if ($item->getPersonnel()) {
+                    $enseignementId = $item->getEnseignement()->getId();
 
-                if (!isset($groupedData[$enseignementId])) {
-                    $groupedData[$enseignementId] = [
-                        'enseignement' => $item->getEnseignement(),
-                        'personnels' => [],
-                        'heures' => [
-                            'CM' => 0,
-                            'TD' => 0,
-                            'TP' => 0,
-                        ],
-                        'groupes' => [
-                            'CM' => 0,
-                            'TD' => 0,
-                            'TP' => 0,
-                        ],
-                    ];
+                    if (!isset($groupedData[$enseignementId])) {
+                        $groupedData[$enseignementId] = [
+                            'enseignement' => $item->getEnseignement(),
+                            'personnels' => [],
+                            'heures' => [
+                                'CM' => 0,
+                                'TD' => 0,
+                                'TP' => 0,
+                            ],
+                            'groupes' => [
+                                'CM' => 0,
+                                'TD' => 0,
+                                'TP' => 0,
+                            ],
+                        ];
+                    }
+                    $groupedData[$enseignementId]['personnels'][] = $item->getPersonnel();
+                    $groupedData[$enseignementId]['heures']['CM'] += $item->getHeures()['heures']['CM'];
+                    $groupedData[$enseignementId]['heures']['TD'] += $item->getHeures()['heures']['TD'];
+                    $groupedData[$enseignementId]['heures']['TP'] += $item->getHeures()['heures']['TP'];
+                    $groupedData[$enseignementId]['groupes']['CM'] += $item->getGroupes()['groupes']['CM'];
+                    $groupedData[$enseignementId]['groupes']['TD'] += $item->getGroupes()['groupes']['TD'];
+                    $groupedData[$enseignementId]['groupes']['TP'] += $item->getGroupes()['groupes']['TP'];
+
+                    $output['previForm'][] = $this->formToDto($item);
                 }
-                $groupedData[$enseignementId]['personnels'][] = $item->getPersonnel();
-                $groupedData[$enseignementId]['heures']['CM'] += $item->getHeures()['heures']['CM'];
-                $groupedData[$enseignementId]['heures']['TD'] += $item->getHeures()['heures']['TD'];
-                $groupedData[$enseignementId]['heures']['TP'] += $item->getHeures()['heures']['TP'];
-                $groupedData[$enseignementId]['groupes']['CM'] += $item->getGroupes()['groupes']['CM'];
-                $groupedData[$enseignementId]['groupes']['TD'] += $item->getGroupes()['groupes']['TD'];
-                $groupedData[$enseignementId]['groupes']['TP'] += $item->getGroupes()['groupes']['TP'];
-
-                $output['previForm'][] = $this->formToDto($item);
             }
 
             $output['previSynthese'] = [];
@@ -150,6 +152,7 @@ class PrevisionnelSemestreProvider implements ProviderInterface
         $prevSem->setLibelleEnseignement($item->getEnseignement()->getDisplay());
         $prevSem->setTypeEnseignement($item->getEnseignement()->getType());
         $prevSem->setPersonnels([$item->getPersonnel()]);
+        $prevSem->setIntervenant($item->getPersonnel()->getDisplay());
         $prevSem->setHeures(
             [
                 'CM' => [

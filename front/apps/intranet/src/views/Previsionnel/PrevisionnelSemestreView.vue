@@ -85,6 +85,11 @@ watch(searchTerm, (newTerm) => {
   filters.value['libelleEnseignement'].value = newTerm;
 });
 
+
+// ------------------------------------------------------------------------------------------------------------
+// ---------------------------------------SYNTHESE------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------
+
 const columns = ref([
   { header: 'Code', field: 'codeEnseignement', sortable: true, colspan: 1 },
   { header: 'Nom', field: 'libelleEnseignement', sortable: true, colspan: 1 },
@@ -134,6 +139,50 @@ const footerCols = computed(() => [
   { footer: previSemestre.value[2].Total.Previsionnel, colspan: 1, class: '!text-nowrap', unit: ' h' },
   { footer: previSemestre.value[2].Total.Diff, colspan: 1, unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
 ]);
+
+// ------------------------------------------------------------------------------------------------------------
+// ---------------------------------------FORMULAIRE------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------
+
+const columnsForm = ref([
+  { header: 'Matière', field: 'libelleEnseignement', sortable: true, colspan: 1 },
+  { header: 'Intervenant', field: 'intervenant', sortable: true, colspan: 1 },
+
+  { header: 'Nb H/Gr.', field: 'heures.CM.Maquette', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
+  { header: 'Nb Gr.', field: 'heures.CM.Previsionnel', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap' },
+  { header: 'Nb Seance/Gr.', field: 'heures.CM.Diff', sortable: true, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap' },
+
+  { header: 'Nb H/Gr.', field: 'heures.TD.Maquette', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Nb Gr.', field: 'heures.TD.Previsionnel', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap' },
+  { header: 'Nb Seance/Gr..', field: 'heures.TD.Diff', sortable: true, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap' },
+
+  { header: 'Nb H/Gr.', field: 'heures.TP.Maquette', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Nb Gr.', field: 'heures.TP.Previsionnel', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap' },
+  { header: 'Nb Seance/Gr.', field: 'heures.TP.Diff', sortable: true, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap' },
+]);
+
+const topHeaderColsForm = ref([
+  { header: 'CM', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
+  { header: 'TD', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
+  { header: 'TP', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
+]);
+
+const footerRowsForm = ref([
+  { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
+]);
+
+const footerColsForm = computed(() => [
+  { footer: 'Total', colspan: 2 },
+  { footer: previSemestre.value[2].CM.Maquette, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestre.value[2].CM.Previsionnel, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestre.value[2].CM.Diff, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { footer: previSemestre.value[2].TD.Maquette, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestre.value[2].TD.Previsionnel, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestre.value[2].TD.Diff, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { footer: previSemestre.value[2].TP.Maquette, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestre.value[2].TP.Previsionnel, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestre.value[2].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+]);
 </script>
 
 <template>
@@ -163,7 +212,8 @@ const footerCols = computed(() => [
           <label for="anneeUniversitaire">Année universitaire</label>
         </IftaLabel>
       </div>
-      <Button label="Saisir le prévisionnel" icon="pi pi-plus" @click="isEditing = !isEditing" />
+      <Button v-if="!isEditing" label="Saisir le prévisionnel" icon="pi pi-plus" @click="isEditing = !isEditing" />
+      <Button v-else label="Afficher le prévisionnel" icon="pi pi-eye" @click="isEditing = !isEditing" />
     </div>
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
@@ -181,6 +231,9 @@ const footerCols = computed(() => [
         </div>
         <div v-if="!isEditing">
           <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :footerRows="footerRows" :footerCols="footerCols" :data="previSemestre[1]" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`"  :headerTitlecolspan="4"/>
+        </div>
+        <div v-else>
+          <PrevisionnelTable origin="previSemestreForm" :columns="columnsForm" :topHeaderCols="topHeaderColsForm" :footerRows="footerRowsForm" :footerCols="footerColsForm" :data="previSemestre[0]" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`"  :headerTitlecolspan="2"/>
         </div>
       </div>
       <Message v-else severity="error" icon="pi pi-times-circle">

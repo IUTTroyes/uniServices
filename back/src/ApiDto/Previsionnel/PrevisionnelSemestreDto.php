@@ -20,6 +20,18 @@ class PrevisionnelSemestreDto
     protected array $heures = [];
     #[Groups(['previsionnel_semestre:read'])]
     protected array $groupes = [];
+    #[Groups(['previsionnel_semestre:read'])]
+    protected string $intervenant = '';
+
+    public function getIntervenant(): string
+    {
+        return $this->intervenant;
+    }
+
+    public function setIntervenant(string $intervenant): void
+    {
+        $this->intervenant = $intervenant;
+    }
 
     public function getCodeEnseignement(): string
     {
