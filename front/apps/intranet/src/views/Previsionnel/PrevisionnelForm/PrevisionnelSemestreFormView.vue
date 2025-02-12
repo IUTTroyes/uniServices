@@ -159,7 +159,7 @@ const footerCols = computed(() => [
           <label for="anneeUniversitaire">Année universitaire</label>
         </IftaLabel>
       </div>
-      <Button label="Saisir le prévisionnel" icon="pi pi-plus" />
+      <router-link to=""><Button label="Voir le prévisionnel" icon="pi pi-eye" /></router-link>
     </div>
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
@@ -175,7 +175,8 @@ const footerCols = computed(() => [
             </IconField>
           </div>
         </div>
-        <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :footerRows="footerRows" :footerCols="footerCols" :data="previSemestre[0]" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`"  :headerTitlecolspan="4"/>
+        <h1>Hello !</h1>
+<!--        <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :footerRows="footerRows" :footerCols="footerCols" :data="previSemestre[0]" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`"  :headerTitlecolspan="4"/>-->
       </div>
       <Message v-else severity="error" icon="pi pi-times-circle">
         Aucun prévisionnel pour cette année universitaire et ce semestre

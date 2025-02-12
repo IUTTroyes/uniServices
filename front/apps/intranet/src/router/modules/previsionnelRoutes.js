@@ -12,5 +12,9 @@ export default [
   {
     path: 'matiere',
     component: () => import('@/views/previsionnel/PrevisionnelMatiereView.vue'),
+  },
+  {
+    path: 'semestre/edit',
+    component: () => import('@/views/previsionnel/PrevisionnelForm/PrevisionnelSemestreFormView.vue'),
   }
 ]
