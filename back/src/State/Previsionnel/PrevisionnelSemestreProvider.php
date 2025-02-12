@@ -40,9 +40,12 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                 'Diff' => 0
             ];
 
+            $output['previForm'] = [];
+
             $groupedData = [];
             foreach ($data as $item) {
                 $enseignementId = $item->getEnseignement()->getId();
+
                 if (!isset($groupedData[$enseignementId])) {
                     $groupedData[$enseignementId] = [
                         'enseignement' => $item->getEnseignement(),
@@ -66,9 +69,11 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                 $groupedData[$enseignementId]['groupes']['CM'] += $item->getGroupes()['groupes']['CM'];
                 $groupedData[$enseignementId]['groupes']['TD'] += $item->getGroupes()['groupes']['TD'];
                 $groupedData[$enseignementId]['groupes']['TP'] += $item->getGroupes()['groupes']['TP'];
+
+                $output['previForm'][] = $this->formToDto($item);
             }
 
-            $output['previ'] = [];
+            $output['previSynthese'] = [];
             foreach ($groupedData as $group) {
 
                 $totalCM['Maquette'] += $group['enseignement']->getHeures()['heures']['CM']['IUT'];
@@ -81,7 +86,7 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                 $totalTP['Previsionnel'] += $group['heures']['TP'];
                 $totalTP['Diff'] += $group['heures']['TP'] - $group['enseignement']->getHeures()['heures']['TP']['IUT'];
 
-                $output['previ'][] = $this->toDto($group);
+                $output['previSynthese'][] = $this->syntheseToDto($group);
             }
 
             $output['total'] = [
@@ -100,13 +105,13 @@ class PrevisionnelSemestreProvider implements ProviderInterface
             $data = $this->itemProvider->provide($operation, $uriVariables, $context);
         }
 
-        return $this->toDto($data);
+        return $this->syntheseToDto($data);
     }
 
-    public function toDto($group): PrevisionnelSemestreDto
+    public function syntheseToDto($group): PrevisionnelSemestreDto
     {
         $prevSem = new PrevisionnelSemestreDto();
-        $prevSem->setCodeEnseignement($group['enseignement']->getCodeApogee());
+        $prevSem->setCodeEnseignement($group['enseignement']->getCodeEnseignement());
         $prevSem->setLibelleEnseignement($group['enseignement']->getLibelle());
         $prevSem->setTypeEnseignement($group['enseignement']->getType());
         $prevSem->setPersonnels($group['personnels']);
@@ -135,6 +140,36 @@ class PrevisionnelSemestreProvider implements ProviderInterface
             ]
         );
         $prevSem->setGroupes($group['groupes']);
+        return $prevSem;
+    }
+
+    public function formToDto($item): PrevisionnelSemestreDto
+    {
+        $prevSem = new PrevisionnelSemestreDto();
+        $prevSem->setCodeEnseignement($item->getEnseignement()->getCodeEnseignement());
+        $prevSem->setLibelleEnseignement($item->getEnseignement()->getDisplay());
+        $prevSem->setTypeEnseignement($item->getEnseignement()->getType());
+        $prevSem->setPersonnels([$item->getPersonnel()]);
+        $prevSem->setHeures(
+            [
+                'CM' => [
+                    'NbHrGrp' => $item->getHeures()['heures']['CM'],
+                    'NbGrp' => $item->getGroupes()['groupes']['CM'],
+                    'NbSeanceGrp' => $item->getHeures()['heures']['CM'] / $item::DUREE_SEANCE,
+                ],
+                'TD' => [
+                    'NbHrGrp' => $item->getHeures()['heures']['TD'],
+                    'NbGrp' => $item->getGroupes()['groupes']['TD'],
+                    'NbSeanceGrp' => $item->getHeures()['heures']['TD'] / $item::DUREE_SEANCE,
+                ],
+                'TP' => [
+                    'NbHrGrp' => $item->getHeures()['heures']['TP'],
+                    'NbGrp' => $item->getGroupes()['groupes']['TP'],
+                    'NbSeanceGrp' => $item->getHeures()['heures']['TP'] / $item::DUREE_SEANCE,
+                ],
+            ]
+        );
+        $prevSem->setGroupes($item->getGroupes());
         return $prevSem;
     }
 }

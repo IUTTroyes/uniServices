@@ -90,7 +90,7 @@ class Previsionnel
     private array $heures = [];
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['previsionnel:read', 'scol_enseignement:read'])]
+    #[Groups(['previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
     private ?array $groupes = [];
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
