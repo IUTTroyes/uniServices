@@ -39,7 +39,7 @@ class ScolEnseignement
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
@@ -59,7 +59,7 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['semestre:read:full', 'previsionnel:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'previsionnel_semestre:read'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
@@ -67,7 +67,7 @@ class ScolEnseignement
     private ?bool $suspendu = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
@@ -162,6 +162,11 @@ class ScolEnseignement
         $this->libelle = $libelle;
 
         return $this;
+    }
+
+    public function getDisplay(): string
+    {
+        return $this->codeEnseignement.' - '.$this->libelle;
     }
 
     public function getLibelleCourt(): ?string
