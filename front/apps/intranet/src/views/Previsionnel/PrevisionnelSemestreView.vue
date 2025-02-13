@@ -148,17 +148,17 @@ const columnsForm = ref([
   { header: 'Matière', field: 'libelleEnseignement', sortable: true, colspan: 1 },
   { header: 'Intervenant', field: 'intervenant', sortable: true, colspan: 1 },
 
-  { header: 'Nb H/Gr.', field: 'heures.CM.Maquette', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
-  { header: 'Nb Gr.', field: 'heures.CM.Previsionnel', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap' },
-  { header: 'Nb Seance/Gr.', field: 'heures.CM.Diff', sortable: true, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap' },
+  { header: 'Nb H/Gr.', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true},
+  { header: 'Nb Gr.', field: 'heures.CM.NbGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true },
+  { header: 'Nb Seance/Gr.', field: 'heures.CM.NbSeanceGrp', sortable: true, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true },
 
-  { header: 'Nb H/Gr.', field: 'heures.TD.Maquette', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { header: 'Nb Gr.', field: 'heures.TD.Previsionnel', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap' },
-  { header: 'Nb Seance/Gr..', field: 'heures.TD.Diff', sortable: true, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap' },
+  { header: 'Nb H/Gr.', field: 'heures.TD.NbHrGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true },
+  { header: 'Nb Gr.', field: 'heures.TD.NbGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', form: true },
+  { header: 'Nb Seance/Gr..', field: 'heures.TD.NbSeanceGrp', sortable: true, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', form: true },
 
-  { header: 'Nb H/Gr.', field: 'heures.TP.Maquette', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { header: 'Nb Gr.', field: 'heures.TP.Previsionnel', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap' },
-  { header: 'Nb Seance/Gr.', field: 'heures.TP.Diff', sortable: true, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap' },
+  { header: 'Nb H/Gr.', field: 'heures.TP.NbHrGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true },
+  { header: 'Nb Gr.', field: 'heures.TP.NbGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true },
+  { header: 'Nb Seance/Gr.', field: 'heures.TP.NbSeanceGrp', sortable: true, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true },
 ]);
 
 const topHeaderColsForm = ref([
