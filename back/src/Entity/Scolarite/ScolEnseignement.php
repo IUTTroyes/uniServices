@@ -59,7 +59,7 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'previsionnel_semestre:read'])]
+    #[Groups(['scol_enseignement:read', 'semestre:read:full', 'previsionnel:read', 'previsionnel_semestre:read'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
