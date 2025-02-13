@@ -1,4 +1,5 @@
 <script setup>
+import { ref, reactive, toRefs } from 'vue';
 
 // Définition des propriétés du composant
 const props = defineProps({
@@ -48,6 +49,13 @@ const props = defineProps({
   }
 });
 
+// Utilisation de reactive pour rendre les données réactives
+const state = reactive({
+  data: props.data
+});
+
+const { data } = toRefs(state);
+
 // Fonction utilitaire pour obtenir la valeur d'un champ donné dans les données
 const getFieldValue = (data, field) => {
   return field.split('.').reduce((acc, part) => acc && acc[part], data);
@@ -55,7 +63,7 @@ const getFieldValue = (data, field) => {
 </script>
 
 <template>
-  <DataTable :value="props.data" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows scrollable :size="props.size" show-gridlines>
+  <DataTable :value="data" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows scrollable :size="props.size" show-gridlines>
     <!-- Groupe de colonnes pour l'en-tête -->
     <ColumnGroup type="header">
       <Row>
@@ -70,7 +78,7 @@ const getFieldValue = (data, field) => {
     <Column v-for="(col, index) in props.columns" :key="index" :field="col.field" :header="col.header" :sortable="col.sortable" :class="col.class">
       <template #body="slotProps">
         <slot :name="`body-${col.field}`" :data="slotProps.data" :value="getFieldValue(slotProps.data, col.field)">
-          <InputText v-if="col.form" v-model="slotProps.data[col.field]" class="!w-fit"/>
+          <InputText v-if="col.form" :value="getFieldValue(slotProps.data, col.field)" @input="slotProps.data[col.field] = $event.target.value" class="max-w-20"/>
           <Tag v-else-if="col.tag" class="w-max" :class="col.tagClass(getFieldValue(slotProps.data, col.field))" :severity="col.tagSeverity(getFieldValue(slotProps.data, col.field))" :icon="col.tagIcon(getFieldValue(slotProps.data, col.field))">
             {{ col.tagContent ? col.tagContent(getFieldValue(slotProps.data, col.field)) : getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && col.tagSeverity(getFieldValue(slotProps.data, col.field)) !== 'secondary'"> {{ col.unit }}</span>
           </Tag>
@@ -84,12 +92,22 @@ const getFieldValue = (data, field) => {
       <Row>
         <Column v-for="(footerRow, index) in props.footerRows" :key="index" :footer="footerRow.footer" :colspan="footerRow.colspan" :class="footerRow.class"/>
       </Row>
-
       <Row v-for="(data, index) in props.additionalRows" :key="index">
         <Column v-for="d in data" :colspan="d.colspan" :class="d.class">
           <template #footer="slotProps">
             <slot :name="`footer-${d.field}`" :value="d.footer">
-              <Tag v-if="d.tag" class="w-max" :class="d.tagClass(d.footer)" :severity="d.tagSeverity(d.footer)" :icon="d.tagIcon(d.footer)">
+              <InputText v-if="d.form && d.formType === 'text'" :value="d.footer" @input="d.footer = $event.target.value"/>
+              <Select v-else-if="d.form && d.formType === 'select'"
+                  :v-model="d.footer[0]"
+                  :options="d.footer"
+                  optionLabel="label"
+                  :placeholder="d.placeholder"
+                  class="w-full"
+              />
+
+
+              <Button v-else-if="d.button" :icon="d.buttonIcon" @click="d.buttonAction(d.footer)" :class="d.buttonClass(d.footer)" :label="d.footer" :severity="d.buttonSeverity(d.footer)"/>
+              <Tag v-else-if="d.tag" class="w-max" :class="d.tagClass(d.footer)" :severity="d.tagSeverity(d.footer)" :icon="d.tagIcon(d.footer)">
                 {{ d.footer }}<span v-if="d.unit && d.tagSeverity(d.footer) !== 'secondary'"> {{ d.unit }}</span>
               </Tag>
               <span class="w-fit" v-else>{{ d.footer }}<span v-if="d.unit"> {{ d.unit }}</span></span>
@@ -97,7 +115,6 @@ const getFieldValue = (data, field) => {
           </template>
         </Column>
       </Row>
-
       <Row>
         <Column v-for="(footerCol, index) in props.footerCols" :key="index"  :colspan="footerCol.colspan" :class="footerCol.class">
           <template #footer="slotProps">
@@ -116,4 +133,3 @@ const getFieldValue = (data, field) => {
 
 <style scoped>
 </style>
-

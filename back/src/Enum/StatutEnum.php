@@ -18,6 +18,7 @@ enum StatutEnum : string implements BadgeEnumInterface
     case PRO = 'PRO';
     case TEC = 'TEC';
     case ADM = 'ADM';
+    case ASS = 'ASS';
     case AUTRE = 'Autre';
 
     public static function getStatuts(): array
@@ -36,6 +37,7 @@ enum StatutEnum : string implements BadgeEnumInterface
             self::PRO->getLibelle(),
             self::TEC->getLibelle(),
             self::ADM->getLibelle(),
+            self::ASS->getLibelle(),
             self::CDD->getLibelle(),
             self::AUTRE->getLibelle(),
         ];
@@ -57,6 +59,7 @@ enum StatutEnum : string implements BadgeEnumInterface
             self::PRO => 'primary',
             self::TEC => 'warn',
             self::ADM => 'secondary',
+            self::ASS => 'secondary',
             self::CDD => 'success',
             self::AUTRE => 'secondary',
         };
@@ -79,6 +82,7 @@ enum StatutEnum : string implements BadgeEnumInterface
             self::TEC => 'Technicien',
             self::ADM => 'Administratif',
             self::CDD => 'Contractuel',
+            self::ASS => 'Assistant',
             self::AUTRE => 'Autre',
         };
     }
