@@ -1,8 +1,11 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { DataTable, Column, Button } from 'primevue';
-import { FilterMatchMode } from '@primevue/core/api';
-import api from '@helpers/axios.js';
+import { ref, onMounted, computed } from 'vue'
+import { DataTable, Column, Button } from 'primevue'
+import ButtonInfo from '@components/components/ButtonInfo.vue'
+import ButtonEdit from '@components/components/ButtonEdit.vue'
+import ButtonDelete from '@components/components/ButtonDelete.vue'
+import { FilterMatchMode } from '@primevue/core/api'
+import api from '@helpers/axios.js'
 
 const props = defineProps({
   columns: {
@@ -23,46 +26,44 @@ const props = defineProps({
     type: String,
     required: true
   }
-});
+})
 
-const data = ref([]);
-const totalRecords = ref(0);
-const loading = ref(true);
-const page = ref(0);
-const rowOptions = [30, 60, 120];
-const limit = ref(rowOptions[0]);
-const offset = computed(() => Number(limit.value * page.value));
+const data = ref([])
+const totalRecords = ref(0)
+const loading = ref(true)
+const page = ref(0)
+const rowOptions = [30, 60, 120]
+const limit = ref(rowOptions[0])
+const offset = computed(() => Number(limit.value * page.value))
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS }
-});
+})
 
 const fetchData = async () => {
-  console.log('fetching data');
-  loading.value = true;
+  loading.value = true
   const response = await api.get(props.apiEndpoint, {
     params: {
       ...filters.value,
       limit: limit.value,
       offset: offset.value
     }
-  });
+  })
   console.log(response)
-  totalRecords.value = response.data.totalItems;
-  data.value = await response.data.member;
-  loading.value = false;
-};
+  totalRecords.value = response.data.totalItems
+  data.value = await response.data.member
+  loading.value = false
+}
 
-onMounted(fetchData);
+onMounted(fetchData)
 
 const onPageChange = async (event) => {
-  page.value = event.page;
-  await fetchData();
-};
+  page.value = event.page
+  await fetchData()
+}
 </script>
 
 <template>
-  {{ data}}
   <DataTable :value="data"
              lazy
              stripedRows
@@ -94,18 +95,33 @@ const onPageChange = async (event) => {
       <template #body="slotProps">
         {{ slotProps.data[col.field] }}
       </template>
-<!--      <template #filter="slotProps">-->
-<!--        <InputText v-model="slotProps.filterModel.value" type="text" @input="slotProps.filterCallback()" :placeholder="`Filter by ${col.header}`"/>-->
-<!--      </template>-->
+      <!--      <template #filter="slotProps">-->
+      <!--        <InputText v-model="slotProps.filterModel.value" type="text" @input="slotProps.filterCallback()" :placeholder="`Filter by ${col.header}`"/>-->
+      <!--      </template>-->
     </Column>
     <Column v-if="actions.length" header="Actions" :style="{ minWidth: '10rem' }">
       <template #body="slotProps">
-        <ButtonInfo>
+        <template v-for="action in actions">
+          <ButtonInfo
+              tooltip="Détails"
+              v-if="action.type === 'show'"
+              @click="action.handler(slotProps.data)"
+          />
+          <ButtonEdit v-if="action.type === 'edit'"
+                      tooltip="Modifier"
+                      @click="action.handler(slotProps.data)"
+          />
+          <ButtonDelete v-if="action.type === 'delete'"
+                        tooltip="Supprimer"
+                        @confirm-delete="action.handler(slotProps.data)"
+          />
+        </template>
       </template>
     </Column>
     <Column v-if="extraActions.length" header="Actions" :style="{ minWidth: '10rem' }">
       <template #body="slotProps">
-        <Button v-for="action in actions" :key="action.label" :label="action.label" :icon="action.icon" @click="action.handler(slotProps.data)"/>
+        <Button v-for="action in actions" :key="action.label" :label="action.label" :icon="action.icon"
+                @click="action.handler(slotProps.data)"/>
       </template>
     </Column>
     <template #footer> {{ totalRecords }} résultat(s).</template>

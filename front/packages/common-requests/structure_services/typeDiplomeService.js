@@ -13,11 +13,11 @@ export default {
         return response.data;
     },
     async update(id, data) {
-        const response = await api.put(`/api/structure_type_diplomes/${id}`, data);
+        const response = await api.patch(`/api/structure_type_diplomes/${id}`, data, {headers: {'Content-Type': 'application/merge-patch+json'}});
         return response.data;
     },
     async delete(id) {
-        const response = await api.delete(`/api/structure/type-diplomes/${id}`);
+        const response = await api.delete(`/api/structure_type_diplomes/${id}`);
         return response.data;
     }
 };
