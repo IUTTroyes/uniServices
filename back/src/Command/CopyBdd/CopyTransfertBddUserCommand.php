@@ -5,6 +5,7 @@ namespace App\Command\CopyBdd;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Enum\StatutEnum;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use App\Repository\Structure\StructureDepartementRepository;
 use App\ValueObject\Adresse;
@@ -107,7 +108,7 @@ FOREIGN_KEY_CHECKS=1');
             $personnel->setSiteUniv($pers['site_univ']);
             $personnel->setResponsabilites($pers['responsabilites']);
             $personnel->setPosteInterne($pers['poste_interne']);
-            $personnel->setStatut($pers['statut']);
+            $personnel->setStatut(StatutEnum::tryFrom($pers['statut']));
 
             // gestion des adresses
             if ($pers['adresse_id'] !== null && $pers['adresse_id'] !== '') {
