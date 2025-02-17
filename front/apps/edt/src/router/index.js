@@ -42,4 +42,9 @@ const router = createRouter({
   ]
 })
 
+router.beforeEach(async(to, from, next) => {
+  document.title = to.meta.title ? (to.meta.title + ' | UniEdt - Uniservices ') : 'UniEdt - Uniservices'
+  next()
+})
+
 export default router

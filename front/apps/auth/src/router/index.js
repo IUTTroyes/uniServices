@@ -66,6 +66,9 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to, from, next) => {
+  // mise à jour du title
+  document.title = to.meta.title ?  (to.meta.title + ' | Uniservices ') : 'Uniservices';
+
   const token = localStorage.getItem('token')
   const userStore = useUsersStore()
 
