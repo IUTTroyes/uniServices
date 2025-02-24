@@ -188,6 +188,8 @@ class PrevisionnelSemestreProvider implements ProviderInterface
     public function formToDto($item): PrevisionnelSemestreDto
     {
         $prevSem = new PrevisionnelSemestreDto();
+        $prevSem->setId($item->getId());
+        $prevSem->setIdEnseignement($item->getEnseignement()->getId());
         $prevSem->setCodeEnseignement($item->getEnseignement()->getCodeEnseignement());
         $prevSem->setLibelleEnseignement($item->getEnseignement()->getDisplay());
         $prevSem->setTypeEnseignement($item->getEnseignement()->getType());

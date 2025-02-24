@@ -80,11 +80,12 @@ const getFieldValue = (data, field) => {
         <slot :name="`body-${col.field}`" :data="slotProps.data" :value="getFieldValue(slotProps.data, col.field)">
           <InputText v-if="col.form && col.formType === 'text'" :value="getFieldValue(slotProps.data, col.field)" @input="slotProps.data[col.field] = $event.target.value" class="max-w-20"/>
           <Select v-else-if="col.form && col.formType === 'select'"
-                  :v-model="getFieldValue(slotProps.data, col.field)"
+                  v-model="slotProps.data[col.field]"
                   :options="col.formOptions"
                   optionLabel="label"
                   :placeholder="getFieldValue(slotProps.data, col.field)"
-                  class="max-w-72"
+                  class="max-w-52"
+                  @update:modelValue="col.formAction(getFieldValue(slotProps.data, col.id), $event.id)"
           >
           </Select>
 
@@ -104,7 +105,7 @@ const getFieldValue = (data, field) => {
             <slot :name="`footer-${d.field}`" :value="d.footer">
               <InputText v-if="d.form && d.formType === 'text'" :value="d.footer" @input="d.footer = $event.target.value"/>
               <Select v-else-if="d.form && d.formType === 'select'"
-                  :v-model="d.footer[0]"
+                  v-model="d.footer[0]"
                   :options="d.footer"
                   optionLabel="label"
                   :placeholder="d.placeholder"
