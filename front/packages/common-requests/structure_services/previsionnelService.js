@@ -20,4 +20,17 @@ const getPersonnelPreviService = async (personnelId, anneeUnivId) => {
     return response.data.member;
 }
 
-export { getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService };
+const updatePreviEnseignementService = async (previId, enseignementId) => {
+    try {
+        const enseignementIri = `/api/scol_enseignements/${enseignementId}`;
+        const response = await api.patch(`/api/previsionnels/${previId}`, { enseignement: enseignementIri }, {
+            headers: {
+                'Content-Type': 'application/merge-patch+json'
+            }
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export { getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService };

@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import {useSemestreStore, useAnneeUnivStore, useUsersStore, useEnseignementsStore} from '@stores';
 import { SimpleSkeleton, ListSkeleton } from '@components';
-import { getSemestrePreviService, getPersonnelsDepartementService } from '@requests';
+import { getSemestrePreviService, getPersonnelsDepartementService, updatePreviEnseignementService } from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 
 const usersStore = useUsersStore();
@@ -15,9 +15,7 @@ const semestresList = ref([]);
 const selectedSemestre = ref(null);
 const semestreDetails = ref(null);
 const enseignementsList = ref([]);
-const selectedEnseignement = ref(null);
 const personnelsList = ref([]);
-const selectedPersonnel = ref(null);
 
 
 const anneesUnivList = ref([]);
@@ -188,7 +186,7 @@ const footerCols = computed(() => [
 // ------------------------------------------------------------------------------------------------------------
 
 const columnsForm = ref([
-  { header: 'Matière', field: 'libelleEnseignement', sortable: true, colspan: 1, class: '!overflow-hidden !truncate', form: true, formType: 'select', formOptions: enseignementsList, id: 'id', formAction: (previId, enseignementId) => { console.log(previId, enseignementId)} },
+  { header: 'Matière', field: 'libelleEnseignement', sortable: true, colspan: 1, class: '!overflow-hidden !truncate', form: true, formType: 'select', formOptions: enseignementsList, id: 'id', formAction: (previId, enseignementId) => { updatePreviEnseignementService(previId, enseignementId)} },
   { header: 'Intervenant', field: 'intervenant', sortable: true, colspan: 1, class: '!wrapper !text-wrap', form: true, formType: 'select', formOptions: personnelsList, id: 'id', formAction: () => {} },
 
   { header: 'Nb H/Gr.', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text'},
