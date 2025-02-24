@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { DataTable, Column, Button } from 'primevue'
 import ButtonInfo from '@components/components/ButtonInfo.vue'
 import ButtonEdit from '@components/components/ButtonEdit.vue'
@@ -11,6 +11,11 @@ const props = defineProps({
   columns: {
     type: Array,
     required: true
+  },
+  actionAdd: {
+    type: Object,
+    required: false,
+    default: () => ({})
   },
   actions: {
     type: Array,
@@ -25,6 +30,11 @@ const props = defineProps({
   apiEndpoint: {
     type: String,
     required: true
+  },
+  refreshKey: {
+    type: Number,
+    required: false,
+    default: 0
   }
 })
 
@@ -35,6 +45,8 @@ const page = ref(0)
 const rowOptions = [30, 60, 120]
 const limit = ref(rowOptions[0])
 const offset = computed(() => Number(limit.value * page.value))
+const sortField = ref(null)
+const sortOrder = ref(null)
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS }
@@ -46,10 +58,11 @@ const fetchData = async () => {
     params: {
       ...filters.value,
       limit: limit.value,
-      offset: offset.value
+      offset: offset.value,
+      sortField: sortField.value,
+      sortOrder: sortOrder.value
     }
   })
-  console.log(response)
   totalRecords.value = response.data.totalItems
   data.value = await response.data.member
   loading.value = false
@@ -57,8 +70,19 @@ const fetchData = async () => {
 
 onMounted(fetchData)
 
+watch(() => props.refreshKey, async (newValue, oldValue) => {
+  await fetchData()
+});
+
+
 const onPageChange = async (event) => {
   page.value = event.page
+  await fetchData()
+}
+
+const onSortChange = async (event) => {
+  sortField.value = event.sortField
+  sortOrder.value = event.sortOrder
   await fetchData()
 }
 </script>
@@ -73,27 +97,36 @@ const onPageChange = async (event) => {
              :rowsPerPageOptions="rowOptions"
              :totalRecords="totalRecords"
              dataKey="id"
-             filterDisplay="row"
              :loading="loading"
              v-model:filterModel="filters"
              @page="onPageChange"
+             @sort="onSortChange"
              @update:rows="limit = $event"
              :globalFilterFields="columns.map(col => col.field)">
     <template #header>
       <div class="flex justify-end">
+        <Button label="Ajouter" icon="pi pi-plus" class="mr-2" @click="actionAdd.handler()" v-if="actionAdd" />
         <IconField>
           <InputIcon>
             <i class="pi pi-search"/>
           </InputIcon>
-          <InputText v-model="filters.global.value" placeholder="Keyword Search"/>
+          <InputText v-model="filters.global.value" placeholder="Rechercher..."/>
         </IconField>
       </div>
     </template>
-    <template #empty> No records found.</template>
-    <template #loading> Loading data. Please wait.</template>
-    <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header" :style="col.style">
-      <template #body="slotProps">
+    <template #empty> Aucun enregistrement trouvé.</template>
+    <template #loading> Chargement des données. Patientez.</template>
+    <Column v-for="col in columns" :key="col.field" :field="col.field"
+            :header="col.header" :style="col.style"
+            :sortable="col.sortable"
+    >
+      <template #body="slotProps" v-if="col.type === undefined">
         {{ slotProps.data[col.field] }}
+      </template>
+      <template #body="slotProps" v-else-if="col.type === 'boolean'">
+        <ToggleSwitch
+            @change="col.handler(slotProps.data)"
+            v-model="slotProps.data[col.field]" />
       </template>
       <!--      <template #filter="slotProps">-->
       <!--        <InputText v-model="slotProps.filterModel.value" type="text" @input="slotProps.filterCallback()" :placeholder="`Filter by ${col.header}`"/>-->

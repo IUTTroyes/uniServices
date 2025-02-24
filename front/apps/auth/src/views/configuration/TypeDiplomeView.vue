@@ -1,90 +1,94 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import typeDiplomeService from '@requests/structure_services/typeDiplomeService.js'
+import { ref } from 'vue'
 import CustomDataTable from '@components/components/CustomDataTable.vue'
+import apiCall from '@helpers/apiCall.js'
+import ModalCrud from '@components/components/ModalCrud.vue'
+import fields from '@/forms/typeDiplomeForm.js'
 
-const diplomes = ref([])
+import createApiService from '@requests/apiService'
+const typeDiplomeService = createApiService('/api/structure_type_diplomes')
+
 const selectedDiplome = ref(null)
-const updateDiplomeDialog = ref(false)
-const showDiplomeDialog = ref(false)
-const submitted = ref(false)
+const updateDialog = ref(false)
+const newDialog = ref(false)
+const showDialog = ref(false)
+const refreshKey = ref(0)
 
 const hideDialog = () => {
-  updateDiplomeDialog.value = false
-  showDiplomeDialog.value = false
+  updateDialog.value = false
+  showDialog.value = false
+  newDialog.value = false
+  selectedDiplome.value = {}
 }
 
-const fetchDiplomes = async () => {
-  diplomes.value = await typeDiplomeService.getAll()
-}
-
-const addDiplome = async () => {
-  if (newDiplome.value) {
-    await typeDiplomeService.create({ name: newDiplome.value })
-    newDiplome.value = ''
-    fetchDiplomes()
-  }
-}
-
-const openModalUpdateDiplome = (diplome) => {
-  console.log('update')
+const openModalUpdate = (diplome) => {
   selectedDiplome.value = diplome
-  updateDiplomeDialog.value = true
+  updateDialog.value = true
 }
 
-const openModalShowDiplome = (diplome) => {
-  console.log('show')
+const openModalNew = () => {
+  selectedDiplome.value = {}
+  newDialog.value = true
+}
+
+const openModalShow = (diplome) => {
   selectedDiplome.value = diplome
-  showDiplomeDialog.value = true
+  showDialog.value = true
 }
 
-const updateDiplome = async () => {
-  submitted.value = true
-  if (selectedDiplome.value.libelle) {
-
-    await typeDiplomeService.update(selectedDiplome.value.id, { name: selectedDiplome.value.libelle })
-    updateDiplomeDialog.value = false
-    submitted.value = false
-  }
+const handleSuccess = () => {
+  refreshKey.value++
 }
 
 const deleteDiplome = async (id) => {
-  await typeDiplomeService.delete(id.id)
+  await apiCall(typeDiplomeService.delete, [id.id], 'Type de diplôme supprimé', 'Une erreur est survenue lors de la suppression du type de diplôme')
+  refreshKey.value++
+}
+
+const updateApc = async (diplome) => {
+  await apiCall(typeDiplomeService.update, [diplome.id, diplome], 'Type de diplôme mis à jour', 'Une erreur est survenue lors de la mise à jour du type de diplôme')
+  refreshKey.value++
 }
 </script>
 
 <template>
   <CustomDataTable
-
+      :actionAdd="{ handler: openModalNew }"
       :columns="[
-      { field: 'libelle', header: 'Libellé', style: 'min-width: 12rem' },
-      { field: 'sigle', header: 'Sigle', style: 'min-width: 12rem' },
-      // { field: 'prenom', header: 'Prénom', style: 'min-width: 12rem' }
+      { field: 'libelle', header: 'Libellé', sortable: true },
+      { field: 'sigle', header: 'Sigle', sortable: true },
+      { field: 'apc',
+      header: 'Démarche APC', sortable: true, type: 'boolean', handler: updateApc},
     ]"
       :actions="[
-      { type: 'edit', handler: openModalUpdateDiplome },
+      { type: 'edit', handler: openModalUpdate },
       { type: 'delete', handler: deleteDiplome },
-      { type: 'show', handler: openModalShowDiplome },
+      { type: 'show', handler: openModalShow },
     ]"
       apiEndpoint="api/structure_type_diplomes"
+      :refreshKey="refreshKey"
   />
 
-  <Dialog v-model:visible="updateDiplomeDialog" :style="{ width: '450px' }" header="Product Details" :modal="true">
-    <div class="flex flex-col gap-6">
-      <div>
-        <label for="name" class="block font-bold mb-3">Name</label>
-        <InputText id="name" v-model.trim="selectedDiplome.libelle" required="true" autofocus :invalid="submitted && !selectedDiplome.libelle" fluid />
-        <small v-if="submitted && !selectedDiplome.libelle" class="text-red-500">Le libellé est requis.</small>
-      </div>
-    </div>
+  <ModalCrud
+      :visible="updateDialog"
+      :data="selectedDiplome"
+      mode="edit"
+      :fields="fields"
+      :serviceMethod="(data) => apiCall(typeDiplomeService.update, [selectedDiplome.id, data], 'Type de diplôme mis à jour', 'Une erreur est survenue lors de la mise à jour du type de diplôme')"
+      :onClose="hideDialog"
+      :onSuccess="handleSuccess"
+  >
+  </ModalCrud>
 
-    <template #footer>
-      <Button label="Cancel" icon="pi pi-times" text @click="hideDialog" />
-      <Button label="Save" icon="pi pi-check" @click="updateDiplome" />
-    </template>
-  </Dialog>
+  <ModalCrud
+      :visible="newDialog"
+      :data="selectedDiplome"
+      :fields="fields"
+      mode="new"
+      :serviceMethod="(data) => apiCall(typeDiplomeService.create, [data], 'Type de diplôme créé', 'Une erreur est survenue lors de la création du type de diplôme')"
+      :onClose="hideDialog"
+      :onSuccess="handleSuccess"
+      @hide="hideDialog"
+  >
+  </ModalCrud>
 </template>
-
-<style scoped>
-
-</style>

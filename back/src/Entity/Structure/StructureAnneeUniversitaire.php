@@ -5,8 +5,11 @@ namespace App\Entity\Structure;
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Edt\EdtContraintesSemestre;
 use App\Entity\Edt\EdtCreneauxInterditsSemaine;
@@ -30,6 +33,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['structure_annee_universitaire:read']]),
         new GetCollection(normalizationContext: ['groups' => ['structure_annee_universitaire:read']]),
+        new Post(),
+        new Patch(),
+        new Delete()
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
