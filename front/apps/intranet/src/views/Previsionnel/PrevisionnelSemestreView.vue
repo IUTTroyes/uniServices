@@ -31,6 +31,10 @@ const previSemestre = ref(null);
 
 const isEditing = ref(false);
 
+const verifTotalEtudiant = ref(null);
+const total = ref(null);
+const totalEquTd = ref(null);
+
 const size = ref({ label: 'Petit', value: 'small' });
 const sizeOptions = ref([
   { label: 'Petit', value: 'small' },
@@ -56,41 +60,46 @@ const getSemestres = async () => {
 const getPrevi = async (semestreId) => {
   if (semestreId) {
     isLoadingPrevisionnel.value = true;
-    await semestreStore.getSemestre(semestreId);
-    semestreDetails.value = semestreStore.semestre;
-
-    previSemestre.value = await getSemestrePreviService(selectedSemestre.value.id, selectedAnneeUniv.value.id);
 
     try {
-      if (selectedSemestre.value) {
-        await enseignementStore.getMatieresSemestre(selectedSemestre.value.id);
+      await semestreStore.getSemestre(semestreId);
+      semestreDetails.value = semestreStore.semestre;
+
+      previSemestre.value = await getSemestrePreviService(selectedSemestre.value.id, selectedAnneeUniv.value.id);
+
+      try {
+        if (selectedSemestre.value) {
+          await enseignementStore.getMatieresSemestre(selectedSemestre.value.id);
+        }
+        enseignementsList.value = enseignementStore.enseignements;
+        if (enseignementsList.value.length > 0) {
+          // construire chaque élément de la liste des matières avec d'abord le libellé de la matière puis le code
+          enseignementsList.value = enseignementsList.value.map((enseignement) => ({
+            ...enseignement,
+            label: `${enseignement.codeEnseignement} - ${enseignement.libelle}`,
+            value: enseignement
+          }));
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des matières:', error);
       }
-      enseignementsList.value = enseignementStore.enseignements;
-      if (enseignementsList.value.length > 0) {
-        // construire chaque élément de la liste des matières avec d'abord le libellé de la matière puis le code
-        enseignementsList.value = enseignementsList.value.map((enseignement) => ({
-          ...enseignement,
-          label: `${enseignement.codeEnseignement} - ${enseignement.libelle}`,
-          value: enseignement
+      try {
+        personnelsList.value = await getPersonnelsDepartementService(departementId);
+        personnelsList.value = personnelsList.value.map((personnel) => ({
+          ...personnel,
+          label: `${personnel.personnel.prenom} ${personnel.personnel.nom}`,
+          value: personnel
         }));
+      } catch (error) {
+        console.error('Erreur lors du chargement des matières:', error);
       }
-      console.log('enseignements', enseignementsList.value);
-    } catch (error) {
-      console.error('Erreur lors du chargement des matières:', error);
-    }
-    try {
-      personnelsList.value = await getPersonnelsDepartementService(departementId);
-      personnelsList.value = personnelsList.value.map((personnel) => ({
-        ...personnel,
-        label: `${personnel.personnel.prenom} ${personnel.personnel.nom}`,
-        value: personnel
-      }));
-    } catch (error) {
-      console.error('Erreur lors du chargement des matières:', error);
-    }
 
-    console.log('personnels', personnelsList.value);
-    isLoadingPrevisionnel.value = false;
+    } catch (error) {
+      console.error('Erreur lors du chargement du prévisionnel:', error);
+    } finally {
+      console.log('previSemestre', previSemestre.value);
+      isLoadingPrevisionnel.value = false;
+    }
   }
 };
 
@@ -117,7 +126,6 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
 watch(searchTerm, (newTerm) => {
   filters.value['libelleEnseignement'].value = newTerm;
 });
-
 
 // ------------------------------------------------------------------------------------------------------------
 // ---------------------------------------SYNTHESE------------------------------------------------
@@ -146,15 +154,17 @@ const columns = ref([
   { header: 'Diff.', field: 'heures.Total.Diff', sortable: true, colspan: 1, unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
 ]);
 
+const additionalRows = ref ([
+  [
+    { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
+  ]
+]);
+
 const topHeaderCols = ref([
   { header: 'CM', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
   { header: 'TD', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
   { header: 'TP', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
   { header: 'Total', colspan: 3 }
-]);
-
-const footerRows = ref([
-  { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
 ]);
 
 const footerCols = computed(() => [
@@ -178,8 +188,8 @@ const footerCols = computed(() => [
 // ------------------------------------------------------------------------------------------------------------
 
 const columnsForm = ref([
-  { header: 'Matière', field: 'libelleEnseignement', sortable: true, colspan: 1 },
-  { header: 'Intervenant', field: 'intervenant', sortable: true, colspan: 1 },
+  { header: 'Matière', field: 'libelleEnseignement', sortable: true, colspan: 1, class: '!overflow-hidden !truncate', form: true, formType: 'select', placeholder: 'libelleEnseignement', formOptions: enseignementsList },
+  { header: 'Intervenant', field: 'intervenant', sortable: true, colspan: 1, class: '!wrapper !text-wrap', form: true, formType: 'select', placeholder: 'intervenant', formOptions: personnelsList },
 
   { header: 'Nb H/Gr.', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text'},
   { header: 'Nb Gr.', field: 'heures.CM.NbGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text' },
@@ -207,23 +217,52 @@ const additionalRowsForm = computed(() => [
     { footer: personnelsList.value, colspan: 3, form: true, formType: 'select', placeholder: 'Sélectionner un intervenant' },
     { footer: 'Ajouter', colspan: 3, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => {}, buttonClass: () => '!w-full', buttonSeverity: () => 'success' },
   ],
-]);
-
-const footerRowsForm = ref([
-  { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
+  [
+    { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
+  ],
+  [
+    { footer: '', colspan: 2, class: '!text-center !font-bold'},
+    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Nb hr saisi', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Diff', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Nb hr saisi', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Diff', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Nb hr saisi', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Diff', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap !font-bold' },
+  ],
+  [
+    { footer: 'Vérification du total d\'heures par étudiant', colspan: 2 },
+    { footer: previSemestre.value[3].CM.NbHrAttendu, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[3].CM.NbHrSaisi, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[3].CM.Diff, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+    { footer: previSemestre.value[3].TD.NbHrAttendu, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[3].TD.NbHrSaisi, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[3].TD.Diff, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+    { footer: previSemestre.value[3].TP.NbHrAttendu, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[3].TP.NbHrSaisi, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[3].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  ],
+    [
+      { footer: 'Total', colspan: 2 },
+      { footer: previSemestre.value[4].CM, colspan: 3, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+      { footer: previSemestre.value[4].TD, colspan: 3, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+      { footer: previSemestre.value[4].TP, colspan: 3, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    ]
 ]);
 
 const footerColsForm = computed(() => [
-  { footer: 'Total', colspan: 2 },
-  { footer: previSemestre.value[2].CM.Maquette, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { footer: previSemestre.value[2].CM.Previsionnel, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { footer: previSemestre.value[2].CM.Diff, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-  { footer: previSemestre.value[2].TD.Maquette, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { footer: previSemestre.value[2].TD.Previsionnel, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { footer: previSemestre.value[2].TD.Diff, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-  { footer: previSemestre.value[2].TP.Maquette, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { footer: previSemestre.value[2].TP.Previsionnel, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  { footer: previSemestre.value[2].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  // { footer: 'Total', colspan: 2 },
+  // { footer: previSemestre.value[2].CM.Maquette, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  // { footer: previSemestre.value[2].CM.Previsionnel, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  // { footer: previSemestre.value[2].CM.Diff, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  // { footer: previSemestre.value[2].TD.Maquette, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  // { footer: previSemestre.value[2].TD.Previsionnel, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  // { footer: previSemestre.value[2].TD.Diff, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  // { footer: previSemestre.value[2].TP.Maquette, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  // { footer: previSemestre.value[2].TP.Previsionnel, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  // { footer: previSemestre.value[2].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
 ]);
 </script>
 
@@ -272,7 +311,7 @@ const footerColsForm = computed(() => [
           </div>
         </div>
         <div v-if="!isEditing">
-          <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :footerRows="footerRows" :footerCols="footerCols" :data="previSemestre[1]" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`"  :headerTitlecolspan="4"/>
+          <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :additionalRows="additionalRows" :footerCols="footerCols" :data="previSemestre[1]" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`"  :headerTitlecolspan="4"/>
         </div>
         <div v-else>
           <PrevisionnelTable
@@ -280,7 +319,7 @@ const footerColsForm = computed(() => [
               :columns="columnsForm"
               :topHeaderCols="topHeaderColsForm"
               :additionalRows="additionalRowsForm"
-              :footerRows="footerRowsForm" :footerCols="footerColsForm"
+              :footerCols="footerColsForm"
               :data="previSemestre[0]"
               :filters="filters"
               :size="size.value"
@@ -294,3 +333,7 @@ const footerColsForm = computed(() => [
     </div>
   </div>
 </template>
+
+<style scoped>
+
+</style>

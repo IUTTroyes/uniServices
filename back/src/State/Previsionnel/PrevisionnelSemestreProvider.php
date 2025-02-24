@@ -42,6 +42,12 @@ class PrevisionnelSemestreProvider implements ProviderInterface
 
             $output['previForm'] = [];
 
+            $nbHrAttenduCM = 0;
+            $nbHrSaisiCM = 0;
+            $nbHrAttenduTD = 0;
+            $nbHrSaisiTD = 0;
+            $nbHrAttenduTP = 0;
+            $nbHrSaisiTP = 0;
             $groupedData = [];
             foreach ($data as $item) {
                 if ($item->getPersonnel()) {
@@ -72,11 +78,20 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                     $groupedData[$enseignementId]['groupes']['TP'] += $item->getGroupes()['groupes']['TP'];
 
                     $output['previForm'][] = $this->formToDto($item);
+
+                    $nbHrSaisiCM += $item->getHeures()['heures']['CM'];
+                    $nbHrSaisiTD += $item->getHeures()['heures']['TD'];
+                    $nbHrSaisiTP += $item->getHeures()['heures']['TP'];
+
                 }
             }
 
             $output['previSynthese'] = [];
             foreach ($groupedData as $group) {
+                // todo: à vérifier -> est-ce qu'on prend les heures une seule fois par enseignement ?
+                $nbHrAttenduCM += $item->getEnseignement()->getHeures()['heures']['CM']['IUT'];
+                $nbHrAttenduTD += $item->getEnseignement()->getHeures()['heures']['TD']['IUT'];
+                $nbHrAttenduTP += $item->getEnseignement()->getHeures()['heures']['TP']['IUT'];
 
                 $totalCM['Maquette'] += $group['enseignement']->getHeures()['heures']['CM']['IUT'];
                 $totalCM['Previsionnel'] += $group['heures']['CM'];
@@ -100,6 +115,31 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                     'Previsionnel' => $totalCM['Previsionnel'] + $totalTD['Previsionnel'] + $totalTP['Previsionnel'],
                     'Diff' => ($totalCM['Previsionnel'] + $totalTD['Previsionnel'] + $totalTP['Previsionnel']) - ($totalCM['Maquette'] + $totalTD['Maquette'] + $totalTP['Maquette'])
                 ]
+            ];
+
+            $output['verifTotalEtudiant'] = [
+                'CM' => [
+                    'NbHrAttendu' => $nbHrAttenduCM,
+                    'NbHrSaisi' => $nbHrSaisiCM,
+                    'Diff' => $nbHrSaisiCM - $nbHrAttenduCM,
+                ],
+                'TD' => [
+                    'NbHrAttendu' => $nbHrAttenduTD,
+                    'NbHrSaisi' => $nbHrSaisiTD,
+                    'Diff' => $nbHrSaisiTD - $nbHrAttenduTD,
+                ],
+                'TP' => [
+                    'NbHrAttendu' => $nbHrAttenduTP,
+                    'NbHrSaisi' => $nbHrSaisiTP,
+                    'Diff' => $nbHrSaisiTP - $nbHrAttenduTP,
+                ],
+            ];
+
+            $output['totalForm'] = [
+                'CM' => $totalCM['Previsionnel'],
+                'TD' => $totalTD['Previsionnel'],
+                'TP' => 0,
+                'Total' => 0
             ];
 
             return $output;

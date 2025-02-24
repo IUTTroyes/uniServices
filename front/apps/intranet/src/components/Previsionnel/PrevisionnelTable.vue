@@ -78,7 +78,16 @@ const getFieldValue = (data, field) => {
     <Column v-for="(col, index) in props.columns" :key="index" :field="col.field" :header="col.header" :sortable="col.sortable" :class="col.class">
       <template #body="slotProps">
         <slot :name="`body-${col.field}`" :data="slotProps.data" :value="getFieldValue(slotProps.data, col.field)">
-          <InputText v-if="col.form" :value="getFieldValue(slotProps.data, col.field)" @input="slotProps.data[col.field] = $event.target.value" class="max-w-20"/>
+          <InputText v-if="col.form && col.formType === 'text'" :value="getFieldValue(slotProps.data, col.field)" @input="slotProps.data[col.field] = $event.target.value" class="max-w-20"/>
+          <Select v-else-if="col.form && col.formType === 'select'"
+                  :v-model="getFieldValue(slotProps.data, col.field)"
+                  :options="col.formOptions"
+                  optionLabel="label"
+                  :placeholder="getFieldValue(slotProps.data, col.field)"
+                  class="max-w-72"
+          >
+          </Select>
+
           <Tag v-else-if="col.tag" class="w-max" :class="col.tagClass(getFieldValue(slotProps.data, col.field))" :severity="col.tagSeverity(getFieldValue(slotProps.data, col.field))" :icon="col.tagIcon(getFieldValue(slotProps.data, col.field))">
             {{ col.tagContent ? col.tagContent(getFieldValue(slotProps.data, col.field)) : getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && col.tagSeverity(getFieldValue(slotProps.data, col.field)) !== 'secondary'"> {{ col.unit }}</span>
           </Tag>
@@ -88,10 +97,7 @@ const getFieldValue = (data, field) => {
     </Column>
 
     <!-- Groupe de colonnes pour le pied de page -->
-    <ColumnGroup v-if="footerCols.length > 0 || footerRows.length > 0 || additionalRows.length > 0" type="footer">
-      <Row>
-        <Column v-for="(footerRow, index) in props.footerRows" :key="index" :footer="footerRow.footer" :colspan="footerRow.colspan" :class="footerRow.class"/>
-      </Row>
+    <ColumnGroup v-if="footerCols.length > 0 || additionalRows.length > 0" type="footer">
       <Row v-for="(data, index) in props.additionalRows" :key="index">
         <Column v-for="d in data" :colspan="d.colspan" :class="d.class">
           <template #footer="slotProps">
