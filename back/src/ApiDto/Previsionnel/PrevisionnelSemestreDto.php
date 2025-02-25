@@ -11,7 +11,7 @@ class PrevisionnelSemestreDto
     #[Groups(['previsionnel_semestre:read'])]
     protected int $id;
     #[Groups(['previsionnel_semestre:read'])]
-    protected string $idEnseignement = '';
+    protected int $idEnseignement;
     #[Groups(['previsionnel_semestre:read'])]
     protected string $codeEnseignement = '';
     #[Groups(['previsionnel_semestre:read'])]
@@ -20,6 +20,8 @@ class PrevisionnelSemestreDto
     protected TypeEnseignementEnum $typeEnseignement;
     #[Groups(['previsionnel_semestre:read'])]
     protected ?array $personnels = [];
+    #[Groups(['previsionnel_semestre:read'])]
+    protected int $idPersonnel;
     #[Groups(['previsionnel_semestre:read'])]
     protected array $heures = [];
     #[Groups(['previsionnel_semestre:read'])]
@@ -37,14 +39,24 @@ class PrevisionnelSemestreDto
         $this->id = $id;
     }
 
-    public function getIdEnseignement(): string
+    public function getIdEnseignement(): int
     {
         return $this->idEnseignement;
     }
 
-    public function setIdEnseignement(string $idEnseignement): void
+    public function setIdEnseignement(int $idEnseignement): void
     {
         $this->idEnseignement = $idEnseignement;
+    }
+
+    public function getIdPersonnel(): int
+    {
+        return $this->idPersonnel;
+    }
+
+    public function setIdPersonnel(int $idPersonnel): void
+    {
+        $this->idPersonnel = $idPersonnel;
     }
 
     public function getIntervenant(): string

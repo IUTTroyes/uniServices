@@ -193,6 +193,7 @@ class PrevisionnelSemestreProvider implements ProviderInterface
         $prevSem->setCodeEnseignement($item->getEnseignement()->getCodeEnseignement());
         $prevSem->setLibelleEnseignement($item->getEnseignement()->getDisplay());
         $prevSem->setTypeEnseignement($item->getEnseignement()->getType());
+        $prevSem->setIdPersonnel($item->getPersonnel()->getId());
         $prevSem->setPersonnels([$item->getPersonnel()]);
         $prevSem->setIntervenant($item->getPersonnel()->getDisplay());
         $prevSem->setHeures(

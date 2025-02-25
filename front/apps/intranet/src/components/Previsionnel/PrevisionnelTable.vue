@@ -85,7 +85,7 @@ const getFieldValue = (data, field) => {
                   optionLabel="label"
                   :placeholder="getFieldValue(slotProps.data, col.field)"
                   class="max-w-52"
-                  @update:modelValue="col.formAction(getFieldValue(slotProps.data, col.id), $event.id)"
+                  @update:modelValue="col.formAction(getFieldValue(slotProps.data, col.id), $event.personnel.id)"
           >
           </Select>
 
