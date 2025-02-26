@@ -162,24 +162,24 @@ class PrevisionnelSemestreProvider implements ProviderInterface
         $prevSem->setHeures(
             [
                 'CM' => [
-                    'Maquette' => $group['enseignement']->getHeures()['CM']['IUT'],
-                    'Previsionnel' => $group['heures']['CM'],
-                    'Diff' => $group['heures']['CM'] - $group['enseignement']->getHeures()['CM']['IUT']
+                    'Maquette' => round($group['enseignement']->getHeures()['CM']['IUT'], 1),
+                    'Previsionnel' => round($group['heures']['CM'], 1),
+                    'Diff' => round($group['heures']['CM'] - $group['enseignement']->getHeures()['CM']['IUT'], 1)
                 ],
                 'TD' => [
-                    'Maquette' => $group['enseignement']->getHeures()['TD']['IUT'],
-                    'Previsionnel' => $group['heures']['TD'],
-                    'Diff' => $group['heures']['TD'] - $group['enseignement']->getHeures()['TD']['IUT']
+                    'Maquette' => round($group['enseignement']->getHeures()['TD']['IUT'], 1),
+                    'Previsionnel' => round($group['heures']['TD'], 1),
+                    'Diff' => round($group['heures']['TD'] - $group['enseignement']->getHeures()['TD']['IUT'], 1)
                 ],
                 'TP' => [
-                    'Maquette' => $group['enseignement']->getHeures()['TP']['IUT'],
-                    'Previsionnel' => $group['heures']['TP'],
-                    'Diff' => $group['heures']['TP'] - $group['enseignement']->getHeures()['TP']['IUT']
+                    'Maquette' => round($group['enseignement']->getHeures()['TP']['IUT'], 1),
+                    'Previsionnel' => round($group['heures']['TP'], 1),
+                    'Diff' => round($group['heures']['TP'] - $group['enseignement']->getHeures()['TP']['IUT'], 1)
                 ],
                 'Total' => [
-                    'Maquette' => $group['enseignement']->getHeures()['CM']['IUT'] + $group['enseignement']->getHeures()['TD']['IUT'] + $group['enseignement']->getHeures()['TP']['IUT'],
-                    'Previsionnel' => $group['heures']['CM'] + $group['heures']['TD'] + $group['heures']['TP'],
-                    'Diff' => ($group['heures']['CM'] + $group['heures']['TD'] + $group['heures']['TP']) - ($group['enseignement']->getHeures()['CM']['IUT'] + $group['enseignement']->getHeures()['TD']['IUT'] + $group['enseignement']->getHeures()['TP']['IUT'])
+                    'Maquette' => round($group['enseignement']->getHeures()['CM']['IUT'] + $group['enseignement']->getHeures()['TD']['IUT'] + $group['enseignement']->getHeures()['TP']['IUT'], 1),
+                    'Previsionnel' => round($group['heures']['CM'] + $group['heures']['TD'] + $group['heures']['TP'], 1),
+                    'Diff' => round(($group['heures']['CM'] + $group['heures']['TD'] + $group['heures']['TP']) - ($group['enseignement']->getHeures()['CM']['IUT'] + $group['enseignement']->getHeures()['TD']['IUT'] + $group['enseignement']->getHeures()['TP']['IUT']), 1)
                 ]
             ]
         );
@@ -201,19 +201,19 @@ class PrevisionnelSemestreProvider implements ProviderInterface
         $prevSem->setHeures(
             [
                 'CM' => [
-                    'NbHrGrp' => $item->getGroupes()['CM'] !== 0 ? $item->getHeures()['CM']/$item->getGroupes()['CM'] : $item->getHeures()['CM'],
+                    'NbHrGrp' => round($item->getGroupes()['CM'] !== 0 ? $item->getHeures()['CM']/$item->getGroupes()['CM'] : $item->getHeures()['CM'], 1),
                     'NbGrp' => $item->getGroupes()['CM'],
-                    'NbSeanceGrp' => ($item->getHeures()['CM'] / $item::DUREE_SEANCE) * $item->getGroupes()['CM'],
+                    'NbSeanceGrp' => round((($item->getGroupes()['CM'] !== 0 ? $item->getHeures()['CM']/$item->getGroupes()['CM'] : $item->getHeures()['CM']) / $item::DUREE_SEANCE) * $item->getGroupes()['CM'], 0),
                 ],
                 'TD' => [
-                    'NbHrGrp' => $item->getGroupes()['TD'] !== 0 ? $item->getHeures()['TD']/$item->getGroupes()['TD'] : $item->getHeures()['TD'],
+                    'NbHrGrp' => round($item->getGroupes()['TD'] !== 0 ? $item->getHeures()['TD']/$item->getGroupes()['TD'] : $item->getHeures()['TD'], 1),
                     'NbGrp' => $item->getGroupes()['TD'],
-                    'NbSeanceGrp' => ($item->getHeures()['TD'] / $item::DUREE_SEANCE) * $item->getGroupes()['TD'],
+                    'NbSeanceGrp' => round((($item->getGroupes()['TD'] !== 0 ? $item->getHeures()['TD']/$item->getGroupes()['TD'] : $item->getHeures()['TD']) / $item::DUREE_SEANCE) * $item->getGroupes()['TD'], 0),
                 ],
                 'TP' => [
-                    'NbHrGrp' => $item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP']/$item->getGroupes()['TP'] : $item->getHeures()['TP'],
+                    'NbHrGrp' => round($item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP']/$item->getGroupes()['TP'] : $item->getHeures()['TP'], 1),
                     'NbGrp' => $item->getGroupes()['TP'],
-                    'NbSeanceGrp' => ($item->getHeures()['TP'] / $item::DUREE_SEANCE) * $item->getGroupes()['TP'],
+                    'NbSeanceGrp' => round((($item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP']/$item->getGroupes()['TP'] : $item->getHeures()['TP']) / $item::DUREE_SEANCE) * $item->getGroupes()['TP'], 0),
                 ],
                 'Projet' => [
                     'NbHrGrp' => $item->getHeures()['Projet'],
