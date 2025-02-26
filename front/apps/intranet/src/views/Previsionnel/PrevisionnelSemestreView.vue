@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import {useSemestreStore, useAnneeUnivStore, useUsersStore, useEnseignementsStore} from '@stores';
 import { SimpleSkeleton, ListSkeleton } from '@components';
-import { getSemestrePreviService, getPersonnelsDepartementService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviHeuresService } from '@requests';
+import { getSemestrePreviService, getPersonnelsDepartementService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService } from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 
 const usersStore = useUsersStore();
@@ -26,12 +26,9 @@ const isLoadingAnneesUniv = ref(false);
 const isLoadingPrevisionnel = ref(true);
 
 const previSemestre = ref(null);
+const previ = ref(null);
 
 const isEditing = ref(false);
-
-const verifTotalEtudiant = ref(null);
-const total = ref(null);
-const totalEquTd = ref(null);
 
 const size = ref({ label: 'Petit', value: 'small' });
 const sizeOptions = ref([
@@ -135,14 +132,37 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
 
     // Créer un nouvel objet heures avec les valeurs mises à jour
     const newHeures = {
-      CM: parseFloat(previ.heures.CM.NbHrGrp * previ.heures.CM.NbGrp),
-      TD: parseFloat(previ.heures.TD.NbHrGrp * previ.heures.TD.NbGrp),
-      TP: parseFloat(previ.heures.TP.NbHrGrp * previ.heures.TP.NbGrp),
-      Projet: parseFloat(previ.heures.Projet.NbHrGrp)
+        CM: parseFloat(previ.heures.CM.NbHrGrp * previ.heures.CM.NbGrp),
+        TD: parseFloat(previ.heures.TD.NbHrGrp * previ.heures.TD.NbGrp),
+        TP: parseFloat(previ.heures.TP.NbHrGrp * previ.heures.TP.NbGrp),
+        Projet: parseFloat(previ.heures.Projet.NbHrGrp)
+    };
+
+    console.log('newHeures', newHeures);
+    // Envoyer la requête de mise à jour
+    await updatePreviService(previId, { heures: newHeures });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du prévisionnel:', error);
+  }
+};
+
+const updateGroupesPrevi = async (previId, type, valeur) => {
+  try {
+    // Récupérer le prévisionnel correspondant
+    const previ = previSemestre.value[0].find((previ) => previ.id === previId);
+
+    // Mettre à jour la valeur des heures pour le type spécifié
+    previ.groupes[type] = parseInt(valeur);
+
+    // Créer un nouvel objet heures avec les valeurs mises à jour
+    const newGroupes = {
+      CM: previ.groupes.CM,
+      TD: previ.groupes.TD,
+      TP: previ.groupes.TP,
     };
 
     // Envoyer la requête de mise à jour
-    await updatePreviHeuresService(previId, newHeures);
+    await updatePreviService(previId, { groupes: newGroupes });
   } catch (error) {
     console.error('Erreur lors de la mise à jour du prévisionnel:', error);
   }
@@ -215,19 +235,19 @@ const columnsForm = ref([
 
   { header: 'Nb H/Gr.', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
 
-  { header: 'Nb Gr.', field: 'heures.CM.NbGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text' },
+  { header: 'Nb Gr.', field: 'heures.CM.NbGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
 
-  { header: 'Nb Seance/Gr.', field: 'heures.CM.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-purple-400 !bg-opacity-20', form: false },
+  { header: 'Total Hr.', field: 'heures.CM.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-purple-400 !bg-opacity-20', form: false },
 
-  { header: 'Nb H/Gr.', field: 'heures.TD.NbHrGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text' },
+  { header: 'Nb H/Gr.', field: 'heures.TD.NbHrGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
 
-  { header: 'Nb Gr.', field: 'heures.TD.NbGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text' },
+  { header: 'Nb Gr.', field: 'heures.TD.NbGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
 
   { header: 'Nb Seance/Gr.', field: 'heures.TD.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-green-400 !bg-opacity-20', form: false },
 
-  { header: 'Nb H/Gr.', field: 'heures.TP.NbHrGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text' },
+  { header: 'Nb H/Gr.', field: 'heures.TP.NbHrGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
 
-  { header: 'Nb Gr.', field: 'heures.TP.NbGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text' },
+  { header: 'Nb Gr.', field: 'heures.TP.NbGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
 
   { header: 'Nb Seance/Gr.', field: 'heures.TP.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-amber-400 !bg-opacity-20', form: false },
 

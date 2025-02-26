@@ -201,24 +201,24 @@ class PrevisionnelSemestreProvider implements ProviderInterface
         $prevSem->setHeures(
             [
                 'CM' => [
-                    'NbHrGrp' => $item->getHeures()['CM'],
+                    'NbHrGrp' => $item->getGroupes()['CM'] !== 0 ? $item->getHeures()['CM']/$item->getGroupes()['CM'] : $item->getHeures()['CM'],
                     'NbGrp' => $item->getGroupes()['CM'],
-                    'NbSeanceGrp' => $item->getHeures()['CM'] / $item::DUREE_SEANCE,
+                    'NbSeanceGrp' => ($item->getHeures()['CM'] / $item::DUREE_SEANCE) * $item->getGroupes()['CM'],
                 ],
                 'TD' => [
-                    'NbHrGrp' => $item->getHeures()['TD'],
+                    'NbHrGrp' => $item->getGroupes()['TD'] !== 0 ? $item->getHeures()['TD']/$item->getGroupes()['TD'] : $item->getHeures()['TD'],
                     'NbGrp' => $item->getGroupes()['TD'],
-                    'NbSeanceGrp' => $item->getHeures()['TD'] / $item::DUREE_SEANCE,
+                    'NbSeanceGrp' => ($item->getHeures()['TD'] / $item::DUREE_SEANCE) * $item->getGroupes()['TD'],
                 ],
                 'TP' => [
-                    'NbHrGrp' => $item->getHeures()['TP'],
+                    'NbHrGrp' => $item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP']/$item->getGroupes()['TP'] : $item->getHeures()['TP'],
                     'NbGrp' => $item->getGroupes()['TP'],
-                    'NbSeanceGrp' => $item->getHeures()['TP'] / $item::DUREE_SEANCE,
+                    'NbSeanceGrp' => ($item->getHeures()['TP'] / $item::DUREE_SEANCE) * $item->getGroupes()['TP'],
                 ],
                 'Projet' => [
                     'NbHrGrp' => $item->getHeures()['Projet'],
 //                    'NbGrp' => $item['Projet'],
-                    'NbSeanceGrp' => $item->getHeures()['Projet'] / $item::DUREE_SEANCE,
+                    'NbSeanceGrp' => ($item->getHeures()['Projet'] / $item::DUREE_SEANCE),
                 ],
             ]
         );
