@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Put;
 use App\ApiDto\Previsionnel\PrevisionnelAllPersonnelsDto;
 use App\ApiDto\Previsionnel\PrevisionnelEnseignementDto;
 use App\ApiDto\Previsionnel\PrevisionnelPersonnelDto;
@@ -195,6 +196,12 @@ class Previsionnel
     {
         $resolver = new OptionsResolver();
         $this->configureOptionsHeures($resolver);
+
+        // Convertir toutes les valeurs en float
+        $heures = array_map(function($value) {
+            return (float) $value;
+        }, $heures);
+
         $this->heures = $resolver->resolve($heures);
 
         return $this;
@@ -203,19 +210,16 @@ class Previsionnel
     public function configureOptionsHeures(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'heures' => [
-                'CM' =>  0,
-                'TD' => 0,
-                'TP' => 0,
-                'Projet' => 0,
-            ],
+            'CM' => 0.0,
+            'TD' => 0.0,
+            'TP' => 0.0,
+            'Projet' => 0.0,
         ]);
 
         $resolver->setAllowedTypes('CM', 'float');
         $resolver->setAllowedTypes('TD', 'float');
         $resolver->setAllowedTypes('TP', 'float');
         $resolver->setAllowedTypes('Projet', 'float');
-        $resolver->setAllowedTypes('heures', 'array');
     }
 
     public function getGroupes(): array
@@ -235,16 +239,13 @@ class Previsionnel
     public function configureOptionsGroupes(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'groupes' => [
-                'CM' =>  0,
-                'TD' => 0,
-                'TP' => 0,
-            ],
+            'CM' =>  0,
+            'TD' => 0,
+            'TP' => 0,
         ]);
 
         $resolver->setAllowedTypes('CM', 'int');
         $resolver->setAllowedTypes('TD', 'int');
         $resolver->setAllowedTypes('TP', 'int');
-        $resolver->setAllowedTypes('groupes', 'array');
     }
 }

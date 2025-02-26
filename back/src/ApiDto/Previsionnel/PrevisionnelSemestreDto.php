@@ -9,6 +9,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
 class PrevisionnelSemestreDto
 {
     #[Groups(['previsionnel_semestre:read'])]
+    protected int $id;
+    #[Groups(['previsionnel_semestre:read'])]
+    protected int $idEnseignement;
+    #[Groups(['previsionnel_semestre:read'])]
     protected string $codeEnseignement = '';
     #[Groups(['previsionnel_semestre:read'])]
     protected string $libelleEnseignement = '';
@@ -17,11 +21,43 @@ class PrevisionnelSemestreDto
     #[Groups(['previsionnel_semestre:read'])]
     protected ?array $personnels = [];
     #[Groups(['previsionnel_semestre:read'])]
+    protected int $idPersonnel;
+    #[Groups(['previsionnel_semestre:read'])]
     protected array $heures = [];
     #[Groups(['previsionnel_semestre:read'])]
     protected array $groupes = [];
     #[Groups(['previsionnel_semestre:read'])]
     protected string $intervenant = '';
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
+    }
+
+    public function getIdEnseignement(): int
+    {
+        return $this->idEnseignement;
+    }
+
+    public function setIdEnseignement(int $idEnseignement): void
+    {
+        $this->idEnseignement = $idEnseignement;
+    }
+
+    public function getIdPersonnel(): int
+    {
+        return $this->idPersonnel;
+    }
+
+    public function setIdPersonnel(int $idPersonnel): void
+    {
+        $this->idPersonnel = $idPersonnel;
+    }
 
     public function getIntervenant(): string
     {

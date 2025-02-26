@@ -270,15 +270,16 @@ class ScolEnseignement
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-            'heures' => [
                 'CM' => ['PN' => 0, 'IUT' => 0],
                 'TD' => ['PN' => 0, 'IUT' => 0],
                 'TP' => ['PN' => 0, 'IUT' => 0],
                 'Projet' => ['PN' => 0, 'IUT' => 0],
-            ],
         ]);
 
-        $resolver->setAllowedTypes('heures', 'array');
+        $resolver->setAllowedTypes('CM', 'array');
+        $resolver->setAllowedTypes('TD', 'array');
+        $resolver->setAllowedTypes('TP', 'array');
+        $resolver->setAllowedTypes('Projet', 'array');
     }
 
     public function getType(): TypeEnseignementEnum

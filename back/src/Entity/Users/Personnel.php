@@ -60,7 +60,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read'])]
+    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'previsionnel_semestre:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]

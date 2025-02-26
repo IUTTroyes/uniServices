@@ -138,14 +138,17 @@ const topHeaderCols = ref([
 
 const additionalRows = computed(() => [
   [
+    { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
+  ],
+  [
     { footer: '', colspan: 1, class: '!text-center !font-bold'},
-    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap' },
     { footer: 'Nb hr saisi', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap' },
     { footer: 'Diff', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap' },
-    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap' },
     { footer: 'Nb hr saisi', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap' },
     { footer: 'Diff', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap' },
-    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap' },
     { footer: 'Nb hr saisi', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap' },
     { footer: 'Diff', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap' },
   ],
@@ -177,10 +180,6 @@ const additionalRows = computed(() => [
     { footer: previSemestreMatiere.value[3].TotalClassique, colspan: 4, class: '!text-nowrap !text-center', unit: ' h' },
     { footer: previSemestreMatiere.value[3].TotalTd, colspan: 5, class: '!text-nowrap !text-center', unit: ' h' },
   ],
-]);
-
-const footerRows = ref([
-  { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
 ]);
 
 const footerCols = computed(() => [
@@ -232,9 +231,9 @@ const footerCols = computed(() => [
       <Message severity="info" icon="pi pi-info-circle" class="w-fit mx-auto my-2 px-3">
         <div class="flex gap-6">
           Nombre d'heures par étudiant attendu :
-          <span class="font-bold">CM : {{ selectedEnseignement.heures.heures.CM.PN }} h</span>
-          <span class="font-bold">TD : {{ selectedEnseignement.heures.heures.TD.PN }} h</span>
-          <span class="font-bold">TP : {{ selectedEnseignement.heures.heures.TP.PN }} h</span>
+          <span class="font-bold">CM : {{ selectedEnseignement.heures.CM.PN }} h</span>
+          <span class="font-bold">TD : {{ selectedEnseignement.heures.TD.PN }} h</span>
+          <span class="font-bold">TP : {{ selectedEnseignement.heures.TP.PN }} h</span>
         </div>
       </Message>
 
@@ -248,7 +247,6 @@ const footerCols = computed(() => [
             :topHeaderCols="topHeaderCols"
             :additionalRows="additionalRows"
             :footerCols="footerCols"
-            :footerRows="footerRows"
             :data="previSemestreMatiere[0]"
             :filters="filters"
             :size="size.value"
