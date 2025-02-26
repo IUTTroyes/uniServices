@@ -231,9 +231,9 @@ const footerCols = computed(() => [
       <Message severity="info" icon="pi pi-info-circle" class="w-fit mx-auto my-2 px-3">
         <div class="flex gap-6">
           Nombre d'heures par étudiant attendu :
-          <span class="font-bold">CM : {{ selectedEnseignement.heures.heures.CM.PN }} h</span>
-          <span class="font-bold">TD : {{ selectedEnseignement.heures.heures.TD.PN }} h</span>
-          <span class="font-bold">TP : {{ selectedEnseignement.heures.heures.TP.PN }} h</span>
+          <span class="font-bold">CM : {{ selectedEnseignement.heures.CM.PN }} h</span>
+          <span class="font-bold">TD : {{ selectedEnseignement.heures.TD.PN }} h</span>
+          <span class="font-bold">TP : {{ selectedEnseignement.heures.TP.PN }} h</span>
         </div>
       </Message>
 

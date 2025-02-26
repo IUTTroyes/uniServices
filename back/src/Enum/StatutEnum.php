@@ -19,6 +19,11 @@ enum StatutEnum : string implements BadgeEnumInterface
     case TEC = 'TEC';
     case ADM = 'ADM';
     case ASS = 'ASS';
+    case PR = 'PR';
+    case PEPS = 'PEPS';
+    case Profession = 'Profession';
+    case PRCACDD = 'PRCACDD';
+    case CONTRAC = 'CONTRAC';
     case AUTRE = 'Autre';
 
     public static function getStatuts(): array
@@ -39,6 +44,11 @@ enum StatutEnum : string implements BadgeEnumInterface
             self::ADM->getLibelle(),
             self::ASS->getLibelle(),
             self::CDD->getLibelle(),
+            self::PR->getLibelle(),
+            self::Profession->getLibelle(),
+            self::PEPS->getLibelle(),
+            self::PRCACDD->getLibelle(),
+            self::CONTRAC->getLibelle(),
             self::AUTRE->getLibelle(),
         ];
     }
@@ -61,6 +71,11 @@ enum StatutEnum : string implements BadgeEnumInterface
             self::ADM => 'secondary',
             self::ASS => 'secondary',
             self::CDD => 'success',
+            self::PR => 'success',
+            self::Profession => 'primary',
+            self::PEPS => 'secondary',
+            self::PRCACDD => 'secondary',
+            self::CONTRAC => 'success',
             self::AUTRE => 'secondary',
         };
     }
@@ -83,6 +98,11 @@ enum StatutEnum : string implements BadgeEnumInterface
             self::ADM => 'Administratif',
             self::CDD => 'Contractuel',
             self::ASS => 'Assistant',
+            self::PR => 'Pro',
+            self::Profession => 'Pro',
+            self::PEPS => 'Peps',
+            self::PRCACDD => 'PrcaCdd',
+            self::CONTRAC => 'Contractuel',
             self::AUTRE => 'Autre',
         };
     }

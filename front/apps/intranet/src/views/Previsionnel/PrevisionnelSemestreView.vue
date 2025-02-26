@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import {useSemestreStore, useAnneeUnivStore, useUsersStore, useEnseignementsStore} from '@stores';
 import { SimpleSkeleton, ListSkeleton } from '@components';
-import { getSemestrePreviService, getPersonnelsDepartementService, updatePreviEnseignementService, updatePreviPersonnelService } from '@requests';
+import { getSemestrePreviService, getPersonnelsDepartementService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviHeuresService } from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 
 const usersStore = useUsersStore();
@@ -125,6 +125,29 @@ watch(searchTerm, (newTerm) => {
   filters.value['libelleEnseignement'].value = newTerm;
 });
 
+const updateHeuresPrevi = async (previId, type, valeur) => {
+  try {
+    // Récupérer le prévisionnel correspondant
+    const previ = previSemestre.value[0].find((previ) => previ.id === previId);
+
+    // Mettre à jour la valeur des heures pour le type spécifié
+    previ.heures[type].NbHrGrp = parseFloat(valeur);
+
+    // Créer un nouvel objet heures avec les valeurs mises à jour
+    const newHeures = {
+      CM: parseFloat(previ.heures.CM.NbHrGrp * previ.heures.CM.NbGrp),
+      TD: parseFloat(previ.heures.TD.NbHrGrp * previ.heures.TD.NbGrp),
+      TP: parseFloat(previ.heures.TP.NbHrGrp * previ.heures.TP.NbGrp),
+      Projet: parseFloat(previ.heures.Projet.NbHrGrp)
+    };
+
+    // Envoyer la requête de mise à jour
+    await updatePreviHeuresService(previId, newHeures);
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du prévisionnel:', error);
+  }
+};
+
 // ------------------------------------------------------------------------------------------------------------
 // ---------------------------------------SYNTHESE------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------
@@ -186,20 +209,30 @@ const footerCols = computed(() => [
 // ------------------------------------------------------------------------------------------------------------
 
 const columnsForm = ref([
-  { header: 'Matière', field: 'libelleEnseignement', sortable: true, colspan: 1, class: '!overflow-hidden !truncate', form: true, formType: 'select', formOptions: enseignementsList, id: 'id', formAction: (previId, enseignementId) => { updatePreviEnseignementService(previId, enseignementId)} },
-  { header: 'Intervenant', field: 'intervenant', sortable: true, colspan: 1, class: '!wrapper !text-wrap', form: true, formType: 'select', formOptions: personnelsList, id: 'id', formAction: (previId, personnelId) => { updatePreviPersonnelService(previId, personnelId)} },
+  { header: 'Matière', field: 'libelleEnseignement', sortable: true, colspan: 1, class: '!overflow-hidden !truncate', form: true, formType: 'select', formOptions: enseignementsList, id: 'id', formAction: (previId, event) => { updatePreviEnseignementService(previId, event.id)} },
 
-  { header: 'Nb H/Gr.', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text'},
+  { header: 'Intervenant', field: 'intervenant', sortable: true, colspan: 1, class: '!wrapper !text-wrap', form: true, formType: 'select', formOptions: personnelsList, id: 'id', formAction: (previId, event) => { updatePreviPersonnelService(previId, event.personnel.id)} },
+
+  { header: 'Nb H/Gr.', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
+
   { header: 'Nb Gr.', field: 'heures.CM.NbGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text' },
+
   { header: 'Nb Seance/Gr.', field: 'heures.CM.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-purple-400 !bg-opacity-20', form: false },
 
   { header: 'Nb H/Gr.', field: 'heures.TD.NbHrGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text' },
+
   { header: 'Nb Gr.', field: 'heures.TD.NbGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text' },
+
   { header: 'Nb Seance/Gr.', field: 'heures.TD.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-green-400 !bg-opacity-20', form: false },
 
   { header: 'Nb H/Gr.', field: 'heures.TP.NbHrGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text' },
+
   { header: 'Nb Gr.', field: 'heures.TP.NbGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text' },
+
   { header: 'Nb Seance/Gr.', field: 'heures.TP.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-amber-400 !bg-opacity-20', form: false },
+
+  { header: 'Dupliquer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-copy', buttonAction: () => {}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn' },
+  { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', buttonAction: () => {}, buttonClass: () => '!w-full', buttonSeverity: () => 'danger' },
 ]);
 
 const topHeaderColsForm = ref([
@@ -211,8 +244,8 @@ const topHeaderColsForm = ref([
 const additionalRowsForm = computed(() => [
   [
     { footer: 'Ajouter une entrée au prévisionnel', colspan: 2, class: '!text-center !font-bold'},
-    { footer: enseignementsList.value, colspan: 3, form: true, formType: 'select', placeholder: 'Sélectionner une matière' },
-    { footer: personnelsList.value, colspan: 3, form: true, formType: 'select', placeholder: 'Sélectionner un intervenant' },
+    { footer: enseignementsList.value, colspan: 4, form: true, formType: 'select', placeholder: 'Sélectionner une matière' },
+    { footer: personnelsList.value, colspan: 4, form: true, formType: 'select', placeholder: 'Sélectionner un intervenant' },
     { footer: 'Ajouter', colspan: 3, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => {}, buttonClass: () => '!w-full', buttonSeverity: () => 'success' },
   ],
   [

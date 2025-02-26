@@ -50,4 +50,16 @@ const updatePreviPersonnelService = async (previId, personnelId) => {
     }
 }
 
-export { getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService };
+const updatePreviHeuresService = async (previId, heures) => {
+    try {
+        const response = await api.patch(`/api/previsionnels/${previId}`, { heures: heures }, {
+            headers: {
+                'Content-Type': 'application/merge-patch+json'
+            }
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+export { getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviHeuresService };
