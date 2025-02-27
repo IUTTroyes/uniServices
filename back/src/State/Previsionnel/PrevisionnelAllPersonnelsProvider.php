@@ -70,15 +70,15 @@
                                             ];
                                         }
 
-                                        $groupedData[$personnelId]['heures']['CM'] += $item->getHeures()['heures']['CM'];
-                                        $groupedData[$personnelId]['heures']['TD'] += $item->getHeures()['heures']['TD'];
-                                        $groupedData[$personnelId]['heures']['TP'] += $item->getHeures()['heures']['TP'];
+                                        $groupedData[$personnelId]['heures']['CM'] += $item->getHeures()['CM'];
+                                        $groupedData[$personnelId]['heures']['TD'] += $item->getHeures()['TD'];
+                                        $groupedData[$personnelId]['heures']['TP'] += $item->getHeures()['TP'];
 
-                                        $totalCM += $item->getHeures()['heures']['CM'];
-                                        $totalTD += $item->getHeures()['heures']['TD'];
-                                        $totalTP += $item->getHeures()['heures']['TP'];
+                                        $totalCM += $item->getHeures()['CM'];
+                                        $totalTD += $item->getHeures()['TD'];
+                                        $totalTP += $item->getHeures()['TP'];
 
-                                        $totalHeures = $item->getHeures()['heures']['CM'] + $item->getHeures()['heures']['TD'] + $item->getHeures()['heures']['TP'];
+                                        $totalHeures = $item->getHeures()['CM'] + $item->getHeures()['TD'] + $item->getHeures()['TP'];
 
                                         if (in_array($item->getPersonnel()->getStatut()->value, ['MCF', 'PU', 'ENSAM', 'PRAG', 'PRCE', 'CDD'])) {
                                             $totalPermanent += $totalHeures;

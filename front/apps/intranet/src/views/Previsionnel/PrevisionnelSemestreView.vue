@@ -129,105 +129,67 @@ watch(searchTerm, (newTerm) => {
 });
 
 const updateHeuresPrevi = async (previId, type, valeur) => {
-  try {
-    // Récupérer le prévisionnel correspondant
-    let previ = previSemestre.value[0].find((previ) => previ.id === previId);
+      try {
+        // Récupérer le prévisionnel à modifier
+        let previForm = previSemestre.value[0].find(previ => previ.id === previId);
+        // Mettre à jour le nombre d'heures du type concerné
+        previForm.heures[type].NbHrGrp = parseFloat(valeur || 0);
 
-    if (valeur === '') {
-      valeur = 0;
-    }
+        // Calculer les nouvelles heures
+        const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+          acc[key] = parseFloat(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp);
+          return acc;
+        }, {});
 
-    // Mettre à jour la valeur des heures pour le type spécifié
-    previ.heures[type].NbHrGrp = parseFloat(valeur);
+        // Mettre à jour le prévisionnel
+        await updatePreviService(previId, { heures: newHeures });
 
-    // Créer un nouvel objet heures avec les valeurs mises à jour
-    const newHeures = {
-      CM: parseFloat(previ.heures.CM.NbHrGrp * previ.heures.CM.NbGrp),
-      TD: parseFloat(previ.heures.TD.NbHrGrp * previ.heures.TD.NbGrp),
-      TP: parseFloat(previ.heures.TP.NbHrGrp * previ.heures.TP.NbGrp),
-      Projet: parseFloat(previ.heures.Projet.NbHrGrp * previ.heures.Projet.NbGrp),
+        // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
+        previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+          acc[key] = {
+            NbHrGrp: previForm.heures[key].NbHrGrp,
+            NbGrp: previForm.heures[key].NbGrp,
+            NbSeanceGrp: Math.round(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp * 10) / 10,
+          };
+          return acc;
+        }, {});
+
+        console.log('previForm', previForm);
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du prévisionnel:', error);
+      }
     };
 
-    // Envoyer la requête de mise à jour
-    await updatePreviService(previId, { heures: newHeures });
+    const updateGroupesPrevi = async (previId, type, valeur) => {
+      try {
+        // Récupérer le prévisionnel à modifier
+        const previForm = previSemestre.value[0].find(previ => previ.id === previId);
+        // Mettre à jour le nombre de groupes du type concerné
+        previForm.groupes[type] = parseInt(valeur);
 
-    //remplacer les valeurs de previSemestre par les nouvelles valeurs
-    previ.heures = {
-      CM: {
-        NbHrGrp: previ.heures.CM.NbHrGrp,
-        NbGrp: previ.heures.CM.NbGrp,
-        NbSeanceGrp: previ.heures.CM.NbHrGrp * previ.heures.CM.NbGrp,
-      },
-      TD: {
-        NbHrGrp: previ.heures.TD.NbHrGrp,
-        NbGrp: previ.heures.TD.NbGrp,
-        NbSeanceGrp: previ.heures.TD.NbHrGrp * previ.heures.TD.NbGrp,
-      },
-      TP: {
-        NbHrGrp: previ.heures.TP.NbHrGrp,
-        NbGrp: previ.heures.TP.NbGrp,
-        NbSeanceGrp: previ.heures.TP.NbHrGrp * previ.heures.TP.NbGrp,
-      },
-      Projet: {
-        NbHrGrp: previ.heures.Projet.NbHrGrp,
-        NbGrp: previ.heures.Projet.NbGrp,
-        NbSeanceGrp: previ.heures.Projet.NbHrGrp * previ.heures.Projet.NbGrp,
-      },
+        // Mettre à jour le prévisionnel
+        const newGroupes = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+          acc[key] = previForm.groupes[key];
+          return acc;
+        }, {});
+
+        // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
+        previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+          acc[key] = {
+            NbHrGrp: previForm.heures[key].NbHrGrp,
+            NbGrp: previForm.groupes[key],
+            NbSeanceGrp: previForm.heures[key].NbHrGrp * previForm.groupes[key],
+          };
+          return acc;
+        }, {});
+
+        console.log('previForm', previForm);
+
+        await updatePreviService(previId, { groupes: newGroupes });
+      } catch (error) {
+        console.error('Erreur lors de la mise à jour du prévisionnel:', error);
+      }
     };
-
-    console.log('previ', previ);
-  } catch (error) {
-    console.error('Erreur lors de la mise à jour du prévisionnel:', error);
-  }
-};
-
-const updateGroupesPrevi = async (previId, type, valeur) => {
-  try {
-    // Récupérer le prévisionnel correspondant
-    const previ = previSemestre.value[0].find((previ) => previ.id === previId);
-
-    // Mettre à jour la valeur des heures pour le type spécifié
-    previ.groupes[type] = parseInt(valeur);
-
-    // Créer un nouvel objet heures avec les valeurs mises à jour
-    const newGroupes = {
-      CM: previ.groupes.CM,
-      TD: previ.groupes.TD,
-      TP: previ.groupes.TP,
-      Projet: previ.groupes.Projet,
-    };
-
-    previ.heures = {
-      CM: {
-        NbHrGrp: previ.heures.CM.NbHrGrp,
-        NbGrp: previ.groupes.CM,
-        NbSeanceGrp: previ.heures.CM.NbHrGrp * previ.groupes.CM,
-      },
-      TD: {
-        NbHrGrp: previ.heures.TD.NbHrGrp,
-        NbGrp: previ.groupes.TD,
-        NbSeanceGrp: previ.heures.TD.NbHrGrp * previ.groupes.TD,
-      },
-      TP: {
-        NbHrGrp: previ.heures.TP.NbHrGrp,
-        NbGrp: previ.groupes.TP,
-        NbSeanceGrp: previ.heures.TP.NbHrGrp * previ.groupes.TP,
-      },
-      Projet: {
-        NbHrGrp: previ.heures.Projet.NbHrGrp,
-        NbGrp: previ.heures.Projet.NbGrp,
-        NbSeanceGrp: previ.heures.Projet.NbHrGrp * previ.groupes.Projet,
-      },
-    };
-
-    console.log('previ', previ);
-
-    // Envoyer la requête de mise à jour
-    await updatePreviService(previId, { groupes: newGroupes });
-  } catch (error) {
-    console.error('Erreur lors de la mise à jour du prévisionnel:', error);
-  }
-};
 
 // ------------------------------------------------------------------------------------------------------------
 // ---------------------------------------SYNTHESE------------------------------------------------
@@ -298,19 +260,19 @@ const columnsForm = ref([
 
   { header: 'Nb Gr.', field: 'heures.CM.NbGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
 
-  { header: 'Total Séances', field: 'heures.CM.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-purple-400 !bg-opacity-20', form: false },
+  { header: 'Séances', field: 'heures.CM.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !max-w-20', form: false },
 
   { header: 'Nb H/Gr.', field: 'heures.TD.NbHrGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
 
   { header: 'Nb Gr.', field: 'heures.TD.NbGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
 
-  { header: 'Total Séances', field: 'heures.TD.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-green-400 !bg-opacity-20', form: false },
+  { header: 'Séances', field: 'heures.TD.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !max-w-20', form: false },
 
   { header: 'Nb H/Gr.', field: 'heures.TP.NbHrGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
 
   { header: 'Nb Gr.', field: 'heures.TP.NbGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
 
-  { header: 'Total Séances', field: 'heures.TP.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-amber-400 !bg-opacity-20', form: false },
+  { header: 'Séances', field: 'heures.TP.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !max-w-20', form: false },
 
   { header: 'Dupliquer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-copy', buttonAction: () => {}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn' },
   { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', buttonAction: () => {}, buttonClass: () => '!w-full', buttonSeverity: () => 'danger' },
@@ -333,7 +295,7 @@ const additionalRowsForm = computed(() => [
     { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
   ],
   [
-    { footer: '', colspan: 2, class: '!text-center !font-bold'},
+    { footer: '', colspan: 4, class: '!text-center !font-bold'},
     { footer: 'Nb hr attendu', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !font-bold' },
     { footer: 'Nb hr saisi', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !font-bold' },
     { footer: 'Diff', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !font-bold' },
@@ -345,7 +307,7 @@ const additionalRowsForm = computed(() => [
     { footer: 'Diff', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap !font-bold' },
   ],
   [
-    { footer: 'Vérification du total d\'heures par étudiant', colspan: 2 },
+    { footer: 'Vérification du total d\'heures par étudiant', colspan: 4 },
     { footer: previSemestre.value[3].CM.NbHrAttendu, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestre.value[3].CM.NbHrSaisi, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestre.value[3].CM.Diff, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
@@ -357,24 +319,24 @@ const additionalRowsForm = computed(() => [
     { footer: previSemestre.value[3].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
   ],
   [
-    { footer: 'Total', colspan: 2 },
+    { footer: 'Total', colspan: 4 },
     { footer: previSemestre.value[4].CM, colspan: 3, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestre.value[4].TD, colspan: 3, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestre.value[4].TP, colspan: 3, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  ]
+  ],
+  [
+    { footer: '', colspan: 4},
+    { footer: 'Classique', colspan: 4, class: '!text-nowrap !text-center font-bold' },
+    { footer: 'Équivalent TD', colspan: 5, class: '!text-nowrap !text-center font-bold' },
+  ],
+  [
+    { footer: 'Total d\'heures', colspan: 4},
+    { footer: previSemestre.value[5].TotalClassique, colspan: 4, class: '!text-nowrap !text-center', unit: ' h' },
+    { footer: previSemestre.value[5].TotalTd, colspan: 5, class: '!text-nowrap !text-center', unit: ' h' },
+  ],
 ]);
 
 const footerColsForm = computed(() => [
-  // { footer: 'Total', colspan: 2 },
-  // { footer: previSemestre.value[2].CM.Maquette, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  // { footer: previSemestre.value[2].CM.Previsionnel, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  // { footer: previSemestre.value[2].CM.Diff, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-  // { footer: previSemestre.value[2].TD.Maquette, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  // { footer: previSemestre.value[2].TD.Previsionnel, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  // { footer: previSemestre.value[2].TD.Diff, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-  // { footer: previSemestre.value[2].TP.Maquette, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  // { footer: previSemestre.value[2].TP.Previsionnel, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  // { footer: previSemestre.value[2].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
 ]);
 </script>
 
