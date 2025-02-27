@@ -217,7 +217,7 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                 ],
                 'Projet' => [
                     'NbHrGrp' => $item->getHeures()['Projet'],
-//                    'NbGrp' => $item['Projet'],
+                    'NbGrp' => $item->getGroupes()['Projet'],
                     'NbSeanceGrp' => ($item->getHeures()['Projet'] / $item::DUREE_SEANCE),
                 ],
             ]

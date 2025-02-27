@@ -242,10 +242,12 @@ class Previsionnel
             'CM' =>  0,
             'TD' => 0,
             'TP' => 0,
+            'Projet' => 0,
         ]);
 
         $resolver->setAllowedTypes('CM', 'int');
         $resolver->setAllowedTypes('TD', 'int');
         $resolver->setAllowedTypes('TP', 'int');
+        $resolver->setAllowedTypes('Projet', 'int');
     }
 }

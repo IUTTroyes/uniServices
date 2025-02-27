@@ -1,8 +1,14 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import {useSemestreStore, useAnneeUnivStore, useUsersStore, useEnseignementsStore} from '@stores';
-import { SimpleSkeleton, ListSkeleton } from '@components';
-import { getSemestrePreviService, getPersonnelsDepartementService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService } from '@requests';
+import {computed, onMounted, ref, watch} from 'vue';
+import {useAnneeUnivStore, useEnseignementsStore, useSemestreStore, useUsersStore} from '@stores';
+import {ListSkeleton, SimpleSkeleton} from '@components';
+import {
+  getPersonnelsDepartementService,
+  getSemestrePreviService,
+  updatePreviEnseignementService,
+  updatePreviPersonnelService,
+  updatePreviService
+} from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 
 const usersStore = useUsersStore();
@@ -125,22 +131,51 @@ watch(searchTerm, (newTerm) => {
 const updateHeuresPrevi = async (previId, type, valeur) => {
   try {
     // Récupérer le prévisionnel correspondant
-    const previ = previSemestre.value[0].find((previ) => previ.id === previId);
+    let previ = previSemestre.value[0].find((previ) => previ.id === previId);
+
+    if (valeur === '') {
+      valeur = 0;
+    }
 
     // Mettre à jour la valeur des heures pour le type spécifié
     previ.heures[type].NbHrGrp = parseFloat(valeur);
 
     // Créer un nouvel objet heures avec les valeurs mises à jour
     const newHeures = {
-        CM: parseFloat(previ.heures.CM.NbHrGrp * previ.heures.CM.NbGrp),
-        TD: parseFloat(previ.heures.TD.NbHrGrp * previ.heures.TD.NbGrp),
-        TP: parseFloat(previ.heures.TP.NbHrGrp * previ.heures.TP.NbGrp),
-        Projet: parseFloat(previ.heures.Projet.NbHrGrp)
+      CM: parseFloat(previ.heures.CM.NbHrGrp * previ.heures.CM.NbGrp),
+      TD: parseFloat(previ.heures.TD.NbHrGrp * previ.heures.TD.NbGrp),
+      TP: parseFloat(previ.heures.TP.NbHrGrp * previ.heures.TP.NbGrp),
+      Projet: parseFloat(previ.heures.Projet.NbHrGrp * previ.heures.Projet.NbGrp),
     };
 
-    console.log('newHeures', newHeures);
     // Envoyer la requête de mise à jour
     await updatePreviService(previId, { heures: newHeures });
+
+    //remplacer les valeurs de previSemestre par les nouvelles valeurs
+    previ.heures = {
+      CM: {
+        NbHrGrp: previ.heures.CM.NbHrGrp,
+        NbGrp: previ.heures.CM.NbGrp,
+        NbSeanceGrp: previ.heures.CM.NbHrGrp * previ.heures.CM.NbGrp,
+      },
+      TD: {
+        NbHrGrp: previ.heures.TD.NbHrGrp,
+        NbGrp: previ.heures.TD.NbGrp,
+        NbSeanceGrp: previ.heures.TD.NbHrGrp * previ.heures.TD.NbGrp,
+      },
+      TP: {
+        NbHrGrp: previ.heures.TP.NbHrGrp,
+        NbGrp: previ.heures.TP.NbGrp,
+        NbSeanceGrp: previ.heures.TP.NbHrGrp * previ.heures.TP.NbGrp,
+      },
+      Projet: {
+        NbHrGrp: previ.heures.Projet.NbHrGrp,
+        NbGrp: previ.heures.Projet.NbGrp,
+        NbSeanceGrp: previ.heures.Projet.NbHrGrp * previ.heures.Projet.NbGrp,
+      },
+    };
+
+    console.log('previ', previ);
   } catch (error) {
     console.error('Erreur lors de la mise à jour du prévisionnel:', error);
   }
@@ -159,7 +194,33 @@ const updateGroupesPrevi = async (previId, type, valeur) => {
       CM: previ.groupes.CM,
       TD: previ.groupes.TD,
       TP: previ.groupes.TP,
+      Projet: previ.groupes.Projet,
     };
+
+    previ.heures = {
+      CM: {
+        NbHrGrp: previ.heures.CM.NbHrGrp,
+        NbGrp: previ.groupes.CM,
+        NbSeanceGrp: previ.heures.CM.NbHrGrp * previ.groupes.CM,
+      },
+      TD: {
+        NbHrGrp: previ.heures.TD.NbHrGrp,
+        NbGrp: previ.groupes.TD,
+        NbSeanceGrp: previ.heures.TD.NbHrGrp * previ.groupes.TD,
+      },
+      TP: {
+        NbHrGrp: previ.heures.TP.NbHrGrp,
+        NbGrp: previ.groupes.TP,
+        NbSeanceGrp: previ.heures.TP.NbHrGrp * previ.groupes.TP,
+      },
+      Projet: {
+        NbHrGrp: previ.heures.Projet.NbHrGrp,
+        NbGrp: previ.heures.Projet.NbGrp,
+        NbSeanceGrp: previ.heures.Projet.NbHrGrp * previ.groupes.Projet,
+      },
+    };
+
+    console.log('previ', previ);
 
     // Envoyer la requête de mise à jour
     await updatePreviService(previId, { groupes: newGroupes });
@@ -295,12 +356,12 @@ const additionalRowsForm = computed(() => [
     { footer: previSemestre.value[3].TP.NbHrSaisi, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestre.value[3].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
   ],
-    [
-      { footer: 'Total', colspan: 2 },
-      { footer: previSemestre.value[4].CM, colspan: 3, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-      { footer: previSemestre.value[4].TD, colspan: 3, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-      { footer: previSemestre.value[4].TP, colspan: 3, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-    ]
+  [
+    { footer: 'Total', colspan: 2 },
+    { footer: previSemestre.value[4].CM, colspan: 3, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[4].TD, colspan: 3, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[4].TP, colspan: 3, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  ]
 ]);
 
 const footerColsForm = computed(() => [
