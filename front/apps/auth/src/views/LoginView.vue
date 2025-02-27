@@ -24,8 +24,16 @@ const handleSubmit = async () => {
       username: username.value,
       password: password.value
     });
-    localStorage.setItem('token', response.data.token);
-    document.cookie = `token=${response.data.token}; path=/; domain=.localhost; secure; SameSite=Lax`;
+
+    console.log('API response:', response.data); // Log de la réponse de l'API
+
+    const token = response.data.token;
+    if (!token) {
+      throw new Error('Token non valide');
+    }
+
+    localStorage.setItem('token', token);
+    document.cookie = `token=${token}; path=/; domain=.localhost; secure; SameSite=Lax`;
 
     location.reload();
     location.href = '/auth/portail';
