@@ -81,7 +81,6 @@ const getFieldValue = (data, field) => {
 
           <InputText v-if="col.form && col.formType === 'text'" v-model="slotProps.data[col.field]" :placeholder="getFieldValue(slotProps.data, col.field)" @input="col.formAction(getFieldValue(slotProps.data, col.id), col.type, $event.target.value)" class="max-w-20"/>
 
-
           <Select v-else-if="col.form && col.formType === 'select'"
                   v-model="slotProps.data[col.field]"
                   :options="col.formOptions"

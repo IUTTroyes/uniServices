@@ -124,15 +124,16 @@ FOREIGN_KEY_CHECKS=1');
             $previsionnel->setEnseignement($enseignement);
             $previsionnel->setReferent($previ['referent']);
             $previsionnel->setHeures([
-                    'CM' => $previ['nbHCm'],
-                    'TD' => $previ['nbHTd'],
-                    'TP' => $previ['nbHTp'],
-                    'Projet' => 0,
+                'CM' => $previ['nbHCm'],
+                'TD' => $previ['nbHTd'],
+                'TP' => $previ['nbHTp'],
+                'Projet' => 0,
             ]);
             $previsionnel->setGroupes([
-                    'CM' => $previ['nbGrCm'],
-                    'TD' => $previ['nbGrTd'],
-                    'TP' => $previ['nbGrTp'],
+                'CM' => $previ['nbGrCm'],
+                'TD' => $previ['nbGrTd'],
+                'TP' => $previ['nbGrTp'],
+                'Projet' => 0,
             ]);
 
             $this->entityManager->persist($previsionnel);
@@ -160,15 +161,16 @@ FOREIGN_KEY_CHECKS=1');
             $previsionnel->setEnseignement($enseignement);
             $previsionnel->setReferent($previ['referent']);
             $previsionnel->setHeures([
-                    'CM' => $previ['nbHCm'],
-                    'TD' => $previ['nbHTd'],
-                    'TP' => $previ['nbHTp'],
-                    'Projet' => 0,
+                'CM' => $previ['nbHCm'],
+                'TD' => $previ['nbHTd'],
+                'TP' => $previ['nbHTp'],
+                'Projet' => 0,
             ]);
             $previsionnel->setGroupes([
-                    'CM' => $previ['nbGrCm'],
-                    'TD' => $previ['nbGrTd'],
-                    'TP' => $previ['nbGrTp'],
+                'CM' => $previ['nbGrCm'],
+                'TD' => $previ['nbGrTd'],
+                'TP' => $previ['nbGrTp'],
+                'Projet' => 0,
             ]);
 
             $this->entityManager->persist($previsionnel);
@@ -196,15 +198,16 @@ FOREIGN_KEY_CHECKS=1');
             $previsionnel->setEnseignement($enseignement);
             $previsionnel->setReferent($previ['referent']);
             $previsionnel->setHeures([
-                    'CM' => $previ['nbHCm'],
-                    'TD' => $previ['nbHTd'],
-                    'TP' => $previ['nbHTp'],
-                    'Projet' => 0,
+                'CM' => $previ['nbHCm'],
+                'TD' => $previ['nbHTd'],
+                'TP' => $previ['nbHTp'],
+                'Projet' => 0,
             ]);
             $previsionnel->setGroupes([
-                    'CM' => $previ['nbGrCm'],
-                    'TD' => $previ['nbGrTd'],
-                    'TP' => $previ['nbGrTp'],
+                'CM' => $previ['nbGrCm'],
+                'TD' => $previ['nbGrTd'],
+                'TP' => $previ['nbGrTp'],
+                'Projet' => 0,
             ]);
 
             $this->entityManager->persist($previsionnel);

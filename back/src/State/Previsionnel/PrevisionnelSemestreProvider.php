@@ -108,14 +108,24 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                 $output['previSynthese'][] = $this->syntheseToDto($group);
             }
 
+            $totalCM['Maquette'] = round($totalCM['Maquette'], 1);
+            $totalCM['Previsionnel'] = round($totalCM['Previsionnel'], 1);
+            $totalCM['Diff'] = round($totalCM['Previsionnel'] - $totalCM['Maquette'], 1);
+            $totalTD['Maquette'] = round($totalTD['Maquette'], 1);
+            $totalTD['Previsionnel'] = round($totalTD['Previsionnel'], 1);
+            $totalTD['Diff'] = round($totalTD['Previsionnel'] - $totalTD['Maquette'], 1);
+            $totalTP['Maquette'] = round($totalTP['Maquette'], 1);
+            $totalTP['Previsionnel'] = round($totalTP['Previsionnel'], 1);
+            $totalTP['Diff'] = round($totalTP['Previsionnel'] - $totalTP['Maquette'], 1);
+
             $output['total'] = [
                 'CM' => $totalCM,
                 'TD' => $totalTD,
                 'TP' => $totalTP,
                 'Total' => [
-                    'Maquette' => $totalCM['Maquette'] + $totalTD['Maquette'] + $totalTP['Maquette'],
-                    'Previsionnel' => $totalCM['Previsionnel'] + $totalTD['Previsionnel'] + $totalTP['Previsionnel'],
-                    'Diff' => ($totalCM['Previsionnel'] + $totalTD['Previsionnel'] + $totalTP['Previsionnel']) - ($totalCM['Maquette'] + $totalTD['Maquette'] + $totalTP['Maquette'])
+                    'Maquette' => round($totalCM['Maquette'] + $totalTD['Maquette'] + $totalTP['Maquette'], 1),
+                    'Previsionnel' => round($totalCM['Previsionnel'] + $totalTD['Previsionnel'] + $totalTP['Previsionnel'], 1),
+                    'Diff' => round(($totalCM['Previsionnel'] + $totalTD['Previsionnel'] + $totalTP['Previsionnel']) - ($totalCM['Maquette'] + $totalTD['Maquette'] + $totalTP['Maquette']), 1)
                 ]
             ];
 
@@ -123,7 +133,7 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                 'CM' => [
                     'NbHrAttendu' => $nbHrAttenduCM,
                     'NbHrSaisi' => $nbHrSaisiCM,
-                    'Diff' => $nbHrSaisiCM - $nbHrAttenduCM,
+                    'Diff' => round($nbHrSaisiCM - $nbHrAttenduCM, 1),
                 ],
                 'TD' => [
                     'NbHrAttendu' => $nbHrAttenduTD,
@@ -142,6 +152,11 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                 'TD' => $totalTD['Previsionnel'],
                 'TP' => 0,
                 'Total' => 0
+            ];
+
+            $output['TotalEquTd'] = [
+                'TotalClassique' => $totalCM['Previsionnel'] + $totalTD['Previsionnel'] + $totalTP['Previsionnel'],
+                'TotalTd' => $totalCM['Previsionnel'] * $item->getEnseignement()::MAJORATION_CM + $totalTD['Previsionnel'] + $totalTP['Previsionnel'],
             ];
 
             return $output;
@@ -217,7 +232,7 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                 ],
                 'Projet' => [
                     'NbHrGrp' => $item->getHeures()['Projet'],
-//                    'NbGrp' => $item['Projet'],
+                    'NbGrp' => $item->getGroupes()['Projet'],
                     'NbSeanceGrp' => ($item->getHeures()['Projet'] / $item::DUREE_SEANCE),
                 ],
             ]

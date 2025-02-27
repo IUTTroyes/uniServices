@@ -202,7 +202,6 @@ const footerCols = computed(() => [
             :topHeaderCols="topHeaderCols"
             :additionalRows="additionalRows"
             :footerCols="footerCols"
-            :footerRows="footerRows"
             :data="previSemestreAnneeUniv[0]"
             :size="size.value"
             :headerTitle="`Prévisionnel de l'année ${selectedAnneeUniv?.libelle}`"

@@ -65,7 +65,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(PrevisionnelFilter::class)]
 class Previsionnel
 {
-    //todo: régler en fonction du dept ou enlever le champ ?
     public const DUREE_SEANCE = 1;
 
     #[ORM\Id]
@@ -242,10 +241,12 @@ class Previsionnel
             'CM' =>  0,
             'TD' => 0,
             'TP' => 0,
+            'Projet' => 0,
         ]);
 
         $resolver->setAllowedTypes('CM', 'int');
         $resolver->setAllowedTypes('TD', 'int');
         $resolver->setAllowedTypes('TP', 'int');
+        $resolver->setAllowedTypes('Projet', 'int');
     }
 }
