@@ -191,6 +191,12 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
       }
     };
 
+    watch(isEditing, (newIsEditing) => {
+      if (!newIsEditing) {
+        getPrevi(selectedSemestre.value.id);
+      }
+    });
+
 // ------------------------------------------------------------------------------------------------------------
 // ---------------------------------------SYNTHESE------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------
@@ -295,7 +301,7 @@ const additionalRowsForm = computed(() => [
     { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
   ],
   [
-    { footer: '', colspan: 4, class: '!text-center !font-bold'},
+    { footer: '', colspan: 2, class: '!text-center !font-bold'},
     { footer: 'Nb hr attendu', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !font-bold' },
     { footer: 'Nb hr saisi', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !font-bold' },
     { footer: 'Diff', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !font-bold' },
@@ -307,7 +313,7 @@ const additionalRowsForm = computed(() => [
     { footer: 'Diff', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap !font-bold' },
   ],
   [
-    { footer: 'Vérification du total d\'heures par étudiant', colspan: 4 },
+    { footer: 'Vérification du total d\'heures par étudiant', colspan: 2 },
     { footer: previSemestre.value[3].CM.NbHrAttendu, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestre.value[3].CM.NbHrSaisi, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestre.value[3].CM.Diff, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
@@ -319,18 +325,18 @@ const additionalRowsForm = computed(() => [
     { footer: previSemestre.value[3].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
   ],
   [
-    { footer: 'Total', colspan: 4 },
+    { footer: 'Total', colspan: 2 },
     { footer: previSemestre.value[4].CM, colspan: 3, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestre.value[4].TD, colspan: 3, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestre.value[4].TP, colspan: 3, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
   ],
   [
-    { footer: '', colspan: 4},
+    { footer: '', colspan: 2},
     { footer: 'Classique', colspan: 4, class: '!text-nowrap !text-center font-bold' },
     { footer: 'Équivalent TD', colspan: 5, class: '!text-nowrap !text-center font-bold' },
   ],
   [
-    { footer: 'Total d\'heures', colspan: 4},
+    { footer: 'Total d\'heures', colspan: 2},
     { footer: previSemestre.value[5].TotalClassique, colspan: 4, class: '!text-nowrap !text-center', unit: ' h' },
     { footer: previSemestre.value[5].TotalTd, colspan: 5, class: '!text-nowrap !text-center', unit: ' h' },
   ],
