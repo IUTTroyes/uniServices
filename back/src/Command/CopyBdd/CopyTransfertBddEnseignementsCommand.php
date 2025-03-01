@@ -104,12 +104,10 @@ FOREIGN_KEY_CHECKS=1');
                 $matiere->setCodeEnseignement($mat['code_matiere']);
                 $matiere->setCodeApogee($mat['code_element']);
                 $matiere->setHeures([
-                    'heures' => [
-                        'CM' => ['PN' => (float)$mat['cm_ppn'], 'IUT' => (float)$mat['cm_formation']],
-                        'TD' => ['PN' => (float)$mat['td_ppn'], 'IUT' => (float)$mat['td_formation']],
-                        'TP' => ['PN' => (float)$mat['tp_ppn'], 'IUT' => (float)$mat['tp_formation']],
-                        'Projet' => ['PN' => 0, 'IUT' => 0],
-                    ],
+                    'CM' => ['PN' => (float)$mat['cm_ppn'], 'IUT' => (float)$mat['cm_formation']],
+                    'TD' => ['PN' => (float)$mat['td_ppn'], 'IUT' => (float)$mat['td_formation']],
+                    'TP' => ['PN' => (float)$mat['tp_ppn'], 'IUT' => (float)$mat['tp_formation']],
+                    'Projet' => ['PN' => 0, 'IUT' => 0],
                 ]);
                 $matiere->setType(TypeEnseignementEnum::TYPE_MATIERE);
                 $matiere->setBonification((bool)$mat['pac']);
@@ -158,12 +156,10 @@ FOREIGN_KEY_CHECKS=1');
                 $matiere->setCodeEnseignement($mat['code_matiere']);
                 $matiere->setCodeApogee($mat['code_element']);
                 $matiere->setHeures([
-                    'heures' => [
-                        'CM' => ['PN' => (float)$mat['cm_ppn'], 'IUT' => (float)$mat['cm_formation']],
-                        'TD' => ['PN' => (float)$mat['td_ppn'], 'IUT' => (float)$mat['td_formation']],
-                        'TP' => ['PN' => (float)$mat['tp_ppn'], 'IUT' => (float)$mat['tp_formation']],
-                        'Projet' => ['PN' => 0, 'IUT' => 0],
-                    ],
+                    'CM' => ['PN' => (float)$mat['cm_ppn'], 'IUT' => (float)$mat['cm_formation']],
+                    'TD' => ['PN' => (float)$mat['td_ppn'], 'IUT' => (float)$mat['td_formation']],
+                    'TP' => ['PN' => (float)$mat['tp_ppn'], 'IUT' => (float)$mat['tp_formation']],
+                    'Projet' => ['PN' => 0, 'IUT' => 0],
                 ]);
                 $matiere->setType(TypeEnseignementEnum::TYPE_MATIERE);
                 $matiere->setBonification((bool)$mat['pac']);
@@ -224,12 +220,10 @@ FOREIGN_KEY_CHECKS=1');
             $matiere->setCodeEnseignement($mat['code_matiere']);
             $matiere->setCodeApogee($mat['code_element']);
             $matiere->setHeures([
-                'heures' => [
-                    'CM' => ['PN' => (float)$mat['cm_ppn'], 'IUT' => (float)$mat['cm_formation']],
-                    'TD' => ['PN' => (float)$mat['td_ppn'], 'IUT' => (float)$mat['td_formation']],
-                    'TP' => ['PN' => (float)$mat['tp_ppn'], 'IUT' => (float)$mat['tp_formation']],
-                    'Projet' => ['PN' => 0, 'IUT' => 0],
-                ],
+                'CM' => ['PN' => (float)$mat['cm_ppn'], 'IUT' => (float)$mat['cm_formation']],
+                'TD' => ['PN' => (float)$mat['td_ppn'], 'IUT' => (float)$mat['td_formation']],
+                'TP' => ['PN' => (float)$mat['tp_ppn'], 'IUT' => (float)$mat['tp_formation']],
+                'Projet' => ['PN' => 0, 'IUT' => 0],
             ]);
             $matiere->setType(TypeEnseignementEnum::TYPE_RESSOURCE);
             $matiere->setBonification(false);
@@ -251,8 +245,8 @@ FOREIGN_KEY_CHECKS=1');
              */
             $this->entityManager->persist($matiere);
             //todo: traiter les ressources enfants a ajouter dans l'API
-           // $this->tMatieres[$mat['id']] = $matiere;
-           // dump($mat['id']);
+            // $this->tMatieres[$mat['id']] = $matiere;
+            // dump($mat['id']);
             // récupérer les dépendances de ApcRessources : ApprentissagesCrtiques, Competences, semestre
             $taddUes = [];
             if (array_key_exists('ues', $mat)) {
@@ -368,12 +362,10 @@ FOREIGN_KEY_CHECKS=1');
             $matiere->setCodeEnseignement($mat['code_matiere']);
             $matiere->setCodeApogee($mat['code_element']);
             $matiere->setHeures([
-                'heures' => [
-                    'CM' => ['PN' => (float)$mat['cm_ppn'], 'IUT' => (float)$mat['cm_formation']],
-                    'TD' => ['PN' => (float)$mat['td_ppn'], 'IUT' => (float)$mat['td_formation']],
-                    'TP' => ['PN' => (float)$mat['tp_ppn'], 'IUT' => (float)$mat['tp_formation']],
-                    'Projet' => ['PN' => (float)$mat['projet_ppn'], 'IUT' => (float)$mat['projet_formation']],
-                ],
+                'CM' => ['PN' => (float)$mat['cm_ppn'], 'IUT' => (float)$mat['cm_formation']],
+                'TD' => ['PN' => (float)$mat['td_ppn'], 'IUT' => (float)$mat['td_formation']],
+                'TP' => ['PN' => (float)$mat['tp_ppn'], 'IUT' => (float)$mat['tp_formation']],
+                'Projet' => ['PN' => (float)$mat['projet_ppn'], 'IUT' => (float)$mat['projet_formation']],
             ]);
             $matiere->setType(TypeEnseignementEnum::TYPE_SAE);
             $matiere->setBonification(false);
@@ -390,7 +382,7 @@ FOREIGN_KEY_CHECKS=1');
 ??
              */
             $this->entityManager->persist($matiere);
-          //  $this->tMatieres[$mat['id']] = $matiere;
+            //  $this->tMatieres[$mat['id']] = $matiere;
 
             // récupérer les dépendances de ApcRessources : ApprentissagesCrtiques, Competences, semestre
             $taddUes = [];

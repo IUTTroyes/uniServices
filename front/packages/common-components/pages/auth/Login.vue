@@ -12,10 +12,10 @@ const handleSubmit = async () => {
       username: username.value,
       password: password.value
     });
-    console.log('Login successful:', response.data);
-    localStorage.setItem('token', response.data.token);
-    document.cookie = `token=${response.data.token}; Secure; SameSite=None`;
-    location.reload();
+    console.log('api response', response.data);
+    // localStorage.setItem('token', response.data.token);
+    // document.cookie = `token=${response.data.token}; Secure; SameSite=None`;
+    // location.reload();
   } catch (error) {
     console.error('Login failed:', error.response.data);
     // Handle login error (e.g., show error message)

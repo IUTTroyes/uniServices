@@ -138,6 +138,9 @@ const topHeaderCols = ref([
 
 const additionalRows = computed(() => [
   [
+    { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
+  ],
+  [
     { footer: 'Total', colspan: 3 },
     { footer: previSemestreAnneeUniv.value[1].TotalCM, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestreAnneeUniv.value[1].TotalTD, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
@@ -162,10 +165,6 @@ const additionalRows = computed(() => [
     { footer: previSemestreAnneeUniv.value[2].Autre, colspan: 1, unit: ' %' },
     { footer: '', colspan: 2 },
   ],
-]);
-
-const footerRows = ref([
-  { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
 ]);
 
 const footerCols = computed(() => [
@@ -203,7 +202,6 @@ const footerCols = computed(() => [
             :topHeaderCols="topHeaderCols"
             :additionalRows="additionalRows"
             :footerCols="footerCols"
-            :footerRows="footerRows"
             :data="previSemestreAnneeUniv[0]"
             :size="size.value"
             :headerTitle="`Prévisionnel de l'année ${selectedAnneeUniv?.libelle}`"
