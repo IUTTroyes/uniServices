@@ -1,6 +1,7 @@
 import ConfigurationView from '@/views/ConfigurationView.vue'
 import TypeDiplomeView from '@/views/configuration/TypeDiplomeView.vue'
 import AnneeUniversitaireView from '@/views/configuration/AnneeUniversitaireView.vue'
+import GestionAccesView from '@/views/configuration/GestionAccesView.vue'
 
 export default [
   {
@@ -42,4 +43,18 @@ export default [
       }]
     },
   },
+  {
+    path: 'gestion-acces',
+    component: GestionAccesView,
+    name: 'gestion-acces',
+    meta: {
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Gestion des accès',
+        route: null
+      }]
+    },
+  }
 ]

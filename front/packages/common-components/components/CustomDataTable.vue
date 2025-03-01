@@ -85,6 +85,10 @@ const onSortChange = async (event) => {
   sortOrder.value = event.sortOrder
   await fetchData()
 }
+
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+}
 </script>
 
 <template>
@@ -121,7 +125,7 @@ const onSortChange = async (event) => {
             :sortable="col.sortable"
     >
       <template #body="slotProps" v-if="col.type === undefined">
-        {{ slotProps.data[col.field] }}
+        {{ getNestedValue(slotProps.data, col.field) }}
       </template>
       <template #body="slotProps" v-else-if="col.type === 'boolean'">
         <ToggleSwitch

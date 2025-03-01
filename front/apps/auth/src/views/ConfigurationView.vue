@@ -6,7 +6,7 @@ import Logo from '@components/components/Logo.vue'
 import { onMounted } from 'vue'
 
 const panelMenuUserItems = [
-  { label: 'Gestion des accès', icon: 'pi pi-users', route: '/configuration/gestion-access' },
+  { label: 'Gestion des accès', icon: 'pi pi-users', route: '/configuration/gestion-acces' },
 ]
 
 const panelMenuItems = [

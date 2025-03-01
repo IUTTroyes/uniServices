@@ -296,7 +296,7 @@ FOREIGN_KEY_CHECKS=1');
             }
             $depPers->setPersonnel($this->tPersonnels[$persDept['personnel_id']]);
             $depPers->setDefaut((bool)$persDept['defaut']);
-            $depPers->setRoles(json_decode($persDept['roles'], true) ?? []);
+            $depPers->setRoles(['intranet' => json_decode($persDept['roles'], true)] ?? []);
 
             $this->entityManager->persist($depPers);
 //            $this->io->info('Personnel : ' . $this->tPersonnels[$persDept['personnel_id']]->getNom() . ' ajouté au département ' . $this->tDepartements[$persDept['departement_id']]->getLibelle());
