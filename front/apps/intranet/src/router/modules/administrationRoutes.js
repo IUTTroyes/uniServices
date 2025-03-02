@@ -1,5 +1,6 @@
 import {LayoutComponent} from "@components";
 import previsionnelRoutes from './previsionnelRoutes.js'
+import stageAdministrationRoutes from './stageAdministrationRoutes.js'
 
 export default [
   {
@@ -44,6 +45,19 @@ export default [
     },
     children: [
       ...previsionnelRoutes
+    ]
+  },
+  {
+    path: 'administration/stages',
+    // component: () => import('@/views/Stages/AdministrationView.vue'),
+    // meta: {
+    //   breadcrumb: [
+    //     { label: 'Dashboard', route: '/' },
+    //     { label: 'Administration', route: '/administration', icon: 'pi pi-wrench' },
+    //     { label: 'Stages', route: null, icon: 'pi pi-clock' }]
+    // },
+    children: [
+      ...stageAdministrationRoutes
     ]
   },
 

@@ -127,6 +127,9 @@ function getNestedValue(obj, path) {
       <template #body="slotProps" v-if="col.type === undefined">
         {{ getNestedValue(slotProps.data, col.field) }}
       </template>
+      <template #body="slotProps" v-else-if="col.type === 'date'">
+        {{ new Date(getNestedValue(slotProps.data, col.field)).toLocaleDateString() }}
+      </template>
       <template #body="slotProps" v-else-if="col.type === 'boolean'">
         <ToggleSwitch
             @change="col.handler(slotProps.data)"

@@ -11,6 +11,7 @@ use App\Entity\Edt\EdtContraintesSemestre;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Scolarite\ScolEvaluation;
+use App\Entity\Stages\StagePeriode;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -120,6 +121,12 @@ class StructureSemestre
     #[ORM\OneToMany(mappedBy: 'structure_semestre', targetEntity: EtudiantScolariteSemestre::class, cascade: ['persist'])]
     private Collection $etudiantScolariteSemestre;
 
+    /**
+     * @var Collection<int, StagePeriode>
+     */
+    #[ORM\OneToMany(targetEntity: StagePeriode::class, mappedBy: 'semestreProgramme')]
+    private Collection $stagePeriodes;
+
 
 
     public function __construct()
@@ -131,6 +138,7 @@ class StructureSemestre
         $this->scolEdtEvents = new ArrayCollection();
         $this->edtContraintesSemestres = new ArrayCollection();
         $this->etudiantScolariteSemestre = new ArrayCollection();
+        $this->stagePeriodes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -438,5 +446,35 @@ class StructureSemestre
     public function setEtudiantScolariteSemestre(Collection $etudiantScolariteSemestre): void
     {
         $this->etudiantScolariteSemestre = $etudiantScolariteSemestre;
+    }
+
+    /**
+     * @return Collection<int, StagePeriode>
+     */
+    public function getStagePeriodes(): Collection
+    {
+        return $this->stagePeriodes;
+    }
+
+    public function addStagePeriode(StagePeriode $stagePeriode): static
+    {
+        if (!$this->stagePeriodes->contains($stagePeriode)) {
+            $this->stagePeriodes->add($stagePeriode);
+            $stagePeriode->setSemestreProgramme($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStagePeriode(StagePeriode $stagePeriode): static
+    {
+        if ($this->stagePeriodes->removeElement($stagePeriode)) {
+            // set the owning side to null (unless already changed)
+            if ($stagePeriode->getSemestreProgramme() === $this) {
+                $stagePeriode->setSemestreProgramme(null);
+            }
+        }
+
+        return $this;
     }
 }

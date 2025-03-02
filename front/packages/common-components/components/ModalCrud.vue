@@ -1,6 +1,6 @@
 <!-- ModalCrud.vue -->
 <script setup>
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted } from 'vue'
 import { Button, Dialog, InputText } from 'primevue'
 import DynamicFormField from '@components/components/Forms/DynamicFormField.vue'
 import DynamicFormLabel from '@components/components/Forms/DynamicFormLabel.vue'
@@ -10,10 +10,19 @@ import DynamicFormControl from '@components/components/Forms/DynamicFormControl.
 const props = defineProps({
   visible: Boolean,
   data: Object,
-  fields: Object,
+  params: Object,
+  fields: {
+    type: [Object, Function],
+    required: true,
+    validator: value => typeof value === 'object' || typeof value === 'function'
+  },
   serviceMethod: Function,
   onClose: Function,
   onSuccess: Function,
+  width: {
+    type: Number,
+    default: 450
+  },
   mode: {
     type: String,
     required: true,
@@ -21,7 +30,7 @@ const props = defineProps({
   }
 })
 
-console.log(props.fields)
+const resolvedFields = ref(null)
 
 const myForm = ref(null)
 const initialValues = computed(() => {
@@ -29,7 +38,7 @@ const initialValues = computed(() => {
     return { ...props.data }
   } else {
     const values = {}
-    for (const [key, field] of Object.entries(props.fields)) {
+    for (const [key, field] of Object.entries(resolvedFields.value)) {
       values[key] = field.defaultValue || ''
     }
     return values
@@ -38,6 +47,8 @@ const initialValues = computed(() => {
 const isVisible = ref(props.visible)
 const localData = ref({ ...props.data })
 const submitted = ref(false)
+
+
 
 watch(() => props.data, (newData) => {
   localData.value = { ...newData }
@@ -64,10 +75,10 @@ const handleSubmit = async ({ states, valid, values }) => {
       // objet json avec les champs de l'api et leur valeur uniquement
       const data = {}
       for (const [key, value] of Object.entries(states)) {
-        if (props.fields[key]) {
-          if (props.fields[key].typeData === 'int') {
+        if (resolvedFields.value[key]) {
+          if (resolvedFields.value[key].typeData === 'int') {
             data[key] = parseInt(value.value)
-          } else if (props.fields[key].typeData === 'float') {
+          } else if (resolvedFields.value[key].typeData === 'float') {
             data[key] = parseFloat(value.value)
           } else {
             data[key] = value.value
@@ -104,10 +115,19 @@ const resolver = ({ values }) => {
     errors
   }
 }
+
+onMounted(() => {
+  if (typeof props.fields === 'function') {
+    console.log(props.params)
+    resolvedFields.value = props.fields(props.params)
+  } else {
+    resolvedFields.value = props.fields
+  }
+})
 </script>
 
 <template>
-  <Dialog v-model:visible="isVisible" :style="{ width: '450px' }" header="Details" :modal="true">
+  <Dialog v-model:visible="isVisible" :style="{ width: `${width}px` }" header="Details" :modal="true">
     <Form
         v-slot="$form"
         ref="myForm"
@@ -116,7 +136,7 @@ const resolver = ({ values }) => {
         @submit="handleSubmit">
       <div class="flex flex-col gap-6">
         <slot v-bind="$form">
-          <template v-for="({ groupId, label, messages, ...rest }, name) in fields" :key="name">
+          <template v-for="({ groupId, label, messages, ...rest }, name) in resolvedFields" :key="name">
             <DynamicFormField :groupId="groupId" :name="name">
               <DynamicFormLabel>{{ label }}</DynamicFormLabel>
               <DynamicFormControl v-bind="rest"/>

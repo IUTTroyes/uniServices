@@ -11,6 +11,7 @@ import ToastService from 'primevue/toastservice';
 import { definePreset } from '@primevue/themes';
 import '@/assets/styles.scss';
 import '@/assets/tailwind.css';
+import fr from '@config/fr.json'
 
 
 const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1];
@@ -40,6 +41,7 @@ const app = createApp(App);
 app.use(router);
 
 app.use(PrimeVue, {
+    locale : fr.fr,
     theme: {
         preset: MyPreset,
         options: {
