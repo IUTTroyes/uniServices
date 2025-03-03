@@ -1,7 +1,13 @@
-<script setup></script>
+<script setup>
+import { initializeToast } from '@helpers/toast.js'
+
+initializeToast()
+</script>
 
 <template>
-    <router-view />
+  <ConfirmDialog></ConfirmDialog>
+
+  <router-view />
 </template>
 
 <style scoped></style>

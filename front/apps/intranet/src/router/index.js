@@ -42,6 +42,8 @@ const router = createRouter({
 });
 
 router.beforeEach(async(to, from, next) => {
+    document.title = to.meta.title ?  (to.meta.title + ' | Intranet - Uniservices ') : 'UniTranet - Uniservices';
+
     const token = localStorage.getItem('token');
     const userStore = useUsersStore();
 

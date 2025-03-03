@@ -53,14 +53,14 @@ class StructureDeptFixtures extends Fixture implements OrderedFixtureInterface
         $personnelDepartement1 = new StructureDepartementPersonnel();
         $personnelDepartement1->setPersonnel($personnel)
             ->setDepartement($departement1)
-            ->setRoles(['ROLE_RESPONSABLE_DEPARTEMENT'])
+            ->setRoles(['intranet' => ['ROLE_RESPONSABLE_DEPARTEMENT']])
             ->setDefaut(true);
         $manager->persist($personnelDepartement1);
 
         $personnelDepartement2 = new StructureDepartementPersonnel();
         $personnelDepartement2->setPersonnel($personnel)
             ->setDepartement($departement2)
-            ->setRoles(['ROLE_PERMANENT'])
+            ->setRoles(['intranet' => ['ROLE_PERMANENT']])
             ->setDefaut(false);
         $manager->persist($personnelDepartement2);
 

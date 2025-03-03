@@ -16,6 +16,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['structure_departement_personnel:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['structure_departement_personnel:read']]),
         new GetCollection(
             uriTemplate: '/structure_departement_personnels/by_personnel/{personnelId}',
             uriVariables: [
@@ -49,7 +50,7 @@ class StructureDepartementPersonnel
     private ?int $id = null;
 
     #[ORM\Column]
-    private array $roles = [];
+    private array $roles = []; //tableau associatif => 'application' => [droits]
 
     #[ORM\Column]
     #[Groups(groups: ['personnel:read', 'structure_departement_personnel:read'])]

@@ -74,6 +74,11 @@ const props = defineProps({
         </a>
       </div>
     </div>
+    <div class="text-center">
+      <a href="/configuration">
+        <i class="pi pi-wrench"> Configurer UniServices</i>
+      </a>
+    </div>
 
   </main>
 </template>

@@ -5,8 +5,11 @@ namespace App\Entity\Structure;
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Edt\EdtContraintesSemestre;
 use App\Entity\Edt\EdtCreneauxInterditsSemaine;
@@ -14,6 +17,7 @@ use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
+use App\Entity\Stages\StagePeriode;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Users\Personnel;
@@ -30,6 +34,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['structure_annee_universitaire:read']]),
         new GetCollection(normalizationContext: ['groups' => ['structure_annee_universitaire:read']]),
+        new Post(),
+        new Patch(),
+        new Delete()
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
@@ -119,6 +126,12 @@ class StructureAnneeUniversitaire
     #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'anneeUniversitaire')]
     private Collection $previsionnels;
 
+    /**
+     * @var Collection<int, StagePeriode>
+     */
+    #[ORM\OneToMany(targetEntity: StagePeriode::class, mappedBy: 'structureAnneeUniversitaire')]
+    private Collection $stagePeriodes;
+
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
@@ -133,6 +146,7 @@ class StructureAnneeUniversitaire
         $this->edtCreneauxInterditsSemaines = new ArrayCollection();
         $this->edtContraintesSemestres = new ArrayCollection();
         $this->previsionnels = new ArrayCollection();
+        $this->stagePeriodes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -476,6 +490,36 @@ class StructureAnneeUniversitaire
             // set the owning side to null (unless already changed)
             if ($previsionnel->getAnneeUniversitaire() === $this) {
                 $previsionnel->setAnneeUniversitaire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StagePeriode>
+     */
+    public function getStagePeriodes(): Collection
+    {
+        return $this->stagePeriodes;
+    }
+
+    public function addStagePeriode(StagePeriode $stagePeriode): static
+    {
+        if (!$this->stagePeriodes->contains($stagePeriode)) {
+            $this->stagePeriodes->add($stagePeriode);
+            $stagePeriode->setStructureAnneeUniversitaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStagePeriode(StagePeriode $stagePeriode): static
+    {
+        if ($this->stagePeriodes->removeElement($stagePeriode)) {
+            // set the owning side to null (unless already changed)
+            if ($stagePeriode->getStructureAnneeUniversitaire() === $this) {
+                $stagePeriode->setStructureAnneeUniversitaire(null);
             }
         }
 
