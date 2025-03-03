@@ -4,6 +4,7 @@ namespace App\Entity\Previsionnel;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
@@ -61,6 +62,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
         new Patch(normalizationContext: ['groups' => ['previsionnel:read']]),
         new Post(normalizationContext: ['groups' => ['previsionnel:read']]),
+        new Delete(normalizationContext: ['groups' => ['previsionnel:read']]),
     ],
     paginationEnabled: false,
 )]

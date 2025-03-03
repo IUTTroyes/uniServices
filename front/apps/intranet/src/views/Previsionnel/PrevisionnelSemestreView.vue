@@ -213,10 +213,10 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
           anneeUniversitaire: anneeUnivIri,
           referent: false,
           heures: {
-            CM: { NbHrGrp: 0, NbGrp: 0, NbSeanceGrp: 0 },
-            TD: { NbHrGrp: 0, NbGrp: 0, NbSeanceGrp: 0 },
-            TP: { NbHrGrp: 0, NbGrp: 0, NbSeanceGrp: 0 },
-            Projet: { NbHrGrp: 0, NbGrp: 0, NbSeanceGrp: 0 },
+            CM: 0,
+            TD: 0,
+            TP: 0,
+            Projet: 0,
           },
           groupes: {
             CM: 0,
@@ -229,6 +229,18 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
         await apiCall(previService.create,[dataNewPrevi], 'Prévisionnel créé', 'Une erreur est survenue lors de la création du prévisionnel');
       } catch (error) {
         console.error('Erreur lors de la création du prévisionnel:', error);
+      } finally {
+        getPrevi(selectedSemestre.value);
+      }
+    };
+
+    const deletePrevi = async (id) => {
+      try {
+        await apiCall(previService.delete, [id], 'Prévisionnel supprimé', 'Une erreur est survenue lors de la suppression du prévisionnel');
+      } catch (error) {
+        console.error('Erreur lors de la suppression du prévisionnel:', error);
+      } finally {
+        getPrevi(selectedSemestre.value);
       }
     };
 
@@ -316,7 +328,7 @@ const columnsForm = ref([
   { header: 'Séances', field: 'heures.TP.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !max-w-20', form: false },
 
   { header: 'Dupliquer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-copy', buttonAction: () => {}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn' },
-  { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', buttonAction: () => {}, buttonClass: () => '!w-full', buttonSeverity: () => 'danger' },
+  { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', id: 'id', buttonAction: (id) => {deletePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'danger' },
 ]);
 
 const topHeaderColsForm = ref([
