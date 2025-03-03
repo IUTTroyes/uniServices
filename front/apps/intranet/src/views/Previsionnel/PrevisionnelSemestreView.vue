@@ -9,7 +9,10 @@ import {
   updatePreviPersonnelService,
   updatePreviService
 } from '@requests';
+import createApiService from "@requests/apiService.js";
+const previService = createApiService('/api/previsionnels');
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
+import apiCall from "@helpers/apiCall.js";
 
 const usersStore = useUsersStore();
 const semestreStore = useSemestreStore();
@@ -21,7 +24,9 @@ const semestresList = ref([]);
 const selectedSemestre = ref(null);
 const semestreDetails = ref(null);
 const enseignementsList = ref([]);
+const selectedEnseignement = ref(null);
 const personnelsList = ref([]);
+const selectedPersonnel = ref(null);
 
 
 const anneesUnivList = ref([]);
@@ -197,6 +202,36 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
       }
     });
 
+    const addPrevi = async (personnel, enseignement) => {
+      try {
+        console.log(personnel, enseignement)
+        const personnelIri = `/api/personnels/${personnel.personnel.id}`;
+        const enseignementIri = `/api/scol_enseignements/${enseignement.id}`;
+        const anneeUnivIri = `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`;
+        const dataNewPrevi = {
+          personnel: personnelIri,
+          anneeUniversitaire: anneeUnivIri,
+          referent: false,
+          heures: {
+            CM: { NbHrGrp: 0, NbGrp: 0, NbSeanceGrp: 0 },
+            TD: { NbHrGrp: 0, NbGrp: 0, NbSeanceGrp: 0 },
+            TP: { NbHrGrp: 0, NbGrp: 0, NbSeanceGrp: 0 },
+            Projet: { NbHrGrp: 0, NbGrp: 0, NbSeanceGrp: 0 },
+          },
+          groupes: {
+            CM: 0,
+            TD: 0,
+            TP: 0,
+            Projet: 0,
+          },
+          enseignement: enseignementIri,
+        };
+        await apiCall(previService.create,[dataNewPrevi], 'Prévisionnel créé', 'Une erreur est survenue lors de la création du prévisionnel');
+      } catch (error) {
+        console.error('Erreur lors de la création du prévisionnel:', error);
+      }
+    };
+
 // ------------------------------------------------------------------------------------------------------------
 // ---------------------------------------SYNTHESE------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------
@@ -293,9 +328,9 @@ const topHeaderColsForm = ref([
 const additionalRowsForm = computed(() => [
   [
     { footer: 'Ajouter une entrée au prévisionnel', colspan: 2, class: '!text-center !font-bold'},
-    { footer: enseignementsList.value, colspan: 4, form: true, formType: 'select', placeholder: 'Sélectionner une matière' },
-    { footer: personnelsList.value, colspan: 4, form: true, formType: 'select', placeholder: 'Sélectionner un intervenant' },
-    { footer: 'Ajouter', colspan: 3, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => {}, buttonClass: () => '!w-full', buttonSeverity: () => 'success' },
+    { footer: enseignementsList.value, colspan: 4, form: true, formType: 'select', placeholder: 'Sélectionner une matière', formAction: (enseignement) => {selectedEnseignement.value = enseignement} },
+    { footer: personnelsList.value, colspan: 4, form: true, formType: 'select', placeholder: 'Sélectionner un intervenant', formAction: (personnel) => {selectedPersonnel.value = personnel} },
+    { footer: 'Ajouter', colspan: 3, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addPrevi(selectedPersonnel.value, selectedEnseignement.value) }, buttonClass: () => '!w-full', buttonSeverity: () => 'success' },
   ],
   [
     { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},

@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\ApiDto\Previsionnel\PrevisionnelAllPersonnelsDto;
 use App\ApiDto\Previsionnel\PrevisionnelEnseignementDto;
@@ -59,6 +60,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             provider: PrevisionnelPersonnelProvider::class,
         ),
         new Patch(normalizationContext: ['groups' => ['previsionnel:read']]),
+        new Post(normalizationContext: ['groups' => ['previsionnel:read']]),
     ],
     paginationEnabled: false,
 )]

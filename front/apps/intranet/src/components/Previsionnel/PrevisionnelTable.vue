@@ -109,11 +109,11 @@ const getFieldValue = (data, field) => {
             <slot :name="`footer-${d.field}`" :value="d.footer">
               <InputText v-if="d.form && d.formType === 'text'" :value="d.footer" @input="d.footer = $event.target.value"/>
               <Select v-else-if="d.form && d.formType === 'select'"
-                  v-model="d.footer[0]"
-                  :options="d.footer"
-                  optionLabel="label"
-                  :placeholder="d.placeholder"
-                  class="w-full"
+                      :options="d.footer"
+                      optionLabel="label"
+                      :placeholder="d.placeholder"
+                      class="w-full"
+                      @update:modelValue="(newValue) => d.formAction(newValue)"
               />
 
 
