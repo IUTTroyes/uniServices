@@ -1,5 +1,9 @@
 import api from '@helpers/axios';
 
+// ----------------------------------------------
+// ------------------- GET ----------------------
+// ----------------------------------------------
+
 const getSemestrePreviService = async (semestreId, anneeUnivId) => {
     const response = await api.get(`/api/previsionnels_semestre?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}`);
     return response.data.member;
@@ -19,6 +23,10 @@ const getPersonnelPreviService = async (personnelId, anneeUnivId) => {
     const response = await api.get(`/api/previsionnels_personnel?anneeUniversitaire=${anneeUnivId}&personnel=${personnelId}`);
     return response.data.member;
 }
+
+// ----------------------------------------------
+// ------------------- CREATE -------------------
+// ----------------------------------------------
 
 
 // ----------------------------------------------

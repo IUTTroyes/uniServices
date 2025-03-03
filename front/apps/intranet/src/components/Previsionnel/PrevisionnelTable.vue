@@ -91,7 +91,7 @@ const getFieldValue = (data, field) => {
           >
           </Select>
 
-          <Button v-else-if="col.button" :icon="col.buttonIcon" @click="col.buttonAction(col.field)" :class="col.buttonClass(col.field)" :label="col.field" :severity="col.buttonSeverity(col.field)"/>
+          <Button v-else-if="col.button" :icon="col.buttonIcon" @click="col.buttonAction(getFieldValue(slotProps.data, col.id))" :class="col.buttonClass(col.field)" :label="col.field" :severity="col.buttonSeverity(col.field)"/>
 
           <Tag v-else-if="col.tag" class="w-max" :class="col.tagClass(getFieldValue(slotProps.data, col.field))" :severity="col.tagSeverity(getFieldValue(slotProps.data, col.field))" :icon="col.tagIcon(getFieldValue(slotProps.data, col.field))">
             {{ col.tagContent ? col.tagContent(getFieldValue(slotProps.data, col.field)) : getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && col.tagSeverity(getFieldValue(slotProps.data, col.field)) !== 'secondary'"> {{ col.unit }}</span>
@@ -109,11 +109,11 @@ const getFieldValue = (data, field) => {
             <slot :name="`footer-${d.field}`" :value="d.footer">
               <InputText v-if="d.form && d.formType === 'text'" :value="d.footer" @input="d.footer = $event.target.value"/>
               <Select v-else-if="d.form && d.formType === 'select'"
-                  v-model="d.footer[0]"
-                  :options="d.footer"
-                  optionLabel="label"
-                  :placeholder="d.placeholder"
-                  class="w-full"
+                      :options="d.footer"
+                      optionLabel="label"
+                      :placeholder="d.placeholder"
+                      class="w-full"
+                      @update:modelValue="(newValue) => d.formAction(newValue)"
               />
 
 
