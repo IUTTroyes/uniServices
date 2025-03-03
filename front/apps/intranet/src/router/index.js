@@ -2,6 +2,7 @@ import { LayoutComponent } from '@components';
 import { createRouter, createWebHistory } from 'vue-router';
 import dashboardRoutes from './modules/dashboardRoutes';
 import agendaRoutes from "./modules/agendaRoutes.js";
+import trombinoscopeRoutes from "./modules/trombinoscopeRoutes.js";
 import profilRoutes from "./modules/profilRoutes.js";
 import administrationRoutes from "./modules/administrationRoutes.js";
 import {useUsersStore} from "@stores";
@@ -34,6 +35,7 @@ const router = createRouter({
             children: [
                 ...dashboardRoutes,
                 ...agendaRoutes,
+                ...trombinoscopeRoutes,
                 ...profilRoutes,
                 ...administrationRoutes
             ]

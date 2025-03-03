@@ -1,5 +1,3 @@
-import {LayoutComponent} from "@components";
-
 export default [
     {
         path: 'agenda',
