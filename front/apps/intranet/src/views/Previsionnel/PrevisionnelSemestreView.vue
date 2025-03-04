@@ -37,7 +37,6 @@ const isLoadingAnneesUniv = ref(false);
 const isLoadingPrevisionnel = ref(true);
 
 const previSemestre = ref(null);
-const previ = ref(null);
 
 const isEditing = ref(false);
 
@@ -134,105 +133,111 @@ watch(searchTerm, (newTerm) => {
 });
 
 const updateHeuresPrevi = async (previId, type, valeur) => {
-      try {
-        // Récupérer le prévisionnel à modifier
-        let previForm = previSemestre.value[0].find(previ => previ.id === previId);
-        // Mettre à jour le nombre d'heures du type concerné
-        previForm.heures[type].NbHrGrp = parseFloat(valeur || 0);
+  try {
+    // Récupérer le prévisionnel à modifier
+    let previForm = previSemestre.value[0].find(previ => previ.id === previId);
+    // Mettre à jour le nombre d'heures du type concerné
+    previForm.heures[type].NbHrGrp = parseFloat(valeur || 0);
 
-        // Calculer les nouvelles heures
-        const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-          acc[key] = parseFloat(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp);
-          return acc;
-        }, {});
+    // Calculer les nouvelles heures
+    const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+      acc[key] = parseFloat(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp);
+      return acc;
+    }, {});
 
-        // Mettre à jour le prévisionnel
-        await updatePreviService(previId, { heures: newHeures });
+    // Mettre à jour le prévisionnel
+    await updatePreviService(previId, { heures: newHeures });
 
-        // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
-        previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-          acc[key] = {
-            NbHrGrp: previForm.heures[key].NbHrGrp,
-            NbGrp: previForm.heures[key].NbGrp,
-            NbSeanceGrp: Math.round(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp * 10) / 10,
-          };
-          return acc;
-        }, {});
+    // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
+    previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+      acc[key] = {
+        NbHrGrp: previForm.heures[key].NbHrGrp,
+        NbGrp: previForm.heures[key].NbGrp,
+        NbSeanceGrp: Math.round(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp * 10) / 10,
+      };
+      return acc;
+    }, {});
 
-        console.log('previForm', previForm);
-      } catch (error) {
-        console.error('Erreur lors de la mise à jour du prévisionnel:', error);
-      }
+      previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + previ.heures.CM.NbHrGrp, 0) * 10) / 10;
+      previSemestre.value[3].CM.Diff = Math.round((previSemestre.value[3].CM.NbHrSaisi - previSemestre.value[3].CM.NbHrAttendu) * 10) / 10;
+      previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + previ.heures.TD.NbHrGrp, 0) * 10) / 10;
+      previSemestre.value[3].TD.Diff = Math.round((previSemestre.value[3].TD.NbHrSaisi - previSemestre.value[3].TD.NbHrAttendu) * 10) / 10;
+      previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + previ.heures.TP.NbHrGrp, 0) * 10) / 10;
+      previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
+
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du prévisionnel:', error);
+  }
+};
+
+const updateGroupesPrevi = async (previId, type, valeur) => {
+  try {
+    // Récupérer le prévisionnel à modifier
+    let previForm = previSemestre.value[0].find(previ => previ.id === previId);
+    // Mettre à jour le nombre de groupes du type concerné
+    previForm.groupes[type] = parseInt(valeur || 0);
+
+    // Mettre à jour le prévisionnel
+    const newGroupes = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+      acc[key] = previForm.groupes[key];
+      return acc;
+    }, {});
+
+    // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
+    previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+      acc[key] = {
+        NbHrGrp: previForm.heures[key].NbHrGrp,
+        NbGrp: previForm.groupes[key],
+        NbSeanceGrp: previForm.heures[key].NbHrGrp * previForm.groupes[key],
+      };
+      return acc;
+    }, {});
+
+    console.log('previForm', previForm);
+
+    await updatePreviService(previId, { groupes: newGroupes });
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du prévisionnel:', error);
+  }
+};
+
+watch(isEditing, (newIsEditing) => {
+  if (!newIsEditing) {
+    getPrevi(selectedSemestre.value.id);
+  }
+});
+
+const addPrevi = async (personnel, enseignement) => {
+  try {
+    console.log(personnel, enseignement)
+    const personnelIri = `/api/personnels/${personnel.personnel.id}`;
+    const enseignementIri = `/api/scol_enseignements/${enseignement.id}`;
+    const anneeUnivIri = `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`;
+    const dataNewPrevi = {
+      personnel: personnelIri,
+      anneeUniversitaire: anneeUnivIri,
+      referent: false,
+      heures: {
+        CM: 0,
+        TD: 0,
+        TP: 0,
+        Projet: 0,
+      },
+      groupes: {
+        CM: 0,
+        TD: 0,
+        TP: 0,
+        Projet: 0,
+      },
+      enseignement: enseignementIri,
     };
-
-    const updateGroupesPrevi = async (previId, type, valeur) => {
-      try {
-        // Récupérer le prévisionnel à modifier
-        const previForm = previSemestre.value[0].find(previ => previ.id === previId);
-        // Mettre à jour le nombre de groupes du type concerné
-        previForm.groupes[type] = parseInt(valeur);
-
-        // Mettre à jour le prévisionnel
-        const newGroupes = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-          acc[key] = previForm.groupes[key];
-          return acc;
-        }, {});
-
-        // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
-        previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-          acc[key] = {
-            NbHrGrp: previForm.heures[key].NbHrGrp,
-            NbGrp: previForm.groupes[key],
-            NbSeanceGrp: previForm.heures[key].NbHrGrp * previForm.groupes[key],
-          };
-          return acc;
-        }, {});
-
-        console.log('previForm', previForm);
-
-        await updatePreviService(previId, { groupes: newGroupes });
-      } catch (error) {
-        console.error('Erreur lors de la mise à jour du prévisionnel:', error);
-      }
-    };
-
-    watch(isEditing, (newIsEditing) => {
-      if (!newIsEditing) {
-        getPrevi(selectedSemestre.value.id);
-      }
-    });
-
-    const addPrevi = async (personnel, enseignement) => {
-      try {
-        console.log(personnel, enseignement)
-        const personnelIri = `/api/personnels/${personnel.personnel.id}`;
-        const enseignementIri = `/api/scol_enseignements/${enseignement.id}`;
-        const anneeUnivIri = `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`;
-        const dataNewPrevi = {
-          personnel: personnelIri,
-          anneeUniversitaire: anneeUnivIri,
-          referent: false,
-          heures: {
-            CM: 0,
-            TD: 0,
-            TP: 0,
-            Projet: 0,
-          },
-          groupes: {
-            CM: 0,
-            TD: 0,
-            TP: 0,
-            Projet: 0,
-          },
-          enseignement: enseignementIri,
-        };
-        await apiCall(previService.create,[dataNewPrevi], 'Prévisionnel créé', 'Une erreur est survenue lors de la création du prévisionnel');
-      } catch (error) {
-        console.error('Erreur lors de la création du prévisionnel:', error);
-      } finally {
-        getPrevi(selectedSemestre.value.id);
-      }
-    };
+    await apiCall(previService.create,[dataNewPrevi], 'Prévisionnel créé', 'Une erreur est survenue lors de la création du prévisionnel');
+  } catch (error) {
+    console.error('Erreur lors de la création du prévisionnel:', error);
+  } finally {
+    getPrevi(selectedSemestre.value.id);
+  }
+};
 
 const duplicatePrevi = async (previId) => {
   try {
@@ -275,15 +280,15 @@ const duplicatePrevi = async (previId) => {
   }
 };
 
-    const deletePrevi = async (id) => {
-      try {
-        await apiCall(previService.delete, [id], 'Prévisionnel supprimé', 'Une erreur est survenue lors de la suppression du prévisionnel');
-      } catch (error) {
-        console.error('Erreur lors de la suppression du prévisionnel:', error);
-      } finally {
-        getPrevi(selectedSemestre.value.id);
-      }
-    };
+const deletePrevi = async (id) => {
+  try {
+    await apiCall(previService.delete, [id], 'Prévisionnel supprimé', 'Une erreur est survenue lors de la suppression du prévisionnel');
+  } catch (error) {
+    console.error('Erreur lors de la suppression du prévisionnel:', error);
+  } finally {
+    getPrevi(selectedSemestre.value.id);
+  }
+};
 
 // ------------------------------------------------------------------------------------------------------------
 // ---------------------------------------SYNTHESE------------------------------------------------
@@ -412,12 +417,12 @@ const additionalRowsForm = computed(() => [
     { footer: previSemestre.value[3].TP.NbHrSaisi, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestre.value[3].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
   ],
-  [
-    { footer: 'Total', colspan: 2 },
-    { footer: previSemestre.value[4].CM, colspan: 3, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-    { footer: previSemestre.value[4].TD, colspan: 3, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-    { footer: previSemestre.value[4].TP, colspan: 3, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  ],
+  // [
+  //   { footer: 'Total', colspan: 2 },
+  //   { footer: previSemestre.value[4].CM, colspan: 3, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  //   { footer: previSemestre.value[4].TD, colspan: 3, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  //   { footer: previSemestre.value[4].TP, colspan: 3, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  // ],
   [
     { footer: '', colspan: 2},
     { footer: 'Classique', colspan: 4, class: '!text-nowrap !text-center font-bold' },

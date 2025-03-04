@@ -81,10 +81,16 @@ class PrevisionnelSemestreProvider implements ProviderInterface
 
                     $output['previForm'][] = $this->formToDto($item);
 
-                    $nbHrSaisiCM += $item->getHeures()['CM'];
-                    $nbHrSaisiTD += $item->getHeures()['TD'];
-                    $nbHrSaisiTP += $item->getHeures()['TP'];
-
+                    // todo: nbH/Gr * NbGrp / nb grp semestre
+                    $nbHrSaisiCM += $item->getGroupes()['CM'] !== 0
+                        ? round($item->getHeures()['CM'] / $item->getGroupes()['CM'], 1)
+                        : $item->getHeures()['CM'];
+                    $nbHrSaisiTD += $item->getGroupes()['TD'] !== 0
+                        ? round($item->getHeures()['TD'] / $item->getGroupes()['TD'], 1)
+                        : $item->getHeures()['TD'];
+                    $nbHrSaisiTP += $item->getGroupes()['TP'] !== 0
+                        ? round($item->getHeures()['TP'] / $item->getGroupes()['TP'], 1)
+                        : $item->getHeures()['TP'];
                 }
             }
 
@@ -132,26 +138,26 @@ class PrevisionnelSemestreProvider implements ProviderInterface
             $output['verifTotalEtudiant'] = [
                 'CM' => [
                     'NbHrAttendu' => $nbHrAttenduCM,
-                    'NbHrSaisi' => $nbHrSaisiCM,
+                    'NbHrSaisi' => round(0, 1),
                     'Diff' => round($nbHrSaisiCM - $nbHrAttenduCM, 1),
                 ],
                 'TD' => [
                     'NbHrAttendu' => $nbHrAttenduTD,
-                    'NbHrSaisi' => $nbHrSaisiTD,
-                    'Diff' => $nbHrSaisiTD - $nbHrAttenduTD,
+                    'NbHrSaisi' => round($nbHrSaisiTD, 1),
+                    'Diff' => round($nbHrSaisiTD - $nbHrAttenduTD, 1),
                 ],
                 'TP' => [
                     'NbHrAttendu' => $nbHrAttenduTP,
-                    'NbHrSaisi' => $nbHrSaisiTP,
-                    'Diff' => $nbHrSaisiTP - $nbHrAttenduTP,
+                    'NbHrSaisi' => round($nbHrSaisiTP, 1),
+                    'Diff' => round($nbHrSaisiTP - $nbHrAttenduTP, 1),
                 ],
             ];
 
             $output['totalForm'] = [
                 'CM' => $totalCM['Previsionnel'],
                 'TD' => $totalTD['Previsionnel'],
-                'TP' => 0,
-                'Total' => 0
+                'TP' => $totalTP['Previsionnel'],
+                'Total' => $totalCM['Previsionnel'] + $totalTD['Previsionnel'] + $totalTP['Previsionnel'],
             ];
 
             $output['TotalEquTd'] = [

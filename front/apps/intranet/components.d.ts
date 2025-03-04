@@ -32,6 +32,7 @@ declare module 'vue' {
     ConfirmDialog: typeof import('primevue/confirmdialog')['default']
     Dashboard: typeof import('./src/components/Etudiant/Dashboard.vue')['default']
     DataTable: typeof import('primevue/datatable')['default']
+    Dialog: typeof import('primevue/dialog')['default']
     EdtJour: typeof import('./src/components/Edt/EdtJour.vue')['default']
     EdtPerso: typeof import('./src/components/Edt/EdtPerso.vue')['default']
     EdtSemestre: typeof import('./src/components/Edt/EdtSemestre.vue')['default']
