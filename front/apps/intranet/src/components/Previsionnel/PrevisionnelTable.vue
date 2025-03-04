@@ -79,7 +79,7 @@ const getFieldValue = (data, field) => {
       <template #body="slotProps">
         <slot :name="`body-${col.field}`" :data="slotProps.data" :value="getFieldValue(slotProps.data, col.field)">
 
-          <InputText v-if="col.form && col.formType === 'text'" v-model="slotProps.data[col.field]" :placeholder="getFieldValue(slotProps.data, col.field)" @input="col.formAction(getFieldValue(slotProps.data, col.id), col.type, $event.target.value)" class="max-w-20"/>
+          <InputText v-if="col.form && col.formType === 'text'" v-model="slotProps.data[col.field]" :placeholder="getFieldValue(slotProps.data, col.field)" @blur="col.formAction(getFieldValue(slotProps.data, col.id), col.type, $event.target.value)" class="max-w-20"/>
 
           <Select v-else-if="col.form && col.formType === 'select'"
                   v-model="slotProps.data[col.field]"

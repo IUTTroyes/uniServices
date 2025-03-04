@@ -31,6 +31,13 @@ const props = defineProps({
   dateFormat: {
     type: String,
     default: 'dd/mm/yy'
+  },
+  validation: {
+    type: Object,
+    default: {
+      validateOnValueUpdate:"false",
+      validateOnBlur:"false",
+    }
   }
 })
 
@@ -92,7 +99,7 @@ const mergedProps = computed(() => {
     </div>
   </div>
   <component v-else :is="component" :id :name="name" class="w-full"
-             v-bind="mergedProps"
+             v-bind="mergedProps" :formControl="validation"
   />
 </template>
 

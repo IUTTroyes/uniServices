@@ -8,19 +8,25 @@ const fields = (params) => reactive({
     defaultValue: '',
     placeholder: 'Ex: Période de stage 1',
     fluid: true,
+    validation: {
+      validateOnBlur:true,
+    }
     // schema: userNameSchema
   },
   structureAnneeUniversitaire: {
     groupId: 'userId_3',
     label: 'Année universitaire',
-    defaultValue: 'PrimeVue',
+    defaultValue: '',
     fluid: true,
     as: 'Select',
     fetchData: async () => {
       const response = await api.get('/api/structure_annee_universitaires');
       return response.data;
     },
-    optionLabel: 'libelle'
+    optionLabel: 'libelle',
+    validation: {
+      validateOnBlur:true,
+    }
     // schema: userNameSchema
   },
   semestreProgramme: {

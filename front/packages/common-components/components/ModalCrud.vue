@@ -1,6 +1,6 @@
 <!-- ModalCrud.vue -->
 <script setup>
-import { ref, watch, computed, onMounted } from 'vue'
+import {ref, watch, computed, onMounted, useTemplateRef} from 'vue'
 import { Button, Dialog, InputText } from 'primevue'
 import DynamicFormField from '@components/components/Forms/DynamicFormField.vue'
 import DynamicFormLabel from '@components/components/Forms/DynamicFormLabel.vue'
@@ -14,7 +14,7 @@ const props = defineProps({
   fields: {
     type: [Object, Function],
     required: true,
-    validator: value => typeof value === 'object' || typeof value === 'function'
+    validator: value => typeof value === 'object' || typeof value === 'function',
   },
   serviceMethod: Function,
   onClose: Function,
@@ -99,17 +99,32 @@ const handleSubmit = async ({ states, valid, values }) => {
   }
 }
 
+const form = useTemplateRef('form')
+
 const resolver = ({ values }) => {
-  console.log('resolver')
-  const errors = { sigle: [] }
+  const errors = [];
 
-  if (!values.sigle) {
-    errors.sigle.push({ type: 'required', message: 'Username is required.' })
-  }
+  Object.keys(resolvedFields.value).forEach(
+    (field) => {
+      errors[field] = []
 
-  if (values.sigle?.length < 3) {
-    errors.sigle.push({ type: 'minimum', message: 'Username must be at least 3 characters long.' })
-  }
+      if (!values[field] && form.value.states[field].touched) {
+        errors[field].push({ type: 'required', message: resolvedFields.value[field].label+'is required.' })
+      }
+
+      if (values[field]?.length < 3 && form.value.states[field].touched) {
+        errors[field].push({ type: 'minimum', message: 'Username must be at least 3 characters long.' })
+      }
+    }
+  )
+
+  // if (!values.libelle) {
+  //   errors.libelle.push({ type: 'required', message: 'Username is required.' })
+  // }
+  //
+  // if (values.libelle?.length < 3) {
+  //   errors.libelle.push({ type: 'minimum', message: 'Username must be at least 3 characters long.' })
+  // }
 
   return {
     errors
@@ -130,16 +145,18 @@ onMounted(() => {
   <Dialog v-model:visible="isVisible" :style="{ width: `${width}px` }" header="Details" :modal="true">
     <Form
         v-slot="$form"
-        ref="myForm"
+        ref="form"
         :initialValues="initialValues"
         :resolver
+        :validateOnValueUpdate="false"
+        :validateOnBlur="false"
         @submit="handleSubmit">
       <div class="flex flex-col gap-6">
         <slot v-bind="$form">
           <template v-for="({ groupId, label, messages, ...rest }, name) in resolvedFields" :key="name">
             <DynamicFormField :groupId="groupId" :name="name">
               <DynamicFormLabel>{{ label }}</DynamicFormLabel>
-              <DynamicFormControl v-bind="rest"/>
+              <DynamicFormControl v-bind="rest" />
               <DynamicFormMessage v-for="(message, index) in messages || [{}]" :key="index" v-bind="message"/>
             </DynamicFormField>
           </template>
