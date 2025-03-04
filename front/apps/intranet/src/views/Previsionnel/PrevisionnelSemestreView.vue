@@ -230,9 +230,50 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
       } catch (error) {
         console.error('Erreur lors de la création du prévisionnel:', error);
       } finally {
-        getPrevi(selectedSemestre.value);
+        getPrevi(selectedSemestre.value.id);
       }
     };
+
+const duplicatePrevi = async (previId) => {
+  try {
+    // Récupérer le prévisionnel à dupliquer
+    const previToDuplicate = previSemestre.value[0].find(previ => previ.id === previId);
+    console.log(previToDuplicate)
+
+    //Calculer les nouvelles heures
+    const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+      acc[key] = parseFloat(previToDuplicate.heures[key].NbHrGrp * previToDuplicate.heures[key].NbGrp);
+      return acc;
+    }, {});
+
+    const personnelIri = `/api/personnels/${previToDuplicate.idPersonnel}`;
+    const enseignementIri = `/api/scol_enseignements/${previToDuplicate.idEnseignement}`;
+    const anneeUnivIri = `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`;
+    const dataNewPrevi = {
+      personnel: personnelIri,
+      anneeUniversitaire: anneeUnivIri,
+      referent: false,
+      heures: {
+        CM: newHeures.CM,
+        TD: newHeures.TD,
+        TP: newHeures.TP,
+        Projet: newHeures.Projet,
+      },
+      groupes: {
+        CM: previToDuplicate.groupes.CM,
+        TD: previToDuplicate.groupes.TD,
+        TP: previToDuplicate.groupes.TP,
+        Projet: previToDuplicate.groupes.Projet,
+      },
+      enseignement: enseignementIri,
+    };
+    await apiCall(previService.create,[dataNewPrevi], 'Prévisionnel dupliqué', 'Une erreur est survenue lors de la duplication du prévisionnel');
+  } catch (error) {
+    console.error('Erreur lors de la duplication du prévisionnel:', error);
+  } finally {
+    getPrevi(selectedSemestre.value.id);
+  }
+};
 
     const deletePrevi = async (id) => {
       try {
@@ -240,7 +281,7 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
       } catch (error) {
         console.error('Erreur lors de la suppression du prévisionnel:', error);
       } finally {
-        getPrevi(selectedSemestre.value);
+        getPrevi(selectedSemestre.value.id);
       }
     };
 
@@ -327,7 +368,7 @@ const columnsForm = ref([
 
   { header: 'Séances', field: 'heures.TP.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !max-w-20', form: false },
 
-  { header: 'Dupliquer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-copy', buttonAction: () => {}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn' },
+  { header: 'Dupliquer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-copy', id: 'id', buttonAction: (id) => {duplicatePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn' },
   { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', id: 'id', buttonAction: (id) => {deletePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'danger' },
 ]);
 
