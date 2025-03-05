@@ -137,7 +137,7 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
     // Récupérer le prévisionnel à modifier
     let previForm = previSemestre.value[0].find(previ => previ.id === previId);
     // Mettre à jour le nombre d'heures du type concerné
-    previForm.heures[type].NbHrGrp = parseFloat(valeur || 0);
+    previForm.heures[type].NbHrGrp = parseFloat(valeur || previForm.heures[type].NbHrGrp || 0);
 
     // Calculer les nouvelles heures
     const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
