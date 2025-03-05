@@ -8,13 +8,15 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\ApiDto\Previsionnel\PrevisionnelSemestreDto;
+use App\Repository\Structure\StructureSemestreRepository;
 
 class PrevisionnelSemestreProvider implements ProviderInterface
 {
 
     public function __construct(
         private CollectionProvider $collectionProvider,
-        private ItemProvider $itemProvider
+        private ItemProvider $itemProvider,
+        private StructureSemestreRepository $semestreRepository
     )
     {
     }
@@ -81,16 +83,20 @@ class PrevisionnelSemestreProvider implements ProviderInterface
 
                     $output['previForm'][] = $this->formToDto($item);
 
-                    // todo: nbH/Gr * NbGrp / nb grp semestre
+                    $semestre = $this->semestreRepository->find($context['filters']['semestre']);
+
+                    // todo: !vérifier! nbHrSaisi = (nbH/Gr * NbGrp) / nb grp semestre
                     $nbHrSaisiCM += $item->getGroupes()['CM'] !== 0
-                        ? round($item->getHeures()['CM'] / $item->getGroupes()['CM'], 1)
-                        : $item->getHeures()['CM'];
+                        ? $item->getHeures()['CM'] / $semestre->getNbGroupesCm()
+                        : 0;
+
                     $nbHrSaisiTD += $item->getGroupes()['TD'] !== 0
-                        ? round($item->getHeures()['TD'] / $item->getGroupes()['TD'], 1)
-                        : $item->getHeures()['TD'];
+                        ? $item->getHeures()['TD'] / $semestre->getNbGroupesTd()
+                        : 0;
+
                     $nbHrSaisiTP += $item->getGroupes()['TP'] !== 0
-                        ? round($item->getHeures()['TP'] / $item->getGroupes()['TP'], 1)
-                        : $item->getHeures()['TP'];
+                        ? $item->getHeures()['TP'] / $semestre->getNbGroupesTp()
+                        : 0;
                 }
             }
 
@@ -138,7 +144,7 @@ class PrevisionnelSemestreProvider implements ProviderInterface
             $output['verifTotalEtudiant'] = [
                 'CM' => [
                     'NbHrAttendu' => $nbHrAttenduCM,
-                    'NbHrSaisi' => round(0, 1),
+                    'NbHrSaisi' => round($nbHrSaisiCM, 1),
                     'Diff' => round($nbHrSaisiCM - $nbHrAttenduCM, 1),
                 ],
                 'TD' => [
