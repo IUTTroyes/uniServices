@@ -3,6 +3,14 @@ import { onMounted, ref } from 'vue'
 import { useSemestreStore } from '@stores'
 import api from '@helpers/axios.js';
 
+import {useUsersStore, useDiplomeStore} from "@stores";
+
+const usersStore = useUsersStore();
+const diplomeStore = useDiplomeStore();
+const departementId = usersStore.departementDefaut.id;
+const diplomesA = await diplomeStore.getDiplomesActifsDepartement(departementId);
+// console.log(diplomesA)
+
 const semestreStore = useSemestreStore()
 
 const diplomes = ref([])
