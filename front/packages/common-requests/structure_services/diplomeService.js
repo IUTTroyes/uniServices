@@ -15,9 +15,9 @@ const getDepartementDiplomesService = async (departementId) => {
     return response.data['member'];
 }
 
-const getDepartementDiplomesActifsService = async (departementId) => {
+const getDiplomesActifsDepartementService = async (departementId) => {
     const response = await api.get(`/api/diplomes-par-departement/${departementId}?actif=true`);
-    return response.data['member'];
+    return response.data.member;
 }
 
-export { getDepartementDiplomesService, getDepartementDiplomesActifsService };
+export { getDepartementDiplomesService, getDiplomesActifsDepartementService };

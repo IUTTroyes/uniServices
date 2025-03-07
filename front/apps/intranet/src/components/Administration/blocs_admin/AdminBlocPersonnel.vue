@@ -2,7 +2,6 @@
 const panelMenuItems = [
   { label: 'Liste des personnels du département', icon: 'pi pi-list', route: '/administration/personnels/' },
   { label: 'Prévisionnels', icon: 'pi pi-clock', route: '/administration/previsionnel/' },
-  { label: 'HRS/Primes', icon: 'pi pi-money-bill', command: () => {} },
 ];
 </script>
 
