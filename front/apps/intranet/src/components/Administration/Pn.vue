@@ -59,6 +59,8 @@ const getDiplomes = async (departementId) => {
 const changeDiplome = (diplome) => {
   selectedDiplome.value = diplome
   selectedPn.value = diplome.structurePns.find(pn => pn.structureAnneeUniversitaires.some(annee => annee.actif))
+
+  nodes.value = transformData(selectedPn.value.structureAnnees);
 }
 
 // Fonction pour transformer les données
