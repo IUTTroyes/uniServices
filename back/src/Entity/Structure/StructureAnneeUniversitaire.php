@@ -81,7 +81,7 @@ class StructureAnneeUniversitaire
     private Collection $personnels;
 
     #[ORM\Column]
-    #[Groups(['structure_annee_universitaire:read'])]
+    #[Groups(['structure_annee_universitaire:read', 'structure_diplome:read'])]
     private bool $actif = false;
 
     /**

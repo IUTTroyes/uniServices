@@ -8,7 +8,7 @@ export const useDiplomeStore = defineStore('diplome', () => {
 
   const getDiplomesActifsDepartement = async (departementId) => {
     try {
-      return await getDiplomesActifsDepartementService(departementId);
+      diplomes.value = await getDiplomesActifsDepartementService(departementId);
     } catch (error) {
       console.error('Error fetching user:', error);
     }

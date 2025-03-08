@@ -14,6 +14,7 @@ use App\Entity\Structure\StructureTypeDiplome;
 use App\Entity\Structure\StructureUe;
 use App\Repository\Apc\ApcApprentissageCritiqueRepository;
 use App\Repository\Apc\ApcCompetenceRepository;
+use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -48,6 +49,7 @@ class CopyTransfertBddStructureCommand extends Command
 
     protected SymfonyStyle $io;
     protected string $base_url;
+    private $structureAnneeUniversitaireRepository;
 
 
     public function __construct(
@@ -55,6 +57,7 @@ class CopyTransfertBddStructureCommand extends Command
         ManagerRegistry                    $managerRegistry,
         ApcApprentissageCritiqueRepository $apcApprentissageCritiqueRepository,
         ApcCompetenceRepository            $apcCompetenceRepository,
+        StructureAnneeUniversitaireRepository $structureAnneeUniversitaireRepository,
         protected HttpClientInterface      $httpClient,
         ParameterBagInterface              $params
     )
@@ -62,6 +65,7 @@ class CopyTransfertBddStructureCommand extends Command
         parent::__construct();
         $this->tCompetences = $apcCompetenceRepository->findAllByOldIdArray();
         $this->tApprentissages = $apcApprentissageCritiqueRepository->findAllByOldIdArray();
+        $this->structureAnneeUniversitaireRepository = $structureAnneeUniversitaireRepository;
         $this->base_url = $params->get('URL_INTRANET_V3');
         $this->httpClient = HttpClient::create([
             'verify_peer' => false,
@@ -89,6 +93,7 @@ FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_semestre');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_ue');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee_universitaire_structure_pn');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee_universitaire');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_ue');
@@ -249,10 +254,25 @@ FOREIGN_KEY_CHECKS=1');
                 $sql = "SELECT * FROM ppn WHERE diplome_id = " . $dip['id'] . " ORDER BY created DESC LIMIT 1";
                 $ppns = $this->em->executeQuery($sql)->fetchAllAssociative();
 
+                //todo: on repart avec tous les PN sur l'année_univ active ou sur leur année_univ de création et on les duplique sur l'année_univ active ?
+//                $anneesUniv = $this->structureAnneeUniversitaireRepository->findAll();
+//                if (!empty($anneesUniv)) {
+//                    $anneeUniv = $anneesUniv[0];
+//                    foreach ($anneesUniv as $au) {
+//                        if (abs($au->getAnnee() - $ppns[0]['annee']) < abs($anneeUniv->getAnnee() - $ppns[0]['annee'])) {
+//                            $anneeUniv = $au;
+//                        }
+//                    }
+//                }
+
+                $anneeUnivPn = $this->structureAnneeUniversitaireRepository->findOneBy(['actif' => true]);
+
+
                 $pn = new StructurePn($diplome);
                 $diplome->addStructurePn($pn);
                 $pn->setLibelle($ppns[0]['libelle']);
                 $pn->setAnneePublication($ppns[0]['annee']);
+                $pn->addStructureAnneeUniversitaire($anneeUnivPn);
                 //todo: referentiel APC
                 $this->entityManager->persist($pn);
                 $this->entityManager->persist($diplome);
@@ -302,6 +322,7 @@ FOREIGN_KEY_CHECKS=1');
                     $diplomeEnfant->addStructurePn($pnE);
                     $pnE->setLibelle($ppns[0]['libelle']);
                     $pnE->setAnneePublication($ppns[0]['annee']);
+                    $pnE->addStructureAnneeUniversitaire($anneeUnivPn);
                     //todo: referentiel APC
                     $this->entityManager->persist($pnE);
 

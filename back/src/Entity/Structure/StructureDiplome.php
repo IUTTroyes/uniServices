@@ -90,7 +90,7 @@ class StructureDiplome
     private ?string $logoPartenaireName = null;
 
     #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome', fetch: 'EAGER')]
-    #[Groups(['structure_diplome:read:full'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
     private Collection $structurePns;
 
     #[ORM\ManyToOne(inversedBy: 'structureDiplomes')]
