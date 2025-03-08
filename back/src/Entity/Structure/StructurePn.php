@@ -53,7 +53,7 @@ class StructurePn
      * @var Collection<int, StructureAnnee>
      */
     #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'pn')]
-    #[Groups(['structure_diplome:read:full'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
     private Collection $structureAnnees;
 
     public function __construct(StructureDiplome $diplome)
