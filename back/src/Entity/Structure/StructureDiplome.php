@@ -101,7 +101,7 @@ class StructureDiplome
     private ?string $apogeeCodeVersion = null;
 
     #[ORM\Column(length: 10, nullable: true)]
-    #[Groups(['structure_diplome:read:full'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
     private ?string $apogeeCodeDiplome = null;
 
     #[ORM\Column(length: 3, nullable: true)]
@@ -116,6 +116,7 @@ class StructureDiplome
     private ?ApcReferentiel $apcReferentiel = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplome')]
+    #[Groups(['structure_diplome:read'])]
     private ?ApcParcours $apcParcours = null;
 
     /**

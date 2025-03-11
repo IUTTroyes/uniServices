@@ -14,6 +14,7 @@ use App\Entity\Structure\StructureTypeDiplome;
 use App\Entity\Structure\StructureUe;
 use App\Repository\Apc\ApcApprentissageCritiqueRepository;
 use App\Repository\Apc\ApcCompetenceRepository;
+use App\Repository\Apc\ApcParcoursRepository;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -58,6 +59,7 @@ class CopyTransfertBddStructureCommand extends Command
         ApcApprentissageCritiqueRepository $apcApprentissageCritiqueRepository,
         ApcCompetenceRepository            $apcCompetenceRepository,
         StructureAnneeUniversitaireRepository $structureAnneeUniversitaireRepository,
+        ApcParcoursRepository             $apcParcoursRepository,
         protected HttpClientInterface      $httpClient,
         ParameterBagInterface              $params
     )
@@ -66,6 +68,7 @@ class CopyTransfertBddStructureCommand extends Command
         $this->tCompetences = $apcCompetenceRepository->findAllByOldIdArray();
         $this->tApprentissages = $apcApprentissageCritiqueRepository->findAllByOldIdArray();
         $this->structureAnneeUniversitaireRepository = $structureAnneeUniversitaireRepository;
+        $this->apcParcoursRepository = $apcParcoursRepository;
         $this->base_url = $params->get('URL_INTRANET_V3');
         $this->httpClient = HttpClient::create([
             'verify_peer' => false,
@@ -203,136 +206,110 @@ FOREIGN_KEY_CHECKS=1');
     }
 
     private function addDiplomes(): void
-    {
-        $sql = "SELECT * FROM diplome WHERE parent_id IS NULL";
-        $diplomes = $this->em->executeQuery($sql)->fetchAllAssociative();
-        foreach ($diplomes as $dip) {
-            if (array_key_exists($dip['departement_id'], $this->tDepartements)) {
+            {
+                $sql = "SELECT * FROM diplome WHERE parent_id IS NULL";
+                $diplomes = $this->em->executeQuery($sql)->fetchAllAssociative();
+                foreach ($diplomes as $dip) {
+                    if (array_key_exists($dip['departement_id'], $this->tDepartements)) {
+                        $apcParcours = $this->apcParcoursRepository->findOneBy(['oldId' => $dip['apc_parcours_id']]);
 
-                $diplome = new StructureDiplome();
-                // $diplome->setResponsableDiplome();
-                $diplome->setDepartement($this->tDepartements[$dip['departement_id']]);
-                $diplome->setLibelle($dip['libelle']);
-                $diplome->setActif((bool)$dip['actif']);
-                $diplome->setSigle($dip['sigle']);
-                $diplome->setKeyEduSign($dip['key_edu_sign']);
-                $diplome->setVolumeHoraire($dip['volume_horaire']);
-                $diplome->setCodeCelcatDepartement($dip['code_celcat_departement']);
-                $diplome->setLogoPartenaire($dip['logo_partenaire']);
-                $diplome->setOpt([
-                    'nb_jours_saisie_absence' => $dip['opt_nb_jours_saisie'],
-                    'supp_absence' => (bool)$dip['opt_suppr_absence'],
-                    'anonymat' => (bool)$dip['opt_anonymat'],
-                    'commentaire_releve' => (bool)$dip['opt_commentaires_releve'],
-                    'espace_perso_visible' => (bool)$dip['opt_espace_perso_visible'],
-                    'semaine_visible' => $dip['opt_semaines_visibles'],
-                    'certif_qualite' => (bool)$dip['opt_certifie_qualite'],
-                    'resp_qualite' => 0,
-                    'update_celcat' => (bool)$dip['opt_update_celcat'],
-                    'saisie_cm_autorisee' => (bool)$dip['saisie_cm_autorise'],
-                ]);
-                $diplome->setApogeeCodeDiplome($dip['code_diplome']);
-                $diplome->setApogeeCodeVersion($dip['code_version']);
-                $diplome->setApogeeCodeDepartement($dip['code_departement']);
-                $diplome->setApogeeCodeDiplome($dip['code_diplome']);
-                $diplome->setApogeeCodeVersion($dip['code_version']);
-                $diplome->setApogeeCodeDepartement($dip['code_departement']);
-                $diplome->setTypeDiplome($this->tTypeDiplomes[$dip['type_diplome_id']]);
-                $diplome->setOldId($dip['id']);
+                        $diplome = new StructureDiplome();
+                        $diplome->setDepartement($this->tDepartements[$dip['departement_id']]);
+                        $diplome->setLibelle($dip['libelle']);
+                        $diplome->setActif((bool)$dip['actif']);
+                        $diplome->setSigle($dip['sigle']);
+                        $diplome->setKeyEduSign($dip['key_edu_sign']);
+                        $diplome->setVolumeHoraire($dip['volume_horaire']);
+                        $diplome->setCodeCelcatDepartement($dip['code_celcat_departement']);
+                        $diplome->setLogoPartenaire($dip['logo_partenaire']);
+                        $diplome->setOpt([
+                            'nb_jours_saisie_absence' => $dip['opt_nb_jours_saisie'],
+                            'supp_absence' => (bool)$dip['opt_suppr_absence'],
+                            'anonymat' => (bool)$dip['opt_anonymat'],
+                            'commentaire_releve' => (bool)$dip['opt_commentaires_releve'],
+                            'espace_perso_visible' => (bool)$dip['opt_espace_perso_visible'],
+                            'semaine_visible' => $dip['opt_semaines_visibles'],
+                            'certif_qualite' => (bool)$dip['opt_certifie_qualite'],
+                            'resp_qualite' => 0,
+                            'update_celcat' => (bool)$dip['opt_update_celcat'],
+                            'saisie_cm_autorisee' => (bool)$dip['saisie_cm_autorise'],
+                        ]);
+                        $diplome->setApogeeCodeDiplome($dip['code_diplome']);
+                        $diplome->setApogeeCodeVersion($dip['code_version']);
+                        $diplome->setApogeeCodeDepartement($dip['code_departement']);
+                        $diplome->setTypeDiplome($this->tTypeDiplomes[$dip['type_diplome_id']]);
+                        $diplome->setApcParcours($apcParcours);
+                        $diplome->setOldId($dip['id']);
 
-                /*
-                 *  "id" => 1
-                  "responsable_diplome_id" => 200
-                  "assistant_diplome_id" => 360
-                  "opt_responsable_qualite_id" => 541
-                  "referentiel_id" => null
-                  "apc_parcours_id" => null
-                 */
-                $this->tDiplomes[$dip['id']] = $diplome;
+                        $this->tDiplomes[$dip['id']] = $diplome;
 
-                //ajout d'un PN
-                $sql = "SELECT * FROM ppn WHERE diplome_id = " . $dip['id'] . " ORDER BY created DESC LIMIT 1";
-                $ppns = $this->em->executeQuery($sql)->fetchAllAssociative();
+                        //ajout d'un PN
+                        $sql = "SELECT * FROM ppn WHERE diplome_id = " . $dip['id'] . " ORDER BY created DESC LIMIT 1";
+                        $ppns = $this->em->executeQuery($sql)->fetchAllAssociative();
 
-                //todo: on repart avec tous les PN sur l'année_univ active ou sur leur année_univ de création et on les duplique sur l'année_univ active ?
-//                $anneesUniv = $this->structureAnneeUniversitaireRepository->findAll();
-//                if (!empty($anneesUniv)) {
-//                    $anneeUniv = $anneesUniv[0];
-//                    foreach ($anneesUniv as $au) {
-//                        if (abs($au->getAnnee() - $ppns[0]['annee']) < abs($anneeUniv->getAnnee() - $ppns[0]['annee'])) {
-//                            $anneeUniv = $au;
-//                        }
-//                    }
-//                }
+                        $anneeUnivPn = $this->structureAnneeUniversitaireRepository->findOneBy(['actif' => true]);
 
-                $anneeUnivPn = $this->structureAnneeUniversitaireRepository->findOneBy(['actif' => true]);
+                        $pn = new StructurePn($diplome);
+                        $pn->setLibelle($ppns[0]['libelle']);
+                        $pn->setAnneePublication($ppns[0]['annee']);
+                        $pn->addStructureAnneeUniversitaire($anneeUnivPn);
+                        $diplome->addStructurePn($pn);
 
+                        $this->entityManager->persist($pn);
+                        $this->entityManager->persist($diplome);
+                        $this->io->info('Diplôme : ' . $dip['libelle'] . ' ajouté pour insertion');
 
-                $pn = new StructurePn($diplome);
-                $diplome->addStructurePn($pn);
-                $pn->setLibelle($ppns[0]['libelle']);
-                $pn->setAnneePublication($ppns[0]['annee']);
-                $pn->addStructureAnneeUniversitaire($anneeUnivPn);
-                //todo: referentiel APC
-                $this->entityManager->persist($pn);
-                $this->entityManager->persist($diplome);
-                $this->io->info('Diplôme : ' . $dip['libelle'] . ' ajouté pour insertion');
+                        $sql = "SELECT * FROM diplome WHERE parent_id = " . $dip['id'];
+                        $diplomesEnfants = $this->em->executeQuery($sql)->fetchAllAssociative();
+                        foreach ($diplomesEnfants as $dipE) {
+                            $apcParcoursEnfant = $this->apcParcoursRepository->findOneBy(['oldId' => $dipE['apc_parcours_id']]);
 
-                $sql = "SELECT * FROM diplome WHERE parent_id = " . $dip['id'];
-                $diplomesEnfants = $this->em->executeQuery($sql)->fetchAllAssociative();
-                foreach ($diplomesEnfants as $dipE) {
-                    $diplomeEnfant = new StructureDiplome();
-                    $diplomeEnfant->setDepartement($this->tDepartements[$dipE['departement_id']]);
-                    $diplomeEnfant->setLibelle($dipE['libelle']);
-                    $diplomeEnfant->setActif((bool)$dipE['actif']);
-                    $diplomeEnfant->setSigle($dipE['sigle']);
-                    $diplomeEnfant->setKeyEduSign($dipE['key_edu_sign']);
-                    $diplomeEnfant->setVolumeHoraire($dipE['volume_horaire']);
-                    $diplomeEnfant->setCodeCelcatDepartement($dipE['code_celcat_departement']);
-                    $diplomeEnfant->setLogoPartenaire($dipE['logo_partenaire']);
-                    $diplomeEnfant->setParent($diplome);
-                    $diplomeEnfant->setTypeDiplome($this->tTypeDiplomes[$dipE['type_diplome_id']]);
-                    $diplomeEnfant->setOldId($dipE['id']);
-                    $diplomeEnfant->setOpt([
-                        'nb_jours_saisie_absence' => $dipE['opt_nb_jours_saisie'],
-                        'supp_absence' => (bool)$dipE['opt_suppr_absence'],
-                        'anonymat' => (bool)$dipE['opt_anonymat'],
-                        'commentaire_releve' => (bool)$dipE['opt_commentaires_releve'],
-                        'espace_perso_visible' => (bool)$dipE['opt_espace_perso_visible'],
-                        'semaine_visible' => $dipE['opt_semaines_visibles'],
-                        'certif_qualite' => (bool)$dipE['opt_certifie_qualite'],
-                        'resp_qualite' => 0,
-                        'update_celcat' => (bool)$dipE['opt_update_celcat'],
-                        'saisie_cm_autorisee' => (bool)$dipE['saisie_cm_autorise'],
-                    ]);
-                    $diplomeEnfant->setApogeeCodeDiplome($dipE['code_diplome']);
-                    $diplomeEnfant->setApogeeCodeVersion($dipE['code_version']);
-                    $diplomeEnfant->setApogeeCodeDepartement($dipE['code_departement']);
+                            $diplomeEnfant = new StructureDiplome();
+                            $diplomeEnfant->setDepartement($this->tDepartements[$dipE['departement_id']]);
+                            $diplomeEnfant->setLibelle($dipE['libelle']);
+                            $diplomeEnfant->setActif((bool)$dipE['actif']);
+                            $diplomeEnfant->setSigle($dipE['sigle']);
+                            $diplomeEnfant->setKeyEduSign($dipE['key_edu_sign']);
+                            $diplomeEnfant->setVolumeHoraire($dipE['volume_horaire']);
+                            $diplomeEnfant->setCodeCelcatDepartement($dipE['code_celcat_departement']);
+                            $diplomeEnfant->setLogoPartenaire($dipE['logo_partenaire']);
+                            $diplomeEnfant->setTypeDiplome($this->tTypeDiplomes[$dipE['type_diplome_id']]);
+                            $diplomeEnfant->setOldId($dipE['id']);
+                            $diplomeEnfant->setOpt([
+                                'nb_jours_saisie_absence' => $dipE['opt_nb_jours_saisie'],
+                                'supp_absence' => (bool)$dipE['opt_suppr_absence'],
+                                'anonymat' => (bool)$dipE['opt_anonymat'],
+                                'commentaire_releve' => (bool)$dipE['opt_commentaires_releve'],
+                                'espace_perso_visible' => (bool)$dipE['opt_espace_perso_visible'],
+                                'semaine_visible' => $dipE['opt_semaines_visibles'],
+                                'certif_qualite' => (bool)$dipE['opt_certifie_qualite'],
+                                'resp_qualite' => 0,
+                                'update_celcat' => (bool)$dipE['opt_update_celcat'],
+                                'saisie_cm_autorisee' => (bool)$dipE['saisie_cm_autorise'],
+                            ]);
+                            $diplomeEnfant->setApogeeCodeDiplome($dipE['code_diplome']);
+                            $diplomeEnfant->setApogeeCodeVersion($dipE['code_version']);
+                            $diplomeEnfant->setApogeeCodeDepartement($dipE['code_departement']);
+                            $diplomeEnfant->setParent($diplome);
+                            $diplomeEnfant->setApcParcours($apcParcoursEnfant);
 
-                    /*
-                      "responsable_diplome_id" => 200
-                      "assistant_diplome_id" => 360
-                      "opt_responsable_qualite_id" => 541
-                      "referentiel_id" => null
-                      "apc_parcours_id" => null
-                     */
-                    $this->tDiplomes[$dipE['id']] = $diplomeEnfant;
-                    //ajout d'un PN
-                    $pnE = new StructurePn($diplomeEnfant);
-                    $diplomeEnfant->addStructurePn($pnE);
-                    $pnE->setLibelle($ppns[0]['libelle']);
-                    $pnE->setAnneePublication($ppns[0]['annee']);
-                    $pnE->addStructureAnneeUniversitaire($anneeUnivPn);
-                    //todo: referentiel APC
-                    $this->entityManager->persist($pnE);
+                            $this->tDiplomes[$dipE['id']] = $diplomeEnfant;
 
-                    $this->entityManager->persist($diplomeEnfant);
+                            //ajout d'un PN
+                            $pnE = new StructurePn($diplomeEnfant);
+                            $pnE->setLibelle($ppns[0]['libelle']);
+                            $pnE->setAnneePublication($ppns[0]['annee']);
+                            $pnE->addStructureAnneeUniversitaire($anneeUnivPn);
+                            $diplomeEnfant->addStructurePn($pnE);
+
+                            $this->entityManager->persist($pnE);
+                            $this->entityManager->persist($diplomeEnfant);
+                        }
+                    }
                 }
-            }
-        }
 
-        $this->entityManager->flush();
-    }
+                $this->entityManager->flush();
+            }
 
     private function addAnnee(): void
     {

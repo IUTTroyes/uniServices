@@ -14,11 +14,6 @@ const selectedPn = ref(null)
 const isLoadingDiplomes = ref(true)
 const isLoadingPn = ref(true)
 
-const nodes = ref([]);
-const columns = ref([
-  { field: 'libelle', header: 'Libellé', expander: true },
-]);
-
 onMounted(async () => {
   if (usersStore.departementDefaut) {
     departementId.value = usersStore.departementDefaut.id;
@@ -59,20 +54,33 @@ const getDiplomes = async (departementId) => {
 const changeDiplome = (diplome) => {
   selectedDiplome.value = diplome
   selectedPn.value = diplome.structurePns.find(pn => pn.structureAnneeUniversitaires.some(annee => annee.actif))
+
+  nodes.value = transformData(selectedPn.value.structureAnnees);
 }
+
+const nodes = ref([]);
+const columns = ref([
+  { field: 'libelle', header: 'Libellé', expander: true },
+  { field: 'apogeeCode', header: 'Code Apogée', expander: false },
+]);
 
 // Fonction pour transformer les données
 const transformData = (data) => {
-  return data.map(item => ({
-    key: item['@id'],
-    data: { libelle: item.libelle },
-    children: item.structureSemestres.map(semestre => ({
+  return data.map(annee => ({
+    key: annee['@id'],
+    data: { libelle: annee.libelle, apogeeCode: annee.apogeeCodeEtape },
+    edit: false,
+    children: annee.structureSemestres.map(semestre => ({
       key: semestre['@id'],
-      data: { libelle: semestre.libelle }
+      data: { libelle: semestre.libelle, apogeeCode: semestre.codeElement },
+      edit: true,
     }))
   }));
 };
 
+const handleEditClick = (id) => {
+  console.log('ID de l\'élément:', id);
+};
 </script>
 
 <template>
@@ -82,7 +90,7 @@ const transformData = (data) => {
       <Tabs :value="selectedDiplome?.id || diplomes[0]?.id" scrollable>
         <TabList>
           <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="changeDiplome(diplome)">
-            <span>{{ diplome.sigle }}</span>
+            <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span>
           </Tab>
         </TabList>
       </Tabs>
@@ -98,11 +106,105 @@ const transformData = (data) => {
       <Button label="Créer un nouveau pn" icon="pi pi-plus" />
     </div>
 
-    <TreeTable :value="nodes" tableStyle="min-width: 50rem">
-      <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header" :expander="col.expander"></Column>
-    </TreeTable>
+    <!--    <TreeTable :value="nodes" tableStyle="min-width: 50rem">-->
+    <!--      <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header" :expander="col.expander"></Column>-->
+    <!--    </TreeTable>-->
+
+
+    <div class="mt-6">
+
+      <div class="text-xl font-bold">{{selectedDiplome?.apcParcours?.display ?? `Pas de parcours`}}</div>
+      <Fieldset v-for="annee in selectedPn?.structureAnnees" legend="Année" :toggleable="true">
+        <Message class="my-6 flex flex-row gap-4">
+          <table class="text-lg">
+            <thead>
+            <tr class="border-b">
+              <th class="px-2 font-normal text-muted-color text-start">Année</th>
+              <th class="px-2 font-normal text-muted-color text-start">Code étape</th>
+              <th class="px-2 font-normal text-muted-color text-start">Code version</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td class="px-2 font-bold">{{ annee.libelle }}</td>
+              <td class="px-2 font-bold">{{ annee.apogeeCodeEtape }}</td>
+              <td class="px-2 font-bold">{{ annee.apogeeCodeVersion }}</td>
+            </tr>
+            </tbody>
+          </table>
+        </Message>
+        <Fieldset v-for="semestre in annee.structureSemestres" legend="Semestre" :toggleable="true">
+          <Message class="my-6 flex flex-row gap-4">
+            <table class="text-lg">
+              <thead>
+              <tr class="border-b">
+                <th class="px-2 font-normal text-muted-color text-start">Semestre</th>
+                <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr>
+                <td class="px-2 font-bold">{{ semestre.libelle }}</td>
+                <td class="px-2 font-bold">{{ semestre.codeElement }}</td>
+              </tr>
+              </tbody>
+            </table>
+          </Message>
+          <Fieldset v-for="ue in semestre.structureUes" legend="UE" :toggleable="true">
+            <Message class="my-6 flex flex-row gap-4">
+              <table class="text-lg">
+                <thead>
+                <tr class="border-b">
+                  <th class="px-2 font-normal text-muted-color text-start">UE</th>
+                  <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td class="px-2 font-bold">{{ue.displayApc}}</td>
+                  <td class="px-2 font-bold">{{ ue.codeElement }}</td>
+                </tr>
+                </tbody>
+              </table>
+            </Message>
+            <Fieldset v-for="enseignementUe in ue.scolEnseignementUes" :legend="`${enseignementUe.enseignement.libelle}`" :toggleable="true">
+
+            </Fieldset>
+          </Fieldset>
+        </Fieldset>
+      </Fieldset>
+
+
+
+      <Timeline :value="selectedPn?.structureAnnees">
+        <template #content="slotProps">
+          {{ slotProps.item.libelle }}
+        </template>
+      </Timeline>
+
+
+      <!--      <TreeTable :value="nodes" tableStyle="min-width: 50rem">-->
+      <!--        <template #header>-->
+      <!--          <div class="text-xl font-bold">{{selectedDiplome?.apcParcours?.display ?? `Pas de parcours`}}</div>-->
+      <!--        </template>-->
+      <!--        <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header" :expander="col.expander"></Column>-->
+      <!--        <Column style="width: 2rem">-->
+      <!--          <template #body="slotProps">-->
+      <!--            <div v-if="slotProps.node.edit" class="flex flex-wrap gap-2">-->
+      <!--              <Button type="button" icon="pi pi-pencil" rounded outlined severity="warn" @click="handleEditClick(slotProps.node.key)" />-->
+      <!--            </div>-->
+      <!--          </template>-->
+      <!--        </Column>-->
+      <!--              <template #footer>-->
+      <!--                <div class="flex justify-start">-->
+      <!--                  <Button icon="pi pi-refresh" label="Reload" severity="warn" />-->
+      <!--                </div>-->
+      <!--              </template>-->
+      <!--      </TreeTable>-->
+    </div>
   </div>
 </template>
 
 <style scoped>
+
 </style>

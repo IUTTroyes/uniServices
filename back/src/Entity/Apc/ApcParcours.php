@@ -11,6 +11,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ApcParcoursRepository::class)]
 class ApcParcours
@@ -24,6 +25,7 @@ class ApcParcours
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 10, nullable: true)]
@@ -62,6 +64,19 @@ class ApcParcours
         $this->groupes = new ArrayCollection();
         $this->apcNiveaux = new ArrayCollection();
         $this->setOpt([]);
+    }
+
+    #[Groups(['structure_diplome:read'])]
+    public function getDisplay(): string
+    {
+        // si il ya formation_continue:true dans la propriété option
+        // on affiche le libellé du parcours suivi de (FC)
+        // sinon on affiche le libellé du parcours
+        if ($this->opt && $this->opt['formation_continue']) {
+            return $this->libelle . ' (FC)';
+        } else {
+            return $this->libelle . ' (FI)';
+        }
     }
 
     public function getId(): ?int

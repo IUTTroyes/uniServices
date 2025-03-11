@@ -42,7 +42,7 @@ class StructureAnnee
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['structure_diplome:read:full'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
@@ -70,9 +70,11 @@ class StructureAnnee
     private Collection $structureSemestres;
 
     #[ORM\Column(length: 3, nullable: true)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $apogeeCodeVersion = null;
 
     #[ORM\Column(length: 10, nullable: true)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $apogeeCodeEtape = null;
 
     #[ORM\ManyToOne(inversedBy: 'annees')]

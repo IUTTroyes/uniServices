@@ -23,7 +23,7 @@ class StructureUe
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'structure_diplome:read'])]
     private string $libelle = '';
 
     #[ORM\Column]
@@ -43,7 +43,7 @@ class StructureUe
     private bool $bonification = false;
 
     #[ORM\Column(length: 15)]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'structure_diplome:read'])]
     private string $codeElement = '';
 
     #[ORM\ManyToOne(inversedBy: 'ues')]
@@ -57,7 +57,7 @@ class StructureUe
      * @var Collection<int, ScolEnseignementUe>
      */
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'ue')]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'structure_diplome:read'])]
     private Collection $scolEnseignementUes;
 
     // todo: add coeff. ?
@@ -65,6 +65,12 @@ class StructureUe
     public function __construct()
     {
         $this->scolEnseignementUes = new ArrayCollection();
+    }
+
+    #[Groups(['structure_diplome:read'])]
+    public function getDisplayApc(): string
+    {
+        return $this->apcCompetence ? $this->libelle.' '.$this->apcCompetence->getLibelle() : $this->libelle;
     }
 
     public function getId(): ?int
