@@ -77,10 +77,6 @@ const transformData = (data) => {
     }))
   }));
 };
-
-const handleEditClick = (id) => {
-  console.log('ID de l\'élément:', id);
-};
 </script>
 
 <template>
@@ -114,73 +110,67 @@ const handleEditClick = (id) => {
     <div class="mt-6">
 
       <div class="text-xl font-bold">{{selectedDiplome?.apcParcours?.display ?? `Pas de parcours`}}</div>
-      <Fieldset v-for="annee in selectedPn?.structureAnnees" legend="Année" :toggleable="true">
-        <Message class="my-6 flex flex-row gap-4">
-          <table class="text-lg">
-            <thead>
-            <tr class="border-b">
-              <th class="px-2 font-normal text-muted-color text-start">Année</th>
-              <th class="px-2 font-normal text-muted-color text-start">Code étape</th>
-              <th class="px-2 font-normal text-muted-color text-start">Code version</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-              <td class="px-2 font-bold">{{ annee.libelle }}</td>
-              <td class="px-2 font-bold">{{ annee.apogeeCodeEtape }}</td>
-              <td class="px-2 font-bold">{{ annee.apogeeCodeVersion }}</td>
-            </tr>
-            </tbody>
-          </table>
-        </Message>
-        <Fieldset v-for="semestre in annee.structureSemestres" legend="Semestre" :toggleable="true">
-          <Message class="my-6 flex flex-row gap-4">
+      <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.structureAnnees" :legend="`${annee.libelle}`" :toggleable="true">
+        <div class="border-l-2 border-primary-500 pl-4">
+          <div class="my-6 flex flex-row gap-4">
             <table class="text-lg">
               <thead>
               <tr class="border-b">
-                <th class="px-2 font-normal text-muted-color text-start">Semestre</th>
-                <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
+                <th class="px-2 font-normal text-muted-color text-start">Année</th>
+                <th class="px-2 font-normal text-muted-color text-start">Code étape</th>
+                <th class="px-2 font-normal text-muted-color text-start">Code version</th>
               </tr>
               </thead>
               <tbody>
               <tr>
-                <td class="px-2 font-bold">{{ semestre.libelle }}</td>
-                <td class="px-2 font-bold">{{ semestre.codeElement }}</td>
+                <td class="px-2 font-bold">{{ annee.libelle }}</td>
+                <td class="px-2 font-bold">{{ annee.apogeeCodeEtape }}</td>
+                <td class="px-2 font-bold">{{ annee.apogeeCodeVersion }}</td>
               </tr>
               </tbody>
             </table>
-          </Message>
-          <Fieldset v-for="ue in semestre.structureUes" legend="UE" :toggleable="true">
-            <Message class="my-6 flex flex-row gap-4">
+          </div>
+          <div v-for="semestre in annee.structureSemestres" class="ml-12 border-l-2 border-primary-500 pl-4">
+            <div class="my-6 flex flex-row gap-4">
               <table class="text-lg">
                 <thead>
                 <tr class="border-b">
-                  <th class="px-2 font-normal text-muted-color text-start">UE</th>
+                  <th class="px-2 font-normal text-muted-color text-start">Semestre</th>
                   <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr>
-                  <td class="px-2 font-bold">{{ue.displayApc}}</td>
-                  <td class="px-2 font-bold">{{ ue.codeElement }}</td>
+                  <td class="px-2 font-bold">{{ semestre.libelle }}</td>
+                  <td class="px-2 font-bold">{{ semestre.codeElement }}</td>
                 </tr>
                 </tbody>
               </table>
-            </Message>
-            <Fieldset v-for="enseignementUe in ue.scolEnseignementUes" :legend="`${enseignementUe.enseignement.libelle}`" :toggleable="true">
+            </div>
+            <div v-for="ue in semestre.structureUes" class="ml-12 border-l-2 border-primary-500 pl-4">
+              <div class="my-6 flex flex-row gap-4">
+                <table class="text-lg">
+                  <thead>
+                  <tr class="border-b">
+                    <th class="px-2 font-normal text-muted-color text-start">UE</th>
+                    <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr>
+                    <td class="px-2 font-bold">{{ue.displayApc}}</td>
+                    <td class="px-2 font-bold">{{ ue.codeElement }}</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+              <Fieldset v-for="enseignementUe in ue.scolEnseignementUes" :legend="`${enseignementUe.enseignement.libelle}`" :toggleable="true">
 
-            </Fieldset>
-          </Fieldset>
-        </Fieldset>
+              </Fieldset>
+            </div>
+          </div>
+        </div>
       </Fieldset>
-
-
-
-      <Timeline :value="selectedPn?.structureAnnees">
-        <template #content="slotProps">
-          {{ slotProps.item.libelle }}
-        </template>
-      </Timeline>
 
 
       <!--      <TreeTable :value="nodes" tableStyle="min-width: 50rem">-->
