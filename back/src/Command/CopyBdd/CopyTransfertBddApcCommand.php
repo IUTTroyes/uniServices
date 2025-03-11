@@ -115,6 +115,7 @@ FOREIGN_KEY_CHECKS=1');
             $parcour = new ApcParcours();
             $parcour->setApcReferentiel($this->tReferentiels[$par['apc_referentiel_id']]);
             $parcour->setLibelle($par['libelle']);
+            $parcour->setOldId($par['id']);
             $parcour->setActif($par['actif']);
             $parcour->setSigle($par['code']);
             $parcour->setCouleur($par['couleur']);

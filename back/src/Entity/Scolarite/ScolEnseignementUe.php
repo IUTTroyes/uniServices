@@ -19,7 +19,7 @@ class ScolEnseignementUe
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolEnseignementUes')]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'structure_diplome:read'])]
     private ?ScolEnseignement $enseignement;
 
     #[ORM\ManyToOne(inversedBy: 'scolEnseignementUes')]
