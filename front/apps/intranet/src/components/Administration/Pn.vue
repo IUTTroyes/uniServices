@@ -130,7 +130,7 @@ const transformData = (data) => {
               </tbody>
             </table>
           </div>
-          <div v-for="semestre in annee.structureSemestres" class="ml-12 border-l-2 border-primary-500 pl-4">
+          <div v-for="semestre in annee.structureSemestres" class="ml-6 border-l-2 border-primary-500 pl-4">
             <div class="my-6 flex flex-row gap-4">
               <table class="text-lg">
                 <thead>
@@ -147,7 +147,7 @@ const transformData = (data) => {
                 </tbody>
               </table>
             </div>
-            <div v-for="ue in semestre.structureUes" class="ml-12 border-l-2 border-primary-500 pl-4">
+            <Fieldset v-for="ue in semestre.structureUes" :toggleable="true" :legend="`${ue.displayApc}`" class="ml-6 border-l-2 border-primary-500 pl-4">
               <div class="my-6 flex flex-row gap-4">
                 <table class="text-lg">
                   <thead>
@@ -167,7 +167,7 @@ const transformData = (data) => {
               <Fieldset v-for="enseignementUe in ue.scolEnseignementUes" :legend="`${enseignementUe.enseignement.libelle}`" :toggleable="true">
 
               </Fieldset>
-            </div>
+            </Fieldset>
           </div>
         </div>
       </Fieldset>
