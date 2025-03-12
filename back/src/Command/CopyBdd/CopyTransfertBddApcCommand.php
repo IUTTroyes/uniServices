@@ -9,6 +9,7 @@ use App\Entity\Apc\ApcParcours;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureTypeDiplome;
+use App\Repository\Structure\StructureUeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -34,7 +35,7 @@ class CopyTransfertBddApcCommand extends Command
 
     public function __construct(
         protected EntityManagerInterface $entityManager,
-        ManagerRegistry                  $managerRegistry
+        ManagerRegistry                  $managerRegistry,
     )
     {
         parent::__construct();
@@ -140,6 +141,7 @@ FOREIGN_KEY_CHECKS=1');
 
         foreach ($competences as $comp) {
             $competence = new ApcCompetence();
+            $competence->setOldId($comp['id']);
             $competence->setApcReferentiel($this->tReferentiels[$comp['apc_referentiel_id']]);
             $competence->setLibelle($comp['libelle']);
             $competence->setNomCourt($comp['nom_court']);

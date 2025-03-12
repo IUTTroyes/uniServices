@@ -27,11 +27,11 @@ class StructureUe
     private string $libelle = '';
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'structure_diplome:read'])]
     private int $numero = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'structure_diplome:read'])]
     private float $nbEcts = 0;
 
     #[ORM\Column]
@@ -47,6 +47,7 @@ class StructureUe
     private string $codeElement = '';
 
     #[ORM\ManyToOne(inversedBy: 'ues')]
+    #[Groups(['structure_diplome:read'])]
     private ?ApcCompetence $apcCompetence = null;
 
     #[ORM\ManyToOne(inversedBy: 'structureUes')]
@@ -70,7 +71,7 @@ class StructureUe
     #[Groups(['structure_diplome:read'])]
     public function getDisplayApc(): string
     {
-        return $this->apcCompetence ? $this->libelle.' '.$this->apcCompetence->getLibelle() : $this->libelle;
+        return $this->apcCompetence ? $this->libelle.' | '.$this->apcCompetence->getNomCourt() : $this->libelle;
     }
 
     public function getId(): ?int

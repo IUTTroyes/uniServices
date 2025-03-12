@@ -416,13 +416,13 @@ FOREIGN_KEY_CHECKS=1');
                 $ue->setBonification((bool)$u['bonification']);
                 $ue->setNbEcts((float)$u['nb_ects']); //Apc?
                 $ue->setOldId($u['id']);
-//            $this->tUes[$u['id']] = $ue;
-//            if ($u['competence_id'] !== null) {
-//                if (array_key_exists($u['competence_id'], $this->tCompetences)) {
-//                    $ue->setApcCompetence($this->tCompetences[$u['competence_id']]);
-//                }
-//                $this->tSemestreUes[$u['semestre_id']][$u['competence_id']] = $ue;
-//            }
+            $this->tUes[$u['id']] = $ue;
+            if ($u['apc_competence_id'] !== null) {
+                if (array_key_exists($u['apc_competence_id'], $this->tCompetences)) {
+                    $ue->setApcCompetence($this->tCompetences[$u['apc_competence_id']]);
+                }
+                $this->tSemestreUes[$u['semestre_id']][$u['apc_competence_id']] = $ue;
+            }
 
 
                 $this->entityManager->persist($ue);
