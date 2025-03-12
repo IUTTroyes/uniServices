@@ -8,6 +8,7 @@ use App\Repository\Apc\ApcCompetenceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ApcCompetenceRepository::class)]
 class ApcCompetence
@@ -23,9 +24,11 @@ class ApcCompetence
     private ?string $libelle = null;
 
     #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $nomCourt = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $couleur = null;
 
     #[ORM\ManyToOne(inversedBy: 'apcCompetences')]

@@ -3,10 +3,12 @@
 namespace App\Entity\Traits;
 
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 trait ApogeeTrait
 {
     #[ORM\Column(length: 25, nullable: true)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $codeApogee = null;
 
     public function getCodeApogee(): ?string

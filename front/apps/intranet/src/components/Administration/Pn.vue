@@ -99,17 +99,11 @@ const transformData = (data) => {
               placeholder="Selectionner un PN"
               class="w-full md:w-56"/>
 
-      <Button label="Créer un nouveau pn" icon="pi pi-plus" />
+      <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" />
     </div>
 
-    <!--    <TreeTable :value="nodes" tableStyle="min-width: 50rem">-->
-    <!--      <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header" :expander="col.expander"></Column>-->
-    <!--    </TreeTable>-->
-
-
     <div class="mt-6">
-
-      <div class="text-xl font-bold">{{selectedDiplome?.apcParcours?.display ?? `Pas de parcours`}}</div>
+      <div class="text-xl font-bold mb-4">{{selectedDiplome?.apcParcours?.display ?? `Pas de parcours`}}</div>
       <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.structureAnnees" :legend="`${annee.libelle}`" :toggleable="true">
         <div class="border-l-2 border-primary-500 pl-4">
           <div class="my-6 flex flex-row gap-4">
@@ -129,8 +123,9 @@ const transformData = (data) => {
               </tr>
               </tbody>
             </table>
+            <Button icon="pi pi-info-circle" rounded outlined severity="info"/>
           </div>
-          <div v-for="semestre in annee.structureSemestres" class="ml-6 border-l-2 border-primary-500 pl-4">
+          <div v-for="semestre in annee.structureSemestres" class="ml-6 border-l-2 border-secondary-500 pl-4">
             <div class="my-6 flex flex-row gap-4">
               <table class="text-lg">
                 <thead>
@@ -146,51 +141,56 @@ const transformData = (data) => {
                 </tr>
                 </tbody>
               </table>
+              <Button icon="pi pi-info-circle" rounded outlined severity="info"/>
             </div>
-            <Fieldset v-for="ue in semestre.structureUes" :toggleable="true" :legend="`${ue.displayApc}`" class="ml-6 border-l-2 border-primary-500 pl-4">
+            <Fieldset v-for="ue in semestre.structureUes" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`" class="ml-6 border-l-2 border-primary-500 pl-4">
               <div class="my-6 flex flex-row gap-4">
                 <table class="text-lg">
                   <thead>
                   <tr class="border-b">
                     <th class="px-2 font-normal text-muted-color text-start">UE</th>
                     <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
+                    <th v-if="ue.apcCompetence" class="px-2 font-normal text-muted-color text-start">Compétence Apc</th>
                   </tr>
                   </thead>
                   <tbody>
                   <tr>
-                    <td class="px-2 font-bold">{{ue.displayApc}}</td>
+                    <td class="px-2 font-bold">{{ue.libelle}}</td>
                     <td class="px-2 font-bold">{{ ue.codeElement }}</td>
+                    <td v-if="ue.apcCompetence" :class="ue.apcCompetence.couleur" class="px-2 font-bold !w-fit">{{ue.apcCompetence.nomCourt}}</td>
                   </tr>
                   </tbody>
                 </table>
+                <Button icon="pi pi-info-circle" rounded outlined severity="info"/>
               </div>
               <Fieldset v-for="enseignementUe in ue.scolEnseignementUes" :legend="`${enseignementUe.enseignement.libelle}`" :toggleable="true">
-
+                <div class="my-6 flex flex-row gap-4">
+                  <table class="text-lg">
+                    <thead>
+                    <tr class="border-b">
+                      <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
+                      <th class="px-2 font-normal text-muted-color text-start">Type</th>
+                      <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                      <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeApogee }}</td>
+                      <td class="px-2 font-bold">
+                        <Tag v-if="enseignementUe.enseignement.type === 'sae'" severity="success">{{ enseignementUe.enseignement.type }}</Tag>
+                        <Tag v-else severity="info">{{ enseignementUe.enseignement.type }}</Tag>
+                      </td>
+                      <td class="px-2 font-bold">{{ enseignementUe.enseignement.libelle }}</td>
+                    </tr>
+                    </tbody>
+                  </table>
+                  <Button icon="pi pi-info-circle" rounded outlined severity="info"/>
+                </div>
               </Fieldset>
             </Fieldset>
           </div>
         </div>
       </Fieldset>
-
-
-      <!--      <TreeTable :value="nodes" tableStyle="min-width: 50rem">-->
-      <!--        <template #header>-->
-      <!--          <div class="text-xl font-bold">{{selectedDiplome?.apcParcours?.display ?? `Pas de parcours`}}</div>-->
-      <!--        </template>-->
-      <!--        <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header" :expander="col.expander"></Column>-->
-      <!--        <Column style="width: 2rem">-->
-      <!--          <template #body="slotProps">-->
-      <!--            <div v-if="slotProps.node.edit" class="flex flex-wrap gap-2">-->
-      <!--              <Button type="button" icon="pi pi-pencil" rounded outlined severity="warn" @click="handleEditClick(slotProps.node.key)" />-->
-      <!--            </div>-->
-      <!--          </template>-->
-      <!--        </Column>-->
-      <!--              <template #footer>-->
-      <!--                <div class="flex justify-start">-->
-      <!--                  <Button icon="pi pi-refresh" label="Reload" severity="warn" />-->
-      <!--                </div>-->
-      <!--              </template>-->
-      <!--      </TreeTable>-->
     </div>
   </div>
 </template>
