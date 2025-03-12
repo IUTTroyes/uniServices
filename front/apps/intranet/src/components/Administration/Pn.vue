@@ -106,7 +106,7 @@ const transformData = (data) => {
       <div class="text-xl font-bold mb-4">{{selectedDiplome?.apcParcours?.display ?? `Pas de parcours`}}</div>
       <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.structureAnnees" :legend="`${annee.libelle}`" :toggleable="true">
         <div class="border-l-2 border-primary-500 pl-4">
-          <div class="my-6 flex flex-row gap-4">
+          <div class="my-6 flex flex-row items-center gap-4">
             <table class="text-lg">
               <thead>
               <tr class="border-b">
@@ -125,8 +125,8 @@ const transformData = (data) => {
             </table>
             <Button icon="pi pi-info-circle" rounded outlined severity="info"/>
           </div>
-          <div v-for="semestre in annee.structureSemestres" class="ml-6 border-l-2 border-secondary-500 pl-4">
-            <div class="my-6 flex flex-row gap-4">
+          <div v-for="semestre in annee.structureSemestres" class="ml-6 border-l-2 border-primary-300 pl-4">
+            <div class="my-6 flex flex-row items-center gap-4">
               <table class="text-lg">
                 <thead>
                 <tr class="border-b">
@@ -144,7 +144,7 @@ const transformData = (data) => {
               <Button icon="pi pi-info-circle" rounded outlined severity="info"/>
             </div>
             <Fieldset v-for="ue in semestre.structureUes" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`" class="ml-6 border-l-2 border-primary-500 pl-4">
-              <div class="my-6 flex flex-row gap-4">
+              <div class="my-6 flex flex-row items-center gap-4">
                 <table class="text-lg">
                   <thead>
                   <tr class="border-b">
@@ -164,23 +164,25 @@ const transformData = (data) => {
                 <Button icon="pi pi-info-circle" rounded outlined severity="info"/>
               </div>
               <Fieldset v-for="enseignementUe in ue.scolEnseignementUes" :legend="`${enseignementUe.enseignement.libelle}`" :toggleable="true">
-                <div class="my-6 flex flex-row gap-4">
+                <div class="my-6 flex flex-row items-center gap-4">
                   <table class="text-lg">
                     <thead>
                     <tr class="border-b">
+                      <th class="px-2 font-normal text-muted-color text-start">Code {{enseignementUe.enseignement.type}}</th>
+                      <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
                       <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
                       <th class="px-2 font-normal text-muted-color text-start">Type</th>
-                      <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr>
+                      <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeEnseignement }}</td>
+                      <td class="px-2 font-bold">{{ enseignementUe.enseignement.libelle }}</td>
                       <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeApogee }}</td>
                       <td class="px-2 font-bold">
                         <Tag v-if="enseignementUe.enseignement.type === 'sae'" severity="success">{{ enseignementUe.enseignement.type }}</Tag>
                         <Tag v-else severity="info">{{ enseignementUe.enseignement.type }}</Tag>
                       </td>
-                      <td class="px-2 font-bold">{{ enseignementUe.enseignement.libelle }}</td>
                     </tr>
                     </tbody>
                   </table>
