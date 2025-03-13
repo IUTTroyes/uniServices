@@ -4,8 +4,8 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const panelMenuItems = [
-  { label: 'Liste des matières', icon: 'pi pi-list', command: () => {} },
-  { label: 'Gestion des programmes pédagogiques nationaux', icon: 'pi pi-book', command: () => {router.push('/administration/pn');} },
+  { label: 'Programmes pédagogiques nationaux', icon: 'pi pi-book', command: () => {router.push('/administration/pn');} },
+  { label: 'Référentiel de compétences', icon: 'pi pi-list', command: () => {router.push('/administration/pn');} },
   { label: 'Gestion des plan de cours', icon: 'pi pi-file', command: () => {} },
 ];
 </script>
