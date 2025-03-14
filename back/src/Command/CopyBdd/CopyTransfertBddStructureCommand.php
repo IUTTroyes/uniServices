@@ -15,6 +15,7 @@ use App\Entity\Structure\StructureUe;
 use App\Repository\Apc\ApcApprentissageCritiqueRepository;
 use App\Repository\Apc\ApcCompetenceRepository;
 use App\Repository\Apc\ApcParcoursRepository;
+use App\Repository\PersonnelRepository;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -51,6 +52,7 @@ class CopyTransfertBddStructureCommand extends Command
     protected SymfonyStyle $io;
     protected string $base_url;
     private $structureAnneeUniversitaireRepository;
+    private $personnelRepository;
 
 
     public function __construct(
@@ -60,6 +62,7 @@ class CopyTransfertBddStructureCommand extends Command
         ApcCompetenceRepository            $apcCompetenceRepository,
         StructureAnneeUniversitaireRepository $structureAnneeUniversitaireRepository,
         ApcParcoursRepository             $apcParcoursRepository,
+        PersonnelRepository              $personnelRepository,
         protected HttpClientInterface      $httpClient,
         ParameterBagInterface              $params
     )
@@ -69,6 +72,7 @@ class CopyTransfertBddStructureCommand extends Command
         $this->tApprentissages = $apcApprentissageCritiqueRepository->findAllByOldIdArray();
         $this->structureAnneeUniversitaireRepository = $structureAnneeUniversitaireRepository;
         $this->apcParcoursRepository = $apcParcoursRepository;
+        $this->personnelRepository = $personnelRepository;
         $this->base_url = $params->get('URL_INTRANET_V3');
         $this->httpClient = HttpClient::create([
             'verify_peer' => false,
@@ -240,6 +244,12 @@ FOREIGN_KEY_CHECKS=1');
                         $diplome->setTypeDiplome($this->tTypeDiplomes[$dip['type_diplome_id']]);
                         $diplome->setApcParcours($apcParcours);
                         $diplome->setOldId($dip['id']);
+                        if ($dip['responsable_diplome_id'] !== null) {
+                            $diplome->setResponsableDiplome($this->personnelRepository->findOneBy(['oldId' => $dip['responsable_diplome_id']]));
+                        }
+                        if ($dip['assistant_diplome_id'] !== null) {
+                            $diplome->setAssistantDiplome($this->personnelRepository->findOneBy(['oldId' => $dip['assistant_diplome_id']]));
+                        }
 
                         $this->tDiplomes[$dip['id']] = $diplome;
 
@@ -292,6 +302,12 @@ FOREIGN_KEY_CHECKS=1');
                             $diplomeEnfant->setApogeeCodeDepartement($dipE['code_departement']);
                             $diplomeEnfant->setParent($diplome);
                             $diplomeEnfant->setApcParcours($apcParcoursEnfant);
+                            if ($dipE['responsable_diplome_id'] !== null) {
+                                $diplomeEnfant->setResponsableDiplome($this->personnelRepository->findOneBy(['oldId' => $dipE['responsable_diplome_id']]));
+                            }
+                            if ($dipE['assistant_diplome_id'] !== null) {
+                                $diplomeEnfant->setAssistantDiplome($this->personnelRepository->findOneBy(['oldId' => $dipE['assistant_diplome_id']]));
+                            }
 
                             $this->tDiplomes[$dipE['id']] = $diplomeEnfant;
 

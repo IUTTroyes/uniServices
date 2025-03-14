@@ -122,6 +122,8 @@
                 <i class="pi pi-angle-down"></i>
               </template>
               <div class="border-l-2 border-primary-500 pl-4">
+                <div class="text-muted-color mb-4">Responsable du diplome : {{selectedDiplome?.responsableDiplome?.display ?? `Pas de responsable`}}</div>
+
                 <div class="my-6 flex flex-row items-center gap-4">
                   <table class="text-lg">
                     <thead>
@@ -218,21 +220,70 @@
           </div>
         </div>
 
-        <Dialog v-model:visible="visibleDialog" modal header="Détails" :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+        <Dialog v-model:visible="visibleDialog" modal :header="`Détails ${dialogContent?.type} ${dialogContent?.item.libelle}`" :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
           <template v-if="dialogContent">
-            <p v-if="dialogContent.type === 'annee'" class="m-0">
-              <strong>Libellé:</strong> {{ dialogContent.item.libelle }}<br>
-              <strong>Code étape:</strong> {{ dialogContent.item.apogeeCodeEtape }}<br>
-              <strong>Code version:</strong> {{ dialogContent.item.apogeeCodeVersion }}<br>
-            </p>
-            <p v-if="dialogContent.type === 'semestre'" class="m-0">
-              <strong>Libellé:</strong> {{ dialogContent.item.libelle }}<br>
-              <strong>Code élément:</strong> {{ dialogContent.item.codeElement }}<br>
-            </p>
-            <p v-if="dialogContent.type === 'ue'" class="m-0">
-              <strong>Libellé:</strong> {{ dialogContent.item.libelle }}<br>
-              <strong>Code élément:</strong> {{ dialogContent.item.codeElement }}<br>
-            </p>
+            <div v-if="dialogContent.type === 'annee'" class="m-0">
+              <table class="text-lg">
+                <thead>
+                <tr class="border-b">
+                  <th class="px-2 font-normal text-muted-color text-start">Année</th>
+                  <th class="px-2 font-normal text-muted-color text-start">Code étape</th>
+                  <th class="px-2 font-normal text-muted-color text-start">Code version</th>
+                  <th class="px-2 font-normal text-muted-color text-start">Alternance</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td class="px-2 font-bold">{{ dialogContent.item.libelle }}</td>
+                  <td class="px-2 font-bold">{{ dialogContent.item.apogeeCodeEtape }}</td>
+                  <td class="px-2 font-bold">{{ dialogContent.item.apogeeCodeVersion }}</td>
+                  <td class="px-2 font-bold"><Tag v-if="dialogContent.item.opt.alternance" severity="success" value="Oui"></Tag><Tag v-else severity="secondary" value="Non"></Tag></td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-if="dialogContent.type === 'semestre'" class="m-0">
+              <table class="text-lg">
+                <thead>
+                <tr class="border-b">
+                  <th class="px-2 font-normal text-muted-color text-start">Semestre</th>
+                  <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
+                  <th class="px-2 font-normal text-muted-color text-start">Nbr. d'UEs</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td class="px-2 font-bold">{{ dialogContent.item.libelle }}</td>
+                  <td class="px-2 font-bold">{{ dialogContent.item.codeElement }}</td>
+                  <td class="px-2 font-bold">{{ dialogContent.item.structureUes.length }}</td>
+                </tr>
+                </tbody>
+              </table>
+
+              <Divider/>
+
+              <div>Nombre de groupes</div>
+              <table class="text-lg">
+                <thead>
+                <tr class="border-b">
+                  <th class="px-2 font-normal text-muted-color text-start">CM</th>
+                  <th class="px-2 font-normal text-muted-color text-start">TD</th>
+                  <th class="px-2 font-normal text-muted-color text-start">TP</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td class="px-2 font-bold">{{ dialogContent.item.nbGroupesCm }}</td>
+                  <td class="px-2 font-bold">{{ dialogContent.item.nbGroupesTd }}</td>
+                  <td class="px-2 font-bold">{{ dialogContent.item.nbGroupesTp }}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+            <div v-if="dialogContent.type === 'ue'" class="m-0">
+              <strong>Libellé:</strong> {{ dialogContent.item.libelle }}
+              <strong>Code élément:</strong> {{ dialogContent.item.codeElement }}
+            </div>
           </template>
         </Dialog>
       </template>
