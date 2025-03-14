@@ -64,15 +64,15 @@ class StructureSemestre
     private bool $actif = true;
 
     #[ORM\Column]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read'])]
     private int $nbGroupesCm = 1;
 
     #[ORM\Column]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read'])]
     private int $nbGroupesTd = 1;
 
     #[ORM\Column()]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read'])]
     private int $nbGroupesTp = 2;
 
     #[ORM\Column(length: 20, nullable: true)]

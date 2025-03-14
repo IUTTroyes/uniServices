@@ -57,10 +57,12 @@ class StructureDiplome
     #[Groups(['structure_diplome:read'])]
     private string $libelle;
 
-    #[ORM\ManyToOne(inversedBy: 'responsableDiplome')]
+    #[ORM\ManyToOne(inversedBy: 'responsableDiplome', cascade: ['persist'])]
+    #[Groups(['structure_diplome:read'])]
     private ?Personnel $responsableDiplome = null;
 
-    #[ORM\ManyToOne(inversedBy: 'assistantDiplome')]
+    #[ORM\ManyToOne(inversedBy: 'assistantDiplome', cascade: ['persist'])]
+    #[Groups(['structure_diplome:read'])]
     private ?Personnel $assistantDiplome = null;
 
     #[ORM\Column]
