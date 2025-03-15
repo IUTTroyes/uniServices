@@ -54,6 +54,7 @@ class StructureAnnee
     private int $ordre = 0;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $libelleLong = null;
 
     #[ORM\Column]

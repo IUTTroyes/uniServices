@@ -4,6 +4,7 @@ namespace App\Entity\Structure;
 
 use App\Entity\Apc\ApcCompetence;
 use App\Entity\Scolarite\ScolEnseignementUe;
+use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Repository\Structure\StructureUeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -14,6 +15,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StructureUeRepository::class)]
 class StructureUe
 {
+    use LifeCycleTrait;
     use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]
