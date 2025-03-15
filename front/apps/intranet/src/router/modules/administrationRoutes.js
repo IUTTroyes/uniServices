@@ -31,7 +31,7 @@ export default [
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
         route: '/administration'
-      }, { label: 'PN', route: null }]
+      }, { label: 'PPN', route: null }]
     },
   },
   {
