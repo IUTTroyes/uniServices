@@ -59,6 +59,18 @@
         etudiants.value = response.member
         nbEtudiants.value = response.totalItems
         loading.value = false
+
+        // récupérer l'etudiantScolarite parmi les etudiantScolarites de l'etudiant celle dont l'anneeUniv est celle selectionnée
+        // l'ajouter à l'etudiant pour l'afficher dans le tableau
+        etudiants.value.forEach(etudiant => {
+          etudiant.etudiantScolarite = etudiant.etudiantScolarites.find(es => es.structureAnneeUniversitaire.id === selectedAnneeUniv.value.id)
+        })
+        // ajouter tous les etudiantScolarite.scolarite_semestre à l'etudiant pour l'afficher dans le tableau
+        etudiants.value.forEach(etudiant => {
+          etudiant.semestres = etudiant.etudiantScolarite.scolarite_semestre.map(es => es.structure_semestre)
+        })
+
+        console.log(etudiants.value)
       }
 
       onMounted(async () => {
@@ -157,6 +169,11 @@
               </template>
               <template #filter="{ filterModel, filterCallback }">
                 <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
+              </template>
+            </Column>
+            <Column field="semestres" header="semestres" style="min-width: 12rem">
+              <template #body="{ data }">
+                <div v-for="semestre in data.semestres">{{semestre.libelle}}</div>
               </template>
             </Column>
             <Column field="mailUniv" :showFilterMenu="false" header="Email" style="min-width: 12rem">

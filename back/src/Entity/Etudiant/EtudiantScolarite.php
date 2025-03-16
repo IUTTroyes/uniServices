@@ -86,7 +86,7 @@ class EtudiantScolarite
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:read', 'etudiant:read'])]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
 
     /**
@@ -104,7 +104,7 @@ class EtudiantScolarite
      * @var Collection<int, EtudiantScolariteSemestre>
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'etudiantScolarite')]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:read', 'etudiant:read'])]
     private Collection $scolarite_semestre;
 
     public function __construct()

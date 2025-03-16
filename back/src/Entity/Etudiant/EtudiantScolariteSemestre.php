@@ -21,7 +21,7 @@ class EtudiantScolariteSemestre
 
     #[ORM\ManyToOne(inversedBy: 'etudiantScolariteSemestre', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:read', 'etudiant:read'])]
     private ?StructureSemestre $structure_semestre = null;
 
     /**
