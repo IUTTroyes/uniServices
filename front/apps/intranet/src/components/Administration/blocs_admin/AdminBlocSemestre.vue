@@ -44,10 +44,27 @@ const getSemestres = async () => {
   try {
     const departementId = userStore.departementDefaut.id;
     const semestres = await getDepartementSemestresService(departementId, true);
-    semestresFc.value = semestres.filter(semestre => semestre.annee.opt.alternance);
-    semestresFi.value = semestres.filter(semestre => !semestre.annee.opt.alternance);
-    if (semestresFi.value.length > 0) {
-      selectedSemestre.value = semestresFi.value[0];
+
+
+    const groupByYear = (semestres) => {
+      return semestres.reduce((acc, semestre) => {
+        const year = semestre.annee.libelle;
+        if (!acc[year]) {
+          acc[year] = [];
+        }
+        acc[year].push(semestre);
+        return acc;
+      }, {});
+    };
+
+    semestresFc.value = groupByYear(semestres.filter(semestre => semestre.annee.opt.alternance));
+    semestresFi.value = groupByYear(semestres.filter(semestre => !semestre.annee.opt.alternance));
+
+    // semestresFc.value = semestres.filter(semestre => semestre.annee.opt.alternance);
+    // semestresFi.value = semestres.filter(semestre => !semestre.annee.opt.alternance);
+    const firstYear = Object.keys(semestresFi.value)[0];
+    if (firstYear && semestresFi.value[firstYear].length > 0) {
+      selectedSemestre.value = semestresFi.value[firstYear][0];
     }
   } catch (error) {
     errorMessage.value = 'Erreur lors de la récupération des semestres.';
@@ -57,7 +74,7 @@ const getSemestres = async () => {
 };
 
 onMounted(
-  getSemestres
+    getSemestres
 );
 
 const selectSemestre = (semestre) => {
@@ -81,18 +98,25 @@ const selectSemestre = (semestre) => {
       <div v-else-if="errorMessage" class="error-message">{{ errorMessage }}</div>
       <div v-else class="flex gap-10 mt-4">
         <div class="w-1/2 flex gap-4">
-          <ul v-for="(semesters, type) in { 'Formation Initiale': semestresFi, 'Formation Continue': semestresFc }"
+          <ul v-for="(semestres, type) in { 'Formation Initiale': semestresFi, 'Formation Continue': semestresFc }"
               :key="type" class="w-1/2">
-            <li class="font-bold text-lg">{{ type }}</li>
-            <li v-for="semestre in semesters"
-                :key="semestre.id"
-                @click="selectSemestre(semestre)"
-                class="cursor-pointer w-full border-b p-1">
-              <div class="hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2"
-                   :class="{'bg-primary-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestre.id}">
-                {{ semestre.libelle }}
-              </div>
-            </li>
+            <Fieldset :legend="type" class="max-h-96 overflow-auto">
+              <li v-for="(semestresByYear, year) in semestres"
+                  :key="year" class="mb-2 text-sm">
+                <div class="text-muted-color text-sm">{{ year }}</div>
+                <ul>
+                  <li v-for="semestre in semestresByYear"
+                      :key="semestre.id"
+                      @click="selectSemestre(semestre)"
+                      class="cursor-pointer w-full border-b p-1">
+                    <div class="hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2"
+                         :class="{'bg-primary-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestre.id}">
+                      {{ semestre.libelle }}
+                    </div>
+                  </li>
+                </ul>
+              </li>
+            </Fieldset>
           </ul>
         </div>
         <div class="w-1/2 " v-if="selectedSemestre">
