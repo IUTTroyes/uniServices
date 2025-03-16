@@ -48,7 +48,7 @@ class StructureAnneeUniversitaire
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['structure_annee_universitaire:read'])]
+    #[Groups(['structure_annee_universitaire:read', 'etudiant:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
