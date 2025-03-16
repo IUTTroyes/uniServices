@@ -55,7 +55,7 @@
 
       const loadEtudiants = async () => {
         loading.value = true
-        const response = await getEtudiantsDepartementService(departementId.value, selectedAnneeUniv.value.id, limit.value, offset.value)
+        const response = await getEtudiantsDepartementService(departementId.value, selectedAnneeUniv.value.id, limit.value, parseInt(page.value) + 1)
         etudiants.value = response.member
         nbEtudiants.value = response.totalItems
         loading.value = false
@@ -73,6 +73,7 @@
 
       const onPageChange = async (event) => {
         page.value = event.page
+        console.log(event.page)
         limit.value = event.rows
         await loadEtudiants();
       }
