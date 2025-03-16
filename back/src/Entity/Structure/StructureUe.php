@@ -15,7 +15,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StructureUeRepository::class)]
 class StructureUe
 {
-    use LifeCycleTrait;
+//    use LifeCycleTrait;
     use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]
