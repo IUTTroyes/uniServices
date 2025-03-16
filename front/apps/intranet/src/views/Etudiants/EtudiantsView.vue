@@ -73,7 +73,6 @@
 
       const onPageChange = async (event) => {
         page.value = event.page
-        console.log(event.page)
         limit.value = event.rows
         await loadEtudiants();
       }
@@ -98,7 +97,7 @@
       }
 
       //wtach filters
-      watch(filters, async () => {
+      watch([filters, selectedAnneeUniv], async () => {
         await loadEtudiants();
       })
 
@@ -106,19 +105,7 @@
 
       <template>
         <div class="card">
-          <h2 class="text-2xl font-bold">Tous les étudiants du département</h2>
-
-          <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/2" />
-          <IftaLabel v-else class="w-1/2">
-            <Select
-                v-model="selectedAnneeUniv"
-                :options="anneesUnivList"
-                optionLabel="libelle"
-                placeholder="Sélectionner une année universitaire"
-                class="w-full"
-            />
-            <label for="anneeUniversitaire">Année universitaire</label>
-          </IftaLabel>
+          <h2 class="text-2xl font-bold mb-4">Tous les étudiants du département</h2>
 
           <DataTable v-model:filters="filters" :value="etudiants"
                      lazy
@@ -133,8 +120,20 @@
                      @update:rows="limit = $event"
                      :globalFilterFields="['nom', 'prenom']">
             <template #header>
-              <div class="flex justify-end">
-                <IconField>
+              <div class="flex justify-between items-end">
+                <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/3" />
+                <IftaLabel v-else class="w-1/3">
+                  <Select
+                      v-model="selectedAnneeUniv"
+                      :options="anneesUnivList"
+                      optionLabel="libelle"
+                      placeholder="Sélectionner une année universitaire"
+                      class="w-full"
+                  />
+                  <label for="anneeUniversitaire">Année universitaire</label>
+                </IftaLabel>
+
+                <IconField class="h-full">
                   <InputIcon>
                     <i class="pi pi-search"/>
                   </InputIcon>
