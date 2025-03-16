@@ -14,6 +14,7 @@ use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
+use App\Filter\EtudiantFilter;
 use App\Repository\Structure\StructureScolariteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

@@ -2,6 +2,7 @@
 
 namespace App\Entity\Users;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -10,6 +11,7 @@ use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
+use App\Filter\EtudiantFilter;
 use App\Repository\EtudiantRepository;
 use App\ValueObject\Adresse;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -26,9 +28,11 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
     operations: [
         new Get(normalizationContext: ['groups' => ['etudiant:read']]),
         new GetCollection(normalizationContext: ['groups' => ['etudiant:read']]),
+
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
+#[ApiFilter(EtudiantFilter::class)]
 class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
 {
     use LifeCycleTrait;
