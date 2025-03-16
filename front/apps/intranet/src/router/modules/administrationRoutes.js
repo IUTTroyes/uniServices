@@ -25,6 +25,16 @@ export default [
     },
   },
   {
+    path: 'administration/etudiants',
+    component: () => import('@/views/etudiants/EtudiantsView.vue'),
+    meta: {
+      breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+        label: 'Administration',
+        route: '/administration'
+      }, { label: 'Gestion des Etudiants', route: null }]
+    },
+  },
+  {
     path: 'administration/pn',
     component: () => import('@/components/administration/Pn.vue'),
     meta: {
