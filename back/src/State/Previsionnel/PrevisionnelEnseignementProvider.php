@@ -25,6 +25,10 @@ class PrevisionnelEnseignementProvider implements ProviderInterface
             $data = $this->collectionProvider->provide($operation, $uriVariables, $context);
 
             if (empty($data)) {
+                return [];
+            }
+
+            if (empty($data)) {
                 $output['previ'] = [];
 
                 return $output;

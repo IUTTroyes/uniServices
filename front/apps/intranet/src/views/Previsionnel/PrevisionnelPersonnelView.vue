@@ -207,7 +207,7 @@ const footerCols = computed(() => [
             :headerTitle="`Prévisionnel de l'année ${selectedAnneeUniv?.libelle}`"
             :headerTitlecolspan="1"/>
       </div>
-      <Message v-else severity="error" icon="pi pi-times-circle">
+      <Message v-else-if="previSemestreAnneeUniv < 1 || previSemestreAnneeUniv[0].length < 1" severity="error" icon="pi pi-times-circle">
         Aucun prévisionnel pour cette année universitaire avec ce semestre et cette matière
       </Message>
     </div>

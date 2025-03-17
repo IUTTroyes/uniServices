@@ -24,6 +24,10 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
         if ($operation instanceof GetCollection) {
             $data = $this->collectionProvider->provide($operation, $uriVariables, $context);
 
+            if (empty($data)) {
+                return [];
+            }
+
             $output = [];
 
             foreach ($data as $item) {

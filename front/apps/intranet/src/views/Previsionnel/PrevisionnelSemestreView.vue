@@ -500,7 +500,7 @@ const footerColsForm = computed(() => [
               :headerTitlecolspan="2"/>
         </div>
       </div>
-      <Message v-else severity="error" icon="pi pi-times-circle">
+      <Message v-else-if="previSemestre < 1 || previSemestre[1].length < 1" severity="error" icon="pi pi-times-circle">
         Aucun prévisionnel pour cette année universitaire et ce semestre
       </Message>
     </div>
