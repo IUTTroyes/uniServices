@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Repository\EtudiantRepository;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use App\Repository\Structure\StructureSemestreRepository;
@@ -50,26 +51,37 @@ class StructureScolariteFixtures extends Fixture implements OrderedFixtureInterf
         $anneeUniversitaire2 = $this->anneeUniversitaireRepository->findOneBy(['libelle' => '2024/2025']);
 
         $scolarite1 = new EtudiantScolarite();
-        $scolarite1->addScolariteSemestre($semestre1)
-            ->setEtudiant($etu1)
+        $scolarite1->setEtudiant($etu1)
             ->setOrdre(1)
             ->setNbAbsences(0)
             ->setPublic(true)
             ->setStructureAnneeUniversitaire($anneeUniversitaire1)
             ->setUuid(Uuid::v4())
             ;
+
+        $scolariteSemestre1 = new EtudiantScolariteSemestre();
+        $scolariteSemestre1->setStructureSemestre($semestre1)
+            ->setEtudiantScolarite($scolarite1);
+
+        $scolarite1->addScolariteSemestre($scolariteSemestre1);
         $manager->persist($scolarite1);
+        $manager->persist($scolariteSemestre1);
 
         $scolarite2 = new EtudiantScolarite();
-        $scolarite2->addScolariteSemestre($semestre2)
-            ->setEtudiant($etu1)
+        $scolarite2->setEtudiant($etu1)
             ->setOrdre(2)
             ->setNbAbsences(0)
             ->setPublic(true)
             ->setStructureAnneeUniversitaire($anneeUniversitaire2)
-            ->setUuid(Uuid::v4())
-            ;
+            ->setUuid(Uuid::v4());
+
+        $scolariteSemestre2 = new EtudiantScolariteSemestre();
+        $scolariteSemestre2->setStructureSemestre($semestre2)
+            ->setEtudiantScolarite($scolarite2);
+
+        $scolarite2->addScolariteSemestre($scolariteSemestre2);
         $manager->persist($scolarite2);
+        $manager->persist($scolariteSemestre2);
 
         $manager->flush();
     }
