@@ -6,7 +6,7 @@ describe('UniServices Navigation Tests', () => {
     cy.contains('Connexion invité').click()
 
     // Remplir les champs
-    cy.get('#username').type('personnel')
+    cy.get('#username').type('cyndel')
     cy.get('#password').type('test')
 
     cy.get('form').submit()
