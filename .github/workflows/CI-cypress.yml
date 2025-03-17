@@ -117,7 +117,7 @@ jobs:
 
       # Upload Cypress artifacts (optional)
       - name: Upload Cypress Results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cypress-results
           path: frontend/cypress/reports
