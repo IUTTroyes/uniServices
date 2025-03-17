@@ -82,6 +82,17 @@ jobs:
         working-directory: ./front
         run: pnpm install --no-frozen-lockfile
 
+      - name: Cache Cypress binary
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-cypress-
+
+      - name: Install Cypress binary
+        run: npx cypress install
+
       - name: Set environment variables
         run: echo "VITE_BASE_URL=https://127.0.0.1:8000" >> $GITHUB_ENV
 
