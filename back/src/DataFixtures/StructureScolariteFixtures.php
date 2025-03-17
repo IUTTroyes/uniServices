@@ -50,24 +50,22 @@ class StructureScolariteFixtures extends Fixture implements OrderedFixtureInterf
         $anneeUniversitaire2 = $this->anneeUniversitaireRepository->findOneBy(['libelle' => '2024/2025']);
 
         $scolarite1 = new EtudiantScolarite();
-        $scolarite1->setSemestre($semestre1)
+        $scolarite1->addScolariteSemestre($semestre1)
             ->setEtudiant($etu1)
             ->setOrdre(1)
             ->setNbAbsences(0)
             ->setPublic(true)
-            ->setActif(false)
             ->setStructureAnneeUniversitaire($anneeUniversitaire1)
             ->setUuid(Uuid::v4())
             ;
         $manager->persist($scolarite1);
 
         $scolarite2 = new EtudiantScolarite();
-        $scolarite2->setSemestre($semestre2)
+        $scolarite2->addScolariteSemestre($semestre2)
             ->setEtudiant($etu1)
             ->setOrdre(2)
             ->setNbAbsences(0)
             ->setPublic(true)
-            ->setActif(true)
             ->setStructureAnneeUniversitaire($anneeUniversitaire2)
             ->setUuid(Uuid::v4())
             ;
