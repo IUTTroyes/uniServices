@@ -95,10 +95,6 @@ jobs:
             sleep 1
           done
 
-      - name: Install Cypress
-        working-directory: ./front
-        run: npm install cypress
-
       - name: Run Cypress tests
         uses: cypress-io/github-action@v6
         #run: npx cypress run
