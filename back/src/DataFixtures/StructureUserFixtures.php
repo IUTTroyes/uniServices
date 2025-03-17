@@ -37,6 +37,7 @@ class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
             ->setNom('DOE')
             ->setApplications(['UniTranet'])
             ->setPhotoName('noimage.png')
+            ->setApplications(["UniTranet"])
         ;
         $manager->persist($personnel);
 
