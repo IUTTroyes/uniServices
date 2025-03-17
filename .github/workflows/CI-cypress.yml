@@ -96,6 +96,7 @@ jobs:
           done
 
       - name: Install Cypress
+        working-directory: ./front
         run: npm install cypress
 
       - name: Run Cypress tests
