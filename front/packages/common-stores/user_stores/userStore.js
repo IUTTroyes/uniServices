@@ -38,7 +38,7 @@ export const useUsersStore = defineStore('users', () => {
         }
         isLoading.value = true;
         try {
-            console.log('Fetching user');
+            console.log('Fetching user' + userType + userId);
             user.value = await getUserService(userType, userId);
             userPhoto.value = "common-images/photos_etudiants/" + user.value.photoName;
             applications.value = user.value.applications;
