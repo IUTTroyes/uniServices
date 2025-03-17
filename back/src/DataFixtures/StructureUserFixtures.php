@@ -49,6 +49,7 @@ class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
             ->setRoles(['ROLE_ETUDIANT'])
             ->setPrenom('Jane')
             ->setNom('Doe')
+            ->setBoursier(0)
             ->setPhotoName('noimage.png')
         ;
         $manager->persist($etudiant);
