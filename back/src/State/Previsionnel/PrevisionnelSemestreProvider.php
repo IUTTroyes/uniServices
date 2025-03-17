@@ -26,6 +26,10 @@ class PrevisionnelSemestreProvider implements ProviderInterface
         if ($operation instanceof GetCollection) {
             $data = $this->collectionProvider->provide($operation, $uriVariables, $context);
 
+            if (empty($data)) {
+                return [];
+            }
+
             $totalCM = [
                 'Maquette' => 0,
                 'Previsionnel' => 0,
