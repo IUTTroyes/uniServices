@@ -112,43 +112,78 @@ watch([filters, selectedAnneeUniv], async (newFilters, newSelectedAnneeUniv) => 
 </script>
 
       <template>
-        <DataTable v-model:filters="filters" :value="etudiants"
-                   lazy
-                   stripedRows
-                   paginator
-                   :first="offset"
-                   :rows="limit"
-                   :rowsPerPageOptions="rowOptions"
-                   :totalRecords="nbEtudiants"
-                   dataKey="id" filterDisplay="row" :loading="loading"
-                   @page="onPageChange($event)"
-                   @update:rows="limit = $event"
-                   :globalFilterFields="['nom', 'prenom']">
-          <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 12rem">
-            <template #body="{ data }">
-              {{ data.nom }}
-            </template>
-            <template #filter="{ filterModel, filterCallback }">
-              <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom"/>
-            </template>
-          </Column>
-          <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 12rem">
-            <template #body="{ data }">
-              {{ data.prenom }}
-            </template>
-            <template #filter="{ filterModel, filterCallback }">
-              <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
-            </template>
-          </Column>
-          <Column field="mailUniv" :showFilterMenu="false" header="Email" style="min-width: 12rem">
-            <template #body="{ data }">
-              {{ data.mailUniv }}
-            </template>
-            <template #filter="{ filterModel, filterCallback }">
-              <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par email"/>
-            </template>
-          </Column>
-        </DataTable>
+        <div class="card">
+          <h2 class="text-2xl font-bold mb-4">Tous les étudiants du département</h2>
+
+          <DataTable v-model:filters="filters" :value="etudiants"
+                     lazy
+                     stripedRows
+                     paginator
+                     :first="offset"
+                     :rows="limit"
+                     :rowsPerPageOptions="rowOptions"
+                     :totalRecords="nbEtudiants"
+                     dataKey="id" filterDisplay="row" :loading="loading"
+                     @page="onPageChange($event)"
+                     @update:rows="limit = $event"
+                     :globalFilterFields="['nom', 'prenom']">
+            <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 12rem">
+              <template #body="{ data }">
+                {{ data.nom }}
+              </template>
+              <template #filter="{ filterModel, filterCallback }">
+                <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom"/>
+              </template>
+            </Column>
+            <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 12rem">
+              <template #body="{ data }">
+                {{ data.prenom }}
+              </template>
+              <template #filter="{ filterModel, filterCallback }">
+                <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
+              </template>
+            </Column>
+            <Column field="semestres" header="semestres" style="min-width: 12rem">
+              <template #body="{ data }">
+                <div v-for="semestre in data.semestres">{{semestre.libelle}}</div>
+              </template>
+            </Column>
+            <Column field="mailUniv" :showFilterMenu="false" header="Email" style="min-width: 12rem">
+              <template #body="{ data }">
+                {{ data.mailUniv }}
+              </template>
+              <template #filter="{ filterModel, filterCallback }">
+                <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par email"/>
+              </template>
+            </Column>
+            <Column :showFilterMenu="false" style="min-width: 12rem">
+              <template #body="slotProps">
+                <ButtonInfo tooltip="Voir les détails" @click="viewEtudiant(slotProps.data)"/>
+                <ButtonEdit
+                    tooltip="Modifier le personnel"
+                    @click="editEtudiant(slotProps.data)"/>
+                <ButtonDelete
+                    tooltip="Supprimer le personnel du département"
+                    @confirm-delete="deleteEtudiant(slotProps.data)"/>
+              </template>
+            </Column>
+            <template #footer> {{ nbEtudiants }} résultat(s).</template>
+
+          </DataTable>
+
+          <ViewEtudiantDialog
+              :isVisible="showViewDialog"
+              :etudiant="selectedEtudiant"
+              @update:visible="showViewDialog = $event"/>
+          <EditEtudiantDialog
+              :isVisible="showEditDialog"
+              :etudiant="selectedEtudiant"
+              @update:visible="showEditDialog = $event"/>
+          <AccessEtudiantDialog
+              :isVisible="showAccessEditDialog"
+              :etudiant="selectedEtudiant"
+              @update:visible="showAccessEditDialog = $event"/>
+        </div>
       </template>
 
       <style scoped>
