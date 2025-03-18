@@ -35,8 +35,8 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
 #[ORM\HasLifecycleCallbacks]
 #[ApiFilter(EtudiantFilter::class)]
 #[ApiFilter(SearchFilter::class, properties: [
-    'nom' => 'partial',
-    'prenom' => 'partial',
+    'nom' => 'start',
+    'prenom' => 'start',
     'mailUniv' => 'partial'
 ])]
 class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface

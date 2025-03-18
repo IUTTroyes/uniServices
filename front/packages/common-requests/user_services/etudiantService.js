@@ -13,7 +13,6 @@ const getEtudiantsDepartementService = async (departement, anneeUniv, limit, pag
         itemsPerPage: limit,
     };
 
-    // Ajoutez les filtres aux paramètres
     if (filters.nom.value) {
         params['nom'] = filters.nom.value;
     }
