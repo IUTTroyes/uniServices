@@ -80,8 +80,8 @@ onMounted(async () => {
 })
 
 const onPageChange = async (event) => {
-  page.value = event.page
-  limit.value = event.rows
+  limit.value = event.rows;
+  page.value = event.page;
   await loadEtudiants();
 }
 
@@ -116,17 +116,17 @@ watch([filters, selectedAnneeUniv], async (newFilters, newSelectedAnneeUniv) => 
           <h2 class="text-2xl font-bold mb-4">Tous les étudiants du département</h2>
 
           <DataTable v-model:filters="filters" :value="etudiants"
-                     lazy
-                     stripedRows
-                     paginator
-                     :first="offset"
-                     :rows="limit"
-                     :rowsPerPageOptions="rowOptions"
-                     :totalRecords="nbEtudiants"
-                     dataKey="id" filterDisplay="row" :loading="loading"
-                     @page="onPageChange($event)"
-                     @update:rows="limit = $event"
-                     :globalFilterFields="['nom', 'prenom']">
+                                lazy
+                                stripedRows
+                                paginator
+                                :first="offset"
+                                :rows="limit"
+                                :rowsPerPageOptions="rowOptions"
+                                :totalRecords="nbEtudiants"
+                                dataKey="id" filterDisplay="row" :loading="loading"
+                                @page="onPageChange($event)"
+                                @update:rows="limit = $event"
+                                :globalFilterFields="['nom', 'prenom']">
             <template #header>
               <div class="flex justify-between items-end">
                 <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/3" />

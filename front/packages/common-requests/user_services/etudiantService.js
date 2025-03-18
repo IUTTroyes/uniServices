@@ -6,7 +6,7 @@ const getEtudiantScolariteActifService = async (etudiant, anneeUniv) => {
 }
 
 const getEtudiantsDepartementService = async (departement, anneeUniv, limit, page) => {
-    const response = await api.get(`/api/etudiants?departement=${departement}&anneeUniversitaire=${anneeUniv}&limit=${limit}&page=${page}`);
+    const response = await api.get(`/api/etudiants?departement=${departement}&anneeUniversitaire=${anneeUniv}&page=${page}&itemsPerPage=${limit}`);
     return response.data;
 }
 
