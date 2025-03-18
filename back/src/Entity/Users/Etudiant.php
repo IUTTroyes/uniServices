@@ -2,6 +2,7 @@
 
 namespace App\Entity\Users;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
@@ -33,6 +34,11 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
 )]
 #[ORM\HasLifecycleCallbacks]
 #[ApiFilter(EtudiantFilter::class)]
+#[ApiFilter(SearchFilter::class, properties: [
+    'nom' => 'partial',
+    'prenom' => 'partial',
+    'mailUniv' => 'partial'
+])]
 class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
 {
     use LifeCycleTrait;
