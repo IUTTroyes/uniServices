@@ -37,6 +37,7 @@ const filters = ref({
   nom: { value: null, matchMode: FilterMatchMode.CONTAINS },
   prenom: { value: null, matchMode: FilterMatchMode.CONTAINS },
   mailUniv: { value: null, matchMode: FilterMatchMode.EQUALS },
+  semestres: { value: null, matchMode: FilterMatchMode.EQUALS },
 })
 
 const showViewDialog = ref(false)
@@ -127,6 +128,19 @@ watch([filters, selectedAnneeUniv], async (newFilters, newSelectedAnneeUniv) => 
                      @page="onPageChange($event)"
                      @update:rows="limit = $event"
                      :globalFilterFields="['nom', 'prenom']">
+            <template #header>
+                <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/3" />
+                <IftaLabel v-else class="w-1/3">
+                  <Select
+                      v-model="selectedAnneeUniv"
+                      :options="anneesUnivList"
+                      optionLabel="libelle"
+                      placeholder="Sélectionner une année universitaire"
+                      class="w-full"
+                  />
+                  <label for="anneeUniversitaire">Année universitaire</label>
+                </IftaLabel>
+            </template>
             <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 12rem">
               <template #body="{ data }">
                 {{ data.nom }}
@@ -143,9 +157,12 @@ watch([filters, selectedAnneeUniv], async (newFilters, newSelectedAnneeUniv) => 
                 <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
               </template>
             </Column>
-            <Column field="semestres" header="semestres" style="min-width: 12rem">
+            <Column field="semestres" :showFilterMenu="false" header="semestres" style="min-width: 12rem">
               <template #body="{ data }">
                 <div v-for="semestre in data.semestres">{{semestre.libelle}}</div>
+              </template>
+              <template #filter="{ filterModel, filterCallback }">
+                <InputText v-model="filterModel.value" type="select" @input="filterCallback()" placeholder="Filtrer par semestres"/>
               </template>
             </Column>
             <Column field="mailUniv" :showFilterMenu="false" header="Email" style="min-width: 12rem">
