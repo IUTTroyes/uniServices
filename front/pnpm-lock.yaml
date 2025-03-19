@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@primeuix/utils':
-        specifier: ^0.5.1
-        version: 0.5.1
       '@primevue/forms':
         specifier: ^4.2.5
         version: 4.3.2(vue@3.5.13(typescript@5.8.2))

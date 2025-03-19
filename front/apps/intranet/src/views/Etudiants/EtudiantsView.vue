@@ -12,16 +12,20 @@ import AccessEtudiantDialog from '@/dialogs/etudiants/AccessEtudiantDialog.vue'
 
 import { getEtudiantsDepartementService } from "@requests";
 
-import { useAnneeUnivStore, useUsersStore } from "@stores";
+import {useAnneeUnivStore, useSemestreStore, useUsersStore} from "@stores";
 import { SimpleSkeleton } from "@components";
 const usersStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
+const semestreStore = useSemestreStore();
 
 const departementId = ref(null);
 const anneesUnivList = ref([]);
 const selectedAnneeUniv = ref(null);
+const semestresList = ref([]);
+const selectedSemestre = ref(null);
 
 const isLoadingAnneesUniv = ref(false);
+const isLoadingSemestres = ref(false);
 
 const etudiants = ref([])
 const nbEtudiants = ref(0)
@@ -37,7 +41,7 @@ const filters = ref({
   nom: { value: null, matchMode: FilterMatchMode.CONTAINS },
   prenom: { value: null, matchMode: FilterMatchMode.CONTAINS },
   mailUniv: { value: null, matchMode: FilterMatchMode.EQUALS },
-  semestres: { value: null, matchMode: FilterMatchMode.EQUALS },
+  semestre: { value: null, matchMode: FilterMatchMode.EQUALS },
 })
 
 const showViewDialog = ref(false)
@@ -52,6 +56,22 @@ const getAnneesUniv = async () => {
   await anneeUnivStore.getCurrentAnneeUniv();
   selectedAnneeUniv.value = anneeUnivStore.anneeUniv;
   isLoadingAnneesUniv.value = false;
+};
+
+const getSemestres = async () => {
+  isLoadingSemestres.value = true;
+  await semestreStore.getSemestresByDepartement(departementId.value, true);
+  semestresList.value = Object.entries(
+    semestreStore.semestres.reduce((acc, semestre) => {
+      const annee = semestre.annee.libelle;
+      if (!acc[annee]) {
+        acc[annee] = [];
+      }
+      acc[annee].push({ label: semestre.libelle, value: semestre });
+      return acc;
+    }, {})
+  ).map(([label, items]) => ({ label, items }));
+  isLoadingSemestres.value = false;
 };
 
 const loadEtudiants = async () => {
@@ -72,12 +92,10 @@ const loadEtudiants = async () => {
 }
 
 onMounted(async () => {
-  if (usersStore.departementDefaut) {
-    departementId.value = usersStore.departementDefaut.id;
+  departementId.value = usersStore.departementDefaut.id
     await getAnneesUniv();
-  } else {
-    console.error('departementDefaut is not defined');
-  }
+    await getSemestres();
+
 })
 
 const onPageChange = async (event) => {
@@ -109,6 +127,12 @@ watch([filters, selectedAnneeUniv], async (newFilters, newSelectedAnneeUniv) => 
     }
   }, 300);
 })
+
+watch(() => filters.value.semestre.value, async (newSemestre) => {
+  if (newSemestre) {
+    await loadEtudiants();
+  }
+});
 
 </script>
 
@@ -161,8 +185,13 @@ watch([filters, selectedAnneeUniv], async (newFilters, newSelectedAnneeUniv) => 
               <template #body="{ data }">
                 <div v-for="semestre in data.semestres">{{semestre.libelle}}</div>
               </template>
-              <template #filter="{ filterModel, filterCallback }">
-                <InputText v-model="filterModel.value" type="select" @input="filterCallback()" placeholder="Filtrer par semestres"/>
+             <template #filter="{ filterModel, filterCallback }">
+                <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/3" />
+                <Select v-else v-model="filters.semestre.value" :options="semestresList" optionLabel="label" optionGroupLabel="label" optionGroupChildren="items" placeholder="Sélectionner un semestre" class="w-full">
+                  <template #optiongroup="slotProps">
+                    <div class="border-b">Année : {{ slotProps.option.label }}</div>
+                  </template>
+                </Select>
               </template>
             </Column>
             <Column field="mailUniv" :showFilterMenu="false" header="Email" style="min-width: 12rem">

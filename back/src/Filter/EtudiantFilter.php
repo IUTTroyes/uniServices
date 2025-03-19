@@ -42,10 +42,10 @@ class EtudiantFilter extends AbstractFilter
         if ('semestre' === $property) {
             $queryBuilder
                 ->join("$alias.etudiantScolarites", "es3")
-                ->join("es3.scolariteSemestre", "ss")
-                ->join("ss.semestre", "s")
-                ->andWhere("ss.id = :semestre")
-                ->setParameter("semestre", $value);
+                ->join("es3.scolarite_semestre", "ss")
+                ->join("ss.structure_semestre", "s")
+                ->andWhere("s.id = :semestre")
+                ->setParameter("semestre", $value['id']);
         }
     }
 

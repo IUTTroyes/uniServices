@@ -471,7 +471,10 @@ const footerColsForm = computed(() => [
     </div>
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
-      <div v-if="previSemestre[1].length > 0">
+      <Message v-if="previSemestre < 1 || previSemestre[1].length < 1" severity="error" icon="pi pi-times-circle">
+        Aucun prévisionnel pour cette année universitaire et ce semestre
+      </Message>
+      <div v-else>
         <div class="flex w-full justify-between my-6">
           <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
           <div class="flex justify-end">
@@ -500,9 +503,6 @@ const footerColsForm = computed(() => [
               :headerTitlecolspan="2"/>
         </div>
       </div>
-      <Message v-else-if="previSemestre < 1 || previSemestre[1].length < 1" severity="error" icon="pi pi-times-circle">
-        Aucun prévisionnel pour cette année universitaire et ce semestre
-      </Message>
     </div>
   </div>
 </template>
