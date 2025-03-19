@@ -124,8 +124,8 @@ const showDetails = (type, item) => {
           <i class="pi pi-angle-down"></i>
         </template>
         <div class="border-l-2 border-primary-500 pl-4">
+          <div class="mb-1 text-lg">{{annee.libelleLong}}</div>
           <div class="text-muted-color mb-4">Responsable du diplome : {{selectedDiplome?.responsableDiplome?.display ?? `Pas de responsable`}}</div>
-
           <div class="my-6 flex flex-row items-center gap-4">
             <table class="text-lg">
               <thead>
@@ -143,25 +143,46 @@ const showDetails = (type, item) => {
               </tr>
               </tbody>
             </table>
-            <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="showDetails('annee', annee)"/>
           </div>
           <div v-for="semestre in annee.structureSemestres" class="ml-6 border-l-2 border-primary-300 pl-4">
-            <div class="my-6 flex flex-row items-center gap-4">
+            <div class="mt-6 mb-2 flex flex-row items-center gap-4">
               <table class="text-lg">
                 <thead>
                 <tr class="border-b">
                   <th class="px-2 font-normal text-muted-color text-start">Semestre</th>
                   <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
+                  <th class="px-2 font-normal text-muted-color text-start">Nbr. d'UEs</th>
+
                 </tr>
                 </thead>
                 <tbody>
                 <tr>
                   <td class="px-2 font-bold">{{ semestre.libelle }}</td>
                   <td class="px-2 font-bold">{{ semestre.codeElement }}</td>
+                  <td class="px-2 font-bold">{{ semestre.structureUes.length }}</td>
                 </tr>
                 </tbody>
               </table>
-              <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="showDetails('semestre', semestre)"/>
+              <Button icon="pi pi-cog" rounded outlined severity="warn" @click=""/>
+            </div>
+            <div class="mb-4">
+              <div>Nombre de groupes</div>
+              <table class="text-lg">
+                <thead>
+                <tr class="border-b">
+                  <th class="px-2 font-normal text-muted-color text-start">CM</th>
+                  <th class="px-2 font-normal text-muted-color text-start">TD</th>
+                  <th class="px-2 font-normal text-muted-color text-start">TP</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td class="px-2 font-bold">{{ semestre.nbGroupesCm }}</td>
+                  <td class="px-2 font-bold">{{ semestre.nbGroupesTd }}</td>
+                  <td class="px-2 font-bold">{{ semestre.nbGroupesTp }}</td>
+                </tr>
+                </tbody>
+              </table>
             </div>
             <Fieldset v-for="ue in semestre.structureUes" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`" class="ml-6 !border-l-2 !border-l-primary-200 !pl-4 !border-0" :collapsed="true">
               <template #toggleicon>
@@ -173,18 +194,22 @@ const showDetails = (type, item) => {
                   <tr class="border-b">
                     <th class="px-2 font-normal text-muted-color text-start">UE</th>
                     <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
-                    <th v-if="ue.apcCompetence" class="px-2 font-normal text-muted-color text-start">Compétence Apc</th>
+                    <th v-if="selectedDiplome.typeDiplome.apc" class="px-2 font-normal text-muted-color text-start">Compétence Apc</th>
+                    <th class="px-2 font-normal text-muted-color text-start">Nb. ECTS</th>
+                    <th v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-normal text-muted-color text-start">Coeff</th>
                   </tr>
                   </thead>
                   <tbody>
                   <tr>
                     <td class="px-2 font-bold">{{ue.libelle}}</td>
                     <td class="px-2 font-bold">{{ ue.codeElement }}</td>
-                    <td v-if="ue.apcCompetence" :class="ue.apcCompetence.couleur" class="px-2 font-bold !w-fit">{{ue.apcCompetence.nomCourt}}</td>
+                    <td v-if="selectedDiplome.typeDiplome.apc" :class="ue.apcCompetence.couleur" class="px-2 font-bold !w-fit">{{ue.apcCompetence.nomCourt}}</td>
+                    <td class="px-2 font-bold !w-fit">{{ue.nbEcts}}</td>
+                    <td v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-bold !w-fit">0</td>
                   </tr>
                   </tbody>
                 </table>
-                <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="showDetails('ue', ue)"/>
+                <Button icon="pi pi-cog" rounded outlined severity="warn" @click=""/>
               </div>
               <Fieldset v-for="enseignementUe in ue.scolEnseignementUes" :legend="`${enseignementUe.enseignement.libelle}`" :toggleable="true">
                 <template #toggleicon>
@@ -212,7 +237,8 @@ const showDetails = (type, item) => {
                     </tr>
                     </tbody>
                   </table>
-                  <Button icon="pi pi-info-circle" rounded outlined severity="info"/>
+                  <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="showDetails('enseignement', enseignementUe)"/>
+                  <Button icon="pi pi-cog" rounded outlined severity="warn" @click=""/>
                 </div>
               </Fieldset>
             </Fieldset>
@@ -224,73 +250,7 @@ const showDetails = (type, item) => {
 
   <Dialog v-model:visible="visibleDialog" modal :header="`Détails ${dialogContent?.type} ${dialogContent?.item.libelle}`" :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask>
     <template v-if="dialogContent">
-      <div v-if="dialogContent.type === 'annee'" class="m-0">
-        <div class="text-lg font-bold mb-3">{{ dialogContent.item.libelleLong }}</div>
-        <table class="text-lg">
-          <thead>
-          <tr class="border-b">
-            <th class="px-2 font-normal text-muted-color text-start">Année</th>
-            <th class="px-2 font-normal text-muted-color text-start">Code étape</th>
-            <th class="px-2 font-normal text-muted-color text-start">Code version</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td class="px-2 font-bold">{{ dialogContent.item.libelle }}</td>
-            <td class="px-2 font-bold">{{ dialogContent.item.apogeeCodeEtape }}</td>
-            <td class="px-2 font-bold">{{ dialogContent.item.apogeeCodeVersion }}</td>
-          </tr>
-          </tbody>
-        </table>
-        <Divider/>
-        <div class="flex justify-end w-full gap-4">
-          <Button label="MCC" icon="pi pi-external-link" icon-pos="right" class="mt-4" />
-          <Button label="Paramètres" icon="pi pi-cog" icon-pos="right" class="mt-4" />
-        </div>
-      </div>
-      <div v-if="dialogContent.type === 'semestre'" class="m-0">
-        <table class="text-lg">
-          <thead>
-          <tr class="border-b">
-            <th class="px-2 font-normal text-muted-color text-start">Semestre</th>
-            <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
-            <th class="px-2 font-normal text-muted-color text-start">Nbr. d'UEs</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td class="px-2 font-bold">{{ dialogContent.item.libelle }}</td>
-            <td class="px-2 font-bold">{{ dialogContent.item.codeElement }}</td>
-            <td class="px-2 font-bold">{{ dialogContent.item.structureUes.length }}</td>
-          </tr>
-          </tbody>
-        </table>
-
-        <Divider/>
-
-        <div>Nombre de groupes</div>
-        <table class="text-lg">
-          <thead>
-          <tr class="border-b">
-            <th class="px-2 font-normal text-muted-color text-start">CM</th>
-            <th class="px-2 font-normal text-muted-color text-start">TD</th>
-            <th class="px-2 font-normal text-muted-color text-start">TP</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td class="px-2 font-bold">{{ dialogContent.item.nbGroupesCm }}</td>
-            <td class="px-2 font-bold">{{ dialogContent.item.nbGroupesTd }}</td>
-            <td class="px-2 font-bold">{{ dialogContent.item.nbGroupesTp }}</td>
-          </tr>
-          </tbody>
-        </table>
-        <Divider/>
-        <div class="flex justify-end w-full gap-4">
-          <Button label="Paramètres" icon="pi pi-cog" icon-pos="right" class="mt-4"/>
-        </div>
-      </div>
-      <div v-if="dialogContent.type === 'ue'" class="m-0">
+      <div v-if="dialogContent.type === 'enseignement'" class="m-0">
         <table class="text-lg">
           <thead>
           <tr class="border-b">
