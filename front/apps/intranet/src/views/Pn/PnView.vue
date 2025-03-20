@@ -3,6 +3,9 @@ import { onMounted, ref } from 'vue'
 import { useSemestreStore, useUsersStore, useDiplomeStore } from '@stores'
 import { SimpleSkeleton } from "@components";
 import { NodeService } from '@/service/NodeService';
+import FicheRessource from "../../components/Pn/FicheRessource.vue";
+import FicheSae from "../../components/Pn/FicheSae.vue";
+import FicheMatiere from "../../components/Pn/FicheMatiere.vue";
 
 const usersStore = useUsersStore();
 const diplomeStore = useDiplomeStore();
@@ -237,7 +240,7 @@ const showDetails = (type, item) => {
                     </tr>
                     </tbody>
                   </table>
-                  <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="showDetails('enseignement', enseignementUe)"/>
+                  <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="showDetails('enseignement', enseignementUe.enseignement)"/>
                   <Button icon="pi pi-cog" rounded outlined severity="warn" @click=""/>
                 </div>
               </Fieldset>
@@ -251,42 +254,9 @@ const showDetails = (type, item) => {
   <Dialog v-model:visible="visibleDialog" modal :header="`Détails ${dialogContent?.type} ${dialogContent?.item.libelle}`" :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask>
     <template v-if="dialogContent">
       <div v-if="dialogContent.type === 'enseignement'" class="m-0">
-        <table class="text-lg">
-          <thead>
-          <tr class="border-b">
-            <th class="px-2 font-normal text-muted-color text-start">Ue</th>
-            <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
-            <th class="px-2 font-normal text-muted-color text-start">Compétence</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td class="px-2 font-bold">{{ dialogContent.item.libelle }}</td>
-            <td class="px-2 font-bold">{{ dialogContent.item.codeElement }}</td>
-            <td v-if="dialogContent.item.apcCompetence" :class="dialogContent.item.apcCompetence.couleur" class="px-2 font-bold">{{ dialogContent.item.apcCompetence?.nomCourt }}</td>
-          </tr>
-          </tbody>
-        </table>
-        <Divider/>
-        <table class="text-lg">
-          <thead>
-          <tr class="border-b">
-            <th class="px-2 font-normal text-muted-color text-start">Coeff</th>
-            <th class="px-2 font-normal text-muted-color text-start">Nb. ECTS</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td class="px-2 font-bold">{{ dialogContent.item.nbEcts }}</td>
-            <td class="px-2 font-bold">0</td>
-          </tr>
-          </tbody>
-        </table>
-        <Divider/>
-
-        <div class="flex justify-end w-full gap-4">
-          <Button label="Paramètres" icon="pi pi-cog" icon-pos="right" class="mt-4"/>
-        </div>
+        <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item"/>
+        <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item"/>
+        <FicheMatiere v-else-if="dialogContent.item.type === 'matiere'" :enseignement="dialogContent.item"/>
       </div>
     </template>
   </Dialog>

@@ -36,7 +36,7 @@ export default [
   },
   {
     path: 'administration/pn',
-    component: () => import('@/components/administration/Pn.vue'),
+    component: () => import('@/views/pn/PnView.vue'),
     meta: {
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
