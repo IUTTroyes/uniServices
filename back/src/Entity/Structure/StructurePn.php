@@ -47,7 +47,7 @@ class StructurePn
      * @var Collection<int, StructureAnneeUniversitaire>
      */
     #[ORM\ManyToMany(targetEntity: StructureAnneeUniversitaire::class, mappedBy: 'pn')]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['structure_pn:read'])]
     private Collection $structureAnneeUniversitaires;
 
     #[ORM\ManyToOne(inversedBy: 'pn')]
@@ -57,7 +57,7 @@ class StructurePn
      * @var Collection<int, StructureAnnee>
      */
     #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'pn')]
-    #[Groups(['structure_pn:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['structure_pn:read', 'structure_diplome:read:full'])]
     private Collection $structureAnnees;
 
     public function __construct(StructureDiplome $diplome)

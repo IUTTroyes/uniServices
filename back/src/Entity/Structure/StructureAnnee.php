@@ -46,7 +46,7 @@ class StructureAnnee
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'semestre:read'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'semestre:read', 'structure_pn:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
@@ -67,15 +67,15 @@ class StructureAnnee
      * @var Collection<int, StructureSemestre>
      */
     #[ORM\OneToMany(targetEntity: StructureSemestre::class, mappedBy: 'annee')]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'structure_pn:read'])]
     private Collection $structureSemestres;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['structure_pn:read'])]
     private ?string $apogeeCodeVersion = null;
 
     #[ORM\Column(length: 10, nullable: true)]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['structure_pn:read'])]
     private ?string $apogeeCodeEtape = null;
 
     #[ORM\ManyToOne(inversedBy: 'annees')]

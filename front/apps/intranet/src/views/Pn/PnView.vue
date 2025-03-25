@@ -30,7 +30,7 @@ onMounted(async () => {
   }
 
   if (selectedDiplome.value) {
-    selectedPn.value = selectedDiplome.value.structurePns.find(pn => pn.structureAnneeUniversitaires.some(annee => annee.actif === true))
+    await getPnsForDiplome(selectedDiplome.value.id);
   }
 
   if (selectedPn.value) {
@@ -61,7 +61,9 @@ const getPnsForDiplome = async (diplomeId) => {
     isLoadingPn.value = true;
     pns.value = await getPnsDiplome(diplomeId)
     console.log(pns.value)
-    selectedPn.value = pns.value.find(pn => pn.structureAnneeUniversitaires.some(annee => annee.actif === true))
+    // parmis tous les pn, on prend celui qui a une année active
+    selectedPn.value = pns.value.find(pn => pn.structureAnneeUniversitaires.some(annee => annee.actif === true)) ?? null
+    console.log(selectedPn.value)
     nodes.value = transformData(selectedPn.value.structureAnnees);
     if (selectedPn.value) {
       nodes.value = transformData(selectedPn.value.structureAnnees);
@@ -77,7 +79,7 @@ const getPnsForDiplome = async (diplomeId) => {
 
 const changeDiplome = (diplome) => {
   selectedDiplome.value = diplome
-  selectedPn.value = diplome.structurePns.find(pn => pn.structureAnneeUniversitaires.some(annee => annee.actif))
+  getPnsForDiplome(selectedDiplome.value.id);
 
   nodes.value = transformData(selectedPn.value.structureAnnees);
 }

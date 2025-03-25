@@ -48,7 +48,7 @@ class StructureSemestre
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'etudiant:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'etudiant:read', 'structure_pn:read'])]
     private string $libelle;
 
     #[ORM\Column]
@@ -64,19 +64,19 @@ class StructureSemestre
     private bool $actif = true;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'structure_diplome:read'])]
+    #[Groups(['semestre:read', 'structure_pn:read'])]
     private int $nbGroupesCm = 1;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'structure_diplome:read'])]
+    #[Groups(['semestre:read', 'structure_pn:read'])]
     private int $nbGroupesTd = 1;
 
     #[ORM\Column()]
-    #[Groups(['semestre:read', 'structure_diplome:read'])]
+    #[Groups(['semestre:read', 'structure_pn:read'])]
     private int $nbGroupesTp = 2;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read', 'structure_pn:read'])]
     private ?string $codeElement = null;
 
     /**
@@ -94,7 +94,7 @@ class StructureSemestre
      * @var Collection<int, StructureUe>
      */
     #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'semestre')]
-    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_pn:read'])]
     private Collection $structureUes;
 
     /**
