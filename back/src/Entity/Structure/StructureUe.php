@@ -25,15 +25,15 @@ class StructureUe
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read:full', 'structure_diplome:read'])]
+    #[Groups(['semestre:read:full', 'structure_pn:read'])]
     private string $libelle = '';
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'structure_diplome:read'])]
+    #[Groups(['semestre:read:full', 'structure_pn:read'])]
     private int $numero = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'structure_diplome:read'])]
+    #[Groups(['semestre:read:full', 'structure_pn:read'])]
     private float $nbEcts = 0;
 
     #[ORM\Column]
@@ -45,11 +45,11 @@ class StructureUe
     private bool $bonification = false;
 
     #[ORM\Column(length: 15)]
-    #[Groups(['semestre:read:full', 'structure_diplome:read'])]
+    #[Groups(['semestre:read:full', 'structure_pn:read'])]
     private string $codeElement = '';
 
     #[ORM\ManyToOne(inversedBy: 'ues')]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['structure_pn:read'])]
     private ?ApcCompetence $apcCompetence = null;
 
     #[ORM\ManyToOne(inversedBy: 'structureUes')]
@@ -60,7 +60,7 @@ class StructureUe
      * @var Collection<int, ScolEnseignementUe>
      */
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'ue')]
-    #[Groups(['semestre:read:full', 'structure_diplome:read'])]
+    #[Groups(['semestre:read:full', 'structure_pn:read'])]
     private Collection $scolEnseignementUes;
 
     // todo: add coeff. ?
@@ -70,7 +70,7 @@ class StructureUe
         $this->scolEnseignementUes = new ArrayCollection();
     }
 
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['structure_pn:read'])]
     public function getDisplayApc(): string
     {
         return $this->apcCompetence ? $this->libelle.' | '.$this->apcCompetence->getNomCourt() : $this->libelle;
