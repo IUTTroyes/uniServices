@@ -7,6 +7,7 @@ use App\Repository\Apc\ApcNiveauRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ApcNiveauRepository::class)]
 class ApcNiveau
@@ -30,6 +31,7 @@ class ApcNiveau
      * @var Collection<int, ApcParcours>
      */
     #[ORM\ManyToMany(targetEntity: ApcParcours::class, inversedBy: 'apcNiveaux')]
+    #[Groups('structure_diplome:read')]
     private Collection $apcParcours;
 
     #[ORM\ManyToOne(inversedBy: 'apcNiveaux')]

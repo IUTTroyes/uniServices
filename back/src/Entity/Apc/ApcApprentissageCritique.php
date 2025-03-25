@@ -9,6 +9,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ApcApprentissageCritiqueRepository::class)]
 class ApcApprentissageCritique
@@ -21,9 +22,11 @@ class ApcApprentissageCritique
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups('structure_diplome:read')]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Groups('structure_diplome:read')]
     private ?string $code = null;
 
     /**
@@ -33,6 +36,7 @@ class ApcApprentissageCritique
     private Collection $scolEnseignements;
 
     #[ORM\ManyToOne(inversedBy: 'apcApprentissageCritique')]
+    #[Groups('structure_diplome:read')]
     private ?ApcNiveau $apcNiveau = null;
 
     public function __construct()

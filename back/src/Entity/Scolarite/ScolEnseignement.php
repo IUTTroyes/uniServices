@@ -43,19 +43,23 @@ class ScolEnseignement
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
-    #[Groups(['semestre:read:full', 'previsionnel:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'structure_diplome:read'])]
     private ?string $libelle_court = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $preRequis = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $objectif = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -63,11 +67,11 @@ class ScolEnseignement
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'structure_diplome:read'])]
     private ?bool $suspendu = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'structure_diplome:read'])]
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
@@ -75,6 +79,7 @@ class ScolEnseignement
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]
+    #[Groups(['structure_diplome:read'])]
     private ?int $nbNotes = null;
 
     #[ORM\Column]
@@ -90,6 +95,7 @@ class ScolEnseignement
     private ?self $parent = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['structure_diplome:read'])]
     private ?string $livrables = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -102,6 +108,7 @@ class ScolEnseignement
      * @var Collection<int, ApcApprentissageCritique>
      */
     #[ORM\ManyToMany(targetEntity: ApcApprentissageCritique::class, inversedBy: 'scolEnseignements')]
+    #[Groups(['structure_diplome:read'])]
     private Collection $apcApprentissageCritique;
 
     /**

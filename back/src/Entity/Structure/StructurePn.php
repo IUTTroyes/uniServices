@@ -2,10 +2,13 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcReferentiel;
+use App\Filter\PnFilter;
 use App\Repository\Structure\StructurePnRepository;
 use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,6 +23,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new GetCollection(normalizationContext: ['groups' => ['structure_pn:read']]),
     ]
 )]
+#[ApiFilter(PnFilter::class)]
 class StructurePn
 {
     #[ORM\Id]
@@ -29,7 +33,7 @@ class StructurePn
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['structure_pn:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
     private string $libelle;
 
     #[ORM\Column]
@@ -53,7 +57,7 @@ class StructurePn
      * @var Collection<int, StructureAnnee>
      */
     #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'pn')]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['structure_pn:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
     private Collection $structureAnnees;
 
     public function __construct(StructureDiplome $diplome)

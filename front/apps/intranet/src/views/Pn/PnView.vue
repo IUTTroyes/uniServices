@@ -1,11 +1,11 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useSemestreStore, useUsersStore, useDiplomeStore } from '@stores'
-import { SimpleSkeleton } from "@components";
-import { NodeService } from '@/service/NodeService';
+import {ListSkeleton, SimpleSkeleton} from "@components";
 import FicheRessource from "../../components/Pn/FicheRessource.vue";
 import FicheSae from "../../components/Pn/FicheSae.vue";
 import FicheMatiere from "../../components/Pn/FicheMatiere.vue";
+import { getPnsDiplome } from "@requests/structure_services/pnService.js";
 
 const usersStore = useUsersStore();
 const diplomeStore = useDiplomeStore();
@@ -13,6 +13,7 @@ const departementId = ref(null);
 
 const diplomes = ref([])
 const selectedDiplome = ref(null)
+const pns = ref([])
 const selectedPn = ref(null)
 const isLoadingDiplomes = ref(true)
 const isLoadingPn = ref(true)
@@ -35,8 +36,6 @@ onMounted(async () => {
   if (selectedPn.value) {
     console.log(selectedPn.value)
     nodes.value = transformData(selectedPn.value.structureAnnees);
-
-    console.log('nodes', nodes.value)
     isLoadingPn.value = false;
   }
 })
@@ -46,16 +45,35 @@ const getDiplomes = async (departementId) => {
     isLoadingDiplomes.value = true
     await diplomeStore.getDiplomesActifsDepartement(departementId);
     diplomes.value = diplomeStore.diplomes;
+    if (diplomes.value.length > 0) {
+      selectedDiplome.value = diplomes.value[0];
+      await getPnsForDiplome(selectedDiplome.value.id);
+    }
   } catch (error) {
     console.error('Erreur lors du chargement des diplomes:', error);
   } finally {
-    if (diplomes.value.length > 0 && !selectedDiplome.value) {
-      selectedDiplome.value = diplomes.value[0]
-      selectedPn.value = selectedDiplome.value.structurePns.find(pn => pn.structureAnneeUniversitaires.some(annee => annee.actif))
-    }
     isLoadingDiplomes.value = false
   }
 }
+
+const getPnsForDiplome = async (diplomeId) => {
+  try {
+    isLoadingPn.value = true;
+    pns.value = await getPnsDiplome(diplomeId)
+    console.log(pns.value)
+    selectedPn.value = pns.value.find(pn => pn.structureAnneeUniversitaires.some(annee => annee.actif === true))
+    nodes.value = transformData(selectedPn.value.structureAnnees);
+    if (selectedPn.value) {
+      nodes.value = transformData(selectedPn.value.structureAnnees);
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des PNs:', error);
+  } finally {
+    isLoadingPn.value = false;
+  }
+}
+
+
 
 const changeDiplome = (diplome) => {
   selectedDiplome.value = diplome
@@ -110,17 +128,17 @@ const showDetails = (type, item) => {
       </Tabs>
     </div>
 
-    <div class="flex justify-between gap-10 mt-6">
-      <Select v-if="selectedDiplome" v-model="selectedPn"
-              :options="selectedDiplome.structurePns"
-              optionLabel="libelle"
-              placeholder="Selectionner un PN"
-              class="w-full md:w-56"/>
+    <ListSkeleton v-if="isLoadingPn" class="mt-4"/>
+    <div v-else class="mt-6">
+      <div class="flex justify-between gap-10 my-6">
+        <Select v-if="selectedDiplome" v-model="selectedPn"
+                :options="selectedDiplome.structurePns"
+                optionLabel="libelle"
+                placeholder="Selectionner un PN"
+                class="w-full md:w-56"/>
 
-      <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" />
-    </div>
-
-    <div class="mt-6">
+        <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" />
+      </div>
       <div class="text-xl font-bold mb-4">{{selectedDiplome?.apcParcours?.display ?? `Pas de parcours`}}</div>
       <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.structureAnnees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
@@ -251,9 +269,32 @@ const showDetails = (type, item) => {
     </div>
   </div>
 
-  <Dialog v-model:visible="visibleDialog" modal :header="`Détails ${dialogContent?.type} ${dialogContent?.item.libelle}`" :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask>
+  <Dialog v-model:visible="visibleDialog" modal :header="`Détails ${dialogContent?.type}  -   ${dialogContent?.item.libelle}`" :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask>
     <template v-if="dialogContent">
       <div v-if="dialogContent.type === 'enseignement'" class="m-0">
+        <div v-if="dialogContent?.item.libelle_court" class="text-s mb-4 text-muted-color">{{dialogContent?.item.libelle_court}}</div>
+        <table class="text-lg">
+          <thead>
+          <tr class="border-b">
+            <th class="px-2 font-normal text-muted-color text-start">Code {{dialogContent.item.type}}</th>
+            <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
+            <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
+            <th class="px-2 font-normal text-muted-color text-start">Type</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td class="px-2 font-bold">{{ dialogContent.item.codeEnseignement }}</td>
+            <td class="px-2 font-bold">{{ dialogContent.item.libelle }}</td>
+            <td class="px-2 font-bold">{{ dialogContent.item.codeApogee }}</td>
+            <td class="px-2 font-bold">
+              <Tag v-if="dialogContent.item.type === 'sae'" severity="success">{{ dialogContent.item.type }}</Tag>
+              <Tag v-else severity="info">{{ dialogContent.item.type }}</Tag>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+        <Divider/>
         <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item"/>
         <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item"/>
         <FicheMatiere v-else-if="dialogContent.item.type === 'matiere'" :enseignement="dialogContent.item"/>
