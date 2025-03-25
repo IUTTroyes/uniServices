@@ -134,7 +134,7 @@ const showDetails = (type, item) => {
     <div v-else class="mt-6">
       <div class="flex justify-between gap-10 my-6">
         <Select v-if="selectedDiplome" v-model="selectedPn"
-                :options="selectedDiplome.structurePns"
+                :options="pns"
                 optionLabel="libelle"
                 placeholder="Selectionner un PN"
                 class="w-full md:w-56"/>
