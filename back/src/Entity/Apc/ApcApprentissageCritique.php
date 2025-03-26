@@ -26,7 +26,7 @@ class ApcApprentissageCritique
     private ?string $libelle = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups('structure_diplome:read')]
+    #[Groups('scol_enseignement:read')]
     private ?string $code = null;
 
     /**
@@ -36,7 +36,7 @@ class ApcApprentissageCritique
     private Collection $scolEnseignements;
 
     #[ORM\ManyToOne(inversedBy: 'apcApprentissageCritique')]
-    #[Groups('structure_diplome:read')]
+    #[Groups(['structure_diplome:read', 'scol_enseignement:read'])]
     private ?ApcNiveau $apcNiveau = null;
 
     public function __construct()

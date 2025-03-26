@@ -281,7 +281,7 @@ const showDetails = (item) => {
     </div>
   </div>
 
-  <Dialog v-model:visible="visibleDialog" modal :header="`Détails ${dialogContent?.type}  -   ${dialogContent?.item.libelle}`" :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask>
+  <Dialog v-model:visible="visibleDialog" modal :header="`Détails ${dialogContent?.item.type}  -   ${dialogContent?.item.libelle}`" :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask>
     <template v-if="dialogContent">
         <div v-if="dialogContent?.item.libelle_court" class="text-s mb-4 text-muted-color">{{dialogContent?.item.libelle_court}}</div>
         <table class="text-lg">
