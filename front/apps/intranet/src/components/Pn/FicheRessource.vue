@@ -27,7 +27,9 @@ const uniqueCompetences = computed(() => {
 });
 
 const motsCles = computed(() => {
-  return props.enseignement.motsCles.split(',');
+  if (props.enseignement.motsCles && props.enseignement.motsCles.length > 0) {
+    return props.enseignement.motsCles.split(',');
+  }
 });
 
 const isDescriptionExpanded = ref(false);
