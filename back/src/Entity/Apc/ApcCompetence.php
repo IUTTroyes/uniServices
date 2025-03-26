@@ -24,11 +24,11 @@ class ApcCompetence
     private ?string $libelle = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['structure_diplome:read', 'scol_enseignement:read'])]
     private ?string $nomCourt = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['structure_diplome:read', 'scol_enseignement:read'])]
     private ?string $couleur = null;
 
     #[ORM\ManyToOne(inversedBy: 'apcCompetences')]
