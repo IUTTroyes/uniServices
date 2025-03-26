@@ -308,7 +308,7 @@ const showDetails = (item, semestre) => {
         <Divider/>
         <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
         <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
-        <FicheMatiere v-else-if="dialogContent.item.type === 'matiere'" :enseignement="dialogContent.item"/>
+        <FicheMatiere v-else-if="dialogContent.item.type === 'matiere'" :enseignement="dialogContent.item" :semestre="dialogContent.semestre" :diplome="selectedDiplome"/>
     </template>
   </Dialog>
 </template>
