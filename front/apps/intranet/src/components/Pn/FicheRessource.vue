@@ -19,7 +19,7 @@ heures.Total = {
 const uniqueCompetences = computed(() => {
   const competences = new Set();
   props.enseignement.scolEnseignementUes.forEach(ue => {
-    if (ue.ue.apcCompetence?.nomCourt) {
+    if (ue.ue.apcCompetence) {
       competences.add(ue.ue.apcCompetence);
     }
   });
@@ -59,7 +59,7 @@ console.log(props.enseignement);
     </div>
     <div>
       <div class="font-bold">Mots clés :</div>
-      <div class="flex gap-2"><Tag v-for="motCle in motsCles" class="lowercase">{{ motCle }}</Tag></div>
+      <div class="flex gap-2 flex-wrap"><Tag v-for="motCle in motsCles" class="lowercase">{{ motCle }}</Tag></div>
     </div>
 
     <Divider/>
@@ -113,7 +113,7 @@ console.log(props.enseignement);
       <ApcCompetenceBadge v-for="ue in uniqueCompetences" :key="ue.nomCourt" :competence="ue" />
       <span v-if="uniqueCompetences.length < 1">Aucune compétence</span>
     </div>
-    <div class="flex gap-6 flex-wrap">
+    <div class="flex gap-2 flex-wrap">
       <span class="font-bold">Apprentissage(s) critique(s) : </span>
       <ApcAcBadge v-for="ac in enseignement.apcApprentissageCritique" :key="ac.code" :ac="ac">{{ ac.code }}</ApcAcBadge>
       <span v-if="enseignement.apcApprentissageCritique.length < 1">Aucun apprentissage critique</span>
