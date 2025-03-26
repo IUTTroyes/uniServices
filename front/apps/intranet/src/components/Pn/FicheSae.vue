@@ -8,6 +8,14 @@ const props = defineProps({
     type: Object,
     required: true
   },
+  parcours: {
+    type: Object,
+    required: true
+  },
+  semestre: {
+    type: Object,
+    required: true
+  }
 });
 
 const heures = props.enseignement.heures;
@@ -64,14 +72,15 @@ const toggleObjectif = () => {
   isDescriptionExpanded.value = !isDescriptionExpanded.value;
 };
 
-console.log(props.enseignement);
+console.log(props.parcours);
 </script>
 
 <template>
   <div class="py-4 px-8 flex flex-col gap-4 w-full">
     <div>
+      <div class="font-bold">Description :</div>
       <div v-html="formatDescription(enseignement.description)"></div>
-      <div class="text-primary underline cursor-pointer" @click="toggleDescription">
+      <div v-if="enseignement.description && enseignement.description.length > 500" class="text-primary underline cursor-pointer" @click="toggleDescription">
         {{ isDescriptionExpanded ? 'Voir moins' : 'Voir plus...' }}
       </div>
     </div>
@@ -88,8 +97,16 @@ console.log(props.enseignement);
 
     <div class="text-xl font-bold">Structure de l'enseignement dans la formation</div>
     <div class="flex gap-24">
-      <div><span class="font-bold">Parcours : </span> <span class="underline">Administration et Justice (FC)</span></div>
-      <div><span class="font-bold">Semestre(s) : </span>S1</div>
+      <div>
+        <span class="font-bold">Parcours : </span>
+        <span v-if="props.parcours">{{props.parcours.libelle }}</span>
+        <span v-else>Aucun parcours renseigné</span>
+      </div>
+      <div>
+        <span class="font-bold">Semestre : </span>
+        <span v-if="props.semestre">{{props.semestre.libelle }}</span>
+        <span v-else>Aucun semestre renseigné</span>
+      </div>
       <div><span class="font-bold">Suspendue : </span><span v-if="enseignement.suspendu"><Tag severity="danger">Oui</Tag></span><span v-else><Tag severity="success">Non</Tag></span></div>
     </div>
     <div class="flex gap-12 w-full">

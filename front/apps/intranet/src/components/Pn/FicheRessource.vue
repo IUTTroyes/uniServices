@@ -8,6 +8,14 @@ const props = defineProps({
     type: Object,
     required: true
   },
+  parcours: {
+    type: Object,
+    required: true
+  },
+  semestre: {
+    type: Object,
+    required: true
+  }
 });
 
 const heures = props.enseignement.heures;
@@ -54,13 +62,14 @@ console.log(props.enseignement);
 <template>
   <div class="py-4 px-8 flex flex-col gap-4 w-full">
     <div>
+      <div class="font-bold text-lg">Description :</div>
       <div v-html="formatDescription(enseignement.description)"></div>
-      <div class="text-primary underline cursor-pointer" @click="toggleDescription">
+      <div v-if="enseignement.description && enseignement.description.length > 500" class="text-primary underline cursor-pointer" @click="toggleDescription">
         {{ isDescriptionExpanded ? 'Voir moins' : 'Voir plus...' }}
       </div>
     </div>
     <div>
-      <div class="font-bold">Mots clés :</div>
+      <div class="font-bold text-lg">Mots clés :</div>
       <div class="flex gap-2 flex-wrap"><Tag v-for="motCle in motsCles" class="lowercase">{{ motCle }}</Tag></div>
     </div>
 
@@ -68,12 +77,20 @@ console.log(props.enseignement);
 
     <div class="text-xl font-bold">Structure de l'enseignement dans la formation</div>
     <div class="flex gap-24">
-      <div><span class="font-bold">Parcours : </span> <span class="underline">Administration et Justice (FC)</span></div>
-      <div><span class="font-bold">Semestre(s) : </span>S1</div>
-      <div><span class="font-bold">Suspendue : </span><span v-if="enseignement.suspendu"><Tag severity="danger">Oui</Tag></span><span v-else><Tag severity="success">Non</Tag></span></div>
+      <div>
+        <span class="font-bold text-lg">Parcours : </span>
+        <span v-if="props.parcours">{{props.parcours.libelle }}</span>
+        <span v-else>Aucun parcours renseigné</span>
+      </div>
+      <div>
+        <span class="font-bold text-lg">Semestre : </span>
+        <span v-if="props.semestre">{{props.semestre.libelle }}</span>
+        <span v-else>Aucun semestre renseigné</span>
+      </div>
+      <div><span class="font-bold text-lg">Suspendue : </span><span v-if="enseignement.suspendu"><Tag severity="danger">Oui</Tag></span><span v-else><Tag severity="success">Non</Tag></span></div>
     </div>
     <div class="flex gap-12 w-full">
-      <div class="font-bold text-nowrap">Volumes horaires : </div>
+      <div class="font-bold text-nowrap text-lg">Volumes horaires : </div>
       <DataTable :value="[enseignement.heures]" tableStyle="min-width: 50rem" size="small" class="w-full">
         <ColumnGroup type="header">
           <Row>
@@ -111,17 +128,17 @@ console.log(props.enseignement);
     <Divider/>
     <div class="text-xl font-bold">Cet enseignement dans l'APC</div>
     <div class="flex gap-2">
-      <span class="font-bold">Compétence(s) ciblée(s) : </span>
+      <span class="font-bold text-lg">Compétence(s) ciblée(s) : </span>
       <ApcCompetenceBadge v-for="ue in uniqueCompetences" :key="ue.nomCourt" :competence="ue" />
       <span v-if="uniqueCompetences.length < 1">Aucune compétence</span>
     </div>
     <div class="flex gap-2 flex-wrap">
-      <span class="font-bold">Apprentissage(s) critique(s) : </span>
+      <span class="font-bold text-lg">Apprentissage(s) critique(s) : </span>
       <ApcAcBadge v-for="ac in enseignement.apcApprentissageCritique" :key="ac.code" :ac="ac">{{ ac.code }}</ApcAcBadge>
       <span v-if="enseignement.apcApprentissageCritique.length < 1">Aucun apprentissage critique</span>
     </div>
-    <div><span class="font-bold">SAÉ concernée(s) : </span> {{ enseignement.sae ?? 'Aucune SAÉ concernée' }}</div>
-    <div><span class="font-bold">Prérequis : </span> {{ enseignement.preRequis ?? 'Aucune ressource prérequise' }}</div>
+    <div><span class="font-bold text-lg">SAÉ concernée(s) : </span> {{ enseignement.sae ?? 'Aucune SAÉ concernée' }}</div>
+    <div><span class="font-bold text-lg">Prérequis : </span> {{ enseignement.preRequis ?? 'Aucune ressource prérequise' }}</div>
   </div>
 </template>
 

@@ -74,12 +74,12 @@ const getPnsForDiplome = async (diplomeId) => {
   }
 }
 
-const getEnseignement = async (enseignementId) => {
+const getEnseignement = async (enseignementId, semestre) => {
   try {
     isLoadingEnseignement.value = true;
     selectedEnseignement.value = await getEnseignementService(enseignementId)
     console.log(enseignementId)
-    showDetails(selectedEnseignement.value)
+    showDetails(selectedEnseignement.value, semestre)
   } catch (error) {
     console.error('Erreur lors du chargement de l\'enseignement:', error);
   } finally {
@@ -114,10 +114,10 @@ const transformData = (data) => {
   }));
 };
 
-const showDetails = (item) => {
+const showDetails = (item, semestre) => {
   console.log(item);
   if (item) {
-    dialogContent.value = { item };
+    dialogContent.value = { item, semestre };
     visibleDialog.value = true;
   } else {
     console.error('Item is null or undefined');
@@ -151,7 +151,7 @@ const showDetails = (item) => {
 
         <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" />
       </div>
-      <div class="text-xl font-bold mb-4">{{selectedDiplome?.apcParcours?.display ?? `Pas de parcours`}}</div>
+      <div class="text-xl font-bold mb-4">{{selectedDiplome?.apcParcours?.display ?? `Aucun parcours renseigné`}}</div>
       <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.structureAnnees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
           <i class="pi pi-angle-down"></i>
@@ -270,7 +270,7 @@ const showDetails = (item) => {
                     </tr>
                     </tbody>
                   </table>
-                  <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="getEnseignement(enseignementUe.enseignement.id)"/>
+                  <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="getEnseignement(enseignementUe.enseignement.id, semestre)"/>
                   <Button icon="pi pi-cog" rounded outlined severity="warn" @click=""/>
                 </div>
               </Fieldset>
@@ -306,8 +306,8 @@ const showDetails = (item) => {
           </tbody>
         </table>
         <Divider/>
-        <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item"/>
-        <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item"/>
+        <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
+        <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
         <FicheMatiere v-else-if="dialogContent.item.type === 'matiere'" :enseignement="dialogContent.item"/>
     </template>
   </Dialog>
