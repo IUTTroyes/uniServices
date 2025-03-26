@@ -10,7 +10,6 @@ const props = defineProps({
   },
   parcours: {
     type: Object,
-    required: true
   },
   semestre: {
     type: Object,
@@ -69,8 +68,8 @@ console.log(props.enseignement);
       </div>
     </div>
     <div>
-      <div class="font-bold text-lg">Mots clés :</div>
-      <div class="flex gap-2 flex-wrap"><Tag v-for="motCle in motsCles" class="lowercase">{{ motCle }}</Tag></div>
+      <div class="font-bold">Mots clés :</div>
+      <div class="flex gap-2 flex-wrap"><Tag v-for="motCle in motsCles" class="lowercase">{{ motCle }}</Tag><span v-if="!motsCles">Aucun mot clé renseigné</span></div>
     </div>
 
     <Divider/>

@@ -10,7 +10,6 @@ const props = defineProps({
   },
   parcours: {
     type: Object,
-    required: true
   },
   semestre: {
     type: Object,
