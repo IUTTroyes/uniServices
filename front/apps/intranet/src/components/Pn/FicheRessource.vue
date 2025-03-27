@@ -75,7 +75,7 @@ console.log(props.enseignement);
     <Divider/>
 
     <div class="text-xl font-bold">Structure de l'enseignement dans la formation</div>
-    <div class="flex gap-24">
+    <div class="flex flex-wrap gap-x-24 gap-y-4">
       <div>
         <span class="font-bold text-lg">Parcours : </span>
         <span v-if="props.parcours">{{props.parcours.libelle }}</span>
@@ -86,6 +86,7 @@ console.log(props.enseignement);
         <span v-if="props.semestre">{{props.semestre.libelle }}</span>
         <span v-else>Aucun semestre renseigné</span>
       </div>
+      <div><span class="font-bold">Mutualisée : </span><span v-if="enseignement.mutualisee"><Tag severity="success">Oui</Tag></span><span v-else><Tag>Non</Tag></span></div>
       <div><span class="font-bold text-lg">Suspendue : </span><span v-if="enseignement.suspendu"><Tag severity="danger">Oui</Tag></span><span v-else><Tag severity="success">Non</Tag></span></div>
     </div>
     <div class="flex gap-12 w-full">
@@ -133,11 +134,12 @@ console.log(props.enseignement);
     </div>
     <div class="flex gap-2 flex-wrap">
       <span class="font-bold text-lg">Apprentissage(s) critique(s) : </span>
-      <ApcAcBadge v-for="ac in enseignement.apcApprentissageCritique" :key="ac.code" :ac="ac">{{ ac.code }}</ApcAcBadge>
+      <ApcAcBadge v-for="ac in enseignement.apcApprentissageCritique" :key="ac.code" :ac="ac" v-tooltip.top="`${ac.libelle}`">{{ ac.code }}</ApcAcBadge>
       <span v-if="enseignement.apcApprentissageCritique.length < 1">Aucun apprentissage critique</span>
     </div>
-    <div><span class="font-bold text-lg">SAÉ concernée(s) : </span> {{ enseignement.sae ?? 'Aucune SAÉ concernée' }}</div>
-    <div><span class="font-bold text-lg">Prérequis : </span> {{ enseignement.preRequis ?? 'Aucune ressource prérequise' }}</div>
+    <div><span class="font-bold text-lg">SAÉ concernée(s) : </span> {{ enseignement.sae ?? 'Aucune SAÉ renseignée' }}</div>
+    <div><span class="font-bold text-lg">Prérequis : </span> {{ enseignement.preRequis ?? 'Aucune ressource renseignée' }}</div>
+    <div><span class="font-bold text-lg">Nombre de notes : </span> {{ enseignement.nbNotes ?? 'Aucun nombre de note renseigné' }}</div>
   </div>
 </template>
 

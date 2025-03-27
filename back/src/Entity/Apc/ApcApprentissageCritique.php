@@ -22,7 +22,7 @@ class ApcApprentissageCritique
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups('structure_diplome:read')]
+    #[Groups(['structure_diplome:read', 'scol_enseignement:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 20, nullable: true)]
