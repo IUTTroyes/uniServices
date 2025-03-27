@@ -71,14 +71,14 @@ console.log(props.enseignement);
       </div>
     </div>
     <div>
-      <div class="font-bold">Mots clés :</div>
+      <div class="font-bold text-lg">Mots clés :</div>
       <div class="flex gap-2 flex-wrap"><Tag v-for="motCle in motsCles" class="lowercase">{{ motCle }}</Tag><span v-if="!motsCles || motsCles.length < 1">Aucun mot clé renseigné</span></div>
     </div>
 
     <Divider/>
 
     <div class="text-xl font-bold">Structure de l'enseignement dans la formation</div>
-    <div class="flex gap-24">
+    <div class="flex flex-wrap gap-x-24 gap-y-4">
       <div>
         <span class="font-bold text-lg">Diplome : </span>
         <span v-if="props.diplome">{{props.diplome.libelle }}</span>
@@ -89,7 +89,9 @@ console.log(props.enseignement);
         <span v-if="props.semestre">{{props.semestre.libelle }}</span>
         <span v-else>Aucun semestre renseigné</span>
       </div>
+      <div><span class="font-bold text-lg">Mutualisée : </span><span v-if="enseignement.mutualisee"><Tag severity="success">Oui</Tag></span><span v-else><Tag>Non</Tag></span></div>
       <div><span class="font-bold text-lg">Suspendue : </span><span v-if="enseignement.suspendu"><Tag severity="danger">Oui</Tag></span><span v-else><Tag severity="success">Non</Tag></span></div>
+      <div><span class="font-bold text-lg">Nombre de notes : </span> {{ enseignement.nbNotes ?? 'Aucun nombre de note renseigné' }}</div>
     </div>
     <div class="flex gap-12 w-full">
       <div class="font-bold text-nowrap text-lg">Volumes horaires : </div>
@@ -127,20 +129,11 @@ console.log(props.enseignement);
         <Column field="Total.IUT" header="Total IUT" />
       </DataTable>
     </div>
-    <Divider/>
-<!--    <div class="text-xl font-bold">Cet enseignement dans l'APC</div>-->
-<!--    <div class="flex gap-2">-->
-<!--      <span class="font-bold text-lg">Compétence(s) ciblée(s) : </span>-->
-<!--      <ApcCompetenceBadge v-for="ue in uniqueCompetences" :key="ue.nomCourt" :competence="ue" />-->
-<!--      <span v-if="uniqueCompetences.length < 1">Aucune compétence</span>-->
-<!--    </div>-->
-<!--    <div class="flex gap-2 flex-wrap">-->
-<!--      <span class="font-bold text-lg">Apprentissage(s) critique(s) : </span>-->
-<!--      <ApcAcBadge v-for="ac in enseignement.apcApprentissageCritique" :key="ac.code" :ac="ac">{{ ac.code }}</ApcAcBadge>-->
-<!--      <span v-if="enseignement.apcApprentissageCritique.length < 1">Aucun apprentissage critique</span>-->
-<!--    </div>-->
-<!--    <div><span class="font-bold text-lg">SAÉ concernée(s) : </span> {{ enseignement.sae ?? 'Aucune SAÉ concernée' }}</div>-->
-<!--    <div><span class="font-bold text-lg">Prérequis : </span> {{ enseignement.preRequis ?? 'Aucune ressource prérequise' }}</div>-->
+    <div>
+      <div class="font-bold text-lg">Objectif(s) de la matière :</div>
+      <div v-if="enseignement.objectifs" v-html="enseignement.objectifs"></div>
+      <div v-else>Aucun objectif renseigné</div>
+    </div>
   </div>
 </template>
 
