@@ -102,6 +102,7 @@ class ScolEnseignement
     private ?string $exemple = null;
 
     #[ORM\Column]
+    #[Groups(['scol_enseignement:read'])]
     private ?bool $bonification = null;
 
     /**
