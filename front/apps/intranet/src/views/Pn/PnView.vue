@@ -78,7 +78,6 @@ const getEnseignement = async (enseignementId, semestre) => {
   try {
     isLoadingEnseignement.value = true;
     selectedEnseignement.value = await getEnseignementService(enseignementId)
-    console.log(enseignementId)
     showDetails(selectedEnseignement.value, semestre)
   } catch (error) {
     console.error('Erreur lors du chargement de l\'enseignement:', error);
@@ -115,7 +114,6 @@ const transformData = (data) => {
 };
 
 const showDetails = (item, semestre) => {
-  console.log(item);
   if (item) {
     dialogContent.value = { item, semestre };
     visibleDialog.value = true;
@@ -325,35 +323,11 @@ const showDetails = (item, semestre) => {
     </div>
   </div>
 
-  <Dialog v-model:visible="visibleDialog" modal :header="`Détails ${dialogContent?.item.type}  -   ${dialogContent?.item.libelle}`" :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask>
+  <Dialog v-model:visible="visibleDialog" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+    <template #header>
+      <div></div>
+    </template>
     <template v-if="dialogContent">
-      <div v-if="dialogContent?.item.libelle_court" class="text-s mb-4 text-muted-color">{{dialogContent?.item.libelle_court}}</div>
-      <div class="my-6 flex flex-row items-center gap-4">
-        <table class="text-lg">
-          <thead>
-          <tr class="border-b">
-            <th class="px-2 font-normal text-muted-color text-start">Code {{dialogContent.item.type}}</th>
-            <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
-            <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
-            <th class="px-2 font-normal text-muted-color text-start">Type</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-            <td class="px-2 font-bold">{{ dialogContent.item.codeEnseignement }}</td>
-            <td class="px-2 font-bold">{{ dialogContent.item.libelle }}</td>
-            <td class="px-2 font-bold">{{ dialogContent.item.codeApogee }}</td>
-            <td class="px-2 font-bold">
-              <Tag v-if="dialogContent.item.type === 'sae'" severity="success">{{ dialogContent.item.type }}</Tag>
-              <Tag v-else severity="info">{{ dialogContent.item.type }}</Tag>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-        <div v-if="dialogContent.item.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
-      </div>
-
-      <Divider/>
       <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
       <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
       <FicheMatiere v-else-if="dialogContent.item.type === 'matiere'" :enseignement="dialogContent.item" :semestre="dialogContent.semestre" :diplome="selectedDiplome"/>
@@ -362,5 +336,7 @@ const showDetails = (item, semestre) => {
 </template>
 
 <style scoped>
-
+.p-dialog-header {
+  justify-content: end !important;
+}
 </style>
