@@ -278,7 +278,7 @@ const showDetails = (item, semestre) => {
                     <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
                   </div>
 
-                  <Fieldset v-for="enfant in enseignementUe.enseignement.enfants" :legend="`${enfant.libelle}`" :toggleable="true" class="!bg-gray-300 !bg-opacity-10">
+                  <Fieldset v-for="enfant in enseignementUe.enseignement.enfants" :toggleable="true" class="!bg-gray-300 !bg-opacity-10">
                     <template #toggleicon>
                       <i class="pi pi-angle-down"></i>
                       <div>{{ enfant.libelle }}</div>
@@ -323,7 +323,7 @@ const showDetails = (item, semestre) => {
     </div>
   </div>
 
-  <Dialog v-model:visible="visibleDialog" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+  <Dialog v-model:visible="visibleDialog" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask>
     <template #header>
       <div></div>
     </template>

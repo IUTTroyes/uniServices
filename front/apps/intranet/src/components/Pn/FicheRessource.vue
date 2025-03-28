@@ -58,20 +58,36 @@ const toggleDescription = () => {
   isDescriptionExpanded.value = !isDescriptionExpanded.value;
 };
 
+const isObjectifExpanded = ref(false);
+
+const formatObjectif = (objectif) => {
+  if (!objectif) {
+    return 'Aucun objectif disponible';
+  }
+  if (isObjectifExpanded.value || objectif.length <= 500) {
+    return marked(objectif);
+  }
+  return marked(objectif.slice(0, 500) + '...');
+};
+
+const toggleObjectif = () => {
+  isDescriptionExpanded.value = !isDescriptionExpanded.value;
+};
+
 const showEnfantParent = async (id) => {
   enseignementLocal.value = await getEnseignementService(id);
 };
 </script>
 
 <template>
-  <div class="flex flex-row items-center gap-4">
+  <div class="px-8 flex flex-row items-center gap-4">
     <div class="text-xl font-semibold">Détails {{enseignementLocal.type}} - {{enseignementLocal.libelle}}</div>
     <div v-if="enseignementLocal.libelle_court" class="text-s mb-4 text-muted-color">{{enseignementLocal.libelle_court}}</div>
     <Tag v-if="enseignementLocal.enfants && enseignementLocal.enfants.length >= 1" severity="danger">Ressource parent</Tag>
     <Tag v-if="enseignementLocal.parent" severity="warn">Ressource enfant</Tag>
   </div>
   <Divider/>
-  <div class="my-6 flex flex-row items-center gap-4">
+  <div class="py-4 px-8 flex flex-row items-center gap-4">
     <table class="text-lg">
       <thead>
       <tr class="border-b">
@@ -98,7 +114,7 @@ const showEnfantParent = async (id) => {
   <div v-if="(enseignementLocal.enfants && enseignementLocal.enfants.length >= 1) || enseignementLocal.parent" class="border-gray-200 border p-6 rounded-xl my-6">
     <div v-if="enseignementLocal.enfants && enseignementLocal.enfants.length >= 1" class="font-bold text-lg">Ressources enfants :</div>
     <div v-else class="font-bold text-lg">Ressource parent :</div>
-    <div v-if="enseignementLocal.enfants && enseignementLocal.enfants.length >= 1" v-for="enfant in enseignementLocal.enfants" :key="enfant.id" class="border-gray-200 border p-6 rounded-xl my-6 flex flex-row items-center gap-4">
+    <div v-if="enseignementLocal.enfants && enseignementLocal.enfants.length >= 1" v-for="enfant in enseignementLocal.enfants" :key="enfant.id" class="p-6 rounded-xl my-6 flex flex-row items-center gap-4">
       <table class="text-lg">
         <thead>
         <tr class="border-b">
@@ -126,7 +142,7 @@ const showEnfantParent = async (id) => {
       <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
       <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
     </div>
-    <div v-else class="border-gray-200 border p-6 rounded-xl my-6 flex flex-row items-center gap-4">
+    <div v-else-if="enseignementLocal.parent" class="p-6 rounded-xl my-6 flex flex-row items-center gap-4">
       <table class="text-lg">
         <thead>
         <tr class="border-b">
@@ -163,6 +179,10 @@ const showEnfantParent = async (id) => {
       <div v-if="enseignementLocal.description && enseignementLocal.description.length > 500" class="text-primary underline cursor-pointer" @click="toggleDescription">
         {{ isDescriptionExpanded ? 'Voir moins' : 'Voir plus...' }}
       </div>
+    </div>
+    <div>
+      <div class="font-bold text-lg">Objectifs et problématique professionnelle associée :</div>
+      <div class="flex gap-2 flex-wrap">{{enseignement.objectif ?? 'Aucun objectif renseigné'}}</div>
     </div>
     <div>
       <div class="font-bold">Mots clés :</div>
