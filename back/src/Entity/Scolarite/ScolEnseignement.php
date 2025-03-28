@@ -89,9 +89,11 @@ class ScolEnseignement
      * @var Collection<int, self>
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    #[Groups(['structure_pn:read', 'scol_enseignement:read'])]
     private Collection $enfants;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
+    #[Groups(['structure_pn:read', 'scol_enseignement:read'])]
     private ?self $parent = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

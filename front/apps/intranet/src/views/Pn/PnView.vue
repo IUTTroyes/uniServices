@@ -244,39 +244,80 @@ const showDetails = (item, semestre) => {
                 </table>
                 <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
               </div>
-              <Fieldset v-for="enseignementUe in ue.scolEnseignementUes" :legend="`${enseignementUe.enseignement.libelle}`" :toggleable="true">
-                <template #toggleicon>
-                  <i class="pi pi-angle-down"></i>
-                </template>
-                <div class="my-6 flex flex-row items-center gap-4">
-                  <table class="text-lg">
-                    <thead>
-                    <tr class="border-b">
-                      <th class="px-2 font-normal text-muted-color text-start">Code {{enseignementUe.enseignement.type}}</th>
-                      <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
-                      <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
-                      <th class="px-2 font-normal text-muted-color text-start">Type</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                      <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeEnseignement }}</td>
-                      <td class="px-2 font-bold">{{ enseignementUe.enseignement.libelle }}</td>
-                      <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeApogee }}</td>
-                      <td class="px-2 font-bold">
-                        <Tag v-if="enseignementUe.enseignement.type === 'sae'" severity="success">{{ enseignementUe.enseignement.type }}</Tag>
-                        <Tag v-else severity="info">{{ enseignementUe.enseignement.type }}</Tag>
-                      </td>
-                    </tr>
-                    </tbody>
-                  </table>
-                  <div v-if="enseignementUe.enseignement.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
+              <div v-for="enseignementUe in ue.scolEnseignementUes">
+                <Fieldset v-if="!enseignementUe.enseignement.parent" legend="" :toggleable="true">
+                  <template #toggleicon>
+                    <i class="pi pi-angle-down"></i>
+                    <div>{{ enseignementUe.enseignement.libelle }}</div>
+                    <Tag v-if="enseignementUe.enseignement.enfants && enseignementUe.enseignement.enfants.length >= 1" severity="danger">Ressource parent</Tag>
+                  </template>
+                  <div class="my-6 flex flex-row items-center gap-4">
+                    <table class="text-lg">
+                      <thead>
+                      <tr class="border-b">
+                        <th class="px-2 font-normal text-muted-color text-start">Code {{enseignementUe.enseignement.type}}</th>
+                        <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
+                        <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
+                        <th class="px-2 font-normal text-muted-color text-start">Type</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr>
+                        <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeEnseignement }}</td>
+                        <td class="px-2 font-bold">{{ enseignementUe.enseignement.libelle }}</td>
+                        <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeApogee }}</td>
+                        <td class="px-2 font-bold">
+                          <Tag v-if="enseignementUe.enseignement.type === 'sae'" severity="success">{{ enseignementUe.enseignement.type }}</Tag>
+                          <Tag v-else severity="info">{{ enseignementUe.enseignement.type }}</Tag>
+                        </td>
+                      </tr>
+                      </tbody>
+                    </table>
+                    <div v-if="enseignementUe.enseignement.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
 
-                  <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="getEnseignement(enseignementUe.enseignement.id, semestre)" v-tooltip.top="`Accéder au détail`"/>
-                  <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
-                  <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
-                </div>
-              </Fieldset>
+                    <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="getEnseignement(enseignementUe.enseignement.id, semestre)" v-tooltip.top="`Accéder au détail`"/>
+                    <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
+                    <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
+                  </div>
+
+                  <Fieldset v-for="enfant in enseignementUe.enseignement.enfants" :legend="`${enfant.libelle}`" :toggleable="true" class="!bg-gray-300 !bg-opacity-10">
+                    <template #toggleicon>
+                      <i class="pi pi-angle-down"></i>
+                      <div>{{ enfant.libelle }}</div>
+                      <Tag v-if="enfant.enfants && enfant.enfants.length >= 1" severity="danger">Ressource parent</Tag>
+                      <Tag v-if="enfant.parent" severity="warn">Ressource enfant</Tag>
+                    </template>
+                    <div class="my-6 flex flex-row items-center gap-4">
+                      <table class="text-lg">
+                        <thead>
+                        <tr class="border-b">
+                          <th class="px-2 font-normal text-muted-color text-start">Code {{enfant.type}}</th>
+                          <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
+                          <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
+                          <th class="px-2 font-normal text-muted-color text-start">Type</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                          <td class="px-2 font-bold">{{ enfant.codeEnseignement }}</td>
+                          <td class="px-2 font-bold">{{ enfant.libelle }}</td>
+                          <td class="px-2 font-bold">{{ enfant.codeApogee }}</td>
+                          <td class="px-2 font-bold">
+                            <Tag v-if="enfant.type === 'sae'" severity="success">{{ enfant.type }}</Tag>
+                            <Tag v-else severity="info">{{ enfant.type }}</Tag>
+                          </td>
+                        </tr>
+                        </tbody>
+                      </table>
+                      <div v-if="enfant.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
+
+                      <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="getEnseignement(enfant.id, semestre)" v-tooltip.top="`Accéder au détail`"/>
+                      <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
+                      <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
+                    </div>
+                  </Fieldset>
+                </Fieldset>
+              </div>
             </Fieldset>
           </div>
         </div>
@@ -286,36 +327,36 @@ const showDetails = (item, semestre) => {
 
   <Dialog v-model:visible="visibleDialog" modal :header="`Détails ${dialogContent?.item.type}  -   ${dialogContent?.item.libelle}`" :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask>
     <template v-if="dialogContent">
-        <div v-if="dialogContent?.item.libelle_court" class="text-s mb-4 text-muted-color">{{dialogContent?.item.libelle_court}}</div>
-        <div class="my-6 flex flex-row items-center gap-4">
-          <table class="text-lg">
-            <thead>
-            <tr class="border-b">
-              <th class="px-2 font-normal text-muted-color text-start">Code {{dialogContent.item.type}}</th>
-              <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
-              <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
-              <th class="px-2 font-normal text-muted-color text-start">Type</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-              <td class="px-2 font-bold">{{ dialogContent.item.codeEnseignement }}</td>
-              <td class="px-2 font-bold">{{ dialogContent.item.libelle }}</td>
-              <td class="px-2 font-bold">{{ dialogContent.item.codeApogee }}</td>
-              <td class="px-2 font-bold">
-                <Tag v-if="dialogContent.item.type === 'sae'" severity="success">{{ dialogContent.item.type }}</Tag>
-                <Tag v-else severity="info">{{ dialogContent.item.type }}</Tag>
-              </td>
-            </tr>
-            </tbody>
-          </table>
-          <div v-if="dialogContent.item.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
-        </div>
+      <div v-if="dialogContent?.item.libelle_court" class="text-s mb-4 text-muted-color">{{dialogContent?.item.libelle_court}}</div>
+      <div class="my-6 flex flex-row items-center gap-4">
+        <table class="text-lg">
+          <thead>
+          <tr class="border-b">
+            <th class="px-2 font-normal text-muted-color text-start">Code {{dialogContent.item.type}}</th>
+            <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
+            <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
+            <th class="px-2 font-normal text-muted-color text-start">Type</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td class="px-2 font-bold">{{ dialogContent.item.codeEnseignement }}</td>
+            <td class="px-2 font-bold">{{ dialogContent.item.libelle }}</td>
+            <td class="px-2 font-bold">{{ dialogContent.item.codeApogee }}</td>
+            <td class="px-2 font-bold">
+              <Tag v-if="dialogContent.item.type === 'sae'" severity="success">{{ dialogContent.item.type }}</Tag>
+              <Tag v-else severity="info">{{ dialogContent.item.type }}</Tag>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+        <div v-if="dialogContent.item.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
+      </div>
 
-        <Divider/>
-        <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
-        <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
-        <FicheMatiere v-else-if="dialogContent.item.type === 'matiere'" :enseignement="dialogContent.item" :semestre="dialogContent.semestre" :diplome="selectedDiplome"/>
+      <Divider/>
+      <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
+      <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
+      <FicheMatiere v-else-if="dialogContent.item.type === 'matiere'" :enseignement="dialogContent.item" :semestre="dialogContent.semestre" :diplome="selectedDiplome"/>
     </template>
   </Dialog>
 </template>

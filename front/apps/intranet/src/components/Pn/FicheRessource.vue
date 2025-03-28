@@ -54,8 +54,6 @@ const formatDescription = (description) => {
 const toggleDescription = () => {
   isDescriptionExpanded.value = !isDescriptionExpanded.value;
 };
-
-console.log(props.enseignement);
 </script>
 
 <template>
@@ -92,38 +90,43 @@ console.log(props.enseignement);
     <div class="flex gap-12 w-full">
       <div class="font-bold text-nowrap text-lg">Volumes horaires : </div>
       <DataTable :value="[enseignement.heures]" tableStyle="min-width: 50rem" size="small" class="w-full">
-        <ColumnGroup type="header">
-          <Row>
-            <Column header="CM" :colspan="2" class="!text-nowrap !font-bold !border-r" />
-            <Column header="TD" :colspan="2" class="!text-nowrap !font-bold !border-r"/>
-            <Column header="TP" :colspan="2" class="!text-nowrap !font-bold !border-r"/>
-            <Column header="Autonomie" :colspan="2" class="!text-nowrap !font-bold !border-r"/>
-            <Column header="Total" :colspan="2" />
-          </Row>
-          <Row>
-            <Column header="PN" class="!text-nowrap !font-bold !border-b !border-b-black !border-opacity-100" />
-            <Column header="IUT" class="!text-nowrap !font-bold !border-b !border-b-black !border-opacity-100 !border-r" />
-            <Column header="PN" class="!text-nowrap !font-bold !border-b !border-b-black !border-opacity-100"/>
-            <Column header="IUT" class="!text-nowrap !font-bold !border-b !border-b-black !border-opacity-100 !border-r"/>
-            <Column header="PN" class="!text-nowrap !font-bold !border-b !border-b-black !border-opacity-100"/>
-            <Column header="IUT" class="!text-nowrap !font-bold !border-b !border-b-black !border-opacity-100 !border-r"/>
-            <Column header="PN" class="!text-nowrap !font-bold !border-b !border-b-black !border-opacity-100"/>
-            <Column header="IUT" class="!text-nowrap !font-bold !border-b !border-b-black !border-opacity-100 !border-r"/>
-            <Column header="PN" class="!text-nowrap !font-bold !border-b !border-b-black !border-opacity-100"/>
-            <Column header="IUT" class="!text-nowrap !font-bold !border-b !border-b-black !border-opacity-100"/>
-          </Row>
-        </ColumnGroup>
-        <Column field="CM.PN" header="CM PN" class="!text-nowrap" />
-        <Column field="CM.IUT" header="CM IUT" class="!text-nowrap !border-r" />
-        <Column field="TD.PN" header="TD PN" class="!text-nowrap"/>
-        <Column field="TD.IUT" header="TD IUT" class="!text-nowrap !border-r"/>
-        <Column field="TP.PN" header="TP PN" class="!text-nowrap"/>
-        <Column field="TP.IUT" header="TP IUT" class="!text-nowrap !border-r"/>
-        <Column field="Projet.PN" header="Projet PN" class="!text-nowrap"/>
-        <Column field="Projet.IUT" header="Projet IUT" class="!text-nowrap !border-r"/>
-        <Column field="Total.PN" header="Total PN" />
-        <Column field="Total.IUT" header="Total IUT" />
+        <Column field="CM.IUT" header="CM" class="!text-nowrap !border-r" />
+        <Column field="TD.IUT" header="TD" class="!text-nowrap !border-r"/>
+        <Column field="TP.IUT" header="TP" class="!text-nowrap !border-r"/>
+        <Column field="Projet.IUT" header="Projet" class="!text-nowrap !border-r"/>
+        <Column field="Total.IUT" header="Total" />
       </DataTable>
+    </div>
+    <div v-if="enseignement.enfants && enseignement.enfants.length >= 1">
+      <div class="font-bold text-lg">Ressources enfants :</div>
+      <div v-for="enfant in enseignement.enfants" class="border-gray-200 border p-6 rounded-xl my-6 flex flex-row items-center gap-4">
+        <table class="text-lg">
+          <thead>
+          <tr class="border-b">
+            <th class="px-2 font-normal text-muted-color text-start">Code {{enfant.type}}</th>
+            <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
+            <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
+            <th class="px-2 font-normal text-muted-color text-start">Type</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr>
+            <td class="px-2 font-bold">{{ enfant.codeEnseignement }}</td>
+            <td class="px-2 font-bold">{{ enfant.libelle }}</td>
+            <td class="px-2 font-bold">{{ enfant.codeApogee }}</td>
+            <td class="px-2 font-bold">
+              <Tag v-if="enfant.type === 'sae'" severity="success">{{ enfant.type }}</Tag>
+              <Tag v-else severity="info">{{ enfant.type }}</Tag>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+        <div v-if="enfant.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
+
+        <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="getEnseignement(enfant.id, semestre)" v-tooltip.top="`Accéder au détail`"/>
+        <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
+        <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
+      </div>
     </div>
     <Divider/>
     <div class="text-xl font-bold">Cet enseignement dans l'APC</div>
