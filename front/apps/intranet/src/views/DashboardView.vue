@@ -8,10 +8,6 @@ import DashboardEtudiant from "@/components/Etudiant/Dashboard.vue";
 import EdtJour from "@/components/Edt/EdtJour.vue";
 import {CardSkeleton, ArticleSkeleton} from "@components";
 
-const ROLE_PERSONNELS = "personnels";
-const ROLE_ETUDIANTS = "etudiants";
-const ROLE_ASSISTANT_KEY = "ROLE_ASSISTANT";
-
 const userStore = useUsersStore();
 const initiales = ref("");
 const absences = ref([]);
@@ -21,9 +17,6 @@ const agendaEvents = ref([]);
 const isLoadingActu = ref(true);
 const isLoadingAgenda = ref(true);
 
-const isPersonnel = computed(() => userStore.userType === ROLE_PERSONNELS);
-const isEtudiant = computed(() => userStore.userType === ROLE_ETUDIANTS);
-const isAssistant = computed(() => userStore.user.roles.includes(ROLE_ASSISTANT_KEY));
 const userInitiales = computed(
     () => userStore.user?.prenom?.charAt(0) + userStore.user?.nom?.charAt(0) || ""
 );
@@ -59,6 +52,8 @@ onMounted(async () => {
   await Promise.all([getActualites(), getAgenda()]);
   initiales.value = userInitiales.value;
   absences.value = generateMockAbsences();
+
+  console.log(userStore.userType)
 });
 
 const redirectTo = (link) => {
@@ -101,8 +96,8 @@ const redirectTo = (link) => {
           <div class="text-lg text-muted-color font-semibold mb-2">Mes cours à venir</div>
           <EdtJour />
         </div>
-        <hr v-if="isAssistant">
-        <div v-if="isAssistant" class="absences flex flex-col gap-2">
+        <hr v-if="userStore.isAssistant">
+        <div v-if="userStore.isAssistant" class="absences flex flex-col gap-2">
           <div class="text-lg text-muted-color font-semibold">Suivi des absences entre {{ new Date().getHours() < 13 ? '8h00 et 13h00' : '13h00 et 21h00' }}</div>
 
           <Message severity="info" icon="pi pi-info-circle">{{ absences.length }} absent.s sur la demie journée en cours.</Message>
@@ -187,8 +182,8 @@ const redirectTo = (link) => {
       </div>
     </div>
 
-    <DashboardPersonnel v-if="isPersonnel" />
-    <DashboardEtudiant v-else-if="isEtudiant" />
+    <DashboardPersonnel v-if="userStore.isPersonnel" />
+    <DashboardEtudiant v-else-if="userStore.isEtudiant" />
   </div>
 </template>
 

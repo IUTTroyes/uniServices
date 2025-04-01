@@ -16,6 +16,7 @@ declare module 'vue' {
     AdminBlocEtudiant: typeof import('./src/components/Administration/blocs_admin/AdminBlocEtudiant.vue')['default']
     AdminBlocPersonnel: typeof import('./src/components/Administration/blocs_admin/AdminBlocPersonnel.vue')['default']
     AdminBlocPn: typeof import('./src/components/Administration/blocs_admin/AdminBlocPn.vue')['default']
+    AdminBlocQualite: typeof import('./src/components/Administration/blocs_admin/AdminBlocQualite.vue')['default']
     AdminBlocSemestre: typeof import('./src/components/Administration/blocs_admin/AdminBlocSemestre.vue')['default']
     AdminBlocStage: typeof import('./src/components/Administration/blocs_admin/AdminBlocStage.vue')['default']
     ArticleSkeleton: typeof import('./src/components/loader/ArticleSkeleton.vue')['default']
