@@ -39,4 +39,3 @@ export const statuts = [
   { label: 'Autre', value: 'AUTRE', severity: 'secondary' }
 ]
 
-

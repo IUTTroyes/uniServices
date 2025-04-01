@@ -148,6 +148,12 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['etudiant:read'])]
     private ?array $applications = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $organismeSecuriteSociale = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $adresseOrganismeSecuriteSociale = null;
+
     public function __construct()
     {
         $this->etudiantScolarites = new ArrayCollection();
@@ -519,6 +525,30 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLieuNaissance(?string $lieu_naissance): static
     {
         $this->lieu_naissance = $lieu_naissance;
+
+        return $this;
+    }
+
+    public function getOrganismeSecuriteSociale(): ?string
+    {
+        return $this->organismeSecuriteSociale;
+    }
+
+    public function setOrganismeSecuriteSociale(?string $organismeSecuriteSociale): static
+    {
+        $this->organismeSecuriteSociale = $organismeSecuriteSociale;
+
+        return $this;
+    }
+
+    public function getAdresseOrganismeSecuriteSociale(): ?string
+    {
+        return $this->adresseOrganismeSecuriteSociale;
+    }
+
+    public function setAdresseOrganismeSecuriteSociale(?string $adresseOrganismeSecuriteSociale): static
+    {
+        $this->adresseOrganismeSecuriteSociale = $adresseOrganismeSecuriteSociale;
 
         return $this;
     }

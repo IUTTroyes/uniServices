@@ -2,6 +2,8 @@
 
 namespace App\Entity\Stages;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
@@ -12,7 +14,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StagePeriodeRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    //filtrer sur semestreProgramme
+
+)]
+#[ApiFilter(SearchFilter::class, properties: [
+    'semestreProgramme' => 'exact',
+])]
 class StagePeriode
 {
     #[ORM\Id]

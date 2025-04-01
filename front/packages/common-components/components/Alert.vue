@@ -16,7 +16,7 @@ const computedIcon = computed(() => {
   const severityIcons = {
     info: 'pi pi-info-circle',
     success: 'pi pi-check-circle',
-    warning: 'pi pi-exclamation-triangle',
+    warn: 'pi pi-exclamation-triangle',
     error: 'pi pi-times-circle',
   };
 

@@ -23,8 +23,26 @@ const props = defineProps({
     type: String,
     default: 'label'
   },
+  modelValue: {
+    type: [String, Number, Object],
+    default: null
+  },
+  disabled: {
+    type: Boolean,
+    default: false
+  }
 })
 
+const emit = defineEmits(['update:modelValue'])
+
+
+const computedId = computed(() => {
+  return props.id || `input-${Math.random().toString(36).substring(7)}`
+})
+
+const updateValue = (value) => {
+  emit('update:modelValue', value)
+}
 </script>
 
 <template>
@@ -32,7 +50,11 @@ const props = defineProps({
     <label :for="computedId">
       {{ label }}
     </label>
-    <Select v-model="value" :aria-describedby="help" :options="data" :optionLabel="optionLabel" />
+    <Select :aria-describedby="help"
+            @update:modelValue="updateValue"
+            :disabled="disabled"
+            :id="computedId"
+            :options="data" :optionLabel="optionLabel" />
     <Message size="small" severity="secondary" variant="simple">
       {{ help }}
     </Message>
