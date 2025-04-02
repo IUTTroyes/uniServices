@@ -8,6 +8,10 @@ const getSemestrePreviService = async (semestreId, anneeUnivId) => {
     const response = await api.get(`/api/previsionnels_semestre?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}`);
     return response.data.member;
 }
+const getSemestrePreviTestService = async (semestreId, anneeUnivId) => {
+    const response = await api.get(`/api/previsionnels_semestre_test?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}`);
+    return response.data.member;
+}
 
 const getSemestreEnseignementPreviService = async (semestreId, enseignementId, anneeUnivId) => {
     const response = await api.get(`/api/previsionnels_enseignement?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}&enseignement=${enseignementId}`);
@@ -70,4 +74,4 @@ const updatePreviService = async (previId, data) => {
     }
 }
 
-export { getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService };
+export { getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService, getSemestrePreviTestService };

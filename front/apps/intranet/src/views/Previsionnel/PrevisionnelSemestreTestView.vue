@@ -1,7 +1,8 @@
 <script setup>
-import {onMounted, ref} from 'vue';
-import {useAnneeUnivStore, useSemestreStore, useUsersStore} from "@stores";
+import {onMounted, ref, watch} from 'vue';
+import {useAnneeUnivStore, useEnseignementsStore, useSemestreStore, useUsersStore} from "@stores";
 import {SimpleSkeleton} from "@components";
+import {getPersonnelsDepartementService, getSemestrePreviTestService} from "@requests";
 
 // const tableau = ref([
 //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -15,15 +16,20 @@ const tableau = ref(Array.from({ length: 25 }, () => Array(40).fill(0)));
 
 const isLoadingSemestres = ref(false);
 const isLoadingAnneesUniv = ref(false);
+const isLoadingPrevisionnel = ref(false);
 
 const usersStore = useUsersStore();
 const semestreStore = useSemestreStore();
 const anneeUnivStore = useAnneeUnivStore();
+const enseignementStore = useEnseignementsStore();
 
 const anneesUnivList = ref([]);
 const selectedAnneeUniv = ref(null);
 const semestresList = ref([]);
 const selectedSemestre = ref(null);
+const previSemestre = ref(null);
+const personnelsList = ref([]);
+const enseignementsList = ref([]);
 
 const departementId = usersStore.departementDefaut.id;
 
@@ -49,6 +55,59 @@ const getAnneesUniv = async () => {
 onMounted(async () => {
   await getSemestres();
   await getAnneesUniv();
+});
+
+const getPrevi = async (semestreId) => {
+  if (semestreId) {
+    isLoadingPrevisionnel.value = true;
+
+    try {
+      await semestreStore.getSemestre(semestreId);
+
+      previSemestre.value = await getSemestrePreviTestService(selectedSemestre.value.id, selectedAnneeUniv.value.id);
+
+      try {
+        if (selectedSemestre.value) {
+          await enseignementStore.getMatieresSemestre(selectedSemestre.value.id);
+        }
+        enseignementsList.value = enseignementStore.enseignements;
+        if (enseignementsList.value.length > 0) {
+          // construire chaque élément de la liste des matières avec d'abord le libellé de la matière puis le code
+          enseignementsList.value = enseignementsList.value.map((enseignement) => ({
+            ...enseignement,
+            label: `${enseignement.codeEnseignement} - ${enseignement.libelle}`,
+            value: enseignement
+          }));
+        }
+      } catch (error) {
+        console.error('Erreur lors du chargement des matières:', error);
+      }
+      try {
+        personnelsList.value = await getPersonnelsDepartementService(departementId);
+        personnelsList.value = personnelsList.value.map((personnel) => ({
+          ...personnel,
+          label: `${personnel.personnel.prenom} ${personnel.personnel.nom}`,
+          value: personnel
+        }));
+      } catch (error) {
+        console.error('Erreur lors du chargement des matières:', error);
+      }
+
+    } catch (error) {
+      console.error('Erreur lors du chargement du prévisionnel:', error);
+    } finally {
+      console.log('previSemestre', previSemestre.value);
+      isLoadingPrevisionnel.value = false;
+    }
+  }
+
+  console.log(enseignementsList, personnelsList);
+};
+
+watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv]) => {
+  if (newSemestre && newAnneeUniv) {
+    await getPrevi(newSemestre.id, newAnneeUniv.id);
+  }
 });
 </script>
 
@@ -83,14 +142,14 @@ onMounted(async () => {
       <thead>
       <tr>
         <th class="sticky-col"></th>
-        <th v-for="j in 40" :key="j" class="sticky-header">matière {{ j }}</th>
+        <th v-for="enseignement in enseignementsList" :key="enseignement.id" class="sticky-header">{{ enseignement.libelle_court }}</th>
       </tr>
       </thead>
       <tbody>
       <tr v-for="i in 25" :key="i">
         <td class="sticky-col">Prof {{ i }}</td>
-        <td v-for="j in 40" :key="j" :id="`prof_${i}_mat_${j}`">
-          {{ tableau[i - 1][j - 1] }}
+        <td v-for="enseignement in enseignementsList" :key="enseignement.id" :id="`prof_${i}_mat_${enseignement.id}`">
+          {{ tableau[i - 1][enseignementsList.indexOf(enseignement)] }}
         </td>
       </tr>
       </tbody>
