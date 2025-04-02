@@ -32,10 +32,11 @@ class PrevisionnelSemestreTestProvider implements ProviderInterface
 
             $prevSem = [];
             foreach ($data as $item) {
-                $prevSem[] = $this->formToDto($item);
+                $output['prevSem'] = $this->formToDto($item);
+                $output['heures'][] = $item->getHeures();
             }
 
-            return $prevSem;
+            return $output;
 
         } else {
             return [];

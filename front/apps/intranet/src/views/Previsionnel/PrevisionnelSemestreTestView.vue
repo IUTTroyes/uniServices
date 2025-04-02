@@ -13,7 +13,6 @@ import {getPersonnelsDepartementService, getSemestrePreviTestService} from "@req
 // ]);
 const tableau = ref(Array.from({ length: 25 }, () => Array(40).fill(0)));
 
-
 const isLoadingSemestres = ref(false);
 const isLoadingAnneesUniv = ref(false);
 const isLoadingPrevisionnel = ref(false);
