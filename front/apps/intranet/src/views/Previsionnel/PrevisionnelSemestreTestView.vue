@@ -146,10 +146,10 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
       </tr>
       </thead>
       <tbody>
-      <tr v-for="i in 25" :key="i">
-        <td class="sticky-col">Prof {{ i }}</td>
-        <td v-for="enseignement in enseignementsList" :key="enseignement.id" :id="`prof_${i}_mat_${enseignement.id}`">
-          {{ tableau[i - 1][enseignementsList.indexOf(enseignement)] }}
+      <tr v-for="personnel in personnelsList" :key="personnel.id">
+        <td class="sticky-col">{{ personnel.label }}</td>
+        <td v-for="enseignement in enseignementsList" :key="enseignement.id" :id="`prof_${personnel.id}_mat_${enseignement.id}`">
+          {{ tableau[personnelsList.indexOf(personnel)] ? tableau[personnelsList.indexOf(personnel)][enseignementsList.indexOf(enseignement)] : '' }}
         </td>
       </tr>
       </tbody>
