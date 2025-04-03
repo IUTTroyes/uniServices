@@ -31,9 +31,21 @@ class PrevisionnelSemestreTestProvider implements ProviderInterface
             }
 
             $prevSem = [];
+            $output = [
+                'prevSem' => [],
+                'heures' => [],
+            ];
             foreach ($data as $item) {
-                $output['prevSem'] = $this->formToDto($item);
-                $output['heures'][] = $item->getHeures();
+                if ($item->getPersonnel() !== null && $item->getEnseignement() !== null) {
+                    if (!array_key_exists($item->getEnseignement()->getId(), $output['heures'])) {
+                        $output['heures'][$item->getEnseignement()->getId()] = [];
+                    }
+                    if (!array_key_exists($item->getPersonnel()->getId(), $output['heures'][$item->getEnseignement()->getId()])) {
+                        $output['heures'][$item->getEnseignement()->getId()][$item->getPersonnel()->getId()] = [];
+                    }
+                    $output['prevSem'][] = $this->formToDto($item);
+                    $output['heures'][$item->getEnseignement()->getId()][$item->getPersonnel()->getId()] = $item->getHeures();
+                }
             }
 
             return $output;

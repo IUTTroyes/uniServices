@@ -32,6 +32,8 @@ const enseignementsList = ref([]);
 
 const departementId = usersStore.departementDefaut.id;
 
+const heures = ref([])
+
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
   await semestreStore.getSemestresByDepartement(departementId, true);
@@ -83,6 +85,7 @@ const getPrevi = async (semestreId) => {
       }
       try {
         personnelsList.value = await getPersonnelsDepartementService(departementId);
+        console.log(personnelsList.value)
         personnelsList.value = personnelsList.value.map((personnel) => ({
           ...personnel,
           label: `${personnel.personnel.prenom} ${personnel.personnel.nom}`,
@@ -95,12 +98,19 @@ const getPrevi = async (semestreId) => {
     } catch (error) {
       console.error('Erreur lors du chargement du prévisionnel:', error);
     } finally {
+      heures.value = previSemestre.value[1];
+      console.log('heures', heures);
       console.log('previSemestre', previSemestre.value);
       isLoadingPrevisionnel.value = false;
     }
   }
+};
 
-  console.log(enseignementsList, personnelsList);
+const getHeureValue = (type, enseignementId, enseignantId) => {
+  if (heures.value && heures.value[enseignementId] && heures.value[enseignementId][enseignantId]) {
+    return heures.value[enseignementId][enseignantId][type] !== undefined ? heures.value[enseignementId][enseignantId][type] : '';
+  }
+  return '';
 };
 
 watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv]) => {
@@ -137,29 +147,41 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
   </div>
 
   <div class="table-responsive">
-    <table class="table table-bordered table-striped">
-      <thead>
-      <tr>
-        <th class="sticky-col"></th>
-        <th v-for="enseignement in enseignementsList" :key="enseignement.id" class="sticky-header">{{ enseignement.libelle_court }}</th>
-      </tr>
-      </thead>
-      <tbody>
-      <tr v-for="personnel in personnelsList" :key="personnel.id">
-        <td class="sticky-col">{{ personnel.label }}</td>
-        <td v-for="enseignement in enseignementsList" :key="enseignement.id" :id="`prof_${personnel.id}_mat_${enseignement.id}`">
-          {{ tableau[personnelsList.indexOf(personnel)] ? tableau[personnelsList.indexOf(personnel)][enseignementsList.indexOf(enseignement)] : '' }}
-        </td>
-      </tr>
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped">
+        <thead class="sticky top-0 ">
+        <tr>
+          <th class="sticky left-0 bg-primary-100 dark:bg-primary-950 z-2"></th>
+          <th v-for="enseignement in enseignementsList" :key="enseignement.id" class="top-0 bg-primary-100 dark:bg-primary-950 z-1" colspan="3">{{ enseignement.codeEnseignement }}</th>
+        </tr>
+        <tr>
+          <th class="sticky left-0 bg-primary-100 dark:bg-primary-950 z-2"></th>
+          <template v-for="enseignement in enseignementsList">
+            <th class="top-0 bg-primary-100 dark:bg-primary-950 z-1">CM</th>
+            <th class="top-0 bg-primary-100 dark:bg-primary-950 z-1">TD</th>
+            <th class="top-0 bg-primary-100 dark:bg-primary-950 z-1">TP</th>
+          </template>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="(personnel, pIndex) in personnelsList" :key="personnel.id">
+          <td class="sticky left-0 bg-primary-100 dark:bg-primary-950 z-2">{{ personnel.label }} {{personnel.personnel.id}}</td>
+          <template v-for="(enseignement, eIndex) in enseignementsList">
+            <td>{{ getHeureValue('CM', enseignement.id, personnel.personnel.id) }}</td>
+            <td>{{ getHeureValue('TD', enseignement.id, personnel.personnel.id) }}</td>
+            <td>{{ getHeureValue('TP', enseignement.id, personnel.personnel.id) }}</td>
+          </template>
+        </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
-<Divider/>
+  <Divider/>
 
   <div class="m-6">
     <div class="table-responsive">
-      <table class="table table-bordered table-striped">
+      <table class="table table-bordered table-striped table-test">
         <thead>
         <tr>
           <th rowspan="2">Enseignant</th>
@@ -226,14 +248,7 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
 <style scoped>
 .table-responsive {
   overflow: auto;
-  max-height: 600px;
-}
-
-.sticky-header {
-  position: sticky;
-  top: 0;
-  background-color: #f2f2f2;
-  z-index: 1;
+  max-height: 800px;
 }
 
 .sticky-col {
@@ -251,7 +266,6 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
   padding: 8px;
 }
 .table th {
-  background-color: #f2f2f2;
   text-align: center;
 }
 </style>
