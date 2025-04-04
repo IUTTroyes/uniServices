@@ -35,6 +35,10 @@ const departementId = usersStore.departementDefaut.id;
 const heures = ref([])
 const groupes= ref([])
 
+const totalCM = ref([])
+const totalTD = ref([])
+const totalTP = ref([])
+
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
   await semestreStore.getSemestresByDepartement(departementId, true);
@@ -86,7 +90,6 @@ const getPrevi = async (semestreId) => {
       }
       try {
         personnelsList.value = await getPersonnelsDepartementService(departementId);
-        console.log(personnelsList.value)
         personnelsList.value = personnelsList.value.map((personnel) => ({
           ...personnel,
           label: `${personnel.personnel.prenom} ${personnel.personnel.nom}`,
@@ -101,8 +104,9 @@ const getPrevi = async (semestreId) => {
     } finally {
       heures.value = previSemestre.value[1];
       groupes.value = previSemestre.value[2];
-      console.log('heures', heures);
-      console.log('previSemestre', previSemestre.value);
+      totalCM.value = calculTotal('CM');
+      totalTD.value = calculTotal('TD');
+      totalTP.value = calculTotal('TP');
       isLoadingPrevisionnel.value = false;
     }
   }
@@ -119,6 +123,15 @@ const getGroupeValue = (type, enseignementId, enseignantId) => {
     return groupes.value[enseignementId][enseignantId][type] !== undefined ? groupes.value[enseignementId][enseignantId][type] : '';
   }
   return '';
+};
+
+const calculTotal = (type) => {
+  return enseignementsList.value.map(enseignement => {
+    return personnelsList.value.reduce((total, personnel) => {
+      const value = getHeureValue(type, enseignement.id, personnel.personnel.id);
+      return total + (parseFloat(value) || 0);
+    }, 0);
+  });
 };
 
 watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv]) => {
@@ -158,11 +171,11 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
     <table class="w-full border-collapse table">
       <thead class="sticky top-0 z-20">
       <tr>
-        <th class="bg-primary-100 dark:bg-primary-950">Enseignements</th>
+        <th class="bg-primary-100 dark:bg-primary-950 sticky top-0 left-0">Enseignements</th>
         <th v-for="enseignement in enseignementsList" :key="enseignement.id" class="bg-primary-100 dark:bg-primary-950" colspan="6">{{enseignement.libelle_court}}</th>
       </tr>
       <tr>
-        <th class="bg-primary-100 dark:bg-primary-950">Type de groupe</th>
+        <th class="bg-primary-100 dark:bg-primary-950 sticky top-0 left-0">Type de groupe</th>
         <template v-for="enseignement in enseignementsList">
           <th class="bg-primary-100 dark:bg-primary-950" colspan="2">CM</th>
           <th class="bg-primary-100 dark:bg-primary-950" colspan="2">TD</th>
@@ -170,7 +183,7 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
         </template>
       </tr>
       <tr>
-        <th class="bg-primary-100 dark:bg-primary-950">Nb Grp : CM {{selectedSemestre?.nbGroupesCm}}, TD {{selectedSemestre?.nbGroupesTd}}, TP {{selectedSemestre?.nbGroupesTp}} </th>
+        <th class="bg-primary-100 dark:bg-primary-950 sticky top-0 left-0">Nb Grp : CM {{selectedSemestre?.nbGroupesCm}}, TD {{selectedSemestre?.nbGroupesTd}}, TP {{selectedSemestre?.nbGroupesTp}} </th>
         <template v-for="enseignement in enseignementsList">
           <th class="bg-primary-100 dark:bg-primary-950 text-nowrap">Nb h</th>
           <th class="bg-primary-100 dark:bg-primary-950 text-nowrap">Nb gr</th>
@@ -181,13 +194,13 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
         </template>
       </tr>
       <tr>
-        <th class="bg-primary-100 dark:bg-primary-950">Nb Hr attendu</th>
+        <th class="bg-primary-100 dark:bg-primary-950 sticky top-0 left-0">Nb Hr attendu</th>
         <template v-for="enseignement in enseignementsList">
-          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.heures.CM.PN}}</th>
+          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.heures.CM.PN}} h</th>
           <th class="bg-primary-100 dark:bg-primary-950">{{selectedSemestre?.nbGroupesCm}}</th>
-          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.heures.TD.PN}}</th>
+          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.heures.TD.PN}} h</th>
           <th class="bg-primary-100 dark:bg-primary-950">{{selectedSemestre?.nbGroupesTd}}</th>
-          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.heures.TP.PN}}</th>
+          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.heures.TP.PN}} h</th>
           <th class="bg-primary-100 dark:bg-primary-950">{{selectedSemestre?.nbGroupesTp}}</th>
         </template>
       </tr>
@@ -206,12 +219,14 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
       </tr>
       </tbody>
       <tfoot class="sticky bottom-0 z-20">
-        <tr>
-          <td class="sticky left-0 text-nowrap z-10 bg-primary-100 dark:bg-primary-950">Total</td>
-          <template v-for="(enseignement, eIndex) in enseignementsList">
-            <td class="bg-white border !p-4" colspan="6">HELLO</td>
-          </template>
-        </tr>
+      <tr>
+        <td class="sticky left-0 text-nowrap z-10 bg-primary-100 dark:bg-primary-950">Total</td>
+        <template v-for="(enseignement, eIndex) in enseignementsList">
+          <td class="bg-white border !p-4" colspan="2">{{ totalCM[eIndex] }} h</td>
+          <td class="bg-white border !p-4" colspan="2">{{ totalTD[eIndex] }} h</td>
+          <td class="bg-white border !p-4" colspan="2">{{ totalTP[eIndex] }} h</td>
+        </template>
+      </tr>
       </tfoot>
     </table>
   </div>
