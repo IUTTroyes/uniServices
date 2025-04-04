@@ -34,6 +34,7 @@ class PrevisionnelSemestreTestProvider implements ProviderInterface
             $output = [
                 'prevSem' => [],
                 'heures' => [],
+                'groupes' => [],
             ];
             foreach ($data as $item) {
                 if ($item->getPersonnel() !== null && $item->getEnseignement() !== null) {
@@ -43,8 +44,16 @@ class PrevisionnelSemestreTestProvider implements ProviderInterface
                     if (!array_key_exists($item->getPersonnel()->getId(), $output['heures'][$item->getEnseignement()->getId()])) {
                         $output['heures'][$item->getEnseignement()->getId()][$item->getPersonnel()->getId()] = [];
                     }
+
+                    if (!array_key_exists($item->getEnseignement()->getId(), $output['groupes'])) {
+                        $output['groupes'][$item->getEnseignement()->getId()] = [];
+                    }
+                    if (!array_key_exists($item->getPersonnel()->getId(), $output['groupes'][$item->getEnseignement()->getId()])) {
+                        $output['groupes'][$item->getEnseignement()->getId()][$item->getPersonnel()->getId()] = [];
+                    }
                     $output['prevSem'][] = $this->formToDto($item);
                     $output['heures'][$item->getEnseignement()->getId()][$item->getPersonnel()->getId()] = $item->getHeures();
+                    $output['groupes'][$item->getEnseignement()->getId()][$item->getPersonnel()->getId()] = $item->getGroupes();
                 }
             }
 

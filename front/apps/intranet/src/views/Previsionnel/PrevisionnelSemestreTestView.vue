@@ -33,6 +33,7 @@ const enseignementsList = ref([]);
 const departementId = usersStore.departementDefaut.id;
 
 const heures = ref([])
+const groupes= ref([])
 
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
@@ -112,6 +113,12 @@ const getHeureValue = (type, enseignementId, enseignantId) => {
   }
   return '';
 };
+const getGroupeValue = (type, enseignementId, enseignantId) => {
+  if (groupes.value && groupes.value[enseignementId] && groupes.value[enseignementId][enseignantId]) {
+    return groupes.value[enseignementId][enseignantId][type] !== undefined ? groupes.value[enseignementId][enseignantId][type] : '';
+  }
+  return '';
+};
 
 watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv]) => {
   if (newSemestre && newAnneeUniv) {
@@ -146,126 +153,79 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
     </IftaLabel>
   </div>
 
-  <div class="table-responsive">
-    <div class="table-responsive">
-      <table class="table table-bordered table-striped">
-        <thead class="sticky top-0 ">
-        <tr>
-          <th class="sticky left-0 bg-primary-100 dark:bg-primary-950 z-2"></th>
-          <th v-for="enseignement in enseignementsList" :key="enseignement.id" class="top-0 bg-primary-100 dark:bg-primary-950 z-1" colspan="3">{{ enseignement.codeEnseignement }}</th>
-        </tr>
-        <tr>
-          <th class="sticky left-0 bg-primary-100 dark:bg-primary-950 z-2"></th>
-          <template v-for="enseignement in enseignementsList">
-            <th class="top-0 bg-primary-100 dark:bg-primary-950 z-1">CM</th>
-            <th class="top-0 bg-primary-100 dark:bg-primary-950 z-1">TD</th>
-            <th class="top-0 bg-primary-100 dark:bg-primary-950 z-1">TP</th>
-          </template>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="(personnel, pIndex) in personnelsList" :key="personnel.id">
-          <td class="sticky left-0 bg-primary-100 dark:bg-primary-950 z-2">{{ personnel.label }} {{personnel.personnel.id}}</td>
-          <template v-for="(enseignement, eIndex) in enseignementsList">
-            <td>{{ getHeureValue('CM', enseignement.id, personnel.personnel.id) }}</td>
-            <td>{{ getHeureValue('TD', enseignement.id, personnel.personnel.id) }}</td>
-            <td>{{ getHeureValue('TP', enseignement.id, personnel.personnel.id) }}</td>
-          </template>
-        </tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="table-responsive overflow-auto text-sm">
+    <table class="w-full border-collapse table">
+      <thead class="sticky top-0 z-20">
+      <tr>
+        <th class="bg-primary-100 dark:bg-primary-950">Enseignements</th>
+        <th v-for="enseignement in enseignementsList" :key="enseignement.id" class="bg-primary-100 dark:bg-primary-950" colspan="6">{{enseignement.libelle_court}}</th>
+      </tr>
+      <tr>
+        <th class="bg-primary-100 dark:bg-primary-950">Type de groupe</th>
+        <template v-for="enseignement in enseignementsList">
+          <th class="bg-primary-100 dark:bg-primary-950" colspan="2">CM</th>
+          <th class="bg-primary-100 dark:bg-primary-950" colspan="2">TD</th>
+          <th class="bg-primary-100 dark:bg-primary-950" colspan="2">TP</th>
+        </template>
+      </tr>
+      <tr>
+<!--        <th class="bg-primary-100 dark:bg-primary-950">Nombre de groupes</th>-->
+        <template v-for="enseignement in enseignementsList">
+<!--          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.groupes.CM}}</th>-->
+<!--          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.groupes.TD}}</th>-->
+<!--          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.groupes.TP}}</th>-->
+        </template>
+      </tr>
+      <tr>
+        <th class="bg-primary-100 dark:bg-primary-950">Nb Grp : CM {{selectedSemestre?.nbGroupesCm}}, TD {{selectedSemestre?.nbGroupesTd}}, TP {{selectedSemestre?.nbGroupesTp}} </th>
+        <template v-for="enseignement in enseignementsList">
+          <th class="bg-primary-100 dark:bg-primary-950 text-nowrap">Nb h</th>
+          <th class="bg-primary-100 dark:bg-primary-950 text-nowrap">Nb gr</th>
+          <th class="bg-primary-100 dark:bg-primary-950 text-nowrap">Nb h</th>
+          <th class="bg-primary-100 dark:bg-primary-950 text-nowrap">Nb gr</th>
+          <th class="bg-primary-100 dark:bg-primary-950 text-nowrap">Nb h</th>
+          <th class="bg-primary-100 dark:bg-primary-950 text-nowrap">Nb gr</th>
+        </template>
+      </tr>
+      <tr>
+        <th class="bg-primary-100 dark:bg-primary-950">Nb Hr attendu</th>
+        <template v-for="enseignement in enseignementsList">
+          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.heures.CM.PN}}</th>
+          <th class="bg-primary-100 dark:bg-primary-950">{{selectedSemestre?.nbGroupesCm}}</th>
+          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.heures.TD.PN}}</th>
+          <th class="bg-primary-100 dark:bg-primary-950">{{selectedSemestre?.nbGroupesTd}}</th>
+          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.heures.TP.PN}}</th>
+          <th class="bg-primary-100 dark:bg-primary-950">{{selectedSemestre?.nbGroupesTp}}</th>
+        </template>
+      </tr>
+      </thead>
+      <tbody>
+      <tr v-for="(personnel, pIndex) in personnelsList" :key="personnel.id">
+        <td class="sticky left-0 text-nowrap z-10 bg-blue-50 dark:bg-blue-900">{{ personnel.label }}</td>
+        <template v-for="(enseignement, eIndex) in enseignementsList">
+          <td>{{ getHeureValue('CM', enseignement.id, personnel.personnel.id) }}</td>
+          <td>{{ getGroupeValue('CM', enseignement.id, personnel.personnel.id) }}</td>
+          <td>{{ getHeureValue('TD', enseignement.id, personnel.personnel.id) }}</td>
+          <td>{{ getGroupeValue('TD', enseignement.id, personnel.personnel.id) }}</td>
+          <td>{{ getHeureValue('TP', enseignement.id, personnel.personnel.id) }}</td>
+          <td>{{ getGroupeValue('TP', enseignement.id, personnel.personnel.id) }}</td>
+        </template>
+      </tr>
+      </tbody>
+    </table>
   </div>
-
-  <Divider/>
-
-  <div class="m-6">
-    <div class="table-responsive">
-      <table class="table table-bordered table-striped table-test">
-        <thead>
-        <tr>
-          <th rowspan="2">Enseignant</th>
-          <th colspan="3">Enseignement 1</th>
-          <th colspan="3">Enseignement 2</th>
-          <th colspan="3">Enseignement 3</th>
-        </tr>
-        <tr>
-          <th>CM</th>
-          <th>TD</th>
-          <th>TP</th>
-          <th>CM</th>
-          <th>TD</th>
-          <th>TP</th>
-          <th>CM</th>
-          <th>TD</th>
-          <th>TP</th>
-        </tr>
-        <tr>
-          <th></th>
-          <th>1</th>
-          <th>2</th>
-          <th>3</th>
-          <th>1</th>
-          <th>2</th>
-          <th>3</th>
-          <th>1</th>
-          <th>2</th>
-          <th>3</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr>
-          <td>Enseignant 1</td>
-          <td>10</td>
-          <td>20</td>
-          <td>30</td>
-          <td>15</td>
-          <td>25</td>
-          <td>35</td>
-          <td>20</td>
-          <td>30</td>
-          <td>40</td>
-        </tr>
-        <tr>
-          <td>Enseignant 2</td>
-          <td>12</td>
-          <td>22</td>
-          <td>32</td>
-          <td>17</td>
-          <td>27</td>
-          <td>37</td>
-          <td>22</td>
-          <td>32</td>
-          <td>42</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
 </template>
 
 <style scoped>
 .table-responsive {
-  overflow: auto;
   max-height: 800px;
 }
-
-.sticky-col {
-  position: sticky;
-  left: 0;
-  background-color: #f2f2f2;
-  z-index: 2;
-}
-.table {
-  width: 100%;
-  border-collapse: collapse;
-}
-.table th, .table td {
+table th, table td {
   border: 1px solid #ddd;
   padding: 8px;
 }
-.table th {
+table th {
   text-align: center;
 }
+
 </style>
