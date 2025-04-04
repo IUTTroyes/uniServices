@@ -100,6 +100,7 @@ const getPrevi = async (semestreId) => {
       console.error('Erreur lors du chargement du prévisionnel:', error);
     } finally {
       heures.value = previSemestre.value[1];
+      groupes.value = previSemestre.value[2];
       console.log('heures', heures);
       console.log('previSemestre', previSemestre.value);
       isLoadingPrevisionnel.value = false;
@@ -169,14 +170,6 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
         </template>
       </tr>
       <tr>
-<!--        <th class="bg-primary-100 dark:bg-primary-950">Nombre de groupes</th>-->
-        <template v-for="enseignement in enseignementsList">
-<!--          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.groupes.CM}}</th>-->
-<!--          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.groupes.TD}}</th>-->
-<!--          <th class="bg-primary-100 dark:bg-primary-950">{{enseignement.groupes.TP}}</th>-->
-        </template>
-      </tr>
-      <tr>
         <th class="bg-primary-100 dark:bg-primary-950">Nb Grp : CM {{selectedSemestre?.nbGroupesCm}}, TD {{selectedSemestre?.nbGroupesTd}}, TP {{selectedSemestre?.nbGroupesTp}} </th>
         <template v-for="enseignement in enseignementsList">
           <th class="bg-primary-100 dark:bg-primary-950 text-nowrap">Nb h</th>
@@ -201,24 +194,32 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
       </thead>
       <tbody>
       <tr v-for="(personnel, pIndex) in personnelsList" :key="personnel.id">
-        <td class="sticky left-0 text-nowrap z-10 bg-blue-50 dark:bg-blue-900">{{ personnel.label }}</td>
+        <td class="sticky left-0 text-nowrap z-10 bg-gray-50 dark:bg-gray-800">{{ personnel.label }}</td>
         <template v-for="(enseignement, eIndex) in enseignementsList">
           <td>{{ getHeureValue('CM', enseignement.id, personnel.personnel.id) }}</td>
-          <td>{{ getGroupeValue('CM', enseignement.id, personnel.personnel.id) }}</td>
+          <td class="bg-gray-50 dark:bg-gray-700">{{ getGroupeValue('CM', enseignement.id, personnel.personnel.id) }}</td>
           <td>{{ getHeureValue('TD', enseignement.id, personnel.personnel.id) }}</td>
-          <td>{{ getGroupeValue('TD', enseignement.id, personnel.personnel.id) }}</td>
+          <td class="bg-gray-50 dark:bg-gray-700">{{ getGroupeValue('TD', enseignement.id, personnel.personnel.id) }}</td>
           <td>{{ getHeureValue('TP', enseignement.id, personnel.personnel.id) }}</td>
-          <td>{{ getGroupeValue('TP', enseignement.id, personnel.personnel.id) }}</td>
+          <td class="bg-gray-50 dark:bg-gray-700">{{ getGroupeValue('TP', enseignement.id, personnel.personnel.id) }}</td>
         </template>
       </tr>
       </tbody>
+      <tfoot class="sticky bottom-0 z-20">
+        <tr>
+          <td class="sticky left-0 text-nowrap z-10 bg-primary-100 dark:bg-primary-950">Total</td>
+          <template v-for="(enseignement, eIndex) in enseignementsList">
+            <td class="bg-white border !p-4" colspan="6">HELLO</td>
+          </template>
+        </tr>
+      </tfoot>
     </table>
   </div>
 </template>
 
 <style scoped>
 .table-responsive {
-  max-height: 800px;
+  max-height: 70vh;
 }
 table th, table td {
   border: 1px solid #ddd;
