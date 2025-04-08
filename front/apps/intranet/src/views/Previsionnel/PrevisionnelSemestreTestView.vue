@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref, watch} from 'vue';
 import {useAnneeUnivStore, useEnseignementsStore, useSemestreStore, useUsersStore} from "@stores";
-import {SimpleSkeleton} from "@components";
+import {SimpleSkeleton, ListSkeleton} from "@components";
 import {getPersonnelsDepartementService, getSemestrePreviTestService} from "@requests";
 
 // const tableau = ref([
@@ -103,6 +103,7 @@ const getPrevi = async (semestreId) => {
       console.error('Erreur lors du chargement du prévisionnel:', error);
     } finally {
       heures.value = previSemestre.value[1];
+      console.log(heures.value)
       groupes.value = previSemestre.value[2];
       totalCM.value = calculTotal('CM');
       totalTD.value = calculTotal('TD');
@@ -114,15 +115,15 @@ const getPrevi = async (semestreId) => {
 
 const getHeureValue = (type, enseignementId, enseignantId) => {
   if (heures.value && heures.value[enseignementId] && heures.value[enseignementId][enseignantId]) {
-    return heures.value[enseignementId][enseignantId][type] !== undefined ? heures.value[enseignementId][enseignantId][type] : '';
+    return heures.value[enseignementId][enseignantId][type] !== undefined ? heures.value[enseignementId][enseignantId][type] : null;
   }
-  return '';
+  return null;
 };
 const getGroupeValue = (type, enseignementId, enseignantId) => {
   if (groupes.value && groupes.value[enseignementId] && groupes.value[enseignementId][enseignantId]) {
-    return groupes.value[enseignementId][enseignantId][type] !== undefined ? groupes.value[enseignementId][enseignantId][type] : '';
+    return groupes.value[enseignementId][enseignantId][type] !== undefined ? groupes.value[enseignementId][enseignantId][type] : null;
   }
-  return '';
+  return null;
 };
 
 const calculTotal = (type) => {
@@ -167,7 +168,12 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
     </IftaLabel>
   </div>
 
-  <div class="table-responsive overflow-auto text-sm">
+  <SimpleSkeleton v-if="isLoadingPrevisionnel" class="w-1/2" />
+  <Message v-else severity="info" class="w-fit my-6 mx-auto" icon="pi pi-info-circle">
+    Cliquez sur une case pour en éditer le contenu
+  </Message>
+  <ListSkeleton v-if="isLoadingPrevisionnel" class="w-1/2" />
+  <div v-else class="table-responsive overflow-auto text-sm">
     <table class="w-full border-collapse table">
       <thead class="sticky top-0 z-20">
       <tr>
@@ -209,12 +215,84 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
       <tr v-for="(personnel, pIndex) in personnelsList" :key="personnel.id">
         <td class="sticky left-0 text-nowrap z-10 bg-gray-50 dark:bg-gray-800">{{ personnel.label }}</td>
         <template v-for="(enseignement, eIndex) in enseignementsList">
-          <td>{{ getHeureValue('CM', enseignement.id, personnel.personnel.id) }}</td>
-          <td class="bg-gray-50 dark:bg-gray-700">{{ getGroupeValue('CM', enseignement.id, personnel.personnel.id) }}</td>
-          <td>{{ getHeureValue('TD', enseignement.id, personnel.personnel.id) }}</td>
-          <td class="bg-gray-50 dark:bg-gray-700">{{ getGroupeValue('TD', enseignement.id, personnel.personnel.id) }}</td>
-          <td>{{ getHeureValue('TP', enseignement.id, personnel.personnel.id) }}</td>
-          <td class="bg-gray-50 dark:bg-gray-700">{{ getGroupeValue('TP', enseignement.id, personnel.personnel.id) }}</td>
+          <td class="!p-0">
+            <!--            {{ getHeureValue('CM', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getHeureValue('CM', enseignement.id, personnel.personnel.id)"
+                   v-model="heures[enseignement.id][personnel.personnel.id].CM"
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full h-full text-center bg-transparent"/>
+            <input v-else
+                   placeholder=""
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full p-2 bg-transparent"/>
+          </td>
+          <td class="bg-gray-50 dark:bg-gray-700 !p-0">
+            <!--            {{ getGroupeValue('CM', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getGroupeValue('CM', enseignement.id, personnel.personnel.id)"
+                   v-model="groupes[enseignement.id][personnel.personnel.id].CM"
+                   type="number"
+                   :min="0" :max="selectedSemestre?.nbGroupesCm"
+                   class="w-full h-full text-center bg-transparent"/>
+            <input v-else
+                   placeholder=""
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full p-2 bg-transparent"/>
+          </td>
+          <td class="!p-0">
+<!--            {{ getHeureValue('TD', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getHeureValue('TD', enseignement.id, personnel.personnel.id)"
+                   v-model="heures[enseignement.id][personnel.personnel.id].TD"
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full h-full text-center bg-transparent"/>
+            <input v-else
+                   placeholder=""
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full p-2 bg-transparent"/>
+          </td>
+          <td class="bg-gray-50 dark:bg-gray-700 !p-0">
+<!--            {{ getGroupeValue('TD', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getGroupeValue('TD', enseignement.id, personnel.personnel.id)"
+                   v-model="groupes[enseignement.id][personnel.personnel.id].TD"
+                   type="number"
+                   :min="0" :max="selectedSemestre?.nbGroupesTd"
+                   class="w-full h-full text-center bg-transparent"/>
+            <input v-else
+                   placeholder=""
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full p-2 bg-transparent"/>
+          </td>
+          <td class="!p-0">
+<!--            {{ getHeureValue('TP', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getHeureValue('TP', enseignement.id, personnel.personnel.id)"
+                   v-model="heures[enseignement.id][personnel.personnel.id].TP"
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full h-full text-center bg-transparent"/>
+            <input v-else
+                   placeholder=""
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full p-2 bg-transparent"/>
+          </td>
+          <td class="bg-gray-50 dark:bg-gray-700 !p-0">
+<!--            {{ getGroupeValue('TP', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getGroupeValue('TP', enseignement.id, personnel.personnel.id)"
+                   v-model="groupes[enseignement.id][personnel.personnel.id].TP"
+                   type="number"
+                   :min="0" :max="selectedSemestre?.nbGroupesTp"
+                   class="w-full h-full text-center bg-transparent"/>
+            <input v-else
+                   placeholder=""
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full p-2 bg-transparent"/>
+          </td>
         </template>
       </tr>
       </tbody>
