@@ -119,21 +119,32 @@ const getHeureValue = (type, enseignementId, enseignantId) => {
   }
   return null;
 };
+const changeHeureValue = () => {
+  console.log('changeHeureValue');
+};
 const getGroupeValue = (type, enseignementId, enseignantId) => {
   if (groupes.value && groupes.value[enseignementId] && groupes.value[enseignementId][enseignantId]) {
     return groupes.value[enseignementId][enseignantId][type] !== undefined ? groupes.value[enseignementId][enseignantId][type] : null;
   }
   return null;
 };
+const changeGroupeValue = () => {
+  console.log('changeGroupeValue');
+};
 
 const calculTotal = (type) => {
+  // pour chaque enseignement
   return enseignementsList.value.map(enseignement => {
+    // pour chaque personnel
     return personnelsList.value.reduce((total, personnel) => {
-      const value = getHeureValue(type, enseignement.id, personnel.personnel.id);
-      return total + (parseFloat(value) || 0);
+      const heures = getHeureValue(type, enseignement.id, personnel.personnel.id);
+      const groupes = getGroupeValue(type, enseignement.id, personnel.personnel.id);
+      console.log(heures, groupes)
+      return total + (parseFloat(heures) || 0);
     }, 0);
   });
 };
+
 
 watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv]) => {
   if (newSemestre && newAnneeUniv) {
@@ -178,7 +189,7 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
       <thead class="sticky top-0 z-20">
       <tr>
         <th class="bg-primary-100 dark:bg-primary-950 sticky top-0 left-0">Enseignements</th>
-        <th v-for="enseignement in enseignementsList" :key="enseignement.id" class="bg-primary-100 dark:bg-primary-950" colspan="6">{{enseignement.libelle_court}}</th>
+        <th v-for="enseignement in enseignementsList" :key="enseignement.id" class="bg-primary-100 dark:bg-primary-950" colspan="6">{{enseignement.libelle}}</th>
       </tr>
       <tr>
         <th class="bg-primary-100 dark:bg-primary-950 sticky top-0 left-0">Type de groupe</th>
@@ -215,7 +226,7 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
       <tr v-for="(personnel, pIndex) in personnelsList" :key="personnel.id">
         <td class="sticky left-0 text-nowrap z-10 bg-gray-50 dark:bg-gray-800">{{ personnel.label }}</td>
         <template v-for="(enseignement, eIndex) in enseignementsList">
-          <td class="!p-0">
+         <td v-if="enseignement.heures.CM.PN !== totalCM[eIndex]" class="!p-0 bg-amber-300 dark:bg-opacity-50">
             <!--            {{ getHeureValue('CM', enseignement.id, personnel.personnel.id) }}-->
             <input v-if="getHeureValue('CM', enseignement.id, personnel.personnel.id)"
                    v-model="heures[enseignement.id][personnel.personnel.id].CM"
@@ -226,23 +237,55 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
                    placeholder=""
                    type="number"
                    :min="0" :max="99"
+                   @change="changeHeureValue"
                    class="w-full p-2 bg-transparent"/>
           </td>
-          <td class="bg-gray-50 dark:bg-gray-700 !p-0">
-            <!--            {{ getGroupeValue('CM', enseignement.id, personnel.personnel.id) }}-->
-            <input v-if="getGroupeValue('CM', enseignement.id, personnel.personnel.id)"
-                   v-model="groupes[enseignement.id][personnel.personnel.id].CM"
+         <td v-else class="!p-0">
+            <!--            {{ getHeureValue('CM', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getHeureValue('CM', enseignement.id, personnel.personnel.id)"
+                   v-model="heures[enseignement.id][personnel.personnel.id].CM"
                    type="number"
-                   :min="0" :max="selectedSemestre?.nbGroupesCm"
+                   :min="0" :max="99"
                    class="w-full h-full text-center bg-transparent"/>
             <input v-else
                    placeholder=""
                    type="number"
                    :min="0" :max="99"
+                   @change="changeHeureValue"
                    class="w-full p-2 bg-transparent"/>
           </td>
-          <td class="!p-0">
-<!--            {{ getHeureValue('TD', enseignement.id, personnel.personnel.id) }}-->
+
+          <td v-if="enseignement.heures.CM.PN !== totalCM[eIndex]" class="!p-0 bg-amber-300 dark:bg-opacity-50">
+            <!--            {{ getGroupeValue('CM', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getGroupeValue('CM', enseignement.id, personnel.personnel.id)"
+                   v-model="groupes[enseignement.id][personnel.personnel.id].CM"
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full h-full text-center bg-transparent"/>
+            <input v-else
+                   placeholder=""
+                   type="number"
+                   :min="0" :max="99"
+                   @change="changeGroupeValue"
+                   class="w-full p-2 bg-transparent"/>
+          </td>
+          <td v-else class="bg-gray-50 dark:bg-gray-700 !p-0">
+            <!--            {{ getGroupeValue('CM', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getGroupeValue('CM', enseignement.id, personnel.personnel.id)"
+                   v-model="groupes[enseignement.id][personnel.personnel.id].CM"
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full h-full text-center bg-transparent"/>
+            <input v-else
+                   placeholder=""
+                   type="number"
+                   :min="0" :max="99"
+                   @change="changeGroupeValue"
+                   class="w-full p-2 bg-transparent"/>
+          </td>
+
+          <td v-if="enseignement.heures.TD.PN !== totalTD[eIndex]" class="!p-0 bg-amber-300 dark:bg-opacity-50">
+            <!--            {{ getHeureValue('TD', enseignement.id, personnel.personnel.id) }}-->
             <input v-if="getHeureValue('TD', enseignement.id, personnel.personnel.id)"
                    v-model="heures[enseignement.id][personnel.personnel.id].TD"
                    type="number"
@@ -252,23 +295,55 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
                    placeholder=""
                    type="number"
                    :min="0" :max="99"
+                   @change="changeHeureValue"
                    class="w-full p-2 bg-transparent"/>
           </td>
-          <td class="bg-gray-50 dark:bg-gray-700 !p-0">
-<!--            {{ getGroupeValue('TD', enseignement.id, personnel.personnel.id) }}-->
-            <input v-if="getGroupeValue('TD', enseignement.id, personnel.personnel.id)"
-                   v-model="groupes[enseignement.id][personnel.personnel.id].TD"
+          <td v-else class="!p-0">
+            <!--            {{ getHeureValue('TD', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getHeureValue('TD', enseignement.id, personnel.personnel.id)"
+                   v-model="heures[enseignement.id][personnel.personnel.id].TD"
                    type="number"
-                   :min="0" :max="selectedSemestre?.nbGroupesTd"
+                   :min="0" :max="99"
                    class="w-full h-full text-center bg-transparent"/>
             <input v-else
                    placeholder=""
                    type="number"
                    :min="0" :max="99"
+                   @change="changeHeureValue"
                    class="w-full p-2 bg-transparent"/>
           </td>
-          <td class="!p-0">
-<!--            {{ getHeureValue('TP', enseignement.id, personnel.personnel.id) }}-->
+
+          <td v-if="enseignement.heures.TD.PN !== totalTD[eIndex]" class="!p-0 bg-amber-300 dark:bg-opacity-50">
+            <!--            {{ getGroupeValue('TD', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getGroupeValue('TD', enseignement.id, personnel.personnel.id)"
+                   v-model="groupes[enseignement.id][personnel.personnel.id].TD"
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full h-full text-center bg-transparent"/>
+            <input v-else
+                   placeholder=""
+                   type="number"
+                   :min="0" :max="99"
+                   @change="changeGroupeValue"
+                   class="w-full p-2 bg-transparent"/>
+          </td>
+          <td v-else class="bg-gray-50 dark:bg-gray-700 !p-0">
+            <!--            {{ getGroupeValue('TD', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getGroupeValue('TD', enseignement.id, personnel.personnel.id)"
+                   v-model="groupes[enseignement.id][personnel.personnel.id].TD"
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full h-full text-center bg-transparent"/>
+            <input v-else
+                   placeholder=""
+                   type="number"
+                   :min="0" :max="99"
+                   @change="changeGroupeValue"
+                   class="w-full p-2 bg-transparent"/>
+          </td>
+
+          <td v-if="enseignement.heures.TP.PN !== totalTP[eIndex]" class="!p-0 bg-amber-300 dark:bg-opacity-50">
+            <!--            {{ getHeureValue('TP', enseignement.id, personnel.personnel.id) }}-->
             <input v-if="getHeureValue('TP', enseignement.id, personnel.personnel.id)"
                    v-model="heures[enseignement.id][personnel.personnel.id].TP"
                    type="number"
@@ -278,19 +353,50 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
                    placeholder=""
                    type="number"
                    :min="0" :max="99"
+                   @change="changeHeureValue"
                    class="w-full p-2 bg-transparent"/>
           </td>
-          <td class="bg-gray-50 dark:bg-gray-700 !p-0">
-<!--            {{ getGroupeValue('TP', enseignement.id, personnel.personnel.id) }}-->
-            <input v-if="getGroupeValue('TP', enseignement.id, personnel.personnel.id)"
-                   v-model="groupes[enseignement.id][personnel.personnel.id].TP"
+          <td v-else class="!p-0">
+            <!--            {{ getHeureValue('TP', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getHeureValue('TP', enseignement.id, personnel.personnel.id)"
+                   v-model="heures[enseignement.id][personnel.personnel.id].TP"
                    type="number"
-                   :min="0" :max="selectedSemestre?.nbGroupesTp"
+                   :min="0" :max="99"
                    class="w-full h-full text-center bg-transparent"/>
             <input v-else
                    placeholder=""
                    type="number"
                    :min="0" :max="99"
+                   @change="changeHeureValue"
+                   class="w-full p-2 bg-transparent"/>
+          </td>
+
+          <td v-if="enseignement.heures.TP.PN !== totalTP[eIndex]" class="!p-0 bg-amber-300 dark:bg-opacity-50">
+            <!--            {{ getGroupeValue('TP', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getGroupeValue('TP', enseignement.id, personnel.personnel.id)"
+                   v-model="groupes[enseignement.id][personnel.personnel.id].TP"
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full h-full text-center bg-transparent"/>
+            <input v-else
+                   placeholder=""
+                   type="number"
+                   :min="0" :max="99"
+                   @change="changeGroupeValue"
+                   class="w-full p-2 bg-transparent"/>
+          </td>
+          <td v-else class="bg-gray-50 dark:bg-gray-700 !p-0">
+            <!--            {{ getGroupeValue('TP', enseignement.id, personnel.personnel.id) }}-->
+            <input v-if="getGroupeValue('TP', enseignement.id, personnel.personnel.id)"
+                   v-model="groupes[enseignement.id][personnel.personnel.id].TP"
+                   type="number"
+                   :min="0" :max="99"
+                   class="w-full h-full text-center bg-transparent"/>
+            <input v-else
+                   placeholder=""
+                   type="number"
+                   :min="0" :max="99"
+                   @change="changeGroupeValue"
                    class="w-full p-2 bg-transparent"/>
           </td>
         </template>
