@@ -4,6 +4,7 @@ import router from "@/router";
 
 const items = [
   { label: 'Par semestre', icon: 'pi pi-list', route: '/administration/previsionnel/semestre' },
+  { label: 'Par semestre test', icon: 'pi pi-list', route: '/administration/previsionnel/semestre_test' },
   { label: 'Par enseignant', icon: 'pi pi-clock', route: '/administration/previsionnel/personnel' },
   { label: 'Par matière', icon: 'pi pi-money-bill', route: '/administration/previsionnel/matiere' },
 ];

@@ -14,6 +14,7 @@ use App\ApiDto\Previsionnel\PrevisionnelAllPersonnelsDto;
 use App\ApiDto\Previsionnel\PrevisionnelEnseignementDto;
 use App\ApiDto\Previsionnel\PrevisionnelPersonnelDto;
 use App\ApiDto\Previsionnel\PrevisionnelSemestreDto;
+use App\ApiDto\Previsionnel\PrevisionnelSemestreTestDto;
 use App\Entity\Edt\EdtProgression;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
@@ -24,6 +25,7 @@ use App\State\Previsionnel\PrevisionnelAllPersonnelsProvider;
 use App\State\Previsionnel\PrevisionnelEnseignementProvider;
 use App\State\Previsionnel\PrevisionnelPersonnelProvider;
 use App\State\Previsionnel\PrevisionnelSemestreProvider;
+use App\State\Previsionnel\PrevisionnelSemestreTestProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -41,6 +43,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['previsionnel_semestre:read']],
             output: PrevisionnelSemestreDto::class,
             provider: PrevisionnelSemestreProvider::class,
+        ),
+        new GetCollection(
+            uriTemplate: '/previsionnels_semestre_test',
+            normalizationContext: ['groups' => ['previsionnel_semestre:read']],
+            output: PrevisionnelSemestreTestDto::class,
+            provider: PrevisionnelSemestreTestProvider::class,
         ),
         new GetCollection(
             uriTemplate: '/previsionnels_enseignement',
