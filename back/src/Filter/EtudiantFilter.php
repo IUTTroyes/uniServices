@@ -45,7 +45,7 @@ class EtudiantFilter extends AbstractFilter
                 ->join("es3.scolarite_semestre", "ss")
                 ->join("ss.structure_semestre", "s")
                 ->andWhere("s.id = :semestre")
-                ->setParameter("semestre", $value['id']);
+                ->setParameter("semestre", $value);
         }
     }
 

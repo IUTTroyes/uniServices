@@ -23,7 +23,7 @@ const getEtudiantsDepartementService = async (departement, anneeUniv, limit, pag
         params['mailUniv'] = filters.mailUniv.value;
     }
     if (filters.semestre.value) {
-        params['semestre'] = filters.semestre.value.id;
+        params['semestre'] = filters.semestre.value;
     }
 
     const response = await api.get(`/api/etudiants`, { params });

@@ -75,21 +75,36 @@ const getSemestres = async () => {
 };
 
 const loadEtudiants = async () => {
-  loading.value = true
-  const response = await getEtudiantsDepartementService(departementId.value, selectedAnneeUniv.value.id, limit.value, parseInt(page.value) + 1, filters.value)
-  etudiants.value = response.member
-  nbEtudiants.value = response.totalItems
-  loading.value = false
+  loading.value = true;
+
+  // Vérifiez les filtres avant l'appel
+  console.log("Filtres envoyés à l'API :", filters.value);
+
+  const response = await getEtudiantsDepartementService(
+    departementId.value,
+    selectedAnneeUniv.value.id,
+    limit.value,
+    parseInt(page.value) + 1,
+    filters.value // Assurez-vous que l'objet filters contient bien le semestre
+  );
+
+  etudiants.value = response.member;
+  nbEtudiants.value = response.totalItems;
+  loading.value = false;
 
   etudiants.value.forEach(etudiant => {
-    etudiant.etudiantScolarite = etudiant.etudiantScolarites.find(es => es.structureAnneeUniversitaire.id === selectedAnneeUniv.value.id)
-  })
+    etudiant.etudiantScolarite = etudiant.etudiantScolarites.find(
+      es => es.structureAnneeUniversitaire.id === selectedAnneeUniv.value.id
+    );
+  });
   etudiants.value.forEach(etudiant => {
-    etudiant.semestres = etudiant.etudiantScolarite.scolarite_semestre.map(es => es.structure_semestre)
-  })
+    etudiant.semestres = etudiant.etudiantScolarite.scolarite_semestre.map(
+      es => es.structure_semestre
+    );
+  });
 
-  console.log(etudiants.value)
-}
+  console.log("Étudiants chargés :", etudiants.value);
+};
 
 onMounted(async () => {
   departementId.value = usersStore.departementDefaut.id
@@ -128,9 +143,14 @@ watch([filters, selectedAnneeUniv], async (newFilters, newSelectedAnneeUniv) => 
   }, 300);
 })
 
-watch(() => filters.value.semestre.value, async (newSemestre) => {
-  if (newSemestre) {
+watch(() => filters.value.semestre.value, async (newSemestre, oldSemestre) => {
+  if (newSemestre && typeof newSemestre === 'object' && newSemestre.value && newSemestre.value.id) {
+    console.log("Semestre sélectionné :", newSemestre.value.id);
+    filters.value.semestre.value = newSemestre.value.id;
     await loadEtudiants();
+  } else if (!newSemestre && oldSemestre) {
+    console.log("Semestre réinitialisé ou invalide :", newSemestre);
+    filters.value.semestre.value = null;
   }
 });
 
