@@ -44,11 +44,11 @@ class StructureAnnee
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'etudiant:read', 'structure_annee:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'semestre:read', 'structure_pn:read', 'structure_annee:read'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'semestre:read', 'structure_pn:read', 'structure_annee:read', 'etudiant:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]

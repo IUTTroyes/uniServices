@@ -65,14 +65,14 @@ const getSemestres = async () => {
   isLoadingSemestres.value = true;
   await semestreStore.getSemestresByDepartement(departementId.value, true);
   semestresList.value = Object.entries(
-    semestreStore.semestres.reduce((acc, semestre) => {
-      const annee = semestre.annee.libelle;
-      if (!acc[annee]) {
-        acc[annee] = [];
-      }
-      acc[annee].push({ label: semestre.libelle, value: semestre });
-      return acc;
-    }, {})
+      semestreStore.semestres.reduce((acc, semestre) => {
+        const annee = semestre.annee.libelle;
+        if (!acc[annee]) {
+          acc[annee] = [];
+        }
+        acc[annee].push({ label: semestre.libelle, value: semestre });
+        return acc;
+      }, {})
   ).map(([label, items]) => ({ label, items }));
   isLoadingSemestres.value = false;
 };
@@ -81,8 +81,6 @@ const getAnnees = async () => {
   isLoadingAnnees.value = true;
   anneesList.value = await getDepartementAnneesService(departementId.value, true);
   isLoadingAnnees.value = false;
-
-  console.log(anneesList.value)
 }
 
 const loadEtudiants = async () => {
@@ -91,32 +89,34 @@ const loadEtudiants = async () => {
   console.log("Filtres envoyés à l'API :", filters.value);
 
   const response = await getEtudiantsDepartementService(
-    departementId.value,
-    selectedAnneeUniv.value.id,
-    limit.value,
-    parseInt(page.value) + 1,
-    filters.value
+      departementId.value,
+      selectedAnneeUniv.value.id,
+      limit.value,
+      parseInt(page.value) + 1,
+      filters.value
   );
 
   etudiants.value = response.member;
   nbEtudiants.value = response.totalItems;
   loading.value = false;
 
-  // Filtrer les semestres des `etudiantScolarites` pour l'année universitaire active
+  // Filtrer les années des semestres des `etudiantScolarites` pour l'année universitaire active
   etudiants.value.forEach(etudiant => {
-    etudiant.semestres = etudiant.etudiantScolarites
+    etudiant.annees = etudiant.etudiantScolarites
         .filter(scolarite => scolarite.structureAnneeUniversitaire.actif)
-        .flatMap(scolarite => scolarite.scolarite_semestre.map(semestre => semestre.structure_semestre))
+        .flatMap(scolarite => scolarite.scolarite_semestre.map(semestre => semestre.structure_semestre.annee.libelle));
+    // on enlève les doublons
+    etudiant.annees = [...new Set(etudiant.annees)];
   });
 
-  console.log("Étudiants chargés :", etudiants.value);
+  console.log("Étudiants chargés avec années :", etudiants.value);
 };
 
 onMounted(async () => {
   departementId.value = usersStore.departementDefaut.id
-    await getAnneesUniv();
-    await getSemestres();
-    await getAnnees()
+  await getAnneesUniv();
+  await getSemestres();
+  await getAnnees()
 })
 
 const onPageChange = async (event) => {
@@ -149,121 +149,121 @@ watch([filters, selectedAnneeUniv], async (newFilters, newSelectedAnneeUniv) => 
   }, 300);
 })
 
-watch(() => filters.value.semestre.value, async (newSemestre, oldSemestre) => {
-  if (newSemestre && typeof newSemestre === 'object' && newSemestre.value && newSemestre.value.id) {
-    console.log("Semestre sélectionné :", newSemestre.value.id);
-    filters.value.semestre.value = newSemestre.value.id;
+watch(() => filters.value.annee.value, async (newAnnee, oldAnnee) => {
+  if (newAnnee && typeof newAnnee === 'object' && newAnnee.id) {
+    console.log("Annee sélectionnée :", newAnnee.id);
     await loadEtudiants();
-  } else if (!newSemestre && oldSemestre) {
-    console.log("Semestre réinitialisé ou invalide :", newSemestre);
-    filters.value.semestre.value = null;
+  } else if (typeof newAnnee === 'number') {
+    console.log("Annee sélectionnée :", newAnnee);
+    await loadEtudiants();
+  } else if (newAnnee === null || newAnnee === undefined) {
+    console.log("Annee réinitialisée ou invalide :", newAnnee);
+    await loadEtudiants();
+  } else {
+    console.log("Valeur inattendue pour l'année :", newAnnee);
   }
 });
 
 </script>
 
-      <template>
-        <div class="card">
-          <h2 class="text-2xl font-bold mb-4">Tous les étudiants du département</h2>
+<template>
+  <div class="card">
+    <h2 class="text-2xl font-bold mb-4">Tous les étudiants du département</h2>
 
-          <DataTable v-model:filters="filters" :value="etudiants"
-                     lazy
-                     stripedRows
-                     paginator
-                     :first="offset"
-                     :rows="limit"
-                     :rowsPerPageOptions="rowOptions"
-                     :totalRecords="nbEtudiants"
-                     dataKey="id" filterDisplay="row" :loading="loading"
-                     @page="onPageChange($event)"
-                     @update:rows="limit = $event"
-                     :globalFilterFields="['nom', 'prenom']">
-            <template #header>
-                <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/3" />
-                <IftaLabel v-else class="w-1/3">
-                  <Select
-                      v-model="selectedAnneeUniv"
-                      :options="anneesUnivList"
-                      optionLabel="libelle"
-                      placeholder="Sélectionner une année universitaire"
-                      class="w-full"
-                  />
-                  <label for="anneeUniversitaire">Année universitaire</label>
-                </IftaLabel>
-            </template>
-            <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 12rem">
-              <template #body="{ data }">
-                {{ data.nom }}
-              </template>
-              <template #filter="{ filterModel, filterCallback }">
-                <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom"/>
-              </template>
-            </Column>
-            <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 12rem">
-              <template #body="{ data }">
-                {{ data.prenom }}
-              </template>
-              <template #filter="{ filterModel, filterCallback }">
-                <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
-              </template>
-            </Column>
-            <Column field="semestres" :showFilterMenu="false" header="semestres" style="min-width: 12rem">
-              <template #body="{ data }">
-                <div v-for="semestre in data.semestres">{{semestre.libelle}}</div>
-              </template>
-             <template #filter="{ filterModel, filterCallback }">
-<!--                <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/3" />-->
-<!--                <Select v-else v-model="filters.semestre.value" :options="semestresList" optionLabel="label" optionGroupLabel="label" optionGroupChildren="items" placeholder="Sélectionner un semestre" class="w-full">-->
-<!--                  <template #optiongroup="slotProps">-->
-<!--                    <div class="border-b">Année : {{ slotProps.option.label }}</div>-->
-<!--                  </template>-->
-<!--                </Select>-->
-                <SimpleSkeleton v-if="isLoadingAnnees" class="w-1/3" />
-                <Select v-else v-model="filters.annee.value" :options="anneesList" optionLabel="libelle" placeholder="Sélectionner une année" class="w-full">
-                  <template #optiongroup="slotProps">
-                    <div class="border-b">Année : {{ slotProps.option.libelle }}</div>
-                  </template>
-                </Select>
-              </template>
-            </Column>
-            <Column field="mailUniv" :showFilterMenu="false" header="Email" style="min-width: 12rem">
-              <template #body="{ data }">
-                {{ data.mailUniv }}
-              </template>
-              <template #filter="{ filterModel, filterCallback }">
-                <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par email"/>
-              </template>
-            </Column>
-            <Column :showFilterMenu="false" style="min-width: 12rem">
-              <template #body="slotProps">
-                <ButtonInfo tooltip="Voir les détails" @click="viewEtudiant(slotProps.data)"/>
-                <ButtonEdit
-                    tooltip="Modifier le personnel"
-                    @click="editEtudiant(slotProps.data)"/>
-                <ButtonDelete
-                    tooltip="Supprimer le personnel du département"
-                    @confirm-delete="deleteEtudiant(slotProps.data)"/>
-              </template>
-            </Column>
-            <template #footer> {{ nbEtudiants }} résultat(s).</template>
-
-          </DataTable>
-
-          <ViewEtudiantDialog
-              :isVisible="showViewDialog"
-              :etudiant="selectedEtudiant"
-              @update:visible="showViewDialog = $event"/>
-          <EditEtudiantDialog
-              :isVisible="showEditDialog"
-              :etudiant="selectedEtudiant"
-              @update:visible="showEditDialog = $event"/>
-          <AccessEtudiantDialog
-              :isVisible="showAccessEditDialog"
-              :etudiant="selectedEtudiant"
-              @update:visible="showAccessEditDialog = $event"/>
-        </div>
+    <DataTable v-model:filters="filters" :value="etudiants"
+               lazy
+               stripedRows
+               paginator
+               :first="offset"
+               :rows="limit"
+               :rowsPerPageOptions="rowOptions"
+               :totalRecords="nbEtudiants"
+               dataKey="id" filterDisplay="row" :loading="loading"
+               @page="onPageChange($event)"
+               @update:rows="limit = $event"
+               :globalFilterFields="['nom', 'prenom']">
+      <template #header>
+        <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/3" />
+        <IftaLabel v-else class="w-1/3">
+          <Select
+              v-model="selectedAnneeUniv"
+              :options="anneesUnivList"
+              optionLabel="libelle"
+              placeholder="Sélectionner une année universitaire"
+              class="w-full"
+          />
+          <label for="anneeUniversitaire">Année universitaire</label>
+        </IftaLabel>
       </template>
+      <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 12rem">
+        <template #body="{ data }">
+          {{ data.nom }}
+        </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom"/>
+        </template>
+      </Column>
+      <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 12rem">
+        <template #body="{ data }">
+          {{ data.prenom }}
+        </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
+        </template>
+      </Column>
+      <Column field="annees" :showFilterMenu="false" header="semestres" style="min-width: 12rem">
+        <template #body="{ data }">
+          <div v-for="annee in data.annees" :key="annee">
+            {{ annee }}
+          </div>
+        </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <SimpleSkeleton v-if="isLoadingAnnees" class="w-1/3" />
+          <Select v-else v-model="filters.annee.value" :options="anneesList" optionLabel="libelle" placeholder="Sélectionner une année" class="w-full">
+            <template #optiongroup="slotProps">
+              <div class="border-b">Année : {{ slotProps.option.libelle }}</div>
+            </template>
+          </Select>
+        </template>
+      </Column>
+      <Column field="mailUniv" :showFilterMenu="false" header="Email" style="min-width: 12rem">
+        <template #body="{ data }">
+          {{ data.mailUniv }}
+        </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par email"/>
+        </template>
+      </Column>
+      <Column :showFilterMenu="false" style="min-width: 12rem">
+        <template #body="slotProps">
+          <ButtonInfo tooltip="Voir les détails" @click="viewEtudiant(slotProps.data)"/>
+          <ButtonEdit
+              tooltip="Modifier le personnel"
+              @click="editEtudiant(slotProps.data)"/>
+          <ButtonDelete
+              tooltip="Supprimer le personnel du département"
+              @confirm-delete="deleteEtudiant(slotProps.data)"/>
+        </template>
+      </Column>
+      <template #footer> {{ nbEtudiants }} résultat(s).</template>
 
-      <style scoped>
+    </DataTable>
 
-      </style>
+    <ViewEtudiantDialog
+        :isVisible="showViewDialog"
+        :etudiant="selectedEtudiant"
+        @update:visible="showViewDialog = $event"/>
+    <EditEtudiantDialog
+        :isVisible="showEditDialog"
+        :etudiant="selectedEtudiant"
+        @update:visible="showEditDialog = $event"/>
+    <AccessEtudiantDialog
+        :isVisible="showAccessEditDialog"
+        :etudiant="selectedEtudiant"
+        @update:visible="showAccessEditDialog = $event"/>
+  </div>
+</template>
+
+<style scoped>
+
+</style>
