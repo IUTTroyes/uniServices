@@ -149,10 +149,14 @@ FOREIGN_KEY_CHECKS=1');
                 // Create EtudiantScolariteSemestre
                 foreach ($this->tSemestres as $semestre) {
                     if ($semestre->getOldId() === $scol['semestre']) {
-                        $etudiantScolariteSemestre = new EtudiantScolariteSemestre();
-                        $etudiantScolariteSemestre->setEtudiantScolarite($scolarite);
-                        $etudiantScolariteSemestre->setStructureSemestre($semestre);
-                        $this->entityManager->persist($etudiantScolariteSemestre);
+                        $annee = $semestre->getAnnee();
+                        $semestres = $annee->getStructureSemestres();
+                        foreach ($semestres as $semestreAnnee) {
+                            $etudiantScolariteSemestre = new EtudiantScolariteSemestre();
+                            $etudiantScolariteSemestre->setEtudiantScolarite($scolarite);
+                            $etudiantScolariteSemestre->setStructureSemestre($semestreAnnee);
+                            $this->entityManager->persist($etudiantScolariteSemestre);
+                        }
                     }
                 }
 

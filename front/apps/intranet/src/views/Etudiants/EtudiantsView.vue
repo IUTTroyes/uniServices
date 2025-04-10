@@ -10,7 +10,7 @@ import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue'
 import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue'
 import AccessEtudiantDialog from '@/dialogs/etudiants/AccessEtudiantDialog.vue'
 
-import { getEtudiantsDepartementService } from "@requests";
+import { getEtudiantsDepartementService, getDepartementAnneesService } from "@requests";
 
 import {useAnneeUnivStore, useSemestreStore, useUsersStore} from "@stores";
 import { SimpleSkeleton } from "@components";
@@ -23,9 +23,11 @@ const anneesUnivList = ref([]);
 const selectedAnneeUniv = ref(null);
 const semestresList = ref([]);
 const selectedSemestre = ref(null);
+const anneesList = ref([]);
 
 const isLoadingAnneesUniv = ref(false);
 const isLoadingSemestres = ref(false);
+const isLoadingAnnees = ref(false);
 
 const etudiants = ref([])
 const nbEtudiants = ref(0)
@@ -42,6 +44,7 @@ const filters = ref({
   prenom: { value: null, matchMode: FilterMatchMode.CONTAINS },
   mailUniv: { value: null, matchMode: FilterMatchMode.EQUALS },
   semestre: { value: null, matchMode: FilterMatchMode.EQUALS },
+  annee: { value: null, matchMode: FilterMatchMode.EQUALS },
 })
 
 const showViewDialog = ref(false)
@@ -74,10 +77,17 @@ const getSemestres = async () => {
   isLoadingSemestres.value = false;
 };
 
+const getAnnees = async () => {
+  isLoadingAnnees.value = true;
+  anneesList.value = await getDepartementAnneesService(departementId.value, true);
+  isLoadingAnnees.value = false;
+
+  console.log(anneesList.value)
+}
+
 const loadEtudiants = async () => {
   loading.value = true;
 
-  // Vérifiez les filtres avant l'appel
   console.log("Filtres envoyés à l'API :", filters.value);
 
   const response = await getEtudiantsDepartementService(
@@ -85,22 +95,18 @@ const loadEtudiants = async () => {
     selectedAnneeUniv.value.id,
     limit.value,
     parseInt(page.value) + 1,
-    filters.value // Assurez-vous que l'objet filters contient bien le semestre
+    filters.value
   );
 
   etudiants.value = response.member;
   nbEtudiants.value = response.totalItems;
   loading.value = false;
 
+  // Filtrer les semestres des `etudiantScolarites` pour l'année universitaire active
   etudiants.value.forEach(etudiant => {
-    etudiant.etudiantScolarite = etudiant.etudiantScolarites.find(
-      es => es.structureAnneeUniversitaire.id === selectedAnneeUniv.value.id
-    );
-  });
-  etudiants.value.forEach(etudiant => {
-    etudiant.semestres = etudiant.etudiantScolarite.scolarite_semestre.map(
-      es => es.structure_semestre
-    );
+    etudiant.semestres = etudiant.etudiantScolarites
+        .filter(scolarite => scolarite.structureAnneeUniversitaire.actif)
+        .flatMap(scolarite => scolarite.scolarite_semestre.map(semestre => semestre.structure_semestre))
   });
 
   console.log("Étudiants chargés :", etudiants.value);
@@ -110,7 +116,7 @@ onMounted(async () => {
   departementId.value = usersStore.departementDefaut.id
     await getAnneesUniv();
     await getSemestres();
-
+    await getAnnees()
 })
 
 const onPageChange = async (event) => {
@@ -206,10 +212,16 @@ watch(() => filters.value.semestre.value, async (newSemestre, oldSemestre) => {
                 <div v-for="semestre in data.semestres">{{semestre.libelle}}</div>
               </template>
              <template #filter="{ filterModel, filterCallback }">
-                <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/3" />
-                <Select v-else v-model="filters.semestre.value" :options="semestresList" optionLabel="label" optionGroupLabel="label" optionGroupChildren="items" placeholder="Sélectionner un semestre" class="w-full">
+<!--                <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/3" />-->
+<!--                <Select v-else v-model="filters.semestre.value" :options="semestresList" optionLabel="label" optionGroupLabel="label" optionGroupChildren="items" placeholder="Sélectionner un semestre" class="w-full">-->
+<!--                  <template #optiongroup="slotProps">-->
+<!--                    <div class="border-b">Année : {{ slotProps.option.label }}</div>-->
+<!--                  </template>-->
+<!--                </Select>-->
+                <SimpleSkeleton v-if="isLoadingAnnees" class="w-1/3" />
+                <Select v-else v-model="filters.annee.value" :options="anneesList" optionLabel="libelle" placeholder="Sélectionner une année" class="w-full">
                   <template #optiongroup="slotProps">
-                    <div class="border-b">Année : {{ slotProps.option.label }}</div>
+                    <div class="border-b">Année : {{ slotProps.option.libelle }}</div>
                   </template>
                 </Select>
               </template>

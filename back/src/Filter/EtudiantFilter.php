@@ -44,9 +44,16 @@ class EtudiantFilter extends AbstractFilter
                 ->join("$alias.etudiantScolarites", "es3")
                 ->join("es3.scolarite_semestre", "ss")
                 ->join("ss.structure_semestre", "s")
+                ->join("es3.structureAnneeUniversitaire", "sau2") // Ajout du join
                 ->andWhere("s.id = :semestre")
+                ->andWhere("sau2.actif = true") // Utilisation correcte du champ actif
                 ->setParameter("semestre", $value);
         }
+
+//        if ('annee' === $property) {
+//            $queryBuilder
+//                // récupérer en fonction de l'année du dip
+//        }
     }
 
     public function getDescription(string $resourceClass): array

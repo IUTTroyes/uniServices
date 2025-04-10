@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Link;
 use App\Entity\Apc\ApcNiveau;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
+use App\Filter\AnneeFilter;
 use App\Repository\Structure\StructureAnneeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -20,6 +21,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: StructureAnneeRepository::class)]
 #[ApiFilter(BooleanFilter::class, properties: ['actif'])]
+#[ApiFilter(AnneeFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['structure_annee:read']]),
@@ -46,7 +48,7 @@ class StructureAnnee
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'semestre:read', 'structure_pn:read'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'semestre:read', 'structure_pn:read', 'structure_annee:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
@@ -58,6 +60,7 @@ class StructureAnnee
     private ?string $libelleLong = null;
 
     #[ORM\Column]
+    #[Groups(['structure_annee:read'])]
     private bool $actif = true;
 
     #[ORM\Column(length: 30, nullable: true)]

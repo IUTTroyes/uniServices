@@ -10,4 +10,9 @@ const getDiplomeAnneesActifsService = async (diplomeId) => {
     return response.data['member'];
 }
 
-export { getDiplomeAnneesService };
+const getDepartementAnneesService = async (departementId, onlyActif) => {
+    const response = await api.get(`/api/structure_annees?departement=${departementId}&actif=${onlyActif}`);
+    return response.data['member'];
+}
+
+export { getDiplomeAnneesService, getDepartementAnneesService };
