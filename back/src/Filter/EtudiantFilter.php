@@ -38,13 +38,23 @@ class EtudiantFilter extends AbstractFilter
                 ->andWhere("sau.id = :anneeUniversitaire")
                 ->setParameter("anneeUniversitaire", $value);
         }
+        if ('semestre' === $property) {
+            $queryBuilder
+                ->join("$alias.etudiantScolarites", "es3")
+                ->join("es3.scolarite_semestre", "ss")
+                ->join("ss.structure_semestre", "s")
+                ->join("es3.structureAnneeUniversitaire", "sau2")
+                ->andWhere("s.id = :semestre")
+                ->andWhere("sau2.actif = true")
+                ->setParameter("semestre", $value);
+        }
         if ('annee' === $property) {
             $queryBuilder
                 ->join("$alias.etudiantScolarites", "es4")
-                ->join("es4.scolarite_semestre", "ss2")
-                ->join("ss2.structure_semestre", "s2")
                 ->join("es4.structureAnneeUniversitaire", "sau3")
-                ->andWhere("s2.annee = :annee")
+                ->join("es4.structure_annee", "sa")
+                ->andWhere("sa.id = :annee")
+                ->andWhere("sau3.actif = true")
                 ->setParameter("annee", $value);
         }
     }

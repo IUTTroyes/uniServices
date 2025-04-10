@@ -150,6 +150,7 @@ FOREIGN_KEY_CHECKS=1');
                 foreach ($this->tSemestres as $semestre) {
                     if ($semestre->getOldId() === $scol['semestre']) {
                         $annee = $semestre->getAnnee();
+                        $scolarite->addStructureAnnee($annee);
                         $semestres = $annee->getStructureSemestres();
                         foreach ($semestres as $semestreAnnee) {
                             $etudiantScolariteSemestre = new EtudiantScolariteSemestre();

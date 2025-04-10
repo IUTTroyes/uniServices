@@ -100,14 +100,13 @@ const loadEtudiants = async () => {
   nbEtudiants.value = response.totalItems;
   loading.value = false;
 
-  // Filtrer les années des semestres des `etudiantScolarites` pour l'année universitaire active
-  etudiants.value.forEach(etudiant => {
-    etudiant.annees = etudiant.etudiantScolarites
-        .filter(scolarite => scolarite.structureAnneeUniversitaire.actif)
-        .flatMap(scolarite => scolarite.scolarite_semestre.map(semestre => semestre.structure_semestre.annee.libelle));
-    // on enlève les doublons
-    etudiant.annees = [...new Set(etudiant.annees)];
-  });
+etudiants.value.forEach(etudiant => {
+  etudiant.annees = etudiant.etudiantScolarites
+    ?.filter(scolarite => scolarite.structureAnneeUniversitaire?.actif)
+    ?.flatMap(scolarite => scolarite.structure_annee?.map(annee => annee.libelle) || []);
+  // on enlève les doublons
+  etudiant.annees = [...new Set(etudiant.annees || [])];
+});
 
   console.log("Étudiants chargés avec années :", etudiants.value);
 };
@@ -211,7 +210,7 @@ watch(() => filters.value.annee.value, async (newAnnee, oldAnnee) => {
           <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
         </template>
       </Column>
-      <Column field="annees" :showFilterMenu="false" header="semestres" style="min-width: 12rem">
+      <Column field="annees" :showFilterMenu="false" header="années" style="min-width: 12rem">
         <template #body="{ data }">
           <div v-for="annee in data.annees" :key="annee">
             {{ annee }}

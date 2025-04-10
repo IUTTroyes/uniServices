@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use App\Entity\Apc\ApcNiveau;
+use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Filter\AnneeFilter;
@@ -90,10 +91,17 @@ class StructureAnnee
     #[ORM\ManyToOne(inversedBy: 'annees')]
     private ?StructureDiplome $structureDiplome = null;
 
+    /**
+     * @var Collection<int, EtudiantScolarite>
+     */
+    #[ORM\ManyToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'structure_annee')]
+    private Collection $etudiantScolarites;
+
     public function __construct()
     {
         $this->structureSemestres = new ArrayCollection();
         $this->setOpt([]);
+        $this->etudiantScolarites = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -256,6 +264,33 @@ class StructureAnnee
     public function setStructureDiplome(?StructureDiplome $structureDiplome): static
     {
         $this->structureDiplome = $structureDiplome;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EtudiantScolarite>
+     */
+    public function getEtudiantScolarites(): Collection
+    {
+        return $this->etudiantScolarites;
+    }
+
+    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    {
+        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
+            $this->etudiantScolarites->add($etudiantScolarite);
+            $etudiantScolarite->addStructureAnnee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    {
+        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
+            $etudiantScolarite->removeStructureAnnee($this);
+        }
 
         return $this;
     }
