@@ -1,19 +1,22 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
-import { FilterMatchMode } from '@primevue/core/api'
-import api from '@helpers/axios.js'
-import ButtonInfo from '@components/components/ButtonInfo.vue'
-import ButtonEdit from '@components/components/ButtonEdit.vue'
-import ButtonDelete from '@components/components/ButtonDelete.vue'
+import { ref, onMounted, computed, watch } from 'vue';
+import { FilterMatchMode } from '@primevue/core/api';
+import api from '@helpers/axios.js';
+import ButtonInfo from '@components/components/ButtonInfo.vue';
+import ButtonEdit from '@components/components/ButtonEdit.vue';
+import ButtonDelete from '@components/components/ButtonDelete.vue';
 
-import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue'
-import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue'
-import AccessEtudiantDialog from '@/dialogs/etudiants/AccessEtudiantDialog.vue'
+import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue';
+import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue';
+import AccessEtudiantDialog from '@/dialogs/etudiants/AccessEtudiantDialog.vue';
 
-import { getEtudiantsDepartementService, getDepartementAnneesService } from "@requests";
+import { useToast } from 'primevue/usetoast';
+const toast = useToast();
 
-import {useAnneeUnivStore, useSemestreStore, useUsersStore} from "@stores";
-import { SimpleSkeleton } from "@components";
+import { getEtudiantsDepartementService, getDepartementAnneesService } from '@requests';
+
+import { useAnneeUnivStore, useSemestreStore, useUsersStore } from '@stores';
+import { SimpleSkeleton } from '@components';
 const usersStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
 const semestreStore = useSemestreStore();
@@ -31,14 +34,14 @@ const isLoadingAnnees = ref(false);
 
 const isUpdatingFilter = ref(false);
 
-const etudiants = ref([])
-const nbEtudiants = ref(0)
-const loading = ref(true)
-const page = ref(0)
-const rowOptions = [30, 60, 120]
+const etudiants = ref([]);
+const nbEtudiants = ref(0);
+const loading = ref(true);
+const page = ref(0);
+const rowOptions = [30, 60, 120];
 
-const limit = ref(rowOptions[0])
-const offset = computed(() => limit.value * page.value)
+const limit = ref(rowOptions[0]);
+const offset = computed(() => limit.value * page.value);
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -47,159 +50,196 @@ const filters = ref({
   mailUniv: { value: null, matchMode: FilterMatchMode.EQUALS },
   semestre: { value: null, matchMode: FilterMatchMode.EQUALS },
   annee: { value: null, matchMode: FilterMatchMode.EQUALS },
-})
+});
 
-const showViewDialog = ref(false)
-const showEditDialog = ref(false)
-const showAccessEditDialog = ref(false)
-const selectedEtudiant = ref(null)
+const showViewDialog = ref(false);
+const showEditDialog = ref(false);
+const showAccessEditDialog = ref(false);
+const selectedEtudiant = ref(null);
 
 const getAnneesUniv = async () => {
   isLoadingAnneesUniv.value = true;
-  await anneeUnivStore.getAllAnneesUniv();
-  anneesUnivList.value = anneeUnivStore.anneesUniv.sort((a, b) => b.id - a.id);
-  await anneeUnivStore.getCurrentAnneeUniv();
-  selectedAnneeUniv.value = anneeUnivStore.anneeUniv;
-  isLoadingAnneesUniv.value = false;
+  try {
+    await anneeUnivStore.getAllAnneesUniv();
+    anneesUnivList.value = anneeUnivStore.anneesUniv.sort((a, b) => b.id - a.id);
+    await anneeUnivStore.getCurrentAnneeUniv();
+    selectedAnneeUniv.value = anneeUnivStore.anneeUniv;
+  } catch (error) {
+    console.error('Erreur lors du chargement des années universitaires :', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de charger les années universitaires. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+      life: 5000,
+    });
+  } finally {
+    isLoadingAnneesUniv.value = false;
+  }
 };
 
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
-  await semestreStore.getSemestresByDepartement(departementId.value, true);
-  semestresList.value = Object.entries(
-      semestreStore.semestres.reduce((acc, semestre) => {
-        const annee = semestre.annee.libelle;
-        if (!acc[annee]) {
-          acc[annee] = [];
-        }
-        acc[annee].push({ label: semestre.libelle, value: semestre });
-        return acc;
-      }, {})
-  ).map(([label, items]) => ({ label, items }));
-  isLoadingSemestres.value = false;
+  try {
+    await semestreStore.getSemestresByDepartement(departementId.value, true);
+    semestresList.value = Object.entries(
+        semestreStore.semestres.reduce((acc, semestre) => {
+          const annee = semestre.annee.libelle;
+          if (!acc[annee]) {
+            acc[annee] = [];
+          }
+          acc[annee].push({ label: semestre.libelle, value: semestre });
+          return acc;
+        }, {})
+    ).map(([label, items]) => ({ label, items }));
+  } catch (error) {
+    console.error('Erreur lors du chargement des semestres :', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de charger les semestres. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+      life: 5000,
+    });
+  } finally {
+    isLoadingSemestres.value = false;
+  }
 };
 
 const getAnnees = async () => {
   isLoadingAnnees.value = true;
-  anneesList.value = await getDepartementAnneesService(departementId.value, true);
-  isLoadingAnnees.value = false;
-}
+  try {
+    anneesList.value = await getDepartementAnneesService(departementId.value, true);
+  } catch (error) {
+    console.error('Erreur lors du chargement des années :', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de charger les années. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+      life: 5000,
+    });
+  } finally {
+    isLoadingAnnees.value = false;
+  }
+};
 
 const loadEtudiants = async () => {
   loading.value = true;
+  try {
+    const response = await getEtudiantsDepartementService(
+        departementId.value,
+        selectedAnneeUniv.value.id,
+        limit.value,
+        parseInt(page.value) + 1,
+        filters.value
+    );
+    etudiants.value = response.member;
+    nbEtudiants.value = response.totalItems;
 
-  console.log("Filtres envoyés à l'API :", filters.value);
-
-  const response = await getEtudiantsDepartementService(
-      departementId.value,
-      selectedAnneeUniv.value.id,
-      limit.value,
-      parseInt(page.value) + 1,
-      filters.value
-  );
-
-  etudiants.value = response.member;
-  nbEtudiants.value = response.totalItems;
-  loading.value = false;
-
-etudiants.value.forEach(etudiant => {
-  etudiant.annees = etudiant.etudiantScolarites
-    ?.filter(scolarite => scolarite.structureAnneeUniversitaire?.actif)
-    ?.flatMap(scolarite => scolarite.structure_annee?.map(annee => annee.libelle) || []);
-  // on enlève les doublons
-  etudiant.annees = [...new Set(etudiant.annees || [])];
-});
-
-  console.log("Étudiants chargés avec années :", etudiants.value);
+    etudiants.value.forEach(etudiant => {
+      etudiant.annees = [
+        ...new Set(
+            etudiant.etudiantScolarites
+                ?.filter(scolarite => scolarite.structureAnneeUniversitaire?.actif)
+                ?.flatMap(scolarite => scolarite.structure_annee?.map(annee => annee.libelle) || [])
+        ),
+      ];
+    });
+    console.log('Étudiants chargés avec années :', etudiants.value);
+  } catch (error) {
+    console.error('Erreur lors du chargement des étudiants :', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de charger les étudiants. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+      life: 5000,
+    });
+  } finally {
+    loading.value = false;
+  }
 };
 
 onMounted(async () => {
-  departementId.value = usersStore.departementDefaut.id
+  departementId.value = usersStore.departementDefaut.id;
   await getAnneesUniv();
   await getSemestres();
-  await getAnnees()
-})
+  await getAnnees();
+});
 
-const onPageChange = async (event) => {
+const onPageChange = async event => {
   limit.value = event.rows;
   page.value = event.page;
   await loadEtudiants();
-}
+};
 
-const viewEtudiant = (etudiant) => {
-  selectedEtudiant.value = etudiant
-  showViewDialog.value = true
-}
+const viewEtudiant = etudiant => {
+  selectedEtudiant.value = etudiant;
+  showViewDialog.value = true;
+};
 
-const editEtudiant = (etudiant) => {
-  selectedEtudiant.value = etudiant
-  showEditDialog.value = true
-}
+const editEtudiant = etudiant => {
+  selectedEtudiant.value = etudiant;
+  showEditDialog.value = true;
+};
 
-const deleteEtudiant = (etudiant) => {
-  console.log(etudiant)
-}
+const deleteEtudiant = etudiant => {
+  console.log(etudiant);
+};
 
-let debounceTimeout;
-watch([filters, selectedAnneeUniv], async (newFilters, newSelectedAnneeUniv) => {
-  clearTimeout(debounceTimeout);
-  debounceTimeout = setTimeout(async () => {
-    if (newFilters || newSelectedAnneeUniv) {
-      await loadEtudiants();
-    }
-  }, 300);
-})
+watch([filters, selectedAnneeUniv], async () => {
+  await loadEtudiants();
+});
 
-watch(() => filters.value.annee.value, async (newAnnee, oldAnnee) => {
+watch(() => filters.value.annee.value, async newAnnee => {
   if (isUpdatingFilter.value) {
-    // Ignore les modifications internes
     isUpdatingFilter.value = false;
     return;
   }
 
   if (newAnnee && typeof newAnnee === 'object' && newAnnee.id) {
-    console.log("Annee sélectionnée :", newAnnee.id);
-    isUpdatingFilter.value = true; // Marque la modification comme interne
+    isUpdatingFilter.value = true;
     filters.value.annee.value = newAnnee.id;
     await loadEtudiants();
   } else if (typeof newAnnee === 'number') {
-    console.log("Annee sélectionnée :", newAnnee);
+    console.log('Annee sélectionnée :', newAnnee);
     await loadEtudiants();
   } else if (newAnnee === null || newAnnee === undefined) {
-    console.log("Annee réinitialisée ou invalide :", newAnnee);
+    console.log('Annee réinitialisée ou invalide :', newAnnee);
     await loadEtudiants();
   } else {
-    console.log("Valeur inattendue pour l'année :", newAnnee);
+    console.log('Valeur inattendue pour l\'année :', newAnnee);
   }
 });
-
 </script>
 
 <template>
   <div class="card">
     <h2 class="text-2xl font-bold mb-4">Tous les étudiants du département</h2>
 
-    <DataTable v-model:filters="filters" :value="etudiants"
-               lazy
-               stripedRows
-               paginator
-               :first="offset"
-               :rows="limit"
-               :rowsPerPageOptions="rowOptions"
-               :totalRecords="nbEtudiants"
-               dataKey="id" filterDisplay="row" :loading="loading"
-               @page="onPageChange($event)"
-               @update:rows="limit = $event"
-               :globalFilterFields="['nom', 'prenom']">
+    <DataTable
+      v-model:filters="filters"
+      :value="etudiants"
+      lazy
+      stripedRows
+      paginator
+      :first="offset"
+      :rows="limit"
+      :rowsPerPageOptions="rowOptions"
+      :totalRecords="nbEtudiants"
+      dataKey="id"
+      filterDisplay="row"
+      :loading="loading"
+      @page="onPageChange($event)"
+      @update:rows="limit = $event"
+      :globalFilterFields="['nom', 'prenom']"
+    >
       <template #header>
         <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/3" />
         <IftaLabel v-else class="w-1/3">
           <Select
-              v-model="selectedAnneeUniv"
-              :options="anneesUnivList"
-              optionLabel="libelle"
-              placeholder="Sélectionner une année universitaire"
-              class="w-full"
+            v-model="selectedAnneeUniv"
+            :options="anneesUnivList"
+            optionLabel="libelle"
+            placeholder="Sélectionner une année universitaire"
+            class="w-full"
           />
           <label for="anneeUniversitaire">Année universitaire</label>
         </IftaLabel>
@@ -209,7 +249,7 @@ watch(() => filters.value.annee.value, async (newAnnee, oldAnnee) => {
           {{ data.nom }}
         </template>
         <template #filter="{ filterModel, filterCallback }">
-          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom"/>
+          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom" />
         </template>
       </Column>
       <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 12rem">
@@ -217,7 +257,7 @@ watch(() => filters.value.annee.value, async (newAnnee, oldAnnee) => {
           {{ data.prenom }}
         </template>
         <template #filter="{ filterModel, filterCallback }">
-          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
+          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom" />
         </template>
       </Column>
       <Column field="annees" :showFilterMenu="false" header="années" style="min-width: 12rem">
@@ -228,7 +268,14 @@ watch(() => filters.value.annee.value, async (newAnnee, oldAnnee) => {
         </template>
         <template #filter="{ filterModel, filterCallback }">
           <SimpleSkeleton v-if="isLoadingAnnees" class="w-1/3" />
-          <Select v-else v-model="filters.annee.value" :options="anneesList" optionLabel="libelle" placeholder="Sélectionner une année" class="w-full">
+          <Select
+            v-else
+            v-model="filters.annee.value"
+            :options="anneesList"
+            optionLabel="libelle"
+            placeholder="Sélectionner une année"
+            class="w-full"
+          >
             <template #optiongroup="slotProps">
               <div class="border-b">Année : {{ slotProps.option.libelle }}</div>
             </template>
@@ -240,39 +287,35 @@ watch(() => filters.value.annee.value, async (newAnnee, oldAnnee) => {
           {{ data.mailUniv }}
         </template>
         <template #filter="{ filterModel, filterCallback }">
-          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par email"/>
+          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par email" />
         </template>
       </Column>
       <Column :showFilterMenu="false" style="min-width: 12rem">
         <template #body="slotProps">
-          <ButtonInfo tooltip="Voir les détails" @click="viewEtudiant(slotProps.data)"/>
-          <ButtonEdit
-              tooltip="Modifier le personnel"
-              @click="editEtudiant(slotProps.data)"/>
-          <ButtonDelete
-              tooltip="Supprimer le personnel du département"
-              @confirm-delete="deleteEtudiant(slotProps.data)"/>
+          <ButtonInfo tooltip="Voir les détails" @click="viewEtudiant(slotProps.data)" />
+          <ButtonEdit tooltip="Modifier le personnel" @click="editEtudiant(slotProps.data)" />
+          <ButtonDelete tooltip="Supprimer le personnel du département" @confirm-delete="deleteEtudiant(slotProps.data)" />
         </template>
       </Column>
       <template #footer> {{ nbEtudiants }} résultat(s).</template>
-
     </DataTable>
 
     <ViewEtudiantDialog
-        :isVisible="showViewDialog"
-        :etudiant="selectedEtudiant"
-        @update:visible="showViewDialog = $event"/>
+      :isVisible="showViewDialog"
+      :etudiant="selectedEtudiant"
+      @update:visible="showViewDialog = $event"
+    />
     <EditEtudiantDialog
-        :isVisible="showEditDialog"
-        :etudiant="selectedEtudiant"
-        @update:visible="showEditDialog = $event"/>
+      :isVisible="showEditDialog"
+      :etudiant="selectedEtudiant"
+      @update:visible="showEditDialog = $event"
+    />
     <AccessEtudiantDialog
-        :isVisible="showAccessEditDialog"
-        :etudiant="selectedEtudiant"
-        @update:visible="showAccessEditDialog = $event"/>
+      :isVisible="showAccessEditDialog"
+      :etudiant="selectedEtudiant"
+      @update:visible="showAccessEditDialog = $event"
+    />
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>
