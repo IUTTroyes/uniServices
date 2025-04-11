@@ -25,6 +25,9 @@ const getEtudiantsDepartementService = async (departement, anneeUniv, limit, pag
     if (filters.semestre.value) {
         params['semestre'] = filters.semestre.value;
     }
+    if (filters.annee.value) {
+        params['annee'] = filters.annee.value;
+    }
 
     const response = await api.get(`/api/etudiants`, { params });
     return response.data;

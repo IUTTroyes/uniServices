@@ -29,6 +29,8 @@ const isLoadingAnneesUniv = ref(false);
 const isLoadingSemestres = ref(false);
 const isLoadingAnnees = ref(false);
 
+const isUpdatingFilter = ref(false);
+
 const etudiants = ref([])
 const nbEtudiants = ref(0)
 const loading = ref(true)
@@ -149,8 +151,16 @@ watch([filters, selectedAnneeUniv], async (newFilters, newSelectedAnneeUniv) => 
 })
 
 watch(() => filters.value.annee.value, async (newAnnee, oldAnnee) => {
+  if (isUpdatingFilter.value) {
+    // Ignore les modifications internes
+    isUpdatingFilter.value = false;
+    return;
+  }
+
   if (newAnnee && typeof newAnnee === 'object' && newAnnee.id) {
     console.log("Annee sélectionnée :", newAnnee.id);
+    isUpdatingFilter.value = true; // Marque la modification comme interne
+    filters.value.annee.value = newAnnee.id;
     await loadEtudiants();
   } else if (typeof newAnnee === 'number') {
     console.log("Annee sélectionnée :", newAnnee);
