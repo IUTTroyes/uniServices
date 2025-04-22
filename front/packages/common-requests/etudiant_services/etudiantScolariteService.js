@@ -17,9 +17,6 @@ const getEtudiantsScolaritesDepartementService = async (departement, anneeUniv, 
     if (filters.mailUniv.value) {
         params['mailUniv'] = filters.mailUniv.value;
     }
-    if (filters.semestre.value) {
-        params['semestre'] = filters.semestre.value;
-    }
     if (filters.annee.value) {
         params['annee'] = filters.annee.value;
     }

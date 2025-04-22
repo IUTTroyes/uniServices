@@ -46,8 +46,7 @@ const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   nom: { value: null, matchMode: FilterMatchMode.CONTAINS },
   prenom: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  mailUniv: { value: null, matchMode: FilterMatchMode.EQUALS },
-  semestre: { value: null, matchMode: FilterMatchMode.EQUALS },
+  mailUniv: { value: null, matchMode: FilterMatchMode.CONTAINS },
   annee: { value: null, matchMode: FilterMatchMode.EQUALS },
 });
 
@@ -120,43 +119,7 @@ const getAnnees = async () => {
   }
 };
 
-// const loadEtudiants = async () => {
-//   loading.value = true;
-//   try {
-//     const response = await getEtudiantsDepartementService(
-//         departementId.value,
-//         selectedAnneeUniv.value.id,
-//         limit.value,
-//         parseInt(page.value) + 1,
-//         filters.value
-//     );
-//     etudiants.value = response.member;
-//     nbEtudiants.value = response.totalItems;
-//
-//     etudiants.value.forEach(etudiant => {
-//       etudiant.annees = [
-//         ...new Set(
-//             etudiant.etudiantScolarites
-//                 ?.filter(scolarite => scolarite.structureAnneeUniversitaire?.actif)
-//                 ?.flatMap(scolarite => scolarite.structure_annee?.map(annee => annee.libelle) || [])
-//         ),
-//       ];
-//     });
-//     console.log('Étudiants chargés avec années :', etudiants.value);
-//   } catch (error) {
-//     console.error('Erreur lors du chargement des étudiants :', error);
-//     toast.add({
-//       severity: 'error',
-//       summary: 'Erreur',
-//       detail: 'Impossible de charger les étudiants. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
-//       life: 5000,
-//     });
-//   } finally {
-//     loading.value = false;
-//   }
-// };
-
-const loadEtudiantsScolarite = async () => {
+const getEtudiantsScolarite = async () => {
   loading.value = true;
   try {
     const response = await getEtudiantsScolaritesDepartementService(
@@ -200,7 +163,7 @@ onMounted(async () => {
 const onPageChange = async event => {
   limit.value = event.rows;
   page.value = event.page;
-  await loadEtudiantsScolarite();
+  await getEtudiantsScolarite();
 };
 
 const viewEtudiant = etudiant => {
@@ -218,7 +181,7 @@ const deleteEtudiant = etudiant => {
 };
 
 watch([filters, selectedAnneeUniv], async () => {
-  await loadEtudiantsScolarite();
+  await getEtudiantsScolarite();
 });
 
 watch(() => filters.value.annee.value, async newAnnee => {
@@ -230,13 +193,13 @@ watch(() => filters.value.annee.value, async newAnnee => {
   if (newAnnee && typeof newAnnee === 'object' && newAnnee.id) {
     isUpdatingFilter.value = true;
     filters.value.annee.value = newAnnee.id;
-    await loadEtudiantsScolarite();
+    await getEtudiantsScolarite();
   } else if (typeof newAnnee === 'number') {
     console.log('Annee sélectionnée :', newAnnee);
-    await loadEtudiantsScolarite();
+    await getEtudiantsScolarite();
   } else if (newAnnee === null || newAnnee === undefined) {
     console.log('Annee réinitialisée ou invalide :', newAnnee);
-    await loadEtudiantsScolarite();
+    await getEtudiantsScolarite();
   } else {
     console.log('Valeur inattendue pour l\'année :', newAnnee);
   }

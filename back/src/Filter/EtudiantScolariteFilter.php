@@ -43,6 +43,34 @@ class EtudiantScolariteFilter extends AbstractFilter
                 ->andWhere('anneeUniversitaire.id = :anneeUniversitaire')
                 ->setParameter("anneeUniversitaire", $value);
         }
+
+        if ('nom' === $property) {
+            $queryBuilder
+                ->join("$alias.etudiant", 'etudiant')
+                ->andWhere('etudiant.nom LIKE :nom')
+                ->setParameter("nom", "%$value%");
+        }
+
+        if ('prenom' === $property) {
+            $queryBuilder
+                ->join("$alias.etudiant", 'etudiant')
+                ->andWhere('etudiant.prenom LIKE :prenom')
+                ->setParameter("prenom", "%$value%");
+        }
+
+        if ('mailUniv' === $property) {
+            $queryBuilder
+                ->join("$alias.etudiant", 'etudiant')
+                ->andWhere('etudiant.prenom LIKE :prenom')
+                ->setParameter("prenom", "%$value%");
+        }
+
+        if ('annee' === $property) {
+            $queryBuilder
+                ->join("$alias.structure_annee", 'structureAnnee')
+                ->andWhere('structureAnnee.id = :structureAnnee')
+                ->setParameter("structureAnnee", $value);
+        }
     }
 
     public function getDescription(string $resourceClass): array
