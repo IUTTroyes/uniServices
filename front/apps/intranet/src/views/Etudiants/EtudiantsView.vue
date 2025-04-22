@@ -13,7 +13,7 @@ import AccessEtudiantDialog from '@/dialogs/etudiants/AccessEtudiantDialog.vue';
 import { useToast } from 'primevue/usetoast';
 const toast = useToast();
 
-import { getEtudiantsDepartementService, getDepartementAnneesService } from '@requests';
+import { getEtudiantsDepartementService, getDepartementAnneesService, getEtudiantsScolaritesDepartementService } from '@requests';
 
 import { useAnneeUnivStore, useSemestreStore, useUsersStore } from '@stores';
 import { SimpleSkeleton } from '@components';
@@ -25,7 +25,6 @@ const departementId = ref(null);
 const anneesUnivList = ref([]);
 const selectedAnneeUniv = ref(null);
 const semestresList = ref([]);
-const selectedSemestre = ref(null);
 const anneesList = ref([]);
 
 const isLoadingAnneesUniv = ref(false);
@@ -121,10 +120,46 @@ const getAnnees = async () => {
   }
 };
 
-const loadEtudiants = async () => {
+// const loadEtudiants = async () => {
+//   loading.value = true;
+//   try {
+//     const response = await getEtudiantsDepartementService(
+//         departementId.value,
+//         selectedAnneeUniv.value.id,
+//         limit.value,
+//         parseInt(page.value) + 1,
+//         filters.value
+//     );
+//     etudiants.value = response.member;
+//     nbEtudiants.value = response.totalItems;
+//
+//     etudiants.value.forEach(etudiant => {
+//       etudiant.annees = [
+//         ...new Set(
+//             etudiant.etudiantScolarites
+//                 ?.filter(scolarite => scolarite.structureAnneeUniversitaire?.actif)
+//                 ?.flatMap(scolarite => scolarite.structure_annee?.map(annee => annee.libelle) || [])
+//         ),
+//       ];
+//     });
+//     console.log('Étudiants chargés avec années :', etudiants.value);
+//   } catch (error) {
+//     console.error('Erreur lors du chargement des étudiants :', error);
+//     toast.add({
+//       severity: 'error',
+//       summary: 'Erreur',
+//       detail: 'Impossible de charger les étudiants. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+//       life: 5000,
+//     });
+//   } finally {
+//     loading.value = false;
+//   }
+// };
+
+const loadEtudiantsScolarite = async () => {
   loading.value = true;
   try {
-    const response = await getEtudiantsDepartementService(
+    const response = await getEtudiantsScolaritesDepartementService(
         departementId.value,
         selectedAnneeUniv.value.id,
         limit.value,
@@ -137,9 +172,7 @@ const loadEtudiants = async () => {
     etudiants.value.forEach(etudiant => {
       etudiant.annees = [
         ...new Set(
-            etudiant.etudiantScolarites
-                ?.filter(scolarite => scolarite.structureAnneeUniversitaire?.actif)
-                ?.flatMap(scolarite => scolarite.structure_annee?.map(annee => annee.libelle) || [])
+            etudiant.structure_annee
         ),
       ];
     });
@@ -167,7 +200,7 @@ onMounted(async () => {
 const onPageChange = async event => {
   limit.value = event.rows;
   page.value = event.page;
-  await loadEtudiants();
+  await loadEtudiantsScolarite();
 };
 
 const viewEtudiant = etudiant => {
@@ -185,7 +218,7 @@ const deleteEtudiant = etudiant => {
 };
 
 watch([filters, selectedAnneeUniv], async () => {
-  await loadEtudiants();
+  await loadEtudiantsScolarite();
 });
 
 watch(() => filters.value.annee.value, async newAnnee => {
@@ -197,13 +230,13 @@ watch(() => filters.value.annee.value, async newAnnee => {
   if (newAnnee && typeof newAnnee === 'object' && newAnnee.id) {
     isUpdatingFilter.value = true;
     filters.value.annee.value = newAnnee.id;
-    await loadEtudiants();
+    await loadEtudiantsScolarite();
   } else if (typeof newAnnee === 'number') {
     console.log('Annee sélectionnée :', newAnnee);
-    await loadEtudiants();
+    await loadEtudiantsScolarite();
   } else if (newAnnee === null || newAnnee === undefined) {
     console.log('Annee réinitialisée ou invalide :', newAnnee);
-    await loadEtudiants();
+    await loadEtudiantsScolarite();
   } else {
     console.log('Valeur inattendue pour l\'année :', newAnnee);
   }
@@ -246,7 +279,7 @@ watch(() => filters.value.annee.value, async newAnnee => {
       </template>
       <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 12rem">
         <template #body="{ data }">
-          {{ data.nom }}
+          {{ data.etudiant.nom }}
         </template>
         <template #filter="{ filterModel, filterCallback }">
           <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom" />
@@ -254,7 +287,7 @@ watch(() => filters.value.annee.value, async newAnnee => {
       </Column>
       <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 12rem">
         <template #body="{ data }">
-          {{ data.prenom }}
+          {{ data.etudiant.prenom }}
         </template>
         <template #filter="{ filterModel, filterCallback }">
           <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom" />
@@ -263,7 +296,7 @@ watch(() => filters.value.annee.value, async newAnnee => {
       <Column field="annees" :showFilterMenu="false" header="années" style="min-width: 12rem">
         <template #body="{ data }">
           <div v-for="annee in data.annees" :key="annee">
-            {{ annee }}
+            {{ annee.libelle }}
           </div>
         </template>
         <template #filter="{ filterModel, filterCallback }">
@@ -284,7 +317,7 @@ watch(() => filters.value.annee.value, async newAnnee => {
       </Column>
       <Column field="mailUniv" :showFilterMenu="false" header="Email" style="min-width: 12rem">
         <template #body="{ data }">
-          {{ data.mailUniv }}
+          {{ data.etudiant.mailUniv }}
         </template>
         <template #filter="{ filterModel, filterCallback }">
           <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par email" />

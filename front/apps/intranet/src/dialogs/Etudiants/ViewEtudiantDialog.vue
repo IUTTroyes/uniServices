@@ -7,7 +7,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <Dialog header="View Etudiant" :visible="props.isVisible" :modal="true" :closable="true">
+  <Dialog header="View Etudiant" :visible="props.isVisible" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask :closable="true">
     <p>{{ props.etudiant }}</p>
   </Dialog>
 </template>

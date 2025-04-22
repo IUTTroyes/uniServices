@@ -56,7 +56,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]

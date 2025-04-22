@@ -2,6 +2,7 @@
 
 namespace App\Entity\Etudiant;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -11,6 +12,7 @@ use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
+use App\Filter\EtudiantScolariteFilter;
 use App\Repository\Structure\StructureScolariteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -29,6 +31,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         )
     ]
 )]
+#[ApiFilter(EtudiantScolariteFilter::class)]
 class EtudiantScolarite
 {
     use UuidTrait;
@@ -106,7 +109,7 @@ class EtudiantScolarite
     /**
      * @var Collection<int, StructureAnnee>
      */
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     #[ORM\ManyToMany(targetEntity: StructureAnnee::class, inversedBy: 'etudiantScolarites')]
     private Collection $structure_annee;
 

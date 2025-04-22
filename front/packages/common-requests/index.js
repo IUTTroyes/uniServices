@@ -14,3 +14,5 @@ export * from './user_services/userService';
 
 export * from './ext_data_services/siteIutService';
 
+export * from './etudiant_services/etudiantScolariteService'
+
