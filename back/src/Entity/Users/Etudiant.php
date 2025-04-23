@@ -75,7 +75,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?string $photoName = null;
 
     /**

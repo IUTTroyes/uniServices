@@ -256,7 +256,7 @@ watch(() => filters.value.annee.value, async newAnnee => {
           <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom" />
         </template>
       </Column>
-      <Column field="annees" :showFilterMenu="false" header="années" style="min-width: 12rem">
+      <Column field="annees" :showFilterMenu="false" header="Année" style="min-width: 12rem">
         <template #body="{ data }">
           <div v-for="annee in data.annees" :key="annee">
             {{ annee.libelle }}
@@ -298,7 +298,7 @@ watch(() => filters.value.annee.value, async newAnnee => {
 
     <ViewEtudiantDialog
       :isVisible="showViewDialog"
-      :etudiant="selectedEtudiant"
+      :etudiantSco="selectedEtudiant"
       @update:visible="showViewDialog = $event"
     />
     <EditEtudiantDialog

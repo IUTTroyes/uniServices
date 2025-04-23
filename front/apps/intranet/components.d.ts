@@ -59,6 +59,7 @@ declare module 'vue' {
     Pn: typeof import('./src/components/Administration/Pn.vue')['default']
     PrevisionnelTable: typeof import('./src/components/Previsionnel/PrevisionnelTable.vue')['default']
     PrevisionnelTableComponent: typeof import('./src/components/Previsionnel/PrevisionnelTableComponent.vue')['default']
+    ProfilEtudiant: typeof import('./src/components/Etudiant/ProfilEtudiant.vue')['default']
     RadioButton: typeof import('primevue/radiobutton')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
