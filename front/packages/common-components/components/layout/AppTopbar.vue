@@ -5,6 +5,7 @@ import Logo from '@components/components/Logo.vue';
 import {useAnneeUnivStore, useUsersStore} from "@stores";
 import {useRoute, useRouter} from 'vue-router';
 import {tools} from '@config/uniServices.js';
+import noImage from "@images/photos_etudiants/noimage.png";
 
 const anneeUnivStore = useAnneeUnivStore();
 const userStore = useUsersStore();

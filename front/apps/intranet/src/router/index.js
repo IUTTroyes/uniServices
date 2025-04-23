@@ -6,6 +6,7 @@ import trombinoscopeRoutes from "./modules/trombinoscopeRoutes.js";
 import profilRoutes from "./modules/profilRoutes.js";
 import administrationRoutes from "./modules/administrationRoutes.js";
 import {useUsersStore} from "@stores";
+import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
 
 const intranetMenu = [
     {
@@ -28,7 +29,7 @@ const router = createRouter({
             component: LayoutComponent,
             props: route => ({
                 menuItems: intranetMenu,
-                logoUrl: 'common-images/logo/logo_intranet_iut_troyes.svg',
+                logoUrl: Logo,
                 appName: appName,
                 breadcrumbItems: route.meta.breadcrumb || []
             }),

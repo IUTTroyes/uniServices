@@ -8,6 +8,7 @@ import {
     updateUserService
 } from "@requests";
 import {useAnneeUnivStore} from '@stores';
+import noImage from "@images/photos_etudiants/noimage.png";
 
 export const useUsersStore = defineStore('users', () => {
     const token = localStorage.getItem('token');
@@ -41,7 +42,7 @@ export const useUsersStore = defineStore('users', () => {
             console.log('Fetching user : ' + userType + ' - ' + userId);
             user.value = await getUserService(userType, userId);
 
-            userPhoto.value = "@common-images/photos_etudiants/" + user.value.photoName;
+            userPhoto.value = noImage;
             applications.value = user.value.applications;
 
             if (userType === 'personnels') {
