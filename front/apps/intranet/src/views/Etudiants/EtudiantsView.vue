@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { FilterMatchMode } from '@primevue/core/api';
-import api from '@helpers/axios.js';
 import ButtonInfo from '@components/components/ButtonInfo.vue';
 import ButtonEdit from '@components/components/ButtonEdit.vue';
 import ButtonDelete from '@components/components/ButtonDelete.vue';
@@ -13,7 +12,7 @@ import AccessEtudiantDialog from '@/dialogs/etudiants/AccessEtudiantDialog.vue';
 import { useToast } from 'primevue/usetoast';
 const toast = useToast();
 
-import { getEtudiantsDepartementService, getDepartementAnneesService, getEtudiantsScolaritesDepartementService } from '@requests';
+import { getDepartementAnneesService, getEtudiantsScolaritesDepartementService } from '@requests';
 
 import { useAnneeUnivStore, useSemestreStore, useUsersStore } from '@stores';
 import { SimpleSkeleton } from '@components';

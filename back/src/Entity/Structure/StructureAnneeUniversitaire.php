@@ -52,11 +52,11 @@ class StructureAnneeUniversitaire
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
-    #[Groups(['structure_annee_universitaire:read'])]
+    #[Groups(['structure_annee_universitaire:read', 'scolarite:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
-    #[Groups(['structure_annee_universitaire:read'])]
+    #[Groups(['structure_annee_universitaire:read', 'scolarite:read'])]
     private int $annee;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

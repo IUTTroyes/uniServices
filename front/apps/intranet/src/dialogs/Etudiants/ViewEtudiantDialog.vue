@@ -31,7 +31,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <Dialog :header="`Scolarité de ${props.etudiantSco?.etudiant.prenom} ${props.etudiantSco?.etudiant.nom}`" :visible="props.isVisible" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask :closable="true">
+  <Dialog :header="`Scolarité de ${props.etudiantSco?.etudiant.prenom} ${props.etudiantSco?.etudiant.nom}`" :visible="props.isVisible" modal :style="{ width: '90vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask :closable="true">
     <EtudiantProfil :etudiantSco="props.etudiantSco" :isVisible="props.isVisible" :etudiantPhoto="etudiantPhoto" />
   </Dialog>
 </template>

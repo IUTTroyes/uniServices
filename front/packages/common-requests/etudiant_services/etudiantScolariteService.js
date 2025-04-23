@@ -25,4 +25,9 @@ const getEtudiantsScolaritesDepartementService = async (departement, anneeUniv, 
     return response.data;
 }
 
-export { getEtudiantsScolaritesDepartementService };
+const getEtudiantScolaritesService = async (etudiantId) => {
+    const response = await api.get(`/api/etudiant_scolarites?etudiant=${etudiantId}`);
+    return response.data;
+}
+
+export { getEtudiantsScolaritesDepartementService, getEtudiantScolaritesService };
