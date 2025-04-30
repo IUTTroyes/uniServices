@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Etudiant\EtudiantScolarite;
@@ -30,7 +31,7 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
     operations: [
         new Get(normalizationContext: ['groups' => ['etudiant:read']]),
         new GetCollection(normalizationContext: ['groups' => ['etudiant:read']]),
-        new Put(normalizationContext: ['groups' => ['etudiant:write']]),
+        new Patch(normalizationContext: ['groups' => ['etudiant:write']]),
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
@@ -61,7 +62,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:read', 'scolarite:read', 'etudiant:write'])]
     private ?string $mailPerso;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -92,11 +93,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $etudiantScolarites;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:read', 'scolarite:read', 'etudiant:write'])]
     private ?array $adresseEtudiante = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:read', 'scolarite:read', 'etudiant:write'])]
     private ?array $adresseParentale = null;
 
     /**
@@ -106,7 +107,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $etudiantAbsences;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:read', 'etudiant:write'])]
     private ?string $site_perso = null;
 
     #[ORM\Column(length: 255, nullable: true)]

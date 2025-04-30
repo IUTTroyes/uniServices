@@ -85,28 +85,21 @@ const age = computed(() => {
 const updateEtudiantData = async () => {
   try {
     const response = await updateEtudiant(props.etudiantSco.etudiant);
-    if (response.status === 200) {
-      toast.add({
-        severity: "success",
-        summary: "Succès",
-        detail: "Informations mises à jour avec succès",
-        life: 5000,
-      });
-      isEditing.value = false;
-    } else {
-      toast.add({
-        severity: "error",
-        summary: "Erreur",
-        detail: "Échec de la mise à jour des informations",
-        life: 5000,
-      });
-    }
+    console.log(response)
   } catch (error) {
     console.error("Erreur lors de la mise à jour :", error);
     toast.add({
       severity: "error",
       summary: "Erreur",
       detail: "Échec de la mise à jour des informations",
+      life: 5000,
+    });
+  } finally {
+    // isEditing.value = false;
+    toast.add({
+      severity: "success",
+      summary: "Succès",
+      detail: "Informations mises à jour avec succès",
       life: 5000,
     });
   }
@@ -182,7 +175,7 @@ const updateEtudiantData = async () => {
           </div>
           <div class="w-full">
             <div>Adresse Etudiante</div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
               <IftaLabel v-for="[key, value] in Object.entries(props.etudiantSco.etudiant.adresseEtudiante).slice(2)" :key="key">
                 <InputText class="w-full" :id="key" v-model="props.etudiantSco.etudiant.adresseEtudiante[key]" />
                 <label :for="key">{{ key }}</label>
@@ -191,7 +184,7 @@ const updateEtudiantData = async () => {
           </div>
           <div class="w-full">
             <div>Adresse Parentale</div>
-            <div class="flex gap-2">
+            <div class="flex gap-2 flex-wrap">
               <IftaLabel v-for="[key, value] in Object.entries(props.etudiantSco.etudiant.adresseParentale).slice(2)" :key="key">
                 <InputText class="w-full" :id="key" v-model="props.etudiantSco.etudiant.adresseParentale[key]" />
                 <label :for="key">{{ key }}</label>

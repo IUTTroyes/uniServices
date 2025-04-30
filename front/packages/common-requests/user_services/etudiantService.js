@@ -6,7 +6,11 @@ const getEtudiantScolariteActifService = async (etudiant, anneeUniv) => {
 }
 
 const updateEtudiant = async (etudiant) => {
-    const response = await api.put(`/api/etudiants/${etudiant.id}`, etudiant);
+    const response = await api.patch(`/api/etudiants/${etudiant.id}`, etudiant, {
+        headers: {
+            'Content-Type': 'application/merge-patch+json',
+        },
+    });
     return response.data;
 }
 
