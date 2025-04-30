@@ -5,4 +5,9 @@ const getEtudiantScolariteActifService = async (etudiant, anneeUniv) => {
     return response.data;
 }
 
-export { getEtudiantScolariteActifService };
+const updateEtudiant = async (etudiant) => {
+    const response = await api.put(`/api/etudiants/${etudiant.id}`, etudiant);
+    return response.data;
+}
+
+export { updateEtudiant, getEtudiantScolariteActifService };
