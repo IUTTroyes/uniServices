@@ -81,11 +81,44 @@ const age = computed(() => {
   return differenceInYears(new Date(), parseISO(props.etudiantSco.etudiant.date_naissance));
 });
 
+const cleanEtudiantObject = (etudiant) => {
+  const cleanedEtudiant = { ...etudiant };
+
+  // Supprimer les propriétés inutiles
+  delete cleanedEtudiant["@id"];
+  delete cleanedEtudiant["@type"];
+
+  // Reformater les sous-objets (adresseEtudiante et adresseParentale)
+  if (cleanedEtudiant.adresseEtudiante) {
+    cleanedEtudiant.adresseEtudiante = {
+      adresse: cleanedEtudiant.adresseEtudiante.adresse || "",
+      complement1: cleanedEtudiant.adresseEtudiante.complement1 || "",
+      complement2: cleanedEtudiant.adresseEtudiante.complement2 || "",
+      ville: cleanedEtudiant.adresseEtudiante.ville || "",
+      codePostal: cleanedEtudiant.adresseEtudiante.codePostal || "",
+      pays: cleanedEtudiant.adresseEtudiante.pays || "",
+    };
+  }
+
+  if (cleanedEtudiant.adresseParentale) {
+    cleanedEtudiant.adresseParentale = {
+      adresse: cleanedEtudiant.adresseParentale.adresse || "",
+      complement1: cleanedEtudiant.adresseParentale.complement1 || "",
+      complement2: cleanedEtudiant.adresseParentale.complement2 || "",
+      ville: cleanedEtudiant.adresseParentale.ville || "",
+      codePostal: cleanedEtudiant.adresseParentale.codePostal || "",
+      pays: cleanedEtudiant.adresseParentale.pays || "",
+    };
+  }
+
+  return cleanedEtudiant;
+};
+
 // Mettre à jour les informations de l'étudiant
 const updateEtudiantData = async () => {
   try {
-    const response = await updateEtudiant(props.etudiantSco.etudiant);
-    console.log(response)
+    const cleanedEtudiant = cleanEtudiantObject(props.etudiantSco.etudiant);
+    const response = await updateEtudiant(cleanedEtudiant);
   } catch (error) {
     console.error("Erreur lors de la mise à jour :", error);
     toast.add({
@@ -95,7 +128,7 @@ const updateEtudiantData = async () => {
       life: 5000,
     });
   } finally {
-    // isEditing.value = false;
+    isEditing.value = false;
     toast.add({
       severity: "success",
       summary: "Succès",
@@ -130,13 +163,13 @@ const updateEtudiantData = async () => {
           Si vous constatez une erreur dans ces données, contactez le responsable de la formation.
         </Message>
         <div class="flex md:flex-row flex-col gap-6">
-          <ul class="md:w-1/3">
+          <ul class="md:w-1/3 flex flex-col gap-2">
             <li><span class="font-bold">Prénom :</span> {{props.etudiantSco.etudiant.prenom}}</li>
             <li><span class="font-bold">Nom :</span> {{props.etudiantSco.etudiant.nom}}</li>
             <li><span class="font-bold">Date de naissance :</span> {{ formattedDateNaissance }} ({{ age }} ans)</li>
           </ul>
 
-          <ul class="md:w-1/3">
+          <ul class="md:w-1/3 flex flex-col gap-2">
             <li><span class="font-bold">Promotion :</span> {{ props.etudiantSco.etudiant.promotion }}</li>
             <li><span class="font-bold">Numéro étudiant :</span> {{ props.etudiantSco.etudiant.num_etudiant }}</li>
             <li><span class="font-bold">Numéro INE :</span> {{ props.etudiantSco.etudiant.num_ine }}</li>
@@ -159,6 +192,7 @@ const updateEtudiantData = async () => {
             <IftaLabel>
               <InputText class="w-full" id="sitePerso" v-model="props.etudiantSco.etudiant.site_perso" />
               <label for="sitePerso">Site personnel</label>
+              <div class="text-sm text-muted-color">Exemple : https://mon-site.com</div>
             </IftaLabel>
           </div>
           <div class="md:w-1/3 flex flex-col gap-2">
@@ -197,13 +231,14 @@ const updateEtudiantData = async () => {
           </div>
         </div>
         <div v-else class="flex md:flex-row flex-col gap-4 flex-wrap">
-          <ul class="md:w-1/3">
+          <ul class="md:w-1/3 flex flex-col gap-2">
             <li><span class="font-bold">Mail personnel :</span> {{props.etudiantSco.etudiant.mailPerso || 'Non renseigné'}}</li>
-            <li><span class="font-bold">Site personnel :</span> {{props.etudiantSco.etudiant.site_perso || 'Non renseigné'}}</li>
+            <li><span class="font-bold">Site personnel :</span> <span v-if="props.etudiantSco.etudiant.site_perso"><Button as="a" label="Accéder au site" :href="props.etudiantSco.etudiant.site_perso" target="_blank" rel="noopener" icon="pi pi-external-link" icon-pos="right" severity="primary" size="small"/>
+</span><span v-else>Non renseigné</span></li>
             <li><span class="font-bold">Adresse de l'étudiant :</span> {{ formatAdresse(props.etudiantSco.etudiant.adresseEtudiante) || 'Non renseigné' }}</li>
           </ul>
 
-          <ul class="md:w-1/3">
+          <ul class="md:w-1/3 flex flex-col gap-2">
             <li><span class="font-bold">Téléphone :</span> {{ props.etudiantSco.etudiant.tel1 || 'Non renseigné' }} <span v-if="props.etudiantSco.etudiant.tel2">ou {{ props.etudiantSco.etudiant.tel2 }}</span></li>
             <li><span class="font-bold">Adresse parentale :</span> {{ formatAdresse(props.etudiantSco.etudiant.adresseParentale) || 'Non renseigné' }}</li>
           </ul>
@@ -235,6 +270,8 @@ const updateEtudiantData = async () => {
                 {{ scolarite_semestre.structure_semestre.annee.libelle }} -
                 <span class="text-muted-color font-normal">{{ scolarite_semestre.structure_semestre.libelle }}</span>
               </div>
+
+              {{ scolarite.moyennesUe }}
               <hr>
             </div>
           </div>
@@ -248,6 +285,7 @@ const updateEtudiantData = async () => {
 .scol-profil {
   background-image: url("@/assets/illu/files.svg");
   background-repeat: no-repeat;
-  background-size: 100%;
+  background-size: cover;
+  background-position: center;
 }
 </style>

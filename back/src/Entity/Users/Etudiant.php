@@ -107,7 +107,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $etudiantAbsences;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etudiant:read', 'etudiant:write'])]
+    #[Groups(['scolarite:read', 'etudiant:read', 'etudiant:write'])]
     private ?string $site_perso = null;
 
     #[ORM\Column(length: 255, nullable: true)]
