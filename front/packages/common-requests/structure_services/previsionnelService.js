@@ -24,7 +24,7 @@ const getAnneeUnivPreviService = async (departementId, anneeUnivId) => {
 }
 
 const getPersonnelPreviService = async (departementId, anneeUnivId, personnelId) => {
-    const response = await api.get(`/api/previsionnels_personnel?anneeUniversitaire=${anneeUnivId}&personnel=${personnelId}`);
+    const response = await api.get(`/api/previsionnels_personnel?anneeUniversitaire=${anneeUnivId}&personnel=${personnelId}&departement=${departementId}`);
     return response.data.member;
 }
 

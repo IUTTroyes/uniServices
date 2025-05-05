@@ -7,7 +7,7 @@ use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\ApiDto\Previsionnel\PrevisionnelEnseignementDto;
+use App\ApiDto\Previsionnel\PrevisionnelPersonnelDto;
 
 class PrevisionnelPersonnelProvider implements ProviderInterface
 {
@@ -35,6 +35,8 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
                 $output['previ'][] = $this->toDto($item);
             }
 
+            $output['test'][] = 0;
+
             return $output;
         } else {
             $data = $this->itemProvider->provide($operation, $uriVariables, $context);
@@ -45,17 +47,25 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
 
     public function toDto($item)
     {
-        $prevMatiere = new PrevisionnelEnseignementDto();
-        $prevMatiere->setLibelle($item->getEnseignement()->getLibelle());
-        $prevMatiere->setPersonnel($item->getPersonnel());
-        $prevMatiere->setHeures(
+        $prevEnseignant = new PrevisionnelPersonnelDto();
+        $prevEnseignant->setLibelle($item->getEnseignement()->getLibelle());
+        $prevEnseignant->setLibelleEnseignement($item->getEnseignement()->getDisplay());
+        $prevEnseignant->setPersonnel($item->getPersonnel());
+        $prevEnseignant->setHeures(
             [
-                'CM' => 0,
-                'TD' => 0,
-                'TP' => 0,
+                'CM' => $item->getHeures()['CM'] ?? 0,
+                'TD' => $item->getHeures()['TD'] ?? 0,
+                'TP' => $item->getHeures()['TP'] ?? 0,
+            ]
+        );
+        $prevEnseignant->setGroupes(
+            [
+                'CM' => $item->getGroupes()['CM'] ?? 0,
+                'TD' => $item->getGroupes()['TD'] ?? 0,
+                'TP' => $item->getGroupes()['TP'] ?? 0,
             ]
         );
 
-        return $prevMatiere;
+        return $prevEnseignant;
     }
 }

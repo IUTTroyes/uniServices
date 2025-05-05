@@ -14,6 +14,7 @@ const selectedAnneeUniv = ref(null);
 
 const isLoadingAnneesUniv = ref(false);
 const isLoadingPrevisionnel = ref(true);
+const isLoadingPrevisionnelForm = ref(true);
 const isLoadingPersonnel = ref(false);
 
 const personnelList = ref([]);
@@ -78,7 +79,7 @@ const getPrevi = async () => {
 };
 
 const getPreviEnseignant = async () => {
-  isLoadingPrevisionnel.value = true;
+  isLoadingPrevisionnelForm.value = true;
   if (selectedAnneeUniv.value && selectedPersonnel.value) {
     console.log('test', selectedPersonnel.value.id)
     previAnneeEnseignant.value = await getPersonnelPreviService(
@@ -89,7 +90,7 @@ const getPreviEnseignant = async () => {
   }
   console.log('previAnneeEnseignant', previAnneeEnseignant.value);
 
-  isLoadingPrevisionnel.value = false;
+  isLoadingPrevisionnelForm.value = false;
 }
 
 onMounted(async () => {
@@ -99,15 +100,8 @@ onMounted(async () => {
 watch(selectedAnneeUniv, async (newAnneeUniv) => {
   if (!newAnneeUniv) return;
   await getPrevi(newAnneeUniv.id);
-});
-
-// watch si isEditing passe à true
-watch(isEditing, async (newValue) => {
-  if (newValue === true) {
-    await getPersonnelsDepartement();
-
-    await getPreviEnseignant();
-  }
+  await getPersonnelsDepartement();
+  await getPreviEnseignant();
 });
 
 // ------------------------------------------------------------------------------------------------------------
@@ -225,7 +219,7 @@ const footerCols = computed(() => [
 // ------------------------------------------------------------------------------------------------------------
 
 const columnsForm = ref([
-
+  { header: 'Matière/ressource/SAE', field: 'libelleEnseignement', sortable: true, colspan: 1 },
 ]);
 </script>
 
@@ -257,7 +251,7 @@ const columnsForm = ref([
         </div>
         <div v-if="!isEditing">
           <PrevisionnelTable
-              origin="previMatiereSynthese"
+              origin="previEnseignantsSynthese"
               :columns="columns"
               :topHeaderCols="topHeaderCols"
               :additionalRows="additionalRows"
@@ -272,7 +266,7 @@ const columnsForm = ref([
           <SimpleSkeleton v-if="isLoadingPersonnel" class="w-1/2" />
           <IftaLabel v-else class="w-1/2">
             <Select
-                v-model="selectedPersonnel"
+                v-model="selectedPersonnel.personnel"
                 :options="personnelList"
                 optionLabel="personnel.display"
                 placeholder="Sélectionner un enseignant"
@@ -282,21 +276,21 @@ const columnsForm = ref([
           </IftaLabel>
           </div>
 
-          <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
+          <ListSkeleton v-if="isLoadingPrevisionnelForm" class="mt-6" />
           <PrevisionnelTable
               v-else
-              origin="previMatiereSynthese"
-              :columns="columns"
+              origin="previEnseignantForm"
+              :columns="columnsForm"
               :topHeaderCols="topHeaderCols"
               :additionalRows="additionalRows"
               :footerCols="footerCols"
-              :data="previSemestreAnneeUniv[0]"
+              :data="previAnneeEnseignant[0]"
               :size="size.value"
               :headerTitle="`Prévisionnel de l'année ${selectedAnneeUniv?.libelle}`"
               :headerTitlecolspan="1"/>
         </div>
       </div>
-      <Message v-else-if="previSemestreAnneeUniv < 1 || previSemestreAnneeUniv[0].length < 1" severity="error" icon="pi pi-times-circle">
+      <Message v-else-if="previAnneeEnseignant[0] < 1" severity="error" icon="pi pi-times-circle">
         Aucun prévisionnel pour cette année universitaire.
       </Message>
     </div>

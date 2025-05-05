@@ -39,7 +39,7 @@ class ScolEnseignement
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'structure_pn:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'structure_pn:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
@@ -63,7 +63,7 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['scol_enseignement:read', 'semestre:read:full', 'previsionnel:read', 'previsionnel_semestre:read', 'structure_pn:read'])]
+    #[Groups(['scol_enseignement:read', 'semestre:read:full', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'structure_pn:read'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
