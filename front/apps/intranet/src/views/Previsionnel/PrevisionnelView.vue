@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted} from "vue";
+import { onMounted } from "vue";
 import router from "@/router";
 
 const items = [
@@ -8,6 +8,10 @@ const items = [
   { label: 'Par enseignant', icon: 'pi pi-clock', route: '/administration/previsionnel/personnel' },
   { label: 'Par matière', icon: 'pi pi-money-bill', route: '/administration/previsionnel/matiere' },
 ];
+
+const navigateTo = (route) => {
+  router.push(route);
+};
 
 onMounted(() => {
   if (items.length > 0) {
@@ -20,20 +24,21 @@ onMounted(() => {
   <div class="card">
     <Tabs value="/administration/previsionnel/semestre" scrollable>
       <TabList>
-        <Tab v-for="tab in items" :key="tab.label" :value="tab.route">
-          <router-link v-if="tab.route" v-slot="{ href, navigate }" :to="tab.route" custom>
-            <a v-ripple :href="href" @click="navigate" class="flex items-center gap-2 text-inherit uppercase">
+        <router-link
+          v-for="tab in items"
+          :key="tab.label"
+          :to="tab.route"
+          custom
+        >
+          <Tab :value="tab.route" @click="navigateTo(tab.route)">
+            <div class="flex items-center gap-2 text-inherit uppercase">
               <i :class="tab.icon" />
               <span>{{ tab.label }}</span>
-            </a>
-          </router-link>
-        </Tab>
+            </div>
+          </Tab>
+        </router-link>
       </TabList>
     </Tabs>
     <router-view></router-view>
   </div>
 </template>
-
-<style scoped>
-
-</style>
