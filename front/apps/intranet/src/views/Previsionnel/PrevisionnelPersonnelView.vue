@@ -220,6 +220,21 @@ const footerCols = computed(() => [
 
 const columnsForm = ref([
   { header: 'Matière/ressource/SAE', field: 'libelleEnseignement', sortable: true, colspan: 1 },
+
+  { header: 'Nb H/Gr.', field: 'heures.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
+  { header: 'Nb Gr.', field: 'groupes.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
+
+  { header: 'Nb H/Gr.', field: 'heures.TD', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
+  { header: 'Nb Gr.', field: 'groupes.TD', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
+
+  { header: 'Nb H/Gr.', field: 'heures.TP', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
+  { header: 'Nb Gr.', field: 'groupes.TP', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
+]);
+
+const topHeaderColsForm = ref([
+  { header: 'CM', colspan: 2, class: '!bg-purple-400 !bg-opacity-20' },
+  { header: 'TD', colspan: 2, class: '!bg-green-400 !bg-opacity-20' },
+  { header: 'TP', colspan: 2, class: '!bg-amber-400 !bg-opacity-20' },
 ]);
 </script>
 
@@ -281,7 +296,7 @@ const columnsForm = ref([
               v-else
               origin="previEnseignantForm"
               :columns="columnsForm"
-              :topHeaderCols="topHeaderCols"
+              :topHeaderCols="topHeaderColsForm"
               :additionalRows="additionalRows"
               :footerCols="footerCols"
               :data="previAnneeEnseignant[0]"
