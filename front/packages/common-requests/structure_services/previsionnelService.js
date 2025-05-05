@@ -23,7 +23,7 @@ const getAnneeUnivPreviService = async (departementId, anneeUnivId) => {
     return response.data.member;
 }
 
-const getPersonnelPreviService = async (personnelId, anneeUnivId) => {
+const getPersonnelPreviService = async (departementId, anneeUnivId, personnelId) => {
     const response = await api.get(`/api/previsionnels_personnel?anneeUniversitaire=${anneeUnivId}&personnel=${personnelId}`);
     return response.data.member;
 }
@@ -74,4 +74,4 @@ const updatePreviService = async (previId, data) => {
     }
 }
 
-export { getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService, getSemestrePreviTestService };
+export { getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService, getSemestrePreviTestService, getPersonnelPreviService };

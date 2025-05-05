@@ -489,7 +489,17 @@ const footerColsForm = computed(() => [
           </div>
         </div>
         <div v-if="!isEditing">
-          <PrevisionnelTable origin="previSemestreSynthese" :columns="columns" :topHeaderCols="topHeaderCols" :additionalRows="additionalRows" :footerCols="footerCols" :data="previSemestre[1]" :filters="filters" :size="size.value" :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`"  :headerTitlecolspan="4"/>
+          <PrevisionnelTable
+              origin="previSemestreSynthese"
+              :columns="columns"
+              :topHeaderCols="topHeaderCols"
+              :additionalRows="additionalRows"
+              :footerCols="footerCols"
+              :data="previSemestre[1]"
+              :filters="filters"
+              :size="size.value"
+              :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle}`"
+              :headerTitlecolspan="4"/>
         </div>
         <div v-else>
           <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />

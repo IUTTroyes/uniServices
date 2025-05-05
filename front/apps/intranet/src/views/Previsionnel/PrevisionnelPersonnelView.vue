@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useSemestreStore, useAnneeUnivStore, useUsersStore, useEnseignementsStore } from '@stores';
 import { SimpleSkeleton, ListSkeleton } from '@components';
-import { getAnneeUnivPreviService } from '@requests';
+import { getAnneeUnivPreviService, getPersonnelsDepartementService, getPersonnelPreviService } from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 
 const usersStore = useUsersStore();
@@ -14,8 +14,13 @@ const selectedAnneeUniv = ref(null);
 
 const isLoadingAnneesUniv = ref(false);
 const isLoadingPrevisionnel = ref(true);
+const isLoadingPersonnel = ref(false);
+
+const personnelList = ref([]);
+const selectedPersonnel = ref(null);
 
 const previSemestreAnneeUniv = ref(null);
+const previAnneeEnseignant = ref(null);
 
 const size = ref({ label: 'Petit', value: 'small' });
 const sizeOptions = ref([
@@ -23,6 +28,8 @@ const sizeOptions = ref([
   { label: 'Normal', value: 'null' },
   { label: 'Large', value: 'large' }
 ]);
+
+const isEditing = ref(false);
 
 const getAnneesUniv = async () => {
   isLoadingAnneesUniv.value = true;
@@ -38,10 +45,26 @@ const getAnneesUniv = async () => {
   }
 };
 
-const getPrevi = async (anneeUnivId) => {
-  if (anneeUnivId) {
+const getPersonnelsDepartement = async () => {
+  isLoadingPersonnel.value = true;
+  try {
+    personnelList.value = await getPersonnelsDepartementService(departementId);
+  } catch (error) {
+    console.error('Erreur lors du chargement des personnels:', error);
+  } finally {
+    // sélectionner le premier personnel de la liste
+    if (personnelList.value.length > 0) {
+      selectedPersonnel.value = personnelList.value[0].personnel;
+    } else {
+      selectedPersonnel.value = null;
+    }
+    isLoadingPersonnel.value = false;
+    console.log('enseignant : ', selectedPersonnel.value)
+  }
+};
+
+const getPrevi = async () => {
     isLoadingPrevisionnel.value = true;
-    await anneeUnivStore.getAnneeUniv(anneeUnivId);
     if (selectedAnneeUniv.value) {
       previSemestreAnneeUniv.value = await getAnneeUnivPreviService(
           departementId,
@@ -52,8 +75,22 @@ const getPrevi = async (anneeUnivId) => {
     console.log('previSemestreAnneeUniv', previSemestreAnneeUniv.value);
 
     isLoadingPrevisionnel.value = false;
-  }
 };
+
+const getPreviEnseignant = async () => {
+  isLoadingPrevisionnel.value = true;
+  if (selectedAnneeUniv.value && selectedPersonnel.value) {
+    console.log('test', selectedPersonnel.value.id)
+    previAnneeEnseignant.value = await getPersonnelPreviService(
+        departementId,
+        selectedAnneeUniv.value.id,
+        selectedPersonnel.value.id
+    );
+  }
+  console.log('previAnneeEnseignant', previAnneeEnseignant.value);
+
+  isLoadingPrevisionnel.value = false;
+}
 
 onMounted(async () => {
   await getAnneesUniv();
@@ -63,6 +100,19 @@ watch(selectedAnneeUniv, async (newAnneeUniv) => {
   if (!newAnneeUniv) return;
   await getPrevi(newAnneeUniv.id);
 });
+
+// watch si isEditing passe à true
+watch(isEditing, async (newValue) => {
+  if (newValue === true) {
+    await getPersonnelsDepartement();
+
+    await getPreviEnseignant();
+  }
+});
+
+// ------------------------------------------------------------------------------------------------------------
+// ---------------------------------------SYNTHESE------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------
 
 const columns = ref([
   { header: 'Intervenant', field: 'libelle', sortable: true, colspan: 1 },
@@ -169,6 +219,14 @@ const additionalRows = computed(() => [
 
 const footerCols = computed(() => [
 ]);
+
+// ------------------------------------------------------------------------------------------------------------
+// ---------------------------------------FORMULAIRE------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------
+
+const columnsForm = ref([
+
+]);
 </script>
 
 <template>
@@ -187,7 +245,8 @@ const footerCols = computed(() => [
           <label for="anneeUniversitaire">Année universitaire</label>
         </IftaLabel>
       </div>
-      <Button label="Saisir le prévisionnel" icon="pi pi-plus" />
+      <Button v-if="!isEditing" label="Saisir le prévisionnel" icon="pi pi-plus" @click="isEditing = !isEditing" />
+      <Button v-else label="Afficher le prévisionnel" icon="pi pi-eye" @click="isEditing = !isEditing" />
     </div>
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
@@ -196,19 +255,49 @@ const footerCols = computed(() => [
         <div class="flex w-full justify-between my-6">
           <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
         </div>
-        <PrevisionnelTable
-            origin="previMatiereSynthese"
-            :columns="columns"
-            :topHeaderCols="topHeaderCols"
-            :additionalRows="additionalRows"
-            :footerCols="footerCols"
-            :data="previSemestreAnneeUniv[0]"
-            :size="size.value"
-            :headerTitle="`Prévisionnel de l'année ${selectedAnneeUniv?.libelle}`"
-            :headerTitlecolspan="1"/>
+        <div v-if="!isEditing">
+          <PrevisionnelTable
+              origin="previMatiereSynthese"
+              :columns="columns"
+              :topHeaderCols="topHeaderCols"
+              :additionalRows="additionalRows"
+              :footerCols="footerCols"
+              :data="previSemestreAnneeUniv[0]"
+              :size="size.value"
+              :headerTitle="`Prévisionnel de l'année ${selectedAnneeUniv?.libelle}`"
+              :headerTitlecolspan="1"/>
+        </div>
+        <div v-else>
+          <div class="flex gap-6 w-1/2 mb-4">
+          <SimpleSkeleton v-if="isLoadingPersonnel" class="w-1/2" />
+          <IftaLabel v-else class="w-1/2">
+            <Select
+                v-model="selectedPersonnel"
+                :options="personnelList"
+                optionLabel="personnel.display"
+                placeholder="Sélectionner un enseignant"
+                class="w-full"
+            />
+            <label for="anneeUniversitaire">Année universitaire</label>
+          </IftaLabel>
+          </div>
+
+          <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
+          <PrevisionnelTable
+              v-else
+              origin="previMatiereSynthese"
+              :columns="columns"
+              :topHeaderCols="topHeaderCols"
+              :additionalRows="additionalRows"
+              :footerCols="footerCols"
+              :data="previSemestreAnneeUniv[0]"
+              :size="size.value"
+              :headerTitle="`Prévisionnel de l'année ${selectedAnneeUniv?.libelle}`"
+              :headerTitlecolspan="1"/>
+        </div>
       </div>
       <Message v-else-if="previSemestreAnneeUniv < 1 || previSemestreAnneeUniv[0].length < 1" severity="error" icon="pi pi-times-circle">
-        Aucun prévisionnel pour cette année universitaire avec ce semestre et cette matière
+        Aucun prévisionnel pour cette année universitaire.
       </Message>
     </div>
   </div>
