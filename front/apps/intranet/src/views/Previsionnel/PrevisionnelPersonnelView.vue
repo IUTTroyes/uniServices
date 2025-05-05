@@ -194,6 +194,16 @@ const duplicatePrevi = async (previId) => {
   }
 };
 
+const deletePrevi = async (id) => {
+  try {
+    await apiCall(previService.delete, [id], 'Prévisionnel supprimé', 'Une erreur est survenue lors de la suppression du prévisionnel');
+  } catch (error) {
+    console.error('Erreur lors de la suppression du prévisionnel:', error);
+  } finally {
+    getPreviEnseignant();
+  }
+};
+
 // ------------------------------------------------------------------------------------------------------------
 // ---------------------------------------SYNTHESE------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------
