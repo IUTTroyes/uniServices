@@ -55,7 +55,7 @@ const getPersonnelsDepartement = async () => {
   } finally {
     // sélectionner le premier personnel de la liste
     if (personnelList.value.length > 0) {
-      selectedPersonnel.value = personnelList.value[0].personnel;
+      selectedPersonnel.value = personnelList.value[0];
     } else {
       selectedPersonnel.value = null;
     }
@@ -65,32 +65,32 @@ const getPersonnelsDepartement = async () => {
 };
 
 const getPrevi = async () => {
-    isLoadingPrevisionnel.value = true;
-    if (selectedAnneeUniv.value) {
-      previSemestreAnneeUniv.value = await getAnneeUnivPreviService(
-          departementId,
-          selectedAnneeUniv.value.id
-      );
-    }
-
-    console.log('previSemestreAnneeUniv', previSemestreAnneeUniv.value);
-
+  isLoadingPrevisionnel.value = true;
+  try {
+    previSemestreAnneeUniv.value = await getAnneeUnivPreviService(
+        departementId,
+        selectedAnneeUniv.value.id
+    );
+  } catch (error) {
+    console.error('Erreur lors du chargement des prévisionnels:', error);
+  } finally {
     isLoadingPrevisionnel.value = false;
+  }
 };
 
 const getPreviEnseignant = async () => {
   isLoadingPrevisionnelForm.value = true;
-  if (selectedAnneeUniv.value && selectedPersonnel.value) {
-    console.log('test', selectedPersonnel.value.id)
+  try {
     previAnneeEnseignant.value = await getPersonnelPreviService(
         departementId,
         selectedAnneeUniv.value.id,
-        selectedPersonnel.value.id
+        selectedPersonnel.value.personnel.id
     );
+  } catch (error) {
+    console.error('Erreur lors du chargement des prévisionnels:', error);
+  } finally {
+    isLoadingPrevisionnelForm.value = false;
   }
-  console.log('previAnneeEnseignant', previAnneeEnseignant.value);
-
-  isLoadingPrevisionnelForm.value = false;
 }
 
 onMounted(async () => {
@@ -102,6 +102,11 @@ watch(selectedAnneeUniv, async (newAnneeUniv) => {
   await getPrevi(newAnneeUniv.id);
   await getPersonnelsDepartement();
   await getPreviEnseignant();
+});
+
+watch(selectedPersonnel , async (newPersonnel) => {
+  if (!newPersonnel) return;
+  await getPreviEnseignant(newPersonnel.id);
 });
 
 // ------------------------------------------------------------------------------------------------------------
@@ -219,7 +224,7 @@ const footerCols = computed(() => [
 // ------------------------------------------------------------------------------------------------------------
 
 const columnsForm = ref([
-  { header: 'Matière/ressource/SAE', field: 'libelleEnseignement', sortable: true, colspan: 1 },
+  { header: 'Matière/ressource/SAE', field: 'libelleEnseignement', sortable: true, colspan: 1, class: '!text-wrap !max-w-12' },
 
   { header: 'Nb H/Gr.', field: 'heures.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
   { header: 'Nb Gr.', field: 'groupes.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
@@ -253,6 +258,18 @@ const topHeaderColsForm = ref([
           />
           <label for="anneeUniversitaire">Année universitaire</label>
         </IftaLabel>
+
+        <SimpleSkeleton v-if="isLoadingPersonnel" class="w-1/2" />
+        <IftaLabel v-else class="w-1/2">
+          <Select
+              v-model="selectedPersonnel"
+              :options="personnelList"
+              optionLabel="personnel.display"
+              placeholder="Sélectionner un enseignant"
+              class="w-full"
+          />
+          <label for="anneeUniversitaire">Enseignant</label>
+        </IftaLabel>
       </div>
       <Button v-if="!isEditing" label="Saisir le prévisionnel" icon="pi pi-plus" @click="isEditing = !isEditing" />
       <Button v-else label="Afficher le prévisionnel" icon="pi pi-eye" @click="isEditing = !isEditing" />
@@ -277,20 +294,6 @@ const topHeaderColsForm = ref([
               :headerTitlecolspan="1"/>
         </div>
         <div v-else>
-          <div class="flex gap-6 w-1/2 mb-4">
-          <SimpleSkeleton v-if="isLoadingPersonnel" class="w-1/2" />
-          <IftaLabel v-else class="w-1/2">
-            <Select
-                v-model="selectedPersonnel.personnel"
-                :options="personnelList"
-                optionLabel="personnel.display"
-                placeholder="Sélectionner un enseignant"
-                class="w-full"
-            />
-            <label for="anneeUniversitaire">Année universitaire</label>
-          </IftaLabel>
-          </div>
-
           <ListSkeleton v-if="isLoadingPrevisionnelForm" class="mt-6" />
           <PrevisionnelTable
               v-else
@@ -301,7 +304,7 @@ const topHeaderColsForm = ref([
               :footerCols="footerCols"
               :data="previAnneeEnseignant[0]"
               :size="size.value"
-              :headerTitle="`Prévisionnel de l'année ${selectedAnneeUniv?.libelle}`"
+              :headerTitle="`${selectedPersonnel.personnel.display} | Prévisionnel de l'année ${selectedAnneeUniv?.libelle}`"
               :headerTitlecolspan="1"/>
         </div>
       </div>
