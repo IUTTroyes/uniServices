@@ -9,19 +9,35 @@ use Symfony\Component\Serializer\Attribute\Groups;
 class PrevisionnelPersonnelDto
 {
     #[Groups(['previsionnel_personnel:read'])]
+    protected int $id;
+    #[Groups(['previsionnel_personnel:read'])]
     protected string $libelle;
     #[Groups(['previsionnel_personnel:read'])]
     protected Personnel $personnel;
     #[Groups(['previsionnel_personnel:read'])]
+    protected int $idPersonnel;
+    #[Groups(['previsionnel_personnel:read'])]
     protected array $heures = [];
     #[Groups(['previsionnel_personnel:read'])]
     protected array $groupes = [];
+    #[Groups(['previsionnel_personnel:read'])]
+    protected int $idEnseignement;
     #[Groups(['previsionnel_personnel:read'])]
     protected string $codeEnseignement = '';
     #[Groups(['previsionnel_personnel:read'])]
     protected string $libelleEnseignement = '';
     #[Groups(['previsionnel_personnel:read'])]
     protected TypeEnseignementEnum $typeEnseignement;
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function setId(int $id): void
+    {
+        $this->id = $id;
+    }
 
     public function getPersonnel(): Personnel
     {
@@ -31,6 +47,26 @@ class PrevisionnelPersonnelDto
     public function setPersonnel(Personnel $personnel): void
     {
         $this->personnel = $personnel;
+    }
+
+    public function getIdPersonnel(): int
+    {
+        return $this->idPersonnel;
+    }
+
+    public function setIdPersonnel(int $idPersonnel): void
+    {
+        $this->idPersonnel = $idPersonnel;
+    }
+
+    public function getIdEnseignement(): int
+    {
+        return $this->idEnseignement;
+    }
+
+    public function setIdEnseignement(int $idEnseignement): void
+    {
+        $this->idEnseignement = $idEnseignement;
     }
 
     public function getHeures(): array

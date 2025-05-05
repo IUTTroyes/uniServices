@@ -48,14 +48,18 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
     public function toDto($item)
     {
         $prevEnseignant = new PrevisionnelPersonnelDto();
+        $prevEnseignant->setId($item->getId());
+        $prevEnseignant->setIdEnseignement($item->getEnseignement()->getId());
         $prevEnseignant->setLibelle($item->getEnseignement()->getLibelle());
         $prevEnseignant->setLibelleEnseignement($item->getEnseignement()->getDisplay());
+        $prevEnseignant->setIdPersonnel($item->getPersonnel()->getId());
         $prevEnseignant->setPersonnel($item->getPersonnel());
         $prevEnseignant->setHeures(
             [
                 'CM' => $item->getHeures()['CM'] ?? 0,
                 'TD' => $item->getHeures()['TD'] ?? 0,
                 'TP' => $item->getHeures()['TP'] ?? 0,
+                'Projet' => $item->getHeures()['Projet'] ?? 0,
             ]
         );
         $prevEnseignant->setGroupes(
@@ -63,6 +67,7 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
                 'CM' => $item->getGroupes()['CM'] ?? 0,
                 'TD' => $item->getGroupes()['TD'] ?? 0,
                 'TP' => $item->getGroupes()['TP'] ?? 0,
+                'Projet' => $item->getGroupes()['Projet'] ?? 0,
             ]
         );
 
