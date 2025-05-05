@@ -1,12 +1,20 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
-import { useSemestreStore, useAnneeUnivStore, useUsersStore, useEnseignementsStore } from '@stores';
-import { SimpleSkeleton, ListSkeleton } from '@components';
-import { getAnneeUnivPreviService, getPersonnelsDepartementService, getPersonnelPreviService, updatePreviService } from '@requests';
+import {computed, onMounted, ref, watch} from 'vue';
+import {useAnneeUnivStore, useUsersStore} from '@stores';
+import {ListSkeleton, SimpleSkeleton} from '@components';
+import {
+  getAnneeUnivPreviService,
+  getDepartementSemestresService,
+  getEnseignementSemestreService,
+  getPersonnelPreviService,
+  getPersonnelsDepartementService,
+  updatePreviService
+} from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 import createApiService from "@requests/apiService.js";
-const previService = createApiService('/api/previsionnels');
 import apiCall from "@helpers/apiCall.js";
+
+const previService = createApiService('/api/previsionnels');
 
 const usersStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
@@ -22,6 +30,8 @@ const isLoadingPersonnel = ref(false);
 
 const personnelList = ref([]);
 const selectedPersonnel = ref(null);
+
+const semestresList = ref([]);
 
 const previSemestreAnneeUniv = ref(null);
 const previAnneeEnseignant = ref(null);
@@ -89,10 +99,24 @@ const getPreviEnseignant = async () => {
         selectedAnneeUniv.value.id,
         selectedPersonnel.value.personnel.id
     );
+
+    try {
+      semestresList.value = await getDepartementSemestresService(departementId, false);
+
+      // pour chaque semestre on va chercher les enseignements via getEnseignementSemestreService
+      for (const semestre of semestresList.value) {
+        semestre.enseignements = await getEnseignementSemestreService(semestre.id);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des prévisionnels:', error);
+    } finally {
+
+    }
   } catch (error) {
     console.error('Erreur lors du chargement des prévisionnels:', error);
   } finally {
     isLoadingPrevisionnelForm.value = false;
+    console.log(previAnneeEnseignant)
   }
 }
 
@@ -342,16 +366,26 @@ const topHeaderColsForm = ref([
 
 const additionalRowsForm = computed(() => [
   [
-    { footer: 'Synthèse', colspan: 7, class: '!text-center !font-bold'},
+    { footer: 'Synthèse', colspan: 9, class: '!text-center !font-bold'},
+  ],
+  [
+    { footer: '', colspan: 1 },
+    { footer: 'Total CM', colspan: 2, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap font-bold' },
+    { footer: 'Total TD', colspan: 2, class: '!bg-green-400 !bg-opacity-20 !text-nowrap font-bold' },
+    { footer: 'Total TP', colspan: 2, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap font-bold' },
+    { footer: 'Total', colspan: 2, class: '!text-nowrap font-bold' },
   ],
   [
     { footer: 'Total', colspan: 1 },
-    { footer: previSemestreAnneeUniv.value[1].TotalCM, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-    { footer: previSemestreAnneeUniv.value[1].TotalTD, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-    { footer: previSemestreAnneeUniv.value[1].TotalTP, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-    { footer: previSemestreAnneeUniv.value[1].TotalTotal, colspan: 1, class: '!text-nowrap', unit: ' h' },
-    { footer: '', colspan: 1 },
+    { footer: previAnneeEnseignant.value[1]['CM'], colspan: 2, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previAnneeEnseignant.value[1]['TD'], colspan: 2, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previAnneeEnseignant.value[1]['TP'], colspan: 2, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previAnneeEnseignant.value[1]['Total'], colspan: 2, class: '!text-nowrap', unit: ' h' },
   ],
+]);
+
+const footerColsForm = computed(() => [
+
 ]);
 </script>
 
@@ -413,7 +447,7 @@ const additionalRowsForm = computed(() => [
               :columns="columnsForm"
               :topHeaderCols="topHeaderColsForm"
               :additionalRows="additionalRowsForm"
-              :footerCols="footerCols"
+              :footerCols="footerColsForm"
               :data="previAnneeEnseignant[0]"
               :size="size.value"
               :headerTitle="`${selectedPersonnel.personnel.display} | Prévisionnel de l'année ${selectedAnneeUniv?.libelle}`"

@@ -30,12 +30,29 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
 
             $output = [];
 
+            $totalCM = 0;
+            $totalTD = 0;
+            $totalTP = 0;
+            $totalProjet = 0;
+            $total = 0;
+
             foreach ($data as $item) {
 
                 $output['previ'][] = $this->toDto($item);
+
+                $totalCM += $item->getHeures()['CM'] ?? 0;
+                $totalTD += $item->getHeures()['TD'] ?? 0;
+                $totalTP += $item->getHeures()['TP'] ?? 0;
+                $totalProjet += $item->getHeures()['Projet'] ?? 0;
             }
 
-            $output['test'][] = 0;
+            $output['total'] = [
+                'CM' => $totalCM,
+                'TD' => $totalTD,
+                'TP' => $totalTP,
+                'Projet' => $totalProjet,
+                'Total' => $totalCM + $totalTD + $totalTP,
+            ];
 
             return $output;
         } else {
