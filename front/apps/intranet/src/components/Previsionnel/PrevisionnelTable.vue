@@ -67,7 +67,7 @@ const getFieldValue = (data, field) => {
     <!-- Groupe de colonnes pour l'en-tête -->
     <ColumnGroup type="header">
       <Row>
-        <Column :header="props.headerTitle" :colspan="headerTitlecolspan" class="text-xl"/>
+        <Column :header="props.headerTitle" :colspan="headerTitlecolspan" class="!bg-gray-300 !bg-opacity-20"/>
         <Column v-if="props.topHeaderCols.length > 0" v-for="(topHeaderCol, index) in props.topHeaderCols" :key="index" :header="topHeaderCol.header" :colspan="topHeaderCol.colspan" :class="topHeaderCol.class"/>
       </Row>
       <Row>

@@ -8,7 +8,7 @@ import {
   getEnseignementSemestreService,
   getPersonnelPreviService,
   getPersonnelsDepartementService,
-  updatePreviService
+  updatePreviService,
 } from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 import createApiService from "@requests/apiService.js";
@@ -31,7 +31,11 @@ const isLoadingPersonnel = ref(false);
 const personnelList = ref([]);
 const selectedPersonnel = ref(null);
 
-const semestresList = ref([]);
+const semestreList = ref([]);
+const selectedSemestre = ref(null);
+
+const enseignementList = ref([]);
+const selectedEnseignement = ref(null);
 
 const previSemestreAnneeUniv = ref(null);
 const previAnneeEnseignant = ref(null);
@@ -99,26 +103,42 @@ const getPreviEnseignant = async () => {
         selectedAnneeUniv.value.id,
         selectedPersonnel.value.personnel.id
     );
-
-    try {
-      semestresList.value = await getDepartementSemestresService(departementId, false);
-
-      // pour chaque semestre on va chercher les enseignements via getEnseignementSemestreService
-      for (const semestre of semestresList.value) {
-        semestre.enseignements = await getEnseignementSemestreService(semestre.id);
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement des prévisionnels:', error);
-    } finally {
-
-    }
   } catch (error) {
-    console.error('Erreur lors du chargement des prévisionnels:', error);
+    console.error('Erreur lors du chargement des prévisionnels :', error);
   } finally {
     isLoadingPrevisionnelForm.value = false;
     console.log(previAnneeEnseignant)
   }
 }
+
+const getSemestres = async () => {
+  try {
+    semestreList.value = await getDepartementSemestresService(departementId, true);
+    // construire chaque élément de la liste des semestres avec le libelle en label et le semestre en value
+    semestreList.value = semestreList.value.map((semestre) => ({
+      id: semestre.id,
+      label: semestre.libelle,
+      value: semestre.id
+    }));
+    console.log('semestres : ' , semestreList.value)
+  } catch (error) {
+    console.error('Erreur lors du chargement des semestres :', error);
+  }
+};
+
+const getEnseignementsSemestre = async (semestreId) => {
+  // try {
+    const enseignements = await getEnseignementSemestreService(semestreId);
+    enseignementList.value = enseignements.map((enseignement) => ({
+      id: enseignement.id,
+      label: `${enseignement.codeEnseignement} - ${enseignement.libelle}`,
+      value: enseignement,
+    }));
+  // } catch (error) {
+  //   console.error('Erreur lors du chargement des enseignements :', error);
+  // } finally {
+  // }
+};
 
 onMounted(async () => {
   await getAnneesUniv();
@@ -129,11 +149,17 @@ watch(selectedAnneeUniv, async (newAnneeUniv) => {
   await getPrevi(newAnneeUniv.id);
   await getPersonnelsDepartement();
   await getPreviEnseignant();
+  await getSemestres();
 });
 
 watch(selectedPersonnel , async (newPersonnel) => {
   if (!newPersonnel) return;
   await getPreviEnseignant(newPersonnel.id);
+});
+
+watch(selectedSemestre, async (newSemestre) => {
+  if (!newSemestre) return;
+  await getEnseignementsSemestre(newSemestre.id);
 });
 
 const updateHeuresPrevi = async (previId, type, event) => {
@@ -187,7 +213,7 @@ const updateGroupesPrevi = async (previId, type, event) => {
 
 const duplicatePrevi = async (previId) => {
   try {
-  const previToDuplicate = previAnneeEnseignant.value[0].find((previ) => previ.id === previId);
+    const previToDuplicate = previAnneeEnseignant.value[0].find((previ) => previ.id === previId);
     const personnelIri = `/api/personnels/${previToDuplicate.idPersonnel}`;
     const enseignementIri = `/api/scol_enseignements/${previToDuplicate.idEnseignement}`;
     const anneeUnivIri = `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`;
@@ -366,6 +392,13 @@ const topHeaderColsForm = ref([
 
 const additionalRowsForm = computed(() => [
   [
+    { footer: 'Ajouter une entrée au prévisionnel', colspan: 1, class: '!text-center !font-bold'},
+    { footer: semestreList.value, colspan: 2, form: true, formType: 'select', placeholder: 'Sélectionner un semestre', formAction: (semestre) => {selectedSemestre.value = semestre} },
+    { footer: enseignementList.value, colspan: 2, form: true, formType: 'select', placeholder: 'Sélectionner un enseignement', formAction: (enseignement) => {selectedEnseignement.value = enseignement} },
+    { footer: 'Ajouter', colspan: 3, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addPrevi(selectedPersonnel.value, selectedEnseignement.value) }, buttonClass: () => '!w-full', buttonSeverity: () => 'success' },
+
+  ],
+  [
     { footer: 'Synthèse', colspan: 9, class: '!text-center !font-bold'},
   ],
   [
@@ -405,17 +438,19 @@ const footerColsForm = computed(() => [
           <label for="anneeUniversitaire">Année universitaire</label>
         </IftaLabel>
 
-        <SimpleSkeleton v-if="isLoadingPersonnel" class="w-1/2" />
-        <IftaLabel v-else class="w-1/2">
-          <Select
-              v-model="selectedPersonnel"
-              :options="personnelList"
-              optionLabel="personnel.display"
-              placeholder="Sélectionner un enseignant"
-              class="w-full"
-          />
-          <label for="anneeUniversitaire">Enseignant</label>
-        </IftaLabel>
+        <div v-if="isEditing" class="w-1/2">
+          <SimpleSkeleton v-if="isLoadingPersonnel" class="w-full" />
+          <IftaLabel v-else class="w-full">
+            <Select
+                v-model="selectedPersonnel"
+                :options="personnelList"
+                optionLabel="personnel.display"
+                placeholder="Sélectionner un enseignant"
+                class="w-full"
+            />
+            <label for="anneeUniversitaire">Enseignant</label>
+          </IftaLabel>
+        </div>
       </div>
       <Button v-if="!isEditing" label="Saisir le prévisionnel" icon="pi pi-plus" @click="isEditing = !isEditing" />
       <Button v-else label="Afficher le prévisionnel" icon="pi pi-eye" @click="isEditing = !isEditing" />
