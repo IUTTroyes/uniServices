@@ -119,7 +119,7 @@ const getFieldValue = (data, field) => {
 
               <Button v-else-if="d.button" :icon="d.buttonIcon" @click="d.buttonAction(d.footer)" :class="d.buttonClass(d.footer)" :label="d.footer" :severity="d.buttonSeverity(d.footer)"/>
               <Tag v-else-if="d.tag" class="w-max" :class="d.tagClass(d.footer)" :severity="d.tagSeverity(d.footer)" :icon="d.tagIcon(d.footer)">
-                {{ d.footer }}<span v-if="d.unit && d.tagSeverity(d.footer) !== 'secondary'"> {{ d.unit }}</span>
+                {{ d.tagContent ? d.tagContent(d.footer) : d.footer }}<span v-if="d.unit && d.tagSeverity(d.footer) !== 'secondary'"> {{ d.unit }}</span>
               </Tag>
               <span class="w-fit" v-else>{{ d.footer }}<span v-if="d.unit"> {{ d.unit }}</span></span>
             </slot>

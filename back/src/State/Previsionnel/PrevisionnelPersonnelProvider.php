@@ -56,9 +56,6 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
                 'Total' => $totalCM + $totalTD + $totalTP,
             ];
 
-            $nbHeuresService = 0;
-            $affectation = false;
-
             $total = $totalCM + $totalTD + $totalTP;
             $total = round($total, 2);
 
@@ -93,6 +90,11 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
                 'TotalTd' => $totalCM * $item->getEnseignement()::MAJORATION_CM + $totalTD + $totalTP,
                 'Service' => $item->getPersonnel()->getNbHeuresService(),
                 'Diff' => $diff,
+            ];
+
+            $output['personnelDatas'] = [
+                'statut' => $item->getPersonnel()->getStatut(),
+                'statutSeverity' => $item->getPersonnel()->getStatut()->getBadge(),
             ];
 
             return $output;

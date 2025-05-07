@@ -28,6 +28,8 @@ class PrevisionnelPersonnelDto
     protected string $libelleEnseignement = '';
     #[Groups(['previsionnel_personnel:read'])]
     protected TypeEnseignementEnum $typeEnseignement;
+    #[Groups(['previsionnel_personnel:read'])]
+    protected string $statut;
 
     public function getId(): int
     {
@@ -37,6 +39,16 @@ class PrevisionnelPersonnelDto
     public function setId(int $id): void
     {
         $this->id = $id;
+    }
+
+    public function getStatut(): string
+    {
+        return $this->statut;
+    }
+
+    public function setStatut(string $statut): void
+    {
+        $this->statut = $statut;
     }
 
     public function getPersonnel(): Personnel

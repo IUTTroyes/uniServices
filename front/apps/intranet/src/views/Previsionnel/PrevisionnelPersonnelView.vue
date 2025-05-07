@@ -92,6 +92,7 @@ const getPrevi = async () => {
     console.error('Erreur lors du chargement des prévisionnels:', error);
   } finally {
     isLoadingPrevisionnel.value = false;
+    console.log('previSemestreAnneeUniv : ', previSemestreAnneeUniv.value)
   }
 };
 
@@ -453,7 +454,25 @@ const additionalRowsForm = computed(() => [
   [
     { footer: '', colspan: 1 },
     { footer: 'Nb heures saisies', colspan: 3 },
-    { footer: 'Nb heures du service', colspan: 3 },
+    { footer: 'Nb heures du service', colspan: 2 },
+    {
+      footer: previAnneeEnseignant.value[3],
+      sortable: false,
+      colspan: 1,
+      tag: true,
+      tagClass: (value) => {
+        return value.class;
+      },
+      tagSeverity: (value) => {
+        return value.statutSeverity;
+      },
+      tagIcon: (value) => {
+        return value.icon;
+      },
+      tagContent: (value) => {
+        return value.statut;
+      }
+    },
     { footer: 'Différence', colspan: 2 },
   ],
   [
@@ -495,7 +514,7 @@ const additionalRowsForm = computed(() => [
           return value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up');
         }
       }
-      },
+    },
   ],
   [
     { footer: 'Total d\'heures', colspan: 1 },
