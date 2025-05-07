@@ -160,7 +160,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $numeroHarpege = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
+    #[Groups(['previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'structure_departement_personnel:read'])]
     private ?int $nbHeuresService = null;
 
     #[ORM\Column(length: 255, nullable: true)]

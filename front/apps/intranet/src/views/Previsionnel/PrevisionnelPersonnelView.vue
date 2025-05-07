@@ -156,6 +156,7 @@ watch(selectedAnneeUniv, async (newAnneeUniv) => {
 watch(selectedPersonnel , async (newPersonnel) => {
   if (!newPersonnel) return;
   await getPreviEnseignant(newPersonnel.id);
+  console.log(selectedPersonnel.value)
 });
 
 watch(selectedSemestre, async (newSemestre) => {
@@ -380,17 +381,15 @@ const additionalRows = computed(() => [
   ],
   [
     { footer: '', colspan: 3 },
-    { footer: 'Permanent', colspan: 1 },
-    { footer: 'Vacataire', colspan: 1 },
-    { footer: 'Autre', colspan: 1 },
-    { footer: '', colspan: 2 },
+    { footer: 'Permanent', colspan: 2 },
+    { footer: 'Vacataire', colspan: 2 },
+    { footer: 'Autre', colspan: 2 },
   ],
   [
     { footer: 'Répartition du total d\'heures entre les catégories', colspan: 3 },
-    { footer: previSemestreAnneeUniv.value[2].Permanent, colspan: 1, unit: ' %' },
-    { footer: previSemestreAnneeUniv.value[2].Vacataire, colspan: 1, unit: ' %' },
-    { footer: previSemestreAnneeUniv.value[2].Autre, colspan: 1, unit: ' %' },
-    { footer: '', colspan: 2 },
+    { footer: previSemestreAnneeUniv.value[2].Permanent, colspan: 2, unit: ' %' },
+    { footer: previSemestreAnneeUniv.value[2].Vacataire, colspan: 2, unit: ' %' },
+    { footer: previSemestreAnneeUniv.value[2].Autre, colspan: 2, unit: ' %' },
   ],
 ]);
 
@@ -435,9 +434,6 @@ const additionalRowsForm = computed(() => [
 
   ],
   [
-    { footer: 'Synthèse', colspan: 9, class: '!text-center !font-bold'},
-  ],
-  [
     { footer: '', colspan: 1 },
     { footer: 'Total CM', colspan: 2, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap font-bold' },
     { footer: 'Total TD', colspan: 2, class: '!bg-green-400 !bg-opacity-20 !text-nowrap font-bold' },
@@ -445,12 +441,67 @@ const additionalRowsForm = computed(() => [
     { footer: 'Total', colspan: 2, class: '!text-nowrap font-bold' },
   ],
   [
-    { footer: 'Total', colspan: 1 },
+    { footer: 'Total heures saisies', colspan: 1 },
     { footer: previAnneeEnseignant.value[1]['CM'], colspan: 2, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previAnneeEnseignant.value[1]['TD'], colspan: 2, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previAnneeEnseignant.value[1]['TP'], colspan: 2, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previAnneeEnseignant.value[1]['Total'], colspan: 2, class: '!text-nowrap', unit: ' h' },
   ],
+  [
+    { footer: 'Synthèse', colspan: 9, class: '!text-center !font-bold'},
+  ],
+  [
+    { footer: '', colspan: 1 },
+    { footer: 'Nb heures saisies', colspan: 3 },
+    { footer: 'Nb heures maximum', colspan: 3 },
+    { footer: 'Différence', colspan: 2 },
+  ],
+  [
+    { footer: '', colspan: 1 },
+    { footer: 'Classique', colspan: 1 },
+    { footer: 'Équivalent TD', colspan: 2 },
+    { footer: previAnneeEnseignant.value[2]['Service'], colspan: 3, rowspan: 2, class: '!text-center', unit: ' h' },
+    { footer: previAnneeEnseignant.value[2]['Diff'], colspan: 2, rowspan: 2, class: '!text-center', unit: ' h',
+      tag: true,
+      tagClass: (value) => {
+        if (typeof value === 'string' && value.includes('autre département')) {
+          return '!bg-gray-100 !text-gray-800';
+        }
+        if (typeof value === 'string' && value.includes('Dépassement')) {
+          return '!bg-amber-400 !text-white';
+        } else {
+          return value === 0 ? '!bg-blue-400 !text-white' : (value < 0 ? '!bg-red-400 !text-white' : '!bg-green-400 !text-white');
+        }
+      },
+      tagSeverity: (value) => {
+        if (typeof value === 'string' && value.includes('autre département')) {
+          return 'secondary';
+        }
+        if (typeof value === 'string' && value.includes('Dépassement')) {
+          return 'warn';
+        } else {
+          return value === 0 ? 'success' : (value < 0 ? 'warn' : 'success');
+        }
+      },
+      tagIcon: (value) => {
+        if (typeof value === 'string' && value.includes('autre département')) {
+          return '';
+        }
+        if (typeof value === 'string' && value.includes('Dépassement')) {
+          return 'pi pi-exclamation-triangle';
+        } if (typeof value === 'string' && value.includes('Peut rester')) {
+          return 'pi pi-check';
+        } else {
+          return value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up');
+        }
+      }
+      },
+  ],
+  [
+    { footer: 'Total d\'heures', colspan: 1 },
+    { footer: previAnneeEnseignant.value[2]['TotalClassique'], colspan: 1, unit: ' h' },
+    { footer: previAnneeEnseignant.value[2]['TotalTd'], colspan: 2, unit: ' h' },
+  ]
 ]);
 
 const footerColsForm = computed(() => [

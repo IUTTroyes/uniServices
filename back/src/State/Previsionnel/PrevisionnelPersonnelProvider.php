@@ -54,6 +54,13 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
                 'Total' => $totalCM + $totalTD + $totalTP,
             ];
 
+            $output['totalEquTd'] = [
+                'TotalClassique' => $totalCM + $totalTD + $totalTP,
+                'TotalTd' => $totalCM * $item->getEnseignement()::MAJORATION_CM + $totalTD + $totalTP,
+                'Service' => $item->getPersonnel()->getNbHeuresService(),
+                'Diff' => ($totalCM + $totalTD + $totalTP) - $item->getPersonnel()->getNbHeuresService(),
+            ];
+
             return $output;
         } else {
             $data = $this->itemProvider->provide($operation, $uriVariables, $context);

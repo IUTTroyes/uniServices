@@ -71,7 +71,7 @@ const getFieldValue = (data, field) => {
         <Column v-if="props.topHeaderCols.length > 0" v-for="(topHeaderCol, index) in props.topHeaderCols" :key="index" :header="topHeaderCol.header" :colspan="topHeaderCol.colspan" :class="topHeaderCol.class"/>
       </Row>
       <Row>
-        <Column v-for="(col, index) in props.columns" :key="index" :header="col.header" :colspan="col.colspan" :sortable="col.sortable" :field="col.field" :class="col.class"/>
+        <Column v-for="(col, index) in props.columns" :key="index" :header="col.header" :colspan="col.colspan" :rowspan="col.rowspan" :sortable="col.sortable" :field="col.field" :class="col.class"/>
       </Row>
     </ColumnGroup>
     <!-- Colonnes dynamiques avec slots pour personnalisation -->
@@ -104,7 +104,7 @@ const getFieldValue = (data, field) => {
     <!-- Groupe de colonnes pour le pied de page -->
     <ColumnGroup v-if="footerCols.length > 0 || additionalRows.length > 0" type="footer">
       <Row v-for="(data, index) in props.additionalRows" :key="index">
-        <Column v-for="d in data" :colspan="d.colspan" :class="d.class">
+        <Column v-for="d in data" :colspan="d.colspan" :rowspan="d.rowspan" :class="d.class">
           <template #footer="slotProps">
             <slot :name="`footer-${d.field}`" :value="d.footer">
               <InputText v-if="d.form && d.formType === 'text'" :value="d.footer" @input="d.footer = $event.target.value"/>
@@ -127,7 +127,7 @@ const getFieldValue = (data, field) => {
         </Column>
       </Row>
       <Row>
-        <Column v-for="(footerCol, index) in props.footerCols" :key="index"  :colspan="footerCol.colspan" :class="footerCol.class">
+        <Column v-for="(footerCol, index) in props.footerCols" :key="index" :colspan="footerCol.colspan" :rowspan="footerCol.rowspan" :class="footerCol.class">
           <template #footer="slotProps">
             <slot :name="`footer-${footerCol.field}`" :value="footerCol.footer">
               <Tag v-if="footerCol.tag" class="w-max" :class="footerCol.tagClass(footerCol.footer)" :severity="footerCol.tagSeverity(footerCol.footer)" :icon="footerCol.tagIcon(footerCol.footer)">
