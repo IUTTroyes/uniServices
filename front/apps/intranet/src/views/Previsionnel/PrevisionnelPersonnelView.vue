@@ -127,17 +127,18 @@ const getSemestres = async () => {
 };
 
 const getEnseignementsSemestre = async (semestreId) => {
-  // try {
+  try {
     const enseignements = await getEnseignementSemestreService(semestreId);
-    enseignementList.value = enseignements.map((enseignement) => ({
+
+    // Crée une nouvelle référence pour enseignementList
+    enseignementList.value = [...enseignements.map((enseignement) => ({
       id: enseignement.id,
       label: `${enseignement.codeEnseignement} - ${enseignement.libelle}`,
       value: enseignement,
-    }));
-  // } catch (error) {
-  //   console.error('Erreur lors du chargement des enseignements :', error);
-  // } finally {
-  // }
+    }))];
+  } catch (error) {
+    console.error('Erreur lors du chargement des enseignements :', error);
+  }
 };
 
 onMounted(async () => {
@@ -161,6 +162,38 @@ watch(selectedSemestre, async (newSemestre) => {
   if (!newSemestre) return;
   await getEnseignementsSemestre(newSemestre.id);
 });
+
+const addPrevi = async () => {
+  try {
+    const personnelIri = `/api/personnels/${selectedPersonnel.value.personnel.id}`;
+    const enseignementIri = `/api/scol_enseignements/${selectedEnseignement.value.id}`;
+    const anneeUnivIri = `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`;
+    const dataNewPrevi = {
+      personnel: personnelIri,
+      anneeUniversitaire: anneeUnivIri,
+      referent: false,
+      heures: {
+        CM: 0,
+        TD: 0,
+        TP: 0,
+        Projet: 0,
+      },
+      groupes: {
+        CM: 0,
+        TD: 0,
+        TP: 0,
+        Projet: 0,
+      },
+      enseignement: enseignementIri,
+    };
+
+    await apiCall(previService.create,[dataNewPrevi], 'Prévisionnel créé', 'Une erreur est survenue lors de la création du prévisionnel');
+  } catch (error) {
+    console.error('Erreur lors de la création du prévisionnel:', error);
+  } finally {
+    await getPreviEnseignant();
+  }
+}
 
 const updateHeuresPrevi = async (previId, type, event) => {
   // transforme le nombre d'heures en nombre entier
@@ -393,9 +426,12 @@ const topHeaderColsForm = ref([
 const additionalRowsForm = computed(() => [
   [
     { footer: 'Ajouter une entrée au prévisionnel', colspan: 1, class: '!text-center !font-bold'},
-    { footer: semestreList.value, colspan: 2, form: true, formType: 'select', placeholder: 'Sélectionner un semestre', formAction: (semestre) => {selectedSemestre.value = semestre} },
-    { footer: enseignementList.value, colspan: 2, form: true, formType: 'select', placeholder: 'Sélectionner un enseignement', formAction: (enseignement) => {selectedEnseignement.value = enseignement} },
-    { footer: 'Ajouter', colspan: 3, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addPrevi(selectedPersonnel.value, selectedEnseignement.value) }, buttonClass: () => '!w-full', buttonSeverity: () => 'success' },
+
+    { footer: semestreList.value, colspan: 3, form: true, formType: 'select', placeholder: 'Sélectionner un semestre', formAction: (semestre) => {selectedSemestre.value = semestre} },
+
+    { footer: enseignementList.value, colspan: 3, form: true, formType: 'select', placeholder: 'Sélectionner un enseignement', formAction: (enseignement) => {selectedEnseignement.value = enseignement} },
+
+    { footer: 'Ajouter', colspan: 2, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addPrevi(selectedPersonnel.value, selectedEnseignement.value) }, buttonClass: () => '!w-full', buttonSeverity: () => 'success' },
 
   ],
   [
