@@ -453,7 +453,7 @@ const additionalRowsForm = computed(() => [
   [
     { footer: '', colspan: 1 },
     { footer: 'Nb heures saisies', colspan: 3 },
-    { footer: 'Nb heures maximum', colspan: 3 },
+    { footer: 'Nb heures du service', colspan: 3 },
     { footer: 'Différence', colspan: 2 },
   ],
   [

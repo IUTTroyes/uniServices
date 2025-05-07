@@ -8,13 +8,15 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
 use App\ApiDto\Previsionnel\PrevisionnelPersonnelDto;
+use App\Repository\Structure\StructureDepartementPersonnelRepository;
 
 class PrevisionnelPersonnelProvider implements ProviderInterface
 {
 
     public function __construct(
         private CollectionProvider $collectionProvider,
-        private ItemProvider $itemProvider
+        private ItemProvider $itemProvider,
+        private StructureDepartementPersonnelRepository $structureDepartementPersonnelRepository
     )
     {
     }
@@ -54,11 +56,43 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
                 'Total' => $totalCM + $totalTD + $totalTP,
             ];
 
+            $nbHeuresService = 0;
+            $affectation = false;
+
+            $total = $totalCM + $totalTD + $totalTP;
+            $total = round($total, 2);
+
+            $departement = $this->structureDepartementPersonnelRepository->findOneBy(['personnel' => $item->getPersonnel()->getId(), 'departement' => $context['filters']['departement']]);
+            $departementAffectation = $this->structureDepartementPersonnelRepository->findOneByPersonnelAffectation($item->getPersonnel()->getId());
+
+            if ($departementAffectation && $departement->getId() === $departementAffectation->getId() || $item->getPersonnel()->getStatut()->getLibelle() === 'Enseignant Vacataire') {
+                $nbHeuresService = $item->getPersonnel()->getNbHeuresService();
+                $affectation = true;
+            } else {
+                $nbHeuresService = 'Service réalisé dans un autre département';
+                $affectation = false;
+            }
+            $statutLibelle = $item->getPersonnel()->getStatut()->getLibelle();
+
+            if ($statutLibelle === 'Enseignant Vacataire' && $total < $nbHeuresService) {
+                $diff = 'Peut rester '.($total - $nbHeuresService);
+                // enlever le signe négatif si le nombre est négatif
+                $diff = str_replace('-', '', $diff);
+            } elseif ($statutLibelle === 'Enseignant Vacataire' && $total > $nbHeuresService) {
+                $diff = 'Dépassement de '.($total - $nbHeuresService);
+            } else {
+                if ($affectation) {
+                    $diff = $total - $nbHeuresService;
+                } else {
+                    $diff = 'Service réalisé dans un autre département';
+                }
+            }
+
             $output['totalEquTd'] = [
                 'TotalClassique' => $totalCM + $totalTD + $totalTP,
                 'TotalTd' => $totalCM * $item->getEnseignement()::MAJORATION_CM + $totalTD + $totalTP,
                 'Service' => $item->getPersonnel()->getNbHeuresService(),
-                'Diff' => ($totalCM + $totalTD + $totalTP) - $item->getPersonnel()->getNbHeuresService(),
+                'Diff' => $diff,
             ];
 
             return $output;
