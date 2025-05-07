@@ -4,9 +4,11 @@ import router from "@/router";
 
 const items = [
   { label: 'Par semestre', icon: 'pi pi-list', route: '/administration/previsionnel/semestre' },
-  { label: 'Par semestre test', icon: 'pi pi-list', route: '/administration/previsionnel/semestre_test' },
-  { label: 'Par enseignant', icon: 'pi pi-clock', route: '/administration/previsionnel/personnel' },
-  { label: 'Par matière', icon: 'pi pi-money-bill', route: '/administration/previsionnel/matiere' },
+  { label: 'Par enseignant', icon: 'pi pi-user', route: '/administration/previsionnel/personnel' },
+  { label: 'Par matière', icon: 'pi pi-book', route: '/administration/previsionnel/matiere' },
+  { label: 'Vue d\'ensemble', icon: 'pi pi-eye', route: '/administration/previsionnel/semestre_test' },
+  { label: 'HRS/primes', icon: 'pi pi-money-bill', route: '/administration/previsionnel/primes' },
+  { label: 'Actions', icon: 'pi pi-cog', route: '/administration/previsionnel/actions' },
 ];
 
 const navigateTo = (route) => {
@@ -22,6 +24,8 @@ onMounted(() => {
 
 <template>
   <div class="card">
+    <h2 class="text-2xl font-bold">Gestion des prévisionnels</h2>
+    <Divider/>
     <Tabs value="/administration/previsionnel/semestre" scrollable>
       <TabList>
         <router-link
@@ -39,6 +43,6 @@ onMounted(() => {
         </router-link>
       </TabList>
     </Tabs>
-    <router-view></router-view>
+    <router-view class="mt-6"></router-view>
   </div>
 </template>

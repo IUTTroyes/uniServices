@@ -454,7 +454,7 @@ const additionalRowsForm = computed(() => [
   [
     { footer: '', colspan: 1 },
     { footer: 'Nb heures saisies', colspan: 3 },
-    { footer: 'Nb heures du service', colspan: 2 },
+    { footer: 'Nb heures de service', colspan: 2 },
     {
       footer: previAnneeEnseignant.value[3],
       sortable: false,
@@ -529,7 +529,7 @@ const footerColsForm = computed(() => [
 </script>
 
 <template>
-  <div class="px-4 py-12 flex flex-col gap-6">
+  <div class="px-4 flex flex-col">
     <div class="flex justify-between gap-10">
       <div class="flex gap-6 w-1/2">
         <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/2" />

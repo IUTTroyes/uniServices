@@ -16,5 +16,13 @@ export default [
   {
     path: 'matiere',
     component: () => import('@/views/previsionnel/PrevisionnelEnseignementView.vue'),
+  },
+  {
+    path: 'primes',
+    component: () => import('@/views/previsionnel/PrevisionnelPrimesView.vue'),
+  },
+  {
+    path: 'actions',
+    component: () => import('@/views/previsionnel/PrevisionnelActionsView.vue'),
   }
 ]

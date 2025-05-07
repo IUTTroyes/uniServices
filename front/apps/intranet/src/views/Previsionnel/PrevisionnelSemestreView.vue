@@ -442,7 +442,7 @@ const footerColsForm = computed(() => [
 </script>
 
 <template>
-  <div class="px-4 py-12 flex flex-col gap-6">
+  <div class="px-4 flex flex-col">
     <div class="flex justify-between gap-10">
       <div class="flex gap-6 w-1/2">
         <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/2" />
