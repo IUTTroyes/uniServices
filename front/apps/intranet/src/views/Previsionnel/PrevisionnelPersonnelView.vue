@@ -6,6 +6,7 @@ import {
   getAnneeUnivPreviService,
   getDepartementSemestresService,
   getEnseignementSemestreService,
+  getEnseignementDepartementService,
   getPersonnelPreviService,
   getPersonnelsDepartementService,
   updatePreviService,
@@ -142,8 +143,23 @@ const getEnseignementsSemestre = async (semestreId) => {
   }
 };
 
+const getAllEnseignementsDepartement = async () => {
+  try {
+    const enseignements = await getEnseignementDepartementService(departementId);
+    // Crée une nouvelle référence pour enseignementList
+    enseignementList.value = [...enseignements.map((enseignement) => ({
+      id: enseignement.id,
+      label: `${enseignement.codeEnseignement} - ${enseignement.libelle}`,
+      value: enseignement,
+    }))];
+  } catch (error) {
+    console.error('Erreur lors du chargement des enseignements :', error);
+  }
+}
+
 onMounted(async () => {
   await getAnneesUniv();
+  await getAllEnseignementsDepartement();
 });
 
 watch(selectedAnneeUniv, async (newAnneeUniv) => {
@@ -402,7 +418,7 @@ const footerCols = computed(() => [
 // ------------------------------------------------------------------------------------------------------------
 
 const columnsForm = ref([
-  { header: 'Matière/ressource/SAE', field: 'libelleEnseignement', sortable: true, colspan: 1, class: '!text-wrap !w-1/3' },
+  { header: 'Matière/ressource/SAE', field: 'libelleEnseignement', sortable: true, colspan: 1, form: true, formType: 'select', formOptions: enseignementList, id: 'id', placeholder: 'Sélectionner un enseignement', formAction: (enseignement) => {selectedEnseignement.value = enseignement}, class: '!text-wrap !w-1/3' },
 
   { header: 'Nb H/Gr.', field: 'heures.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
   { header: 'Nb Gr.', field: 'groupes.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
