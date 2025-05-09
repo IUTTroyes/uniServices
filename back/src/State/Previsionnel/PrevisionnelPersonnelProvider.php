@@ -27,7 +27,25 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
             $data = $this->collectionProvider->provide($operation, $uriVariables, $context);
 
             if (empty($data)) {
-                return [];
+                $output['previ'] = [];
+                $output['total'] = [
+                    'CM' => 0,
+                    'TD' => 0,
+                    'TP' => 0,
+                    'Projet' => 0,
+                    'Total' => 0,
+                ];
+                $output['totalEquTd'] = [
+                    'TotalClassique' => 0,
+                    'TotalTd' => 0,
+                    'Service' => 0,
+                    'Diff' => 0,
+                ];
+                $output['personnelDatas'] = [
+                    'statut' => null,
+                    'statutSeverity' => null,
+                ];
+                return $output ?? ['hello'];
             }
 
             $output = [];
