@@ -88,6 +88,7 @@ const getFieldValue = (data, field) => {
                   :placeholder="getFieldValue(slotProps.data, col.field)"
                   class="max-w-52"
                   @update:modelValue="col.formAction(getFieldValue(slotProps.data, col.id), $event)"
+                  v-tooltip.top="col.tooltip ? col.tooltip : slotProps.data[col.field]"
           >
           </Select>
 
@@ -112,7 +113,7 @@ const getFieldValue = (data, field) => {
                       :options="d.footer"
                       optionLabel="label"
                       :placeholder="d.placeholder"
-                      class="w-full"
+                      class="!w-full"
                       @update:modelValue="(newValue) => d.formAction(newValue)"
               />
 
