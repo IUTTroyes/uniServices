@@ -452,7 +452,7 @@ const additionalRowsForm = computed(() => [
   [
     { footer: '', colspan: 1 },
     { footer: 'Classique', colspan: 1 },
-    { footer: 'Équivalent TD', colspan: 2 },
+    { footer: 'Équivalent TD *', colspan: 2 },
     { footer: previAnneeEnseignant.value[2]['Service'], colspan: 3, rowspan: 2, class: '!text-center', unit: ' h' },
     { footer: previAnneeEnseignant.value[2]['Diff'], colspan: 2, rowspan: 2, class: '!text-center', unit: ' h',
       tag: true,
@@ -494,6 +494,9 @@ const additionalRowsForm = computed(() => [
     { footer: 'Total d\'heures', colspan: 1 },
     { footer: previAnneeEnseignant.value[2]['TotalClassique'], colspan: 1, unit: ' h' },
     { footer: previAnneeEnseignant.value[2]['TotalTd'], colspan: 2, unit: ' h' },
+  ],
+  [
+    { footer: '* Les heures équivalent TD majorée sont calculées avec les CM * 1.5', colspan: 9, class: '!text-center !text-muted-color' },
   ]
 ]);
 
