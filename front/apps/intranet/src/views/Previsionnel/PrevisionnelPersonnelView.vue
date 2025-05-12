@@ -344,7 +344,7 @@ const additionalRows = computed(() => [
     { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
   ],
   [
-    { footer: 'Total', colspan: 3 },
+    { footer: 'Total', colspan: 3, class: 'font-bold' },
     { footer: previSemestreAnneeUniv.value[1].TotalCM, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestreAnneeUniv.value[1].TotalTD, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestreAnneeUniv.value[1].TotalTP, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
@@ -356,9 +356,9 @@ const additionalRows = computed(() => [
   ],
   [
     { footer: '', colspan: 3 },
-    { footer: 'Permanent', colspan: 2 },
-    { footer: 'Vacataire', colspan: 2 },
-    { footer: 'Autre', colspan: 2 },
+    { footer: 'Permanent', colspan: 2, class: 'font-bold' },
+    { footer: 'Vacataire', colspan: 2, class: 'font-bold' },
+    { footer: 'Autre', colspan: 2, class: 'font-bold' },
   ],
   [
     { footer: 'Répartition du total d\'heures entre les catégories', colspan: 3 },
@@ -427,8 +427,8 @@ const additionalRowsForm = computed(() => [
   ],
   [
     { footer: '', colspan: 1 },
-    { footer: 'Nb heures saisies', colspan: 3 },
-    { footer: 'Nb heures de service', colspan: 2 },
+    { footer: 'Nb heures saisies', colspan: 3, class: 'font-bold' },
+    { footer: 'Nb heures de service', colspan: 2, class: 'font-bold' },
     {
       footer: previAnneeEnseignant.value[3],
       sortable: false,
@@ -447,12 +447,12 @@ const additionalRowsForm = computed(() => [
         return value.statut;
       }
     },
-    { footer: 'Différence', colspan: 2 },
+    { footer: 'Différence', colspan: 2, class: 'font-bold' },
   ],
   [
     { footer: '', colspan: 1 },
-    { footer: 'Classique', colspan: 1 },
-    { footer: 'Équivalent TD *', colspan: 2 },
+    { footer: 'Classique', colspan: 1, class: 'font-bold' },
+    { footer: 'Équivalent TD *', colspan: 2, class: 'font-bold' },
     { footer: previAnneeEnseignant.value[2]['Service'], colspan: 3, rowspan: 2, class: '!text-center', unit: ' h' },
     { footer: previAnneeEnseignant.value[2]['Diff'], colspan: 2, rowspan: 2, class: '!text-center', unit: ' h',
       tag: true,
@@ -491,7 +491,7 @@ const additionalRowsForm = computed(() => [
     },
   ],
   [
-    { footer: 'Total d\'heures', colspan: 1 },
+    { footer: 'Total d\'heures', colspan: 1, class: 'font-bold' },
     { footer: previAnneeEnseignant.value[2]['TotalClassique'], colspan: 1, unit: ' h' },
     { footer: previAnneeEnseignant.value[2]['TotalTd'], colspan: 2, unit: ' h' },
   ],
