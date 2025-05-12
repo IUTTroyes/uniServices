@@ -214,6 +214,7 @@ const addPrevi = async () => {
 }
 
 const updateHeuresPrevi = async (previId, type, event) => {
+  console.log('previId : ', previId)
   // transforme le nombre d'heures en nombre entier
   if (event === '') {
     event = 0;
@@ -259,49 +260,6 @@ const updateGroupesPrevi = async (previId, type, event) => {
           }
         }
     );
-  }
-};
-
-const duplicatePrevi = async (previId) => {
-  try {
-    const previToDuplicate = previAnneeEnseignant.value[0].find((previ) => previ.id === previId);
-    const personnelIri = `/api/personnels/${previToDuplicate.idPersonnel}`;
-    const enseignementIri = `/api/scol_enseignements/${previToDuplicate.idEnseignement}`;
-    const anneeUnivIri = `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`;
-    const dataNewPrevi = {
-      personnel: personnelIri,
-      anneeUniversitaire: anneeUnivIri,
-      referent: false,
-      heures: {
-        CM: previToDuplicate.heures['CM'],
-        TD: previToDuplicate.heures['TD'],
-        TP: previToDuplicate.heures['TP'],
-        Projet: previToDuplicate.heures['Projet'],
-      },
-      groupes: {
-        CM: previToDuplicate.groupes.CM,
-        TD: previToDuplicate.groupes.TD,
-        TP: previToDuplicate.groupes.TP,
-        Projet: previToDuplicate.groupes.Projet,
-      },
-      enseignement: enseignementIri,
-    };
-
-    await apiCall(previService.create,[dataNewPrevi], 'Prévisionnel dupliqué', 'Une erreur est survenue lors de la duplication du prévisionnel');
-  } catch (error) {
-    console.error('Erreur lors de la duplication du prévisionnel:', error);
-  } finally {
-    await getPreviEnseignant()
-  }
-};
-
-const deletePrevi = async (id) => {
-  try {
-    await apiCall(previService.delete, [id], 'Prévisionnel supprimé', 'Une erreur est survenue lors de la suppression du prévisionnel');
-  } catch (error) {
-    console.error('Erreur lors de la suppression du prévisionnel:', error);
-  } finally {
-    getPreviEnseignant();
   }
 };
 
@@ -429,8 +387,8 @@ const columnsForm = ref([
   { header: 'Nb H/Gr.', field: 'heures.TP', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
   { header: 'Nb Gr.', field: 'groupes.TP', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
 
-  { header: 'Dupliquer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-copy', id: 'id', buttonAction: (id) => {duplicatePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn' },
-  { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', id: 'id', buttonAction: (id) => {deletePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'danger' },
+  { header: 'Dupliquer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-copy', id: 'id', buttonAction: (id) => {duplicatePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn', duplicate: true, class: 'max-w-50' },
+  { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', id: 'id', buttonAction: (id) => {deletePrevi(id)}, buttonClass: () => '!w-fit', buttonSeverity: () => 'danger', delete: true, class: 'max-w-50' },
 ]);
 
 const topHeaderColsForm = ref([

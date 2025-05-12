@@ -35,7 +35,7 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'scol_enseignement:read', 'structure_pn:read'])]
+    #[Groups(['semestre:read:full', 'scol_enseignement:read', 'structure_pn:read', 'previsionnel_personnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]

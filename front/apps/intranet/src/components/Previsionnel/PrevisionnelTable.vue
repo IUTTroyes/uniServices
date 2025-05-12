@@ -1,5 +1,11 @@
 <script setup>
 import { ref, reactive, toRefs } from 'vue';
+import ButtonDelete from "@components/components/ButtonDelete.vue";
+import ButtonDuplicate from "@components/components/ButtonDuplicate.vue";
+import apiCall from '@helpers/apiCall.js'
+import createApiService from '@requests/apiService'
+
+const previsionnelService = createApiService('/api/previsionnels')
 
 // Définition des propriétés du composant
 const props = defineProps({
@@ -60,6 +66,56 @@ const { data } = toRefs(state);
 const getFieldValue = (data, field) => {
   return field.split('.').reduce((acc, part) => acc && acc[part], data);
 };
+
+// Fonction pour supprimer un prévisionnel
+const deletePrevi = async (data) => {
+  await apiCall(previsionnelService.delete, [data.id], 'L\'élément a bien été supprimé', 'Une erreur est survenue lors de la suppression du prévisionnel');
+  // Mettre à jour les données après la suppression
+  const index = state.data.findIndex(item => item.id === data.id);
+  if (index !== -1) {
+    state.data.splice(index, 1);
+  }
+  // Mettre à jour le tableau pour refléter les changements
+  data.value = [...state.data];
+};
+
+// Fonction pour dupliquer un prévisionnel
+const duplicatePrevi = async (data) => {
+
+  const iriPersonnel = 'api/personnels/' + data.idPersonnel;
+  const iriEnseignement = 'api/scol_enseignements/' + data.idEnseignement;
+  const iriAnneeUniversitaire = 'api/structure_annee_universitaires/' + data.structureAnneeUniversitaire;
+
+  const dataToDuplicate = {
+    personnel: iriPersonnel,
+    anneeUniversitaire: data.structureAnneeUniversitaire,
+    enseignement: iriEnseignement,
+    heures: data.heures,
+    groupes: data.groupes,
+    referent: false
+  };
+
+  const response = await apiCall(previsionnelService.create, [dataToDuplicate], 'L\'élément a bien été dupliqué', 'Une erreur est survenue lors de la duplication du prévisionnel');
+
+  // Reconstruire l'élément dupliqué
+  const duplicatedPrevi = {
+    id: response.id,
+    codeEnseignement: data.codeEnseignement,
+    groupes: response.groupes,
+    heures: response.heures,
+    idEnseignement: data.idEnseignement,
+    idPersonnel: data.idPersonnel,
+    libelle: data.libelle,
+    libelleEnseignement: data.libelleEnseignement,
+    personnel: data.personnel,
+    structureAnneeUniversitaire: data.structureAnneeUniversitaire,
+  }
+  // Ajouter le prévisionnel dupliqué à la liste des données
+  state.data.push(duplicatedPrevi);
+  // Mettre à jour le tableau pour refléter les changements
+  data.value = [...state.data];
+  console.log(data.value)
+};
 </script>
 
 <template>
@@ -92,7 +148,10 @@ const getFieldValue = (data, field) => {
           >
           </Select>
 
+          <ButtonDelete v-else-if="col.button & col.delete" tooltip="Supprimer l'élément du prévi" @confirm-delete="deletePrevi(slotProps.data)" :class="col.class"/>
+          <ButtonDuplicate v-else-if="col.button & col.duplicate" tooltip="Dupliquer l'élément dans le prévi" @confirm-duplicate="duplicatePrevi(slotProps.data)" :class="col.class"/>
           <Button v-else-if="col.button" :icon="col.buttonIcon" @click="col.buttonAction(getFieldValue(slotProps.data, col.id))" :class="col.buttonClass(col.field)" :label="col.field" :severity="col.buttonSeverity(col.field)"/>
+
 
           <Tag v-else-if="col.tag" class="w-max" :class="col.tagClass(getFieldValue(slotProps.data, col.field))" :severity="col.tagSeverity(getFieldValue(slotProps.data, col.field))" :icon="col.tagIcon(getFieldValue(slotProps.data, col.field))">
             {{ col.tagContent ? col.tagContent(getFieldValue(slotProps.data, col.field)) : getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && col.tagSeverity(getFieldValue(slotProps.data, col.field)) !== 'secondary'"> {{ col.unit }}</span>

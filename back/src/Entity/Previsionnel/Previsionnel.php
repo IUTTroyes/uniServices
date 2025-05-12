@@ -90,7 +90,7 @@ class Previsionnel
     private ?Personnel $personnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
-    #[Groups(['previsionnel:read'])]
+    #[Groups(['previsionnel:read', 'previsionnel_personnel:read'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\Column]

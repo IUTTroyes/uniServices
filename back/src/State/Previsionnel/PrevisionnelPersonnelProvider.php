@@ -148,6 +148,7 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
                 'Projet' => $item->getGroupes()['Projet'] ?? 0,
             ]
         );
+        $prevEnseignant->setStructureAnneeUniversitaire($item->getAnneeUniversitaire());
 
         return $prevEnseignant;
     }
