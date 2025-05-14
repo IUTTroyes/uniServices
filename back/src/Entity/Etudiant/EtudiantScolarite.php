@@ -88,6 +88,7 @@ class EtudiantScolarite
     #[Groups(['scolarite:read', 'etudiant:read'])]
     private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
 
+    // todo: -> etudiantScolariteSemestre
     /**
      * @var Collection<int, StructureGroupe>
      */
@@ -108,6 +109,7 @@ class EtudiantScolarite
 
     /**
      * @var Collection<int, StructureAnnee>
+     * @deprecated
      */
     #[Groups(['etudiant:read', 'scolarite:read'])]
     #[ORM\ManyToMany(targetEntity: StructureAnnee::class, inversedBy: 'etudiantScolarites')]

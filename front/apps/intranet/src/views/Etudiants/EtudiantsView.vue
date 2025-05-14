@@ -210,31 +210,33 @@ watch(() => filters.value.annee.value, async newAnnee => {
     <h2 class="text-2xl font-bold mb-4">Tous les étudiants du département</h2>
 
     <DataTable
-      v-model:filters="filters"
-      :value="etudiants"
-      lazy
-      stripedRows
-      paginator
-      :first="offset"
-      :rows="limit"
-      :rowsPerPageOptions="rowOptions"
-      :totalRecords="nbEtudiants"
-      dataKey="id"
-      filterDisplay="row"
-      :loading="loading"
-      @page="onPageChange($event)"
-      @update:rows="limit = $event"
-      :globalFilterFields="['nom', 'prenom']"
+        scrollHeight="800px"
+        scrollable
+        v-model:filters="filters"
+        :value="etudiants"
+        lazy
+        stripedRows
+        paginator
+        :first="offset"
+        :rows="limit"
+        :rowsPerPageOptions="rowOptions"
+        :totalRecords="nbEtudiants"
+        dataKey="id"
+        filterDisplay="row"
+        :loading="loading"
+        @page="onPageChange($event)"
+        @update:rows="limit = $event"
+        :globalFilterFields="['nom', 'prenom']"
     >
       <template #header>
         <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/3" />
         <IftaLabel v-else class="w-1/3">
           <Select
-            v-model="selectedAnneeUniv"
-            :options="anneesUnivList"
-            optionLabel="libelle"
-            placeholder="Sélectionner une année universitaire"
-            class="w-full"
+              v-model="selectedAnneeUniv"
+              :options="anneesUnivList"
+              optionLabel="libelle"
+              placeholder="Sélectionner une année universitaire"
+              class="w-full"
           />
           <label for="anneeUniversitaire">Année universitaire</label>
         </IftaLabel>
@@ -264,12 +266,12 @@ watch(() => filters.value.annee.value, async newAnnee => {
         <template #filter="{ filterModel, filterCallback }">
           <SimpleSkeleton v-if="isLoadingAnnees" class="w-1/3" />
           <Select
-            v-else
-            v-model="filters.annee.value"
-            :options="anneesList"
-            optionLabel="libelle"
-            placeholder="Sélectionner une année"
-            class="w-full"
+              v-else
+              v-model="filters.annee.value"
+              :options="anneesList"
+              optionLabel="libelle"
+              placeholder="Sélectionner une année"
+              class="w-full"
           >
             <template #optiongroup="slotProps">
               <div class="border-b">Année : {{ slotProps.option.libelle }}</div>
@@ -296,19 +298,19 @@ watch(() => filters.value.annee.value, async newAnnee => {
     </DataTable>
 
     <ViewEtudiantDialog
-      :isVisible="showViewDialog"
-      :etudiantSco="selectedEtudiant"
-      @update:visible="showViewDialog = $event"
+        :isVisible="showViewDialog"
+        :etudiantSco="selectedEtudiant"
+        @update:visible="showViewDialog = $event"
     />
     <EditEtudiantDialog
-      :isVisible="showEditDialog"
-      :etudiant="selectedEtudiant"
-      @update:visible="showEditDialog = $event"
+        :isVisible="showEditDialog"
+        :etudiant="selectedEtudiant"
+        @update:visible="showEditDialog = $event"
     />
     <AccessEtudiantDialog
-      :isVisible="showAccessEditDialog"
-      :etudiant="selectedEtudiant"
-      @update:visible="showAccessEditDialog = $event"
+        :isVisible="showAccessEditDialog"
+        :etudiant="selectedEtudiant"
+        @update:visible="showAccessEditDialog = $event"
     />
   </div>
 </template>

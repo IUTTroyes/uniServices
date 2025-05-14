@@ -183,7 +183,8 @@ const duplicatePrevi = async (data) => {
 </script>
 
 <template>
-  <DataTable :value="data" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows scrollable :size="props.size" show-gridlines>
+  <DataTable scrollHeight="800px"
+             scrollable :value="data" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows :size="props.size" show-gridlines>
     <!-- Groupe de colonnes pour l'en-tête -->
     <ColumnGroup type="header">
       <Row>

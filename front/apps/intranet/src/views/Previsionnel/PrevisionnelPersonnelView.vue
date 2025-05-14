@@ -14,6 +14,7 @@ import {
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 import createApiService from "@requests/apiService.js";
 import apiCall from "@helpers/apiCall.js";
+import { showSuccess, showDanger } from '@helpers/toast.js';
 
 const previService = createApiService('/api/previsionnels');
 
@@ -240,26 +241,34 @@ const updateHeuresPrevi = async (previId, type, event) => {
 };
 
 const updateGroupesPrevi = async (previId, type, event) => {
-  // transforme le nombre de groupes en nombre entier
-  if (event === '') {
-    event = 0;
-  } else {
-    event = parseInt(event);
-  }
-  const groupes = event;
-  const previ = previAnneeEnseignant.value[0].find((previ) => previ.id === previId);
-  if (previ) {
-    previ.groupes[type] = groupes;
+  try {
+    // transforme le nombre de groupes en nombre entier
+    if (event === '') {
+      event = 0;
+    } else {
+      event = parseInt(event);
+    }
+    const groupes = event;
+    const previ = previAnneeEnseignant.value[0].find((previ) => previ.id === previId);
+    if (previ) {
+      previ.groupes[type] = groupes;
 
-    await updatePreviService(
-        previ.id,
-        {
-          groupes: {
-            ...previ.groupes,
-            [type]: groupes
+      await updatePreviService(
+          previ.id,
+          {
+            groupes: {
+              ...previ.groupes,
+              [type]: groupes
+            }
           }
-        }
-    );
+      );
+    }
+  } catch (error) {
+    showDanger('Erreur lors de la mise à jour des groupes', error);
+    console.error('Erreur lors de la mise à jour des groupes:', error);
+  } finally {
+    showSuccess('Les groupes ont été mis à jour');
+    // await getPreviEnseignant();
   }
 };
 
@@ -337,6 +346,7 @@ const columns = ref([
 ]);
 
 const topHeaderCols = ref([
+  { header: '', colspan: 7 }
 ]);
 
 const additionalRows = computed(() => [
@@ -395,6 +405,7 @@ const topHeaderColsForm = ref([
   { header: 'CM', colspan: 2, class: '!bg-purple-400 !bg-opacity-20' },
   { header: 'TD', colspan: 2, class: '!bg-green-400 !bg-opacity-20' },
   { header: 'TP', colspan: 2, class: '!bg-amber-400 !bg-opacity-20' },
+  { header: '', colspan: 2 },
 ]);
 
 const additionalRowsForm = computed(() => [
