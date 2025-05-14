@@ -134,9 +134,9 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
         $prevEnseignant->setPersonnel($item->getPersonnel());
         $prevEnseignant->setHeures(
             [
-                'CM' => $item->getHeures()['CM'] ?? 0,
-                'TD' => $item->getHeures()['TD'] ?? 0,
-                'TP' => $item->getHeures()['TP'] ?? 0,
+                'CM' => round($item->getGroupes()['CM'] !== 0 ? $item->getHeures()['CM']/$item->getGroupes()['CM'] : $item->getHeures()['CM'], 1),
+                'TD' => round($item->getGroupes()['TD'] !== 0 ? $item->getHeures()['TD']/$item->getGroupes()['TD'] : $item->getHeures()['TD'], 1),
+                'TP' => round($item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP']/$item->getGroupes()['TP'] : $item->getHeures()['TP'], 1),
                 'Projet' => $item->getHeures()['Projet'] ?? 0,
             ]
         );

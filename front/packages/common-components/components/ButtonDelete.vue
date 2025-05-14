@@ -13,7 +13,6 @@ const emit = defineEmits(['confirm-delete'])
 const confirm = useConfirm()
 
 const showConfirmDialog = () => {
-  console.log('showConfirmDialog')
   confirm.require({
     message: 'Êtes-vous sûr de vouloir supprimer cet élément ?',
     header: 'Confirmation de suppression',

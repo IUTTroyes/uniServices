@@ -40,7 +40,7 @@ const getPersonnelPreviService = async (departementId, anneeUnivId, personnelId)
 const updatePreviEnseignementService = async (previId, enseignementId) => {
     try {
         const enseignementIri = `/api/scol_enseignements/${enseignementId}`;
-        const response = await api.patch(`/api/previsionnels/${previId}`, { enseignement: enseignementIri }, {
+        await api.patch(`/api/previsionnels/${previId}`, { enseignement: enseignementIri }, {
             headers: {
                 'Content-Type': 'application/merge-patch+json'
             }
@@ -52,7 +52,7 @@ const updatePreviEnseignementService = async (previId, enseignementId) => {
 const updatePreviPersonnelService = async (previId, personnelId) => {
     try {
         const personnelIri = `/api/personnels/${personnelId}`;
-        const response = await api.patch(`/api/previsionnels/${previId}`, { personnel: personnelIri }, {
+        await api.patch(`/api/previsionnels/${previId}`, { personnel: personnelIri }, {
             headers: {
                 'Content-Type': 'application/merge-patch+json'
             }
@@ -64,7 +64,7 @@ const updatePreviPersonnelService = async (previId, personnelId) => {
 
 const updatePreviService = async (previId, data) => {
     try {
-        const response = await api.patch(`/api/previsionnels/${previId}`,  data, {
+        await api.patch(`/api/previsionnels/${previId}`,  data, {
             headers: {
                 'Content-Type': 'application/merge-patch+json'
             }

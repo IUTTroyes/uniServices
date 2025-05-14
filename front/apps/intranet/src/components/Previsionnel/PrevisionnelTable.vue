@@ -7,6 +7,9 @@ import createApiService from '@requests/apiService'
 
 const previsionnelService = createApiService('/api/previsionnels')
 
+const dataToDuplicate = ref({});
+const duplicatedPrevi = ref({});
+
 // Définition des propriétés du composant
 const props = defineProps({
   origin: {
@@ -81,40 +84,101 @@ const deletePrevi = async (data) => {
 
 // Fonction pour dupliquer un prévisionnel
 const duplicatePrevi = async (data) => {
+  console.log(data)
 
   const iriPersonnel = 'api/personnels/' + data.idPersonnel;
   const iriEnseignement = 'api/scol_enseignements/' + data.idEnseignement;
-  const iriAnneeUniversitaire = 'api/structure_annee_universitaires/' + data.structureAnneeUniversitaire;
 
-  const dataToDuplicate = {
-    personnel: iriPersonnel,
-    anneeUniversitaire: data.structureAnneeUniversitaire,
-    enseignement: iriEnseignement,
-    heures: data.heures,
-    groupes: data.groupes,
-    referent: false
-  };
+  if(props.origin === "previEnseignantForm") {
 
-  const response = await apiCall(previsionnelService.create, [dataToDuplicate], 'L\'élément a bien été dupliqué', 'Une erreur est survenue lors de la duplication du prévisionnel');
+    console.log('data', data, props.origin)
+    dataToDuplicate.value = {
+      personnel: iriPersonnel,
+      anneeUniversitaire: data.structureAnneeUniversitaire,
+      enseignement: iriEnseignement,
+      heures: data.heures,
+      groupes: data.groupes,
+      referent: false
+    };
+  }
+  if(props.origin === "previSemestreForm") {
+    const heures = {
+      CM: data.heures.CM.NbHrGrp,
+      TD: data.heures.TD.NbHrGrp,
+      TP: data.heures.TP.NbHrGrp,
+      Projet: data.heures.Projet.NbHrGrp,
+    }
+
+    dataToDuplicate.value = {
+      personnel: iriPersonnel,
+      anneeUniversitaire: data.structureAnneeUniversitaire,
+      enseignement: iriEnseignement,
+      heures: heures,
+      groupes: data.groupes,
+      referent: false
+    };
+  }
+
+  const response = await apiCall(previsionnelService.create, [dataToDuplicate.value], 'L\'élément a bien été dupliqué', 'Une erreur est survenue lors de la duplication du prévisionnel');
 
   // Reconstruire l'élément dupliqué
-  const duplicatedPrevi = {
-    id: response.id,
-    codeEnseignement: data.codeEnseignement,
-    groupes: response.groupes,
-    heures: response.heures,
-    idEnseignement: data.idEnseignement,
-    idPersonnel: data.idPersonnel,
-    libelle: data.libelle,
-    libelleEnseignement: data.libelleEnseignement,
-    personnel: data.personnel,
-    structureAnneeUniversitaire: data.structureAnneeUniversitaire,
+  if(props.origin === "previEnseignantForm") {
+    duplicatedPrevi.value = {
+      id: response.id,
+      codeEnseignement: data.codeEnseignement,
+      groupes: response.groupes,
+      heures: response.heures,
+      idEnseignement: data.idEnseignement,
+      idPersonnel: data.idPersonnel,
+      libelle: data.libelle,
+      libelleEnseignement: data.libelleEnseignement,
+      personnel: data.personnel,
+      structureAnneeUniversitaire: data.structureAnneeUniversitaire,
+    }
   }
+  if(props.origin === "previSemestreForm") {
+    const heures = {
+      CM: {
+        NbHrGrp: response.heures.CM,
+        NbGrp: response.groupes.CM,
+        NbSeanceGrp: response.groupes.CM !== 0 ? response.heures.CM / response.groupes.CM : 0,
+      },
+      TD: {
+        NbHrGrp: response.heures.TD,
+        NbGrp: response.groupes.TD,
+        NbSeanceGrp: response.groupes.TD !== 0 ? response.heures.TD / response.groupes.TD : 0,
+      },
+      TP: {
+        NbHrGrp: response.heures.TP,
+        NbGrp: response.groupes.TP,
+        NbSeanceGrp: response.groupes.TP !== 0 ? response.heures.TP / response.groupes.TP : 0,
+      },
+      Projet: {
+        NbHrGrp: response.heures.Projet,
+        NbGrp: response.groupes.Projet,
+        NbSeanceGrp: response.groupes.Projet !== 0 ? response.heures.Projet / response.groupes.Projet : 0,
+      },
+    }
+
+    duplicatedPrevi.value = {
+      id: response.id,
+      codeEnseignement: data.codeEnseignement,
+      groupes: response.groupes,
+      heures: heures,
+      idEnseignement: data.idEnseignement,
+      idPersonnel: data.idPersonnel,
+      libelleEnseignement: data.libelleEnseignement,
+      personnels: data.personnels,
+      structureAnneeUniversitaire: data.structureAnneeUniversitaire,
+      intervenant: data.personnels[0].display,
+      typeEnseignement: data.typeEnseignement,
+    }
+  }
+  console.log(duplicatedPrevi.value)
   // Ajouter le prévisionnel dupliqué à la liste des données
-  state.data.push(duplicatedPrevi);
+  state.data.push(duplicatedPrevi.value);
   // Mettre à jour le tableau pour refléter les changements
   data.value = [...state.data];
-  console.log(data.value)
 };
 </script>
 
@@ -138,12 +202,12 @@ const duplicatePrevi = async (data) => {
           <InputText v-if="col.form && col.formType === 'text'" v-model="slotProps.data[col.field]" :placeholder="getFieldValue(slotProps.data, col.field)" @blur="col.formAction(getFieldValue(slotProps.data, col.id), col.type, $event.target.value)" class="max-w-20"/>
 
           <Select v-else-if="col.form && col.formType === 'select'"
-                  v-model="slotProps.data[col.field]"
+                  :modelValue="slotProps.data[col.field]"
                   :options="col.formOptions"
                   optionLabel="label"
-                  :placeholder="getFieldValue(slotProps.data, col.field)"
+                  :placeholder="typeof getFieldValue(slotProps.data, col.field) === 'object' ? (getFieldValue(slotProps.data, col.field)?.label || 'Sélectionner un intervenant') : getFieldValue(slotProps.data, col.field)"
                   class="max-w-52"
-                  @update:modelValue="col.formAction(getFieldValue(slotProps.data, col.id), $event)"
+                  @update:modelValue="(event) => { col.formAction(getFieldValue(slotProps.data, col.id), event); }"
                   v-tooltip.top="col.tooltip ? col.tooltip : slotProps.data[col.field]"
           >
           </Select>
@@ -171,7 +235,7 @@ const duplicatePrevi = async (data) => {
               <Select v-else-if="d.form && d.formType === 'select'"
                       :options="d.footer"
                       optionLabel="label"
-                      :placeholder="d.placeholder"
+                      :placeholder="typeof d.placeholder === 'object' ? (d.placeholder?.label || 'Sélectionner') : d.placeholder"
                       class="!w-full"
                       @update:modelValue="(newValue) => d.formAction(newValue)"
               />

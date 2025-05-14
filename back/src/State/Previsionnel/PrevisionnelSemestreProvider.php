@@ -259,6 +259,8 @@ class PrevisionnelSemestreProvider implements ProviderInterface
             ]
         );
         $prevSem->setGroupes($item->getGroupes());
+        $prevSem->setStructureAnneeUniversitaire($item->getAnneeUniversitaire());
+
         return $prevSem;
     }
 }

@@ -13,7 +13,6 @@ const emit = defineEmits(['confirm-duplicate'])
 const confirm = useConfirm()
 
 const showConfirmDialog = () => {
-  console.log('showConfirmDialog')
   confirm.require({
     message: 'Êtes-vous sûr de vouloir dupliquer cet élément ?',
     header: 'Confirmation de duplication',
