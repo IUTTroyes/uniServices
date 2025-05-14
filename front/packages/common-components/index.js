@@ -8,6 +8,8 @@ import SimpleSkeleton from '@components/loader/SimpleSkeleton.vue';
 import ArticleSkeleton from '@components/loader/ArticleSkeleton.vue';
 import ListSkeleton from '@components/loader/ListSkeleton.vue';
 import CardSkeleton from "@components/loader/CardSkeleton.vue";
+import ApcCompetenceBadge from "@components/Apc/ApcCompetenceBadge.vue";
+import ApcAcBadge from "@components/Apc/ApcAcBadge.vue";
 
 export {
   LayoutComponent,
@@ -19,5 +21,7 @@ export {
   SimpleSkeleton,
   ArticleSkeleton,
   ListSkeleton,
-  CardSkeleton
+  CardSkeleton,
+  ApcCompetenceBadge,
+  ApcAcBadge
 };

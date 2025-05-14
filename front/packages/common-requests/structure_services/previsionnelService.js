@@ -8,6 +8,10 @@ const getSemestrePreviService = async (semestreId, anneeUnivId) => {
     const response = await api.get(`/api/previsionnels_semestre?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}`);
     return response.data.member;
 }
+const getSemestrePreviTestService = async (semestreId, anneeUnivId) => {
+    const response = await api.get(`/api/previsionnels_semestre_test?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}`);
+    return response.data.member;
+}
 
 const getSemestreEnseignementPreviService = async (semestreId, enseignementId, anneeUnivId) => {
     const response = await api.get(`/api/previsionnels_enseignement?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}&enseignement=${enseignementId}`);
@@ -19,8 +23,8 @@ const getAnneeUnivPreviService = async (departementId, anneeUnivId) => {
     return response.data.member;
 }
 
-const getPersonnelPreviService = async (personnelId, anneeUnivId) => {
-    const response = await api.get(`/api/previsionnels_personnel?anneeUniversitaire=${anneeUnivId}&personnel=${personnelId}`);
+const getPersonnelPreviService = async (departementId, anneeUnivId, personnelId) => {
+    const response = await api.get(`/api/previsionnels_personnel?anneeUniversitaire=${anneeUnivId}&personnel=${personnelId}&departement=${departementId}`);
     return response.data.member;
 }
 
@@ -36,7 +40,7 @@ const getPersonnelPreviService = async (personnelId, anneeUnivId) => {
 const updatePreviEnseignementService = async (previId, enseignementId) => {
     try {
         const enseignementIri = `/api/scol_enseignements/${enseignementId}`;
-        const response = await api.patch(`/api/previsionnels/${previId}`, { enseignement: enseignementIri }, {
+        await api.patch(`/api/previsionnels/${previId}`, { enseignement: enseignementIri }, {
             headers: {
                 'Content-Type': 'application/merge-patch+json'
             }
@@ -48,7 +52,7 @@ const updatePreviEnseignementService = async (previId, enseignementId) => {
 const updatePreviPersonnelService = async (previId, personnelId) => {
     try {
         const personnelIri = `/api/personnels/${personnelId}`;
-        const response = await api.patch(`/api/previsionnels/${previId}`, { personnel: personnelIri }, {
+        await api.patch(`/api/previsionnels/${previId}`, { personnel: personnelIri }, {
             headers: {
                 'Content-Type': 'application/merge-patch+json'
             }
@@ -60,7 +64,7 @@ const updatePreviPersonnelService = async (previId, personnelId) => {
 
 const updatePreviService = async (previId, data) => {
     try {
-        const response = await api.patch(`/api/previsionnels/${previId}`,  data, {
+        await api.patch(`/api/previsionnels/${previId}`,  data, {
             headers: {
                 'Content-Type': 'application/merge-patch+json'
             }
@@ -70,4 +74,4 @@ const updatePreviService = async (previId, data) => {
     }
 }
 
-export { getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService };
+export { getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService, getSemestrePreviTestService, getPersonnelPreviService };

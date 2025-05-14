@@ -26,6 +26,8 @@ const isLoadingPrevisionnel = ref(true);
 
 const previSemestreMatiere = ref(null);
 
+const isEditing = ref(false);
+
 const size = ref({ label: 'Petit', value: 'small' });
 const sizeOptions = ref([
   { label: 'Petit', value: 'small' },
@@ -117,6 +119,14 @@ watch(selectedSemestre, async (newSemestre) => {
   await getEnseignements();
 });
 
+watch(isEditing, async (newIsEditing) => {
+  if (!newIsEditing) {
+    isLoadingPrevisionnel.value === true;
+    await getPrevi(selectedSemestre.value.id, selectedAnneeUniv.value.id);
+    isLoadingPrevisionnel.value === false;
+  }
+});
+
 const columns = ref([
   { header: 'Intervenant', field: 'personnel.display', sortable: true, colspan: 1 },
   { header: 'Nb H/Gr.', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
@@ -187,7 +197,7 @@ const footerCols = computed(() => [
 </script>
 
 <template>
-  <div class="px-4 py-12 flex flex-col gap-6">
+  <div class="px-4 flex flex-col">
     <div class="flex justify-between gap-10">
       <div class="flex gap-6 w-1/2">
         <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/2" />
@@ -224,7 +234,8 @@ const footerCols = computed(() => [
           <label for="anneeUniversitaire">Année universitaire</label>
         </IftaLabel>
       </div>
-      <Button label="Saisir le prévisionnel" icon="pi pi-plus" />
+      <Button v-if="!isEditing" label="Saisir le prévisionnel" icon="pi pi-plus" @click="isEditing = !isEditing" />
+      <Button v-else label="Afficher le prévisionnel" icon="pi pi-eye" @click="isEditing = !isEditing" />
     </div>
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
@@ -241,17 +252,32 @@ const footerCols = computed(() => [
         <div class="flex w-full justify-between my-6">
           <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
         </div>
-        <PrevisionnelTable
-            origin="previMatiereSynthese"
-            :columns="columns"
-            :topHeaderCols="topHeaderCols"
-            :additionalRows="additionalRows"
-            :footerCols="footerCols"
-            :data="previSemestreMatiere[0]"
-            :filters="filters"
-            :size="size.value"
-            :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle} pour la matière ${selectedEnseignement.libelle}`"
-            :headerTitlecolspan="1"/>
+        <div v-if="!isEditing">
+          <PrevisionnelTable
+              origin="previMatiereSynthese"
+              :columns="columns"
+              :topHeaderCols="topHeaderCols"
+              :additionalRows="additionalRows"
+              :footerCols="footerCols"
+              :data="previSemestreMatiere[0]"
+              :filters="filters"
+              :size="size.value"
+              :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle} pour la matière ${selectedEnseignement.libelle}`"
+              :headerTitlecolspan="1"/>
+        </div>
+        <div v-else>
+          <PrevisionnelTable
+              origin="previMatiereForm"
+              :columns="columns"
+              :topHeaderCols="topHeaderCols"
+              :additionalRows="additionalRows"
+              :footerCols="footerCols"
+              :data="previSemestreMatiere[0]"
+              :filters="filters"
+              :size="size.value"
+              :headerTitle="`Prévisionnel du semestre ${selectedSemestre?.libelle} pour la matière ${selectedEnseignement.libelle}`"
+              :headerTitlecolspan="1"/>
+        </div>
       </div>
       <Message v-else-if="previSemestreMatiere < 1 || previSemestreMatiere[0].length < 1" severity="error" icon="pi pi-times-circle">
         Aucun prévisionnel pour cette année universitaire avec ce semestre et cette matière

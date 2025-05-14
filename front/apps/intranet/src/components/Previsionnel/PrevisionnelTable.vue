@@ -1,5 +1,14 @@
 <script setup>
 import { ref, reactive, toRefs } from 'vue';
+import ButtonDelete from "@components/components/ButtonDelete.vue";
+import ButtonDuplicate from "@components/components/ButtonDuplicate.vue";
+import apiCall from '@helpers/apiCall.js'
+import createApiService from '@requests/apiService'
+
+const previsionnelService = createApiService('/api/previsionnels')
+
+const dataToDuplicate = ref({});
+const duplicatedPrevi = ref({});
 
 // Définition des propriétés du composant
 const props = defineProps({
@@ -60,6 +69,117 @@ const { data } = toRefs(state);
 const getFieldValue = (data, field) => {
   return field.split('.').reduce((acc, part) => acc && acc[part], data);
 };
+
+// Fonction pour supprimer un prévisionnel
+const deletePrevi = async (data) => {
+  await apiCall(previsionnelService.delete, [data.id], 'L\'élément a bien été supprimé', 'Une erreur est survenue lors de la suppression du prévisionnel');
+  // Mettre à jour les données après la suppression
+  const index = state.data.findIndex(item => item.id === data.id);
+  if (index !== -1) {
+    state.data.splice(index, 1);
+  }
+  // Mettre à jour le tableau pour refléter les changements
+  data.value = [...state.data];
+};
+
+// Fonction pour dupliquer un prévisionnel
+const duplicatePrevi = async (data) => {
+  console.log(data)
+
+  const iriPersonnel = 'api/personnels/' + data.idPersonnel;
+  const iriEnseignement = 'api/scol_enseignements/' + data.idEnseignement;
+
+  if(props.origin === "previEnseignantForm") {
+
+    console.log('data', data, props.origin)
+    dataToDuplicate.value = {
+      personnel: iriPersonnel,
+      anneeUniversitaire: data.structureAnneeUniversitaire,
+      enseignement: iriEnseignement,
+      heures: data.heures,
+      groupes: data.groupes,
+      referent: false
+    };
+  }
+  if(props.origin === "previSemestreForm") {
+    const heures = {
+      CM: data.heures.CM.NbHrGrp,
+      TD: data.heures.TD.NbHrGrp,
+      TP: data.heures.TP.NbHrGrp,
+      Projet: data.heures.Projet.NbHrGrp,
+    }
+
+    dataToDuplicate.value = {
+      personnel: iriPersonnel,
+      anneeUniversitaire: data.structureAnneeUniversitaire,
+      enseignement: iriEnseignement,
+      heures: heures,
+      groupes: data.groupes,
+      referent: false
+    };
+  }
+
+  const response = await apiCall(previsionnelService.create, [dataToDuplicate.value], 'L\'élément a bien été dupliqué', 'Une erreur est survenue lors de la duplication du prévisionnel');
+
+  // Reconstruire l'élément dupliqué
+  if(props.origin === "previEnseignantForm") {
+    duplicatedPrevi.value = {
+      id: response.id,
+      codeEnseignement: data.codeEnseignement,
+      groupes: response.groupes,
+      heures: response.heures,
+      idEnseignement: data.idEnseignement,
+      idPersonnel: data.idPersonnel,
+      libelle: data.libelle,
+      libelleEnseignement: data.libelleEnseignement,
+      personnel: data.personnel,
+      structureAnneeUniversitaire: data.structureAnneeUniversitaire,
+    }
+  }
+  if(props.origin === "previSemestreForm") {
+    const heures = {
+      CM: {
+        NbHrGrp: response.heures.CM,
+        NbGrp: response.groupes.CM,
+        NbSeanceGrp: response.groupes.CM !== 0 ? response.heures.CM / response.groupes.CM : 0,
+      },
+      TD: {
+        NbHrGrp: response.heures.TD,
+        NbGrp: response.groupes.TD,
+        NbSeanceGrp: response.groupes.TD !== 0 ? response.heures.TD / response.groupes.TD : 0,
+      },
+      TP: {
+        NbHrGrp: response.heures.TP,
+        NbGrp: response.groupes.TP,
+        NbSeanceGrp: response.groupes.TP !== 0 ? response.heures.TP / response.groupes.TP : 0,
+      },
+      Projet: {
+        NbHrGrp: response.heures.Projet,
+        NbGrp: response.groupes.Projet,
+        NbSeanceGrp: response.groupes.Projet !== 0 ? response.heures.Projet / response.groupes.Projet : 0,
+      },
+    }
+
+    duplicatedPrevi.value = {
+      id: response.id,
+      codeEnseignement: data.codeEnseignement,
+      groupes: response.groupes,
+      heures: heures,
+      idEnseignement: data.idEnseignement,
+      idPersonnel: data.idPersonnel,
+      libelleEnseignement: data.libelleEnseignement,
+      personnels: data.personnels,
+      structureAnneeUniversitaire: data.structureAnneeUniversitaire,
+      intervenant: data.personnels[0].display,
+      typeEnseignement: data.typeEnseignement,
+    }
+  }
+  console.log(duplicatedPrevi.value)
+  // Ajouter le prévisionnel dupliqué à la liste des données
+  state.data.push(duplicatedPrevi.value);
+  // Mettre à jour le tableau pour refléter les changements
+  data.value = [...state.data];
+};
 </script>
 
 <template>
@@ -67,11 +187,11 @@ const getFieldValue = (data, field) => {
     <!-- Groupe de colonnes pour l'en-tête -->
     <ColumnGroup type="header">
       <Row>
-        <Column :header="props.headerTitle" :colspan="headerTitlecolspan" class="text-xl"/>
+        <Column :header="props.headerTitle" :colspan="headerTitlecolspan" class="!bg-gray-300 !bg-opacity-20"/>
         <Column v-if="props.topHeaderCols.length > 0" v-for="(topHeaderCol, index) in props.topHeaderCols" :key="index" :header="topHeaderCol.header" :colspan="topHeaderCol.colspan" :class="topHeaderCol.class"/>
       </Row>
       <Row>
-        <Column v-for="(col, index) in props.columns" :key="index" :header="col.header" :colspan="col.colspan" :sortable="col.sortable" :field="col.field" :class="col.class"/>
+        <Column v-for="(col, index) in props.columns" :key="index" :header="col.header" :colspan="col.colspan" :rowspan="col.rowspan" :sortable="col.sortable" :field="col.field" :class="col.class"/>
       </Row>
     </ColumnGroup>
     <!-- Colonnes dynamiques avec slots pour personnalisation -->
@@ -82,16 +202,20 @@ const getFieldValue = (data, field) => {
           <InputText v-if="col.form && col.formType === 'text'" v-model="slotProps.data[col.field]" :placeholder="getFieldValue(slotProps.data, col.field)" @blur="col.formAction(getFieldValue(slotProps.data, col.id), col.type, $event.target.value)" class="max-w-20"/>
 
           <Select v-else-if="col.form && col.formType === 'select'"
-                  v-model="slotProps.data[col.field]"
+                  :modelValue="slotProps.data[col.field]"
                   :options="col.formOptions"
                   optionLabel="label"
-                  :placeholder="getFieldValue(slotProps.data, col.field)"
+                  :placeholder="typeof getFieldValue(slotProps.data, col.field) === 'object' ? (getFieldValue(slotProps.data, col.field)?.label || 'Sélectionner un intervenant') : getFieldValue(slotProps.data, col.field)"
                   class="max-w-52"
-                  @update:modelValue="col.formAction(getFieldValue(slotProps.data, col.id), $event)"
+                  @update:modelValue="(event) => { col.formAction(getFieldValue(slotProps.data, col.id), event); }"
+                  v-tooltip.top="col.tooltip ? col.tooltip : slotProps.data[col.field]"
           >
           </Select>
 
+          <ButtonDelete v-else-if="col.button & col.delete" tooltip="Supprimer l'élément du prévi" @confirm-delete="deletePrevi(slotProps.data)" :class="col.class"/>
+          <ButtonDuplicate v-else-if="col.button & col.duplicate" tooltip="Dupliquer l'élément dans le prévi" @confirm-duplicate="duplicatePrevi(slotProps.data)" :class="col.class"/>
           <Button v-else-if="col.button" :icon="col.buttonIcon" @click="col.buttonAction(getFieldValue(slotProps.data, col.id))" :class="col.buttonClass(col.field)" :label="col.field" :severity="col.buttonSeverity(col.field)"/>
+
 
           <Tag v-else-if="col.tag" class="w-max" :class="col.tagClass(getFieldValue(slotProps.data, col.field))" :severity="col.tagSeverity(getFieldValue(slotProps.data, col.field))" :icon="col.tagIcon(getFieldValue(slotProps.data, col.field))">
             {{ col.tagContent ? col.tagContent(getFieldValue(slotProps.data, col.field)) : getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && col.tagSeverity(getFieldValue(slotProps.data, col.field)) !== 'secondary'"> {{ col.unit }}</span>
@@ -104,22 +228,22 @@ const getFieldValue = (data, field) => {
     <!-- Groupe de colonnes pour le pied de page -->
     <ColumnGroup v-if="footerCols.length > 0 || additionalRows.length > 0" type="footer">
       <Row v-for="(data, index) in props.additionalRows" :key="index">
-        <Column v-for="d in data" :colspan="d.colspan" :class="d.class">
+        <Column v-for="d in data" :colspan="d.colspan" :rowspan="d.rowspan" :class="d.class">
           <template #footer="slotProps">
             <slot :name="`footer-${d.field}`" :value="d.footer">
               <InputText v-if="d.form && d.formType === 'text'" :value="d.footer" @input="d.footer = $event.target.value"/>
               <Select v-else-if="d.form && d.formType === 'select'"
                       :options="d.footer"
                       optionLabel="label"
-                      :placeholder="d.placeholder"
-                      class="w-full"
+                      :placeholder="typeof d.placeholder === 'object' ? (d.placeholder?.label || 'Sélectionner') : d.placeholder"
+                      class="!w-full"
                       @update:modelValue="(newValue) => d.formAction(newValue)"
               />
 
 
               <Button v-else-if="d.button" :icon="d.buttonIcon" @click="d.buttonAction(d.footer)" :class="d.buttonClass(d.footer)" :label="d.footer" :severity="d.buttonSeverity(d.footer)"/>
               <Tag v-else-if="d.tag" class="w-max" :class="d.tagClass(d.footer)" :severity="d.tagSeverity(d.footer)" :icon="d.tagIcon(d.footer)">
-                {{ d.footer }}<span v-if="d.unit && d.tagSeverity(d.footer) !== 'secondary'"> {{ d.unit }}</span>
+                {{ d.tagContent ? d.tagContent(d.footer) : d.footer }}<span v-if="d.unit && d.tagSeverity(d.footer) !== 'secondary'"> {{ d.unit }}</span>
               </Tag>
               <span class="w-fit" v-else>{{ d.footer }}<span v-if="d.unit"> {{ d.unit }}</span></span>
             </slot>
@@ -127,7 +251,7 @@ const getFieldValue = (data, field) => {
         </Column>
       </Row>
       <Row>
-        <Column v-for="(footerCol, index) in props.footerCols" :key="index"  :colspan="footerCol.colspan" :class="footerCol.class">
+        <Column v-for="(footerCol, index) in props.footerCols" :key="index" :colspan="footerCol.colspan" :rowspan="footerCol.rowspan" :class="footerCol.class">
           <template #footer="slotProps">
             <slot :name="`footer-${footerCol.field}`" :value="footerCol.footer">
               <Tag v-if="footerCol.tag" class="w-max" :class="footerCol.tagClass(footerCol.footer)" :severity="footerCol.tagSeverity(footerCol.footer)" :icon="footerCol.tagIcon(footerCol.footer)">

@@ -2,6 +2,7 @@
 
 namespace App\ApiDto\Previsionnel;
 
+use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Users\Personnel;
 use App\Enum\TypeEnseignementEnum;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -28,6 +29,8 @@ class PrevisionnelSemestreDto
     protected array $groupes = [];
     #[Groups(['previsionnel_semestre:read'])]
     protected string $intervenant = '';
+    #[Groups(['previsionnel_semestre:read'])]
+    protected StructureAnneeUniversitaire $structureAnneeUniversitaire;
 
     public function getId(): int
     {
@@ -37,6 +40,16 @@ class PrevisionnelSemestreDto
     public function setId(int $id): void
     {
         $this->id = $id;
+    }
+
+    public function getStructureAnneeUniversitaire(): StructureAnneeUniversitaire
+    {
+        return $this->structureAnneeUniversitaire;
+    }
+
+    public function setStructureAnneeUniversitaire(StructureAnneeUniversitaire $structureAnneeUniversitaire): void
+    {
+        $this->structureAnneeUniversitaire = $structureAnneeUniversitaire;
     }
 
     public function getIdEnseignement(): int

@@ -9,7 +9,6 @@ use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Traits\UuidTrait;
-use App\Entity\Users\Etudiant;
 use App\Repository\Structure\StructureDepartementRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;

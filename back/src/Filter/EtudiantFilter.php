@@ -15,8 +15,15 @@ use Symfony\Component\PropertyInfo\Type;
 #[ApiFilter(EtudiantFilter::class)]
 class EtudiantFilter extends AbstractFilter
 {
-    protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
-    {
+    protected function filterProperty(
+        string $property,
+               $value,
+        QueryBuilder $queryBuilder,
+        QueryNameGeneratorInterface $queryNameGenerator,
+        string $resourceClass,
+        ?Operation $operation = null,
+        array $context = []
+    ): void {
         if (null === $value) {
             return;
         }
@@ -24,29 +31,55 @@ class EtudiantFilter extends AbstractFilter
         $alias = $queryBuilder->getRootAliases()[0];
 
         if ('departement' === $property) {
+            $departementAlias = $queryNameGenerator->generateJoinAlias('departement');
+            $etudiantScolaritesAlias = $queryNameGenerator->generateJoinAlias('etudiantScolarites');
             $queryBuilder
-                ->join("$alias.etudiantScolarites", "es1")
-                ->join("es1.departement", "d")
-                ->andWhere("d.id = :departement")
+                ->join("$alias.etudiantScolarites", $etudiantScolaritesAlias)
+                ->join("$etudiantScolaritesAlias.departement", $departementAlias)
+                ->andWhere("$departementAlias.id = :departement")
                 ->setParameter("departement", $value);
         }
 
         if ('anneeUniversitaire' === $property) {
+            $anneeUniversitaireAlias = $queryNameGenerator->generateJoinAlias('structureAnneeUniversitaire');
+            $etudiantScolaritesAlias = $queryNameGenerator->generateJoinAlias('etudiantScolarites');
             $queryBuilder
-                ->join("$alias.etudiantScolarites", "es2")
-                ->join("es2.structureAnneeUniversitaire", "sau")
-                ->andWhere("sau.id = :anneeUniversitaire")
+                ->join("$alias.etudiantScolarites", $etudiantScolaritesAlias)
+                ->join("$etudiantScolaritesAlias.structureAnneeUniversitaire", $anneeUniversitaireAlias)
+                ->andWhere("$anneeUniversitaireAlias.id = :anneeUniversitaire")
                 ->setParameter("anneeUniversitaire", $value);
+
+            // si il y a une annee on filtre aussi
+            if (isset($context['filters']['annee'])) {
+                $anneeAlias = $queryNameGenerator->generateJoinAlias('structureAnnee');
+                $queryBuilder
+                    ->join("$etudiantScolaritesAlias.structure_annee", $anneeAlias)
+                    ->andWhere("$anneeAlias.id = :annee")
+                    ->setParameter("annee", $context['filters']['annee']);
+            }
         }
 
         if ('semestre' === $property) {
+            $semestreAlias = $queryNameGenerator->generateJoinAlias('structureSemestre');
+            $scolariteSemestreAlias = $queryNameGenerator->generateJoinAlias('scolariteSemestre');
+            $etudiantScolaritesAlias = $queryNameGenerator->generateJoinAlias('etudiantScolarites');
             $queryBuilder
-                ->join("$alias.etudiantScolarites", "es3")
-                ->join("es3.scolarite_semestre", "ss")
-                ->join("ss.structure_semestre", "s")
-                ->andWhere("s.id = :semestre")
-                ->setParameter("semestre", $value['id']);
+                ->join("$alias.etudiantScolarites", $etudiantScolaritesAlias)
+                ->join("$etudiantScolaritesAlias.scolarite_semestre", $scolariteSemestreAlias)
+                ->join("$scolariteSemestreAlias.structure_semestre", $semestreAlias)
+                ->andWhere("$semestreAlias.id = :semestre")
+                ->setParameter("semestre", $value);
         }
+
+//        if ('annee' === $property) {
+//            $anneeAlias = $queryNameGenerator->generateJoinAlias('structureAnnee');
+//            $etudiantScolaritesAlias = $queryNameGenerator->generateJoinAlias('etudiantScolarites');
+//            $queryBuilder
+//                ->join("$alias.etudiantScolarites", $etudiantScolaritesAlias)
+//                ->join("$etudiantScolaritesAlias.structure_annee", $anneeAlias)
+//                ->andWhere("$anneeAlias.id = :annee")
+//                ->setParameter("annee", $value);
+//        }
     }
 
     public function getDescription(string $resourceClass): array
@@ -74,6 +107,14 @@ class EtudiantFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by semestre',
+                ],
+            ],
+            'annee' => [
+                'property' => 'annee',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by annee',
                 ],
             ],
         ];

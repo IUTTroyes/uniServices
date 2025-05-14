@@ -1,12 +1,19 @@
 <script setup>
-import {onMounted} from "vue";
+import { onMounted } from "vue";
 import router from "@/router";
 
 const items = [
   { label: 'Par semestre', icon: 'pi pi-list', route: '/administration/previsionnel/semestre' },
-  { label: 'Par enseignant', icon: 'pi pi-clock', route: '/administration/previsionnel/personnel' },
-  { label: 'Par matière', icon: 'pi pi-money-bill', route: '/administration/previsionnel/matiere' },
+  { label: 'Par enseignant', icon: 'pi pi-user', route: '/administration/previsionnel/personnel' },
+  { label: 'Par matière', icon: 'pi pi-book', route: '/administration/previsionnel/matiere' },
+  { label: 'Vue d\'ensemble', icon: 'pi pi-eye', route: '/administration/previsionnel/semestre_test' },
+  { label: 'HRS/primes', icon: 'pi pi-money-bill', route: '/administration/previsionnel/primes' },
+  { label: 'Actions', icon: 'pi pi-cog', route: '/administration/previsionnel/actions' },
 ];
+
+const navigateTo = (route) => {
+  router.push(route);
+};
 
 onMounted(() => {
   if (items.length > 0) {
@@ -17,22 +24,25 @@ onMounted(() => {
 
 <template>
   <div class="card">
+    <h2 class="text-2xl font-bold">Gestion des prévisionnels</h2>
+    <Divider/>
     <Tabs value="/administration/previsionnel/semestre" scrollable>
       <TabList>
-        <Tab v-for="tab in items" :key="tab.label" :value="tab.route">
-          <router-link v-if="tab.route" v-slot="{ href, navigate }" :to="tab.route" custom>
-            <a v-ripple :href="href" @click="navigate" class="flex items-center gap-2 text-inherit">
+        <router-link
+          v-for="tab in items"
+          :key="tab.label"
+          :to="tab.route"
+          custom
+        >
+          <Tab :value="tab.route" @click="navigateTo(tab.route)">
+            <div class="flex items-center gap-2 text-inherit uppercase">
               <i :class="tab.icon" />
               <span>{{ tab.label }}</span>
-            </a>
-          </router-link>
-        </Tab>
+            </div>
+          </Tab>
+        </router-link>
       </TabList>
     </Tabs>
-    <router-view></router-view>
+    <router-view class="mt-6"></router-view>
   </div>
 </template>
-
-<style scoped>
-
-</style>

@@ -37,7 +37,8 @@ class PrevisionnelFilter extends AbstractFilter
 
         if ('personnel' === $property) {
             $queryBuilder
-                ->andWhere(sprintf('%s.personnel = :personnel', $alias))
+                ->join(sprintf('%s.personnel', $alias), 'personnel')
+                ->andWhere('personnel.id = :personnel')
                 ->setParameter('personnel', $value)
             ;
         }

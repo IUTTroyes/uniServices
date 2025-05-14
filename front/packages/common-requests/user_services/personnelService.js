@@ -5,4 +5,6 @@ const getPersonnelsDepartementService = async (departementId) => {
     return response.data['member'];
 }
 
+// todo: méthode get Enseignants /= getPersonnels
+
 export { getPersonnelsDepartementService };

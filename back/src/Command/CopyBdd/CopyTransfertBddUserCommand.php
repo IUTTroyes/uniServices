@@ -182,6 +182,7 @@ FOREIGN_KEY_CHECKS=1');
             $etudiant->setNom($etu['nom']);
             $etudiant->setPrenom($etu['prenom']);
             $etudiant->setMailUniv($etu['mail_univ']);
+            $etudiant->setMailPerso($etu['mail_perso']);
             $etudiant->setUsername($etu['username']);
             $etudiant->setPhotoName($etu['photo_name']);
             $etudiant->setOldId($etu['id']);
@@ -210,8 +211,8 @@ FOREIGN_KEY_CHECKS=1');
                     $adresse['adresse1'] ?? '',
                     $adresse['adresse2'] ?? '',
                     $adresse['adresse3'] ?? '',
+                        $adresse['ville'] ?? '',
                     $adresse['code_postal'] ?? '',
-                    $adresse['ville'] ?? '',
                     $adresse['pays'] ?? 'France'
                 );
                 $etudiant->setAdresseEtudiante($objAdresseEtudiante);
@@ -225,8 +226,8 @@ FOREIGN_KEY_CHECKS=1');
                     $adresse['adresse1'] ?? '',
                     $adresse['adresse2'] ?? '',
                     $adresse['adresse3'] ?? '',
+                        $adresse['ville'] ?? '',
                     $adresse['code_postal'] ?? '',
-                    $adresse['ville'] ?? '',
                     $adresse['pays'] ?? 'France'
                 );
                 $etudiant->setAdresseParentale($objAdresseParentale);

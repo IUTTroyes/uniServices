@@ -7,6 +7,8 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Put;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Traits\EduSignTrait;
@@ -29,7 +31,7 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
     operations: [
         new Get(normalizationContext: ['groups' => ['etudiant:read']]),
         new GetCollection(normalizationContext: ['groups' => ['etudiant:read']]),
-
+        new Patch(normalizationContext: ['groups' => ['etudiant:write']]),
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
@@ -56,8 +58,12 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private string $mailUniv;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['etudiant:read', 'scolarite:read', 'etudiant:write'])]
+    private ?string $mailPerso;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
@@ -75,7 +81,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?string $photoName = null;
 
     /**
@@ -87,9 +93,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $etudiantScolarites;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['etudiant:read', 'scolarite:read', 'etudiant:write'])]
     private ?array $adresseEtudiante = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['etudiant:read', 'scolarite:read', 'etudiant:write'])]
     private ?array $adresseParentale = null;
 
     /**
@@ -99,7 +107,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $etudiantAbsences;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['scolarite:read', 'etudiant:read', 'etudiant:write'])]
     private ?string $site_perso = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -107,11 +115,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $site_univ = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?string $num_etudiant = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?string $num_ine = null;
 
     #[ORM\Column(nullable: true)]
@@ -124,17 +132,18 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $amenagements_particuliers = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?int $promotion = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $annee_sortie = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Groups(['scolarite:read'])]
     private ?\DateTimeInterface $date_naissance = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?string $tel1 = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -211,6 +220,16 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
         $this->mailUniv = $mailUniv;
 
         return $this;
+    }
+
+    public function getMailPerso(): string
+    {
+        return $this->mailPerso;
+    }
+
+    public function setMailPerso(?string $mailPerso): void
+    {
+        $this->mailPerso = $mailPerso;
     }
 
     public function getPassword(): ?string
@@ -314,7 +333,16 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
             return null;
         }
 
-        return Adresse::fromArray($this->adresseEtudiante);
+        $data = [
+            'adresse' => $this->adresseEtudiante['adresse'],
+            'complement1' => $this->adresseEtudiante['complement1'],
+            'complement2' => $this->adresseEtudiante['complement2'],
+            'ville' => $this->adresseEtudiante['ville'],
+            'codePostal' => $this->adresseEtudiante['codePostal'],
+            'pays' => $this->adresseEtudiante['pays'],
+        ];
+
+        return Adresse::fromArray($data);
     }
 
     public function setAdresseParentale(Adresse $adresse): void
@@ -328,7 +356,16 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
             return null;
         }
 
-        return Adresse::fromArray($this->adresseParentale);
+        $data = [
+            'adresse' => $this->adresseParentale['adresse'],
+            'complement1' => $this->adresseParentale['complement1'],
+            'complement2' => $this->adresseParentale['complement2'],
+            'ville' => $this->adresseParentale['ville'],
+            'codePostal' => $this->adresseParentale['codePostal'],
+            'pays' => $this->adresseParentale['pays'],
+        ];
+
+        return Adresse::fromArray($data);
     }
 
     /**

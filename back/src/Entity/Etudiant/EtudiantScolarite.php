@@ -2,19 +2,17 @@
 
 namespace App\Entity\Etudiant;
 
-use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Link;
-use ApiPlatform\Metadata\QueryParameter;
+use App\Entity\Structure\StructureAnnee;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
-use App\Filter\EtudiantFilter;
+use App\Filter\EtudiantScolariteFilter;
 use App\Repository\Structure\StructureScolariteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -33,6 +31,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         )
     ]
 )]
+#[ApiFilter(EtudiantScolariteFilter::class)]
 class EtudiantScolarite
 {
     use UuidTrait;
@@ -107,10 +106,18 @@ class EtudiantScolarite
     #[Groups(['scolarite:read', 'etudiant:read'])]
     private Collection $scolarite_semestre;
 
+    /**
+     * @var Collection<int, StructureAnnee>
+     */
+    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[ORM\ManyToMany(targetEntity: StructureAnnee::class, inversedBy: 'etudiantScolarites')]
+    private Collection $structure_annee;
+
     public function __construct()
     {
         $this->groupes = new ArrayCollection();
         $this->scolarite_semestre = new ArrayCollection();
+        $this->structure_annee = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -300,6 +307,30 @@ class EtudiantScolarite
                 $scolariteSemestre->setEtudiantScolarite(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureAnnee>
+     */
+    public function getStructureAnnee(): Collection
+    {
+        return $this->structure_annee;
+    }
+
+    public function addStructureAnnee(StructureAnnee $structureAnnee): static
+    {
+        if (!$this->structure_annee->contains($structureAnnee)) {
+            $this->structure_annee->add($structureAnnee);
+        }
+
+        return $this;
+    }
+
+    public function removeStructureAnnee(StructureAnnee $structureAnnee): static
+    {
+        $this->structure_annee->removeElement($structureAnnee);
 
         return $this;
     }

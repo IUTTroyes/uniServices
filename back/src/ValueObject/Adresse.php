@@ -2,13 +2,26 @@
 
 namespace App\ValueObject;
 
+use Symfony\Component\Serializer\Annotation\Groups;
+
 class Adresse
 {
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private string $adresse;
+
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private string $complement1;
+
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private string $complement2;
+
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private string $ville;
+
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private string $codePostal;
+
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private string $pays;
 
     public function __construct(string $adresse, string $complement1, string $complement2, string $ville, string $codePostal, string $pays = 'France')

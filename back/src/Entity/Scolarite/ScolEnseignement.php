@@ -35,46 +35,51 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'scol_enseignement:read'])]
+    #[Groups(['semestre:read:full', 'scol_enseignement:read', 'structure_pn:read', 'previsionnel_personnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'structure_diplome:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'structure_pn:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
-    #[Groups(['semestre:read:full', 'previsionnel:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read'])]
     private ?string $libelle_court = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['scol_enseignement:read'])]
     private ?string $preRequis = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['scol_enseignement:read'])]
     private ?string $objectif = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['scol_enseignement:read'])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['scol_enseignement:read'])]
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['scol_enseignement:read', 'semestre:read:full', 'previsionnel:read', 'previsionnel_semestre:read', 'structure_diplome:read'])]
+    #[Groups(['scol_enseignement:read', 'semestre:read:full', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'structure_pn:read'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'scol_enseignement:read'])]
     private ?bool $suspendu = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'scol_enseignement:read'])]
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'structure_diplome:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'structure_pn:read'])]
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]
+    #[Groups(['scol_enseignement:read'])]
     private ?int $nbNotes = null;
 
     #[ORM\Column]
@@ -84,24 +89,29 @@ class ScolEnseignement
      * @var Collection<int, self>
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    #[Groups(['structure_pn:read', 'scol_enseignement:read'])]
     private Collection $enfants;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
+    #[Groups(['structure_pn:read', 'scol_enseignement:read'])]
     private ?self $parent = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['structure_pn:read'])]
     private ?string $livrables = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $exemple = null;
 
     #[ORM\Column]
+    #[Groups(['scol_enseignement:read'])]
     private ?bool $bonification = null;
 
     /**
      * @var Collection<int, ApcApprentissageCritique>
      */
     #[ORM\ManyToMany(targetEntity: ApcApprentissageCritique::class, inversedBy: 'scolEnseignements')]
+    #[Groups(['scol_enseignement:read'])]
     private Collection $apcApprentissageCritique;
 
     /**

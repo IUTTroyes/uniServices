@@ -1,5 +1,5 @@
 import {defineStore} from 'pinia';
-import {ref} from 'vue';
+import {ref, computed} from 'vue';
 import {
     changeDepartementActifService,
     getAllStatutsService,
@@ -8,6 +8,7 @@ import {
     updateUserService
 } from "@requests";
 import {useAnneeUnivStore} from '@stores';
+import noImage from "@images/photos_etudiants/noimage.png";
 
 export const useUsersStore = defineStore('users', () => {
     const token = localStorage.getItem('token');
@@ -40,9 +41,8 @@ export const useUsersStore = defineStore('users', () => {
         try {
             console.log('Fetching user : ' + userType + ' - ' + userId);
             user.value = await getUserService(userType, userId);
-            console.log(user.value)
 
-            userPhoto.value = "common-images/photos_etudiants/" + user.value.photoName;
+            userPhoto.value = noImage;
             applications.value = user.value.applications;
 
             if (userType === 'personnels') {
@@ -119,6 +119,24 @@ export const useUsersStore = defineStore('users', () => {
         }
     };
 
+    const isPersonnel = computed(() => userType === 'personnels');
+    const isEtudiant = computed(() => userType === 'etudiants');
+    const isAssistant = computed(() => user.value?.roles.includes('ROLE_ASSISTANT'));
+    const isQualite = computed(() => user.value?.roles.includes('ROLE_QUALITE'));
+    const isCompta = computed(() => user.value?.roles.includes('ROLE_COMPTA'));
+    const isScolarite = computed(() => user.value?.roles.includes('ROLE_SCOLARITE'));
+    const isDirection = computed(() => user.value?.roles.includes('ROLE_DIRECTION'));
+    const isChefDepartement = computed(() => user.value?.roles.includes('ROLE_CHEF_DEPARTEMENT'));
+    const isChefParcours = computed(() => user.value?.roles.includes('ROLE_CHEF_PARCOURS'));
+    const isDirecteurEtudes = computed(() => user.value?.roles.includes('ROLE_DIRECTEUR_ETUDES'));
+    const isAbsence = computed(() => user.value?.roles.includes('ROLE_ABSENCE'));
+    const isNote = computed(() => user.value?.roles.includes('ROLE_NOTE'));
+    const isEdt = computed(() => user.value?.roles.includes('ROLE_EDT'));
+    const isStage = computed(() => user.value?.roles.includes('ROLE_STAGE'));
+    const isRelaiComm = computed(() => user.value?.roles.includes('ROLE_RELAI_COMM'));
+    const isEdusign = computed(() => user.value?.roles.includes('ROLE_EDUSIGN'));
+    const isSuperAdmin = computed(() => user.value?.roles.includes('ROLE_SUPER_ADMIN'));
+
     return {
         user,
         userType,
@@ -135,6 +153,23 @@ export const useUsersStore = defineStore('users', () => {
         statuts,
         scolariteActif,
         isLoading,
-        isLoaded
+        isLoaded,
+        isPersonnel,
+        isEtudiant,
+        isAssistant,
+        isQualite,
+        isCompta,
+        isScolarite,
+        isDirection,
+        isChefDepartement,
+        isChefParcours,
+        isDirecteurEtudes,
+        isAbsence,
+        isNote,
+        isEdt,
+        isStage,
+        isRelaiComm,
+        isEdusign,
+        isSuperAdmin,
     };
 });

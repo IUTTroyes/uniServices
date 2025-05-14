@@ -9,8 +9,10 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use App\Entity\Apc\ApcNiveau;
+use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
+use App\Filter\AnneeFilter;
 use App\Repository\Structure\StructureAnneeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -20,6 +22,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: StructureAnneeRepository::class)]
 #[ApiFilter(BooleanFilter::class, properties: ['actif'])]
+#[ApiFilter(AnneeFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['structure_annee:read']]),
@@ -42,11 +45,11 @@ class StructureAnnee
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'etudiant:read', 'structure_annee:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'semestre:read'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'semestre:read', 'structure_pn:read', 'structure_annee:read', 'etudiant:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
@@ -58,6 +61,7 @@ class StructureAnnee
     private ?string $libelleLong = null;
 
     #[ORM\Column]
+    #[Groups(['structure_annee:read'])]
     private bool $actif = true;
 
     #[ORM\Column(length: 30, nullable: true)]
@@ -67,15 +71,15 @@ class StructureAnnee
      * @var Collection<int, StructureSemestre>
      */
     #[ORM\OneToMany(targetEntity: StructureSemestre::class, mappedBy: 'annee')]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'structure_pn:read'])]
     private Collection $structureSemestres;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['structure_pn:read'])]
     private ?string $apogeeCodeVersion = null;
 
     #[ORM\Column(length: 10, nullable: true)]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['structure_pn:read'])]
     private ?string $apogeeCodeEtape = null;
 
     #[ORM\ManyToOne(inversedBy: 'annees')]
@@ -87,10 +91,17 @@ class StructureAnnee
     #[ORM\ManyToOne(inversedBy: 'annees')]
     private ?StructureDiplome $structureDiplome = null;
 
+    /**
+     * @var Collection<int, EtudiantScolarite>
+     */
+    #[ORM\ManyToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'structure_annee')]
+    private Collection $etudiantScolarites;
+
     public function __construct()
     {
         $this->structureSemestres = new ArrayCollection();
         $this->setOpt([]);
+        $this->etudiantScolarites = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -253,6 +264,33 @@ class StructureAnnee
     public function setStructureDiplome(?StructureDiplome $structureDiplome): static
     {
         $this->structureDiplome = $structureDiplome;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EtudiantScolarite>
+     */
+    public function getEtudiantScolarites(): Collection
+    {
+        return $this->etudiantScolarites;
+    }
+
+    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    {
+        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
+            $this->etudiantScolarites->add($etudiantScolarite);
+            $etudiantScolarite->addStructureAnnee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    {
+        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
+            $etudiantScolarite->removeStructureAnnee($this);
+        }
 
         return $this;
     }
