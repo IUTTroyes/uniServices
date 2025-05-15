@@ -159,11 +159,11 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
       return acc;
     }, {});
 
-      previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + previ.heures.CM.NbHrGrp, 0) * 10) / 10;
+      previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.CM.NbGrp > 0 ? previ.heures.CM.NbHrGrp : 0), 0) * 10) / 10;
       previSemestre.value[3].CM.Diff = Math.round((previSemestre.value[3].CM.NbHrSaisi - previSemestre.value[3].CM.NbHrAttendu) * 10) / 10;
-      previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + previ.heures.TD.NbHrGrp, 0) * 10) / 10;
+      previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TD.NbGrp > 0 ? previ.heures.TD.NbHrGrp : 0), 0) * 10) / 10;
       previSemestre.value[3].TD.Diff = Math.round((previSemestre.value[3].TD.NbHrSaisi - previSemestre.value[3].TD.NbHrAttendu) * 10) / 10;
-      previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + previ.heures.TP.NbHrGrp, 0) * 10) / 10;
+      previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TP.NbGrp > 0 ? previ.heures.TP.NbHrGrp : 0), 0) * 10) / 10;
       previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
 
   } catch (error) {
@@ -196,6 +196,14 @@ const updateGroupesPrevi = async (previId, type, valeur) => {
       };
       return acc;
     }, {});
+
+    // Recalculer les totaux
+    previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.CM.NbGrp > 0 ? previ.heures.CM.NbHrGrp : 0), 0) * 10) / 10;
+    previSemestre.value[3].CM.Diff = Math.round((previSemestre.value[3].CM.NbHrSaisi - previSemestre.value[3].CM.NbHrAttendu) * 10) / 10;
+    previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TD.NbGrp > 0 ? previ.heures.TD.NbHrGrp : 0), 0) * 10) / 10;
+    previSemestre.value[3].TD.Diff = Math.round((previSemestre.value[3].TD.NbHrSaisi - previSemestre.value[3].TD.NbHrAttendu) * 10) / 10;
+    previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TP.NbGrp > 0 ? previ.heures.TP.NbHrGrp : 0), 0) * 10) / 10;
+    previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
 
     console.log('previForm', previForm);
 

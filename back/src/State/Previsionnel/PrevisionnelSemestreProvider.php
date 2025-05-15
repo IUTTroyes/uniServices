@@ -176,8 +176,8 @@ class PrevisionnelSemestreProvider implements ProviderInterface
             ];
 
             $output['TotalEquTd'] = [
-                'TotalClassique' => $totalCM['Previsionnel'] + $totalTD['Previsionnel'] + $totalTP['Previsionnel'],
-                'TotalTd' => $totalCM['Previsionnel'] * $item->getEnseignement()::MAJORATION_CM + $totalTD['Previsionnel'] + $totalTP['Previsionnel'],
+                'TotalClassique' => round($totalCM['Previsionnel'] + $totalTD['Previsionnel'] + $totalTP['Previsionnel'], 1),
+                'TotalTd' => round($totalCM['Previsionnel'] * $item->getEnseignement()::MAJORATION_CM + $totalTD['Previsionnel'] + $totalTP['Previsionnel'], 1),
             ];
 
             return $output;

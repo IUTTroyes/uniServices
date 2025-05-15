@@ -39,15 +39,51 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
 
             $output = [];
             $groupedData = [];
+
+            // Pre-fetch department data to avoid queries in the loop
+            $personnelIds = [];
             foreach ($data as $item) {
                 if ($item->getPersonnel()) {
-                    $personnelId = $item->getPersonnel()->getId();
+                    $personnelIds[] = $item->getPersonnel()->getId();
+                }
+            }
 
-                    $departement = $this->structureDepartementPersonnelRepository->findOneBy(['personnel' => $item->getPersonnel()->getId(), 'departement' => $context['filters']['departement']]);
-                    $departementAffectation = $this->structureDepartementPersonnelRepository->findOneByPersonnelAffectation($item->getPersonnel()->getId());
+            // Batch fetch department data
+            $departementMap = [];
+            $departementAffectationMap = [];
+            if (!empty($personnelIds)) {
+                $departements = $this->structureDepartementPersonnelRepository->findBy([
+                    'personnel' => $personnelIds,
+                    'departement' => $context['filters']['departement']
+                ]);
 
-                    if ($departementAffectation && $departement->getId() === $departementAffectation->getId() || $item->getPersonnel()->getStatut()->getLibelle() === 'Enseignant Vacataire') {
-                        $nbHeuresService = $item->getPersonnel()->getNbHeuresService();
+                foreach ($departements as $dept) {
+                    $departementMap[$dept->getPersonnel()->getId()] = $dept;
+                }
+
+                // Fetch all affectations in one query
+                $affectations = [];
+                foreach ($personnelIds as $id) {
+                    $affectation = $this->structureDepartementPersonnelRepository->findOneByPersonnelAffectation($id);
+                    if ($affectation) {
+                        $departementAffectationMap[$id] = $affectation;
+                    }
+                }
+            }
+
+            foreach ($data as $item) {
+                if ($item->getPersonnel()) {
+                    $personnel = $item->getPersonnel();
+                    $personnelId = $personnel->getId();
+                    $statut = $personnel->getStatut();
+                    $statutLibelle = $statut->getLibelle();
+
+                    $departement = $departementMap[$personnelId] ?? null;
+                    $departementAffectation = $departementAffectationMap[$personnelId] ?? null;
+
+                    if ($departementAffectation && $departement && $departement->getId() === $departementAffectation->getId()
+                        || $statutLibelle === 'Enseignant Vacataire') {
+                        $nbHeuresService = $personnel->getNbHeuresService();
                         $affectation = true;
                     } else {
                         $nbHeuresService = 'Service réalisé dans un autre département';
@@ -57,9 +93,9 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                     if (!isset($groupedData[$personnelId])) {
                         $groupedData[$personnelId] = [
                             'count' => $count++,
-                            'personnel' => $item->getPersonnel(),
-                            'statutLibelle' => $item->getPersonnel()->getStatut()->getLibelle(),
-                            'statutBadge' => $item->getPersonnel()->getStatut()->getBadge(),
+                            'personnel' => $personnel,
+                            'statutLibelle' => $statutLibelle,
+                            'statutBadge' => $statut->getBadge(),
                             'heures' => [
                                 'CM' => 0,
                                 'TD' => 0,
@@ -70,19 +106,28 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                         ];
                     }
 
-                    $groupedData[$personnelId]['heures']['CM'] += $item->getHeures()['CM'];
-                    $groupedData[$personnelId]['heures']['TD'] += $item->getHeures()['TD'];
-                    $groupedData[$personnelId]['heures']['TP'] += $item->getHeures()['TP'];
+                    // Cache these values to avoid repeated array access
+                    $heures = $item->getHeures();
+                    $groupes = $item->getGroupes();
 
-                    $totalCM += $item->getHeures()['CM'];
-                    $totalTD += $item->getHeures()['TD'];
-                    $totalTP += $item->getHeures()['TP'];
+                    $cmHours = $heures['CM'] * $groupes['CM'];
+                    $tdHours = $heures['TD'] * $groupes['TD'];
+                    $tpHours = $heures['TP'] * $groupes['TP'];
 
-                    $totalHeures = $item->getHeures()['CM'] + $item->getHeures()['TD'] + $item->getHeures()['TP'];
+                    $groupedData[$personnelId]['heures']['CM'] += $cmHours;
+                    $groupedData[$personnelId]['heures']['TD'] += $tdHours;
+                    $groupedData[$personnelId]['heures']['TP'] += $tpHours;
 
-                    if (in_array($item->getPersonnel()->getStatut()->value, ['MCF', 'PU', 'ENSAM', 'PRAG', 'PRCE', 'CDD'])) {
+                    $totalCM += $cmHours;
+                    $totalTD += $tdHours;
+                    $totalTP += $tpHours;
+
+                    $totalHeures = $cmHours + $tdHours + $tpHours;
+
+                    $statutValue = $statut->value;
+                    if (in_array($statutValue, ['MCF', 'PU', 'ENSAM', 'PRAG', 'PRCE', 'CDD'])) {
                         $totalPermanent += $totalHeures;
-                    } elseif (in_array($item->getPersonnel()->getStatut()->value, ['vacataire'])) {
+                    } elseif (in_array($statutValue, ['vacataire'])) {
                         $totalVacataire += $totalHeures;
                     } else {
                         $totalAutre += $totalHeures;
@@ -98,12 +143,11 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                 $group['heures']['Total'] = $total;
 
                 if ($group['statutLibelle'] === 'Enseignant Vacataire' && $total < $group['nbHeuresService']) {
-                    $diff = 'Peut rester '.$total - $group['nbHeuresService'];
-
-                    // enlever le signe négatif si le nombre est négatif
-                    $diff = str_replace('-', '', $diff);
+                    $diffValue = $total - $group['nbHeuresService'];
+                    $diff = 'Peut rester ' . abs($diffValue);
                 } elseif ($group['statutLibelle'] === 'Enseignant Vacataire' && $total > $group['nbHeuresService']) {
-                    $diff = 'Dépassement de '.$total - $group['nbHeuresService'];
+                    $diffValue = $total - $group['nbHeuresService'];
+                    $diff = 'Dépassement de ' . $diffValue;
                 }
                 else {
                     if ($group['affectation']) {
@@ -127,9 +171,9 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
 
             $output['repartition'] = [
                 // calculer le pourcentage de chaque catégorie par rapport au total
-                'Permanent' => round($totalPermanent / $totalTotal * 100, 2),
-                'Vacataire' => round($totalVacataire / $totalTotal * 100, 2),
-                'Autre' => round($totalAutre / $totalTotal * 100, 2),
+                'Permanent' => $totalTotal > 0 ? round($totalPermanent / $totalTotal * 100, 2) : 0,
+                'Vacataire' => $totalTotal > 0 ? round($totalVacataire / $totalTotal * 100, 2) : 0,
+                'Autre' => $totalTotal > 0 ? round($totalAutre / $totalTotal * 100, 2) : 0,
             ];
 
             usort($output['previ'], function ($a, $b) {
@@ -147,8 +191,12 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
     public function toDto($group): PrevisionnelAllPersonnelsDto
     {
         $prevMatiere = new PrevisionnelAllPersonnelsDto();
-        $prevMatiere->setLibelle($group['personnel']->getNom().' '.$group['personnel']->getPrenom());
-        $prevMatiere->setPersonnel($group['personnel']);
+
+        // Cache the personnel object to avoid repeated access
+        $personnel = $group['personnel'];
+
+        $prevMatiere->setLibelle($personnel->getNom().' '.$personnel->getPrenom());
+        $prevMatiere->setPersonnel($personnel);
         $prevMatiere->setHeures($group['heures']);
         $prevMatiere->setCount($group['count']);
         $prevMatiere->setStatut($group['statutBadge']);
