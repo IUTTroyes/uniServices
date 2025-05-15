@@ -215,28 +215,51 @@ const addPrevi = async () => {
 }
 
 const updateHeuresPrevi = async (previId, type, event) => {
-  console.log('previId : ', previId)
-  // transforme le nombre d'heures en nombre entier
-  if (event === '') {
-    event = 0;
-  } else {
-    event = parseInt(event);
-  }
-  const heures = event;
-  const previ = previAnneeEnseignant.value[0].find((previ) => previ.id === previId);
-  console.log('previ : ', previ)
-  if (previ) {
-    previ.heures[type] = heures;
+  try {
+    console.log('previId : ', previId)
+    // transforme le nombre d'heures en nombre entier
+    if (event === '') {
+      event = 0;
+    } else {
+      event = parseInt(event);
+    }
+    const heures = event;
+    const previ = previAnneeEnseignant.value[0].find((previ) => previ.id === previId);
+    console.log('previ : ', previ)
+    if (previ) {
+      previ.heures[type] = heures;
 
-    await updatePreviService(
-        previ.id,
-        {
-          heures: {
-            ...previ.heures,
-            [type]: heures
+      // Mettre à jour les heures dans le prévisionnel pour le calcul des totaux
+      const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+        // Multiplier les heures par le nombre de groupes seulement s'il y a au moins un groupe
+        acc[key] = previ.groupes[key] > 0 ? previ.heures[key] * previ.groupes[key] : 0;
+        return acc;
+      }, {});
+
+      // Recalculer les totaux
+      previAnneeEnseignant.value[1]['CM'] = Math.round(previAnneeEnseignant.value[0].reduce((acc, previ) =>
+        acc + (previ.groupes.CM > 0 ? previ.heures.CM * previ.groupes.CM : 0), 0) * 10) / 10;
+      previAnneeEnseignant.value[1]['TD'] = Math.round(previAnneeEnseignant.value[0].reduce((acc, previ) =>
+        acc + (previ.groupes.TD > 0 ? previ.heures.TD * previ.groupes.TD : 0), 0) * 10) / 10;
+      previAnneeEnseignant.value[1]['TP'] = Math.round(previAnneeEnseignant.value[0].reduce((acc, previ) =>
+        acc + (previ.groupes.TP > 0 ? previ.heures.TP * previ.groupes.TP : 0), 0) * 10) / 10;
+      previAnneeEnseignant.value[1]['Total'] = previAnneeEnseignant.value[1]['CM'] + previAnneeEnseignant.value[1]['TD'] + previAnneeEnseignant.value[1]['TP'];
+
+      await updatePreviService(
+          previ.id,
+          {
+            heures: {
+              ...previ.heures,
+              [type]: heures
+            }
           }
-        }
-    );
+      );
+    }
+  } catch (error) {
+    showDanger('Erreur lors de la mise à jour des heures', error);
+    console.error('Erreur lors de la mise à jour des heures:', error);
+  } finally {
+    showSuccess('Les heures ont été mises à jour avec succès');
   }
 };
 
@@ -253,6 +276,21 @@ const updateGroupesPrevi = async (previId, type, event) => {
     if (previ) {
       previ.groupes[type] = groupes;
 
+      // Mettre à jour les groupes dans le prévisionnel pour le calcul des totaux
+      const newGroupes = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+        acc[key] = previ.groupes[key];
+        return acc;
+      }, {});
+
+      // Recalculer les totaux
+      previAnneeEnseignant.value[1]['CM'] = Math.round(previAnneeEnseignant.value[0].reduce((acc, previ) =>
+        acc + (previ.groupes.CM > 0 ? previ.heures.CM * previ.groupes.CM : 0), 0) * 10) / 10;
+      previAnneeEnseignant.value[1]['TD'] = Math.round(previAnneeEnseignant.value[0].reduce((acc, previ) =>
+        acc + (previ.groupes.TD > 0 ? previ.heures.TD * previ.groupes.TD : 0), 0) * 10) / 10;
+      previAnneeEnseignant.value[1]['TP'] = Math.round(previAnneeEnseignant.value[0].reduce((acc, previ) =>
+        acc + (previ.groupes.TP > 0 ? previ.heures.TP * previ.groupes.TP : 0), 0) * 10) / 10;
+      previAnneeEnseignant.value[1]['Total'] = previAnneeEnseignant.value[1]['CM'] + previAnneeEnseignant.value[1]['TD'] + previAnneeEnseignant.value[1]['TP'];
+
       await updatePreviService(
           previ.id,
           {
@@ -267,10 +305,18 @@ const updateGroupesPrevi = async (previId, type, event) => {
     showDanger('Erreur lors de la mise à jour des groupes', error);
     console.error('Erreur lors de la mise à jour des groupes:', error);
   } finally {
-    showSuccess('Les groupes ont été mis à jour');
+    showSuccess('Les groupes ont été mis à jour avec succès');
     // await getPreviEnseignant();
   }
 };
+
+watch(isEditing, async (newIsEditing) => {
+  if (!newIsEditing) {
+    isLoadingPrevisionnel.value = true;
+    await getPrevi(selectedAnneeUniv.value.id);
+    isLoadingPrevisionnel.value = false;
+  }
+})
 
 // ------------------------------------------------------------------------------------------------------------
 // ---------------------------------------SYNTHESE------------------------------------------------
@@ -589,4 +635,3 @@ const footerColsForm = computed(() => [
     </div>
   </div>
 </template>
-
