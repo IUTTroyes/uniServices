@@ -259,7 +259,6 @@ const updateHeuresPrevi = async (previId, type, event) => {
     showDanger('Erreur lors de la mise à jour des heures', error);
     console.error('Erreur lors de la mise à jour des heures:', error);
   } finally {
-    showSuccess('Les heures ont été mises à jour avec succès');
   }
 };
 
@@ -305,8 +304,6 @@ const updateGroupesPrevi = async (previId, type, event) => {
     showDanger('Erreur lors de la mise à jour des groupes', error);
     console.error('Erreur lors de la mise à jour des groupes:', error);
   } finally {
-    showSuccess('Les groupes ont été mis à jour avec succès');
-    // await getPreviEnseignant();
   }
 };
 
