@@ -137,35 +137,37 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
   try {
     // Récupérer le prévisionnel à modifier
     let previForm = previSemestre.value[0].find(previ => previ.id === previId);
-    // Mettre à jour le nombre d'heures du type concerné
-    previForm.heures[type].NbHrGrp = parseFloat(valeur || previForm.heures[type].NbHrGrp || 0);
 
-    // Calculer les nouvelles heures
-    const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-      acc[key] = parseFloat(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp);
-      return acc;
-    }, {});
+    if (previForm && parseFloat(valeur) !== previForm.heures[type] && !isNaN(parseFloat(valeur))) {
+      // Mettre à jour le nombre d'heures du type concerné
+      previForm.heures[type].NbHrGrp = parseFloat(valeur || previForm.heures[type].NbHrGrp || 0);
 
-    // Mettre à jour le prévisionnel
-    await updatePreviService(previId, { heures: newHeures });
+      // Calculer les nouvelles heures
+      const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+        acc[key] = parseFloat(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp);
+        return acc;
+      }, {});
 
-    // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
-    previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-      acc[key] = {
-        NbHrGrp: previForm.heures[key].NbHrGrp,
-        NbGrp: previForm.heures[key].NbGrp,
-        NbSeanceGrp: Math.round(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp * 10) / 10,
-      };
-      return acc;
-    }, {});
+      // Mettre à jour le prévisionnel
+      await updatePreviService(previId, {heures: newHeures});
 
-    previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.CM.NbGrp > 0 ? previ.heures.CM.NbHrGrp : 0), 0) * 10) / 10;
-    previSemestre.value[3].CM.Diff = Math.round((previSemestre.value[3].CM.NbHrSaisi - previSemestre.value[3].CM.NbHrAttendu) * 10) / 10;
-    previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TD.NbGrp > 0 ? previ.heures.TD.NbHrGrp : 0), 0) * 10) / 10;
-    previSemestre.value[3].TD.Diff = Math.round((previSemestre.value[3].TD.NbHrSaisi - previSemestre.value[3].TD.NbHrAttendu) * 10) / 10;
-    previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TP.NbGrp > 0 ? previ.heures.TP.NbHrGrp : 0), 0) * 10) / 10;
-    previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
+      // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
+      previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+        acc[key] = {
+          NbHrGrp: previForm.heures[key].NbHrGrp,
+          NbGrp: previForm.heures[key].NbGrp,
+          NbSeanceGrp: Math.round(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp * 10) / 10,
+        };
+        return acc;
+      }, {});
 
+      previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.CM.NbGrp > 0 ? previ.heures.CM.NbHrGrp : 0), 0) * 10) / 10;
+      previSemestre.value[3].CM.Diff = Math.round((previSemestre.value[3].CM.NbHrSaisi - previSemestre.value[3].CM.NbHrAttendu) * 10) / 10;
+      previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TD.NbGrp > 0 ? previ.heures.TD.NbHrGrp : 0), 0) * 10) / 10;
+      previSemestre.value[3].TD.Diff = Math.round((previSemestre.value[3].TD.NbHrSaisi - previSemestre.value[3].TD.NbHrAttendu) * 10) / 10;
+      previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TP.NbGrp > 0 ? previ.heures.TP.NbHrGrp : 0), 0) * 10) / 10;
+      previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
+    }
   } catch (error) {
     showDanger('Erreur lors de la mise à jour du prévisionnel', error);
     console.error('Erreur lors de la mise à jour du prévisionnel:', error);
@@ -177,36 +179,39 @@ const updateGroupesPrevi = async (previId, type, valeur) => {
   try {
     // Récupérer le prévisionnel à modifier
     let previForm = previSemestre.value[0].find(previ => previ.id === previId);
-    // Mettre à jour le nombre de groupes du type concerné
-    previForm.groupes[type] = parseInt(valeur || 0);
 
-    // Mettre à jour le prévisionnel
-    const newGroupes = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-      acc[key] = previForm.groupes[key];
-      return acc;
-    }, {});
+    if (previForm && parseFloat(valeur) !== previForm.groupes[type] && !isNaN(parseFloat(valeur))) {
+      // Mettre à jour le nombre de groupes du type concerné
+      previForm.groupes[type] = parseInt(valeur || previForm.groupes[type]);
 
-    // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
-    previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-      acc[key] = {
-        NbHrGrp: previForm.heures[key].NbHrGrp,
-        NbGrp: previForm.groupes[key],
-        NbSeanceGrp: previForm.heures[key].NbHrGrp * previForm.groupes[key],
-      };
-      return acc;
-    }, {});
+      // Mettre à jour le prévisionnel
+      const newGroupes = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+        acc[key] = previForm.groupes[key];
+        return acc;
+      }, {});
 
-    // Recalculer les totaux
-    previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.CM.NbGrp > 0 ? previ.heures.CM.NbHrGrp : 0), 0) * 10) / 10;
-    previSemestre.value[3].CM.Diff = Math.round((previSemestre.value[3].CM.NbHrSaisi - previSemestre.value[3].CM.NbHrAttendu) * 10) / 10;
-    previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TD.NbGrp > 0 ? previ.heures.TD.NbHrGrp : 0), 0) * 10) / 10;
-    previSemestre.value[3].TD.Diff = Math.round((previSemestre.value[3].TD.NbHrSaisi - previSemestre.value[3].TD.NbHrAttendu) * 10) / 10;
-    previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TP.NbGrp > 0 ? previ.heures.TP.NbHrGrp : 0), 0) * 10) / 10;
-    previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
+      // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
+      previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+        acc[key] = {
+          NbHrGrp: previForm.heures[key].NbHrGrp,
+          NbGrp: previForm.groupes[key],
+          NbSeanceGrp: previForm.heures[key].NbHrGrp * previForm.groupes[key],
+        };
+        return acc;
+      }, {});
 
-    console.log('previForm', previForm);
+      // Recalculer les totaux
+      previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.CM.NbGrp > 0 ? previ.heures.CM.NbHrGrp : 0), 0) * 10) / 10;
+      previSemestre.value[3].CM.Diff = Math.round((previSemestre.value[3].CM.NbHrSaisi - previSemestre.value[3].CM.NbHrAttendu) * 10) / 10;
+      previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TD.NbGrp > 0 ? previ.heures.TD.NbHrGrp : 0), 0) * 10) / 10;
+      previSemestre.value[3].TD.Diff = Math.round((previSemestre.value[3].TD.NbHrSaisi - previSemestre.value[3].TD.NbHrAttendu) * 10) / 10;
+      previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TP.NbGrp > 0 ? previ.heures.TP.NbHrGrp : 0), 0) * 10) / 10;
+      previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
 
-    await updatePreviService(previId, { groupes: newGroupes });
+      console.log('previForm', previForm);
+
+      await updatePreviService(previId, {groupes: newGroupes});
+    }
   } catch (error) {
     showDanger('Erreur lors de la mise à jour du prévisionnel', error);
     console.error('Erreur lors de la mise à jour du prévisionnel:', error);
