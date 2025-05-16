@@ -4,11 +4,24 @@ import ButtonDelete from "@components/components/ButtonDelete.vue";
 import ButtonDuplicate from "@components/components/ButtonDuplicate.vue";
 import apiCall from '@helpers/apiCall.js'
 import createApiService from '@requests/apiService'
+import debounce from '@helpers/debounce.js'
 
 const previsionnelService = createApiService('/api/previsionnels')
 
 const dataToDuplicate = ref({});
 const duplicatedPrevi = ref({});
+const debouncedActions = new Map();
+
+// Function to get or create a debounced version of a form action
+const getDebouncedAction = (formAction, id, type) => {
+  const key = `${id}-${type}`;
+  if (!debouncedActions.has(key)) {
+    debouncedActions.set(key, debounce((value) => {
+      formAction(id, type, value);
+    }, 500));
+  }
+  return debouncedActions.get(key);
+};
 
 // Définition des propriétés du composant
 const props = defineProps({
@@ -200,7 +213,13 @@ const duplicatePrevi = async (data) => {
       <template #body="slotProps">
         <slot :name="`body-${col.field}`" :data="slotProps.data" :value="getFieldValue(slotProps.data, col.field)">
 
-          <InputText v-if="col.form && col.formType === 'text'" v-model="slotProps.data[col.field]" :placeholder="getFieldValue(slotProps.data, col.field)" @blur="col.formAction(getFieldValue(slotProps.data, col.id), col.type, $event.target.value)" class="max-w-20"/>
+          <InputText
+            v-if="col.form && col.formType === 'text'"
+            v-model="slotProps.data[col.field]"
+            :placeholder="getFieldValue(slotProps.data, col.field)"
+            @input="getDebouncedAction(col.formAction, getFieldValue(slotProps.data, col.id), col.type)($event.target.value)"
+            class="max-w-20"
+          />
 
           <Select v-else-if="col.form && col.formType === 'select'"
                   :modelValue="slotProps.data[col.field]"
