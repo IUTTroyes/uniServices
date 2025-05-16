@@ -79,7 +79,7 @@ const getPersonnelsDepartement = async () => {
       selectedPersonnel.value = null;
     }
     isLoadingPersonnel.value = false;
-    console.log('enseignant : ', selectedPersonnel.value)
+
   }
 };
 
@@ -94,7 +94,7 @@ const getPrevi = async () => {
     console.error('Erreur lors du chargement des prévisionnels:', error);
   } finally {
     isLoadingPrevisionnel.value = false;
-    console.log('previSemestreAnneeUniv : ', previSemestreAnneeUniv.value)
+
   }
 };
 
@@ -110,7 +110,7 @@ const getPreviEnseignant = async () => {
     console.error('Erreur lors du chargement des prévisionnels :', error);
   } finally {
     isLoadingPrevisionnelForm.value = false;
-    console.log(previAnneeEnseignant)
+    console.log(previAnneeEnseignant.value);
   }
 }
 
@@ -123,7 +123,7 @@ const getSemestres = async () => {
       label: semestre.libelle,
       value: semestre.id
     }));
-    console.log('semestres : ' , semestreList.value)
+
   } catch (error) {
     console.error('Erreur lors du chargement des semestres :', error);
   }
@@ -174,7 +174,7 @@ watch(selectedAnneeUniv, async (newAnneeUniv) => {
 watch(selectedPersonnel , async (newPersonnel) => {
   if (!newPersonnel) return;
   await getPreviEnseignant(newPersonnel.id);
-  console.log(selectedPersonnel.value)
+
 });
 
 watch(selectedSemestre, async (newSemestre) => {
@@ -214,96 +214,58 @@ const addPrevi = async () => {
   }
 }
 
-const updateHeuresPrevi = async (previId, type, event) => {
+const updateHeuresPrevi = async (previId, type, valeur) => {
   try {
-    console.log('previId : ', previId)
-    // transforme le nombre d'heures en nombre entier
-    if (event === '') {
-      event = 0;
-    } else {
-      event = parseInt(event);
-    }
-    const heures = event;
     const previ = previAnneeEnseignant.value[0].find((previ) => previ.id === previId);
-    console.log('previ : ', previ)
-    if (previ) {
-      previ.heures[type] = heures;
+    if (previ && parseFloat(valeur) !== previ.heures[type] && !isNaN(parseFloat(valeur))) {
+      previ.heures[type] = parseFloat(valeur || previ.heures[type] || 0);
 
-      // Mettre à jour les heures dans le prévisionnel pour le calcul des totaux
       const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-        // Multiplier les heures par le nombre de groupes seulement s'il y a au moins un groupe
         acc[key] = previ.groupes[key] > 0 ? previ.heures[key] * previ.groupes[key] : 0;
         return acc;
       }, {});
 
-      // Recalculer les totaux
       previAnneeEnseignant.value[1]['CM'] = Math.round(previAnneeEnseignant.value[0].reduce((acc, previ) =>
-        acc + (previ.groupes.CM > 0 ? previ.heures.CM * previ.groupes.CM : 0), 0) * 10) / 10;
+          acc + (previ.groupes.CM > 0 ? previ.heures.CM * previ.groupes.CM : 0), 0) * 10) / 10;
       previAnneeEnseignant.value[1]['TD'] = Math.round(previAnneeEnseignant.value[0].reduce((acc, previ) =>
-        acc + (previ.groupes.TD > 0 ? previ.heures.TD * previ.groupes.TD : 0), 0) * 10) / 10;
+          acc + (previ.groupes.TD > 0 ? previ.heures.TD * previ.groupes.TD : 0), 0) * 10) / 10;
       previAnneeEnseignant.value[1]['TP'] = Math.round(previAnneeEnseignant.value[0].reduce((acc, previ) =>
-        acc + (previ.groupes.TP > 0 ? previ.heures.TP * previ.groupes.TP : 0), 0) * 10) / 10;
+          acc + (previ.groupes.TP > 0 ? previ.heures.TP * previ.groupes.TP : 0), 0) * 10) / 10;
       previAnneeEnseignant.value[1]['Total'] = previAnneeEnseignant.value[1]['CM'] + previAnneeEnseignant.value[1]['TD'] + previAnneeEnseignant.value[1]['TP'];
 
-      await updatePreviService(
-          previ.id,
-          {
-            heures: {
-              ...previ.heures,
-              [type]: heures
-            }
-          }
-      );
+      await updatePreviService(previ.id, { heures: { ...previ.heures, [type]: previ.heures[type] } });
     }
   } catch (error) {
     showDanger('Erreur lors de la mise à jour des heures', error);
     console.error('Erreur lors de la mise à jour des heures:', error);
-  } finally {
   }
 };
 
-const updateGroupesPrevi = async (previId, type, event) => {
+const updateGroupesPrevi = async (previId, type, valeur) => {
   try {
-    // transforme le nombre de groupes en nombre entier
-    if (event === '') {
-      event = 0;
-    } else {
-      event = parseInt(event);
-    }
-    const groupes = event;
     const previ = previAnneeEnseignant.value[0].find((previ) => previ.id === previId);
-    if (previ) {
-      previ.groupes[type] = groupes;
 
-      // Mettre à jour les groupes dans le prévisionnel pour le calcul des totaux
+    if (previ && parseInt(valeur) !== previ.groupes[type] && !isNaN(parseInt(valeur))) {
+      previ.groupes[type] = parseInt(valeur || previ.groupes[type] || 0);
+
       const newGroupes = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
         acc[key] = previ.groupes[key];
         return acc;
       }, {});
 
-      // Recalculer les totaux
       previAnneeEnseignant.value[1]['CM'] = Math.round(previAnneeEnseignant.value[0].reduce((acc, previ) =>
-        acc + (previ.groupes.CM > 0 ? previ.heures.CM * previ.groupes.CM : 0), 0) * 10) / 10;
+          acc + (previ.groupes.CM > 0 ? previ.heures.CM * previ.groupes.CM : 0), 0) * 10) / 10;
       previAnneeEnseignant.value[1]['TD'] = Math.round(previAnneeEnseignant.value[0].reduce((acc, previ) =>
-        acc + (previ.groupes.TD > 0 ? previ.heures.TD * previ.groupes.TD : 0), 0) * 10) / 10;
+          acc + (previ.groupes.TD > 0 ? previ.heures.TD * previ.groupes.TD : 0), 0) * 10) / 10;
       previAnneeEnseignant.value[1]['TP'] = Math.round(previAnneeEnseignant.value[0].reduce((acc, previ) =>
-        acc + (previ.groupes.TP > 0 ? previ.heures.TP * previ.groupes.TP : 0), 0) * 10) / 10;
+          acc + (previ.groupes.TP > 0 ? previ.heures.TP * previ.groupes.TP : 0), 0) * 10) / 10;
       previAnneeEnseignant.value[1]['Total'] = previAnneeEnseignant.value[1]['CM'] + previAnneeEnseignant.value[1]['TD'] + previAnneeEnseignant.value[1]['TP'];
 
-      await updatePreviService(
-          previ.id,
-          {
-            groupes: {
-              ...previ.groupes,
-              [type]: groupes
-            }
-          }
-      );
+      await updatePreviService(previ.id, { groupes: { ...previ.groupes, [type]: previ.groupes[type] } });
     }
   } catch (error) {
     showDanger('Erreur lors de la mise à jour des groupes', error);
     console.error('Erreur lors de la mise à jour des groupes:', error);
-  } finally {
   }
 };
 
@@ -431,14 +393,14 @@ const footerCols = computed(() => [
 const columnsForm = ref([
   { header: 'Matière/ressource/SAE', field: 'libelleEnseignement', sortable: true, colspan: 1, form: true, formType: 'select', formOptions: enseignementList, id: 'id', placeholder: 'Sélectionner un enseignement', formAction: (enseignement) => {selectedEnseignement.value = enseignement}, class: '!text-wrap !w-20' },
 
-  { header: 'Nb H/Gr.', field: 'heures.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
-  { header: 'Nb Gr.', field: 'groupes.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
+  { header: 'Nb H/Gr.', field: 'heures.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, valeur) => { updateHeuresPrevi(previId, type, valeur) } },
+  { header: 'Nb Gr.', field: 'groupes.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, valeur) => { updateGroupesPrevi(previId, type, valeur) } },
 
-  { header: 'Nb H/Gr.', field: 'heures.TD', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
-  { header: 'Nb Gr.', field: 'groupes.TD', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
+  { header: 'Nb H/Gr.', field: 'heures.TD', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, valeur) => { updateHeuresPrevi(previId, type, valeur) } },
+  { header: 'Nb Gr.', field: 'groupes.TD', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, valeur) => { updateGroupesPrevi(previId, type, valeur) } },
 
-  { header: 'Nb H/Gr.', field: 'heures.TP', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
-  { header: 'Nb Gr.', field: 'groupes.TP', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
+  { header: 'Nb H/Gr.', field: 'heures.TP', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, valeur) => { updateHeuresPrevi(previId, type, valeur) } },
+  { header: 'Nb Gr.', field: 'groupes.TP', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, valeur) => { updateGroupesPrevi(previId, type, valeur) } },
 
   { header: 'Dupliquer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-copy', id: 'id', buttonAction: (id) => {duplicatePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn', duplicate: true },
   { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', id: 'id', buttonAction: (id) => {deletePrevi(id)}, buttonClass: () => '!w-fit', buttonSeverity: () => 'danger', delete: true },
