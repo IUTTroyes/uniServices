@@ -126,6 +126,15 @@ uniServices/
 - **Pour les requêtes HTTP simples (GET, POST, PATCH, DELETE) qui ne nécessitent pas de manipulation spécifique, utiliser apiCall.js et apiService.js**:
   - `apiService.js` fournit des méthodes génériques pour les opérations CRUD
   - `apiCall.js` est un wrapper qui gère les messages de succès/erreur et le traitement des réponses
+
+  #### Gestion des notifications toast
+
+  - Le paramètre `showToast` (par défaut à `true` pour les opérations de modification, `false` pour les récupérations de données) permet de contrôler l'affichage des notifications toast
+  - Conventions d'affichage des toasts:
+    - Pour les fonctions GET: `showToast = false` par défaut (pas de notification pour la simple récupération de données)
+    - Pour les fonctions UPDATE, CREATE, DELETE: `showToast = true` par défaut (notification pour confirmer les modifications)
+    - Les messages d'erreur dans les blocs try-catch affichent toujours des notifications
+
   - Exemple d'utilisation:
     ```javascript
     import createApiService from '@requests/apiService';
@@ -134,13 +143,38 @@ uniServices/
     // Créer un service API pour une ressource spécifique
     const userService = createApiService('/api/users');
 
-    // Utiliser apiCall pour exécuter une méthode du service avec gestion des messages
-    const getUsers = async () => {
-      return await apiCall(userService.getAll, [], 'Utilisateurs récupérés avec succès', 'Erreur lors de la récupération des utilisateurs');
+    // Récupération de données (sans toast par défaut)
+    const getUsers = async (showToast = false) => {
+      try {
+        const response = await apiCall(
+          userService.getAll, 
+          [], 
+          'Utilisateurs récupérés avec succès', 
+          'Erreur lors de la récupération des utilisateurs',
+          showToast
+        );
+        return response;
+      } catch (error) {
+        console.error('Erreur dans getUsers:', error);
+        throw error;
+      }
     };
 
-    const createUser = async (userData) => {
-      return await apiCall(userService.create, [userData], 'Utilisateur créé avec succès', 'Erreur lors de la création de l\'utilisateur');
+    // Modification de données (avec toast par défaut)
+    const createUser = async (userData, showToast = true) => {
+      try {
+        const response = await apiCall(
+          userService.create, 
+          [userData], 
+          'Utilisateur créé avec succès', 
+          'Erreur lors de la création de l\'utilisateur',
+          showToast
+        );
+        return response;
+      } catch (error) {
+        console.error('Erreur dans createUser:', error);
+        throw error;
+      }
     };
     ```
 
