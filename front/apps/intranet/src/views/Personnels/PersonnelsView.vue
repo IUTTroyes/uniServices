@@ -6,10 +6,14 @@ import { statuts } from '@config/uniServices.js'
 import ButtonInfo from '@components/components/ButtonInfo.vue'
 import ButtonEdit from '@components/components/ButtonEdit.vue'
 import ButtonDelete from '@components/components/ButtonDelete.vue'
+import createApiService from '@requests/apiService'
+import apiCall from '@helpers/apiCall'
 
 import ViewPersonnelDialog from '@/dialogs/personnels/ViewPersonnelDialog.vue'
 import EditPersonnelDialog from '@/dialogs/personnels/EditPersonnelDialog.vue'
 import AccessPersonnelDialog from '@/dialogs/personnels/AccessPersonnelDialog.vue'
+
+const personnelsService = createApiService('api/personnels')
 
 const personnels = ref()
 const nbPersonnels = ref()
@@ -36,23 +40,39 @@ const selectedPersonnel = ref(null)
 
 onMounted(async () => {
   loading.value = true
-  const response = await api.get('api/personnels') //todo sur PersonnelDepartement ici
-  nbPersonnels.value = await response.data['totalItems']
-  personnels.value = await response.data['member']
-  loading.value = false
+  try {
+    const data = await apiCall(
+      personnelsService.getAll,
+      [],
+      '', // Empty success message to not show toast
+      'Erreur lors de la récupération des personnels'
+    )
+    nbPersonnels.value = data['totalItems']
+    personnels.value = data['member']
+  } catch (error) {
+    console.error('Erreur dans onMounted:', error)
+  } finally {
+    loading.value = false
+  }
 })
 
 async function onPageChange (event) {
   console.log(event)
   loading.value = true
   page.value = event.page
-  const response = await api.get(`api/personnels?page=${parseInt(page.value) + 1}`, {
-    params: {
-      ...filters.value
-    }
-  })
-  personnels.value = await response.data['member']
-  loading.value = false
+  try {
+    const data = await apiCall(
+      api.get,
+      [`api/personnels?page=${parseInt(page.value) + 1}`, { params: { ...filters.value } }],
+      '', // Empty success message to not show toast
+      'Erreur lors de la récupération des personnels'
+    )
+    personnels.value = data['member']
+  } catch (error) {
+    console.error('Erreur dans onPageChange:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
 const viewPersonnel = (personnel) => {
@@ -74,17 +94,23 @@ const editAccessPersonnel = (personnel) => {
   showAccessEditDialog.value = true
 }
 
-//wtach filters
+//watch filters
 watch(filters, async () => {
   loading.value = true
-  const response = await api.get('api/personnels', {
-    params: {
-      ...filters.value
-    }
-  })
-  nbPersonnels.value = await response.data['totalItems']
-  personnels.value = await response.data['member']
-  loading.value = false
+  try {
+    const data = await apiCall(
+      api.get,
+      ['api/personnels', { params: { ...filters.value } }],
+      '', // Empty success message to not show toast
+      'Erreur lors de la récupération des personnels'
+    )
+    nbPersonnels.value = data['totalItems']
+    personnels.value = data['member']
+  } catch (error) {
+    console.error('Erreur dans watch filters:', error)
+  } finally {
+    loading.value = false
+  }
 })
 
 

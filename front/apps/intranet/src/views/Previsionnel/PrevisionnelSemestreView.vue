@@ -159,18 +159,17 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
       return acc;
     }, {});
 
-      previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.CM.NbGrp > 0 ? previ.heures.CM.NbHrGrp : 0), 0) * 10) / 10;
-      previSemestre.value[3].CM.Diff = Math.round((previSemestre.value[3].CM.NbHrSaisi - previSemestre.value[3].CM.NbHrAttendu) * 10) / 10;
-      previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TD.NbGrp > 0 ? previ.heures.TD.NbHrGrp : 0), 0) * 10) / 10;
-      previSemestre.value[3].TD.Diff = Math.round((previSemestre.value[3].TD.NbHrSaisi - previSemestre.value[3].TD.NbHrAttendu) * 10) / 10;
-      previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TP.NbGrp > 0 ? previ.heures.TP.NbHrGrp : 0), 0) * 10) / 10;
-      previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
+    previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.CM.NbGrp > 0 ? previ.heures.CM.NbHrGrp : 0), 0) * 10) / 10;
+    previSemestre.value[3].CM.Diff = Math.round((previSemestre.value[3].CM.NbHrSaisi - previSemestre.value[3].CM.NbHrAttendu) * 10) / 10;
+    previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TD.NbGrp > 0 ? previ.heures.TD.NbHrGrp : 0), 0) * 10) / 10;
+    previSemestre.value[3].TD.Diff = Math.round((previSemestre.value[3].TD.NbHrSaisi - previSemestre.value[3].TD.NbHrAttendu) * 10) / 10;
+    previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TP.NbGrp > 0 ? previ.heures.TP.NbHrGrp : 0), 0) * 10) / 10;
+    previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
 
   } catch (error) {
     showDanger('Erreur lors de la mise à jour du prévisionnel', error);
     console.error('Erreur lors de la mise à jour du prévisionnel:', error);
   } finally {
-    showSuccess('Les heures ont été mises à jour avec succès');
   }
 };
 
@@ -212,7 +211,6 @@ const updateGroupesPrevi = async (previId, type, valeur) => {
     showDanger('Erreur lors de la mise à jour du prévisionnel', error);
     console.error('Erreur lors de la mise à jour du prévisionnel:', error);
   } finally {
-    showSuccess('Les groupes ont été mis à jour avec succès');
   }
 };
 
@@ -269,13 +267,12 @@ const addPrevi = async (personnel, enseignement) => {
       },
       enseignement: enseignementIri,
     };
-    await apiCall(previService.create,[dataNewPrevi], 'Prévisionnel créé', 'Une erreur est survenue lors de la création du prévisionnel');
+    await apiCall(previService.create,[dataNewPrevi], 'L\'élément a été créé avec succès', 'Une erreur est survenue lors de la création du prévisionnel');
   } catch (error) {
     showDanger('Erreur lors de la création du prévisionnel', error);
     console.error('Erreur lors de la création du prévisionnel:', error);
   } finally {
     getPrevi(selectedSemestre.value.id);
-    showSuccess('Le prévisionnel a été créé avec succès');
   }
 };
 

@@ -1,12 +1,36 @@
 import api from '@helpers/axios';
-const getAllPns = async () => {
-    const response = await api.get('/api/structure_pns');
-    return response.data.member;
+import apiCall from '@helpers/apiCall';
+
+const getAllPns = async (showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            ['/api/structure_pns'],
+            'PNs récupérés avec succès',
+            'Erreur lors de la récupération des PNs',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getAllPns:', error);
+        throw error;
+    }
 }
 
-const getPnsDiplome = async (diplomeId) => {
-    const response = await api.get(`/api/structure_pns?diplome=${diplomeId}`);
-    return response.data.member;
+const getPnsDiplome = async (diplomeId, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/structure_pns?diplome=${diplomeId}`],
+            'PNs du diplôme récupérés avec succès',
+            'Erreur lors de la récupération des PNs du diplôme',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getPnsDiplome:', error);
+        throw error;
+    }
 }
 
 export { getAllPns, getPnsDiplome };
