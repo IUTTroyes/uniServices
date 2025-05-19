@@ -94,6 +94,9 @@ class StructureAnnee
     #[ORM\ManyToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'annee')]
     private Collection $scolarites;
 
+    #[ORM\ManyToOne(inversedBy: 'annees')]
+    private ?StructurePn $pn = null;
+
     public function __construct()
     {
         $this->semestres = new ArrayCollection();
@@ -277,6 +280,18 @@ class StructureAnnee
         if ($this->scolarites->removeElement($scolarite)) {
             $scolarite->removeAnnee($this);
         }
+
+        return $this;
+    }
+
+    public function getPn(): ?StructurePn
+    {
+        return $this->pn;
+    }
+
+    public function setPn(?StructurePn $pn): static
+    {
+        $this->pn = $pn;
 
         return $this;
     }
