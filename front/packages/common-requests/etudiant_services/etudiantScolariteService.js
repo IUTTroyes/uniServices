@@ -23,14 +23,13 @@ const getEtudiantsScolaritesDepartementService = async (departement, anneeUniv, 
             params['annee'] = filters.annee.value;
         }
 
-        const response = await apiCall(
+        return await apiCall(
             api.get,
-            [`/api/etudiant_scolarites`, { params }],
+            [`/api/etudiant_scolarites`, {params}],
             'Scolarités des étudiants récupérées avec succès',
             'Erreur lors de la récupération des scolarités des étudiants',
             showToast
         );
-        return response;
     } catch (error) {
         console.error('Erreur dans getEtudiantsScolaritesDepartementService:', error);
         throw error;

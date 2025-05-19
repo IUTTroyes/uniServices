@@ -38,18 +38,18 @@ const getEtudiantScolarites = async () => {
     const response = await getEtudiantScolaritesService(props.etudiantSco.etudiant.id);
     etudiantScolarites.value = response.member;
     etudiantScolarites.value.sort((a, b) => {
-      const anneeA = a.structureAnneeUniversitaire.annee;
-      const anneeB = b.structureAnneeUniversitaire.annee;
+      const anneeA = a.anneeUniversitaire.annee;
+      const anneeB = b.anneeUniversitaire.annee;
       return anneeB - anneeA;
     });
 
     // Définir la première tab comme active
     if (etudiantScolarites.value.length > 0) {
-      activeTab.value = etudiantScolarites.value[0].structureAnneeUniversitaire.libelle;
+      activeTab.value = etudiantScolarites.value[0].anneeUniversitaire.libelle;
     }
 
     if (etudiantScolarites.value.length > 0) {
-      activeTab.value = etudiantScolarites.value[0].structureAnneeUniversitaire.libelle;
+      activeTab.value = etudiantScolarites.value[0].anneeUniversitaire.libelle;
       console.log("Onglet actif initialisé :", activeTab.value);
     }
   } catch (error) {
@@ -254,21 +254,21 @@ const updateEtudiantData = async () => {
     <Tabs v-if="etudiantScolarites.length > 0" v-model="activeTab">
       <TabList>
         <Tab v-for="scolarite in etudiantScolarites"
-             :key="scolarite.structureAnneeUniversitaire.libelle"
-             :value="scolarite.structureAnneeUniversitaire.libelle">
-          {{ scolarite.structureAnneeUniversitaire.libelle }}
+             :key="scolarite.anneeUniversitaire.libelle"
+             :value="scolarite.anneeUniversitaire.libelle">
+          {{ scolarite.anneeUniversitaire.libelle }}
         </Tab>
       </TabList>
       <TabPanels>
         <TabPanel v-for="scolarite in etudiantScolarites"
-                  :key="scolarite.structureAnneeUniversitaire.libelle"
-                  :value="scolarite.structureAnneeUniversitaire.libelle">
+                  :key="scolarite.anneeUniversitaire.libelle"
+                  :value="scolarite.anneeUniversitaire.libelle">
           <div class="flex md:flex-row flex-col justify-between gap-2 w-full h-full">
-            <div v-for="scolarite_semestre in scolarite.scolarite_semestre"
+            <div v-for="semestre in scolarite.semestre"
                  class="card mb-0 w-full h-full">
               <div class="font-bold text-lg">
-                {{ scolarite_semestre.structure_semestre.annee.libelle }} -
-                <span class="text-muted-color font-normal">{{ scolarite_semestre.structure_semestre.libelle }}</span>
+                {{ semestre.structure_semestre.annee.libelle }} -
+                <span class="text-muted-color font-normal">{{ semestre.structure_semestre.libelle }}</span>
               </div>
 
               {{ scolarite.moyennesUe }}

@@ -90,7 +90,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'etudiant', orphanRemoval: true)]
     #[Groups(['etudiant:read'])]
     #[MaxDepth(1)]
-    private Collection $etudiantScolarites;
+    private Collection $scolarites;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     #[Groups(['etudiant:read', 'scolarite:read', 'etudiant:write'])]
@@ -104,7 +104,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, EtudiantAbsence>
      */
     #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'etudiant')]
-    private Collection $etudiantAbsences;
+    private Collection $absences;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['scolarite:read', 'etudiant:read', 'etudiant:write'])]
@@ -159,8 +159,8 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function __construct()
     {
-        $this->etudiantScolarites = new ArrayCollection();
-        $this->etudiantAbsences = new ArrayCollection();
+        $this->scolarites = new ArrayCollection();
+        $this->absences = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -289,27 +289,27 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, EtudiantScolarite>
      */
-    public function getEtudiantScolarites(): Collection
+    public function getScolarites(): Collection
     {
-        return $this->etudiantScolarites;
+        return $this->scolarites;
     }
 
-    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    public function addScolarite(EtudiantScolarite $scolarite): static
     {
-        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
-            $this->etudiantScolarites->add($etudiantScolarite);
-            $etudiantScolarite->setEtudiant($this);
+        if (!$this->scolarites->contains($scolarite)) {
+            $this->scolarites->add($scolarite);
+            $scolarite->setEtudiant($this);
         }
 
         return $this;
     }
 
-    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    public function removeScolarite(EtudiantScolarite $scolarite): static
     {
-        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
+        if ($this->scolarites->removeElement($scolarite)) {
             // set the owning side to null (unless already changed)
-            if ($etudiantScolarite->getEtudiant() === $this) {
-                $etudiantScolarite->setEtudiant(null);
+            if ($scolarite->getEtudiant() === $this) {
+                $scolarite->setEtudiant(null);
             }
         }
 
@@ -365,27 +365,27 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, EtudiantAbsence>
      */
-    public function getEtudiantAbsences(): Collection
+    public function getAbsences(): Collection
     {
-        return $this->etudiantAbsences;
+        return $this->absences;
     }
 
-    public function addEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    public function addAbsence(EtudiantAbsence $absence): static
     {
-        if (!$this->etudiantAbsences->contains($etudiantAbsence)) {
-            $this->etudiantAbsences->add($etudiantAbsence);
-            $etudiantAbsence->setEtudiant($this);
+        if (!$this->absences->contains($absence)) {
+            $this->absences->add($absence);
+            $absence->setEtudiant($this);
         }
 
         return $this;
     }
 
-    public function removeEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    public function removeAbsence(EtudiantAbsence $absence): static
     {
-        if ($this->etudiantAbsences->removeElement($etudiantAbsence)) {
+        if ($this->absences->removeElement($absence)) {
             // set the owning side to null (unless already changed)
-            if ($etudiantAbsence->getEtudiant() === $this) {
-                $etudiantAbsence->setEtudiant(null);
+            if ($absence->getEtudiant() === $this) {
+                $absence->setEtudiant(null);
             }
         }
 

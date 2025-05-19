@@ -24,21 +24,21 @@ class ApcCompetence
     private ?string $libelle = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(['structure_diplome:read', 'scol_enseignement:read', 'structure_pn:read'])]
+    #[Groups(['diplome:read', 'enseignement:read', 'pn:read'])]
     private ?string $nomCourt = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['structure_diplome:read', 'scol_enseignement:read', 'structure_pn:read'])]
+    #[Groups(['diplome:read', 'enseignement:read', 'pn:read'])]
     private ?string $couleur = null;
 
-    #[ORM\ManyToOne(inversedBy: 'apcCompetences')]
-    private ?ApcReferentiel $apcReferentiel = null;
+    #[ORM\ManyToOne(inversedBy: 'competences')]
+    private ?ApcReferentiel $referentiel = null;
 
     /**
      * @var Collection<int, ApcNiveau>
      */
-    #[ORM\OneToMany(targetEntity: ApcNiveau::class, mappedBy: 'apcCompetence')]
-    private Collection $apcNiveaux;
+    #[ORM\OneToMany(targetEntity: ApcNiveau::class, mappedBy: 'competence')]
+    private Collection $niveaux;
 
     #[ORM\Column]
     private array $composantesEssentielles = [];
@@ -49,12 +49,12 @@ class ApcCompetence
     /**
      * @var Collection<int, StructureUe>
      */
-    #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'apcCompetence')]
+    #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'competence')]
     private Collection $ues;
 
     public function __construct()
     {
-        $this->apcNiveaux = new ArrayCollection();
+        $this->niveaux = new ArrayCollection();
         $this->ues = new ArrayCollection();
     }
 
@@ -99,14 +99,14 @@ class ApcCompetence
         return $this;
     }
 
-    public function getApcReferentiel(): ?ApcReferentiel
+    public function getReferentiel(): ?ApcReferentiel
     {
-        return $this->apcReferentiel;
+        return $this->referentiel;
     }
 
-    public function setApcReferentiel(?ApcReferentiel $apcReferentiel): static
+    public function setReferentiel(?ApcReferentiel $referentiel): static
     {
-        $this->apcReferentiel = $apcReferentiel;
+        $this->referentiel = $referentiel;
 
         return $this;
     }
@@ -114,27 +114,27 @@ class ApcCompetence
     /**
      * @return Collection<int, ApcNiveau>
      */
-    public function getApcNiveaux(): Collection
+    public function getNiveaux(): Collection
     {
-        return $this->apcNiveaux;
+        return $this->niveaux;
     }
 
-    public function addApcNiveau(ApcNiveau $apcNiveau): static
+    public function addNiveau(ApcNiveau $niveau): static
     {
-        if (!$this->apcNiveaux->contains($apcNiveau)) {
-            $this->apcNiveaux->add($apcNiveau);
-            $apcNiveau->setApcCompetence($this);
+        if (!$this->niveaux->contains($niveau)) {
+            $this->niveaux->add($niveau);
+            $niveau->setCompetence($this);
         }
 
         return $this;
     }
 
-    public function removeApcNiveau(ApcNiveau $apcNiveau): static
+    public function removeNiveau(ApcNiveau $niveau): static
     {
-        if ($this->apcNiveaux->removeElement($apcNiveau)) {
+        if ($this->niveaux->removeElement($niveau)) {
             // set the owning side to null (unless already changed)
-            if ($apcNiveau->getApcCompetence() === $this) {
-                $apcNiveau->setApcCompetence(null);
+            if ($niveau->getCompetence() === $this) {
+                $niveau->setCompetence(null);
             }
         }
 
@@ -177,7 +177,7 @@ class ApcCompetence
     {
         if (!$this->ues->contains($ue)) {
             $this->ues->add($ue);
-            $ue->setApcCompetence($this);
+            $ue->setCompetence($this);
         }
 
         return $this;
@@ -187,8 +187,8 @@ class ApcCompetence
     {
         if ($this->ues->removeElement($ue)) {
             // set the owning side to null (unless already changed)
-            if ($ue->getApcCompetence() === $this) {
-                $ue->setApcCompetence(null);
+            if ($ue->getCompetence() === $this) {
+                $ue->setCompetence(null);
             }
         }
 

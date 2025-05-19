@@ -23,29 +23,29 @@ class StructureTypeDiplome
     private string $libelle;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['diplome:read'])]
     private string $sigle;
 
     #[ORM\Column]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['diplome:read'])]
     private bool $apc = false;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'typeDiplome')]
-    private Collection $structureDiplomes;
+    private Collection $diplomes;
 
     /**
      * @var Collection<int, ApcReferentiel>
      */
     #[ORM\OneToMany(targetEntity: ApcReferentiel::class, mappedBy: 'typeDiplome')]
-    private Collection $apcReferentiels;
+    private Collection $referentiels;
 
     public function __construct()
     {
-        $this->structureDiplomes = new ArrayCollection();
-        $this->apcReferentiels = new ArrayCollection();
+        $this->diplomes = new ArrayCollection();
+        $this->referentiels = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -92,27 +92,27 @@ class StructureTypeDiplome
     /**
      * @return Collection<int, StructureDiplome>
      */
-    public function getStructureDiplomes(): Collection
+    public function getDiplomes(): Collection
     {
-        return $this->structureDiplomes;
+        return $this->diplomes;
     }
 
-    public function addStructureDiplome(StructureDiplome $structureDiplome): static
+    public function addDiplome(StructureDiplome $diplome): static
     {
-        if (!$this->structureDiplomes->contains($structureDiplome)) {
-            $this->structureDiplomes->add($structureDiplome);
-            $structureDiplome->setTypeDiplome($this);
+        if (!$this->diplomes->contains($diplome)) {
+            $this->diplomes->add($diplome);
+            $diplome->setTypeDiplome($this);
         }
 
         return $this;
     }
 
-    public function removeStructureDiplome(StructureDiplome $structureDiplome): static
+    public function removeDiplome(StructureDiplome $diplome): static
     {
-        if ($this->structureDiplomes->removeElement($structureDiplome)) {
+        if ($this->diplomes->removeElement($diplome)) {
             // set the owning side to null (unless already changed)
-            if ($structureDiplome->getTypeDiplome() === $this) {
-                $structureDiplome->setTypeDiplome(null);
+            if ($diplome->getTypeDiplome() === $this) {
+                $diplome->setTypeDiplome(null);
             }
         }
 
@@ -122,27 +122,27 @@ class StructureTypeDiplome
     /**
      * @return Collection<int, ApcReferentiel>
      */
-    public function getApcReferentiels(): Collection
+    public function getReferentiels(): Collection
     {
-        return $this->apcReferentiels;
+        return $this->referentiels;
     }
 
-    public function addApcReferentiel(ApcReferentiel $apcReferentiel): static
+    public function addReferentiel(ApcReferentiel $referentiel): static
     {
-        if (!$this->apcReferentiels->contains($apcReferentiel)) {
-            $this->apcReferentiels->add($apcReferentiel);
-            $apcReferentiel->setTypeDiplome($this);
+        if (!$this->referentiels->contains($referentiel)) {
+            $this->referentiels->add($referentiel);
+            $referentiel->setTypeDiplome($this);
         }
 
         return $this;
     }
 
-    public function removeApcReferentiel(ApcReferentiel $apcReferentiel): static
+    public function removeReferentiel(ApcReferentiel $referentiel): static
     {
-        if ($this->apcReferentiels->removeElement($apcReferentiel)) {
+        if ($this->referentiels->removeElement($referentiel)) {
             // set the owning side to null (unless already changed)
-            if ($apcReferentiel->getTypeDiplome() === $this) {
-                $apcReferentiel->setTypeDiplome(null);
+            if ($referentiel->getTypeDiplome() === $this) {
+                $referentiel->setTypeDiplome(null);
             }
         }
 

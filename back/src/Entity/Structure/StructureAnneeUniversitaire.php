@@ -32,8 +32,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['structure_annee_universitaire:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['structure_annee_universitaire:read']]),
+        new Get(normalizationContext: ['groups' => ['annee_universitaire:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['annee_universitaire:read']]),
         new Post(),
         new Patch(),
         new Delete()
@@ -48,15 +48,15 @@ class StructureAnneeUniversitaire
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['structure_annee_universitaire:read', 'etudiant:read'])]
+    #[Groups(['annee_universitaire:read', 'etudiant:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
-    #[Groups(['structure_annee_universitaire:read', 'scolarite:read'])]
+    #[Groups(['annee_universitaire:read', 'scolarite:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
-    #[Groups(['structure_annee_universitaire:read', 'scolarite:read'])]
+    #[Groups(['annee_universitaire:read', 'scolarite:read'])]
     private int $annee;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -65,60 +65,60 @@ class StructureAnneeUniversitaire
     /**
      * @var Collection<int, EtudiantScolarite>
      */
-    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'structureAnneeUniversitaire')]
+    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'anneeUniversitaire')]
     private Collection $scolarites;
 
     /**
      * @var Collection<int, StructurePn>
      */
-    #[ORM\ManyToMany(targetEntity: StructurePn::class, inversedBy: 'structureAnneeUniversitaires')]
+    #[ORM\ManyToMany(targetEntity: StructurePn::class, inversedBy: 'anneeUniversitaires')]
     private Collection $pn;
 
     /**
      * @var Collection<int, Personnel>
      */
-    #[ORM\OneToMany(targetEntity: Personnel::class, mappedBy: 'structureAnneeUniversitaire')]
+    #[ORM\OneToMany(targetEntity: Personnel::class, mappedBy: 'anneeUniversitaire')]
     private Collection $personnels;
 
     #[ORM\Column]
-    #[Groups(['structure_annee_universitaire:read', 'structure_diplome:read', 'structure_pn:read', 'scolarite:read', 'etudiant:read'])]
+    #[Groups(['annee_universitaire:read', 'diplome:read', 'pn:read', 'scolarite:read', 'etudiant:read'])]
     private bool $actif = false;
 
     /**
      * @var Collection<int, ApcReferentiel>
      */
-    #[ORM\OneToMany(targetEntity: ApcReferentiel::class, mappedBy: 'anneeUniv')]
-    private Collection $apcReferentiels;
+    #[ORM\OneToMany(targetEntity: ApcReferentiel::class, mappedBy: 'anneeUniversitaire')]
+    private Collection $referentiels;
 
     /**
      * @var Collection<int, ScolEvaluation>
      */
-    #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'anneeUniv')]
-    private Collection $scolEvaluations;
+    #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'anneeUniversitaire')]
+    private Collection $evaluations;
 
     /**
      * @var Collection<int, EdtEvent>
      */
     #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'anneeUniversitaire')]
-    private Collection $scolEdtEvents;
+    private Collection $edtEvents;
 
     /**
      * @var Collection<int, StructureCalendrier>
      */
-    #[ORM\OneToMany(targetEntity: StructureCalendrier::class, mappedBy: 'structureAnneeUniversitaire')]
-    private Collection $structureCalendriers;
+    #[ORM\OneToMany(targetEntity: StructureCalendrier::class, mappedBy: 'anneeUniversitaire')]
+    private Collection $calendriers;
 
     /**
      * @var Collection<int, EdtCreneauxInterditsSemaine>
      */
     #[ORM\OneToMany(targetEntity: EdtCreneauxInterditsSemaine::class, mappedBy: 'anneeUniversitaire')]
-    private Collection $edtCreneauxInterditsSemaines;
+    private Collection $creneauxInterditsSemaines;
 
     /**
      * @var Collection<int, EdtContraintesSemestre>
      */
     #[ORM\OneToMany(targetEntity: EdtContraintesSemestre::class, mappedBy: 'anneeUniversitaire')]
-    private Collection $edtContraintesSemestres;
+    private Collection $contraintesSemestres;
 
     /**
      * @var Collection<int, Previsionnel>
@@ -129,7 +129,7 @@ class StructureAnneeUniversitaire
     /**
      * @var Collection<int, StagePeriode>
      */
-    #[ORM\OneToMany(targetEntity: StagePeriode::class, mappedBy: 'structureAnneeUniversitaire')]
+    #[ORM\OneToMany(targetEntity: StagePeriode::class, mappedBy: 'anneeUniversitaire')]
     private Collection $stagePeriodes;
 
     public function __construct()
@@ -137,14 +137,14 @@ class StructureAnneeUniversitaire
         $this->scolarites = new ArrayCollection();
         $this->pn = new ArrayCollection();
         $this->personnels = new ArrayCollection();
-        $this->apcReferentiels = new ArrayCollection();
-        $this->scolEvaluations = new ArrayCollection();
-        $this->scolEdtEvents = new ArrayCollection();
+        $this->referentiels = new ArrayCollection();
+        $this->evaluations = new ArrayCollection();
+        $this->edtEvents = new ArrayCollection();
 
         $this->annee = (int) date('Y');
-        $this->structureCalendriers = new ArrayCollection();
-        $this->edtCreneauxInterditsSemaines = new ArrayCollection();
-        $this->edtContraintesSemestres = new ArrayCollection();
+        $this->calendriers = new ArrayCollection();
+        $this->creneauxInterditsSemaines = new ArrayCollection();
+        $this->contraintesSemestres = new ArrayCollection();
         $this->previsionnels = new ArrayCollection();
         $this->stagePeriodes = new ArrayCollection();
     }
@@ -202,7 +202,7 @@ class StructureAnneeUniversitaire
     {
         if (!$this->scolarites->contains($scolarite)) {
             $this->scolarites->add($scolarite);
-            $scolarite->setStructureAnneeUniversitaire($this);
+            $scolarite->setAnneeUniversitaire($this);
         }
 
         return $this;
@@ -212,8 +212,8 @@ class StructureAnneeUniversitaire
     {
         if ($this->scolarites->removeElement($scolarite)) {
             // set the owning side to null (unless already changed)
-            if ($scolarite->getStructureAnneeUniversitaire() === $this) {
-                $scolarite->setStructureAnneeUniversitaire(null);
+            if ($scolarite->getAnneeUniversitaire() === $this) {
+                $scolarite->setAnneeUniversitaire(null);
             }
         }
 
@@ -256,7 +256,7 @@ class StructureAnneeUniversitaire
     {
         if (!$this->personnels->contains($personnel)) {
             $this->personnels->add($personnel);
-            $personnel->setStructureAnneeUniversitaire($this);
+            $personnel->setAnneeUniversitaire($this);
         }
 
         return $this;
@@ -266,8 +266,8 @@ class StructureAnneeUniversitaire
     {
         if ($this->personnels->removeElement($personnel)) {
             // set the owning side to null (unless already changed)
-            if ($personnel->getStructureAnneeUniversitaire() === $this) {
-                $personnel->setStructureAnneeUniversitaire(null);
+            if ($personnel->getAnneeUniversitaire() === $this) {
+                $personnel->setAnneeUniversitaire(null);
             }
         }
 
@@ -289,27 +289,27 @@ class StructureAnneeUniversitaire
     /**
      * @return Collection<int, ApcReferentiel>
      */
-    public function getApcReferentiels(): Collection
+    public function getReferentiels(): Collection
     {
-        return $this->apcReferentiels;
+        return $this->referentiels;
     }
 
-    public function addApcReferentiel(ApcReferentiel $apcReferentiel): static
+    public function addReferentiel(ApcReferentiel $referentiel): static
     {
-        if (!$this->apcReferentiels->contains($apcReferentiel)) {
-            $this->apcReferentiels->add($apcReferentiel);
-            $apcReferentiel->setAnneeUniv($this);
+        if (!$this->referentiels->contains($referentiel)) {
+            $this->referentiels->add($referentiel);
+            $referentiel->setAnneeUniversitaire($this);
         }
 
         return $this;
     }
 
-    public function removeApcReferentiel(ApcReferentiel $apcReferentiel): static
+    public function removeReferentiel(ApcReferentiel $referentiel): static
     {
-        if ($this->apcReferentiels->removeElement($apcReferentiel)) {
+        if ($this->referentiels->removeElement($referentiel)) {
             // set the owning side to null (unless already changed)
-            if ($apcReferentiel->getAnneeUniv() === $this) {
-                $apcReferentiel->setAnneeUniv(null);
+            if ($referentiel->getAnneeUniversitaire() === $this) {
+                $referentiel->setAnneeUniversitaire(null);
             }
         }
 
@@ -319,27 +319,27 @@ class StructureAnneeUniversitaire
     /**
      * @return Collection<int, ScolEvaluation>
      */
-    public function getScolEvaluations(): Collection
+    public function getEvaluations(): Collection
     {
-        return $this->scolEvaluations;
+        return $this->evaluations;
     }
 
-    public function addScolEvaluation(ScolEvaluation $scolEvaluation): static
+    public function addEvaluation(ScolEvaluation $evaluation): static
     {
-        if (!$this->scolEvaluations->contains($scolEvaluation)) {
-            $this->scolEvaluations->add($scolEvaluation);
-            $scolEvaluation->setAnneeUniv($this);
+        if (!$this->evaluations->contains($evaluation)) {
+            $this->evaluations->add($evaluation);
+            $evaluation->setAnneeUniversitaire($this);
         }
 
         return $this;
     }
 
-    public function removeScolEvaluation(ScolEvaluation $scolEvaluation): static
+    public function removeEvaluation(ScolEvaluation $evaluation): static
     {
-        if ($this->scolEvaluations->removeElement($scolEvaluation)) {
+        if ($this->evaluations->removeElement($evaluation)) {
             // set the owning side to null (unless already changed)
-            if ($scolEvaluation->getAnneeUniv() === $this) {
-                $scolEvaluation->setAnneeUniv(null);
+            if ($evaluation->getAnneeUniversitaire() === $this) {
+                $evaluation->setAnneeUniversitaire(null);
             }
         }
 
@@ -349,27 +349,27 @@ class StructureAnneeUniversitaire
     /**
      * @return Collection<int, EdtEvent>
      */
-    public function getScolEdtEvents(): Collection
+    public function getEdtEvents(): Collection
     {
-        return $this->scolEdtEvents;
+        return $this->edtEvents;
     }
 
-    public function addScolEdtEvent(EdtEvent $scolEdtEvent): static
+    public function addEdtEvent(EdtEvent $edtEvent): static
     {
-        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
-            $this->scolEdtEvents->add($scolEdtEvent);
-            $scolEdtEvent->setAnneeUniversitaire($this);
+        if (!$this->edtEvents->contains($edtEvent)) {
+            $this->edtEvents->add($edtEvent);
+            $edtEvent->setAnneeUniversitaire($this);
         }
 
         return $this;
     }
 
-    public function removeScolEdtEvent(EdtEvent $scolEdtEvent): static
+    public function removeEdtEvent(EdtEvent $edtEvent): static
     {
-        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+        if ($this->edtEvents->removeElement($edtEvent)) {
             // set the owning side to null (unless already changed)
-            if ($scolEdtEvent->getAnneeUniversitaire() === $this) {
-                $scolEdtEvent->setAnneeUniversitaire(null);
+            if ($edtEvent->getAnneeUniversitaire() === $this) {
+                $edtEvent->setAnneeUniversitaire(null);
             }
         }
 
@@ -379,27 +379,27 @@ class StructureAnneeUniversitaire
     /**
      * @return Collection<int, StructureCalendrier>
      */
-    public function getStructureCalendriers(): Collection
+    public function getCalendriers(): Collection
     {
-        return $this->structureCalendriers;
+        return $this->calendriers;
     }
 
-    public function addStructureCalendrier(StructureCalendrier $structureCalendrier): static
+    public function addCalendrier(StructureCalendrier $calendrier): static
     {
-        if (!$this->structureCalendriers->contains($structureCalendrier)) {
-            $this->structureCalendriers->add($structureCalendrier);
-            $structureCalendrier->setStructureAnneeUniversitaire($this);
+        if (!$this->calendriers->contains($calendrier)) {
+            $this->calendriers->add($calendrier);
+            $calendrier->setAnneeUniversitaire($this);
         }
 
         return $this;
     }
 
-    public function removeStructureCalendrier(StructureCalendrier $structureCalendrier): static
+    public function removeCalendrier(StructureCalendrier $calendrier): static
     {
-        if ($this->structureCalendriers->removeElement($structureCalendrier)) {
+        if ($this->calendriers->removeElement($calendrier)) {
             // set the owning side to null (unless already changed)
-            if ($structureCalendrier->getStructureAnneeUniversitaire() === $this) {
-                $structureCalendrier->setStructureAnneeUniversitaire(null);
+            if ($calendrier->getAnneeUniversitaire() === $this) {
+                $calendrier->setAnneeUniversitaire(null);
             }
         }
 
@@ -409,27 +409,27 @@ class StructureAnneeUniversitaire
     /**
      * @return Collection<int, EdtCreneauxInterditsSemaine>
      */
-    public function getEdtCreneauxInterditsSemaines(): Collection
+    public function getCreneauxInterditsSemaines(): Collection
     {
-        return $this->edtCreneauxInterditsSemaines;
+        return $this->creneauxInterditsSemaines;
     }
 
-    public function addEdtCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $edtCreneauxInterditsSemaine): static
+    public function addCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $creneauxInterditsSemaine): static
     {
-        if (!$this->edtCreneauxInterditsSemaines->contains($edtCreneauxInterditsSemaine)) {
-            $this->edtCreneauxInterditsSemaines->add($edtCreneauxInterditsSemaine);
-            $edtCreneauxInterditsSemaine->setAnneeUniversitaire($this);
+        if (!$this->creneauxInterditsSemaines->contains($creneauxInterditsSemaine)) {
+            $this->creneauxInterditsSemaines->add($creneauxInterditsSemaine);
+            $creneauxInterditsSemaine->setAnneeUniversitaire($this);
         }
 
         return $this;
     }
 
-    public function removeEdtCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $edtCreneauxInterditsSemaine): static
+    public function removeCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $creneauxInterditsSemaine): static
     {
-        if ($this->edtCreneauxInterditsSemaines->removeElement($edtCreneauxInterditsSemaine)) {
+        if ($this->creneauxInterditsSemaines->removeElement($creneauxInterditsSemaine)) {
             // set the owning side to null (unless already changed)
-            if ($edtCreneauxInterditsSemaine->getAnneeUniversitaire() === $this) {
-                $edtCreneauxInterditsSemaine->setAnneeUniversitaire(null);
+            if ($creneauxInterditsSemaine->getAnneeUniversitaire() === $this) {
+                $creneauxInterditsSemaine->setAnneeUniversitaire(null);
             }
         }
 
@@ -439,27 +439,27 @@ class StructureAnneeUniversitaire
     /**
      * @return Collection<int, EdtContraintesSemestre>
      */
-    public function getEdtContraintesSemestres(): Collection
+    public function getContraintesSemestres(): Collection
     {
-        return $this->edtContraintesSemestres;
+        return $this->contraintesSemestres;
     }
 
-    public function addEdtContraintesSemestre(EdtContraintesSemestre $edtContraintesSemestre): static
+    public function addContraintesSemestre(EdtContraintesSemestre $contraintesSemestre): static
     {
-        if (!$this->edtContraintesSemestres->contains($edtContraintesSemestre)) {
-            $this->edtContraintesSemestres->add($edtContraintesSemestre);
-            $edtContraintesSemestre->setAnneeUniversitaire($this);
+        if (!$this->contraintesSemestres->contains($contraintesSemestre)) {
+            $this->contraintesSemestres->add($contraintesSemestre);
+            $contraintesSemestre->setAnneeUniversitaire($this);
         }
 
         return $this;
     }
 
-    public function removeEdtContraintesSemestre(EdtContraintesSemestre $edtContraintesSemestre): static
+    public function removeContraintesSemestre(EdtContraintesSemestre $contraintesSemestre): static
     {
-        if ($this->edtContraintesSemestres->removeElement($edtContraintesSemestre)) {
+        if ($this->contraintesSemestres->removeElement($contraintesSemestre)) {
             // set the owning side to null (unless already changed)
-            if ($edtContraintesSemestre->getAnneeUniversitaire() === $this) {
-                $edtContraintesSemestre->setAnneeUniversitaire(null);
+            if ($contraintesSemestre->getAnneeUniversitaire() === $this) {
+                $contraintesSemestre->setAnneeUniversitaire(null);
             }
         }
 
@@ -508,7 +508,7 @@ class StructureAnneeUniversitaire
     {
         if (!$this->stagePeriodes->contains($stagePeriode)) {
             $this->stagePeriodes->add($stagePeriode);
-            $stagePeriode->setStructureAnneeUniversitaire($this);
+            $stagePeriode->setAnneeUniversitaire($this);
         }
 
         return $this;
@@ -518,8 +518,8 @@ class StructureAnneeUniversitaire
     {
         if ($this->stagePeriodes->removeElement($stagePeriode)) {
             // set the owning side to null (unless already changed)
-            if ($stagePeriode->getStructureAnneeUniversitaire() === $this) {
-                $stagePeriode->setStructureAnneeUniversitaire(null);
+            if ($stagePeriode->getAnneeUniversitaire() === $this) {
+                $stagePeriode->setAnneeUniversitaire(null);
             }
         }
 

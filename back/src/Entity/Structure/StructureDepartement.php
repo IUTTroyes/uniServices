@@ -30,11 +30,11 @@ class StructureDepartement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(groups: ['structure_departement:read', 'personnel:read', 'structure_departement_personnel:read', 'scoralite:read'])]
+    #[Groups(groups: ['departement:read', 'personnel:read', 'departement_personnel:read', 'scoralite:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(groups: ['structure_departement:read', 'personnel:read', 'etudiant:read', 'structure_departement_personnel:read', 'scolarite:read'])]
+    #[Groups(groups: ['departement:read', 'personnel:read', 'etudiant:read', 'departement_personnel:read', 'scolarite:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -53,42 +53,41 @@ class StructureDepartement
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups(groups: ['structure_departement:read', 'personnel:read'])]
+    #[Groups(groups: ['departement:read', 'personnel:read'])]
     private ?bool $actif = null;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'departement')]
-    private Collection $structureDiplomes;
+    private Collection $diplomes;
 
     /**
      * @var Collection<int, StructureDepartementPersonnel>
      */
     #[ORM\OneToMany(targetEntity: StructureDepartementPersonnel::class, mappedBy: 'departement')]
-    #[Groups(groups: ['structure_departement:read'])]
-    private Collection $structureDepartementPersonnels;
+    #[Groups(groups: ['departement:read'])]
+    private Collection $departementPersonnels;
 
     /**
      * @var Collection<int, ApcReferentiel>
      */
     #[ORM\OneToMany(targetEntity: ApcReferentiel::class, mappedBy: 'departement')]
-    private Collection $apcReferentiels;
+    private Collection $referentiels;
 
     /**
      * @var Collection<int, EtudiantScolarite>
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'departement')]
-    private Collection $etudiantScolarites;
+    private Collection $scolarites;
 
     public function __construct()
     {
-        $this->structureDiplomes = new ArrayCollection();
-        $this->structureDepartementPersonnels = new ArrayCollection();
+        $this->diplomes = new ArrayCollection();
+        $this->departementPersonnels = new ArrayCollection();
         $this->setOpt([]);
-        $this->apcReferentiels = new ArrayCollection();
-        $this->etudiants = new ArrayCollection();
-        $this->etudiantScolarites = new ArrayCollection();
+        $this->referentiels = new ArrayCollection();
+        $this->scolarites = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -185,13 +184,13 @@ class StructureDepartement
      */
     public function getStructureDiplomes(): Collection
     {
-        return $this->structureDiplomes;
+        return $this->diplomes;
     }
 
     public function addStructureDiplome(StructureDiplome $structureDiplome): static
     {
-        if (!$this->structureDiplomes->contains($structureDiplome)) {
-            $this->structureDiplomes->add($structureDiplome);
+        if (!$this->diplomes->contains($structureDiplome)) {
+            $this->diplomes->add($structureDiplome);
             $structureDiplome->setDepartement($this);
         }
 
@@ -200,7 +199,7 @@ class StructureDepartement
 
     public function removeStructureDiplome(StructureDiplome $structureDiplome): static
     {
-        if ($this->structureDiplomes->removeElement($structureDiplome)) {
+        if ($this->diplomes->removeElement($structureDiplome)) {
             // set the owning side to null (unless already changed)
             if ($structureDiplome->getDepartement() === $this) {
                 $structureDiplome->setDepartement(null);
@@ -213,27 +212,27 @@ class StructureDepartement
     /**
      * @return Collection<int, StructureDepartementPersonnel>
      */
-    public function getStructureDepartementPersonnels(): Collection
+    public function getDepartementPersonnels(): Collection
     {
-        return $this->structureDepartementPersonnels;
+        return $this->departementPersonnels;
     }
 
-    public function addStructureDepartementPersonnel(StructureDepartementPersonnel $structureDepartementPersonnel): static
+    public function addDepartementPersonnel(StructureDepartementPersonnel $departementPersonnel): static
     {
-        if (!$this->structureDepartementPersonnels->contains($structureDepartementPersonnel)) {
-            $this->structureDepartementPersonnels->add($structureDepartementPersonnel);
-            $structureDepartementPersonnel->setDepartement($this);
+        if (!$this->departementPersonnels->contains($departementPersonnel)) {
+            $this->departementPersonnels->add($departementPersonnel);
+            $departementPersonnel->setDepartement($this);
         }
 
         return $this;
     }
 
-    public function removeStructureDepartementPersonnel(StructureDepartementPersonnel $structureDepartementPersonnel): static
+    public function removeDepartementPersonnel(StructureDepartementPersonnel $departementPersonnel): static
     {
-        if ($this->structureDepartementPersonnels->removeElement($structureDepartementPersonnel)) {
+        if ($this->departementPersonnels->removeElement($departementPersonnel)) {
             // set the owning side to null (unless already changed)
-            if ($structureDepartementPersonnel->getDepartement() === $this) {
-                $structureDepartementPersonnel->setDepartement(null);
+            if ($departementPersonnel->getDepartement() === $this) {
+                $departementPersonnel->setDepartement(null);
             }
         }
 
@@ -258,27 +257,27 @@ class StructureDepartement
     /**
      * @return Collection<int, ApcReferentiel>
      */
-    public function getApcReferentiels(): Collection
+    public function getReferentiels(): Collection
     {
-        return $this->apcReferentiels;
+        return $this->referentiels;
     }
 
-    public function addApcReferentiel(ApcReferentiel $apcReferentiel): static
+    public function addReferentiel(ApcReferentiel $referentiel): static
     {
-        if (!$this->apcReferentiels->contains($apcReferentiel)) {
-            $this->apcReferentiels->add($apcReferentiel);
-            $apcReferentiel->setDepartement($this);
+        if (!$this->referentiels->contains($referentiel)) {
+            $this->referentiels->add($referentiel);
+            $referentiel->setDepartement($this);
         }
 
         return $this;
     }
 
-    public function removeApcReferentiel(ApcReferentiel $apcReferentiel): static
+    public function removeReferentiel(ApcReferentiel $referentiel): static
     {
-        if ($this->apcReferentiels->removeElement($apcReferentiel)) {
+        if ($this->referentiels->removeElement($referentiel)) {
             // set the owning side to null (unless already changed)
-            if ($apcReferentiel->getDepartement() === $this) {
-                $apcReferentiel->setDepartement(null);
+            if ($referentiel->getDepartement() === $this) {
+                $referentiel->setDepartement(null);
             }
         }
 
@@ -288,27 +287,27 @@ class StructureDepartement
     /**
      * @return Collection<int, EtudiantScolarite>
      */
-    public function getEtudiantScolarites(): Collection
+    public function getScolarites(): Collection
     {
-        return $this->etudiantScolarites;
+        return $this->scolarites;
     }
 
-    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    public function addScolarite(EtudiantScolarite $scolarite): static
     {
-        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
-            $this->etudiantScolarites->add($etudiantScolarite);
-            $etudiantScolarite->setDepartement($this);
+        if (!$this->scolarites->contains($scolarite)) {
+            $this->scolarites->add($scolarite);
+            $scolarite->setDepartement($this);
         }
 
         return $this;
     }
 
-    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    public function removeScolarite(EtudiantScolarite $scolarite): static
     {
-        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
+        if ($this->scolarites->removeElement($scolarite)) {
             // set the owning side to null (unless already changed)
-            if ($etudiantScolarite->getDepartement() === $this) {
-                $etudiantScolarite->setDepartement(null);
+            if ($scolarite->getDepartement() === $this) {
+                $scolarite->setDepartement(null);
             }
         }
 

@@ -15,15 +15,15 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StructureDepartementPersonnelRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['structure_departement_personnel:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['structure_departement_personnel:read']]),
+        new Get(normalizationContext: ['groups' => ['departement_personnel:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['departement_personnel:read']]),
         new GetCollection(
             uriTemplate: '/structure_departement_personnels/by_personnel/{personnelId}',
             uriVariables: [
                 'personnelId' => new Link(fromClass: Personnel::class, identifiers: ['id'], toProperty: 'personnel')
             ],
             paginationEnabled: false,
-            normalizationContext: ['groups' => ['structure_departement_personnel:read']]
+            normalizationContext: ['groups' => ['departement_personnel:read']]
         ),
         new GetCollection(
             uriTemplate: '/structure_departement_personnels/by_departement/{departementId}',
@@ -31,12 +31,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
                 'departementId' => new Link(fromClass: StructureDepartement::class, identifiers: ['id'], toProperty: 'departement')
             ],
             paginationEnabled: false,
-            normalizationContext: ['groups' => ['structure_departement_personnel:read']]
+            normalizationContext: ['groups' => ['departement_personnel:read']]
         ),
         new Post(uriTemplate: '/structure_departement_personnels/{id}/change_departement',
             inputFormats: ['json' => ['application/ld+json']],
             outputFormats: ['json' => ['application/ld+json']],
-            normalizationContext: ['groups' => ['structure_departement_personnel:read']],
+            normalizationContext: ['groups' => ['departement_personnel:read']],
             processor: 'App\State\ChangeDepartementProcessor'),
     ],
     order: ['personnel.nom', 'departement.libelle']
@@ -46,23 +46,23 @@ class StructureDepartementPersonnel
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(groups: ['personnel:read', 'structure_departement_personnel:read', 'structure_departement:read'])]
+    #[Groups(groups: ['personnel:read', 'departement_personnel:read', 'departement:read'])]
     private ?int $id = null;
 
     #[ORM\Column]
     private array $roles = []; //tableau associatif => 'application' => [droits]
 
     #[ORM\Column]
-    #[Groups(groups: ['personnel:read', 'structure_departement_personnel:read'])]
+    #[Groups(groups: ['personnel:read', 'departement_personnel:read'])]
     private ?bool $defaut = null;
 
-    #[ORM\ManyToOne(inversedBy: 'structureDepartementPersonnels')]
+    #[ORM\ManyToOne(inversedBy: 'departementPersonnels')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(groups: ['structure_departement_personnel:read'])]
+    #[Groups(groups: ['departement_personnel:read'])]
     private ?Personnel $personnel = null;
 
-    #[ORM\ManyToOne(inversedBy: 'structureDepartementPersonnels')]
-    #[Groups(groups: ['personnel:read', 'structure_departement_personnel:read'])]
+    #[ORM\ManyToOne(inversedBy: 'departementPersonnels')]
+    #[Groups(groups: ['personnel:read', 'departement_personnel:read'])]
     private ?StructureDepartement $departement = null;
 
     #[ORM\Column]

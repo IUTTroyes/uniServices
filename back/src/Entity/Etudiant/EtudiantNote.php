@@ -24,7 +24,7 @@ class EtudiantNote
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $commentaire = null;
 
-    #[ORM\ManyToOne(inversedBy: 'etudiantNotes')]
+    #[ORM\ManyToOne(inversedBy: 'notes')]
     private ?ScolEvaluation $evaluation = null;
 
     #[ORM\ManyToOne()]
@@ -36,9 +36,9 @@ class EtudiantNote
     #[ORM\Column(nullable: true)]
     private ?array $historique = null;
 
-    #[ORM\ManyToOne(inversedBy: 'etudiant_note')]
+    #[ORM\ManyToOne(inversedBy: 'note')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?EtudiantScolariteSemestre $etudiantScolariteSemestre = null;
+    private ?EtudiantScolariteSemestre $scolariteSemestre = null;
 
     public function getId(): ?int
     {
@@ -117,14 +117,14 @@ class EtudiantNote
         return $this;
     }
 
-    public function getEtudiantScolariteSemestre(): ?EtudiantScolariteSemestre
+    public function getScolariteSemestre(): ?EtudiantScolariteSemestre
     {
-        return $this->etudiantScolariteSemestre;
+        return $this->scolariteSemestre;
     }
 
-    public function setEtudiantScolariteSemestre(?EtudiantScolariteSemestre $etudiantScolariteSemestre): static
+    public function setScolariteSemestre(?EtudiantScolariteSemestre $scolariteSemestre): static
     {
-        $this->etudiantScolariteSemestre = $etudiantScolariteSemestre;
+        $this->scolariteSemestre = $scolariteSemestre;
 
         return $this;
     }

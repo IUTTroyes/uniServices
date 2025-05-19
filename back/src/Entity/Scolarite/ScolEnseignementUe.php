@@ -18,12 +18,12 @@ class ScolEnseignementUe
     #[Groups(['semestre:read:full'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'scolEnseignementUes')]
-    #[Groups(['semestre:read:full', 'structure_pn:read'])]
+    #[ORM\ManyToOne(inversedBy: 'enseignementUes')]
+    #[Groups(['semestre:read:full', 'pn:read'])]
     private ?ScolEnseignement $enseignement;
 
-    #[ORM\ManyToOne(inversedBy: 'scolEnseignementUes')]
-    #[Groups(['scol_enseignement:read'])]
+    #[ORM\ManyToOne(inversedBy: 'enseignementUes')]
+    #[Groups(['enseignement:read'])]
     private ?StructureUe $ue;
 
     #[ORM\Column]

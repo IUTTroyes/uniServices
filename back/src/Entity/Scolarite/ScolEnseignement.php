@@ -23,7 +23,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: ScolEnseignementRepository::class)]
 #[ApiFilter(EnseignementFilter::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['scol_enseignement:read']],
+    normalizationContext: ['groups' => ['enseignement:read']],
 )]
 class ScolEnseignement
 {
@@ -35,51 +35,51 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'scol_enseignement:read', 'structure_pn:read', 'previsionnel_personnel:read'])]
+    #[Groups(['semestre:read:full', 'enseignement:read', 'pn:read', 'previsionnel_personnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'structure_pn:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'pn:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'enseignement:read'])]
     private ?string $libelle_court = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['scol_enseignement:read'])]
+    #[Groups(['enseignement:read'])]
     private ?string $preRequis = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['scol_enseignement:read'])]
+    #[Groups(['enseignement:read'])]
     private ?string $objectif = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['scol_enseignement:read'])]
+    #[Groups(['enseignement:read'])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['scol_enseignement:read'])]
+    #[Groups(['enseignement:read'])]
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['scol_enseignement:read', 'semestre:read:full', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'structure_pn:read'])]
+    #[Groups(['enseignement:read', 'semestre:read:full', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'pn:read'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'scol_enseignement:read'])]
+    #[Groups(['semestre:read:full', 'enseignement:read'])]
     private ?bool $suspendu = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'scol_enseignement:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read'])]
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'scol_enseignement:read', 'structure_pn:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'enseignement:read', 'pn:read'])]
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]
-    #[Groups(['scol_enseignement:read'])]
+    #[Groups(['enseignement:read'])]
     private ?int $nbNotes = null;
 
     #[ORM\Column]
@@ -89,71 +89,71 @@ class ScolEnseignement
      * @var Collection<int, self>
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
-    #[Groups(['structure_pn:read', 'scol_enseignement:read'])]
+    #[Groups(['pn:read', 'enseignement:read'])]
     private Collection $enfants;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
-    #[Groups(['structure_pn:read', 'scol_enseignement:read'])]
+    #[Groups(['pn:read', 'enseignement:read'])]
     private ?self $parent = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['structure_pn:read'])]
+    #[Groups(['pn:read'])]
     private ?string $livrables = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $exemple = null;
 
     #[ORM\Column]
-    #[Groups(['scol_enseignement:read'])]
+    #[Groups(['enseignement:read'])]
     private ?bool $bonification = null;
 
     /**
      * @var Collection<int, ApcApprentissageCritique>
      */
-    #[ORM\ManyToMany(targetEntity: ApcApprentissageCritique::class, inversedBy: 'scolEnseignements')]
-    #[Groups(['scol_enseignement:read'])]
-    private Collection $apcApprentissageCritique;
+    #[ORM\ManyToMany(targetEntity: ApcApprentissageCritique::class, inversedBy: 'enseignements')]
+    #[Groups(['enseignement:read'])]
+    private Collection $apprentissageCritique;
 
     /**
      * @var Collection<int, EtudiantAbsence>
      */
     #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'enseignement')]
-    private Collection $etudiantAbsences;
+    private Collection $absences;
 
     /**
      * @var Collection<int, ScolEvaluation>
      */
     #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'enseignement')]
-    private Collection $scolEvaluations;
+    private Collection $evaluations;
 
     /**
      * @var Collection<int, EdtEvent>
      */
     #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'enseignement')]
-    private Collection $scolEdtEvents;
+    private Collection $edtEvents;
 
     /**
      * @var Collection<int, ScolEnseignementUe>
      */
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'enseignement', cascade: ['persist', 'remove'])]
-    #[Groups(['scol_enseignement:read'])]
-    private Collection $scolEnseignementUes;
+    #[Groups(['enseignement:read'])]
+    private Collection $enseignementUes;
 
     /**
      * @var Collection<int, Previsionnel>
      */
     #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'enseignement')]
-    #[Groups(['scol_enseignement:read'])]
+    #[Groups(['enseignement:read'])]
     private Collection $previsionnels;
 
     public function __construct()
     {
         $this->enfants = new ArrayCollection();
-        $this->apcApprentissageCritique = new ArrayCollection();
-        $this->etudiantAbsences = new ArrayCollection();
-        $this->scolEvaluations = new ArrayCollection();
-        $this->scolEdtEvents = new ArrayCollection();
-        $this->scolEnseignementUes = new ArrayCollection();
+        $this->apprentissageCritique = new ArrayCollection();
+        $this->absences = new ArrayCollection();
+        $this->evaluations = new ArrayCollection();
+        $this->edtEvents = new ArrayCollection();
+        $this->enseignementUes = new ArrayCollection();
         $this->previsionnels = new ArrayCollection();
     }
 
@@ -379,23 +379,23 @@ class ScolEnseignement
     /**
      * @return Collection<int, ApcApprentissageCritique>
      */
-    public function getApcApprentissageCritique(): Collection
+    public function getApprentissageCritique(): Collection
     {
-        return $this->apcApprentissageCritique;
+        return $this->apprentissageCritique;
     }
 
-    public function addApcApprentissageCritique(ApcApprentissageCritique $apcApprentissageCritique): static
+    public function addApprentissageCritique(ApcApprentissageCritique $apprentissageCritique): static
     {
-        if (!$this->apcApprentissageCritique->contains($apcApprentissageCritique)) {
-            $this->apcApprentissageCritique->add($apcApprentissageCritique);
+        if (!$this->apprentissageCritique->contains($apprentissageCritique)) {
+            $this->apprentissageCritique->add($apprentissageCritique);
         }
 
         return $this;
     }
 
-    public function removeApcApprentissageCritique(ApcApprentissageCritique $apcApprentissageCritique): static
+    public function removeApprentissageCritique(ApcApprentissageCritique $apprentissageCritique): static
     {
-        $this->apcApprentissageCritique->removeElement($apcApprentissageCritique);
+        $this->apprentissageCritique->removeElement($apprentissageCritique);
 
         return $this;
     }
@@ -403,27 +403,27 @@ class ScolEnseignement
     /**
      * @return Collection<int, EtudiantAbsence>
      */
-    public function getEtudiantAbsences(): Collection
+    public function getAbsences(): Collection
     {
-        return $this->etudiantAbsences;
+        return $this->absences;
     }
 
-    public function addEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    public function addAbsence(EtudiantAbsence $absence): static
     {
-        if (!$this->etudiantAbsences->contains($etudiantAbsence)) {
-            $this->etudiantAbsences->add($etudiantAbsence);
-            $etudiantAbsence->setEnseignement($this);
+        if (!$this->absences->contains($absence)) {
+            $this->absences->add($absence);
+            $absence->setEnseignement($this);
         }
 
         return $this;
     }
 
-    public function removeEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    public function removeAbsence(EtudiantAbsence $absence): static
     {
-        if ($this->etudiantAbsences->removeElement($etudiantAbsence)) {
+        if ($this->absences->removeElement($absence)) {
             // set the owning side to null (unless already changed)
-            if ($etudiantAbsence->getEnseignement() === $this) {
-                $etudiantAbsence->setEnseignement(null);
+            if ($absence->getEnseignement() === $this) {
+                $absence->setEnseignement(null);
             }
         }
 
@@ -433,27 +433,27 @@ class ScolEnseignement
     /**
      * @return Collection<int, ScolEvaluation>
      */
-    public function getScolEvaluations(): Collection
+    public function getEvaluations(): Collection
     {
-        return $this->scolEvaluations;
+        return $this->evaluations;
     }
 
-    public function addScolEvaluation(ScolEvaluation $scolEvaluation): static
+    public function addEvaluation(ScolEvaluation $evaluation): static
     {
-        if (!$this->scolEvaluations->contains($scolEvaluation)) {
-            $this->scolEvaluations->add($scolEvaluation);
-            $scolEvaluation->setEnseignement($this);
+        if (!$this->evaluations->contains($evaluation)) {
+            $this->evaluations->add($evaluation);
+            $evaluation->setEnseignement($this);
         }
 
         return $this;
     }
 
-    public function removeScolEvaluation(ScolEvaluation $scolEvaluation): static
+    public function removeEvaluation(ScolEvaluation $evaluation): static
     {
-        if ($this->scolEvaluations->removeElement($scolEvaluation)) {
+        if ($this->evaluations->removeElement($evaluation)) {
             // set the owning side to null (unless already changed)
-            if ($scolEvaluation->getEnseignement() === $this) {
-                $scolEvaluation->setEnseignement(null);
+            if ($evaluation->getEnseignement() === $this) {
+                $evaluation->setEnseignement(null);
             }
         }
 
@@ -463,27 +463,27 @@ class ScolEnseignement
     /**
      * @return Collection<int, EdtEvent>
      */
-    public function getScolEdtEvents(): Collection
+    public function getEdtEvents(): Collection
     {
-        return $this->scolEdtEvents;
+        return $this->edtEvents;
     }
 
-    public function addScolEdtEvent(EdtEvent $scolEdtEvent): static
+    public function addEdtEvent(EdtEvent $edtEvent): static
     {
-        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
-            $this->scolEdtEvents->add($scolEdtEvent);
-            $scolEdtEvent->setEnseignement($this);
+        if (!$this->edtEvents->contains($edtEvent)) {
+            $this->edtEvents->add($edtEvent);
+            $edtEvent->setEnseignement($this);
         }
 
         return $this;
     }
 
-    public function removeScolEdtEvent(EdtEvent $scolEdtEvent): static
+    public function removeEdtEvent(EdtEvent $edtEvent): static
     {
-        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+        if ($this->edtEvents->removeElement($edtEvent)) {
             // set the owning side to null (unless already changed)
-            if ($scolEdtEvent->getEnseignement() === $this) {
-                $scolEdtEvent->setEnseignement(null);
+            if ($edtEvent->getEnseignement() === $this) {
+                $edtEvent->setEnseignement(null);
             }
         }
 
@@ -493,27 +493,27 @@ class ScolEnseignement
     /**
      * @return Collection<int, ScolEnseignementUe>
      */
-    public function getScolEnseignementUes(): Collection
+    public function getEnseignementUes(): Collection
     {
-        return $this->scolEnseignementUes;
+        return $this->enseignementUes;
     }
 
-    public function addScolEnseignementUe(ScolEnseignementUe $scolEnseignementUe): static
+    public function addEnseignementUe(ScolEnseignementUe $enseignementUe): static
     {
-        if (!$this->scolEnseignementUes->contains($scolEnseignementUe)) {
-            $this->scolEnseignementUes->add($scolEnseignementUe);
-            $scolEnseignementUe->setEnseignement($this);
+        if (!$this->enseignementUes->contains($enseignementUe)) {
+            $this->enseignementUes->add($enseignementUe);
+            $enseignementUe->setEnseignement($this);
         }
 
         return $this;
     }
 
-    public function removeScolEnseignementUe(ScolEnseignementUe $scolEnseignementUe): static
+    public function removeEnseignementUe(ScolEnseignementUe $enseignementUe): static
     {
-        if ($this->scolEnseignementUes->removeElement($scolEnseignementUe)) {
+        if ($this->enseignementUes->removeElement($enseignementUe)) {
             // set the owning side to null (unless already changed)
-            if ($scolEnseignementUe->getEnseignement() === $this) {
-                $scolEnseignementUe->setEnseignement(null);
+            if ($enseignementUe->getEnseignement() === $this) {
+                $enseignementUe->setEnseignement(null);
             }
         }
 

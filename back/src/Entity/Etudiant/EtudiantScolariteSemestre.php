@@ -19,30 +19,30 @@ class EtudiantScolariteSemestre
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'etudiantScolariteSemestre', cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(inversedBy: 'semestre', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['scolarite:read', 'etudiant:read'])]
-    private ?StructureSemestre $structure_semestre = null;
+    private ?StructureSemestre $semestre = null;
 
     /**
      * @var Collection<int, EtudiantAbsence>
      */
-    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'etudiantScolariteSemestre')]
-    private Collection $etudiant_absence;
+    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'semestre')]
+    private Collection $absence;
 
     /**
      * @var Collection<int, EtudiantNote>
      */
-    #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'etudiantScolariteSemestre')]
-    private Collection $etudiant_note;
+    #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'semestre')]
+    private Collection $note;
 
-    #[ORM\ManyToOne(inversedBy: 'scolarite_semestre')]
-    private ?EtudiantScolarite $etudiantScolarite = null;
+    #[ORM\ManyToOne(inversedBy: 'semestre')]
+    private ?EtudiantScolarite $scolarite = null;
 
     public function __construct()
     {
-        $this->etudiant_absence = new ArrayCollection();
-        $this->etudiant_note = new ArrayCollection();
+        $this->absence = new ArrayCollection();
+        $this->note = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -50,14 +50,14 @@ class EtudiantScolariteSemestre
         return $this->id;
     }
 
-    public function getStructureSemestre(): ?StructureSemestre
+    public function getSemestre(): ?StructureSemestre
     {
-        return $this->structure_semestre;
+        return $this->semestre;
     }
 
-    public function setStructureSemestre(StructureSemestre $structure_semestre): static
+    public function setSemestre(StructureSemestre $semestre): static
     {
-        $this->structure_semestre = $structure_semestre;
+        $this->semestre = $semestre;
 
         return $this;
     }
@@ -65,27 +65,27 @@ class EtudiantScolariteSemestre
     /**
      * @return Collection<int, EtudiantAbsence>
      */
-    public function getEtudiantAbsence(): Collection
+    public function getAbsence(): Collection
     {
-        return $this->etudiant_absence;
+        return $this->absence;
     }
 
-    public function addEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    public function addAbsence(EtudiantAbsence $absence): static
     {
-        if (!$this->etudiant_absence->contains($etudiantAbsence)) {
-            $this->etudiant_absence->add($etudiantAbsence);
-            $etudiantAbsence->setEtudiantScolariteSemestre($this);
+        if (!$this->absence->contains($absence)) {
+            $this->absence->add($absence);
+            $absence->setScolariteSemestre($this);
         }
 
         return $this;
     }
 
-    public function removeEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    public function removeAbsence(EtudiantAbsence $absence): static
     {
-        if ($this->etudiant_absence->removeElement($etudiantAbsence)) {
+        if ($this->absence->removeElement($absence)) {
             // set the owning side to null (unless already changed)
-            if ($etudiantAbsence->getEtudiantScolariteSemestre() === $this) {
-                $etudiantAbsence->setEtudiantScolariteSemestre(null);
+            if ($absence->getScolariteSemestre() === $this) {
+                $absence->setScolariteSemestre(null);
             }
         }
 
@@ -95,41 +95,41 @@ class EtudiantScolariteSemestre
     /**
      * @return Collection<int, EtudiantNote>
      */
-    public function getEtudiantNote(): Collection
+    public function getNote(): Collection
     {
-        return $this->etudiant_note;
+        return $this->note;
     }
 
-    public function addEtudiantNote(EtudiantNote $etudiantNote): static
+    public function addNote(EtudiantNote $note): static
     {
-        if (!$this->etudiant_note->contains($etudiantNote)) {
-            $this->etudiant_note->add($etudiantNote);
-            $etudiantNote->setEtudiantScolariteSemestre($this);
+        if (!$this->note->contains($note)) {
+            $this->note->add($note);
+            $note->setScolariteSemestre($this);
         }
 
         return $this;
     }
 
-    public function removeEtudiantNote(EtudiantNote $etudiantNote): static
+    public function removeNote(EtudiantNote $note): static
     {
-        if ($this->etudiant_note->removeElement($etudiantNote)) {
+        if ($this->note->removeElement($note)) {
             // set the owning side to null (unless already changed)
-            if ($etudiantNote->getEtudiantScolariteSemestre() === $this) {
-                $etudiantNote->setEtudiantScolariteSemestre(null);
+            if ($note->getScolariteSemestre() === $this) {
+                $note->setScolariteSemestre(null);
             }
         }
 
         return $this;
     }
 
-    public function getEtudiantScolarite(): ?EtudiantScolarite
+    public function getScolarite(): ?EtudiantScolarite
     {
-        return $this->etudiantScolarite;
+        return $this->scolarite;
     }
 
-    public function setEtudiantScolarite(?EtudiantScolarite $etudiantScolarite): static
+    public function setScolarite(?EtudiantScolarite $scolarite): static
     {
-        $this->etudiantScolarite = $etudiantScolarite;
+        $this->scolarite = $scolarite;
 
         return $this;
     }

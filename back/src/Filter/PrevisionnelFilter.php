@@ -54,7 +54,7 @@ class PrevisionnelFilter extends AbstractFilter
         if ('semestre' === $property) {
             $queryBuilder
                 ->join(ScolEnseignement::class, 'se', 'WITH', sprintf('%s.enseignement = se.id', $alias))
-                ->join('se.scolEnseignementUes', 'seue')
+                ->join('se.enseignementUes', 'seue')
                 ->join(StructureUe::class, 'ue', 'WITH', 'seue.ue = ue.id')
                 ->join(StructureSemestre::class, 'ss', 'WITH', 'ue.semestre = ss.id')
                 ->andWhere('ss.id = :semestre')
@@ -72,11 +72,11 @@ class PrevisionnelFilter extends AbstractFilter
         if ('diplome' === $property) {
             $queryBuilder
                 ->join(ScolEnseignement::class, 'se', 'WITH', sprintf('%s.enseignement = se.id', $alias))
-                ->join('se.scolEnseignementUes', 'seue')
+                ->join('se.enseignementUes', 'seue')
                 ->join(StructureUe::class, 'ue', 'WITH', 'seue.ue = ue.id')
                 ->join(StructureSemestre::class, 'ss', 'WITH', 'ue.semestre = ss.id')
                 ->innerJoin(StructureAnnee::class, 'sa', 'WITH', 'ss.annee = sa.id')
-                ->andWhere('sa.structureDiplome = :diplome')
+                ->andWhere('sa.diplome = :diplome')
                 ->setParameter('diplome', $value)
             ;
         }
@@ -84,11 +84,11 @@ class PrevisionnelFilter extends AbstractFilter
         if ('departement' === $property) {
             $queryBuilder
                 ->join(ScolEnseignement::class, 'se', 'WITH', sprintf('%s.enseignement = se.id', $alias))
-                ->join('se.scolEnseignementUes', 'seue')
+                ->join('se.enseignementUes', 'seue')
                 ->join(StructureUe::class, 'ue', 'WITH', 'seue.ue = ue.id')
                 ->join(StructureSemestre::class, 'ss', 'WITH', 'ue.semestre = ss.id')
                 ->innerJoin(StructureAnnee::class, 'sa', 'WITH', 'ss.annee = sa.id')
-                ->innerJoin(StructureDiplome::class, 'sd', 'WITH', 'sa.structureDiplome = sd.id')
+                ->innerJoin(StructureDiplome::class, 'sd', 'WITH', 'sa.diplome = sd.id')
                 ->innerJoin(StructureDepartement::class, 'sde', 'WITH', 'sd.departement = sde.id')
                 ->andWhere('sde.id = :departement')
                 ->setParameter('departement', $value)

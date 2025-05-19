@@ -20,8 +20,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StructureGroupeRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['structure_diplome:read', 'structure_diplome:read:full']]),
-        new GetCollection(normalizationContext: ['groups' => ['structure_diplome:read']]),
+        new Get(normalizationContext: ['groups' => ['diplome:read', 'diplome:read:full']]),
+        new GetCollection(normalizationContext: ['groups' => ['diplome:read']]),
     ]
 )]
 class StructureGroupe
@@ -53,7 +53,7 @@ class StructureGroupe
     #[Groups(['semestre:read'])]
     private ?int $ordre = null;
 
-    #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'structureGroupes')]
+    #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'groupes')]
     private Collection $semestres;
 
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
@@ -65,28 +65,28 @@ class StructureGroupe
      */
     #[ORM\ManyToMany(targetEntity: ApcParcours::class, mappedBy: 'groupes')]
     #[Groups(['semestre:read'])]
-    private Collection $apcParcours;
+    private Collection $parcours;
 
     /**
      * @var Collection<int, EdtEvent>
      */
     #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'groupe')]
     #[Groups(['semestre:read'])]
-    private Collection $scolEdtEvents;
+    private Collection $edtEvents;
 
     /**
      * @var Collection<int, EtudiantScolarite>
      */
     #[ORM\ManyToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'groupes')]
-    private Collection $etudiantScolarites;
+    private Collection $scolarites;
 
     public function __construct()
     {
         $this->semestres = new ArrayCollection();
         $this->enfants = new ArrayCollection();
-        $this->apcParcours = new ArrayCollection();
-        $this->scolEdtEvents = new ArrayCollection();
-        $this->etudiantScolarites = new ArrayCollection();
+        $this->parcours = new ArrayCollection();
+        $this->edtEvents = new ArrayCollection();
+        $this->scolarites = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -199,25 +199,25 @@ class StructureGroupe
     /**
      * @return Collection<int, ApcParcours>
      */
-    public function getApcParcours(): Collection
+    public function getParcours(): Collection
     {
-        return $this->apcParcours;
+        return $this->parcours;
     }
 
-    public function addApcParcour(ApcParcours $apcParcour): static
+    public function addParcour(ApcParcours $parcour): static
     {
-        if (!$this->apcParcours->contains($apcParcour)) {
-            $this->apcParcours->add($apcParcour);
-            $apcParcour->addGroupe($this);
+        if (!$this->parcours->contains($parcour)) {
+            $this->parcours->add($parcour);
+            $parcour->addGroupe($this);
         }
 
         return $this;
     }
 
-    public function removeApcParcour(ApcParcours $apcParcour): static
+    public function removeParcour(ApcParcours $parcour): static
     {
-        if ($this->apcParcours->removeElement($apcParcour)) {
-            $apcParcour->removeGroupe($this);
+        if ($this->parcours->removeElement($parcour)) {
+            $parcour->removeGroupe($this);
         }
 
         return $this;
@@ -226,27 +226,27 @@ class StructureGroupe
     /**
      * @return Collection<int, EdtEvent>
      */
-    public function getScolEdtEvents(): Collection
+    public function getEdtEvents(): Collection
     {
-        return $this->scolEdtEvents;
+        return $this->edtEvents;
     }
 
-    public function addScolEdtEvent(EdtEvent $scolEdtEvent): static
+    public function addEdtEvent(EdtEvent $edtEvent): static
     {
-        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
-            $this->scolEdtEvents->add($scolEdtEvent);
-            $scolEdtEvent->setGroupe($this);
+        if (!$this->edtEvents->contains($edtEvent)) {
+            $this->edtEvents->add($edtEvent);
+            $edtEvent->setGroupe($this);
         }
 
         return $this;
     }
 
-    public function removeScolEdtEvent(EdtEvent $scolEdtEvent): static
+    public function removeEdtEvent(EdtEvent $edtEvent): static
     {
-        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+        if ($this->edtEvents->removeElement($edtEvent)) {
             // set the owning side to null (unless already changed)
-            if ($scolEdtEvent->getGroupe() === $this) {
-                $scolEdtEvent->setGroupe(null);
+            if ($edtEvent->getGroupe() === $this) {
+                $edtEvent->setGroupe(null);
             }
         }
 
@@ -256,25 +256,25 @@ class StructureGroupe
     /**
      * @return Collection<int, EtudiantScolarite>
      */
-    public function getEtudiantScolarites(): Collection
+    public function getScolarites(): Collection
     {
-        return $this->etudiantScolarites;
+        return $this->scolarites;
     }
 
-    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    public function addScolarite(EtudiantScolarite $scolarite): static
     {
-        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
-            $this->etudiantScolarites->add($etudiantScolarite);
-            $etudiantScolarite->addGroupe($this);
+        if (!$this->scolarites->contains($scolarite)) {
+            $this->scolarites->add($scolarite);
+            $scolarite->addGroupe($this);
         }
 
         return $this;
     }
 
-    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    public function removeScolarite(EtudiantScolarite $scolarite): static
     {
-        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
-            $etudiantScolarite->removeGroupe($this);
+        if ($this->scolarites->removeElement($scolarite)) {
+            $scolarite->removeGroupe($this);
         }
 
         return $this;

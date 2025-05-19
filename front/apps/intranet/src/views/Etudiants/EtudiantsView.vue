@@ -134,7 +134,7 @@ const getEtudiantsScolarite = async () => {
     etudiants.value.forEach(etudiant => {
       etudiant.annees = [
         ...new Set(
-            etudiant.structure_annee
+            etudiant.annee
         ),
       ];
     });

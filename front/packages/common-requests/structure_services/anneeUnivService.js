@@ -19,14 +19,13 @@ const getAllAnneesUniversitairesService = async (showToast = false) => {
 
 const getAnneeUniversitaireService = async (id, showToast = false) => {
     try {
-        const response = await apiCall(
+        return await apiCall(
             api.get,
             [`/api/structure_annee_universitaires/${id}`],
             'Année universitaire récupérée avec succès',
             'Erreur lors de la récupération de l\'année universitaire',
             showToast
         );
-        return response;
     } catch (error) {
         console.error('Erreur dans getAnneeUniversitaireService:', error);
         throw error;

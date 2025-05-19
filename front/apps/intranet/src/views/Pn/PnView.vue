@@ -36,7 +36,7 @@ onMounted(async () => {
   }
 
   if (selectedPn.value) {
-    nodes.value = transformData(selectedPn.value.structureAnnees);
+    nodes.value = transformData(selectedPn.value.annees);
     isLoadingPn.value = false;
   }
 })
@@ -62,10 +62,10 @@ const getPnsForDiplome = async (diplomeId) => {
     isLoadingPn.value = true;
     pns.value = await getPnsDiplome(diplomeId)
     // parmis tous les pn, on prend celui qui a une année active
-    selectedPn.value = pns.value.find(pn => pn.structureAnneeUniversitaires.some(annee => annee.actif === true)) ?? null
-    nodes.value = transformData(selectedPn.value.structureAnnees);
+    selectedPn.value = pns.value.find(pn => pn.anneeUniversitaires.some(annee => annee.actif === true)) ?? null
+    nodes.value = transformData(selectedPn.value.annees);
     if (selectedPn.value) {
-      nodes.value = transformData(selectedPn.value.structureAnnees);
+      nodes.value = transformData(selectedPn.value.annees);
     }
   } catch (error) {
     console.error('Erreur lors du chargement des PNs:', error);
@@ -90,7 +90,7 @@ const changeDiplome = (diplome) => {
   selectedDiplome.value = diplome
   getPnsForDiplome(selectedDiplome.value.id);
 
-  nodes.value = transformData(selectedPn.value.structureAnnees);
+  nodes.value = transformData(selectedPn.value.annees);
 }
 
 const nodes = ref([]);
@@ -105,7 +105,7 @@ const transformData = (data) => {
     key: annee['@id'],
     data: { libelle: annee.libelle, apogeeCode: annee.apogeeCodeEtape },
     edit: false,
-    children: annee.structureSemestres.map(semestre => ({
+    children: annee.semestres.map(semestre => ({
       key: semestre['@id'],
       data: { libelle: semestre.libelle, apogeeCode: semestre.codeElement },
       edit: true,
@@ -150,7 +150,7 @@ const showDetails = (item, semestre) => {
         <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" />
       </div>
       <div class="text-xl font-bold mb-4">{{selectedDiplome?.apcParcours?.display ?? `Aucun parcours renseigné`}}</div>
-      <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.structureAnnees" :legend="`${annee.libelle}`" :toggleable="true">
+      <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.annees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
           <i class="pi pi-angle-down"></i>
         </template>
@@ -175,7 +175,7 @@ const showDetails = (item, semestre) => {
               </tbody>
             </table>
           </div>
-          <div v-for="semestre in annee.structureSemestres" class="ml-6 border-l-2 border-primary-300 pl-4">
+          <div v-for="semestre in annee.semestres" class="ml-6 border-l-2 border-primary-300 pl-4">
             <div class="mt-6 mb-2 flex flex-row items-center gap-4">
               <table class="text-lg">
                 <thead>
@@ -190,7 +190,7 @@ const showDetails = (item, semestre) => {
                 <tr>
                   <td class="px-2 font-bold">{{ semestre.libelle }}</td>
                   <td class="px-2 font-bold">{{ semestre.codeElement }}</td>
-                  <td class="px-2 font-bold">{{ semestre.structureUes.length }}</td>
+                  <td class="px-2 font-bold">{{ semestre.ues.length }}</td>
                 </tr>
                 </tbody>
               </table>
@@ -215,7 +215,7 @@ const showDetails = (item, semestre) => {
                 </tbody>
               </table>
             </div>
-            <Fieldset v-for="ue in semestre.structureUes" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`" class="ml-6 !border-l-2 !border-l-primary-200 !pl-4 !border-0" :collapsed="true">
+            <Fieldset v-for="ue in semestre.ues" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`" class="ml-6 !border-l-2 !border-l-primary-200 !pl-4 !border-0" :collapsed="true">
               <template #toggleicon>
                 <i class="pi pi-angle-down"></i>
               </template>

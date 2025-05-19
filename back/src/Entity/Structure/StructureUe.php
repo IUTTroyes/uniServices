@@ -25,15 +25,15 @@ class StructureUe
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read:full', 'structure_pn:read'])]
+    #[Groups(['semestre:read:full', 'pn:read'])]
     private string $libelle = '';
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'structure_pn:read'])]
+    #[Groups(['semestre:read:full', 'pn:read'])]
     private int $numero = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'structure_pn:read'])]
+    #[Groups(['semestre:read:full', 'pn:read'])]
     private float $nbEcts = 0;
 
     #[ORM\Column]
@@ -45,35 +45,35 @@ class StructureUe
     private bool $bonification = false;
 
     #[ORM\Column(length: 15)]
-    #[Groups(['semestre:read:full', 'structure_pn:read'])]
+    #[Groups(['semestre:read:full', 'pn:read'])]
     private string $codeElement = '';
 
     #[ORM\ManyToOne(inversedBy: 'ues')]
-    #[Groups(['structure_pn:read', 'scol_enseignement:read'])]
-    private ?ApcCompetence $apcCompetence = null;
+    #[Groups(['pn:read', 'enseignement:read'])]
+    private ?ApcCompetence $competence = null;
 
-    #[ORM\ManyToOne(inversedBy: 'structureUes')]
-    #[Groups(['scol_enseignement:read'])]
+    #[ORM\ManyToOne(inversedBy: 'ues')]
+    #[Groups(['enseignement:read'])]
     private ?StructureSemestre $semestre = null;
 
     /**
      * @var Collection<int, ScolEnseignementUe>
      */
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'ue')]
-    #[Groups(['semestre:read:full', 'structure_pn:read'])]
-    private Collection $scolEnseignementUes;
+    #[Groups(['semestre:read:full', 'pn:read'])]
+    private Collection $enseignementUes;
 
     // todo: add coeff. ?
 
     public function __construct()
     {
-        $this->scolEnseignementUes = new ArrayCollection();
+        $this->enseignementUes = new ArrayCollection();
     }
 
-    #[Groups(['structure_pn:read'])]
+    #[Groups(['pn:read'])]
     public function getDisplayApc(): string
     {
-        return $this->apcCompetence ? $this->libelle.' | '.$this->apcCompetence->getNomCourt() : $this->libelle;
+        return $this->competence ? $this->libelle.' | '.$this->competence->getNomCourt() : $this->libelle;
     }
 
     public function getId(): ?int
@@ -153,14 +153,14 @@ class StructureUe
         return $this;
     }
 
-    public function getApcCompetence(): ?ApcCompetence
+    public function getCompetence(): ?ApcCompetence
     {
-        return $this->apcCompetence;
+        return $this->competence;
     }
 
-    public function setApcCompetence(?ApcCompetence $apcCompetence): static
+    public function setCompetence(?ApcCompetence $competence): static
     {
-        $this->apcCompetence = $apcCompetence;
+        $this->competence = $competence;
 
         return $this;
     }
@@ -180,27 +180,27 @@ class StructureUe
     /**
      * @return Collection<int, ScolEnseignementUe>
      */
-    public function getScolEnseignementUes(): Collection
+    public function getEnseignementUes(): Collection
     {
-        return $this->scolEnseignementUes;
+        return $this->enseignementUes;
     }
 
-    public function addScolEnseignementUe(ScolEnseignementUe $scolEnseignementUe): static
+    public function addEnseignementUe(ScolEnseignementUe $enseignementUe): static
     {
-        if (!$this->scolEnseignementUes->contains($scolEnseignementUe)) {
-            $this->scolEnseignementUes->add($scolEnseignementUe);
-            $scolEnseignementUe->setUe($this);
+        if (!$this->enseignementUes->contains($enseignementUe)) {
+            $this->enseignementUes->add($enseignementUe);
+            $enseignementUe->setUe($this);
         }
 
         return $this;
     }
 
-    public function removeScolEnseignementUe(ScolEnseignementUe $scolEnseignementUe): static
+    public function removeEnseignementUe(ScolEnseignementUe $enseignementUe): static
     {
-        if ($this->scolEnseignementUes->removeElement($scolEnseignementUe)) {
+        if ($this->enseignementUes->removeElement($enseignementUe)) {
             // set the owning side to null (unless already changed)
-            if ($scolEnseignementUe->getUe() === $this) {
-                $scolEnseignementUe->setUe(null);
+            if ($enseignementUe->getUe() === $this) {
+                $enseignementUe->setUe(null);
             }
         }
 

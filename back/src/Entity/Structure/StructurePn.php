@@ -19,8 +19,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity(repositoryClass: StructurePnRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['structure_pn:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['structure_pn:read']]),
+        new Get(normalizationContext: ['groups' => ['pn:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['pn:read']]),
     ]
 )]
 #[ApiFilter(PnFilter::class)]
@@ -29,15 +29,15 @@ class StructurePn
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['structure_pn:read', 'structure_diplome:read'])]
+    #[Groups(['pn:read', 'diplome:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['structure_pn:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['pn:read', 'diplome:read:full', 'diplome:read'])]
     private string $libelle;
 
     #[ORM\Column]
-    #[Groups(['structure_diplome:read:full'])]
+    #[Groups(['diplome:read:full'])]
     private int $anneePublication;
 
     #[ORM\ManyToOne(inversedBy: 'structurePns')]
@@ -47,8 +47,8 @@ class StructurePn
      * @var Collection<int, StructureAnneeUniversitaire>
      */
     #[ORM\ManyToMany(targetEntity: StructureAnneeUniversitaire::class, mappedBy: 'pn')]
-    #[Groups(['structure_pn:read'])]
-    private Collection $structureAnneeUniversitaires;
+    #[Groups(['pn:read'])]
+    private Collection $anneeUniversitaires;
 
     #[ORM\ManyToOne(inversedBy: 'pn')]
     private ?ApcReferentiel $apcReferentiel = null;
@@ -57,14 +57,14 @@ class StructurePn
      * @var Collection<int, StructureAnnee>
      */
     #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'pn')]
-    #[Groups(['structure_pn:read', 'structure_diplome:read:full'])]
-    private Collection $structureAnnees;
+    #[Groups(['pn:read', 'diplome:read:full'])]
+    private Collection $annees;
 
     public function __construct(StructureDiplome $diplome)
     {
-        $this->structureAnneeUniversitaires = new ArrayCollection();
+        $this->anneeUniversitaires = new ArrayCollection();
         $this->anneePublication = (int)(new DateTime('now'))->format('Y');
-        $this->structureAnnees = new ArrayCollection();
+        $this->annees = new ArrayCollection();
         $this->setDiplome($diplome);
     }
 
@@ -112,25 +112,25 @@ class StructurePn
     /**
      * @return Collection<int, StructureAnneeUniversitaire>
      */
-    public function getStructureAnneeUniversitaires(): Collection
+    public function getAnneeUniversitaires(): Collection
     {
-        return $this->structureAnneeUniversitaires;
+        return $this->anneeUniversitaires;
     }
 
-    public function addStructureAnneeUniversitaire(StructureAnneeUniversitaire $structureAnneeUniversitaire): static
+    public function addAnneeUniversitaire(StructureAnneeUniversitaire $anneeUniversitaire): static
     {
-        if (!$this->structureAnneeUniversitaires->contains($structureAnneeUniversitaire)) {
-            $this->structureAnneeUniversitaires->add($structureAnneeUniversitaire);
-            $structureAnneeUniversitaire->addPn($this);
+        if (!$this->anneeUniversitaires->contains($anneeUniversitaire)) {
+            $this->anneeUniversitaires->add($anneeUniversitaire);
+            $anneeUniversitaire->addPn($this);
         }
 
         return $this;
     }
 
-    public function removeStructureAnneeUniversitaire(StructureAnneeUniversitaire $structureAnneeUniversitaire): static
+    public function removeAnneeUniversitaire(StructureAnneeUniversitaire $anneeUniversitaire): static
     {
-        if ($this->structureAnneeUniversitaires->removeElement($structureAnneeUniversitaire)) {
-            $structureAnneeUniversitaire->removePn($this);
+        if ($this->anneeUniversitaires->removeElement($anneeUniversitaire)) {
+            $anneeUniversitaire->removePn($this);
         }
 
         return $this;
@@ -151,27 +151,27 @@ class StructurePn
     /**
      * @return Collection<int, StructureAnnee>
      */
-    public function getStructureAnnees(): Collection
+    public function getAnnees(): Collection
     {
-        return $this->structureAnnees;
+        return $this->annees;
     }
 
-    public function addStructureAnnee(StructureAnnee $structureAnnee): static
+    public function addAnnee(StructureAnnee $annee): static
     {
-        if (!$this->structureAnnees->contains($structureAnnee)) {
-            $this->structureAnnees->add($structureAnnee);
-            $structureAnnee->setPn($this);
+        if (!$this->annees->contains($annee)) {
+            $this->annees->add($annee);
+            $annee->setPn($this);
         }
 
         return $this;
     }
 
-    public function removeStructureAnnee(StructureAnnee $structureAnnee): static
+    public function removeAnnee(StructureAnnee $annee): static
     {
-        if ($this->structureAnnees->removeElement($structureAnnee)) {
+        if ($this->annees->removeElement($annee)) {
             // set the owning side to null (unless already changed)
-            if ($structureAnnee->getPn() === $this) {
-                $structureAnnee->setPn(null);
+            if ($annee->getPn() === $this) {
+                $annee->setPn(null);
             }
         }
 

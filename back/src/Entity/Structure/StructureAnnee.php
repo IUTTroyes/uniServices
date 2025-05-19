@@ -25,14 +25,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiFilter(AnneeFilter::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['structure_annee:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['structure_annee:read']]),
+        new Get(normalizationContext: ['groups' => ['annee:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['annee:read']]),
         new GetCollection(
             uriTemplate: '/annees-par-diplome/{diplomeId}',
             uriVariables: [
                 'diplomeId' => new Link(fromClass: StructureDiplome::class, identifiers: ['id'], toProperty: 'diplome')
             ],
-            normalizationContext: ['groups' => ['structure_annee:read']]
+            normalizationContext: ['groups' => ['annee:read']]
         )
     ]
 )]
@@ -45,23 +45,23 @@ class StructureAnnee
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'etudiant:read', 'structure_annee:read'])]
+    #[Groups(['diplome:read:full', 'diplome:read', 'etudiant:read', 'annee:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'semestre:read', 'structure_pn:read', 'structure_annee:read', 'etudiant:read'])]
+    #[Groups(['diplome:read:full', 'diplome:read', 'scolarite:read', 'semestre:read', 'pn:read', 'annee:read', 'etudiant:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
-    #[Groups(['structure_diplome:read:full'])]
+    #[Groups(['diplome:read:full'])]
     private int $ordre = 0;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['diplome:read'])]
     private ?string $libelleLong = null;
 
     #[ORM\Column]
-    #[Groups(['structure_annee:read'])]
+    #[Groups(['annee:read'])]
     private bool $actif = true;
 
     #[ORM\Column(length: 30, nullable: true)]
@@ -71,37 +71,37 @@ class StructureAnnee
      * @var Collection<int, StructureSemestre>
      */
     #[ORM\OneToMany(targetEntity: StructureSemestre::class, mappedBy: 'annee')]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read', 'structure_pn:read'])]
-    private Collection $structureSemestres;
+    #[Groups(['diplome:read:full', 'diplome:read', 'pn:read'])]
+    private Collection $semestres;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['structure_pn:read'])]
+    #[Groups(['pn:read'])]
     private ?string $apogeeCodeVersion = null;
 
     #[ORM\Column(length: 10, nullable: true)]
-    #[Groups(['structure_pn:read'])]
+    #[Groups(['pn:read'])]
     private ?string $apogeeCodeEtape = null;
 
     #[ORM\ManyToOne(inversedBy: 'annees')]
-    private ?ApcNiveau $apcNiveau = null;
+    private ?ApcNiveau $niveau = null;
 
-    #[ORM\ManyToOne(inversedBy: 'structureAnnees')]
+    #[ORM\ManyToOne(inversedBy: 'annees')]
     private ?StructurePn $pn = null;
 
     #[ORM\ManyToOne(inversedBy: 'annees')]
-    private ?StructureDiplome $structureDiplome = null;
+    private ?StructureDiplome $diplome = null;
 
     /**
      * @var Collection<int, EtudiantScolarite>
      */
-    #[ORM\ManyToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'structure_annee')]
-    private Collection $etudiantScolarites;
+    #[ORM\ManyToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'annee')]
+    private Collection $scolarites;
 
     public function __construct()
     {
-        $this->structureSemestres = new ArrayCollection();
+        $this->semestres = new ArrayCollection();
         $this->setOpt([]);
-        $this->etudiantScolarites = new ArrayCollection();
+        $this->scolarites = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -172,27 +172,27 @@ class StructureAnnee
     /**
      * @return Collection<int, StructureSemestre>
      */
-    public function getStructureSemestres(): Collection
+    public function getSemestres(): Collection
     {
-        return $this->structureSemestres;
+        return $this->semestres;
     }
 
-    public function addStructureSemestre(StructureSemestre $structureSemestre): static
+    public function addSemestre(StructureSemestre $semestre): static
     {
-        if (!$this->structureSemestres->contains($structureSemestre)) {
-            $this->structureSemestres->add($structureSemestre);
-            $structureSemestre->setAnnee($this);
+        if (!$this->semestres->contains($semestre)) {
+            $this->semestres->add($semestre);
+            $semestre->setAnnee($this);
         }
 
         return $this;
     }
 
-    public function removeStructureSemestre(StructureSemestre $structureSemestre): static
+    public function removeSemestre(StructureSemestre $semestre): static
     {
-        if ($this->structureSemestres->removeElement($structureSemestre)) {
+        if ($this->semestres->removeElement($semestre)) {
             // set the owning side to null (unless already changed)
-            if ($structureSemestre->getAnnee() === $this) {
-                $structureSemestre->setAnnee(null);
+            if ($semestre->getAnnee() === $this) {
+                $semestre->setAnnee(null);
             }
         }
 
@@ -232,14 +232,14 @@ class StructureAnnee
         return $this;
     }
 
-    public function getApcNiveau(): ?ApcNiveau
+    public function getNiveau(): ?ApcNiveau
     {
-        return $this->apcNiveau;
+        return $this->niveau;
     }
 
-    public function setApcNiveau(?ApcNiveau $apcNiveau): static
+    public function setNiveau(?ApcNiveau $niveau): static
     {
-        $this->apcNiveau = $apcNiveau;
+        $this->niveau = $niveau;
 
         return $this;
     }
@@ -256,14 +256,14 @@ class StructureAnnee
         return $this;
     }
 
-    public function getStructureDiplome(): ?StructureDiplome
+    public function getDiplome(): ?StructureDiplome
     {
-        return $this->structureDiplome;
+        return $this->diplome;
     }
 
-    public function setStructureDiplome(?StructureDiplome $structureDiplome): static
+    public function setDiplome(?StructureDiplome $diplome): static
     {
-        $this->structureDiplome = $structureDiplome;
+        $this->diplome = $diplome;
 
         return $this;
     }
@@ -271,25 +271,25 @@ class StructureAnnee
     /**
      * @return Collection<int, EtudiantScolarite>
      */
-    public function getEtudiantScolarites(): Collection
+    public function getScolarites(): Collection
     {
-        return $this->etudiantScolarites;
+        return $this->scolarites;
     }
 
-    public function addEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    public function addScolarite(EtudiantScolarite $scolarite): static
     {
-        if (!$this->etudiantScolarites->contains($etudiantScolarite)) {
-            $this->etudiantScolarites->add($etudiantScolarite);
-            $etudiantScolarite->addStructureAnnee($this);
+        if (!$this->scolarites->contains($scolarite)) {
+            $this->scolarites->add($scolarite);
+            $scolarite->addAnnee($this);
         }
 
         return $this;
     }
 
-    public function removeEtudiantScolarite(EtudiantScolarite $etudiantScolarite): static
+    public function removeScolarite(EtudiantScolarite $scolarite): static
     {
-        if ($this->etudiantScolarites->removeElement($etudiantScolarite)) {
-            $etudiantScolarite->removeStructureAnnee($this);
+        if ($this->scolarites->removeElement($scolarite)) {
+            $scolarite->removeAnnee($this);
         }
 
         return $this;

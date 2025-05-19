@@ -1,7 +1,6 @@
 <script setup>
 import EtudiantProfil from '@components/components/Etudiant/ProfilEtudiant.vue'
 
-
 const redirectTo = (link) => {
   window.open(link, '_blank');
 };

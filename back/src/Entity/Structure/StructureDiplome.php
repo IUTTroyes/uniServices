@@ -27,18 +27,17 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     paginationEnabled: false,
     operations: [
-        new Get(normalizationContext: ['groups' => ['structure_diplome:read', 'structure_diplome:read:full']]),
-        new GetCollection(normalizationContext: ['groups' => ['structure_diplome:read']]),
+        new Get(normalizationContext: ['groups' => ['diplome:read', 'diplome:read:full']]),
+        new GetCollection(normalizationContext: ['groups' => ['diplome:read']]),
         new GetCollection(
             uriTemplate: '/diplomes-par-departement/{departementId}',
             uriVariables: [
                 'departementId' => new Link(fromClass: StructureDepartement::class, identifiers: ['id'], toProperty: 'departement')
             ],
-            normalizationContext: ['groups' => ['structure_diplome:read']]
+            normalizationContext: ['groups' => ['diplome:read']]
         )
     ]
 )]
-
 #[ORM\HasLifecycleCallbacks]
 class StructureDiplome
 {
@@ -50,35 +49,35 @@ class StructureDiplome
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['diplome:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['diplome:read'])]
     private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome', cascade: ['persist'])]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['diplome:read'])]
     private ?Personnel $responsableDiplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'assistantDiplome', cascade: ['persist'])]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['diplome:read'])]
     private ?Personnel $assistantDiplome = null;
 
     #[ORM\Column]
-    #[Groups(['structure_diplome:read:full'])]
+    #[Groups(['diplome:read:full'])]
     private int $volumeHoraire = 0;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['structure_diplome:read:full'])]
+    #[Groups(['diplome:read:full'])]
     private ?int $codeCelcatDepartement = null;
 
     #[ORM\Column(length: 40, nullable: true)]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['diplome:read'])]
     private ?string $sigle = null;
 
     #[ORM\Column]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['diplome:read'])]
     private bool $actif = true;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
@@ -92,40 +91,40 @@ class StructureDiplome
     private ?string $logoPartenaireName = null;
 
     #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome', fetch: 'EAGER')]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
-    private Collection $structurePns;
+    #[Groups(['diplome:read:full', 'diplome:read'])]
+    private Collection $pns;
 
-    #[ORM\ManyToOne(inversedBy: 'structureDiplomes')]
+    #[ORM\ManyToOne(inversedBy: 'diplomes')]
     private ?StructureDepartement $departement = null;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['structure_diplome:read:full'])]
+    #[Groups(['diplome:read:full'])]
     private ?string $apogeeCodeVersion = null;
 
     #[ORM\Column(length: 10, nullable: true)]
-    #[Groups(['structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['diplome:read:full', 'diplome:read'])]
     private ?string $apogeeCodeDiplome = null;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['structure_diplome:read:full'])]
+    #[Groups(['diplome:read:full'])]
     private ?string $apogeeCodeDepartement = null;
 
-    #[ORM\ManyToOne(inversedBy: 'structureDiplomes')]
-    #[Groups(['structure_diplome:read'])]
+    #[ORM\ManyToOne(inversedBy: 'diplomes')]
+    #[Groups(['diplome:read'])]
     private ?StructureTypeDiplome $typeDiplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
-    private ?ApcReferentiel $apcReferentiel = null;
+    private ?ApcReferentiel $referentiel = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplome')]
-    #[Groups(['structure_diplome:read'])]
-    private ?ApcParcours $apcParcours = null;
+    #[Groups(['diplome:read'])]
+    private ?ApcParcours $parcours = null;
 
     /**
      * @var Collection<int, StructureAnnee>
      */
-    #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'structureDiplome')]
-    #[Groups(['structure_diplome:read'])]
+    #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'diplome')]
+    #[Groups(['diplome:read'])]
     private Collection $annees;
 
     #[ORM\Column(nullable: true)]
@@ -134,7 +133,7 @@ class StructureDiplome
     public function __construct()
     {
         $this->enfants = new ArrayCollection();
-        $this->structurePns = new ArrayCollection();
+        $this->pns = new ArrayCollection();
         $this->setOpt([]);
         $this->annees = new ArrayCollection();
     }
@@ -285,27 +284,27 @@ class StructureDiplome
     /**
      * @return Collection<int, StructurePn>
      */
-    public function getStructurePns(): Collection
+    public function getPns(): Collection
     {
-        return $this->structurePns;
+        return $this->pns;
     }
 
-    public function addStructurePn(StructurePn $structurePn): static
+    public function addPn(StructurePn $pn): static
     {
-        if (!$this->structurePns->contains($structurePn)) {
-            $this->structurePns->add($structurePn);
-            $structurePn->setDiplome($this);
+        if (!$this->pns->contains($pn)) {
+            $this->pns->add($pn);
+            $pn->setDiplome($this);
         }
 
         return $this;
     }
 
-    public function removeStructurePn(StructurePn $structurePn): static
+    public function removePn(StructurePn $pn): static
     {
-        if ($this->structurePns->removeElement($structurePn)) {
+        if ($this->pns->removeElement($pn)) {
             // set the owning side to null (unless already changed)
-            if ($structurePn->getDiplome() === $this) {
-                $structurePn->setDiplome(null);
+            if ($pn->getDiplome() === $this) {
+                $pn->setDiplome(null);
             }
         }
 
@@ -399,26 +398,26 @@ class StructureDiplome
         return $this;
     }
 
-    public function getApcReferentiel(): ?ApcReferentiel
+    public function getReferentiel(): ?ApcReferentiel
     {
-        return $this->apcReferentiel;
+        return $this->referentiel;
     }
 
-    public function setApcReferentiel(?ApcReferentiel $apcReferentiel): static
+    public function setReferentiel(?ApcReferentiel $referentiel): static
     {
-        $this->apcReferentiel = $apcReferentiel;
+        $this->referentiel = $referentiel;
 
         return $this;
     }
 
-    public function getApcParcours(): ?ApcParcours
+    public function getParcours(): ?ApcParcours
     {
-        return $this->apcParcours;
+        return $this->parcours;
     }
 
-    public function setApcParcours(?ApcParcours $apcParcours): static
+    public function setParcours(?ApcParcours $parcours): static
     {
-        $this->apcParcours = $apcParcours;
+        $this->parcours = $parcours;
 
         return $this;
     }
@@ -435,7 +434,7 @@ class StructureDiplome
     {
         if (!$this->annees->contains($annee)) {
             $this->annees->add($annee);
-            $annee->setStructureDiplome($this);
+            $annee->setDiplome($this);
         }
 
         return $this;
@@ -445,8 +444,8 @@ class StructureDiplome
     {
         if ($this->annees->removeElement($annee)) {
             // set the owning side to null (unless already changed)
-            if ($annee->getStructureDiplome() === $this) {
-                $annee->setStructureDiplome(null);
+            if ($annee->getDiplome() === $this) {
+                $annee->setDiplome(null);
             }
         }
 

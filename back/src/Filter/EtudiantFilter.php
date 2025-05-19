@@ -32,20 +32,20 @@ class EtudiantFilter extends AbstractFilter
 
         if ('departement' === $property) {
             $departementAlias = $queryNameGenerator->generateJoinAlias('departement');
-            $etudiantScolaritesAlias = $queryNameGenerator->generateJoinAlias('etudiantScolarites');
+            $scolaritesAlias = $queryNameGenerator->generateJoinAlias('scolarites');
             $queryBuilder
-                ->join("$alias.etudiantScolarites", $etudiantScolaritesAlias)
-                ->join("$etudiantScolaritesAlias.departement", $departementAlias)
+                ->join("$alias.scolarites", $scolaritesAlias)
+                ->join("$scolaritesAlias.departement", $departementAlias)
                 ->andWhere("$departementAlias.id = :departement")
                 ->setParameter("departement", $value);
         }
 
         if ('anneeUniversitaire' === $property) {
-            $anneeUniversitaireAlias = $queryNameGenerator->generateJoinAlias('structureAnneeUniversitaire');
-            $etudiantScolaritesAlias = $queryNameGenerator->generateJoinAlias('etudiantScolarites');
+            $anneeUniversitaireAlias = $queryNameGenerator->generateJoinAlias('anneeUniversitaire');
+            $scolaritesAlias = $queryNameGenerator->generateJoinAlias('scolarites');
             $queryBuilder
-                ->join("$alias.etudiantScolarites", $etudiantScolaritesAlias)
-                ->join("$etudiantScolaritesAlias.structureAnneeUniversitaire", $anneeUniversitaireAlias)
+                ->join("$alias.scolarites", $scolaritesAlias)
+                ->join("$scolaritesAlias.anneeUniversitaire", $anneeUniversitaireAlias)
                 ->andWhere("$anneeUniversitaireAlias.id = :anneeUniversitaire")
                 ->setParameter("anneeUniversitaire", $value);
 
@@ -53,7 +53,7 @@ class EtudiantFilter extends AbstractFilter
             if (isset($context['filters']['annee'])) {
                 $anneeAlias = $queryNameGenerator->generateJoinAlias('structureAnnee');
                 $queryBuilder
-                    ->join("$etudiantScolaritesAlias.structure_annee", $anneeAlias)
+                    ->join("$scolaritesAlias.annee", $anneeAlias)
                     ->andWhere("$anneeAlias.id = :annee")
                     ->setParameter("annee", $context['filters']['annee']);
             }
@@ -62,21 +62,21 @@ class EtudiantFilter extends AbstractFilter
         if ('semestre' === $property) {
             $semestreAlias = $queryNameGenerator->generateJoinAlias('structureSemestre');
             $scolariteSemestreAlias = $queryNameGenerator->generateJoinAlias('scolariteSemestre');
-            $etudiantScolaritesAlias = $queryNameGenerator->generateJoinAlias('etudiantScolarites');
+            $scolaritesAlias = $queryNameGenerator->generateJoinAlias('scolarites');
             $queryBuilder
-                ->join("$alias.etudiantScolarites", $etudiantScolaritesAlias)
-                ->join("$etudiantScolaritesAlias.scolarite_semestre", $scolariteSemestreAlias)
-                ->join("$scolariteSemestreAlias.structure_semestre", $semestreAlias)
+                ->join("$alias.scolarites", $scolaritesAlias)
+                ->join("$scolaritesAlias.semestre", $scolariteSemestreAlias)
+                ->join("$scolariteSemestreAlias.semestre", $semestreAlias)
                 ->andWhere("$semestreAlias.id = :semestre")
                 ->setParameter("semestre", $value);
         }
 
 //        if ('annee' === $property) {
 //            $anneeAlias = $queryNameGenerator->generateJoinAlias('structureAnnee');
-//            $etudiantScolaritesAlias = $queryNameGenerator->generateJoinAlias('etudiantScolarites');
+//            $scolaritesAlias = $queryNameGenerator->generateJoinAlias('scolarites');
 //            $queryBuilder
-//                ->join("$alias.etudiantScolarites", $etudiantScolaritesAlias)
-//                ->join("$etudiantScolaritesAlias.structure_annee", $anneeAlias)
+//                ->join("$alias.scolarites", $scolaritesAlias)
+//                ->join("$scolaritesAlias.annee", $anneeAlias)
 //                ->andWhere("$anneeAlias.id = :annee")
 //                ->setParameter("annee", $value);
 //        }

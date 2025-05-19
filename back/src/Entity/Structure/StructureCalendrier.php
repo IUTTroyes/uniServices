@@ -25,8 +25,8 @@ class StructureCalendrier
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'structureCalendriers')]
-    private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
+    #[ORM\ManyToOne(inversedBy: 'calendriers')]
+    private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\Column]
     private ?int $semaineFormation = null;
@@ -41,11 +41,11 @@ class StructureCalendrier
      * @var Collection<int, EdtCreneauxInterditsSemaine>
      */
     #[ORM\OneToMany(targetEntity: EdtCreneauxInterditsSemaine::class, mappedBy: 'semaine')]
-    private Collection $edtCreneauxInterditsSemaines;
+    private Collection $creneauxInterditsSemaines;
 
     public function __construct()
     {
-        $this->edtCreneauxInterditsSemaines = new ArrayCollection();
+        $this->creneauxInterditsSemaines = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -53,14 +53,14 @@ class StructureCalendrier
         return $this->id;
     }
 
-    public function getStructureAnneeUniversitaire(): ?StructureAnneeUniversitaire
+    public function getAnneeUniversitaire(): ?StructureAnneeUniversitaire
     {
-        return $this->structureAnneeUniversitaire;
+        return $this->anneeUniversitaire;
     }
 
-    public function setStructureAnneeUniversitaire(?StructureAnneeUniversitaire $structureAnneeUniversitaire): static
+    public function setAnneeUniversitaire(?StructureAnneeUniversitaire $anneeUniversitaire): static
     {
-        $this->structureAnneeUniversitaire = $structureAnneeUniversitaire;
+        $this->anneeUniversitaire = $anneeUniversitaire;
 
         return $this;
     }
@@ -116,27 +116,27 @@ class StructureCalendrier
     /**
      * @return Collection<int, EdtCreneauxInterditsSemaine>
      */
-    public function getEdtCreneauxInterditsSemaines(): Collection
+    public function getCreneauxInterditsSemaines(): Collection
     {
-        return $this->edtCreneauxInterditsSemaines;
+        return $this->creneauxInterditsSemaines;
     }
 
-    public function addEdtCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $edtCreneauxInterditsSemaine): static
+    public function addCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $creneauxInterditsSemaine): static
     {
-        if (!$this->edtCreneauxInterditsSemaines->contains($edtCreneauxInterditsSemaine)) {
-            $this->edtCreneauxInterditsSemaines->add($edtCreneauxInterditsSemaine);
-            $edtCreneauxInterditsSemaine->setSemaine($this);
+        if (!$this->creneauxInterditsSemaines->contains($creneauxInterditsSemaine)) {
+            $this->creneauxInterditsSemaines->add($creneauxInterditsSemaine);
+            $creneauxInterditsSemaine->setSemaine($this);
         }
 
         return $this;
     }
 
-    public function removeEdtCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $edtCreneauxInterditsSemaine): static
+    public function removeCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $creneauxInterditsSemaine): static
     {
-        if ($this->edtCreneauxInterditsSemaines->removeElement($edtCreneauxInterditsSemaine)) {
+        if ($this->creneauxInterditsSemaines->removeElement($creneauxInterditsSemaine)) {
             // set the owning side to null (unless already changed)
-            if ($edtCreneauxInterditsSemaine->getSemaine() === $this) {
-                $edtCreneauxInterditsSemaine->setSemaine(null);
+            if ($creneauxInterditsSemaine->getSemaine() === $this) {
+                $creneauxInterditsSemaine->setSemaine(null);
             }
         }
 
