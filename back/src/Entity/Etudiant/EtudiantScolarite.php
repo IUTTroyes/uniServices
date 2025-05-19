@@ -26,8 +26,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['scolarite:read']]),
         new GetCollection(normalizationContext: ['groups' => ['scolarite:read']]),
         new Get(
-            normalizationContext: ['groups' => ['scolarite:read']],
             uriTemplate: '/etudiant_scolarites/etudiant/{etudiant}/structureAnneeUniversitaire/{structureAnneeUniversitaire}',
+            normalizationContext: ['groups' => ['scolarite:read']],
         )
     ]
 )]
@@ -105,7 +105,7 @@ class EtudiantScolarite
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'scolarite')]
     #[Groups(['scolarite:read', 'etudiant:read'])]
-    private Collection $semestre;
+    private Collection $scolariteSemestre;
 
     /**
      * @var Collection<int, StructureAnnee>
@@ -118,7 +118,7 @@ class EtudiantScolarite
     public function __construct()
     {
         $this->groupes = new ArrayCollection();
-        $this->semestre = new ArrayCollection();
+        $this->scolariteSemestre = new ArrayCollection();
         $this->annee = new ArrayCollection();
     }
 
@@ -286,27 +286,27 @@ class EtudiantScolarite
     /**
      * @return Collection<int, EtudiantScolariteSemestre>
      */
-    public function getSemestre(): Collection
+    public function getScolariteSemestre(): Collection
     {
-        return $this->semestre;
+        return $this->scolariteSemestre;
     }
 
-    public function addSemestre(EtudiantScolariteSemestre $semestre): static
+    public function addScolariteSemestre(EtudiantScolariteSemestre $scolariteSemestre): static
     {
-        if (!$this->semestre->contains($semestre)) {
-            $this->semestre->add($semestre);
-            $semestre->setEtudiantScolarite($this);
+        if (!$this->scolariteSemestre->contains($scolariteSemestre)) {
+            $this->scolariteSemestre->add($scolariteSemestre);
+            $scolariteSemestre->setScolarite($this);
         }
 
         return $this;
     }
 
-    public function removeSemestre(EtudiantScolariteSemestre $semestre): static
+    public function removeScolariteSemestre(EtudiantScolariteSemestre $scolariteSemestre): static
     {
-        if ($this->semestre->removeElement($semestre)) {
+        if ($this->scolariteSemestre->removeElement($scolariteSemestre)) {
             // set the owning side to null (unless already changed)
-            if ($semestre->getEtudiantScolarite() === $this) {
-                $semestre->setEtudiantScolarite(null);
+            if ($scolariteSemestre->getScolarite() === $this) {
+                $scolariteSemestre->setScolarite(null);
             }
         }
 

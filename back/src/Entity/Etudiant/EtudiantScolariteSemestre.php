@@ -19,7 +19,7 @@ class EtudiantScolariteSemestre
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'semestre', cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(inversedBy: 'scolariteSemestre', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['scolarite:read', 'etudiant:read'])]
     private ?StructureSemestre $semestre = null;
@@ -36,7 +36,7 @@ class EtudiantScolariteSemestre
     #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'semestre')]
     private Collection $note;
 
-    #[ORM\ManyToOne(inversedBy: 'semestre')]
+    #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
     private ?EtudiantScolarite $scolarite = null;
 
     public function __construct()
