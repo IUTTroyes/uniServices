@@ -2,7 +2,6 @@
 
 namespace App\Entity\Structure;
 
-use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
@@ -52,11 +51,18 @@ class StructurePn
     private ?ApcReferentiel $apcReferentiel = null;
     private ArrayCollection $anneeUniversitaires;
 
+    /**
+     * @var Collection<int, StructureAnnee>
+     */
+    #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'pn')]
+    private Collection $annees;
+
     public function __construct(StructureDiplome $diplome)
     {
         $this->anneeUniversitaires = new ArrayCollection();
         $this->anneePublication = (int)(new DateTime('now'))->format('Y');
         $this->setDiplome($diplome);
+        $this->annees = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -120,6 +126,36 @@ class StructurePn
     public function setApcReferentiel(?ApcReferentiel $apcReferentiel): static
     {
         $this->apcReferentiel = $apcReferentiel;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureAnnee>
+     */
+    public function getAnnees(): Collection
+    {
+        return $this->annees;
+    }
+
+    public function addAnnee(StructureAnnee $annee): static
+    {
+        if (!$this->annees->contains($annee)) {
+            $this->annees->add($annee);
+            $annee->setPn($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAnnee(StructureAnnee $annee): static
+    {
+        if ($this->annees->removeElement($annee)) {
+            // set the owning side to null (unless already changed)
+            if ($annee->getPn() === $this) {
+                $annee->setPn(null);
+            }
+        }
 
         return $this;
     }

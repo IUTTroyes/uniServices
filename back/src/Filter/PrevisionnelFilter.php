@@ -4,16 +4,15 @@ namespace App\Filter;
 
 use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnnee;
-use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Structure\StructureUe;
 use Doctrine\ORM\QueryBuilder;
-use ApiPlatform\Metadata\ApiFilter;
 use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(PrevisionnelFilter::class)]
