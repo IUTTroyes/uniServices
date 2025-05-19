@@ -6,7 +6,7 @@ use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Apc\ApcCompetence;
 use App\Entity\Apc\ApcNiveau;
 use App\Entity\Apc\ApcParcours;
-use App\Entity\Apc\Referentiel;
+use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureTypeDiplome;
 use App\Repository\Structure\StructureUeRepository;
@@ -90,7 +90,7 @@ FOREIGN_KEY_CHECKS=1');
         $referentiels = $this->em->executeQuery($sql)->fetchAllAssociative();
 
         foreach ($referentiels as $ref) {
-            $referentiel = new Referentiel();
+            $referentiel = new ApcReferentiel();
             $referentiel->setLibelle($ref['libelle']);
             $referentiel->setDescription($ref['description']);
             $referentiel->setAnneePublication((int)$ref['annee_publication']);

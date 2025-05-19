@@ -36,7 +36,7 @@ onMounted(async () => {
   }
 
   if (selectedPn.value) {
-    nodes.value = transformData(selectedPn.value.annees);
+    nodes.value = transformData(selectedPn.value.diplome.annees);
     isLoadingPn.value = false;
   }
 })
@@ -62,11 +62,11 @@ const getPnsForDiplome = async (diplomeId) => {
     isLoadingPn.value = true;
     pns.value = await getPnsDiplome(diplomeId)
     // parmis tous les pn, on prend celui qui a une année active
-    selectedPn.value = pns.value.find(pn => pn.anneeUniversitaires.some(annee => annee.actif === true)) ?? null
-    nodes.value = transformData(selectedPn.value.annees);
+    selectedPn.value = pns.value.find(pn => pn.anneeUniversitaire?.actif === true) ?? null
     if (selectedPn.value) {
-      nodes.value = transformData(selectedPn.value.annees);
+      nodes.value = transformData(selectedPn.value.diplome.annees);
     }
+    console.log(pns.value)
   } catch (error) {
     console.error('Erreur lors du chargement des PNs:', error);
   } finally {
@@ -90,7 +90,9 @@ const changeDiplome = (diplome) => {
   selectedDiplome.value = diplome
   getPnsForDiplome(selectedDiplome.value.id);
 
-  nodes.value = transformData(selectedPn.value.annees);
+  if (selectedPn.value) {
+    nodes.value = transformData(selectedPn.value.diplome.annees);
+  }
 }
 
 const nodes = ref([]);
@@ -150,7 +152,7 @@ const showDetails = (item, semestre) => {
         <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" />
       </div>
       <div class="text-xl font-bold mb-4">{{selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné`}}</div>
-      <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.annees" :legend="`${annee.libelle}`" :toggleable="true">
+      <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.diplome?.annees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
           <i class="pi pi-angle-down"></i>
         </template>

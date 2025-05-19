@@ -82,6 +82,7 @@ class CopyTransfertCommand extends Command
         $this->executeUsers($io);
         $this->executeEdt($io);
         $this->executeScolarite($io);
+        $this->executePrevisionnel($io);
     }
 
     private function executeUsers(SymfonyStyle $io): int
@@ -219,6 +220,26 @@ class CopyTransfertCommand extends Command
         $content = $bufferedOutput->fetch();
         $io->success('Output of the other command: ' . $content);
 
+
+        return $returnCode;
+    }
+
+    private function executePrevisionnel(SymfonyStyle $io): int
+    {
+        $io->info('Executing Previsionnel...');
+        $command = $this->getApplication()?->find('copy:transfert-bdd:previsionnel');
+        $arguments = [
+            'command' => 'copy:transfert-bdd:previsionnel',
+        ];
+        $arrayInput = new ArrayInput($arguments);
+        $bufferedOutput = new BufferedOutput();
+
+        // Run the command
+        $returnCode = $command->run($arrayInput, $bufferedOutput);
+
+        // Get the output of the command
+        $content = $bufferedOutput->fetch();
+        $io->success('Output of the other command: ' . $content);
 
         return $returnCode;
     }

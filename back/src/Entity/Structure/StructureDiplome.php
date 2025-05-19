@@ -124,7 +124,7 @@ class StructureDiplome
      * @var Collection<int, StructureAnnee>
      */
     #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'diplome')]
-    #[Groups(['diplome:read'])]
+    #[Groups(['diplome:read', 'pn:read'])]
     private Collection $annees;
 
     #[ORM\Column(nullable: true)]

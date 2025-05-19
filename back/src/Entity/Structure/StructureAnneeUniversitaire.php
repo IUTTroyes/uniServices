@@ -71,8 +71,8 @@ class StructureAnneeUniversitaire
     /**
      * @var Collection<int, StructurePn>
      */
-    #[ORM\ManyToMany(targetEntity: StructurePn::class, inversedBy: 'anneeUniversitaires')]
-    private Collection $pn;
+    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'anneeUniversitaire')]
+    private Collection $pns;
 
     /**
      * @var Collection<int, Personnel>
@@ -135,7 +135,7 @@ class StructureAnneeUniversitaire
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
-        $this->pn = new ArrayCollection();
+        $this->pns = new ArrayCollection();
         $this->personnels = new ArrayCollection();
         $this->referentiels = new ArrayCollection();
         $this->evaluations = new ArrayCollection();
@@ -223,15 +223,16 @@ class StructureAnneeUniversitaire
     /**
      * @return Collection<int, StructurePn>
      */
-    public function getPn(): Collection
+    public function getPns(): Collection
     {
-        return $this->pn;
+        return $this->pns;
     }
 
     public function addPn(StructurePn $pn): static
     {
-        if (!$this->pn->contains($pn)) {
-            $this->pn->add($pn);
+        if (!$this->pns->contains($pn)) {
+            $this->pns->add($pn);
+            $pn->setAnneeUniversitaire($this);
         }
 
         return $this;
@@ -239,7 +240,12 @@ class StructureAnneeUniversitaire
 
     public function removePn(StructurePn $pn): static
     {
-        $this->pn->removeElement($pn);
+        if ($this->pns->removeElement($pn)) {
+            // set the owning side to null (unless already changed)
+            if ($pn->getAnneeUniversitaire() === $this) {
+                $pn->setAnneeUniversitaire(null);
+            }
+        }
 
         return $this;
     }

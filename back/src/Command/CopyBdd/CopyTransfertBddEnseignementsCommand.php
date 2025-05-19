@@ -206,7 +206,6 @@ FOREIGN_KEY_CHECKS=1');
             'timeout' => 600,
         ]);
 
-
         $matieres = json_decode($response->getContent(), true);
         // Check for JSON decoding errors
         if (json_last_error() !== JSON_ERROR_NONE) {
@@ -251,7 +250,7 @@ FOREIGN_KEY_CHECKS=1');
             $taddUes = [];
             if (array_key_exists('ues', $mat)) {
                 foreach ($mat['ues'] as $apcCompetence) {
-                    //dd($apcCompetence);
+//                    dd($apcCompetence);
                     if (array_key_exists($apcCompetence['ue_id'], $this->tUes) &&
                         !array_key_exists($this->tUes[$apcCompetence['ue_id']]->getId(), $taddUes)
                     ) {
@@ -265,6 +264,8 @@ FOREIGN_KEY_CHECKS=1');
                         $apc->setEcts((float)$apcCompetence['coefficient']);
                         //todo: parcours
                         $this->entityManager->persist($apc);
+                    } else {
+                        $this->io->error('UE ' . $apcCompetence['ue_id'] . ' non trouvée dans la table des UEs');
                     }
                 }
             }

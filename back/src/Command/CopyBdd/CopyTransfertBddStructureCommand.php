@@ -101,7 +101,6 @@ FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_semestre');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_ue');
-        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee_universitaire_structure_pn');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee_universitaire');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_ue');
@@ -263,7 +262,7 @@ FOREIGN_KEY_CHECKS=1');
                         $pn = new StructurePn($diplome);
                         $pn->setLibelle($ppns[0]['libelle']);
                         $pn->setAnneePublication($ppns[0]['annee']);
-                        $pn->addAnneeUniversitaire($anneeUnivPn);
+                        $pn->setAnneeUniversitaire($anneeUnivPn);
                         $diplome->addPn($pn);
 
                         $this->entityManager->persist($pn);
@@ -316,7 +315,7 @@ FOREIGN_KEY_CHECKS=1');
                             $pnE = new StructurePn($diplomeEnfant);
                             $pnE->setLibelle($ppns[0]['libelle']);
                             $pnE->setAnneePublication($ppns[0]['annee']);
-                            $pnE->addAnneeUniversitaire($anneeUnivPn);
+                            $pnE->setAnneeUniversitaire($anneeUnivPn);
                             $diplomeEnfant->addPn($pnE);
 
                             $this->entityManager->persist($pnE);
@@ -334,10 +333,9 @@ FOREIGN_KEY_CHECKS=1');
         $annees = $this->em->executeQuery($sql)->fetchAllAssociative();
 
         foreach ($annees as $an) {
-            if (array_key_exists($an['diplome_id'], $this->tDiplomes) && $this->tDiplomes[$an['diplome_id']]->getStructurePns()->count() > 0) {
+            if (array_key_exists($an['diplome_id'], $this->tDiplomes) && $this->tDiplomes[$an['diplome_id']]->getPns()->count() > 0) {
                 $annee = new StructureAnnee();
                 $diplome = $this->tDiplomes[$an['diplome_id']];
-                $annee->setPn($diplome->getStructurePns()->first() ?? null);
                 $annee->setLibelle($an['libelle']);
                 $annee->setOrdre($an['ordre']);
                 $annee->setLibelleLong($an['libelle_long']);
@@ -437,6 +435,8 @@ FOREIGN_KEY_CHECKS=1');
             if ($u['apc_competence_id'] !== null) {
                 if (array_key_exists($u['apc_competence_id'], $this->tCompetences)) {
                     $ue->setCompetence($this->tCompetences[$u['apc_competence_id']]);
+                } else {
+                    $this->io->error('Apc compétence ' . $u['apc_competence_id'] . ' non trouvée pour l\'ue ' . $u['libelle']);
                 }
                 $this->tSemestreUes[$u['semestre_id']][$u['apc_competence_id']] = $ue;
             }
