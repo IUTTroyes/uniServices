@@ -9,7 +9,7 @@ const props = defineProps({
 </script>
 
 <template>
-<Tag :class="ac.apcNiveau.apcCompetence.couleur" class="font-bold">
+<Tag :class="ac.niveau.competence.couleur" class="font-bold">
     {{ ac.code }}
   </Tag>
 

@@ -149,7 +149,7 @@ const showDetails = (item, semestre) => {
 
         <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" />
       </div>
-      <div class="text-xl font-bold mb-4">{{selectedDiplome?.apcParcours?.display ?? `Aucun parcours renseigné`}}</div>
+      <div class="text-xl font-bold mb-4">{{selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné`}}</div>
       <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.annees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
           <i class="pi pi-angle-down"></i>
@@ -234,7 +234,7 @@ const showDetails = (item, semestre) => {
                   <tr>
                     <td class="px-2 font-bold">{{ue.libelle}}</td>
                     <td class="px-2 font-bold">{{ ue.codeElement }}</td>
-                    <td v-if="selectedDiplome.typeDiplome.apc" :class="ue.apcCompetence.couleur" class="px-2 font-bold !w-fit">{{ue.apcCompetence.nomCourt}}</td>
+                    <td v-if="selectedDiplome.typeDiplome.apc" :class="ue.competence.couleur" class="px-2 font-bold !w-fit">{{ue.competence.nomCourt}}</td>
                     <td class="px-2 font-bold !w-fit">{{ue.nbEcts}}</td>
                     <td v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-bold !w-fit">0</td>
                   </tr>
@@ -242,7 +242,7 @@ const showDetails = (item, semestre) => {
                 </table>
                 <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
               </div>
-              <div v-for="enseignementUe in ue.scolEnseignementUes">
+              <div v-for="enseignementUe in ue.enseignementUes">
                 <Fieldset v-if="!enseignementUe.enseignement.parent" legend="" :toggleable="true">
                   <template #toggleicon>
                     <i class="pi pi-angle-down"></i>
@@ -328,8 +328,8 @@ const showDetails = (item, semestre) => {
       <div></div>
     </template>
     <template v-if="dialogContent">
-      <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
-      <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
+      <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item" :parcours="selectedDiplome.parcours" :semestre="dialogContent.semestre"/>
+      <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item" :parcours="selectedDiplome.parcours" :semestre="dialogContent.semestre"/>
       <FicheMatiere v-else-if="dialogContent.item.type === 'matiere'" :enseignement="dialogContent.item" :semestre="dialogContent.semestre" :diplome="selectedDiplome"/>
     </template>
   </Dialog>

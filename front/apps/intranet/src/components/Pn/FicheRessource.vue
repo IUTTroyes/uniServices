@@ -28,7 +28,7 @@ heures.Total = {
 
 const uniqueCompetences = computed(() => {
   const competences = new Set();
-  enseignementLocal.value.scolEnseignementUes.forEach(ue => {
+  enseignementLocal.value.enseignementUes.forEach(ue => {
     if (ue.ue.apcCompetence) {
       competences.add(ue.ue.apcCompetence);
     }
@@ -225,8 +225,8 @@ const showEnfantParent = async (id) => {
     </div>
     <div class="flex gap-2 flex-wrap">
       <span class="font-bold text-lg">Apprentissage(s) critique(s) : </span>
-      <ApcAcBadge v-for="ac in enseignementLocal.apcApprentissageCritique" :key="ac.code" :ac="ac" v-tooltip.top="`${ac.libelle}`">{{ ac.code }}</ApcAcBadge>
-      <span v-if="enseignementLocal.apcApprentissageCritique.length === 0">Aucun apprentissage critique</span>
+      <ApcAcBadge v-for="ac in enseignementLocal.apprentissageCritique" :key="ac.code" :ac="ac" v-tooltip.top="`${ac.libelle}`">{{ ac.code }}</ApcAcBadge>
+      <span v-if="enseignementLocal.apprentissageCritique.length === 0">Aucun apprentissage critique</span>
     </div>
     <div><span class="font-bold text-lg">SAÉ concernée(s) : </span> {{ enseignementLocal.sae ?? 'Aucune SAÉ renseignée' }}</div>
     <div><span class="font-bold text-lg">Prérequis : </span> {{ enseignementLocal.preRequis ?? 'Aucune ressource renseignée' }}</div>
