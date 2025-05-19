@@ -274,9 +274,9 @@ FOREIGN_KEY_CHECKS=1');
 
             foreach ($apcCritiques as $apcCritique) {
                 if (array_key_exists($apcCritique['apprentissage_critique_id'], $this->tApprentissages) &&
-                    !$matiere->getApcApprentissageCritique()->contains($this->tApprentissages[$apcCritique['apprentissage_critique_id']])
+                    !$matiere->getApprentissageCritique()->contains($this->tApprentissages[$apcCritique['apprentissage_critique_id']])
                 ) {
-                    $matiere->addApcApprentissageCritique($this->tApprentissages[$apcCritique['apprentissage_critique_id']]);
+                    $matiere->addApprentissageCritique($this->tApprentissages[$apcCritique['apprentissage_critique_id']]);
                 }
             }
 
@@ -412,9 +412,9 @@ FOREIGN_KEY_CHECKS=1');
 
             foreach ($apcCritiques as $apcCritique) {
                 if (array_key_exists($apcCritique['apprentissage_critique_id'], $this->tApprentissages) &&
-                    !$matiere->getApcApprentissageCritique()->contains($this->tApprentissages[$apcCritique['apprentissage_critique_id']])
+                    !$matiere->getApprentissageCritique()->contains($this->tApprentissages[$apcCritique['apprentissage_critique_id']])
                 ) {
-                    $matiere->addApcApprentissageCritique($this->tApprentissages[$apcCritique['apprentissage_critique_id']]);
+                    $matiere->addApprentissageCritique($this->tApprentissages[$apcCritique['apprentissage_critique_id']]);
                 }
             }
 

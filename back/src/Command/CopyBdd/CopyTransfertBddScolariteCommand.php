@@ -120,7 +120,7 @@ FOREIGN_KEY_CHECKS=1');
                 $scolarite = new EtudiantScolarite();
                 $scolarite->setUuid(UuidV4::v4());
                 $scolarite->setEtudiant($this->tEtudiants[$etu['id']]);
-                $scolarite->setStructureAnneeUniversitaire($this->tAnneeUniversitaire[$scol['annee']]);
+                $scolarite->setAnneeUniversitaire($this->tAnneeUniversitaire[$scol['annee']]);
 
                 // Définir les propriétés globales de la scolarité
                 $scolarite->setMoyenne(round($scol['bilan']['moyenne'], 2) ?? 0);
@@ -143,11 +143,11 @@ FOREIGN_KEY_CHECKS=1');
                     foreach ($this->tSemestres as $semestreDest) {
                         if ($semestreDest->getOldId() === $semestre['id']) {
                             $annee = $semestreDest->getAnnee();
-                            $scolarite->addStructureAnnee($annee);
+                            $scolarite->addAnnee($annee);
 
                             $etudiantScolSemestre = new EtudiantScolariteSemestre();
-                            $etudiantScolSemestre->setEtudiantScolarite($scolarite);
-                            $etudiantScolSemestre->setStructureSemestre($semestreDest);
+                            $etudiantScolSemestre->setScolarite($scolarite);
+                            $etudiantScolSemestre->setSemestre($semestreDest);
 //                            $etudiantScolSemestre->setDecision($semestre['decision'] ?? null);
 //                            $etudiantScolSemestre->setProposition($semestre['proposition'] ?? null);
                             $this->entityManager->persist($etudiantScolSemestre);

@@ -213,7 +213,7 @@ FOREIGN_KEY_CHECKS=1');
 
         foreach ($apcs as $ap) {
             $apc = new ApcApprentissageCritique();
-            $apc->setApcNiveau($this->tNiveaux[$ap['niveau_id']]);
+            $apc->setNiveau($this->tNiveaux[$ap['niveau_id']]);
             $apc->setLibelle($ap['libelle']);
             $apc->setCode($ap['code']);
             $apc->setOldId($ap['id']);

@@ -53,6 +53,7 @@ class CopyTransfertBddStructureCommand extends Command
     protected string $base_url;
     private $structureAnneeUniversitaireRepository;
     private $personnelRepository;
+    private ApcParcoursRepository $apcParcoursRepository;
 
 
     public function __construct(
@@ -169,7 +170,7 @@ FOREIGN_KEY_CHECKS=1');
 
         foreach ($annees as $annee) {
             $calendrier = new StructureCalendrier();
-            $calendrier->setStructureAnneeUniversitaire($anneeActive);
+            $calendrier->setAnneeUniversitaire($anneeActive);
             $calendrier->setDateLundi(new \DateTime($annee['date_lundi']));
             $calendrier->setSemaineFormation($annee['semaine_formation']);
             $calendrier->setSemaineReelle($annee['semaine_reelle']);
@@ -242,7 +243,7 @@ FOREIGN_KEY_CHECKS=1');
                         $diplome->setApogeeCodeVersion($dip['code_version']);
                         $diplome->setApogeeCodeDepartement($dip['code_departement']);
                         $diplome->setTypeDiplome($this->tTypeDiplomes[$dip['type_diplome_id']]);
-                        $diplome->setApcParcours($apcParcours);
+                        $diplome->setParcours($apcParcours);
                         $diplome->setOldId($dip['id']);
                         if ($dip['responsable_diplome_id'] !== null) {
                             $diplome->setResponsableDiplome($this->personnelRepository->findOneBy(['oldId' => $dip['responsable_diplome_id']]));
@@ -262,8 +263,8 @@ FOREIGN_KEY_CHECKS=1');
                         $pn = new StructurePn($diplome);
                         $pn->setLibelle($ppns[0]['libelle']);
                         $pn->setAnneePublication($ppns[0]['annee']);
-                        $pn->addStructureAnneeUniversitaire($anneeUnivPn);
-                        $diplome->addStructurePn($pn);
+                        $pn->addAnneeUniversitaire($anneeUnivPn);
+                        $diplome->addPn($pn);
 
                         $this->entityManager->persist($pn);
                         $this->entityManager->persist($diplome);
@@ -301,7 +302,7 @@ FOREIGN_KEY_CHECKS=1');
                             $diplomeEnfant->setApogeeCodeVersion($dipE['code_version']);
                             $diplomeEnfant->setApogeeCodeDepartement($dipE['code_departement']);
                             $diplomeEnfant->setParent($diplome);
-                            $diplomeEnfant->setApcParcours($apcParcoursEnfant);
+                            $diplomeEnfant->setParcours($apcParcoursEnfant);
                             if ($dipE['responsable_diplome_id'] !== null) {
                                 $diplomeEnfant->setResponsableDiplome($this->personnelRepository->findOneBy(['oldId' => $dipE['responsable_diplome_id']]));
                             }
@@ -315,8 +316,8 @@ FOREIGN_KEY_CHECKS=1');
                             $pnE = new StructurePn($diplomeEnfant);
                             $pnE->setLibelle($ppns[0]['libelle']);
                             $pnE->setAnneePublication($ppns[0]['annee']);
-                            $pnE->addStructureAnneeUniversitaire($anneeUnivPn);
-                            $diplomeEnfant->addStructurePn($pnE);
+                            $pnE->addAnneeUniversitaire($anneeUnivPn);
+                            $diplomeEnfant->addPn($pnE);
 
                             $this->entityManager->persist($pnE);
                             $this->entityManager->persist($diplomeEnfant);
@@ -347,7 +348,7 @@ FOREIGN_KEY_CHECKS=1');
                 ]);
                 $annee->setApogeeCodeEtape($an['code_etape']);
                 $annee->setApogeeCodeVersion($an['code_version']);
-                $annee->setStructureDiplome($diplome);
+                $annee->setDiplome($diplome);
 
                 $this->tAnnees[$an['id']] = $annee;
 
@@ -435,7 +436,7 @@ FOREIGN_KEY_CHECKS=1');
             $this->tUes[$u['id']] = $ue;
             if ($u['apc_competence_id'] !== null) {
                 if (array_key_exists($u['apc_competence_id'], $this->tCompetences)) {
-                    $ue->setApcCompetence($this->tCompetences[$u['apc_competence_id']]);
+                    $ue->setCompetence($this->tCompetences[$u['apc_competence_id']]);
                 }
                 $this->tSemestreUes[$u['semestre_id']][$u['apc_competence_id']] = $ue;
             }

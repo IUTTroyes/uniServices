@@ -31,6 +31,7 @@ class CopyTransfertBddPrevisionnelCommand extends Command
 
     protected SymfonyStyle $io;
     protected string $base_url;
+    private ScolEnseignementRepository $scolEnseignementRepository;
 
 
     public function __construct(
