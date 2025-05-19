@@ -60,10 +60,10 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
 
                 $output['previ'][] = $this->toDto($item);
 
-                $totalCM += $item->getHeures()['CM'] ?? 0;
-                $totalTD += $item->getHeures()['TD'] ?? 0;
-                $totalTP += $item->getHeures()['TP'] ?? 0;
-                $totalProjet += $item->getHeures()['Projet'] ?? 0;
+                $totalCM += $item->getHeures()['CM'] * $item->getGroupes()['CM'] ?? 0;
+                $totalTD += $item->getHeures()['TD'] * $item->getGroupes()['TD'] ?? 0;
+                $totalTP += $item->getHeures()['TP'] * $item->getGroupes()['TP'] ?? 0;
+                $totalProjet += $item->getHeures()['Projet'] * $item->getGroupes()['Projet'] ?? 0;
             }
 
             $output['total'] = [
@@ -133,10 +133,16 @@ class PrevisionnelPersonnelProvider implements ProviderInterface
         $prevEnseignant->setIdPersonnel($item->getPersonnel()->getId());
         $prevEnseignant->setPersonnel($item->getPersonnel());
         $prevEnseignant->setHeures(
+//            [
+//                'CM' => round($item->getGroupes()['CM'] !== 0 ? $item->getHeures()['CM']/$item->getGroupes()['CM'] : $item->getHeures()['CM'], 1),
+//                'TD' => round($item->getGroupes()['TD'] !== 0 ? $item->getHeures()['TD']/$item->getGroupes()['TD'] : $item->getHeures()['TD'], 1),
+//                'TP' => round($item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP']/$item->getGroupes()['TP'] : $item->getHeures()['TP'], 1),
+//                'Projet' => $item->getHeures()['Projet'] ?? 0,
+//            ]
             [
-                'CM' => round($item->getGroupes()['CM'] !== 0 ? $item->getHeures()['CM']/$item->getGroupes()['CM'] : $item->getHeures()['CM'], 1),
-                'TD' => round($item->getGroupes()['TD'] !== 0 ? $item->getHeures()['TD']/$item->getGroupes()['TD'] : $item->getHeures()['TD'], 1),
-                'TP' => round($item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP']/$item->getGroupes()['TP'] : $item->getHeures()['TP'], 1),
+                'CM' => $item->getHeures()['CM'],
+                'TD' => $item->getHeures()['TD'],
+                'TP' => $item->getHeures()['TP'],
                 'Projet' => $item->getHeures()['Projet'] ?? 0,
             ]
         );

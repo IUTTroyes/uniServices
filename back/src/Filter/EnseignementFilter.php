@@ -25,8 +25,8 @@ class EnseignementFilter extends AbstractFilter
 
         if ('semestre' === $property) {
             $queryBuilder
-                ->join("$alias.scolEnseignementUes", "scolEnseignementUe")
-                ->join("scolEnseignementUe.ue", "ue")
+                ->join("$alias.enseignementUes", "enseignementUe")
+                ->join("enseignementUe.ue", "ue")
                 ->andWhere("ue.semestre = :semestre")
                 ->setParameter("semestre", $value);
             ;
@@ -34,11 +34,11 @@ class EnseignementFilter extends AbstractFilter
 
         if ('departement' === $property) {
             $queryBuilder
-                ->join("$alias.scolEnseignementUes", "scolEnseignementUe")
-                ->join("scolEnseignementUe.ue", "ue")
+                ->join("$alias.enseignementUes", "enseignementUe")
+                ->join("enseignementUe.ue", "ue")
                 ->join("ue.semestre", "semestre")
                 ->join("semestre.annee" , "annee")
-                ->join("annee.structureDiplome", "diplome")
+                ->join("annee.diplome", "diplome")
                 ->join("diplome.departement", "departement")
                 ->andWhere("departement.id = :departement")
                 ->setParameter("departement", $value);

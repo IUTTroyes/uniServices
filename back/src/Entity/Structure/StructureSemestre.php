@@ -44,39 +44,39 @@ class StructureSemestre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'scol_enseignement:read'])]
+    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'enseignement:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read', 'scolarite:read', 'etudiant:read', 'structure_pn:read'])]
+    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'etudiant:read', 'pn:read'])]
     private string $libelle;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read'])]
     private int $ordreAnnee = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'structure_diplome:read:full'])]
+    #[Groups(['semestre:read', 'diplome:read:full'])]
     private int $ordreLmd = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read'])]
+    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read'])]
     private bool $actif = true;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'structure_pn:read'])]
+    #[Groups(['semestre:read', 'pn:read'])]
     private int $nbGroupesCm = 1;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'structure_pn:read'])]
+    #[Groups(['semestre:read', 'pn:read'])]
     private int $nbGroupesTd = 1;
 
     #[ORM\Column()]
-    #[Groups(['semestre:read', 'structure_pn:read'])]
+    #[Groups(['semestre:read', 'pn:read'])]
     private int $nbGroupesTp = 2;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_diplome:read', 'structure_pn:read'])]
+    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'pn:read'])]
     private ?string $codeElement = null;
 
     /**
@@ -84,42 +84,42 @@ class StructureSemestre
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, mappedBy: 'semestres')]
     #[Groups(['semestre:read'])]
-    private Collection $structureGroupes;
+    private Collection $groupes;
 
-    #[ORM\ManyToOne(inversedBy: 'structureSemestres')]
-    #[Groups(['semestre:read', 'scolarite:read', 'scol_enseignement:read', 'etudiant:read'])]
+    #[ORM\ManyToOne(inversedBy: 'semestres')]
+    #[Groups(['semestre:read', 'scolarite:read', 'enseignement:read', 'etudiant:read'])]
     private ?StructureAnnee $annee = null;
 
     /**
      * @var Collection<int, StructureUe>
      */
     #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'semestre')]
-    #[Groups(['semestre:read', 'structure_diplome:read:full', 'structure_pn:read'])]
-    private Collection $structureUes;
+    #[Groups(['semestre:read', 'diplome:read:full', 'pn:read'])]
+    private Collection $ues;
 
     /**
      * @var Collection<int, ScolEvaluation>
      */
     #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'semestre')]
     #[Groups(['semestre:read'])]
-    private Collection $scolEvaluations;
+    private Collection $evaluations;
 
     /**
      * @var Collection<int, EdtEvent>
      */
     #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'semestre')]
     #[Groups(['semestre:read'])]
-    private Collection $scolEdtEvents;
+    private Collection $events;
 
     /**
      * @var Collection<int, EdtContraintesSemestre>
      */
     #[ORM\OneToMany(targetEntity: EdtContraintesSemestre::class, mappedBy: 'semestre')]
     #[Groups(['semestre:read'])]
-    private Collection $edtContraintesSemestres;
+    private Collection $contraintesSemestres;
 
-    #[ORM\OneToMany(mappedBy: 'structure_semestre', targetEntity: EtudiantScolariteSemestre::class, cascade: ['persist'])]
-    private Collection $etudiantScolariteSemestre;
+    #[ORM\OneToMany(mappedBy: 'semestre', targetEntity: EtudiantScolariteSemestre::class, cascade: ['persist'])]
+    private Collection $scolariteSemestre;
 
     /**
      * @var Collection<int, StagePeriode>
@@ -131,13 +131,13 @@ class StructureSemestre
 
     public function __construct()
     {
-        $this->structureGroupes = new ArrayCollection();
+        $this->groupes = new ArrayCollection();
         $this->setOpt([]);
-        $this->structureUes = new ArrayCollection();
-        $this->scolEvaluations = new ArrayCollection();
-        $this->scolEdtEvents = new ArrayCollection();
-        $this->edtContraintesSemestres = new ArrayCollection();
-        $this->etudiantScolariteSemestre = new ArrayCollection();
+        $this->ues = new ArrayCollection();
+        $this->evaluations = new ArrayCollection();
+        $this->events = new ArrayCollection();
+        $this->contraintesSemestres = new ArrayCollection();
+        $this->scolariteSemestre = new ArrayCollection();
         $this->stagePeriodes = new ArrayCollection();
     }
 
@@ -245,25 +245,25 @@ class StructureSemestre
     /**
      * @return Collection<int, StructureGroupe>
      */
-    public function getStructureGroupes(): Collection
+    public function getGroupes(): Collection
     {
-        return $this->structureGroupes;
+        return $this->groupes;
     }
 
-    public function addStructureGroupe(StructureGroupe $structureGroupe): static
+    public function addGroupe(StructureGroupe $groupe): static
     {
-        if (!$this->structureGroupes->contains($structureGroupe)) {
-            $this->structureGroupes->add($structureGroupe);
-            $structureGroupe->addSemestre($this);
+        if (!$this->groupes->contains($groupe)) {
+            $this->groupes->add($groupe);
+            $groupe->addSemestre($this);
         }
 
         return $this;
     }
 
-    public function removeStructureGroupe(StructureGroupe $structureGroupe): static
+    public function removeGroupe(StructureGroupe $groupe): static
     {
-        if ($this->structureGroupes->removeElement($structureGroupe)) {
-            $structureGroupe->removeSemestre($this);
+        if ($this->groupes->removeElement($groupe)) {
+            $groupe->removeSemestre($this);
         }
 
         return $this;
@@ -321,24 +321,24 @@ class StructureSemestre
     /**
      * @return Collection<int, StructureUe>
      */
-    public function getStructureUes(): Collection
+    public function getUes(): Collection
     {
-        return $this->structureUes;
+        return $this->ues;
     }
 
-    public function addStructureUe(StructureUe $structureUe): static
+    public function addUe(StructureUe $structureUe): static
     {
-        if (!$this->structureUes->contains($structureUe)) {
-            $this->structureUes->add($structureUe);
+        if (!$this->ues->contains($structureUe)) {
+            $this->ues->add($structureUe);
             $structureUe->setSemestre($this);
         }
 
         return $this;
     }
 
-    public function removeStructureUe(StructureUe $structureUe): static
+    public function removeUe(StructureUe $structureUe): static
     {
-        if ($this->structureUes->removeElement($structureUe)) {
+        if ($this->ues->removeElement($structureUe)) {
             // set the owning side to null (unless already changed)
             if ($structureUe->getSemestre() === $this) {
                 $structureUe->setSemestre(null);
@@ -351,27 +351,27 @@ class StructureSemestre
     /**
      * @return Collection<int, ScolEvaluation>
      */
-    public function getScolEvaluations(): Collection
+    public function getEvaluations(): Collection
     {
-        return $this->scolEvaluations;
+        return $this->evaluations;
     }
 
-    public function addScolEvaluation(ScolEvaluation $scolEvaluation): static
+    public function addEvaluation(ScolEvaluation $evaluation): static
     {
-        if (!$this->scolEvaluations->contains($scolEvaluation)) {
-            $this->scolEvaluations->add($scolEvaluation);
-            $scolEvaluation->setSemestre($this);
+        if (!$this->evaluations->contains($evaluation)) {
+            $this->evaluations->add($evaluation);
+            $evaluation->setSemestre($this);
         }
 
         return $this;
     }
 
-    public function removeScolEvaluation(ScolEvaluation $scolEvaluation): static
+    public function removeEvaluation(ScolEvaluation $evaluation): static
     {
-        if ($this->scolEvaluations->removeElement($scolEvaluation)) {
+        if ($this->evaluations->removeElement($evaluation)) {
             // set the owning side to null (unless already changed)
-            if ($scolEvaluation->getSemestre() === $this) {
-                $scolEvaluation->setSemestre(null);
+            if ($evaluation->getSemestre() === $this) {
+                $evaluation->setSemestre(null);
             }
         }
 
@@ -381,27 +381,27 @@ class StructureSemestre
     /**
      * @return Collection<int, EdtEvent>
      */
-    public function getScolEdtEvents(): Collection
+    public function getEvents(): Collection
     {
-        return $this->scolEdtEvents;
+        return $this->events;
     }
 
-    public function addScolEdtEvent(EdtEvent $scolEdtEvent): static
+    public function addEvent(EdtEvent $event): static
     {
-        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
-            $this->scolEdtEvents->add($scolEdtEvent);
-            $scolEdtEvent->setSemestre($this);
+        if (!$this->events->contains($event)) {
+            $this->events->add($event);
+            $event->setSemestre($this);
         }
 
         return $this;
     }
 
-    public function removeScolEdtEvent(EdtEvent $scolEdtEvent): static
+    public function removeEvent(EdtEvent $event): static
     {
-        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+        if ($this->events->removeElement($event)) {
             // set the owning side to null (unless already changed)
-            if ($scolEdtEvent->getSemestre() === $this) {
-                $scolEdtEvent->setSemestre(null);
+            if ($event->getSemestre() === $this) {
+                $event->setSemestre(null);
             }
         }
 
@@ -411,41 +411,41 @@ class StructureSemestre
     /**
      * @return Collection<int, EdtContraintesSemestre>
      */
-    public function getEdtContraintesSemestres(): Collection
+    public function getContraintesSemestres(): Collection
     {
-        return $this->edtContraintesSemestres;
+        return $this->contraintesSemestres;
     }
 
-    public function addEdtContraintesSemestre(EdtContraintesSemestre $edtContraintesSemestre): static
+    public function addContraintesSemestre(EdtContraintesSemestre $contraintesSemestre): static
     {
-        if (!$this->edtContraintesSemestres->contains($edtContraintesSemestre)) {
-            $this->edtContraintesSemestres->add($edtContraintesSemestre);
-            $edtContraintesSemestre->setSemestre($this);
+        if (!$this->contraintesSemestres->contains($contraintesSemestre)) {
+            $this->contraintesSemestres->add($contraintesSemestre);
+            $contraintesSemestre->setSemestre($this);
         }
 
         return $this;
     }
 
-    public function removeEdtContraintesSemestre(EdtContraintesSemestre $edtContraintesSemestre): static
+    public function removeContraintesSemestre(EdtContraintesSemestre $contraintesSemestre): static
     {
-        if ($this->edtContraintesSemestres->removeElement($edtContraintesSemestre)) {
+        if ($this->contraintesSemestres->removeElement($contraintesSemestre)) {
             // set the owning side to null (unless already changed)
-            if ($edtContraintesSemestre->getSemestre() === $this) {
-                $edtContraintesSemestre->setSemestre(null);
+            if ($contraintesSemestre->getSemestre() === $this) {
+                $contraintesSemestre->setSemestre(null);
             }
         }
 
         return $this;
     }
 
-    public function getEtudiantScolariteSemestre(): Collection
+    public function getScolariteSemestre(): Collection
     {
-        return $this->etudiantScolariteSemestre;
+        return $this->scolariteSemestre;
     }
 
-    public function setEtudiantScolariteSemestre(Collection $etudiantScolariteSemestre): void
+    public function setScolariteSemestre(Collection $scolariteSemestre): void
     {
-        $this->etudiantScolariteSemestre = $etudiantScolariteSemestre;
+        $this->scolariteSemestre = $scolariteSemestre;
     }
 
     /**

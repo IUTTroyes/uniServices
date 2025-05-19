@@ -31,13 +31,13 @@ class EtudiantAbsence
     #[ORM\Column]
     private ?bool $justifiee = null;
 
-    #[ORM\ManyToOne(inversedBy: 'etudiantAbsences')]
+    #[ORM\ManyToOne(inversedBy: 'absences')]
     private ?Personnel $personnel = null;
 
-    #[ORM\ManyToOne(inversedBy: 'etudiantAbsences')]
+    #[ORM\ManyToOne(inversedBy: 'absences')]
     private ?Etudiant $etudiant = null;
 
-    #[ORM\ManyToOne(inversedBy: 'etudiantAbsences')]
+    #[ORM\ManyToOne(inversedBy: 'absences')]
     private ?ScolEnseignement $enseignement = null;
 
     #[ORM\ManyToOne()]
@@ -48,11 +48,11 @@ class EtudiantAbsence
     private ?\DateTimeInterface $dateJustification = null;
 
     #[ORM\ManyToOne(inversedBy: 'absence')]
-    private ?EtudiantAbsenceJustificatif $etudiantAbsenceJustificatif = null;
+    private ?EtudiantAbsenceJustificatif $absenceJustificatif = null;
 
-    #[ORM\ManyToOne(inversedBy: 'etudiant_absence')]
+    #[ORM\ManyToOne(inversedBy: 'absence')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?EtudiantScolariteSemestre $etudiantScolariteSemestre = null;
+    private ?EtudiantScolariteSemestre $scolariteSemestre = null;
 
     public function getId(): ?int
     {
@@ -155,26 +155,26 @@ class EtudiantAbsence
         return $this;
     }
 
-    public function getEtudiantAbsenceJustificatif(): ?EtudiantAbsenceJustificatif
+    public function getAbsenceJustificatif(): ?EtudiantAbsenceJustificatif
     {
-        return $this->etudiantAbsenceJustificatif;
+        return $this->absenceJustificatif;
     }
 
-    public function setEtudiantAbsenceJustificatif(?EtudiantAbsenceJustificatif $etudiantAbsenceJustificatif): static
+    public function setAbsenceJustificatif(?EtudiantAbsenceJustificatif $absenceJustificatif): static
     {
-        $this->etudiantAbsenceJustificatif = $etudiantAbsenceJustificatif;
+        $this->absenceJustificatif = $absenceJustificatif;
 
         return $this;
     }
 
-    public function getEtudiantScolariteSemestre(): ?EtudiantScolariteSemestre
+    public function getScolariteSemestre(): ?EtudiantScolariteSemestre
     {
-        return $this->etudiantScolariteSemestre;
+        return $this->scolariteSemestre;
     }
 
-    public function setEtudiantScolariteSemestre(?EtudiantScolariteSemestre $etudiantScolariteSemestre): static
+    public function setScolariteSemestre(?EtudiantScolariteSemestre $scolariteSemestre): static
     {
-        $this->etudiantScolariteSemestre = $etudiantScolariteSemestre;
+        $this->scolariteSemestre = $scolariteSemestre;
 
         return $this;
     }

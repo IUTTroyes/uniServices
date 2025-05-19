@@ -30,19 +30,19 @@ class ApcNiveau
     /**
      * @var Collection<int, ApcParcours>
      */
-    #[ORM\ManyToMany(targetEntity: ApcParcours::class, inversedBy: 'apcNiveaux')]
-    #[Groups('structure_diplome:read')]
-    private Collection $apcParcours;
+    #[ORM\ManyToMany(targetEntity: ApcParcours::class, inversedBy: 'niveaux')]
+    #[Groups('diplome:read')]
+    private Collection $parcours;
 
-    #[ORM\ManyToOne(inversedBy: 'apcNiveaux')]
-    #[Groups('scol_enseignement:read')]
-    private ?ApcCompetence $apcCompetence = null;
+    #[ORM\ManyToOne(inversedBy: 'niveaux')]
+    #[Groups('enseignement:read')]
+    private ?ApcCompetence $competence = null;
 
     /**
      * @var Collection<int, ApcApprentissageCritique>
      */
-    #[ORM\OneToMany(targetEntity: ApcApprentissageCritique::class, mappedBy: 'apcNiveau')]
-    private Collection $apcApprentissageCritique;
+    #[ORM\OneToMany(targetEntity: ApcApprentissageCritique::class, mappedBy: 'niveau')]
+    private Collection $apprentissageCritique;
 
     /**
      * @var Collection<int, StructureAnnee>
@@ -52,8 +52,8 @@ class ApcNiveau
 
     public function __construct()
     {
-        $this->apcParcours = new ArrayCollection();
-        $this->apcApprentissageCritique = new ArrayCollection();
+        $this->parcours = new ArrayCollection();
+        $this->apprentissageCritique = new ArrayCollection();
         $this->annees = new ArrayCollection();
     }
 
@@ -89,35 +89,35 @@ class ApcNiveau
     /**
      * @return Collection<int, ApcParcours>
      */
-    public function getApcParcours(): Collection
+    public function getParcours(): Collection
     {
-        return $this->apcParcours;
+        return $this->parcours;
     }
 
-    public function addApcParcour(ApcParcours $apcParcour): static
+    public function addParcours(ApcParcours $parcours): static
     {
-        if (!$this->apcParcours->contains($apcParcour)) {
-            $this->apcParcours->add($apcParcour);
+        if (!$this->parcours->contains($parcours)) {
+            $this->parcours->add($parcours);
         }
 
         return $this;
     }
 
-    public function removeApcParcour(ApcParcours $apcParcour): static
+    public function removeParcours(ApcParcours $parcours): static
     {
-        $this->apcParcours->removeElement($apcParcour);
+        $this->parcours->removeElement($parcours);
 
         return $this;
     }
 
-    public function getApcCompetence(): ?ApcCompetence
+    public function getCompetence(): ?ApcCompetence
     {
-        return $this->apcCompetence;
+        return $this->competence;
     }
 
-    public function setApcCompetence(?ApcCompetence $apcCompetence): static
+    public function setCompetence(?ApcCompetence $competence): static
     {
-        $this->apcCompetence = $apcCompetence;
+        $this->competence = $competence;
 
         return $this;
     }
@@ -125,27 +125,27 @@ class ApcNiveau
     /**
      * @return Collection<int, ApcApprentissageCritique>
      */
-    public function getApcApprentissageCritique(): Collection
+    public function getApprentissageCritique(): Collection
     {
-        return $this->apcApprentissageCritique;
+        return $this->apprentissageCritique;
     }
 
-    public function addApcApprentissageCritique(ApcApprentissageCritique $apcApprentissageCritique): static
+    public function addApprentissageCritique(ApcApprentissageCritique $apprentissageCritique): static
     {
-        if (!$this->apcApprentissageCritique->contains($apcApprentissageCritique)) {
-            $this->apcApprentissageCritique->add($apcApprentissageCritique);
-            $apcApprentissageCritique->setApcNiveau($this);
+        if (!$this->apprentissageCritique->contains($apprentissageCritique)) {
+            $this->apprentissageCritique->add($apprentissageCritique);
+            $apprentissageCritique->setNiveau($this);
         }
 
         return $this;
     }
 
-    public function removeApcApprentissageCritique(ApcApprentissageCritique $apcApprentissageCritique): static
+    public function removeApprentissageCritique(ApcApprentissageCritique $apprentissageCritique): static
     {
-        if ($this->apcApprentissageCritique->removeElement($apcApprentissageCritique)) {
+        if ($this->apprentissageCritique->removeElement($apprentissageCritique)) {
             // set the owning side to null (unless already changed)
-            if ($apcApprentissageCritique->getApcNiveau() === $this) {
-                $apcApprentissageCritique->setApcNiveau(null);
+            if ($apprentissageCritique->getNiveau() === $this) {
+                $apprentissageCritique->setNiveau(null);
             }
         }
 
@@ -161,7 +161,7 @@ class ApcNiveau
             default => null,
         };
 
-        return $this->getApcCompetence()?->getNomCourt().' - Niveau '.$niv.'('.$this->ordre.')';
+        return $this->getCompetence()?->getNomCourt().' - Niveau '.$niv.'('.$this->ordre.')';
     }
 
     /**
@@ -176,7 +176,7 @@ class ApcNiveau
     {
         if (!$this->annees->contains($annee)) {
             $this->annees->add($annee);
-            $annee->setApcNiveau($this);
+            $annee->setNiveau($this);
         }
 
         return $this;
@@ -186,8 +186,8 @@ class ApcNiveau
     {
         if ($this->annees->removeElement($annee)) {
             // set the owning side to null (unless already changed)
-            if ($annee->getApcNiveau() === $this) {
-                $annee->setApcNiveau(null);
+            if ($annee->getNiveau() === $this) {
+                $annee->setNiveau(null);
             }
         }
 

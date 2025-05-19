@@ -54,7 +54,7 @@ class EdtEvent
     #[ORM\Column(length: 25, nullable: true)]
     private ?string $codeSalle = null;
 
-    #[ORM\ManyToOne(inversedBy: 'scolEdtEvents')]
+    #[ORM\ManyToOne(inversedBy: 'edtEvents')]
     private ?Personnel $personnel = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -63,7 +63,7 @@ class EdtEvent
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $libPersonnel = null;
 
-    #[ORM\ManyToOne(inversedBy: 'scolEdtEvents')]
+    #[ORM\ManyToOne(inversedBy: 'edtEvents')]
     private ?ScolEnseignement $enseignement = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -72,7 +72,7 @@ class EdtEvent
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $libModule = null;
 
-    #[ORM\ManyToOne(inversedBy: 'scolEdtEvents')]
+    #[ORM\ManyToOne(inversedBy: 'edtEvents')]
     private ?StructureGroupe $groupe = null;
 
     #[ORM\Column(length: 30, nullable: true)]
@@ -90,13 +90,13 @@ class EdtEvent
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $type = null;
 
-    #[ORM\ManyToOne(inversedBy: 'scolEdtEvents')]
+    #[ORM\ManyToOne(inversedBy: 'edtEvents')]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $departementCodeCelcat = null;
 
-    #[ORM\ManyToOne(inversedBy: 'scolEdtEvents')]
+    #[ORM\ManyToOne(inversedBy: 'events')]
     private ?StructureSemestre $semestre = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]

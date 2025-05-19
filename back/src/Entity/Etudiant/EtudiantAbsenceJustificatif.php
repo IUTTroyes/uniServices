@@ -40,7 +40,7 @@ class EtudiantAbsenceJustificatif
     /**
      * @var Collection<int, EtudiantAbsence>
      */
-    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'etudiantAbsenceJustificatif')]
+    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'absenceJustificatif')]
     private Collection $absence;
 
     public function __construct()
@@ -136,7 +136,7 @@ class EtudiantAbsenceJustificatif
     {
         if (!$this->absence->contains($absence)) {
             $this->absence->add($absence);
-            $absence->setEtudiantAbsenceJustificatif($this);
+            $absence->setAbsenceJustificatif($this);
         }
 
         return $this;
@@ -146,8 +146,8 @@ class EtudiantAbsenceJustificatif
     {
         if ($this->absence->removeElement($absence)) {
             // set the owning side to null (unless already changed)
-            if ($absence->getEtudiantAbsenceJustificatif() === $this) {
-                $absence->setEtudiantAbsenceJustificatif(null);
+            if ($absence->getAbsenceJustificatif() === $this) {
+                $absence->setAbsenceJustificatif(null);
             }
         }
 

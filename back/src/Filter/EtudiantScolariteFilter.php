@@ -39,7 +39,7 @@ class EtudiantScolariteFilter extends AbstractFilter
 
         if ('anneeUniversitaire' === $property) {
             $queryBuilder
-                ->join("$alias.structureAnneeUniversitaire", 'anneeUniversitaire')
+                ->join("$alias.anneeUniversitaire", 'anneeUniversitaire')
                 ->andWhere('anneeUniversitaire.id = :anneeUniversitaire')
                 ->setParameter("anneeUniversitaire", $value);
         }
@@ -67,9 +67,9 @@ class EtudiantScolariteFilter extends AbstractFilter
 
         if ('annee' === $property) {
             $queryBuilder
-                ->join("$alias.structure_annee", 'structureAnnee')
-                ->andWhere('structureAnnee.id = :structureAnnee')
-                ->setParameter("structureAnnee", $value);
+                ->join("$alias.annee", 'annee')
+                ->andWhere('annee.id = :annee')
+                ->setParameter("annee", $value);
         }
 
         if ('etudiant' === $property) {

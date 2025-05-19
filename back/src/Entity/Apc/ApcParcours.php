@@ -25,7 +25,7 @@ class ApcParcours
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['diplome:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 10, nullable: true)]
@@ -40,33 +40,33 @@ class ApcParcours
     /**
      * @var Collection<int, StructureDiplome>
      */
-    #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'apcParcours')]
+    #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'parcours')]
     private Collection $diplome;
 
     /**
      * @var Collection<int, StructureGroupe>
      */
-    #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'apcParcours')]
+    #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'parcours')]
     private Collection $groupes;
 
     /**
      * @var Collection<int, ApcNiveau>
      */
-    #[ORM\ManyToMany(targetEntity: ApcNiveau::class, mappedBy: 'apcParcours')]
-    private Collection $apcNiveaux;
+    #[ORM\ManyToMany(targetEntity: ApcNiveau::class, mappedBy: 'parcours')]
+    private Collection $niveaux;
 
-    #[ORM\ManyToOne(inversedBy: 'apcParcours')]
-    private ?ApcReferentiel $apcReferentiel = null;
+    #[ORM\ManyToOne(inversedBy: 'parcours')]
+    private ?ApcReferentiel $referentiel = null;
 
     public function __construct()
     {
         $this->diplome = new ArrayCollection();
         $this->groupes = new ArrayCollection();
-        $this->apcNiveaux = new ArrayCollection();
+        $this->niveaux = new ArrayCollection();
         $this->setOpt([]);
     }
 
-    #[Groups(['structure_diplome:read'])]
+    #[Groups(['diplome:read'])]
     public function getDisplay(): string
     {
         // si il ya formation_continue:true dans la propriété option
@@ -153,7 +153,7 @@ class ApcParcours
     {
         if (!$this->diplome->contains($diplome)) {
             $this->diplome->add($diplome);
-            $diplome->setApcParcours($this);
+            $diplome->setParcourss($this);
         }
 
         return $this;
@@ -163,8 +163,8 @@ class ApcParcours
     {
         if ($this->diplome->removeElement($diplome)) {
             // set the owning side to null (unless already changed)
-            if ($diplome->getApcParcours() === $this) {
-                $diplome->setApcParcours(null);
+            if ($diplome->getParcourss() === $this) {
+                $diplome->setParcourss(null);
             }
         }
 
@@ -198,38 +198,38 @@ class ApcParcours
     /**
      * @return Collection<int, ApcNiveau>
      */
-    public function getApcNiveaux(): Collection
+    public function getNiveaux(): Collection
     {
-        return $this->apcNiveaux;
+        return $this->niveaux;
     }
 
-    public function addApcNiveau(ApcNiveau $apcNiveau): static
+    public function addNiveau(ApcNiveau $niveau): static
     {
-        if (!$this->apcNiveaux->contains($apcNiveau)) {
-            $this->apcNiveaux->add($apcNiveau);
-            $apcNiveau->addApcParcour($this);
+        if (!$this->niveaux->contains($niveau)) {
+            $this->niveaux->add($niveau);
+            $niveau->addParcours($this);
         }
 
         return $this;
     }
 
-    public function removeApcNiveau(ApcNiveau $apcNiveau): static
+    public function removeNiveau(ApcNiveau $niveau): static
     {
-        if ($this->apcNiveaux->removeElement($apcNiveau)) {
-            $apcNiveau->removeApcParcour($this);
+        if ($this->niveaux->removeElement($niveau)) {
+            $niveau->removeParcours($this);
         }
 
         return $this;
     }
 
-    public function getApcReferentiel(): ?ApcReferentiel
+    public function getReferentiel(): ?ApcReferentiel
     {
-        return $this->apcReferentiel;
+        return $this->referentiel;
     }
 
-    public function setApcReferentiel(?ApcReferentiel $apcReferentiel): static
+    public function setReferentiel(?ApcReferentiel $referentiel): static
     {
-        $this->apcReferentiel = $apcReferentiel;
+        $this->referentiel = $referentiel;
 
         return $this;
     }

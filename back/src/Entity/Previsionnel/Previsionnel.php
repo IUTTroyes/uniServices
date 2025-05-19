@@ -86,7 +86,7 @@ class Previsionnel
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
-    #[Groups(['previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
+    #[Groups(['previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
     private ?Personnel $personnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
@@ -98,11 +98,11 @@ class Previsionnel
     private ?bool $referent = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read','previsionnel_all_personnels:read', 'previsionnel_personnel:read'])]
+    #[Groups(['previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read','previsionnel_all_personnels:read', 'previsionnel_personnel:read'])]
     private array $heures = [];
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read'])]
+    #[Groups(['previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read'])]
     private ?array $groupes = [];
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]

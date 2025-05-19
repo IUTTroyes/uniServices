@@ -43,24 +43,10 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     use LifeCycleTrait;
     use OldIdTrait;
 
-/* @depreacted("Utiliser le StatutEnum") */
-//    public const STATUT = [
-//        'MCF' => 'Maître de conférences',
-//        'PU' => 'Professeur des universités',
-//        'ATER' => 'Attaché temporaire d\'enseignement et de recherche',
-//        'PRAG' => 'Professeur agrégé',
-//        'IE' => 'Ingénieur d\'études',
-//        'ENSAM' => 'Enseignant associé',
-//        'DO' => 'Doctorant',
-//        'VAC' => 'Enseignant Vacataire',
-//        'PRCE' => 'Professeur certifié',
-//        'BIATSS' => 'Personnel Biatss',
-//        ];
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read'])]
+    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
@@ -68,7 +54,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
+    #[Groups(['personnel:read', 'departement_personnel:read'])]
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -79,11 +65,11 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read'])]
+    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'scol_enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read'])]
+    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -106,7 +92,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\ManyToOne(inversedBy: 'personnels')]
     #[Groups(['personnel:read'])]
-    private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
+    private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $adressePersonnelle = null;
@@ -116,13 +102,13 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\OneToMany(targetEntity: StructureDepartementPersonnel::class, mappedBy: 'personnel', orphanRemoval: true)]
     #[Groups(['personnel:read'])]
-    private Collection $structureDepartementPersonnels;
+    private Collection $departementPersonnels;
 
     /**
      * @var Collection<int, EtudiantAbsence>
      */
     #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'personnel')]
-    private Collection $etudiantAbsences;
+    private Collection $absences;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $idEduSign = null;
@@ -131,13 +117,13 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, ScolEvaluation>
      */
     #[ORM\ManyToMany(targetEntity: ScolEvaluation::class, mappedBy: 'personnelAutorise')]
-    private Collection $scolEvaluations;
+    private Collection $evaluations;
 
     /**
      * @var Collection<int, EdtEvent>
      */
     #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'personnel')]
-    private Collection $scolEdtEvents;
+    private Collection $events;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['personnel:read'])]
@@ -160,7 +146,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $numeroHarpege = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'structure_departement_personnel:read'])]
+    #[Groups(['previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'departement_personnel:read'])]
     private ?int $nbHeuresService = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -187,7 +173,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?StatutEnum $statut = null;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['personnel:read', 'structure_departement_personnel:read'])]
+    #[Groups(['personnel:read', 'departement_personnel:read'])]
     private ?string $initiales = null;
 
     #[ORM\Column(nullable: true)]
@@ -208,10 +194,10 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->responsableDiplome = new ArrayCollection();
         $this->assistantDiplome = new ArrayCollection();
-        $this->structureDepartementPersonnels = new ArrayCollection();
-        $this->etudiantAbsences = new ArrayCollection();
-        $this->scolEvaluations = new ArrayCollection();
-        $this->scolEdtEvents = new ArrayCollection();
+        $this->departementPersonnels = new ArrayCollection();
+        $this->absences = new ArrayCollection();
+        $this->evaluations = new ArrayCollection();
+        $this->events = new ArrayCollection();
         $this->previsionnels = new ArrayCollection();
     }
 
@@ -388,14 +374,14 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getStructureAnneeUniversitaire(): ?StructureAnneeUniversitaire
+    public function getAnneeUniversitaire(): ?StructureAnneeUniversitaire
     {
-        return $this->structureAnneeUniversitaire;
+        return $this->anneeUniversitaire;
     }
 
-    public function setStructureAnneeUniversitaire(?StructureAnneeUniversitaire $structureAnneeUniversitaire): static
+    public function setAnneeUniversitaire(?StructureAnneeUniversitaire $anneeUniversitaire): static
     {
-        $this->structureAnneeUniversitaire = $structureAnneeUniversitaire;
+        $this->anneeUniversitaire = $anneeUniversitaire;
 
         return $this;
     }
@@ -403,27 +389,27 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, StructureDepartementPersonnel>
      */
-    public function getStructureDepartementPersonnels(): Collection
+    public function getDepartementPersonnels(): Collection
     {
-        return $this->structureDepartementPersonnels;
+        return $this->departementPersonnels;
     }
 
-    public function addStructureDepartementPersonnel(StructureDepartementPersonnel $structureDepartementPersonnel): static
+    public function addDepartementPersonnel(StructureDepartementPersonnel $departementPersonnel): static
     {
-        if (!$this->structureDepartementPersonnels->contains($structureDepartementPersonnel)) {
-            $this->structureDepartementPersonnels->add($structureDepartementPersonnel);
-            $structureDepartementPersonnel->setPersonnel($this);
+        if (!$this->departementPersonnels->contains($departementPersonnel)) {
+            $this->departementPersonnels->add($departementPersonnel);
+            $departementPersonnel->setPersonnel($this);
         }
 
         return $this;
     }
 
-    public function removeStructureDepartementPersonnel(StructureDepartementPersonnel $structureDepartementPersonnel): static
+    public function removeDepartementPersonnel(StructureDepartementPersonnel $departementPersonnel): static
     {
-        if ($this->structureDepartementPersonnels->removeElement($structureDepartementPersonnel)) {
+        if ($this->departementPersonnels->removeElement($departementPersonnel)) {
             // set the owning side to null (unless already changed)
-            if ($structureDepartementPersonnel->getPersonnel() === $this) {
-                $structureDepartementPersonnel->setPersonnel(null);
+            if ($departementPersonnel->getPersonnel() === $this) {
+                $departementPersonnel->setPersonnel(null);
             }
         }
 
@@ -447,27 +433,27 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, EtudiantAbsence>
      */
-    public function getEtudiantAbsences(): Collection
+    public function getAbsences(): Collection
     {
-        return $this->etudiantAbsences;
+        return $this->absences;
     }
 
-    public function addEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    public function addAbsence(EtudiantAbsence $absence): static
     {
-        if (!$this->etudiantAbsences->contains($etudiantAbsence)) {
-            $this->etudiantAbsences->add($etudiantAbsence);
-            $etudiantAbsence->setPersonnel($this);
+        if (!$this->absences->contains($absence)) {
+            $this->absences->add($absence);
+            $absence->setPersonnel($this);
         }
 
         return $this;
     }
 
-    public function removeEtudiantAbsence(EtudiantAbsence $etudiantAbsence): static
+    public function removeAbsence(EtudiantAbsence $absence): static
     {
-        if ($this->etudiantAbsences->removeElement($etudiantAbsence)) {
+        if ($this->absences->removeElement($absence)) {
             // set the owning side to null (unless already changed)
-            if ($etudiantAbsence->getPersonnel() === $this) {
-                $etudiantAbsence->setPersonnel(null);
+            if ($absence->getPersonnel() === $this) {
+                $absence->setPersonnel(null);
             }
         }
 
@@ -487,25 +473,25 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, ScolEvaluation>
      */
-    public function getScolEvaluations(): Collection
+    public function getEvaluations(): Collection
     {
-        return $this->scolEvaluations;
+        return $this->evaluations;
     }
 
-    public function addScolEvaluation(ScolEvaluation $scolEvaluation): static
+    public function addEvaluation(ScolEvaluation $evaluation): static
     {
-        if (!$this->scolEvaluations->contains($scolEvaluation)) {
-            $this->scolEvaluations->add($scolEvaluation);
-            $scolEvaluation->addPersonnelAutorise($this);
+        if (!$this->evaluations->contains($evaluation)) {
+            $this->evaluations->add($evaluation);
+            $evaluation->addPersonnelAutorise($this);
         }
 
         return $this;
     }
 
-    public function removeScolEvaluation(ScolEvaluation $scolEvaluation): static
+    public function removeEvaluation(ScolEvaluation $evaluation): static
     {
-        if ($this->scolEvaluations->removeElement($scolEvaluation)) {
-            $scolEvaluation->removePersonnelAutorise($this);
+        if ($this->evaluations->removeElement($evaluation)) {
+            $evaluation->removePersonnelAutorise($this);
         }
 
         return $this;
@@ -514,27 +500,27 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, EdtEvent>
      */
-    public function getScolEdtEvents(): Collection
+    public function getEvents(): Collection
     {
-        return $this->scolEdtEvents;
+        return $this->events;
     }
 
-    public function addScolEdtEvent(EdtEvent $scolEdtEvent): static
+    public function addEvent(EdtEvent $event): static
     {
-        if (!$this->scolEdtEvents->contains($scolEdtEvent)) {
-            $this->scolEdtEvents->add($scolEdtEvent);
-            $scolEdtEvent->setPersonnel($this);
+        if (!$this->events->contains($event)) {
+            $this->events->add($event);
+            $event->setPersonnel($this);
         }
 
         return $this;
     }
 
-    public function removeScolEdtEvent(EdtEvent $scolEdtEvent): static
+    public function removeEvent(EdtEvent $event): static
     {
-        if ($this->scolEdtEvents->removeElement($scolEdtEvent)) {
+        if ($this->events->removeElement($event)) {
             // set the owning side to null (unless already changed)
-            if ($scolEdtEvent->getPersonnel() === $this) {
-                $scolEdtEvent->setPersonnel(null);
+            if ($event->getPersonnel() === $this) {
+                $event->setPersonnel(null);
             }
         }
 
@@ -685,13 +671,13 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel_semestre:read'])]
+    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel_semestre:read'])]
     public function getDisplayStatut(): ?string
     {
         return $this->statut->getLibelle() ?? '-';
     }
 
-    #[Groups(['personnel:read', 'structure_departement_personnel:read', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'structure_diplome:read'])]
+    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'diplome:read'])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();

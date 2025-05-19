@@ -36,7 +36,7 @@ onMounted(async () => {
   }
 
   if (selectedPn.value) {
-    nodes.value = transformData(selectedPn.value.structureAnnees);
+    nodes.value = transformData(selectedPn.value.diplome.annees);
     isLoadingPn.value = false;
   }
 })
@@ -62,11 +62,11 @@ const getPnsForDiplome = async (diplomeId) => {
     isLoadingPn.value = true;
     pns.value = await getPnsDiplome(diplomeId)
     // parmis tous les pn, on prend celui qui a une année active
-    selectedPn.value = pns.value.find(pn => pn.structureAnneeUniversitaires.some(annee => annee.actif === true)) ?? null
-    nodes.value = transformData(selectedPn.value.structureAnnees);
+    selectedPn.value = pns.value.find(pn => pn.anneeUniversitaire?.actif === true) ?? null
     if (selectedPn.value) {
-      nodes.value = transformData(selectedPn.value.structureAnnees);
+      nodes.value = transformData(selectedPn.value.diplome.annees);
     }
+    console.log(pns.value)
   } catch (error) {
     console.error('Erreur lors du chargement des PNs:', error);
   } finally {
@@ -90,7 +90,9 @@ const changeDiplome = (diplome) => {
   selectedDiplome.value = diplome
   getPnsForDiplome(selectedDiplome.value.id);
 
-  nodes.value = transformData(selectedPn.value.structureAnnees);
+  if (selectedPn.value) {
+    nodes.value = transformData(selectedPn.value.diplome.annees);
+  }
 }
 
 const nodes = ref([]);
@@ -105,7 +107,7 @@ const transformData = (data) => {
     key: annee['@id'],
     data: { libelle: annee.libelle, apogeeCode: annee.apogeeCodeEtape },
     edit: false,
-    children: annee.structureSemestres.map(semestre => ({
+    children: annee.semestres.map(semestre => ({
       key: semestre['@id'],
       data: { libelle: semestre.libelle, apogeeCode: semestre.codeElement },
       edit: true,
@@ -149,8 +151,8 @@ const showDetails = (item, semestre) => {
 
         <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" />
       </div>
-      <div class="text-xl font-bold mb-4">{{selectedDiplome?.apcParcours?.display ?? `Aucun parcours renseigné`}}</div>
-      <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.structureAnnees" :legend="`${annee.libelle}`" :toggleable="true">
+      <div class="text-xl font-bold mb-4">{{selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné`}}</div>
+      <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.diplome?.annees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
           <i class="pi pi-angle-down"></i>
         </template>
@@ -175,7 +177,7 @@ const showDetails = (item, semestre) => {
               </tbody>
             </table>
           </div>
-          <div v-for="semestre in annee.structureSemestres" class="ml-6 border-l-2 border-primary-300 pl-4">
+          <div v-for="semestre in annee.semestres" class="ml-6 border-l-2 border-primary-300 pl-4">
             <div class="mt-6 mb-2 flex flex-row items-center gap-4">
               <table class="text-lg">
                 <thead>
@@ -190,7 +192,7 @@ const showDetails = (item, semestre) => {
                 <tr>
                   <td class="px-2 font-bold">{{ semestre.libelle }}</td>
                   <td class="px-2 font-bold">{{ semestre.codeElement }}</td>
-                  <td class="px-2 font-bold">{{ semestre.structureUes.length }}</td>
+                  <td class="px-2 font-bold">{{ semestre.ues.length }}</td>
                 </tr>
                 </tbody>
               </table>
@@ -215,7 +217,7 @@ const showDetails = (item, semestre) => {
                 </tbody>
               </table>
             </div>
-            <Fieldset v-for="ue in semestre.structureUes" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`" class="ml-6 !border-l-2 !border-l-primary-200 !pl-4 !border-0" :collapsed="true">
+            <Fieldset v-for="ue in semestre.ues" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`" class="ml-6 !border-l-2 !border-l-primary-200 !pl-4 !border-0" :collapsed="true">
               <template #toggleicon>
                 <i class="pi pi-angle-down"></i>
               </template>
@@ -234,7 +236,7 @@ const showDetails = (item, semestre) => {
                   <tr>
                     <td class="px-2 font-bold">{{ue.libelle}}</td>
                     <td class="px-2 font-bold">{{ ue.codeElement }}</td>
-                    <td v-if="selectedDiplome.typeDiplome.apc" :class="ue.apcCompetence.couleur" class="px-2 font-bold !w-fit">{{ue.apcCompetence.nomCourt}}</td>
+                    <td v-if="selectedDiplome.typeDiplome.apc" :class="ue.competence.couleur" class="px-2 font-bold !w-fit">{{ue.competence.nomCourt}}</td>
                     <td class="px-2 font-bold !w-fit">{{ue.nbEcts}}</td>
                     <td v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-bold !w-fit">0</td>
                   </tr>
@@ -242,7 +244,7 @@ const showDetails = (item, semestre) => {
                 </table>
                 <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
               </div>
-              <div v-for="enseignementUe in ue.scolEnseignementUes">
+              <div v-for="enseignementUe in ue.enseignementUes">
                 <Fieldset v-if="!enseignementUe.enseignement.parent" legend="" :toggleable="true">
                   <template #toggleicon>
                     <i class="pi pi-angle-down"></i>
@@ -328,8 +330,8 @@ const showDetails = (item, semestre) => {
       <div></div>
     </template>
     <template v-if="dialogContent">
-      <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
-      <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item" :parcours="selectedDiplome.apcParcours" :semestre="dialogContent.semestre"/>
+      <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item" :parcours="selectedDiplome.parcours" :semestre="dialogContent.semestre"/>
+      <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item" :parcours="selectedDiplome.parcours" :semestre="dialogContent.semestre"/>
       <FicheMatiere v-else-if="dialogContent.item.type === 'matiere'" :enseignement="dialogContent.item" :semestre="dialogContent.semestre" :diplome="selectedDiplome"/>
     </template>
   </Dialog>

@@ -26,8 +26,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['scolarite:read']]),
         new GetCollection(normalizationContext: ['groups' => ['scolarite:read']]),
         new Get(
-            normalizationContext: ['groups' => ['scolarite:read']],
             uriTemplate: '/etudiant_scolarites/etudiant/{etudiant}/structureAnneeUniversitaire/{structureAnneeUniversitaire}',
+            normalizationContext: ['groups' => ['scolarite:read']],
         )
     ]
 )]
@@ -42,7 +42,7 @@ class EtudiantScolarite
     #[Groups(['scolarite:read', 'etudiant:read'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'etudiantScolarites')]
+    #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['scolarite:read'])]
     private ?Etudiant $etudiant = null;
@@ -56,7 +56,7 @@ class EtudiantScolarite
     #[Groups(['scolarite:read'])]
     private ?string $proposition = null;
 
-    // switch rel. scol.semestre
+    // todo: -> moove to etudiantScolariteSemestre
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:read'])]
     private ?float $moyenne = null;
@@ -73,7 +73,7 @@ class EtudiantScolarite
     #[Groups(['scolarite:read'])]
     private bool $public = false;
 
-    // switch rel. scol.semestre
+    // todo: -> moove to etudiantScolariteSemestre
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:read'])]
     private ?array $moyennesMatiere = null;
@@ -86,38 +86,40 @@ class EtudiantScolarite
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['scolarite:read', 'etudiant:read'])]
-    private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
+    private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
+    // todo: -> moove to etudiantScolariteSemestre
     /**
      * @var Collection<int, StructureGroupe>
      */
-    #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'etudiantScolarites')]
+    #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'scolarites')]
     #[Groups(['scolarite:read'])]
     private Collection $groupes;
 
-    #[ORM\ManyToOne(inversedBy: 'etudiantScolarites')]
+    #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[Groups(['scolarite:read'])]
     private ?StructureDepartement $departement = null;
 
     /**
      * @var Collection<int, EtudiantScolariteSemestre>
      */
-    #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'etudiantScolarite')]
+    #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'scolarite')]
     #[Groups(['scolarite:read', 'etudiant:read'])]
-    private Collection $scolarite_semestre;
+    private Collection $scolariteSemestre;
 
     /**
      * @var Collection<int, StructureAnnee>
+     * @deprecated
      */
     #[Groups(['etudiant:read', 'scolarite:read'])]
-    #[ORM\ManyToMany(targetEntity: StructureAnnee::class, inversedBy: 'etudiantScolarites')]
-    private Collection $structure_annee;
+    #[ORM\ManyToMany(targetEntity: StructureAnnee::class, inversedBy: 'scolarites')]
+    private Collection $annee;
 
     public function __construct()
     {
         $this->groupes = new ArrayCollection();
-        $this->scolarite_semestre = new ArrayCollection();
-        $this->structure_annee = new ArrayCollection();
+        $this->scolariteSemestre = new ArrayCollection();
+        $this->annee = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -233,14 +235,14 @@ class EtudiantScolarite
         return $this;
     }
 
-    public function getStructureAnneeUniversitaire(): ?StructureAnneeUniversitaire
+    public function getAnneeUniversitaire(): ?StructureAnneeUniversitaire
     {
-        return $this->structureAnneeUniversitaire;
+        return $this->anneeUniversitaire;
     }
 
-    public function setStructureAnneeUniversitaire(?StructureAnneeUniversitaire $structureAnneeUniversitaire): static
+    public function setAnneeUniversitaire(?StructureAnneeUniversitaire $anneeUniversitaire): static
     {
-        $this->structureAnneeUniversitaire = $structureAnneeUniversitaire;
+        $this->anneeUniversitaire = $anneeUniversitaire;
 
         return $this;
     }
@@ -286,14 +288,14 @@ class EtudiantScolarite
      */
     public function getScolariteSemestre(): Collection
     {
-        return $this->scolarite_semestre;
+        return $this->scolariteSemestre;
     }
 
     public function addScolariteSemestre(EtudiantScolariteSemestre $scolariteSemestre): static
     {
-        if (!$this->scolarite_semestre->contains($scolariteSemestre)) {
-            $this->scolarite_semestre->add($scolariteSemestre);
-            $scolariteSemestre->setEtudiantScolarite($this);
+        if (!$this->scolariteSemestre->contains($scolariteSemestre)) {
+            $this->scolariteSemestre->add($scolariteSemestre);
+            $scolariteSemestre->setScolarite($this);
         }
 
         return $this;
@@ -301,10 +303,10 @@ class EtudiantScolarite
 
     public function removeScolariteSemestre(EtudiantScolariteSemestre $scolariteSemestre): static
     {
-        if ($this->scolarite_semestre->removeElement($scolariteSemestre)) {
+        if ($this->scolariteSemestre->removeElement($scolariteSemestre)) {
             // set the owning side to null (unless already changed)
-            if ($scolariteSemestre->getEtudiantScolarite() === $this) {
-                $scolariteSemestre->setEtudiantScolarite(null);
+            if ($scolariteSemestre->getScolarite() === $this) {
+                $scolariteSemestre->setScolarite(null);
             }
         }
 
@@ -314,23 +316,23 @@ class EtudiantScolarite
     /**
      * @return Collection<int, StructureAnnee>
      */
-    public function getStructureAnnee(): Collection
+    public function getAnnee(): Collection
     {
-        return $this->structure_annee;
+        return $this->annee;
     }
 
-    public function addStructureAnnee(StructureAnnee $structureAnnee): static
+    public function addAnnee(StructureAnnee $annee): static
     {
-        if (!$this->structure_annee->contains($structureAnnee)) {
-            $this->structure_annee->add($structureAnnee);
+        if (!$this->annee->contains($annee)) {
+            $this->annee->add($annee);
         }
 
         return $this;
     }
 
-    public function removeStructureAnnee(StructureAnnee $structureAnnee): static
+    public function removeAnnee(StructureAnnee $annee): static
     {
-        $this->structure_annee->removeElement($structureAnnee);
+        $this->annee->removeElement($annee);
 
         return $this;
     }

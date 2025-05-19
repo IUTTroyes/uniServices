@@ -13,6 +13,7 @@ import createApiService from "@requests/apiService.js";
 const previService = createApiService('/api/previsionnels');
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 import apiCall from "@helpers/apiCall.js";
+import { showSuccess, showDanger } from '@helpers/toast.js';
 
 const usersStore = useUsersStore();
 const semestreStore = useSemestreStore();
@@ -136,37 +137,41 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
   try {
     // Récupérer le prévisionnel à modifier
     let previForm = previSemestre.value[0].find(previ => previ.id === previId);
-    // Mettre à jour le nombre d'heures du type concerné
-    previForm.heures[type].NbHrGrp = parseFloat(valeur || previForm.heures[type].NbHrGrp || 0);
 
-    // Calculer les nouvelles heures
-    const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-      acc[key] = parseFloat(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp);
-      return acc;
-    }, {});
+    if (previForm && parseFloat(valeur) !== previForm.heures[type] && !isNaN(parseFloat(valeur))) {
+      // Mettre à jour le nombre d'heures du type concerné
+      previForm.heures[type].NbHrGrp = parseFloat(valeur || previForm.heures[type].NbHrGrp || 0);
 
-    // Mettre à jour le prévisionnel
-    await updatePreviService(previId, { heures: newHeures });
+      // Calculer les nouvelles heures
+      const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+        acc[key] = parseFloat(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp);
+        return acc;
+      }, {});
 
-    // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
-    previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-      acc[key] = {
-        NbHrGrp: previForm.heures[key].NbHrGrp,
-        NbGrp: previForm.heures[key].NbGrp,
-        NbSeanceGrp: Math.round(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp * 10) / 10,
-      };
-      return acc;
-    }, {});
+      // Mettre à jour le prévisionnel
+      await updatePreviService(previId, {heures: newHeures});
 
-      previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + previ.heures.CM.NbHrGrp, 0) * 10) / 10;
+      // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
+      previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+        acc[key] = {
+          NbHrGrp: previForm.heures[key].NbHrGrp,
+          NbGrp: previForm.heures[key].NbGrp,
+          NbSeanceGrp: Math.round(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp * 10) / 10,
+        };
+        return acc;
+      }, {});
+
+      previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.CM.NbGrp > 0 ? previ.heures.CM.NbHrGrp : 0), 0) * 10) / 10;
       previSemestre.value[3].CM.Diff = Math.round((previSemestre.value[3].CM.NbHrSaisi - previSemestre.value[3].CM.NbHrAttendu) * 10) / 10;
-      previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + previ.heures.TD.NbHrGrp, 0) * 10) / 10;
+      previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TD.NbGrp > 0 ? previ.heures.TD.NbHrGrp : 0), 0) * 10) / 10;
       previSemestre.value[3].TD.Diff = Math.round((previSemestre.value[3].TD.NbHrSaisi - previSemestre.value[3].TD.NbHrAttendu) * 10) / 10;
-      previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + previ.heures.TP.NbHrGrp, 0) * 10) / 10;
+      previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TP.NbGrp > 0 ? previ.heures.TP.NbHrGrp : 0), 0) * 10) / 10;
       previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
-
+    }
   } catch (error) {
+    showDanger('Erreur lors de la mise à jour du prévisionnel', error);
     console.error('Erreur lors de la mise à jour du prévisionnel:', error);
+  } finally {
   }
 };
 
@@ -174,30 +179,43 @@ const updateGroupesPrevi = async (previId, type, valeur) => {
   try {
     // Récupérer le prévisionnel à modifier
     let previForm = previSemestre.value[0].find(previ => previ.id === previId);
-    // Mettre à jour le nombre de groupes du type concerné
-    previForm.groupes[type] = parseInt(valeur || 0);
 
-    // Mettre à jour le prévisionnel
-    const newGroupes = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-      acc[key] = previForm.groupes[key];
-      return acc;
-    }, {});
+    if (previForm && parseFloat(valeur) !== previForm.groupes[type] && !isNaN(parseFloat(valeur))) {
+      // Mettre à jour le nombre de groupes du type concerné
+      previForm.groupes[type] = parseInt(valeur || previForm.groupes[type]);
 
-    // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
-    previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-      acc[key] = {
-        NbHrGrp: previForm.heures[key].NbHrGrp,
-        NbGrp: previForm.groupes[key],
-        NbSeanceGrp: previForm.heures[key].NbHrGrp * previForm.groupes[key],
-      };
-      return acc;
-    }, {});
+      // Mettre à jour le prévisionnel
+      const newGroupes = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+        acc[key] = previForm.groupes[key];
+        return acc;
+      }, {});
 
-    console.log('previForm', previForm);
+      // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
+      previForm.heures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
+        acc[key] = {
+          NbHrGrp: previForm.heures[key].NbHrGrp,
+          NbGrp: previForm.groupes[key],
+          NbSeanceGrp: previForm.heures[key].NbHrGrp * previForm.groupes[key],
+        };
+        return acc;
+      }, {});
 
-    await updatePreviService(previId, { groupes: newGroupes });
+      // Recalculer les totaux
+      previSemestre.value[3].CM.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.CM.NbGrp > 0 ? previ.heures.CM.NbHrGrp : 0), 0) * 10) / 10;
+      previSemestre.value[3].CM.Diff = Math.round((previSemestre.value[3].CM.NbHrSaisi - previSemestre.value[3].CM.NbHrAttendu) * 10) / 10;
+      previSemestre.value[3].TD.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TD.NbGrp > 0 ? previ.heures.TD.NbHrGrp : 0), 0) * 10) / 10;
+      previSemestre.value[3].TD.Diff = Math.round((previSemestre.value[3].TD.NbHrSaisi - previSemestre.value[3].TD.NbHrAttendu) * 10) / 10;
+      previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TP.NbGrp > 0 ? previ.heures.TP.NbHrGrp : 0), 0) * 10) / 10;
+      previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
+
+      console.log('previForm', previForm);
+
+      await updatePreviService(previId, {groupes: newGroupes});
+    }
   } catch (error) {
+    showDanger('Erreur lors de la mise à jour du prévisionnel', error);
     console.error('Erreur lors de la mise à jour du prévisionnel:', error);
+  } finally {
   }
 };
 
@@ -215,7 +233,10 @@ const updateIntervenantPrevi = async (previId, personnel) => {
 
     console.log(previSemestre)
   } catch (error) {
-    console.error('Erreur lors de la mise à jour de l\'intervenant du prévisionnel:', error);
+    showDanger('Erreur lors de la mise à jour de l\'intervenant', error);
+    console.error('Erreur lors de la mise à jour de l\'intervenant :', error);
+  } finally {
+    showSuccess('L\'intervenant a été mis à jour avec succès');
   }
 };
 
@@ -251,60 +272,10 @@ const addPrevi = async (personnel, enseignement) => {
       },
       enseignement: enseignementIri,
     };
-    await apiCall(previService.create,[dataNewPrevi], 'Prévisionnel créé', 'Une erreur est survenue lors de la création du prévisionnel');
+    await apiCall(previService.create,[dataNewPrevi], 'L\'élément a été créé avec succès', 'Une erreur est survenue lors de la création du prévisionnel');
   } catch (error) {
+    showDanger('Erreur lors de la création du prévisionnel', error);
     console.error('Erreur lors de la création du prévisionnel:', error);
-  } finally {
-    getPrevi(selectedSemestre.value.id);
-  }
-};
-
-const duplicatePrevi = async (previId) => {
-  try {
-    // Récupérer le prévisionnel à dupliquer
-    const previToDuplicate = previSemestre.value[0].find(previ => previ.id === previId);
-    console.log(previToDuplicate)
-
-    //Calculer les nouvelles heures
-    const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-      acc[key] = parseFloat(previToDuplicate.heures[key].NbHrGrp * previToDuplicate.heures[key].NbGrp);
-      return acc;
-    }, {});
-
-    const personnelIri = `/api/personnels/${previToDuplicate.idPersonnel}`;
-    const enseignementIri = `/api/scol_enseignements/${previToDuplicate.idEnseignement}`;
-    const anneeUnivIri = `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`;
-    const dataNewPrevi = {
-      personnel: personnelIri,
-      anneeUniversitaire: anneeUnivIri,
-      referent: false,
-      heures: {
-        CM: newHeures.CM,
-        TD: newHeures.TD,
-        TP: newHeures.TP,
-        Projet: newHeures.Projet,
-      },
-      groupes: {
-        CM: previToDuplicate.groupes.CM,
-        TD: previToDuplicate.groupes.TD,
-        TP: previToDuplicate.groupes.TP,
-        Projet: previToDuplicate.groupes.Projet,
-      },
-      enseignement: enseignementIri,
-    };
-    await apiCall(previService.create,[dataNewPrevi], 'Prévisionnel dupliqué', 'Une erreur est survenue lors de la duplication du prévisionnel');
-  } catch (error) {
-    console.error('Erreur lors de la duplication du prévisionnel:', error);
-  } finally {
-    getPrevi(selectedSemestre.value.id);
-  }
-};
-
-const deletePrevi = async (id) => {
-  try {
-    await apiCall(previService.delete, [id], 'Prévisionnel supprimé', 'Une erreur est survenue lors de la suppression du prévisionnel');
-  } catch (error) {
-    console.error('Erreur lors de la suppression du prévisionnel:', error);
   } finally {
     getPrevi(selectedSemestre.value.id);
   }
@@ -401,6 +372,7 @@ const topHeaderColsForm = ref([
   { header: 'CM', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
   { header: 'TD', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
   { header: 'TP', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
+  { header: '', colspan: 2 },
 ]);
 
 const additionalRowsForm = computed(() => [
@@ -424,6 +396,7 @@ const additionalRowsForm = computed(() => [
     { footer: 'Nb hr attendu', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap !font-bold' },
     { footer: 'Nb hr saisi', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap !font-bold' },
     { footer: 'Diff', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: '', colspan: 2 },
   ],
   [
     { footer: 'Vérification du total d\'heures par étudiant', colspan: 2 },
@@ -436,22 +409,19 @@ const additionalRowsForm = computed(() => [
     { footer: previSemestre.value[3].TP.NbHrAttendu, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestre.value[3].TP.NbHrSaisi, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previSemestre.value[3].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+    { footer: '', colspan: 2 },
   ],
-  // [
-  //   { footer: 'Total', colspan: 2 },
-  //   { footer: previSemestre.value[4].CM, colspan: 3, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  //   { footer: previSemestre.value[4].TD, colspan: 3, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  //   { footer: previSemestre.value[4].TP, colspan: 3, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
-  // ],
   [
     { footer: '', colspan: 2},
     { footer: 'Classique', colspan: 4, class: '!text-nowrap !text-center font-bold' },
     { footer: 'Équivalent TD', colspan: 5, class: '!text-nowrap !text-center font-bold' },
+    { footer: '', colspan: 2 },
   ],
   [
     { footer: 'Total d\'heures', colspan: 2},
     { footer: previSemestre.value[5].TotalClassique, colspan: 4, class: '!text-nowrap !text-center', unit: ' h' },
     { footer: previSemestre.value[5].TotalTd, colspan: 5, class: '!text-nowrap !text-center', unit: ' h' },
+    { footer: '', colspan: 2 },
   ],
 ]);
 

@@ -44,25 +44,25 @@ class ScolEvaluation
     /**
      * @var Collection<int, Personnel>
      */
-    #[ORM\ManyToMany(targetEntity: Personnel::class, inversedBy: 'scolEvaluations')]
+    #[ORM\ManyToMany(targetEntity: Personnel::class, inversedBy: 'evaluations')]
     private Collection $personnelAutorise;
 
-    #[ORM\ManyToOne(inversedBy: 'scolEvaluations')]
-    private ?StructureAnneeUniversitaire $anneeUniv = null;
+    #[ORM\ManyToOne(inversedBy: 'evaluations')]
+    private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
-    #[ORM\ManyToOne(inversedBy: 'scolEvaluations')]
+    #[ORM\ManyToOne(inversedBy: 'evaluations')]
     private ?StructureSemestre $semestre = null;
 
-    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'scolEvaluations')]
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'evaluations')]
     private ?self $parent = null;
 
     /**
      * @var Collection<int, self>
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
-    private Collection $scolEvaluations;
+    private Collection $evaluations;
 
-    #[ORM\ManyToOne(inversedBy: 'scolEvaluations')]
+    #[ORM\ManyToOne(inversedBy: 'evaluations')]
     #[ORM\JoinColumn(nullable: false)]
     private ?ScolEnseignement $enseignement = null;
 
@@ -70,13 +70,13 @@ class ScolEvaluation
      * @var Collection<int, EtudiantNote>
      */
     #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'evaluation')]
-    private Collection $etudiantNotes;
+    private Collection $notes;
 
     public function __construct()
     {
         $this->personnelAutorise = new ArrayCollection();
-        $this->scolEvaluations = new ArrayCollection();
-        $this->etudiantNotes = new ArrayCollection();
+        $this->evaluations = new ArrayCollection();
+        $this->notes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -180,14 +180,14 @@ class ScolEvaluation
         return $this;
     }
 
-    public function getAnneeUniv(): ?StructureAnneeUniversitaire
+    public function getAnneeUniversitaire(): ?StructureAnneeUniversitaire
     {
-        return $this->anneeUniv;
+        return $this->anneeUniversitaire;
     }
 
-    public function setAnneeUniv(?StructureAnneeUniversitaire $anneeUniv): static
+    public function setAnneeUniversitaire(?StructureAnneeUniversitaire $anneeUniversitaire): static
     {
-        $this->anneeUniv = $anneeUniv;
+        $this->anneeUniversitaire = $anneeUniversitaire;
 
         return $this;
     }
@@ -219,27 +219,27 @@ class ScolEvaluation
     /**
      * @return Collection<int, self>
      */
-    public function getScolEvaluations(): Collection
+    public function getEvaluations(): Collection
     {
-        return $this->scolEvaluations;
+        return $this->evaluations;
     }
 
-    public function addScolEvaluation(self $scolEvaluation): static
+    public function addEvaluation(self $evaluation): static
     {
-        if (!$this->scolEvaluations->contains($scolEvaluation)) {
-            $this->scolEvaluations->add($scolEvaluation);
-            $scolEvaluation->setParent($this);
+        if (!$this->evaluations->contains($evaluation)) {
+            $this->evaluations->add($evaluation);
+            $evaluation->setParent($this);
         }
 
         return $this;
     }
 
-    public function removeScolEvaluation(self $scolEvaluation): static
+    public function removeEvaluation(self $evaluation): static
     {
-        if ($this->scolEvaluations->removeElement($scolEvaluation)) {
+        if ($this->evaluations->removeElement($evaluation)) {
             // set the owning side to null (unless already changed)
-            if ($scolEvaluation->getParent() === $this) {
-                $scolEvaluation->setParent(null);
+            if ($evaluation->getParent() === $this) {
+                $evaluation->setParent(null);
             }
         }
 
@@ -261,27 +261,27 @@ class ScolEvaluation
     /**
      * @return Collection<int, EtudiantNote>
      */
-    public function getEtudiantNotes(): Collection
+    public function getNotes(): Collection
     {
-        return $this->etudiantNotes;
+        return $this->notes;
     }
 
-    public function addEtudiantNote(EtudiantNote $etudiantNote): static
+    public function addNote(EtudiantNote $note): static
     {
-        if (!$this->etudiantNotes->contains($etudiantNote)) {
-            $this->etudiantNotes->add($etudiantNote);
-            $etudiantNote->setEvaluation($this);
+        if (!$this->notes->contains($note)) {
+            $this->notes->add($note);
+            $note->setEvaluation($this);
         }
 
         return $this;
     }
 
-    public function removeEtudiantNote(EtudiantNote $etudiantNote): static
+    public function removeNote(EtudiantNote $note): static
     {
-        if ($this->etudiantNotes->removeElement($etudiantNote)) {
+        if ($this->notes->removeElement($note)) {
             // set the owning side to null (unless already changed)
-            if ($etudiantNote->getEvaluation() === $this) {
-                $etudiantNote->setEvaluation(null);
+            if ($note->getEvaluation() === $this) {
+                $note->setEvaluation(null);
             }
         }
 

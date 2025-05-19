@@ -1,31 +1,97 @@
 import api from '@helpers/axios';
+import createApiService from '@requests/apiService';
+import apiCall from '@helpers/apiCall';
+
+// Create API services for different endpoints
+const previsionnelsService = createApiService('/api/previsionnels');
+const previsionnelsSemestreService = createApiService('/api/previsionnels_semestre');
+const previsionnelsSemestreTestService = createApiService('/api/previsionnels_semestre_test');
+const previsionnelsEnseignementService = createApiService('/api/previsionnels_enseignement');
+const previsionnelsAllPersonnelsService = createApiService('/api/previsionnels_all_personnels');
+const previsionnelsPersonnelService = createApiService('/api/previsionnels_personnel');
 
 // ----------------------------------------------
 // ------------------- GET ----------------------
 // ----------------------------------------------
 
-const getSemestrePreviService = async (semestreId, anneeUnivId) => {
-    const response = await api.get(`/api/previsionnels_semestre?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}`);
-    return response.data.member;
-}
-const getSemestrePreviTestService = async (semestreId, anneeUnivId) => {
-    const response = await api.get(`/api/previsionnels_semestre_test?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}`);
-    return response.data.member;
-}
-
-const getSemestreEnseignementPreviService = async (semestreId, enseignementId, anneeUnivId) => {
-    const response = await api.get(`/api/previsionnels_enseignement?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}&enseignement=${enseignementId}`);
-    return response.data.member;
-}
-
-const getAnneeUnivPreviService = async (departementId, anneeUnivId) => {
-    const response = await api.get(`/api/previsionnels_all_personnels?anneeUniversitaire=${anneeUnivId}&departement=${departementId}`);
-    return response.data.member;
+const getSemestrePreviService = async (semestreId, anneeUnivId, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/previsionnels_semestre?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}`],
+            'Prévisionnel du semestre récupéré avec succès',
+            'Erreur lors de la récupération du prévisionnel du semestre',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getSemestrePreviService:', error);
+        throw error;
+    }
 }
 
-const getPersonnelPreviService = async (departementId, anneeUnivId, personnelId) => {
-    const response = await api.get(`/api/previsionnels_personnel?anneeUniversitaire=${anneeUnivId}&personnel=${personnelId}&departement=${departementId}`);
-    return response.data.member;
+const getSemestrePreviTestService = async (semestreId, anneeUnivId, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/previsionnels_semestre_test?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}`],
+            'Prévisionnel test du semestre récupéré avec succès',
+            'Erreur lors de la récupération du prévisionnel test du semestre',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getSemestrePreviTestService:', error);
+        throw error;
+    }
+}
+
+const getSemestreEnseignementPreviService = async (semestreId, enseignementId, anneeUnivId, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/previsionnels_enseignement?anneeUniversitaire=${anneeUnivId}&semestre=${semestreId}&enseignement=${enseignementId}`],
+            'Prévisionnel de l\'enseignement récupéré avec succès',
+            'Erreur lors de la récupération du prévisionnel de l\'enseignement',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getSemestreEnseignementPreviService:', error);
+        throw error;
+    }
+}
+
+const getAnneeUnivPreviService = async (departementId, anneeUnivId, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/previsionnels_all_personnels?anneeUniversitaire=${anneeUnivId}&departement=${departementId}`],
+            'Prévisionnels de l\'année universitaire récupérés avec succès',
+            'Erreur lors de la récupération des prévisionnels de l\'année universitaire',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getAnneeUnivPreviService:', error);
+        throw error;
+    }
+}
+
+const getPersonnelPreviService = async (departementId, anneeUnivId, personnelId, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/previsionnels_personnel?anneeUniversitaire=${anneeUnivId}&personnel=${personnelId}&departement=${departementId}`],
+            'Prévisionnel du personnel récupéré avec succès',
+            'Erreur lors de la récupération du prévisionnel du personnel',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getPersonnelPreviService:', error);
+        throw error;
+    }
 }
 
 // ----------------------------------------------
@@ -37,40 +103,54 @@ const getPersonnelPreviService = async (departementId, anneeUnivId, personnelId)
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
 
-const updatePreviEnseignementService = async (previId, enseignementId) => {
+const updatePreviEnseignementService = async (previId, enseignementId, showToast = true) => {
     try {
         const enseignementIri = `/api/scol_enseignements/${enseignementId}`;
-        await api.patch(`/api/previsionnels/${previId}`, { enseignement: enseignementIri }, {
-            headers: {
-                'Content-Type': 'application/merge-patch+json'
-            }
-        });
+        const data = { enseignement: enseignementIri };
+
+        await apiCall(
+            previsionnelsService.update,
+            [previId, data],
+            'L\'élément a été mis à jour avec succès',
+            'Erreur lors de la mise à jour de l\'élément',
+            showToast
+        );
     } catch (error) {
-        console.log(error);
-    }
-}
-const updatePreviPersonnelService = async (previId, personnelId) => {
-    try {
-        const personnelIri = `/api/personnels/${personnelId}`;
-        await api.patch(`/api/previsionnels/${previId}`, { personnel: personnelIri }, {
-            headers: {
-                'Content-Type': 'application/merge-patch+json'
-            }
-        });
-    } catch (error) {
-        console.log(error);
+        console.error('Erreur dans updatePreviEnseignementService:', error);
+        throw error;
     }
 }
 
-const updatePreviService = async (previId, data) => {
+const updatePreviPersonnelService = async (previId, personnelId, showToast = true) => {
     try {
-        await api.patch(`/api/previsionnels/${previId}`,  data, {
-            headers: {
-                'Content-Type': 'application/merge-patch+json'
-            }
-        });
+        const personnelIri = `/api/personnels/${personnelId}`;
+        const data = { personnel: personnelIri };
+
+        await apiCall(
+            previsionnelsService.update,
+            [previId, data],
+            'L\'élément a été mis à jour avec succès',
+            'Erreur lors de la mise à jour de l\'élément',
+            showToast
+        );
     } catch (error) {
-        console.log(error);
+        console.error('Erreur dans updatePreviPersonnelService:', error);
+        throw error;
+    }
+}
+
+const updatePreviService = async (previId, data, showToast = true) => {
+    try {
+        await apiCall(
+            previsionnelsService.update,
+            [previId, data],
+            'L\'élément a été mis à jour avec succès',
+            'Erreur lors de la mise à jour de l\'élément',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans updatePreviService:', error);
+        throw error;
     }
 }
 

@@ -46,7 +46,7 @@ export const useUsersStore = defineStore('users', () => {
             applications.value = user.value.applications;
 
             if (userType === 'personnels') {
-                departements.value = user.value.structureDepartementPersonnels;
+                departements.value = user.value.departementPersonnels;
                 if (!departements.value.find(departement => departement.defaut === true)) {
                     const firstDepartement = departements.value[0];
                     const response = await changeDepartementActifService(firstDepartement.id);
@@ -97,9 +97,9 @@ export const useUsersStore = defineStore('users', () => {
             // séparer les domaines en utilisant la virgule comme séparateur
             data.domaines = data.domaines.split(',');
         }
-        // convertir structureDepartementPersonnels en IRI
-        if (data.structureDepartementPersonnels) {
-            data.structureDepartementPersonnels = data.structureDepartementPersonnels.map(departement => `/api/structure_departement_personnels/${departement.id}`);
+        // convertir departementPersonnels en IRI
+        if (data.departementPersonnels) {
+            data.departementPersonnels = data.departementPersonnels.map(departement => `/api/structure_departement_personnels/${departement.id}`);
         }
         try {
             const updatedUser = await updateUserService(userType, userId, data);

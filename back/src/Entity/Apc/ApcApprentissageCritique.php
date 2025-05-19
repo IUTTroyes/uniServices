@@ -22,26 +22,26 @@ class ApcApprentissageCritique
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['structure_diplome:read', 'scol_enseignement:read'])]
+    #[Groups(['diplome:read', 'enseignement:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups('scol_enseignement:read')]
+    #[Groups('enseignement:read')]
     private ?string $code = null;
 
     /**
      * @var Collection<int, ScolEnseignement>
      */
-    #[ORM\ManyToMany(targetEntity: ScolEnseignement::class, mappedBy: 'apcApprentissageCritique')]
-    private Collection $scolEnseignements;
+    #[ORM\ManyToMany(targetEntity: ScolEnseignement::class, mappedBy: 'apprentissageCritique')]
+    private Collection $enseignements;
 
-    #[ORM\ManyToOne(inversedBy: 'apcApprentissageCritique')]
-    #[Groups(['structure_diplome:read', 'scol_enseignement:read'])]
-    private ?ApcNiveau $apcNiveau = null;
+    #[ORM\ManyToOne(inversedBy: 'apprentissageCritique')]
+    #[Groups(['diplome:read', 'enseignement:read'])]
+    private ?ApcNiveau $niveau = null;
 
     public function __construct()
     {
-        $this->scolEnseignements = new ArrayCollection();
+        $this->enseignements = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -76,38 +76,38 @@ class ApcApprentissageCritique
     /**
      * @return Collection<int, ScolEnseignement>
      */
-    public function getScolEnseignements(): Collection
+    public function getEnseignements(): Collection
     {
-        return $this->scolEnseignements;
+        return $this->enseignements;
     }
 
-    public function addScolEnseignement(ScolEnseignement $scolEnseignement): static
+    public function addEnseignement(ScolEnseignement $enseignement): static
     {
-        if (!$this->scolEnseignements->contains($scolEnseignement)) {
-            $this->scolEnseignements->add($scolEnseignement);
-            $scolEnseignement->addApcApprentissageCritique($this);
+        if (!$this->enseignements->contains($enseignement)) {
+            $this->enseignements->add($enseignement);
+            $enseignement->addApprentissageCritique($this);
         }
 
         return $this;
     }
 
-    public function removeScolEnseignement(ScolEnseignement $scolEnseignement): static
+    public function removeEnseignement(ScolEnseignement $enseignement): static
     {
-        if ($this->scolEnseignements->removeElement($scolEnseignement)) {
-            $scolEnseignement->removeApcApprentissageCritique($this);
+        if ($this->enseignements->removeElement($enseignement)) {
+            $enseignement->removeApprentissageCritique($this);
         }
 
         return $this;
     }
 
-    public function getApcNiveau(): ?ApcNiveau
+    public function getNiveau(): ?ApcNiveau
     {
-        return $this->apcNiveau;
+        return $this->niveau;
     }
 
-    public function setApcNiveau(?ApcNiveau $apcNiveau): static
+    public function setNiveau(?ApcNiveau $niveau): static
     {
-        $this->apcNiveau = $apcNiveau;
+        $this->niveau = $niveau;
 
         return $this;
     }

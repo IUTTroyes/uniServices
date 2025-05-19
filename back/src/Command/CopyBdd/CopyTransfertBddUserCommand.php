@@ -93,7 +93,7 @@ FOREIGN_KEY_CHECKS=1');
             $personnel->setInitiales(substr($pers['initiales'], 0,3));
             $personnel->setOldId($pers['id']);
             $personnel->setRoles(json_decode($pers['roles'], true) ?? []);
-            $personnel->setStructureAnneeUniversitaire($this->tAnneeUniversitaire[$pers['annee_universitaire_id']]);
+            $personnel->setAnneeUniversitaire($this->tAnneeUniversitaire[$pers['annee_universitaire_id']]);
             $personnel->setEntreprise($pers['entreprise']);
             $personnel->setTelBureau($pers['tel_bureau']);
             $personnel->setDomaines(

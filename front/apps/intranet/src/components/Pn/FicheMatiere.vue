@@ -29,9 +29,9 @@ heures.Total = {
 
 const uniqueCompetences = computed(() => {
   const competences = new Set();
-  props.enseignement.scolEnseignementUes.forEach(ue => {
-    if (ue.ue.apcCompetence) {
-      competences.add(ue.ue.apcCompetence);
+  props.enseignement.enseignementUes.forEach(ue => {
+    if (ue.ue.competence) {
+      competences.add(ue.ue.competence);
     }
   });
   return Array.from(competences);

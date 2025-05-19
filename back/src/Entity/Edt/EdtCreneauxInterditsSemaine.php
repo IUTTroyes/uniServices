@@ -15,10 +15,10 @@ class EdtCreneauxInterditsSemaine
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'edtCreneauxInterditsSemaines')]
+    #[ORM\ManyToOne(inversedBy: 'creneauxInterditsSemaines')]
     private ?StructureCalendrier $semaine = null;
 
-    #[ORM\ManyToOne(inversedBy: 'edtCreneauxInterditsSemaines')]
+    #[ORM\ManyToOne(inversedBy: 'creneauxInterditsSemaines')]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\Column]

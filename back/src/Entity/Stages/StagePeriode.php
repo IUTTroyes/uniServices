@@ -32,7 +32,7 @@ class StagePeriode
     private ?string $libelle = null;
 
     #[ORM\ManyToOne(inversedBy: 'stagePeriodes')]
-    private ?StructureAnneeUniversitaire $structureAnneeUniversitaire = null;
+    private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'stagePeriodes')]
     private ?StructureSemestre $semestreProgramme = null;
@@ -77,14 +77,14 @@ class StagePeriode
         return $this;
     }
 
-    public function getStructureAnneeUniversitaire(): ?StructureAnneeUniversitaire
+    public function getAnneeUniversitaire(): ?StructureAnneeUniversitaire
     {
-        return $this->structureAnneeUniversitaire;
+        return $this->anneeUniversitaire;
     }
 
-    public function setStructureAnneeUniversitaire(?StructureAnneeUniversitaire $structureAnneeUniversitaire): static
+    public function setAnneeUniversitaire(?StructureAnneeUniversitaire $anneeUniversitaire): static
     {
-        $this->structureAnneeUniversitaire = $structureAnneeUniversitaire;
+        $this->anneeUniversitaire = $anneeUniversitaire;
 
         return $this;
     }

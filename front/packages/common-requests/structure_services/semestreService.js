@@ -1,25 +1,68 @@
-import {onMounted, ref} from 'vue';
 import api from '@helpers/axios';
-import { useDiplomeStore } from '@stores';
+import apiCall from '@helpers/apiCall';
 
-const getSemestresService = async () => {
-    const response = await api.get(`/api/structure_semestres`);
-    return response.data.member;
+const getSemestresService = async (showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/structure_semestres`],
+            'Semestres récupérés avec succès',
+            'Erreur lors de la récupération des semestres',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getSemestresService:', error);
+        throw error;
+    }
 }
 
-const getSemestreService = async (semestreId) => {
-    const response = await api.get(`/api/structure_semestres/${semestreId}`);
-    return response.data;
+const getSemestreService = async (semestreId, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/structure_semestres/${semestreId}`],
+            'Semestre récupéré avec succès',
+            'Erreur lors de la récupération du semestre',
+            showToast
+        );
+        return response;
+    } catch (error) {
+        console.error('Erreur dans getSemestreService:', error);
+        throw error;
+    }
 }
 
-const getDepartementSemestresService = async (departementId, onlyActif) => {
-    const response = await api.get(`/api/structure_semestres?departement=${departementId}&actif=${onlyActif}`);
-    return response.data.member;
+const getDepartementSemestresService = async (departementId, onlyActif, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/structure_semestres?departement=${departementId}&actif=${onlyActif}`],
+            'Semestres du département récupérés avec succès',
+            'Erreur lors de la récupération des semestres du département',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getDepartementSemestresService:', error);
+        throw error;
+    }
 }
 
-const getDiplomeSemestresService = async (diplomeId, onlyActif) => {
-    const response = await api.get(`/api/structure_semestres?diplome=${diplomeId}&actif=${onlyActif}`);
-    return response.data.member;
+const getDiplomeSemestresService = async (diplomeId, onlyActif, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/structure_semestres?diplome=${diplomeId}&actif=${onlyActif}`],
+            'Semestres du diplôme récupérés avec succès',
+            'Erreur lors de la récupération des semestres du diplôme',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getDiplomeSemestresService:', error);
+        throw error;
+    }
 }
 
 export { getSemestresService, getSemestreService, getDepartementSemestresService, getDiplomeSemestresService };

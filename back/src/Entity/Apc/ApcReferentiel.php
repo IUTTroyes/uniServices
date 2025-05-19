@@ -35,41 +35,41 @@ class ApcReferentiel
     /**
      * @var Collection<int, StructureDiplome>
      */
-    #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'apcReferentiel')]
+    #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'referentiel')]
     private Collection $diplomes;
 
-    #[ORM\ManyToOne(inversedBy: 'apcReferentiels')]
+    #[ORM\ManyToOne(inversedBy: 'referentiels')]
     private ?StructureDepartement $departement = null;
 
     /**
      * @var Collection<int, ApcCompetence>
      */
-    #[ORM\OneToMany(targetEntity: ApcCompetence::class, mappedBy: 'apcReferentiel')]
-    private Collection $apcCompetences;
+    #[ORM\OneToMany(targetEntity: ApcCompetence::class, mappedBy: 'referentiel')]
+    private Collection $competences;
 
-    #[ORM\ManyToOne(inversedBy: 'apcReferentiels')]
-    private ?StructureAnneeUniversitaire $anneeUniv = null;
+    #[ORM\ManyToOne(inversedBy: 'referentiels')]
+    private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     /**
      * @var Collection<int, ApcParcours>
      */
-    #[ORM\OneToMany(targetEntity: ApcParcours::class, mappedBy: 'apcReferentiel')]
-    private Collection $apcParcours;
+    #[ORM\OneToMany(targetEntity: ApcParcours::class, mappedBy: 'referentiel')]
+    private Collection $parcours;
 
     /**
      * @var Collection<int, StructurePn>
      */
-    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'apcReferentiel')]
+    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'referentiel')]
     private Collection $pn;
 
-    #[ORM\ManyToOne(inversedBy: 'apcReferentiels')]
+    #[ORM\ManyToOne(inversedBy: 'referentiels')]
     private StructureTypeDiplome $typeDiplome;
 
     public function __construct()
     {
         $this->diplomes = new ArrayCollection();
-        $this->apcCompetences = new ArrayCollection();
-        $this->apcParcours = new ArrayCollection();
+        $this->competences = new ArrayCollection();
+        $this->parcours = new ArrayCollection();
         $this->pn = new ArrayCollection();
     }
 
@@ -126,7 +126,7 @@ class ApcReferentiel
     {
         if (!$this->diplomes->contains($diplome)) {
             $this->diplomes->add($diplome);
-            $diplome->setApcReferentiel($this);
+            $diplome->setReferentiel($this);
         }
 
         return $this;
@@ -136,8 +136,8 @@ class ApcReferentiel
     {
         if ($this->diplomes->removeElement($diplome)) {
             // set the owning side to null (unless already changed)
-            if ($diplome->getApcReferentiel() === $this) {
-                $diplome->setApcReferentiel(null);
+            if ($diplome->getReferentiel() === $this) {
+                $diplome->setReferentiel(null);
             }
         }
 
@@ -159,41 +159,41 @@ class ApcReferentiel
     /**
      * @return Collection<int, ApcCompetence>
      */
-    public function getApcCompetences(): Collection
+    public function getCompetences(): Collection
     {
-        return $this->apcCompetences;
+        return $this->competences;
     }
 
-    public function addApcCompetence(ApcCompetence $apcCompetence): static
+    public function addCompetence(ApcCompetence $competence): static
     {
-        if (!$this->apcCompetences->contains($apcCompetence)) {
-            $this->apcCompetences->add($apcCompetence);
-            $apcCompetence->setApcReferentiel($this);
+        if (!$this->competences->contains($competence)) {
+            $this->competences->add($competence);
+            $competence->setReferentiel($this);
         }
 
         return $this;
     }
 
-    public function removeApcCompetence(ApcCompetence $apcCompetence): static
+    public function removeCompetence(ApcCompetence $competence): static
     {
-        if ($this->apcCompetences->removeElement($apcCompetence)) {
+        if ($this->competences->removeElement($competence)) {
             // set the owning side to null (unless already changed)
-            if ($apcCompetence->getApcReferentiel() === $this) {
-                $apcCompetence->setApcReferentiel(null);
+            if ($competence->getReferentiel() === $this) {
+                $competence->setReferentiel(null);
             }
         }
 
         return $this;
     }
 
-    public function getAnneeUniv(): ?StructureAnneeUniversitaire
+    public function getAnneeUniversitaire(): ?StructureAnneeUniversitaire
     {
-        return $this->anneeUniv;
+        return $this->anneeUniversitaire;
     }
 
-    public function setAnneeUniv(?StructureAnneeUniversitaire $anneeUniv): static
+    public function setAnneeUniversitaire(?StructureAnneeUniversitaire $anneeUniversitaire): static
     {
-        $this->anneeUniv = $anneeUniv;
+        $this->anneeUniversitaire = $anneeUniversitaire;
 
         return $this;
     }
@@ -201,27 +201,27 @@ class ApcReferentiel
     /**
      * @return Collection<int, ApcParcours>
      */
-    public function getApcParcours(): Collection
+    public function getParcours(): Collection
     {
-        return $this->apcParcours;
+        return $this->parcours;
     }
 
-    public function addApcParcour(ApcParcours $apcParcour): static
+    public function addParcours(ApcParcours $parcours): static
     {
-        if (!$this->apcParcours->contains($apcParcour)) {
-            $this->apcParcours->add($apcParcour);
-            $apcParcour->setApcReferentiel($this);
+        if (!$this->parcours->contains($parcours)) {
+            $this->parcours->add($parcours);
+            $parcours->setReferentiel($this);
         }
 
         return $this;
     }
 
-    public function removeApcParcour(ApcParcours $apcParcour): static
+    public function removeParcours(ApcParcours $parcours): static
     {
-        if ($this->apcParcours->removeElement($apcParcour)) {
+        if ($this->parcours->removeElement($parcours)) {
             // set the owning side to null (unless already changed)
-            if ($apcParcour->getApcReferentiel() === $this) {
-                $apcParcour->setApcReferentiel(null);
+            if ($parcours->getReferentiel() === $this) {
+                $parcours->setReferentiel(null);
             }
         }
 

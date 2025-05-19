@@ -18,10 +18,10 @@ class EdtContraintesSemestre
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'edtContraintesSemestres')]
+    #[ORM\ManyToOne(inversedBy: 'contraintesSemestres')]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
-    #[ORM\ManyToOne(inversedBy: 'edtContraintesSemestres')]
+    #[ORM\ManyToOne(inversedBy: 'contraintesSemestres')]
     private ?StructureSemestre $semestre = null;
 
     #[ORM\Column(nullable: true)]

@@ -25,7 +25,7 @@ class AnneeFilter extends AbstractFilter
 
         if ('departement' === $property) {
             $queryBuilder
-                ->join("$alias.structureDiplome", "d")
+                ->join("$alias.diplome", "d")
                 ->join("d.departement", "departement")
                 ->andWhere("departement.id = :departement")
                 ->setParameter("departement", $value);

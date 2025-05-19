@@ -28,7 +28,7 @@ heures.Total = {
 
 const uniqueCompetences = computed(() => {
   const competences = new Set();
-  props.enseignement.scolEnseignementUes.forEach(ue => {
+  props.enseignement.enseignementUes.forEach(ue => {
     if (ue.ue.apcCompetence) {
       competences.add(ue.ue.apcCompetence);
     }
@@ -251,8 +251,8 @@ const showEnfantParent = async (id) => {
     </div>
     <div class="flex gap-2 flex-wrap">
       <span class="font-bold text-lg">Apprentissage(s) critique(s) : </span>
-      <ApcAcBadge v-for="ac in enseignement.apcApprentissageCritique" :key="ac.code" :ac="ac" v-tooltip.top="`${ac.libelle}`">{{ ac.code }}</ApcAcBadge>
-      <span v-if="enseignement.apcApprentissageCritique.length < 1">Aucun apprentissage critique</span>
+      <ApcAcBadge v-for="ac in enseignement.apprentissageCritique" :key="ac.code" :ac="ac" v-tooltip.top="`${ac.libelle}`">{{ ac.code }}</ApcAcBadge>
+      <span v-if="enseignement.apprentissageCritique.length < 1">Aucun apprentissage critique</span>
     </div>
     <div><span class="font-bold text-lg">Prérequis : </span> {{ enseignement.preRequis ?? 'Aucune ressource prérequise' }}</div>
     <div><span class="font-bold text-lg">Nombre de notes : </span> {{ enseignement.nbNotes ?? 'Aucun nombre de note renseigné' }}</div>

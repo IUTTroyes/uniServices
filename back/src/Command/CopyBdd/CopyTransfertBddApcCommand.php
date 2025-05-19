@@ -114,7 +114,7 @@ FOREIGN_KEY_CHECKS=1');
 
         foreach ($parcours as $par) {
             $parcour = new ApcParcours();
-            $parcour->setApcReferentiel($this->tReferentiels[$par['apc_referentiel_id']]);
+            $parcour->setReferentiel($this->tReferentiels[$par['apc_referentiel_id']]);
             $parcour->setLibelle($par['libelle']);
             $parcour->setOldId($par['id']);
             $parcour->setActif($par['actif']);
@@ -142,7 +142,7 @@ FOREIGN_KEY_CHECKS=1');
         foreach ($competences as $comp) {
             $competence = new ApcCompetence();
             $competence->setOldId($comp['id']);
-            $competence->setApcReferentiel($this->tReferentiels[$comp['apc_referentiel_id']]);
+            $competence->setReferentiel($this->tReferentiels[$comp['apc_referentiel_id']]);
             $competence->setLibelle($comp['libelle']);
             $competence->setNomCourt($comp['nom_court']);
             $competence->setCouleur($comp['couleur']);
@@ -182,7 +182,7 @@ FOREIGN_KEY_CHECKS=1');
 
         foreach ($niveaux as $niv) {
             $niveau = new ApcNiveau();
-            $niveau->setApcCompetence($this->tCompetences[$niv['competence_id']]);
+            $niveau->setCompetence($this->tCompetences[$niv['competence_id']]);
             $niveau->setLibelle($niv['libelle']);
             $niveau->setOrdre($niv['ordre']);
 
@@ -190,7 +190,7 @@ FOREIGN_KEY_CHECKS=1');
             $sqlNivPar = "SELECT * FROM apc_parcours_niveau WHERE niveau_id = " . $niv['id'];
             $nivPar = $this->em->executeQuery($sqlNivPar)->fetchAllAssociative();
             foreach ($nivPar as $np) {
-                $niveau->addApcParcour($this->tParcours[$np['parcours_id']]);
+                $niveau->addParcours($this->tParcours[$np['parcours_id']]);
             }
 
             //todo: récupérer toutes les années sur l'ordre du diplome associé...
@@ -213,7 +213,7 @@ FOREIGN_KEY_CHECKS=1');
 
         foreach ($apcs as $ap) {
             $apc = new ApcApprentissageCritique();
-            $apc->setApcNiveau($this->tNiveaux[$ap['niveau_id']]);
+            $apc->setNiveau($this->tNiveaux[$ap['niveau_id']]);
             $apc->setLibelle($ap['libelle']);
             $apc->setCode($ap['code']);
             $apc->setOldId($ap['id']);

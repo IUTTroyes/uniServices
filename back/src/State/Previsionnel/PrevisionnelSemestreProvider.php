@@ -176,8 +176,8 @@ class PrevisionnelSemestreProvider implements ProviderInterface
             ];
 
             $output['TotalEquTd'] = [
-                'TotalClassique' => $totalCM['Previsionnel'] + $totalTD['Previsionnel'] + $totalTP['Previsionnel'],
-                'TotalTd' => $totalCM['Previsionnel'] * $item->getEnseignement()::MAJORATION_CM + $totalTD['Previsionnel'] + $totalTP['Previsionnel'],
+                'TotalClassique' => round($totalCM['Previsionnel'] + $totalTD['Previsionnel'] + $totalTP['Previsionnel'], 1),
+                'TotalTd' => round($totalCM['Previsionnel'] * $item->getEnseignement()::MAJORATION_CM + $totalTD['Previsionnel'] + $totalTP['Previsionnel'], 1),
             ];
 
             return $output;
@@ -239,17 +239,17 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                 'CM' => [
                     'NbHrGrp' => round($item->getGroupes()['CM'] !== 0 ? $item->getHeures()['CM']/$item->getGroupes()['CM'] : $item->getHeures()['CM'], 1),
                     'NbGrp' => $item->getGroupes()['CM'],
-                    'NbSeanceGrp' => round((($item->getGroupes()['CM'] !== 0 ? $item->getHeures()['CM']/$item->getGroupes()['CM'] : $item->getHeures()['CM']) / $item::DUREE_SEANCE) * $item->getGroupes()['CM'], 0),
+                    'NbSeanceGrp' => round((($item->getGroupes()['CM'] !== 0 ? $item->getHeures()['CM']/$item->getGroupes()['CM'] : $item->getHeures()['CM']) / $item::DUREE_SEANCE) * $item->getGroupes()['CM'], 1),
                 ],
                 'TD' => [
                     'NbHrGrp' => round($item->getGroupes()['TD'] !== 0 ? $item->getHeures()['TD']/$item->getGroupes()['TD'] : $item->getHeures()['TD'], 1),
                     'NbGrp' => $item->getGroupes()['TD'],
-                    'NbSeanceGrp' => round((($item->getGroupes()['TD'] !== 0 ? $item->getHeures()['TD']/$item->getGroupes()['TD'] : $item->getHeures()['TD']) / $item::DUREE_SEANCE) * $item->getGroupes()['TD'], 0),
+                    'NbSeanceGrp' => round((($item->getGroupes()['TD'] !== 0 ? $item->getHeures()['TD']/$item->getGroupes()['TD'] : $item->getHeures()['TD']) / $item::DUREE_SEANCE) * $item->getGroupes()['TD'], 1),
                 ],
                 'TP' => [
                     'NbHrGrp' => round($item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP']/$item->getGroupes()['TP'] : $item->getHeures()['TP'], 1),
                     'NbGrp' => $item->getGroupes()['TP'],
-                    'NbSeanceGrp' => round((($item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP']/$item->getGroupes()['TP'] : $item->getHeures()['TP']) / $item::DUREE_SEANCE) * $item->getGroupes()['TP'], 0),
+                    'NbSeanceGrp' => round((($item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP']/$item->getGroupes()['TP'] : $item->getHeures()['TP']) / $item::DUREE_SEANCE) * $item->getGroupes()['TP'], 1),
                 ],
                 'Projet' => [
                     'NbHrGrp' => $item->getHeures()['Projet'],
@@ -259,7 +259,7 @@ class PrevisionnelSemestreProvider implements ProviderInterface
             ]
         );
         $prevSem->setGroupes($item->getGroupes());
-        $prevSem->setStructureAnneeUniversitaire($item->getAnneeUniversitaire());
+        $prevSem->setAnneeUniversitaire($item->getAnneeUniversitaire());
 
         return $prevSem;
     }
