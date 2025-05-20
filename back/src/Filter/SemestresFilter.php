@@ -32,7 +32,8 @@ class SemestresFilter extends AbstractFilter
         } else if ('departement' === $property) {
             $queryBuilder
                 ->innerJoin(StructureAnnee::class, 'sa', 'WITH', sprintf('%s.annee = sa.id', $alias))
-                ->innerJoin('sa.diplome', 'd')
+                ->innerJoin('sa.pn', 'pn')
+                ->innerJoin('pn.diplome', 'd')
                 ->andWhere('d.departement = :departement')
                 ->setParameter('departement', $value)
                 ->orderBy(sprintf('%s.ordreLmd', $alias), 'ASC')
