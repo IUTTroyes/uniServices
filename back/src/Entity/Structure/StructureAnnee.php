@@ -85,9 +85,6 @@ class StructureAnnee
     #[ORM\ManyToOne(inversedBy: 'annees')]
     private ?ApcNiveau $niveau = null;
 
-    #[ORM\ManyToOne(inversedBy: 'annees')]
-    private ?StructureDiplome $diplome = null;
-
     /**
      * @var Collection<int, EtudiantScolarite>
      */
@@ -244,19 +241,6 @@ class StructureAnnee
         return $this;
     }
 
-
-    public function getDiplome(): ?StructureDiplome
-    {
-        return $this->diplome;
-    }
-
-    public function setDiplome(?StructureDiplome $diplome): static
-    {
-        $this->diplome = $diplome;
-
-        return $this;
-    }
-
     /**
      * @return Collection<int, EtudiantScolarite>
      */
@@ -294,5 +278,10 @@ class StructureAnnee
         $this->pn = $pn;
 
         return $this;
+    }
+
+    public function getDiplome(): ?StructureDiplome
+    {
+        return $this->getPn()?->getDiplome();
     }
 }

@@ -36,7 +36,7 @@ onMounted(async () => {
   }
 
   if (selectedPn.value) {
-    nodes.value = transformData(selectedPn.value.diplome.annees);
+    nodes.value = transformData(selectedPn.value.annees);
     isLoadingPn.value = false;
   }
 })
@@ -64,9 +64,8 @@ const getPnsForDiplome = async (diplomeId) => {
     // parmis tous les pn, on prend celui qui a une année active
     selectedPn.value = pns.value.find(pn => pn.anneeUniversitaire?.actif === true) ?? null
     if (selectedPn.value) {
-      nodes.value = transformData(selectedPn.value.diplome.annees);
+      nodes.value = transformData(selectedPn.value.annees);
     }
-    console.log(pns.value)
   } catch (error) {
     console.error('Erreur lors du chargement des PNs:', error);
   } finally {
@@ -91,7 +90,7 @@ const changeDiplome = (diplome) => {
   getPnsForDiplome(selectedDiplome.value.id);
 
   if (selectedPn.value) {
-    nodes.value = transformData(selectedPn.value.diplome.annees);
+    nodes.value = transformData(selectedPn.value.annees);
   }
 }
 
@@ -152,7 +151,7 @@ const showDetails = (item, semestre) => {
         <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" />
       </div>
       <div class="text-xl font-bold mb-4">{{selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné`}}</div>
-      <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.diplome?.annees" :legend="`${annee.libelle}`" :toggleable="true">
+      <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.annees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
           <i class="pi pi-angle-down"></i>
         </template>
