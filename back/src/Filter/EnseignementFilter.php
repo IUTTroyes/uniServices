@@ -35,7 +35,8 @@ class EnseignementFilter extends AbstractFilter
                 ->join("enseignementUe.ue", "ue")
                 ->join("ue.semestre", "semestre")
                 ->join("semestre.annee" , "annee")
-                ->join("annee.diplome", "diplome")
+                ->join("annee.pn", "pn")
+                ->join("pn.diplome", "diplome")
                 ->join("diplome.departement", "departement")
                 ->andWhere("departement.id = :departement")
                 ->setParameter("departement", $value);
