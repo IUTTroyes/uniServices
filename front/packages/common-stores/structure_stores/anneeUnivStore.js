@@ -6,6 +6,7 @@ export const useAnneeUnivStore = defineStore('anneeUniv', () => {
 
   const anneesUniv = ref([]);
   const anneeUniv = ref(null);
+  const selectedAnneeUniv = ref(null);
 
   const getAllAnneesUniv = async () => {
     try {
@@ -31,11 +32,17 @@ export const useAnneeUnivStore = defineStore('anneeUniv', () => {
     }
   };
 
+  const setSelectedAnneeUniversitaire = (annee) => {
+    selectedAnneeUniv.value = annee;
+  }
+
   return {
     getAllAnneesUniv,
     getCurrentAnneeUniv,
     getAnneeUniv,
     anneeUniv,
-    anneesUniv
+    anneesUniv,
+    selectedAnneeUniv,
+    setSelectedAnneeUniversitaire
   };
 })

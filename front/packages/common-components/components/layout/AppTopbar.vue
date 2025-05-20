@@ -22,6 +22,8 @@ const anneeItems = ref([
   }
 ]);
 
+const selectedAnneeUniversitaire = ref(null);
+
 onMounted(async () => {
   await fetchData();
 });
@@ -35,11 +37,15 @@ const fetchData = async () => {
     await anneeUnivStore.getAllAnneesUniv();
     const sortedAnnees = anneeUnivStore.anneesUniv.map(annee => ({
       label: annee.libelle,
+      command: () => selectAnneeUniversitaire(annee),
     })).sort((a, b) => b.label.localeCompare(a.label));
     anneesUniv.value = sortedAnnees;
     anneeItems.value[0].items = sortedAnnees;
-
-
+    // Si aucun AnneeUniversitaire n'est sélectionné, on sélectionne le premier sinon on garde la sélection actuelle
+    if (!selectedAnneeUniversitaire.value) {
+      anneeUnivStore.setSelectedAnneeUniversitaire(selectedAnneeUniversitaire.value);
+      selectedAnneeUniversitaire.value = anneeUnivStore.selectedAnneeUniv || sortedAnnees[0];
+    }
     if (userStore.user) {
       if (userStore.userType === 'personnels') {
         deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
@@ -146,6 +152,12 @@ const initiales = computed(() => {
 const isEnabled = (item) => {
   return userStore.applications.includes(item.name);
 };
+
+const selectAnneeUniversitaire = (annee) => {
+  selectedAnneeUniversitaire.value = annee;
+  anneeUnivStore.setSelectedAnneeUniversitaire(annee);
+  selectedAnneeUniversitaire.value.label = selectedAnneeUniversitaire.value.libelle;
+};
 </script>
 
 <template>
@@ -207,7 +219,7 @@ const isEnabled = (item) => {
 
           <button  v-if="route.path !== '/portail' && userStore.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
             <i class="pi pi-calendar"></i>
-            <span>2024/2025</span>
+            <span>{{selectedAnneeUniversitaire?.label}}</span>
           </button>
           <Menu ref="anneeMenu" id="annee_menu" :model="anneeItems" :popup="true" />
 
