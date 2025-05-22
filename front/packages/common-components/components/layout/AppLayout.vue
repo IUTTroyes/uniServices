@@ -31,6 +31,12 @@ const outsideClickListener = ref(null);
 const route = useRoute();
 const router = useRouter();
 const showBackButton = ref(false);
+const selectedAnneeUniversitaire = computed(
+  () => {
+    const selectedAnnee = localStorage.getItem('selectedAnneeUniv');
+    return selectedAnnee ? JSON.parse(selectedAnnee) : null;
+  }
+)
 
 const updateBackButtonVisibility = (path) => {
   const segments = path.split('/').filter(Boolean);
@@ -93,6 +99,10 @@ function goBack() {
       <div class="flex justify-between items-center">
         <app-breadcrumb v-if="breadcrumbItems" :items="breadcrumbItems"></app-breadcrumb>
         <Button v-if="showBackButton" @click="goBack" severity="contrast" label="Retour" size="small" icon="pi pi-arrow-left" class="h-fit"></Button>
+
+        <div v-if="!selectedAnneeUniversitaire.isActif">
+          <Message severity="error" class="absolute top-24 right-16 w-fit z-10" icon="pi pi-exclamation-triangle"><span class="font-bold">Attention !</span> Vous n'êtes pas sur l'année universitaire actuelle</Message>
+        </div>
       </div>
       <div class="layout-main">
         <router-view></router-view>

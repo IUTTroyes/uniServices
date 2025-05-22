@@ -25,6 +25,7 @@ const anneeItems = ref([
 const selectedAnneeUniversitaire = ref(null);
 
 onMounted(async () => {
+  selectedAnneeUniversitaire.value = localStorage.getItem('selectedAnneeUniv');
   await fetchData();
 });
 
@@ -36,16 +37,23 @@ const fetchData = async () => {
   try {
     await anneeUnivStore.getAllAnneesUniv();
     const sortedAnnees = anneeUnivStore.anneesUniv.map(annee => ({
+      id: annee.id,
       label: annee.libelle,
+      isActif: annee.actif,
       command: () => selectAnneeUniversitaire(annee),
     })).sort((a, b) => b.label.localeCompare(a.label));
     anneesUniv.value = sortedAnnees;
     anneeItems.value[0].items = sortedAnnees;
-    // Si aucun AnneeUniversitaire n'est sélectionné, on sélectionne le premier sinon on garde la sélection actuelle
+
+    // si selectedAnneeUniv dans le localStorage est un tableau vide on lance la méthode setSelectedAnneeUniv du store
     if (!selectedAnneeUniversitaire.value) {
-      anneeUnivStore.setSelectedAnneeUniversitaire(selectedAnneeUniversitaire.value);
-      selectedAnneeUniversitaire.value = anneeUnivStore.selectedAnneeUniv || sortedAnnees[0];
+    console.log(sortedAnnees[0]);
+      await anneeUnivStore.setSelectedAnneeUniv(sortedAnnees[0]);
     }
+    selectedAnneeUniversitaire.value = localStorage.getItem('selectedAnneeUniv');
+    selectedAnneeUniversitaire.value = JSON.parse(selectedAnneeUniversitaire.value);
+    selectedAnneeUniversitaire.value.label = selectedAnneeUniversitaire.value.libelle;
+
     if (userStore.user) {
       if (userStore.userType === 'personnels') {
         deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
@@ -154,9 +162,17 @@ const isEnabled = (item) => {
 };
 
 const selectAnneeUniversitaire = (annee) => {
-  selectedAnneeUniversitaire.value = annee;
-  anneeUnivStore.setSelectedAnneeUniversitaire(annee);
-  selectedAnneeUniversitaire.value.label = selectedAnneeUniversitaire.value.libelle;
+  const selectedAnnee = {
+    id: annee.id,
+    label: annee.libelle,
+    libelle: annee.libelle,
+    isActif: annee.actif,
+  };
+  anneeUnivStore.setSelectedAnneeUniv(selectedAnnee);
+  selectedAnneeUniversitaire.value = selectedAnnee;
+
+  // recharger la page
+  window.location.reload();
 };
 </script>
 

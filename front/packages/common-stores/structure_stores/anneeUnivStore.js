@@ -32,7 +32,9 @@ export const useAnneeUnivStore = defineStore('anneeUniv', () => {
     }
   };
 
-  const setSelectedAnneeUniversitaire = (annee) => {
+  const setSelectedAnneeUniv = (annee) => {
+    // Ajouter un tableau contenant l'id et le libelle de l'année universitaire sélectionnée dans le localStorage
+    localStorage.setItem('selectedAnneeUniv', JSON.stringify({ id: annee.id, libelle: annee.libelle ?? annee.label, isActif: annee.isActif }));
     selectedAnneeUniv.value = annee;
   }
 
@@ -43,6 +45,6 @@ export const useAnneeUnivStore = defineStore('anneeUniv', () => {
     anneeUniv,
     anneesUniv,
     selectedAnneeUniv,
-    setSelectedAnneeUniversitaire
+    setSelectedAnneeUniv,
   };
 })

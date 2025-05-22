@@ -33,4 +33,20 @@ const getPnsDiplome = async (diplomeId, showToast = false) => {
     }
 }
 
-export { getAllPns, getPnsDiplome };
+const getPnDiplome = async (diplomeId, anneeUnivId, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/structure_pns?diplome=${diplomeId}&annee_universitaire=${anneeUnivId}`],
+            'PN du diplôme récupérés avec succès',
+            'Erreur lors de la récupération du PN du diplôme',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getPnsDiplome:', error);
+        throw error;
+    }
+}
+
+export { getAllPns, getPnsDiplome, getPnDiplome };

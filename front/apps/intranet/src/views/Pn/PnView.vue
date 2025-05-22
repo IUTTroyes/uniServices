@@ -1,11 +1,11 @@
 <script setup>
-import { onMounted, ref } from 'vue'
-import { useSemestreStore, useUsersStore, useDiplomeStore } from '@stores'
+import {onMounted, ref, watch} from 'vue'
+import { useSemestreStore, useUsersStore, useDiplomeStore, useAnneeUnivStore } from '@stores'
 import {ListSkeleton, SimpleSkeleton} from "@components";
 import FicheRessource from "../../components/Pn/FicheRessource.vue";
 import FicheSae from "../../components/Pn/FicheSae.vue";
 import FicheMatiere from "../../components/Pn/FicheMatiere.vue";
-import { getEnseignementService, getPnsDiplome } from "@requests";
+import { getEnseignementService, getPnsDiplome, getPnDiplome } from "@requests";
 
 const usersStore = useUsersStore();
 const diplomeStore = useDiplomeStore();
@@ -13,7 +13,7 @@ const departementId = ref(null);
 
 const diplomes = ref([])
 const selectedDiplome = ref(null)
-const pns = ref([])
+const pn = ref(null)
 const selectedPn = ref(null)
 const selectedEnseignement = ref(null)
 const isLoadingDiplomes = ref(true)
@@ -24,20 +24,12 @@ const visibleDialog = ref(false);
 const dialogContent = ref(null);
 
 onMounted(async () => {
+  const selectedAnneeUniv = useAnneeUnivStore().selectedAnneeUniv;
   if (usersStore.departementDefaut) {
     departementId.value = usersStore.departementDefaut.id;
     await getDiplomes(departementId.value);
   } else {
     console.error('departementDefaut is not defined');
-  }
-
-  if (selectedDiplome.value) {
-    await getPnsForDiplome(selectedDiplome.value.id);
-  }
-
-  if (selectedPn.value) {
-    nodes.value = transformData(selectedPn.value.annees);
-    isLoadingPn.value = false;
   }
 })
 
@@ -60,12 +52,14 @@ const getDiplomes = async (departementId) => {
 const getPnsForDiplome = async (diplomeId) => {
   try {
     isLoadingPn.value = true;
-    pns.value = await getPnsDiplome(diplomeId)
-    // parmis tous les pn, on prend celui qui a une année active
-    selectedPn.value = pns.value.find(pn => pn.anneeUniversitaire?.actif === true) ?? null
-    if (selectedPn.value) {
-      nodes.value = transformData(selectedPn.value.annees);
+    pn.value = await getPnDiplome(selectedDiplome.value.id, selectedAnneeUniv?.id)
+    if (pn.value) {
+      pn.value = pn.value[0];
+      nodes.value = transformData(pn.value.annees);
+    } else {
+      console.error('Aucun PN trouvé pour le diplôme sélectionné');
     }
+    console.log(pn.value)
   } catch (error) {
     console.error('Erreur lors du chargement des PNs:', error);
   } finally {
@@ -141,17 +135,11 @@ const showDetails = (item, semestre) => {
 
     <ListSkeleton v-if="isLoadingPn" class="mt-4"/>
     <div v-else class="mt-6">
-      <div class="flex justify-between gap-10 my-6">
-        <Select v-if="selectedDiplome" v-model="selectedPn"
-                :options="pns"
-                optionLabel="libelle"
-                placeholder="Selectionner un PN"
-                class="w-full md:w-56"/>
-
-        <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" />
+      <div class="flex justify-between items-center my-6">
+        <div class="text-xl font-bold">{{selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné`}}</div>
+        <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh"/>
       </div>
-      <div class="text-xl font-bold mb-4">{{selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné`}}</div>
-      <Fieldset v-if="selectedPn" v-for="annee in selectedPn?.annees" :legend="`${annee.libelle}`" :toggleable="true">
+      <Fieldset v-if="pn" v-for="annee in pn.annees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
           <i class="pi pi-angle-down"></i>
         </template>
