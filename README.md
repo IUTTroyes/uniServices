@@ -126,6 +126,7 @@ uniServices/
 - **Pour les requêtes HTTP simples (GET, POST, PATCH, DELETE) qui ne nécessitent pas de manipulation spécifique, utiliser apiCall.js et apiService.js**:
   - `apiService.js` fournit des méthodes génériques pour les opérations CRUD
   - `apiCall.js` est un wrapper qui gère les messages de succès/erreur et le traitement des réponses
+- Récupérer l'année universitaire sélectionnée par l'utilisateur dans le localStorage via : `const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));`
 
   #### Gestion des notifications toast
 
