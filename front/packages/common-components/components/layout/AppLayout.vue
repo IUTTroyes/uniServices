@@ -5,7 +5,6 @@ import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
 import AppBreadcrumb from "./AppBreadcrumb.vue";
-import { useRoute, useRouter } from 'vue-router';
 
 const props = defineProps({
   menuItems: {
@@ -27,29 +26,12 @@ const props = defineProps({
 });
 
 const { layoutConfig, layoutState, isSidebarActive, resetMenu } = useLayout();
-const outsideClickListener = ref(null);
-const route = useRoute();
-const router = useRouter();
-const showBackButton = ref(false);
 const selectedAnneeUniversitaire = computed(
   () => {
     const selectedAnnee = localStorage.getItem('selectedAnneeUniv');
     return selectedAnnee ? JSON.parse(selectedAnnee) : null;
   }
 )
-
-const updateBackButtonVisibility = (path) => {
-  const segments = path.split('/').filter(Boolean);
-  showBackButton.value = segments.length >= 2;
-};
-
-onMounted(() => {
-  updateBackButtonVisibility(route.path);
-});
-
-watch(route, (newRoute) => {
-  updateBackButtonVisibility(newRoute.path);
-});
 
 const containerClass = computed(() => {
   return {
@@ -60,35 +42,6 @@ const containerClass = computed(() => {
     'layout-mobile-active': layoutState.staticMenuMobileActive
   };
 });
-
-function bindOutsideClickListener() {
-  if (!outsideClickListener.value) {
-    outsideClickListener.value = (event) => {
-      if (isOutsideClicked(event)) {
-        resetMenu();
-      }
-    };
-    document.addEventListener('click', outsideClickListener.value);
-  }
-}
-
-function unbindOutsideClickListener() {
-  if (outsideClickListener.value) {
-    document.removeEventListener('click', outsideClickListener);
-    outsideClickListener.value = null;
-  }
-}
-
-function isOutsideClicked(event) {
-  const sidebarEl = document.querySelector('.layout-sidebar');
-  const topbarEl = document.querySelector('.layout-menu-button');
-
-  return !(sidebarEl.isSameNode(event.target) || sidebarEl.contains(event.target) || topbarEl.isSameNode(event.target) || topbarEl.contains(event.target));
-}
-
-function goBack() {
-  router.back();
-}
 </script>
 
 <template>
@@ -98,8 +51,6 @@ function goBack() {
     <div class="layout-main-container">
       <div class="flex justify-between items-center">
         <app-breadcrumb v-if="breadcrumbItems" :items="breadcrumbItems"></app-breadcrumb>
-        <Button v-if="showBackButton" @click="goBack" severity="contrast" label="Retour" size="small" icon="pi pi-arrow-left" class="h-fit"></Button>
-
         <div v-if="!selectedAnneeUniversitaire.isActif">
           <Message severity="error" class="absolute top-24 right-16 w-fit z-10" icon="pi pi-exclamation-triangle"><span class="font-bold">Attention !</span> Vous n'êtes pas sur l'année universitaire actuelle</Message>
         </div>
