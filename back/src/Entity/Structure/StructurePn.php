@@ -55,6 +55,7 @@ class StructurePn
      * @var Collection<int, StructureAnnee>
      */
     #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'pn')]
+    #[Groups(['pn:read'])]
     private Collection $annees;
 
     public function __construct(StructureDiplome $diplome)

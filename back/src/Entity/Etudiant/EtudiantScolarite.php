@@ -111,8 +111,8 @@ class EtudiantScolarite
      * @var Collection<int, StructureAnnee>
      * @deprecated
      */
-    #[Groups(['etudiant:read', 'scolarite:read'])]
     #[ORM\ManyToMany(targetEntity: StructureAnnee::class, inversedBy: 'scolarites')]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
     private Collection $annee;
 
     public function __construct()

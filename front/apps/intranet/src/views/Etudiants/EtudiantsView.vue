@@ -14,19 +14,15 @@ const toast = useToast();
 
 import { getDepartementAnneesService, getEtudiantsScolaritesDepartementService } from '@requests';
 
-import { useAnneeUnivStore, useSemestreStore, useUsersStore } from '@stores';
+import { useSemestreStore, useUsersStore } from '@stores';
 import { SimpleSkeleton } from '@components';
 const usersStore = useUsersStore();
-const anneeUnivStore = useAnneeUnivStore();
 const semestreStore = useSemestreStore();
 
 const departementId = ref(null);
-const anneesUnivList = ref([]);
-const selectedAnneeUniv = ref(null);
 const semestresList = ref([]);
 const anneesList = ref([]);
 
-const isLoadingAnneesUniv = ref(false);
 const isLoadingSemestres = ref(false);
 const isLoadingAnnees = ref(false);
 
@@ -54,25 +50,7 @@ const showEditDialog = ref(false);
 const showAccessEditDialog = ref(false);
 const selectedEtudiant = ref(null);
 
-const getAnneesUniv = async () => {
-  isLoadingAnneesUniv.value = true;
-  try {
-    await anneeUnivStore.getAllAnneesUniv();
-    anneesUnivList.value = anneeUnivStore.anneesUniv.sort((a, b) => b.id - a.id);
-    await anneeUnivStore.getCurrentAnneeUniv();
-    selectedAnneeUniv.value = anneeUnivStore.anneeUniv;
-  } catch (error) {
-    console.error('Erreur lors du chargement des années universitaires :', error);
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les années universitaires. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
-      life: 5000,
-    });
-  } finally {
-    isLoadingAnneesUniv.value = false;
-  }
-};
+const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));
 
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
@@ -123,7 +101,7 @@ const getEtudiantsScolarite = async () => {
   try {
     const response = await getEtudiantsScolaritesDepartementService(
         departementId.value,
-        selectedAnneeUniv.value.id,
+        selectedAnneeUniversitaire.id,
         limit.value,
         parseInt(page.value) + 1,
         filters.value
@@ -154,9 +132,9 @@ const getEtudiantsScolarite = async () => {
 
 onMounted(async () => {
   departementId.value = usersStore.departementDefaut.id;
-  await getAnneesUniv();
   await getSemestres();
   await getAnnees();
+  await getEtudiantsScolarite();
 });
 
 const onPageChange = async event => {
@@ -178,10 +156,6 @@ const editEtudiant = etudiant => {
 const deleteEtudiant = etudiant => {
   console.log(etudiant);
 };
-
-watch([filters, selectedAnneeUniv], async () => {
-  await getEtudiantsScolarite();
-});
 
 watch(() => filters.value.annee.value, async newAnnee => {
   if (isUpdatingFilter.value) {
@@ -228,19 +202,6 @@ watch(() => filters.value.annee.value, async newAnnee => {
         @update:rows="limit = $event"
         :globalFilterFields="['nom', 'prenom']"
     >
-      <template #header>
-        <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/3" />
-        <IftaLabel v-else class="w-1/3">
-          <Select
-              v-model="selectedAnneeUniv"
-              :options="anneesUnivList"
-              optionLabel="libelle"
-              placeholder="Sélectionner une année universitaire"
-              class="w-full"
-          />
-          <label for="anneeUniversitaire">Année universitaire</label>
-        </IftaLabel>
-      </template>
       <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 12rem">
         <template #body="{ data }">
           {{ data.etudiant.nom }}

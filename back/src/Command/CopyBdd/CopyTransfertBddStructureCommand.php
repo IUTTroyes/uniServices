@@ -336,6 +336,7 @@ FOREIGN_KEY_CHECKS=1');
             if (array_key_exists($an['diplome_id'], $this->tDiplomes) && $this->tDiplomes[$an['diplome_id']]->getPns()->count() > 0) {
                 $annee = new StructureAnnee();
                 $diplome = $this->tDiplomes[$an['diplome_id']];
+                $pns = $diplome->getPns();
                 $annee->setLibelle($an['libelle']);
                 $annee->setOrdre($an['ordre']);
                 $annee->setLibelleLong($an['libelle_long']);
@@ -346,7 +347,9 @@ FOREIGN_KEY_CHECKS=1');
                 ]);
                 $annee->setApogeeCodeEtape($an['code_etape']);
                 $annee->setApogeeCodeVersion($an['code_version']);
-                $annee->setDiplome($diplome);
+                foreach ($pns as $pn) {
+                    $pn->addAnnee($annee);
+                }
 
                 $this->tAnnees[$an['id']] = $annee;
 

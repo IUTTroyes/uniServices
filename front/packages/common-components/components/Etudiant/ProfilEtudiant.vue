@@ -50,7 +50,6 @@ const getEtudiantScolarites = async () => {
 
     if (etudiantScolarites.value.length > 0) {
       activeTab.value = etudiantScolarites.value[0].anneeUniversitaire.libelle;
-      console.log("Onglet actif initialisé :", activeTab.value);
     }
   } catch (error) {
     console.error("Erreur lors de la récupération :", error);
@@ -58,12 +57,6 @@ const getEtudiantScolarites = async () => {
     loadingScolarites.value = false;
   }
 };
-
-import { watch } from "vue";
-
-watch(activeTab, (newValue) => {
-  console.log("Onglet actif changé :", newValue);
-});
 
 onMounted(async () => {
   await getEtudiantScolarites();
@@ -264,11 +257,11 @@ const updateEtudiantData = async () => {
                   :key="scolarite.anneeUniversitaire.libelle"
                   :value="scolarite.anneeUniversitaire.libelle">
           <div class="flex md:flex-row flex-col justify-between gap-2 w-full h-full">
-            <div v-for="semestre in scolarite.semestre"
+            <div v-for="semestre in scolarite.scolariteSemestre"
                  class="card mb-0 w-full h-full">
               <div class="font-bold text-lg">
-                {{ semestre.structure_semestre.annee.libelle }} -
-                <span class="text-muted-color font-normal">{{ semestre.structure_semestre.libelle }}</span>
+                {{ semestre.semestre.annee.libelle }} -
+                <span class="text-muted-color font-normal">{{ semestre.semestre.libelle }}</span>
               </div>
 
               {{ scolarite.moyennesUe }}

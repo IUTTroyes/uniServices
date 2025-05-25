@@ -10,6 +10,7 @@ use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnnee;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
+use App\Entity\Structure\StructurePn;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Structure\StructureUe;
 use Doctrine\ORM\QueryBuilder;
@@ -75,7 +76,8 @@ class PrevisionnelFilter extends AbstractFilter
                 ->join(StructureUe::class, 'ue', 'WITH', 'seue.ue = ue.id')
                 ->join(StructureSemestre::class, 'ss', 'WITH', 'ue.semestre = ss.id')
                 ->innerJoin(StructureAnnee::class, 'sa', 'WITH', 'ss.annee = sa.id')
-                ->andWhere('sa.diplome = :diplome')
+                ->innerJoin(StructurePn::class, 'pn', 'WITH', 'sa.pn = pn.id')
+                ->andWhere('pn.diplome = :diplome')
                 ->setParameter('diplome', $value)
             ;
         }
@@ -87,7 +89,8 @@ class PrevisionnelFilter extends AbstractFilter
                 ->join(StructureUe::class, 'ue', 'WITH', 'seue.ue = ue.id')
                 ->join(StructureSemestre::class, 'ss', 'WITH', 'ue.semestre = ss.id')
                 ->innerJoin(StructureAnnee::class, 'sa', 'WITH', 'ss.annee = sa.id')
-                ->innerJoin(StructureDiplome::class, 'sd', 'WITH', 'sa.diplome = sd.id')
+                ->innerJoin(StructurePn::class, 'pn', 'WITH', 'sa.pn = pn.id')
+                ->innerJoin(StructureDiplome::class, 'sd', 'WITH', 'pn.diplome = sd.id')
                 ->innerJoin(StructureDepartement::class, 'sde', 'WITH', 'sd.departement = sde.id')
                 ->andWhere('sde.id = :departement')
                 ->setParameter('departement', $value)

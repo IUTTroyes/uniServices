@@ -120,13 +120,6 @@ class StructureDiplome
     #[Groups(['diplome:read'])]
     private ?ApcParcours $parcours = null;
 
-    /**
-     * @var Collection<int, StructureAnnee>
-     */
-    #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'diplome')]
-    #[Groups(['diplome:read', 'pn:read'])]
-    private Collection $annees;
-
     #[ORM\Column(nullable: true)]
     private ?int $cleOreof = null;
 
@@ -135,7 +128,6 @@ class StructureDiplome
         $this->enfants = new ArrayCollection();
         $this->pns = new ArrayCollection();
         $this->setOpt([]);
-        $this->annees = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -422,36 +414,6 @@ class StructureDiplome
         return $this;
     }
 
-    /**
-     * @return Collection<int, StructureAnnee>
-     */
-    public function getAnnees(): Collection
-    {
-        return $this->annees;
-    }
-
-    public function addAnnee(StructureAnnee $annee): static
-    {
-        if (!$this->annees->contains($annee)) {
-            $this->annees->add($annee);
-            $annee->setDiplome($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAnnee(StructureAnnee $annee): static
-    {
-        if ($this->annees->removeElement($annee)) {
-            // set the owning side to null (unless already changed)
-            if ($annee->getDiplome() === $this) {
-                $annee->setDiplome(null);
-            }
-        }
-
-        return $this;
-    }
-
     public function getCleOreof(): ?int
     {
         return $this->cleOreof;
@@ -462,5 +424,18 @@ class StructureDiplome
         $this->cleOreof = $cleOreof;
 
         return $this;
+    }
+
+    public function getAnnees(): ?array
+    {
+        $annees = [];
+        foreach ($this->getPns() as $pn) {
+            if ($pn->isActif()) {
+                foreach ($pn->getAnnees() as $annee) {
+                    $annees[] = $annee;
+                }
+            }
+        }
+        return $annees;
     }
 }

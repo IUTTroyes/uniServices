@@ -22,7 +22,10 @@ const anneeItems = ref([
   }
 ]);
 
+const selectedAnneeUniversitaire = ref(null);
+
 onMounted(async () => {
+  selectedAnneeUniversitaire.value = localStorage.getItem('selectedAnneeUniv');
   await fetchData();
 });
 
@@ -34,11 +37,22 @@ const fetchData = async () => {
   try {
     await anneeUnivStore.getAllAnneesUniv();
     const sortedAnnees = anneeUnivStore.anneesUniv.map(annee => ({
+      id: annee.id,
       label: annee.libelle,
+      isActif: annee.actif,
+      command: () => selectAnneeUniversitaire(annee),
     })).sort((a, b) => b.label.localeCompare(a.label));
     anneesUniv.value = sortedAnnees;
     anneeItems.value[0].items = sortedAnnees;
 
+    // si selectedAnneeUniv dans le localStorage est un tableau vide on lance la méthode setSelectedAnneeUniv du store
+    if (!selectedAnneeUniversitaire.value) {
+    console.log(sortedAnnees[0]);
+      await anneeUnivStore.setSelectedAnneeUniv(sortedAnnees[0]);
+    }
+    selectedAnneeUniversitaire.value = localStorage.getItem('selectedAnneeUniv');
+    selectedAnneeUniversitaire.value = JSON.parse(selectedAnneeUniversitaire.value);
+    selectedAnneeUniversitaire.value.label = selectedAnneeUniversitaire.value.libelle;
 
     if (userStore.user) {
       if (userStore.userType === 'personnels') {
@@ -146,6 +160,20 @@ const initiales = computed(() => {
 const isEnabled = (item) => {
   return userStore.applications.includes(item.name);
 };
+
+const selectAnneeUniversitaire = (annee) => {
+  const selectedAnnee = {
+    id: annee.id,
+    label: annee.libelle,
+    libelle: annee.libelle,
+    isActif: annee.actif,
+  };
+  anneeUnivStore.setSelectedAnneeUniv(selectedAnnee);
+  selectedAnneeUniversitaire.value = selectedAnnee;
+
+  // recharger la page
+  window.location.reload();
+};
 </script>
 
 <template>
@@ -207,7 +235,7 @@ const isEnabled = (item) => {
 
           <button  v-if="route.path !== '/portail' && userStore.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
             <i class="pi pi-calendar"></i>
-            <span>2024/2025</span>
+            <span>{{selectedAnneeUniversitaire?.label}}</span>
           </button>
           <Menu ref="anneeMenu" id="annee_menu" :model="anneeItems" :popup="true" />
 
