@@ -61,7 +61,7 @@ class OreofSynchroCommand extends Command
         if ($input->getOption('all-diplomes')) {
             // Logique pour la synchronisation de tous les diplômes
             $io->info('Synchronisation de tous les diplômes.');
-            $this->synchroOreof->syncAllDiplomes();
+            $this->synchroOreof->syncAllDiplomes($annee);
             $io->success('Synchronisation terminée pour tous les diplômes.');
         }
 
@@ -69,7 +69,7 @@ class OreofSynchroCommand extends Command
             $diplomeId = $input->getOption('diplome');
             // Logique pour synchroniser un diplôme spécifique
             $io->info(sprintf('Synchronisation du diplôme avec l\'ID : %s', $diplomeId));
-            $this->synchroOreof->syncDiplome($diplomeId);
+            $this->synchroOreof->syncDiplome((int)$diplomeId, $annee);
             $io->success('Synchronisation terminée pour le diplôme.');
         }
 

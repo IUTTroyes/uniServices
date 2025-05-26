@@ -2,6 +2,8 @@
 
 namespace App\Repository\Structure;
 
+use App\Entity\Structure\StructureAnneeUniversitaire;
+use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructurePn;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -16,28 +18,18 @@ class StructurePnRepository extends ServiceEntityRepository
         parent::__construct($registry, StructurePn::class);
     }
 
-    //    /**
-    //     * @return StructurePn[] Returns an array of StructurePn objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function findOneByAnneeUniversitaireAndDiplome(
+        StructureAnneeUniversitaire $anneeUniversitaires,
+        StructureDiplome $diplome
+    ): ?StructurePn {
 
-    //    public function findOneBySomeField($value): ?StructurePn
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.diplome = :diplome')
+            ->join('s.anneeUniversitaires', 'sau')
+            ->andWhere('sau.id = :anneeUniversitaires')
+            ->setParameter('diplome', $diplome)
+            ->setParameter('anneeUniversitaires', $anneeUniversitaires)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
