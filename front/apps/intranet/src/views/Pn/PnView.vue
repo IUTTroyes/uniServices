@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref, watch} from 'vue'
 import { useSemestreStore, useUsersStore, useDiplomeStore, useAnneeUnivStore } from '@stores'
-import {ListSkeleton, SimpleSkeleton} from "@components";
+import {ListSkeleton, SimpleSkeleton, ErrorView} from "@components";
 import FicheRessource from "../../components/Pn/FicheRessource.vue";
 import FicheSae from "../../components/Pn/FicheSae.vue";
 import FicheMatiere from "../../components/Pn/FicheMatiere.vue";
@@ -19,12 +19,14 @@ const selectedEnseignement = ref(null)
 const isLoadingDiplomes = ref(true)
 const isLoadingPn = ref(true)
 const isLoadingEnseignement = ref(true)
+const hasError = ref(false)
 
 const visibleDialog = ref(false);
 const dialogContent = ref(null);
 
+const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'))
+
 onMounted(async () => {
-  const selectedAnneeUniv = useAnneeUnivStore().selectedAnneeUniv;
   if (usersStore.departementDefaut) {
     departementId.value = usersStore.departementDefaut.id;
     await getDiplomes(departementId.value);
@@ -44,6 +46,7 @@ const getDiplomes = async (departementId) => {
     }
   } catch (error) {
     console.error('Erreur lors du chargement des diplomes:', error);
+    hasError.value = true;
   } finally {
     isLoadingDiplomes.value = false
   }
@@ -51,17 +54,17 @@ const getDiplomes = async (departementId) => {
 
 const getPnsForDiplome = async (diplomeId) => {
   try {
+    console.log(selectedAnneeUniversitaire.id)
     isLoadingPn.value = true;
-    pn.value = await getPnDiplome(selectedDiplome.value.id, selectedAnneeUniv?.id)
-    if (pn.value) {
+    pn.value = await getPnDiplome(selectedDiplome.value.id, selectedAnneeUniversitaire.id)
+    console.log(pn.value)
+    if (pn.value.length > 0) {
       pn.value = pn.value[0];
       nodes.value = transformData(pn.value.annees);
-    } else {
-      console.error('Aucun PN trouvé pour le diplôme sélectionné');
     }
-    console.log(pn.value)
   } catch (error) {
     console.error('Erreur lors du chargement des PNs:', error);
+    hasError.value = true;
   } finally {
     isLoadingPn.value = false;
   }
@@ -74,6 +77,7 @@ const getEnseignement = async (enseignementId, semestre) => {
     showDetails(selectedEnseignement.value, semestre)
   } catch (error) {
     console.error('Erreur lors du chargement de l\'enseignement:', error);
+    hasError.value = true;
   } finally {
     isLoadingEnseignement.value = false;
   }
@@ -119,7 +123,8 @@ const showDetails = (item, semestre) => {
 </script>
 
 <template>
-  <div class="card">
+  <ErrorView v-if="hasError" />
+  <div v-else class="card">
     <SimpleSkeleton v-if="isLoadingDiplomes" class="w-1/2" />
     <div v-else>
       <h2 class="text-2xl font-bold">Programmes pédagogiques nationaux</h2>
@@ -138,6 +143,12 @@ const showDetails = (item, semestre) => {
       <div class="flex justify-between items-center my-6">
         <div class="text-xl font-bold">{{selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné`}}</div>
         <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh"/>
+      </div>
+<!--    si il n'y a pas de pn    -->
+      <div v-if="pn && pn.length === 0" class="flex justify-center">
+        <Message severity="error" icon="pi pi-exclamation-triangle" class="w-fit">
+          Aucun programme pédagogique national trouvé pour le diplôme et l'année universitaire sélectionné.
+        </Message>
       </div>
       <Fieldset v-if="pn" v-for="annee in pn.annees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
@@ -309,6 +320,11 @@ const showDetails = (item, semestre) => {
           </div>
         </div>
       </Fieldset>
+      <div v-else class="flex justify-center">
+        <Message severity="error" icon="pi pi-exclamation-triangle" class="w-fit">
+          Une erreur est survenue
+        </Message>
+      </div>
     </div>
   </div>
 
