@@ -3,6 +3,7 @@
 namespace App\Command\OReOF;
 
 use App\Services\OReOF\SynchroOreof;
+use App\Services\Structure\ClearDiplome;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -18,7 +19,8 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 class OreofSynchroCommand extends Command
 {
     public function __construct(
-        protected SynchroOreof $synchroOreof
+        protected SynchroOreof $synchroOreof,
+        protected ClearDiplome $clearDiplome
     )
     {
         parent::__construct();
@@ -69,6 +71,7 @@ class OreofSynchroCommand extends Command
             $diplomeId = $input->getOption('diplome');
             // Logique pour synchroniser un diplôme spécifique
             $io->info(sprintf('Synchronisation du diplôme avec l\'ID : %s', $diplomeId));
+            $this->clearDiplome->clearDiplome((int)$diplomeId, $annee);
             $this->synchroOreof->syncDiplome((int)$diplomeId, $annee);
             $io->success('Synchronisation terminée pour le diplôme.');
         }
