@@ -55,13 +55,13 @@ class StructureScolariteFixtures extends Fixture implements OrderedFixtureInterf
             ->setOrdre(1)
             ->setNbAbsences(0)
             ->setPublic(true)
-            ->setStructureAnneeUniversitaire($anneeUniversitaire1)
+            ->setAnneeUniversitaire($anneeUniversitaire1)
             ->setUuid(Uuid::v4())
             ;
 
         $scolariteSemestre1 = new EtudiantScolariteSemestre();
-        $scolariteSemestre1->setStructureSemestre($semestre1)
-            ->setEtudiantScolarite($scolarite1);
+        $scolariteSemestre1->setSemestre($semestre1)
+            ->setScolarite($scolarite1);
 
         $scolarite1->addScolariteSemestre($scolariteSemestre1);
         $manager->persist($scolarite1);
@@ -72,12 +72,12 @@ class StructureScolariteFixtures extends Fixture implements OrderedFixtureInterf
             ->setOrdre(2)
             ->setNbAbsences(0)
             ->setPublic(true)
-            ->setStructureAnneeUniversitaire($anneeUniversitaire2)
+            ->setAnneeUniversitaire($anneeUniversitaire2)
             ->setUuid(Uuid::v4());
 
         $scolariteSemestre2 = new EtudiantScolariteSemestre();
-        $scolariteSemestre2->setStructureSemestre($semestre2)
-            ->setEtudiantScolarite($scolarite2);
+        $scolariteSemestre2->setSemestre($semestre2)
+            ->setScolarite($scolarite2);
 
         $scolarite2->addScolariteSemestre($scolariteSemestre2);
         $manager->persist($scolarite2);
