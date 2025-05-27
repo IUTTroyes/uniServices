@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use App\Entity\Edt\EdtEvent;
+use App\Entity\FicheHeure;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
@@ -190,6 +191,18 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'personnel')]
     private Collection $previsionnels;
 
+    /**
+     * @var Collection<int, FicheHeure>
+     */
+    #[ORM\OneToMany(mappedBy: 'personnel', targetEntity: FicheHeure::class)]
+    private Collection $fichesHeures;
+
+    /**
+     * @var Collection<int, FicheHeure>
+     */
+    #[ORM\OneToMany(mappedBy: 'validateur', targetEntity: FicheHeure::class)]
+    private Collection $fichesHeuresValidees;
+
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
@@ -199,6 +212,8 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         $this->evaluations = new ArrayCollection();
         $this->events = new ArrayCollection();
         $this->previsionnels = new ArrayCollection();
+        $this->fichesHeures = new ArrayCollection();
+        $this->fichesHeuresValidees = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -752,5 +767,65 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
     public function getStatutSeverity(): string {
         return $this->statut->getBadge();
+    }
+
+    /**
+     * @return Collection<int, FicheHeure>
+     */
+    public function getFichesHeures(): Collection
+    {
+        return $this->fichesHeures;
+    }
+
+    public function addFichesHeure(FicheHeure $fichesHeure): static
+    {
+        if (!$this->fichesHeures->contains($fichesHeure)) {
+            $this->fichesHeures->add($fichesHeure);
+            $fichesHeure->setPersonnel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFichesHeure(FicheHeure $fichesHeure): static
+    {
+        if ($this->fichesHeures->removeElement($fichesHeure)) {
+            // set the owning side to null (unless already changed)
+            if ($fichesHeure->getPersonnel() === $this) {
+                $fichesHeure->setPersonnel(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, FicheHeure>
+     */
+    public function getFichesHeuresValidees(): Collection
+    {
+        return $this->fichesHeuresValidees;
+    }
+
+    public function addFichesHeuresValidee(FicheHeure $fichesHeuresValidee): static
+    {
+        if (!$this->fichesHeuresValidees->contains($fichesHeuresValidee)) {
+            $this->fichesHeuresValidees->add($fichesHeuresValidee);
+            $fichesHeuresValidee->setValidateur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeFichesHeuresValidee(FicheHeure $fichesHeuresValidee): static
+    {
+        if ($this->fichesHeuresValidees->removeElement($fichesHeuresValidee)) {
+            // set the owning side to null (unless already changed)
+            if ($fichesHeuresValidee->getValidateur() === $this) {
+                $fichesHeuresValidee->setValidateur(null);
+            }
+        }
+
+        return $this;
     }
 }
