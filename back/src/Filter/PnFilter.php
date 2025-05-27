@@ -36,9 +36,10 @@ class PnFilter extends AbstractFilter
 
         if ('anneeUniversitaire' === $property) {
             $queryBuilder
-                ->join(sprintf('%s.anneeUniversitaire', $alias), 'au')
-                ->andWhere('au.id = :anneeUniversitaire')
-                ->setParameter('anneeUniversitaire', $value);
+                ->join("$alias.anneeUniversitaire", "anneeUniversitaire")
+                ->andWhere("anneeUniversitaire.id = :anneeUniversitaire")
+                ->setParameter("anneeUniversitaire", $value)
+            ;
         }
     }
 
@@ -51,6 +52,14 @@ class PnFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by diplôme',
+                ],
+            ],
+            'anneeUniversitaire' => [
+                'property' => 'anneeUniversitaire',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by année universitaire',
                 ],
             ],
         ];

@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref, watch} from 'vue';
 import {useAnneeUnivStore, useEnseignementsStore, useSemestreStore, useUsersStore} from "@stores";
-import {SimpleSkeleton, ListSkeleton} from "@components";
+import {SimpleSkeleton, ListSkeleton, ErrorView} from "@components";
 import {getPersonnelsDepartementService, getSemestrePreviTestService} from "@requests";
 
 // const tableau = ref([
@@ -38,6 +38,8 @@ const groupes= ref([])
 const totalCM = ref([])
 const totalTD = ref([])
 const totalTP = ref([])
+
+const hasError = ref(false);
 
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
@@ -101,9 +103,9 @@ const getPrevi = async (semestreId) => {
 
     } catch (error) {
       console.error('Erreur lors du chargement du prévisionnel:', error);
+      hasError.value = true;
     } finally {
       heures.value = previSemestre.value[1];
-      console.log(heures.value)
       groupes.value = previSemestre.value[2];
       totalCM.value = calculTotal('CM');
       totalTD.value = calculTotal('TD');
@@ -154,7 +156,8 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
 </script>
 
 <template>
-  <div class="flex gap-6 w-1/2 m-6">
+  <ErrorView v-if="hasError" />
+  <div v-else class="flex gap-6 w-1/2 m-6">
     <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/2" />
     <IftaLabel v-else class="w-1/2">
       <Select

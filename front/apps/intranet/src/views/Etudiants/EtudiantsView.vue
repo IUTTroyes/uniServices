@@ -4,6 +4,7 @@ import { FilterMatchMode } from '@primevue/core/api';
 import ButtonInfo from '@components/components/ButtonInfo.vue';
 import ButtonEdit from '@components/components/ButtonEdit.vue';
 import ButtonDelete from '@components/components/ButtonDelete.vue';
+import { ErrorView } from '@components';
 
 import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue';
 import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue';
@@ -27,6 +28,7 @@ const isLoadingSemestres = ref(false);
 const isLoadingAnnees = ref(false);
 
 const isUpdatingFilter = ref(false);
+const hasError = ref(false);
 
 const etudiants = ref([]);
 const nbEtudiants = ref(0);
@@ -68,6 +70,7 @@ const getSemestres = async () => {
     ).map(([label, items]) => ({ label, items }));
   } catch (error) {
     console.error('Erreur lors du chargement des semestres :', error);
+    hasError.value = true;
     toast.add({
       severity: 'error',
       summary: 'Erreur',
@@ -85,6 +88,7 @@ const getAnnees = async () => {
     anneesList.value = await getDepartementAnneesService(departementId.value, true);
   } catch (error) {
     console.error('Erreur lors du chargement des années :', error);
+    hasError.value = true;
     toast.add({
       severity: 'error',
       summary: 'Erreur',
@@ -119,6 +123,7 @@ const getEtudiantsScolarite = async () => {
     console.log('Étudiants chargés avec années :', etudiants.value);
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants :', error);
+    hasError.value = true;
     toast.add({
       severity: 'error',
       summary: 'Erreur',
@@ -180,7 +185,8 @@ watch(() => filters.value.annee.value, async newAnnee => {
 </script>
 
 <template>
-  <div class="card">
+  <ErrorView v-if="hasError" />
+  <div v-else class="card">
     <h2 class="text-2xl font-bold mb-4">Tous les étudiants du département</h2>
 
     <DataTable

@@ -15,6 +15,7 @@ use App\Entity\Edt\EdtContraintesSemestre;
 use App\Entity\Edt\EdtCreneauxInterditsSemaine;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Personnel\PersonnelEnseignantHrs;
 use App\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Stages\StagePeriode;
@@ -132,6 +133,12 @@ class StructureAnneeUniversitaire
     #[ORM\OneToMany(targetEntity: StagePeriode::class, mappedBy: 'anneeUniversitaire')]
     private Collection $stagePeriodes;
 
+    /**
+     * @var Collection<int, PersonnelEnseignantHrs>
+     */
+    #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'annee_universitaire')]
+    private Collection $enseignantHrs;
+
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
@@ -147,6 +154,7 @@ class StructureAnneeUniversitaire
         $this->contraintesSemestres = new ArrayCollection();
         $this->previsionnels = new ArrayCollection();
         $this->stagePeriodes = new ArrayCollection();
+        $this->enseignantHrs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -526,6 +534,36 @@ class StructureAnneeUniversitaire
             // set the owning side to null (unless already changed)
             if ($stagePeriode->getAnneeUniversitaire() === $this) {
                 $stagePeriode->setAnneeUniversitaire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PersonnelEnseignantHrs>
+     */
+    public function getEnseignantHrs(): Collection
+    {
+        return $this->enseignantHrs;
+    }
+
+    public function addEnseignantHr(PersonnelEnseignantHrs $enseignantHr): static
+    {
+        if (!$this->enseignantHrs->contains($enseignantHr)) {
+            $this->enseignantHrs->add($enseignantHr);
+            $enseignantHr->setAnneeUniversitaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEnseignantHr(PersonnelEnseignantHrs $enseignantHr): static
+    {
+        if ($this->enseignantHrs->removeElement($enseignantHr)) {
+            // set the owning side to null (unless already changed)
+            if ($enseignantHr->getAnneeUniversitaire() === $this) {
+                $enseignantHr->setAnneeUniversitaire(null);
             }
         }
 

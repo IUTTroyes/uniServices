@@ -9,7 +9,12 @@ import {
   getEnseignementDepartementService,
   getPersonnelPreviService,
   getPersonnelsDepartementService,
+  getPersonnelEnseignantHrsService,
+  getPersonnelEnseignantTypesHrsService,
+  createPersonnelEnseignantHrsService,
+  deletePersonnelEnseignantHrsService,
   updatePreviService,
+  getDepartementDiplomesService,
 } from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 import createApiService from "@requests/apiService.js";
@@ -33,8 +38,18 @@ const isLoadingPersonnel = ref(false);
 const personnelList = ref([]);
 const selectedPersonnel = ref(null);
 
+const personnelEnseignantHrs = ref([]);
+const typeHrs = ref([]);
+const selectedTypeHrs = ref(null);
+const nbHeuresHrs = ref(0);
+const libelleHrs = ref(null);
+const selectedSemestreHrs = ref(null);
+const selectedDiplomeHrs = ref(null);
+
 const semestreList = ref([]);
 const selectedSemestre = ref(null);
+
+const diplomeList = ref([]);
 
 const enseignementList = ref([]);
 const selectedEnseignement = ref(null);
@@ -43,13 +58,14 @@ const previSemestreAnneeUniv = ref(null);
 const previAnneeEnseignant = ref(null);
 
 const size = ref({ label: 'Petit', value: 'small' });
+
 const sizeOptions = ref([
   { label: 'Petit', value: 'small' },
   { label: 'Normal', value: 'null' },
   { label: 'Large', value: 'large' }
 ]);
-
 const isEditing = ref(false);
+const hasError = ref(false);
 
 const getAnneesUniv = async () => {
   isLoadingAnneesUniv.value = true;
@@ -59,6 +75,7 @@ const getAnneesUniv = async () => {
     await anneeUnivStore.getCurrentAnneeUniv();
     selectedAnneeUniv.value = anneeUnivStore.anneeUniv;
   } catch (error) {
+    hasError.value = true;
     console.error('Erreur lors du chargement des années universitaires:', error);
   } finally {
     isLoadingAnneesUniv.value = false;
@@ -70,6 +87,7 @@ const getPersonnelsDepartement = async () => {
   try {
     personnelList.value = await getPersonnelsDepartementService(departementId);
   } catch (error) {
+    hasError.value = true;
     console.error('Erreur lors du chargement des personnels:', error);
   } finally {
     // sélectionner le premier personnel de la liste
@@ -91,6 +109,7 @@ const getPrevi = async () => {
         selectedAnneeUniv.value.id
     );
   } catch (error) {
+    hasError.value = true;
     console.error('Erreur lors du chargement des prévisionnels:', error);
   } finally {
     isLoadingPrevisionnel.value = false;
@@ -107,12 +126,39 @@ const getPreviEnseignant = async () => {
         selectedPersonnel.value.personnel.id
     );
   } catch (error) {
+    hasError.value = true;
     console.error('Erreur lors du chargement des prévisionnels :', error);
   } finally {
     isLoadingPrevisionnelForm.value = false;
     console.log(previAnneeEnseignant.value);
   }
 }
+
+const getEnseignantHrs = async (enseignantId) => {
+  try {
+    personnelEnseignantHrs.value = await getPersonnelEnseignantHrsService(enseignantId, selectedAnneeUniv.value.id);
+    console.log(personnelEnseignantHrs.value);
+  } catch (error) {
+    hasError.value = true;
+    console.error('Erreur lors du chargement des heures de l\'enseignant :', error);
+  }
+};
+
+const getTypesHrs = async () => {
+  try {
+    typeHrs.value = await getPersonnelEnseignantTypesHrsService(selectedPersonnel.value.personnel.id, selectedAnneeUniv.value.id);
+    // construire chaque élément de la liste des types d'heures avec le libelle en label et le type en value
+    typeHrs.value = typeHrs.value.map((type) => ({
+      id: type.id,
+      label: type.libelle,
+      value: type.id
+    }));
+    console.log(typeHrs.value);
+  } catch (error) {
+    hasError.value = true;
+    console.error('Erreur lors du chargement des types d\'heures :', error);
+  }
+};
 
 const getSemestres = async () => {
   try {
@@ -125,9 +171,25 @@ const getSemestres = async () => {
     }));
 
   } catch (error) {
+    hasError.value = true;
     console.error('Erreur lors du chargement des semestres :', error);
   }
 };
+
+const getDiplomes = async () => {
+  try {
+    diplomeList.value = await getDepartementDiplomesService(departementId);
+    // construire chaque élément de la liste des diplômes avec le libelle en label et le diplôme en value
+    diplomeList.value = diplomeList.value.map((diplome) => ({
+      id: diplome.id,
+      label: diplome.libelle,
+      value: diplome.id
+    }));
+  } catch (error) {
+    hasError.value = true;
+    console.error('Erreur lors du chargement des diplômes :', error);
+  }
+}
 
 const getEnseignementsSemestre = async (semestreId) => {
   try {
@@ -140,6 +202,7 @@ const getEnseignementsSemestre = async (semestreId) => {
       value: enseignement,
     }))];
   } catch (error) {
+    hasError.value = true;
     console.error('Erreur lors du chargement des enseignements :', error);
   }
 };
@@ -154,6 +217,7 @@ const getAllEnseignementsDepartement = async () => {
       value: enseignement,
     }))];
   } catch (error) {
+    hasError.value = true;
     console.error('Erreur lors du chargement des enseignements :', error);
   }
 }
@@ -168,7 +232,10 @@ watch(selectedAnneeUniv, async (newAnneeUniv) => {
   await getPrevi(newAnneeUniv.id);
   await getPersonnelsDepartement();
   await getPreviEnseignant();
+  await getTypesHrs();
+  await getEnseignantHrs(selectedPersonnel.value.personnel.id);
   await getSemestres();
+  await getDiplomes();
 });
 
 watch(selectedPersonnel , async (newPersonnel) => {
@@ -269,12 +336,64 @@ const updateGroupesPrevi = async (previId, type, valeur) => {
   }
 };
 
+const addHrs = async (personnelId) => {
+  try {
+    console.log('Before creating dataNewHrs:');
+    console.log('libelleHrs.value:', libelleHrs.value);
+    console.log('nbHeuresHrs.value:', nbHeuresHrs.value);
+    const personnelIri = `/api/personnels/${personnelId}`;
+    const anneeUnivIri = `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`;
+    const dataNewHrs = {
+      personnel: personnelIri,
+      anneeUniversitaire: anneeUnivIri,
+      typeHrs: selectedTypeHrs.value ? selectedTypeHrs.value.id : null,
+      libelle: libelleHrs.value,
+      semestre: selectedSemestreHrs.value ? `/api/structure_semestres/${selectedSemestreHrs.value.id}` : null,
+      diplome: selectedDiplomeHrs.value ? `/api/structure_diplomes/${selectedDiplomeHrs.value.id}` : null,
+      nbHeuresTd: parseFloat(nbHeuresHrs.value) || 0,
+    };
+
+    console.log('dataNewHrs', dataNewHrs);
+
+    await createPersonnelEnseignantHrsService(personnelId, selectedAnneeUniv.value.id, dataNewHrs, true);
+
+    // Reset form fields after successful creation
+    selectedTypeHrs.value = null;
+    libelleHrs.value = null;
+    selectedSemestreHrs.value = null;
+    selectedDiplomeHrs.value = null;
+    nbHeuresHrs.value = 0;
+  } catch (error) {
+    console.error('Erreur lors de la création de l\'heure/HRS:', error);
+  } finally {
+    await getEnseignantHrs(personnelId);
+  }
+};
+
+const deleteHrs = async (hrsId) => {
+  try {
+    await deletePersonnelEnseignantHrsService(hrsId, true);
+  } catch (error) {
+    console.error('Erreur lors de la suppression de l\'heure/HRS:', error);
+  } finally {
+    await getEnseignantHrs(selectedPersonnel.value.personnel.id);
+  }
+};
+
 watch(isEditing, async (newIsEditing) => {
   if (!newIsEditing) {
     isLoadingPrevisionnel.value = true;
     await getPrevi(selectedAnneeUniv.value.id);
     isLoadingPrevisionnel.value = false;
   }
+})
+
+watch(libelleHrs, (newLibelle) => {
+  console.log('libelleHrs changed:', newLibelle);
+})
+
+watch(nbHeuresHrs, (newNbHeures) => {
+  console.log('nbHeuresHrs changed:', newNbHeures);
 })
 
 // ------------------------------------------------------------------------------------------------------------
@@ -438,6 +557,50 @@ const additionalRowsForm = computed(() => [
     { footer: previAnneeEnseignant.value[1]['TP'], colspan: 2, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previAnneeEnseignant.value[1]['Total'], colspan: 2, class: '!text-nowrap', unit: ' h' },
   ],
+
+
+
+  [
+    { footer: 'Primes/HRS', colspan: 9, class: '!text-center !font-bold'},
+  ],
+  [
+    { footer: '', colspan: 1, class: '!text-center !font-bold'},
+    { footer: 'Type d\'HRS, prime ou suivi', colspan: 2, class: '!text-center !font-bold'},
+    { footer: 'Libellé', colspan: 1, class: '!text-center !font-bold'},
+    { footer: 'Semestre', colspan: 1, class: '!text-center !font-bold'},
+    { footer: 'Diplôme', colspan: 1, class: '!text-center !font-bold'},
+    { footer: 'Nb heures équivalent TD', colspan: 1, class: '!text-center !font-bold'},
+    { footer: '', colspan: 2, class: '!text-center !font-bold'},
+  ],
+  [
+    { footer: 'Ajouter une prime/HRS', colspan: 1, class: '!text-center !font-bold'},
+
+    { footer: typeHrs.value, colspan: 2, form: true, formType: 'select', placeholder: 'Sélectionner un type', formAction: (type) => {selectedTypeHrs.value = type}, tooltip: 'Sélectionner un type de HRS, prime ou suivi', class: '!max-w-52 !truncate !overflow-hidden' },
+
+    { footer: libelleHrs.value, colspan: 1, form: true, formType: 'text', placeholder: 'Libellé', class: '!max-w-52', formAction: (libelle) => {libelleHrs.value = libelle} },
+
+    { footer: semestreList.value, colspan: 1, form: true, formType: 'select', placeholder: 'Sélectionner un semestre', formAction: (semestre) => {selectedSemestreHrs.value = semestre}, tooltip: 'Sélectionner un semestre', class: '!max-w-52 !truncate !overflow-hidden' },
+
+    { footer: diplomeList.value, colspan: 1, form: true, formType: 'select', placeholder: 'Sélectionner un diplôme', formAction: (diplome) => {selectedDiplomeHrs.value = diplome}, tooltip: 'Sélectionner un diplôme', class: '!max-w-52 !truncate !overflow-hidden' },
+
+    { footer: nbHeuresHrs.value, colspan: 1, form: true, formType: 'text', placeholder: 'Nombre d\'heures', formAction: (nbHrs) => {nbHeuresHrs.value = nbHrs} },
+    { footer: 'Ajouter', colspan: 2, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addHrs(selectedPersonnel.value.personnel.id) }, buttonClass: () => '!w-fit', buttonSeverity: () => 'success' },
+  ],
+  [
+    { footer: 'Liste des primes/HRS', colspan: 9, class: '!text-center !font-bold'},
+  ],
+  ...personnelEnseignantHrs.value.map(hrs => [
+    { footer: '', colspan: 1 },
+    { footer: hrs.typeHrs ? hrs.typeHrs.libelle : '', colspan: 2 },
+    { footer: hrs.libelle || '', colspan: 1 },
+    { footer: hrs.semestre ? hrs.semestre.libelle : '', colspan: 1 },
+    { footer: hrs.diplome ? hrs.diplome.libelle : '', colspan: 1 },
+    { footer: hrs.nbHeuresTd, colspan: 1, unit: ' h' },
+    { footer: 'Supprimer', colspan: 2, button: true, buttonIcon: 'pi pi-trash', buttonAction: (id) => { deleteHrs(id) }, buttonParam: hrs.id, buttonClass: () => '!w-fit', buttonSeverity: () => 'danger' },
+  ]),
+
+
+
   [
     { footer: 'Synthèse', colspan: 9, class: '!text-center !font-bold'},
   ],

@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Apc\ApcReferentiel;
+use App\Entity\Personnel\PersonnelEnseignantHrs;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -123,11 +124,18 @@ class StructureDiplome
     #[ORM\Column(nullable: true)]
     private ?int $cleOreof = null;
 
+    /**
+     * @var Collection<int, PersonnelEnseignantHrs>
+     */
+    #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'diplome')]
+    private Collection $enseignantHrs;
+
     public function __construct()
     {
         $this->enfants = new ArrayCollection();
         $this->pns = new ArrayCollection();
         $this->setOpt([]);
+        $this->enseignantHrs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -437,5 +445,35 @@ class StructureDiplome
             }
         }
         return $annees;
+    }
+
+    /**
+     * @return Collection<int, PersonnelEnseignantHrs>
+     */
+    public function getEnseignantHrs(): Collection
+    {
+        return $this->enseignantHrs;
+    }
+
+    public function addEnseignantHr(PersonnelEnseignantHrs $enseignantHr): static
+    {
+        if (!$this->enseignantHrs->contains($enseignantHr)) {
+            $this->enseignantHrs->add($enseignantHr);
+            $enseignantHr->setDiplome($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEnseignantHr(PersonnelEnseignantHrs $enseignantHr): static
+    {
+        if ($this->enseignantHrs->removeElement($enseignantHr)) {
+            // set the owning side to null (unless already changed)
+            if ($enseignantHr->getDiplome() === $this) {
+                $enseignantHr->setDiplome(null);
+            }
+        }
+
+        return $this;
     }
 }

@@ -1,7 +1,7 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue';
 import {useAnneeUnivStore, useEnseignementsStore, useSemestreStore, useUsersStore} from '@stores';
-import {ListSkeleton, SimpleSkeleton} from '@components';
+import {ErrorView, ListSkeleton, SimpleSkeleton} from '@components';
 import {
   getPersonnelsDepartementService,
   getSemestrePreviService,
@@ -40,6 +40,7 @@ const isLoadingPrevisionnel = ref(true);
 const previSemestre = ref(null);
 
 const isEditing = ref(false);
+const hasError = ref(false);
 
 const size = ref({ label: 'Petit', value: 'small' });
 const sizeOptions = ref([
@@ -54,13 +55,20 @@ const filters = ref({
 });
 
 const getSemestres = async () => {
-  isLoadingSemestres.value = true;
-  await semestreStore.getSemestresByDepartement(departementId, true);
-  semestresList.value = semestreStore.semestres;
-  if (semestresList.value.length > 0) {
-    selectedSemestre.value = semestresList.value[0];
+    isLoadingSemestres.value = true;
+  try {
+    await semestreStore.getSemestresByDepartement(departementId, true);
+  } catch (error) {
+    console.error('Erreur lors du chargement des semestres:', error);
+    hasError.value = true;
+  } finally {
+    semestresList.value = semestreStore.semestres;
+    if (semestresList.value.length > 0) {
+      selectedSemestre.value = semestresList.value[0];
+    }
+
+    isLoadingSemestres.value = false;
   }
-  isLoadingSemestres.value = false;
 };
 
 const getPrevi = async (semestreId) => {
@@ -102,6 +110,7 @@ const getPrevi = async (semestreId) => {
 
     } catch (error) {
       console.error('Erreur lors du chargement du prévisionnel:', error);
+      hasError.value = true;
     } finally {
       console.log('previSemestre', previSemestre.value);
       isLoadingPrevisionnel.value = false;
@@ -169,7 +178,7 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
       previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
     }
   } catch (error) {
-    showDanger('Erreur lors de la mise à jour du prévisionnel', error);
+    showDanger('Une erreur est survenue lors de la mise à jour du prévisionnel', error);
     console.error('Erreur lors de la mise à jour du prévisionnel:', error);
   } finally {
   }
@@ -213,7 +222,7 @@ const updateGroupesPrevi = async (previId, type, valeur) => {
       await updatePreviService(previId, {groupes: newGroupes});
     }
   } catch (error) {
-    showDanger('Erreur lors de la mise à jour du prévisionnel', error);
+    showDanger('Une erreur est survenue lors de la mise à jour du prévisionnel', error);
     console.error('Erreur lors de la mise à jour du prévisionnel:', error);
   } finally {
   }
@@ -225,18 +234,12 @@ const updateIntervenantPrevi = async (previId, personnel) => {
     let previForm = previSemestre.value[0].find(previ => previ.id === previId);
     // Mettre à jour l'intervenant du prévisionnel
     await updatePreviPersonnelService(previId, personnel.personnel.id);
-
     // Mettre à jour le prévisionnel
     previForm.idPersonnel = personnel.personnel.id;
     // Ensure intervenant is a string, not an object
     previForm.intervenant = typeof personnel.personnel.display === 'string' ? personnel.personnel.display : `${personnel.personnel.prenom} ${personnel.personnel.nom}`;
-
-    console.log(previSemestre)
   } catch (error) {
-    showDanger('Erreur lors de la mise à jour de l\'intervenant', error);
     console.error('Erreur lors de la mise à jour de l\'intervenant :', error);
-  } finally {
-    showSuccess('L\'intervenant a été mis à jour avec succès');
   }
 };
 
@@ -250,7 +253,6 @@ watch(isEditing, async (newIsEditing) => {
 
 const addPrevi = async (personnel, enseignement) => {
   try {
-    console.log(personnel, enseignement)
     const personnelIri = `/api/personnels/${personnel.personnel.id}`;
     const enseignementIri = `/api/scol_enseignements/${enseignement.id}`;
     const anneeUnivIri = `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`;
@@ -272,9 +274,8 @@ const addPrevi = async (personnel, enseignement) => {
       },
       enseignement: enseignementIri,
     };
-    await apiCall(previService.create,[dataNewPrevi], 'L\'élément a été créé avec succès', 'Une erreur est survenue lors de la création du prévisionnel');
+    await apiCall(previService.create,[dewPrevi], 'L\'élément a été créé avec succès', 'Une erreur est survenue lors de la création du prévisionnel');
   } catch (error) {
-    showDanger('Erreur lors de la création du prévisionnel', error);
     console.error('Erreur lors de la création du prévisionnel:', error);
   } finally {
     getPrevi(selectedSemestre.value.id);
@@ -430,7 +431,8 @@ const footerColsForm = computed(() => [
 </script>
 
 <template>
-  <div class="px-4 flex flex-col">
+  <ErrorView v-if="hasError" />
+  <div v-else class="px-4 flex flex-col">
     <div class="flex justify-between gap-10">
       <div class="flex gap-6 w-1/2">
         <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/2" />

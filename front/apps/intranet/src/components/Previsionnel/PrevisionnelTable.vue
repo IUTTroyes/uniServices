@@ -13,7 +13,7 @@ const duplicatedPrevi = ref({});
 const debouncedActions = new Map();
 
 // Function to get or create a debounced version of a form action
-const getDebouncedAction = (formAction, id, type) => {
+const getDebouncedActionPrevi = (formAction, id, type) => {
   const key = `${id}-${type}`;
   if (!debouncedActions.has(key)) {
     debouncedActions.set(key, debounce((value) => {
@@ -217,7 +217,7 @@ const duplicatePrevi = async (data) => {
             v-if="col.form && col.formType === 'text'"
             v-model="slotProps.data[col.field]"
             :placeholder="getFieldValue(slotProps.data, col.field)"
-            @input="getDebouncedAction(col.formAction, getFieldValue(slotProps.data, col.id), col.type)($event.target.value)"
+            @blur="getDebouncedActionPrevi(col.formAction, getFieldValue(slotProps.data, col.id), col.type)($event.target.value)"
             class="max-w-20"
           />
 
@@ -251,17 +251,24 @@ const duplicatePrevi = async (data) => {
         <Column v-for="d in data" :colspan="d.colspan" :rowspan="d.rowspan" :class="d.class">
           <template #footer="slotProps">
             <slot :name="`footer-${d.field}`" :value="d.footer">
-              <InputText v-if="d.form && d.formType === 'text'" :value="d.footer" @input="d.footer = $event.target.value"/>
+              <InputText
+                  v-if="d.form && d.formType === 'text'"
+                  v-model="d.footer"
+                  :placeholder="d.placeholder || 'Saisir une valeur'"
+                  @blur="d.formAction($event.target.value)"
+              />
+
               <Select v-else-if="d.form && d.formType === 'select'"
                       :options="d.footer"
                       optionLabel="label"
                       :placeholder="typeof d.placeholder === 'object' ? (d.placeholder?.label || 'Sélectionner') : d.placeholder"
                       class="!w-full"
                       @update:modelValue="(newValue) => d.formAction(newValue)"
+                      v-tooltip.top="d.tooltip ? d.tooltip : d.footer"
               />
 
 
-              <Button v-else-if="d.button" :icon="d.buttonIcon" @click="d.buttonAction(d.footer)" :class="d.buttonClass(d.footer)" :label="d.footer" :severity="d.buttonSeverity(d.footer)"/>
+              <Button v-else-if="d.button" :icon="d.buttonIcon" @click="d.buttonAction(d.buttonParam !== undefined ? d.buttonParam : d.footer)" :class="d.buttonClass(d.footer)" :label="d.footer" :severity="d.buttonSeverity(d.footer)"/>
               <Tag v-else-if="d.tag" class="w-max" :class="d.tagClass(d.footer)" :severity="d.tagSeverity(d.footer)" :icon="d.tagIcon(d.footer)">
                 {{ d.tagContent ? d.tagContent(d.footer) : d.footer }}<span v-if="d.unit && d.tagSeverity(d.footer) !== 'secondary'"> {{ d.unit }}</span>
               </Tag>

@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Edt\EdtContraintesSemestre;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
+use App\Entity\Personnel\PersonnelEnseignantHrs;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Stages\StagePeriode;
 use App\Entity\Traits\EduSignTrait;
@@ -127,6 +128,12 @@ class StructureSemestre
     #[ORM\OneToMany(targetEntity: StagePeriode::class, mappedBy: 'semestreProgramme')]
     private Collection $stagePeriodes;
 
+    /**
+     * @var Collection<int, PersonnelEnseignantHrs>
+     */
+    #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'semestre')]
+    private Collection $enseignantHrs;
+
 
 
     public function __construct()
@@ -139,6 +146,7 @@ class StructureSemestre
         $this->contraintesSemestres = new ArrayCollection();
         $this->scolariteSemestre = new ArrayCollection();
         $this->stagePeriodes = new ArrayCollection();
+        $this->enseignantHrs = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -472,6 +480,36 @@ class StructureSemestre
             // set the owning side to null (unless already changed)
             if ($stagePeriode->getSemestreProgramme() === $this) {
                 $stagePeriode->setSemestreProgramme(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, PersonnelEnseignantHrs>
+     */
+    public function getEnseignantHrs(): Collection
+    {
+        return $this->enseignantHrs;
+    }
+
+    public function addEnseignantHr(PersonnelEnseignantHrs $enseignantHr): static
+    {
+        if (!$this->enseignantHrs->contains($enseignantHr)) {
+            $this->enseignantHrs->add($enseignantHr);
+            $enseignantHr->setSemestre($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEnseignantHr(PersonnelEnseignantHrs $enseignantHr): static
+    {
+        if ($this->enseignantHrs->removeElement($enseignantHr)) {
+            // set the owning side to null (unless already changed)
+            if ($enseignantHr->getSemestre() === $this) {
+                $enseignantHr->setSemestre(null);
             }
         }
 

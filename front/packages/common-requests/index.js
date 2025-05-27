@@ -16,3 +16,5 @@ export * from './ext_data_services/siteIutService';
 
 export * from './etudiant_services/etudiantScolariteService'
 
+export * from './personnel_services/personnelHrsService.js'
+

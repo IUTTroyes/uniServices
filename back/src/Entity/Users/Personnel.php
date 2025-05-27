@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantAbsence;
+use App\Entity\Personnel\PersonnelEnseignantHrs;
 use App\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Structure\StructureAnneeUniversitaire;
@@ -190,6 +191,12 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'personnel')]
     private Collection $previsionnels;
 
+    /**
+     * @var Collection<int, PersonnelEnseignantHrs>
+     */
+    #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'personnel', orphanRemoval: true)]
+    private Collection $enseignantHrs;
+
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
@@ -199,6 +206,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         $this->evaluations = new ArrayCollection();
         $this->events = new ArrayCollection();
         $this->previsionnels = new ArrayCollection();
+        $this->enseignantHrs = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -752,5 +760,35 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
     public function getStatutSeverity(): string {
         return $this->statut->getBadge();
+    }
+
+    /**
+     * @return Collection<int, PersonnelEnseignantHrs>
+     */
+    public function getEnseignantHrs(): Collection
+    {
+        return $this->enseignantHrs;
+    }
+
+    public function addEnseignantHr(PersonnelEnseignantHrs $enseignantHr): static
+    {
+        if (!$this->enseignantHrs->contains($enseignantHr)) {
+            $this->enseignantHrs->add($enseignantHr);
+            $enseignantHr->setPersonnel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEnseignantHr(PersonnelEnseignantHrs $enseignantHr): static
+    {
+        if ($this->enseignantHrs->removeElement($enseignantHr)) {
+            // set the owning side to null (unless already changed)
+            if ($enseignantHr->getPersonnel() === $this) {
+                $enseignantHr->setPersonnel(null);
+            }
+        }
+
+        return $this;
     }
 }
