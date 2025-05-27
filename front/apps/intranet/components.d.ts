@@ -40,6 +40,10 @@ declare module 'vue' {
     EdtJour: typeof import('./src/components/Edt/EdtJour.vue')['default']
     EdtPerso: typeof import('./src/components/Edt/EdtPerso.vue')['default']
     EdtSemestre: typeof import('./src/components/Edt/EdtSemestre.vue')['default']
+    FicheHeureFormBiats: typeof import('./src/components/FicheHeures/FicheHeureFormBiats.vue')['default']
+    FicheHeureListBiats: typeof import('./src/components/FicheHeures/FicheHeureListBiats.vue')['default']
+    FicheHeureListItemBiats: typeof import('./src/components/FicheHeures/FicheHeureListItemBiats.vue')['default']
+    FicheHeureViewBiats: typeof import('./src/components/FicheHeures/FicheHeureViewBiats.vue')['default']
     FicheMatiere: typeof import('./src/components/Pn/FicheMatiere.vue')['default']
     FicheRessource: typeof import('./src/components/Pn/FicheRessource.vue')['default']
     FicheSae: typeof import('./src/components/Pn/FicheSae.vue')['default']
@@ -80,6 +84,9 @@ declare module 'vue' {
     Toast: typeof import('primevue/toast')['default']
     ToggleSwitch: typeof import('primevue/toggleswitch')['default']
     TreeTable: typeof import('primevue/treetable')['default']
+    ValidationList: typeof import('./src/components/FicheHeures/Validation/ValidationList.vue')['default']
+    ValidationListItem: typeof import('./src/components/FicheHeures/Validation/ValidationListItem.vue')['default']
+    ValidationView: typeof import('./src/components/FicheHeures/Validation/ValidationView.vue')['default']
   }
   export interface ComponentCustomProperties {
     Ripple: typeof import('primevue/ripple')['default']
