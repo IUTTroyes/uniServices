@@ -20,6 +20,7 @@ import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 import createApiService from "@requests/apiService.js";
 import apiCall from "@helpers/apiCall.js";
 import { showSuccess, showDanger } from '@helpers/toast.js';
+import {ErrorView} from "@components";
 
 const previService = createApiService('/api/previsionnels');
 
@@ -113,7 +114,6 @@ const getPrevi = async () => {
     console.error('Erreur lors du chargement des prévisionnels:', error);
   } finally {
     isLoadingPrevisionnel.value = false;
-
   }
 };
 
@@ -685,7 +685,8 @@ const footerColsForm = computed(() => [
 </script>
 
 <template>
-  <div class="px-4 flex flex-col">
+  <ErrorView v-if="hasError" />
+  <div v-else class="px-4 flex flex-col">
     <div class="flex justify-between gap-10">
       <div class="flex gap-6 w-1/2">
         <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/2" />
