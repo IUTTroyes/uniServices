@@ -35,7 +35,12 @@ watch(() => userStore.user, async () => {
 
 const fetchData = async () => {
   try {
-    await anneeUnivStore.getAllAnneesUniv();
+    // Data is already fetched by initializeAppData, so we just use it
+    // If anneesUniv is empty, fetch it (fallback)
+    if (anneeUnivStore.anneesUniv.length === 0) {
+      await anneeUnivStore.getAllAnneesUniv();
+    }
+
     const sortedAnnees = anneeUnivStore.anneesUniv.map(annee => ({
       id: annee.id,
       label: annee.libelle,

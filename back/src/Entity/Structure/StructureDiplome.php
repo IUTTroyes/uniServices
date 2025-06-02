@@ -54,7 +54,7 @@ class StructureDiplome
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:read'])]
+    #[Groups(['diplome:read', 'enseignant_hrs_read'])]
     private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome', cascade: ['persist'])]

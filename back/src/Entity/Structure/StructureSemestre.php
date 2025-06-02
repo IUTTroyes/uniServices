@@ -49,7 +49,7 @@ class StructureSemestre
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'etudiant:read', 'pn:read'])]
+    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'etudiant:read', 'pn:read', 'enseignant_hrs:read'])]
     private string $libelle;
 
     #[ORM\Column]

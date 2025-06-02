@@ -11,7 +11,6 @@ import {
   getPersonnelsDepartementService,
   getPersonnelEnseignantHrsService,
   getPersonnelEnseignantTypesHrsService,
-  createPersonnelEnseignantHrsService,
   deletePersonnelEnseignantHrsService,
   updatePreviService,
   getDepartementDiplomesService,
@@ -23,6 +22,7 @@ import { showSuccess, showDanger } from '@helpers/toast.js';
 import {ErrorView} from "@components";
 
 const previService = createApiService('/api/previsionnels');
+const hrsService = createApiService('/api/personnel_enseignant_hrs');
 
 const usersStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
@@ -151,6 +151,7 @@ const getTypesHrs = async () => {
     typeHrs.value = typeHrs.value.map((type) => ({
       id: type.id,
       label: type.libelle,
+      libelle: type.libelle,
       value: type.id
     }));
     console.log(typeHrs.value);
@@ -167,6 +168,7 @@ const getSemestres = async () => {
     semestreList.value = semestreList.value.map((semestre) => ({
       id: semestre.id,
       label: semestre.libelle,
+      libelle: semestre.libelle,
       value: semestre.id
     }));
 
@@ -183,6 +185,7 @@ const getDiplomes = async () => {
     diplomeList.value = diplomeList.value.map((diplome) => ({
       id: diplome.id,
       label: diplome.libelle,
+      libelle: diplome.libelle,
       value: diplome.id
     }));
   } catch (error) {
@@ -338,15 +341,13 @@ const updateGroupesPrevi = async (previId, type, valeur) => {
 
 const addHrs = async (personnelId) => {
   try {
-    console.log('Before creating dataNewHrs:');
-    console.log('libelleHrs.value:', libelleHrs.value);
-    console.log('nbHeuresHrs.value:', nbHeuresHrs.value);
     const personnelIri = `/api/personnels/${personnelId}`;
     const anneeUnivIri = `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`;
+    const hrsTypeIri = `/api/personnel_enseignant_type_hrs/${selectedTypeHrs.value.id}`;
     const dataNewHrs = {
       personnel: personnelIri,
       anneeUniversitaire: anneeUnivIri,
-      typeHrs: selectedTypeHrs.value ? selectedTypeHrs.value.id : null,
+      enseignantTypeHrs: hrsTypeIri,
       libelle: libelleHrs.value,
       semestre: selectedSemestreHrs.value ? `/api/structure_semestres/${selectedSemestreHrs.value.id}` : null,
       diplome: selectedDiplomeHrs.value ? `/api/structure_diplomes/${selectedDiplomeHrs.value.id}` : null,
@@ -355,7 +356,7 @@ const addHrs = async (personnelId) => {
 
     console.log('dataNewHrs', dataNewHrs);
 
-    await createPersonnelEnseignantHrsService(personnelId, selectedAnneeUniv.value.id, dataNewHrs, true);
+    await apiCall(hrsService.create,[dataNewHrs], 'HRS/prime créée', 'Une erreur est survenue lors de la création de l\'HRS/prime');
 
     // Reset form fields after successful creation
     selectedTypeHrs.value = null;
@@ -367,16 +368,6 @@ const addHrs = async (personnelId) => {
     console.error('Erreur lors de la création de l\'heure/HRS:', error);
   } finally {
     await getEnseignantHrs(personnelId);
-  }
-};
-
-const deleteHrs = async (hrsId) => {
-  try {
-    await deletePersonnelEnseignantHrsService(hrsId, true);
-  } catch (error) {
-    console.error('Erreur lors de la suppression de l\'heure/HRS:', error);
-  } finally {
-    await getEnseignantHrs(selectedPersonnel.value.personnel.id);
   }
 };
 
@@ -565,17 +556,34 @@ const additionalRowsForm = computed(() => [
   ],
   [
     { footer: '', colspan: 1, class: '!text-center !font-bold'},
-    { footer: 'Type d\'HRS, prime ou suivi', colspan: 2, class: '!text-center !font-bold'},
+    { footer: 'Type d\'HRS, prime ou suivi', colspan: 1, class: '!text-center !font-bold'},
     { footer: 'Libellé', colspan: 1, class: '!text-center !font-bold'},
     { footer: 'Semestre', colspan: 1, class: '!text-center !font-bold'},
     { footer: 'Diplôme', colspan: 1, class: '!text-center !font-bold'},
     { footer: 'Nb heures équivalent TD', colspan: 1, class: '!text-center !font-bold'},
     { footer: '', colspan: 2, class: '!text-center !font-bold'},
   ],
+  ...personnelEnseignantHrs.value.map(hrs => [
+    { footer: '', colspan: 1 },
+
+    { footer: typeHrs.value, colspan: 1, form: true, formType: 'select', placeholder: hrs.enseignantTypeHrs ? hrs.enseignantTypeHrs.libelle : 'Pas de type renseigné', formAction: (type) => {hrs.enseignantTypeHrs = type}, tooltip: 'Sélectionner un type de HRS, prime ou suivi', class: '!max-w-52 !truncate !overflow-hidden' },
+
+    { footer: hrs.libelle, colspan: 1, form: true, formType: 'text', placeholder: hrs.libelle || 'Pas de libellé renseigné', class: '!max-w-52', formAction: (libelle) => {hrs.libelle = libelle} },
+
+    { footer: semestreList.value, colspan: 1, form: true, formType: 'select', placeholder: hrs.semestre ? hrs.semestre.libelle : 'Pas de semestre renseigné', formAction: (semestre) => {hrs.semestre = semestre}, tooltip: 'Sélectionner un semestre', class: '!max-w-52 !truncate !overflow-hidden' },
+
+    { footer: diplomeList.value, colspan: 1, form: true, formType: 'select', placeholder: hrs.diplome ? hrs.diplome.libelle : 'Pas de diplôme renseigné', formAction: (diplome) => {hrs.diplome = diplome}, tooltip: 'Sélectionner un diplôme', class: '!max-w-52 !truncate !overflow-hidden' },
+
+    { footer: hrs.nbHeuresTd, colspan: 1, form: true, formType: 'text', placeholder: hrs.libelle || 'Nombre d\'heures', formAction: (nbHrs) => {hrs.nbHeuresTd = nbHrs} },
+
+    { header: 'Dupliquer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-copy', id: hrs.id, buttonAction: (id) => {duplicateHrs(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn', duplicate: true },
+
+    { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', id: hrs.id, buttonAction: (id) => {deleteHrs(id)}, buttonClass: () => '!w-fit', buttonSeverity: () => 'danger', delete: true },
+  ]),
   [
     { footer: 'Ajouter une prime/HRS', colspan: 1, class: '!text-center !font-bold'},
 
-    { footer: typeHrs.value, colspan: 2, form: true, formType: 'select', placeholder: 'Sélectionner un type', formAction: (type) => {selectedTypeHrs.value = type}, tooltip: 'Sélectionner un type de HRS, prime ou suivi', class: '!max-w-52 !truncate !overflow-hidden' },
+    { footer: typeHrs.value, colspan: 1, form: true, formType: 'select', placeholder: 'Sélectionner un type', formAction: (type) => {selectedTypeHrs.value = type}, tooltip: 'Sélectionner un type de HRS, prime ou suivi', class: '!max-w-52 !truncate !overflow-hidden' },
 
     { footer: libelleHrs.value, colspan: 1, form: true, formType: 'text', placeholder: 'Libellé', class: '!max-w-52', formAction: (libelle) => {libelleHrs.value = libelle} },
 
@@ -586,18 +594,6 @@ const additionalRowsForm = computed(() => [
     { footer: nbHeuresHrs.value, colspan: 1, form: true, formType: 'text', placeholder: 'Nombre d\'heures', formAction: (nbHrs) => {nbHeuresHrs.value = nbHrs} },
     { footer: 'Ajouter', colspan: 2, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addHrs(selectedPersonnel.value.personnel.id) }, buttonClass: () => '!w-fit', buttonSeverity: () => 'success' },
   ],
-  [
-    { footer: 'Liste des primes/HRS', colspan: 9, class: '!text-center !font-bold'},
-  ],
-  ...personnelEnseignantHrs.value.map(hrs => [
-    { footer: '', colspan: 1 },
-    { footer: hrs.typeHrs ? hrs.typeHrs.libelle : '', colspan: 2 },
-    { footer: hrs.libelle || '', colspan: 1 },
-    { footer: hrs.semestre ? hrs.semestre.libelle : '', colspan: 1 },
-    { footer: hrs.diplome ? hrs.diplome.libelle : '', colspan: 1 },
-    { footer: hrs.nbHeuresTd, colspan: 1, unit: ' h' },
-    { footer: 'Supprimer', colspan: 2, button: true, buttonIcon: 'pi pi-trash', buttonAction: (id) => { deleteHrs(id) }, buttonParam: hrs.id, buttonClass: () => '!w-fit', buttonSeverity: () => 'danger' },
-  ]),
 
 
 

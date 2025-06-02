@@ -3,6 +3,7 @@ import { createPinia } from "pinia";
 import App from './App.vue';
 import '@styles/main.scss';
 import router from './router';
+import { initializeAppData } from '@requests/initializeData';
 
 import Aura from '@primevue/themes/aura';
 import PrimeVue from 'primevue/config';
@@ -67,3 +68,6 @@ app.use(ConfirmationService);
 
 app.use(pinia);
 app.mount('#app');
+
+// Initialize application data after the app is mounted
+initializeAppData();

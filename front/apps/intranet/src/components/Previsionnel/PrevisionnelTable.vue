@@ -6,10 +6,15 @@ import apiCall from '@helpers/apiCall.js'
 import createApiService from '@requests/apiService'
 import debounce from '@helpers/debounce.js'
 
-const previsionnelService = createApiService('/api/previsionnels')
+const previsionnelService = createApiService('/api/previsionnels');
+const hrsService = createApiService('/api/personnel_enseignant_hrs');
 
-const dataToDuplicate = ref({});
+const dataToDuplicatePrevi = ref({});
+const dataToDuplicateHrs = ref({});
 const duplicatedPrevi = ref({});
+const duplicatedHrs = ref({});
+
+
 const debouncedActions = new Map();
 
 // Function to get or create a debounced version of a form action
@@ -95,6 +100,12 @@ const deletePrevi = async (data) => {
   data.value = [...state.data];
 };
 
+// Fonction pour supprimer des heures ou primes
+const deleteHrs = async (id) => {
+  await apiCall(hrsService.delete, [id], 'L\'élément a bien été supprimé', 'Une erreur est survenue lors de la suppression des heures ou primes');
+
+};
+
 // Fonction pour dupliquer un prévisionnel
 const duplicatePrevi = async (data) => {
   console.log(data)
@@ -105,7 +116,7 @@ const duplicatePrevi = async (data) => {
   if(props.origin === "previEnseignantForm") {
 
     console.log('data', data, props.origin)
-    dataToDuplicate.value = {
+    dataToDuplicatePrevi.value = {
       personnel: iriPersonnel,
       anneeUniversitaire: data.structureAnneeUniversitaire,
       enseignement: iriEnseignement,
@@ -122,7 +133,7 @@ const duplicatePrevi = async (data) => {
       Projet: data.heures.Projet.NbHrGrp,
     }
 
-    dataToDuplicate.value = {
+    dataToDuplicatePrevi.value = {
       personnel: iriPersonnel,
       anneeUniversitaire: data.structureAnneeUniversitaire,
       enseignement: iriEnseignement,
@@ -132,7 +143,7 @@ const duplicatePrevi = async (data) => {
     };
   }
 
-  const response = await apiCall(previsionnelService.create, [dataToDuplicate.value], 'L\'élément a bien été dupliqué', 'Une erreur est survenue lors de la duplication du prévisionnel');
+  const response = await apiCall(previsionnelService.create, [dataToDuplicatePrevi.value], 'L\'élément a bien été dupliqué', 'Une erreur est survenue lors de la duplication du prévisionnel');
 
   // Reconstruire l'élément dupliqué
   if(props.origin === "previEnseignantForm") {
@@ -255,7 +266,7 @@ const duplicatePrevi = async (data) => {
                   v-if="d.form && d.formType === 'text'"
                   v-model="d.footer"
                   :placeholder="d.placeholder || 'Saisir une valeur'"
-                  @blur="d.formAction($event.target.value)"
+                  @blur:modelValue="(newValue) => d.formAction(newValue)"
               />
 
               <Select v-else-if="d.form && d.formType === 'select'"
@@ -267,7 +278,8 @@ const duplicatePrevi = async (data) => {
                       v-tooltip.top="d.tooltip ? d.tooltip : d.footer"
               />
 
-
+              <ButtonDelete v-else-if="d.button & d.delete" tooltip="Supprimer l'élément du prévi" @confirm-delete="deleteHrs(d.id)" :class="d.class"/>
+              <ButtonDuplicate v-else-if="d.button & d.duplicate" tooltip="Dupliquer l'élément HRS/prime" @confirm-duplicate="duplicateHrs(d.id)" :class="d.class"/>
               <Button v-else-if="d.button" :icon="d.buttonIcon" @click="d.buttonAction(d.buttonParam !== undefined ? d.buttonParam : d.footer)" :class="d.buttonClass(d.footer)" :label="d.footer" :severity="d.buttonSeverity(d.footer)"/>
               <Tag v-else-if="d.tag" class="w-max" :class="d.tagClass(d.footer)" :severity="d.tagSeverity(d.footer)" :icon="d.tagIcon(d.footer)">
                 {{ d.tagContent ? d.tagContent(d.footer) : d.footer }}<span v-if="d.unit && d.tagSeverity(d.footer) !== 'secondary'"> {{ d.unit }}</span>

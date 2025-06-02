@@ -41,23 +41,6 @@ const getPersonnelEnseignantTypesHrsService = async (personnelId, anneeUnivId, s
 // ------------------- CREATE -------------------
 // ----------------------------------------------
 
-const createPersonnelEnseignantHrsService = async (personnelId, anneeUnivId, data, showToast = false) => {
-    try {
-        const response = await apiCall(
-            api.post,
-            [`/api/personnel_enseignant_hrs?anneeUniversitaire=${anneeUnivId}&personnel=${personnelId}`],
-            data,
-            'Heures du personnel créées avec succès',
-            'Erreur lors de la création des heures du personnel',
-            showToast
-        );
-        return response.member;
-    } catch (error) {
-        console.error('Erreur dans createPersonnelHrsService:', error);
-        throw error;
-    }
-}
-
 
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
@@ -70,18 +53,17 @@ const createPersonnelEnseignantHrsService = async (personnelId, anneeUnivId, dat
 
 const deletePersonnelEnseignantHrsService = async (hrsId, showToast = false) => {
     try {
-        const response = await apiCall(
+        return await apiCall(
             api.delete,
             [`/api/personnel_enseignant_hrs/${hrsId}`],
             'Heures du personnel supprimées avec succès',
             'Erreur lors de la suppression des heures du personnel',
             showToast
         );
-        return response;
     } catch (error) {
         console.error('Erreur dans deletePersonnelEnseignantHrsService:', error);
         throw error;
     }
 }
 
-export { getPersonnelEnseignantHrsService, createPersonnelEnseignantHrsService, getPersonnelEnseignantTypesHrsService, deletePersonnelEnseignantHrsService };
+export { getPersonnelEnseignantHrsService, getPersonnelEnseignantTypesHrsService, deletePersonnelEnseignantHrsService };
