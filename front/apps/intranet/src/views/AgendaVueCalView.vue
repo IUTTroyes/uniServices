@@ -7,6 +7,30 @@ import { ref } from 'vue'
 // Référence vers le composant vue-cal
 const vuecalRef = ref(null)
 
+const events = ref([
+  {
+    id: 1,
+    title: 'Réunion d\'équipe',
+    start: new Date(2025, 5, 5, 10, 0), // Juin (index 5)
+    end: new Date(2025, 5, 5, 11, 0),   // Juin (index 5)
+    color: '#ff0000',
+  },
+  {
+    id: 2,
+    title: 'Déjeuner avec le client',
+    start: new Date(2025, 5, 5, 12, 0),
+    end: new Date(2025, 5, 5, 13, 30),
+    color: '#00ff00',
+  },
+  {
+    id: 3,
+    title: 'Présentation projet',
+    start: new Date(2025, 5, 6, 14, 0),
+    end: new Date(2025, 5, 6, 15, 30),
+    color: '#0000ff',
+  }
+]);
+
 // todo: un switch entre cours et agenda + ajouter un event
 </script>
 
@@ -26,6 +50,7 @@ const vuecalRef = ref(null)
       :default-view="'week'"
       :theme="false"
       diy
+      :events="events"
   >
     <!-- En-tête personnalisé -->
     <template #header="{ view, availableViews, vuecal }">
