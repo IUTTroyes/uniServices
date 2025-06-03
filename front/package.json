@@ -21,6 +21,7 @@
     "primevue": "^4.3.2",
     "vite": "^5.4.8",
     "vue": "^3.5.*",
+    "vue-cal": "^5.0.1-rc.25",
     "vue-router": "^4.4.5"
   },
   "scripts": {
