@@ -130,14 +130,14 @@ const getPreviEnseignant = async () => {
     console.error('Erreur lors du chargement des prévisionnels :', error);
   } finally {
     isLoadingPrevisionnelForm.value = false;
-    console.log(previAnneeEnseignant.value);
+
   }
 }
 
 const getEnseignantHrs = async (enseignantId) => {
   try {
     personnelEnseignantHrs.value = await getPersonnelEnseignantHrsService(enseignantId, selectedAnneeUniv.value.id);
-    console.log(personnelEnseignantHrs.value);
+
   } catch (error) {
     hasError.value = true;
     console.error('Erreur lors du chargement des heures de l\'enseignant :', error);
@@ -154,7 +154,7 @@ const getTypesHrs = async () => {
       libelle: type.libelle,
       value: type.id
     }));
-    console.log(typeHrs.value);
+
   } catch (error) {
     hasError.value = true;
     console.error('Erreur lors du chargement des types d\'heures :', error);
@@ -354,9 +354,8 @@ const addHrs = async (personnelId) => {
       nbHeuresTd: parseFloat(nbHeuresHrs.value) || 0,
     };
 
-    console.log('dataNewHrs', dataNewHrs);
-
-    await apiCall(hrsService.create,[dataNewHrs], 'HRS/prime créée', 'Une erreur est survenue lors de la création de l\'HRS/prime');
+    console.log(dataNewHrs);
+    // await apiCall(hrsService.create,[dataNewHrs], 'HRS/prime créée', 'Une erreur est survenue lors de la création de l\'HRS/prime');
 
     // Reset form fields after successful creation
     selectedTypeHrs.value = null;
@@ -377,14 +376,6 @@ watch(isEditing, async (newIsEditing) => {
     await getPrevi(selectedAnneeUniv.value.id);
     isLoadingPrevisionnel.value = false;
   }
-})
-
-watch(libelleHrs, (newLibelle) => {
-  console.log('libelleHrs changed:', newLibelle);
-})
-
-watch(nbHeuresHrs, (newNbHeures) => {
-  console.log('nbHeuresHrs changed:', newNbHeures);
 })
 
 // ------------------------------------------------------------------------------------------------------------
@@ -561,7 +552,7 @@ const additionalRowsForm = computed(() => [
     { footer: 'Semestre', colspan: 1, class: '!text-center !font-bold'},
     { footer: 'Diplôme', colspan: 1, class: '!text-center !font-bold'},
     { footer: 'Nb heures équivalent TD', colspan: 1, class: '!text-center !font-bold'},
-    { footer: '', colspan: 2, class: '!text-center !font-bold'},
+    { footer: '', colspan: 3, class: '!text-center !font-bold'},
   ],
   ...personnelEnseignantHrs.value.map(hrs => [
     { footer: '', colspan: 1 },
@@ -574,7 +565,9 @@ const additionalRowsForm = computed(() => [
 
     { footer: diplomeList.value, colspan: 1, form: true, formType: 'select', placeholder: hrs.diplome ? hrs.diplome.libelle : 'Pas de diplôme renseigné', formAction: (diplome) => {hrs.diplome = diplome}, tooltip: 'Sélectionner un diplôme', class: '!max-w-52 !truncate !overflow-hidden' },
 
-    { footer: hrs.nbHeuresTd, colspan: 1, form: true, formType: 'text', placeholder: hrs.libelle || 'Nombre d\'heures', formAction: (nbHrs) => {hrs.nbHeuresTd = nbHrs} },
+    { footer: hrs.nbHeuresTd, colspan: 1, form: true, formType: 'text', placeholder: hrs.nbHeuresTd || 'Nombre d\'heures', formAction: (nbHrs) => {hrs.nbHeuresTd = nbHrs} },
+
+    { header: 'Enregistrer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-save', id: hrs.id, buttonAction: (id) => {duplicateHrs(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'primary', save: true },
 
     { header: 'Dupliquer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-copy', id: hrs.id, buttonAction: (id) => {duplicateHrs(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn', duplicate: true },
 
@@ -592,7 +585,7 @@ const additionalRowsForm = computed(() => [
     { footer: diplomeList.value, colspan: 1, form: true, formType: 'select', placeholder: 'Sélectionner un diplôme', formAction: (diplome) => {selectedDiplomeHrs.value = diplome}, tooltip: 'Sélectionner un diplôme', class: '!max-w-52 !truncate !overflow-hidden' },
 
     { footer: nbHeuresHrs.value, colspan: 1, form: true, formType: 'text', placeholder: 'Nombre d\'heures', formAction: (nbHrs) => {nbHeuresHrs.value = nbHrs} },
-    { footer: 'Ajouter', colspan: 2, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addHrs(selectedPersonnel.value.personnel.id) }, buttonClass: () => '!w-fit', buttonSeverity: () => 'success' },
+    { footer: 'Ajouter', colspan: 3, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addHrs(selectedPersonnel.value.personnel.id) }, buttonClass: () => '!w-fit', buttonSeverity: () => 'success' },
   ],
 
 

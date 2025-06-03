@@ -2,6 +2,7 @@
 import { ref, reactive, toRefs } from 'vue';
 import ButtonDelete from "@components/components/ButtonDelete.vue";
 import ButtonDuplicate from "@components/components/ButtonDuplicate.vue";
+import ButtonSave from "@components/components/ButtonSave.vue";
 import apiCall from '@helpers/apiCall.js'
 import createApiService from '@requests/apiService'
 import debounce from '@helpers/debounce.js'
@@ -103,7 +104,6 @@ const deletePrevi = async (data) => {
 // Fonction pour supprimer des heures ou primes
 const deleteHrs = async (id) => {
   await apiCall(hrsService.delete, [id], 'L\'élément a bien été supprimé', 'Une erreur est survenue lors de la suppression des heures ou primes');
-
 };
 
 // Fonction pour dupliquer un prévisionnel
@@ -266,7 +266,7 @@ const duplicatePrevi = async (data) => {
                   v-if="d.form && d.formType === 'text'"
                   v-model="d.footer"
                   :placeholder="d.placeholder || 'Saisir une valeur'"
-                  @blur:modelValue="(newValue) => d.formAction(newValue)"
+                  @blur="d.formAction(d.footer)"
               />
 
               <Select v-else-if="d.form && d.formType === 'select'"
@@ -278,7 +278,8 @@ const duplicatePrevi = async (data) => {
                       v-tooltip.top="d.tooltip ? d.tooltip : d.footer"
               />
 
-              <ButtonDelete v-else-if="d.button & d.delete" tooltip="Supprimer l'élément du prévi" @confirm-delete="deleteHrs(d.id)" :class="d.class"/>
+              <ButtonSave v-else-if="d.button & d.save" tooltip="Enregistrer l'élément HRS/prime"  :class="d.class"/>
+              <ButtonDelete v-else-if="d.button & d.delete" tooltip="Supprimer l'élément HRS/prime" @confirm-delete="deleteHrs(d.id)" :class="d.class"/>
               <ButtonDuplicate v-else-if="d.button & d.duplicate" tooltip="Dupliquer l'élément HRS/prime" @confirm-duplicate="duplicateHrs(d.id)" :class="d.class"/>
               <Button v-else-if="d.button" :icon="d.buttonIcon" @click="d.buttonAction(d.buttonParam !== undefined ? d.buttonParam : d.footer)" :class="d.buttonClass(d.footer)" :label="d.footer" :severity="d.buttonSeverity(d.footer)"/>
               <Tag v-else-if="d.tag" class="w-max" :class="d.tagClass(d.footer)" :severity="d.tagSeverity(d.footer)" :icon="d.tagIcon(d.footer)">
