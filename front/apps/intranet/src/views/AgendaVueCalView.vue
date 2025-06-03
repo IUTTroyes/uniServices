@@ -10,24 +10,31 @@ const vuecalRef = ref(null)
 const events = ref([
   {
     id: 1,
-    title: 'Réunion d\'équipe',
+    title: 'Hello1',
     start: new Date(2025, 5, 5, 10, 0), // Juin (index 5)
     end: new Date(2025, 5, 5, 11, 0),   // Juin (index 5)
-    color: '#ff0000',
+    backgroundColor: '#ffcccc',
   },
   {
     id: 2,
-    title: 'Déjeuner avec le client',
+    title: 'Hello2',
     start: new Date(2025, 5, 5, 12, 0),
     end: new Date(2025, 5, 5, 13, 30),
-    color: '#00ff00',
+    backgroundColor: '#ccffcc',
+  },
+  {
+    id: 2,
+    title: 'Hello3',
+    start: new Date(2025, 5, 5, 12, 0),
+    end: new Date(2025, 5, 5, 13, 30),
+    backgroundColor: '#ccffcc',
   },
   {
     id: 3,
-    title: 'Présentation projet',
+    title: 'Hello4',
     start: new Date(2025, 5, 6, 14, 0),
     end: new Date(2025, 5, 6, 15, 30),
-    color: '#0000ff',
+    backgroundColor: '#ccccff',
   }
 ]);
 
@@ -45,7 +52,7 @@ const events = ref([
       :time-to="21 * 60"
       :time-step="30"
       week-numbers
-      stack-events
+      stack-events:true
       :views="['day', 'week']"
       :default-view="'week'"
       :theme="false"
@@ -93,125 +100,120 @@ const events = ref([
         </div>
       </div>
     </template>
+    <template #weekday-heading="{ label, id, date }">
+      <div :class="id">{{ label }}</div>
+      <strong>{{ new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }}</strong>
+    </template>
+
 
     <!-- Vue semaine personnalisée -->
-    <template #week="{ week, view }">
-      <div class="flex flex-col h-full">
-        <!-- En-tête des jours -->
-        <div class="grid grid-cols-5 border-b">
-          <div v-for="day in week.days"
-               :key="day.date"
-               class="p-4 text-center border-r last:border-r-0"
-          >
-            <div class="text-sm text-gray-600">{{ day.dayOfWeek }}</div>
-            <div class="font-semibold">{{ day.date }}</div>
-          </div>
-        </div>
+<!--    <template #week="{ week, view }">-->
+<!--      <div>-->
+<!--        &lt;!&ndash; En-tête des jours &ndash;&gt;-->
+<!--        <div>-->
+<!--          <div v-for="day in week.days"-->
+<!--               :key="day.date">-->
+<!--            <div>{{ day.dayOfWeek }}</div>-->
+<!--            <div>{{ day.date }}</div>-->
+<!--          </div>-->
+<!--        </div>-->
 
-        <!-- Grille horaire -->
-        <div class="flex flex-1">
-          <!-- Colonne des heures -->
-          <div class="w-20 border-r">
-            <div v-for="hour in view.timeCells"
-                 :key="hour.value"
-                 class="h-[60px] border-b flex items-center justify-center text-sm text-gray-600"
-            >
-              {{ hour.label }}
-            </div>
-          </div>
+<!--        &lt;!&ndash; Grille horaire &ndash;&gt;-->
+<!--        <div class="flex flex-1">-->
+<!--          &lt;!&ndash; Colonne des heures &ndash;&gt;-->
+<!--          <div class="w-20 border-r">-->
+<!--            <div v-for="hour in view.timeCells"-->
+<!--                 :key="hour.value"-->
+<!--            >-->
+<!--              {{ hour.label }}-->
+<!--            </div>-->
+<!--          </div>-->
 
-          <!-- Colonnes des jours -->
-          <div class="grid grid-cols-5 flex-1">
-            <div v-for="day in week.days"
-                 :key="day.date"
-                 class="border-r last:border-r-0"
-            >
-              <div v-for="hour in view.timeCells"
-                   :key="hour.value"
-                   class="h-[60px] border-b relative"
-              >
-                <!-- Événements -->
-                <template v-for="event in day.events" :key="event.id">
-                  <div v-if="event.start.hour === hour.value"
-                       class="absolute w-[95%] left-[2.5%] rounded-lg shadow-sm bg-blue-100 p-2"
-                       :style="{
-                         top: `${event.start.minute}%`,
-                         height: `${event.durationInMinutes}%`,
-                       }"
-                  >
-                    <div class="text-sm font-semibold">{{ event.title }}</div>
-                    <div class="text-xs text-gray-600">
-                      {{ event.start.formatTime }} - {{ event.end.formatTime }}
-                    </div>
-                  </div>
-                </template>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </template>
+<!--          &lt;!&ndash; Colonnes des jours &ndash;&gt;-->
+<!--          <div>-->
+<!--            <div v-for="day in week.days"-->
+<!--                 :key="day.date"-->
+<!--            >-->
+<!--              <div v-for="hour in view.timeCells"-->
+<!--                   :key="hour.value"-->
+<!--              >-->
+<!--                &lt;!&ndash; Événements &ndash;&gt;-->
+<!--                <template v-for="event in day.events" :key="event.id">-->
+<!--                  <div v-if="event.start.hour === hour.value"-->
+<!--                       :style="{-->
+<!--                         top: `${event.start.minute}%`,-->
+<!--                         height: `${event.durationInMinutes}%`,-->
+<!--                       }"-->
+<!--                  >-->
+<!--                    <div>{{ event.title }}</div>-->
+<!--                    <div>-->
+<!--                      {{ event.start.formatTime }} - {{ event.end.formatTime }}-->
+<!--                    </div>-->
+<!--                  </div>-->
+<!--                </template>-->
+<!--              </div>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </template>-->
 
     <!-- Vue jour personnalisée -->
-    <template #day="{ day, view }">
-      <div class="flex flex-col h-full">
-        <!-- En-tête du jour -->
-        <div class="p-4 text-center border-b">
-          <div class="text-sm text-gray-600">{{ day.dayOfWeek }}</div>
-          <div class="font-semibold">{{ day.date }}</div>
-        </div>
+<!--    <template #day="{ day, view }">-->
+<!--      <div class="flex flex-col h-full">-->
+<!--        &lt;!&ndash; En-tête du jour &ndash;&gt;-->
+<!--        <div class="p-4 text-center border-b">-->
+<!--          <div class="text-sm text-gray-600">{{ day.dayOfWeek }}</div>-->
+<!--          <div class="font-semibold">{{ day.date }}</div>-->
+<!--        </div>-->
 
-        <!-- Grille horaire -->
-        <div class="flex flex-1">
-          <!-- Colonne des heures -->
-          <div class="w-20 border-r">
-            <div v-for="hour in view.timeCells"
-                 :key="hour.value"
-                 class="h-[60px] border-b flex items-center justify-center text-sm text-gray-600"
-            >
-              {{ hour.label }}
-            </div>
-          </div>
+<!--        &lt;!&ndash; Grille horaire &ndash;&gt;-->
+<!--        <div class="flex flex-1">-->
+<!--          &lt;!&ndash; Colonne des heures &ndash;&gt;-->
+<!--          <div class="w-20 border-r">-->
+<!--            <div v-for="hour in view.timeCells"-->
+<!--                 :key="hour.value"-->
+<!--                 class="h-[60px] border-b flex items-center justify-center text-sm text-gray-600"-->
+<!--            >-->
+<!--              {{ hour.label }}-->
+<!--            </div>-->
+<!--          </div>-->
 
-          <!-- Colonne du jour -->
-          <div class="flex-1">
-            <div v-for="hour in view.timeCells"
-                 :key="hour.value"
-                 class="h-[60px] border-b relative"
-            >
-              <!-- Événements -->
-              <template v-for="event in day.events" :key="event.id">
-                <div v-if="event.start.hour === hour.value"
-                     class="absolute w-[95%] left-[2.5%] rounded-lg shadow-sm bg-blue-100 p-2"
-                     :style="{
-                       top: `${event.start.minute}%`,
-                       height: `${event.durationInMinutes}%`,
-                     }"
-                >
-                  <div class="text-sm font-semibold">{{ event.title }}</div>
-                  <div class="text-xs text-gray-600">
-                    {{ event.start.formatTime }} - {{ event.end.formatTime }}
-                  </div>
-                </div>
-              </template>
-            </div>
-          </div>
-        </div>
-      </div>
-    </template>
+<!--          &lt;!&ndash; Colonne du jour &ndash;&gt;-->
+<!--          <div class="flex-1">-->
+<!--            <div v-for="hour in view.timeCells"-->
+<!--                 :key="hour.value"-->
+<!--                 class="h-[60px] border-b relative"-->
+<!--            >-->
+<!--              &lt;!&ndash; Événements &ndash;&gt;-->
+<!--              <template v-for="event in day.events" :key="event.id">-->
+<!--                <div v-if="event.start.hour === hour.value"-->
+<!--                     class="absolute w-[95%] left-[2.5%] rounded-lg shadow-sm bg-blue-100 p-2"-->
+<!--                     :style="{-->
+<!--                       top: `${event.start.minute}%`,-->
+<!--                       height: `${event.durationInMinutes}%`,-->
+<!--                     }"-->
+<!--                >-->
+<!--                  <div class="text-sm font-semibold">{{ event.title }}</div>-->
+<!--                  <div class="text-xs text-gray-600">-->
+<!--                    {{ event.start.formatTime }} - {{ event.end.formatTime }}-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--              </template>-->
+<!--            </div>-->
+<!--          </div>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--    </template>-->
   </vue-cal>
 </div>
 </template>
 
 <style scoped>
-/* Pour supprimer les styles par défaut de vue-cal si nécessaire */
-:deep(.vuecal__bg-cell) {
-  @apply bg-red-500;
+:deep(.vuecal__event) {
+  @apply m-2 p-4 rounded-md;
 }
-
-:deep(.vuecal__cell) {
-  @apply bg-transparent;
+:deep(.vuecal__weekday) {
+  @apply bg-gray-300 bg-opacity-20 m-2 py-4 rounded-md flex flex-col items-center uppercase;
 }
-
-/* Ajoutez d'autres styles personnalisés si nécessaire */
 </style>
