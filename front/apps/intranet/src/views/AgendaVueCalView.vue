@@ -7,8 +7,10 @@ import {onMounted, ref} from 'vue'
 // Référence vers le composant vue-cal
 const vuecalRef = ref(null)
 
-const weekUnivNumber = ref(0)
-
+const viewTranslations = {
+  day: 'JOUR',
+  week: 'SEMAINE',
+};
 const events = ref([
   {
     id: 1,
@@ -132,7 +134,7 @@ const getWeekUnivNumber = (date) => {
                   :class="{ 'p-button-primary': view.id === viewId, 'p-button-outlined': view.id !== viewId }"
                   class="uppercase"
               >
-                {{ viewId }}
+                {{ viewTranslations[viewId] || viewId }}
               </Button>
             </div>
 
@@ -141,15 +143,11 @@ const getWeekUnivNumber = (date) => {
                 class="uppercase p-button-outlined"
                 severity="primary"
             >aujourd'hui</Button>
-
-
           </div>
         </div>
       </template>
 
-
-
-      <template #weekday-heading.week="{ label, id, date }">
+      <template #weekday-heading="{ label, id, date }">
         <div :class="id">{{ label }}</div>
         <strong>{{ new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }}</strong>
       </template>

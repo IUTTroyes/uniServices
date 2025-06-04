@@ -37,6 +37,7 @@ declare module 'vue' {
     DataTable: typeof import('primevue/datatable')['default']
     Dialog: typeof import('primevue/dialog')['default']
     Divider: typeof import('primevue/divider')['default']
+    EdtDepartement: typeof import('./src/components/Edt/EdtDepartement.vue')['default']
     EdtJour: typeof import('./src/components/Edt/EdtJour.vue')['default']
     EdtPerso: typeof import('./src/components/Edt/EdtPerso.vue')['default']
     EdtSemestre: typeof import('./src/components/Edt/EdtSemestre.vue')['default']

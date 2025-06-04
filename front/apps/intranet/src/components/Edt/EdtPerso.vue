@@ -1,249 +1,187 @@
 <script setup>
-import { defineProps, watch, ref } from 'vue';
+import {VueCal} from 'vue-cal'
+import 'vue-cal/style'
 
-const props = defineProps({
-    data: Object
-});
+import {onMounted, ref} from 'vue'
 
-const days = ref(props.data.days);
-const currentDay = ref(props.data.currentDay);
+// Référence vers le composant vue-cal
+const vuecalRef = ref(null)
 
-watch(() => props.data.days, (newDays) => {
-    days.value = newDays;
-    const currentDayExists = newDays.some(day => day.dayNumber === currentDay.value);
-});
-
-const events = [
-    {
-        debut: '10/12/2024 08:00',
-        fin: '10/12/2024 09:30',
-        jour: 3,
-        text: 'WS301D - Développer des parcours utilisateur au sein d\'un système d\'information',
-        color: '#FBE4EE',
-        colorFocus: '#fbc6e3',
-        semestre: 'S3 Strat-UX Alt',
-        groupe: 'CM',
-        groupeColor: '#1f4ea6',
-        salle: 'H018'
-    },
-    {
-        debut: '10/12/2024 09:00',
-        fin: '10/12/2024 11:00',
-        jour: 3,
-        text: 'WS301D - Développer des parcours utilisateur au sein d\'un système d\'information',
-        color: '#FBE4EE',
-        colorFocus: '#fbc6e3',
-        semestre: 'S3 Strat-UX Alt',
-        groupe: 'CM',
-        groupeColor: '#1f4ea6',
-        salle: 'H018'
-    },
-    {
-        debut: '10/12/2024 09:30',
-        fin: '10/12/2024 12:30',
-        jour: 3,
-        text: 'WR601 - Entrepreneuriat',
-        color: '#FBE4EE',
-        colorFocus: '#fbc6e3',
-        semestre: 'S3 Strat-UX Alt',
-        groupe: 'TD CD',
-        groupeColor: '#2d7315',
-        salle: 'H201'
-    },
-    {
-        debut: '10/12/2024 14:00',
-        fin: '10/12/2024 18:30',
-        jour: 3,
-        text: 'WR602D - Hébergement et Cybersécurité',
-        color: '#E1E2FE',
-        colorFocus: '#b1b4ff',
-        semestre: 'S3 DWebDi Alt',
-        groupe: 'TP E',
-        groupeColor: '#bd6910',
-        salle: 'H201'
-    },
-    {
-        debut: '11/12/2024 08:00',
-        fin: '11/12/2024 12:30',
-        jour: 4,
-        text: 'PTUT',
-        color: '#FFEDD2',
-        colorFocus: '#ffdeae',
-        semestre: 'S1',
-        groupe: 'TD EF',
-        groupeColor: '#2d7315',
-        salle: 'H201'
-    },
-    {
-        debut: '11/12/2024 14:00',
-        fin: '11/12/2024 17:00',
-        jour: 4,
-        text: 'PTUT',
-        color: '#FFEDD2',
-        colorFocus: '#ffdeae',
-        semestre: 'S1',
-        groupe: 'TD EF',
-        groupeColor: '#2d7315',
-        salle: 'H201'
-    },
-];
-
-const calculatePosition = (time) => {
-    const [hours, minutes] = time.split(':').map(Number);
-    return (hours - 8) * 120 + minutes; // Convert time to minutes from 08:00
+const viewTranslations = {
+  day: 'JOUR',
+  week: 'SEMAINE',
 };
-
-const calculateHeight = (start, end) => {
-    return calculatePosition(end) - calculatePosition(start);
-};
-
-const maxEndTime = Math.max(...events.map(event => calculatePosition(event.fin.split(' ')[1])));
-const calendarHeight = Math.max(maxEndTime, calculatePosition('18:30'));
-
-const menu = ref();
-const itemsTest = ref([
-    {
-        items: [
-            {
-                label: 'cahier de texte',
-                command: () => {
-                    test();
-                }
-            },
-            {
-                label: 'appel',
-            }
-        ]
-    }
+const events = ref([
+  {
+    id: 1,
+    title: 'Hello',
+    start: new Date(2025, 5, 5, 8, 0), // Juin (index 5)
+    end: new Date(2025, 5, 5, 11, 0),   // Juin (index 5)
+    backgroundColor: 'rgba(255,204,204,0.5)',
+    location: 'H001',
+  },
+  {
+    id: 2,
+    title: 'Hello1',
+    start: new Date(2025, 5, 5, 10, 0), // Juin (index 5)
+    end: new Date(2025, 5, 5, 11, 0),   // Juin (index 5)
+    backgroundColor: 'rgba(204,237,255,0.5)',
+    location: 'H001',
+  },
+  {
+    id: 3,
+    title: 'Hello2',
+    start: new Date(2025, 5, 5, 12, 0),
+    end: new Date(2025, 5, 5, 13, 30),
+    backgroundColor: 'rgba(204,255,204,0.5)',
+    location: 'H001',
+  },
+  {
+    id: 4,
+    title: 'Hello3',
+    start: new Date(2025, 5, 5, 12, 0),
+    end: new Date(2025, 5, 5, 13, 30),
+    backgroundColor: 'rgba(255,233,204,0.5)',
+    location: 'H001',
+  },
+  {
+    id: 5,
+    title: 'Hello4',
+    start: new Date(2025, 5, 6, 14, 0),
+    end: new Date(2025, 5, 6, 15, 30),
+    backgroundColor: 'rgba(204,204,255,0.5)',
+    location: 'H001',
+  },
+  {
+    id: 6,
+    title: 'Hello5',
+    start: new Date(2025, 5, 4, 8, 0),
+    end: new Date(2025, 5, 4, 11, 0),
+    backgroundColor: 'rgba(204,204,255,0.5)',
+    location: 'H001',
+  },
+  {
+    id: 7,
+    title: 'Hello6',
+    start: new Date(2025, 5, 2, 8, 0),
+    end: new Date(2025, 5, 2, 11, 0),
+    backgroundColor: 'rgba(204,204,255,0.5)',
+    location: 'H001',
+  }
 ]);
 
-const test = () => {
-    console.log('test');
-}
+const getWeekUnivNumber = (date) => {
+  const startUnivYear = new Date(date.getFullYear(), 8, 1); // 1er septembre
+  if (date < startUnivYear) {
+    startUnivYear.setFullYear(startUnivYear.getFullYear() - 1);
+  }
+  // Ajuster pour que la semaine commence le lundi
+  const dayOfWeek = (date.getDay() + 6) % 7; // 0 = lundi, 6 = dimanche
+  const monday = new Date(date);
+  monday.setDate(date.getDate() - dayOfWeek);
 
-const selected = ref(null);
-const toggle = (edtEvent, event) => {
-    menu.value.toggle(event);
-    selected.value = edtEvent;
+  const diffInDays = Math.floor((monday - startUnivYear) / (1000 * 60 * 60 * 24));
+  return Math.floor(diffInDays / 7) + 1;
 };
 
-const assignColumns = (events) => {
-    const eventsByDay = events.reduce((acc, event) => {
-        if (!acc[event.jour]) {
-            acc[event.jour] = [];
-        }
-        acc[event.jour].push(event);
-        return acc;
-    }, {});
-
-    Object.values(eventsByDay).forEach(dayEvents => {
-        const columns = [];
-        dayEvents.forEach(event => {
-            let placed = false;
-            for (let i = 0; i < columns.length; i++) {
-                if (!columns[i].some(e => (calculatePosition(e.debut.split(' ')[1]) < calculatePosition(event.fin.split(' ')[1]) && calculatePosition(e.fin.split(' ')[1]) > calculatePosition(event.debut.split(' ')[1])))) {
-                    columns[i].push(event);
-                    event.column = i;
-                    placed = true;
-                    break;
-                }
-            }
-            if (!placed) {
-                columns.push([event]);
-                event.column = columns.length - 1;
-            }
-        });
-        dayEvents.columnsCount = columns.length;
-    });
-
-    return eventsByDay;
-};
-
-const eventsByDay = assignColumns(events);
-
-const hasOverlap = (event, dayEvents) => {
-    return dayEvents.some(e => e !== event && calculatePosition(e.debut.split(' ')[1]) < calculatePosition(event.fin.split(' ')[1]) && calculatePosition(e.fin.split(' ')[1]) > calculatePosition(event.debut.split(' ')[1]));
-};
+// todo: un switch entre cours et agenda + ajouter un event
 </script>
 
 <template>
-    <div class="calendar grid grid-cols-5 gap-4" :style="{ height: calendarHeight + 'px' }">
-        <div class="flex flex-col gap-5 light-surface-ground" v-for="(day, dayIndex) in days" :key="dayIndex">
-            <div
-                :class="['day text-center uppercase font-bold flex flex-col p-4 bg-opacity-20 surface-ground rounded-md', { 'bg-primary-light': currentDay === day.dayNumber, active: currentDay === day.dayNumber }]">
-                {{ day.dayName }} <span class="font-black">{{ day.dayNumber }}</span>
+
+    <vue-cal
+        ref="vuecalRef"
+        locale="fr"
+        hide-weekends
+        time
+        :time-from="8 * 60"
+        :time-to="21 * 60"
+        :time-step="30"
+        week-numbers
+        :stack-events="false"
+        :views="['day', 'week']"
+        :default-view="'week'"
+        :theme="false"
+        diy
+        :events="events"
+    >
+      <!-- En-tête personnalisé -->
+      <template #header="{ view, availableViews, vuecal }">
+        <div class="p-6">
+          <div class="flex justify-center items-center gap-12 mb-4">
+            <Button
+                icon="pi pi-chevron-circle-left"
+                @click="view.previous"
+                class="p-button-text"
+            />
+            <div class="flex flex-col items-center">
+              <span v-html="view.title" class="font-bold text-xl flex flex-col items-center"></span>
+              <span class="text-md text-muted-color">Semaine de formation : {{ getWeekUnivNumber(view.start) }}</span>
             </div>
-            <div class="relative h-full">
-                <template v-for="(event, index) in events" :key="index">
-                    <template v-if="event.jour === dayIndex">
-                        <div class="event rounded-md absolute flex flex-col gap-1 opacity-90"
-                             :style="{ top: calculatePosition(event.debut.split(' ')[1]) + 'px', height: calculateHeight(event.debut.split(' ')[1], event.fin.split(' ')[1]) - 5 + 'px', backgroundColor: event.color, width: hasOverlap(event, eventsByDay[dayIndex]) ? `calc(100% / ${eventsByDay[dayIndex].columnsCount})` : '100%', left: hasOverlap(event, eventsByDay[dayIndex]) ? `calc((100% / ${eventsByDay[dayIndex].columnsCount}) * ${event.column})` : '0' }">
-                            <div class="event-header w-full p-2 rounded-t-md flex justify-between"
-                                 :style="{ backgroundColor: event.colorFocus }">
-                                <div class="flex flex-col">
-                                    <div v-if="event.text.length > 50" v-tooltip.top="`${event.text}`">
-                                        <span class="font-bold">{{ event.text.substring(0, 50) }}...</span>
-                                    </div>
-                                    <div v-else>
-                                        <span class="font-bold">{{ event.text }}</span>
-                                    </div>
-                                    <span>{{ event.debut.split(' ')[1] }} - {{ event.fin.split(' ')[1] }}</span>
-                                </div>
-                                <Button type="button" icon="pi pi-ellipsis-v" @click="toggle(event, $event)" aria-haspopup="true" aria-controls="overlay_menu" class="action-button"/>
-                            </div>
-                            <div class="event-body p-2">
-                                <div><span>{{ event.semestre }}</span></div>
-                                <div><span class="font-bold">{{ event.groupe }}</span> | <span>{{ event.salle }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </template>
-                </template>
+            <Button
+                icon="pi pi-chevron-circle-right"
+                @click="view.next"
+                class="p-button-text"
+            />
+          </div>
+
+          <div class="flex justify-between items-center">
+            <div class="view-buttons flex gap-4">
+              <Button
+                  v-for="(grid, viewId) in availableViews"
+                  :key="viewId"
+                  @click="vuecal.view.switch(viewId)"
+                  :class="{ 'p-button-primary': view.id === viewId, 'p-button-outlined': view.id !== viewId }"
+                  class="uppercase"
+              >
+                {{ viewTranslations[viewId] || viewId }}
+              </Button>
             </div>
+
+            <Button
+                @click="view.goToToday()"
+                class="uppercase p-button-outlined"
+                severity="primary"
+            >aujourd'hui</Button>
+          </div>
         </div>
-    </div>
-    <Menu ref="menu" id="overlay_menu" :model="itemsTest" :popup="true" />
+      </template>
+
+      <template #weekday-heading="{ label, id, date }">
+        <div :class="id">{{ label }}</div>
+        <strong>{{ new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }}</strong>
+      </template>
+
+      <template #event="{ event }">
+        <div class="custom-event-content">
+          <div class="title font-bold">{{ event.title }}</div>
+          <div class="time">
+            {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}
+          </div>
+          <div v-if="event.location" class="location">
+            <i class="mdi mdi-map-marker"></i> {{ event.location }}
+          </div>
+        </div>
+      </template>
+    </vue-cal>
 </template>
 
 <style scoped>
-.surface-ground {
-    background-color: var(--surface-ground);
+:deep(.vuecal__event) {
+  @apply p-4 rounded-md text-sm;
+}
+:deep(.vuecal__body) {
+  @apply gap-2;
+}
+:deep(.vuecal__weekday) {
+  @apply bg-gray-300 bg-opacity-20 py-4 rounded-md flex flex-col items-center uppercase;
 }
 
-.bg-primary-light {
-    background-color: var(--p-tag-primary-background);
+:deep(.vuecal__weekdays-headings) {
+  @apply flex justify-between items-center gap-2;
 }
 
-.active {
-    color: var(--primary-color);
-    border-top-left-radius: 0.5rem;
-    border-top-right-radius: 0.5rem;
-}
-
-.relative {
-    position: relative;
-}
-
-.event {
-    position: absolute;
-    color: black;
-    overflow: auto;
-    scrollbar-width: thin;
-}
-
-.action-button {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    color: black;
-
-    &:focus {
-        outline: none;
-    }
-
-    &:hover {
-        background-color: transparent !important;
-        border: none !important;
-    }
+:deep(.vuecal--day-view .vuecal__scrollable-wrap .vuecal__scrollable .vuecal__time-column) {
+  @apply p-0;
 }
 </style>
