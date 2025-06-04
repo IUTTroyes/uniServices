@@ -149,7 +149,7 @@ const getWeekUnivNumber = (date) => {
 
 
 
-      <template #weekday-heading="{ label, id, date }">
+      <template #weekday-heading.week="{ label, id, date }">
         <div :class="id">{{ label }}</div>
         <strong>{{ new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }}</strong>
       </template>
@@ -182,5 +182,9 @@ const getWeekUnivNumber = (date) => {
 
 :deep(.vuecal__weekdays-headings) {
   @apply flex justify-between items-center gap-2;
+}
+
+:deep(.vuecal--day-view .vuecal__scrollable-wrap .vuecal__scrollable .vuecal__time-column) {
+  @apply p-0;
 }
 </style>
