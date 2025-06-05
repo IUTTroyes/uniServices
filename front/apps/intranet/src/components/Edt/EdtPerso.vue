@@ -107,7 +107,7 @@ const getWeekUnivNumber = (date) => {
     >
       <!-- En-tête personnalisé -->
       <template #header="{ view, availableViews, vuecal }">
-        <div class="p-6">
+        <div class="p-6 bg-primary-100 dark:bg-gray-800 bg-opacity-30 mb-6 rounded-md">
           <div class="flex justify-center items-center gap-12 mb-4">
             <Button
                 icon="pi pi-chevron-circle-left"
@@ -173,8 +173,13 @@ const getWeekUnivNumber = (date) => {
 :deep(.vuecal__body) {
   @apply gap-2;
 }
+
+:deep(.vuecal__cell) {
+  @apply border border-gray-200 dark:border-gray-800 border-opacity-20 rounded-md;
+}
+
 :deep(.vuecal__weekday) {
-  @apply bg-gray-300 bg-opacity-20 py-4 rounded-md flex flex-col items-center uppercase;
+  @apply bg-gray-200 bg-opacity-20 dark:bg-gray-800 py-4 rounded-md flex flex-col items-center uppercase;
 }
 
 :deep(.vuecal__weekdays-headings) {
