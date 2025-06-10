@@ -1,37 +1,46 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
-const getEtudiantsScolaritesDepartementService = async (departement, anneeUniv, limit, page, filters, showToast = false) => {
+const getPersonnelEdtEventsService = async (personnel, anneeUniv, departement, showToast = false) => {
     try {
         const params = {
             departement,
             anneeUniversitaire: anneeUniv,
-            page,
-            itemsPerPage: limit,
         };
-
-        if (filters.nom.value) {
-            params['nom'] = filters.nom.value;
-        }
-        if (filters.prenom.value) {
-            params['prenom'] = filters.prenom.value;
-        }
-        if (filters.mailUniv.value) {
-            params['mailUniv'] = filters.mailUniv.value;
-        }
-        if (filters.annee.value) {
-            params['annee'] = filters.annee.value;
-        }
 
         return await apiCall(
             api.get,
-            [`/api/etudiant_scolarites`, {params}],
-            'Scolarités des étudiants récupérées avec succès',
-            'Erreur lors de la récupération des scolarités des étudiants',
+            [`/api/edt_events`, {params}],
+            'Événéments de l\'emploi du temps du personnel récupérés avec succès',
+            'Erreur lors de la récupération des événements de l\'emploi du temps du personnel',
             showToast
         );
     } catch (error) {
-        console.error('Erreur dans getEtudiantsScolaritesDepartementService:', error);
+        console.error('Erreur dans getPersonnelEdtEventsService:', error);
+        throw error;
+    }
+}
+
+const getPersonnelEdtWeekEventsService = async (semaine, personnel, anneeUniv, departement, showToast = false) => {
+    try {
+        const params = {
+            semaineFormation: semaine,
+            personnel: personnel,
+            anneeUniversitaire: anneeUniv,
+            departement: departement
+        };
+
+        const response = await apiCall(
+            api.get,
+            [`/api/edt_events`, {params}],
+            'Événéments de l\'emploi du temps du personnel récupérés avec succès',
+            'Erreur lors de la récupération des événements de l\'emploi du temps du personnel',
+            showToast
+        );
+
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getPersonnelEdtEventsService:', error);
         throw error;
     }
 }
@@ -40,4 +49,4 @@ const getPersonnelDepartementWeekEdtService = async (departement, anneeUniv, lim
 
 }
 
-export { getEtudiantsScolaritesDepartementService };
+export { getPersonnelEdtEventsService, getPersonnelEdtWeekEventsService, getPersonnelDepartementWeekEdtService };

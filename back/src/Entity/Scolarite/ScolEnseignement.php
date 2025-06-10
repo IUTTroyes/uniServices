@@ -35,7 +35,7 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'enseignement:read', 'pn:read', 'previsionnel_personnel:read'])]
+    #[Groups(['semestre:read:full', 'enseignement:read', 'pn:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
@@ -75,7 +75,7 @@ class ScolEnseignement
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'enseignement:read', 'pn:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'enseignement:read', 'pn:read', 'edt_event:read:agenda'])]
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]

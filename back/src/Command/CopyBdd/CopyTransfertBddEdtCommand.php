@@ -5,6 +5,8 @@ namespace App\Command\CopyBdd;
 use App\Entity\Edt\EdtEvent;
 use App\Repository\PersonnelRepository;
 use App\Repository\ScolEnseignementRepository;
+use App\Repository\Structure\StructureAnneeUniversitaireRepository;
+use App\Repository\Structure\StructureGroupeRepository;
 use App\Repository\Structure\StructureSemestreRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -29,6 +31,8 @@ class CopyTransfertBddEdtCommand extends Command
     protected array $tMatieres = [];
     protected array $tPersonnels = [];
     protected array $tSemestres = [];
+    protected array $tAnneesUniversitaires = [];
+    protected array $tGroupes = [];
     protected string $base_url;
 
 
@@ -39,6 +43,8 @@ class CopyTransfertBddEdtCommand extends Command
         ManagerRegistry                  $managerRegistry,
         PersonnelRepository              $personnelRepository,
         StructureSemestreRepository      $structureSemestreRepository,
+        StructureAnneeUniversitaireRepository $structureAnneeUniversitaireRepository,
+        StructureGroupeRepository $structureGroupeRepository,
         ScolEnseignementRepository       $scolEnseignementRepository,
         protected HttpClientInterface    $httpClient,
         ParameterBagInterface            $params
@@ -48,6 +54,8 @@ class CopyTransfertBddEdtCommand extends Command
         $this->em = $managerRegistry->getConnection('copy');
         $this->tPersonnels = $personnelRepository->findAllByOldIdArray();
         $this->tSemestres = $structureSemestreRepository->findAllByOldIdArray();
+        $this->tAnneesUniversitaires = $structureAnneeUniversitaireRepository->findAllByOldIdArray();
+        $this->tGroupes = $structureGroupeRepository->findAllByOldIdArray();
         $matieres = $scolEnseignementRepository->findAll();
 
         foreach ($matieres as $matiere) {
@@ -83,7 +91,7 @@ FOREIGN_KEY_CHECKS=1');
 
         $this->effacerTables();
         $this->addEdtEventIntranet();
-       // $this->addEdtEventCelcat();
+        // $this->addEdtEventCelcat();
 
         $this->io->success('Processus de recopie terminé.');
 
@@ -105,7 +113,7 @@ FOREIGN_KEY_CHECKS=1');
                 $edt->setPersonnel($this->tPersonnels[$ed['prof']]);
                 $edt->setLibPersonnel($ed['libprof']);
                 $edt->setCodePersonnel($ed['codeRh']);
-                // $edt->setGroupe($this->tGroupes[$ed['groupe']]);
+                $edt->setGroupe($this->tGroupes[$ed['groupe']] ?? null);
                 $edt->setType($ed['type']);
                 $edt->setCouleur($ed['couleur']);
                 $edt->setEvaluation($ed['evaluation']);
@@ -116,6 +124,8 @@ FOREIGN_KEY_CHECKS=1');
                 // $edt->setLibGroupe($this->tGroupes[$ed['groupe']]->getLibelle());
                 $edt->setLibModule($this->tMatieres[$ed['matiere']]->getLibelle());
                 $edt->setSemestre($this->tSemestres[$ed['semestre']]);
+                $edt->setSemaineFormation($ed['semaine']);
+                $edt->setAnneeUniversitaire($this->tAnneesUniversitaires[$ed['anneeUniversitaire']]);
 
                 $this->entityManager->persist($edt);
             }
