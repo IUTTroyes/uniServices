@@ -43,7 +43,7 @@ function darkenColor(color, amount) {
   return `rgb(${Math.max(r - amount, 0)}, ${Math.max(g - amount, 0)}, ${Math.max(b - amount, 0)})`;
 }
 
-function adjustColor(color, lightenAmount = 0.7, reduceSaturationAmount = 0.9) {
+function adjustColor(color, lightenAmount, reduceSaturationAmount) {
   const ctx = document.createElement('canvas').getContext('2d');
   ctx.fillStyle = color;
   const rgb = ctx.fillStyle.startsWith('#') ? hexToRgb(ctx.fillStyle) : ctx.fillStyle;
@@ -52,7 +52,7 @@ function adjustColor(color, lightenAmount = 0.7, reduceSaturationAmount = 0.9) {
   const hsl = rgbToHsl(r, g, b);
 
   hsl[1] = Math.max(hsl[1] - reduceSaturationAmount, 0.5);
-  hsl[2] = Math.min(hsl[2] + lightenAmount, 0.9);
+  hsl[2] = Math.min(hsl[2] + lightenAmount, 0.95);
 
   return hslToRgb(hsl[0], hsl[1], hsl[2]);
 }
@@ -141,18 +141,22 @@ const getEventsPersonnelWeek = async () => {
   try {
     const response = await getPersonnelEdtWeekEventsService(weekUnivNumber.value, personnel.id, anneeUniv.id, departement.id);
     if (response && response.length > 0) {
-      const mappedEvents = response.map(event => ({
-        ...event,
-        start: new Date(event.debut),
-        end: new Date(event.fin),
-        backgroundColor: adjustColor(colorNameToRgb(event.couleur), 0.8, 0.3),
-        location: event.salle,
-        title: event.codeModule + ' - ' + event.libModule,
-        type: event.type,
-        groupe: event.libGroupe || 'no grp.',
-      }));
+      const mappedEvents = response.map(event => {
+        const startDate = new Date(event.debut);
+        const endDate = new Date(event.fin);
+        return {
+          ...event,
+          ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
+          start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
+          end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
+          backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
+          location: event.salle,
+          title: event.codeModule + ' - ' + event.libModule,
+          type: event.type,
+          groupe: event.libGroupe || 'no grp.',
+        };
+      });
 
-      // Mise à jour des événements avec détection de chevauchement
       events.value = mappedEvents.map(event => ({
         ...event,
         title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
@@ -188,15 +192,15 @@ const visible = ref(false)
 const openDialog = ({ event }) => {
   selectedEvent.value = event
   visible.value = true
-  console.log('selected', event)
+  console.log('selected', selectedEvent.value)
 }
 </script>
 
 <template>
 
-  <Dialog modal v-model:visible="visible" header="Edit Profile" :style="{ width: '25rem' }">
+  <Dialog v-model:visible="visible" header="Détails d'un cours" class="!bg-gray-50 dark:!bg-gray-800" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
     <div>
-      HELLO
+     {{selectedEvent.title}}
     </div>
   </Dialog>
 
@@ -215,9 +219,7 @@ const openDialog = ({ event }) => {
       :theme="false"
       diy
       :events="events"
-      @event-click="openDialog"
-  >
-
+      @event-click="openDialog">
 
     <!-- En-tête personnalisé -->
     <template #header="{ view, availableViews, vuecal }">
@@ -267,6 +269,9 @@ const openDialog = ({ event }) => {
     </template>
 
     <template #event="{ event }">
+      <div v-if="event.ongoing">
+        <Tag value="Événement en cours" class="absolute right-2 bottom-2 !text-white !bg-black"/>
+      </div>
       <div class="rounded-lg !h-full">
         <div class="p-4">
           <div class="title font-bold">{{ event.title }}</div>
