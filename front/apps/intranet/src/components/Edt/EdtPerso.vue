@@ -52,7 +52,7 @@ function adjustColor(color, lightenAmount = 0.7, reduceSaturationAmount = 0.9) {
   const hsl = rgbToHsl(r, g, b);
 
   hsl[1] = Math.max(hsl[1] - reduceSaturationAmount, 0.5);
-  hsl[2] = Math.min(hsl[2] + lightenAmount, 0.85);
+  hsl[2] = Math.min(hsl[2] + lightenAmount, 0.9);
 
   return hslToRgb(hsl[0], hsl[1], hsl[2]);
 }
@@ -117,8 +117,8 @@ function colorNameToRgb(colorName) {
   ctx.fillStyle = colorName;
   // La valeur retournée est sous la forme 'rgb(r, g, b)' ou 'rgba(r, g, b, a)'
   return ctx.fillStyle.startsWith('#')
-    ? hexToRgb(ctx.fillStyle)
-    : ctx.fillStyle;
+      ? hexToRgb(ctx.fillStyle)
+      : ctx.fillStyle;
 }
 
 // Helper pour convertir un hex en rgb
@@ -132,8 +132,8 @@ function hexToRgb(hex) {
 // Ajout d'une fonction pour détecter les chevauchements
 function detectOverlap(event, allEvents) {
   return allEvents.some(e =>
-    (event.start < e.end && event.end > e.start) &&
-    event !== e
+      (event.start < e.end && event.end > e.start) &&
+      event !== e
   );
 }
 
@@ -183,100 +183,114 @@ onMounted(() => {
 
 const showDialog = ref(false)
 const selectedEvent = ref(null)
+const visible = ref(false)
+
 const openDialog = ({ event }) => {
   selectedEvent.value = event
-  console.log(selectedEvent.value)
+  visible.value = true
+  console.log('selected', event)
 }
 </script>
 
 <template>
 
-    <vue-cal
-        ref="vuecalRef"
-        locale="fr"
-        hide-weekends
-        time
-        :time-from="8 * 60"
-        :time-to="21 * 60"
-        :time-step="30"
-        week-numbers
-        :stack-events="true"
-        :views="['day', 'week']"
-        :default-view="'week'"
-        :theme="false"
-        diy
-        :events="events"
-        @event-click="openDialog"
-    >
-      <!-- En-tête personnalisé -->
-      <template #header="{ view, availableViews, vuecal }">
-        <div class="p-6">
-          <div class="flex justify-center items-center gap-12 mb-4">
+  <Dialog modal v-model:visible="visible" header="Edit Profile" :style="{ width: '25rem' }">
+    <div>
+      HELLO
+    </div>
+  </Dialog>
+
+  <vue-cal
+      ref="vuecalRef"
+      locale="fr"
+      hide-weekends
+      time
+      :time-from="8 * 60"
+      :time-to="21 * 60"
+      :time-step="30"
+      week-numbers
+      :stack-events="true"
+      :views="['day', 'week']"
+      :default-view="'week'"
+      :theme="false"
+      diy
+      :events="events"
+      @event-click="openDialog"
+  >
+
+
+    <!-- En-tête personnalisé -->
+    <template #header="{ view, availableViews, vuecal }">
+      <div class="p-6">
+        <div class="flex justify-center items-center gap-12 mb-4">
+          <Button
+              icon="pi pi-chevron-circle-left"
+              @click="view.previous"
+              class="p-button-text"
+          />
+          <div class="flex flex-col items-center">
+            <span v-html="view.title" class="font-bold text-xl flex flex-col items-center"></span>
+            <span class="text-md text-muted-color">Semaine de formation : {{ getWeekUnivNumber(view.start) }}</span>
+          </div>
+          <Button
+              icon="pi pi-chevron-circle-right"
+              @click="view.next"
+              class="p-button-text"
+          />
+        </div>
+
+        <div class="flex justify-between items-center">
+          <div class="view-buttons flex gap-4">
             <Button
-                icon="pi pi-chevron-circle-left"
-                @click="view.previous"
-                class="p-button-text"
-            />
-            <div class="flex flex-col items-center">
-              <span v-html="view.title" class="font-bold text-xl flex flex-col items-center"></span>
-              <span class="text-md text-muted-color">Semaine de formation : {{ getWeekUnivNumber(view.start) }}</span>
-            </div>
-            <Button
-                icon="pi pi-chevron-circle-right"
-                @click="view.next"
-                class="p-button-text"
-            />
+                v-for="(grid, viewId) in availableViews"
+                :key="viewId"
+                @click="vuecal.view.switch(viewId)"
+                :class="{ 'p-button-primary': view.id === viewId, 'p-button-outlined': view.id !== viewId }"
+                class="uppercase"
+            >
+              {{ viewTranslations[viewId] || viewId }}
+            </Button>
           </div>
 
-          <div class="flex justify-between items-center">
-            <div class="view-buttons flex gap-4">
-              <Button
-                  v-for="(grid, viewId) in availableViews"
-                  :key="viewId"
-                  @click="vuecal.view.switch(viewId)"
-                  :class="{ 'p-button-primary': view.id === viewId, 'p-button-outlined': view.id !== viewId }"
-                  class="uppercase"
-              >
-                {{ viewTranslations[viewId] || viewId }}
-              </Button>
-            </div>
+          <Button
+              @click="view.goToToday()"
+              class="uppercase p-button-outlined"
+              severity="primary"
+          >aujourd'hui</Button>
+        </div>
+      </div>
+    </template>
 
-            <Button
-                @click="view.goToToday()"
-                class="uppercase p-button-outlined"
-                severity="primary"
-            >aujourd'hui</Button>
+    <template #weekday-heading="{ label, id, date }">
+      <div :class="id">{{ label }}</div>
+      <strong>{{ new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }}</strong>
+    </template>
+
+    <template #event="{ event }">
+      <div class="rounded-lg !h-full">
+        <div class="p-4">
+          <div class="title font-bold">{{ event.title }}</div>
+          <div class="time">
+            {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}
+          </div>
+          <div v-if="event.location" class="location">
+            <i class="mdi mdi-map-marker"></i> {{ event.location }}
+          </div>
+          <div v-if="event.type" class="type">
+            <i class="pi pi-users"></i> {{ event.type }} {{ event.groupe }}
           </div>
         </div>
-      </template>
-
-      <template #weekday-heading="{ label, id, date }">
-        <div :class="id">{{ label }}</div>
-        <strong>{{ new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }}</strong>
-      </template>
-
-      <template #event="{ event }">
-        <div class="rounded-lg !h-full">
-          <div class="p-4">
-            <div class="title font-bold">{{ event.title }}</div>
-            <div class="time">
-              {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}
-            </div>
-            <div v-if="event.location" class="location">
-              <i class="mdi mdi-map-marker"></i> {{ event.location }}
-            </div>
-            <div v-if="event.type" class="type">
-              <i class="pi pi-users"></i> {{ event.type }} {{ event.groupe }}
-            </div>
-          </div>
-        </div>
-      </template>
-    </vue-cal>
+      </div>
+    </template>
+  </vue-cal>
 </template>
 
 <style scoped>
 :deep(.vuecal__event) {
-  @apply rounded-xl text-sm text-black !overflow-scroll p-0;
+  @apply rounded-xl text-sm text-black !overflow-scroll p-0 transition-transform duration-200 ease-in-out;
+  &:hover {
+    @apply scale-105 transition-transform duration-200 ease-in-out cursor-pointer z-10 shadow-md;
+  }
 }
 :deep(.vuecal__body) {
   @apply gap-2;
