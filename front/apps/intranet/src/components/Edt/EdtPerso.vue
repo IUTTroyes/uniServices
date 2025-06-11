@@ -2,7 +2,7 @@
 import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 
-import {onMounted, ref, watch} from 'vue'
+import {onMounted, ref, watch, nextTick} from 'vue'
 import {getPersonnelEdtWeekEventsService} from "@requests";
 import {useUsersStore} from "@stores";
 
@@ -22,74 +22,7 @@ const viewTranslations = {
   day: 'JOUR',
 };
 
-const events1 = ref([
-  {
-    id: 1,
-    title: 'Hello',
-    start: new Date(2025, 5, 5, 9, 30),
-    end: new Date(2025, 5, 5, 11, 0),
-    backgroundColor: 'rgba(255,204,204)',
-    location: 'H001',
-  },
-  {
-    id: 2,
-    title: 'Hello1',
-    start: new Date(2025, 5, 5, 10, 0),
-    end: new Date(2025, 5, 5, 11, 0),
-    backgroundColor: 'rgba(204,237,255)',
-    location: 'H001',
-  },
-  {
-    id: 3,
-    title: 'Hello2',
-    start: new Date(2025, 5, 5, 12, 0),
-    end: new Date(2025, 5, 5, 13, 30),
-    backgroundColor: 'rgba(204,255,204)',
-    location: 'H001',
-  },
-  {
-    id: 4,
-    title: 'Hello3',
-    start: new Date(2025, 5, 5, 12, 0),
-    end: new Date(2025, 5, 5, 13, 30),
-    backgroundColor: 'rgba(255,233,204)',
-    location: 'H001',
-  },
-  {
-    id: 5,
-    title: 'Hello4',
-    start: new Date(2025, 5, 6, 14, 0),
-    end: new Date(2025, 5, 6, 15, 30),
-    backgroundColor: 'rgba(204,204,255)',
-    location: 'H001',
-  },
-  {
-    id: 6,
-    title: 'Hello5',
-    start: new Date(2025, 5, 4, 8, 0),
-    end: new Date(2025, 5, 4, 11, 0),
-    backgroundColor: 'rgba(204,204,255)',
-    location: 'H001',
-  },
-  {
-    id: 7,
-    title: 'Hello6',
-    start: new Date(2025, 5, 2, 8, 0),
-    end: new Date(2025, 5, 2, 11, 0),
-    backgroundColor: 'rgba(204,204,255)',
-    location: 'H001',
-  },
-  {
-    id: 8,
-    title: 'Hello7',
-    start: new Date(2025, 5, 5, 8, 0),
-    end: new Date(2025, 5, 5, 9, 30),
-    backgroundColor: 'rgba(255,233,204)',
-    location: 'H001',
-  }
-]);
-
-// todo: pourquoi je dois faire un +2 pour avoir le même que la V3 ?
+// todo: structure calendrier
 const getWeekUnivNumber = (date) => {
   const startUnivYear = new Date(date.getFullYear(), 8, 1); // 1er septembre
   if (date < startUnivYear) {
@@ -110,7 +43,65 @@ function darkenColor(color, amount) {
   return `rgb(${Math.max(r - amount, 0)}, ${Math.max(g - amount, 0)}, ${Math.max(b - amount, 0)})`;
 }
 
-// todo: un switch entre cours et agenda + ajouter un event
+function adjustColor(color, lightenAmount = 0.7, reduceSaturationAmount = 0.9) {
+  const ctx = document.createElement('canvas').getContext('2d');
+  ctx.fillStyle = color;
+  const rgb = ctx.fillStyle.startsWith('#') ? hexToRgb(ctx.fillStyle) : ctx.fillStyle;
+
+  const [r, g, b] = rgb.match(/\d+/g).map(Number);
+  const hsl = rgbToHsl(r, g, b);
+
+  hsl[1] = Math.max(hsl[1] - reduceSaturationAmount, 0.5);
+  hsl[2] = Math.min(hsl[2] + lightenAmount, 0.85);
+
+  return hslToRgb(hsl[0], hsl[1], hsl[2]);
+}
+
+function rgbToHsl(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, l = (max + min) / 2;
+
+  if (max === min) {
+    h = s = 0; // Couleur neutre
+  } else {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+      case g: h = (b - r) / d + 2; break;
+      case b: h = (r - g) / d + 4; break;
+    }
+    h /= 6;
+  }
+
+  return [h, s, l];
+}
+
+function hslToRgb(h, s, l) {
+  let r, g, b;
+
+  if (s === 0) {
+    r = g = b = l; // Couleur neutre
+  } else {
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1 / 3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1 / 3);
+  }
+
+  return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+}
 
 // Watcher pour mettre à jour le numéro de semaine universitaire lorsque la vue change
 watch (() => vuecalRef.value?.view?.start, (newValue) => {
@@ -135,35 +126,67 @@ function hexToRgb(hex) {
   let c = hex.substring(1);
   if (c.length === 3) c = c.split('').map(x => x + x).join('');
   const num = parseInt(c, 16);
-  return `rgb(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, 0.3)`;
+  return `rgb(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, 1)`;
+}
+
+// Ajout d'une fonction pour détecter les chevauchements
+function detectOverlap(event, allEvents) {
+  return allEvents.some(e =>
+    (event.start < e.end && event.end > e.start) &&
+    event !== e
+  );
 }
 
 const getEventsPersonnelWeek = async () => {
   try {
     const response = await getPersonnelEdtWeekEventsService(weekUnivNumber.value, personnel.id, anneeUniv.id, departement.id);
     if (response && response.length > 0) {
-      console.log("response", response);
-      events.value = response.map(event => ({
+      const mappedEvents = response.map(event => ({
         ...event,
         start: new Date(event.debut),
         end: new Date(event.fin),
-        backgroundColor: colorNameToRgb(event.couleur),
+        backgroundColor: adjustColor(colorNameToRgb(event.couleur), 0.8, 0.3),
         location: event.salle,
         title: event.codeModule + ' - ' + event.libModule,
         type: event.type,
         groupe: event.libGroupe || 'no grp.',
+      }));
+
+      // Mise à jour des événements avec détection de chevauchement
+      events.value = mappedEvents.map(event => ({
+        ...event,
+        title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
       }));
     } else {
       events.value = [];
     }
   } catch (error) {
     console.error('Error fetching events:', error);
+  } finally {
+    await nextTick();
+    const eventsObjects = document.querySelectorAll('.vuecal__event');
+    eventsObjects.forEach(event => {
+      if (event.style.backgroundColor) {
+        event.style.border = `2px solid ${darkenColor(event.style.backgroundColor, 50)}`;
+        event.style.borderTop = `6px solid ${darkenColor(event.style.backgroundColor, 50)}`;
+        event.style.overflow = 'auto';
+        event.style.scrollbarWidth = 'none';
+        event.style.cssText += '::-webkit-scrollbar { display: none; }';
+      }
+    });
   }
 };
 
 onMounted(() => {
   getEventsPersonnelWeek();
 });
+
+const showDialog = ref(false)
+const selectedEvent = ref(null)
+const openDialog = ({ event }) => {
+  selectedEvent.value = event
+  console.log(selectedEvent.value)
+}
 </script>
 
 <template>
@@ -177,12 +200,13 @@ onMounted(() => {
         :time-to="21 * 60"
         :time-step="30"
         week-numbers
-        :stack-events="false"
+        :stack-events="true"
         :views="['day', 'week']"
         :default-view="'week'"
         :theme="false"
         diy
         :events="events"
+        @event-click="openDialog"
     >
       <!-- En-tête personnalisé -->
       <template #header="{ view, availableViews, vuecal }">
@@ -232,7 +256,7 @@ onMounted(() => {
       </template>
 
       <template #event="{ event }">
-        <div class="border-t-4 rounded-lg dark:text-white" :style="{ borderTopColor: darkenColor(event.backgroundColor, 50) }">
+        <div class="rounded-lg !h-full">
           <div class="p-4">
             <div class="title font-bold">{{ event.title }}</div>
             <div class="time">
@@ -252,7 +276,7 @@ onMounted(() => {
 
 <style scoped>
 :deep(.vuecal__event) {
-  @apply rounded-md text-sm text-black;
+  @apply rounded-xl text-sm text-black !overflow-scroll p-0;
 }
 :deep(.vuecal__body) {
   @apply gap-2;
