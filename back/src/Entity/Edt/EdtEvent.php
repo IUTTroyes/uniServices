@@ -2,6 +2,8 @@
 
 namespace App\Entity\Edt;
 
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Scolarite\ScolEnseignement;
@@ -19,14 +21,14 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\UuidV4;
 
+#[ORM\Entity(repositoryClass: EdtEventRepository::class)]
+#[ApiFilter(BooleanFilter::class, properties: ['aPlacer'])]
+#[ApiFilter(EdtFilter::class)]
 #[ApiResource(
     operations: [
         new GetCollection(normalizationContext: ['groups' => ['edt_event:read:agenda']]),
     ]
 )]
-#[ApiFilter(BooleanFilter::class, properties: ['aPlacer'])]
-#[ORM\Entity(repositoryClass: EdtEventRepository::class)]
-#[ApiFilter(EdtFilter::class)]
 #[ORM\HasLifecycleCallbacks]
 class EdtEvent
 {
@@ -61,7 +63,7 @@ class EdtEvent
     #[ORM\Column(length: 25, nullable: true)]
     private ?string $codeSalle = null;
 
-    #[ORM\ManyToOne(inversedBy: 'edtEvents')]
+    #[ORM\ManyToOne(inversedBy: 'events')]
     #[Groups(['edt_event:read:agenda'])]
     private ?Personnel $personnel = null;
 

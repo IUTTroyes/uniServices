@@ -5,6 +5,7 @@ import 'vue-cal/style'
 import {onMounted, ref, watch, nextTick} from 'vue'
 import {getPersonnelEdtWeekEventsService} from "@requests";
 import {useUsersStore} from "@stores";
+import {PhotoUser} from "@components";
 
 // Importer le store des utilisateurs
 const usersStore = useUsersStore();
@@ -144,6 +145,7 @@ const getEventsPersonnelWeek = async () => {
       const mappedEvents = response.map(event => {
         const startDate = new Date(event.debut);
         const endDate = new Date(event.fin);
+
         return {
           ...event,
           ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
@@ -155,9 +157,7 @@ const getEventsPersonnelWeek = async () => {
           type: event.type,
           groupe: event.libGroupe || 'no grp.',
           personnel: event.personnel,
-          intervenantPhoto: event.personnel.photoName
-            ? new URL(`@common-images/photos_personnels/${event.personnel.photoName}`, import.meta.url).href
-            : new URL('@common-images/photos_personnels/noimage.png', import.meta.url).href,
+          intervenantPhoto: event.personnel.photoName ?? null,
         };
       });
 
@@ -205,7 +205,7 @@ const openDialog = ({ event }) => {
 
   <Dialog v-model:visible="visible" header="Détails d'un cours" class="!bg-gray-50 dark:!bg-gray-800 !border-2 !border-primary-500" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
     <div>
-     {{selectedEvent.title}}
+      {{selectedEvent.title}}
     </div>
   </Dialog>
 
@@ -278,20 +278,20 @@ const openDialog = ({ event }) => {
         <Tag value="Événement en cours" class="absolute right-2 bottom-2 !text-white !bg-black"/>
       </div>
       <div class="rounded-lg !h-full">
-        <div class="p-4">
+        <div class="p-2">
           <div class="title font-bold">{{ event.title }}</div>
           <div class="time">
             {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} | {{ event.location }}
           </div>
-         <div>
-           <div v-if="event.type" class="type">
-             {{ event.type }} {{ event.groupe }}
-           </div>
-           <div class="flex items-center gap-2">
-             <img :src="event.intervenantPhoto" alt="photo de profil" class="rounded-full w-8 h-auto">
-             <div class="text-sm font-bold">{{ event.libPersonnel }}</div>
-           </div>
-         </div>
+          <div>
+            <div v-if="event.type" class="type">
+              {{ event.type }} {{ event.groupe }}
+            </div>
+            <div class="flex items-center gap-2">
+              <PhotoUser :user-photo="event.personnel.photoName" class="w-8 border-2 border-black"/>
+              <div class="text-sm font-bold">{{ event.libPersonnel }}</div>
+            </div>
+          </div>
         </div>
       </div>
     </template>

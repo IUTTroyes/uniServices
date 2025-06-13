@@ -27,6 +27,7 @@ onMounted(() => {
           etudiantPhoto.value = noImage;
         });
   }
+  console.log(props.etudiantSco);
 });
 </script>
 
