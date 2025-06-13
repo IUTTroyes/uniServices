@@ -74,7 +74,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read', 'edt_event:read:agenda'])]
     private ?string $photoName = null;
 
     /**

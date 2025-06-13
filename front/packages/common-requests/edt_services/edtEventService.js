@@ -27,7 +27,7 @@ const getPersonnelEdtWeekEventsService = async (semaine, personnel, anneeUniv, d
             semaineFormation: semaine,
             personnel: personnel,
             anneeUniversitaire: anneeUniv,
-            departement: departement
+            departement: departement,
         };
 
         const response = await apiCall(

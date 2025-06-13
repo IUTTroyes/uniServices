@@ -154,6 +154,10 @@ const getEventsPersonnelWeek = async () => {
           title: event.codeModule + ' - ' + event.libModule,
           type: event.type,
           groupe: event.libGroupe || 'no grp.',
+          personnel: event.personnel,
+          intervenantPhoto: event.personnel.photoName
+            ? new URL(`@common-images/photos_personnels/${event.personnel.photoName}`, import.meta.url).href
+            : new URL('@common-images/photos_personnels/noimage.png', import.meta.url).href,
         };
       });
 
@@ -179,13 +183,14 @@ const getEventsPersonnelWeek = async () => {
       }
     });
   }
+
+  console.log('events', events.value);
 };
 
 onMounted(() => {
   getEventsPersonnelWeek();
 });
 
-const showDialog = ref(false)
 const selectedEvent = ref(null)
 const visible = ref(false)
 
@@ -198,7 +203,7 @@ const openDialog = ({ event }) => {
 
 <template>
 
-  <Dialog v-model:visible="visible" header="Détails d'un cours" class="!bg-gray-50 dark:!bg-gray-800" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+  <Dialog v-model:visible="visible" header="Détails d'un cours" class="!bg-gray-50 dark:!bg-gray-800 !border-2 !border-primary-500" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
     <div>
      {{selectedEvent.title}}
     </div>
@@ -276,14 +281,17 @@ const openDialog = ({ event }) => {
         <div class="p-4">
           <div class="title font-bold">{{ event.title }}</div>
           <div class="time">
-            {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}
+            {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} | {{ event.location }}
           </div>
-          <div v-if="event.location" class="location">
-            <i class="mdi mdi-map-marker"></i> {{ event.location }}
-          </div>
-          <div v-if="event.type" class="type">
-            <i class="pi pi-users"></i> {{ event.type }} {{ event.groupe }}
-          </div>
+         <div>
+           <div v-if="event.type" class="type">
+             {{ event.type }} {{ event.groupe }}
+           </div>
+           <div class="flex items-center gap-2">
+             <img :src="event.intervenantPhoto" alt="photo de profil" class="rounded-full w-8 h-auto">
+             <div class="text-sm font-bold">{{ event.libPersonnel }}</div>
+           </div>
+         </div>
         </div>
       </div>
     </template>

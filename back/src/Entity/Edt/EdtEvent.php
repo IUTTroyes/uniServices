@@ -2,12 +2,8 @@
 
 namespace App\Entity\Edt;
 
-use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
-use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
-use App\ApiDto\Edt\EdtAgendaDto;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureGroupe;
@@ -16,24 +12,21 @@ use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
+use App\Filter\EdtFilter;
 use App\Repository\Edt\EdtEventRepository;
-use App\State\Edt\EdtAgendaProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\UuidV4;
 
 #[ApiResource(
-//    new GetCollection(
-//        uriTemplate: '/edt_events_agenda',
-//        normalizationContext: ['groups' => ['edt_event:read:agenda']],
-//        output: EdtAgendaDto::class,
-//        provider: EdtAgendaProvider::class,
-//    )
+    operations: [
+        new GetCollection(normalizationContext: ['groups' => ['edt_event:read:agenda']]),
+    ]
 )]
-#[ApiFilter(SearchFilter::class, properties: ['semaineFormation' => 'exact', 'personnel' => 'exact', 'anneeUniversitaire' => 'exact', 'departement' => 'exact'])]
 #[ApiFilter(BooleanFilter::class, properties: ['aPlacer'])]
 #[ORM\Entity(repositoryClass: EdtEventRepository::class)]
+#[ApiFilter(EdtFilter::class)]
 #[ORM\HasLifecycleCallbacks]
 class EdtEvent
 {
