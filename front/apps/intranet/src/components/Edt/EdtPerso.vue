@@ -3,7 +3,7 @@ import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 
 import {onMounted, ref, watch, nextTick} from 'vue'
-import {getPersonnelEdtWeekEventsService} from "@requests";
+import {getPersonnelEdtWeekEventsService, getSemaineUniversitaireService} from "@requests";
 import {useUsersStore} from "@stores";
 import {PhotoUser} from "@components";
 
@@ -23,20 +23,30 @@ const viewTranslations = {
   day: 'JOUR',
 };
 
-// todo: structure calendrier
-const getWeekUnivNumber = (date) => {
-  const startUnivYear = new Date(date.getFullYear(), 8, 1); // 1er septembre
-  if (date < startUnivYear) {
-    startUnivYear.setFullYear(startUnivYear.getFullYear() - 1);
-  }
-  // Ajuster pour que la semaine commence le lundi
-  const dayOfWeek = (date.getDay() + 6) % 7; // 0 = lundi, 6 = dimanche
-  const monday = new Date(date);
-  monday.setDate(date.getDate() - dayOfWeek);
+function getISOWeekNumber(date) {
+  const tempDate = new Date(date.getTime());
+  tempDate.setHours(0, 0, 0, 0);
+  tempDate.setDate(tempDate.getDate() + 3 - ((tempDate.getDay() + 6) % 7));
+  const week1 = new Date(tempDate.getFullYear(), 0, 4);
+  return 1 + Math.round(((tempDate - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+}
 
-  const diffInDays = Math.floor((monday - startUnivYear) / (1000 * 60 * 60 * 24));
-  weekUnivNumber.value = Math.floor(diffInDays / 7) + 2;
-  return weekUnivNumber;
+watch(() => vuecalRef.value?.view?.start, async (newValue) => {
+  if (newValue) {
+    const startDate = new Date(newValue);
+    await getWeekUnivNumber(startDate); // Récupère le numéro de semaine de formation
+    getEventsPersonnelWeek(); // Met à jour les événements pour la semaine
+  }
+}, { immediate: true });
+
+const getWeekUnivNumber = async (date) => {
+  const calendarWeekNumber = getISOWeekNumber(date); // Calcule le numéro de semaine ISO
+  try {
+    const response = await getSemaineUniversitaireService(calendarWeekNumber, anneeUniv.id);
+    weekUnivNumber.value = response[0]?.semaineFormation || 0; // Définit la semaine de formation
+  } catch (error) {
+    console.error('Erreur lors de la récupération du numéro de semaine universitaire :', error);
+  }
 };
 
 function darkenColor(color, amount) {
@@ -175,8 +185,8 @@ const getEventsPersonnelWeek = async () => {
     const eventsObjects = document.querySelectorAll('.vuecal__event');
     eventsObjects.forEach(event => {
       if (event.style.backgroundColor) {
-        event.style.border = `2px solid ${darkenColor(event.style.backgroundColor, 50)}`;
-        event.style.borderTop = `6px solid ${darkenColor(event.style.backgroundColor, 50)}`;
+        event.style.border = `2px solid ${adjustColor(darkenColor(event.style.backgroundColor, 50), 0, 0.2)}`;
+        event.style.borderTop = `6px solid ${adjustColor(darkenColor(event.style.backgroundColor, 60), 0, 0.2)}`;
         event.style.overflow = 'auto';
         event.style.scrollbarWidth = 'none';
         event.style.cssText += '::-webkit-scrollbar { display: none; }';
@@ -237,7 +247,7 @@ const openDialog = ({ event }) => {
           />
           <div class="flex flex-col items-center">
             <span v-html="view.title" class="font-bold text-xl flex flex-col items-center"></span>
-            <span class="text-md text-muted-color">Semaine de formation : {{ getWeekUnivNumber(view.start) }}</span>
+            <span class="text-md text-muted-color">Semaine de formation : {{ weekUnivNumber }}</span>
           </div>
           <Button
               icon="pi pi-chevron-circle-right"
@@ -278,19 +288,16 @@ const openDialog = ({ event }) => {
         <Tag value="Événement en cours" class="absolute right-2 bottom-2 !text-white !bg-black"/>
       </div>
       <div class="rounded-lg !h-full">
-        <div class="p-2">
+        <div class="p-2 flex flex-col gap-1">
           <div class="title font-bold">{{ event.title }}</div>
-          <div class="time">
-            {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} | {{ event.location }}
-          </div>
           <div>
-            <div v-if="event.type" class="type">
-              {{ event.type }} {{ event.groupe }}
-            </div>
-            <div class="flex items-center gap-2">
-              <PhotoUser :user-photo="event.personnel.photoName" class="w-8 border-2 border-black"/>
-              <div class="text-sm font-bold">{{ event.libPersonnel }}</div>
-            </div>
+            {{ event.location }} | {{ event.type }} {{ event.groupe }} | <span class="opacity-70">
+            {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}
+          </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <PhotoUser :user-photo="event.personnel.photoName" class="!w-8 border-2 border-black"/>
+            <div class="text-sm">{{ event.libPersonnel }}</div>
           </div>
         </div>
       </div>
@@ -300,9 +307,9 @@ const openDialog = ({ event }) => {
 
 <style scoped>
 :deep(.vuecal__event) {
-  @apply rounded-xl text-sm text-black !overflow-scroll p-0 transition-transform duration-200 ease-in-out;
+  @apply rounded-xl text-sm text-black !overflow-scroll p-0 transition duration-200 ease-in-out;
   &:hover {
-    @apply scale-105 transition-transform duration-200 ease-in-out cursor-pointer z-10 shadow-md;
+    @apply border !border-primary-500 transition duration-200 ease-in-out cursor-pointer shadow-md z-20;
   }
 }
 :deep(.vuecal__body) {
