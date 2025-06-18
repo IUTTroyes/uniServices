@@ -4,6 +4,8 @@ import 'vue-cal/style'
 
 import {onMounted, ref, watch, nextTick} from 'vue'
 import {getPersonnelEdtWeekEventsService, getSemaineUniversitaireService} from "@requests";
+import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
+import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
 import {PhotoUser} from "@components";
 
@@ -23,52 +25,6 @@ const viewTranslations = {
   day: 'JOUR',
 };
 
-const items = ref([
-  {
-    label: 'Add',
-    icon: 'pi pi-pencil',
-    command: () => {
-      toast.add({ severity: 'info', summary: 'Add', detail: 'Data Added', life: 3000 });
-    }
-  },
-  {
-    label: 'Update',
-    icon: 'pi pi-refresh',
-    command: () => {
-      toast.add({ severity: 'success', summary: 'Update', detail: 'Data Updated', life: 3000 });
-    }
-  },
-  {
-    label: 'Delete',
-    icon: 'pi pi-trash',
-    command: () => {
-      toast.add({ severity: 'error', summary: 'Delete', detail: 'Data Deleted', life: 3000 });
-    }
-  },
-  {
-    label: 'Upload',
-    icon: 'pi pi-upload',
-    command: () => {
-      router.push('/fileupload');
-    }
-  },
-  {
-    label: 'Vue Website',
-    icon: 'pi pi-external-link',
-    command: () => {
-      window.location.href = 'https://vuejs.org/'
-    }
-  }
-])
-
-function getISOWeekNumber(date) {
-  const tempDate = new Date(date.getTime());
-  tempDate.setHours(0, 0, 0, 0);
-  tempDate.setDate(tempDate.getDate() + 3 - ((tempDate.getDay() + 6) % 7));
-  const week1 = new Date(tempDate.getFullYear(), 0, 4);
-  return 1 + Math.round(((tempDate - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
-}
-
 watch(() => vuecalRef.value?.view?.start, async (newValue) => {
   if (newValue) {
     const startDate = new Date(newValue);
@@ -87,70 +43,7 @@ const getWeekUnivNumber = async (date) => {
   }
 };
 
-function darkenColor(color, amount) {
-  const [r, g, b] = color.match(/\d+/g).map(Number);
-  return `rgb(${Math.max(r - amount, 0)}, ${Math.max(g - amount, 0)}, ${Math.max(b - amount, 0)})`;
-}
 
-function adjustColor(color, lightenAmount, reduceSaturationAmount) {
-  const ctx = document.createElement('canvas').getContext('2d');
-  ctx.fillStyle = color;
-  const rgb = ctx.fillStyle.startsWith('#') ? hexToRgb(ctx.fillStyle) : ctx.fillStyle;
-
-  const [r, g, b] = rgb.match(/\d+/g).map(Number);
-  const hsl = rgbToHsl(r, g, b);
-
-  hsl[1] = Math.max(hsl[1] - reduceSaturationAmount, 0.5);
-  hsl[2] = Math.min(hsl[2] + lightenAmount, 0.95);
-
-  return hslToRgb(hsl[0], hsl[1], hsl[2]);
-}
-
-function rgbToHsl(r, g, b) {
-  r /= 255; g /= 255; b /= 255;
-  const max = Math.max(r, g, b), min = Math.min(r, g, b);
-  let h, s, l = (max + min) / 2;
-
-  if (max === min) {
-    h = s = 0; // Couleur neutre
-  } else {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: h = (b - r) / d + 2; break;
-      case b: h = (r - g) / d + 4; break;
-    }
-    h /= 6;
-  }
-
-  return [h, s, l];
-}
-
-function hslToRgb(h, s, l) {
-  let r, g, b;
-
-  if (s === 0) {
-    r = g = b = l; // Couleur neutre
-  } else {
-    const hue2rgb = (p, q, t) => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1 / 6) return p + (q - p) * 6 * t;
-      if (t < 1 / 2) return q;
-      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-      return p;
-    };
-
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    r = hue2rgb(p, q, h + 1 / 3);
-    g = hue2rgb(p, q, h);
-    b = hue2rgb(p, q, h - 1 / 3);
-  }
-
-  return `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
-}
 
 // Watcher pour mettre à jour le numéro de semaine universitaire lorsque la vue change
 watch (() => vuecalRef.value?.view?.start, (newValue) => {
@@ -160,23 +53,7 @@ watch (() => vuecalRef.value?.view?.start, (newValue) => {
   }
 }, { immediate: true });
 
-// méthode pour transformer une couleur de son nom textuel (exemple : 'red') en son code RGB
-function colorNameToRgb(colorName) {
-  const ctx = document.createElement('canvas').getContext('2d');
-  ctx.fillStyle = colorName;
-  // La valeur retournée est sous la forme 'rgb(r, g, b)' ou 'rgba(r, g, b, a)'
-  return ctx.fillStyle.startsWith('#')
-      ? hexToRgb(ctx.fillStyle)
-      : ctx.fillStyle;
-}
 
-// Helper pour convertir un hex en rgb
-function hexToRgb(hex) {
-  let c = hex.substring(1);
-  if (c.length === 3) c = c.split('').map(x => x + x).join('');
-  const num = parseInt(c, 16);
-  return `rgb(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, 1)`;
-}
 
 // Ajout d'une fonction pour détecter les chevauchements
 function detectOverlap(event, allEvents) {
@@ -290,7 +167,7 @@ function getBadgeSeverity(type) {
           <strong>Semestre :</strong> {{ selectedEvent.semestre.libelle }}
         </div>
         <div>
-         <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}})
+         <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}} étudiants)
         </div>
         <div>
           <strong>Salle :</strong> {{ selectedEvent.location }}
@@ -394,7 +271,7 @@ function getBadgeSeverity(type) {
         <div class="p-2 flex flex-col justify-between h-full gap-1">
           <div>
             <div class="title font-black">{{ event.title }}</div>
-            <div><Badge class="!text-black" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">{{ event.type }}</Badge> {{ event.groupe.libelle }}</div>
+            <div class="flex gap-1 items-center"><Badge class="!text-black" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">{{ event.type }}</Badge>{{event.semestre.libelle}} | {{ event.groupe.libelle }}</div>
             <div>{{ event.location }}</div>
           </div>
           <div v-if="event.overlap" class="flex flex-col gap-2">
