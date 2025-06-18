@@ -9,7 +9,6 @@ use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Structure\StructureAnnee;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
-use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Filter\EtudiantScolariteFilter;
@@ -88,14 +87,6 @@ class EtudiantScolarite
     #[Groups(['scolarite:read', 'etudiant:read'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
-    // todo: -> moove to etudiantScolariteSemestre
-    /**
-     * @var Collection<int, StructureGroupe>
-     */
-    #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'scolarites')]
-    #[Groups(['scolarite:read'])]
-    private Collection $groupes;
-
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[Groups(['scolarite:read'])]
     private ?StructureDepartement $departement = null;
@@ -117,7 +108,6 @@ class EtudiantScolarite
 
     public function __construct()
     {
-        $this->groupes = new ArrayCollection();
         $this->scolariteSemestre = new ArrayCollection();
         $this->annee = new ArrayCollection();
     }
@@ -243,30 +233,6 @@ class EtudiantScolarite
     public function setAnneeUniversitaire(?StructureAnneeUniversitaire $anneeUniversitaire): static
     {
         $this->anneeUniversitaire = $anneeUniversitaire;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, StructureGroupe>
-     */
-    public function getGroupes(): Collection
-    {
-        return $this->groupes;
-    }
-
-    public function addGroupe(StructureGroupe $groupe): static
-    {
-        if (!$this->groupes->contains($groupe)) {
-            $this->groupes->add($groupe);
-        }
-
-        return $this;
-    }
-
-    public function removeGroupe(StructureGroupe $groupe): static
-    {
-        $this->groupes->removeElement($groupe);
 
         return $this;
     }

@@ -685,7 +685,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->statut->getLibelle() ?? '-';
     }
 
-    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'diplome:read'])]
+    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'diplome:read', 'edt_event:read:agenda'])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();

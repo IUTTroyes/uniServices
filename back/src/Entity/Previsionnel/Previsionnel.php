@@ -86,7 +86,7 @@ class Previsionnel
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]
-    #[Groups(['previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
+    #[Groups(['previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda'])]
     private ?Personnel $personnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'previsionnels')]

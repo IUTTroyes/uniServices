@@ -143,7 +143,7 @@ class ScolEnseignement
      * @var Collection<int, Previsionnel>
      */
     #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'enseignement')]
-    #[Groups(['enseignement:read'])]
+    #[Groups(['enseignement:read', 'edt_event:read:agenda'])]
     private Collection $previsionnels;
 
     public function __construct()

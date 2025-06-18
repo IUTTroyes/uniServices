@@ -6,8 +6,10 @@ use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Enum\StatutEnum;
+use App\Repository\EtudiantRepository;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use App\Repository\Structure\StructureDepartementRepository;
+use App\Repository\Structure\StructureGroupeRepository;
 use App\ValueObject\Adresse;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -26,8 +28,10 @@ class CopyTransfertBddUserCommand extends Command
     protected object $em;
 
     protected array $tPersonnels = [];
+    protected array $tEtudiants = [];
     protected array $tAnneeUniversitaire = [];
     protected array $tDepartements = [];
+    protected array $tGroupes = [];
 
     protected SymfonyStyle $io;
 
@@ -36,12 +40,16 @@ class CopyTransfertBddUserCommand extends Command
         ManagerRegistry                  $managerRegistry,
         StructureAnneeUniversitaireRepository $structureAnneeUniversitaireRepository,
         StructureDepartementRepository $structureDepartementRepository,
+        StructureGroupeRepository $structureGroupeRepository,
+        EtudiantRepository $etudiantRepository,
     )
     {
         parent::__construct();
         $this->em = $managerRegistry->getConnection('copy');
         $this->tAnneeUniversitaire = $structureAnneeUniversitaireRepository->findAllByIdArray();
         $this->tDepartements = $structureDepartementRepository->findAllByIdArray();
+        $this->tGroupes = $structureGroupeRepository->findAllByOldIdArray();
+        $this->tEtudiants = $etudiantRepository->findAllByOldIdArray();
     }
 
     protected function configure(): void
@@ -71,6 +79,7 @@ FOREIGN_KEY_CHECKS=1');
         $this->addPersonnels();
         $this->addEtudiants();
         $this->addPersonnelsDepartements();
+        $this->addEtudiantsGroupes();
 
         $this->io->success('Processus de recopie terminé.');
 
@@ -97,7 +106,7 @@ FOREIGN_KEY_CHECKS=1');
             $personnel->setEntreprise($pers['entreprise']);
             $personnel->setTelBureau($pers['tel_bureau']);
             $personnel->setDomaines(
-                // transformer le string $pers['domaines'] en tableau
+            // transformer le string $pers['domaines'] en tableau
                 explode(',', $pers['domaines'])
             );
             $personnel->setBureau($pers['bureau1']);
@@ -109,6 +118,7 @@ FOREIGN_KEY_CHECKS=1');
             $personnel->setResponsabilites($pers['responsabilites']);
             $personnel->setPosteInterne($pers['poste_interne']);
             $personnel->setStatut(StatutEnum::tryFrom($pers['statut']));
+            $personnel->setApplications(['UniTranet']);
 
             // gestion des adresses
             if ($pers['adresse_id'] !== null && $pers['adresse_id'] !== '') {
@@ -211,7 +221,7 @@ FOREIGN_KEY_CHECKS=1');
                     $adresse['adresse1'] ?? '',
                     $adresse['adresse2'] ?? '',
                     $adresse['adresse3'] ?? '',
-                        $adresse['ville'] ?? '',
+                    $adresse['ville'] ?? '',
                     $adresse['code_postal'] ?? '',
                     $adresse['pays'] ?? 'France'
                 );
@@ -226,7 +236,7 @@ FOREIGN_KEY_CHECKS=1');
                     $adresse['adresse1'] ?? '',
                     $adresse['adresse2'] ?? '',
                     $adresse['adresse3'] ?? '',
-                        $adresse['ville'] ?? '',
+                    $adresse['ville'] ?? '',
                     $adresse['code_postal'] ?? '',
                     $adresse['pays'] ?? 'France'
                 );
@@ -277,7 +287,37 @@ FOREIGN_KEY_CHECKS=1');
         }
 
         $this->entityManager->flush();
+    }
 
+    private function addEtudiantsGroupes(): void
+    {
+        $this->tEtudiants = $this->entityManager->getRepository(Etudiant::class)->findAllByOldIdArray();
+        $sql = 'SELECT * FROM etudiant_groupe';
+        $etudiantsGroupes = $this->em->executeQuery($sql)->fetchAllAssociative();
+
+        foreach ($etudiantsGroupes as $etuGroupe) {
+            // Chercher l'étudiant correspondant
+            if (!isset($this->tEtudiants[$etuGroupe['etudiant_id']])) {
+                $this->io->warning('Etudiant ID ' . $etuGroupe['etudiant_id'] . ' non trouvé, skip.');
+                continue;
+            }
+            $etudiant = $this->tEtudiants[$etuGroupe['etudiant_id']];
+
+            // Chercher le groupe correspondant
+            if (!isset($this->tGroupes[$etuGroupe['groupe_id']])) {
+                $this->io->warning('Groupe ID ' . $etuGroupe['groupe_id'] . ' non trouvé, skip.');
+                continue;
+            }
+            $groupe = $this->tGroupes[$etuGroupe['groupe_id']];
+
+            // Ajouter l'étudiant au groupe
+            $groupe->addEtudiant($etudiant);
+            $etudiant->addGroupe($groupe);
+
+            $this->entityManager->persist($groupe);
+            $this->entityManager->persist($etudiant);
+            $this->io->info('Etudiant : ' . $etudiant->getNom() . ' ajouté au groupe ' . $groupe->getLibelle());
+        }
     }
 
     private function addPersonnelsDepartements(): void
@@ -287,20 +327,25 @@ FOREIGN_KEY_CHECKS=1');
 
         foreach ($persDepts as $persDept) {
             $depPers = new StructureDepartementPersonnel();
-//            $depPers->setDepartement($this->tDepartements[$persDept['departement_id']]);
-            // lier le département si departement.oldId === personnel_departement.departement_id
+            // Chercher le département correspondant
+            $departementTrouve = null;
             foreach ($this->tDepartements as $departement) {
                 if ($departement->getOldId() === $persDept['departement_id']) {
-                    $depPers->setDepartement($departement);
+                    $departementTrouve = $departement;
                     break;
                 }
             }
+            // Si le département n'existe pas, on skip
+            if (!$departementTrouve) {
+                continue;
+            }
+            $depPers->setDepartement($departementTrouve);
             $depPers->setPersonnel($this->tPersonnels[$persDept['personnel_id']]);
             $depPers->setDefaut((bool)$persDept['defaut']);
             $depPers->setRoles(['intranet' => json_decode($persDept['roles'], true)] ?? []);
 
             $this->entityManager->persist($depPers);
-//            $this->io->info('Personnel : ' . $this->tPersonnels[$persDept['personnel_id']]->getNom() . ' ajouté au département ' . $this->tDepartements[$persDept['departement_id']]->getLibelle());
+            // $this->io->info('Personnel : ' . $this->tPersonnels[$persDept['personnel_id']]->getNom() . ' ajouté au département ' . $departementTrouve->getLibelle());
         }
 
         $this->entityManager->flush();

@@ -71,6 +71,7 @@ declare module 'vue' {
     SelectButton: typeof import('primevue/selectbutton')['default']
     SimpleSkeleton: typeof import('./src/components/loader/SimpleSkeleton.vue')['default']
     Skeleton: typeof import('primevue/skeleton')['default']
+    SpeedDial: typeof import('primevue/speeddial')['default']
     Splitter: typeof import('primevue/splitter')['default']
     SplitterPanel: typeof import('primevue/splitterpanel')['default']
     Tab: typeof import('primevue/tab')['default']

@@ -23,6 +23,44 @@ const viewTranslations = {
   day: 'JOUR',
 };
 
+const items = ref([
+  {
+    label: 'Add',
+    icon: 'pi pi-pencil',
+    command: () => {
+      toast.add({ severity: 'info', summary: 'Add', detail: 'Data Added', life: 3000 });
+    }
+  },
+  {
+    label: 'Update',
+    icon: 'pi pi-refresh',
+    command: () => {
+      toast.add({ severity: 'success', summary: 'Update', detail: 'Data Updated', life: 3000 });
+    }
+  },
+  {
+    label: 'Delete',
+    icon: 'pi pi-trash',
+    command: () => {
+      toast.add({ severity: 'error', summary: 'Delete', detail: 'Data Deleted', life: 3000 });
+    }
+  },
+  {
+    label: 'Upload',
+    icon: 'pi pi-upload',
+    command: () => {
+      router.push('/fileupload');
+    }
+  },
+  {
+    label: 'Vue Website',
+    icon: 'pi pi-external-link',
+    command: () => {
+      window.location.href = 'https://vuejs.org/'
+    }
+  }
+])
+
 function getISOWeekNumber(date) {
   const tempDate = new Date(date.getTime());
   tempDate.setHours(0, 0, 0, 0);
@@ -165,15 +203,25 @@ const getEventsPersonnelWeek = async () => {
           location: event.salle,
           title: event.codeModule + ' - ' + event.libModule,
           type: event.type,
-          groupe: event.libGroupe || 'no grp.',
+          groupe: event.groupe || '**',
           personnel: event.personnel,
           intervenantPhoto: event.personnel.photoName ?? null,
+          overlap: false,
+          eval: event.evaluation,
+          intervenants: event.enseignement.previsionnels
+              .filter(intervenant => intervenant.personnel.id !== personnel.id)
+              .map(intervenant => ({
+                id: intervenant.id,
+                display: intervenant.personnel?.display || 'Inconnu',
+                photoName: intervenant.personnel?.photoName || null,
+              })),
         };
       });
 
       events.value = mappedEvents.map(event => ({
         ...event,
         title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
+        overlap: !!detectOverlap(event, mappedEvents),
       }));
     } else {
       events.value = [];
@@ -190,6 +238,7 @@ const getEventsPersonnelWeek = async () => {
         event.style.overflow = 'auto';
         event.style.scrollbarWidth = 'none';
         event.style.cssText += '::-webkit-scrollbar { display: none; }';
+        event.style.opacity = 0.9;
       }
     });
   }
@@ -209,13 +258,70 @@ const openDialog = ({ event }) => {
   visible.value = true
   console.log('selected', selectedEvent.value)
 }
+
+function getBadgeSeverity(type) {
+  const badgeMapping = {
+    ressource: 'primary',
+    sae: 'warn',
+    matiere: 'success',
+  };
+
+  return badgeMapping[type] || 'info'; // Valeur par défaut si le type est inconnu
+}
 </script>
 
 <template>
 
-  <Dialog v-model:visible="visible" header="Détails d'un cours" class="!bg-gray-50 dark:!bg-gray-800 !border-2 !border-primary-500" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-    <div>
-      {{selectedEvent.title}}
+  <Dialog v-model:visible="visible" :header="selectedEvent?.title" class="!bg-gray-50 dark:!bg-gray-800 !border-2 !border-primary-500" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+    <div class="flex flex-col gap-2">
+      <div>
+        {{selectedEvent.start.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}} •
+        {{selectedEvent.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}} -
+        {{selectedEvent.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}}
+      </div>
+      <div class="flex items-center gap-2">
+        <Badge v-if="selectedEvent.eval" severity="danger" class="uppercase">Évaluation</Badge>
+        <Badge :severity="getBadgeSeverity(selectedEvent.enseignement.type)" class="uppercase">
+          {{ selectedEvent.enseignement.type }}
+        </Badge>
+      </div>
+      <div class="flex flex-col gap-1">
+        <div>
+          <strong>Semestre :</strong> {{ selectedEvent.semestre.libelle }}
+        </div>
+        <div>
+         <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}})
+        </div>
+        <div>
+          <strong>Salle :</strong> {{ selectedEvent.location }}
+        </div>
+        <div>
+          <strong>Intervenant :</strong>
+          <div class="flex items-center gap-2">
+            <PhotoUser :user-photo="selectedEvent.intervenantPhoto" class="!w-8 border-2 border-black" />
+            {{ selectedEvent.libPersonnel || 'Inconnu' }}
+          </div>
+        </div>
+        <Divider v-if="selectedEvent.intervenants && selectedEvent.intervenants.length > 0"></Divider>
+        <div v-if="selectedEvent.intervenants && selectedEvent.intervenants.length > 0" class="flex flex-col gap-2">
+          <strong>Autres intervenants sur la {{selectedEvent.enseignement.type}} :</strong>
+          <div class="flex flex-col gap-2">
+            <div v-for="intervenant in selectedEvent.intervenants" :key="intervenant.id" class="flex items-center gap-2">
+              <PhotoUser :user-photo="selectedEvent.intervenantPhoto" class="!w-8 border-2 border-black" />
+              {{ intervenant?.display || 'Inconnu' }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <Divider></Divider>
+      <div class="flex w-full justify-end">
+        <div class="flex gap-2">
+          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
+          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
+          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
+          <Button v-if="selectedEvent.evaluation" icon="pi pi-file-edit" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Saisir les notes" size="small" v-tooltip.top="'Saisir les notes'"></Button>
+        </div>
+      </div>
     </div>
   </Dialog>
 
@@ -284,21 +390,41 @@ const openDialog = ({ event }) => {
     </template>
 
     <template #event="{ event }">
-      <div v-if="event.ongoing">
-        <Tag value="Événement en cours" class="absolute right-2 bottom-2 !text-white !bg-black"/>
-      </div>
       <div class="rounded-lg !h-full">
-        <div class="p-2 flex flex-col gap-1">
-          <div class="title font-bold">{{ event.title }}</div>
+        <div class="p-2 flex flex-col justify-between h-full gap-1">
           <div>
-            {{ event.location }} | {{ event.type }} {{ event.groupe }} | <span class="opacity-70">
-            {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}
-          </span>
+            <div class="title font-black">{{ event.title }}</div>
+            <div><Badge class="!text-black" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">{{ event.type }}</Badge> {{ event.groupe.libelle }}</div>
+            <div>{{ event.location }}</div>
           </div>
-          <div class="flex items-center gap-2">
-            <PhotoUser :user-photo="event.personnel.photoName" class="!w-8 border-2 border-black"/>
-            <div class="text-sm">{{ event.libPersonnel }}</div>
+          <div v-if="event.overlap" class="flex flex-col gap-2">
+            <div>{{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}</div>
+            <div class="flex gap-2">
+              <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
+              <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
+              <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
+            </div>
           </div>
+          <div v-else class="flex justify-between items-center flex-wrap gap-2">
+            <div class="flex gap-2">
+              <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
+              <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
+              <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
+            </div>
+            <div class="flex flex-col items-center">
+              <Badge v-if="event.evaluation" severity="danger" class="uppercase">éval.</Badge>
+              <div class="opacity-60">{{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}</div>
+            </div>
+          </div>
+          <!--          <div>-->
+          <!--            {{ event.location }} | {{ event.type }} {{ event.groupe }} | <span class="opacity-70">-->
+          <!--            {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}-->
+          <!--          </span>-->
+          <!--          </div>-->
+          <!--          <div class="flex items-center gap-2">-->
+          <!--            <PhotoUser :user-photo="event.personnel.photoName" class="!w-8 border-2 border-black"/>-->
+          <!--            <div class="text-sm">{{ event.libPersonnel }}</div>-->
+          <!--          </div>-->
         </div>
       </div>
     </template>
@@ -312,6 +438,11 @@ const openDialog = ({ event }) => {
     @apply border !border-primary-500 transition duration-200 ease-in-out cursor-pointer shadow-md z-20;
   }
 }
+
+:deep(.vuecal__event-details) {
+  @apply h-full;
+}
+
 :deep(.vuecal__body) {
   @apply gap-2;
 }
