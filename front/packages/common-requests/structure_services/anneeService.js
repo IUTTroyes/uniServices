@@ -49,4 +49,20 @@ const getDepartementAnneesService = async (departementId, onlyActif, showToast =
     }
 }
 
-export { getDiplomeAnneesService, getDiplomeAnneesActifsService, getDepartementAnneesService };
+const getPnAnneesService = async (pnId, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/structure_annees?pn=${pnId}`],
+            'Années du PN récupérées avec succès',
+            'Erreur lors de la récupération des années du PN',
+            showToast
+        );
+        return response['member'];
+    } catch (error) {
+        console.error('Erreur dans getPnAnneesService:', error);
+        throw error;
+    }
+}
+
+export { getDiplomeAnneesService, getDiplomeAnneesActifsService, getDepartementAnneesService, getPnAnneesService };

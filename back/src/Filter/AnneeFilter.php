@@ -28,6 +28,12 @@ class AnneeFilter extends AbstractFilter
                 ->andWhere("departement.id = :departement")
                 ->setParameter("departement", $value);
         }
+        if ('pn' === $property) {
+            $queryBuilder
+                ->join("$alias.pn", "pn")
+                ->andWhere("pn.id = :pn")
+                ->setParameter("pn", $value);
+        }
     }
 
     public function getDescription(string $resourceClass): array
@@ -39,6 +45,14 @@ class AnneeFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by departement',
+                ],
+            ],
+            'pn' => [
+                'property' => 'pn',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by programme name (pn)',
                 ],
             ],
         ];
