@@ -39,6 +39,9 @@ class SemestresFilter extends AbstractFilter
                 ->orderBy(sprintf('%s.ordreLmd', $alias), 'ASC')
                 ->addOrderBy(sprintf('%s.libelle', $alias), 'ASC')
             ;
+//            $sql = $queryBuilder->getQuery()->getSQL();
+//            dd($sql);
+
         } else if ('actif' === $property) {
             $queryBuilder
                 ->andWhere(sprintf('%s.actif = :actif', $alias))

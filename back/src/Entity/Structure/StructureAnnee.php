@@ -82,6 +82,7 @@ class StructureAnnee
     #[Groups(['pn:read'])]
     private ?string $apogeeCodeEtape = null;
 
+    // todo: inverser car 1 annee a N niveaux
     #[ORM\ManyToOne(inversedBy: 'annees')]
     private ?ApcNiveau $niveau = null;
 

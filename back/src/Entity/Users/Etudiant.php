@@ -8,9 +8,9 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Put;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -157,10 +157,17 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['etudiant:read'])]
     private ?array $applications = null;
 
+    /**
+     * @var Collection<int, StructureGroupe>
+     */
+    #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'etudiants')]
+    private Collection $groupes;
+
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
         $this->absences = new ArrayCollection();
+        $this->groupes = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -556,6 +563,30 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     public function setLieuNaissance(?string $lieu_naissance): static
     {
         $this->lieu_naissance = $lieu_naissance;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureGroupe>
+     */
+    public function getGroupes(): Collection
+    {
+        return $this->groupes;
+    }
+
+    public function addGroupe(StructureGroupe $groupe): static
+    {
+        if (!$this->groupes->contains($groupe)) {
+            $this->groupes->add($groupe);
+        }
+
+        return $this;
+    }
+
+    public function removeGroupe(StructureGroupe $groupe): static
+    {
+        $this->groupes->removeElement($groupe);
 
         return $this;
     }

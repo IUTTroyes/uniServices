@@ -55,21 +55,20 @@ const filters = ref({
 });
 
 const getSemestres = async () => {
-    isLoadingSemestres.value = true;
-  try {
-    await semestreStore.getSemestresByDepartement(departementId, true);
-  } catch (error) {
-    console.error('Erreur lors du chargement des semestres:', error);
-    hasError.value = true;
-  } finally {
-    semestresList.value = semestreStore.semestres;
-    if (semestresList.value.length > 0) {
-      selectedSemestre.value = semestresList.value[0];
-    }
-
-    isLoadingSemestres.value = false;
-  }
-};
+      isLoadingSemestres.value = true;
+      try {
+        await semestreStore.getSemestresByDepartement(departementId, true);
+      } catch (error) {
+        console.error('Erreur lors du chargement des semestres:', error);
+        hasError.value = true;
+      } finally {
+        semestresList.value = semestreStore.semestres || [];
+        if (semestresList.value.length > 0) {
+          selectedSemestre.value = semestresList.value[0];
+        }
+        isLoadingSemestres.value = false;
+      }
+    };
 
 const getPrevi = async (semestreId) => {
   if (semestreId) {

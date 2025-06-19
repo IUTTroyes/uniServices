@@ -3,9 +3,9 @@
 namespace App\Entity\Edt;
 
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
-use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureGroupe;
@@ -14,16 +14,21 @@ use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
+use App\Filter\EdtFilter;
 use App\Repository\Edt\EdtEventRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\UuidV4;
 
-#[ApiResource(
-)]
-#[ApiFilter(SearchFilter::class, properties: ['semaineFormation' => 'exact', 'personnel' => 'exact'])]
-#[ApiFilter(BooleanFilter::class, properties: ['aPlacer'])]
 #[ORM\Entity(repositoryClass: EdtEventRepository::class)]
+#[ApiFilter(BooleanFilter::class, properties: ['aPlacer'])]
+#[ApiFilter(EdtFilter::class)]
+#[ApiResource(
+    operations: [
+        new GetCollection(normalizationContext: ['groups' => ['edt_event:read:agenda']]),
+    ]
+)]
 #[ORM\HasLifecycleCallbacks]
 class EdtEvent
 {
@@ -34,6 +39,7 @@ class EdtEvent
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['edt_event:read:agenda'])]
     private ?int $id = null;
 
     #[ORM\Column(nullable: true)]
@@ -43,66 +49,82 @@ class EdtEvent
     private ?int $jour = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
+    #[Groups(['edt_event:read:agenda'])]
     private ?\DateTimeInterface $debut = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
+    #[Groups(['edt_event:read:agenda'])]
     private ?\DateTimeInterface $fin = null;
 
     #[ORM\Column(length: 25)]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $salle = '-';
 
     #[ORM\Column(length: 25, nullable: true)]
     private ?string $codeSalle = null;
 
-    #[ORM\ManyToOne(inversedBy: 'edtEvents')]
+    #[ORM\ManyToOne(inversedBy: 'events')]
+    #[Groups(['edt_event:read:agenda'])]
     private ?Personnel $personnel = null;
 
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $codePersonnel = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $libPersonnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'edtEvents')]
+    #[Groups(['edt_event:read:agenda'])]
     private ?ScolEnseignement $enseignement = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $codeModule = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $libModule = null;
 
     #[ORM\ManyToOne(inversedBy: 'edtEvents')]
+    #[Groups(['edt_event:read:agenda'])]
     private ?StructureGroupe $groupe = null;
 
     #[ORM\Column(length: 30, nullable: true)]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $codeGroupe = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $libGroupe = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $couleur = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $celcatId = null;
 
     #[ORM\Column(length: 20, nullable: true)]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $type = null;
 
     #[ORM\ManyToOne(inversedBy: 'edtEvents')]
+    #[Groups(['edt_event:read:agenda'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\Column(nullable: true)]
     private ?int $departementCodeCelcat = null;
 
     #[ORM\ManyToOne(inversedBy: 'events')]
+    #[Groups(['edt_event:read:agenda'])]
     private ?StructureSemestre $semestre = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $updatedEvent = null;
 
     #[ORM\Column]
+    #[Groups(['edt_event:read:agenda'])]
     private bool $evaluation = false;
 
     #[ORM\Column]

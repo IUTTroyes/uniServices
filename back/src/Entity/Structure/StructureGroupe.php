@@ -7,10 +7,11 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Edt\EdtEvent;
-use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\OldIdTrait;
+use App\Entity\Users\Etudiant;
 use App\Repository\Structure\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -37,7 +38,7 @@ class StructureGroupe
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read', 'scolarite:read'])]
+    #[Groups(['semestre:read', 'scolarite:read', 'edt_event:read:agenda'])]
     private string $libelle;
 
     #[ORM\Column(length: 10)]
@@ -75,10 +76,17 @@ class StructureGroupe
     private Collection $edtEvents;
 
     /**
-     * @var Collection<int, EtudiantScolarite>
+     * @var Collection<int, EtudiantScolariteSemestre>
      */
-    #[ORM\ManyToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'groupes')]
-    private Collection $scolarites;
+    #[ORM\ManyToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'groupes')]
+    private Collection $scolariteSemestres;
+
+    /**
+     * @var Collection<int, Etudiant>
+     */
+    #[ORM\ManyToMany(targetEntity: Etudiant::class, mappedBy: 'groupes')]
+    #[Groups(['scolarite:read', 'edt_event:read:agenda'])]
+    private Collection $etudiants;
 
     public function __construct()
     {
@@ -86,7 +94,8 @@ class StructureGroupe
         $this->enfants = new ArrayCollection();
         $this->parcours = new ArrayCollection();
         $this->edtEvents = new ArrayCollection();
-        $this->scolarites = new ArrayCollection();
+        $this->scolariteSemestres = new ArrayCollection();
+        $this->etudiants = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -254,27 +263,54 @@ class StructureGroupe
     }
 
     /**
-     * @return Collection<int, EtudiantScolarite>
+     * @return Collection<int, EtudiantScolariteSemestre>
      */
-    public function getScolarites(): Collection
+    public function getScolariteSemestres(): Collection
     {
-        return $this->scolarites;
+        return $this->scolariteSemestres;
     }
 
-    public function addScolarite(EtudiantScolarite $scolarite): static
+    public function addScolariteSemestre(EtudiantScolariteSemestre $scolariteSemestre): static
     {
-        if (!$this->scolarites->contains($scolarite)) {
-            $this->scolarites->add($scolarite);
-            $scolarite->addGroupe($this);
+        if (!$this->scolariteSemestres->contains($scolariteSemestre)) {
+            $this->scolariteSemestres->add($scolariteSemestre);
+            $scolariteSemestre->addGroupe($this);
         }
 
         return $this;
     }
 
-    public function removeScolarite(EtudiantScolarite $scolarite): static
+    public function removeScolariteSemestre(EtudiantScolariteSemestre $scolariteSemestre): static
     {
-        if ($this->scolarites->removeElement($scolarite)) {
-            $scolarite->removeGroupe($this);
+        if ($this->scolariteSemestres->removeElement($scolariteSemestre)) {
+            $scolariteSemestre->removeGroupe($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Etudiant>
+     */
+    public function getEtudiants(): Collection
+    {
+        return $this->etudiants;
+    }
+
+    public function addEtudiant(Etudiant $etudiant): static
+    {
+        if (!$this->etudiants->contains($etudiant)) {
+            $this->etudiants->add($etudiant);
+            $etudiant->addGroupe($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiant(Etudiant $etudiant): static
+    {
+        if ($this->etudiants->removeElement($etudiant)) {
+            $etudiant->removeGroupe($this);
         }
 
         return $this;

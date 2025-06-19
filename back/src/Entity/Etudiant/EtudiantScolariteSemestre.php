@@ -3,6 +3,7 @@
 namespace App\Entity\Etudiant;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
 use App\Repository\EtudiantScolariteSemestreRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -39,10 +40,17 @@ class EtudiantScolariteSemestre
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
     private ?EtudiantScolarite $scolarite = null;
 
+    /**
+     * @var Collection<int, StructureGroupe>
+     */
+    #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'scolariteSemestres')]
+    private Collection $groupes;
+
     public function __construct()
     {
         $this->absence = new ArrayCollection();
         $this->note = new ArrayCollection();
+        $this->groupes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -130,6 +138,30 @@ class EtudiantScolariteSemestre
     public function setScolarite(?EtudiantScolarite $scolarite): static
     {
         $this->scolarite = $scolarite;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureGroupe>
+     */
+    public function getGroupes(): Collection
+    {
+        return $this->groupes;
+    }
+
+    public function addGroupe(StructureGroupe $groupe): static
+    {
+        if (!$this->groupes->contains($groupe)) {
+            $this->groupes->add($groupe);
+        }
+
+        return $this;
+    }
+
+    public function removeGroupe(StructureGroupe $groupe): static
+    {
+        $this->groupes->removeElement($groupe);
 
         return $this;
     }

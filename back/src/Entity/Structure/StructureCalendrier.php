@@ -2,6 +2,7 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Edt\EdtCreneauxInterditsSemaine;
@@ -17,7 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
     paginationEnabled: false
     //todo: filtrer en direct possible puisque semaineFormation est un champ de la table ?
 )]
-#[ApiFilter(SemaineFormationFilter::class)]
+#[ApiFilter(SearchFilter::class, properties: ['semaineReelle' => 'exact', 'anneeUniversitaire' => 'exact'])]
 class StructureCalendrier
 {
     #[ORM\Id]

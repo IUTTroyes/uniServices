@@ -4,9 +4,11 @@ export * from './structure_services/anneeService';
 export * from './structure_services/semestreService';
 export * from './structure_services/anneeUnivService';
 export * from './structure_services/pnService';
+export * from './structure_services/structureCalendrierService';
 
 export * from './structure_services/previsionnelService';
 export * from './scol_services/enseignementService';
+export * from './edt_services/edtEventService.js';
 
 export * from './user_services/etudiantService';
 export * from './user_services/personnelService';

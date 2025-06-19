@@ -10,7 +10,8 @@ import ListSkeleton from '@components/loader/ListSkeleton.vue';
 import CardSkeleton from "@components/loader/CardSkeleton.vue";
 import ApcCompetenceBadge from "@components/Apc/ApcCompetenceBadge.vue";
 import ApcAcBadge from "@components/Apc/ApcAcBadge.vue";
-import ErrorView from './components/ErrorView.vue';
+import ErrorView from '@components/components/ErrorView.vue';
+import PhotoUser from '@components/components/PhotoUser.vue';
 
 export {
   LayoutComponent,
@@ -25,5 +26,6 @@ export {
   CardSkeleton,
   ApcCompetenceBadge,
   ApcAcBadge,
-  ErrorView
+  ErrorView,
+  PhotoUser,
 };

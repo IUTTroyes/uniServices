@@ -47,7 +47,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read'])]
+    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
@@ -74,7 +74,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:read', 'edt_event:read:agenda'])]
     private ?string $photoName = null;
 
     /**
@@ -685,7 +685,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->statut->getLibelle() ?? '-';
     }
 
-    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'diplome:read'])]
+    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'diplome:read', 'edt_event:read:agenda'])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();

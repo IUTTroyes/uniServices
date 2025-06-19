@@ -49,7 +49,7 @@ class StructureSemestre
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'etudiant:read', 'pn:read', 'enseignant_hrs:read'])]
+    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'etudiant:read', 'pn:read', 'enseignant_hrs:read', 'edt_event:read:agenda'])]
     private string $libelle;
 
     #[ORM\Column]
@@ -84,7 +84,6 @@ class StructureSemestre
      * @var Collection<int, StructureGroupe>
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, mappedBy: 'semestres')]
-    #[Groups(['semestre:read'])]
     private Collection $groupes;
 
     #[ORM\ManyToOne(inversedBy: 'semestres')]
