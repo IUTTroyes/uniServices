@@ -15,6 +15,7 @@ const diplomes = ref([])
 const selectedDiplome = ref(null)
 const pn = ref(null)
 const annees = ref([])
+const isLoadingAnnees = ref(true)
 const semestres = ref([])
 const isLoadingSemestres = ref(true)
 const selectedEnseignement = ref(null)
@@ -74,6 +75,7 @@ const getAnneesForPn = async (pnId) => {
     console.error('Erreur lors du chargement des années pour le PN:', error);
     hasError.value = true;
   } finally {
+    isLoadingAnnees.value = false;
    // pour chaque année on charge les semestres et on les ajoute à l'année
     for (const annee of annees.value) {
       await getSemestresForAnnee(annee.id);
@@ -153,7 +155,8 @@ const showDetails = (item, semestre) => {
           Aucun programme pédagogique national trouvé pour le diplôme et l'année universitaire sélectionné.
         </Message>
       </div>
-      <Fieldset v-if="pn" v-for="annee in annees" :legend="`${annee.libelle}`" :toggleable="true">
+      <SimpleSkeleton v-if="isLoadingAnnees" class="mt-4"/>
+      <Fieldset v-if="pn && !isLoadingAnnees" v-for="annee in annees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
           <i class="pi pi-angle-down"></i>
         </template>
@@ -179,34 +182,49 @@ const showDetails = (item, semestre) => {
           </div>
 
           <SimpleSkeleton v-if="isLoadingSemestres" class="mt-4"/>
-          <Fieldset v-else v-for="semestre in annee.semestres" :legend="`${semestre.libelle}`" :toggleable="true">
-            <template #toggleicon>
-              <i class="pi pi-angle-down"></i>
-            </template>
-            <div>Hello</div>
-          </Fieldset>
+          <div v-else v-for="semestre in annee.semestres" class="ml-6 border-l-2 border-primary-300 pl-4">
+            <div class="mt-6 mb-2 flex flex-row items-center gap-4">
+              <table class="text-lg">
+                <thead>
+                <tr class="border-b">
+                  <th class="px-2 font-normal text-muted-color text-start">Semestre</th>
+                  <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
+                  <th class="px-2 font-normal text-muted-color text-start">Nbr. d'UEs</th>
+
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                  <td class="px-2 font-bold">{{ semestre.libelle }}</td>
+                  <td class="px-2 font-bold">{{ semestre.codeElement }}</td>
+                  <td class="px-2 font-bold">{{ semestre.ues?.length ?? '' }}</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
 
 
           <!--          <div v-for="semestre in annee.semestres" class="ml-6 border-l-2 border-primary-300 pl-4">-->
-          <!--            <div class="mt-6 mb-2 flex flex-row items-center gap-4">-->
-          <!--              <table class="text-lg">-->
-          <!--                <thead>-->
-          <!--                <tr class="border-b">-->
-          <!--                  <th class="px-2 font-normal text-muted-color text-start">Semestre</th>-->
-          <!--                  <th class="px-2 font-normal text-muted-color text-start">Code élément</th>-->
-          <!--                  <th class="px-2 font-normal text-muted-color text-start">Nbr. d'UEs</th>-->
+<!--                      <div class="mt-6 mb-2 flex flex-row items-center gap-4">-->
+<!--                        <table class="text-lg">-->
+<!--                          <thead>-->
+<!--                          <tr class="border-b">-->
+<!--                            <th class="px-2 font-normal text-muted-color text-start">Semestre</th>-->
+<!--                            <th class="px-2 font-normal text-muted-color text-start">Code élément</th>-->
+<!--                            <th class="px-2 font-normal text-muted-color text-start">Nbr. d'UEs</th>-->
 
-          <!--                </tr>-->
-          <!--                </thead>-->
-          <!--                <tbody>-->
-          <!--                <tr>-->
-          <!--                  <td class="px-2 font-bold">{{ semestre.libelle }}</td>-->
-          <!--                  <td class="px-2 font-bold">{{ semestre.codeElement }}</td>-->
-          <!--                  <td class="px-2 font-bold">{{ semestre.ues.length }}</td>-->
-          <!--                </tr>-->
-          <!--                </tbody>-->
-          <!--              </table>-->
+<!--                          </tr>-->
+<!--                          </thead>-->
+<!--                          <tbody>-->
+<!--                          <tr>-->
+<!--                            <td class="px-2 font-bold">{{ semestre.libelle }}</td>-->
+<!--                            <td class="px-2 font-bold">{{ semestre.codeElement }}</td>-->
+<!--                            <td class="px-2 font-bold">{{ semestre.ues.length }}</td>-->
+<!--                          </tr>-->
+<!--                          </tbody>-->
+<!--                        </table>-->
           <!--              <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>-->
           <!--            </div>-->
           <!--            <div class="mb-4">-->
