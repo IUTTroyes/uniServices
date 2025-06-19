@@ -43,18 +43,6 @@ const getWeekUnivNumber = async (date) => {
   }
 };
 
-
-
-// Watcher pour mettre à jour le numéro de semaine universitaire lorsque la vue change
-watch (() => vuecalRef.value?.view?.start, (newValue) => {
-  if (newValue) {
-    getWeekUnivNumber(new Date(newValue));
-    getEventsPersonnelWeek()
-  }
-}, { immediate: true });
-
-
-
 // Ajout d'une fonction pour détecter les chevauchements
 function detectOverlap(event, allEvents) {
   return allEvents.some(e =>
@@ -336,7 +324,7 @@ function getBadgeSeverity(type) {
   @apply flex justify-between items-center gap-2;
 }
 
-:deep(.vuecal--day-view .vuecal__scrollable-wrap .vuecal__scrollable .vuecal__time-column) {
+:deep(.vuecal__scrollable--day-view .vuecal__time-column) {
   @apply p-0;
 }
 </style>

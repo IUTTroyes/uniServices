@@ -45,8 +45,34 @@ const getPersonnelEdtWeekEventsService = async (semaine, personnel, anneeUniv, d
     }
 }
 
+const getSemestreEdtWeekEventsService = async (semaine, semestre, anneeUniv, departement, showToast = false) => {
+    try {
+        const params = {
+            semaineFormation: semaine,
+            semestre: semestre,
+            anneeUniversitaire: anneeUniv,
+            departement: departement,
+        };
+
+        console.log(params);
+
+        const response = await apiCall(
+            api.get,
+            [`/api/edt_events`, {params}],
+            'Événéments de l\'emploi du temps du personnel récupérés avec succès',
+            'Erreur lors de la récupération des événements de l\'emploi du temps du personnel',
+            showToast
+        );
+
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getPersonnelEdtEventsService:', error);
+        throw error;
+    }
+}
+
 const getPersonnelDepartementWeekEdtService = async (departement, anneeUniv, limit, page, filters, showToast = false) => {
 
 }
 
-export { getPersonnelEdtEventsService, getPersonnelEdtWeekEventsService, getPersonnelDepartementWeekEdtService };
+export { getPersonnelEdtEventsService, getPersonnelEdtWeekEventsService, getPersonnelDepartementWeekEdtService, getSemestreEdtWeekEventsService };

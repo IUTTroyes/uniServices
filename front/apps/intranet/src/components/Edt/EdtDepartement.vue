@@ -2,7 +2,7 @@
 import {VueCal} from 'vue-cal';
 import 'vue-cal/style';
 
-import {reactive, ref} from 'vue';
+import {nextTick, onMounted, reactive, ref, watch} from 'vue';
 
 // Référence vers le composant vue-cal
 const vuecalRef = ref(null)
@@ -10,10 +10,6 @@ const vuecalRef = ref(null)
 const viewTranslations = {
   day: 'JOUR',
   week: 'SEMAINE',
-};
-
-const stringToDate = (dateString) => {
-  return new Date(dateString);
 };
 
 const schedules = ref( [
@@ -51,22 +47,165 @@ const events = ref([
   }
 ])
 
-const getWeekUnivNumber = (date) => {
-  const startUnivYear = new Date(date.getFullYear(), 8, 1); // 1er septembre
-  if (date < startUnivYear) {
-    startUnivYear.setFullYear(startUnivYear.getFullYear() - 1);
-  }
-  // Ajuster pour que la semaine commence le lundi
-  const dayOfWeek = (date.getDay() + 6) % 7; // 0 = lundi, 6 = dimanche
-  const monday = new Date(date);
-  monday.setDate(date.getDate() - dayOfWeek);
+//---------------------------------
+//---------------------------------
+//---------------------------------
+//---------------------------------
+import { useSemestreStore, useUsersStore } from '@stores';
+import { SimpleSkeleton } from '@components';
+import {getISOWeekNumber} from "@helpers/date";
+import {getSemestreEdtWeekEventsService, getSemaineUniversitaireService} from "@requests";
+import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
+import { useToast } from 'primevue/usetoast';
 
-  const diffInDays = Math.floor((monday - startUnivYear) / (1000 * 60 * 60 * 24));
-  return Math.floor(diffInDays / 7) + 1;
+const toast = useToast();
+const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
+const usersStore = useUsersStore();
+const semestreStore = useSemestreStore();
+const isLoadingSemestres = ref(false);
+const semestresList = ref([]);
+const selectedSemestre = ref(null);
+const hasError = ref(false);
+const personnel = usersStore.user;
+const departement = usersStore.departementDefaut;
+const weekUnivNumber = ref(0);
+
+onMounted(async () => {
+  await getSemestres();
+  await getEventsDepartementWeek();
+});
+
+const getSemestres = async () => {
+  isLoadingSemestres.value = true;
+  try {
+    await semestreStore.getSemestresByDepartement(departement.id, true);
+    semestresList.value = semestreStore.semestres;
+  } catch (error) {
+    console.error('Erreur lors du chargement des semestres :', error);
+    hasError.value = true;
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de charger les semestres. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+      life: 5000,
+    });
+  } finally {
+    isLoadingSemestres.value = false;
+    console.log('semestres', semestresList.value);
+  }
+};
+
+watch(selectedSemestre, async (newValue) => {
+  schedules.value = (newValue.groupes || [])
+    .filter(groupe => groupe.type === 'TP')
+    .map(groupe => ({
+      id: groupe.id,
+      class: `groupe-${groupe.id}`,
+      label: groupe.libelle,
+    }));
+
+  getEventsDepartementWeek()
+});
+
+watch(() => vuecalRef.value?.view?.start, async (newValue) => {
+  if (newValue && selectedSemestre.value) { // Vérifie qu'un semestre est sélectionné
+    const startDate = new Date(newValue);
+    await getWeekUnivNumber(startDate); // Récupère le numéro de semaine de formation
+    getEventsDepartementWeek(); // Met à jour les événements pour la semaine
+  }
+}, { immediate: true });
+
+const getWeekUnivNumber = async (date) => {
+  const calendarWeekNumber = getISOWeekNumber(date); // Calcule le numéro de semaine ISO
+  try {
+    const response = await getSemaineUniversitaireService(calendarWeekNumber, anneeUniv.id);
+    weekUnivNumber.value = response[0]?.semaineFormation || 0; // Définit la semaine de formation
+  } catch (error) {
+    console.error('Erreur lors de la récupération du numéro de semaine universitaire :', error);
+  }
+};
+
+const getEventsDepartementWeek = async () => {
+  if (!selectedSemestre.value) {
+    console.warn('Aucun semestre sélectionné, la requête ne sera pas exécutée.');
+    return;
+  }
+
+  try {
+    const response = await getSemestreEdtWeekEventsService(
+      weekUnivNumber.value,
+      selectedSemestre.value.id,
+      anneeUniv.id,
+      departement.id
+    );
+    if (response && response.length > 0) {
+      const mappedEvents = response.map(event => {
+        const startDate = new Date(event.debut);
+        const endDate = new Date(event.fin);
+
+        return {
+          ...event,
+          ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
+          start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
+          end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
+          backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
+          location: event.salle,
+          title: event.codeModule + ' - ' + event.libModule,
+          type: event.type,
+          groupe: event.groupe || '**',
+          personnel: event.personnel,
+          intervenantPhoto: event.personnel.photoName ?? null,
+          overlap: false,
+          eval: event.evaluation,
+          intervenants: event.enseignement.previsionnels
+              .filter(intervenant => intervenant.personnel.id !== personnel.id)
+              .map(intervenant => ({
+                id: intervenant.id,
+                display: intervenant.personnel?.display || 'Inconnu',
+                photoName: intervenant.personnel?.photoName || null,
+              })),
+        };
+      });
+
+      events.value = mappedEvents.map(event => ({
+        ...event,
+        title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
+        overlap: !!detectOverlap(event, mappedEvents),
+      }));
+    } else {
+      events.value = [];
+    }
+  } catch (error) {
+    console.error('Error fetching events:', error);
+  } finally {
+    await nextTick();
+    const eventsObjects = document.querySelectorAll('.vuecal__event');
+    eventsObjects.forEach(event => {
+      if (event.style.backgroundColor) {
+        event.style.border = `2px solid ${adjustColor(darkenColor(event.style.backgroundColor, 50), 0, 0.2)}`;
+        event.style.borderTop = `6px solid ${adjustColor(darkenColor(event.style.backgroundColor, 60), 0, 0.2)}`;
+        event.style.overflow = 'auto';
+        event.style.scrollbarWidth = 'none';
+        event.style.cssText += '::-webkit-scrollbar { display: none; }';
+        event.style.opacity = 0.9;
+      }
+    });
+  }
+
+  console.log('events', events.value);
 };
 </script>
 
 <template>
+  <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/3" />
+  <Select
+      v-else
+      v-model="selectedSemestre"
+      :options="semestresList"
+      optionLabel="libelle"
+      placeholder="Sélectionner un semestre"
+      class="w-full"
+  ></Select>
   <vue-cal
       ref="vuecalRef"
       locale="fr"
@@ -93,7 +232,7 @@ const getWeekUnivNumber = (date) => {
           />
           <div class="flex flex-col items-center">
             <span v-html="view.title" class="font-bold text-xl flex flex-col items-center"></span>
-            <span class="text-md text-muted-color">Semaine de formation : {{ getWeekUnivNumber(view.start) }}</span>
+            <span class="text-md text-muted-color">Semaine de formation : {{ weekUnivNumber }}</span>
           </div>
           <Button
               icon="pi pi-chevron-circle-right"
@@ -159,7 +298,7 @@ const getWeekUnivNumber = (date) => {
 }
 
 :deep(.vuecal--day-view .vuecal__scrollable-wrap .vuecal__scrollable .vuecal__time-column) {
-  @apply p-0;
+  @apply p-6;
 }
 
 .vuecal__schedule.dad {background-color: rgba(221, 238, 255, 0.5);}

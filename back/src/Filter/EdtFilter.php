@@ -60,6 +60,12 @@
                                 ->andWhere('personnel.id = :personnel')
                                 ->setParameter('personnel', $value);
                         }
+
+                        if ('semestre' === $property) {
+                                    $queryBuilder
+                                        ->andWhere('semestre.id = :semestre')
+                                        ->setParameter('semestre', $value);
+                                }
                     }
 
                     public function getDescription(string $resourceClass): array
@@ -95,6 +101,14 @@
                                 'required' => false,
                                 'openapi' => [
                                     'description' => 'Filter by department',
+                                ],
+                            ],
+                            'semestre' => [
+                                'property' => 'semestre',
+                                'type' => Type::BUILTIN_TYPE_INT,
+                                'required' => false,
+                                'openapi' => [
+                                    'description' => 'Filter by semester',
                                 ],
                             ],
                         ];

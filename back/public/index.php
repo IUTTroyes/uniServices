@@ -1,4 +1,6 @@
 <?php
+// Increase PHP memory limit
+//ini_set('max_execution_time', -1);
 
 use App\Kernel;
 
