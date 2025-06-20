@@ -66,6 +66,7 @@ router.beforeEach(async(to, from, next) => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('logout')) {
         localStorage.removeItem('token');
+        localStorage.removeItem('selectedAnneeUniv');
         window.location.replace('http://localhost:3000/auth/login');
     }
 
@@ -76,6 +77,7 @@ router.beforeEach(async(to, from, next) => {
 
         if (Date.now() >= exp) {
             localStorage.removeItem('token');
+            localStorage.removeItem('selectedAnneeUniv');
             return window.location.href = 'http://localhost:3000/auth/login';
         }
 

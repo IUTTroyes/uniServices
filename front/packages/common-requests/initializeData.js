@@ -28,12 +28,6 @@ export const initializeAppData = async () => {
       }
     }
 
-    // Add more initialization logic here as needed
-    // For example:
-    // - Fetch user profile data
-    // - Fetch application configuration
-    // - Fetch reference data needed by multiple components
-
     console.log('Application data initialized successfully');
   } catch (error) {
     console.error('Error initializing application data:', error);
