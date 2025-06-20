@@ -126,7 +126,7 @@ FOREIGN_KEY_CHECKS=1');
         $this->effacerTables();
         $this->addAnneeUniversitaire();
 
-        // Départements
+//        // Départements
         $this->addTypeDiplome();
         $this->addDepartements();
         $this->addDiplomes();
@@ -477,8 +477,7 @@ FOREIGN_KEY_CHECKS=1');
     {
         $reponses = $this->httpClient->request('GET', $this->base_url . '/groupes');
         $groupes = $reponses->toArray();
-
-        foreach ($groupes as $groupe) {
+        foreach ($groupes as $groupeArray) {
             /*
              * "id": 9,
 "libelle": "CD",
@@ -497,7 +496,27 @@ FOREIGN_KEY_CHECKS=1');
 "parcours": null,
 "enfants": []
              */
-            $this->addEnfants($groupe, null);
+            $groupe = new StructureGroupe();
+            $groupe->setLibelle($groupeArray['libelle']);
+            $groupe->setCodeApogee(substr($groupeArray['codeApogee'], 0, 25));
+            $groupe->setOrdre($groupeArray['ordre']);
+            if (array_key_exists('typeGroupe', $groupeArray) && is_array($groupeArray['typeGroupe'])) {
+                $groupe->setType($groupeArray['typeGroupe']['type']);
+                foreach ($groupeArray['typeGroupe']['semestres'] as $semestre) {
+                    if (array_key_exists($semestre, $this->tSemestres)) {
+                        $groupe->addSemestre($this->tSemestres[$semestre]);
+                    }
+                }
+            } else {
+                $groupe->setType('Erreur');
+            }
+            $groupe->setOldId($groupeArray['id']);
+            $groupe->setKeyEduSign($groupeArray['edusign']);
+            $groupe->setParent(null);
+            //traiter les semestres
+
+            $this->entityManager->persist($groupe);
+            $this->addEnfants($groupeArray, $groupe);
         }
 
         $this->entityManager->flush();
