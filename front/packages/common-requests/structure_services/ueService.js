@@ -5,18 +5,18 @@ import apiCall from '@helpers/apiCall';
 // ------------------- GET ----------------------
 // ----------------------------------------------
 
-const getSemaineUniversitaireService = async (weekNumber, anneeUniversitaire, showToast = false) => {
+const getSemestreUesService = async (semestre, showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api/structure_calendriers?semaineReelle=${weekNumber}&anneeUniversitaire=${anneeUniversitaire}`],
-            'Semaine universitaire récupérée avec succès',
-            'Erreur lors de la récupération de la semaine universitaire',
+            [`/api/structure_ues?semestre=${semestre}`],
+            'Ues du semestre récupérées avec succès',
+            'Erreur lors de la récupération des ues du semestre',
             showToast
         );
-        return response['member'];
+        return response.member;
     } catch (error) {
-        console.error('Erreur dans getSemaineUniversitaireService:', error);
+        console.error('Erreur dans getSemestreUesService:', error);
         throw error;
     }
 }
@@ -24,7 +24,6 @@ const getSemaineUniversitaireService = async (weekNumber, anneeUniversitaire, sh
 // ----------------------------------------------
 // ------------------- CREATE -------------------
 // ----------------------------------------------
-
 
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
@@ -34,4 +33,4 @@ const getSemaineUniversitaireService = async (weekNumber, anneeUniversitaire, sh
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getSemaineUniversitaireService };
+export { getSemestreUesService };

@@ -1,6 +1,10 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
+// ----------------------------------------------
+// ------------------- GET ----------------------
+// ----------------------------------------------
+
 const getAllAnneesUniversitairesService = async (showToast = false) => {
     try {
         const response = await apiCall(
@@ -47,5 +51,17 @@ const getCurrentAnneeUniversitaireService = async (showToast = false) => {
         throw error;
     }
 }
+
+// ----------------------------------------------
+// ------------------- CREATE -------------------
+// ----------------------------------------------
+
+// ----------------------------------------------
+// ------------------- UPDATE -------------------
+// ----------------------------------------------
+
+// ----------------------------------------------
+// ------------------- DELETE -------------------
+// ----------------------------------------------
 
 export { getAllAnneesUniversitairesService, getAnneeUniversitaireService, getCurrentAnneeUniversitaireService };

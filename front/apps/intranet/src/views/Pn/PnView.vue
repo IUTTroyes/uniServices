@@ -5,7 +5,7 @@ import {ListSkeleton, SimpleSkeleton, ErrorView} from "@components";
 import FicheRessource from "../../components/Pn/FicheRessource.vue";
 import FicheSae from "../../components/Pn/FicheSae.vue";
 import FicheMatiere from "../../components/Pn/FicheMatiere.vue";
-import { getEnseignementService, getPnDiplome, getPnAnneesService, getAnneeSemestresService } from "@requests";
+import { getEnseignementService, getPnDiplome, getPnAnneesService, getAnneeSemestresService, getSemestreUesService } from "@requests";
 
 const usersStore = useUsersStore();
 const diplomeStore = useDiplomeStore();
@@ -97,6 +97,8 @@ const getSemestresForAnnee = async (anneeId) => {
     isLoadingSemestres.value = false;
   }
 }
+
+
 
 const getEnseignement = async (enseignementId, semestre) => {
   try {
