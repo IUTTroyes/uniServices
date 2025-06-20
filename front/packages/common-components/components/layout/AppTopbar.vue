@@ -168,14 +168,12 @@ const isEnabled = (item) => {
 };
 
 const selectAnneeUniversitaire = (annee) => {
-  const selectedAnnee = {
-    id: annee.id,
-    label: annee.libelle,
-    libelle: annee.libelle,
-    isActif: annee.actif,
-  };
-  anneeUnivStore.setSelectedAnneeUniv(selectedAnnee);
-  selectedAnneeUniversitaire.value = selectedAnnee;
+  // Pass the original annee object to the store
+  // The store will handle setting the correct isActif property
+  anneeUnivStore.setSelectedAnneeUniv(annee);
+
+  // Update the local selectedAnneeUniversitaire value with the value from the store
+  selectedAnneeUniversitaire.value = anneeUnivStore.selectedAnneeUniv;
 
   // recharger la page
   window.location.reload();

@@ -51,8 +51,8 @@ const containerClass = computed(() => {
     <div class="layout-main-container">
       <div class="flex justify-between items-center">
         <app-breadcrumb v-if="breadcrumbItems" :items="breadcrumbItems"></app-breadcrumb>
-        <div v-if="!selectedAnneeUniversitaire.isActif">
-          <Message severity="error" class="absolute top-24 right-16 w-fit z-10" icon="pi pi-exclamation-triangle"><span class="font-bold">Attention !</span> Vous n'êtes pas sur l'année universitaire actuelle - {{selectedAnneeUniversitaire.isActif}}</Message>
+        <div v-if="selectedAnneeUniversitaire && !selectedAnneeUniversitaire.isActif">
+          <Message severity="error" class="absolute top-24 right-16 w-fit z-10" icon="pi pi-exclamation-triangle"><span class="font-bold">Attention !</span> Vous n'êtes pas sur l'année universitaire actuelle</Message>
         </div>
       </div>
       <div class="layout-main">
