@@ -13,8 +13,8 @@ export const initializeAppData = async () => {
     await anneeUnivStore.getAllAnneesUniv();
 
     // If no selected annee universitaire in localStorage, set the current one
-    const selectedAnneeUniv = localStorage.getItem('selectedAnneeUniv');
-    if (!selectedAnneeUniv) {
+    const selectedAnneeUnivStr = localStorage.getItem('selectedAnneeUniv');
+    if (!selectedAnneeUnivStr) {
       // Get the current (active) annee universitaire
       await anneeUnivStore.getCurrentAnneeUniv();
 
@@ -26,13 +26,24 @@ export const initializeAppData = async () => {
         const sortedAnnees = [...anneeUnivStore.anneesUniv].sort((a, b) => b.libelle.localeCompare(a.libelle));
         anneeUnivStore.setSelectedAnneeUniv(sortedAnnees[0]);
       }
-    }
+    } else {
+      // Load the selected annee from localStorage
+      const selectedAnneeUniv = JSON.parse(selectedAnneeUnivStr);
 
-    // Add more initialization logic here as needed
-    // For example:
-    // - Fetch user profile data
-    // - Fetch application configuration
-    // - Fetch reference data needed by multiple components
+      // Find the corresponding annee in the list to get the current actif status
+      const foundAnnee = anneeUnivStore.anneesUniv.find(annee => annee.id === selectedAnneeUniv.id);
+
+      if (foundAnnee) {
+        // Update the selected annee with the current actif status
+        anneeUnivStore.setSelectedAnneeUniv({
+          ...selectedAnneeUniv,
+          isActif: foundAnnee.actif
+        });
+      } else {
+        // If not found, just set what we have
+        anneeUnivStore.selectedAnneeUniv.value = selectedAnneeUniv;
+      }
+    }
 
     console.log('Application data initialized successfully');
   } catch (error) {
