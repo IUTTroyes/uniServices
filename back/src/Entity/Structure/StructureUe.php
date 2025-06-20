@@ -2,10 +2,15 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcCompetence;
 use App\Entity\Scolarite\ScolEnseignementUe;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
+use App\Filter\UeFilter;
 use App\Repository\Structure\StructureUeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,6 +18,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureUeRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['ue:read', 'ue:read:full']]),
+        new GetCollection(normalizationContext: ['groups' => ['ue:read']])
+    ]
+)]
+#[ApiFilter(UeFilter::class)]
 class StructureUe
 {
 //    use LifeCycleTrait;
@@ -21,23 +33,23 @@ class StructureUe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'ue:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read:full', 'pn:read'])]
+    #[Groups(['semestre:read:full', 'ue:read'])]
     private string $libelle = '';
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'pn:read'])]
+    #[Groups(['semestre:read:full', 'ue:read'])]
     private int $numero = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'pn:read'])]
+    #[Groups(['semestre:read:full', 'ue:read'])]
     private float $nbEcts = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre:read:full', 'ue:read'])]
     private bool $actif = true;
 
     #[ORM\Column]
@@ -45,7 +57,7 @@ class StructureUe
     private bool $bonification = false;
 
     #[ORM\Column(length: 15)]
-    #[Groups(['semestre:read:full', 'pn:read'])]
+    #[Groups(['semestre:read:full', 'ue:read'])]
     private string $codeElement = '';
 
     #[ORM\ManyToOne(inversedBy: 'ues')]
@@ -60,7 +72,7 @@ class StructureUe
      * @var Collection<int, ScolEnseignementUe>
      */
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'ue')]
-    #[Groups(['semestre:read:full', 'pn:read'])]
+    #[Groups(['semestre:read:full'])]
     private Collection $enseignementUes;
 
     // todo: add coeff. ?
@@ -70,7 +82,7 @@ class StructureUe
         $this->enseignementUes = new ArrayCollection();
     }
 
-    #[Groups(['pn:read'])]
+    #[Groups(['ue:read'])]
     public function getDisplayApc(): string
     {
         return $this->competence ? $this->libelle.' | '.$this->competence->getNomCourt() : $this->libelle;

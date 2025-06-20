@@ -83,7 +83,7 @@ const getAnneesForPn = async (pnId) => {
     hasError.value = true;
   } finally {
     isLoadingAnnees.value = false;
-   // pour chaque année on charge les semestres et on les ajoute à l'année
+    // pour chaque année on charge les semestres et on les ajoute à l'année
     for (const annee of annees.value) {
       await getSemestresForAnnee(annee.id);
       // on ajoute les semestres à l'année
@@ -229,29 +229,57 @@ const showDetails = (item, semestre) => {
                 </tbody>
               </table>
             </div>
+            <Fieldset v-for="ue in semestre.ues" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`" class="ml-6 !border-l-2 !border-l-primary-200 !pl-4 !border-0" :collapsed="true">
+              <template #toggleicon>
+                <i class="pi pi-angle-down"></i>
+              </template>
+              <div class="my-6 flex flex-row items-center gap-4">
+                <table class="text-lg">
+                  <thead>
+                  <tr class="border-b">
+                    <th class="px-2 font-normal text-muted-color text-start">UE</th>
+                    <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
+<!--                    <th v-if="selectedDiplome.typeDiplome.apc" class="px-2 font-normal text-muted-color text-start">Compétence Apc</th>-->
+                    <th class="px-2 font-normal text-muted-color text-start">Nb. ECTS</th>
+<!--                    <th v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-normal text-muted-color text-start">Coeff</th>-->
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr>
+                    <td class="px-2 font-bold">{{ue.libelle}}</td>
+                    <td class="px-2 font-bold">{{ ue.codeElement }}</td>
+<!--                    <td v-if="selectedDiplome.typeDiplome.apc" :class="ue.competence.couleur" class="px-2 font-bold !w-fit">{{ue.competence.nomCourt}}</td>-->
+                    <td class="px-2 font-bold !w-fit">{{ue.nbEcts}}</td>
+<!--                    <td v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-bold !w-fit">0</td>-->
+                  </tr>
+                  </tbody>
+                </table>
+                <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
+              </div>
+            </Fieldset>
           </div>
 
 
 
           <!--          <div v-for="semestre in annee.semestres" class="ml-6 border-l-2 border-primary-300 pl-4">-->
-<!--                      <div class="mt-6 mb-2 flex flex-row items-center gap-4">-->
-<!--                        <table class="text-lg">-->
-<!--                          <thead>-->
-<!--                          <tr class="border-b">-->
-<!--                            <th class="px-2 font-normal text-muted-color text-start">Semestre</th>-->
-<!--                            <th class="px-2 font-normal text-muted-color text-start">Code élément</th>-->
-<!--                            <th class="px-2 font-normal text-muted-color text-start">Nbr. d'UEs</th>-->
+          <!--                      <div class="mt-6 mb-2 flex flex-row items-center gap-4">-->
+          <!--                        <table class="text-lg">-->
+          <!--                          <thead>-->
+          <!--                          <tr class="border-b">-->
+          <!--                            <th class="px-2 font-normal text-muted-color text-start">Semestre</th>-->
+          <!--                            <th class="px-2 font-normal text-muted-color text-start">Code élément</th>-->
+          <!--                            <th class="px-2 font-normal text-muted-color text-start">Nbr. d'UEs</th>-->
 
-<!--                          </tr>-->
-<!--                          </thead>-->
-<!--                          <tbody>-->
-<!--                          <tr>-->
-<!--                            <td class="px-2 font-bold">{{ semestre.libelle }}</td>-->
-<!--                            <td class="px-2 font-bold">{{ semestre.codeElement }}</td>-->
-<!--                            <td class="px-2 font-bold">{{ semestre.ues.length }}</td>-->
-<!--                          </tr>-->
-<!--                          </tbody>-->
-<!--                        </table>-->
+          <!--                          </tr>-->
+          <!--                          </thead>-->
+          <!--                          <tbody>-->
+          <!--                          <tr>-->
+          <!--                            <td class="px-2 font-bold">{{ semestre.libelle }}</td>-->
+          <!--                            <td class="px-2 font-bold">{{ semestre.codeElement }}</td>-->
+          <!--                            <td class="px-2 font-bold">{{ semestre.ues.length }}</td>-->
+          <!--                          </tr>-->
+          <!--                          </tbody>-->
+          <!--                        </table>-->
           <!--              <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>-->
           <!--            </div>-->
           <!--            <div class="mb-4">-->
