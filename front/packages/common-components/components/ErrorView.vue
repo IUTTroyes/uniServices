@@ -6,6 +6,7 @@
   <div class="error-container">
     <img src="@common-images/illu/maintenance.svg" alt="Maintenance" class="maintenance-image" />
     <h2 class="error-message">Une erreur est survenue, veuillez réessayer plus tard</h2>
+    <a href="mailto:intranet.iut-troyes@univ-reims.fr" class="underline">Contacter les administrateurs du site &nbsp; <i class="pi pi-external-link !text-xs underline"></i></a>
   </div>
 </template>
 

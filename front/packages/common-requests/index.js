@@ -5,6 +5,7 @@ export * from './structure_services/semestreService';
 export * from './structure_services/anneeUnivService';
 export * from './structure_services/pnService';
 export * from './structure_services/structureCalendrierService';
+export * from './structure_services/ueService';
 
 export * from './structure_services/previsionnelService';
 export * from './scol_services/enseignementService';

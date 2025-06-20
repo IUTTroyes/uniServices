@@ -11,16 +11,23 @@ const usersStore = useUsersStore();
 const diplomeStore = useDiplomeStore();
 const departementId = ref(null);
 
+const isLoadingDiplomes = ref(true)
 const diplomes = ref([])
 const selectedDiplome = ref(null)
-const pn = ref(null)
-const annees = ref([])
-const isLoadingAnnees = ref(true)
-const semestres = ref([])
-const isLoadingSemestres = ref(true)
-const selectedEnseignement = ref(null)
-const isLoadingDiplomes = ref(true)
+
 const isLoadingPn = ref(true)
+const pn = ref(null)
+
+const isLoadingAnnees = ref(true)
+const annees = ref([])
+
+const isLoadingSemestres = ref(true)
+const semestres = ref([])
+
+const isLoadingUes = ref(true)
+const ues = ref([])
+
+const selectedEnseignement = ref(null)
 const isLoadingEnseignement = ref(true)
 const hasError = ref(false)
 
@@ -95,10 +102,28 @@ const getSemestresForAnnee = async (anneeId) => {
     hasError.value = true;
   } finally {
     isLoadingSemestres.value = false;
+    // pour chaque semestre on charge les UEs et on les ajoute au semestre
+    for (const semestre of semestres.value) {
+      await getUesForSemestre(semestre.id);
+      // on ajoute les UEs au semestre
+      semestre.ues = ues.value;
+    }
   }
 }
 
-
+const getUesForSemestre = async (semestreId) => {
+  try {
+    isLoadingUes.value = true;
+    ues.value = await getSemestreUesService(semestreId);
+    console.log(ues.value);
+    return ues.value;
+  } catch (error) {
+    console.error('Erreur lors du chargement des UEs pour le semestre:', error);
+    hasError.value = true;
+  } finally {
+    isLoadingUes.value = false;
+  }
+}
 
 const getEnseignement = async (enseignementId, semestre) => {
   try {
