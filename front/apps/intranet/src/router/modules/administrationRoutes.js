@@ -1,6 +1,7 @@
 import {LayoutComponent} from "@components";
 import previsionnelRoutes from './previsionnelRoutes.js'
 import stageAdministrationRoutes from './stageAdministrationRoutes.js'
+import semestreAdministrationRoutes from './semestreAdministrationRoutes.js'
 
 export default [
   {
@@ -68,6 +69,12 @@ export default [
     // },
     children: [
       ...stageAdministrationRoutes
+    ]
+  },
+  {
+    path: 'administration/semestre/',
+    children: [
+      ...semestreAdministrationRoutes
     ]
   },
 

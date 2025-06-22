@@ -5,6 +5,7 @@ namespace App\Entity\Structure;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Controller\Structure\GroupesParSemestreController;
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
@@ -23,6 +24,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['diplome:read', 'diplome:read:full']]),
         new GetCollection(normalizationContext: ['groups' => ['diplome:read']]),
+        new GetCollection(
+            uriTemplate: '/structure_groupes/semestre/{semestreId}',
+            controller: GroupesParSemestreController::class,
+            normalizationContext: ['groups' => ['semestre:read']],
+            read: false,
+            name: 'groupes_par_semestre'
+        ),
     ]
 )]
 class StructureGroupe
