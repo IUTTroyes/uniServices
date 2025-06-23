@@ -8,7 +8,6 @@ import FicheMatiere from "../../components/Pn/FicheMatiere.vue";
 import {
   getAnneeSemestresService,
   getCompetenceUeService,
-  getEnseignementService,
   getPnAnneesService,
   getPnDiplome,
   getSemestreUesService,
@@ -30,8 +29,6 @@ const semestres = ref([])
 const ues = ref([])
 const enseignements = ref([])
 
-const selectedEnseignement = ref(null)
-const isLoadingEnseignement = ref(true)
 const hasError = ref(false)
 
 const visibleDialog = ref(false);
@@ -267,79 +264,79 @@ const showDetails = (item, semestre) => {
               </div>
 
               <div v-for="enseignementUe in ue.enseignementUes" class="!border-l-4 !border-l-primary-200 !pl-4 !border-0">
-                                <Fieldset v-if="!enseignementUe.parent" legend="" :toggleable="true">
-                                  <template #toggleicon>
-                                    <i class="pi pi-angle-down"></i>
-                                    <div>{{ enseignementUe.libelle }}</div>
-                                    <Tag v-if="enseignementUe.enfants && enseignementUe.enfants.length >= 1" severity="danger">Ressource parent</Tag>
-                                  </template>
-                                  <div class="my-6 flex flex-row items-center gap-4">
-                                    <table class="text-lg">
-                                      <thead>
-                                      <tr class="border-b">
-                                        <th class="px-2 font-normal text-muted-color text-start">Code {{enseignementUe.type}}</th>
-                                        <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
-                                        <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
-                                        <th class="px-2 font-normal text-muted-color text-start">Type</th>
-                                      </tr>
-                                      </thead>
-                                      <tbody>
-                                      <tr>
-                                        <td class="px-2 font-bold">{{ enseignementUe.codeEnseignement }}</td>
-                                        <td class="px-2 font-bold">{{ enseignementUe.libelle }}</td>
-                                        <td class="px-2 font-bold">{{ enseignementUe.codeApogee }}</td>
-                                        <td class="px-2 font-bold">
-                                          <Tag v-if="enseignementUe.type === 'sae'" severity="success">{{ enseignementUe.type }}</Tag>
-                                          <Tag v-else severity="info">{{ enseignementUe.type }}</Tag>
-                                        </td>
-                                      </tr>
-                                      </tbody>
-                                    </table>
-                                    <div v-if="enseignementUe.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
+                <Fieldset v-if="!enseignementUe.parent" legend="" :toggleable="true">
+                  <template #toggleicon>
+                    <i class="pi pi-angle-down"></i>
+                    <div>{{ enseignementUe.libelle }}</div>
+                    <Tag v-if="enseignementUe.enfants && enseignementUe.enfants.length >= 1" severity="danger">Ressource parent</Tag>
+                  </template>
+                  <div class="my-6 flex flex-row items-center gap-4">
+                    <table class="text-lg">
+                      <thead>
+                      <tr class="border-b">
+                        <th class="px-2 font-normal text-muted-color text-start">Code {{enseignementUe.type}}</th>
+                        <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
+                        <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
+                        <th class="px-2 font-normal text-muted-color text-start">Type</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr>
+                        <td class="px-2 font-bold">{{ enseignementUe.codeEnseignement }}</td>
+                        <td class="px-2 font-bold">{{ enseignementUe.libelle }}</td>
+                        <td class="px-2 font-bold">{{ enseignementUe.codeApogee }}</td>
+                        <td class="px-2 font-bold">
+                          <Tag v-if="enseignementUe.type === 'sae'" severity="success">{{ enseignementUe.type }}</Tag>
+                          <Tag v-else severity="info">{{ enseignementUe.type }}</Tag>
+                        </td>
+                      </tr>
+                      </tbody>
+                    </table>
+                    <div v-if="enseignementUe.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
 
-                                    <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="showDetails(enseignementUe, semestre)" v-tooltip.top="`Accéder au détail`"/>
-                                    <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
-                                    <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
-                                  </div>
+                    <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="showDetails(enseignementUe, semestre)" v-tooltip.top="`Accéder au détail`"/>
+                    <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
+                    <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
+                  </div>
 
-                                  <Fieldset v-for="enfant in enseignementUe.enfants" :toggleable="true" class="!bg-gray-300 !bg-opacity-10">
-                                    <template #toggleicon>
-                                      <i class="pi pi-angle-down"></i>
-                                      <div>{{ enfant.libelle }}</div>
-                                      <Tag v-if="enfant.enfants && enfant.enfants.length >= 1" severity="danger">Ressource parent</Tag>
-                                      <Tag v-if="enfant.parent" severity="warn">Ressource enfant</Tag>
-                                    </template>
-                                    <div class="my-6 flex flex-row items-center gap-4">
-                                      <table class="text-lg">
-                                        <thead>
-                                        <tr class="border-b">
-                                          <th class="px-2 font-normal text-muted-color text-start">Code {{enfant.type}}</th>
-                                          <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
-                                          <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
-                                          <th class="px-2 font-normal text-muted-color text-start">Type</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        <tr>
-                                          <td class="px-2 font-bold">{{ enfant.codeEnseignement }}</td>
-                                          <td class="px-2 font-bold">{{ enfant.libelle }}</td>
-                                          <td class="px-2 font-bold">{{ enfant.codeApogee }}</td>
-                                          <td class="px-2 font-bold">
-                                            <Tag v-if="enfant.type === 'sae'" severity="success">{{ enfant.type }}</Tag>
-                                            <Tag v-else severity="info">{{ enfant.type }}</Tag>
-                                          </td>
-                                        </tr>
-                                        </tbody>
-                                      </table>
-                                      <div v-if="enfant.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
+                  <Fieldset v-for="enfant in enseignementUe.enfants" :toggleable="true" class="!bg-gray-300 !bg-opacity-10">
+                    <template #toggleicon>
+                      <i class="pi pi-angle-down"></i>
+                      <div>{{ enfant.libelle }}</div>
+                      <Tag v-if="enfant.enfants && enfant.enfants.length >= 1" severity="danger">Ressource parent</Tag>
+                      <Tag v-if="enfant.parent" severity="warn">Ressource enfant</Tag>
+                    </template>
+                    <div class="my-6 flex flex-row items-center gap-4">
+                      <table class="text-lg">
+                        <thead>
+                        <tr class="border-b">
+                          <th class="px-2 font-normal text-muted-color text-start">Code {{enfant.type}}</th>
+                          <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
+                          <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
+                          <th class="px-2 font-normal text-muted-color text-start">Type</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                          <td class="px-2 font-bold">{{ enfant.codeEnseignement }}</td>
+                          <td class="px-2 font-bold">{{ enfant.libelle }}</td>
+                          <td class="px-2 font-bold">{{ enfant.codeApogee }}</td>
+                          <td class="px-2 font-bold">
+                            <Tag v-if="enfant.type === 'sae'" severity="success">{{ enfant.type }}</Tag>
+                            <Tag v-else severity="info">{{ enfant.type }}</Tag>
+                          </td>
+                        </tr>
+                        </tbody>
+                      </table>
+                      <div v-if="enfant.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
 
-                                      <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="getEnseignement(enfant.id, semestre)" v-tooltip.top="`Accéder au détail`"/>
-                                      <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
-                                      <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
-                                    </div>
-                                  </Fieldset>
-                                </Fieldset>
-                              </div>
+                      <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="getEnseignement(enfant.id, semestre)" v-tooltip.top="`Accéder au détail`"/>
+                      <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
+                      <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
+                    </div>
+                  </Fieldset>
+                </Fieldset>
+              </div>
             </Fieldset>
           </div>
         </div>
