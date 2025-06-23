@@ -10,8 +10,8 @@ use App\Entity\Structure\StructureAnnee;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\PropertyInfo\Type;
 
-#[ApiFilter(SemestresFilter::class)]
-class SemestresFilter extends AbstractFilter
+#[ApiFilter(SemestreFilter::class)]
+class SemestreFilter extends AbstractFilter
 {
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {

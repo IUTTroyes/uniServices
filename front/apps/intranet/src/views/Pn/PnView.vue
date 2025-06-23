@@ -1,11 +1,18 @@
 <script setup>
-import {onMounted, ref, watch} from 'vue'
-import { useSemestreStore, useUsersStore, useDiplomeStore, useAnneeUnivStore } from '@stores'
-import {ListSkeleton, SimpleSkeleton, ErrorView} from "@components";
+import {onMounted, ref} from 'vue'
+import {useDiplomeStore, useUsersStore} from '@stores'
+import {ErrorView, ListSkeleton, SimpleSkeleton} from "@components";
 import FicheRessource from "../../components/Pn/FicheRessource.vue";
 import FicheSae from "../../components/Pn/FicheSae.vue";
 import FicheMatiere from "../../components/Pn/FicheMatiere.vue";
-import { getEnseignementService, getPnDiplome, getPnAnneesService, getAnneeSemestresService, getSemestreUesService } from "@requests";
+import {
+  getAnneeSemestresService,
+  getCompetenceUeService,
+  getEnseignementService,
+  getPnAnneesService,
+  getPnDiplome,
+  getSemestreUesService
+} from "@requests";
 
 const usersStore = useUsersStore();
 const diplomeStore = useDiplomeStore();
@@ -116,6 +123,18 @@ const getUesForSemestre = async (semestreId) => {
     isLoadingUes.value = true;
     ues.value = await getSemestreUesService(semestreId);
     console.log(ues.value);
+    // si le selectedDiplome a une compétence Apc, on ajoute la compétence à chaque UE
+    if (selectedDiplome.value.typeDiplome.apc) {
+          for (const ue of ues.value) {
+            try {
+              ue.competence = await getCompetenceUeService(ue.id);
+            } catch (error) {
+              console.error(`Erreur lors du chargement de la compétence pour l'UE ${ue.id}:`, error);
+            }
+          }
+
+          console.log(ues.value);
+        }
     return ues.value;
   } catch (error) {
     console.error('Erreur lors du chargement des UEs pour le semestre:', error);
@@ -229,7 +248,8 @@ const showDetails = (item, semestre) => {
                 </tbody>
               </table>
             </div>
-            <Fieldset v-for="ue in semestre.ues" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`" class="ml-6 !border-l-2 !border-l-primary-200 !pl-4 !border-0" :collapsed="true">
+            <SimpleSkeleton v-if="isLoadingUes" class="mt-4"/>
+            <Fieldset v-else v-for="ue in semestre.ues" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`" class="ml-6 !border-l-2 !border-l-primary-200 !pl-4 !border-0" :collapsed="true">
               <template #toggleicon>
                 <i class="pi pi-angle-down"></i>
               </template>
@@ -239,18 +259,18 @@ const showDetails = (item, semestre) => {
                   <tr class="border-b">
                     <th class="px-2 font-normal text-muted-color text-start">UE</th>
                     <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
-<!--                    <th v-if="selectedDiplome.typeDiplome.apc" class="px-2 font-normal text-muted-color text-start">Compétence Apc</th>-->
+                    <th v-if="selectedDiplome.typeDiplome.apc" class="px-2 font-normal text-muted-color text-start">Compétence Apc</th>
                     <th class="px-2 font-normal text-muted-color text-start">Nb. ECTS</th>
-<!--                    <th v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-normal text-muted-color text-start">Coeff</th>-->
+                    <th v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-normal text-muted-color text-start">Coeff</th>
                   </tr>
                   </thead>
                   <tbody>
                   <tr>
                     <td class="px-2 font-bold">{{ue.libelle}}</td>
                     <td class="px-2 font-bold">{{ ue.codeElement }}</td>
-<!--                    <td v-if="selectedDiplome.typeDiplome.apc" :class="ue.competence.couleur" class="px-2 font-bold !w-fit">{{ue.competence.nomCourt}}</td>-->
+                    <td v-if="selectedDiplome.typeDiplome.apc" :class="ue.competence.couleur" class="px-2 font-bold !w-fit !bg-opacity-40">{{ue.competence.nomCourt}}</td>
                     <td class="px-2 font-bold !w-fit">{{ue.nbEcts}}</td>
-<!--                    <td v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-bold !w-fit">0</td>-->
+                    <td v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-bold !w-fit">0</td>
                   </tr>
                   </tbody>
                 </table>
