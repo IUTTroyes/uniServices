@@ -74,6 +74,7 @@ const getPnForDiplome = async (diplomeId) => {
     hasError.value = true;
   } finally {
     await getAnneesForPn(pn.value.id);
+    isLoadingPn.value = false;
   }
 }
 
@@ -145,7 +146,7 @@ const getEnseignementForUe = async (ueId) => {
     console.error('Erreur lors du chargement de l\'enseignement:', error);
     hasError.value = true;
   } finally {
-    isLoadingPn.value = false;
+    // isLoadingPn.value = false;
   }
 }
 
