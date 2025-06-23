@@ -5,8 +5,8 @@ import {ListSkeleton, SimpleSkeleton} from '@components';
 import {
   getAnneeUnivPreviService,
   getDepartementSemestresService,
-  getEnseignementSemestreService,
-  getEnseignementDepartementService,
+  getEnseignementsSemestreService,
+  getEnseignementsDepartementService,
   getPersonnelPreviService,
   getPersonnelsDepartementService,
   getPersonnelEnseignantHrsService,
@@ -196,7 +196,7 @@ const getDiplomes = async () => {
 
 const getEnseignementsSemestre = async (semestreId) => {
   try {
-    const enseignements = await getEnseignementSemestreService(semestreId);
+    const enseignements = await getEnseignementsSemestreService(semestreId);
 
     // Crée une nouvelle référence pour enseignementList
     enseignementList.value = [...enseignements.map((enseignement) => ({
@@ -212,7 +212,7 @@ const getEnseignementsSemestre = async (semestreId) => {
 
 const getAllEnseignementsDepartement = async () => {
   try {
-    const enseignements = await getEnseignementDepartementService(departementId);
+    const enseignements = await getEnseignementsDepartementService(departementId);
     // Crée une nouvelle référence pour enseignementList
     enseignementList.value = [...enseignements.map((enseignement) => ({
       id: enseignement.id,

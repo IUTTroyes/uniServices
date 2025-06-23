@@ -11,7 +11,8 @@ import {
   getEnseignementService,
   getPnAnneesService,
   getPnDiplome,
-  getSemestreUesService
+  getSemestreUesService,
+  getEnseignementsUeService
 } from "@requests";
 
 const usersStore = useUsersStore();
@@ -24,15 +25,10 @@ const selectedDiplome = ref(null)
 
 const isLoadingPn = ref(true)
 const pn = ref(null)
-
-const isLoadingAnnees = ref(true)
 const annees = ref([])
-
-const isLoadingSemestres = ref(true)
 const semestres = ref([])
-
-const isLoadingUes = ref(true)
 const ues = ref([])
+const enseignements = ref([])
 
 const selectedEnseignement = ref(null)
 const isLoadingEnseignement = ref(true)
@@ -77,7 +73,6 @@ const getPnForDiplome = async (diplomeId) => {
     console.error('Erreur lors du chargement des PNs:', error);
     hasError.value = true;
   } finally {
-    isLoadingPn.value = false;
     await getAnneesForPn(pn.value.id);
   }
 }
@@ -89,7 +84,6 @@ const getAnneesForPn = async (pnId) => {
     console.error('Erreur lors du chargement des années pour le PN:', error);
     hasError.value = true;
   } finally {
-    isLoadingAnnees.value = false;
     // pour chaque année on charge les semestres et on les ajoute à l'année
     for (const annee of annees.value) {
       await getSemestresForAnnee(annee.id);
@@ -102,13 +96,11 @@ const getAnneesForPn = async (pnId) => {
 const getSemestresForAnnee = async (anneeId) => {
   try {
     semestres.value = await getAnneeSemestresService(anneeId);
-    console.log(semestres.value);
     return semestres.value;
   } catch (error) {
     console.error('Erreur lors du chargement des semestres pour l\'année:', error);
     hasError.value = true;
   } finally {
-    isLoadingSemestres.value = false;
     // pour chaque semestre on charge les UEs et on les ajoute au semestre
     for (const semestre of semestres.value) {
       await getUesForSemestre(semestre.id);
@@ -120,27 +112,40 @@ const getSemestresForAnnee = async (anneeId) => {
 
 const getUesForSemestre = async (semestreId) => {
   try {
-    isLoadingUes.value = true;
     ues.value = await getSemestreUesService(semestreId);
-    console.log(ues.value);
     // si le selectedDiplome a une compétence Apc, on ajoute la compétence à chaque UE
     if (selectedDiplome.value.typeDiplome.apc) {
-          for (const ue of ues.value) {
-            try {
-              ue.competence = await getCompetenceUeService(ue.id);
-            } catch (error) {
-              console.error(`Erreur lors du chargement de la compétence pour l'UE ${ue.id}:`, error);
-            }
-          }
-
-          console.log(ues.value);
+      for (const ue of ues.value) {
+        try {
+          ue.competence = await getCompetenceUeService(ue.id);
+        } catch (error) {
+          console.error(`Erreur lors du chargement de la compétence pour l'UE ${ue.id}:`, error);
         }
+      }
+
+    }
     return ues.value;
   } catch (error) {
     console.error('Erreur lors du chargement des UEs pour le semestre:', error);
     hasError.value = true;
   } finally {
-    isLoadingUes.value = false;
+    // pour chaque UE on charge les enseignements et on les ajoute à l'UE
+    for (const ue of ues.value) {
+      await getEnseignementForUe(ue.id);
+      // on ajoute les enseignements à l'UE
+      ue.enseignementUes = enseignements.value;
+    }
+  }
+}
+
+const getEnseignementForUe = async (ueId) => {
+  try {
+    enseignements.value = await getEnseignementsUeService(ueId)
+  } catch (error) {
+    console.error('Erreur lors du chargement de l\'enseignement:', error);
+    hasError.value = true;
+  } finally {
+    isLoadingPn.value = false;
   }
 }
 
@@ -201,8 +206,7 @@ const showDetails = (item, semestre) => {
           Aucun programme pédagogique national trouvé pour le diplôme et l'année universitaire sélectionné.
         </Message>
       </div>
-      <SimpleSkeleton v-if="isLoadingAnnees" class="mt-4"/>
-      <Fieldset v-if="pn && !isLoadingAnnees" v-for="annee in annees" :legend="`${annee.libelle}`" :toggleable="true">
+      <Fieldset v-if="pn" v-for="annee in annees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
           <i class="pi pi-angle-down"></i>
         </template>
@@ -227,8 +231,7 @@ const showDetails = (item, semestre) => {
             </table>
           </div>
 
-          <SimpleSkeleton v-if="isLoadingSemestres" class="mt-4"/>
-          <div v-else v-for="semestre in annee.semestres" class="ml-6 border-l-2 border-primary-300 pl-4">
+          <div v-for="semestre in annee.semestres" class="ml-6 border-l-2 border-primary-300 pl-4">
             <div class="mt-6 mb-2 flex flex-row items-center gap-4">
               <table class="text-lg">
                 <thead>
@@ -248,8 +251,7 @@ const showDetails = (item, semestre) => {
                 </tbody>
               </table>
             </div>
-            <SimpleSkeleton v-if="isLoadingUes" class="mt-4"/>
-            <Fieldset v-else v-for="ue in semestre.ues" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`" class="ml-6 !border-l-2 !border-l-primary-200 !pl-4 !border-0" :collapsed="true">
+            <Fieldset v-for="ue in semestre.ues" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`" class="ml-6 !border-l-2 !border-l-primary-200 !pl-4 !border-0" :collapsed="true">
               <template #toggleicon>
                 <i class="pi pi-angle-down"></i>
               </template>
@@ -276,6 +278,81 @@ const showDetails = (item, semestre) => {
                 </table>
                 <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
               </div>
+
+              <div v-for="enseignementUe in ue.enseignementUes">
+                                <Fieldset v-if="!enseignementUe.parent" legend="" :toggleable="true">
+                                  <template #toggleicon>
+                                    <i class="pi pi-angle-down"></i>
+                                    <div>{{ enseignementUe.libelle }}</div>
+                                    <Tag v-if="enseignementUe.enfants && enseignementUe.enfants.length >= 1" severity="danger">Ressource parent</Tag>
+                                  </template>
+                                  <div class="my-6 flex flex-row items-center gap-4">
+                                    <table class="text-lg">
+                                      <thead>
+                                      <tr class="border-b">
+                                        <th class="px-2 font-normal text-muted-color text-start">Code {{enseignementUe.type}}</th>
+                                        <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
+                                        <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
+                                        <th class="px-2 font-normal text-muted-color text-start">Type</th>
+                                      </tr>
+                                      </thead>
+                                      <tbody>
+                                      <tr>
+                                        <td class="px-2 font-bold">{{ enseignementUe.codeEnseignement }}</td>
+                                        <td class="px-2 font-bold">{{ enseignementUe.libelle }}</td>
+                                        <td class="px-2 font-bold">{{ enseignementUe.codeApogee }}</td>
+                                        <td class="px-2 font-bold">
+                                          <Tag v-if="enseignementUe.type === 'sae'" severity="success">{{ enseignementUe.type }}</Tag>
+                                          <Tag v-else severity="info">{{ enseignementUe.type }}</Tag>
+                                        </td>
+                                      </tr>
+                                      </tbody>
+                                    </table>
+                                    <div v-if="enseignementUe.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
+
+                                    <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="getEnseignement(enseignementUe.id, semestre)" v-tooltip.top="`Accéder au détail`"/>
+                                    <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
+                                    <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
+                                  </div>
+
+                                  <Fieldset v-for="enfant in enseignementUe.enfants" :toggleable="true" class="!bg-gray-300 !bg-opacity-10">
+                                    <template #toggleicon>
+                                      <i class="pi pi-angle-down"></i>
+                                      <div>{{ enfant.libelle }}</div>
+                                      <Tag v-if="enfant.enfants && enfant.enfants.length >= 1" severity="danger">Ressource parent</Tag>
+                                      <Tag v-if="enfant.parent" severity="warn">Ressource enfant</Tag>
+                                    </template>
+                                    <div class="my-6 flex flex-row items-center gap-4">
+                                      <table class="text-lg">
+                                        <thead>
+                                        <tr class="border-b">
+                                          <th class="px-2 font-normal text-muted-color text-start">Code {{enfant.type}}</th>
+                                          <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
+                                          <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
+                                          <th class="px-2 font-normal text-muted-color text-start">Type</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <tr>
+                                          <td class="px-2 font-bold">{{ enfant.codeEnseignement }}</td>
+                                          <td class="px-2 font-bold">{{ enfant.libelle }}</td>
+                                          <td class="px-2 font-bold">{{ enfant.codeApogee }}</td>
+                                          <td class="px-2 font-bold">
+                                            <Tag v-if="enfant.type === 'sae'" severity="success">{{ enfant.type }}</Tag>
+                                            <Tag v-else severity="info">{{ enfant.type }}</Tag>
+                                          </td>
+                                        </tr>
+                                        </tbody>
+                                      </table>
+                                      <div v-if="enfant.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
+
+                                      <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="getEnseignement(enfant.id, semestre)" v-tooltip.top="`Accéder au détail`"/>
+                                      <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
+                                      <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
+                                    </div>
+                                  </Fieldset>
+                                </Fieldset>
+                              </div>
             </Fieldset>
           </div>
 
@@ -349,17 +426,17 @@ const showDetails = (item, semestre) => {
           <!--                <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>-->
           <!--              </div>-->
           <!--              <div v-for="enseignementUe in ue.enseignementUes">-->
-          <!--                <Fieldset v-if="!enseignementUe.enseignement.parent" legend="" :toggleable="true">-->
+          <!--                <Fieldset v-if="!enseignementUe.parent" legend="" :toggleable="true">-->
           <!--                  <template #toggleicon>-->
           <!--                    <i class="pi pi-angle-down"></i>-->
-          <!--                    <div>{{ enseignementUe.enseignement.libelle }}</div>-->
-          <!--                    <Tag v-if="enseignementUe.enseignement.enfants && enseignementUe.enseignement.enfants.length >= 1" severity="danger">Ressource parent</Tag>-->
+          <!--                    <div>{{ enseignementUe.libelle }}</div>-->
+          <!--                    <Tag v-if="enseignementUe.enfants && enseignementUe.enfants.length >= 1" severity="danger">Ressource parent</Tag>-->
           <!--                  </template>-->
           <!--                  <div class="my-6 flex flex-row items-center gap-4">-->
           <!--                    <table class="text-lg">-->
           <!--                      <thead>-->
           <!--                      <tr class="border-b">-->
-          <!--                        <th class="px-2 font-normal text-muted-color text-start">Code {{enseignementUe.enseignement.type}}</th>-->
+          <!--                        <th class="px-2 font-normal text-muted-color text-start">Code {{enseignementUe.type}}</th>-->
           <!--                        <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>-->
           <!--                        <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>-->
           <!--                        <th class="px-2 font-normal text-muted-color text-start">Type</th>-->
@@ -367,24 +444,24 @@ const showDetails = (item, semestre) => {
           <!--                      </thead>-->
           <!--                      <tbody>-->
           <!--                      <tr>-->
-          <!--                        <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeEnseignement }}</td>-->
-          <!--                        <td class="px-2 font-bold">{{ enseignementUe.enseignement.libelle }}</td>-->
-          <!--                        <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeApogee }}</td>-->
+          <!--                        <td class="px-2 font-bold">{{ enseignementUe.codeEnseignement }}</td>-->
+          <!--                        <td class="px-2 font-bold">{{ enseignementUe.libelle }}</td>-->
+          <!--                        <td class="px-2 font-bold">{{ enseignementUe.codeApogee }}</td>-->
           <!--                        <td class="px-2 font-bold">-->
-          <!--                          <Tag v-if="enseignementUe.enseignement.type === 'sae'" severity="success">{{ enseignementUe.enseignement.type }}</Tag>-->
-          <!--                          <Tag v-else severity="info">{{ enseignementUe.enseignement.type }}</Tag>-->
+          <!--                          <Tag v-if="enseignementUe.type === 'sae'" severity="success">{{ enseignementUe.type }}</Tag>-->
+          <!--                          <Tag v-else severity="info">{{ enseignementUe.type }}</Tag>-->
           <!--                        </td>-->
           <!--                      </tr>-->
           <!--                      </tbody>-->
           <!--                    </table>-->
-          <!--                    <div v-if="enseignementUe.enseignement.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>-->
+          <!--                    <div v-if="enseignementUe.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>-->
 
-          <!--                    <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="getEnseignement(enseignementUe.enseignement.id, semestre)" v-tooltip.top="`Accéder au détail`"/>-->
+          <!--                    <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="getEnseignement(enseignementUe.id, semestre)" v-tooltip.top="`Accéder au détail`"/>-->
           <!--                    <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>-->
           <!--                    <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>-->
           <!--                  </div>-->
 
-          <!--                  <Fieldset v-for="enfant in enseignementUe.enseignement.enfants" :toggleable="true" class="!bg-gray-300 !bg-opacity-10">-->
+          <!--                  <Fieldset v-for="enfant in enseignementUe.enfants" :toggleable="true" class="!bg-gray-300 !bg-opacity-10">-->
           <!--                    <template #toggleicon>-->
           <!--                      <i class="pi pi-angle-down"></i>-->
           <!--                      <div>{{ enfant.libelle }}</div>-->
