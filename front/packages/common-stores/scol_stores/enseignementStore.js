@@ -2,14 +2,14 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import api from '@helpers/axios';
-import { getAllEnseignementService, getEnseignementSemestreService } from "@requests";
+import { getAllEnseignementsService, getEnseignementsSemestreService } from "@requests";
 
 export const useEnseignementsStore = defineStore('enseignements', () => {
   const enseignements = ref([])
 
   const getMatieres = async () => {
     try {
-      const response = await getAllEnseignementService();
+      const response = await getAllEnseignementsService();
       enseignements.value = response.data
     } catch (error) {
       console.error('Error fetching enseignements:', error)
@@ -18,7 +18,7 @@ export const useEnseignementsStore = defineStore('enseignements', () => {
 
   const getMatieresSemestre = async (semestreId) => {
     try {
-      enseignements.value = await getEnseignementSemestreService(semestreId);
+      enseignements.value = await getEnseignementsSemestreService(semestreId);
     } catch (error) {
       console.error('Error fetching enseignements:', error)
     }

@@ -2,8 +2,13 @@
 
 namespace App\Entity\Apc;
 
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Structure\StructureUe;
 use App\Entity\Traits\OldIdTrait;
+use App\Filter\CompetenceFilter;
 use App\Repository\Apc\ApcCompetenceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,6 +16,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ApcCompetenceRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['competence:read', 'competence:read:full']]),
+        new GetCollection(normalizationContext: ['groups' => ['competence:read', 'competence_ue:read']])
+    ]
+)]
+#[ApiFilter(CompetenceFilter::class)]
 class ApcCompetence
 {
     use OldIdTrait; //a supprimer après transfert
@@ -24,11 +36,11 @@ class ApcCompetence
     private ?string $libelle = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(['diplome:read', 'enseignement:read', 'pn:read'])]
+    #[Groups(['diplome:read', 'enseignement:read', 'competence_ue:read'])]
     private ?string $nomCourt = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['diplome:read', 'enseignement:read', 'pn:read'])]
+    #[Groups(['diplome:read', 'enseignement:read', 'competence_ue:read'])]
     private ?string $couleur = null;
 
     #[ORM\ManyToOne(inversedBy: 'competences')]

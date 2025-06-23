@@ -14,7 +14,7 @@ class EnseignementFilter extends AbstractFilter
 {
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
-        if ('semestre' !== $property && 'departement' !== $property || null === $value) {
+        if (null === $value) {
             return;
         }
 
@@ -41,6 +41,14 @@ class EnseignementFilter extends AbstractFilter
                 ->andWhere("departement.id = :departement")
                 ->setParameter("departement", $value);
         }
+
+        if ('ue' === $property) {
+            $queryBuilder
+                ->join("$alias.enseignementUes", "enseignementUe")
+                ->join("enseignementUe.ue", "ue")
+                ->andWhere("ue.id = :ue")
+                ->setParameter("ue", $value);
+        }
     }
 
     public function getDescription(string $resourceClass): array
@@ -60,6 +68,14 @@ class EnseignementFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by departement',
+                ],
+            ],
+            'ue' => [
+                'property' => 'ue',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by UE',
                 ],
             ],
         ];

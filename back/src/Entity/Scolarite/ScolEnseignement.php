@@ -23,7 +23,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: ScolEnseignementRepository::class)]
 #[ApiFilter(EnseignementFilter::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['enseignement:read']],
+    normalizationContext: ['groups' => ['enseignement:read', 'enseignement_ue:read']],
 )]
 class ScolEnseignement
 {
@@ -35,11 +35,11 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'enseignement:read', 'pn:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
+    #[Groups(['semestre:read:full', 'enseignement:read', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'pn:read'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
@@ -63,7 +63,7 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['enseignement:read', 'semestre:read:full', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'pn:read'])]
+    #[Groups(['enseignement:read', 'semestre:read:full', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
@@ -75,7 +75,7 @@ class ScolEnseignement
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
-    #[Groups(['semestre:read:full', 'previsionnel:read', 'enseignement:read', 'pn:read', 'edt_event:read:agenda'])]
+    #[Groups(['semestre:read:full', 'previsionnel:read', 'enseignement:read', 'enseignement_ue:read', 'edt_event:read:agenda'])]
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]
@@ -89,15 +89,15 @@ class ScolEnseignement
      * @var Collection<int, self>
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
-    #[Groups(['pn:read', 'enseignement:read'])]
+    #[Groups(['enseignement_ue:read', 'enseignement:read'])]
     private Collection $enfants;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
-    #[Groups(['pn:read', 'enseignement:read'])]
+    #[Groups(['enseignement_ue:read', 'enseignement:read'])]
     private ?self $parent = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['pn:read'])]
+    #[Groups(['enseignement_ue:read'])]
     private ?string $livrables = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
