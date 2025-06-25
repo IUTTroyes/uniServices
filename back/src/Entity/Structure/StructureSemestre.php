@@ -45,39 +45,30 @@ class StructureSemestre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'enseignement:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'etudiant:read', 'pn:read', 'enseignant_hrs:read', 'edt_event:read:agenda'])]
     private string $libelle;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read'])]
     private int $ordreAnnee = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'diplome:read:full'])]
     private int $ordreLmd = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read'])]
     private bool $actif = true;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'pn:read'])]
     private int $nbGroupesCm = 1;
 
     #[ORM\Column]
-    #[Groups(['semestre:read', 'pn:read'])]
     private int $nbGroupesTd = 1;
 
     #[ORM\Column()]
-    #[Groups(['semestre:read', 'pn:read'])]
     private int $nbGroupesTp = 2;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'pn:read'])]
     private ?string $codeElement = null;
 
     /**
@@ -87,35 +78,30 @@ class StructureSemestre
     private Collection $groupes;
 
     #[ORM\ManyToOne(inversedBy: 'semestres')]
-    #[Groups(['semestre:read', 'scolarite:read', 'enseignement:read', 'etudiant:read'])]
     private ?StructureAnnee $annee = null;
 
     /**
      * @var Collection<int, StructureUe>
      */
     #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'semestre')]
-    #[Groups(['semestre:read', 'diplome:read:full', 'pn:read'])]
     private Collection $ues;
 
     /**
      * @var Collection<int, ScolEvaluation>
      */
     #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'semestre')]
-    #[Groups(['semestre:read'])]
     private Collection $evaluations;
 
     /**
      * @var Collection<int, EdtEvent>
      */
     #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'semestre')]
-    #[Groups(['semestre:read'])]
     private Collection $events;
 
     /**
      * @var Collection<int, EdtContraintesSemestre>
      */
     #[ORM\OneToMany(targetEntity: EdtContraintesSemestre::class, mappedBy: 'semestre')]
-    #[Groups(['semestre:read'])]
     private Collection $contraintesSemestres;
 
     #[ORM\OneToMany(mappedBy: 'semestre', targetEntity: EtudiantScolariteSemestre::class, cascade: ['persist'])]

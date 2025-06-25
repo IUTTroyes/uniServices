@@ -44,11 +44,6 @@ class SemestreFilter extends AbstractFilter
                 ->andWhere(sprintf('%s.annee = :annee', $alias))
                 ->setParameter('annee', $value)
             ;
-        } else if ('actif' === $property) {
-            $queryBuilder
-                ->andWhere(sprintf('%s.actif = :actif', $alias))
-                ->setParameter('actif', $value)
-            ;
         }
     }
 

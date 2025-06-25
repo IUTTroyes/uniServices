@@ -1,4 +1,4 @@
-import { useAnneeUnivStore } from '@stores';
+import { useAnneeUnivStore, useDiplomeStore, useSemestreStore, useAnneeStore } from '@stores';
 
 /**
  * Initialize application data
