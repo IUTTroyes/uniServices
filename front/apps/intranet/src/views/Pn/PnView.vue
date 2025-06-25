@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref} from 'vue'
 import {useDiplomeStore, useUsersStore} from '@stores'
-import {ErrorView, ListSkeleton, SimpleSkeleton} from "@components";
+import {ErrorView, ListSkeleton, SimpleSkeleton, ArticleSkeleton} from "@components";
 import FicheRessource from "../../components/Pn/FicheRessource.vue";
 import FicheSae from "../../components/Pn/FicheSae.vue";
 import FicheMatiere from "../../components/Pn/FicheMatiere.vue";
@@ -163,8 +163,8 @@ const showDetails = (item, semestre) => {
 
 <template>
   <ErrorView v-if="hasError" />
-  <div v-else class="card">
-    <SimpleSkeleton v-if="isLoadingDiplomes" class="w-1/2" />
+  <div v-else class="card min-h-screen">
+    <SimpleSkeleton v-if="isLoadingDiplomes" width="100%" class="mb-12"/>
     <div v-else>
       <h2 class="text-2xl font-bold">Programmes pédagogiques nationaux</h2>
       <Divider/>
@@ -177,14 +177,33 @@ const showDetails = (item, semestre) => {
       </Tabs>
     </div>
 
-    <ListSkeleton v-if="isLoadingPn" class="mt-4"/>
+    <div v-if="isLoadingPn" class="mt-4">
+      <div class="flex justify-between">
+        <SimpleSkeleton width="40%" />
+        <SimpleSkeleton width="20%" />
+      </div>
+      <div>
+        <SimpleSkeleton width="20%" class="mt-4 mb-2" />
+      </div>
+      <div>
+        <ArticleSkeleton width="100%" class="mt-4 mb-2" />
+      </div>
+      <div>
+        <ArticleSkeleton width="100%" class="mt-4 mb-2" />
+      </div>
+      <div>
+        <ArticleSkeleton width="100%" class="mt-4 mb-2" />
+      </div>
+      <div>
+        <ArticleSkeleton width="100%" class="mt-4 mb-2" />
+      </div>
+    </div>
     <div v-else class="mt-6">
       <div class="flex justify-between items-center my-6">
         <div class="text-xl font-bold">{{selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné`}}</div>
         <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh"/>
       </div>
       <div class="text-muted-color mb-4">Responsable du diplome : {{selectedDiplome?.responsableDiplome?.display ?? `Pas de responsable`}}</div>
-      <!--    si il n'y a pas de pn    -->
       <div v-if="pn && pn.length === 0" class="flex justify-center">
         <Message severity="error" icon="pi pi-exclamation-triangle" class="w-fit">
           Aucun programme pédagogique national trouvé pour le diplôme et l'année universitaire sélectionné.

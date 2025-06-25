@@ -182,11 +182,11 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
     </IftaLabel>
   </div>
 
-  <SimpleSkeleton v-if="isLoadingPrevisionnel" class="w-1/2" />
+  <SimpleSkeleton v-if="isLoadingPrevisionnel" width="50%" />
   <Message v-else severity="info" class="w-fit my-6 mx-auto" icon="pi pi-info-circle">
     Cliquez sur une case pour en éditer le contenu
   </Message>
-  <ListSkeleton v-if="isLoadingPrevisionnel" class="w-1/2" />
+  <ListSkeleton v-if="isLoadingPrevisionnel" width="50%" />
   <div v-else class="table-responsive overflow-auto text-sm">
     <table class="w-full border-collapse table">
       <thead class="sticky top-0 z-20">
