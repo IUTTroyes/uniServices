@@ -54,6 +54,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/edt/, ''),
         },
+        '/correcto': {
+          target: 'http://localhost:3004',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/correcto/, ''),
+        },
       },
     },
     test: {
