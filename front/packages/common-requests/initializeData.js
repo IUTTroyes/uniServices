@@ -1,5 +1,5 @@
 import {ref} from 'vue';
-import { useAnneeUnivStore, useUsersStore, useAppStore, useDiplomeStore, useAnneeStore } from '@stores';
+import { useAnneeUnivStore, useUsersStore, useDiplomeStore, useAnneeStore } from '@stores';
 
 /**
  * Initialize application data
@@ -19,11 +19,6 @@ export const initializeAppData = async () => {
     console.log('Application data initialized successfully');
   } catch (error) {
     console.error('Error initializing application data:', error);
-  } finally {
-    const appStore = useAppStore();
-
-    // Set loading state to false after initialization
-    appStore.isLoading = false;
   }
 };
 
