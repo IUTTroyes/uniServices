@@ -3,6 +3,7 @@ import { createPinia } from "pinia";
 import App from './App.vue';
 import '@styles/main.scss';
 import router from './router';
+import { initializeAppData } from '@requests/initializeData';
 
 import Aura from '@primevue/themes/aura';
 import PrimeVue from 'primevue/config';
@@ -54,4 +55,22 @@ app.use(ConfirmationService);
 
 app.use(pinia);
 
+// Ajouter un contenu temporaire avant le montage
+const loadingElement = document.createElement('div');
+loadingElement.id = 'loading';
+loadingElement.innerHTML = `
+  <div class="loader">
+    <div class="spinner"></div>
+    <p>Chargement en cours...</p>
+  </div>
+`;
+document.body.appendChild(loadingElement);
+
+// Initialiser les données
+await initializeAppData();
+
+// Supprimer le contenu temporaire après l'initialisation
+document.body.removeChild(loadingElement);
+
+// Monter l'application
 app.mount('#app');

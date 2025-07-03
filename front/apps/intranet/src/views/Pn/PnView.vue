@@ -49,8 +49,9 @@ onMounted(async () => {
 const getDiplomes = async (departementId) => {
   try {
     isLoadingDiplomes.value = true
-    await diplomeStore.getDiplomesDepartement(departementId, true);
     diplomes.value = diplomeStore.diplomes;
+    // ne garder que les diplomes qui ont actif = true
+    diplomes.value = diplomes.value.filter(d => d.actif);
   } catch (error) {
     console.error('Erreur lors du chargement des diplomes:', error);
     hasError.value = true;

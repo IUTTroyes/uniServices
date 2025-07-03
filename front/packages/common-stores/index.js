@@ -1,4 +1,3 @@
-import { useAppStore } from "@stores/appStore";
 import { useUsersStore } from './user_stores/userStore'
 import { useSemestreStore } from './structure_stores/semestreStore'
 import { useProfesseursStore } from './user_stores/personnelStore'
@@ -9,7 +8,6 @@ import { useAnneeStore } from './structure_stores/anneeStore';
 import { useDepartementStore } from './structure_stores/departementStore'
 
 export {
-  useAppStore,
   useUsersStore,
   useSemestreStore,
   useProfesseursStore,

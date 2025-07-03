@@ -5,9 +5,6 @@ import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
 import AppBreadcrumb from "./AppBreadcrumb.vue";
-import { useAppStore } from "@stores";
-
-const appStore = useAppStore();
 
 const props = defineProps({
   menuItems: {
@@ -48,12 +45,6 @@ const containerClass = computed(() => {
 </script>
 
 <template>
-  <div v-if="appStore.isLoading" class="loading-overlay">
-    <div class="loading-spinner">
-      <i class="pi pi-spin pi-spinner" style="font-size: 3rem"></i>
-      <div class="mt-3">Chargement en cours...</div>
-    </div>
-  </div>
   <div class="layout-wrapper" :class="containerClass">
     <app-topbar :app-name :logo-url></app-topbar>
     <app-sidebar :menu-items="menuItems"></app-sidebar>
@@ -75,24 +66,5 @@ const containerClass = computed(() => {
 </template>
 
 <style scoped>
-.loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 9999;
-}
 
-.loading-spinner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: white;
-  font-size: 1.2rem;
-}
 </style>
