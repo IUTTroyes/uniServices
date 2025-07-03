@@ -1,5 +1,5 @@
 import {ref} from 'vue';
-import { useAnneeUnivStore, useUsersStore, useAppStore } from '@stores';
+import { useAnneeUnivStore, useUsersStore, useAppStore, useDiplomeStore, useAnneeStore } from '@stores';
 
 /**
  * Initialize application data
@@ -84,9 +84,17 @@ const initializeUserData = async () => {
   // Fetch user data
   const user = await userStore.getUser();
 
-  // If user is a personnel, ensure departments are loaded
   if (user && userStore.userType === 'personnels') {
-    // Departments are already loaded by userStore.getUser()
-    // No need to fetch them again
+    const departement = userStore.departementDefaut;
+
+    const diplomeStore = useDiplomeStore();
+    // Fetch diplomas for the default department
+    await diplomeStore.getDiplomesDepartement(departement.id);
+
+    const anneeStore = useAnneeStore();
+    // Fetch all annee for the default department
+    await anneeStore.getAnneesDepartement(departement.id);
+
+    console.log('User data initialized successfully');
   }
 };
