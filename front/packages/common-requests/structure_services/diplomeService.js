@@ -37,11 +37,11 @@ const getAllDiplomesActifsService = async (showToast = false) => {
     }
 }
 
-const getDepartementDiplomesService = async (departementId, showToast = false) => {
+const getDepartementDiplomesService = async (departementId, actif, showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api/diplomes-par-departement/${departementId}`],
+            [`/api/diplomes-par-departement/${departementId}?actif=${actif}`],
             'Diplômes du département récupérés avec succès',
             'Erreur lors de la récupération des diplômes du département',
             showToast
@@ -49,22 +49,6 @@ const getDepartementDiplomesService = async (departementId, showToast = false) =
         return response.member;
     } catch (error) {
         console.error('Erreur dans getDepartementDiplomesService:', error);
-        throw error;
-    }
-}
-
-const getDiplomesActifsDepartementService = async (departementId, showToast = false) => {
-    try {
-        const response = await apiCall(
-            api.get,
-            [`/api/diplomes-par-departement/${departementId}?actif=true`],
-            'Diplômes actifs du département récupérés avec succès',
-            'Erreur lors de la récupération des diplômes actifs du département',
-            showToast
-        );
-        return response.member;
-    } catch (error) {
-        console.error('Erreur dans getDiplomesActifsDepartementService:', error);
         throw error;
     }
 }
@@ -82,4 +66,4 @@ const getDiplomesActifsDepartementService = async (departementId, showToast = fa
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getAllDiplomesService, getAllDiplomesActifsService, getDepartementDiplomesService, getDiplomesActifsDepartementService };
+export { getAllDiplomesService, getAllDiplomesActifsService, getDepartementDiplomesService };

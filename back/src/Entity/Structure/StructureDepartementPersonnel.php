@@ -18,14 +18,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['departement_personnel:read']]),
         new GetCollection(normalizationContext: ['groups' => ['departement_personnel:read']]),
         new GetCollection(
-            uriTemplate: '/structure_departement_personnels/by_personnel/{personnelId}',
-            uriVariables: [
-                'personnelId' => new Link(fromClass: Personnel::class, identifiers: ['id'], toProperty: 'personnel')
-            ],
-            paginationEnabled: false,
-            normalizationContext: ['groups' => ['departement_personnel:read']]
-        ),
-        new GetCollection(
             uriTemplate: '/structure_departement_personnels/by_departement/{departementId}',
             uriVariables: [
                 'departementId' => new Link(fromClass: StructureDepartement::class, identifiers: ['id'], toProperty: 'departement')
@@ -53,12 +45,12 @@ class StructureDepartementPersonnel
     private array $roles = []; //tableau associatif => 'application' => [droits]
 
     #[ORM\Column]
-    #[Groups(groups: ['personnel:read', 'departement_personnel:read'])]
+    #[Groups(groups: ['personnel:read', 'departement_personnel:read', 'departement:read'])]
     private ?bool $defaut = null;
 
     #[ORM\ManyToOne(inversedBy: 'departementPersonnels')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(groups: ['departement_personnel:read'])]
+    #[Groups(groups: ['departement_personnel:read', 'departement:read'])]
     private ?Personnel $personnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'departementPersonnels')]

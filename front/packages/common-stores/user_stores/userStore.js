@@ -1,5 +1,5 @@
 import {defineStore} from 'pinia';
-import {ref, computed} from 'vue';
+import {computed, ref} from 'vue';
 import {
     changeDepartementActifService,
     getAllStatutsService,
@@ -7,7 +7,7 @@ import {
     getUserService,
     updateUserService
 } from "@requests";
-import {useAnneeUnivStore} from '@stores';
+import {useAnneeUnivStore, useDepartementStore} from '@stores';
 import noImage from "@images/photos_etudiants/noimage.png";
 
 export const useUsersStore = defineStore('users', () => {
@@ -33,9 +33,9 @@ export const useUsersStore = defineStore('users', () => {
 
     const anneeUnivStore = useAnneeUnivStore();
 
-    const getUser = async () => {
-        if (isLoaded.value) {
-            return;
+    const getUser = async (force = false) => {
+        if (isLoaded.value && !force) {
+            return user.value;
         }
         isLoading.value = true;
         try {
@@ -46,16 +46,34 @@ export const useUsersStore = defineStore('users', () => {
             applications.value = user.value.applications;
 
             if (userType === 'personnels') {
-                departements.value = user.value.departementPersonnels;
-                if (!departements.value.find(departement => departement.defaut === true)) {
-                    const firstDepartement = departements.value[0];
-                    const response = await changeDepartementActifService(firstDepartement.id);
-                    departements.value = response.data;
+                const departementStore = useDepartementStore();
+                // Use the cached departments if available, or force reload if needed
+                const depts = await departementStore.getDepartementsPersonnel(userId, force);
+                departements.value = depts;
+
+                // Process departments to extract personnel-specific information
+                departements.value = departements.value.map(departement => {
+                    if (!departement.departementPersonnels) return departement;
+
+                    const personnelDepartements = departement.departementPersonnels.filter(dp => dp.personnel.id === userId);
+                    departement.departementPersonnel = personnelDepartements.length > 0 ? personnelDepartements[0] : null;
+
+                    delete departement.departementPersonnels;
+                    return departement;
+                });
+
+                // Set default department if none is set
+                if (!departements.value.find(departement => departement.departementPersonnel?.defaut === true)) {
+                    if (departements.value.length > 0) {
+                        const firstDepartement = departements.value[0];
+                        const response = await changeDepartementActifService(firstDepartement.departementPersonnel.id);
+                        departements.value = response.data;
+                    }
                 }
-                departementPersonnelDefaut.value = departements.value.find(departement => departement.defaut === true);
-                departementDefaut.value = departementPersonnelDefaut.value.departement;
-                departementsPersonnelNotDefaut.value = departements.value.filter(departement => departement.defaut === false);
-                departementsNotDefaut.value = departementsPersonnelNotDefaut.value.map(departement => departement.departement);
+
+                // Update department references
+                departementDefaut.value = departements.value.find(departement => departement.departementPersonnel?.defaut === true) || {};
+                departementsNotDefaut.value = departements.value.filter(departement => departement.departementPersonnel?.defaut === false) || [];
             }
             if (userType === 'etudiants') {
                 await anneeUnivStore.getCurrentAnneeUniv();
@@ -65,8 +83,10 @@ export const useUsersStore = defineStore('users', () => {
                 departementDefaut.value = scolariteActif.value.departement;
             }
             isLoaded.value = true;
+            return user.value;
         } catch (error) {
             console.error('Error fetching user:', error);
+            return null;
         } finally {
             isLoading.value = false;
         }
@@ -74,8 +94,10 @@ export const useUsersStore = defineStore('users', () => {
 
     const changeDepartement = async (departementId) => {
         try {
-            const departementPersonnelId = await departements.value.find(departement => departement.departement.id === departementId).id;
-            departements.value = await changeDepartementActifService(departementPersonnelId);
+            console.log('Changing departement : ' + departementId);
+            const departement = await departements.value.find(d => d.id === departementId);
+            console.log('departementchange', departement);
+            departements.value = await changeDepartementActifService(departement.departementPersonnel.id);
             // récupérer le département qui a defaut = true
             console.log(departements.value);
             departementPersonnelDefaut.value = await departements.value.find(departement => departement.defaut === true);
@@ -102,8 +124,7 @@ export const useUsersStore = defineStore('users', () => {
             data.departementPersonnels = data.departementPersonnels.map(departement => `/api/structure_departement_personnels/${departement.id}`);
         }
         try {
-            const updatedUser = await updateUserService(userType, userId, data);
-            user.value = updatedUser;
+            user.value = await updateUserService(userType, userId, data);
         } catch (error) {
             console.error('Error updating user:', error);
         } finally {

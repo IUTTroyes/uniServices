@@ -1,6 +1,6 @@
 <script setup>
 import {onMounted, ref} from 'vue'
-import {useDiplomeStore, useUsersStore} from '@stores'
+import {useDiplomeStore, useUsersStore, useAnneeUnivStore} from '@stores'
 import {ErrorView, ListSkeleton, SimpleSkeleton, ArticleSkeleton} from "@components";
 import FicheRessource from "../../components/Pn/FicheRessource.vue";
 import FicheSae from "../../components/Pn/FicheSae.vue";
@@ -16,6 +16,7 @@ import {
 
 const usersStore = useUsersStore();
 const diplomeStore = useDiplomeStore();
+const anneeUnivStore = useAnneeUnivStore();
 const departementId = ref(null);
 
 const isLoadingDiplomes = ref(true)
@@ -34,7 +35,7 @@ const hasError = ref(false)
 const visibleDialog = ref(false);
 const dialogContent = ref(null);
 
-const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'))
+const selectedAnneeUniversitaire = ref(anneeUnivStore.selectedAnneeUniv);
 
 onMounted(async () => {
   if (usersStore.departementDefaut) {
@@ -48,7 +49,7 @@ onMounted(async () => {
 const getDiplomes = async (departementId) => {
   try {
     isLoadingDiplomes.value = true
-    await diplomeStore.getDiplomesActifsDepartement(departementId);
+    await diplomeStore.getDiplomesDepartement(departementId, true);
     diplomes.value = diplomeStore.diplomes;
   } catch (error) {
     console.error('Erreur lors du chargement des diplomes:', error);
@@ -65,12 +66,14 @@ const getDiplomes = async (departementId) => {
 const getPnForDiplome = async (diplomeId) => {
   try {
     isLoadingPn.value = true;
-    pn.value = await getPnDiplome(selectedDiplome.value.id, selectedAnneeUniversitaire.id)
+    pn.value = await getPnDiplome(diplomeId, selectedAnneeUniversitaire.value.id)
   } catch (error) {
     console.error('Erreur lors du chargement des PNs:', error);
     hasError.value = true;
   } finally {
+    if (pn.value) {
     await getAnneesForPn(pn.value.id);
+    }
     isLoadingPn.value = false;
   }
 }
@@ -361,8 +364,8 @@ const showDetails = (item, semestre) => {
         </div>
       </Fieldset>
       <div v-else class="flex justify-center">
-        <Message severity="error" icon="pi pi-exclamation-triangle" class="w-fit">
-          Une erreur est survenue
+        <Message severity="primary" icon="pi pi-exclamation-triangle" class="w-fit p-12">
+          Il n'existe aucun pn pour ce diplôme sur l'année universitaire sélectionnée.
         </Message>
       </div>
     </div>

@@ -35,6 +35,22 @@ const getDepartementService = async (departementId, showToast = false) => {
     }
 }
 
+const getDepartementsPersonnelService = async (personnelId, actif, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/structure_departements?personnel=${personnelId}?actif=${actif}`],
+            'Départements du personnel récupérés avec succès',
+            'Erreur lors de la récupération des départements du personnel',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getDepartementsPersonnelService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- CREATE -------------------
 // ----------------------------------------------
@@ -45,6 +61,7 @@ const getDepartementService = async (departementId, showToast = false) => {
 
 const changeDepartementActifService = async (departementId, showToast = true) => {
     try {
+        console.log('changeDepartementActifService', departementId);
         return await apiCall(
             api.post,
             [`/api/structure_departement_personnels/${departementId}/change_departement`, {departementId}, {
@@ -66,4 +83,4 @@ const changeDepartementActifService = async (departementId, showToast = true) =>
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getAllDepartementsService, getDepartementService, changeDepartementActifService };
+export { getAllDepartementsService, getDepartementService, getDepartementsPersonnelService, changeDepartementActifService };
