@@ -1,16 +1,16 @@
 <script setup>
 import { onMounted, ref } from "vue";
 import { getDepartementSemestresService } from "@requests";
-import { ListSkeleton } from "@components";
+import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore, useSemestreStore } from "@stores";
 
 const userStore = useUsersStore();
 const semestreStore = useSemestreStore();
-const semestresFc = ref([]);
-const semestresFi = ref([]);
+const semestresFc = ref(null);
+const semestresFi = ref(null);
 const selectedSemestre = ref(null);
 const isLoading = ref(true);
-const errorMessage = ref('');
+const hasError = ref(false);
 
 const panelMenuItems = [
   { label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
@@ -44,8 +44,7 @@ const getSemestres = async () => {
   try {
     const departementId = userStore.departementDefaut.id;
     const semestres = await getDepartementSemestresService(departementId, true);
-
-
+    console.log(semestres);
     const groupByYear = (semestres) => {
       return semestres.reduce((acc, semestre) => {
         const year = semestre.annee.libelle;
@@ -67,7 +66,8 @@ const getSemestres = async () => {
       selectedSemestre.value = semestresFi.value[firstYear][0];
     }
   } catch (error) {
-    errorMessage.value = 'Erreur lors de la récupération des semestres.';
+    hasError.value = true;
+    console.error(error);
   } finally {
     isLoading.value = false;
   }
@@ -95,7 +95,10 @@ const selectSemestre = (semestre) => {
         </div>
       </template>
       <ListSkeleton v-if="isLoading" class="mt-4"/>
-      <div v-else-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+      <ErrorView v-else-if="hasError" />
+      <Message v-else-if="!semestresFc && !semestresFi" severity="error" icon="pi pi-times-circle" class="m-6">
+        Aucun semestre disponible pour le département {{ userStore.departementDefaut.libelle }}.
+      </Message>
       <div v-else class="flex gap-10 mt-4">
         <div class="w-1/2 flex gap-4">
           <ul v-for="(semestres, type) in { 'Formation Initiale': semestresFi, 'Formation Continue': semestresFc }"

@@ -678,7 +678,7 @@ const footerColsForm = computed(() => [
   <div v-else class="px-4 flex flex-col">
     <div class="flex justify-between gap-10">
       <div class="flex gap-6 w-1/2">
-        <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/2" />
+        <SimpleSkeleton v-if="isLoadingAnneesUniv" width="50%" />
         <IftaLabel v-else class="w-1/2">
           <Select
               v-model="selectedAnneeUniv"
@@ -691,7 +691,7 @@ const footerColsForm = computed(() => [
         </IftaLabel>
 
         <div v-if="isEditing" class="w-1/2">
-          <SimpleSkeleton v-if="isLoadingPersonnel" class="w-full" />
+          <SimpleSkeleton v-if="isLoadingPersonnel" width="100%" />
           <IftaLabel v-else class="w-full">
             <Select
                 v-model="selectedPersonnel"
@@ -707,7 +707,7 @@ const footerColsForm = computed(() => [
       <Button v-if="!isEditing" label="Saisir le prévisionnel" icon="pi pi-plus" @click="isEditing = !isEditing" />
       <Button v-else label="Afficher le prévisionnel" icon="pi pi-eye" @click="isEditing = !isEditing" />
     </div>
-    <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
+    <ListSkeleton v-if="isLoadingPrevisionnel" width="100%" class="mt-6" />
     <div v-else>
 
       <div v-if="previSemestreAnneeUniv[0].length > 0">
@@ -727,7 +727,7 @@ const footerColsForm = computed(() => [
               :headerTitlecolspan="1"/>
         </div>
         <div v-else>
-          <ListSkeleton v-if="isLoadingPrevisionnelForm" class="mt-6" />
+          <ListSkeleton v-if="isLoadingPrevisionnelForm" width="100%" class="mt-6" />
           <PrevisionnelTable
               v-else
               origin="previEnseignantForm"

@@ -12,6 +12,8 @@ const userStore = useUsersStore();
 const route = useRoute();
 const router = useRouter();
 
+const hasError = ref(false);
+
 const deptItems = ref([]);
 const departementLabel = ref('');
 const anneesUniv = ref([]);
@@ -41,6 +43,7 @@ const fetchData = async () => {
       await anneeUnivStore.getAllAnneesUniv();
     }
 
+    // Prepare sorted academic years for the dropdown
     const sortedAnnees = anneeUnivStore.anneesUniv.map(annee => ({
       id: annee.id,
       label: annee.libelle,
@@ -50,29 +53,46 @@ const fetchData = async () => {
     anneesUniv.value = sortedAnnees;
     anneeItems.value[0].items = sortedAnnees;
 
-    // si selectedAnneeUniv dans le localStorage est un tableau vide on lance la méthode setSelectedAnneeUniv du store
+    // Handle selected academic year
     if (!selectedAnneeUniversitaire.value) {
-    console.log(sortedAnnees[0]);
-      await anneeUnivStore.setSelectedAnneeUniv(sortedAnnees[0]);
+      // If no selected year in local state, use the one from the store or set the first one
+      if (anneeUnivStore.selectedAnneeUniv) {
+        selectedAnneeUniversitaire.value = anneeUnivStore.selectedAnneeUniv;
+      } else if (sortedAnnees.length > 0) {
+        await anneeUnivStore.setSelectedAnneeUniv(sortedAnnees[0]);
+        selectedAnneeUniversitaire.value = sortedAnnees[0];
+      }
+    } else {
+      // Parse the selected year from localStorage
+      selectedAnneeUniversitaire.value = JSON.parse(selectedAnneeUniversitaire.value);
+      // Ensure it has a label property
+      if (selectedAnneeUniversitaire.value && selectedAnneeUniversitaire.value.libelle) {
+        selectedAnneeUniversitaire.value.label = selectedAnneeUniversitaire.value.libelle;
+      }
     }
-    selectedAnneeUniversitaire.value = localStorage.getItem('selectedAnneeUniv');
-    selectedAnneeUniversitaire.value = JSON.parse(selectedAnneeUniversitaire.value);
-    selectedAnneeUniversitaire.value.label = selectedAnneeUniversitaire.value.libelle;
 
+    // Handle department data for the UI
     if (userStore.user) {
       if (userStore.userType === 'personnels') {
-        deptItems.value = userStore.departementsNotDefaut.map(departementPersonnel => ({
-          label: departementPersonnel.libelle,
-          id: departementPersonnel.id,
-          command: () => changeDepartement(departementPersonnel.id)
-        }));
-        departementLabel.value = userStore.departementDefaut.libelle;
+        // Map departments for the dropdown menu
+        deptItems.value = Array.isArray(userStore.departementsNotDefaut)
+          ? userStore.departementsNotDefaut.map(departement => ({
+              label: departement.libelle,
+              id: departement.id,
+              command: () => changeDepartement(departement.id)
+            }))
+          : [];
+
+        // Set the default department label
+        departementLabel.value = userStore.departementDefaut?.libelle || '';
       } else {
+        // For non-personnel users
         deptItems.value = [];
-        departementLabel.value = userStore.departementDefaut.libelle;
+        departementLabel.value = userStore.departementDefaut?.libelle || '';
       }
     }
   } catch (error) {
+    hasError.value = true;
     console.error('Error fetching data:', error);
   }
 };
@@ -152,6 +172,7 @@ const changeDepartement = async (departementId) => {
     }));
     departementLabel.value = userStore.departementDefaut.libelle;
   } catch (error) {
+    hasError.value = true;
     console.error('Error changing department:', error);
   }
 };
@@ -181,6 +202,7 @@ const selectAnneeUniversitaire = (annee) => {
 </script>
 
 <template>
+
   <div class="layout-topbar">
     <div class="layout-topbar-logo-container">
       <button v-if="route.path !== '/portail'" class="layout-menu-button layout-topbar-action" @click="onMenuToggle">
