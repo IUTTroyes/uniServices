@@ -56,15 +56,13 @@ app.use(ConfirmationService);
 app.use(pinia);
 
 // Ajouter un contenu temporaire avant le montage
+import GlobalLoader from '@components/loader/GlobalLoader.vue';
 const loadingElement = document.createElement('div');
 loadingElement.id = 'loading';
-loadingElement.innerHTML = `
-  <div class="loader">
-    <div class="spinner"></div>
-    <p>Chargement en cours...</p>
-  </div>
-`;
 document.body.appendChild(loadingElement);
+
+const loaderApp = createApp(GlobalLoader);
+loaderApp.mount(loadingElement);
 
 // Initialiser les données
 await initializeAppData();
