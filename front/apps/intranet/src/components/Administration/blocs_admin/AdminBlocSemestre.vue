@@ -25,7 +25,7 @@ const panelMenuItems = computed(() => {
       label: 'Groupes', icon: 'pi pi-users', command: () => {}, items: [
         {
           label: 'Composition des groupes', icon: 'pi pi-list',
-          command: () => {}
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/groupes/affectation',
         },
         {
           label: 'Structure des groupes', icon: 'pi pi-cog', route: '/administration/semestre/' + selectedSemestre.value.id + '/groupes/structure',
@@ -36,23 +36,34 @@ const panelMenuItems = computed(() => {
       label: 'Absences', icon: 'pi pi-calendar', command: () => {}, items: [
         {
           label: 'Liste des absences', icon: 'pi pi-list',
-          command: () => {}
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/absences/liste',
         },
-        { label: 'Liste des justificatifs', icon: 'pi pi-folder-open', command: () => {} },
+        {
+          label: 'Liste des justificatifs', icon: 'pi pi-folder-open',
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/justificatifs-absences/liste',
+        },
         { label: 'Suivi des pointages de présence', icon: 'pi pi-eye', command: () => {} },
       ]
     },
     {
       label: 'Notes et Évaluations', icon: 'pi pi-book', command: () => {}, items: [
-        { label: 'Liste des notes', icon: 'pi pi-list', command: () => {} },
+        {
+          label: 'Liste des notes', icon: 'pi pi-list',
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/evaluations/liste'
+        },
         { label: 'Gestion des évaluations', icon: 'pi pi-cog', command: () => {} },
-        { label: 'Demandes de rattrapages', icon: 'pi pi-history', command: () => {} },
-        { label: 'Modalités du contrôle continu', icon: 'pi pi-map', command: () => {} },
+        {
+          label: 'Demandes de rattrapages', icon: 'pi pi-history',
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/rattrapages/liste' },
+        { label: 'Modalités du contrôle continu', icon: 'pi pi-map',
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/mccc/liste'
+        },
       ]
     },
     {
       label: 'Fin de semestre', icon: 'pi pi-check', command: () => {}, items: [
-        { label: 'Préparation de la sous-commission', icon: 'pi pi-calculator', command: () => {} },
+        { label: 'Préparation de la sous-commission', icon: 'pi pi-calculator',
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/sous-commission'},
         { label: 'Changement de semestre des étudiants', icon: 'pi pi-forward', command: () => {} },
       ]
     },

@@ -13,7 +13,8 @@ export default defineConfig(({ mode }) => {
 
   return {
     optimizeDeps: {
-      noDiscovery: true
+      noDiscovery: true,
+      include: ['yup']
     },
     plugins: [
         vueDevTools(),
@@ -26,6 +27,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, `apps/${appName}/src`),
+        '@types': path.resolve(__dirname, 'packages/common-types'),
         '@components': path.resolve(__dirname, 'packages/common-components'),
         '@config': path.resolve(__dirname, 'packages/common-global-data'),
         '@styles': path.resolve(__dirname, 'packages/common-styles'),

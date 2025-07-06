@@ -39,4 +39,12 @@ export const statuts = [
   { label: 'Autre', value: 'AUTRE', severity: 'secondary' }
 ]
 
+export const typesGroupes = [
+  {label: 'CM', value: 'CM'},
+  {label: 'TD', value: 'TD'},
+  {label: 'TP', value: 'TP'},
+  {label: 'Demi TP', value: 'demi-TP'},
+  {label: 'Langues Vivantes', value: 'LV'},
+]
+
 

@@ -5,6 +5,7 @@ import { useEnseignementsStore } from './scol_stores/enseignementStore'
 import { useAnneeUnivStore } from './structure_stores/anneeUnivStore'
 import { useDiplomeStore} from "./structure_stores/diplomeStore";
 
+
 export {
   useUsersStore,
   useSemestreStore,

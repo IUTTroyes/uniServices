@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import dashboardRoutes from './modules/dashboardRoutes';
 import agendaRoutes from "./modules/agendaRoutes.js";
 import trombinoscopeRoutes from "./modules/trombinoscopeRoutes.js";
+import documentRoutes from "./modules/documentRoutes.js";
 import profilRoutes from "./modules/profilRoutes.js";
 import administrationRoutes from "./modules/administrationRoutes.js";
 import {useUsersStore} from "@stores";
@@ -14,6 +15,7 @@ const intranetMenu = [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
             { label: 'Agenda', icon: 'pi pi-fw pi-calendar', to: '/agenda' },
             { label: 'Trombinoscope', icon: 'pi pi-fw pi-users', to: '/trombinoscope' },
+            { label: 'Documents', icon: 'pi pi-fw pi-users', to: '/documents' },
             { label: 'Administration', icon: 'pi pi-fw pi-wrench', to: '/administration' },
         ]
     }
@@ -37,6 +39,7 @@ const router = createRouter({
                 ...dashboardRoutes,
                 ...agendaRoutes,
                 ...trombinoscopeRoutes,
+                ...documentRoutes,
                 ...profilRoutes,
                 ...administrationRoutes
             ]
