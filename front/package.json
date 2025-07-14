@@ -8,6 +8,8 @@
     "packages/*"
   ],
   "dependencies": {
+    "@headlessui/vue": "^1.7.23",
+    "@heroicons/vue": "^2.2.0",
     "@primevue/forms": "^4.2.5",
     "@primevue/themes": "^4.0.0",
     "@vee-validate/yup": "^4.15.1",
@@ -24,6 +26,8 @@
     "vite": "^5.4.8",
     "vue": "^3.5.*",
     "vue-cal": "^5.0.1-rc.25",
+    "vue-chartjs": "^5.3.2",
+    "vue-draggable-next": "^2.2.1",
     "vue-router": "^4.4.5",
     "yup": "^1.6.1"
   },
@@ -52,6 +56,7 @@
   "description": "",
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.3",
+    "@faker-js/faker": "^9.9.0",
     "@primevue/auto-import-resolver": "^4.0.1",
     "@rushstack/eslint-patch": "^1.8.0",
     "@storybook/addon-a11y": "^8.5.6",

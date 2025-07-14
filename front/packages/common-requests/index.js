@@ -21,3 +21,4 @@ export * from './etudiant_services/etudiantScolariteService'
 
 export * from './personnel_services/personnelHrsService.js'
 
+export * from './questionnaire_services/questionnaireService.js';
