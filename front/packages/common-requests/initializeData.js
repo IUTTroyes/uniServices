@@ -85,10 +85,16 @@ const initializeUserData = async () => {
     const diplomeStore = useDiplomeStore();
     // Fetch diplomas for the default department
     await diplomeStore.getDiplomesDepartement(departement.id);
+    const diplomes = diplomeStore.diplomes;
 
     const anneeStore = useAnneeStore();
-    // Fetch all annee for the default department
-    await anneeStore.getAnneesDepartement(departement.id);
+    // pour chaque diplôme, on récupère les années associées
+    for (const diplome of diplomes) {
+      // on ajoute dans le tableau des diplômes les années associées
+        diplome.annees = await anneeStore.getAnneesDiplome(departement.id);
+    }
+
+    console.log(diplomes)
 
     console.log('User data initialized successfully');
   }

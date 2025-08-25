@@ -2,6 +2,7 @@
 import {onMounted, ref} from 'vue'
 import {useDiplomeStore, useUsersStore, useAnneeUnivStore} from '@stores'
 import {ErrorView, ListSkeleton, SimpleSkeleton, ArticleSkeleton} from "@components";
+import Loader from "@components/loader/GlobalLoader.vue"
 import FicheRessource from "../../components/Pn/FicheRessource.vue";
 import FicheSae from "../../components/Pn/FicheSae.vue";
 import FicheMatiere from "../../components/Pn/FicheMatiere.vue";
@@ -167,8 +168,14 @@ const showDetails = (item, semestre) => {
 
 <template>
   <ErrorView v-if="hasError" />
-  <div v-else class="card min-h-screen">
-    <SimpleSkeleton v-if="isLoadingDiplomes" width="100%" class="mb-12"/>
+  <div v-else class="card h-full">
+    <div v-if="isLoadingDiplomes">
+    <SimpleSkeleton width="100%" class="mb-6"/>
+    <div class="flex flex-row justify-between">
+      <SimpleSkeleton width="20%" class="mb-6"/>
+      <SimpleSkeleton width="10%" class="mb-6"/>
+    </div>
+    </div>
     <div v-else>
       <h2 class="text-2xl font-bold">Programmes pédagogiques nationaux</h2>
       <Divider/>
@@ -181,26 +188,8 @@ const showDetails = (item, semestre) => {
       </Tabs>
     </div>
 
-    <div v-if="isLoadingPn" class="mt-4">
-      <div class="flex justify-between">
-        <SimpleSkeleton width="40%" />
-        <SimpleSkeleton width="20%" />
-      </div>
-      <div>
-        <SimpleSkeleton width="20%" class="mt-4 mb-2" />
-      </div>
-      <div>
-        <ArticleSkeleton width="100%" class="mt-4 mb-2" />
-      </div>
-      <div>
-        <ArticleSkeleton width="100%" class="mt-4 mb-2" />
-      </div>
-      <div>
-        <ArticleSkeleton width="100%" class="mt-4 mb-2" />
-      </div>
-      <div>
-        <ArticleSkeleton width="100%" class="mt-4 mb-2" />
-      </div>
+    <div v-if="isLoadingPn" class="w-full h-1/2">
+      <Loader/>
     </div>
     <div v-else class="mt-6">
       <div class="flex justify-between items-center my-6">

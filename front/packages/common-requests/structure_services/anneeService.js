@@ -5,13 +5,13 @@ import apiCall from '@helpers/apiCall';
 // ------------------- GET ----------------------
 // ----------------------------------------------
 
-const getDiplomeAnneesService = async (diplomeId, showToast = false) => {
+const getDiplomeAnneesService = async (diplomeId, actif, showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api/annees-par-diplome/${diplomeId}`],
-            'Années du diplôme récupérées avec succès',
-            'Erreur lors de la récupération des années du diplôme',
+            [`/api/structure_annees?departement=${diplomeId}&actif=${actif}`],
+            'Années du diplome récupérées avec succès',
+            'Erreur lors de la récupération des années du diplome',
             showToast
         );
         return response['member'];
@@ -21,27 +21,11 @@ const getDiplomeAnneesService = async (diplomeId, showToast = false) => {
     }
 }
 
-const getDiplomeAnneesActifsService = async (diplomeId, showToast = false) => {
+const getDepartementAnneesService = async (departementId, actif, showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api/annees-par-diplome/${diplomeId}?actif=true`],
-            'Années actives du diplôme récupérées avec succès',
-            'Erreur lors de la récupération des années actives du diplôme',
-            showToast
-        );
-        return response['member'];
-    } catch (error) {
-        console.error('Erreur dans getDiplomeAnneesActifsService:', error);
-        throw error;
-    }
-}
-
-const getDepartementAnneesService = async (departementId, onlyActif, showToast = false) => {
-    try {
-        const response = await apiCall(
-            api.get,
-            [`/api/structure_annees?departement=${departementId}&actif=${onlyActif}`],
+            [`/api/structure_annees?departement=${departementId}&actif=${actif}`],
             'Années du département récupérées avec succès',
             'Erreur lors de la récupération des années du département',
             showToast
@@ -81,4 +65,4 @@ const getPnAnneesService = async (pnId, showToast = false) => {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getDiplomeAnneesService, getDiplomeAnneesActifsService, getDepartementAnneesService, getPnAnneesService };
+export { getDiplomeAnneesService, getDepartementAnneesService, getPnAnneesService };
