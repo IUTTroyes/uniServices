@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getDepartementAnneesService } from '@requests'
+import { getDepartementAnneesService, getDiplomeAnneesService } from '@requests'
 
 export const useAnneeStore = defineStore('annee', () => {
 
@@ -14,8 +14,18 @@ export const useAnneeStore = defineStore('annee', () => {
     }
   };
 
+  const getAnneesDiplome = async (diplomeId) => {
+    try {
+      const response = await getDiplomeAnneesService(diplomeId);
+      return response;
+    } catch (error) {
+      console.error('Error fetching annee:', error);
+    }
+  };
+
   return {
     getAnneesDepartement,
-    annees
+    annees,
+    getAnneesDiplome,
   };
 })

@@ -27,13 +27,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['annee:read']]),
         new GetCollection(normalizationContext: ['groups' => ['annee:read']]),
-        new GetCollection(
-            uriTemplate: '/annees-par-diplome/{diplomeId}',
-            uriVariables: [
-                'diplomeId' => new Link(fromClass: StructureDiplome::class, identifiers: ['id'], toProperty: 'diplome')
-            ],
-            normalizationContext: ['groups' => ['annee:read']]
-        )
     ]
 )]
 #[ORM\HasLifecycleCallbacks()]
