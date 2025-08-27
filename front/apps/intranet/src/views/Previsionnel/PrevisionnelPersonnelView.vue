@@ -284,6 +284,42 @@ const addPrevi = async () => {
   }
 }
 
+const duplicatePrevi = async (previId) => {
+  try {
+    console.log('previId', previId);
+    const previToDuplicate = previAnneeEnseignant.value[0].find(previ => previ.id === previId);
+    console.log('previToDuplicate.enseignement.id', previToDuplicate);
+
+    if (previToDuplicate) {
+      const newPreviData = {
+        personnel: `/api/personnels/${previToDuplicate.idPersonnel}`,
+        anneeUniversitaire: `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`,
+        referent: false,
+        heures: {
+          CM: previToDuplicate.heures.CM*previToDuplicate.heures.CM.NbGrp,
+          TD: previToDuplicate.heures.TD*previToDuplicate.heures.TD.NbGrp,
+          TP: previToDuplicate.heures.TP*previToDuplicate.heures.TP.NbGrp,
+          Projet: previToDuplicate.heures.Projet*previToDuplicate.heures.Projet.NbGrp,
+        },
+        groupes: {
+          CM: previToDuplicate.groupes.CM,
+          TD: previToDuplicate.groupes.TD,
+          TP: previToDuplicate.groupes.TP,
+          Projet: previToDuplicate.groupes.Projet,
+        },
+        enseignement: `/api/scol_enseignements/${previToDuplicate.idEnseignement}`,
+      };
+      console.log('newPreviData', newPreviData);
+      await apiCall(previService.create, [newPreviData], 'Le prévisionnel a été dupliqué avec succès', 'Une erreur est survenue lors de la duplication du prévisionnel');
+    }
+  } catch (error) {
+    showDanger('Une erreur est survenue lors de la duplication du prévisionnel', error);
+    console.error('Erreur lors de la duplication du prévisionnel:', error);
+  } finally {
+    await getPreviEnseignant();
+  }
+}
+
 const updateHeuresPrevi = async (previId, type, valeur) => {
   try {
     const previ = previAnneeEnseignant.value[0].find((previ) => previ.id === previId);

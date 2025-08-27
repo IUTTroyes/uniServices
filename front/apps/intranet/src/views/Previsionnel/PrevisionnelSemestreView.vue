@@ -55,20 +55,20 @@ const filters = ref({
 });
 
 const getSemestres = async () => {
-      isLoadingSemestres.value = true;
-      try {
-        await semestreStore.getSemestresByDepartement(departementId, true);
-      } catch (error) {
-        console.error('Erreur lors du chargement des semestres:', error);
-        hasError.value = true;
-      } finally {
-        semestresList.value = semestreStore.semestres || [];
-        if (semestresList.value.length > 0) {
-          selectedSemestre.value = semestresList.value[0];
-        }
-        isLoadingSemestres.value = false;
-      }
-    };
+  isLoadingSemestres.value = true;
+  try {
+    await semestreStore.getSemestresByDepartement(departementId, true);
+  } catch (error) {
+    console.error('Erreur lors du chargement des semestres:', error);
+    hasError.value = true;
+  } finally {
+    semestresList.value = semestreStore.semestres || [];
+    if (semestresList.value.length > 0) {
+      selectedSemestre.value = semestresList.value[0];
+    }
+    isLoadingSemestres.value = false;
+  }
+};
 
 const getPrevi = async (semestreId) => {
   if (semestreId) {
@@ -141,6 +141,42 @@ watch(searchTerm, (newTerm) => {
   filters.value['libelleEnseignement'].value = newTerm;
 });
 
+const duplicatePrevi = async (previId) => {
+  try {
+    console.log('previId', previId);
+    const previToDuplicate = previSemestre.value[0].find(previ => previ.id === previId);
+    console.log('previToDuplicate.enseignement.id', previToDuplicate);
+
+    if (previToDuplicate) {
+      const newPreviData = {
+        personnel: `/api/personnels/${previToDuplicate.idPersonnel}`,
+        anneeUniversitaire: `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`,
+        referent: false,
+        heures: {
+          CM: previToDuplicate.heures.CM.NbHrGrp*previToDuplicate.heures.CM.NbGrp,
+          TD: previToDuplicate.heures.TD.NbHrGrp*previToDuplicate.heures.TD.NbGrp,
+          TP: previToDuplicate.heures.TP.NbHrGrp*previToDuplicate.heures.TP.NbGrp,
+          Projet: previToDuplicate.heures.Projet.NbHrGrp*previToDuplicate.heures.Projet.NbGrp,
+        },
+        groupes: {
+          CM: previToDuplicate.groupes.CM,
+          TD: previToDuplicate.groupes.TD,
+          TP: previToDuplicate.groupes.TP,
+          Projet: previToDuplicate.groupes.Projet,
+        },
+        enseignement: `/api/scol_enseignements/${previToDuplicate.idEnseignement}`,
+      };
+      console.log('newPreviData', newPreviData);
+      await apiCall(previService.create, [newPreviData], 'Le prévisionnel a été dupliqué avec succès', 'Une erreur est survenue lors de la duplication du prévisionnel');
+    }
+  } catch (error) {
+    showDanger('Une erreur est survenue lors de la duplication du prévisionnel', error);
+    console.error('Erreur lors de la duplication du prévisionnel:', error);
+  } finally {
+    getPrevi(selectedSemestre.value.id);
+  }
+}
+
 const updateHeuresPrevi = async (previId, type, valeur) => {
   try {
     // Récupérer le prévisionnel à modifier
@@ -157,6 +193,7 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
       }, {});
 
       // Mettre à jour le prévisionnel
+      console.log('newHeures', newHeures);
       await updatePreviService(previId, {heures: newHeures});
 
       // Mettre à jour les heures dans le prévisionnel pour le calcul des séances
@@ -216,8 +253,7 @@ const updateGroupesPrevi = async (previId, type, valeur) => {
       previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TP.NbGrp > 0 ? previ.heures.TP.NbHrGrp : 0), 0) * 10) / 10;
       previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
 
-      console.log('previForm', previForm);
-
+      console.log('newGroupes', newGroupes);
       await updatePreviService(previId, {groupes: newGroupes});
     }
   } catch (error) {
@@ -364,7 +400,7 @@ const columnsForm = ref([
 
   { header: 'Séances', field: 'heures.TP.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !max-w-20', form: false },
 
-  { header: 'Dupliquer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-copy', id: 'id', buttonAction: (id) => {duplicatePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn', duplicate: true },
+  { header: 'Dupliquer', field: 'id', colspan: 1, button: true, buttonIcon: 'pi pi-copy', id: 'id', buttonAction: (id) => {duplicatePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn', duplicate: true },
   { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', id: 'id', buttonAction: (id) => {deletePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'danger', delete: true },
 ]);
 
