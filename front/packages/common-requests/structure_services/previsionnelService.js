@@ -141,6 +141,7 @@ const updatePreviPersonnelService = async (previId, personnelId, showToast = tru
 
 const updatePreviService = async (previId, data, showToast = true) => {
     try {
+        console.log('data', data);
         await apiCall(
             previsionnelsService.update,
             [previId, data],
