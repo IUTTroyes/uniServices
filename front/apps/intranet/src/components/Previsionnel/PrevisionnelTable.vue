@@ -19,6 +19,7 @@ const debouncedActions = new Map();
 
 // Function to get or create a debounced version of a form action
 const getDebouncedActionPrevi = (formAction, id, type) => {
+  console.log('test', formAction, id, type);
   const key = `${id}-${type}`;
   if (!debouncedActions.has(key)) {
     debouncedActions.set(key, debounce((value) => {

@@ -188,7 +188,9 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
 
       // Calculer les nouvelles heures
       const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-        acc[key] = parseFloat(previForm.heures[key].NbHrGrp * previForm.heures[key].NbGrp);
+        const NbHrGrp = previForm.heures[key]?.NbHrGrp ?? 0;
+        const NbGrp = previForm.heures[key]?.NbGrp ?? 0;
+        acc[key] = parseFloat(NbHrGrp * NbGrp);
         return acc;
       }, {});
 
@@ -253,7 +255,6 @@ const updateGroupesPrevi = async (previId, type, valeur) => {
       previSemestre.value[3].TP.NbHrSaisi = Math.round(previSemestre.value[0].reduce((acc, previ) => acc + (previ.heures.TP.NbGrp > 0 ? previ.heures.TP.NbHrGrp : 0), 0) * 10) / 10;
       previSemestre.value[3].TP.Diff = Math.round((previSemestre.value[3].TP.NbHrSaisi - previSemestre.value[3].TP.NbHrAttendu) * 10) / 10;
 
-      console.log('newGroupes', newGroupes);
       await updatePreviService(previId, {groupes: newGroupes});
     }
   } catch (error) {
@@ -309,7 +310,7 @@ const addPrevi = async (personnel, enseignement) => {
       },
       enseignement: enseignementIri,
     };
-    await apiCall(previService.create,[dewPrevi], 'L\'élément a été créé avec succès', 'Une erreur est survenue lors de la création du prévisionnel');
+    await apiCall(previService.create,[dataNewPrevi], 'L\'élément a été créé avec succès', 'Une erreur est survenue lors de la création du prévisionnel');
   } catch (error) {
     console.error('Erreur lors de la création du prévisionnel:', error);
   } finally {
