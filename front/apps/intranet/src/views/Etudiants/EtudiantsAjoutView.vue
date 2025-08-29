@@ -17,12 +17,6 @@ const navigateTo = (route) => {
   router.push(route);
 };
 
-onMounted(() => {
-  if (items.length > 0) {
-    router.push(items[0].route);
-  }
-});
-
 import { useSemestreStore, useUsersStore } from '@stores';
 import { SimpleSkeleton } from '@components';
 const usersStore = useUsersStore();
@@ -86,6 +80,9 @@ const getAnnees = async () => {
 };
 
 onMounted(async () => {
+  if (items.length > 0) {
+    router.push(items[0].route);
+  }
   departementId.value = usersStore.departementDefaut.id;
   await getSemestres();
   await getAnnees();
@@ -97,7 +94,7 @@ onMounted(async () => {
   <div v-else class="card">
     <h2 class="text-2xl font-bold mb-4">Ajouter des étudiants</h2>
     <Divider/>
-    <Tabs value="/administration/previsionnel/semestre" scrollable>
+    <Tabs value="/administration/etudiant/ajout/apogee" scrollable>
       <TabList>
         <router-link
             v-for="tab in items"
