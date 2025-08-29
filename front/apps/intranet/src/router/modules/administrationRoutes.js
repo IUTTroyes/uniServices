@@ -25,14 +25,35 @@ export default [
     },
   },
   {
-    path: 'administration/etudiants',
-    component: () => import('@/views/etudiants/EtudiantsView.vue'),
+    path: 'administration/etudiant',
     meta: {
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
         route: '/administration'
-      }, { label: 'Gestion des Etudiants', route: null }]
+      }]
     },
+    children: [
+      {
+        path: '',
+        component: () => import('@/views/etudiants/EtudiantsListeView.vue'),
+        meta: {
+          breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+            label: 'Administration',
+            route: '/administration'
+          }, { label: 'Liste des Etudiants', route: null }]
+        },
+      },
+      {
+        path: 'ajout',
+        component: () => import('@/views/etudiants/EtudiantsAjoutView.vue'),
+        meta: {
+          breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+            label: 'Administration',
+            route: '/administration'
+          }, { label: 'Ajouter des Etudiants', route: null }]
+        },
+      }
+    ]
   },
   {
     path: 'administration/pn',
