@@ -18,9 +18,9 @@ const duplicatedHrs = ref({});
 const debouncedActions = new Map();
 
 // Function to get or create a debounced version of a form action
-const getDebouncedActionPrevi = (formAction, id, type) => {
+const getDebouncedActionPrevi = (formAction, id, type, test) => {
   console.log('test', formAction, id, type);
-  const key = `${id}-${type}`;
+  const key = `${id}-${type}-${test}`;
   if (!debouncedActions.has(key)) {
     debouncedActions.set(key, debounce((value) => {
       formAction(id, type, value);
@@ -129,7 +129,7 @@ const deleteHrs = async (id) => {
               v-if="col.form && col.formType === 'text'"
               v-model="slotProps.data[col.field]"
               :placeholder="getFieldValue(slotProps.data, col.field)"
-              @blur="getDebouncedActionPrevi(col.formAction, getFieldValue(slotProps.data, col.id), col.type)($event.target.value)"
+              @blur="getDebouncedActionPrevi(col.formAction, getFieldValue(slotProps.data, col.id), col.type, col.test)($event.target.value)"
               class="max-w-20"
               v-tooltip.top="col.tooltip"
           />
@@ -199,10 +199,10 @@ const deleteHrs = async (id) => {
         <Column v-for="(footerCol, index) in props.footerCols" :key="index" :colspan="footerCol.colspan" :rowspan="footerCol.rowspan" :class="footerCol.class">
           <template #footer="slotProps">
             <slot :name="`footer-${footerCol.field}`" :value="footerCol.footer">
-              <Tag v-if="footerCol.tag" class="w-max" :class="footerCol.tagClass(footerCol.footer)" :severity="footerCol.tagSeverity(footerCol.footer)" :icon="footerCol.tagIcon(footerCol.footer)" v-tooltip.top="d.tooltip">
+              <Tag v-if="footerCol.tag" class="w-max" :class="footerCol.tagClass(footerCol.footer)" :severity="footerCol.tagSeverity(footerCol.footer)" :icon="footerCol.tagIcon(footerCol.footer)" v-tooltip.top="footerCol.tooltip">
                 {{ footerCol.footer }}<span v-if="footerCol.unit"> {{ footerCol.unit }}</span>
               </Tag>
-              <span class="w-fit" v-else>{{ footerCol.footer }}<span v-if="footerCol.unit" v-tooltip.top="d.tooltip"> {{ footerCol.unit }}</span></span>
+              <span class="w-fit" v-else>{{ footerCol.footer }}<span v-if="footerCol.unit" v-tooltip.top="footerCol.tooltip"> {{ footerCol.unit }}</span></span>
             </slot>
           </template>
         </Column>
