@@ -1,5 +1,4 @@
 <script setup>
-// No props or logic needed for this simple component
 </script>
 
 <template>

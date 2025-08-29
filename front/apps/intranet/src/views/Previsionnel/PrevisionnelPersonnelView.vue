@@ -286,9 +286,7 @@ const addPrevi = async () => {
 
 const duplicatePrevi = async (previId) => {
   try {
-    console.log('previId', previId);
     const previToDuplicate = previAnneeEnseignant.value[0].find(previ => previ.id === previId);
-    console.log('previToDuplicate.enseignement.id', previToDuplicate);
 
     if (previToDuplicate) {
       const newPreviData = {
@@ -296,10 +294,10 @@ const duplicatePrevi = async (previId) => {
         anneeUniversitaire: `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`,
         referent: false,
         heures: {
-          CM: previToDuplicate.heures.CM*previToDuplicate.heures.CM.NbGrp,
-          TD: previToDuplicate.heures.TD*previToDuplicate.heures.TD.NbGrp,
-          TP: previToDuplicate.heures.TP*previToDuplicate.heures.TP.NbGrp,
-          Projet: previToDuplicate.heures.Projet*previToDuplicate.heures.Projet.NbGrp,
+          CM: previToDuplicate.heures.CM,
+          TD: previToDuplicate.heures.TD,
+          TP: previToDuplicate.heures.TP,
+          Projet: previToDuplicate.heures.Projet,
         },
         groupes: {
           CM: previToDuplicate.groupes.CM,
@@ -309,7 +307,6 @@ const duplicatePrevi = async (previId) => {
         },
         enseignement: `/api/scol_enseignements/${previToDuplicate.idEnseignement}`,
       };
-      console.log('newPreviData', newPreviData);
       await apiCall(previService.create, [newPreviData], 'Le prévisionnel a été dupliqué avec succès', 'Une erreur est survenue lors de la duplication du prévisionnel');
     }
   } catch (error) {
@@ -322,6 +319,7 @@ const duplicatePrevi = async (previId) => {
 
 const updateHeuresPrevi = async (previId, type, valeur) => {
   try {
+    console.log('updateHeures')
     const previ = previAnneeEnseignant.value[0].find((previ) => previ.id === previId);
     if (previ && parseFloat(valeur) !== previ.heures[type] && !isNaN(parseFloat(valeur))) {
       previ.heures[type] = parseFloat(valeur || previ.heures[type] || 0);
@@ -349,6 +347,7 @@ const updateHeuresPrevi = async (previId, type, valeur) => {
 
 const updateGroupesPrevi = async (previId, type, valeur) => {
   try {
+    console.log('updateGroupes')
     const previ = previAnneeEnseignant.value[0].find((previ) => previ.id === previId);
 
     if (previ && parseInt(valeur) !== previ.groupes[type] && !isNaN(parseInt(valeur))) {
@@ -390,7 +389,6 @@ const addHrs = async (personnelId) => {
       nbHeuresTd: parseFloat(nbHeuresHrs.value) || 0,
     };
 
-    console.log(dataNewHrs);
     // await apiCall(hrsService.create,[dataNewHrs], 'HRS/prime créée', 'Une erreur est survenue lors de la création de l\'HRS/prime');
 
     // Reset form fields after successful creation
@@ -530,14 +528,14 @@ const footerCols = computed(() => [
 const columnsForm = ref([
   { header: 'Matière/ressource/SAE', field: 'libelleEnseignement', sortable: true, colspan: 1, form: true, formType: 'select', formOptions: enseignementList, id: 'id', placeholder: 'Sélectionner un enseignement', formAction: (enseignement) => {selectedEnseignement.value = enseignement}, class: '!text-wrap !w-20' },
 
-  { header: 'Nb H/Gr.', field: 'heures.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, valeur) => { updateHeuresPrevi(previId, type, valeur) } },
-  { header: 'Nb Gr.', field: 'groupes.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, valeur) => { updateGroupesPrevi(previId, type, valeur) } },
+  { header: 'Nb H/Gr.', name: 'nbHrGrpCM', field: 'heures.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, valeur) => { updateHeuresPrevi(previId, type, valeur) } },
+  { header: 'Nb Gr.', name: 'nbGrpCM', field: 'groupes.CM', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, valeur) => { updateGroupesPrevi(previId, type, valeur) } },
 
-  { header: 'Nb H/Gr.', field: 'heures.TD', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, valeur) => { updateHeuresPrevi(previId, type, valeur) } },
-  { header: 'Nb Gr.', field: 'groupes.TD', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, valeur) => { updateGroupesPrevi(previId, type, valeur) } },
+  { header: 'Nb H/Gr.', name: 'nbHrGrpTD', field: 'heures.TD', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, valeur) => { updateHeuresPrevi(previId, type, valeur) } },
+  { header: 'Nb Gr.', name: 'nbGrpTD', field: 'groupes.TD', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, valeur) => { updateGroupesPrevi(previId, type, valeur) } },
 
-  { header: 'Nb H/Gr.', field: 'heures.TP', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, valeur) => { updateHeuresPrevi(previId, type, valeur) } },
-  { header: 'Nb Gr.', field: 'groupes.TP', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, valeur) => { updateGroupesPrevi(previId, type, valeur) } },
+  { header: 'Nb H/Gr.', name: 'nbHrGrpTP', field: 'heures.TP', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, valeur) => { updateHeuresPrevi(previId, type, valeur) } },
+  { header: 'Nb Gr.', name: 'nbGrpTP', field: 'groupes.TP', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, valeur) => { updateGroupesPrevi(previId, type, valeur) } },
 
   { header: 'Dupliquer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-copy', id: 'id', buttonAction: (id) => {duplicatePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn', duplicate: true },
   { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', id: 'id', buttonAction: (id) => {deletePrevi(id)}, buttonClass: () => '!w-fit', buttonSeverity: () => 'danger', delete: true },
@@ -569,7 +567,7 @@ const additionalRowsForm = computed(() => [
     { footer: 'Total', colspan: 2, class: '!text-nowrap font-bold' },
   ],
   [
-    { footer: 'Total heures saisies', colspan: 1 },
+    { footer: 'Total heures saisies', colspan: 1, tooltip: "Somme du produit du nombre d'heures par le nombre de groupes" },
     { footer: previAnneeEnseignant.value[1]['CM'], colspan: 2, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previAnneeEnseignant.value[1]['TD'], colspan: 2, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
     { footer: previAnneeEnseignant.value[1]['TP'], colspan: 2, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },

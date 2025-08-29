@@ -4,8 +4,8 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const panelMenuItems = [
-  { label: 'Liste de tous les étudiants', icon: 'pi pi-list', command: () => {router.push('administration/etudiants');} },
-  { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', command: () => {} },
+  { label: 'Liste de tous les étudiants', icon: 'pi pi-list', command: () => {router.push('administration/etudiant');} },
+  { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', command: () => {router.push('administration/etudiant/ajout');} },
   { label: 'Gestion des cohortes', icon: 'pi pi-users', command: () => {} },
   { label: 'Gestion des absences', icon: 'pi pi-calendar', command: () => {} },
   { label: 'Gestion des notes et évaluations', icon: 'pi pi-book', command: () => {} },

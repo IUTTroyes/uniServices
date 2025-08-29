@@ -18,8 +18,9 @@ const duplicatedHrs = ref({});
 const debouncedActions = new Map();
 
 // Function to get or create a debounced version of a form action
-const getDebouncedActionPrevi = (formAction, id, type) => {
-  const key = `${id}-${type}`;
+const getDebouncedActionPrevi = (formAction, id, type, test) => {
+  console.log('test', formAction, id, type);
+  const key = `${id}-${type}-${test}`;
   if (!debouncedActions.has(key)) {
     debouncedActions.set(key, debounce((value) => {
       formAction(id, type, value);
@@ -128,8 +129,9 @@ const deleteHrs = async (id) => {
               v-if="col.form && col.formType === 'text'"
               v-model="slotProps.data[col.field]"
               :placeholder="getFieldValue(slotProps.data, col.field)"
-              @blur="getDebouncedActionPrevi(col.formAction, getFieldValue(slotProps.data, col.id), col.type)($event.target.value)"
+              @blur="getDebouncedActionPrevi(col.formAction, getFieldValue(slotProps.data, col.id), col.type, col.test)($event.target.value)"
               class="max-w-20"
+              v-tooltip.top="col.tooltip"
           />
 
           <Select v-else-if="col.form && col.formType === 'select'"
@@ -145,16 +147,15 @@ const deleteHrs = async (id) => {
 
           <ButtonDelete v-else-if="col.button & col.delete" tooltip="Supprimer l'élément du prévi" @confirm-delete="deletePrevi(slotProps.data)" :class="col.class"/>
 
-<!--          <ButtonDuplicate v-else-if="col.button & col.duplicate" tooltip="Dupliquer l'élément dans le prévi" @confirm-duplicate="duplicatePrevi(slotProps.data)" :class="col.class"/>-->
           <ButtonDuplicate v-else-if="col.button & col.duplicate" tooltip="Dupliquer l'élément dans le prévi" @confirm-duplicate="(event) => { col.buttonAction(getFieldValue(slotProps.data, col.id), event); }" :class="col.class"/>
 
           <Button v-else-if="col.button" :icon="col.buttonIcon" @click="col.buttonAction(getFieldValue(slotProps.data, col.id))" :class="col.buttonClass(col.field)" :label="col.field" :severity="col.buttonSeverity(col.field)"/>
 
 
           <Tag v-else-if="col.tag" class="w-max" :class="col.tagClass(getFieldValue(slotProps.data, col.field))" :severity="col.tagSeverity(getFieldValue(slotProps.data, col.field))" :icon="col.tagIcon(getFieldValue(slotProps.data, col.field))">
-            {{ col.tagContent ? col.tagContent(getFieldValue(slotProps.data, col.field)) : getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && col.tagSeverity(getFieldValue(slotProps.data, col.field)) !== 'secondary'"> {{ col.unit }}</span>
+            {{ col.tagContent ? col.tagContent(getFieldValue(slotProps.data, col.field)) : getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && col.tagSeverity(getFieldValue(slotProps.data, col.field)) !== 'secondary'" v-tooltip.top="col.tooltip"> {{ col.unit }}</span>
           </Tag>
-          <span v-else>{{ getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && !(typeof getFieldValue(slotProps.data, col.field) === 'string' && getFieldValue(slotProps.data, col.field).includes('autre département'))"> {{ col.unit }}</span></span>
+          <span v-else>{{ getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && !(typeof getFieldValue(slotProps.data, col.field) === 'string' && getFieldValue(slotProps.data, col.field).includes('autre département'))" v-tooltip.top="col.tooltip"> {{ col.unit }}</span></span>
         </slot>
       </template>
     </Column>
@@ -170,6 +171,7 @@ const deleteHrs = async (id) => {
                   v-model="d.footer"
                   :placeholder="d.placeholder || 'Saisir une valeur'"
                   @blur="d.formAction(d.footer)"
+                  v-tooltip.top="d.tooltip"
               />
 
               <Select v-else-if="d.form && d.formType === 'select'"
@@ -184,11 +186,11 @@ const deleteHrs = async (id) => {
               <ButtonSave v-else-if="d.button & d.save" tooltip="Enregistrer l'élément HRS/prime"  :class="d.class"/>
               <ButtonDelete v-else-if="d.button & d.delete" tooltip="Supprimer l'élément HRS/prime" @confirm-delete="deleteHrs(d.id)" :class="d.class"/>
               <ButtonDuplicate v-else-if="d.button & d.duplicate" tooltip="Dupliquer l'élément HRS/prime" @confirm-duplicate="duplicateHrs(d.id)" :class="d.class"/>
-              <Button v-else-if="d.button" :icon="d.buttonIcon" @click="d.buttonAction(d.buttonParam !== undefined ? d.buttonParam : d.footer)" :class="d.buttonClass(d.footer)" :label="d.footer" :severity="d.buttonSeverity(d.footer)"/>
-              <Tag v-else-if="d.tag" class="w-max" :class="d.tagClass(d.footer)" :severity="d.tagSeverity(d.footer)" :icon="d.tagIcon(d.footer)">
+              <Button v-else-if="d.button" :icon="d.buttonIcon" @click="d.buttonAction(d.buttonParam !== undefined ? d.buttonParam : d.footer)" :class="d.buttonClass(d.footer)" :label="d.footer" :severity="d.buttonSeverity(d.footer)" :tooltip="d.tooltip"/>
+              <Tag v-else-if="d.tag" class="w-max" :class="d.tagClass(d.footer)" :severity="d.tagSeverity(d.footer)" :icon="d.tagIcon(d.footer)" v-tooltip.top="d.tooltip">
                 {{ d.tagContent ? d.tagContent(d.footer) : d.footer }}<span v-if="d.unit && d.tagSeverity(d.footer) !== 'secondary'"> {{ d.unit }}</span>
               </Tag>
-              <span class="w-fit" v-else>{{ d.footer }}<span v-if="d.unit"> {{ d.unit }}</span></span>
+              <span class="w-fit" v-else v-tooltip.top="d.tooltip">{{ d.footer }}<span v-if="d.unit"> {{ d.unit }}</span></span>
             </slot>
           </template>
         </Column>
@@ -197,10 +199,10 @@ const deleteHrs = async (id) => {
         <Column v-for="(footerCol, index) in props.footerCols" :key="index" :colspan="footerCol.colspan" :rowspan="footerCol.rowspan" :class="footerCol.class">
           <template #footer="slotProps">
             <slot :name="`footer-${footerCol.field}`" :value="footerCol.footer">
-              <Tag v-if="footerCol.tag" class="w-max" :class="footerCol.tagClass(footerCol.footer)" :severity="footerCol.tagSeverity(footerCol.footer)" :icon="footerCol.tagIcon(footerCol.footer)">
+              <Tag v-if="footerCol.tag" class="w-max" :class="footerCol.tagClass(footerCol.footer)" :severity="footerCol.tagSeverity(footerCol.footer)" :icon="footerCol.tagIcon(footerCol.footer)" v-tooltip.top="footerCol.tooltip">
                 {{ footerCol.footer }}<span v-if="footerCol.unit"> {{ footerCol.unit }}</span>
               </Tag>
-              <span class="w-fit" v-else>{{ footerCol.footer }}<span v-if="footerCol.unit"> {{ footerCol.unit }}</span></span>
+              <span class="w-fit" v-else>{{ footerCol.footer }}<span v-if="footerCol.unit" v-tooltip.top="footerCol.tooltip"> {{ footerCol.unit }}</span></span>
             </slot>
           </template>
         </Column>
