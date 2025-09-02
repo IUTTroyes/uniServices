@@ -1,6 +1,6 @@
 <script setup>
 import {onMounted, ref, watch} from 'vue';
-import { getDepartementAnneesService, getAnneeSemestresService } from "@requests";
+import { getDepartementAnneesService, getAnneeSemestresService, getAllAnneesUniversitairesService } from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore, useSemestreStore } from "@stores";
 
@@ -9,9 +9,26 @@ const annees = ref([]);
 const selectedAnnee = ref(null);
 const semestres = ref([]);
 const selectedSemestre = ref(null);
+const anneesUniv = ref([]);
+const selectedAnneeUniv = ref(null);
 
 const isLoadingAnnees = ref(true);
 const isLoadingSemestres = ref(false);
+const isLoadingAnneesUniv = ref(true);
+
+const getAnneesUniv = async () => {
+  try {
+    isLoadingAnneesUniv.value = true;
+    anneesUniv.value = await getAllAnneesUniversitairesService();
+    if (anneesUniv.value.length > 0) {
+      selectedAnneeUniv.value = anneesUniv.value[0];
+    }
+  } catch (error) {
+    console.error('Erreur lors du chargement des années universitaires :', error);
+  } finally {
+    isLoadingAnneesUniv.value = false;
+  }
+};
 
 const getAnnees = async () => {
   try {
@@ -46,7 +63,14 @@ watch(selectedAnnee, async (newValue) => {
   }
 })
 
+watch(selectedAnneeUniv, async (newValue) => {
+  if (newValue) {
+    console.log(newValue)
+  }
+})
+
 onMounted(async() => {
+  await getAnneesUniv();
   await getAnnees();
 });
 
@@ -54,8 +78,17 @@ onMounted(async() => {
 
 <template>
   <div class="flex flex-col gap-4">
-    <!--  <div class="text-lg font-medium border p-4 w-fit text-center mx-auto rounded-md">Pour quelle année voulez-vous importer des étudiants ?</div>-->
+      <em class="text-lg font-medium text-muted-color">
+        Importer les étudiants depuis Apogée
+      </em>
 
+    <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+      <div class="font-medium text-lg">
+        Sélectionner une année universitaire
+      </div>
+      <ListSkeleton v-if="isLoadingAnneesUniv" class="w-full"/>
+      <SelectButton v-else :options="anneesUniv" v-model="selectedAnneeUniv" class="w-full justify-center" optionLabel="libelle" optionValue="id"/>
+    </div>
     <div class="w-full flex gap-2">
       <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
         <div class="font-medium text-lg">
