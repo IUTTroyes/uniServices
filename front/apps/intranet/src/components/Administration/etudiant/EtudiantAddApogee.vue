@@ -57,30 +57,33 @@ onMounted(async() => {
     <!--  <div class="text-lg font-medium border p-4 w-fit text-center mx-auto rounded-md">Pour quelle année voulez-vous importer des étudiants ?</div>-->
 
     <div class="w-full flex gap-2">
-      <div class="text-lg font-medium border p-4 w-1/3 text-center mx-auto rounded-md flex flex-col gap-2">
+      <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
         <div class="font-medium text-lg">
           Sélectionner une année
         </div>
         <ListSkeleton v-if="isLoadingAnnees" class="w-full"/>
-        <Button v-else severity="secondary" v-for="annee in annees" :key="annee.id" class="w-full" :class="{'!bg-primary !text-white': selectedAnnee && selectedAnnee.id === annee.id}" @click="selectedAnnee = annee">
-            {{annee.libelle}}
-          </Button>
+        <Button v-else :severity="selectedAnnee && selectedAnnee.id === annee.id ? 'primary' : 'secondary'" v-for="annee in annees" :key="annee.id" class="w-full" @click="selectedAnnee = annee">
+          {{annee.libelle}}
+        </Button>
       </div>
-      <div class="text-lg font-medium border p-4 w-1/3 text-center mx-auto rounded-md flex flex-col gap-2">
+      <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
         <div class="font-medium text-lg">
           Sélectionner un semestre
         </div>
         <ListSkeleton v-if="isLoadingSemestres" class="w-full"/>
-        <Button v-else-if="semestres.length > 0" severity="secondary" v-for="semestre in semestres" :key="semestre.id" class="w-full" :class="{'!bg-primary !text-white': selectedSemestre && selectedSemestre.id === semestre.id}" @click="selectedSemestre = semestre">
+        <Button v-else-if="semestres.length > 0" :severity="selectedSemestre && selectedSemestre.id === semestre.id ? 'primary' : 'secondary'" v-for="semestre in semestres" :key="semestre.id" class="w-full" @click="selectedSemestre = semestre">
           {{semestre.libelle}}
         </Button>
-        <div v-else class="text-muted-color">Veuillez d'abord sélectionner une année</div>
-      </div>
-      <div class="text-lg font-medium border p-4 w-1/3 text-center mx-auto rounded-md flex flex-col gap-2">
-        <div class="font-medium text-lg">
-          Sélectionner une année
+        <div v-else class="flex items-center justify-center h-full">
+          <Message severity="warn" icon="pi pi-info-circle">
+            Veuillez d'abord sélectionner une année
+          </Message>
         </div>
-        <Button severity="primary" class="w-full">
+      </div>
+    </div>
+    <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+      <div class="flex items-center justify-center h-full">
+        <Button severity="primary" class="w-full" :disabled="!selectedAnnee || !selectedSemestre">
           Importer les étudiants
         </Button>
       </div>
