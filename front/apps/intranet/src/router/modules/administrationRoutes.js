@@ -52,6 +52,15 @@ export default [
             route: '/administration'
           }, { label: 'Ajouter des Etudiants', route: null }]
         },
+        children: [
+          {
+            path: 'apogee',
+            component: () => import('@/components/Administration/etudiant/EtudiantAddApogee.vue'),
+          },{
+            path: 'manuel',
+            component: () => import('@/components/Administration/etudiant/EtudiantAddManuel.vue'),
+          },
+        ]
       }
     ]
   },

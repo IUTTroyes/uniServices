@@ -21,14 +21,14 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: StructureAnneeRepository::class)]
-#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
-#[ApiFilter(AnneeFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['annee:read']]),
         new GetCollection(normalizationContext: ['groups' => ['annee:read']]),
     ]
 )]
+#[ApiFilter(AnneeFilter::class)]
+#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ORM\HasLifecycleCallbacks()]
 class StructureAnnee
 {
