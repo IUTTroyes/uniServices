@@ -39,12 +39,6 @@ class AnneeFilter extends AbstractFilter
                 ->andWhere("pn.actif = true")
                 ->andWhere("d.id = :diplome")
                 ->setParameter("diplome", $value);
-        } elseif ('actif' === $property) {
-            $queryBuilder
-                ->andWhere("$alias.actif = :actif")
-                ->setParameter("actif", $value);
-        } else {
-            throw new \InvalidArgumentException(sprintf('The property "%s" is not supported by the AnneeFilter.', $property));
         }
     }
 
@@ -73,14 +67,6 @@ class AnneeFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by diploma',
-                ],
-            ],
-            'actif' => [
-                'property' => 'actif',
-                'type' => Type::BUILTIN_TYPE_BOOL,
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by active status',
                 ],
             ],
         ];
