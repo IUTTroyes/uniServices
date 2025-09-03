@@ -115,7 +115,6 @@ onMounted(async() => {
   <div class="flex flex-col gap-4">
     <div class="text-2xl font-bold text-center">Que voulez-vous faire ?</div>
     <SelectButton :options="features" v-model="selectedFeature" class="w-full justify-center" optionLabel="libelle" optionValue="id"/>
-    <Divider></Divider>
 
     <div v-if="selectedFeature">
       <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
