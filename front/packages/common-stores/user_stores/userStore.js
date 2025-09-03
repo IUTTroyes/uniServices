@@ -3,7 +3,7 @@ import {computed, ref} from 'vue';
 import {
     changeDepartementActifService,
     getAllStatutsService,
-    getEtudiantScolariteActifService,
+    getEtudiantScolaritesService,
     getUserService,
     updateUserService
 } from "@requests";
@@ -76,10 +76,7 @@ export const useUsersStore = defineStore('users', () => {
                 departementsNotDefaut.value = departements.value.filter(departement => departement.departementPersonnel?.defaut === false) || [];
             }
             if (userType === 'etudiants') {
-                await anneeUnivStore.getCurrentAnneeUniv();
-                currentAnneeUniv.value = anneeUnivStore.anneeUniv;
-
-                scolariteActif.value = await getEtudiantScolariteActifService(userId, currentAnneeUniv.value.id);
+                scolariteActif.value = (await getEtudiantScolaritesService(userId, true))[0];
                 departementDefaut.value = scolariteActif.value.departement;
             }
             isLoaded.value = true;

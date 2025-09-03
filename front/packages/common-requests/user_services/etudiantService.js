@@ -1,25 +1,65 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
-const getEtudiantScolariteActifService = async (etudiant, anneeUniv, showToast = false) => {
+// ----------------------------------------------
+// ------------------- GET ----------------------
+// ----------------------------------------------
+
+const getEtudiantService = async (etudiantId, showToast = false) => {
     try {
-        const response = await apiCall(
+        return await apiCall(
             api.get,
-            [`/api/etudiant_scolarites/etudiant/${etudiant}/structureAnneeUniversitaire/${anneeUniv}`],
-            'Scolarité de l\'étudiant récupérée avec succès',
-            'Erreur lors de la récupération de la scolarité de l\'étudiant',
+            [`/api/etudiants/${etudiantId}`],
+            'Étudiant récupéré avec succès',
+            'Erreur lors de la récupération de l\'étudiant',
             showToast
         );
-        return response;
     } catch (error) {
-        console.error('Erreur dans getEtudiantScolariteActifService:', error);
+        console.error('Erreur dans getEtudiant:', error);
         throw error;
     }
 }
 
-const updateEtudiant = async (etudiant, showToast = true) => {
+// ----------------------------------------------
+// ------------------- CREATE -------------------
+// ----------------------------------------------
+
+const createEtudiantService = async (etudiant, showToast = true) => {
     try {
-        const response = await apiCall(
+        return await apiCall(
+            api.post,
+            ['/api/etudiants', etudiant],
+            'Étudiant créé avec succès',
+            'Erreur lors de la création de l\'étudiant',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans createEtudiant:', error);
+        throw error;
+    }
+}
+
+const importEtudiantApogeeService = async (data, showToast = true) => {
+    try {
+        return await apiCall(
+            api.post,
+            ['/api/etudiants/import_apogee', data],
+            'Étudiants importés avec succès',
+            'Erreur lors de l\'importation des étudiants',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans importEtudiantApogee:', error);
+        throw error;
+    }
+}
+
+// ----------------------------------------------
+// ------------------- UPDATE -------------------
+// ----------------------------------------------
+const updateEtudiantService = async (etudiant, showToast = true) => {
+    try {
+        return await apiCall(
             api.patch,
             [`/api/etudiants/${etudiant.id}`, etudiant, {
                 headers: {
@@ -30,11 +70,14 @@ const updateEtudiant = async (etudiant, showToast = true) => {
             'Erreur lors de la mise à jour de l\'étudiant',
             showToast
         );
-        return response;
     } catch (error) {
         console.error('Erreur dans updateEtudiant:', error);
         throw error;
     }
 }
 
-export { updateEtudiant, getEtudiantScolariteActifService };
+// ----------------------------------------------
+// ------------------- DELETE -------------------
+// ----------------------------------------------
+
+export { updateEtudiantService, getEtudiantService, importEtudiantApogeeService };
