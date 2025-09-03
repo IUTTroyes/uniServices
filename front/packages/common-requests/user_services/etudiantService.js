@@ -24,6 +24,35 @@ const getEtudiant = async (etudiantId, showToast = false) => {
 // ------------------- CREATE -------------------
 // ----------------------------------------------
 
+const createEtudiant = async (etudiant, showToast = true) => {
+    try {
+        return await apiCall(
+            api.post,
+            ['/api/etudiants', etudiant],
+            'Étudiant créé avec succès',
+            'Erreur lors de la création de l\'étudiant',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans createEtudiant:', error);
+        throw error;
+    }
+}
+
+const importEtudiantApogee = async (etudiants, showToast = true) => {
+    try {
+        return await apiCall(
+            api.post,
+            ['/api/etudiants/import_apogee', etudiants],
+            'Étudiants importés avec succès',
+            'Erreur lors de l\'importation des étudiants',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans importEtudiantApogee:', error);
+        throw error;
+    }
+}
 
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
