@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, watch } from 'vue';
 import { ErrorView } from '@components';
 
 import { useToast } from 'primevue/usetoast';
@@ -13,9 +13,16 @@ const items = [
   { label: 'Import manuel', icon: 'pi pi-pencil', route: '/administration/etudiant/ajout/manuel' },
 ];
 
+const activeTab = ref(localStorage.getItem('activeTab') || items[0].route);
+
 const navigateTo = (route) => {
+  activeTab.value = route;
   router.push(route);
 };
+
+watch(activeTab, (newTab) => {
+  localStorage.setItem('activeTab', newTab);
+});
 
 import { useSemestreStore, useUsersStore } from '@stores';
 import { SimpleSkeleton } from '@components';
@@ -30,8 +37,6 @@ const isLoadingSemestres = ref(false);
 const isLoadingAnnees = ref(false);
 
 const hasError = ref(false);
-
-const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));
 
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
@@ -80,12 +85,10 @@ const getAnnees = async () => {
 };
 
 onMounted(async () => {
-  if (items.length > 0) {
-    router.push(items[0].route);
-  }
   departementId.value = usersStore.departementDefaut.id;
   await getSemestres();
   await getAnnees();
+  router.push(activeTab.value);
 });
 </script>
 
@@ -94,7 +97,7 @@ onMounted(async () => {
   <div v-else class="card">
     <h2 class="text-2xl font-bold mb-4">Ajouter des étudiants</h2>
     <Divider/>
-    <Tabs value="/administration/etudiant/ajout/apogee" scrollable>
+    <Tabs :value="activeTab" scrollable>
       <TabList>
         <router-link
             v-for="tab in items"
