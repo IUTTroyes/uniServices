@@ -4,7 +4,8 @@ import { getDepartementAnneesService, getAnneeSemestresService, getAllAnneesUniv
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore, useSemestreStore } from "@stores";
 import { useToast } from "primevue/usetoast";
-import { usePrimeVue } from 'primevue/config';
+
+const hasError = ref(false);
 
 const userStore = useUsersStore();
 const annees = ref([]);
@@ -55,11 +56,15 @@ const getAnneesUniv = async () => {
   try {
     isLoadingAnneesUniv.value = true;
     anneesUniv.value = await getAllAnneesUniversitairesService();
-    if (anneesUniv.value.length > 0) {
-      selectedAnneeUniv.value = anneesUniv.value[0];
-    }
   } catch (error) {
     console.error('Erreur lors du chargement des années universitaires :', error);
+    hasError.value = true;
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de charger les années universitaires. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+      life: 5000,
+    });
   } finally {
     isLoadingAnneesUniv.value = false;
   }
@@ -69,10 +74,16 @@ const getAnnees = async () => {
   try {
     isLoadingAnnees.value = true;
     const departementId = userStore.departementDefaut.id;
-
     annees.value = await getDepartementAnneesService(departementId, true);
   } catch (error) {
     console.error('Erreur lors du chargement des années :', error);
+    hasError.value = true;
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de charger les années. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+      life: 5000,
+    });
   } finally {
     console.log(annees.value)
     isLoadingAnnees.value = false;
@@ -86,6 +97,13 @@ const getSemestresSelectedAnnee = async () => {
     semestres.value = await getAnneeSemestresService(selectedAnnee.value.id);
   } catch (error) {
     console.error('Erreur lors du chargement des semestres :', error);
+    hasError.value = true;
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de charger les semestres. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+      life: 5000,
+    });
   } finally {
     isLoadingSemestres.value = false;
     console.log(semestres.value)
@@ -112,7 +130,8 @@ onMounted(async() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <ErrorView v-if="hasError" class="m-4"/>
+  <div v-else class="flex flex-col gap-4">
     <div class="text-2xl font-bold text-center">Que voulez-vous faire ?</div>
     <SelectButton :options="features" v-model="selectedFeature" class="w-full justify-center" optionLabel="libelle" optionValue="id"/>
 
@@ -249,7 +268,7 @@ onMounted(async() => {
     </div>
     <div v-if="selectedFeature" class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
       <div class="flex items-center justify-center h-full">
-        <Button severity="primary" class="w-full" :disabled="!selectedAnnee || !selectedSemestre">
+        <Button severity="primary" class="w-full" :disabled="!selectedAnnee || !selectedSemestre || !selectedAnneeUniv">
           Importer les étudiants
         </Button>
       </div>
