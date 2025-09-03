@@ -9,8 +9,8 @@ import { getDepartementAnneesService } from '@requests';
 import router from "@/router";
 
 const items = [
-  { label: 'Import Apogée', icon: 'pi pi-list', route: '/administration/etudiant/ajout/apogee' },
-  { label: 'Import manuel', icon: 'pi pi-user', route: '/administration/etudiant/ajout/manuel' },
+  { label: 'Import Apogée', icon: 'pi pi-upload', route: '/administration/etudiant/ajout/apogee' },
+  { label: 'Import manuel', icon: 'pi pi-pencil', route: '/administration/etudiant/ajout/manuel' },
 ];
 
 const navigateTo = (route) => {

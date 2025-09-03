@@ -14,6 +14,12 @@ const selectedSemestre = ref(null);
 const anneesUniv = ref([]);
 const selectedAnneeUniv = ref(null);
 
+const selectedFeature = ref(null);
+const features = [
+  { id: 'import_cible', libelle: 'Import ciblé' },
+  { id: 'import_promo', libelle: 'Import promo' },
+];
+
 const isLoadingAnnees = ref(true);
 const isLoadingSemestres = ref(false);
 const isLoadingAnneesUniv = ref(true);
@@ -107,98 +113,142 @@ onMounted(async() => {
 
 <template>
   <div class="flex flex-col gap-4">
-      <em class="text-lg font-medium text-muted-color">
-        Importer les étudiants depuis Apogée
-      </em>
+    <div class="text-2xl font-bold text-center">Que voulez-vous faire ?</div>
+    <SelectButton :options="features" v-model="selectedFeature" class="w-full justify-center" optionLabel="libelle" optionValue="id"/>
+    <Divider></Divider>
 
-    <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
-      <div class="font-medium text-lg">
-        Sélectionner une année universitaire
+    <div v-if="selectedFeature">
+      <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+        <div class="font-medium text-lg">
+          Sélectionner une année universitaire
+        </div>
+        <ListSkeleton v-if="isLoadingAnneesUniv" class="w-full"/>
+        <SelectButton v-else :options="anneesUniv" v-model="selectedAnneeUniv" class="w-full justify-center" optionLabel="libelle" optionValue="id"/>
       </div>
-      <ListSkeleton v-if="isLoadingAnneesUniv" class="w-full"/>
-      <SelectButton v-else :options="anneesUniv" v-model="selectedAnneeUniv" class="w-full justify-center" optionLabel="libelle" optionValue="id"/>
+      <Divider></Divider>
     </div>
-    <div class="w-full flex gap-2">
-      <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
-        <div class="font-medium text-lg">
-          Sélectionner une année
-        </div>
-        <ListSkeleton v-if="isLoadingAnnees" class="w-full"/>
-        <Button v-else :severity="selectedAnnee && selectedAnnee.id === annee.id ? 'primary' : 'secondary'" v-for="annee in annees" :key="annee.id" class="w-full" @click="selectedAnnee = annee">
-          {{annee.libelle}}
-        </Button>
+    <div v-if="selectedFeature === 'import_cible'" class="flex flex-col gap-4">
+      <em class="text-lg font-medium text-muted-color">
+        Importer un ou plusieurs étudiants depuis Apogée
+      </em>
+      <Message severity="info" icon="pi pi-info-circle" class="mx-auto">Cette fonctionnalité permet d'importer des étudiants de manière ciblée (avec un numéro étudiant). Vous pouvez saisir plusieurs numéros en séparant par un ; (point virgule).</Message>
+      <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+        <label for="num_etudiants">Numéro(s) étudiant</label>
+        <Textarea id="num_etudiants" rows="1" placeholder="Saisir ici les numéros des étudiants à importer" class="w-full"/>
       </div>
-      <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
-        <div class="font-medium text-lg">
-          Sélectionner un semestre
+      <div class="w-full flex gap-2">
+        <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
+          <div class="font-medium text-lg">
+            Sélectionner une année
+          </div>
+          <ListSkeleton v-if="isLoadingAnnees" class="w-full"/>
+          <Button v-else :severity="selectedAnnee && selectedAnnee.id === annee.id ? 'primary' : 'secondary'" v-for="annee in annees" :key="annee.id" class="w-full" @click="selectedAnnee = annee">
+            {{annee.libelle}}
+          </Button>
         </div>
-        <ListSkeleton v-if="isLoadingSemestres" class="w-full"/>
-        <Button v-else-if="semestres.length > 0" :severity="selectedSemestre && selectedSemestre.id === semestre.id ? 'primary' : 'secondary'" v-for="semestre in semestres" :key="semestre.id" class="w-full" @click="selectedSemestre = semestre">
-          {{semestre.libelle}}
-        </Button>
-        <div v-else class="flex items-center justify-center h-full">
-          <Message severity="warn" icon="pi pi-info-circle">
-            Veuillez d'abord sélectionner une année
+        <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
+          <div class="font-medium text-lg">
+            Sélectionner un semestre
+          </div>
+          <ListSkeleton v-if="isLoadingSemestres" class="w-full"/>
+          <Button v-else-if="semestres.length > 0" :severity="selectedSemestre && selectedSemestre.id === semestre.id ? 'primary' : 'secondary'" v-for="semestre in semestres" :key="semestre.id" class="w-full" @click="selectedSemestre = semestre">
+            {{semestre.libelle}}
+          </Button>
+          <div v-else class="flex items-center justify-center h-full">
+            <Message severity="warn" icon="pi pi-info-circle">
+              Veuillez d'abord sélectionner une année
+            </Message>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-else-if="selectedFeature === 'import_promo'" class="flex flex-col gap-4">
+      <em class="text-lg font-medium text-muted-color">
+        Importer une nouvelle promo depuis Apogée
+      </em>
+      <Message severity="info" icon="pi pi-info-circle" class="mx-auto">Cette fonctionnalité permet d'importer toute une promo</Message>
+      <div class="w-full flex gap-2">
+        <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
+          <div class="font-medium text-lg">
+            Sélectionner une année
+          </div>
+          <ListSkeleton v-if="isLoadingAnnees" class="w-full"/>
+          <Button v-else :severity="selectedAnnee && selectedAnnee.id === annee.id ? 'primary' : 'secondary'" v-for="annee in annees" :key="annee.id" class="w-full" @click="selectedAnnee = annee">
+            {{annee.libelle}}
+          </Button>
+        </div>
+        <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
+          <div class="font-medium text-lg">
+            Sélectionner un semestre
+          </div>
+          <ListSkeleton v-if="isLoadingSemestres" class="w-full"/>
+          <Button v-else-if="semestres.length > 0" :severity="selectedSemestre && selectedSemestre.id === semestre.id ? 'primary' : 'secondary'" v-for="semestre in semestres" :key="semestre.id" class="w-full" @click="selectedSemestre = semestre">
+            {{semestre.libelle}}
+          </Button>
+          <div v-else class="flex items-center justify-center h-full">
+            <Message severity="warn" icon="pi pi-info-circle">
+              Veuillez d'abord sélectionner une année
+            </Message>
+          </div>
+        </div>
+      </div>
+      <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+        <div class="flex flex-col items-center justify-center h-full">
+          <div class="font-medium text-lg">
+            Importer les photos des étudiants
+          </div>
+          <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
+            Récupérez les photos (format .zip) sur le bureau virtuel de l'URCA (enseignement > trombinoscope) et importez les ici.
           </Message>
         </div>
-      </div>
-    </div>
-    <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
-      <div class="flex flex-col items-center justify-center h-full">
-        <div class="font-medium text-lg">
-          Importer les photos des étudiants
-        </div>
-        <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
-          Récupérez les photos (format .zip) sur le bureau virtuel de l'URCA (enseignement > trombinoscope) et importez les ici.
-        </Message>
-      </div>
-      <Toast />
-      <FileUpload
-          name="zipUpload"
-          :multiple="false"
-          accept=".zip"
-          :maxFileSize="1000000"
-          :auto="false"
-          :showUploadButton="false"
-          :showCancelButton="false"
-          @select="onSelectedFiles"
-      >
-        <template #header="{ chooseCallback, clearCallback, files }">
-          <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
-            <div class="flex gap-2">
-              <Button @click="chooseCallback()" icon="pi pi-plus" label="Choisir"></Button>
+        <Toast />
+        <FileUpload
+            name="zipUpload"
+            :multiple="false"
+            accept=".zip"
+            :maxFileSize="1000000"
+            :auto="false"
+            :showUploadButton="false"
+            :showCancelButton="false"
+            @select="onSelectedFiles"
+        >
+          <template #header="{ chooseCallback, clearCallback, files }">
+            <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
+              <div class="flex gap-2">
+                <Button @click="chooseCallback()" icon="pi pi-plus" label="Choisir"></Button>
+              </div>
+              <div class="w-full">
+                <div class="flex text-muted-color">Taille du fichier : {{ totalSize }}B / 1Mb</div>
+                <ProgressBar :value="totalSizePercent" :showValue="false" class="h-1 w-full md:ml-auto">
+                </ProgressBar>
+              </div>
             </div>
-            <div class="w-full">
-              <div class="flex text-muted-color">Taille du fichier : {{ totalSize }}B / 1Mb</div>
-              <ProgressBar :value="totalSizePercent" :showValue="false" class="h-1 w-full md:ml-auto">
-              </ProgressBar>
-            </div>
-          </div>
-        </template>
-        <template #content="{ files, removeFileCallback }">
-          <div class="flex flex-col gap-8 pt-4">
-            <div v-if="files.length > 0">
-              <div class="flex flex-wrap gap-4">
-                <div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="p-4 rounded-border flex flex-col border border-surface items-center gap-2 w-full">
-                  <div>
-                    <span class="font-semibold text-ellipsis whitespace-nowrap overflow-hidden text-sm">{{ file.name }}</span>
-                    <div>{{ formatSize(file.size) }}</div>
+          </template>
+          <template #content="{ files, removeFileCallback }">
+            <div class="flex flex-col gap-8 pt-4">
+              <div v-if="files.length > 0">
+                <div class="flex flex-wrap gap-4">
+                  <div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="p-4 rounded-border flex flex-col border border-surface items-center gap-2 w-full">
+                    <div>
+                      <span class="font-semibold text-ellipsis whitespace-nowrap overflow-hidden text-sm">{{ file.name }}</span>
+                      <div>{{ formatSize(file.size) }}</div>
+                    </div>
+                    <Button icon="pi pi-times" @click="onRemoveTemplatingFile(file, removeFileCallback, index)" variant="outlined" rounded severity="danger" />
                   </div>
-                  <Button icon="pi pi-times" @click="onRemoveTemplatingFile(file, removeFileCallback, index)" variant="outlined" rounded severity="danger" />
                 </div>
               </div>
             </div>
-          </div>
-        </template>
-        <template #empty>
-          <div class="flex items-center justify-center flex-col gap-2">
-            <i class="pi pi-folder-open !text-2xl !text-muted-color" />
-            <p>Glissez-déposez votre fichier .zip ici pour l'importer.</p>
-          </div>
-        </template>
-      </FileUpload>
+          </template>
+          <template #empty>
+            <div class="flex items-center justify-center flex-col gap-2">
+              <i class="pi pi-folder-open !text-2xl !text-muted-color" />
+              <p>Glissez-déposez votre fichier .zip ici pour l'importer.</p>
+            </div>
+          </template>
+        </FileUpload>
+      </div>
     </div>
-    <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+    <div v-if="selectedFeature" class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
       <div class="flex items-center justify-center h-full">
         <Button severity="primary" class="w-full" :disabled="!selectedAnnee || !selectedSemestre">
           Importer les étudiants
