@@ -36,16 +36,16 @@ const getEtudiantsScolaritesDepartementService = async (departement, anneeUniv, 
     }
 }
 
-const getEtudiantScolaritesService = async (etudiantId, showToast = false) => {
+const getEtudiantScolaritesService = async (etudiantId, actif, showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api/etudiant_scolarites?etudiant=${etudiantId}`],
+            [`/api/etudiant_scolarites?etudiant=${etudiantId}&actif=${actif}`],
             'Scolarités de l\'étudiant récupérées avec succès',
             'Erreur lors de la récupération des scolarités de l\'étudiant',
             showToast
         );
-        return response;
+        return response.member;
     } catch (error) {
         console.error('Erreur dans getEtudiantScolaritesService:', error);
         throw error;

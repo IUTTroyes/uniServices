@@ -2,6 +2,7 @@
 
 namespace App\Entity\Etudiant;
 
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
@@ -30,6 +31,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         )
     ]
 )]
+#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ApiFilter(EtudiantScolariteFilter::class)]
 class EtudiantScolarite
 {
@@ -105,6 +107,10 @@ class EtudiantScolarite
     #[ORM\ManyToMany(targetEntity: StructureAnnee::class, inversedBy: 'scolarites')]
     #[Groups(['etudiant:read', 'scolarite:read'])]
     private Collection $annee;
+
+    #[ORM\Column]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
+    private bool $actif = false;
 
     public function __construct()
     {
@@ -301,5 +307,15 @@ class EtudiantScolarite
         $this->annee->removeElement($annee);
 
         return $this;
+    }
+
+    public function isActif(): bool
+    {
+        return $this->actif;
+    }
+
+    public function setActif(bool $actif): void
+    {
+        $this->actif = $actif;
     }
 }

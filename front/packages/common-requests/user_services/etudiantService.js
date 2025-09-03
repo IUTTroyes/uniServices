@@ -1,25 +1,36 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
-const getEtudiantScolariteActifService = async (etudiant, anneeUniv, showToast = false) => {
+// ----------------------------------------------
+// ------------------- GET ----------------------
+// ----------------------------------------------
+
+const getEtudiant = async (etudiantId, showToast = false) => {
     try {
-        const response = await apiCall(
+        return await apiCall(
             api.get,
-            [`/api/etudiant_scolarites/etudiant/${etudiant}/structureAnneeUniversitaire/${anneeUniv}`],
-            'Scolarité de l\'étudiant récupérée avec succès',
-            'Erreur lors de la récupération de la scolarité de l\'étudiant',
+            [`/api/etudiants/${etudiantId}`],
+            'Étudiant récupéré avec succès',
+            'Erreur lors de la récupération de l\'étudiant',
             showToast
         );
-        return response;
     } catch (error) {
-        console.error('Erreur dans getEtudiantScolariteActifService:', error);
+        console.error('Erreur dans getEtudiant:', error);
         throw error;
     }
 }
 
+// ----------------------------------------------
+// ------------------- CREATE -------------------
+// ----------------------------------------------
+
+
+// ----------------------------------------------
+// ------------------- UPDATE -------------------
+// ----------------------------------------------
 const updateEtudiant = async (etudiant, showToast = true) => {
     try {
-        const response = await apiCall(
+        return await apiCall(
             api.patch,
             [`/api/etudiants/${etudiant.id}`, etudiant, {
                 headers: {
@@ -30,11 +41,14 @@ const updateEtudiant = async (etudiant, showToast = true) => {
             'Erreur lors de la mise à jour de l\'étudiant',
             showToast
         );
-        return response;
     } catch (error) {
         console.error('Erreur dans updateEtudiant:', error);
         throw error;
     }
 }
 
-export { updateEtudiant, getEtudiantScolariteActifService };
+// ----------------------------------------------
+// ------------------- DELETE -------------------
+// ----------------------------------------------
+
+export { updateEtudiant, getEtudiant };
