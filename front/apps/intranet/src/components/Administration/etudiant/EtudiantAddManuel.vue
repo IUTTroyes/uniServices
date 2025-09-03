@@ -1,6 +1,6 @@
 <script setup>
 import {onMounted, ref, watch} from "vue";
-import {getAnneeSemestresService, getDepartementAnneesService} from "@requests";
+import {getAnneeSemestresService, getDepartementAnneesService, createEtudiantsService} from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore } from "@stores";
 import { useToast } from "primevue/usetoast";
@@ -106,6 +106,58 @@ const copyToClipboard = async (text) => {
     toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de copier le code dans le presse-papiers', life: 3000 });
   }
 };
+
+const createEtudiant = async () => {
+  try {
+    if (files.value.length === 0) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Avertissement',
+        detail: 'Veuillez sélectionner un fichier avant de continuer.',
+        life: 5000,
+      });
+      return;
+    }
+
+    const file = files.value[0];
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+      const fileContent = event.target.result;
+
+      const data = {
+        fileContent, // Contenu du fichier .csv
+      };
+
+      console.log(await createEtudiantsService(data));
+      toast.add({
+        severity: 'success',
+        summary: 'Succès',
+        detail: 'Les étudiants ont été importés avec succès.',
+        life: 5000,
+      });
+    };
+
+    reader.onerror = () => {
+      toast.add({
+        severity: 'error',
+        summary: 'Erreur',
+        detail: 'Impossible de lire le fichier. Veuillez réessayer.',
+        life: 5000,
+      });
+    };
+
+    reader.readAsText(file); // Lire le fichier en tant que texte
+  } catch (error) {
+    console.error('Erreur lors de l\'import des étudiants :', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Une erreur est survenue lors de l\'import des étudiants. Veuillez réessayer plus tard.',
+      life: 5000,
+    });
+  }
+};
 </script>
 
 <template>
@@ -196,7 +248,7 @@ const copyToClipboard = async (text) => {
         </template>
       </FileUpload>
       <div class="flex items-center justify-center w-full mt-4">
-        <Button severity="primary" class="w-full">
+        <Button severity="primary" class="w-full" @click="createEtudiant()">
           Importer les étudiants
         </Button>
       </div>

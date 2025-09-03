@@ -121,15 +121,6 @@ const importEtudiants = async () => {
       });
       return;
     }
-    // if (files.value.length === 0) {
-    //   toast.add({
-    //     severity: 'warn',
-    //     summary: 'Attention',
-    //     detail: 'Veuillez sélectionner un fichier .zip contenant les photos des étudiants avant d\'importer.',
-    //     life: 5000,
-    //   });
-    //   return;
-    // }
     const file = files.value[0];
     const data = {
       file: file,

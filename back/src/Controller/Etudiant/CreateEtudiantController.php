@@ -12,9 +12,12 @@ use Symfony\Component\Routing\Attribute\Route;
 class CreateEtudiantController extends AbstractController
 {
     #[Route('/api/etudiants/create', methods: ['POST'], name: 'create_etudiant')]
-    public function create(): Response
+    public function create(Request $request): Response
     {
+        // Récupérer les données JSON envoyées dans la requête
+        $data = $request->toArray();
 
+        dump($data['file']);
         return new Response('ok');
     }
 }
