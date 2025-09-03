@@ -3,6 +3,8 @@ import {onMounted, ref, watch} from 'vue';
 import { getDepartementAnneesService, getAnneeSemestresService, getAllAnneesUniversitairesService } from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore, useSemestreStore } from "@stores";
+import { useToast } from "primevue/usetoast";
+import { usePrimeVue } from 'primevue/config';
 
 const userStore = useUsersStore();
 const annees = ref([]);
@@ -15,6 +17,33 @@ const selectedAnneeUniv = ref(null);
 const isLoadingAnnees = ref(true);
 const isLoadingSemestres = ref(false);
 const isLoadingAnneesUniv = ref(true);
+
+const toast = useToast();
+
+const totalSize = ref(0);
+const totalSizePercent = ref(0);
+const files = ref([]);
+
+const onRemoveTemplatingFile = (file, removeFileCallback, index) => {
+  removeFileCallback(index);
+  totalSize.value -= file.size;
+  totalSizePercent.value = (totalSize.value / 1000000) * 100;
+};
+
+const onSelectedFiles = (event) => {
+  files.value = event.files;
+  totalSize.value = files.value.reduce((acc, file) => acc + file.size, 0);
+  totalSizePercent.value = (totalSize.value / 1000000) * 100;
+};
+
+const formatSize = (bytes) => {
+  const k = 1024;
+  const dm = 2;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
+};
 
 const getAnneesUniv = async () => {
   try {
@@ -115,6 +144,61 @@ onMounted(async() => {
       </div>
     </div>
     <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+      <div class="flex flex-col items-center justify-center h-full">
+        <div class="font-medium text-lg">
+          Importer les photos des étudiants
+        </div>
+        <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
+          Récupérez les photos (format .zip) sur le bureau virtuel de l'URCA (enseignement > trombinoscope) et importez les ici.
+        </Message>
+      </div>
+      <Toast />
+      <FileUpload
+          name="zipUpload"
+          :multiple="false"
+          accept=".zip"
+          :maxFileSize="1000000"
+          :auto="false"
+          :showUploadButton="false"
+          :showCancelButton="false"
+          @select="onSelectedFiles"
+      >
+        <template #header="{ chooseCallback, clearCallback, files }">
+          <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
+            <div class="flex gap-2">
+              <Button @click="chooseCallback()" icon="pi pi-plus" label="Choisir"></Button>
+            </div>
+            <div class="w-full">
+              <div class="flex text-muted-color">Taille du fichier : {{ totalSize }}B / 1Mb</div>
+              <ProgressBar :value="totalSizePercent" :showValue="false" class="h-1 w-full md:ml-auto">
+              </ProgressBar>
+            </div>
+          </div>
+        </template>
+        <template #content="{ files, removeFileCallback }">
+          <div class="flex flex-col gap-8 pt-4">
+            <div v-if="files.length > 0">
+              <div class="flex flex-wrap gap-4">
+                <div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="p-4 rounded-border flex flex-col border border-surface items-center gap-2 w-full">
+                  <div>
+                    <span class="font-semibold text-ellipsis whitespace-nowrap overflow-hidden text-sm">{{ file.name }}</span>
+                    <div>{{ formatSize(file.size) }}</div>
+                  </div>
+                  <Button icon="pi pi-times" @click="onRemoveTemplatingFile(file, removeFileCallback, index)" variant="outlined" rounded severity="danger" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+        <template #empty>
+          <div class="flex items-center justify-center flex-col gap-2">
+            <i class="pi pi-folder-open !text-2xl !text-muted-color" />
+            <p>Glissez-déposez votre fichier .zip ici pour l'importer.</p>
+          </div>
+        </template>
+      </FileUpload>
+    </div>
+    <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
       <div class="flex items-center justify-center h-full">
         <Button severity="primary" class="w-full" :disabled="!selectedAnnee || !selectedSemestre">
           Importer les étudiants
