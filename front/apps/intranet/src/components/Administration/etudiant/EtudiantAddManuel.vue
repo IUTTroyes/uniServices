@@ -5,6 +5,8 @@ import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore } from "@stores";
 import { useToast } from "primevue/usetoast";
 
+const hasError = ref(false);
+
 const toast = useToast();
 
 const userStore = useUsersStore();
@@ -52,6 +54,13 @@ const getAnnees = async () => {
     annees.value = await getDepartementAnneesService(departementId, true);
   } catch (error) {
     console.error('Erreur lors du chargement des années :', error);
+    hasError.value = true;
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Une erreur est survenue lors du chargement des années. Veuillez réessayer plus tard.',
+      life: 5000,
+    })
   } finally {
     console.log(annees.value)
     isLoadingAnnees.value = false;
@@ -65,6 +74,13 @@ const getSemestresSelectedAnnee = async () => {
     semestres.value = await getAnneeSemestresService(selectedAnnee.value.id);
   } catch (error) {
     console.error('Erreur lors du chargement des semestres :', error);
+    hasError.value = true;
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Une erreur est survenue lors du chargement des semestres. Veuillez réessayer plus tard.',
+      life: 5000,
+    })
   } finally {
     isLoadingSemestres.value = false;
     console.log(semestres.value)
@@ -93,7 +109,8 @@ const copyToClipboard = async (text) => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
+  <ErrorView v-if="hasError" class="m-4"/>
+  <div v-else class="flex flex-col gap-4">
     <div class="text-2xl font-bold text-center">Importer des étudiants via un fichier .csv</div>
     <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
       Fichier csv (séparateur ";"). Télécharger un modèle ici : <a class="font-bold underline" href="">Modèle d'import d'une liste d'étudiants</a>
