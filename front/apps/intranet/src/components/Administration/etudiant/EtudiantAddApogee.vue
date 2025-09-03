@@ -1,6 +1,6 @@
 <script setup>
 import {onMounted, ref, watch} from 'vue';
-import { getDepartementAnneesService, getAnneeSemestresService, getAllAnneesUniversitairesService } from "@requests";
+import { getDepartementAnneesService, getAnneeSemestresService, getAllAnneesUniversitairesService, importEtudiantApogeeService } from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore, useSemestreStore } from "@stores";
 import { useToast } from "primevue/usetoast";
@@ -107,6 +107,46 @@ const getSemestresSelectedAnnee = async () => {
   } finally {
     isLoadingSemestres.value = false;
     console.log(semestres.value)
+  }
+};
+
+const importEtudiants = async () => {
+  try {
+    if (!selectedAnnee.value || !selectedSemestre.value || !selectedAnneeUniv.value) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Attention',
+        detail: 'Veuillez sélectionner une année, un semestre et une année universitaire avant d\'importer des étudiants.',
+        life: 5000,
+      });
+      return;
+    }
+    // if (files.value.length === 0) {
+    //   toast.add({
+    //     severity: 'warn',
+    //     summary: 'Attention',
+    //     detail: 'Veuillez sélectionner un fichier .zip contenant les photos des étudiants avant d\'importer.',
+    //     life: 5000,
+    //   });
+    //   return;
+    // }
+    const file = files.value[0];
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('anneeId', selectedAnnee.value.id);
+    formData.append('semestreId', selectedSemestre.value.id);
+    formData.append('anneeUnivId', selectedAnneeUniv.value.id);
+
+    await importEtudiantApogeeService(formData);
+  } catch (error) {
+    console.error('Erreur lors de l\'importation des étudiants :', error);
+    hasError.value = true;
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Une erreur est survenue lors de l\'importation des étudiants. Veuillez réessayer plus tard.',
+      life: 5000,
+    });
   }
 };
 
@@ -268,7 +308,7 @@ onMounted(async() => {
     </div>
     <div v-if="selectedFeature" class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
       <div class="flex items-center justify-center h-full">
-        <Button severity="primary" class="w-full" :disabled="!selectedAnnee || !selectedSemestre || !selectedAnneeUniv">
+        <Button severity="primary" class="w-full" :disabled="!selectedAnnee || !selectedSemestre || !selectedAnneeUniv" @click="importEtudiants()">
           Importer les étudiants
         </Button>
       </div>

@@ -5,7 +5,7 @@ import apiCall from '@helpers/apiCall';
 // ------------------- GET ----------------------
 // ----------------------------------------------
 
-const getEtudiant = async (etudiantId, showToast = false) => {
+const getEtudiantService = async (etudiantId, showToast = false) => {
     try {
         return await apiCall(
             api.get,
@@ -24,7 +24,7 @@ const getEtudiant = async (etudiantId, showToast = false) => {
 // ------------------- CREATE -------------------
 // ----------------------------------------------
 
-const createEtudiant = async (etudiant, showToast = true) => {
+const createEtudiantService = async (etudiant, showToast = true) => {
     try {
         return await apiCall(
             api.post,
@@ -39,11 +39,11 @@ const createEtudiant = async (etudiant, showToast = true) => {
     }
 }
 
-const importEtudiantApogee = async (etudiants, showToast = true) => {
+const importEtudiantApogeeService = async (data, showToast = true) => {
     try {
         return await apiCall(
             api.post,
-            ['/api/etudiants/import_apogee', etudiants],
+            ['/api/etudiants/import_apogee', data],
             'Étudiants importés avec succès',
             'Erreur lors de l\'importation des étudiants',
             showToast
@@ -57,7 +57,7 @@ const importEtudiantApogee = async (etudiants, showToast = true) => {
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
-const updateEtudiant = async (etudiant, showToast = true) => {
+const updateEtudiantService = async (etudiant, showToast = true) => {
     try {
         return await apiCall(
             api.patch,
@@ -80,4 +80,4 @@ const updateEtudiant = async (etudiant, showToast = true) => {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { updateEtudiant, getEtudiant };
+export { updateEtudiantService, getEtudiantService, importEtudiantApogeeService };

@@ -5,7 +5,7 @@ import { useToast } from "primevue/usetoast";
 import { fr } from "date-fns/locale";
 import { format, parseISO, differenceInYears } from "date-fns";
 import { formatAdresse } from "@helpers/adresse.js";
-import { updateEtudiant } from "@requests";
+import { updateEtudiantService } from "@requests";
 
 const toast = useToast();
 
@@ -111,7 +111,7 @@ const cleanEtudiantObject = (etudiant) => {
 const updateEtudiantData = async () => {
   try {
     const cleanedEtudiant = cleanEtudiantObject(props.etudiantSco.etudiant);
-    const response = await updateEtudiant(cleanedEtudiant);
+    const response = await updateEtudiantService(cleanedEtudiant);
   } catch (error) {
     console.error("Erreur lors de la mise à jour :", error);
     toast.add({

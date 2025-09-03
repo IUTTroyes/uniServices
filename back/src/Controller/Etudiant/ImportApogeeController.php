@@ -10,9 +10,14 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class ImportApogeeController extends AbstractController
 {
-    #[Route('/import-apogee')]
-    public function index(): Response
+    #[Route('/api/etudiants/import_apogee')]
+    public function import(?array $data): Response
     {
-        return $this->render('import_apogee/index.html.twig');
+        return new Response('ok');
+    }
+
+    public function getEtudiantsFromApogee(): array
+    {
+        return [];
     }
 }
