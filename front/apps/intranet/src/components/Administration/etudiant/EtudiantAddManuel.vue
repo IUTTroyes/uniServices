@@ -178,6 +178,11 @@ const copyToClipboard = async (text) => {
           </div>
         </template>
       </FileUpload>
+      <div class="flex items-center justify-center w-full mt-4">
+        <Button severity="primary" class="w-full">
+          Importer les étudiants
+        </Button>
+      </div>
     </div>
   </div>
 </template>
