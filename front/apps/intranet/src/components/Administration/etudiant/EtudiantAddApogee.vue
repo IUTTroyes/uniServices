@@ -131,13 +131,15 @@ const importEtudiants = async () => {
     //   return;
     // }
     const file = files.value[0];
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('anneeId', selectedAnnee.value.id);
-    formData.append('semestreId', selectedSemestre.value.id);
-    formData.append('anneeUnivId', selectedAnneeUniv.value.id);
+    const data = {
+      file: file,
+      anneeId: selectedAnnee.value.id,
+      semestreId: selectedSemestre.value.id,
+      anneeUnivId: selectedAnneeUniv.value.id,
+    };
+    console.log(data)
 
-    await importEtudiantApogeeService(formData);
+    await importEtudiantApogeeService(data);
   } catch (error) {
     console.error('Erreur lors de l\'importation des étudiants :', error);
     hasError.value = true;
