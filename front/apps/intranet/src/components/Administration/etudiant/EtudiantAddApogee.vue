@@ -121,23 +121,16 @@ const importEtudiants = async () => {
       });
       return;
     }
-    // if (files.value.length === 0) {
-    //   toast.add({
-    //     severity: 'warn',
-    //     summary: 'Attention',
-    //     detail: 'Veuillez sélectionner un fichier .zip contenant les photos des étudiants avant d\'importer.',
-    //     life: 5000,
-    //   });
-    //   return;
-    // }
     const file = files.value[0];
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('anneeId', selectedAnnee.value.id);
-    formData.append('semestreId', selectedSemestre.value.id);
-    formData.append('anneeUnivId', selectedAnneeUniv.value.id);
+    const data = {
+      file: file,
+      anneeId: selectedAnnee.value.id,
+      semestreId: selectedSemestre.value.id,
+      anneeUnivId: selectedAnneeUniv.value.id,
+    };
+    console.log(data)
 
-    await importEtudiantApogeeService(formData);
+    await importEtudiantApogeeService(data);
   } catch (error) {
     console.error('Erreur lors de l\'importation des étudiants :', error);
     hasError.value = true;

@@ -39,6 +39,21 @@ const createEtudiantService = async (etudiant, showToast = true) => {
     }
 }
 
+const createEtudiantsService = async (data, showToast = true) => {
+    try {
+        return await apiCall(
+            api.post,
+            ['/api/etudiants/new', data],
+            'Étudiant créé avec succès',
+            'Erreur lors de la création de l\'étudiant',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans createEtudiant:', error);
+        throw error;
+    }
+}
+
 const importEtudiantApogeeService = async (data, showToast = true) => {
     try {
         return await apiCall(
@@ -80,4 +95,4 @@ const updateEtudiantService = async (etudiant, showToast = true) => {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { updateEtudiantService, getEtudiantService, importEtudiantApogeeService };
+export { updateEtudiantService, getEtudiantService, createEtudiantService, createEtudiantsService, importEtudiantApogeeService };

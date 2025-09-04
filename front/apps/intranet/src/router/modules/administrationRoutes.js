@@ -61,6 +61,17 @@ export default [
             component: () => import('@/components/Administration/etudiant/EtudiantAddManuel.vue'),
           },
         ]
+      },
+      {
+        path: 'ajout/result',
+        component: () => import('@/views/Etudiants/EtudiantsAjoutResult.vue'),
+        meta: {
+          breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+            label: 'Administration',
+            route: '/administration'
+          }, { label: 'Résultat de l\'import', route: null }]
+        },
+        props: true
       }
     ]
   },

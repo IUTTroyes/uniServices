@@ -1,13 +1,16 @@
 <script setup>
 import {onMounted, ref, watch} from "vue";
-import {getAnneeSemestresService, getDepartementAnneesService} from "@requests";
+import {getAnneeSemestresService, getDepartementAnneesService, createEtudiantsService} from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore } from "@stores";
 import { useToast } from "primevue/usetoast";
+import { exportCsv } from "@helpers/downloadCsv";
+import { useRouter } from "vue-router";
 
 const hasError = ref(false);
 
 const toast = useToast();
+const router = useRouter();
 
 const userStore = useUsersStore();
 
@@ -106,6 +109,76 @@ const copyToClipboard = async (text) => {
     toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de copier le code dans le presse-papiers', life: 3000 });
   }
 };
+
+const createEtudiant = async () => {
+  try {
+    if (files.value.length === 0) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Avertissement',
+        detail: 'Veuillez sélectionner un fichier avant de continuer.',
+        life: 5000,
+      });
+      return;
+    }
+
+    const file = files.value[0];
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+      const fileContent = event.target.result;
+
+      const data = {
+        fileContent, // Contenu du fichier .csv
+      };
+
+      try {
+        const response = await createEtudiantsService(data, true);
+
+        // Redirect to the result page with the response data
+        router.push({
+          path: '/administration/etudiant/ajout/result',
+          query: {
+            importResult: JSON.stringify(response)
+          }
+        });
+      } catch (error) {
+        console.error('Erreur lors de l\'import des étudiants :', error);
+        toast.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Une erreur est survenue lors de l\'import des étudiants. Veuillez réessayer plus tard.',
+          life: 5000,
+        });
+      }
+    };
+
+    reader.onerror = () => {
+      toast.add({
+        severity: 'error',
+        summary: 'Erreur',
+        detail: 'Impossible de lire le fichier. Veuillez réessayer.',
+        life: 5000,
+      });
+    };
+
+    reader.readAsText(file); // Lire le fichier en tant que texte
+  } catch (error) {
+    console.error('Erreur lors de l\'import des étudiants :', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Une erreur est survenue lors de l\'import des étudiants. Veuillez réessayer plus tard.',
+      life: 5000,
+    });
+  }
+};
+
+const downloadCsv = () => {
+  const csvContent = `numero_etudiant;numero_ine;nom;prenom;date_naissance;annee_promotion(aaaa);annee_bac(aaaa);specialite_bac;sexe(M/F);telephone;code_semestre;LIB_AD1;LIB_AD2;LIB_AD3;codepostal;ville;\n`;
+  const fileName = "import_etudiant.csv";
+  exportCsv({ content: csvContent, fileName });
+};
 </script>
 
 <template>
@@ -113,7 +186,8 @@ const copyToClipboard = async (text) => {
   <div v-else class="flex flex-col gap-4">
     <div class="text-2xl font-bold text-center">Importer des étudiants via un fichier .csv</div>
     <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
-      Fichier csv (séparateur ";"). Télécharger un modèle ici : <a class="font-bold underline" href="">Modèle d'import d'une liste d'étudiants</a>
+      Fichier csv (séparateur ";"). Télécharger un modèle ici :
+      <a class="font-bold underline hover:cursor-pointer" @click.prevent="downloadCsv">Modèle d'import d'une liste d'étudiants</a>
     </Message>
     <Button label="Voir les codes semestres" class="mx-auto" @click="visible = true"/>
 
@@ -196,7 +270,7 @@ const copyToClipboard = async (text) => {
         </template>
       </FileUpload>
       <div class="flex items-center justify-center w-full mt-4">
-        <Button severity="primary" class="w-full">
+        <Button severity="primary" class="w-full" @click="createEtudiant()">
           Importer les étudiants
         </Button>
       </div>
