@@ -4,6 +4,7 @@ import {getAnneeSemestresService, getDepartementAnneesService, createEtudiantsSe
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore } from "@stores";
 import { useToast } from "primevue/usetoast";
+import { exportCsv } from "@helpers/downloadCsv";
 
 const hasError = ref(false);
 
@@ -129,7 +130,7 @@ const createEtudiant = async () => {
         fileContent, // Contenu du fichier .csv
       };
 
-      console.log(await createEtudiantsService(data));
+      await createEtudiantsService(data);
       toast.add({
         severity: 'success',
         summary: 'Succès',
@@ -158,6 +159,12 @@ const createEtudiant = async () => {
     });
   }
 };
+
+const downloadCsv = () => {
+  const csvContent = `numero_etudiant;numero_ine;nom;prenom;date_naissance;annee_promotion(aaaa);annee_bac(aaaa);specialite_bac;sexe(M/F);telephone;code_semestre;LIB_AD1;LIB_AD2;LIB_AD3;codepostal;ville;\n`;
+  const fileName = "import_etudiant.csv";
+  exportCsv({ content: csvContent, fileName });
+};
 </script>
 
 <template>
@@ -165,7 +172,8 @@ const createEtudiant = async () => {
   <div v-else class="flex flex-col gap-4">
     <div class="text-2xl font-bold text-center">Importer des étudiants via un fichier .csv</div>
     <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
-      Fichier csv (séparateur ";"). Télécharger un modèle ici : <a class="font-bold underline" href="">Modèle d'import d'une liste d'étudiants</a>
+      Fichier csv (séparateur ";"). Télécharger un modèle ici :
+      <a class="font-bold underline hover:cursor-pointer" @click.prevent="downloadCsv">Modèle d'import d'une liste d'étudiants</a>
     </Message>
     <Button label="Voir les codes semestres" class="mx-auto" @click="visible = true"/>
 

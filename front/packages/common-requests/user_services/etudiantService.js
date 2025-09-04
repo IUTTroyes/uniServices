@@ -43,7 +43,7 @@ const createEtudiantsService = async (data, showToast = true) => {
     try {
         return await apiCall(
             api.post,
-            ['/api/etudiants/create', data],
+            ['/api/etudiants/new', data],
             'Étudiant créé avec succès',
             'Erreur lors de la création de l\'étudiant',
             showToast
