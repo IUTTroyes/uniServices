@@ -5,10 +5,12 @@ import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore } from "@stores";
 import { useToast } from "primevue/usetoast";
 import { exportCsv } from "@helpers/downloadCsv";
+import { useRouter } from "vue-router";
 
 const hasError = ref(false);
 
 const toast = useToast();
+const router = useRouter();
 
 const userStore = useUsersStore();
 
@@ -130,13 +132,25 @@ const createEtudiant = async () => {
         fileContent, // Contenu du fichier .csv
       };
 
-      await createEtudiantsService(data);
-      toast.add({
-        severity: 'success',
-        summary: 'Succès',
-        detail: 'Les étudiants ont été importés avec succès.',
-        life: 5000,
-      });
+      try {
+        const response = await createEtudiantsService(data, true);
+
+        // Redirect to the result page with the response data
+        router.push({
+          path: '/administration/etudiant/ajout/result',
+          query: {
+            importResult: JSON.stringify(response)
+          }
+        });
+      } catch (error) {
+        console.error('Erreur lors de l\'import des étudiants :', error);
+        toast.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Une erreur est survenue lors de l\'import des étudiants. Veuillez réessayer plus tard.',
+          life: 5000,
+        });
+      }
     };
 
     reader.onerror = () => {

@@ -135,8 +135,8 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['etudiant:read', 'scolarite:read'])]
     private ?int $promotion = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?int $annee_sortie = null;
+    #[ORM\Column()]
+    private ?int $annee_sortie = 0;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     #[Groups(['scolarite:read'])]
