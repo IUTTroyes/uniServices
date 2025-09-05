@@ -121,6 +121,7 @@ class CreateEtudiantController extends AbstractController
                     // L'étudiant existe déjà
                     $lineInfo['status'] = 'existant';
                     $lineInfo['message'] = 'Étudiant déjà inscrit';
+                    $lineInfo['etudiantId'] = $existingEtudiant->getId();
                 } else {
                     // Créer un nouvel étudiant
                     $etudiant = $this->createEtudiantFromData($rowData, $anneeUniv);
@@ -134,6 +135,7 @@ class CreateEtudiantController extends AbstractController
                     $createdEtudiants[] = $etudiant->getId();
                     $lineInfo['status'] = 'créé';
                     $lineInfo['message'] = 'Étudiant créé avec succès';
+                    $lineInfo['etudiantId'] = $etudiant->getId();
                 }
             } catch (\Exception $e) {
                 $errors[] = "Ligne " . ($i + 1) . ": " . $e->getMessage();

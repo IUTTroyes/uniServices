@@ -35,8 +35,7 @@ const copyToClipboard = (email) => {
 const getEtudiantScolarites = async () => {
   loadingScolarites.value = true;
   try {
-    const response = await getEtudiantScolaritesService(props.etudiantSco.etudiant.id);
-    etudiantScolarites.value = response.member;
+    etudiantScolarites.value = await getEtudiantScolaritesService(props.etudiantSco.etudiant.id);
     etudiantScolarites.value.sort((a, b) => {
       const anneeA = a.anneeUniversitaire.annee;
       const anneeB = b.anneeUniversitaire.annee;
