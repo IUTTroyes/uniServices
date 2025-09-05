@@ -46,6 +46,18 @@ class EtudiantScolariteSemestre
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'scolariteSemestres')]
     private Collection $groupes;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
+    private ?float $moyenne = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
+    private ?array $moyennesMatiere = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
+    private ?array $moyennesUe = null;
+
     public function __construct()
     {
         $this->absence = new ArrayCollection();
@@ -164,5 +176,35 @@ class EtudiantScolariteSemestre
         $this->groupes->removeElement($groupe);
 
         return $this;
+    }
+
+    public function getMoyenne(): ?float
+    {
+        return $this->moyenne;
+    }
+
+    public function setMoyenne(?float $moyenne): void
+    {
+        $this->moyenne = $moyenne;
+    }
+
+    public function getMoyennesMatiere(): ?array
+    {
+        return $this->moyennesMatiere;
+    }
+
+    public function setMoyennesMatiere(?array $moyennesMatiere): void
+    {
+        $this->moyennesMatiere = $moyennesMatiere;
+    }
+
+    public function getMoyennesUe(): ?array
+    {
+        return $this->moyennesUe;
+    }
+
+    public function setMoyennesUe(?array $moyennesUe): void
+    {
+        $this->moyennesUe = $moyennesUe;
     }
 }

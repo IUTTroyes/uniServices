@@ -278,4 +278,9 @@ class StructureAnnee
     {
         return $this->getPn()?->getDiplome();
     }
+
+    public function getDepartement(): ?StructureDepartement
+    {
+        return $this->getDiplome()?->getDepartement();
+    }
 }

@@ -4,8 +4,15 @@ declare(strict_types=1);
 
 namespace App\Controller\Etudiant;
 
+use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Etudiant\EtudiantScolariteSemestre;
+use App\Entity\Structure\StructureAnnee;
+use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Users\Etudiant;
 use App\Repository\EtudiantRepository;
+use App\Repository\Structure\StructureAnneeRepository;
+use App\Repository\Structure\StructureAnneeUniversitaireRepository;
+use App\Repository\Structure\StructureSemestreRepository;
 use App\ValueObject\Adresse;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -20,6 +27,9 @@ class CreateEtudiantController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly EtudiantRepository $etudiantRepository,
+        private readonly StructureAnneeRepository $structureAnneeRepository,
+        private readonly StructureSemestreRepository $structureSemestreRepository,
+        private readonly StructureAnneeUniversitaireRepository $structureAnneeUniversitaireRepository,
         private readonly UserPasswordHasherInterface $passwordHasher
     ) {
     }
@@ -30,6 +40,7 @@ class CreateEtudiantController extends AbstractController
         // Récupérer les données JSON envoyées dans la requête
         $data = $request->toArray();
         $fileContent = $data['fileContent'] ?? null;
+        $anneeUniv = $this->structureAnneeUniversitaireRepository->findOneBy(['id' => $data['anneeUniversitaireId']]);
 
         if (!$fileContent) {
             return new JsonResponse(['message' => 'No file content provided'], Response::HTTP_BAD_REQUEST);
@@ -83,6 +94,11 @@ class CreateEtudiantController extends AbstractController
             $lineInfo['nom'] = $rowData['nom'] ?? '';
             $lineInfo['prenom'] = $rowData['prenom'] ?? '';
 
+            $annee = $this->structureAnneeRepository->findOneBy(['apogeeCodeEtape' => $rowData['annee_code_etape']]);
+            if (!$annee) {
+                throw new \InvalidArgumentException('Année non trouvée pour le code étape fourni');
+            }
+
             try {
                 // Vérifier si l'étudiant existe déjà
                 $existingEtudiant = null;
@@ -107,8 +123,14 @@ class CreateEtudiantController extends AbstractController
                     $lineInfo['message'] = 'Étudiant déjà inscrit';
                 } else {
                     // Créer un nouvel étudiant
-                    $etudiant = $this->createEtudiantFromData($rowData);
+                    $etudiant = $this->createEtudiantFromData($rowData, $anneeUniv);
                     $this->entityManager->persist($etudiant);
+                    $etudiantSco = $this->createEtudiantScolariteFromData($etudiant, $anneeUniv, $annee);
+                    $this->entityManager->persist($etudiantSco);
+                    $etudiantScoSemestre = $this->createEtudiantScolariteSemestreFromData($etudiantSco, $annee);
+                    if ($etudiantScoSemestre) {
+                        $this->entityManager->persist($etudiantScoSemestre);
+                    }
                     $createdEtudiants[] = $etudiant->getId();
                     $lineInfo['status'] = 'créé';
                     $lineInfo['message'] = 'Étudiant créé avec succès';
@@ -122,7 +144,6 @@ class CreateEtudiantController extends AbstractController
             $processedLines[] = $lineInfo;
         }
 
-        // Enregistrer les étudiants en base de données
         $this->entityManager->flush();
 
         return new JsonResponse([
@@ -133,7 +154,7 @@ class CreateEtudiantController extends AbstractController
         ], $errors ? Response::HTTP_PARTIAL_CONTENT : Response::HTTP_OK);
     }
 
-    private function createEtudiantFromData(array $data): Etudiant
+    private function createEtudiantFromData(array $data, StructureAnneeUniversitaire $anneeUniv): Etudiant
     {
         $etudiant = new Etudiant();
 
@@ -219,5 +240,42 @@ class CreateEtudiantController extends AbstractController
         }
 
         return $etudiant;
+    }
+
+    public function createEtudiantScolariteFromData(Etudiant $etudiant, StructureAnneeUniversitaire $anneeUniv, StructureAnnee $annee): EtudiantScolarite
+    {
+        // Créer l'objet EtudiantScolarite
+        $etudiantSco = new EtudiantScolarite();
+        $etudiantSco->setAnneeUniversitaire($anneeUniv);
+        $etudiantSco->setEtudiant($etudiant);
+        $etudiantSco->setDepartement($annee->getDepartement());
+        $etudiantSco->addAnnee($annee);
+        $etudiantSco->setUuid();
+        if ($anneeUniv->isActif()) {
+            $etudiantSco->setActif(true);
+        } else {
+            $etudiantSco->setActif(false);
+        }
+        return $etudiantSco;
+    }
+
+    public function createEtudiantScolariteSemestreFromData(EtudiantScolarite $etudiantScolarite, StructureAnnee $annee): mixed
+    {
+        $semestres = $this->structureSemestreRepository->findBy(['annee' => $annee]);
+
+        if (count($semestres) === 2) {
+            foreach ($semestres as $semestre) {
+                $etudiantScoSemestre = new EtudiantScolariteSemestre();
+                $etudiantScoSemestre->setScolarite($etudiantScolarite);
+                $etudiantScoSemestre->setSemestre($semestre);
+                $groupes = $semestre->getGroupes();
+                foreach ($groupes as $groupe) {
+                    $etudiantScoSemestre->addGroupe($groupe);
+                }
+            }
+        } else {
+            return null;
+        }
+        return $etudiantScoSemestre;
     }
 }

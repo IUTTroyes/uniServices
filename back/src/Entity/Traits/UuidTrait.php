@@ -21,8 +21,8 @@ trait UuidTrait
         return $this->uuid;
     }
 
-    public function setUuid(Uuid $uuid): void
+    public function setUuid(Uuid $uuid = null): void
     {
-        $this->uuid = $uuid;
+        $this->uuid = $uuid ?? Uuid::v4();
     }
 }
