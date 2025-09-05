@@ -1,6 +1,11 @@
 <script setup>
 import {onMounted, ref, watch} from "vue";
-import {getAnneeSemestresService, getDepartementAnneesService, createEtudiantsService} from "@requests";
+import {
+  getAnneeSemestresService,
+  getDepartementAnneesService,
+  createEtudiantsService,
+  getAllAnneesUniversitairesService
+} from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore } from "@stores";
 import { useToast } from "primevue/usetoast";
@@ -22,11 +27,11 @@ const files = ref([]);
 
 const annees = ref([]);
 const selectedAnnee = ref(null);
-const semestres = ref([]);
-const selectedSemestre = ref(null);
+const anneesUniv = ref([]);
+const selectedAnneeUniv = ref(null);
 
 const isLoadingAnnees = ref(true);
-const isLoadingSemestres = ref(false);
+const isLoadingAnneesUniv = ref(true);
 
 const onRemoveTemplatingFile = (file, removeFileCallback, index) => {
   removeFileCallback(index);
@@ -70,34 +75,27 @@ const getAnnees = async () => {
   }
 };
 
-const getSemestresSelectedAnnee = async () => {
+const getAnneesUniv = async () => {
   try {
-    semestres.value = [];
-    isLoadingSemestres.value = true;
-    semestres.value = await getAnneeSemestresService(selectedAnnee.value.id);
+    isLoadingAnneesUniv.value = true;
+    anneesUniv.value = await getAllAnneesUniversitairesService();
   } catch (error) {
-    console.error('Erreur lors du chargement des semestres :', error);
+    console.error('Erreur lors du chargement des années universitaires :', error);
     hasError.value = true;
     toast.add({
       severity: 'error',
       summary: 'Erreur',
-      detail: 'Une erreur est survenue lors du chargement des semestres. Veuillez réessayer plus tard.',
+      detail: 'Impossible de charger les années universitaires. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
       life: 5000,
-    })
+    });
   } finally {
-    isLoadingSemestres.value = false;
-    console.log(semestres.value)
+    isLoadingAnneesUniv.value = false;
   }
 };
 
-watch(selectedAnnee, async (newValue) => {
-  if (newValue) {
-    await getSemestresSelectedAnnee()
-  }
-})
-
 onMounted(async() => {
   await getAnnees();
+  await getAnneesUniv();
 });
 
 const copyToClipboard = async (text) => {
@@ -112,11 +110,20 @@ const copyToClipboard = async (text) => {
 
 const createEtudiant = async () => {
   try {
+    if (!selectedAnneeUniv.value) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Attention',
+        detail: 'Veuillez sélectionner une année universitaire avant d\'importer des étudiants.',
+        life: 5000,
+      });
+      return;
+    }
     if (files.value.length === 0) {
       toast.add({
         severity: 'warn',
         summary: 'Avertissement',
-        detail: 'Veuillez sélectionner un fichier avant de continuer.',
+        detail: 'Veuillez sélectionner un fichier avant d\'importer des étudiants.',
         life: 5000,
       });
       return;
@@ -129,7 +136,8 @@ const createEtudiant = async () => {
       const fileContent = event.target.result;
 
       const data = {
-        fileContent, // Contenu du fichier .csv
+        fileContent: fileContent, // Contenu du fichier .csv
+        anneeUniversitaireId: selectedAnneeUniv.value // ID de l'année universitaire sélectionnée
       };
 
       try {
@@ -175,7 +183,7 @@ const createEtudiant = async () => {
 };
 
 const downloadCsv = () => {
-  const csvContent = `numero_etudiant;numero_ine;nom;prenom;date_naissance;annee_promotion(aaaa);annee_bac(aaaa);specialite_bac;sexe(M/F);telephone;code_semestre;LIB_AD1;LIB_AD2;LIB_AD3;codepostal;ville;\n`;
+  const csvContent = `numero_etudiant;numero_ine;nom;prenom;date_naissance;annee_promotion(aaaa);annee_bac(aaaa);specialite_bac;sexe(M/F);telephone;annee_code_etape;LIB_AD1;LIB_AD2;LIB_AD3;codepostal;ville;\n`;
   const fileName = "import_etudiant.csv";
   exportCsv({ content: csvContent, fileName });
 };
@@ -185,37 +193,30 @@ const downloadCsv = () => {
   <ErrorView v-if="hasError" class="m-4"/>
   <div v-else class="flex flex-col gap-4">
     <div class="text-2xl font-bold text-center">Importer des étudiants via un fichier .csv</div>
+
+    <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+      <div class="font-medium text-lg">
+        Sélectionner une année universitaire
+      </div>
+      <ListSkeleton v-if="isLoadingAnneesUniv" class="w-full"/>
+      <SelectButton v-else :options="anneesUniv" v-model="selectedAnneeUniv" class="w-full justify-center" optionLabel="libelle" optionValue="id"/>
+    </div>
+    <Divider></Divider>
+
     <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
       Fichier csv (séparateur ";"). Télécharger un modèle ici :
       <a class="font-bold underline hover:cursor-pointer" @click.prevent="downloadCsv">Modèle d'import d'une liste d'étudiants</a>
     </Message>
-    <Button label="Voir les codes semestres" class="mx-auto" @click="visible = true"/>
+    <Button label="Voir les codes étape" class="mx-auto" @click="visible = true"/>
 
-    <Dialog v-model:visible="visible" modal header="Afficher les codes semestres à saisir dans le fichier" :style="{ width: '80vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+    <Dialog v-model:visible="visible" modal header="Afficher les codes étape à saisir dans le fichier" :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
       <div class="flex flex-col gap-4">
         <div class="w-full flex gap-2">
-          <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
-            <div class="font-medium text-lg">
-              Sélectionner une année
-            </div>
+          <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
             <ListSkeleton v-if="isLoadingAnnees" class="w-full"/>
-            <Button v-else :severity="selectedAnnee && selectedAnnee.id === annee.id ? 'primary' : 'secondary'" v-for="annee in annees" :key="annee.id" class="w-full" @click="selectedAnnee = annee">
-              {{annee.libelle}}
+            <Button v-else :severity="selectedAnnee && selectedAnnee.id === annee.id ? 'primary' : 'secondary'" v-for="annee in annees" :key="annee.id" class="w-full" @click="copyToClipboard(annee.apogeeCodeEtape)">
+              {{annee.libelle}} - <span class="font-bold">{{annee.apogeeCodeEtape}}</span> <i class="pi pi-copy"></i>
             </Button>
-          </div>
-          <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
-            <div class="font-medium text-lg">
-              Codes semestres
-            </div>
-            <ListSkeleton v-if="isLoadingSemestres" class="w-full"/>
-            <div v-else-if="semestres.length > 0" v-for="semestre in semestres" :key="semestre.id" class="w-full">
-              {{semestre.libelle}} - <Tag class="font-bold hover:cursor-pointer" @click="copyToClipboard(semestre.codeElement)">{{semestre.codeElement}} <i class="pi pi-copy"></i> </Tag>
-            </div>
-            <div v-else class="flex items-center justify-center h-full">
-              <Message severity="warn" icon="pi pi-info-circle">
-                Veuillez d'abord sélectionner une année
-              </Message>
-            </div>
           </div>
         </div>
       </div>

@@ -50,14 +50,15 @@ class EtudiantScolarite
 
     #[ORM\Column]
     #[Groups(['scolarite:read'])]
-    private ?int $ordre = null;
+    private int $ordre = 1;
 
-    // prop. annuelle
     #[ORM\Column(length: 10, nullable: true)]
     #[Groups(['scolarite:read'])]
     private ?string $proposition = null;
 
-    // todo: -> moove to etudiantScolariteSemestre
+    /**
+     * @deprecated
+     */
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:read'])]
     private ?float $moyenne = null;
@@ -74,7 +75,9 @@ class EtudiantScolarite
     #[Groups(['scolarite:read'])]
     private bool $public = false;
 
-    // todo: -> moove to etudiantScolariteSemestre
+    /**
+     * @deprecated
+     */
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:read'])]
     private ?array $moyennesMatiere = null;
@@ -140,7 +143,7 @@ class EtudiantScolarite
         return $this->ordre;
     }
 
-    public function setOrdre(int $ordre = 0): static
+    public function setOrdre(int $ordre = 1): static
     {
         $this->ordre = $ordre;
 
