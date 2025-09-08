@@ -250,7 +250,7 @@ Le déploiement est géré via CI/CD (à compléter avec les détails spécifiqu
 
 ## Contribution
 
-1. Suivre les standards de codage définis
+1. Suivre les standards de codage définis dans `ruleset.md`
 2. Documenter les nouvelles fonctionnalités
 3. Écrire des tests pour les nouvelles fonctionnalités
 4. Mettre à jour la documentation si nécessaire

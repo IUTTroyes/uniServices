@@ -128,10 +128,7 @@ class CreateEtudiantController extends AbstractController
                     $this->entityManager->persist($etudiant);
                     $etudiantSco = $this->createEtudiantScolariteFromData($etudiant, $anneeUniv, $annee);
                     $this->entityManager->persist($etudiantSco);
-                    $etudiantScoSemestre = $this->createEtudiantScolariteSemestreFromData($etudiantSco, $annee);
-                    if ($etudiantScoSemestre) {
-                        $this->entityManager->persist($etudiantScoSemestre);
-                    }
+                    $this->createEtudiantScolariteSemestreFromData($etudiantSco, $annee);
                     $createdEtudiants[] = $etudiant->getId();
                     $lineInfo['status'] = 'créé';
                     $lineInfo['message'] = 'Étudiant créé avec succès';
@@ -274,6 +271,8 @@ class CreateEtudiantController extends AbstractController
                 foreach ($groupes as $groupe) {
                     $etudiantScoSemestre->addGroupe($groupe);
                 }
+                $this->entityManager->persist($etudiantScoSemestre);
+                $this->entityManager->flush();
             }
         } else {
             return null;
