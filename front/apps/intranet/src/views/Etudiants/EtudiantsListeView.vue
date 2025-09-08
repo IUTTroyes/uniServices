@@ -41,9 +41,9 @@ const offset = computed(() => limit.value * page.value);
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  nom: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  prenom: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  mailUniv: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  nom: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  prenom: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  mailUniv: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
   annee: { value: null, matchMode: FilterMatchMode.EQUALS },
 });
 
@@ -162,26 +162,39 @@ const deleteEtudiant = etudiant => {
   console.log(etudiant);
 };
 
-watch(() => filters.value.annee.value, async newAnnee => {
-  if (isUpdatingFilter.value) {
-    isUpdatingFilter.value = false;
-    return;
-  }
+watch(
+      () => ({ ...filters.value }),
+      async (newFilters, oldFilters) => {
+        if (isUpdatingFilter.value) {
+          isUpdatingFilter.value = false;
+          return;
+        }
 
-  if (newAnnee && typeof newAnnee === 'object' && newAnnee.id) {
-    isUpdatingFilter.value = true;
-    filters.value.annee.value = newAnnee.id;
-    await getEtudiantsScolarite();
-  } else if (typeof newAnnee === 'number') {
-    console.log('Annee sélectionnée :', newAnnee);
-    await getEtudiantsScolarite();
-  } else if (newAnnee === null || newAnnee === undefined) {
-    console.log('Annee réinitialisée ou invalide :', newAnnee);
-    await getEtudiantsScolarite();
-  } else {
-    console.log('Valeur inattendue pour l\'année :', newAnnee);
-  }
-});
+        // Gestion spécifique pour le filtre année (objet ou id)
+        const newAnnee = newFilters.annee.value;
+        if (newAnnee && typeof newAnnee === 'object' && newAnnee.id) {
+          isUpdatingFilter.value = true;
+          filters.value.annee.value = newAnnee.id;
+          await getEtudiantsScolarite();
+        } else if (typeof newAnnee === 'number') {
+          await getEtudiantsScolarite();
+        } else if (newAnnee === null || newAnnee === undefined) {
+          await getEtudiantsScolarite();
+        } else {
+          await getEtudiantsScolarite();
+        }
+        // Détection de changement sur les autres filtres
+        if (
+          newFilters.nom.value !== oldFilters.nom.value ||
+          newFilters.prenom.value !== oldFilters.prenom.value ||
+          newFilters.mailUniv.value !== oldFilters.mailUniv.value ||
+          newFilters.global.value !== oldFilters.global.value
+        ) {
+          await getEtudiantsScolarite();
+        }
+      },
+      { deep: true }
+    );
 </script>
 
 <template>

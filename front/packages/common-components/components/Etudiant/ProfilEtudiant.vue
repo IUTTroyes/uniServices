@@ -21,6 +21,31 @@ const activeTab = ref(null);
 
 const isEditing = ref(false);
 
+// Initialize address objects when entering edit mode
+const initializeAddressObjects = () => {
+  if (!props.etudiantSco.etudiant.adresseEtudiante) {
+    props.etudiantSco.etudiant.adresseEtudiante = {
+      adresse: "",
+      complement1: "",
+      complement2: "",
+      ville: "",
+      codePostal: "",
+      pays: ""
+    };
+  }
+
+  if (!props.etudiantSco.etudiant.adresseParentale) {
+    props.etudiantSco.etudiant.adresseParentale = {
+      adresse: "",
+      complement1: "",
+      complement2: "",
+      ville: "",
+      codePostal: "",
+      pays: ""
+    };
+  }
+};
+
 const copyToClipboard = (email) => {
   navigator.clipboard.writeText(email).then(() => {
     toast.add({
@@ -171,7 +196,7 @@ const updateEtudiantData = async () => {
       </div>
       <Divider></Divider>
       <div>
-        <h1 class="text-2xl font-bold mb-4 flex gap-4">Données personnelles <Button severity="warn" rounded variant="outlined" aria-label="Editer mes informations personnelles" icon="pi pi-user-edit" @click="isEditing = !isEditing"></Button></h1>
+        <h1 class="text-2xl font-bold mb-4 flex gap-4">Données personnelles <Button severity="warn" rounded variant="outlined" aria-label="Editer mes informations personnelles" icon="pi pi-user-edit" @click="() => { initializeAddressObjects(); isEditing = !isEditing; }"></Button></h1>
         <Message severity="info" class="mb-4" icon="pi pi-info-circle">
           Ces informations ne sont visibles que de vous et de la direction du département. Merci de maintenir ces informations à jour, elles seront utilisées pour vous faire parvenir vos relevés de notes.
         </Message>
@@ -202,18 +227,18 @@ const updateEtudiantData = async () => {
           <div class="w-full">
             <div>Adresse Etudiante</div>
             <div class="flex gap-2 flex-wrap">
-              <IftaLabel v-for="[key, value] in Object.entries(props.etudiantSco.etudiant.adresseEtudiante).slice(2)" :key="key">
-                <InputText class="w-full" :id="key" v-model="props.etudiantSco.etudiant.adresseEtudiante[key]" />
-                <label :for="key">{{ key }}</label>
+              <IftaLabel v-for="field in ['adresse', 'complement1', 'complement2', 'ville', 'codePostal', 'pays']" :key="field">
+                <InputText class="w-full" :id="'etudiant-'+field" v-model="props.etudiantSco.etudiant.adresseEtudiante[field]" />
+                <label :for="'etudiant-'+field">{{ field }}</label>
               </IftaLabel>
             </div>
           </div>
           <div class="w-full">
             <div>Adresse Parentale</div>
             <div class="flex gap-2 flex-wrap">
-              <IftaLabel v-for="[key, value] in Object.entries(props.etudiantSco.etudiant.adresseParentale).slice(2)" :key="key">
-                <InputText class="w-full" :id="key" v-model="props.etudiantSco.etudiant.adresseParentale[key]" />
-                <label :for="key">{{ key }}</label>
+              <IftaLabel v-for="field in ['adresse', 'complement1', 'complement2', 'ville', 'codePostal', 'pays']" :key="field">
+                <InputText class="w-full" :id="'parental-'+field" v-model="props.etudiantSco.etudiant.adresseParentale[field]" />
+                <label :for="'parental-'+field">{{ field }}</label>
               </IftaLabel>
             </div>
           </div>
@@ -227,12 +252,12 @@ const updateEtudiantData = async () => {
             <li><span class="font-bold">Mail personnel :</span> {{props.etudiantSco.etudiant.mailPerso || 'Non renseigné'}}</li>
             <li><span class="font-bold">Site personnel :</span> <span v-if="props.etudiantSco.etudiant.site_perso"><Button as="a" label="Accéder au site" :href="props.etudiantSco.etudiant.site_perso" target="_blank" rel="noopener" icon="pi pi-external-link" icon-pos="right" severity="primary" size="small"/>
 </span><span v-else>Non renseigné</span></li>
-            <li><span class="font-bold">Adresse de l'étudiant :</span> {{ formatAdresse(props.etudiantSco.etudiant.adresseEtudiante) || 'Non renseigné' }}</li>
+            <li><span class="font-bold">Adresse de l'étudiant :</span> {{ formatAdresse(props.etudiantSco.etudiant.adresseEtudiante || {}) || 'Non renseigné' }}</li>
           </ul>
 
           <ul class="md:w-1/3 flex flex-col gap-2">
             <li><span class="font-bold">Téléphone :</span> {{ props.etudiantSco.etudiant.tel1 || 'Non renseigné' }} <span v-if="props.etudiantSco.etudiant.tel2">ou {{ props.etudiantSco.etudiant.tel2 }}</span></li>
-            <li><span class="font-bold">Adresse parentale :</span> {{ formatAdresse(props.etudiantSco.etudiant.adresseParentale) || 'Non renseigné' }}</li>
+            <li><span class="font-bold">Adresse parentale :</span> {{ formatAdresse(props.etudiantSco.etudiant.adresseParentale || {}) || 'Non renseigné' }}</li>
           </ul>
         </div>
       </div>
