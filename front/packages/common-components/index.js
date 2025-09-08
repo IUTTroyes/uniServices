@@ -11,6 +11,12 @@ import ApcAcBadge from "@components/Apc/ApcAcBadge.vue";
 import ErrorView from '@components/components/ErrorView.vue';
 import PhotoUser from '@components/components/PhotoUser.vue';
 
+// Form validation components
+import FormValidator from './components/Forms/FormValidator.vue';
+import ValidatedInput from './components/Forms/ValidatedInput.vue';
+import ExampleValidatedForm from './components/Forms/ExampleValidatedForm.vue';
+import { validationRules, validateField } from './utils/formValidation';
+
 export {
   LayoutComponent,
   LoginComponent,
@@ -24,4 +30,11 @@ export {
   ApcAcBadge,
   ErrorView,
   PhotoUser,
+
+  // Form validation exports
+  FormValidator,
+  ValidatedInput,
+  ExampleValidatedForm,
+  validationRules,
+  validateField,
 };

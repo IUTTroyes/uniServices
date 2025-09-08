@@ -6,6 +6,7 @@ import { fr } from "date-fns/locale";
 import { format, parseISO, differenceInYears } from "date-fns";
 import { formatAdresse } from "@helpers/adresse.js";
 import { updateEtudiantService } from "@requests";
+import { ValidatedInput, validationRules } from "@components";
 
 const toast = useToast();
 
@@ -20,9 +21,26 @@ const etudiantScolarites = ref([]);
 const activeTab = ref(null);
 
 const isEditing = ref(false);
+const formErrors = ref({});
+const formValid = ref(true);
 
-// Initialize address objects when entering edit mode
+// Handle validation results from ValidatedInput components
+const handleValidation = (field, result) => {
+  formErrors.value = {
+    ...formErrors.value,
+    [field]: result.isValid ? null : result.errorMessage
+  };
+
+  // Check if all fields are valid
+  formValid.value = Object.values(formErrors.value).every(error => error === null);
+};
+
 const initializeAddressObjects = () => {
+  // Reset validation state
+  formErrors.value = {};
+  formValid.value = true;
+
+  // Initialize address objects if they don't exist
   if (!props.etudiantSco.etudiant.adresseEtudiante) {
     props.etudiantSco.etudiant.adresseEtudiante = {
       adresse: "",
@@ -133,25 +151,36 @@ const cleanEtudiantObject = (etudiant) => {
 
 // Mettre à jour les informations de l'étudiant
 const updateEtudiantData = async () => {
+  // Vérifier si le formulaire est valide avant de soumettre
+  if (!formValid.value) {
+    toast.add({
+      severity: "error",
+      summary: "Erreur de validation",
+      detail: "Veuillez corriger les erreurs dans le formulaire",
+      life: 5000,
+    });
+    return;
+  }
+
   try {
     const cleanedEtudiant = cleanEtudiantObject(props.etudiantSco.etudiant);
     const response = await updateEtudiantService(cleanedEtudiant);
+    toast.add({
+      severity: "success",
+      summary: "Succès",
+      detail: "Vos informations ont été mises à jour",
+      life: 5000,
+    });
   } catch (error) {
     console.error("Erreur lors de la mise à jour :", error);
     toast.add({
       severity: "error",
       summary: "Erreur",
-      detail: "Échec de la mise à jour des informations",
+      detail: "Une erreur est survenue lors de la mise à jour",
       life: 5000,
     });
   } finally {
     isEditing.value = false;
-    toast.add({
-      severity: "success",
-      summary: "Succès",
-      detail: "Informations mises à jour avec succès",
-      life: 5000,
-    });
   }
 };
 </script>
@@ -201,50 +230,99 @@ const updateEtudiantData = async () => {
           Ces informations ne sont visibles que de vous et de la direction du département. Merci de maintenir ces informations à jour, elles seront utilisées pour vous faire parvenir vos relevés de notes.
         </Message>
         <div v-if="isEditing === true" class="flex md:flex-row flex-col gap-4 flex-wrap">
+          <div class="text-sm font-normal text-red-500 w-full">Les champs marqués d'un * sont obligatoires</div>
           <div class="md:w-1/3 flex flex-col gap-2">
-            <IftaLabel>
-              <InputText class="w-full" id="mailPerso" v-model="props.etudiantSco.etudiant.mailPerso" />
-              <label for="mailPerso">Mail personnel</label>
-            </IftaLabel>
-            <IftaLabel>
-              <InputText class="w-full" id="sitePerso" v-model="props.etudiantSco.etudiant.site_perso" />
-              <label for="sitePerso">Site personnel</label>
-              <div class="text-sm text-muted-color">Exemple : https://mon-site.com</div>
-            </IftaLabel>
+            <ValidatedInput
+              v-model="props.etudiantSco.etudiant.mailPerso"
+              name="mailPerso"
+              label="Mail personnel"
+              :rules="validationRules.email"
+              @validation="result => handleValidation('mailPerso', result)"
+            />
+            <ValidatedInput
+              v-model="props.etudiantSco.etudiant.site_perso"
+              name="sitePerso"
+              label="Site personnel"
+              :rules="validationRules.url"
+              @validation="result => handleValidation('sitePerso', result)"
+              help-text="Exemple : https://mon-site.com"
+            />
           </div>
           <div class="md:w-1/3 flex flex-col gap-2">
             <div class="flex flex-row gap-2 w-full justify-between">
-              <IftaLabel>
-                <InputText class="w-full" id="tel1" v-model="props.etudiantSco.etudiant.tel1" />
-                <label for="tel1">Téléphone 1</label>
-              </IftaLabel>
-              <IftaLabel>
-                <InputText class="w-full" id="tel2" v-model="props.etudiantSco.etudiant.tel2" />
-                <label for="tel2">Téléphone 2</label>
-              </IftaLabel>
+              <div class="w-1/2">
+                <ValidatedInput
+                  v-model="props.etudiantSco.etudiant.tel1"
+                  name="tel1"
+                  label="Téléphone 1"
+                  :rules="validationRules.phone"
+                  @validation="result => handleValidation('tel1', result)"
+                />
+              </div>
+              <div class="w-1/2">
+                <ValidatedInput
+                  v-model="props.etudiantSco.etudiant.tel2"
+                  name="tel2"
+                  label="Téléphone 2"
+                  :rules="validationRules.phone"
+                  @validation="result => handleValidation('tel2', result)"
+                />
+              </div>
             </div>
           </div>
           <div class="w-full">
-            <div>Adresse Etudiante</div>
+            <div class="font-bold mb-2">Adresse Etudiante</div>
             <div class="flex gap-2 flex-wrap">
-              <IftaLabel v-for="field in ['adresse', 'complement1', 'complement2', 'ville', 'codePostal', 'pays']" :key="field">
-                <InputText class="w-full" :id="'etudiant-'+field" v-model="props.etudiantSco.etudiant.adresseEtudiante[field]" />
-                <label :for="'etudiant-'+field">{{ field }}</label>
-              </IftaLabel>
+              <div v-for="field in ['adresse', 'complement1', 'complement2', 'ville', 'pays']" :key="field" class="md:w-1/4 w-full">
+                <ValidatedInput
+                  v-model="props.etudiantSco.etudiant.adresseEtudiante[field]"
+                  :name="'etudiant-'+field"
+                  :label="field"
+                  :rules="field === 'adresse' || field === 'ville' ? ['required'] : null"
+                  @validation="result => handleValidation('etudiant-'+field, result)"
+                />
+              </div>
+              <div class="md:w-1/4 w-full">
+                <ValidatedInput
+                  v-model="props.etudiantSco.etudiant.adresseEtudiante.codePostal"
+                  name="etudiant-codePostal"
+                  label="codePostal"
+                  :rules="[validationRules.postalCode, validationRules.required]"
+                  @validation="result => handleValidation('etudiant-codePostal', result)"
+                />
+              </div>
             </div>
           </div>
           <div class="w-full">
-            <div>Adresse Parentale</div>
+            <div class="font-bold mb-2">Adresse Parentale</div>
             <div class="flex gap-2 flex-wrap">
-              <IftaLabel v-for="field in ['adresse', 'complement1', 'complement2', 'ville', 'codePostal', 'pays']" :key="field">
-                <InputText class="w-full" :id="'parental-'+field" v-model="props.etudiantSco.etudiant.adresseParentale[field]" />
-                <label :for="'parental-'+field">{{ field }}</label>
-              </IftaLabel>
+              <div v-for="field in ['adresse', 'complement1', 'complement2', 'ville', 'pays']" :key="field" class="md:w-1/4 w-full">
+                <ValidatedInput
+                  v-model="props.etudiantSco.etudiant.adresseParentale[field]"
+                  :name="'parental-'+field"
+                  :label="field"
+                  @validation="result => handleValidation('parental-'+field, result)"
+                />
+              </div>
+              <div class="md:w-1/4 w-full">
+                <ValidatedInput
+                  v-model="props.etudiantSco.etudiant.adresseParentale.codePostal"
+                  name="parental-codePostal"
+                  label="codePostal"
+                  :rules="validationRules.postalCode"
+                  @validation="result => handleValidation('parental-codePostal', result)"
+                />
+              </div>
             </div>
           </div>
-          <div class="flex justify-end w-full gap-2">
+          <div class="w-full mt-4">
+            <Message v-if="!formValid" severity="error">
+              Veuillez corriger les erreurs dans le formulaire avant de soumettre
+            </Message>
+          </div>
+          <div class="flex justify-end w-full gap-2 mt-2">
             <Button severity="secondary" @click="isEditing = false">Annuler</Button>
-            <Button severity="primary" @click="updateEtudiantData()">Enregistrer</Button>
+            <Button severity="primary" :disabled="!formValid" @click="updateEtudiantData()">Enregistrer</Button>
           </div>
         </div>
         <div v-else class="flex md:flex-row flex-col gap-4 flex-wrap">
