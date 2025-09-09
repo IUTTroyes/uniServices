@@ -145,7 +145,7 @@ export const useUsersStore = defineStore('users', () => {
     const isScolarite = computed(() => user.value?.roles.includes('ROLE_SCOLARITE'));
     const isDirection = computed(() => user.value?.roles.includes('ROLE_DIRECTION'));
     const isChefDepartement = computed(() => user.value?.roles.includes('ROLE_CHEF_DEPARTEMENT'));
-    const isChefParcours = computed(() => user.value?.roles.includes('ROLE_CHEF_PARCOURS'));
+    const isRespParcours = computed(() => user.value?.roles.includes('ROLE_CHEF_PARCOURS'));
     const isDirecteurEtudes = computed(() => user.value?.roles.includes('ROLE_DIRECTEUR_ETUDES'));
     const isAbsence = computed(() => user.value?.roles.includes('ROLE_ABSENCE'));
     const isNote = computed(() => user.value?.roles.includes('ROLE_NOTE'));
@@ -180,7 +180,7 @@ export const useUsersStore = defineStore('users', () => {
         isScolarite,
         isDirection,
         isChefDepartement,
-        isChefParcours,
+        isRespParcours,
         isDirecteurEtudes,
         isAbsence,
         isNote,

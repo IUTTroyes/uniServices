@@ -1,5 +1,5 @@
 <script setup>
-import EtudiantProfil from '@components/components/Etudiant/ProfilEtudiant.vue'
+import {ProfilEtudiant} from '@components'
 import noImage from "@images/photos_etudiants/noimage.png";
 import {onMounted, ref} from "vue";
 
@@ -33,7 +33,7 @@ onMounted(() => {
 
 <template>
   <Dialog header=" " :visible="props.isVisible" modal :style="{ width: '90vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask :closable="true">
-    <EtudiantProfil :etudiantSco="props.etudiantSco" :isVisible="props.isVisible" :etudiantPhoto="etudiantPhoto" />
+    <ProfilEtudiant :etudiantSco="props.etudiantSco" :isVisible="props.isVisible" :etudiantPhoto="etudiantPhoto" />
   </Dialog>
 </template>
 

@@ -34,6 +34,7 @@ export default defineConfig(({ mode }) => {
         '@requests': path.resolve(__dirname, 'packages/common-requests'),
         '@stores': path.resolve(__dirname, 'packages/common-stores'),
         '@common-images': path.resolve(__dirname, 'packages/common-images'),
+        '@utils': path.resolve(__dirname, 'packages/common-utils'),
       },
     },
     base: base,

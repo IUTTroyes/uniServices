@@ -1,5 +1,5 @@
 <script setup>
-import { ProfilPersonnelComponent, ProfilEtudiantComponent, TopbarComponent } from '@components';
+import { ProfilPersonnel, ProfilEtudiant, TopbarComponent } from '@components';
 import {useUsersStore} from "@stores";
 import {computed} from "vue";
 
@@ -27,8 +27,8 @@ const isEtudiant = computed(() => store.userType === 'etudiants');
   <TopbarComponent :app-name :logo-url/>
   <div class="layout-main-container mt-16">
     <main class="layout-main">
-      <ProfilPersonnelComponent v-if="isPersonnel" />
-      <ProfilEtudiantComponent  v-if="isEtudiant" />
+      <ProfilPersonnel v-if="isPersonnel" />
+      <ProfilEtudiant  v-if="isEtudiant" />
     </main>
   </div>
 </template>

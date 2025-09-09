@@ -10,6 +10,9 @@ import ApcCompetenceBadge from "@components/Apc/ApcCompetenceBadge.vue";
 import ApcAcBadge from "@components/Apc/ApcAcBadge.vue";
 import ErrorView from '@components/components/ErrorView.vue';
 import PhotoUser from '@components/components/PhotoUser.vue';
+import ProfilEtudiant from "@components/components/Etudiant/ProfilEtudiant.vue";
+import ProfilPersonnel from "@components/components/Personnel/ProfilPersonnel.vue";
+import PermissionGuard from "@components/components/Permission/PermissionGuard.vue";
 
 // Form validation components
 import FormValidator from './components/Forms/FormValidator.vue';
@@ -30,6 +33,9 @@ export {
   ApcAcBadge,
   ErrorView,
   PhotoUser,
+  ProfilEtudiant,
+  ProfilPersonnel,
+  PermissionGuard,
 
   // Form validation exports
   FormValidator,
