@@ -393,7 +393,14 @@ const updateEtudiantData = async () => {
                   <span class="text-muted-color font-normal">{{ semestre.semestre.libelle }}</span>
                 </div>
 
-                {{ scolarite.moyennesUe }}
+                {{semestre.moyennesUe}}
+                <div v-for="moyenneUe in scolarite.moyennesUe">
+                  <div class="flex justify-between">
+                    <div>
+                      {{ semestre.moyennesUe || 'Non renseigné' }}
+                    </div>
+                  </div>
+                </div>
                 <hr>
               </div>
             </div>

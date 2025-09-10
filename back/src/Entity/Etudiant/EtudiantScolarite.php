@@ -115,6 +115,10 @@ class EtudiantScolarite
     #[Groups(['etudiant:read', 'scolarite:read'])]
     private bool $actif = false;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
+    private ?bool $decision = null;
+
     public function __construct()
     {
         $this->scolariteSemestre = new ArrayCollection();
@@ -320,5 +324,15 @@ class EtudiantScolarite
     public function setActif(bool $actif): void
     {
         $this->actif = $actif;
+    }
+
+    public function getDecision(): ?bool
+    {
+        return $this->decision;
+    }
+
+    public function setDecision(?bool $decision): void
+    {
+        $this->decision = $decision;
     }
 }

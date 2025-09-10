@@ -58,6 +58,10 @@ class EtudiantScolariteSemestre
     #[Groups(['scolarite:read'])]
     private ?array $moyennesUe = null;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
+    private ?bool $decision = null;
+
     public function __construct()
     {
         $this->absence = new ArrayCollection();
@@ -206,5 +210,15 @@ class EtudiantScolariteSemestre
     public function setMoyennesUe(?array $moyennesUe): void
     {
         $this->moyennesUe = $moyennesUe;
+    }
+
+    public function getDecision(): ?bool
+    {
+        return $this->decision;
+    }
+
+    public function setDecision(?bool $decision): void
+    {
+        $this->decision = $decision;
     }
 }
