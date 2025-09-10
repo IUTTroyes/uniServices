@@ -23,6 +23,7 @@ const anneeItems = ref([
     items: []
   }
 ]);
+const rolesItems = ref([]);
 
 const selectedAnneeUniversitaire = ref(null);
 
@@ -35,15 +36,52 @@ watch(() => userStore.user, async () => {
   await fetchData();
 });
 
+// Surveiller les changements du rôle temporaire pour mettre à jour l'interface utilisateur
+watch(() => userStore.temporaryRole?.value, () => {
+  // Mettre à jour l'état actif des éléments de rôle lorsque le rôle temporaire change
+  if (rolesItems.value.length > 0) {
+    const roleProperties = [
+      { property: 'isPersonnel', label: 'Personnel' },
+      { property: 'isEtudiant', label: 'Etudiant' },
+      { property: 'isAssistant', label: 'Assistant' },
+      { property: 'isQualite', label: 'Qualité' },
+      { property: 'isCompta', label: 'Compta' },
+      { property: 'isScolarite', label: 'Scolarité' },
+      { property: 'isDirection', label: 'Direction' },
+      { property: 'isChefDepartement', label: 'Chef Département' },
+      { property: 'isRespParcours', label: 'Responsable Parcours' },
+      { property: 'isDirecteurEtudes', label: 'Directeur Etudes' },
+      { property: 'isAbsence', label: 'Absence' },
+      { property: 'isNote', label: 'Note' },
+      { property: 'isEdt', label: 'EDT' },
+      { property: 'isStage', label: 'Stage' },
+      { property: 'isRelaiComm', label: 'Relai Communication' },
+      { property: 'isEdusign', label: 'Edusign' },
+      { property: 'isSuperAdmin', label: 'Super Admin' }
+    ];
+
+    // Mettre à jour l'état actif de chaque élément de rôle en utilisant la même logique que le mappage initial
+    roleProperties.forEach((role, index) => {
+      if (index < rolesItems.value.length - 1) { // Ignorer l'option "Réinitialiser"
+        const roleKey = role.property.toUpperCase().replace('IS', '');
+        const roleValue = `ROLE_${roleKey}`;
+        rolesItems.value[index].active = userStore.temporaryRole?.value ?
+          (userStore.temporaryRole?.value === roleValue) :
+          userStore[role.property];
+      }
+    });
+  }
+});
+
 const fetchData = async () => {
   try {
-    // Data is already fetched by initializeAppData, so we just use it
-    // If anneesUniv is empty, fetch it (fallback)
+    // Les données sont déjà récupérées par initializeAppData, donc on les utilise simplement
+    // Si anneesUniv est vide, on le récupère (solution de repli)
     if (anneeUnivStore.anneesUniv.length === 0) {
       await anneeUnivStore.getAllAnneesUniv();
     }
 
-    // Prepare sorted academic years for the dropdown
+    // Préparer les années universitaires triées pour le menu déroulant
     const sortedAnnees = anneeUnivStore.anneesUniv.map(annee => ({
       id: annee.id,
       label: annee.libelle,
@@ -53,9 +91,9 @@ const fetchData = async () => {
     anneesUniv.value = sortedAnnees;
     anneeItems.value[0].items = sortedAnnees;
 
-    // Handle selected academic year
+    // Gérer l'année universitaire sélectionnée
     if (!selectedAnneeUniversitaire.value) {
-      // If no selected year in local state, use the one from the store or set the first one
+      // Si aucune année n'est sélectionnée dans l'état local, utiliser celle du store ou définir la première
       if (anneeUnivStore.selectedAnneeUniv) {
         selectedAnneeUniversitaire.value = anneeUnivStore.selectedAnneeUniv;
       } else if (sortedAnnees.length > 0) {
@@ -63,18 +101,73 @@ const fetchData = async () => {
         selectedAnneeUniversitaire.value = sortedAnnees[0];
       }
     } else {
-      // Parse the selected year from localStorage
+      // Analyser l'année sélectionnée depuis localStorage
       selectedAnneeUniversitaire.value = JSON.parse(selectedAnneeUniversitaire.value);
-      // Ensure it has a label property
+      // S'assurer qu'elle a une propriété label
       if (selectedAnneeUniversitaire.value && selectedAnneeUniversitaire.value.libelle) {
         selectedAnneeUniversitaire.value.label = selectedAnneeUniversitaire.value.libelle;
       }
     }
 
-    // Handle department data for the UI
+    if (userStore.user) {
+      const roleProperties = [
+        { property: 'isPersonnel', label: 'Personnel' },
+        { property: 'isEtudiant', label: 'Etudiant' },
+        { property: 'isAssistant', label: 'Assistant' },
+        { property: 'isQualite', label: 'Qualité' },
+        { property: 'isCompta', label: 'Compta' },
+        { property: 'isScolarite', label: 'Scolarité' },
+        { property: 'isDirection', label: 'Direction' },
+        { property: 'isChefDepartement', label: 'Chef Département' },
+        { property: 'isRespParcours', label: 'Responsable Parcours' },
+        { property: 'isDirecteurEtudes', label: 'Directeur Etudes' },
+        { property: 'isAbsence', label: 'Absence' },
+        { property: 'isNote', label: 'Note' },
+        { property: 'isEdt', label: 'EDT' },
+        { property: 'isStage', label: 'Stage' },
+        { property: 'isRelaiComm', label: 'Relai Communication' },
+        { property: 'isEdusign', label: 'Edusign' },
+        { property: 'isSuperAdmin', label: 'Super Admin' }
+      ];
+
+      // Fonction pour gérer la sélection des rôles
+      const selectRole = (roleName, property) => {
+        // Si le rôle est déjà actif en tant que rôle temporaire, le supprimer
+        if (userStore.temporaryRole?.value === `ROLE_${property.toUpperCase().replace('IS', '')}`) {
+          userStore.clearTemporaryRole();
+        } else {
+          // Sinon, le définir comme rôle temporaire
+          userStore.setTemporaryRole(roleName);
+        }
+        console.log(userStore.user);
+      };
+
+      // Mapper les rôles aux éléments du menu avec l'état actif et la fonction de commande
+      rolesItems.value = roleProperties.map(role => {
+        const roleKey = role.property.toUpperCase().replace('IS', '');
+        const roleValue = `ROLE_${roleKey}`;
+        return {
+          label: role.label,
+          command: () => selectRole(role.label, role.property),
+          // Ajouter la propriété active pour montrer quel rôle est actuellement actif
+          // Si temporaryRole est défini, seul ce rôle sera actif
+          // Si temporaryRole n'est pas défini, utiliser la propriété calculée
+          active: userStore.temporaryRole?.value ? (userStore.temporaryRole?.value === roleValue) : userStore[role.property]
+        };
+      });
+
+      // Ajouter une option "Réinitialiser le rôle" à la fin
+      rolesItems.value.push({
+        label: 'Réinitialiser le rôle',
+        command: () => userStore.clearTemporaryRole(),
+        icon: 'pi pi-refresh'
+      });
+    }
+
+    // Gérer les données des départements pour l'interface utilisateur
     if (userStore.user) {
       if (userStore.userType === 'personnels') {
-        // Map departments for the dropdown menu
+        // Mapper les départements pour le menu déroulant
         deptItems.value = Array.isArray(userStore.departementsNotDefaut)
           ? userStore.departementsNotDefaut.map(departement => ({
               label: departement.libelle,
@@ -83,10 +176,10 @@ const fetchData = async () => {
             }))
           : [];
 
-        // Set the default department label
+        // Définir le libellé du département par défaut
         departementLabel.value = userStore.departementDefaut?.libelle || '';
       } else {
-        // For non-personnel users
+        // Pour les utilisateurs non-personnel
         deptItems.value = [];
         departementLabel.value = userStore.departementDefaut?.libelle || '';
       }
@@ -116,6 +209,7 @@ const anneeMenu = ref();
 const toolsMenu = ref();
 const profileMenu = ref();
 const deptMenu = ref();
+const rolesMenu = ref();
 
 const profileItems = ref([
   {
@@ -162,6 +256,10 @@ const toggleDeptMenu = (event) => {
   deptMenu.value.toggle(event);
 };
 
+const toggleRolesMenu = (event) => {
+  rolesMenu.value.toggle(event);
+};
+
 const changeDepartement = async (departementId) => {
   try {
     await userStore.changeDepartement(departementId);
@@ -188,12 +286,18 @@ const isEnabled = (item) => {
   return userStore.applications.includes(item.name);
 };
 
+// Propriété calculée pour déterminer si le menu des rôles doit être affiché
+const showRolesMenu = computed(() => {
+  // Afficher le menu si l'utilisateur est un superAdmin ou a un rôle temporaire défini
+  return userStore.isSuperAdmin || userStore.temporaryRole?.value !== null;
+});
+
 const selectAnneeUniversitaire = (annee) => {
-  // Pass the original annee object to the store
-  // The store will handle setting the correct isActif property
+  // Passer l'objet annee original au store
+  // Le store gérera la définition correcte de la propriété isActif
   anneeUnivStore.setSelectedAnneeUniv(annee);
 
-  // Update the local selectedAnneeUniversitaire value with the value from the store
+  // Mettre à jour la valeur locale selectedAnneeUniversitaire avec la valeur du store
   selectedAnneeUniversitaire.value = anneeUnivStore.selectedAnneeUniv;
 
   // recharger la page
@@ -219,6 +323,12 @@ const selectAnneeUniversitaire = (annee) => {
         <span>Département {{ departementLabel }}</span>
       </div>
       <Menu ref="deptMenu" id="dept_menu" :model="deptItems" :popup="true" />
+
+      <button v-if="showRolesMenu" type="button" class="layout-topbar-action-app" @click="toggleRolesMenu" aria-haspopup="true" aria-controls="roles_menu">
+        <span>Rôles</span>
+        <i class="pi pi-shield"></i>
+      </button>
+      <Menu ref="rolesMenu" id="roles_menu" :model="rolesItems" :popup="true" />
     </div>
 
     <div class="layout-topbar-actions">
