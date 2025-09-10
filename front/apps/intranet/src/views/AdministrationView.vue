@@ -40,7 +40,6 @@ import AdminBlocQualite from "../components/Administration/blocs_admin/AdminBloc
     <div class="card-body flex flex-col gap-10">
       <div class="flex flex-row justify-between gap-10">
         <admin-bloc-qualite class="w-full"/>
-<!--        <admin-bloc-pn class="w-full"/>-->
       </div>
     </div>
   </div>
