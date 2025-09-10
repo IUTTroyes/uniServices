@@ -4,6 +4,7 @@ import App from './App.vue';
 import '@styles/main.scss';
 import router from './router';
 import { initializeAppData } from '@requests/initializeData';
+import { registerPermissionDirective } from '@utils';
 
 import Aura from '@primevue/themes/aura';
 import PrimeVue from 'primevue/config';
@@ -54,6 +55,9 @@ app.use(ToastService);
 app.use(ConfirmationService);
 
 app.use(pinia);
+
+// Register the permission directive
+registerPermissionDirective(app);
 
 // Ajouter un contenu temporaire avant le montage
 import GlobalLoader from '@components/loader/GlobalLoader.vue';
