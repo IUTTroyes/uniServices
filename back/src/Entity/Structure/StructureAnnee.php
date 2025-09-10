@@ -7,7 +7,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Link;
 use App\Entity\Apc\ApcNiveau;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Traits\LifeCycleTrait;
@@ -88,11 +87,18 @@ class StructureAnnee
     #[ORM\ManyToOne(inversedBy: 'annees')]
     private ?StructurePn $pn = null;
 
+    /**
+     * @var Collection<int, EtudiantScolarite>
+     */
+    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'proposition')]
+    private Collection $etudiantScolaritesPropositions;
+
     public function __construct()
     {
         $this->semestres = new ArrayCollection();
         $this->setOpt([]);
         $this->scolarites = new ArrayCollection();
+        $this->etudiantScolaritesPropositions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -282,5 +288,35 @@ class StructureAnnee
     public function getDepartement(): ?StructureDepartement
     {
         return $this->getDiplome()?->getDepartement();
+    }
+
+    /**
+     * @return Collection<int, EtudiantScolarite>
+     */
+    public function getEtudiantScolaritesPropositions(): Collection
+    {
+        return $this->etudiantScolaritesPropositions;
+    }
+
+    public function addEtudiantScolaritesProposition(EtudiantScolarite $etudiantScolaritesProposition): static
+    {
+        if (!$this->etudiantScolaritesPropositions->contains($etudiantScolaritesProposition)) {
+            $this->etudiantScolaritesPropositions->add($etudiantScolaritesProposition);
+            $etudiantScolaritesProposition->setProposition($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiantScolaritesProposition(EtudiantScolarite $etudiantScolaritesProposition): static
+    {
+        if ($this->etudiantScolaritesPropositions->removeElement($etudiantScolaritesProposition)) {
+            // set the owning side to null (unless already changed)
+            if ($etudiantScolaritesProposition->getProposition() === $this) {
+                $etudiantScolaritesProposition->setProposition(null);
+            }
+        }
+
+        return $this;
     }
 }
