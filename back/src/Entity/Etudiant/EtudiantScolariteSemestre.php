@@ -58,6 +58,15 @@ class EtudiantScolariteSemestre
     #[Groups(['scolarite:read'])]
     private ?array $moyennesUe = null;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
+    private ?bool $decision = null;
+
+    #[ORM\ManyToOne(inversedBy: 'scolariteSemestre', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['scolarite:read', 'etudiant:read'])]
+    private ?StructureSemestre $proposition = null;
+
     public function __construct()
     {
         $this->absence = new ArrayCollection();
@@ -206,5 +215,25 @@ class EtudiantScolariteSemestre
     public function setMoyennesUe(?array $moyennesUe): void
     {
         $this->moyennesUe = $moyennesUe;
+    }
+
+    public function getDecision(): ?bool
+    {
+        return $this->decision;
+    }
+
+    public function setDecision(?bool $decision): void
+    {
+        $this->decision = $decision;
+    }
+
+    public function getProposition(): ?StructureSemestre
+    {
+        return $this->proposition;
+    }
+
+    public function setProposition(?StructureSemestre $proposition): void
+    {
+        $this->proposition = $proposition;
     }
 }

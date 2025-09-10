@@ -52,10 +52,6 @@ class EtudiantScolarite
     #[Groups(['scolarite:read'])]
     private int $ordre = 1;
 
-    #[ORM\Column(length: 10, nullable: true)]
-    #[Groups(['scolarite:read'])]
-    private ?string $proposition = null;
-
     /**
      * @deprecated
      */
@@ -115,6 +111,13 @@ class EtudiantScolarite
     #[Groups(['etudiant:read', 'scolarite:read'])]
     private bool $actif = false;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
+    private ?bool $decision = null;
+
+    #[ORM\ManyToOne(inversedBy: 'etudiantScolaritesPropositions')]
+    private ?StructureAnnee $proposition = null;
+
     public function __construct()
     {
         $this->scolariteSemestre = new ArrayCollection();
@@ -146,18 +149,6 @@ class EtudiantScolarite
     public function setOrdre(int $ordre = 1): static
     {
         $this->ordre = $ordre;
-
-        return $this;
-    }
-
-    public function getProposition(): ?string
-    {
-        return $this->proposition;
-    }
-
-    public function setProposition(?string $proposition): static
-    {
-        $this->proposition = $proposition;
 
         return $this;
     }
@@ -320,5 +311,27 @@ class EtudiantScolarite
     public function setActif(bool $actif): void
     {
         $this->actif = $actif;
+    }
+
+    public function getDecision(): ?bool
+    {
+        return $this->decision;
+    }
+
+    public function setDecision(?bool $decision): void
+    {
+        $this->decision = $decision;
+    }
+
+    public function getProposition(): ?StructureAnnee
+    {
+        return $this->proposition;
+    }
+
+    public function setProposition(?StructureAnnee $proposition): static
+    {
+        $this->proposition = $proposition;
+
+        return $this;
     }
 }
