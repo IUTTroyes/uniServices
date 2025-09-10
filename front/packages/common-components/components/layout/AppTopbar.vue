@@ -289,7 +289,7 @@ const isEnabled = (item) => {
 // Propriété calculée pour déterminer si le menu des rôles doit être affiché
 const showRolesMenu = computed(() => {
   // Afficher le menu si l'utilisateur est un superAdmin ou a un rôle temporaire défini
-  return userStore.isSuperAdmin || userStore.temporaryRole?.value !== null;
+  return userStore.isSuperAdmin || userStore.temporaryRole.length > 0;
 });
 
 const selectAnneeUniversitaire = (annee) => {
