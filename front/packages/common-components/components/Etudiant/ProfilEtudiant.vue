@@ -5,7 +5,7 @@ import { useToast } from "primevue/usetoast";
 import { fr } from "date-fns/locale";
 import { format, parseISO, differenceInYears } from "date-fns";
 import { formatAdresse } from "@helpers/adresse.js";
-import { updateEtudiantService } from "@requests";
+import { updateEtudiantService, getUeService } from "@requests";
 import { ValidatedInput, validationRules, ErrorView, PermissionGuard } from "@components";
 import { useUsersStore } from "@stores";
 import { hasPermission } from "@utils";
@@ -22,6 +22,7 @@ const props = defineProps({
 const loadingScolarites = ref(true);
 const etudiantScolarites = ref([]);
 const activeTab = ref(null);
+const ueLabels = ref({});
 
 const isEditing = ref(false);
 const formErrors = ref({});
@@ -29,19 +30,15 @@ const formValid = ref(true);
 
 const hasError = ref(false);
 
-// Handle validation results from ValidatedInput components
 const handleValidation = (field, result) => {
   formErrors.value = {
     ...formErrors.value,
     [field]: result.isValid ? null : result.errorMessage
   };
-
-  // Check if all fields are valid
   formValid.value = Object.values(formErrors.value).every(error => error === null);
 };
 
 const initializeAddressObjects = () => {
-  // Reset validation state
   formErrors.value = {};
   formValid.value = true;
 
@@ -177,6 +174,25 @@ const updateEtudiantData = async () => {
     isEditing.value = false;
   }
 };
+
+const getUe = (ueId) => {
+  if (ueLabels.value[ueId]) {
+    return ueLabels.value[ueId];
+  }
+
+  ueLabels.value[ueId] = "Chargement...";
+
+  getUeService(ueId)
+      .then(ue => {
+        ueLabels.value[ueId] = ue.numero;
+      })
+      .catch(error => {
+        console.error("Erreur lors de la récupération de l'UE:", error);
+        ueLabels.value[ueId] = "UE non trouvée";
+      });
+
+  return ueLabels.value[ueId];
+}
 </script>
 
 <template>
@@ -225,13 +241,13 @@ const updateEtudiantData = async () => {
             Données personnelles
             <!-- Edit button only visible to the student themselves or users with edit permissions -->
             <Button
-              v-permission="['isEtudiant', 'canEditEtudiantDetails']"
-              severity="warn"
-              rounded
-              variant="outlined"
-              aria-label="Editer mes informations personnelles"
-              icon="pi pi-user-edit"
-              @click="() => { initializeAddressObjects(); isEditing = !isEditing; }">
+                v-permission="['isEtudiant', 'canEditEtudiantDetails']"
+                severity="warn"
+                rounded
+                variant="outlined"
+                aria-label="Editer mes informations personnelles"
+                icon="pi pi-user-edit"
+                @click="() => { initializeAddressObjects(); isEditing = !isEditing; }">
             </Button>
           </h1>
           <Message severity="info" class="mb-4" icon="pi pi-info-circle">
@@ -392,16 +408,27 @@ const updateEtudiantData = async () => {
                   {{ semestre.semestre.annee.libelle }} -
                   <span class="text-muted-color font-normal">{{ semestre.semestre.libelle }}</span>
                 </div>
-
-                {{semestre.moyennesUe}}
-                <div v-for="moyenneUe in scolarite.moyennesUe">
-                  <div class="flex justify-between">
-                    <div>
-                      {{ semestre.moyennesUe || 'Non renseigné' }}
-                    </div>
-                  </div>
-                </div>
-                <hr>
+                <Divider/>
+                <table class="table-auto w-full">
+                        <thead>
+                          <tr>
+                            <th class="text-left px-2 py-1">UE</th>
+                            <th class="text-left px-2 py-1">Moyenne</th>
+                            <th class="text-left px-2 py-1">Décision</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="(moyenneUe, key) in semestre.moyennesUe" :key="key">
+                            <td class="px-2 py-1">UE {{ getUe(key) }}</td>
+                            <td class="px-2 py-1">{{ moyenneUe.moyenne || 'Non renseigné' }}</td>
+                            <td class="px-2 py-1">
+                              <span v-if="moyenneUe.decision === 'V'"><Tag severity="success">V</Tag></span>
+                              <span v-else-if="moyenneUe.decision === 'NV'"><Tag severity="danger">NV</Tag></span>
+                              <span v-else><Tag severity="warning">En attente</Tag></span>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
               </div>
             </div>
           </TabPanel>

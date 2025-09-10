@@ -5,6 +5,21 @@ import apiCall from '@helpers/apiCall';
 // ------------------- GET ----------------------
 // ----------------------------------------------
 
+const getUeService = async (ueId, showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api/structure_ues/${ueId}`],
+            'UE récupérée avec succès',
+            'Erreur lors de la récupération de l\'UE',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getUeService:', error);
+        throw error;
+    }
+}
+
 const getSemestreUesService = async (semestre, showToast = false) => {
     try {
         const response = await apiCall(
@@ -33,4 +48,4 @@ const getSemestreUesService = async (semestre, showToast = false) => {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getSemestreUesService };
+export { getUeService, getSemestreUesService };
