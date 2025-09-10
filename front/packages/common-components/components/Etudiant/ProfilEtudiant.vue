@@ -339,7 +339,6 @@ const updateEtudiantData = async () => {
             </div>
           </div>
           <div v-else class="flex md:flex-row flex-col gap-4 flex-wrap">
-            <!-- Basic information visible to all -->
             <ul class="md:w-1/3 flex flex-col gap-2">
               <li><span class="font-bold">Mail personnel :</span> {{props.etudiantSco.etudiant.mailPerso || 'Non renseigné'}}</li>
               <li><span class="font-bold">Site personnel :</span> <span v-if="props.etudiantSco.etudiant.site_perso"><Button as="a" label="Accéder au site" :href="props.etudiantSco.etudiant.site_perso" target="_blank" rel="noopener" icon="pi pi-external-link" icon-pos="right" severity="primary" size="small"/>
@@ -350,12 +349,12 @@ const updateEtudiantData = async () => {
             <PermissionGuard :permission="['isEtudiant', 'canViewEtudiantDetails']">
               <div class="flex md:flex-row flex-col gap-4 flex-wrap w-full">
                 <ul class="md:w-1/3 flex flex-col gap-2">
-                  <li><span class="font-bold">Adresse de l'étudiant :</span> {{ formatAdresse(props.etudiantSco.etudiant.adresseEtudiante || {}) || 'Non renseigné' }}</li>
+                  <li><span class="font-bold">Adresse de l'étudiant :</span> {{ formatAdresse(props.etudiantSco.etudiant.adresseEtudiante) || 'Non renseigné' }}</li>
                 </ul>
 
                 <ul class="md:w-1/3 flex flex-col gap-2">
                   <li><span class="font-bold">Téléphone :</span> {{ props.etudiantSco.etudiant.tel1 || 'Non renseigné' }} <span v-if="props.etudiantSco.etudiant.tel2">ou {{ props.etudiantSco.etudiant.tel2 }}</span></li>
-                  <li><span class="font-bold">Adresse parentale :</span> {{ formatAdresse(props.etudiantSco.etudiant.adresseParentale || {}) || 'Non renseigné' }}</li>
+                  <li><span class="font-bold">Adresse parentale :</span> {{ formatAdresse(props.etudiantSco.etudiant.adresseParentale) || 'Non renseigné' }}</li>
                 </ul>
               </div>
 

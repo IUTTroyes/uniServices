@@ -13,6 +13,13 @@ import { useUsersStore } from '@stores';
  * Chaque clé est un nom de permission composite, et sa valeur est un tableau des rôles qui possèdent cette permission
  */
 const compositePermissions = {
+  canViewAdministration: [
+    'isDirection',
+    'isChefDepartement',
+    'isRespParcours',
+    'isDirecteurEtudes',
+    'isAssistant',
+  ],
   canViewEtudiantDetails: [
     'isScolarite',
     'isDirection',

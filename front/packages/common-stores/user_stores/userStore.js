@@ -174,7 +174,7 @@ export const useUsersStore = defineStore('users', () => {
     // Si temporaryRole est défini, vérifier uniquement ce rôle (mode exclusif)
     // Si temporaryRole n'est pas défini, vérifier les rôles originaux
     const hasRole = (role) => {
-        if (temporaryRole.value) {
+        if (temporaryRole.value && temporaryRole.value.length > 0) {
             return temporaryRole.value === role;
         }
         return user.value?.roles.includes(role);

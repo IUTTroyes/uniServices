@@ -6,15 +6,23 @@ import trombinoscopeRoutes from "./modules/trombinoscopeRoutes.js";
 import profilRoutes from "./modules/profilRoutes.js";
 import administrationRoutes from "./modules/administrationRoutes.js";
 import {useUsersStore} from "@stores";
+import { hasPermission } from '@utils';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
+import { computed } from 'vue';
 
+// Define the menu structure
 const intranetMenu = [
     {
         items: [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
             { label: 'Agenda', icon: 'pi pi-fw pi-calendar', to: '/agenda' },
             { label: 'Trombinoscope', icon: 'pi pi-fw pi-users', to: '/trombinoscope' },
-            { label: 'Administration', icon: 'pi pi-fw pi-wrench', to: '/administration' },
+            {
+                label: 'Administration',
+                icon: 'pi pi-fw pi-wrench',
+                to: '/administration',
+                permission: 'canViewAdministration'
+            },
         ]
     }
 ];
@@ -27,12 +35,33 @@ const router = createRouter({
         {
             path: '/',
             component: LayoutComponent,
-            props: route => ({
-                menuItems: intranetMenu,
-                logoUrl: Logo,
-                appName: appName,
-                breadcrumbItems: route.meta.breadcrumb || []
-            }),
+            props: route => {
+                // Process menu items and check permissions every time the component is rendered
+                const processedMenu = intranetMenu.map(category => {
+                    const processedItems = category.items.map(item => {
+                        // If the item has a permission property, check if the user has that permission
+                        if (item.permission) {
+                            return {
+                                ...item,
+                                visible: hasPermission(item.permission)
+                            };
+                        }
+                        return item;
+                    });
+
+                    return {
+                        ...category,
+                        items: processedItems
+                    };
+                });
+
+                return {
+                    menuItems: processedMenu,
+                    logoUrl: Logo,
+                    appName: appName,
+                    breadcrumbItems: route.meta.breadcrumb || []
+                };
+            },
             children: [
                 ...dashboardRoutes,
                 ...agendaRoutes,
