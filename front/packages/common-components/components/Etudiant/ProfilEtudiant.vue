@@ -225,7 +225,7 @@ const updateEtudiantData = async () => {
             Données personnelles
             <!-- Edit button only visible to the student themselves or users with edit permissions -->
             <Button
-              v-permission="['isEtudiant', 'canEditStudentDetails']"
+              v-permission="['isEtudiant', 'canEditEtudiantDetails']"
               severity="warn"
               rounded
               variant="outlined"
@@ -347,7 +347,7 @@ const updateEtudiantData = async () => {
             </ul>
 
             <!-- Sensitive information only visible to authorized users -->
-            <PermissionGuard :permission="['isEtudiant', 'canViewStudentDetails']">
+            <PermissionGuard :permission="['isEtudiant', 'canViewEtudiantDetails']">
               <div class="flex md:flex-row flex-col gap-4 flex-wrap w-full">
                 <ul class="md:w-1/3 flex flex-col gap-2">
                   <li><span class="font-bold">Adresse de l'étudiant :</span> {{ formatAdresse(props.etudiantSco.etudiant.adresseEtudiante || {}) || 'Non renseigné' }}</li>

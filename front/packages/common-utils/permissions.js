@@ -1,56 +1,93 @@
 import { useUsersStore } from '@stores';
 
 /**
- * Permission utility for role-based access control
+ * Utilitaire de permissions pour le contrôle d'accès basé sur les rôles
  *
- * This utility provides functions to check if a user has specific permissions
- * based on their role and type. It's designed to be used across the application
- * for consistent access control.
+ * Cet utilitaire fournit des fonctions pour vérifier si un utilisateur possède des permissions spécifiques
+ * en fonction de son rôle et de son type. Il est conçu pour être utilisé dans toute l'application
+ * pour un contrôle d'accès cohérent.
  */
 
 /**
- * Check if the current user has permission to access a specific feature
- * @param {string|Array} requiredPermission - The permission(s) required to access the feature
- * @param {Object} options - Additional options
- * @param {boolean} options.requireAll - If true, the user must have all permissions in the array (default: false)
- * @returns {boolean} - True if the user has the required permission(s)
+ * Définition des permissions composites
+ * Chaque clé est un nom de permission composite, et sa valeur est un tableau des rôles qui possèdent cette permission
+ */
+const compositePermissions = {
+  canViewEtudiantDetails: [
+    'isScolarite',
+    'isDirection',
+    'isChefDepartement',
+    'isRespParcours',
+    'isDirecteurEtudes'
+  ],
+  canEditEtudiantDetails: [
+    'isScolarite',
+    'isDirection',
+    'isAssistant',
+    'isChefDepartement',
+    'isDirecteurEtudes'
+  ],
+  canViewPersonnelDetails: [
+    'isDirection',
+    'isAssistant',
+    'isChefDepartement'
+  ],
+  canEditPersonnelDetails: [
+    'isDirection'
+  ],
+  canViewNotes: [
+    'isNote',
+    'isScolarite',
+    'isDirection',
+    'isChefDepartement',
+    'isRespParcours',
+    'isDirecteurEtudes'
+  ]
+};
+
+/**
+ * Vérifie si l'utilisateur actuel a la permission d'accéder à une fonctionnalité spécifique
+ * @param {string|Array} requiredPermission - La/les permission(s) requise(s) pour accéder à la fonctionnalité
+ * @param {Object} options - Options supplémentaires
+ * @param {boolean} options.requireAll - Si vrai, l'utilisateur doit avoir toutes les permissions du tableau (par défaut: false)
+ * @returns {boolean} - Vrai si l'utilisateur possède la/les permission(s) requise(s)
  */
 export function hasPermission(requiredPermission, options = {}) {
   const userStore = useUsersStore();
   const { requireAll = false } = options;
 
-  // If no user is loaded yet, deny access
+  // Si aucun utilisateur n'est encore chargé, refuser l'accès
   if (!userStore.isLoaded) {
     return false;
   }
 
-  // Handle array of permissions
+  // Gérer un tableau de permissions
   if (Array.isArray(requiredPermission)) {
     if (requireAll) {
-      // User must have ALL permissions in the array
+      // L'utilisateur doit avoir TOUTES les permissions du tableau
       return requiredPermission.every(permission => checkSinglePermission(permission, userStore));
     } else {
-      // User must have AT LEAST ONE permission in the array
+      // L'utilisateur doit avoir AU MOINS UNE permission du tableau
       return requiredPermission.some(permission => checkSinglePermission(permission, userStore));
     }
   }
 
-  // Handle single permission
+  // Gérer une permission unique
   return checkSinglePermission(requiredPermission, userStore);
 }
 
 /**
- * Check if the current user has a specific permission
- * @param {string} permission - The permission to check
- * @param {Object} userStore - The user store instance
- * @returns {boolean} - True if the user has the permission
+ * Vérifie si l'utilisateur actuel possède une permission spécifique
+ * @param {string} permission - La permission à vérifier
+ * @param {Object} userStore - L'instance du store utilisateur
+ * @returns {boolean} - Vrai si l'utilisateur possède la permission
  */
 function checkSinglePermission(permission, userStore) {
-  // SuperAdmin has access to everything
+  // SuperAdmin a accès à tout
   if (userStore.isSuperAdmin) {
     return true;
   }
-  // Check user type permissions
+  // Vérifier les permissions de type d'utilisateur
   if (permission === 'isPersonnel') {
     return userStore.isPersonnel;
   }
@@ -58,7 +95,7 @@ function checkSinglePermission(permission, userStore) {
     return userStore.isEtudiant;
   }
 
-  // Check role-based permissions
+  // Vérifier les permissions basées sur les rôles
   if (permission === 'isAssistant') {
     return userStore.isAssistant;
   }
@@ -105,45 +142,24 @@ function checkSinglePermission(permission, userStore) {
     return userStore.isSuperAdmin;
   }
 
-  // Special combined permissions
-  if (permission === 'canViewEtudiantDetails') {
-    return userStore.isScolarite || userStore.isDirection ||
-           userStore.isChefDepartement || userStore.isRespParcours ||
-           userStore.isDirecteurEtudes || userStore.isSuperAdmin;
+  // Vérifier les permissions composites
+  if (permission in compositePermissions) {
+    // Vérifier si l'utilisateur possède l'un des rôles qui accordent cette permission
+    return compositePermissions[permission].some(role => userStore[role]) || userStore.isSuperAdmin;
   }
 
-  if (permission === 'canEditEtudiantDetails') {
-    return userStore.isScolarite || userStore.isDirection || userStore.isSuperAdmin;
-  }
-
-  if (permission === 'canViewPersonnelDetails') {
-    return userStore.isDirection || userStore.isAssistant ||
-           userStore.isChefDepartement || userStore.isSuperAdmin;
-  }
-
-  if (permission === 'canEditPersonnelDetails') {
-    return userStore.isDirection || userStore.isSuperAdmin;
-  }
-
-  if (permission === 'canViewNotes') {
-    return userStore.isNote || userStore.isScolarite ||
-           userStore.isDirection || userStore.isChefDepartement ||
-           userStore.isRespParcours || userStore.isDirecteurEtudes ||
-           userStore.isSuperAdmin;
-  }
-
-  // Unknown permission, deny access
+  // Permission inconnue, refuser l'accès
   console.warn(`Unknown permission: ${permission}`);
   return false;
 }
 
 /**
- * Vue directive for conditional rendering based on permissions
+ * Directive Vue pour le rendu conditionnel basé sur les permissions
  *
- * Usage:
- * <div v-permission="'isScolarite'">Only visible to scolarite users</div>
- * <div v-permission="['isScolarite', 'isDirection']">Visible to scolarite or direction users</div>
- * <div v-permission="{permissions: ['isScolarite', 'isDirection'], requireAll: true}">Visible only if user has both permissions</div>
+ * Utilisation:
+ * <div v-permission="'isScolarite'">Visible uniquement pour les utilisateurs de la scolarité</div>
+ * <div v-permission="['isScolarite', 'isDirection']">Visible pour les utilisateurs de la scolarité ou de la direction</div>
+ * <div v-permission="{permissions: ['isScolarite', 'isDirection'], requireAll: true}">Visible uniquement si l'utilisateur possède les deux permissions</div>
  */
 export const permissionDirective = {
   mounted(el, binding) {
