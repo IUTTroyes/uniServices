@@ -241,7 +241,6 @@ const getUe = (ueId) => {
             Données personnelles
             <!-- Edit button only visible to the student themselves or users with edit permissions -->
             <Button
-                v-permission="['isEtudiant', 'canEditEtudiantDetails']"
                 severity="warn"
                 rounded
                 variant="outlined"
