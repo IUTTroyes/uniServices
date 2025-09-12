@@ -21,6 +21,7 @@ const props = defineProps({
 
 const loadingScolarites = ref(true);
 const etudiantScolarites = ref([]);
+const currentScolarite = ref(null);
 const activeTab = ref(null);
 const ueLabels = ref({});
 
@@ -100,6 +101,7 @@ const getEtudiantScolarites = async () => {
     console.error("Erreur lors de la récupération :", error);
   } finally {
     loadingScolarites.value = false;
+    currentScolarite.value = etudiantScolarites.value.find(sco => sco.anneeUniversitaire.actif) || null;
   }
 };
 
@@ -167,7 +169,7 @@ const updateEtudiantData = async () => {
 
   try {
     const cleanedEtudiant = cleanEtudiantObject(props.etudiantSco.etudiant);
-    await updateEtudiantService(cleanedEtudiant);
+    await updateEtdiantService(cleanedEtudiant);
   } catch (error) {
     console.error("Erreur lors de la mise à jour :", error);
   } finally {
@@ -385,8 +387,8 @@ const getUe = (ueId) => {
     </div>
     <Divider></Divider>
     <div class="md:px-12 px-4">
-      <h2 class="text-2xl font-bold">Scolarité</h2>
-      <p class="text-sm text-muted-color">Sélectionnez une année universitaire pour afficher les semestres associés.</p>
+      <h2 class="text-2xl font-bold">Scolarité {{}}</h2>
+      <p class="text-sm text-muted-color">Scolarité de l'année courante</p>
 
       <Tabs v-if="etudiantScolarites.length > 0" v-model="activeTab">
         <TabList>
@@ -401,55 +403,77 @@ const getUe = (ueId) => {
                     :key="scolarite.anneeUniversitaire.libelle"
                     :value="scolarite.anneeUniversitaire.libelle">
             <div class="flex md:flex-row flex-col justify-between gap-2 w-full h-full">
-              <div v-for="semestre in scolarite.scolariteSemestre"
-                   class="card mb-0 w-full h-full">
-                <div class="font-bold text-lg">
-                  {{ semestre.semestre.annee.libelle }} -
-                  <span class="text-muted-color font-normal">{{ semestre.semestre.libelle }}</span>
-                </div>
-                <Divider/>
-                <div class="flex">
-                  <table class="table-auto w-full">
-                    <thead>
-                    <tr>
-                      <th class="text-left px-2 py-1">UE</th>
-                      <th class="text-left px-2 py-1">Moyenne</th>
-                      <th class="text-left px-2 py-1">Décision</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr v-for="(moyenneUe, key) in semestre.moyennesUe" :key="key">
-                      <td class="px-2 py-1">UE {{ getUe(key) }}</td>
-                      <td class="px-2 py-1">{{ moyenneUe.moyenne || 'Non renseigné' }}</td>
-                      <td class="px-2 py-1">
-                        <span v-if="moyenneUe.decision === 'V'"><Tag severity="success">V</Tag></span>
-                        <span v-else-if="moyenneUe.decision === 'NV'"><Tag severity="danger">NV</Tag></span>
-                        <span v-else><Tag severity="warning">En attente</Tag></span>
-                      </td>
-                    </tr>
-                    </tbody>
-                  </table>
-                  <table class="table-auto w-full">
-                    <thead>
-                    <tr>
-                      <th class="text-left px-2 py-1">Décision semestre</th>
-                      <th class="text-left px-2 py-1">Proposition</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td class="px-2 py-1">
-                          <span v-if="semestre.decision === true"><Tag severity="success">V</Tag></span>
-                          <span v-else-if="semestre.decision === false"><Tag severity="danger">NV</Tag></span>
-                          <span v-else><Tag severity="warning">En attente</Tag></span>
-                        </td>
-                        <td class="px-2 py-1">{{ semestre.proposition?.libelle || 'Non renseigné' }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                            <div v-for="semestre in scolarite.scolariteSemestre"
+                                 class="card mb-0 w-full h-full">
+                              <div class="font-bold text-lg">
+                                {{ semestre.semestre.annee.libelle }} |
+                                <span class="text-muted-color font-normal">{{ semestre.semestre.libelle }}</span>
+                              </div>
+                              <Divider/>
 
-              </div>
+                              <div class="flex justify-between gap-2 w-full">
+                                <div v-for="groupe in semestre.groupes" class="w-full border p-4 rounded-md">
+                                  <div class="flex justify-between gap-2">
+                                    <div class="text-lg font-bold">{{groupe.libelle}}</div>
+                                    <Tag v-if="groupe.type === 'CM'" severity="info" class="ml-2">CM</Tag>
+                                    <Tag v-else-if="groupe.type === 'TD'" severity="warning" class="ml-2">TD</Tag>
+                                    <Tag v-else-if="groupe.type === 'TP'" severity="success" class="ml-2">TP</Tag>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+
+
+<!--              <div v-for="semestre in scolarite.scolariteSemestre"-->
+<!--                   class="card mb-0 w-full h-full">-->
+<!--                <div class="font-bold text-lg">-->
+<!--                  {{ semestre.semestre.annee.libelle }} - -->
+<!--                  <span class="text-muted-color font-normal">{{ semestre.semestre.libelle }}</span>-->
+<!--                </div>-->
+<!--                <Divider/>-->
+<!--                <div class="flex">-->
+<!--                  <table class="table-auto w-full">-->
+<!--                    <thead>-->
+<!--                    <tr>-->
+<!--                      <th class="text-left px-2 py-1">UE</th>-->
+<!--                      <th class="text-left px-2 py-1">Moyenne</th>-->
+<!--                      <th class="text-left px-2 py-1">Décision</th>-->
+<!--                    </tr>-->
+<!--                    </thead>-->
+<!--                    <tbody>-->
+<!--                    <tr v-for="(moyenneUe, key) in semestre.moyennesUe" :key="key">-->
+<!--                      <td class="px-2 py-1">UE {{ getUe(key) }}</td>-->
+<!--                      <td class="px-2 py-1">{{ moyenneUe.moyenne || 'Non renseigné' }}</td>-->
+<!--                      <td class="px-2 py-1">-->
+<!--                        <span v-if="moyenneUe.decision === 'V'"><Tag severity="success">V</Tag></span>-->
+<!--                        <span v-else-if="moyenneUe.decision === 'NV'"><Tag severity="danger">NV</Tag></span>-->
+<!--                        <span v-else><Tag severity="warning">En attente</Tag></span>-->
+<!--                      </td>-->
+<!--                    </tr>-->
+<!--                    </tbody>-->
+<!--                  </table>-->
+<!--                  <table class="table-auto w-full">-->
+<!--                    <thead>-->
+<!--                    <tr>-->
+<!--                      <th class="text-left px-2 py-1">Décision semestre</th>-->
+<!--                      <th class="text-left px-2 py-1">Proposition</th>-->
+<!--                    </tr>-->
+<!--                    </thead>-->
+<!--                    <tbody>-->
+<!--                      <tr>-->
+<!--                        <td class="px-2 py-1">-->
+<!--                          <span v-if="semestre.decision === true"><Tag severity="success">V</Tag></span>-->
+<!--                          <span v-else-if="semestre.decision === false"><Tag severity="danger">NV</Tag></span>-->
+<!--                          <span v-else><Tag severity="warning">En attente</Tag></span>-->
+<!--                        </td>-->
+<!--                        <td class="px-2 py-1">{{ semestre.proposition?.libelle || 'Non renseigné' }}</td>-->
+<!--                      </tr>-->
+<!--                    </tbody>-->
+<!--                  </table>-->
+<!--                </div>-->
+
+<!--              </div>-->
             </div>
           </TabPanel>
         </TabPanels>

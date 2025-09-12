@@ -225,6 +225,11 @@ FOREIGN_KEY_CHECKS=1');
                                 $etudiantScolSemestre = new EtudiantScolariteSemestre();
                                 $etudiantScolSemestre->setScolarite($scolarite);
                                 $etudiantScolSemestre->setSemestre($semestreDest);
+                                foreach ($semestre['groupes'] as $groupe) {
+                                    if (isset($this->tGroupes[$groupe['id']])) {
+                                        $etudiantScolSemestre->addGroupe($this->tGroupes[$groupe['id']]);
+                                    }
+                                }
 
                                 // Set decision from semestre data (convert string to boolean if needed)
                                 $decision = $semestre['decision'] ?? null;
