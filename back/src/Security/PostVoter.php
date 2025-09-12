@@ -54,10 +54,16 @@ class PostVoter extends Voter
 
     private function canEditEtudiant(Etudiant $etudiant, Personnel|Etudiant $user): bool
     {
-        if ($user instanceof Personnel && in_array('ROLE_SUPER_ADMIN', $user->getRoles()) ) {
+        if ($user instanceof Personnel && (in_array('ROLE_SUPER_ADMIN', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles()) || in_array('ROLE_SCOLARITE', $user->getRoles()) || in_array('ROLE_CHEF_DEPT', $user->getRoles())) ) {
             return true;
         }
 
         return $user instanceof Etudiant && $user === $etudiant;
+    }
+
+    // todo: à compléter
+    private function canEdit()
+    {
+
     }
 }
