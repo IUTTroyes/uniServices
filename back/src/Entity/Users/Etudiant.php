@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Put;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Structure\StructureGroupe;
@@ -31,7 +32,7 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
     operations: [
         new Get(normalizationContext: ['groups' => ['etudiant:read']]),
         new GetCollection(normalizationContext: ['groups' => ['etudiant:read']]),
-        new Patch(normalizationContext: ['groups' => ['etudiant:write']]),
+        new Patch(normalizationContext: ['groups' => ['etudiant:write']], securityPostDenormalize: "is_granted('CAN_EDIT_ETUDIANT', object)"),
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
