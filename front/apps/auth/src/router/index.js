@@ -5,6 +5,7 @@ import AppProfil from '@/views/ProfilView.vue'
 import { useUsersStore } from '@stores/user_stores/userStore.js'
 import { LayoutComponent } from '@components'
 import ConfigurationRoutes from '@/router/modules/configurationRoutes.js'
+import ResetPasswordView from "@/views/ResetPasswordView.vue";
 
 const intranetMenu = [
   {
@@ -32,6 +33,11 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView,
+    },
+    {
+      path: '/reset-password',
+      name: 'reset-password',
+      component: ResetPasswordView,
     },
     {
       path: '/portail',
@@ -75,7 +81,7 @@ router.beforeEach(async (to, from, next) => {
   if (!userStore.isLoaded && !userStore.isLoading) {
     try {
       // si la route est login, on ne charge pas l'utilisateur
-      if (to.path === '/login') {
+      if (to.path === '/login' || to.path === '/reset-password') {
         return next()
       }
       await userStore.getUser()

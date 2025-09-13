@@ -108,8 +108,7 @@ const handleSubmit = async () => {
                 <Checkbox v-model="checked" id="rememberme1" binary class="mr-2"></Checkbox>
                 <label for="rememberme1">Se souvenir de moi</label>
               </div>
-              <span
-                  class="font-medium no-underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié ?</span>
+              <router-link to="/reset-password" class="font-medium underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié ?</router-link>
             </div>
             <Button :label="isLoading ? 'Connexion...' : 'Connexion invité'" class="w-full" type="submit"
                     severity="secondary" :disabled="isLoading"></Button>
