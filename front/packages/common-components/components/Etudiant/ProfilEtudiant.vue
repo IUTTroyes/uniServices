@@ -169,7 +169,7 @@ const updateEtudiantData = async () => {
 
   try {
     const cleanedEtudiant = cleanEtudiantObject(props.etudiantSco.etudiant);
-    await updateEtdiantService(cleanedEtudiant);
+    await updateEtudiantService(cleanedEtudiant);
   } catch (error) {
     console.error("Erreur lors de la mise à jour :", error);
   } finally {
@@ -387,7 +387,7 @@ const getUe = (ueId) => {
     </div>
     <Divider></Divider>
     <div class="md:px-12 px-4">
-      <h2 class="text-2xl font-bold">Scolarité {{}}</h2>
+      <h2 class="text-2xl font-bold">Scolarité</h2>
       <p class="text-sm text-muted-color">Scolarité de l'année courante</p>
 
       <Tabs v-if="etudiantScolarites.length > 0" v-model="activeTab">
