@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import Logo from '@components/components/Logo.vue';
 import axios from 'axios';
 import { tools } from '@config/uniServices.js';
@@ -12,6 +12,33 @@ const errorMessage = ref('');
 const isLoading = ref(false);
 const formErrors = ref({});
 const formValid = ref(true);
+
+// Pagination variables
+const currentPage = ref(0);
+const itemsPerPage = 4;
+
+// Compute paginated tools
+const paginatedTools = computed(() => {
+  const start = currentPage.value * itemsPerPage;
+  const end = start + itemsPerPage;
+  return tools.slice(start, end);
+});
+
+// Compute total pages
+const totalPages = computed(() => Math.ceil(tools.length / itemsPerPage));
+
+// Navigation methods
+const nextPage = () => {
+  if (currentPage.value < totalPages.value - 1) {
+    currentPage.value++;
+  }
+};
+
+const prevPage = () => {
+  if (currentPage.value > 0) {
+    currentPage.value--;
+  }
+};
 
 const handleSubmit = async () => {
   if (!username.value || !password.value) {
@@ -70,9 +97,9 @@ const handleValidation = (field, result) => {
 <template>
   <div class="bg w-full h-screen fixed top-0 left-0 -z-10">
   </div>
-  <div class="w-full min-h-screen flex justify-center items-center md:py-16">
-    <div class="w-3/4 h-full flex shadow-xl">
-      <div class="bg-black bg-opacity-60 text-white backdrop-blur-sm p-12 rounded-tl-xl rounded-bl-xl w-full flex flex-col gap-4">
+  <div class="w-full min-h-screen flex justify-center items-center md:py-16 p-4">
+    <div class="md:w-3/4 w-full h-full flex md:flex-row flex-col shadow-xl">
+      <div class="bg-black bg-opacity-60 text-white backdrop-blur-sm p-12 md:rounded-tl-xl md:rounded-bl-xl rounded-tl-xl rounded-tr-xl w-full flex flex-col gap-4">
         <div class="flex items-center w-full gap-4">
           <Logo logo-url="common-images/logo/logo_iut.png" alt="logo de l'iut" class="w-1/4 rounded-md"/>
           <div>
@@ -80,20 +107,43 @@ const handleValidation = (field, result) => {
             <div>Plateforme de gestion centralisée des services universitaires</div>
           </div>
         </div>
-        <Divider></Divider>
-        <ul>
-          <li v-for="tool in tools" :key="tool.name">
-            <Logo :logo-url="tool.logo" alt="" class="logo_login"/>
-            <div>
-              <span>
+        <div class="hidden md:block md:h-full">
+          <Divider></Divider>
+          <div class="flex flex-col justify-between h-full">
+            <ul class="h-full flex flex-col justify-start gap-6 py-4">
+              <li v-for="tool in paginatedTools" :key="tool.name" class="w-full p-0 flex items-center gap-4">
+                <Logo :logo-url="tool.logo" alt="" class="logo_login"/>
+                <div>
+              <span class="font-bold text-lg">
                 {{ tool.name }}
               </span>
-              <p>{{ tool.description }}</p>
+                  <p>{{ tool.description }}</p>
+                </div>
+              </li>
+            </ul>
+            <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-4">
+              <button
+                  @click="prevPage"
+                  :disabled="currentPage === 0"
+                  class="pagination-btn"
+                  :class="{ 'disabled': currentPage === 0 }"
+              >
+                &lt;
+              </button>
+              <span class="text-white">{{ currentPage + 1 }} / {{ totalPages }}</span>
+              <button
+                  @click="nextPage"
+                  :disabled="currentPage === totalPages - 1"
+                  class="pagination-btn"
+                  :class="{ 'disabled': currentPage === totalPages - 1 }"
+              >
+                &gt;
+              </button>
             </div>
-          </li>
-        </ul>
+          </div>
+        </div>
       </div>
-      <div class="bg-white p-12 rounded-tr-xl rounded-br-xl w-full">
+      <div class="bg-white p-12 md:rounded-tr-xl md:rounded-br-xl md:rounded-bl-none rounded-br-xl rounded-bl-xl w-full">
         <div class="text-center mb-8">
           <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4 uppercase">Connexion</div>
           <span class="text-muted-color font-medium">Etudiants, personnels de l'Université et vacataires, connectez-vous avec l'authentification de l'Université.</span>
@@ -111,10 +161,6 @@ const handleValidation = (field, result) => {
               :rules="validationRules.required"
               @validation="result => handleValidation('username', result)"
           />
-          <!--            <IftaLabel>-->
-          <!--              <InputText id="username" class="w-full mb-4" v-model="username"/>-->
-          <!--              <label for="username">Login</label>-->
-          <!--            </IftaLabel>-->
           <ValidatedInput
               class="pwd"
               v-model="password"
@@ -126,11 +172,6 @@ const handleValidation = (field, result) => {
               :rules="validationRules.required"
               @validation="result => handleValidation('password', result)"
           />
-          <!--            <IftaLabel>-->
-          <!--              <Password v-model="password" inputId="password" :feedback="false" class="w-full mb-2 pwd" toggleMask/>-->
-          <!--              <label for="password">Password</label>-->
-          <!--            </IftaLabel>-->
-
           <div class="flex flex-col justify-between mb-4 gap-4">
             <div class="flex items-center">
               <Checkbox v-model="checked" id="rememberme1" binary class="mr-2"></Checkbox>
@@ -160,5 +201,27 @@ const handleValidation = (field, result) => {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+}
+
+.pagination-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.pagination-btn:hover:not(.disabled) {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.pagination-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
