@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\OReOF;
+namespace App\Services\OReOFOld;
 
 use App\Repository\Structure\StructureDiplomeRepository;
 

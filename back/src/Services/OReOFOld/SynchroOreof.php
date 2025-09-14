@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\OReOF;
+namespace App\Services\OReOFOld;
 
 class SynchroOreof
 {
@@ -12,21 +12,21 @@ class SynchroOreof
     {
     }
 
-    public function syncAllDiplomes()
+    public function syncAllDiplomes(): SynchroDiplomes
     {
         $this->synchroDiplomes->syncAll();
 
         return $this->synchroDiplomes;
     }
 
-    public function syncDiplome(int $diplomeId)
+    public function syncDiplome(int $diplomeId): SynchroDiplome
     {
         $this->synchroDiplome->sync($diplomeId);
 
         return $this->synchroDiplome;
     }
 
-    public function syncParcours(int $parcoursId)
+    public function syncParcours(int $parcoursId): SynchroParcours
     {
         $this->synchroParcours->sync($parcoursId);
 

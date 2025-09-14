@@ -45,6 +45,16 @@ export default [
     },
   },
   {
+    path: 'administration/referentiels-competences',
+    component: () => import('@/views/Ref-Competences/IndexView.vue'),
+    meta: {
+      breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+        label: 'Administration',
+        route: '/administration'
+      }, { label: 'Référentiels de compétences', route: null }]
+    },
+  },
+  {
     path: 'administration/previsionnel',
     component: () => import('@/views/previsionnel/PrevisionnelView.vue'),
     meta: {

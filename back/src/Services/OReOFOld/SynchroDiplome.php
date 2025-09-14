@@ -1,8 +1,10 @@
 <?php
 
-namespace App\Services\OReOF;
+namespace App\Services\OReOFOld;
 
+use App\Entity\Structure\StructureAnnee;
 use App\Entity\Structure\StructureDiplome;
+use App\Entity\Structure\StructurePn;
 use App\Entity\Structure\StructureSemestre;
 use App\Repository\Structure\StructureDiplomeRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -39,10 +41,26 @@ class SynchroDiplome
         if (json_last_error() !== JSON_ERROR_NONE) {
             throw new \Exception('Error decoding JSON response: ' . json_last_error_msg());
         }
+        $tabAnnee = [];
+
+        //création d'un PN associé au diplôme
+        $structurePn = new StructurePn($diplome);
+        $structurePn->setLibelle($diplome->getLibelle());
+        $structurePn->setAnneePublication($maquette['annee']);
 
         // parcourir les semestres, la base "année" ne change pas. Les semestres sont accrochés au PN ?
 
         foreach ($maquette['semestres'] as $semestre) {
+            //si semestre impair on créé la StructureAnnee pour la première fois. Si pair, on récupère l'année existante du semestre -1
+            if ($semestre['ordre'] % 2 === 1) {
+                $annee = new StructureAnnee();
+                $annee->setLibelle('Année ' . $semestre['ordre']);
+                $annee->setOrdre($semestre['ordre']);
+                $annee->setDiplome($diplome);
+                $annee->setCodeElement($diplome->getCodeElement() . '-' . $semestre['ordre']);
+            }
+
+            dump($semestre);
             // Logique pour la synchronisation d'un semestre
             $structureSemestre = new StructureSemestre();
             $structureSemestre->setAnnee($maquette['annee']);
