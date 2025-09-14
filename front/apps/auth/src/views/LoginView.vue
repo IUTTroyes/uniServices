@@ -3,12 +3,15 @@ import { onMounted, ref } from 'vue';
 import Logo from '@components/components/Logo.vue';
 import axios from 'axios';
 import { tools } from '@config/uniServices.js';
+import {ValidatedInput, validationRules} from "@components";
 
 const username = ref('');
 const password = ref('');
 const checked = ref(false);
 const errorMessage = ref('');
 const isLoading = ref(false);
+const formErrors = ref({});
+const formValid = ref(true);
 
 const handleSubmit = async () => {
   if (!username.value || !password.value) {
@@ -54,70 +57,100 @@ const handleSubmit = async () => {
     isLoading.value = false;
   }
 };
+
+const handleValidation = (field, result) => {
+  formErrors.value = {
+    ...formErrors.value,
+    [field]: result.isValid ? null : result.errorMessage
+  };
+  formValid.value = Object.values(formErrors.value).every(error => error === null);
+};
 </script>
 
 <template>
-  <div
-      class="bg bg-surface-50 dark:bg-surface-950 flex flex-wrap items-center justify-center min-h-screen overflow-hidden">
-    <div class="login-container flex">
-      <div class="info-section bg-black bg-opacity-60 text-white backdrop-blur-sm flex justify-start gap-4 h-full">
-        <div class="p-16">
-          <Logo logo-url="common-images/logo/logo_iut.png" alt="logo de l'iut" class="logo"/>
-          <h2>Bienvenue sur UniServices</h2>
-          <p>Plateforme de gestion centralisée des services universitaires</p>
-
-          <ul>
-            <li v-for="tool in tools" :key="tool.name">
-              <Logo :logo-url="tool.logo" alt="" class="logo_login"/>
-              <div>
-                <span>
-                  {{ tool.name }}
-                </span>
-                <p>
-                  {{ tool.description }}
-                </p>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
-      <div class="form-section flex flex-col items-center justify-center min-h-full">
-        <div class="form-container w-full bg-surface-0 dark:bg-surface-900 py-10 px-8 sm:px-20 h-full">
-          <div class="text-center mb-8">
-            <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4 uppercase">Connexion</div>
-            <span class="text-muted-color font-medium">Etudiants, personnels de l'Université et vacataires, connectez-vous avec l'authentification de l'Université.</span>
+  <div class="bg w-full h-screen fixed top-0 left-0 -z-10">
+  </div>
+  <div class="w-full min-h-screen flex justify-center items-center md:py-16">
+    <div class="w-3/4 h-full flex shadow-xl">
+      <div class="bg-black bg-opacity-60 text-white backdrop-blur-sm p-12 rounded-tl-xl rounded-bl-xl w-full flex flex-col gap-4">
+        <div class="flex items-center w-full gap-4">
+          <Logo logo-url="common-images/logo/logo_iut.png" alt="logo de l'iut" class="w-1/4 rounded-md"/>
+          <div>
+            <div class="text-2xl font-bold">Bienvenue sur UniServices</div>
+            <div>Plateforme de gestion centralisée des services universitaires</div>
           </div>
-          <Button label="Connexion URCA" class="w-full" as="router-link" to="/"></Button>
-
-          <hr>
-
-          <p class="text-center">Compte invité</p>
-          <form @submit.prevent="handleSubmit" class="flex flex-col mb-8 mt-8">
-            <IftaLabel>
-              <InputText id="username" class="w-full mb-4" v-model="username"/>
-              <label for="username">Login</label>
-            </IftaLabel>
-            <IftaLabel>
-              <Password v-model="password" inputId="password" :feedback="false" class="w-full mb-2 pwd" toggleMask/>
-              <label for="password">Password</label>
-            </IftaLabel>
-
-            <div class="flex flex-col justify-between mb-4 gap-4">
-              <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-              <div class="flex items-center">
-                <Checkbox v-model="checked" id="rememberme1" binary class="mr-2"></Checkbox>
-                <label for="rememberme1">Se souvenir de moi</label>
-              </div>
-              <router-link to="/reset-password" class="font-medium underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié ?</router-link>
-            </div>
-            <Button :label="isLoading ? 'Connexion...' : 'Connexion invité'" class="w-full" type="submit"
-                    severity="secondary" :disabled="isLoading"></Button>
-          </form>
-          <small class="text-muted-color">En cas de problème de connexion, contactez le support à cette adresse :
-            intranet.iut-troyes@univ-reims.fr</small>
         </div>
+        <Divider></Divider>
+        <ul>
+          <li v-for="tool in tools" :key="tool.name">
+            <Logo :logo-url="tool.logo" alt="" class="logo_login"/>
+            <div>
+              <span>
+                {{ tool.name }}
+              </span>
+              <p>{{ tool.description }}</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <div class="bg-white p-12 rounded-tr-xl rounded-br-xl w-full">
+        <div class="text-center mb-8">
+          <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4 uppercase">Connexion</div>
+          <span class="text-muted-color font-medium">Etudiants, personnels de l'Université et vacataires, connectez-vous avec l'authentification de l'Université.</span>
+        </div>
+        <Button label="Connexion URCA" class="w-full" as="router-link" to="/"></Button>
+
+        <Divider></Divider>
+
+        <p class="text-center">Compte invité</p>
+        <form @submit.prevent="handleSubmit" class="flex flex-col">
+          <ValidatedInput
+              v-model="username"
+              name="username"
+              label="Login"
+              :rules="validationRules.required"
+              @validation="result => handleValidation('username', result)"
+          />
+          <!--            <IftaLabel>-->
+          <!--              <InputText id="username" class="w-full mb-4" v-model="username"/>-->
+          <!--              <label for="username">Login</label>-->
+          <!--            </IftaLabel>-->
+          <ValidatedInput
+              class="pwd"
+              v-model="password"
+              name="password"
+              label="Mot de passe"
+              type="password"
+              :feedback="false"
+              toggleMask
+              :rules="validationRules.required"
+              @validation="result => handleValidation('password', result)"
+          />
+          <!--            <IftaLabel>-->
+          <!--              <Password v-model="password" inputId="password" :feedback="false" class="w-full mb-2 pwd" toggleMask/>-->
+          <!--              <label for="password">Password</label>-->
+          <!--            </IftaLabel>-->
+
+          <div class="flex flex-col justify-between mb-4 gap-4">
+            <div class="flex items-center">
+              <Checkbox v-model="checked" id="rememberme1" binary class="mr-2"></Checkbox>
+              <label for="rememberme1">Se souvenir de moi</label>
+            </div>
+            <router-link to="/reset-password" class="font-medium underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié ?</router-link>
+          </div>
+          <div class="w-full flex flex-col gap-2">
+            <Message v-if="!formValid" severity="error">
+              Veuillez corriger les erreurs dans le formulaire avant de soumettre
+            </Message>
+            <Button :label="isLoading ? 'Connexion...' : 'Connexion invité'" class="w-full" type="submit"
+                    severity="secondary" :disabled="isLoading || !formValid"></Button>
+          </div>
+        </form>
+        <small class="text-muted-color">En cas de problème de connexion, contactez le support à cette adresse :
+          intranet.iut-troyes@univ-reims.fr</small>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -127,85 +160,5 @@ const handleSubmit = async () => {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-}
-
-.logo {
-  width: 100px;
-  border-radius: 10px;
-}
-
-.login-container {
-  display: flex;
-  width: 100%;
-  max-width: 70%;
-  height: 100%;
-}
-
-.info-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  justify-content: start;
-  gap: 1rem;
-  border-bottom-left-radius: 15px;
-  border-top-left-radius: 15px;
-
-  h2 {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: whitesmoke;
-  }
-
-  ul {
-
-    li {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin: 3rem 0;
-
-      .logo {
-        width: 50px;
-        height: 50px;
-        border-radius: 10px;
-        background-color: rgb(255, 255, 255);
-      }
-
-      span {
-        font-size: 1.25rem;
-        font-weight: 700;
-      }
-    }
-  }
-}
-
-.form-section {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  .form-container {
-    border-bottom-right-radius: 15px;
-    border-top-right-radius: 15px;
-  }
-}
-
-hr {
-  border: 0;
-  border-top: 1px solid lightgray;
-  margin: 2rem 0;
-}
-
-.p-password {
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-.error-message {
-  color: red;
-  margin-top: 1rem;
-  text-align: center;
 }
 </style>

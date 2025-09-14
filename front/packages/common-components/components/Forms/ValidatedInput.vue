@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import FormValidator from './FormValidator.vue';
 import InputText from 'primevue/inputtext';
+import Password from 'primevue/password';
 import { validationRules } from '@components';
 
 const props = defineProps({
@@ -44,6 +45,15 @@ const props = defineProps({
   helpText: {
     type: String,
     default: ''
+  },
+  // Password component specific props
+  feedback: {
+    type: Boolean,
+    default: false
+  },
+  toggleMask: {
+    type: Boolean,
+    default: true
   }
 });
 
@@ -51,6 +61,10 @@ const emit = defineEmits(['update:modelValue', 'validation']);
 
 const updateValue = (event) => {
   emit('update:modelValue', event.target.value);
+};
+
+const updateModelValue = (value) => {
+  emit('update:modelValue', value);
 };
 
 const onValidation = (result) => {
@@ -74,6 +88,7 @@ const onValidation = (result) => {
     >
       <template #default="{ handleBlur, showError }">
         <InputText
+          v-if="type !== 'password'"
           :id="name"
           :name="name"
           :value="modelValue"
@@ -81,6 +96,19 @@ const onValidation = (result) => {
           :type="type"
           :class="[inputClass, { 'p-invalid': showError }]"
           @input="updateValue"
+          @blur="handleBlur"
+        />
+
+        <Password
+          v-else
+          :inputId="name"
+          :name="name"
+          :placeholder="placeholder"
+          :class="[inputClass, { 'p-invalid': showError }, 'pwd']"
+          :feedback="feedback"
+          :toggleMask="toggleMask"
+          :modelValue="modelValue"
+          @update:modelValue="updateModelValue"
           @blur="handleBlur"
         />
 
