@@ -78,7 +78,7 @@ const handleSubmit = async () => {
       console.error('Error request:', error.request);
     }
     errorMessage.value = error.response && error.response.status === 401
-        ? 'Login incorrect ou mot de passe incorrect'
+        ? 'Login ou mot de passe incorrect'
         : 'Une erreur est survenue, veuillez contacter l\'administrateur du site';
   } finally {
     isLoading.value = false;
@@ -112,12 +112,12 @@ const handleValidation = (field, result) => {
           <div class="flex flex-col justify-between h-full">
             <ul class="h-full flex flex-col justify-start gap-6 py-4">
               <li v-for="tool in paginatedTools" :key="tool.name" class="w-full p-0 flex items-center gap-4">
-                <Logo :logo-url="tool.logo" alt="" class="logo_login"/>
+                <Logo :logo-url="tool.logo" alt="" class="w-16 bg-white rounded-xl"/>
                 <div>
-              <span class="font-bold text-lg">
+              <span class="font-bold text-xl">
                 {{ tool.name }}
               </span>
-                  <p>{{ tool.description }}</p>
+                  <p class="text-lg">{{ tool.description }}</p>
                 </div>
               </li>
             </ul>
@@ -143,9 +143,9 @@ const handleValidation = (field, result) => {
           </div>
         </div>
       </div>
-      <div class="bg-white p-12 md:rounded-tr-xl md:rounded-br-xl md:rounded-bl-none rounded-br-xl rounded-bl-xl w-full">
+      <div class="bg-white p-12 md:rounded-tr-xl md:rounded-br-xl md:rounded-bl-none rounded-br-xl rounded-bl-xl w-full flex flex-col gap-4">
         <div class="text-center mb-8">
-          <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4 uppercase">Connexion</div>
+          <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium uppercase">Connexion</div>
           <span class="text-muted-color font-medium">Etudiants, personnels de l'Université et vacataires, connectez-vous avec l'authentification de l'Université.</span>
         </div>
         <Button label="Connexion URCA" class="w-full" as="router-link" to="/"></Button>
@@ -172,23 +172,28 @@ const handleValidation = (field, result) => {
               :rules="validationRules.required"
               @validation="result => handleValidation('password', result)"
           />
-          <div class="flex flex-col justify-between mb-4 gap-4">
+          <div class="flex flex-col justify-between gap-4">
             <div class="flex items-center">
               <Checkbox v-model="checked" id="rememberme1" binary class="mr-2"></Checkbox>
               <label for="rememberme1">Se souvenir de moi</label>
             </div>
-            <router-link to="/reset-password" class="font-medium underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié ?</router-link>
-          </div>
-          <div class="w-full flex flex-col gap-2">
-            <Message v-if="!formValid" severity="error">
-              Veuillez corriger les erreurs dans le formulaire avant de soumettre
-            </Message>
-            <Button :label="isLoading ? 'Connexion...' : 'Connexion invité'" class="w-full" type="submit"
-                    severity="secondary" :disabled="isLoading || !formValid"></Button>
+            <div class="flex justify-end items-center">
+              <router-link to="/reset-password" class="font-medium underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié ?</router-link>
+            </div>
+            <div class="w-full flex flex-col gap-2">
+              <Message v-if="!formValid" severity="error">
+                Veuillez corriger les erreurs dans le formulaire avant de soumettre
+              </Message>
+              <Message v-else-if="errorMessage" severity="error">
+                {{ errorMessage }}
+              </Message>
+              <Button :label="isLoading ? 'Connexion...' : 'Connexion invité'" class="w-full" type="submit"
+                      severity="secondary" :disabled="isLoading || !formValid"></Button>
+            </div>
           </div>
         </form>
         <small class="text-muted-color">En cas de problème de connexion, contactez le support à cette adresse :
-          intranet.iut-troyes@univ-reims.fr</small>
+          <a href="mailto:intranet.iut-troyes@univ-reims.fr" class="underline">intranet.iut-troyes@univ-reims.fr</a></small>
       </div>
     </div>
 
