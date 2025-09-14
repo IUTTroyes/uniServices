@@ -285,6 +285,26 @@ class StructureAnnee
         return $this->getPn()?->getDiplome();
     }
 
+    public function setId(?int $id): void
+    {
+        $this->id = $id;
+    }
+
+    public function setSemestres(Collection $semestres): void
+    {
+        $this->semestres = $semestres;
+    }
+
+    public function setScolarites(Collection $scolarites): void
+    {
+        $this->scolarites = $scolarites;
+    }
+
+    public function setEtudiantScolaritesPropositions(Collection $etudiantScolaritesPropositions): void
+    {
+        $this->etudiantScolaritesPropositions = $etudiantScolaritesPropositions;
+    }
+
     public function getDepartement(): ?StructureDepartement
     {
         return $this->getDiplome()?->getDepartement();
