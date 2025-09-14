@@ -2,6 +2,7 @@
 
 namespace App\Entity\Etudiant;
 
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
@@ -30,6 +31,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         )
     ]
 )]
+#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ApiFilter(EtudiantScolariteFilter::class)]
 class EtudiantScolarite
 {
@@ -48,14 +50,11 @@ class EtudiantScolarite
 
     #[ORM\Column]
     #[Groups(['scolarite:read'])]
-    private ?int $ordre = null;
+    private int $ordre = 1;
 
-    // prop. annuelle
-    #[ORM\Column(length: 10, nullable: true)]
-    #[Groups(['scolarite:read'])]
-    private ?string $proposition = null;
-
-    // todo: -> moove to etudiantScolariteSemestre
+    /**
+     * @deprecated
+     */
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:read'])]
     private ?float $moyenne = null;
@@ -72,7 +71,9 @@ class EtudiantScolarite
     #[Groups(['scolarite:read'])]
     private bool $public = false;
 
-    // todo: -> moove to etudiantScolariteSemestre
+    /**
+     * @deprecated
+     */
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:read'])]
     private ?array $moyennesMatiere = null;
@@ -106,6 +107,17 @@ class EtudiantScolarite
     #[Groups(['etudiant:read', 'scolarite:read'])]
     private Collection $annee;
 
+    #[ORM\Column]
+    #[Groups(['etudiant:read', 'scolarite:read'])]
+    private bool $actif = false;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
+    private ?bool $decision = null;
+
+    #[ORM\ManyToOne(inversedBy: 'etudiantScolaritesPropositions')]
+    private ?StructureAnnee $proposition = null;
+
     public function __construct()
     {
         $this->scolariteSemestre = new ArrayCollection();
@@ -134,21 +146,9 @@ class EtudiantScolarite
         return $this->ordre;
     }
 
-    public function setOrdre(int $ordre = 0): static
+    public function setOrdre(int $ordre = 1): static
     {
         $this->ordre = $ordre;
-
-        return $this;
-    }
-
-    public function getProposition(): ?string
-    {
-        return $this->proposition;
-    }
-
-    public function setProposition(?string $proposition): static
-    {
-        $this->proposition = $proposition;
 
         return $this;
     }
@@ -299,6 +299,38 @@ class EtudiantScolarite
     public function removeAnnee(StructureAnnee $annee): static
     {
         $this->annee->removeElement($annee);
+
+        return $this;
+    }
+
+    public function isActif(): bool
+    {
+        return $this->actif;
+    }
+
+    public function setActif(bool $actif): void
+    {
+        $this->actif = $actif;
+    }
+
+    public function getDecision(): ?bool
+    {
+        return $this->decision;
+    }
+
+    public function setDecision(?bool $decision): void
+    {
+        $this->decision = $decision;
+    }
+
+    public function getProposition(): ?StructureAnnee
+    {
+        return $this->proposition;
+    }
+
+    public function setProposition(?StructureAnnee $proposition): static
+    {
+        $this->proposition = $proposition;
 
         return $this;
     }

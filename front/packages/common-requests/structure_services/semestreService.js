@@ -1,6 +1,10 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
+// ----------------------------------------------
+// ------------------- GET ----------------------
+// ----------------------------------------------
+
 const getSemestresService = async (showToast = false) => {
     try {
         const response = await apiCall(
@@ -19,14 +23,13 @@ const getSemestresService = async (showToast = false) => {
 
 const getSemestreService = async (semestreId, showToast = false) => {
     try {
-        const response = await apiCall(
+        return await apiCall(
             api.get,
             [`/api/structure_semestres/${semestreId}`],
             'Semestre récupéré avec succès',
             'Erreur lors de la récupération du semestre',
             showToast
         );
-        return response;
     } catch (error) {
         console.error('Erreur dans getSemestreService:', error);
         throw error;
@@ -65,4 +68,33 @@ const getDiplomeSemestresService = async (diplomeId, onlyActif, showToast = fals
     }
 }
 
-export { getSemestresService, getSemestreService, getDepartementSemestresService, getDiplomeSemestresService };
+const getAnneeSemestresService = async (anneeId, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/structure_semestres?annee=${anneeId}`],
+            'Semestres de l\'année récupérés avec succès',
+            'Erreur lors de la récupération des semestres de l\'année universitaire',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getAnneeSemestresService:', error);
+        throw error;
+    }
+}
+
+// ----------------------------------------------
+// ------------------- CREATE -------------------
+// ----------------------------------------------
+
+
+// ----------------------------------------------
+// ------------------- UPDATE -------------------
+// ----------------------------------------------
+
+// ----------------------------------------------
+// ------------------- DELETE -------------------
+// ----------------------------------------------
+
+export { getSemestresService, getSemestreService, getDepartementSemestresService, getDiplomeSemestresService, getAnneeSemestresService };

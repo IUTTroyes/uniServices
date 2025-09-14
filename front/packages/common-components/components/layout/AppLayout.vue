@@ -6,9 +6,6 @@ import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
 import AppBreadcrumb from "./AppBreadcrumb.vue";
 
-import { useLayoutStore } from '@stores/layoutStore'
-const layoutStore = useLayoutStore()
-
 const props = defineProps({
   menuItems: {
     type: Array,
@@ -54,9 +51,8 @@ const containerClass = computed(() => {
     <div class="layout-main-container">
       <div class="flex justify-between items-center">
         <app-breadcrumb v-if="breadcrumbItems" :items="breadcrumbItems"></app-breadcrumb>
-        <component :is="layoutStore.rightOfBreadcrumb" v-if="layoutStore.rightOfBreadcrumb" />
-        <div v-if="!selectedAnneeUniversitaire.isActif">
-          <Message severity="error" class="absolute top-24 right-16 w-fit z-10" icon="pi pi-exclamation-triangle"><span class="font-bold">Attention !</span> Vous n'êtes pas sur l'année universitaire actuelle</Message>
+        <div v-if="selectedAnneeUniversitaire && !selectedAnneeUniversitaire.isActif">
+          <Message severity="error" class="absolute top-24 right-16 w-fit z-10" icon="pi pi-exclamation-triangle"><span class="font-bold">Attention !</span> Vous n'êtes pas sur l'année universitaire courante</Message>
         </div>
       </div>
       <div class="layout-main">
@@ -68,3 +64,7 @@ const containerClass = computed(() => {
   </div>
   <Toast />
 </template>
+
+<style scoped>
+
+</style>

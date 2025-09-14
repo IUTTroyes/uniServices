@@ -1,6 +1,10 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
+// ----------------------------------------------
+// ------------------- GET ----------------------
+// ----------------------------------------------
+
 const getSemaineUniversitaireService = async (weekNumber, anneeUniversitaire, showToast = false) => {
     try {
         const response = await apiCall(
@@ -17,5 +21,17 @@ const getSemaineUniversitaireService = async (weekNumber, anneeUniversitaire, sh
     }
 }
 
+// ----------------------------------------------
+// ------------------- CREATE -------------------
+// ----------------------------------------------
+
+
+// ----------------------------------------------
+// ------------------- UPDATE -------------------
+// ----------------------------------------------
+
+// ----------------------------------------------
+// ------------------- DELETE -------------------
+// ----------------------------------------------
 
 export { getSemaineUniversitaireService };

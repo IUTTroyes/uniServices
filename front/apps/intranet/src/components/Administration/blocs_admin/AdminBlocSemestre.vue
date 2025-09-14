@@ -1,114 +1,85 @@
 <script setup>
-import { onMounted, ref, computed } from 'vue'
-import { getDepartementSemestresService } from '@requests'
-import { ListSkeleton } from '@components'
-import { useSemestreStore, useUsersStore } from '@stores'
+import { onMounted, ref } from "vue";
+import { getDepartementSemestresService } from "@requests";
+import {ErrorView, ListSkeleton} from "@components";
+import { useUsersStore, useSemestreStore } from "@stores";
 
-const userStore = useUsersStore()
-const semestreStore = useSemestreStore()
-const semestresFc = ref([])
-const semestresFi = ref([])
-const selectedSemestre = ref(null)
-const isLoading = ref(true)
-const errorMessage = ref('')
+const userStore = useUsersStore();
+const semestreStore = useSemestreStore();
+const semestresFc = ref(null);
+const semestresFi = ref(null);
+const selectedSemestre = ref(null);
+const isLoading = ref(true);
+const hasError = ref(false);
 
-const panelMenuItems = computed(() => {
-  if (!selectedSemestre.value) return []
-  return [
-    {
-      label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
-        { label: 'Liste des étudiants', icon: 'pi pi-list', command: () => {} },
-        { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', command: () => {} },
-      ]
-    },
-    {
-      label: 'Groupes', icon: 'pi pi-users', command: () => {}, items: [
-        {
-          label: 'Composition des groupes', icon: 'pi pi-list',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/groupes/affectation',
-        },
-        {
-          label: 'Structure des groupes', icon: 'pi pi-cog', route: '/administration/semestre/' + selectedSemestre.value.id + '/groupes/structure',
-        },
-      ]
-    },
-    {
-      label: 'Absences', icon: 'pi pi-calendar', command: () => {}, items: [
-        {
-          label: 'Liste des absences', icon: 'pi pi-list',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/absences/liste',
-        },
-        {
-          label: 'Liste des justificatifs', icon: 'pi pi-folder-open',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/justificatifs-absences/liste',
-        },
-        { label: 'Suivi des pointages de présence', icon: 'pi pi-eye', command: () => {} },
-      ]
-    },
-    {
-      label: 'Notes et Évaluations', icon: 'pi pi-book', command: () => {}, items: [
-        {
-          label: 'Liste des notes', icon: 'pi pi-list',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/evaluations/liste'
-        },
-        { label: 'Gestion des évaluations', icon: 'pi pi-cog', command: () => {} },
-        {
-          label: 'Demandes de rattrapages', icon: 'pi pi-history',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/rattrapages/liste' },
-        { label: 'Modalités du contrôle continu', icon: 'pi pi-map',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/mccc/liste'
-        },
-      ]
-    },
-    {
-      label: 'Fin de semestre', icon: 'pi pi-check', command: () => {}, items: [
-        { label: 'Préparation de la sous-commission', icon: 'pi pi-calculator',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/sous-commission'},
-        { label: 'Changement de semestre des étudiants', icon: 'pi pi-forward', command: () => {} },
-      ]
-    },
-  ]
-})
+const panelMenuItems = [
+  { label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
+      { label: 'Liste des étudiants', icon: 'pi pi-list', command: () => {} },
+      { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', command: () => {} },
+    ] },
+  { label: 'Groupes', icon: 'pi pi-users', command: () => {}, items: [
+      { label: 'Composition des groupes', icon: 'pi pi-list',
+        command: () => {} },
+      { label: 'Structure des groupes', icon: 'pi pi-cog', command: () => {} },
+    ] },
+  { label: 'Absences', icon: 'pi pi-calendar', command: () => {}, items: [
+      { label: 'Liste des absences', icon: 'pi pi-list',
+        command: () => {} },
+      { label: 'Liste des justificatifs', icon: 'pi pi-folder-open', command: () => {} },
+      { label: 'Suivi des pointages de présence', icon: 'pi pi-eye', command: () => {} },
+    ] },
+  { label: 'Notes et Évaluations', icon: 'pi pi-book', command: () => {}, items: [
+      { label: 'Liste des notes', icon: 'pi pi-list', command: () => {} },
+      { label: 'Gestion des évaluations', icon: 'pi pi-cog', command: () => {} },
+      { label: 'Demandes de rattrapages', icon: 'pi pi-history', command: () => {} },
+      { label: 'Modalités du contrôle continu', icon: 'pi pi-map', command: () => {} },
+    ] },
+  { label: 'Fin de semestre', icon: 'pi pi-check', command: () => {}, items: [
+      { label: 'Préparation de la sous-commission', icon: 'pi pi-calculator', command: () => {} },
+      { label: 'Changement de semestre des étudiants', icon: 'pi pi-forward', command: () => {} },
+    ] },
+];
 
 const getSemestres = async () => {
   try {
-    const departementId = userStore.departementDefaut.id
-    const semestres = await getDepartementSemestresService(departementId, true)
-
+    const departementId = userStore.departementDefaut.id;
+    const semestres = await getDepartementSemestresService(departementId, true);
+    console.log(semestres);
     const groupByYear = (semestres) => {
       return semestres.reduce((acc, semestre) => {
-        const year = semestre.annee.libelle
+        const year = semestre.annee.libelle;
         if (!acc[year]) {
-          acc[year] = []
+          acc[year] = [];
         }
-        acc[year].push(semestre)
-        return acc
-      }, {})
-    }
+        acc[year].push(semestre);
+        return acc;
+      }, {});
+    };
 
-    semestresFc.value = groupByYear(semestres.filter(semestre => semestre.annee.opt.alternance))
-    semestresFi.value = groupByYear(semestres.filter(semestre => !semestre.annee.opt.alternance))
+    semestresFc.value = groupByYear(semestres.filter(semestre => semestre.annee.opt.alternance));
+    semestresFi.value = groupByYear(semestres.filter(semestre => !semestre.annee.opt.alternance));
 
     // semestresFc.value = semestres.filter(semestre => semestre.annee.opt.alternance);
     // semestresFi.value = semestres.filter(semestre => !semestre.annee.opt.alternance);
-    const firstYear = Object.keys(semestresFi.value)[0]
+    const firstYear = Object.keys(semestresFi.value)[0];
     if (firstYear && semestresFi.value[firstYear].length > 0) {
-      selectedSemestre.value = semestresFi.value[firstYear][0]
+      selectedSemestre.value = semestresFi.value[firstYear][0];
     }
   } catch (error) {
-    errorMessage.value = 'Erreur lors de la récupération des semestres.'
+    hasError.value = true;
+    console.error(error);
   } finally {
-    isLoading.value = false
+    isLoading.value = false;
   }
-}
+};
 
 onMounted(
     getSemestres
-)
+);
 
 const selectSemestre = (semestre) => {
-  selectedSemestre.value = semestre
-}
+  selectedSemestre.value = semestre;
+};
 </script>
 
 <template>
@@ -124,7 +95,10 @@ const selectSemestre = (semestre) => {
         </div>
       </template>
       <ListSkeleton v-if="isLoading" class="mt-4"/>
-      <div v-else-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+      <ErrorView v-else-if="hasError" />
+      <Message v-else-if="!semestresFc && !semestresFi" severity="error" icon="pi pi-times-circle" class="m-6">
+        Aucun semestre disponible pour le département {{ userStore.departementDefaut.libelle }}.
+      </Message>
       <div v-else class="flex gap-10 mt-4">
         <div class="w-1/2 flex gap-4">
           <ul v-for="(semestres, type) in { 'Formation Initiale': semestresFi, 'Formation Continue': semestresFc }"

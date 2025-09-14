@@ -9,7 +9,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 trait OptionTrait
 {
     #[ORM\Column]
-    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'questionnaire_section:read'])]
+    #[Groups(['diplome:read:full', 'diplome:read', 'scolarite:read', 'semestre:read', 'annee:read', 'etudiant:read'])]
     private array $opt = [];
 
     public function setOpt(array $opt): static

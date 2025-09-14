@@ -1,6 +1,10 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
+// ----------------------------------------------
+// ------------------- GET ----------------------
+// ----------------------------------------------
+
 const getAllPns = async (showToast = false) => {
     try {
         const response = await apiCall(
@@ -35,7 +39,6 @@ const getPnsDiplome = async (diplomeId, showToast = false) => {
 
 const getPnDiplome = async (diplomeId, anneeUnivId, showToast = false) => {
     try {
-        console.log(diplomeId, anneeUnivId);
         const response = await apiCall(
             api.get,
             [`/api/structure_pns?diplome=${diplomeId}&anneeUniversitaire=${anneeUnivId}`],
@@ -43,11 +46,24 @@ const getPnDiplome = async (diplomeId, anneeUnivId, showToast = false) => {
             'Erreur lors de la récupération du PN du diplôme',
             showToast
         );
-        return response.member;
+        return response.member[0] || null; // Retourne le premier PN ou null si aucun n'est trouvé
     } catch (error) {
         console.error('Erreur dans getPnsDiplome:', error);
         throw error;
     }
 }
+
+// ----------------------------------------------
+// ------------------- CREATE -------------------
+// ----------------------------------------------
+
+
+// ----------------------------------------------
+// ------------------- UPDATE -------------------
+// ----------------------------------------------
+
+// ----------------------------------------------
+// ------------------- DELETE -------------------
+// ----------------------------------------------
 
 export { getAllPns, getPnsDiplome, getPnDiplome };

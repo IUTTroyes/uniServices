@@ -32,7 +32,6 @@ class StructurePn
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['pn:read', 'diplome:read:full', 'diplome:read'])]
     private string $libelle;
 
     #[ORM\Column]
@@ -40,11 +39,9 @@ class StructurePn
     private int $anneePublication;
 
     #[ORM\ManyToOne(inversedBy: 'pns')]
-    #[Groups(['pn:read'])]
     private ?StructureDiplome $diplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'pns')]
-    #[Groups(['pn:read'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'pn')]

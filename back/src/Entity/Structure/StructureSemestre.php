@@ -17,7 +17,7 @@ use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
-use App\Filter\SemestresFilter;
+use App\Filter\SemestreFilter;
 use App\Repository\Structure\StructureSemestreRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -27,7 +27,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureSemestreRepository::class)]
 #[ApiFilter(BooleanFilter::class, properties: ['actif'])]
-#[ApiFilter(SemestresFilter::class)]
+#[ApiFilter(SemestreFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['semestre:read', 'semestre:read:full']]),
@@ -84,7 +84,6 @@ class StructureSemestre
      * @var Collection<int, StructureGroupe>
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, mappedBy: 'semestres')]
-    #[Groups(['semestre:read'])]
     private Collection $groupes;
 
     #[ORM\ManyToOne(inversedBy: 'semestres')]

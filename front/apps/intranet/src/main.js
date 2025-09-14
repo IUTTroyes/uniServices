@@ -4,6 +4,7 @@ import App from './App.vue';
 import '@styles/main.scss';
 import router from './router';
 import { initializeAppData } from '@requests/initializeData';
+import { registerPermissionDirective } from '@utils';
 
 import Aura from '@primevue/themes/aura';
 import PrimeVue from 'primevue/config';
@@ -54,7 +55,24 @@ app.use(ToastService);
 app.use(ConfirmationService);
 
 app.use(pinia);
-app.mount('#app');
 
-// Initialize application data after the app is mounted
-initializeAppData();
+// Register the permission directive
+registerPermissionDirective(app);
+
+// Ajouter un contenu temporaire avant le montage
+import GlobalLoader from '@components/loader/GlobalLoader.vue';
+const loadingElement = document.createElement('div');
+loadingElement.id = 'loading';
+document.body.appendChild(loadingElement);
+
+const loaderApp = createApp(GlobalLoader);
+loaderApp.mount(loadingElement);
+
+// Initialiser les données
+await initializeAppData();
+
+// Supprimer le contenu temporaire après l'initialisation
+document.body.removeChild(loadingElement);
+
+// Monter l'application
+app.mount('#app');

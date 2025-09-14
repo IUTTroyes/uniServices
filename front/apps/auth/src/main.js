@@ -3,6 +3,7 @@ import { createPinia } from "pinia";
 import App from './App.vue';
 import '@styles/main.scss';
 import router from './router';
+import { registerPermissionDirective } from '@utils';
 
 import Aura from '@primevue/themes/aura';
 import PrimeVue from 'primevue/config';
@@ -51,4 +52,8 @@ app.use(ToastService);
 app.use(ConfirmationService);
 
 app.use(pinia);
+
+// Register the permission directive
+registerPermissionDirective(app);
+
 app.mount('#app');

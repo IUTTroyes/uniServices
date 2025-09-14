@@ -1,99 +1,125 @@
-import { LayoutComponent } from '@components'
-import { createRouter, createWebHistory } from 'vue-router'
-import dashboardRoutes from './modules/dashboardRoutes'
-import agendaRoutes from './modules/agendaRoutes.js'
-import trombinoscopeRoutes from './modules/trombinoscopeRoutes.js'
-import documentRoutes from './modules/documentRoutes.js'
-import profilRoutes from './modules/profilRoutes.js'
-import administrationRoutes from './modules/administrationRoutes.js'
-import questionnaireAdministrationRoutes from './modules/questionnaireAdministrationRoutes.js'
-import { useUsersStore } from '@stores'
-import Logo from '@images/logo/logo_intranet_iut_troyes.svg'
+import { LayoutComponent } from '@components';
+import { createRouter, createWebHistory } from 'vue-router';
+import dashboardRoutes from './modules/dashboardRoutes';
+import agendaRoutes from "./modules/agendaRoutes.js";
+import trombinoscopeRoutes from "./modules/trombinoscopeRoutes.js";
+import profilRoutes from "./modules/profilRoutes.js";
+import administrationRoutes from "./modules/administrationRoutes.js";
+import {useUsersStore} from "@stores";
+import { hasPermission } from '@utils';
+import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
+import { computed } from 'vue';
 
+// Define the menu structure
 const intranetMenu = [
-  {
-    items: [
-      { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
-      { label: 'Agenda', icon: 'pi pi-fw pi-calendar', to: '/agenda' },
-      { label: 'Trombinoscope', icon: 'pi pi-fw pi-users', to: '/trombinoscope' },
-      { label: 'Documents', icon: 'pi pi-fw pi-users', to: '/documents' },
-      { label: 'Administration', icon: 'pi pi-fw pi-wrench', to: '/administration' },
-    ]
-  }
-]
+    {
+        items: [
+            { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
+            { label: 'Agenda', icon: 'pi pi-fw pi-calendar', to: '/agenda' },
+            { label: 'Trombinoscope', icon: 'pi pi-fw pi-users', to: '/trombinoscope' },
+            {
+                label: 'Administration',
+                icon: 'pi pi-fw pi-wrench',
+                to: '/administration',
+                permission: 'canViewAdministration'
+            },
+        ]
+    }
+];
 
-const appName = 'Intranet'
+const appName = 'Intranet';
 
 const router = createRouter({
-  history: createWebHistory('/intranet/'),
-  routes: [
-    {
-      path: '/',
-      component: LayoutComponent,
-      props: route => ({
-        menuItems: intranetMenu,
-        logoUrl: Logo,
-        appName: appName,
-        breadcrumbItems: route.meta.breadcrumb || []
-      }),
-      children: [
-        ...dashboardRoutes,
-        ...agendaRoutes,
-        ...trombinoscopeRoutes,
-        ...documentRoutes,
-        ...profilRoutes,
-        ...administrationRoutes,
-        ...questionnaireAdministrationRoutes
-      ]
-    },
-  ]
-})
+    history: createWebHistory('/intranet/'),
+    routes: [
+        {
+            path: '/',
+            component: LayoutComponent,
+            props: route => {
+                // Process menu items and check permissions every time the component is rendered
+                const processedMenu = intranetMenu.map(category => {
+                    const processedItems = category.items.map(item => {
+                        // If the item has a permission property, check if the user has that permission
+                        if (item.permission) {
+                            return {
+                                ...item,
+                                visible: hasPermission(item.permission)
+                            };
+                        }
+                        return item;
+                    });
 
-router.beforeEach(async (to, from, next) => {
-  document.title = to.meta.title ? (to.meta.title + ' | Intranet - Uniservices ') : 'UniTranet - Uniservices'
+                    return {
+                        ...category,
+                        items: processedItems
+                    };
+                });
 
-  const token = localStorage.getItem('token')
-  const userStore = useUsersStore()
+                return {
+                    menuItems: processedMenu,
+                    logoUrl: Logo,
+                    appName: appName,
+                    breadcrumbItems: route.meta.breadcrumb || []
+                };
+            },
+            children: [
+                ...dashboardRoutes,
+                ...agendaRoutes,
+                ...trombinoscopeRoutes,
+                ...profilRoutes,
+                ...administrationRoutes
+            ]
+        },
+    ]
+});
 
-  if (!userStore.isLoaded && !userStore.isLoading) {
-    try {
-      // si la route est login, on ne charge pas l'utilisateur
-      if (to.path === '/login') {
-        return next()
-      }
-      await userStore.getUser()
+router.beforeEach(async(to, from, next) => {
+    document.title = to.meta.title ?  (to.meta.title + ' | Intranet - Uniservices ') : 'UniTranet - Uniservices';
 
-    } catch (error) {
-      console.error(error)
+    const token = localStorage.getItem('token');
+    const userStore = useUsersStore();
+
+    if (!userStore.isLoaded && !userStore.isLoading) {
+        try {
+            // si la route est login, on ne charge pas l'utilisateur
+            if (to.path === '/login') {
+                return next();
+            }
+            await userStore.getUser()
+
+        } catch (error) {
+            console.error(error);
+        }
     }
-  }
 
-  const urlParams = new URLSearchParams(window.location.search)
-  if (urlParams.has('logout')) {
-    localStorage.removeItem('token')
-    window.location.replace('http://localhost:3000/auth/login')
-  }
-
-  if (token) {
-    const tokenParts = token.split('.')
-    const payload = JSON.parse(atob(tokenParts[1]))
-    const exp = payload.exp * 1000 // Convert to milliseconds
-
-    if (Date.now() >= exp) {
-      localStorage.removeItem('token')
-      return window.location.href = 'http://localhost:3000/auth/login'
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('logout')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('selectedAnneeUniv');
+        window.location.replace('http://localhost:3000/auth/login');
     }
 
-    if (to.path === '/login') {
-      return next('/portail')
+    if (token) {
+        const tokenParts = token.split('.');
+        const payload = JSON.parse(atob(tokenParts[1]));
+        const exp = payload.exp * 1000; // Convert to milliseconds
+
+        if (Date.now() >= exp) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('selectedAnneeUniv');
+            return window.location.href = 'http://localhost:3000/auth/login';
+        }
+
+        if (to.path === '/login') {
+            return next('/portail');
+        }
     }
-  }
 
-  if (!token && to.path !== '/login') {
-    return window.location.href = 'http://localhost:3000/auth/login'
-  }
+    if (!token && to.path !== '/login') {
+        return window.location.href = 'http://localhost:3000/auth/login';
+    }
 
-  next()
-})
+    next();
+});
 
-export default router
+export default router;

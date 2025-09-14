@@ -10,12 +10,12 @@ use App\Entity\Structure\StructureAnnee;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Component\PropertyInfo\Type;
 
-#[ApiFilter(SemestresFilter::class)]
-class SemestresFilter extends AbstractFilter
+#[ApiFilter(SemestreFilter::class)]
+class SemestreFilter extends AbstractFilter
 {
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
-        if (('diplome' !== $property && 'departement' !== $property) && 'actifs' !== $property || null === $value) {
+        if (null === $value) {
             return;
         }
 
@@ -39,10 +39,10 @@ class SemestresFilter extends AbstractFilter
                 ->orderBy(sprintf('%s.ordreLmd', $alias), 'ASC')
                 ->addOrderBy(sprintf('%s.libelle', $alias), 'ASC')
             ;
-        } else if ('actif' === $property) {
+        } elseif ('annee' === $property) {
             $queryBuilder
-                ->andWhere(sprintf('%s.actif = :actif', $alias))
-                ->setParameter('actif', $value)
+                ->andWhere(sprintf('%s.annee = :annee', $alias))
+                ->setParameter('annee', $value)
             ;
         }
     }
@@ -64,6 +64,14 @@ class SemestresFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by diplôme',
+                ],
+            ],
+            'annee' => [
+                'property' => 'annee',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by year',
                 ],
             ],
         ];

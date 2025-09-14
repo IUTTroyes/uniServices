@@ -21,6 +21,10 @@
 
 ### Alias
 
+#### Forms
+
+- Gestion des validations et des messages d'erreurs : [voir la documentation](../../packages/common-components/components/Forms/README.md)
+
 #### src
 
 Dans chaque projet front, l'alias `@` est utilisé pour accéder au dossier `src` du projet.

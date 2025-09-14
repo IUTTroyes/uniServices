@@ -33,9 +33,21 @@ export const useAnneeUnivStore = defineStore('anneeUniv', () => {
   };
 
   const setSelectedAnneeUniv = (annee) => {
-    // Ajouter un tableau contenant l'id et le libelle de l'année universitaire sélectionnée dans le localStorage
-    localStorage.setItem('selectedAnneeUniv', JSON.stringify({ id: annee.id, libelle: annee.libelle ?? annee.label, isActif: annee.isActif }));
-    selectedAnneeUniv.value = annee;
+    // Ensure isActif is correctly set based on actif property
+    const isActif = annee.actif !== undefined ? annee.actif : annee.isActif;
+
+    // Create the object to store in localStorage and in the store
+    const anneeToStore = {
+      id: annee.id,
+      libelle: annee.libelle ?? annee.label,
+      isActif: isActif
+    };
+
+    // Store in localStorage
+    localStorage.setItem('selectedAnneeUniv', JSON.stringify(anneeToStore));
+
+    // Update the store value
+    selectedAnneeUniv.value = anneeToStore;
   }
 
   return {

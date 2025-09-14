@@ -93,7 +93,7 @@ class StructureGroupe
      * @var Collection<int, Etudiant>
      */
     #[ORM\ManyToMany(targetEntity: Etudiant::class, mappedBy: 'groupes')]
-    #[Groups(['semestre:read', 'scolarite:read', 'edt_event:read:agenda'])]
+    #[Groups(['scolarite:read', 'edt_event:read:agenda'])]
     private Collection $etudiants;
 
     public function __construct()

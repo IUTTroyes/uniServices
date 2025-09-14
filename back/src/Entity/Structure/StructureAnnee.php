@@ -7,7 +7,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Link;
 use App\Entity\Apc\ApcNiveau;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Traits\LifeCycleTrait;
@@ -21,21 +20,14 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: StructureAnneeRepository::class)]
-#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
-#[ApiFilter(AnneeFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['annee:read']]),
         new GetCollection(normalizationContext: ['groups' => ['annee:read']]),
-        new GetCollection(
-            uriTemplate: '/annees-par-diplome/{diplomeId}',
-            uriVariables: [
-                'diplomeId' => new Link(fromClass: StructureDiplome::class, identifiers: ['id'], toProperty: 'diplome')
-            ],
-            normalizationContext: ['groups' => ['annee:read']]
-        )
     ]
 )]
+#[ApiFilter(AnneeFilter::class)]
+#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ORM\HasLifecycleCallbacks()]
 class StructureAnnee
 {
@@ -49,7 +41,7 @@ class StructureAnnee
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:read:full', 'diplome:read', 'scolarite:read', 'semestre:read', 'pn:read', 'annee:read', 'etudiant:read'])]
+    #[Groups(['diplome:read:full', 'diplome:read', 'scolarite:read', 'semestre:read', 'annee:read', 'etudiant:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
@@ -71,15 +63,15 @@ class StructureAnnee
      * @var Collection<int, StructureSemestre>
      */
     #[ORM\OneToMany(targetEntity: StructureSemestre::class, mappedBy: 'annee')]
-    #[Groups(['diplome:read:full', 'diplome:read', 'pn:read'])]
+    #[Groups(['diplome:read:full', 'diplome:read', 'annee:read'])]
     private Collection $semestres;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['pn:read'])]
+    #[Groups(['annee:read'])]
     private ?string $apogeeCodeVersion = null;
 
     #[ORM\Column(length: 10, nullable: true)]
-    #[Groups(['pn:read'])]
+    #[Groups(['annee:read'])]
     private ?string $apogeeCodeEtape = null;
 
     // todo: inverser car 1 annee a N niveaux
@@ -95,11 +87,18 @@ class StructureAnnee
     #[ORM\ManyToOne(inversedBy: 'annees')]
     private ?StructurePn $pn = null;
 
+    /**
+     * @var Collection<int, EtudiantScolarite>
+     */
+    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'proposition')]
+    private Collection $etudiantScolaritesPropositions;
+
     public function __construct()
     {
         $this->semestres = new ArrayCollection();
         $this->setOpt([]);
         $this->scolarites = new ArrayCollection();
+        $this->etudiantScolaritesPropositions = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -284,5 +283,60 @@ class StructureAnnee
     public function getDiplome(): ?StructureDiplome
     {
         return $this->getPn()?->getDiplome();
+    }
+
+    public function setId(?int $id): void
+    {
+        $this->id = $id;
+    }
+
+    public function setSemestres(Collection $semestres): void
+    {
+        $this->semestres = $semestres;
+    }
+
+    public function setScolarites(Collection $scolarites): void
+    {
+        $this->scolarites = $scolarites;
+    }
+
+    public function setEtudiantScolaritesPropositions(Collection $etudiantScolaritesPropositions): void
+    {
+        $this->etudiantScolaritesPropositions = $etudiantScolaritesPropositions;
+    }
+
+    public function getDepartement(): ?StructureDepartement
+    {
+        return $this->getDiplome()?->getDepartement();
+    }
+
+    /**
+     * @return Collection<int, EtudiantScolarite>
+     */
+    public function getEtudiantScolaritesPropositions(): Collection
+    {
+        return $this->etudiantScolaritesPropositions;
+    }
+
+    public function addEtudiantScolaritesProposition(EtudiantScolarite $etudiantScolaritesProposition): static
+    {
+        if (!$this->etudiantScolaritesPropositions->contains($etudiantScolaritesProposition)) {
+            $this->etudiantScolaritesPropositions->add($etudiantScolaritesProposition);
+            $etudiantScolaritesProposition->setProposition($this);
+        }
+
+        return $this;
+    }
+
+    public function removeEtudiantScolaritesProposition(EtudiantScolarite $etudiantScolaritesProposition): static
+    {
+        if ($this->etudiantScolaritesPropositions->removeElement($etudiantScolaritesProposition)) {
+            // set the owning side to null (unless already changed)
+            if ($etudiantScolaritesProposition->getProposition() === $this) {
+                $etudiantScolaritesProposition->setProposition(null);
+            }
+        }
+
+        return $this;
     }
 }

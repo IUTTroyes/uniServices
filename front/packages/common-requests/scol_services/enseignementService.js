@@ -1,7 +1,11 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
-const getAllEnseignementService = async (showToast = false) => {
+// ----------------------------------------------
+// ------------------- GET ----------------------
+// ----------------------------------------------
+
+const getAllEnseignementsService = async (showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
@@ -12,12 +16,12 @@ const getAllEnseignementService = async (showToast = false) => {
         );
         return response.member;
     } catch (error) {
-        console.error('Erreur dans getAllEnseignementService:', error);
+        console.error('Erreur dans getAllEnseignementsService:', error);
         throw error;
     }
 }
 
-const getEnseignementSemestreService = async (semestreId, showToast = false) => {
+const getEnseignementsSemestreService = async (semestreId, showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
@@ -28,12 +32,12 @@ const getEnseignementSemestreService = async (semestreId, showToast = false) => 
         );
         return response.member;
     } catch (error) {
-        console.error('Erreur dans getEnseignementSemestreService:', error);
+        console.error('Erreur dans getEnseignementsSemestreService:', error);
         throw error;
     }
 }
 
-const getEnseignementDepartementService = async (departementId, showToast = false) => {
+const getEnseignementsDepartementService = async (departementId, showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
@@ -44,25 +48,52 @@ const getEnseignementDepartementService = async (departementId, showToast = fals
         );
         return response.member;
     } catch (error) {
-        console.error('Erreur dans getEnseignementDepartementService:', error);
+        console.error('Erreur dans getEnseignementsDepartementService:', error);
+        throw error;
+    }
+}
+
+const getEnseignementsUeService = async (ueId, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/scol_enseignements?ue=${ueId}&groups=enseignement_ue:read`],
+            'Enseignements de l\'ue récupérés avec succès',
+            'Erreur lors de la récupération des enseignements de l\'ue',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getEnseignementsUeService:', error);
         throw error;
     }
 }
 
 const getEnseignementService = async (id, showToast = false) => {
     try {
-        const response = await apiCall(
+        return await apiCall(
             api.get,
             [`/api/scol_enseignements/${id}`],
             'Enseignement récupéré avec succès',
             'Erreur lors de la récupération de l\'enseignement',
             showToast
         );
-        return response;
     } catch (error) {
         console.error('Erreur dans getEnseignementService:', error);
         throw error;
     }
 }
 
-export { getAllEnseignementService, getEnseignementSemestreService, getEnseignementService, getEnseignementDepartementService };
+// ----------------------------------------------
+// ------------------- CREATE -------------------
+// ----------------------------------------------
+
+// ----------------------------------------------
+// ------------------- UPDATE -------------------
+// ----------------------------------------------
+
+// ----------------------------------------------
+// ------------------- DELETE -------------------
+// ----------------------------------------------
+
+export { getAllEnseignementsService, getEnseignementsSemestreService, getEnseignementService, getEnseignementsDepartementService, getEnseignementsUeService };

@@ -44,7 +44,29 @@ class EtudiantScolariteSemestre
      * @var Collection<int, StructureGroupe>
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'scolariteSemestres')]
+    #[Groups(['scolarite:read'])]
     private Collection $groupes;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
+    private ?float $moyenne = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
+    private ?array $moyennesMatiere = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
+    private ?array $moyennesUe = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite:read'])]
+    private ?bool $decision = null;
+
+    #[ORM\ManyToOne(inversedBy: 'scolariteSemestre', cascade: ['persist', 'remove'])]
+    #[ORM\JoinColumn(nullable: true)]
+    #[Groups(['scolarite:read', 'etudiant:read'])]
+    private ?StructureSemestre $proposition = null;
 
     public function __construct()
     {
@@ -164,5 +186,55 @@ class EtudiantScolariteSemestre
         $this->groupes->removeElement($groupe);
 
         return $this;
+    }
+
+    public function getMoyenne(): ?float
+    {
+        return $this->moyenne;
+    }
+
+    public function setMoyenne(?float $moyenne): void
+    {
+        $this->moyenne = $moyenne;
+    }
+
+    public function getMoyennesMatiere(): ?array
+    {
+        return $this->moyennesMatiere;
+    }
+
+    public function setMoyennesMatiere(?array $moyennesMatiere): void
+    {
+        $this->moyennesMatiere = $moyennesMatiere;
+    }
+
+    public function getMoyennesUe(): ?array
+    {
+        return $this->moyennesUe;
+    }
+
+    public function setMoyennesUe(?array $moyennesUe): void
+    {
+        $this->moyennesUe = $moyennesUe;
+    }
+
+    public function getDecision(): ?bool
+    {
+        return $this->decision;
+    }
+
+    public function setDecision(?bool $decision): void
+    {
+        $this->decision = $decision;
+    }
+
+    public function getProposition(): ?StructureSemestre
+    {
+        return $this->proposition;
+    }
+
+    public function setProposition(?StructureSemestre $proposition): void
+    {
+        $this->proposition = $proposition;
     }
 }
