@@ -112,7 +112,7 @@ const handleValidation = (field, result) => {
           <div class="flex flex-col justify-between h-full">
             <ul class="h-full flex flex-col justify-start gap-6 py-4">
               <li v-for="tool in paginatedTools" :key="tool.name" class="w-full p-0 flex items-center gap-4">
-                <Logo :logo-url="tool.logo" alt="" class="w-16 bg-white rounded-xl"/>
+                <Logo :logo-url="tool.logo" alt="logo de l'iut" class="w-16 bg-white rounded-xl"/>
                 <div>
               <span class="font-bold text-xl">
                 {{ tool.name }}

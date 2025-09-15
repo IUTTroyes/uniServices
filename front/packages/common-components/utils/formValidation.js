@@ -59,7 +59,13 @@ export const validationRules = {
   alphanumeric: {
     pattern: /^[a-zA-Z0-9]+$/,
     message: "Ce champ doit contenir uniquement des lettres et des chiffres"
-  }
+  },
+
+  // Match validation (for password confirmation, etc.)
+  match: (reference, errorMessage = "Les valeurs ne correspondent pas") => ({
+    validate: value => value === reference,
+    message: errorMessage
+  })
 };
 
 /**

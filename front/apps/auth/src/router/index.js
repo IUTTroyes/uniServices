@@ -6,6 +6,7 @@ import { useUsersStore } from '@stores/user_stores/userStore.js'
 import { LayoutComponent } from '@components'
 import ConfigurationRoutes from '@/router/modules/configurationRoutes.js'
 import ResetPasswordView from "@/views/ResetPasswordView.vue";
+import ResetPasswordConfirmView from "@/views/ResetPasswordConfirmView.vue";
 
 const intranetMenu = [
   {
@@ -38,6 +39,11 @@ const router = createRouter({
       path: '/reset-password',
       name: 'reset-password',
       component: ResetPasswordView,
+    },
+    {
+      path: '/reset-password/confirm',
+      name: 'reset-password-confirm',
+      component: ResetPasswordConfirmView,
     },
     {
       path: '/portail',
@@ -80,8 +86,8 @@ router.beforeEach(async (to, from, next) => {
 
   if (!userStore.isLoaded && !userStore.isLoading) {
     try {
-      // si la route est login, on ne charge pas l'utilisateur
-      if (to.path === '/login' || to.path === '/reset-password') {
+      // si la route est login ou reset password, on ne charge pas l'utilisateur
+      if (to.path === '/login' || to.path === '/reset-password' || to.path === '/reset-password/confirm') {
         return next()
       }
       await userStore.getUser()
@@ -112,7 +118,7 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  if (!token && to.path !== '/login') {
+  if (!token && to.path !== '/login' && to.path !== '/reset-password' && to.path !== '/reset-password/confirm') {
     return window.location.href = 'http://localhost:3000/auth/login'
   }
 

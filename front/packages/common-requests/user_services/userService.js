@@ -78,8 +78,23 @@ const updateUserPasswordService = async (email, showToast = true) => {
     }
 }
 
+const resetPasswordService = async (token, password, showToast = true) => {
+    try {
+        return await apiCall(
+            api.post,
+            [`/api/reset_password`, { token, password }],
+            'Mot de passe réinitialisé avec succès',
+            'Erreur lors de la réinitialisation du mot de passe',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans resetPasswordService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getUserService, updateUserService, getAllStatutsService, updateUserPasswordService };
+export { getUserService, updateUserService, getAllStatutsService, updateUserPasswordService, resetPasswordService };
