@@ -1,18 +1,42 @@
 <script setup>
 import { ref } from 'vue';
 import Logo from '@components/components/Logo.vue';
-import axios from 'axios';
-import { tools } from '@config/uniServices.js';
 import {ValidatedInput, validationRules} from "@components";
+import { updateUserPasswordService } from "@requests";
+import { useToast } from "primevue/usetoast";
+
+const toast = useToast();
 
 const email = ref('');
+const formValid = ref(true);
+const formErrors = ref({});
+const errorMessage = ref('');
 
 const validationState = ref({
   email: false,
 });
 
 const handleValidation = (field, result) => {
-  validationState.value[field] = result.valid;
+  formErrors.value = {
+    ...formErrors.value,
+    [field]: result.isValid ? null : result.errorMessage
+  };
+  formValid.value = Object.values(formErrors.value).every(error => error === null);
+};
+
+const handleSubmit = async () => {
+  if (!email.value) {
+    errorMessage.value = 'Veuillez remplir tous les champs';
+    return;
+  }
+
+  try {
+    await updateUserPasswordService(email.value, true);
+  } catch (error) {
+    console.error('Error:', error);
+  } finally {
+    email.value = '';
+  }
 };
 </script>
 
@@ -40,14 +64,22 @@ const handleValidation = (field, result) => {
                 v-model="email"
                 name="email"
                 label="Adresse mail"
-                :rules="validationRules.email"
+                :rules="[validationRules.required, validationRules.email]"
                 @validation="result => handleValidation('email', result)"
             />
             <div class="mb-4 flex justify-end items-center">
               <router-link to="/login" class="font-medium ml-2 text-right cursor-pointer text-primary underline">Retour au login</router-link>
             </div>
-            <Button label="Ré-initialiser le mot de passe" class="w-full" type="submit"
-                    severity="secondary"></Button>
+            <div class="w-full flex flex-col gap-2">
+              <Message v-if="!formValid" severity="error">
+                Veuillez corriger les erreurs dans le formulaire avant de soumettre
+              </Message>
+              <Message v-else-if="errorMessage" severity="error">
+                {{ errorMessage }}
+              </Message>
+              <Button label="Ré-initialiser le mot de passe" class="w-full" type="submit" :disabled="!formValid"
+                      severity="secondary"></Button>
+            </div>
           </form>
           <small class="text-muted-color">En cas de problème de connexion, contactez le support à cette adresse :
             intranet.iut-troyes@univ-reims.fr</small>
