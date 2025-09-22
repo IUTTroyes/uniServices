@@ -418,10 +418,13 @@ const handleGroupSelection = async (scolariteSemestre, groupId) => {
       <div class="flex justify-between gap-4 w-full items-center">
         <div>
           <h2 class="text-2xl font-bold">Scolarité</h2>
-          <p class="text-sm text-muted-color">Scolarité de l'année courante</p>
+          <p class="text-sm text-muted-color">Années universitaires dans lesquelles l'étudiant est ou a été inscrit</p>
         </div>
 
-        <Button v-if="currentScolarite" class="mb-4" label="Plus d'infos sur la scolarité" />
+        <div>
+        <Button v-if="currentScolarite" label="Plus d'infos sur la scolarité de l'étudiant" />
+          <p class="text-sm text-muted-color">Bilans, notes, absences ...</p>
+        </div>
 
       </div>
       <Tabs v-if="etudiantScolarites.length > 0" :value="activeTab">
@@ -438,7 +441,7 @@ const handleGroupSelection = async (scolariteSemestre, groupId) => {
                     :value="scolarite.anneeUniversitaire.libelle">
             <div class="flex md:flex-row flex-col justify-between gap-2 w-full h-full">
               <div v-for="semestre in scolarite.scolariteSemestre"
-                   class="card mb-0 w-full">
+                   class="card mb-0 w-1/2">
                 <div class="font-bold text-lg">
                   {{ semestre.semestre.annee.libelle }} |
                   <span class="text-muted-color font-normal">{{ semestre.semestre.libelle }}</span>
