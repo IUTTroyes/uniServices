@@ -186,11 +186,4 @@ const viewEtudiantProfile = async (etudiantId) => {
 </template>
 
 <style scoped>
-.stat-card {
-  background-color: #f8f9fa;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  text-align: center;
-  min-width: 120px;
-}
 </style>

@@ -40,6 +40,25 @@ const getEtudiantsScolaritesDepartementService = async (departement, anneeUniv, 
     }
 }
 
+const getEtudiantsScolaritesAnneeService = async (annee, showToast = false) => {
+    try {
+        const params = {
+            annee,
+        };
+
+        return await apiCall(
+            api.get,
+            [`/api/etudiant_scolarites`, {params}],
+            'Scolarités des étudiants récupérées avec succès',
+            'Erreur lors de la récupération des scolarités des étudiants',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getEtudiantsScolaritesAnneeService:', error);
+        throw error;
+    }
+}
+
 const getEtudiantScolaritesService = async (etudiantId, actif, showToast = false) => {
     try {
         const response = await apiCall(
@@ -146,4 +165,4 @@ const updateEtudiantScolariteSemestreGroupes = async (scolariteSemestreId, newGr
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getEtudiantsScolaritesDepartementService, getEtudiantScolaritesService, updateEtudiantScolariteService, updateEtudiantScolariteSemestreService, updateEtudiantScolariteSemestreGroupes };
+export { getEtudiantsScolaritesDepartementService, getEtudiantScolaritesService, updateEtudiantScolariteService, updateEtudiantScolariteSemestreService, updateEtudiantScolariteSemestreGroupes, getEtudiantsScolaritesAnneeService };

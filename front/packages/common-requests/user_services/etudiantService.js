@@ -20,6 +20,22 @@ const getEtudiantService = async (etudiantId, showToast = false) => {
     }
 }
 
+const getEtudiantsService = async (params = {}, showToast = false, pagination = true) => {
+    try {
+        const queryParams = { ...params };
+        return await apiCall(
+            api.get,
+            ['/api/etudiants', { params: queryParams }],
+            'Étudiants récupérés avec succès',
+            'Erreur lors de la récupération des étudiants',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getEtudiants:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- CREATE -------------------
 // ----------------------------------------------
@@ -95,4 +111,4 @@ const updateEtudiantService = async (etudiant, showToast = true) => {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { updateEtudiantService, getEtudiantService, createEtudiantService, createEtudiantsService, importEtudiantApogeeService };
+export { updateEtudiantService, getEtudiantService, createEtudiantService, createEtudiantsService, importEtudiantApogeeService, getEtudiantsService };

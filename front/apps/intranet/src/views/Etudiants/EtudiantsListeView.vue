@@ -5,15 +5,15 @@ import ButtonInfo from '@components/components/ButtonInfo.vue';
 import ButtonEdit from '@components/components/ButtonEdit.vue';
 import ButtonDelete from '@components/components/ButtonDelete.vue';
 import { ErrorView } from '@components';
+import { getDepartementAnneesService, getEtudiantsScolaritesDepartementService, getEtudiantsScolaritesAnneeService } from '@requests';
 
 import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue';
 import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue';
+
 import AccessEtudiantDialog from '@/dialogs/etudiants/AccessEtudiantDialog.vue';
-
 import { useToast } from 'primevue/usetoast';
-const toast = useToast();
 
-import { getDepartementAnneesService, getEtudiantsScolaritesDepartementService } from '@requests';
+const toast = useToast();
 
 import { useSemestreStore, useUsersStore } from '@stores';
 import { SimpleSkeleton } from '@components';
@@ -97,7 +97,23 @@ const getAnnees = async () => {
     });
   } finally {
     isLoadingAnnees.value = false;
+
+    try {
+      // pour chaque anneeList
+      for (const annee of anneesList.value) {
+        const etudiantsCount = await getEtudiantsAnnee(annee.id);
+        annee.etudiantsCount = etudiantsCount.totalItems;
+      }
+    } catch (error) {
+      console.error('Erreur lors de la sélection de l\'année par défaut :', error);
+    } finally {
+      console.log(anneesList.value);
+    }
   }
+};
+
+const getEtudiantsAnnee = async anneeId => {
+  return await getEtudiantsScolaritesAnneeService(anneeId, false, true);
 };
 
 const getEtudiantsScolarite = async () => {
@@ -120,7 +136,6 @@ const getEtudiantsScolarite = async () => {
         ),
       ];
     });
-    console.log('Étudiants chargés avec années :', etudiants.value);
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants :', error);
     hasError.value = true;
@@ -200,7 +215,18 @@ watch(
 <template>
   <ErrorView v-if="hasError" />
   <div v-else class="card">
-    <h2 class="text-2xl font-bold mb-4">Tous les étudiants du département</h2>
+    <h2 class="text-2xl font-bold mb-4">Tous les étudiants inscrits dans le département</h2>
+
+    <div class="flex gap-4 items-center w-full">
+      <div v-for="annee in anneesList" :key="annee.id" class="stat-card w-full">
+        <div class="">
+        {{ annee.libelle }}
+        </div>
+        <div class="text-lg font-bold">
+          {{annee.etudiantsCount}} étudiant(s)
+        </div>
+      </div>
+    </div>
 
     <DataTable
         scrollHeight="800px"
@@ -269,9 +295,9 @@ watch(
       </Column>
       <Column :showFilterMenu="false" style="min-width: 12rem">
         <template #body="slotProps">
-          <ButtonInfo tooltip="Voir les détails" @click="viewEtudiant(slotProps.data)" />
-          <ButtonEdit tooltip="Modifier le personnel" @click="editEtudiant(slotProps.data)" />
-          <ButtonDelete tooltip="Supprimer le personnel du département" @confirm-delete="deleteEtudiant(slotProps.data)" />
+          <ButtonInfo tooltip="Voir les détails de l'étudiant" @click="viewEtudiant(slotProps.data)" />
+          <ButtonEdit tooltip="Modifier l'étudiant" @click="editEtudiant(slotProps.data)" />
+          <ButtonDelete tooltip="Marquer l'étudiant comme démissionnaire" @confirm-delete="deleteEtudiant(slotProps.data)" />
         </template>
       </Column>
       <template #footer> {{ nbEtudiants }} résultat(s).</template>
