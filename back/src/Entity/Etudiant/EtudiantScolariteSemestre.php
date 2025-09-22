@@ -19,7 +19,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['scolarite:read']]),
         new GetCollection(normalizationContext: ['groups' => ['scolarite:read']]),
-        new Patch(normalizationContext: ['groups' => ['scolarite:read']]),
+        new Patch(normalizationContext: ['groups' => ['scolarite:read']], securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),
     ]
 )]
 class EtudiantScolariteSemestre

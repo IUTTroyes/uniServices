@@ -415,10 +415,16 @@ const handleGroupSelection = async (scolariteSemestre, groupId) => {
     </div>
     <Divider></Divider>
     <div class="md:px-12 px-4">
-      <h2 class="text-2xl font-bold">Scolarité</h2>
-      <p class="text-sm text-muted-color">Scolarité de l'année courante</p>
+      <div class="flex justify-between gap-4 w-full items-center">
+        <div>
+          <h2 class="text-2xl font-bold">Scolarité</h2>
+          <p class="text-sm text-muted-color">Scolarité de l'année courante</p>
+        </div>
 
-      <Tabs v-if="etudiantScolarites.length > 0" v-model="activeTab">
+        <Button v-if="currentScolarite" class="mb-4" label="Plus d'infos sur la scolarité" />
+
+      </div>
+      <Tabs v-if="etudiantScolarites.length > 0" :value="activeTab">
         <TabList>
           <Tab v-for="scolarite in etudiantScolarites"
                :key="scolarite.anneeUniversitaire.libelle"

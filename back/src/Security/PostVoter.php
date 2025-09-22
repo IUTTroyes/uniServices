@@ -12,13 +12,14 @@ class PostVoter extends Voter
 {
 
     const CAN_EDIT_ETUDIANT = 'CAN_EDIT_ETUDIANT';
+    const CAN_EDIT_SCOL = 'CAN_EDIT_SCOL';
 
     /**
      * @inheritDoc
      */
     protected function supports(string $attribute, mixed $subject): bool
     {
-        if (!in_array($attribute, [self::CAN_EDIT_ETUDIANT])) {
+        if (!in_array($attribute, [self::CAN_EDIT_ETUDIANT, self::CAN_EDIT_SCOL])) {
             return false;
         }
 
@@ -48,6 +49,7 @@ class PostVoter extends Voter
 
         return match($attribute) {
             self::CAN_EDIT_ETUDIANT => $this->canEditEtudiant($post, $user),
+            self::CAN_EDIT_SCOL => $this->canEditScolarite($user),
             default => false,
         };
     }
@@ -59,6 +61,15 @@ class PostVoter extends Voter
         }
 
         return $user instanceof Etudiant && $user === $etudiant;
+    }
+
+    private function canEditScolarite(Personnel|Etudiant $user): bool
+    {
+        if ($user instanceof Personnel && (in_array('ROLE_SUPER_ADMIN', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles()) || in_array('ROLE_SCOLARITE', $user->getRoles()) || in_array('ROLE_CHEF_DEPT', $user->getRoles()) || in_array('ROLE_ASSISTANT', $user->getRoles()) || in_array('ROLE_DIRECTEUR_ETUDES', $user->getRoles()) || in_array('ROLE_RESP_PARCOURS', $user->getRoles()) ) ) {
+            return true;
+        }
+
+        return false;
     }
 
     // todo: à compléter
