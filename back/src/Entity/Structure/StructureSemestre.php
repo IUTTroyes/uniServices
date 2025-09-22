@@ -84,6 +84,7 @@ class StructureSemestre
      * @var Collection<int, StructureGroupe>
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, mappedBy: 'semestres')]
+    #[Groups(['semestre:read', 'scolarite:read'])]
     private Collection $groupes;
 
     #[ORM\ManyToOne(inversedBy: 'semestres')]

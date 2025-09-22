@@ -158,6 +158,7 @@ const handleValidation = (field, result) => {
               v-model="username"
               name="username"
               label="Login"
+              type="text"
               :rules="validationRules.required"
               @validation="result => handleValidation('username', result)"
           />
