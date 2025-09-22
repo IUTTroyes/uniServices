@@ -16,7 +16,7 @@ import { useToast } from 'primevue/usetoast';
 const toast = useToast();
 
 import { useSemestreStore, useUsersStore } from '@stores';
-import { SimpleSkeleton } from '@components';
+import { SimpleSkeleton, ListSkeleton } from '@components';
 const usersStore = useUsersStore();
 const semestreStore = useSemestreStore();
 
@@ -26,6 +26,7 @@ const anneesList = ref([]);
 
 const isLoadingSemestres = ref(false);
 const isLoadingAnnees = ref(false);
+const isLoadingStats = ref(false);
 
 const isUpdatingFilter = ref(false);
 const hasError = ref(false);
@@ -54,36 +55,9 @@ const selectedEtudiant = ref(null);
 
 const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));
 
-const getSemestres = async () => {
-  isLoadingSemestres.value = true;
-  try {
-    await semestreStore.getSemestresByDepartement(departementId.value, true);
-    semestresList.value = Object.entries(
-        semestreStore.semestres.reduce((acc, semestre) => {
-          const annee = semestre.annee.libelle;
-          if (!acc[annee]) {
-            acc[annee] = [];
-          }
-          acc[annee].push({ label: semestre.libelle, value: semestre });
-          return acc;
-        }, {})
-    ).map(([label, items]) => ({ label, items }));
-  } catch (error) {
-    console.error('Erreur lors du chargement des semestres :', error);
-    hasError.value = true;
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les semestres. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
-      life: 5000,
-    });
-  } finally {
-    isLoadingSemestres.value = false;
-  }
-};
-
 const getAnnees = async () => {
   isLoadingAnnees.value = true;
+  isLoadingStats.value = true;
   try {
     anneesList.value = await getDepartementAnneesService(departementId.value, true);
   } catch (error) {
@@ -107,7 +81,7 @@ const getAnnees = async () => {
     } catch (error) {
       console.error('Erreur lors de la sélection de l\'année par défaut :', error);
     } finally {
-      console.log(anneesList.value);
+      isLoadingStats.value = false;
     }
   }
 };
@@ -152,7 +126,6 @@ const getEtudiantsScolarite = async () => {
 
 onMounted(async () => {
   departementId.value = usersStore.departementDefaut.id;
-  await getSemestres();
   await getAnnees();
   await getEtudiantsScolarite();
 });
@@ -217,18 +190,24 @@ watch(
   <div v-else class="card">
     <h2 class="text-2xl font-bold mb-4">Tous les étudiants inscrits dans le département</h2>
 
-    <div class="flex gap-4 items-center w-full">
+    <div class="flex gap-4 items-center w-full mb-6">
+      <SimpleSkeleton v-if="isLoadingAnnees" class="w-full" />
       <div v-for="annee in anneesList" :key="annee.id" class="stat-card w-full">
-        <div class="">
-        {{ annee.libelle }}
-        </div>
-        <div class="text-lg font-bold">
-          {{annee.etudiantsCount}} étudiant(s)
+        <SimpleSkeleton v-if="isLoadingStats" class="w-1/3" />
+        <div v-else>
+          <div>
+            {{ annee.libelle }}
+          </div>
+          <div class="text-lg font-bold">
+            {{annee.etudiantsCount}} étudiant(s)
+          </div>
         </div>
       </div>
     </div>
 
+    <ListSkeleton v-if="loading" class="w-full" />
     <DataTable
+        v-else
         scrollHeight="800px"
         scrollable
         v-model:filters="filters"
