@@ -16,15 +16,12 @@ import { useToast } from 'primevue/usetoast';
 const toast = useToast();
 
 import { useSemestreStore, useUsersStore } from '@stores';
-import { SimpleSkeleton, ListSkeleton } from '@components';
+import { SimpleSkeleton } from '@components';
 const usersStore = useUsersStore();
-const semestreStore = useSemestreStore();
 
 const departementId = ref(null);
-const semestresList = ref([]);
 const anneesList = ref([]);
 
-const isLoadingSemestres = ref(false);
 const isLoadingAnnees = ref(false);
 const isLoadingStats = ref(false);
 
@@ -190,10 +187,10 @@ watch(
   <div v-else class="card">
     <h2 class="text-2xl font-bold mb-4">Tous les étudiants inscrits dans le département</h2>
 
-    <div class="flex gap-4 items-center w-full mb-6">
+    <div class="flex gap-4 w-full pb-6 overflow-x-auto">
       <SimpleSkeleton v-if="isLoadingAnnees" class="w-full" />
-      <div v-for="annee in anneesList" :key="annee.id" class="stat-card w-full">
-        <SimpleSkeleton v-if="isLoadingStats" class="w-1/3" />
+      <div v-for="annee in anneesList" :key="annee.id" class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex items-center justify-center">
+        <SimpleSkeleton v-if="isLoadingStats" />
         <div v-else>
           <div>
             {{ annee.libelle }}
@@ -205,9 +202,7 @@ watch(
       </div>
     </div>
 
-    <ListSkeleton v-if="loading" class="w-full" />
     <DataTable
-        v-else
         scrollHeight="800px"
         scrollable
         v-model:filters="filters"

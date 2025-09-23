@@ -30,8 +30,16 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(SemestreFilter::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['semestre:read', 'semestre:read:full']]),
-        new GetCollection(normalizationContext: ['groups' => ['semestre:read']])
+        new Get(normalizationContext: ['groups' => ['semestre:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['semestre:read']]),
+        new GetCollection(
+            uriTemplate: '/minimal/structure_semestres',
+            normalizationContext: ['groups' => ['semestre-min:read']],
+        ),
+        new GetCollection(
+            uriTemplate: '/annee/structure_semestres',
+            normalizationContext: ['groups' => ['semestre-annee:read']],
+        ),
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
@@ -45,11 +53,11 @@ class StructureSemestre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'enseignement:read'])]
+    #[Groups(['semestre:read', 'semestre-min:read', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'enseignement:read', 'annee:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'etudiant:read', 'pn:read', 'enseignant_hrs:read', 'edt_event:read:agenda'])]
+    #[Groups(['semestre:read', 'semestre-min:read', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'etudiant:read', 'pn:read', 'enseignant_hrs:read', 'edt_event:read:agenda', 'annee:read'])]
     private string $libelle;
 
     #[ORM\Column]
