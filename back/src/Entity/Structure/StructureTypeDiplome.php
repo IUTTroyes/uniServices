@@ -23,11 +23,11 @@ class StructureTypeDiplome
     private string $libelle;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['diplome:read'])]
+    #[Groups(['diplome:detail'])]
     private string $sigle;
 
     #[ORM\Column]
-    #[Groups(['diplome:read'])]
+    #[Groups(['diplome:detail'])]
     private bool $apc = false;
 
     /**

@@ -16,6 +16,7 @@ use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Users\Personnel;
+use App\Filter\DiplomeFilter;
 use App\Repository\Structure\StructureDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -25,19 +26,45 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDiplomeRepository::class)]
 #[ApiFilter(BooleanFilter::class, properties: ['actif'])]
+#[ApiFilter(DiplomeFilter::class)]
 #[ApiResource(
-    paginationEnabled: false,
     operations: [
-        new Get(normalizationContext: ['groups' => ['diplome:read', 'diplome:read:full']]),
-        new GetCollection(normalizationContext: ['groups' => ['diplome:read']]),
+        new Get(normalizationContext: ['groups' => ['diplome:detail']]),
+        new Get(
+            uriTemplate: '/mini/structure_diplomes/{id}',
+            normalizationContext: ['groups' => ['diplome:light']],
+        ),
+        new Get(
+            uriTemplate: '/maxi/structure_diplomes/{id}',
+            normalizationContext: ['groups' => ['diplome:detail']],
+        ),
+        new Get(
+            uriTemplate: '/pn-light/structure_diplomes/{id}',
+            normalizationContext: ['groups' => ['diplome:light', 'pn:light']],
+        ),
+        new Get(
+            uriTemplate: '/pn-detail/structure_diplomes/{id}',
+            normalizationContext: ['groups' => ['diplome:light', 'pn:detail']],
+        ),
+        new GetCollection(normalizationContext: ['groups' => ['diplome:detail']]),
         new GetCollection(
-            uriTemplate: '/diplomes-par-departement/{departementId}',
-            uriVariables: [
-                'departementId' => new Link(fromClass: StructureDepartement::class, identifiers: ['id'], toProperty: 'departement')
-            ],
-            normalizationContext: ['groups' => ['diplome:read']]
-        )
-    ]
+            uriTemplate: '/mini/structure_diplomes',
+            normalizationContext: ['groups' => ['diplome:light']],
+        ),
+        new GetCollection(
+            uriTemplate: '/maxi/structure_diplomes',
+            normalizationContext: ['groups' => ['diplome:detail']],
+        ),
+        new GetCollection(
+            uriTemplate: '/pn-light/structure_diplomes',
+            normalizationContext: ['groups' => ['diplome:light', 'pn:light']],
+        ),
+        new GetCollection(
+            uriTemplate: '/pn-detail/structure_diplomes',
+            normalizationContext: ['groups' => ['diplome:light', 'pn:detail']],
+        ),
+    ],
+    paginationEnabled: false
 )]
 #[ORM\HasLifecycleCallbacks]
 class StructureDiplome
@@ -50,84 +77,91 @@ class StructureDiplome
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['diplome:read'])]
+    #[Groups(['diplome:detail', 'diplome:light'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:read', 'enseignant_hrs_read'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'enseignant_hrs_read'])]
     private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome', cascade: ['persist'])]
-    #[Groups(['diplome:read'])]
+    #[Groups(['diplome:detail'])]
     private ?Personnel $responsableDiplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'assistantDiplome', cascade: ['persist'])]
-    #[Groups(['diplome:read'])]
+    #[Groups(['diplome:detail'])]
     private ?Personnel $assistantDiplome = null;
 
     #[ORM\Column]
-    #[Groups(['diplome:read:full'])]
+    #[Groups(['diplome:detail'])]
     private int $volumeHoraire = 0;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['diplome:read:full'])]
+    #[Groups(['diplome:detail'])]
     private ?int $codeCelcatDepartement = null;
 
     #[ORM\Column(length: 40, nullable: true)]
-    #[Groups(['diplome:read'])]
+    #[Groups(['diplome:detail', 'diplome:light'])]
     private ?string $sigle = null;
 
     #[ORM\Column]
-    #[Groups(['diplome:read'])]
+    #[Groups(['diplome:detail', 'diplome:light'])]
     private bool $actif = true;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
+    #[Groups(['diplome:detail'])]
     private ?self $parent = null;
 
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
+    #[Groups(['diplome:detail'])]
     private ?Collection $enfants;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['diplome:detail'])]
     private ?string $logoPartenaireName = null;
 
     #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome', fetch: 'EAGER')]
-    #[Groups(['diplome:read:full', 'diplome:read'])]
+    #[Groups(['diplome:detail'])]
     private Collection $pns;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
+    #[Groups(['diplome:detail'])]
     private ?StructureDepartement $departement = null;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['diplome:read:full'])]
+    #[Groups(['diplome:detail'])]
     private ?string $apogeeCodeVersion = null;
 
     #[ORM\Column(length: 10, nullable: true)]
-    #[Groups(['diplome:read:full', 'diplome:read'])]
+    #[Groups(['diplome:detail'])]
     private ?string $apogeeCodeDiplome = null;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['diplome:read:full'])]
+    #[Groups(['diplome:detail'])]
     private ?string $apogeeCodeDepartement = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
-    #[Groups(['diplome:read'])]
+    #[Groups(['diplome:detail'])]
     private ?StructureTypeDiplome $typeDiplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
+    #[Groups(['diplome:detail'])]
     private ?ApcReferentiel $referentiel = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplome')]
-    #[Groups(['diplome:read'])]
+    #[Groups(['diplome:detail'])]
     private ?ApcParcours $parcours = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['diplome:detail'])]
     private ?int $cleOreof = null;
 
     /**
      * @var Collection<int, PersonnelEnseignantHrs>
      */
     #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'diplome')]
+    #[Groups(['diplome:detail'])]
     private Collection $enseignantHrs;
 
     public function __construct()

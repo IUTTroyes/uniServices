@@ -41,7 +41,7 @@ const getDepartementDiplomesService = async (departementId, actif, showToast = f
     try {
         const response = await apiCall(
             api.get,
-            [`/api/diplomes-par-departement/${departementId}?actif=${actif}`],
+            [`/api/structure_diplomes?departement=${departementId}?actif=${actif}`],
             'Diplômes du département récupérés avec succès',
             'Erreur lors de la récupération des diplômes du département',
             showToast

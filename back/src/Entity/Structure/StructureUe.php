@@ -33,31 +33,31 @@ class StructureUe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'ue:read'])]
+    #[Groups(['semestre-test:read', 'ue:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read:full', 'ue:read'])]
+    #[Groups(['semestre-test:read', 'ue:read'])]
     private string $libelle = '';
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'ue:read'])]
+    #[Groups(['semestre-test:read', 'ue:read'])]
     private int $numero = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'ue:read'])]
+    #[Groups(['semestre-test:read', 'ue:read'])]
     private float $nbEcts = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full', 'ue:read'])]
+    #[Groups(['semestre-test:read', 'ue:read'])]
     private bool $actif = true;
 
     #[ORM\Column]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre-test:read'])]
     private bool $bonification = false;
 
     #[ORM\Column(length: 15)]
-    #[Groups(['semestre:read:full', 'ue:read'])]
+    #[Groups(['semestre-test:read', 'ue:read'])]
     private string $codeElement = '';
 
     #[ORM\ManyToOne(inversedBy: 'ues')]
@@ -72,7 +72,7 @@ class StructureUe
      * @var Collection<int, ScolEnseignementUe>
      */
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'ue')]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre-test:read'])]
     private Collection $enseignementUes;
 
     // todo: add coeff. ?

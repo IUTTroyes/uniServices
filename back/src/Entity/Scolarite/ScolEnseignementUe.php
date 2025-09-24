@@ -15,11 +15,11 @@ class ScolEnseignementUe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['semestre-test:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'enseignementUes')]
-    #[Groups(['semestre:read:full', 'pn:read'])]
+    #[Groups(['semestre-test:read', 'pn:read'])]
     private ?ScolEnseignement $enseignement;
 
     #[ORM\ManyToOne(inversedBy: 'enseignementUes')]
