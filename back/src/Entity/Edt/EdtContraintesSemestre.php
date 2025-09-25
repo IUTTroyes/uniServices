@@ -25,7 +25,7 @@ class EdtContraintesSemestre
     private ?StructureSemestre $semestre = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre-test:read'])]
     private ?array $contraintes = null;
 
     public function getId(): ?int

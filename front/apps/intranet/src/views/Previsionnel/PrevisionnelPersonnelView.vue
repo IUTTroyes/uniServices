@@ -1,6 +1,6 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue';
-import {useAnneeUnivStore, useUsersStore} from '@stores';
+import {useAnneeUnivStore, useUsersStore, useDiplomeStore} from '@stores';
 import {ListSkeleton, SimpleSkeleton} from '@components';
 import {
   getAnneeUnivPreviService,
@@ -13,7 +13,6 @@ import {
   getPersonnelEnseignantTypesHrsService,
   deletePersonnelEnseignantHrsService,
   updatePreviService,
-  getDepartementDiplomesService,
 } from '@requests';
 import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 import createApiService from "@requests/apiService.js";
@@ -26,6 +25,7 @@ const hrsService = createApiService('/api/personnel_enseignant_hrs');
 
 const usersStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
+const diplomeStore = useDiplomeStore();
 const departementId = usersStore.departementDefaut.id;
 
 const anneesUnivList = ref([]);
@@ -180,7 +180,7 @@ const getSemestres = async () => {
 
 const getDiplomes = async () => {
   try {
-    diplomeList.value = await getDepartementDiplomesService(departementId);
+    diplomeList.value = diplomeStore.diplomes
     // construire chaque élément de la liste des diplômes avec le libelle en label et le diplôme en value
     diplomeList.value = diplomeList.value.map((diplome) => ({
       id: diplome.id,

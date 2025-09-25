@@ -8,7 +8,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 trait ApogeeTrait
 {
     #[ORM\Column(length: 25, nullable: true)]
-    #[Groups(['pn:read', 'enseignement:read'])]
+    #[Groups(['maquette:detail', 'enseignement:detail'])]
     private ?string $codeApogee = null;
 
     public function getCodeApogee(): ?string

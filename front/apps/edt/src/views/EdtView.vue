@@ -54,7 +54,7 @@ onMounted(async () => {
     }
 
     await semestresStore.getSemestresByDepartement(departementId)
-    semestres.value = semestresStore.semestres['member']
+    semestres.value = semestresStore.semestres
 
     Object.values(semestres.value).forEach((semestre) => {
       size.value += semestre.nbGroupesTp

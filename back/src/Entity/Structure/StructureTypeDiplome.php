@@ -17,29 +17,33 @@ class StructureTypeDiplome
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['type-diplome:detail', 'type-diplome:light'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['maquette:detail', 'type-diplome:detail'])]
     private string $libelle;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['diplome:read'])]
+    #[Groups(['type-diplome:detail', 'type-diplome:light', 'maquette:detail'])]
     private string $sigle;
 
     #[ORM\Column]
-    #[Groups(['diplome:read'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
     private bool $apc = false;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'typeDiplome')]
+    #[Groups(['type-diplome:detail'])]
     private Collection $diplomes;
 
     /**
      * @var Collection<int, ApcReferentiel>
      */
     #[ORM\OneToMany(targetEntity: ApcReferentiel::class, mappedBy: 'typeDiplome')]
+    #[Groups(['type-diplome:detail'])]
     private Collection $referentiels;
 
     public function __construct()
