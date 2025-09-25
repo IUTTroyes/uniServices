@@ -33,35 +33,35 @@ class StructureUe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre-test:read', 'ue:read'])]
+    #[Groups(['ue:read', 'maquette:detail'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre-test:read', 'ue:read'])]
+    #[Groups(['ue:read', 'maquette:detail'])]
     private string $libelle = '';
 
     #[ORM\Column]
-    #[Groups(['semestre-test:read', 'ue:read'])]
+    #[Groups(['maquette:detail', 'ue:read'])]
     private int $numero = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre-test:read', 'ue:read'])]
+    #[Groups(['ue:read', 'maquette:detail'])]
     private float $nbEcts = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre-test:read', 'ue:read'])]
+    #[Groups(['ue:read'])]
     private bool $actif = true;
 
     #[ORM\Column]
-    #[Groups(['semestre-test:read'])]
+    #[Groups(['maquette:detail'])]
     private bool $bonification = false;
 
     #[ORM\Column(length: 15)]
-    #[Groups(['semestre-test:read', 'ue:read'])]
+    #[Groups(['ue:read', 'maquette:detail'])]
     private string $codeElement = '';
 
     #[ORM\ManyToOne(inversedBy: 'ues')]
-    #[Groups(['pn:read', 'enseignement:read', 'diplome:read'])]
+    #[Groups(['pn:read', 'enseignement:read', 'maquette:detail'])]
     private ?ApcCompetence $competence = null;
 
     #[ORM\ManyToOne(inversedBy: 'ues')]
@@ -72,7 +72,7 @@ class StructureUe
      * @var Collection<int, ScolEnseignementUe>
      */
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'ue')]
-    #[Groups(['semestre-test:read'])]
+    #[Groups(['maquette:detail'])]
     private Collection $enseignementUes;
 
     // todo: add coeff. ?
@@ -82,7 +82,7 @@ class StructureUe
         $this->enseignementUes = new ArrayCollection();
     }
 
-    #[Groups(['ue:read'])]
+    #[Groups(['maquette:detail', 'ue:read'])]
     public function getDisplayApc(): string
     {
         return $this->competence ? $this->libelle.' | '.$this->competence->getNomCourt() : $this->libelle;

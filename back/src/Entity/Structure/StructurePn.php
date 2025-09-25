@@ -18,8 +18,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ORM\Entity(repositoryClass: StructurePnRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['pn:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['pn:read']]),
+        new Get(normalizationContext: ['groups' => ['pn:detail']]),
+        new GetCollection(normalizationContext: ['groups' => ['pn:detail']]),
     ]
 )]
 #[ApiFilter(PnFilter::class)]
@@ -28,36 +28,35 @@ class StructurePn
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['pn:read', 'diplome:read'])]
+    #[Groups(['pn:detail'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     private string $libelle;
 
     #[ORM\Column]
-    #[Groups(['diplome:read:full'])]
+    #[Groups(['maquette:detail'])]
     private int $anneePublication;
 
     #[ORM\ManyToOne(inversedBy: 'pns')]
     private ?StructureDiplome $diplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'pns')]
+    #[Groups(['maquette:detail'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'pn')]
     private ?ApcReferentiel $apcReferentiel = null;
-    private ArrayCollection $anneeUniversitaires;
 
     /**
      * @var Collection<int, StructureAnnee>
      */
     #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'pn')]
-    #[Groups(['pn:read'])]
+    #[Groups(['pn:detail', 'maquette:detail'])]
     private Collection $annees;
 
     public function __construct(StructureDiplome $diplome)
     {
-        $this->anneeUniversitaires = new ArrayCollection();
         $this->anneePublication = (int)(new DateTime('now'))->format('Y');
         $this->setDiplome($diplome);
         $this->annees = new ArrayCollection();

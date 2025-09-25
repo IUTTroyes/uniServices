@@ -85,23 +85,23 @@ class StructureSemestre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:detail', 'semestre:light', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'enseignement:read', 'annee:read'])]
+    #[Groups(['semestre:detail', 'semestre:light', 'maquette:detail', 'scolarite:read', 'enseignement:read', 'annee:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:detail', 'semestre:light', 'diplome:read:full', 'diplome:read', 'scolarite:read', 'etudiant:read', 'pn:read', 'enseignant_hrs:read', 'edt_event:read:agenda', 'annee:read'])]
+    #[Groups(['semestre:detail', 'semestre:light', 'maquette:detail', 'scolarite:read', 'etudiant:read', 'pn:read', 'enseignant_hrs:read', 'edt_event:read:agenda', 'annee:read'])]
     private string $libelle;
 
     #[ORM\Column]
-    #[Groups(['semestre:detail', 'diplome:read:full', 'diplome:read'])]
+    #[Groups(['semestre:detail', 'maquette:detail'])]
     private int $ordreAnnee = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:detail', 'diplome:read:full'])]
+    #[Groups(['semestre:detail', 'maquette:detail'])]
     private int $ordreLmd = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:detail', 'semestre:light', 'diplome:read:full', 'diplome:read'])]
+    #[Groups(['semestre:detail', 'semestre:light'])]
     private bool $actif = true;
 
     #[ORM\Column]
@@ -117,7 +117,7 @@ class StructureSemestre
     private int $nbGroupesTp = 2;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['semestre:detail', 'diplome:read:full', 'diplome:read', 'pn:read'])]
+    #[Groups(['semestre:detail', 'maquette:detail', 'pn:read'])]
     private ?string $codeElement = null;
 
     /**
@@ -135,7 +135,7 @@ class StructureSemestre
      * @var Collection<int, StructureUe>
      */
     #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'semestre')]
-    #[Groups(['semestre:detail', 'diplome:read:full', 'pn:read'])]
+    #[Groups(['semestre:detail', 'maquette:detail', 'pn:read'])]
     private Collection $ues;
 
     /**

@@ -25,7 +25,7 @@ class ApcParcours
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:read'])]
+    #[Groups(['maquette:detail'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 10, nullable: true)]
@@ -66,7 +66,7 @@ class ApcParcours
         $this->setOpt([]);
     }
 
-    #[Groups(['diplome:read'])]
+    #[Groups(['maquette:detail'])]
     public function getDisplay(): string
     {
         // si il ya formation_continue:true dans la propriété option

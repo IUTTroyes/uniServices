@@ -35,15 +35,15 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre-test:read', 'enseignement:read', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'enseignement:read', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre-test:read', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
-    #[Groups(['semestre-test:read', 'previsionnel:read', 'enseignement:read'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:read'])]
     private ?string $libelle_court = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -63,19 +63,19 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['enseignement:read', 'semestre-test:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
+    #[Groups(['maquette:detail', 'enseignement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
-    #[Groups(['semestre-test:read', 'enseignement:read'])]
+    #[Groups(['enseignement:read'])]
     private ?bool $suspendu = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['semestre-test:read', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read'])]
+    #[Groups(['previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read'])]
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
-    #[Groups(['semestre-test:read', 'previsionnel:read', 'enseignement:read', 'enseignement_ue:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:read', 'enseignement_ue:read', 'edt_event:read:agenda'])]
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]
@@ -89,11 +89,11 @@ class ScolEnseignement
      * @var Collection<int, self>
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
-    #[Groups(['enseignement_ue:read', 'enseignement:read'])]
+    #[Groups(['maquette:detail', 'enseignement_ue:read', 'enseignement:read'])]
     private Collection $enfants;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
-    #[Groups(['enseignement_ue:read', 'enseignement:read'])]
+    #[Groups(['maquette:detail', 'enseignement_ue:read', 'enseignement:read'])]
     private ?self $parent = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

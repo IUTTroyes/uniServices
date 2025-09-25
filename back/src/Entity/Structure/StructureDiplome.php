@@ -29,39 +29,43 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(DiplomeFilter::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['diplome:detail']]),
+        new Get(normalizationContext: ['groups' => ['diplome:detail', 'type-diplome:light']]),
         new Get(
             uriTemplate: '/mini/structure_diplomes/{id}',
-            normalizationContext: ['groups' => ['diplome:light']],
+            normalizationContext: ['groups' => ['diplome:light', 'type-diplome:light']],
         ),
         new Get(
             uriTemplate: '/maxi/structure_diplomes/{id}',
-            normalizationContext: ['groups' => ['diplome:detail']],
+            normalizationContext: ['groups' => ['diplome:detail', 'type-diplome:light']],
         ),
         new Get(
             uriTemplate: '/pn-light/structure_diplomes/{id}',
-            normalizationContext: ['groups' => ['diplome:light', 'pn:light']],
+            normalizationContext: ['groups' => ['diplome:light', 'type-diplome:light', 'pn:light']],
         ),
         new Get(
             uriTemplate: '/pn-detail/structure_diplomes/{id}',
-            normalizationContext: ['groups' => ['diplome:light', 'pn:detail']],
+            normalizationContext: ['groups' => ['diplome:light', 'type-diplome:light', 'pn:detail']],
         ),
-        new GetCollection(normalizationContext: ['groups' => ['diplome:detail']]),
+        new GetCollection(normalizationContext: ['groups' => ['diplome:detail', 'type-diplome:light']]),
         new GetCollection(
             uriTemplate: '/mini/structure_diplomes',
-            normalizationContext: ['groups' => ['diplome:light']],
+            normalizationContext: ['groups' => ['diplome:light', 'type-diplome:light']],
         ),
         new GetCollection(
             uriTemplate: '/maxi/structure_diplomes',
-            normalizationContext: ['groups' => ['diplome:detail']],
+            normalizationContext: ['groups' => ['diplome:detail', 'type-diplome:light']],
         ),
         new GetCollection(
             uriTemplate: '/pn-light/structure_diplomes',
-            normalizationContext: ['groups' => ['diplome:light', 'pn:light']],
+            normalizationContext: ['groups' => ['diplome:light', 'type-diplome:light', 'pn:light']],
         ),
         new GetCollection(
             uriTemplate: '/pn-detail/structure_diplomes',
-            normalizationContext: ['groups' => ['diplome:light', 'pn:detail']],
+            normalizationContext: ['groups' => ['diplome:light', 'type-diplome:light', 'pn:detail']],
+        ),
+        new GetCollection(
+            uriTemplate: '/maquette/structure_diplomes',
+            normalizationContext: ['groups' => ['maquette:detail']],
         ),
     ],
     paginationEnabled: false
@@ -77,15 +81,15 @@ class StructureDiplome
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['diplome:detail', 'diplome:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:detail', 'diplome:light', 'enseignant_hrs_read'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
     private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome', cascade: ['persist'])]
-    #[Groups(['diplome:detail'])]
+    #[Groups(['diplome:detail', 'maquette:detail'])]
     private ?Personnel $responsableDiplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'assistantDiplome', cascade: ['persist'])]
@@ -101,20 +105,20 @@ class StructureDiplome
     private ?int $codeCelcatDepartement = null;
 
     #[ORM\Column(length: 40, nullable: true)]
-    #[Groups(['diplome:detail', 'diplome:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
     private ?string $sigle = null;
 
     #[ORM\Column]
-    #[Groups(['diplome:detail', 'diplome:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
     private bool $actif = true;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
-    #[Groups(['diplome:detail'])]
+    #[Groups(['diplome:detail', 'maquette:detail'])]
     private ?self $parent = null;
 
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
-    #[Groups(['diplome:detail'])]
+    #[Groups(['diplome:detail', 'maquette:detail'])]
     private ?Collection $enfants;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -122,7 +126,7 @@ class StructureDiplome
     private ?string $logoPartenaireName = null;
 
     #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome', fetch: 'EAGER')]
-    #[Groups(['diplome:detail'])]
+    #[Groups(['diplome:detail', 'maquette:detail'])]
     private Collection $pns;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
@@ -130,19 +134,19 @@ class StructureDiplome
     private ?StructureDepartement $departement = null;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['diplome:detail'])]
+    #[Groups(['diplome:detail', 'maquette:detail'])]
     private ?string $apogeeCodeVersion = null;
 
     #[ORM\Column(length: 10, nullable: true)]
-    #[Groups(['diplome:detail'])]
+    #[Groups(['diplome:detail', 'maquette:detail'])]
     private ?string $apogeeCodeDiplome = null;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['diplome:detail'])]
+    #[Groups(['diplome:detail', 'maquette:detail'])]
     private ?string $apogeeCodeDepartement = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
-    #[Groups(['diplome:detail'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
     private ?StructureTypeDiplome $typeDiplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
@@ -150,7 +154,7 @@ class StructureDiplome
     private ?ApcReferentiel $referentiel = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplome')]
-    #[Groups(['diplome:detail'])]
+    #[Groups(['diplome:detail', 'maquette:detail'])]
     private ?ApcParcours $parcours = null;
 
     #[ORM\Column(nullable: true)]
