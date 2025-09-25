@@ -61,7 +61,7 @@ class StructureUe
     private string $codeElement = '';
 
     #[ORM\ManyToOne(inversedBy: 'ues')]
-    #[Groups(['pn:read', 'enseignement:read', 'maquette:detail'])]
+    #[Groups(['pn:read', 'enseignement:read', 'maquette:detail', 'enseignement:detail'])]
     private ?ApcCompetence $competence = null;
 
     #[ORM\ManyToOne(inversedBy: 'ues')]

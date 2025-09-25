@@ -23,7 +23,7 @@ class ScolEnseignementUe
     private ?ScolEnseignement $enseignement;
 
     #[ORM\ManyToOne(inversedBy: 'enseignementUes')]
-    #[Groups(['enseignement:read'])]
+    #[Groups(['enseignement:detail'])]
     private ?StructureUe $ue;
 
     #[ORM\Column]

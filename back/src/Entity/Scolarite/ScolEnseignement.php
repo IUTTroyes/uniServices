@@ -4,6 +4,7 @@ namespace App\Entity\Scolarite;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantAbsence;
@@ -23,7 +24,17 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: ScolEnseignementRepository::class)]
 #[ApiFilter(EnseignementFilter::class)]
 #[ApiResource(
-    normalizationContext: ['groups' => ['enseignement:read', 'enseignement_ue:read']],
+    operations: [
+        new Get(normalizationContext: ['groups' => ['enseignement:detail', 'enseignement_ue:read']]),
+        new Get(
+            uriTemplate: '/mini/scol_enseignement/{id}',
+            normalizationContext: ['groups' => ['enseignement:light']],
+        ),
+        new Get(
+            uriTemplate: '/maxi/scol_enseignement/{id}',
+            normalizationContext: ['groups' => ['enseignement:detail', 'apprentissage_critique:detail', 'absence:detail', 'evaluation:detail', 'previsionnel:detail', 'edt:detail']],
+        ),
+    ]
 )]
 class ScolEnseignement
 {
@@ -35,65 +46,66 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['maquette:detail', 'enseignement:read', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:read'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail'])]
     private ?string $libelle_court = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['enseignement:read'])]
+    #[Groups(['enseignement:detail',  'scol:detail'])]
     private ?string $preRequis = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['enseignement:read'])]
+    #[Groups(['enseignement:detail'])]
     private ?string $objectif = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['enseignement:read'])]
+    #[Groups(['enseignement:detail'])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['enseignement:read'])]
+    #[Groups(['enseignement:detail',  'scol:detail'])]
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['maquette:detail', 'enseignement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
-    #[Groups(['enseignement:read'])]
+    #[Groups(['enseignement:detail'])]
     private ?bool $suspendu = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read'])]
+    #[Groups(['previsionnel:read', 'enseignement:detail', 'previsionnel_semestre:read'])]
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:read', 'enseignement_ue:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement_ue:read', 'edt_event:read:agenda'])]
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]
-    #[Groups(['enseignement:read'])]
+    #[Groups(['enseignement:detail'])]
     private ?int $nbNotes = null;
 
     #[ORM\Column]
+    #[Groups(['maquette:detail', 'enseignement:detail'])]
     private ?bool $mutualisee = null;
 
     /**
      * @var Collection<int, self>
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
-    #[Groups(['maquette:detail', 'enseignement_ue:read', 'enseignement:read'])]
+    #[Groups(['maquette:detail', 'enseignement_ue:read', 'enseignement:detail'])]
     private Collection $enfants;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
-    #[Groups(['maquette:detail', 'enseignement_ue:read', 'enseignement:read'])]
+    #[Groups(['maquette:detail', 'enseignement_ue:read', 'enseignement:detail'])]
     private ?self $parent = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -104,14 +116,14 @@ class ScolEnseignement
     private ?string $exemple = null;
 
     #[ORM\Column]
-    #[Groups(['enseignement:read'])]
+    #[Groups(['enseignement:detail'])]
     private ?bool $bonification = null;
 
     /**
      * @var Collection<int, ApcApprentissageCritique>
      */
     #[ORM\ManyToMany(targetEntity: ApcApprentissageCritique::class, inversedBy: 'enseignements')]
-    #[Groups(['enseignement:read'])]
+    #[Groups(['enseignement:detail'])]
     private Collection $apprentissageCritique;
 
     /**
@@ -136,14 +148,14 @@ class ScolEnseignement
      * @var Collection<int, ScolEnseignementUe>
      */
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'enseignement', cascade: ['persist', 'remove'])]
-    #[Groups(['enseignement:read'])]
+    #[Groups(['enseignement:detail'])]
     private Collection $enseignementUes;
 
     /**
      * @var Collection<int, Previsionnel>
      */
     #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'enseignement')]
-    #[Groups(['enseignement:read', 'edt_event:read:agenda'])]
+    #[Groups(['enseignement:detail', 'edt_event:read:agenda'])]
     private Collection $previsionnels;
 
     public function __construct()
