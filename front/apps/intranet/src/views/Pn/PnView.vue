@@ -71,6 +71,8 @@ const getDiplomes = async (departementId) => {
 
 const changeDiplome = (diplome) => {
   selectedDiplome.value = diplome
+  selectedPn.value = selectedDiplome.value?.pns?.find(pn => pn.anneeUniversitaire?.actif === true) || null;
+  console.log(selectedPn.value);
 }
 
 const showDetails = (item, semestre) => {
@@ -112,11 +114,6 @@ const showDetails = (item, semestre) => {
         <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh"/>
       </div>
       <div class="text-muted-color mb-4">Responsable du diplome : {{selectedDiplome?.responsableDiplome?.display ?? `Pas de responsable`}}</div>
-      <div v-if="!selectedPn" class="flex justify-center">
-        <Message severity="error" icon="pi pi-exclamation-triangle" class="w-fit">
-          Aucun programme pédagogique national trouvé pour le diplôme et l'année universitaire sélectionné.
-        </Message>
-      </div>
       <Fieldset v-if="selectedPn" v-for="annee in selectedPn.annees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
           <i class="pi pi-angle-down"></i>
@@ -269,8 +266,8 @@ const showDetails = (item, semestre) => {
         </div>
       </Fieldset>
       <div v-else class="flex justify-center">
-        <Message severity="primary" icon="pi pi-exclamation-triangle" class="w-fit p-12">
-          Il n'existe aucun pn pour ce diplôme sur l'année universitaire sélectionnée.
+        <Message severity="error" icon="pi pi-exclamation-triangle" class="w-fit">
+          Aucun programme pédagogique national trouvé pour le diplôme et l'année universitaire sélectionné.
         </Message>
       </div>
     </div>
