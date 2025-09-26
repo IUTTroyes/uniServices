@@ -1,12 +1,11 @@
 <script setup>
 import { ref, defineProps, computed } from 'vue';
 import { marked } from 'marked';
-import { ApcCompetenceBadge, ApcAcBadge } from '@components';
 import {getEnseignementService} from "@requests";
 
 const props = defineProps({
   enseignement: {
-    type: Object,
+    type: Number,
     required: true
   },
   semestre: {

@@ -4,6 +4,7 @@ import { marked } from 'marked';
 import { ApcCompetenceBadge, ApcAcBadge } from '@components';
 import { getEnseignementService } from '@requests';
 import Loader from '@components/loader/GlobalLoader.vue';
+import {ErrorView} from "@components";
 
 // Définition des props
 const props = defineProps({
@@ -25,6 +26,7 @@ const isLoading = ref(false);
 const enseignementLocal = ref([]);
 const isDescriptionExpanded = ref(false);
 const isObjectifExpanded = ref(false);
+const hasError = ref(false);
 
 // Fonctions computed
 const uniqueCompetences = computed(() => {
@@ -76,15 +78,28 @@ const showEnfantParent = async (id) => {
   enseignementLocal.value = await getEnseignementService(id);
 };
 
-// Hook onMounted
 onMounted(async () => {
-  isLoading.value = true;
   try {
+    isLoading.value = true;
     enseignementLocal.value = await getEnseignementService(props.enseignement);
+
+    // Vérifiez et initialisez les heures si elles sont manquantes
+    if (enseignementLocal.value.heures) {
+      enseignementLocal.value.heures.Total = {
+        PN: (enseignementLocal.value.heures.CM?.PN || 0) +
+            (enseignementLocal.value.heures.TD?.PN || 0) +
+            (enseignementLocal.value.heures.TP?.PN || 0) +
+            (enseignementLocal.value.heures.Projet?.PN || 0),
+        IUT: (enseignementLocal.value.heures.CM?.IUT || 0) +
+            (enseignementLocal.value.heures.TD?.IUT || 0) +
+            (enseignementLocal.value.heures.TP?.IUT || 0) +
+            (enseignementLocal.value.heures.Projet?.IUT || 0)
+      };
+    }
   } catch (error) {
+    hasError.value = true;
     console.error('Erreur lors de la récupération de l\'enseignement :', error);
   } finally {
-    console.log(enseignementLocal.value)
     isLoading.value = false;
   }
 });
@@ -92,6 +107,7 @@ onMounted(async () => {
 
 <template>
   <Loader v-if="isLoading" />
+  <ErrorView v-else-if="hasError"/>
   <div v-else>
     <div class="px-8 flex flex-row items-center gap-4">
       <div class="text-xl font-semibold">Détails {{enseignementLocal.type}} - {{enseignementLocal.libelle}}</div>
@@ -219,15 +235,63 @@ onMounted(async () => {
         <div><span class="font-bold">Mutualisée : </span><span v-if="enseignementLocal.mutualisee"><Tag severity="success">Oui</Tag></span><span v-else><Tag>Non</Tag></span></div>
         <div><span class="font-bold text-lg">Suspendue : </span><span v-if="enseignementLocal.suspendu"><Tag severity="danger">Oui</Tag></span><span v-else><Tag severity="success">Non</Tag></span></div>
       </div>
-      <div class="flex gap-12 w-full">
-        <div class="font-bold text-nowrap text-lg">Volumes horaires : </div>
-        <DataTable :value="[enseignementLocal.heures]" tableStyle="min-width: 50rem" size="small" class="w-full">
-          <Column field="CM.IUT" header="CM" class="!text-nowrap !border-r" />
-          <Column field="TD.IUT" header="TD" class="!text-nowrap !border-r"/>
-          <Column field="TP.IUT" header="TP" class="!text-nowrap !border-r"/>
-          <Column field="Projet.IUT" header="Projet" class="!text-nowrap !border-r"/>
-          <Column field="Total.IUT" header="Total" />
+      <div class="flex gap-12 w-full border p-4 rounded-lg bg-neutral-200 bg-opacity-20">
+        <DataTable :value="[
+            { type: 'Volume horaires attendu', CM: enseignementLocal.heures?.CM?.PN, TD: enseignementLocal.heures?.TD?.PN, TP: enseignementLocal.heures?.TP?.PN, Projet: enseignementLocal.heures?.Projet?.PN, Total: enseignementLocal.heures?.Total?.PN },
+            { type: 'Volume horaires saisi', CM: enseignementLocal.heures?.CM?.IUT, TD: enseignementLocal.heures?.TD?.IUT, TP: enseignementLocal.heures?.TP?.IUT, Projet: enseignementLocal.heures?.Projet?.IUT, Total: enseignementLocal.heures?.Total?.IUT }
+          ]"
+                   tableStyle="min-width: 50rem"
+                   size="small"
+                   class="w-full"
+        >
+          <Column field="type" header="" class="!text-nowrap !border-r" />
+          <Column field="CM" header="CM" class="!text-nowrap !border-r">
+            <template #body="slotProps">
+              <span v-if="slotProps.data.type === 'Volume horaires saisi' && slotProps.data.CM !== enseignementLocal.heures?.CM?.PN">
+                <Tag severity="danger">{{ slotProps.data.CM }}</Tag>
+              </span>
+              <span v-else>{{ slotProps.data.CM }}</span>
+            </template>
+          </Column>
+          <Column field="TD" header="TD" class="!text-nowrap !border-r">
+            <template #body="slotProps">
+              <span v-if="slotProps.data.type === 'Volume horaires saisi' && slotProps.data.TD !== enseignementLocal.heures?.TD?.PN">
+                <Tag severity="danger">{{ slotProps.data.TD }}</Tag>
+              </span>
+              <span v-else>{{ slotProps.data.TD }}</span>
+            </template>
+          </Column>
+          <Column field="TP" header="TP" class="!text-nowrap !border-r">
+            <template #body="slotProps">
+              <span v-if="slotProps.data.type === 'Volume horaires saisi' && slotProps.data.TP !== enseignementLocal.heures?.TP?.PN">
+                <Tag severity="danger">{{ slotProps.data.TP }}</Tag>
+              </span>
+              <span v-else>{{ slotProps.data.TP }}</span>
+            </template>
+          </Column>
+          <Column field="Projet" header="Projet" class="!text-nowrap !border-r">
+            <template #body="slotProps">
+              <span v-if="slotProps.data.type === 'Volume horaires saisi' && slotProps.data.Projet !== enseignementLocal.heures?.Projet?.PN">
+                <Tag severity="danger">{{ slotProps.data.Projet }}</Tag>
+              </span>
+              <span v-else>{{ slotProps.data.Projet }}</span>
+            </template>
+          </Column>
+          <Column field="Total" header="Total">
+            <template #body="slotProps">
+              <span v-if="slotProps.data.type === 'Volume horaires saisi' && slotProps.data.Total !== enseignementLocal.heures?.Total?.PN">
+                <Tag severity="danger">{{ slotProps.data.Total }}</Tag>
+              </span>
+              <span v-else>{{ slotProps.data.Total }}</span>
+            </template>
+          </Column>
         </DataTable>
+      </div>
+      <div class="flex justify-center w-full items-center gap-4">
+        <Message v-if="enseignementLocal.heures?.Total?.IUT !== enseignementLocal.heures?.Total?.PN" severity="error" icon="pi pi-exclamation-triangle">
+          Attention, le volume horaire saisi ne correspond pas au volume horaire attendu dans la maquette.
+        </Message>
+        <Button label="Corriger" severity="danger" @click=""> </Button>
       </div>
       <Divider/>
       <div class="text-xl font-bold">Cet enseignement dans l'APC</div>
@@ -236,11 +300,11 @@ onMounted(async () => {
         <ApcCompetenceBadge v-for="ue in uniqueCompetences" :key="ue.nomCourt" :competence="ue" />
         <span v-if="uniqueCompetences.length === 0">Aucune compétence</span>
       </div>
-<!--      <div class="flex gap-2 flex-wrap">-->
-<!--        <span class="font-bold text-lg">Apprentissage(s) critique(s) : </span>-->
-<!--        <ApcAcBadge v-for="ac in enseignementLocal.apprentissageCritique" :key="ac.code" :ac="ac" v-tooltip.top="`${ac.libelle}`">{{ ac.code }}</ApcAcBadge>-->
-<!--        <span v-if="enseignementLocal.apprentissageCritique.length === 0">Aucun apprentissage critique</span>-->
-<!--      </div>-->
+      <!--      <div class="flex gap-2 flex-wrap">-->
+      <!--        <span class="font-bold text-lg">Apprentissage(s) critique(s) : </span>-->
+      <!--        <ApcAcBadge v-for="ac in enseignementLocal.apprentissageCritique" :key="ac.code" :ac="ac" v-tooltip.top="`${ac.libelle}`">{{ ac.code }}</ApcAcBadge>-->
+      <!--        <span v-if="enseignementLocal.apprentissageCritique.length === 0">Aucun apprentissage critique</span>-->
+      <!--      </div>-->
       <div><span class="font-bold text-lg">SAÉ concernée(s) : </span> {{ enseignementLocal.sae ?? 'Aucune SAÉ renseignée' }}</div>
       <div><span class="font-bold text-lg">Prérequis : </span> {{ enseignementLocal.preRequis ?? 'Aucune ressource renseignée' }}</div>
       <div><span class="font-bold text-lg">Nombre de notes : </span> {{ enseignementLocal.nbNotes ?? 'Aucun nombre de note renseigné' }}</div>
