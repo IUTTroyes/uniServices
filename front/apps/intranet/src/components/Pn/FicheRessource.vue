@@ -5,6 +5,8 @@ import { ApcCompetenceBadge, ApcAcBadge } from '@components';
 import { getEnseignementService } from '@requests';
 import Loader from '@components/loader/GlobalLoader.vue';
 import {ErrorView} from "@components";
+import { useUsersStore } from "@stores";
+import router from "../../router/index.js";
 
 // Définition des props
 const props = defineProps({
@@ -27,6 +29,8 @@ const enseignementLocal = ref([]);
 const isDescriptionExpanded = ref(false);
 const isObjectifExpanded = ref(false);
 const hasError = ref(false);
+const isAdmin = computed(() => usersStore.isAdmin);
+const usersStore = useUsersStore();
 
 // Fonctions computed
 const uniqueCompetences = computed(() => {
@@ -288,11 +292,11 @@ onMounted(async () => {
           </Column>
         </DataTable>
       </div>
-      <div class="flex justify-center w-full items-center gap-4">
-        <Message v-if="enseignementLocal.heures?.Total?.IUT !== enseignementLocal.heures?.Total?.PN" severity="error" icon="pi pi-exclamation-triangle">
+      <div v-if="isAdmin & (enseignementLocal.heures?.Total?.IUT !== enseignementLocal.heures?.Total?.PN)" class="flex justify-center w-full items-center gap-4">
+        <Message severity="error" icon="pi pi-exclamation-triangle">
           Attention, le volume horaire saisi ne correspond pas au volume horaire attendu dans la maquette.
         </Message>
-        <Button label="Corriger" severity="danger" @click=""> </Button>
+        <Button label="Corriger le prévisionnel" severity="danger" @click="router.push('/administration/previsionnel/semestre')"> </Button>
       </div>
       <Divider/>
       <div class="text-xl font-bold">Cet enseignement dans l'APC</div>
