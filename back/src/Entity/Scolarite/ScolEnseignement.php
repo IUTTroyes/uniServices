@@ -108,6 +108,10 @@ class ScolEnseignement
     #[Groups(['maquette:detail', 'enseignement_ue:read', 'enseignement:detail'])]
     private ?self $parent = null;
 
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[Groups(['maquette:detail', 'enseignement:detail'])]
+    private ?self $sae = null;
+
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['enseignement_ue:read'])]
     private ?string $livrables = null;
@@ -591,4 +595,15 @@ class ScolEnseignement
 
         return $this;
     }
+
+    public function getSae(): ?ScolEnseignement
+    {
+        return $this->sae;
+    }
+
+    public function setSae(?ScolEnseignement $sae): void
+    {
+        $this->sae = $sae;
+    }
+
 }

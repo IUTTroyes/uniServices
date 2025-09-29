@@ -35,7 +35,7 @@ class ApcNiveau
     private Collection $parcours;
 
     #[ORM\ManyToOne(inversedBy: 'niveaux')]
-    #[Groups('enseignement:read')]
+    #[Groups('enseignement:detail')]
     private ?ApcCompetence $competence = null;
 
     /**

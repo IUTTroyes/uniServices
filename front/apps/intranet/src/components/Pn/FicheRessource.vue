@@ -32,8 +32,8 @@ const hasError = ref(false);
 const uniqueCompetences = computed(() => {
   const competences = new Set();
   enseignementLocal.value.enseignementUes?.forEach(ue => {
-    if (ue.ue.apcCompetence) {
-      competences.add(ue.ue.apcCompetence);
+    if (ue.ue.competence) {
+      competences.add(ue.ue.competence);
     }
   });
   return Array.from(competences);
@@ -100,6 +100,7 @@ onMounted(async () => {
     hasError.value = true;
     console.error('Erreur lors de la récupération de l\'enseignement :', error);
   } finally {
+    console.log(enseignementLocal.value)
     isLoading.value = false;
   }
 });
@@ -300,11 +301,11 @@ onMounted(async () => {
         <ApcCompetenceBadge v-for="ue in uniqueCompetences" :key="ue.nomCourt" :competence="ue" />
         <span v-if="uniqueCompetences.length === 0">Aucune compétence</span>
       </div>
-      <!--      <div class="flex gap-2 flex-wrap">-->
-      <!--        <span class="font-bold text-lg">Apprentissage(s) critique(s) : </span>-->
-      <!--        <ApcAcBadge v-for="ac in enseignementLocal.apprentissageCritique" :key="ac.code" :ac="ac" v-tooltip.top="`${ac.libelle}`">{{ ac.code }}</ApcAcBadge>-->
-      <!--        <span v-if="enseignementLocal.apprentissageCritique.length === 0">Aucun apprentissage critique</span>-->
-      <!--      </div>-->
+      <div class="flex gap-2 flex-wrap">
+        <span class="font-bold text-lg">Apprentissage(s) critique(s) : </span>
+        <ApcAcBadge v-for="ac in enseignementLocal.apprentissageCritique" :key="ac.code" :ac="ac" v-tooltip.top="`${ac.libelle}`">{{ ac.code }}</ApcAcBadge>
+        <span v-if="enseignementLocal.apprentissageCritique?.length === 0">Aucun apprentissage critique</span>
+      </div>
       <div><span class="font-bold text-lg">SAÉ concernée(s) : </span> {{ enseignementLocal.sae ?? 'Aucune SAÉ renseignée' }}</div>
       <div><span class="font-bold text-lg">Prérequis : </span> {{ enseignementLocal.preRequis ?? 'Aucune ressource renseignée' }}</div>
       <div><span class="font-bold text-lg">Nombre de notes : </span> {{ enseignementLocal.nbNotes ?? 'Aucun nombre de note renseigné' }}</div>
