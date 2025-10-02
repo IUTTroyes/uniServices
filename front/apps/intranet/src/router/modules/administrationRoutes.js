@@ -1,6 +1,6 @@
-import {LayoutComponent} from "@components";
 import previsionnelRoutes from './previsionnelRoutes.js'
 import stageAdministrationRoutes from './stageAdministrationRoutes.js'
+import semestreAdministrationRoutes from './semestreAdministrationRoutes.js'
 
 export default [
   {
@@ -86,6 +86,16 @@ export default [
     },
   },
   {
+    path: 'administration/referentiels-competences',
+    component: () => import('@/views/Ref-Competences/IndexView.vue'),
+    meta: {
+      breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+        label: 'Administration',
+        route: '/administration'
+      }, { label: 'Référentiels de compétences', route: null }]
+    },
+  },
+  {
     path: 'administration/previsionnel',
     component: () => import('@/views/previsionnel/PrevisionnelView.vue'),
     meta: {
@@ -109,6 +119,12 @@ export default [
     // },
     children: [
       ...stageAdministrationRoutes
+    ]
+  },
+  {
+    path: 'administration/semestre',
+    children: [
+      ...semestreAdministrationRoutes
     ]
   },
 

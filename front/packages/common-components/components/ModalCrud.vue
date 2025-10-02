@@ -2,10 +2,10 @@
 <script setup>
 import {ref, watch, computed, onMounted, useTemplateRef} from 'vue'
 import { Button, Dialog, InputText } from 'primevue'
-import DynamicFormField from '@components/components/Forms/DynamicFormField.vue'
-import DynamicFormLabel from '@components/components/Forms/DynamicFormLabel.vue'
-import DynamicFormMessage from '@components/components/Forms/DynamicFormMessage.vue'
-import DynamicFormControl from '@components/components/Forms/DynamicFormControl.vue'
+import DynamicFormField from '@components/components/Forms-OldVersion/DynamicFormField.vue'
+import DynamicFormLabel from '@components/components/Forms-OldVersion/DynamicFormLabel.vue'
+import DynamicFormMessage from '@components/components/Forms-OldVersion/DynamicFormMessage.vue'
+import DynamicFormControl from '@components/components/Forms-OldVersion/DynamicFormControl.vue'
 
 const props = defineProps({
   visible: Boolean,

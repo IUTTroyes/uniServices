@@ -1,4 +1,6 @@
 <script setup>
+import Breadcrumb from 'primevue/breadcrumb';
+
 const props = defineProps({
   items: {
     type: Array,

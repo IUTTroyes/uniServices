@@ -1,5 +1,6 @@
 <script setup>
-import { onMounted, ref } from "vue";
+
+import { onMounted, ref, computed } from "vue";
 import { getDepartementSemestresService, getDepartementAnneesService } from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore, useSemestreStore } from "@stores";
@@ -10,33 +11,63 @@ const isLoading = ref(true);
 const hasError = ref(false);
 const anneesGrouped = ref({ fi: [], fc: [] });
 
-const panelMenuItems = [
-  { label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
-      { label: 'Liste des étudiants', icon: 'pi pi-list', command: () => {} },
-      { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', command: () => {} },
-    ] },
-  { label: 'Groupes', icon: 'pi pi-users', command: () => {}, items: [
-      { label: 'Composition des groupes', icon: 'pi pi-list',
-        command: () => {} },
-      { label: 'Structure des groupes', icon: 'pi pi-cog', command: () => {} },
-    ] },
-  { label: 'Absences', icon: 'pi pi-calendar', command: () => {}, items: [
-      { label: 'Liste des absences', icon: 'pi pi-list',
-        command: () => {} },
-      { label: 'Liste des justificatifs', icon: 'pi pi-folder-open', command: () => {} },
-      { label: 'Suivi des pointages de présence', icon: 'pi pi-eye', command: () => {} },
-    ] },
-  { label: 'Notes et Évaluations', icon: 'pi pi-book', command: () => {}, items: [
-      { label: 'Liste des notes', icon: 'pi pi-list', command: () => {} },
-      { label: 'Gestion des évaluations', icon: 'pi pi-cog', command: () => {} },
-      { label: 'Demandes de rattrapages', icon: 'pi pi-history', command: () => {} },
-      { label: 'Modalités du contrôle continu', icon: 'pi pi-map', command: () => {} },
-    ] },
-  { label: 'Fin de semestre', icon: 'pi pi-check', command: () => {}, items: [
-      { label: 'Préparation de la sous-commission', icon: 'pi pi-calculator', command: () => {} },
-      { label: 'Changement de semestre des étudiants', icon: 'pi pi-forward', command: () => {} },
-    ] },
-];
+const panelMenuItems = computed(() => {
+  if (!selectedSemestre.value) return []
+  return [
+    {
+      label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
+        { label: 'Liste des étudiants', icon: 'pi pi-list', command: () => {} },
+        { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', command: () => {} },
+      ]
+    },
+    {
+      label: 'Groupes', icon: 'pi pi-users', command: () => {}, items: [
+        {
+          label: 'Composition des groupes', icon: 'pi pi-list',
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/groupes/affectation',
+        },
+        {
+          label: 'Structure des groupes', icon: 'pi pi-cog', route: '/administration/semestre/' + selectedSemestre.value.id + '/groupes/structure',
+        }
+      ]
+    },
+    {
+      label: 'Absences', icon: 'pi pi-calendar', command: () => {}, items: [
+        {
+          label: 'Liste des absences', icon: 'pi pi-list',
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/absences/liste',
+        },
+        {
+          label: 'Liste des justificatifs', icon: 'pi pi-folder-open',
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/justificatifs-absences/liste',
+        },
+        { label: 'Suivi des pointages de présence', icon: 'pi pi-eye', command: () => {} },
+      ]
+    },
+    {
+      label: 'Notes et Évaluations', icon: 'pi pi-book', command: () => {}, items: [
+        {
+          label: 'Liste des notes', icon: 'pi pi-list',
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/evaluations/liste'
+        },
+        { label: 'Gestion des évaluations', icon: 'pi pi-cog', command: () => {} },
+        {
+          label: 'Demandes de rattrapages', icon: 'pi pi-history',
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/rattrapages/liste' },
+        { label: 'Modalités du contrôle continu', icon: 'pi pi-map',
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/mccc/liste'
+        },
+      ]
+    },
+    {
+      label: 'Fin de semestre', icon: 'pi pi-check', command: () => {}, items: [
+        { label: 'Préparation de la sous-commission', icon: 'pi pi-calculator',
+          route: '/administration/semestre/' + selectedSemestre.value.id + '/sous-commission'},
+        { label: 'Changement de semestre des étudiants', icon: 'pi pi-forward', command: () => {} },
+      ]
+    },
+  ]
+})
 
 const getAnneesSemestres = async () => {
   try {
@@ -126,7 +157,21 @@ const selectSemestre = (semestre) => {
         </div>
         <div class="w-1/2 " v-if="selectedSemestre">
           <h3 class="font-bold text-xl mb-4">Actions pour {{ selectedSemestre.libelle }}</h3>
-          <PanelMenu :model="panelMenuItems" multiple/>
+          <PanelMenu :model="panelMenuItems" multiple>
+            <template #item="{ item }">
+              <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+                <a v-ripple class="flex items-center cursor-pointer text-surface-700 dark:text-surface-0 px-4 py-2" :href="href" @click="navigate">
+                  <span :class="item.icon" />
+                  <span class="ml-2">{{ item.label }}</span>
+                </a>
+              </router-link>
+              <a v-else v-ripple class="flex items-center cursor-pointer text-surface-700 dark:text-surface-0 px-4 py-2" :href="item.url" :target="item.target">
+                <span :class="item.icon" />
+                <span class="ml-2">{{ item.label }}</span>
+                <span v-if="item.items" class="pi pi-angle-down text-primary ml-auto" />
+              </a>
+            </template>
+          </PanelMenu>
         </div>
       </div>
     </Fieldset>

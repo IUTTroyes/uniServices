@@ -18,28 +18,14 @@ class StructureGroupeRepository extends ServiceEntityRepository
         parent::__construct($registry, StructureGroupe::class);
     }
 
-    //    /**
-    //     * @return StructureGroupe[] Returns an array of StructureGroupe objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?StructureGroupe
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function findBySemestreId($semestreId)
+    {
+        return $this->createQueryBuilder('g')
+            ->join('g.semestres', 's')
+            ->andWhere('s.id = :semestreId')
+            ->andWhere('g.parent IS NULL')
+            ->setParameter('semestreId', $semestreId)
+            ->getQuery()
+            ->getResult();
+    }
 }

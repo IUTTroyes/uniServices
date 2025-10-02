@@ -7,6 +7,7 @@ import { useDiplomeStore} from "./structure_stores/diplomeStore";
 import { useAnneeStore } from './structure_stores/anneeStore';
 import { useDepartementStore } from './structure_stores/departementStore'
 
+
 export {
   useUsersStore,
   useSemestreStore,
