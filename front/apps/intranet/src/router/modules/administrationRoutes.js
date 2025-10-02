@@ -122,7 +122,7 @@ export default [
     ]
   },
   {
-    path: 'administration/semestre/',
+    path: 'administration/semestre',
     children: [
       ...semestreAdministrationRoutes
     ]
