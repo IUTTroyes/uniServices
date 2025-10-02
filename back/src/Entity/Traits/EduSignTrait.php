@@ -8,7 +8,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 trait EduSignTrait
 {
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['semestre:read'])]
+    #[Groups(['semestre:edusign'])]
     private ?string $keyEduSign = null;
 
     public function getKeyEduSign(): ?string

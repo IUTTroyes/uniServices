@@ -31,6 +31,10 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['etudiant:read']]),
+//        new Get(
+//            uriTemplate: '/etudiants/{annee}',
+//            normalizationContext: ['groups' => ['etudiant:read']],
+//        ),
         new GetCollection(normalizationContext: ['groups' => ['etudiant:read']]),
         new Patch(normalizationContext: ['groups' => ['etudiant:write']], securityPostDenormalize: "is_granted('CAN_EDIT_ETUDIANT', object)"),
     ]

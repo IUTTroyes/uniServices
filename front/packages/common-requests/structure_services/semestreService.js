@@ -36,11 +36,11 @@ const getSemestreService = async (semestreId, showToast = false) => {
     }
 }
 
-const getDepartementSemestresService = async (departementId, onlyActif, showToast = false) => {
+const getDepartementSemestresService = async (departementId, onlyActif, scope = '', showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api/structure_semestres?departement=${departementId}&actif=${onlyActif}`],
+            [`/api${scope}/structure_semestres?actif=${onlyActif}&departement=${departementId}`],
             'Semestres du département récupérés avec succès',
             'Erreur lors de la récupération des semestres du département',
             showToast

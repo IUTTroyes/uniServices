@@ -15,15 +15,15 @@ class ScolEnseignementUe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read:full'])]
+    #[Groups(['maquette:detail'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'enseignementUes')]
-    #[Groups(['semestre:read:full', 'pn:read'])]
+    #[Groups(['maquette:detail', 'pn:read'])]
     private ?ScolEnseignement $enseignement;
 
     #[ORM\ManyToOne(inversedBy: 'enseignementUes')]
-    #[Groups(['enseignement:read'])]
+    #[Groups(['enseignement:detail'])]
     private ?StructureUe $ue;
 
     #[ORM\Column]

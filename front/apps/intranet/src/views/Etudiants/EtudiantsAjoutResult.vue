@@ -113,15 +113,15 @@ const viewEtudiantProfile = async (etudiantId) => {
     <div class="summary mb-4">
       <Message severity="info" class="mb-2">{{ message }}</Message>
       <div class="flex gap-4 mt-2">
-        <div class="stat-card">
+        <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg">
           <div class="text-xl font-bold">{{ created }}</div>
           <div>Étudiants créés</div>
         </div>
-        <div class="stat-card">
+        <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg">
           <div class="text-xl font-bold">{{ processedLines.filter(line => line.status === 'créé').length }}</div>
           <div>Étudiants existants</div>
         </div>
-        <div class="stat-card">
+        <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg">
           <div class="text-xl font-bold">{{ processedLines.filter(line => line.status === 'erreur').length }}</div>
           <div>Erreurs</div>
         </div>
@@ -186,11 +186,4 @@ const viewEtudiantProfile = async (etudiantId) => {
 </template>
 
 <style scoped>
-.stat-card {
-  background-color: #f8f9fa;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  text-align: center;
-  min-width: 120px;
-}
 </style>

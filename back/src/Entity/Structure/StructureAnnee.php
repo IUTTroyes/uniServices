@@ -37,15 +37,15 @@ class StructureAnnee
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['diplome:read:full', 'diplome:read', 'etudiant:read', 'annee:read'])]
+    #[Groups(['maquette:detail', 'etudiant:read', 'annee:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:read:full', 'diplome:read', 'scolarite:read', 'semestre:read', 'annee:read', 'etudiant:read'])]
+    #[Groups(['maquette:detail', 'scolarite:read', 'annee:read', 'etudiant:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
-    #[Groups(['diplome:read:full'])]
+    #[Groups(['maquette:detail'])]
     private int $ordre = 0;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -63,15 +63,15 @@ class StructureAnnee
      * @var Collection<int, StructureSemestre>
      */
     #[ORM\OneToMany(targetEntity: StructureSemestre::class, mappedBy: 'annee')]
-    #[Groups(['diplome:read:full', 'diplome:read', 'annee:read'])]
+    #[Groups(['maquette:detail', 'annee:read'])]
     private Collection $semestres;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['annee:read'])]
+    #[Groups(['annee:read', 'maquette:detail'])]
     private ?string $apogeeCodeVersion = null;
 
     #[ORM\Column(length: 10, nullable: true)]
-    #[Groups(['annee:read'])]
+    #[Groups(['annee:read', 'maquette:detail'])]
     private ?string $apogeeCodeEtape = null;
 
     // todo: inverser car 1 annee a N niveaux

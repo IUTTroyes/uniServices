@@ -184,6 +184,10 @@
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/http-client" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/http-client-contracts" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/polyfill-php84" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/egulias/email-validator" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/mailer" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/mime" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/polyfill-intl-idn" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
