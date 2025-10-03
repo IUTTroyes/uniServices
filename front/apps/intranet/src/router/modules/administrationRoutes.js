@@ -1,6 +1,7 @@
 import previsionnelRoutes from './previsionnelRoutes.js'
 import stageAdministrationRoutes from './stageAdministrationRoutes.js'
 import semestreAdministrationRoutes from './semestreAdministrationRoutes.js'
+import questionnaireAdministrationRoutes from './questionnaireAdministrationRoutes.js'
 
 export default [
   {
@@ -125,6 +126,12 @@ export default [
     path: 'administration/semestre',
     children: [
       ...semestreAdministrationRoutes
+    ]
+  },
+  {
+    path: 'administration/qualite',
+    children: [
+      ...questionnaireAdministrationRoutes
     ]
   },
 

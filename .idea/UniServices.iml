@@ -88,7 +88,6 @@
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/api-platform/symfony" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/api-platform/validator" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/composer" />
-      <excludeFolder url="file://$MODULE_DIR$/back/vendor/doctrine/cache" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/doctrine/collections" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/doctrine/common" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/doctrine/dbal" />
