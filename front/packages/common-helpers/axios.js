@@ -16,6 +16,12 @@ const isTokenExpired = (token) => {
 
 api.interceptors.request.use(
     config => {
+        // Skip token check for public endpoints
+        const publicEndpoints = ['/api/login', '/api/change_password'];
+        if (publicEndpoints.some(endpoint => config.url.includes(endpoint))) {
+            return config;
+        }
+
         const token = localStorage.getItem('token');
         if (token && !isTokenExpired(token)) {
             config.headers.Authorization = `Bearer ${token}`;

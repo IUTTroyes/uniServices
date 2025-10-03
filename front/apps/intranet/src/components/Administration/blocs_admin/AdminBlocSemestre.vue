@@ -1,16 +1,15 @@
 <script setup>
+
 import { onMounted, ref, computed } from "vue";
-import { getDepartementSemestresService } from "@requests";
+import { getDepartementSemestresService, getDepartementAnneesService } from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore, useSemestreStore } from "@stores";
 
 const userStore = useUsersStore();
-const semestreStore = useSemestreStore();
-const semestresFc = ref(null);
-const semestresFi = ref(null);
 const selectedSemestre = ref(null);
 const isLoading = ref(true);
 const hasError = ref(false);
+const anneesGrouped = ref({ fi: [], fc: [] });
 
 const panelMenuItems = computed(() => {
   if (!selectedSemestre.value) return []
@@ -69,41 +68,43 @@ const panelMenuItems = computed(() => {
     },
   ]
 })
-const getSemestres = async () => {
+
+const getAnneesSemestres = async () => {
   try {
+    isLoading.value = true;
     const departementId = userStore.departementDefaut.id;
-    const semestres = await getDepartementSemestresService(departementId, true);
-    console.log(semestres);
-    const groupByYear = (semestres) => {
-      return semestres.reduce((acc, semestre) => {
-        const year = semestre.annee.libelle;
-        if (!acc[year]) {
-          acc[year] = [];
-        }
-        acc[year].push(semestre);
-        return acc;
-      }, {});
-    };
 
-    semestresFc.value = groupByYear(semestres.filter(semestre => semestre.annee.opt.alternance));
-    semestresFi.value = groupByYear(semestres.filter(semestre => !semestre.annee.opt.alternance));
-
-    // semestresFc.value = semestres.filter(semestre => semestre.annee.opt.alternance);
-    // semestresFi.value = semestres.filter(semestre => !semestre.annee.opt.alternance);
-    const firstYear = Object.keys(semestresFi.value)[0];
-    if (firstYear && semestresFi.value[firstYear].length > 0) {
-      selectedSemestre.value = semestresFi.value[firstYear][0];
+    if (!departementId) {
+      console.error("Aucun département par défaut trouvé pour l'utilisateur.");
+      hasError.value = true;
+      return;
     }
+    try {
+      const annees = await getDepartementAnneesService(departementId, true, false);
+      // Créer un nouvel objet pour stocker les années de formation initiale et continue
+      anneesGrouped.value = {
+        fi: annees.filter(a => a.opt.alternance === false).map(a => a),
+        fc: annees.filter(a => a.opt.alternance === true).map(a => a),
+      };
+      console.log(anneesGrouped);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des années :", error);
+      hasError.value = true;
+    }
+
   } catch (error) {
+    console.error("Erreur lors de la récupération des semestres :", error);
     hasError.value = true;
-    console.error(error);
   } finally {
     isLoading.value = false;
+
+    selectedSemestre.value = anneesGrouped.value.fi[0].semestres[0];
   }
-};
+}
+
 
 onMounted(
-    getSemestres
+    getAnneesSemestres
 );
 
 const selectSemestre = (semestre) => {
@@ -125,29 +126,32 @@ const selectSemestre = (semestre) => {
       </template>
       <ListSkeleton v-if="isLoading" class="mt-4"/>
       <ErrorView v-else-if="hasError" />
-      <Message v-else-if="!semestresFc && !semestresFi" severity="error" icon="pi pi-times-circle" class="m-6">
-        Aucun semestre disponible pour le département {{ userStore.departementDefaut.libelle }}.
+      <Message v-else-if="anneesGrouped.fi.length < 1 && anneesGrouped.fc.length < 1" severity="error" icon="pi pi-times-circle" class="m-6">
+        Aucun semestre disponible.
+        {{anneesGrouped}}
       </Message>
       <div v-else class="flex gap-10 mt-4">
         <div class="w-1/2 flex gap-4">
-          <ul v-for="(semestres, type) in { 'Formation Initiale': semestresFi, 'Formation Continue': semestresFc }"
-              :key="type" class="w-1/2">
-            <Fieldset :legend="type" class="max-h-96 overflow-auto">
-              <li v-for="(semestresByYear, year) in semestres"
-                  :key="year" class="mb-2 text-sm">
-                <div class="text-muted-color text-sm">{{ year }}</div>
-                <ul>
-                  <li v-for="semestre in semestresByYear"
-                      :key="semestre.id"
-                      @click="selectSemestre(semestre)"
-                      class="cursor-pointer w-full border-b p-1">
-                    <div class="hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2"
-                         :class="{'bg-primary-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestre.id}">
-                      {{ semestre.libelle }}
-                    </div>
-                  </li>
-                </ul>
-              </li>
+          <ul v-for="(annee, type) in anneesGrouped" class="w-1/2">
+            <Fieldset :legend="type === 'fi' ? 'Formation Initiale' : 'Formation continue'" class="max-h-96 overflow-auto">
+              <ul>
+                <li v-for="annee in annee"
+                    :key="annee.id"
+                    class="mb-2 text-sm">
+                  <div class="text-muted-color text-sm">{{ annee.libelle }}</div>
+                  <ul>
+                    <li v-for="semestre in annee.semestres"
+                        :key="semestre.id"
+                        @click="selectSemestre(semestre)"
+                        class="cursor-pointer w-full border-b p-1">
+                      <div class="hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2"
+                           :class="{'bg-primary-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestre.id}">
+                        {{ semestre.libelle }}
+                      </div>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
             </Fieldset>
           </ul>
         </div>

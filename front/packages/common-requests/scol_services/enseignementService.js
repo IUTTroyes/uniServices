@@ -21,6 +21,21 @@ const getAllEnseignementsService = async (showToast = false) => {
     }
 }
 
+const getEnseignementService = async (id, scope = '', showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api${scope}/scol_enseignements/${id}` ],
+            'Enseignement récupéré avec succès',
+            'Erreur lors de la récupération de l\'enseignement',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getEnseignementService:', error);
+        throw error;
+    }
+}
+
 const getEnseignementsSemestreService = async (semestreId, showToast = false) => {
     try {
         const response = await apiCall(
@@ -65,21 +80,6 @@ const getEnseignementsUeService = async (ueId, showToast = false) => {
         return response.member;
     } catch (error) {
         console.error('Erreur dans getEnseignementsUeService:', error);
-        throw error;
-    }
-}
-
-const getEnseignementService = async (id, showToast = false) => {
-    try {
-        return await apiCall(
-            api.get,
-            [`/api/scol_enseignements/${id}`],
-            'Enseignement récupéré avec succès',
-            'Erreur lors de la récupération de l\'enseignement',
-            showToast
-        );
-    } catch (error) {
-        console.error('Erreur dans getEnseignementService:', error);
         throw error;
     }
 }

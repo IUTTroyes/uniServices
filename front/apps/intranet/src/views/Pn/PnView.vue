@@ -1,28 +1,21 @@
 <script setup>
 import {onMounted, ref} from 'vue'
-import {useDiplomeStore, useUsersStore, useAnneeUnivStore} from '@stores'
+import {useUsersStore, useAnneeUnivStore} from '@stores'
 import {ErrorView, ListSkeleton, SimpleSkeleton, ArticleSkeleton} from "@components";
+import {getDiplomesService} from "@requests";
 import Loader from "@components/loader/GlobalLoader.vue"
 import FicheRessource from "../../components/Pn/FicheRessource.vue";
 import FicheSae from "../../components/Pn/FicheSae.vue";
 import FicheMatiere from "../../components/Pn/FicheMatiere.vue";
-import {
-  getAnneeSemestresService,
-  getCompetenceUeService,
-  getPnAnneesService,
-  getPnDiplome,
-  getSemestreUesService,
-  getEnseignementsUeService
-} from "@requests";
 
 const usersStore = useUsersStore();
-const diplomeStore = useDiplomeStore();
 const anneeUnivStore = useAnneeUnivStore();
 const departementId = ref(null);
 
 const isLoadingDiplomes = ref(true)
 const diplomes = ref([])
 const selectedDiplome = ref(null)
+const selectedPn = ref(null)
 
 const isLoadingPn = ref(true)
 const pn = ref(null)
@@ -50,115 +43,35 @@ onMounted(async () => {
 const getDiplomes = async (departementId) => {
   try {
     isLoadingDiplomes.value = true
-    diplomes.value = diplomeStore.diplomes;
-    // ne garder que les diplomes qui ont actif = true
-    diplomes.value = diplomes.value.filter(d => d.actif);
+    const params = {
+      departement: departementId,
+    }
+    diplomes.value = await getDiplomesService(params, '/maquette');
   } catch (error) {
     console.error('Erreur lors du chargement des diplomes:', error);
     hasError.value = true;
   } finally {
     if (diplomes.value.length > 0) {
       selectedDiplome.value = diplomes.value[0];
-      await getPnForDiplome(selectedDiplome.value.id);
+      selectedPn.value = selectedDiplome.value?.pns?.find(pn => pn.anneeUniversitaire?.actif === true) || null;
+      console.log(selectedPn.value);
     }
     isLoadingDiplomes.value = false
-  }
-}
-
-const getPnForDiplome = async (diplomeId) => {
-  try {
-    isLoadingPn.value = true;
-    pn.value = await getPnDiplome(diplomeId, selectedAnneeUniversitaire.value.id)
-  } catch (error) {
-    console.error('Erreur lors du chargement des PNs:', error);
-    hasError.value = true;
-  } finally {
-    if (pn.value) {
-    await getAnneesForPn(pn.value.id);
-    }
-    isLoadingPn.value = false;
-  }
-}
-
-const getAnneesForPn = async (pnId) => {
-  try {
-    annees.value = await getPnAnneesService(pnId)
-  } catch (error) {
-    console.error('Erreur lors du chargement des années pour le PN:', error);
-    hasError.value = true;
-  } finally {
-    // pour chaque année on charge les semestres et on les ajoute à l'année
-    for (const annee of annees.value) {
-      await getSemestresForAnnee(annee.id);
-      // on ajoute les semestres à l'année
-      annee.semestres = semestres.value;
-    }
-  }
-}
-
-const getSemestresForAnnee = async (anneeId) => {
-  try {
-    semestres.value = await getAnneeSemestresService(anneeId);
-    return semestres.value;
-  } catch (error) {
-    console.error('Erreur lors du chargement des semestres pour l\'année:', error);
-    hasError.value = true;
-  } finally {
-    // pour chaque semestre on charge les UEs et on les ajoute au semestre
-    for (const semestre of semestres.value) {
-      await getUesForSemestre(semestre.id);
-      // on ajoute les UEs au semestre
-      semestre.ues = ues.value;
-    }
-  }
-}
-
-const getUesForSemestre = async (semestreId) => {
-  try {
-    ues.value = await getSemestreUesService(semestreId);
-    // si le selectedDiplome a une compétence Apc, on ajoute la compétence à chaque UE
-    if (selectedDiplome.value.typeDiplome.apc) {
-      for (const ue of ues.value) {
-        try {
-          ue.competence = await getCompetenceUeService(ue.id);
-        } catch (error) {
-          console.error(`Erreur lors du chargement de la compétence pour l'UE ${ue.id}:`, error);
-        }
-      }
-
-    }
-    return ues.value;
-  } catch (error) {
-    console.error('Erreur lors du chargement des UEs pour le semestre:', error);
-    hasError.value = true;
-  } finally {
-    // pour chaque UE on charge les enseignements et on les ajoute à l'UE
-    for (const ue of ues.value) {
-      await getEnseignementForUe(ue.id);
-      // on ajoute les enseignements à l'UE
-      ue.enseignementUes = enseignements.value;
-    }
-  }
-}
-
-const getEnseignementForUe = async (ueId) => {
-  try {
-    enseignements.value = await getEnseignementsUeService(ueId)
-  } catch (error) {
-    console.error('Erreur lors du chargement de l\'enseignement:', error);
-    hasError.value = true;
-  } finally {
+    console.log(diplomes.value);
   }
 }
 
 const changeDiplome = (diplome) => {
   selectedDiplome.value = diplome
-  getPnForDiplome(selectedDiplome.value.id);
+  selectedPn.value = selectedDiplome.value?.pns?.find(pn => pn.anneeUniversitaire?.actif === true) || null;
+  console.log(selectedPn.value);
 }
 
 const showDetails = (item, semestre) => {
   if (item) {
-    dialogContent.value = { item, semestre };
+    const itemId = item.id;
+    const itemType = item.type;
+    dialogContent.value = { itemId, itemType, semestre };
     visibleDialog.value = true;
   } else {
     console.error('Item is null or undefined');
@@ -170,11 +83,11 @@ const showDetails = (item, semestre) => {
   <ErrorView v-if="hasError" />
   <div v-else class="card h-full">
     <div v-if="isLoadingDiplomes">
-    <SimpleSkeleton width="100%" class="mb-6"/>
-    <div class="flex flex-row justify-between">
-      <SimpleSkeleton width="20%" class="mb-6"/>
-      <SimpleSkeleton width="10%" class="mb-6"/>
-    </div>
+      <SimpleSkeleton width="100%" class="mb-6"/>
+      <div class="flex flex-row justify-between">
+        <SimpleSkeleton width="20%" class="mb-6"/>
+        <SimpleSkeleton width="10%" class="mb-6"/>
+      </div>
     </div>
     <div v-else>
       <h2 class="text-2xl font-bold">Programmes pédagogiques nationaux</h2>
@@ -182,27 +95,20 @@ const showDetails = (item, semestre) => {
       <Tabs :value="selectedDiplome?.id || diplomes[0]?.id" scrollable>
         <TabList>
           <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="changeDiplome(diplome)">
-            <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span>
+            <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span> <Tag v-if="!diplome.actif" severity="danger">Inactif</Tag>
           </Tab>
         </TabList>
       </Tabs>
     </div>
 
-    <div v-if="isLoadingPn" class="w-full h-1/2">
-      <Loader/>
-    </div>
+    <Loader v-if="isLoadingDiplomes" class="mt-6"/>
     <div v-else class="mt-6">
       <div class="flex justify-between items-center my-6">
         <div class="text-xl font-bold">{{selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné`}}</div>
         <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh"/>
       </div>
       <div class="text-muted-color mb-4">Responsable du diplome : {{selectedDiplome?.responsableDiplome?.display ?? `Pas de responsable`}}</div>
-      <div v-if="pn && pn.length === 0" class="flex justify-center">
-        <Message severity="error" icon="pi pi-exclamation-triangle" class="w-fit">
-          Aucun programme pédagogique national trouvé pour le diplôme et l'année universitaire sélectionné.
-        </Message>
-      </div>
-      <Fieldset v-if="pn" v-for="annee in annees" :legend="`${annee.libelle}`" :toggleable="true">
+      <Fieldset v-if="selectedPn" v-for="annee in selectedPn.annees" :legend="`${annee.libelle}`" :toggleable="true">
         <template #toggleicon>
           <i class="pi pi-angle-down"></i>
         </template>
@@ -276,17 +182,17 @@ const showDetails = (item, semestre) => {
               </div>
 
               <div v-for="enseignementUe in ue.enseignementUes" class="!border-l-4 !border-l-primary-200 !pl-4 !border-0">
-                <Fieldset v-if="!enseignementUe.parent" legend="" :toggleable="true">
+                <Fieldset v-if="!enseignementUe.enseignement.parent" legend="" :toggleable="true">
                   <template #toggleicon>
                     <i class="pi pi-angle-down"></i>
-                    <div>{{ enseignementUe.libelle }}</div>
-                    <Tag v-if="enseignementUe.enfants && enseignementUe.enfants.length >= 1" severity="danger">Ressource parent</Tag>
+                    <div>{{ enseignementUe.enseignement.libelle }}</div>
+                    <Tag v-if="enseignementUe.enseignement.enfants && enseignementUe.enseignement.enfants.length >= 1" severity="danger">Ressource parent</Tag>
                   </template>
                   <div class="my-6 flex flex-row items-center gap-4">
                     <table class="text-lg">
                       <thead>
                       <tr class="border-b">
-                        <th class="px-2 font-normal text-muted-color text-start">Code {{enseignementUe.type}}</th>
+                        <th class="px-2 font-normal text-muted-color text-start">Code {{enseignementUe.enseignement.type}}</th>
                         <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
                         <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
                         <th class="px-2 font-normal text-muted-color text-start">Type</th>
@@ -294,24 +200,24 @@ const showDetails = (item, semestre) => {
                       </thead>
                       <tbody>
                       <tr>
-                        <td class="px-2 font-bold">{{ enseignementUe.codeEnseignement }}</td>
-                        <td class="px-2 font-bold">{{ enseignementUe.libelle }}</td>
-                        <td class="px-2 font-bold">{{ enseignementUe.codeApogee }}</td>
+                        <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeEnseignement }}</td>
+                        <td class="px-2 font-bold">{{ enseignementUe.enseignement.libelle }}</td>
+                        <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeApogee }}</td>
                         <td class="px-2 font-bold">
-                          <Tag v-if="enseignementUe.type === 'sae'" severity="success">{{ enseignementUe.type }}</Tag>
-                          <Tag v-else severity="info">{{ enseignementUe.type }}</Tag>
+                          <Tag v-if="enseignementUe.enseignement.type === 'sae'" severity="success">{{ enseignementUe.enseignement.type }}</Tag>
+                          <Tag v-else severity="info">{{ enseignementUe.enseignement.type }}</Tag>
                         </td>
                       </tr>
                       </tbody>
                     </table>
-                    <div v-if="enseignementUe.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
+                    <div v-if="enseignementUe.enseignement.bonification" class="px-2 font-bold"><Tag severity="danger">Bonif.</Tag></div>
 
-                    <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="showDetails(enseignementUe, semestre)" v-tooltip.top="`Accéder au détail`"/>
+                    <Button icon="pi pi-info-circle" rounded outlined severity="info" @click="showDetails(enseignementUe.enseignement, semestre)" v-tooltip.top="`Accéder au détail`"/>
                     <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
                     <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
                   </div>
 
-                  <Fieldset v-for="enfant in enseignementUe.enfants" :toggleable="true" class="!bg-gray-300 !bg-opacity-10">
+                  <Fieldset v-for="enfant in enseignementUe.enseignement.enfants" :toggleable="true" class="!bg-gray-300 !bg-opacity-10">
                     <template #toggleicon>
                       <i class="pi pi-angle-down"></i>
                       <div>{{ enfant.libelle }}</div>
@@ -354,8 +260,8 @@ const showDetails = (item, semestre) => {
         </div>
       </Fieldset>
       <div v-else class="flex justify-center">
-        <Message severity="primary" icon="pi pi-exclamation-triangle" class="w-fit p-12">
-          Il n'existe aucun pn pour ce diplôme sur l'année universitaire sélectionnée.
+        <Message severity="error" icon="pi pi-exclamation-triangle" class="w-fit">
+          Aucun programme pédagogique national trouvé pour le diplôme et l'année universitaire sélectionné.
         </Message>
       </div>
     </div>
@@ -366,9 +272,9 @@ const showDetails = (item, semestre) => {
       <div></div>
     </template>
     <template v-if="dialogContent">
-      <FicheRessource v-if="dialogContent.item.type === 'ressource'" :enseignement="dialogContent.item" :parcours="selectedDiplome.parcours" :semestre="dialogContent.semestre"/>
-      <FicheSae v-else-if="dialogContent.item.type === 'sae'" :enseignement="dialogContent.item" :parcours="selectedDiplome.parcours" :semestre="dialogContent.semestre"/>
-      <FicheMatiere v-else-if="dialogContent.item.type === 'matiere'" :enseignement="dialogContent.item" :semestre="dialogContent.semestre" :diplome="selectedDiplome"/>
+      <FicheRessource v-if="dialogContent.itemType === 'ressource'" :enseignement="dialogContent.itemId" :parcours="selectedDiplome.parcours" :semestre="dialogContent.semestre"/>
+      <FicheSae v-else-if="dialogContent.itemType === 'sae'" :enseignement="dialogContent.itemId" :parcours="selectedDiplome.parcours" :semestre="dialogContent.semestre"/>
+      <FicheMatiere v-else-if="dialogContent.itemType === 'matiere'" :enseignement="dialogContent.itemId" :semestre="dialogContent.semestre" :diplome="selectedDiplome"/>
     </template>
   </Dialog>
 </template>

@@ -3,6 +3,9 @@
 namespace App\Entity\Etudiant;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
 use App\Repository\EtudiantScolariteSemestreRepository;
@@ -12,12 +15,19 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantScolariteSemestreRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['scolarite:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['scolarite:read']]),
+        new Patch(normalizationContext: ['groups' => ['scolarite:read']], securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),
+    ]
+)]
 class EtudiantScolariteSemestre
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['scolarite:read', 'etudiant:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre', cascade: ['persist', 'remove'])]

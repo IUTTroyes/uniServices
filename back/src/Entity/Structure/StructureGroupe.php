@@ -42,58 +42,59 @@ class StructureGroupe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:read', 'scolarite:read'])]
+    #[Groups(['groupe:detail','groupe:light', 'scolarite:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:read', 'scolarite:read', 'edt_event:read:agenda'])]
+    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda'])]
     private string $libelle;
 
     #[ORM\Column(length: 10)]
-    #[Groups(['semestre:read', 'scolarite:read'])]
+    #[Groups(['groupe:detail','groupe:light', 'scolarite:read'])]
     private string $type;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
-    #[Groups(['semestre:read'])]
+    #[Groups(['groupe:detail','groupe:light'])]
     private ?self $parent = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['semestre:read'])]
+    #[Groups(['groupe:detail'])]
     private ?int $ordre = null;
 
     #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'groupes')]
     private Collection $semestres;
 
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
-    #[Groups(['semestre:read'])]
+    #[Groups(['groupe:detail'])]
     private ?Collection $enfants;
 
     /**
      * @var Collection<int, ApcParcours>
      */
     #[ORM\ManyToMany(targetEntity: ApcParcours::class, mappedBy: 'groupes')]
-    #[Groups(['semestre:read'])]
+    #[Groups(['groupe:detail'])]
     private Collection $parcours;
 
     /**
      * @var Collection<int, EdtEvent>
      */
     #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'groupe')]
-    #[Groups(['semestre:read'])]
+    #[Groups(['groupe:detail'])]
     private Collection $edtEvents;
 
     /**
      * @var Collection<int, EtudiantScolariteSemestre>
      */
     #[ORM\ManyToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'groupes')]
+    #[Groups(['groupe:detail'])]
     private Collection $scolariteSemestres;
 
     /**
      * @var Collection<int, Etudiant>
      */
     #[ORM\ManyToMany(targetEntity: Etudiant::class, mappedBy: 'groupes')]
-    #[Groups(['scolarite:read', 'edt_event:read:agenda'])]
+    #[Groups(['groupe:detail', 'scolarite:read', 'edt_event:read:agenda'])]
     private Collection $etudiants;
 
     public function __construct()

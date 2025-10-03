@@ -1,19 +1,34 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import Logo from '@components/components/Logo.vue';
-import {ValidatedInput, validationRules} from "@components";
-import { updateUserPasswordService } from "@requests";
+import { ValidatedInput, validationRules } from "@components";
+import { resetPasswordService } from "@requests";
 import { useToast } from "primevue/usetoast";
 
 const toast = useToast();
+const route = useRoute();
+const router = useRouter();
 
-const email = ref('');
-const formValid = ref(true);
+const password = ref('');
+const confirmPassword = ref('');
+const token = ref('');
+const formValid = ref(false);
 const formErrors = ref({});
 const errorMessage = ref('');
+const successMessage = ref('');
+const loading = ref(false);
 
 const validationState = ref({
-  email: false,
+  password: false,
+  confirmPassword: false,
+});
+
+onMounted(() => {
+  token.value = route.query.token;
+  if (!token.value) {
+    errorMessage.value = 'Token manquant. Veuillez utiliser le lien fourni dans l\'email.';
+  }
 });
 
 const handleValidation = (field, result) => {
@@ -21,21 +36,32 @@ const handleValidation = (field, result) => {
     ...formErrors.value,
     [field]: result.isValid ? null : result.errorMessage
   };
-  formValid.value = Object.values(formErrors.value).every(error => error === null);
+  validationState.value[field] = result.isValid;
+  formValid.value = Object.values(validationState.value).every(isValid => isValid);
 };
 
 const handleSubmit = async () => {
-  if (!email.value) {
-    errorMessage.value = 'Veuillez remplir tous les champs';
+  if (!formValid.value || !token.value) {
     return;
   }
 
+  loading.value = true;
+  errorMessage.value = '';
+  successMessage.value = '';
+
   try {
-    await updateUserPasswordService(email.value, true);
+    await resetPasswordService(token.value, password.value);
+    successMessage.value = 'Votre mot de passe a été réinitialisé avec succès.';
+
+    // Rediriger vers la page de connexion après 3 secondes
+    setTimeout(() => {
+      router.push('/login');
+    }, 3000);
   } catch (error) {
     console.error('Error:', error);
+    errorMessage.value = error.response?.data?.error || 'Une erreur est survenue lors de la réinitialisation du mot de passe.';
   } finally {
-    email.value = '';
+    loading.value = false;
   }
 };
 </script>
@@ -55,17 +81,26 @@ const handleSubmit = async () => {
       <div class="form-section flex flex-col items-center justify-center min-h-full">
         <div class="form-container w-full bg-surface-0 dark:bg-surface-900 py-10 px-8 sm:px-20 h-full rounded-bl-xl rounded-br-xl">
           <div class="text-center mb-8">
-            <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4 uppercase">Mot de passe perdu ?</div>
-            <span class="text-muted-color font-medium">Cette fonctionnalité est disponible pour les utilisateurs invités ou les vacataires qui ne dépendent pas de l'URCA.</span>
+            <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium mb-4 uppercase">Réinitialisation de mot de passe</div>
+            <span class="text-muted-color font-medium">Veuillez entrer votre nouveau mot de passe</span>
           </div>
           <Divider></Divider>
           <form @submit.prevent="handleSubmit" class="flex flex-col mb-8 mt-8">
             <ValidatedInput
-                v-model="email"
-                name="email"
-                label="Adresse mail"
-                :rules="[validationRules.required, validationRules.email]"
-                @validation="result => handleValidation('email', result)"
+                v-model="password"
+                name="password"
+                type="password"
+                label="Nouveau mot de passe"
+                :rules="[validationRules.required, validationRules.minLength(8)]"
+                @validation="result => handleValidation('password', result)"
+            />
+            <ValidatedInput
+                v-model="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                label="Confirmer le mot de passe"
+                :rules="[validationRules.required, validationRules.match(password, 'Les mots de passe ne correspondent pas')]"
+                @validation="result => handleValidation('confirmPassword', result)"
             />
             <div class="mb-4 flex justify-end items-center">
               <router-link to="/login" class="font-medium ml-2 text-right cursor-pointer text-primary underline">Retour au login</router-link>
@@ -77,7 +112,10 @@ const handleSubmit = async () => {
               <Message v-else-if="errorMessage" severity="error">
                 {{ errorMessage }}
               </Message>
-              <Button label="Ré-initialiser le mot de passe" class="w-full" type="submit" :disabled="!formValid"
+              <Message v-else-if="successMessage" severity="success">
+                {{ successMessage }}
+              </Message>
+              <Button label="Réinitialiser le mot de passe" class="w-full" type="submit" :disabled="!formValid || loading"
                       severity="secondary"></Button>
             </div>
           </form>
@@ -91,7 +129,7 @@ const handleSubmit = async () => {
 
 <style scoped>
 .bg {
-  background-image: url("@/assets/iut.jpg");
+  background-image: url("../assets/iut.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

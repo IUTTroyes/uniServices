@@ -22,18 +22,6 @@ export const tools = [
     description: "Plateforme de conception des emplois du temps et gestion des contraintes.",
     url: "http://localhost:3003/edt",
     logo: "common-images/logo/logo_uniedt.png",
-  },
-  {
-    name: "UniStage",
-    description: "Gestion des stages et des conventions pour les étudiants.",
-    url: "http://localhost:3005/stage",
-    logo: "common-images/logo/logo_intranet_iut_troyes.svg",
-  },
-  {
-    name: "UniProjet",
-    description: "Suivi et évaluation des projets étudiants.",
-    url: "http://localhost:3006/projet",
-    logo: "common-images/logo/logo_unifolio.png",
   }
 ]
 

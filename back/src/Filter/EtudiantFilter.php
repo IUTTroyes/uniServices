@@ -68,15 +68,16 @@ class EtudiantFilter extends AbstractFilter
                 ->setParameter("semestre", $value);
         }
 
-//        if ('annee' === $property) {
-//            $anneeAlias = $queryNameGenerator->generateJoinAlias('structureAnnee');
-//            $scolaritesAlias = $queryNameGenerator->generateJoinAlias('scolarites');
-//            $queryBuilder
-//                ->join("$alias.scolarites", $scolaritesAlias)
-//                ->join("$scolaritesAlias.annee", $anneeAlias)
-//                ->andWhere("$anneeAlias.id = :annee")
-//                ->setParameter("annee", $value);
-//        }
+        if ('annee' === $property) {
+            $anneeAlias = $queryNameGenerator->generateJoinAlias('structureAnnee');
+            $scolaritesAlias = $queryNameGenerator->generateJoinAlias('scolarites');
+            $queryBuilder
+                ->join("$alias.scolarites", $scolaritesAlias)
+                ->join("$scolaritesAlias.annee", $anneeAlias)
+                ->andWhere("$anneeAlias.id = :annee")
+                ->andWhere("$scolaritesAlias.actif = true")
+                ->setParameter("annee", $value);
+        }
     }
 
     public function getDescription(string $resourceClass): array

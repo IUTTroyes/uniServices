@@ -5,27 +5,25 @@ import ButtonInfo from '@components/components/ButtonInfo.vue';
 import ButtonEdit from '@components/components/ButtonEdit.vue';
 import ButtonDelete from '@components/components/ButtonDelete.vue';
 import { ErrorView } from '@components';
+import { getDepartementAnneesService, getEtudiantsScolaritesDepartementService, getEtudiantsScolaritesAnneeService } from '@requests';
 
 import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue';
 import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue';
+
 import AccessEtudiantDialog from '@/dialogs/etudiants/AccessEtudiantDialog.vue';
-
 import { useToast } from 'primevue/usetoast';
-const toast = useToast();
 
-import { getDepartementAnneesService, getEtudiantsScolaritesDepartementService } from '@requests';
+const toast = useToast();
 
 import { useSemestreStore, useUsersStore } from '@stores';
 import { SimpleSkeleton } from '@components';
 const usersStore = useUsersStore();
-const semestreStore = useSemestreStore();
 
 const departementId = ref(null);
-const semestresList = ref([]);
 const anneesList = ref([]);
 
-const isLoadingSemestres = ref(false);
 const isLoadingAnnees = ref(false);
+const isLoadingStats = ref(false);
 
 const isUpdatingFilter = ref(false);
 const hasError = ref(false);
@@ -54,36 +52,9 @@ const selectedEtudiant = ref(null);
 
 const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));
 
-const getSemestres = async () => {
-  isLoadingSemestres.value = true;
-  try {
-    await semestreStore.getSemestresByDepartement(departementId.value, true);
-    semestresList.value = Object.entries(
-        semestreStore.semestres.reduce((acc, semestre) => {
-          const annee = semestre.annee.libelle;
-          if (!acc[annee]) {
-            acc[annee] = [];
-          }
-          acc[annee].push({ label: semestre.libelle, value: semestre });
-          return acc;
-        }, {})
-    ).map(([label, items]) => ({ label, items }));
-  } catch (error) {
-    console.error('Erreur lors du chargement des semestres :', error);
-    hasError.value = true;
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les semestres. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
-      life: 5000,
-    });
-  } finally {
-    isLoadingSemestres.value = false;
-  }
-};
-
 const getAnnees = async () => {
   isLoadingAnnees.value = true;
+  isLoadingStats.value = true;
   try {
     anneesList.value = await getDepartementAnneesService(departementId.value, true);
   } catch (error) {
@@ -97,7 +68,23 @@ const getAnnees = async () => {
     });
   } finally {
     isLoadingAnnees.value = false;
+
+    try {
+      // pour chaque anneeList
+      for (const annee of anneesList.value) {
+        const etudiantsCount = await getEtudiantsAnnee(annee.id);
+        annee.etudiantsCount = etudiantsCount.totalItems;
+      }
+    } catch (error) {
+      console.error('Erreur lors de la sélection de l\'année par défaut :', error);
+    } finally {
+      isLoadingStats.value = false;
+    }
   }
+};
+
+const getEtudiantsAnnee = async anneeId => {
+  return await getEtudiantsScolaritesAnneeService(anneeId, false, true);
 };
 
 const getEtudiantsScolarite = async () => {
@@ -120,7 +107,6 @@ const getEtudiantsScolarite = async () => {
         ),
       ];
     });
-    console.log('Étudiants chargés avec années :', etudiants.value);
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants :', error);
     hasError.value = true;
@@ -137,7 +123,6 @@ const getEtudiantsScolarite = async () => {
 
 onMounted(async () => {
   departementId.value = usersStore.departementDefaut.id;
-  await getSemestres();
   await getAnnees();
   await getEtudiantsScolarite();
 });
@@ -200,7 +185,22 @@ watch(
 <template>
   <ErrorView v-if="hasError" />
   <div v-else class="card">
-    <h2 class="text-2xl font-bold mb-4">Tous les étudiants du département</h2>
+    <h2 class="text-2xl font-bold mb-4">Tous les étudiants inscrits dans le département</h2>
+
+    <div class="flex gap-4 w-full pb-6 overflow-x-auto">
+      <SimpleSkeleton v-if="isLoadingAnnees" class="w-full" />
+      <div v-for="annee in anneesList" :key="annee.id" class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex items-center justify-center">
+        <SimpleSkeleton v-if="isLoadingStats" />
+        <div v-else>
+          <div>
+            {{ annee.libelle }}
+          </div>
+          <div class="text-lg font-bold">
+            {{annee.etudiantsCount}} étudiant(s)
+          </div>
+        </div>
+      </div>
+    </div>
 
     <DataTable
         scrollHeight="800px"
@@ -269,9 +269,9 @@ watch(
       </Column>
       <Column :showFilterMenu="false" style="min-width: 12rem">
         <template #body="slotProps">
-          <ButtonInfo tooltip="Voir les détails" @click="viewEtudiant(slotProps.data)" />
-          <ButtonEdit tooltip="Modifier le personnel" @click="editEtudiant(slotProps.data)" />
-          <ButtonDelete tooltip="Supprimer le personnel du département" @confirm-delete="deleteEtudiant(slotProps.data)" />
+          <ButtonInfo tooltip="Voir les détails de l'étudiant" @click="viewEtudiant(slotProps.data)" />
+          <ButtonEdit tooltip="Modifier l'étudiant" @click="editEtudiant(slotProps.data)" />
+          <ButtonDelete tooltip="Marquer l'étudiant comme démissionnaire" @confirm-delete="deleteEtudiant(slotProps.data)" />
         </template>
       </Column>
       <template #footer> {{ nbEtudiants }} résultat(s).</template>

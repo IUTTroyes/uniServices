@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import FormValidator from './FormValidator.vue';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
+import Dropdown from 'primevue/dropdown';
 import { validationRules } from '@components';
 
 const props = defineProps({
@@ -54,6 +55,10 @@ const props = defineProps({
   toggleMask: {
     type: Boolean,
     default: true
+  },
+  options : {
+    type: Array,
+    default: () => []
   }
 });
 
@@ -79,37 +84,51 @@ const onValidation = (result) => {
       <span v-if="rules && (rules === 'required' || (Array.isArray(rules) && (rules.includes('required') || rules.includes(validationRules.required))))" class="text-red-500">*</span>
     </label>
     <FormValidator
-      :model-value="modelValue"
-      :rules="rules"
-      :validate-on-input="validateOnInput"
-      :validate-on-blur="validateOnBlur"
-      :name="name"
-      @validation="onValidation"
+        :model-value="modelValue"
+        :rules="rules"
+        :validate-on-input="validateOnInput"
+        :validate-on-blur="validateOnBlur"
+        :name="name"
+        @validation="onValidation"
     >
       <template #default="{ handleBlur, showError }">
         <InputText
-          v-if="type !== 'password'"
-          :id="name"
-          :name="name"
-          :value="modelValue"
-          :placeholder="placeholder"
-          :type="type"
-          :class="[inputClass, { 'p-invalid': showError }]"
-          @input="updateValue"
-          @blur="handleBlur"
+            v-if="type === 'text'"
+            :id="name"
+            :name="name"
+            :value="modelValue"
+            :placeholder="placeholder"
+            :type="type"
+            :class="[inputClass, { 'p-invalid': showError }]"
+            @input="updateValue"
+            @blur="handleBlur"
         />
 
         <Password
-          v-else
-          :inputId="name"
-          :name="name"
-          :placeholder="placeholder"
-          :class="[inputClass, { 'p-invalid': showError }, 'pwd']"
-          :feedback="feedback"
-          :toggleMask="toggleMask"
-          :modelValue="modelValue"
-          @update:modelValue="updateModelValue"
-          @blur="handleBlur"
+            v-else-if="type === 'password'"
+            :inputId="name"
+            :name="name"
+            :placeholder="placeholder"
+            :class="[inputClass, { 'p-invalid': showError }, 'pwd']"
+            :feedback="feedback"
+            :toggleMask="toggleMask"
+            :modelValue="modelValue"
+            @update:modelValue="updateModelValue"
+            @blur="handleBlur"
+        />
+
+        <Dropdown
+            v-else-if="type === 'select'"
+            :id="name"
+            :name="name"
+            :options="options"
+            :modelValue="modelValue"
+            :placeholder="placeholder"
+            :class="[inputClass, { 'p-invalid': showError }]"
+            optionLabel="label"
+            optionValue="value"
+            @update:modelValue="updateModelValue"
+            @blur="handleBlur"
         />
 
         <small v-if="helpText && !showError" class="text-sm text-muted-color mt-1">{{ helpText }}</small>
