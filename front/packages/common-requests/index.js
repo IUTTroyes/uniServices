@@ -24,3 +24,4 @@ export * from './personnel_services/personnelHrsService.js'
 
 export * from './apc_services/competenceService.js';
 
+export * from './questionnaire_services/questionnaireService.js'
