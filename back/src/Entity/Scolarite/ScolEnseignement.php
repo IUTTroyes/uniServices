@@ -5,6 +5,7 @@ namespace App\Entity\Scolarite;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantAbsence;
@@ -26,6 +27,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['enseignement:detail', 'enseignement_ue:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['enseignement:detail']]),
         new Get(
             uriTemplate: '/mini/scol_enseignement/{id}',
             normalizationContext: ['groups' => ['enseignement:light']],

@@ -7,7 +7,8 @@ import {
   getSemestrePreviService,
   updatePreviEnseignementService,
   updatePreviPersonnelService,
-  updatePreviService
+  updatePreviService,
+    getDepartementAnneesService
 } from '@requests';
 import createApiService from "@requests/apiService.js";
 const previService = createApiService('/api/previsionnels');
@@ -15,11 +16,11 @@ import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
 import apiCall from "@helpers/apiCall.js";
 import { showSuccess, showDanger } from '@helpers/toast.js';
 
-const usersStore = useUsersStore();
+const userStore = useUsersStore();
 const semestreStore = useSemestreStore();
 const anneeUnivStore = useAnneeUnivStore();
 const enseignementStore = useEnseignementsStore();
-const departementId = usersStore.departementDefaut.id;
+const departementId = userStore.departementDefaut.id;
 
 const semestresList = ref([]);
 const selectedSemestre = ref(null);
@@ -57,7 +58,8 @@ const filters = ref({
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
   try {
-    await semestreStore.getSemestresByDepartement(departementId, true);
+    await semestreStore.semestres;
+    console.log('semestreStore.semestres', semestreStore.semestres);
   } catch (error) {
     console.error('Erreur lors du chargement des semestres:', error);
     hasError.value = true;
@@ -69,6 +71,30 @@ const getSemestres = async () => {
     isLoadingSemestres.value = false;
   }
 };
+
+const getAnneesSemestres = async () => {
+  try {
+    isLoadingSemestres.value = true;
+    const departementId = userStore.departementDefaut.id;
+
+    if (!departementId) {
+      console.error("Aucun département par défaut trouvé pour l'utilisateur.");
+      hasError.value = true;
+      return;
+    }
+    try {
+      const annees = await getDepartementAnneesService(departementId, true, false);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des années :", error);
+      hasError.value = true;
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération des semestres :", error);
+    hasError.value = true;
+  } finally {
+    isLoadingSemestres.value = false;
+  }
+}
 
 const getPrevi = async (semestreId) => {
   if (semestreId) {
@@ -128,6 +154,7 @@ const getAnneesUniv = async () => {
 
 onMounted(async () => {
   await getSemestres();
+  await getAnneesSemestres();
   await getAnneesUniv();
 });
 

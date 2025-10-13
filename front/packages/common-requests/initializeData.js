@@ -1,5 +1,5 @@
 import {ref} from 'vue';
-import { useAnneeUnivStore, useUsersStore, useDiplomeStore, useAnneeStore } from '@stores';
+import { useAnneeUnivStore, useUsersStore, useDiplomeStore, useAnneeStore, useSemestreStore } from '@stores';
 
 /**
  * Initialize application data
@@ -94,7 +94,10 @@ const initializeUserData = async () => {
         diplome.annees = await anneeStore.getAnneesDiplome(departement.id);
     }
 
-    console.log(diplomes)
+    const semestreStore = useSemestreStore();
+    await semestreStore.getSemestresByDepartement(departement.id);
+
+
 
     console.log('User data initialized successfully');
   }
