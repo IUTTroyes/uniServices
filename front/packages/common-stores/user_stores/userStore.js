@@ -196,6 +196,7 @@ export const useUsersStore = defineStore('users', () => {
     const isStage = computed(() => hasRole('ROLE_STAGE'));
     const isRelaiComm = computed(() => hasRole('ROLE_RELAI_COMM'));
     const isEdusign = computed(() => hasRole('ROLE_EDUSIGN'));
+    const isAdmin = computed(() => hasRole('ROLE_SUPER_ADMIN') || hasRole('ROLE_DIRECTION') || hasRole('ROLE_SCOLARITE') || hasRole('ROLE_ASSISTANT') || hasRole('ROLE_CHEF_DEPARTEMENT') || hasRole('ROLE_DIRECTEUR_ETUDES'));
     const isSuperAdmin = computed(() => hasRole('ROLE_SUPER_ADMIN'));
 
     return {
@@ -232,6 +233,7 @@ export const useUsersStore = defineStore('users', () => {
         isRelaiComm,
         isEdusign,
         isSuperAdmin,
+        isAdmin,
         setTemporaryRole,
         clearTemporaryRole,
         temporaryRole,

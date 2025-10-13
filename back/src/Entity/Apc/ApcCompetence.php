@@ -36,11 +36,11 @@ class ApcCompetence
     private ?string $libelle = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(['maquette:detail', 'enseignement:read', 'competence_ue:read'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'competence_ue:read'])]
     private ?string $nomCourt = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['maquette:detail', 'enseignement:read', 'competence_ue:read'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'competence_ue:read'])]
     private ?string $couleur = null;
 
     #[ORM\ManyToOne(inversedBy: 'competences')]

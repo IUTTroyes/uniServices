@@ -5,6 +5,7 @@ namespace App\Entity\Scolarite;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantAbsence;
@@ -26,6 +27,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['enseignement:detail', 'enseignement_ue:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['enseignement:detail']]),
         new Get(
             uriTemplate: '/mini/scol_enseignement/{id}',
             normalizationContext: ['groups' => ['enseignement:light']],
@@ -107,6 +109,10 @@ class ScolEnseignement
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     #[Groups(['maquette:detail', 'enseignement_ue:read', 'enseignement:detail'])]
     private ?self $parent = null;
+
+    #[ORM\ManyToOne(targetEntity: self::class)]
+    #[Groups(['maquette:detail', 'enseignement:detail'])]
+    private ?self $sae = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['enseignement_ue:read'])]
@@ -591,4 +597,15 @@ class ScolEnseignement
 
         return $this;
     }
+
+    public function getSae(): ?ScolEnseignement
+    {
+        return $this->sae;
+    }
+
+    public function setSae(?ScolEnseignement $sae): void
+    {
+        $this->sae = $sae;
+    }
+
 }
