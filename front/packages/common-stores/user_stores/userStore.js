@@ -44,7 +44,7 @@ export const useUsersStore = defineStore('users', () => {
             user.value = await getUserService(userType, userId);
 
             userPhoto.value = noImage;
-            applications.value = user.value.applications;
+            applications.value = user.value.applications || [];
 
             if (userType === 'personnels') {
                 const departementStore = useDepartementStore();
@@ -52,22 +52,30 @@ export const useUsersStore = defineStore('users', () => {
                 departements.value = await departementStore.getDepartementsPersonnel(userId, force);
 
                 // Traiter les départements pour extraire les informations spécifiques au personnel
-                departements.value = departements.value.map(departement => {
-                    if (!departement.departementPersonnels) return departement;
+                if (Array.isArray(departements.value)) {
+                    departements.value = departements.value.map(departement => {
+                        if (!departement.departementPersonnels) return departement;
 
-                    const personnelDepartements = departement.departementPersonnels.filter(dp => dp.personnel.id === userId);
-                    departement.departementPersonnel = personnelDepartements.length > 0 ? personnelDepartements[0] : null;
+                        const personnelDepartements = departement.departementPersonnels.filter(dp => dp.personnel.id === userId);
+                        departement.departementPersonnel = personnelDepartements.length > 0 ? personnelDepartements[0] : null;
 
-                    delete departement.departementPersonnels;
-                    return departement;
-                });
+                        delete departement.departementPersonnels;
+                        return departement;
+                    });
+                } else {
+                    departements.value = [];
+                }
 
                 // Définir le département par défaut si aucun n'est défini
                 if (!departements.value.find(departement => departement.departementPersonnel?.defaut === true)) {
                     if (departements.value.length > 0) {
                         const firstDepartement = departements.value[0];
-                        const response = await changeDepartementActifService(firstDepartement.departementPersonnel.id);
-                        departements.value = response.data;
+                        if (firstDepartement.departementPersonnel && firstDepartement.departementPersonnel.id) {
+                            const response = await changeDepartementActifService(firstDepartement.departementPersonnel.id);
+                            if (response && response.data) {
+                                departements.value = response.data;
+                            }
+                        }
                     }
                 }
 
@@ -76,8 +84,15 @@ export const useUsersStore = defineStore('users', () => {
                 departementsNotDefaut.value = departements.value.filter(departement => departement.departementPersonnel?.defaut === false) || [];
             }
             if (userType === 'etudiants') {
-                scolariteActif.value = (await getEtudiantScolaritesService(userId, true))[0];
-                departementDefaut.value = scolariteActif.value.departement;
+                try {
+                    const scolarites = await getEtudiantScolaritesService(userId, true);
+                    scolariteActif.value = Array.isArray(scolarites) && scolarites.length > 0 ? scolarites[0] : null;
+                    departementDefaut.value = scolariteActif.value?.departement || {};
+                } catch (error) {
+                    console.error('Error fetching student scolarites:', error);
+                    scolariteActif.value = null;
+                    departementDefaut.value = {};
+                }
             }
             isLoaded.value = true;
             return user.value;
@@ -92,17 +107,42 @@ export const useUsersStore = defineStore('users', () => {
     const changeDepartement = async (departementId) => {
         try {
             console.log('Changing departement : ' + departementId);
+            if (!Array.isArray(departements.value)) {
+                console.error('departements.value is not an array');
+                return;
+            }
+
             const departement = await departements.value.find(d => d.id === departementId);
+            if (!departement) {
+                console.error('Departement not found with id:', departementId);
+                return;
+            }
+
+            if (!departement.departementPersonnel || !departement.departementPersonnel.id) {
+                console.error('Departement has no valid departementPersonnel:', departement);
+                return;
+            }
+
             console.log('departementchange', departement);
             departements.value = await changeDepartementActifService(departement.departementPersonnel.id);
             // récupérer le département qui a defaut = true
             console.log(departements.value);
-            departementPersonnelDefaut.value = await departements.value.find(departement => departement.defaut === true);
-            departementDefaut.value = departementPersonnelDefaut.value.departement;
-            localStorage.setItem('departement', departementDefaut.value.id);
+            departementPersonnelDefaut.value = Array.isArray(departements.value) ?
+                await departements.value.find(departement => departement.defaut === true) : null;
+
+            if (departementPersonnelDefaut.value && departementPersonnelDefaut.value.departement) {
+                departementDefaut.value = departementPersonnelDefaut.value.departement;
+                if (departementDefaut.value.id) {
+                    localStorage.setItem('departement', departementDefaut.value.id);
+                }
+            } else {
+                departementDefaut.value = {};
+            }
             // récupérer les départements qui n'ont pas defaut = true
-            departementsPersonnelNotDefaut.value = await departements.value.filter(departement => departement.defaut === false);
-            departementsNotDefaut.value = await departementsPersonnelNotDefaut.value.map(departement => departement.departement);
+            departementsPersonnelNotDefaut.value = Array.isArray(departements.value) ?
+                await departements.value.filter(departement => departement.defaut === false) : [];
+            departementsNotDefaut.value = Array.isArray(departementsPersonnelNotDefaut.value) ?
+                await departementsPersonnelNotDefaut.value.map(departement => departement.departement) : [];
             window.location.reload();
         } catch (error) {
             console.error('Error changing department:', error);
@@ -117,8 +157,10 @@ export const useUsersStore = defineStore('users', () => {
             data.domaines = data.domaines.split(',');
         }
         // convertir departementPersonnels en IRI
-        if (data.departementPersonnels) {
-            data.departementPersonnels = data.departementPersonnels.map(departement => `/api/structure_departement_personnels/${departement.id}`);
+        if (data.departementPersonnels && Array.isArray(data.departementPersonnels)) {
+            data.departementPersonnels = data.departementPersonnels.map(departement =>
+                departement && departement.id ? `/api/structure_departement_personnels/${departement.id}` : null
+            ).filter(Boolean);
         }
         try {
             user.value = await updateUserService(userType, userId, data);
@@ -177,7 +219,7 @@ export const useUsersStore = defineStore('users', () => {
         if (temporaryRole.value && temporaryRole.value.length > 0) {
             return temporaryRole.value === role;
         }
-        return user.value?.roles.includes(role);
+        return user.value && user.value.roles && Array.isArray(user.value.roles) ? user.value.roles.includes(role) : false;
     };
 
     const isPersonnel = computed(() => userType === 'personnels');
