@@ -36,7 +36,7 @@ const getSemestreService = async (semestreId, showToast = false) => {
     }
 }
 
-const getDepartementSemestresService = async (departementId, onlyActif, scope = '', showToast = false) => {
+const getDepartementSemestresService = async (departementId, onlyActif = false, scope = '', showToast = false) => {
     try {
         const response = await apiCall(
             api.get,

@@ -124,6 +124,14 @@ export default [
   },
   {
     path: 'administration/semestre',
+    component: () => import('@/views/AdministrationView.vue'),
+    meta: {
+      breadcrumb: [
+        { label: 'Dashboard', route: '/' },
+        { label: 'Administration', route: '/administration', icon: 'pi pi-wrench' },
+        { label: 'Semestre', route: null }
+      ]
+    },
     children: [
       ...semestreAdministrationRoutes
     ]

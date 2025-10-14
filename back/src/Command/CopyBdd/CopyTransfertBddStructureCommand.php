@@ -12,6 +12,7 @@ use App\Entity\Structure\StructurePn;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Structure\StructureTypeDiplome;
 use App\Entity\Structure\StructureUe;
+use App\Enum\TypeGroupeEnum;
 use App\Repository\Apc\ApcApprentissageCritiqueRepository;
 use App\Repository\Apc\ApcCompetenceRepository;
 use App\Repository\Apc\ApcParcoursRepository;
@@ -501,15 +502,20 @@ FOREIGN_KEY_CHECKS=1');
             $groupe->setCodeApogee(substr($groupeArray['codeApogee'], 0, 25));
             $groupe->setOrdre($groupeArray['ordre']);
             if (array_key_exists('typeGroupe', $groupeArray) && is_array($groupeArray['typeGroupe'])) {
-                $groupe->setType($groupeArray['typeGroupe']['type']);
-                foreach ($groupeArray['typeGroupe']['semestres'] as $semestre) {
-                    if (array_key_exists($semestre, $this->tSemestres)) {
-                        $groupe->addSemestre($this->tSemestres[$semestre]);
+                    $type = $groupeArray['typeGroupe']['type'] ?? null;
+                    if ($type && defined('\App\Enum\TypeGroupeEnum::TYPE_GROUPE_' . strtoupper($type))) {
+                        $groupe->setType(constant('\App\Enum\TypeGroupeEnum::TYPE_GROUPE_' . strtoupper($type)));
+                    } else {
+                        $groupe->setType(\App\Enum\TypeGroupeEnum::TYPE_GROUPE_AUTRE);
                     }
+                    foreach ($groupeArray['typeGroupe']['semestres'] as $semestre) {
+                        if (array_key_exists($semestre, $this->tSemestres)) {
+                            $groupe->addSemestre($this->tSemestres[$semestre]);
+                        }
+                    }
+                } else {
+                    $groupe->setType(\App\Enum\TypeGroupeEnum::TYPE_GROUPE_AUTRE);
                 }
-            } else {
-                $groupe->setType('Erreur');
-            }
             $groupe->setOldId($groupeArray['id']);
             $groupe->setKeyEduSign($groupeArray['edusign']);
             $groupe->setParent(null);
@@ -529,7 +535,16 @@ FOREIGN_KEY_CHECKS=1');
             $enfantGroupe->setLibelle($enfant['libelle']);
             $enfantGroupe->setCodeApogee(substr($enfant['codeApogee'], 0, 25));
             $enfantGroupe->setOrdre($enfant['ordre']);
-            $enfantGroupe->setType($enfant['typeGroupe']['libelle']); //todo: ou type ?
+            if (array_key_exists('typeGroupe', $enfant) && is_array($enfant['typeGroupe'])) {
+                $type = $enfant['typeGroupe']['type'] ?? null;
+                if ($type && defined('\App\Enum\TypeGroupeEnum::TYPE_GROUPE_' . strtoupper($type))) {
+                    $enfantGroupe->setType(constant('\App\Enum\TypeGroupeEnum::TYPE_GROUPE_' . strtoupper($type)));
+                } else {
+                    $enfantGroupe->setType(\App\Enum\TypeGroupeEnum::TYPE_GROUPE_AUTRE);
+                }
+            } else {
+                $enfantGroupe->setType(\App\Enum\TypeGroupeEnum::TYPE_GROUPE_AUTRE);
+            }
             $enfantGroupe->setOldId($enfant['id']);
             $enfantGroupe->setKeyEduSign($enfant['edusign']);
             $enfantGroupe->setParent($structureGroupe);

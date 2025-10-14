@@ -13,6 +13,7 @@ use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Users\Etudiant;
+use App\Enum\TypeGroupeEnum;
 use App\Repository\Structure\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -49,9 +50,9 @@ class StructureGroupe
     #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda'])]
     private string $libelle;
 
-    #[ORM\Column(length: 10)]
+    #[ORM\Column(length: 10, enumType: TypeGroupeEnum::class)]
     #[Groups(['groupe:detail','groupe:light', 'scolarite:read'])]
-    private string $type;
+    private TypeGroupeEnum $type;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
@@ -124,16 +125,14 @@ class StructureGroupe
         return $this;
     }
 
-    public function getType(): ?string
+    public function getType(): TypeGroupeEnum
     {
         return $this->type;
     }
 
-    public function setType(?string $type): static
+    public function setType(TypeGroupeEnum $type): void
     {
         $this->type = $type;
-
-        return $this;
     }
 
     public function getParent(): ?self

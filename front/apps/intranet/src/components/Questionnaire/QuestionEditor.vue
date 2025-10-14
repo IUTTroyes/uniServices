@@ -317,7 +317,7 @@ import {
 } from '@heroicons/vue/24/outline';
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
-import type { Question, QuestionOption } from '@/types/survey';
+import type { Question, QuestionOption } from '@types/survey.ts';
 import { v4 as uuidv4 } from 'uuid';
 import ConditionalLogicModal from './ConditionalLogicModal.vue';
 

@@ -7,6 +7,7 @@ export * from './structure_services/pnService';
 export * from './structure_services/structureCalendrierService';
 export * from './structure_services/ueService';
 export * from './structure_services/previsionnelService';
+export * from './structure_services/groupeService';
 
 export * from './scol_services/enseignementService';
 

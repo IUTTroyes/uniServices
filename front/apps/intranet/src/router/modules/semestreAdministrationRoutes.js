@@ -15,7 +15,7 @@ export default [
   },
   {
     path: ':semestreId/groupes/affectation',
-    name: 'structure-groupe',
+    name: 'affectation-groupe',
     component: () => import('@/views/Groupes/AffectationGroupeView.vue'),
     meta: {
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
