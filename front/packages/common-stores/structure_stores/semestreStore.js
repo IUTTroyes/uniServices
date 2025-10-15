@@ -32,9 +32,9 @@ export const useSemestreStore = defineStore('semestre', () => {
     }
   };
 
-  const getSemestresByDepartement = async (departementId, onlyActif) => {
+  const getSemestresByDepartement = async (departementId, onlyActif, scope = "") => {
     try {
-      semestres.value = await getDepartementSemestresService(departementId, onlyActif);
+      semestres.value = await getDepartementSemestresService(departementId, onlyActif, scope);
     } catch (error) {
       console.error('Error fetching user:', error);
     }

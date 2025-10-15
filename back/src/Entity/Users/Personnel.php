@@ -691,6 +691,12 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->getPrenom() . ' ' . $this->getNom();
     }
 
+    #[Groups(['diplome:detail', 'maquette:detail', 'personnel:read', 'departement_personnel:read', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda'])]
+    public function getDisplayCourt(): string
+    {
+        return mb_substr($this->getNom(), 0, 4);
+    }
+
     public function getInitiales(): ?string
     {
         return $this->initiales;

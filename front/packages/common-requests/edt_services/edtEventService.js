@@ -54,8 +54,6 @@ const getSemestreEdtWeekEventsService = async (semaine, semestre, anneeUniv, dep
             departement: departement,
         };
 
-        console.log(params);
-
         const response = await apiCall(
             api.get,
             [`/api/edt_events`, {params}],

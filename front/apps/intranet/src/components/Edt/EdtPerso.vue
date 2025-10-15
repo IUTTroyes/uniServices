@@ -3,6 +3,7 @@ import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 
 import {onMounted, ref, watch, nextTick} from 'vue'
+import EdtEvent from './EdtEvent.vue'
 import {getPersonnelEdtWeekEventsService, getSemaineUniversitaireService} from "@requests";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import {getISOWeekNumber} from "@helpers/date";
@@ -43,7 +44,6 @@ const getWeekUnivNumber = async (date) => {
   }
 };
 
-// Ajout d'une fonction pour détecter les chevauchements
 function detectOverlap(event, allEvents) {
   return allEvents.some(e =>
       (event.start < e.end && event.end > e.start) &&
@@ -255,43 +255,7 @@ function getBadgeSeverity(type) {
     </template>
 
     <template #event="{ event }">
-      <div class="rounded-lg !h-full">
-        <div class="p-2 flex flex-col justify-between h-full gap-1">
-          <div>
-            <div class="title font-black">{{ event.title }}</div>
-            <div class="flex gap-1 items-center"><Badge class="!text-black" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">{{ event.type }}</Badge>{{event.semestre.libelle}} | {{ event.groupe.libelle }}</div>
-            <div>{{ event.location }}</div>
-          </div>
-          <div v-if="event.overlap" class="flex flex-col gap-2">
-            <div>{{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}</div>
-            <div class="flex gap-2">
-              <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
-              <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
-              <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
-            </div>
-          </div>
-          <div v-else class="flex justify-between items-center flex-wrap gap-2">
-            <div class="flex gap-2">
-              <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
-              <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
-              <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
-            </div>
-            <div class="flex flex-col items-center">
-              <Badge v-if="event.evaluation" severity="danger" class="uppercase">éval.</Badge>
-              <div class="opacity-60">{{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}</div>
-            </div>
-          </div>
-          <!--          <div>-->
-          <!--            {{ event.location }} | {{ event.type }} {{ event.groupe }} | <span class="opacity-70">-->
-          <!--            {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}-->
-          <!--          </span>-->
-          <!--          </div>-->
-          <!--          <div class="flex items-center gap-2">-->
-          <!--            <PhotoUser :user-photo="event.personnel.photoName" class="!w-8 border-2 border-black"/>-->
-          <!--            <div class="text-sm">{{ event.libPersonnel }}</div>-->
-          <!--          </div>-->
-        </div>
-      </div>
+      <EdtEvent :event="event" type="perso" />
     </template>
   </vue-cal>
 </template>

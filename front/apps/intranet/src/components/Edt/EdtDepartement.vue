@@ -1,8 +1,14 @@
 <script setup>
 import {VueCal} from 'vue-cal';
 import 'vue-cal/style';
-
-import {nextTick, onMounted, reactive, ref, watch} from 'vue';
+import {computed, nextTick, onMounted, reactive, ref, watch} from 'vue';
+import { useSemestreStore, useUsersStore } from '@stores';
+import { SimpleSkeleton } from '@components';
+import {getISOWeekNumber} from "@helpers/date";
+import EdtEvent from "./EdtEvent.vue";
+import {getSemestreEdtWeekEventsService, getSemaineUniversitaireService, getGroupesService} from "@requests";
+import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
+import { useToast } from 'primevue/usetoast';
 
 // Référence vers le composant vue-cal
 const vuecalRef = ref(null)
@@ -11,53 +17,6 @@ const viewTranslations = {
   day: 'JOUR',
   week: 'SEMAINE',
 };
-
-const schedules = ref( [
-  { id: 1, class: 'mom', label: 'Mom' },
-  { id: 2, class: 'dad', label: 'Dad', hide: false },
-  { id: 3, class: 'kid1', label: 'Kid 1' },
-  { id: 4, class: 'kid2', label: 'Kid 2' },
-  { id: 5, class: 'kid3', label: 'Kid 3' }
-]);
-
-const events = ref([
-  {
-    start: new Date(2025, 5, 5, 8, 0), // Juin (index 5)
-    end: new Date(2025, 5, 5, 11, 0),   // Juin (index 5)
-    title: 'Doctor appointment',
-    backgroundColor: 'rgba(255,204,204,0.5)',
-    location: 'H001',
-    schedule: 1
-  },
-  {
-    start: new Date(2025, 5, 5, 10, 0), // Juin (index 5)
-    end: new Date(2025, 5, 5, 11, 0),   // Juin (index 5)
-    title: 'Dentist appointment',
-    backgroundColor: 'rgba(255,204,204,0.5)',
-    location: 'H001',
-    schedule: 2
-  },
-  {
-    start: new Date(2025, 5, 5, 12, 0),
-    end: new Date(2025, 5, 5, 13, 30),
-    title: 'Cross-fit',
-    backgroundColor: 'rgba(255,204,204,0.5)',
-    location: 'H001',
-    schedule: 1
-  }
-])
-
-//---------------------------------
-//---------------------------------
-//---------------------------------
-//---------------------------------
-import { useSemestreStore, useUsersStore } from '@stores';
-import { SimpleSkeleton } from '@components';
-import {getISOWeekNumber} from "@helpers/date";
-import {getSemestreEdtWeekEventsService, getSemaineUniversitaireService} from "@requests";
-import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
-import { useToast } from 'primevue/usetoast';
-
 const toast = useToast();
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const usersStore = useUsersStore();
@@ -69,6 +28,9 @@ const hasError = ref(false);
 const personnel = usersStore.user;
 const departement = usersStore.departementDefaut;
 const weekUnivNumber = ref(0);
+const events = ref([]);
+const schedules = ref([]); // Pour les groupes de TP
+const isLoadingGroupes = ref(false);
 
 onMounted(async () => {
   await getSemestres();
@@ -91,20 +53,15 @@ const getSemestres = async () => {
     });
   } finally {
     isLoadingSemestres.value = false;
-    console.log('semestres', semestresList.value);
   }
 };
 
 watch(selectedSemestre, async (newValue) => {
-  schedules.value = (newValue.groupes || [])
-    .filter(groupe => groupe.type === 'TP')
-    .map(groupe => ({
-      id: groupe.id,
-      class: `groupe-${groupe.id}`,
-      label: groupe.libelle,
-    }));
-
-  getEventsDepartementWeek()
+  if (newValue) {
+    await getSemestreGroupes(newValue);
+    await getWeekUnivNumber(new Date(vuecalRef.value?.view?.start || new Date()));
+    await getEventsDepartementWeek()
+  }
 });
 
 watch(() => vuecalRef.value?.view?.start, async (newValue) => {
@@ -125,6 +82,40 @@ const getWeekUnivNumber = async (date) => {
   }
 };
 
+const getSemestreGroupes = async (semestre) => {
+  try {
+    isLoadingGroupes.value = true;
+    const params = {
+      semestre: semestre.id,
+      type: "TP",
+    };
+    const groupes = await getGroupesService(params);
+    schedules.value = groupes.map(groupe => ({
+      id: groupe.id,
+      label: groupe.libelle,
+      class: 'groupe',
+      color: groupe.couleur ? adjustColor(darkenColor(groupe.couleur, 50), 0, 0.2) : '#ccc',
+    }));
+  } catch (error) {
+    console.error('Erreur lors de la récupération des groupes :', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de charger les groupes. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+      life: 5000,
+    });
+  } finally {
+    isLoadingGroupes.value = false;
+  }
+}
+
+function detectOverlap(event, allEvents) {
+  return allEvents.some(e =>
+      (event.start < e.end && event.end > e.start) &&
+      event !== e
+  );
+}
+
 const getEventsDepartementWeek = async () => {
   if (!selectedSemestre.value) {
     console.warn('Aucun semestre sélectionné, la requête ne sera pas exécutée.');
@@ -133,24 +124,28 @@ const getEventsDepartementWeek = async () => {
 
   try {
     const response = await getSemestreEdtWeekEventsService(
-      weekUnivNumber.value,
-      selectedSemestre.value.id,
-      anneeUniv.id,
-      departement.id
+        weekUnivNumber.value,
+        selectedSemestre.value.id,
+        anneeUniv.id,
+        departement.id
     );
+
     if (response && response.length > 0) {
-      const mappedEvents = response.map(event => {
+      let mappedEvents = [];
+
+      response.forEach(event => {
         const startDate = new Date(event.debut);
         const endDate = new Date(event.fin);
 
-        return {
+        // Create the base event object
+        const baseEvent = {
           ...event,
           ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
           start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
           end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
           backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
           location: event.salle,
-          title: event.codeModule + ' - ' + event.libModule,
+          title: event.libModule,
           type: event.type,
           groupe: event.groupe || '**',
           personnel: event.personnel,
@@ -163,14 +158,56 @@ const getEventsDepartementWeek = async () => {
                 id: intervenant.id,
                 display: intervenant.personnel?.display || 'Inconnu',
                 photoName: intervenant.personnel?.photoName || null,
-              })),
+              }))
         };
+
+        // If the event is a CM, it should span across all columns
+        if (event.type === 'CM') {
+          console.log('CM event', event);
+          // For CM events, use the first available schedule (if schedules exist)
+          // We'll make it span across all columns with CSS later
+          mappedEvents.push({
+            ...baseEvent,
+            schedule: schedules.value.length > 0 ? schedules.value[0].id : event.groupe.id,
+            // Flag this as a CM event for styling
+            isCmEvent: true
+          });
+        }
+            // If the event is for a TD group with TP children, use the first TP child's schedule
+        // and set width to 200% later to make it span across columns
+        else if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
+          // Get all TP children
+          const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
+
+          if (tpChildren.length > 0 && event.type === 'TD') {
+            // Use only the first TP child's schedule - we'll make it span with CSS later
+            mappedEvents.push({
+              ...baseEvent,
+              schedule: tpChildren[0].id,
+              // Flag this as a TD event for styling
+              isTdEvent: true
+            });
+          } else {
+            // If no TP children, use the TD group's ID
+            mappedEvents.push({
+              ...baseEvent,
+              schedule: event.groupe.id
+            });
+          }
+        } else {
+          // For non-TD and non-CM events, use the group's ID directly
+          mappedEvents.push({
+            ...baseEvent,
+            schedule: event.groupe.id
+          });
+        }
       });
 
       events.value = mappedEvents.map(event => ({
         ...event,
         title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
         overlap: !!detectOverlap(event, mappedEvents),
+        class: event.type === 'TD' ? 'td-event-spanning' : (event.type === 'CM' ? 'cm-event-spanning' : ''),
       }));
     } else {
       events.value = [];
@@ -178,22 +215,25 @@ const getEventsDepartementWeek = async () => {
   } catch (error) {
     console.error('Error fetching events:', error);
   } finally {
+    console.log('Events:', events.value);
     await nextTick();
     const eventsObjects = document.querySelectorAll('.vuecal__event');
-    eventsObjects.forEach(event => {
-      if (event.style.backgroundColor) {
-        event.style.border = `2px solid ${adjustColor(darkenColor(event.style.backgroundColor, 50), 0, 0.2)}`;
-        event.style.borderTop = `6px solid ${adjustColor(darkenColor(event.style.backgroundColor, 60), 0, 0.2)}`;
-        event.style.overflow = 'auto';
-        event.style.scrollbarWidth = 'none';
-        event.style.cssText += '::-webkit-scrollbar { display: none; }';
-        event.style.opacity = 0.9;
+    eventsObjects.forEach(eventEl => {
+      if (eventEl.style.backgroundColor) {
+        eventEl.style.border = `2px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 50), 0, 0.2)}`;
+        eventEl.style.borderTop = `6px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 60), 0, 0.2)}`;
+        eventEl.style.overflow = 'auto';
+        eventEl.style.scrollbarWidth = 'none';
+        eventEl.style.cssText += '::-webkit-scrollbar { display: none; }';
+        eventEl.style.opacity = 0.9;
       }
     });
   }
-
-  console.log('events', events.value);
 };
+
+const cmEventWidth = computed(() => {
+  return `${schedules.value.length * 100}%`;
+});
 </script>
 
 <template>
@@ -221,7 +261,8 @@ const getEventsDepartementWeek = async () => {
       :theme="false"
       diy
       :events="events"
-      :schedules="schedules">
+      :schedules="schedules"
+      :style="{ '--cm-event-width': cmEventWidth }">
     <template #header="{ view, availableViews, vuecal }">
       <div class="p-6">
         <div class="flex justify-center items-center gap-12 mb-4">
@@ -269,22 +310,15 @@ const getEventsDepartementWeek = async () => {
     </template>
 
     <template #event="{ event }">
-      <div class="custom-event-content">
-        <div class="title font-bold">{{ event.title }}</div>
-        <div class="time">
-          {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}
-        </div>
-        <div v-if="event.location" class="location">
-          <i class="mdi mdi-map-marker"></i> {{ event.location }}
-        </div>
-      </div>
+      <!--      {{event.id}}-->
+      <EdtEvent :event="event" type="departement" />
     </template>
   </vue-cal>
 </template>
 
 <style scoped>
 :deep(.vuecal__event) {
-  @apply p-4 rounded-md text-sm;
+  @apply p-0 rounded-md text-sm;
 }
 :deep(.vuecal__body) {
   @apply gap-2;
@@ -297,19 +331,25 @@ const getEventsDepartementWeek = async () => {
   @apply flex justify-between items-center gap-2;
 }
 
-:deep(.vuecal--day-view .vuecal__scrollable-wrap .vuecal__scrollable .vuecal__time-column) {
+:deep(.vuecal__schedules-headings) {
+  @apply bg-gray-300 bg-opacity-20 rounded-md;
+}
+
+:deep(.vuecal--day-view .vuecal__scrollable-wrap .vuecal__scrollable) {
   @apply p-6;
 }
 
-.vuecal__schedule.dad {background-color: rgba(221, 238, 255, 0.5);}
-.vuecal__schedule.mom {background-color: rgba(255, 232, 251, 0.5);}
-.vuecal__schedule.kid1 {background-color: rgba(221, 255, 239, 0.5);}
-.vuecal__schedule.kid2 {background-color: rgba(255, 250, 196, 0.5);}
-.vuecal__schedule.kid3 {background-color: rgba(255, 206, 178, 0.5);}
-.vuecal__schedule--heading {color: rgba(0, 0, 0, 0.5);font-size: 26px;}
+/* Style for TD events that span across columns */
+:deep(.td-event-spanning) {
+  width: 200% !important; /* Make the event span across two columns */
+}
 
-.vuecal__event {color: #fff;border: 1px solid;}
-.vuecal__event.leisure {background-color: #fd9c42d9;border-color: #e9882e;}
-.vuecal__event.health {background-color: #57cea9cc;border-color: #90d2be;}
-.vuecal__event.sport {background-color: #ff6666d9;border-color: #eb5252;}
+/* Style for CM events that span across all columns */
+:deep(.cm-event-spanning) {
+  width: var(--cm-event-width) !important;
+}
+
+:deep(.vuecal__schedule) {
+  overflow: visible !important;
+}
 </style>
