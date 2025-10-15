@@ -4,6 +4,7 @@ namespace App\DataFixtures;
 
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Enum\StatutEnum;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -32,6 +33,7 @@ class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
         $personnel->setUsername('personnel')
             ->setMailUniv('personnel.user@univ-reims.fr')
             ->setPassword($password)
+            ->setStatut(StatutEnum::MCF)
             ->setRoles(["ROLE_PERMANENT", "ROLE_EDUSIGN", "ROLE_ASSISTANT"])
             ->setPrenom('John')
             ->setNom('DOE')

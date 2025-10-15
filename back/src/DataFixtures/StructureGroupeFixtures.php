@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Structure\StructureGroupe;
+use App\Enum\TypeGroupeEnum;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -23,14 +24,14 @@ class StructureGroupeFixtures extends Fixture implements OrderedFixtureInterface
         $groupe1 = new StructureGroupe();
         $groupe1->setLibelle('CM')
             ->setCodeApogee('MMICM')
-            ->setType('CM')
+            ->setType(TypeGroupeEnum::TYPE_GROUPE_CM)
             ->setOrdre(1)
             ;
 
         $groupe2 = new StructureGroupe();
         $groupe2->setLibelle('AB')
             ->setCodeApogee('MMITDAB')
-            ->setType('TD')
+            ->setType(TypeGroupeEnum::TYPE_GROUPE_TD)
             ->setOrdre(2)
             ->setParent($groupe1)
             ;
@@ -38,7 +39,7 @@ class StructureGroupeFixtures extends Fixture implements OrderedFixtureInterface
         $groupe3 = new StructureGroupe();
         $groupe3->setLibelle('CD')
             ->setCodeApogee('MMITDCD')
-            ->setType('TD')
+            ->setType(TypeGroupeEnum::TYPE_GROUPE_TD)
             ->setOrdre(3)
             ->setParent($groupe1)
             ;
@@ -46,7 +47,7 @@ class StructureGroupeFixtures extends Fixture implements OrderedFixtureInterface
         $groupe4 = new StructureGroupe();
         $groupe4->setLibelle('A')
             ->setCodeApogee('MMITPA')
-            ->setType('TP')
+            ->setType(TypeGroupeEnum::TYPE_GROUPE_TP)
             ->setOrdre(4)
             ->setParent($groupe2)
             ;
@@ -54,7 +55,7 @@ class StructureGroupeFixtures extends Fixture implements OrderedFixtureInterface
         $groupe5 = new StructureGroupe();
         $groupe5->setLibelle('B')
             ->setCodeApogee('MMITPB')
-            ->setType('TP')
+            ->setType(TypeGroupeEnum::TYPE_GROUPE_TP)
             ->setOrdre(5)
             ->setParent($groupe2)
             ;
@@ -62,7 +63,7 @@ class StructureGroupeFixtures extends Fixture implements OrderedFixtureInterface
         $groupe6 = new StructureGroupe();
         $groupe6->setLibelle('C')
             ->setCodeApogee('MMITPC')
-            ->setType('TP')
+            ->setType(TypeGroupeEnum::TYPE_GROUPE_TP)
             ->setOrdre(6)
             ->setParent($groupe2)
             ;
@@ -70,7 +71,7 @@ class StructureGroupeFixtures extends Fixture implements OrderedFixtureInterface
         $groupe7 = new StructureGroupe();
         $groupe7->setLibelle('D')
             ->setCodeApogee('MMITPD')
-            ->setType('TP')
+            ->setType(TypeGroupeEnum::TYPE_GROUPE_TP)
             ->setOrdre(7)
             ->setParent($groupe2)
             ;
