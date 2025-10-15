@@ -1,0 +1,57 @@
+services:
+  web:
+    image: mmi3docker/symfony-2024
+    container_name : uniservice-web
+    hostname: uniservice-web
+    restart: always
+    platform: linux/amd64
+    ports:
+      - 8819:80
+    depends_on:
+      - db
+    volumes:
+      - ./back:/var/www/uniservice
+      - ./apache.conf:/etc/apache2/sites-enabled/000-default.conf
+
+  db:
+    image: mariadb:10.8
+    container_name: uniservice-db
+    hostname: uniservice-db
+    restart: always
+
+    volumes:
+      - db-volume:/var/lib/mysql
+
+    environment:
+      MYSQL_ROOT_PASSWORD: PASSWORD
+      MYSQL_DATABASE: intranetV4
+      MYSQL_USER: symfony
+      MYSQL_PASSWORD: PASSWORD
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: uniservice-adminsql
+    hostname: uniservice-adminsql
+    restart: always
+    platform: linux/amd64
+    ports:
+      - 8080:80
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: PASSWORD
+      MYSQL_USER: symfony
+      MYSQL_PASSWORD: PASSWORD
+      MYSQL_DATABASE: intranetV4
+
+  maildev:
+    image: maildev/maildev
+    container_name: uniservice-mail
+    hostname: uniservice-mail
+    command: bin/maildev --web 1080 --smtp 1025 --hide-extensions STARTTLS
+    restart: always
+
+    ports:
+      - 1080:1080
+
+volumes:
+  db-volume:

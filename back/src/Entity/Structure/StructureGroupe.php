@@ -133,9 +133,11 @@ class StructureGroupe
         return $this->type;
     }
 
-    public function setType(TypeGroupeEnum $type): void
+    public function setType(TypeGroupeEnum $type): ?self
     {
         $this->type = $type;
+
+        return $this;
     }
 
     public function getParent(): ?self
