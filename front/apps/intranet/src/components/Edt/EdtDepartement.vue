@@ -161,20 +161,19 @@ const getEventsDepartementWeek = async () => {
               }))
         };
 
-        // If the event is for a TD group with TP children, create a copy for each TP child
-        if (event.groupe.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
+        // If the event is for a TD group with TP children, use the first TP child's schedule
+        // and set width to 200% later to make it span across columns
+        if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
           // Get all TP children
           const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
 
-          if (tpChildren.length > 0) {
-            // Create a copy of the event for each TP child
-            tpChildren.forEach(tpChild => {
-              mappedEvents.push({
-                ...baseEvent,
-                schedule: tpChild.id,
-                // Add a unique ID for each copy to avoid conflicts
-                id: `${event.id}-${tpChild.id}`
-              });
+          if (tpChildren.length > 0 && event.type === 'TD') {
+            // Use only the first TP child's schedule - we'll make it span with CSS later
+            mappedEvents.push({
+              ...baseEvent,
+              schedule: tpChildren[0].id,
+              // Flag this as a TD event for styling
+              isTdEvent: true
             });
           } else {
             // If no TP children, use the TD group's ID
@@ -206,14 +205,47 @@ const getEventsDepartementWeek = async () => {
     console.log('Events:', events.value);
     await nextTick();
     const eventsObjects = document.querySelectorAll('.vuecal__event');
-    eventsObjects.forEach(event => {
-      if (event.style.backgroundColor) {
-        event.style.border = `2px solid ${adjustColor(darkenColor(event.style.backgroundColor, 50), 0, 0.2)}`;
-        event.style.borderTop = `6px solid ${adjustColor(darkenColor(event.style.backgroundColor, 60), 0, 0.2)}`;
-        event.style.overflow = 'auto';
-        event.style.scrollbarWidth = 'none';
-        event.style.cssText += '::-webkit-scrollbar { display: none; }';
-        event.style.opacity = 0.9;
+    eventsObjects.forEach(eventEl => {
+      if (eventEl.style.backgroundColor) {
+        eventEl.style.border = `2px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 50), 0, 0.2)}`;
+        eventEl.style.borderTop = `6px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 60), 0, 0.2)}`;
+        eventEl.style.overflow = 'auto';
+        eventEl.style.scrollbarWidth = 'none';
+        eventEl.style.cssText += '::-webkit-scrollbar { display: none; }';
+        eventEl.style.opacity = 0.9;
+
+        // Get the event ID from the DOM element
+        const eventId = eventEl.getAttribute('data-event-id');
+
+        // Try to find the event by _eid first (vue-cal's internal ID)
+        let eventObj = events.value.find(e => e._eid === eventId);
+
+        // If not found by _eid, try to find by id (our own ID)
+        if (!eventObj) {
+          // Extract the original ID from the event element's content or attributes
+          const eventContent = eventEl.textContent;
+          // Look for events that match the content
+          eventObj = events.value.find(e =>
+              e.title && eventContent.includes(e.title) ||
+              e.codeModule && eventContent.includes(e.codeModule)
+          );
+        }
+
+        // Skip if no event object was found
+        if (!eventObj) {
+          console.log('No matching event found for this DOM element');
+          return;
+        }
+
+        // If this is a TD or CM event, set its width to 200%
+        if (eventObj.type === 'TD' || eventObj.type === 'CM') {
+          eventEl.classList.add('td-event-spanning');
+
+          // Debug if event 2943 is getting the class
+          if (eventObj.id === 2943) {
+            console.log('Adding td-event-spanning class to event 2943');
+          }
+        }
       }
     });
   }
@@ -325,15 +357,12 @@ const getEventsDepartementWeek = async () => {
   @apply p-6;
 }
 
-.vuecal__schedule.dad {background-color: rgba(221, 238, 255, 0.5);}
-.vuecal__schedule.mom {background-color: rgba(255, 232, 251, 0.5);}
-.vuecal__schedule.kid1 {background-color: rgba(221, 255, 239, 0.5);}
-.vuecal__schedule.kid2 {background-color: rgba(255, 250, 196, 0.5);}
-.vuecal__schedule.kid3 {background-color: rgba(255, 206, 178, 0.5);}
-.vuecal__schedule--heading {color: rgba(0, 0, 0, 0.5);font-size: 26px;}
+/* Style for TD events that span across columns */
+:deep(.td-event-spanning) {
+  width: 200% !important; /* Make the event span across two columns */
+}
 
-.vuecal__event {color: #fff;border: 1px solid;}
-.vuecal__event.leisure {background-color: #fd9c42d9;border-color: #e9882e;}
-.vuecal__event.health {background-color: #57cea9cc;border-color: #90d2be;}
-.vuecal__event.sport {background-color: #ff6666d9;border-color: #eb5252;}
+:deep(.vuecal__schedule) {
+  overflow: visible !important;
+}
 </style>
