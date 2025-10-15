@@ -4,8 +4,8 @@ import EdtPerso from "@/components/Edt/EdtPerso.vue";
 import EdtDepartement from "@/components/Edt/EdtDepartement.vue";
 
 const tabs = ref([
-  { title: 'Personnel', component: EdtPerso, value: '0' },
-  { title: 'Département', component: EdtDepartement, value: '1' },
+  { title: 'Personnel', component: markRaw(EdtPerso), value: '0' },
+  { title: 'Département', component: markRaw(EdtDepartement), value: '1' },
 ]);
 </script>
 

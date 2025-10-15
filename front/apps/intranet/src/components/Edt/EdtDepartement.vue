@@ -1,8 +1,14 @@
 <script setup>
 import {VueCal} from 'vue-cal';
 import 'vue-cal/style';
-
 import {nextTick, onMounted, reactive, ref, watch} from 'vue';
+import { useSemestreStore, useUsersStore } from '@stores';
+import { SimpleSkeleton } from '@components';
+import {getISOWeekNumber} from "@helpers/date";
+import EdtEvent from "./EdtEvent.vue";
+import {getSemestreEdtWeekEventsService, getSemaineUniversitaireService, getGroupesService} from "@requests";
+import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
+import { useToast } from 'primevue/usetoast';
 
 // Référence vers le composant vue-cal
 const vuecalRef = ref(null)
@@ -11,53 +17,6 @@ const viewTranslations = {
   day: 'JOUR',
   week: 'SEMAINE',
 };
-
-const schedules = ref( [
-  { id: 1, class: 'mom', label: 'Mom' },
-  { id: 2, class: 'dad', label: 'Dad', hide: false },
-  { id: 3, class: 'kid1', label: 'Kid 1' },
-  { id: 4, class: 'kid2', label: 'Kid 2' },
-  { id: 5, class: 'kid3', label: 'Kid 3' }
-]);
-
-const events = ref([
-  {
-    start: new Date(2025, 5, 5, 8, 0), // Juin (index 5)
-    end: new Date(2025, 5, 5, 11, 0),   // Juin (index 5)
-    title: 'Doctor appointment',
-    backgroundColor: 'rgba(255,204,204,0.5)',
-    location: 'H001',
-    schedule: 1
-  },
-  {
-    start: new Date(2025, 5, 5, 10, 0), // Juin (index 5)
-    end: new Date(2025, 5, 5, 11, 0),   // Juin (index 5)
-    title: 'Dentist appointment',
-    backgroundColor: 'rgba(255,204,204,0.5)',
-    location: 'H001',
-    schedule: 2
-  },
-  {
-    start: new Date(2025, 5, 5, 12, 0),
-    end: new Date(2025, 5, 5, 13, 30),
-    title: 'Cross-fit',
-    backgroundColor: 'rgba(255,204,204,0.5)',
-    location: 'H001',
-    schedule: 1
-  }
-])
-
-//---------------------------------
-//---------------------------------
-//---------------------------------
-//---------------------------------
-import { useSemestreStore, useUsersStore } from '@stores';
-import { SimpleSkeleton } from '@components';
-import {getISOWeekNumber} from "@helpers/date";
-import {getSemestreEdtWeekEventsService, getSemaineUniversitaireService} from "@requests";
-import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
-import { useToast } from 'primevue/usetoast';
-
 const toast = useToast();
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const usersStore = useUsersStore();
@@ -69,6 +28,9 @@ const hasError = ref(false);
 const personnel = usersStore.user;
 const departement = usersStore.departementDefaut;
 const weekUnivNumber = ref(0);
+const events = ref([]);
+const schedules = ref([]); // Pour les groupes de TP
+const isLoadingGroupes = ref(false);
 
 onMounted(async () => {
   await getSemestres();
@@ -91,20 +53,15 @@ const getSemestres = async () => {
     });
   } finally {
     isLoadingSemestres.value = false;
-    console.log('semestres', semestresList.value);
   }
 };
 
 watch(selectedSemestre, async (newValue) => {
-  schedules.value = (newValue.groupes || [])
-    .filter(groupe => groupe.type === 'TP')
-    .map(groupe => ({
-      id: groupe.id,
-      class: `groupe-${groupe.id}`,
-      label: groupe.libelle,
-    }));
-
-  getEventsDepartementWeek()
+  if (newValue) {
+    await getSemestreGroupes(newValue);
+    await getWeekUnivNumber(new Date(vuecalRef.value?.view?.start || new Date()));
+    await getEventsDepartementWeek()
+  }
 });
 
 watch(() => vuecalRef.value?.view?.start, async (newValue) => {
@@ -125,6 +82,40 @@ const getWeekUnivNumber = async (date) => {
   }
 };
 
+const getSemestreGroupes = async (semestre) => {
+  try {
+    isLoadingGroupes.value = true;
+    const params = {
+      semestre: semestre.id,
+      type: "TP",
+    };
+    const groupes = await getGroupesService(params);
+    schedules.value = groupes.map(groupe => ({
+      id: groupe.id,
+      label: groupe.libelle,
+      class: 'groupe',
+      color: groupe.couleur ? adjustColor(darkenColor(groupe.couleur, 50), 0, 0.2) : '#ccc',
+    }));
+  } catch (error) {
+    console.error('Erreur lors de la récupération des groupes :', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de charger les groupes. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+      life: 5000,
+    });
+  } finally {
+    isLoadingGroupes.value = false;
+  }
+}
+
+function detectOverlap(event, allEvents) {
+  return allEvents.some(e =>
+      (event.start < e.end && event.end > e.start) &&
+      event !== e
+  );
+}
+
 const getEventsDepartementWeek = async () => {
   if (!selectedSemestre.value) {
     console.warn('Aucun semestre sélectionné, la requête ne sera pas exécutée.');
@@ -133,24 +124,28 @@ const getEventsDepartementWeek = async () => {
 
   try {
     const response = await getSemestreEdtWeekEventsService(
-      weekUnivNumber.value,
-      selectedSemestre.value.id,
-      anneeUniv.id,
-      departement.id
+        weekUnivNumber.value,
+        selectedSemestre.value.id,
+        anneeUniv.id,
+        departement.id
     );
+
     if (response && response.length > 0) {
-      const mappedEvents = response.map(event => {
+      let mappedEvents = [];
+
+      response.forEach(event => {
         const startDate = new Date(event.debut);
         const endDate = new Date(event.fin);
 
-        return {
+        // Create the base event object
+        const baseEvent = {
           ...event,
           ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
           start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
           end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
           backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
           location: event.salle,
-          title: event.codeModule + ' - ' + event.libModule,
+          title: event.libModule,
           type: event.type,
           groupe: event.groupe || '**',
           personnel: event.personnel,
@@ -163,8 +158,38 @@ const getEventsDepartementWeek = async () => {
                 id: intervenant.id,
                 display: intervenant.personnel?.display || 'Inconnu',
                 photoName: intervenant.personnel?.photoName || null,
-              })),
+              }))
         };
+
+        // If the event is for a TD group with TP children, create a copy for each TP child
+        if (event.groupe.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
+          // Get all TP children
+          const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
+
+          if (tpChildren.length > 0) {
+            // Create a copy of the event for each TP child
+            tpChildren.forEach(tpChild => {
+              mappedEvents.push({
+                ...baseEvent,
+                schedule: tpChild.id,
+                // Add a unique ID for each copy to avoid conflicts
+                id: `${event.id}-${tpChild.id}`
+              });
+            });
+          } else {
+            // If no TP children, use the TD group's ID
+            mappedEvents.push({
+              ...baseEvent,
+              schedule: event.groupe.id
+            });
+          }
+        } else {
+          // For non-TD events, use the group's ID directly
+          mappedEvents.push({
+            ...baseEvent,
+            schedule: event.groupe.id
+          });
+        }
       });
 
       events.value = mappedEvents.map(event => ({
@@ -178,6 +203,7 @@ const getEventsDepartementWeek = async () => {
   } catch (error) {
     console.error('Error fetching events:', error);
   } finally {
+    console.log('Events:', events.value);
     await nextTick();
     const eventsObjects = document.querySelectorAll('.vuecal__event');
     eventsObjects.forEach(event => {
@@ -191,8 +217,6 @@ const getEventsDepartementWeek = async () => {
       }
     });
   }
-
-  console.log('events', events.value);
 };
 </script>
 
@@ -269,22 +293,14 @@ const getEventsDepartementWeek = async () => {
     </template>
 
     <template #event="{ event }">
-      <div class="custom-event-content">
-        <div class="title font-bold">{{ event.title }}</div>
-        <div class="time">
-          {{ event.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }} - {{ event.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }}
-        </div>
-        <div v-if="event.location" class="location">
-          <i class="mdi mdi-map-marker"></i> {{ event.location }}
-        </div>
-      </div>
+      <EdtEvent :event="event" type="departement" />
     </template>
   </vue-cal>
 </template>
 
 <style scoped>
 :deep(.vuecal__event) {
-  @apply p-4 rounded-md text-sm;
+  @apply p-0 rounded-md text-sm;
 }
 :deep(.vuecal__body) {
   @apply gap-2;
@@ -293,11 +309,19 @@ const getEventsDepartementWeek = async () => {
   @apply bg-gray-300 bg-opacity-20 py-4 rounded-md flex flex-col items-center uppercase;
 }
 
+:deep(.vuecal__headings) {
+  @apply h-fit;
+}
+
 :deep(.vuecal__weekdays-headings) {
   @apply flex justify-between items-center gap-2;
 }
 
-:deep(.vuecal--day-view .vuecal__scrollable-wrap .vuecal__scrollable .vuecal__time-column) {
+:deep(.vuecal__time-column) {
+  @apply pt-28;
+}
+
+:deep(.vuecal--day-view .vuecal__scrollable-wrap .vuecal__scrollable) {
   @apply p-6;
 }
 

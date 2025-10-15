@@ -5,7 +5,7 @@ const getGroupesSemestreService = async (semestre,showToast = false) => {
   try {
     return await apiCall(
         api.get,
-        [`/api/structure_groupes/semestre/${semestre}`],
+        [`/api/structure_groupes?semestre=${semestre}`],
         'Années universitaires récupérées avec succès',
         'Erreur lors de la récupération des années universitaires',
         showToast
@@ -15,6 +15,23 @@ const getGroupesSemestreService = async (semestre,showToast = false) => {
     throw error;
   }
 }
+
+const getGroupesService = async (params, scope = '', showToast = false) => {
+  try {
+    const response = await apiCall(
+        api.get,
+        [`/api${scope}/structure_groupes`, { params }],
+        'Groupes récupérés avec succès',
+        'Erreur lors de la récupération des groupes',
+        showToast
+    );
+    return response.member;
+  } catch (error) {
+    console.error('Erreur dans getAllAnneesUniversitairesService:', error);
+    throw error;
+  }
+}
+
 
 const getTypesGroupesService = async (showToast = false) => {
   try {
@@ -31,4 +48,4 @@ const getTypesGroupesService = async (showToast = false) => {
   }
 }
 
-export { getGroupesSemestreService };
+export { getGroupesSemestreService, getGroupesService };

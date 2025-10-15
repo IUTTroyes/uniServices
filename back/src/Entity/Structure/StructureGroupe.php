@@ -2,6 +2,7 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -14,6 +15,7 @@ use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Users\Etudiant;
 use App\Enum\TypeGroupeEnum;
+use App\Filter\GroupeFilter;
 use App\Repository\Structure\StructureGroupeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -21,17 +23,18 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureGroupeRepository::class)]
+#[ApiFilter(GroupeFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['diplome:read', 'diplome:read:full']]),
-        new GetCollection(normalizationContext: ['groups' => ['diplome:read']]),
-        new GetCollection(
-            uriTemplate: '/structure_groupes/semestre/{semestreId}',
-            controller: GroupesParSemestreController::class,
-            normalizationContext: ['groups' => ['semestre:read']],
-            read: false,
-            name: 'groupes_par_semestre'
-        ),
+        new GetCollection(normalizationContext: ['groups' => ['groupe:detail']]),
+//        new GetCollection(
+//            uriTemplate: '/structure_groupes/semestre/{semestreId}',
+//            controller: GroupesParSemestreController::class,
+//            normalizationContext: ['groups' => ['semestre:read']],
+//            read: false,
+//            name: 'groupes_par_semestre'
+//        ),
     ]
 )]
 class StructureGroupe
@@ -43,7 +46,7 @@ class StructureGroupe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['groupe:detail','groupe:light', 'scolarite:read'])]
+    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
@@ -51,12 +54,12 @@ class StructureGroupe
     private string $libelle;
 
     #[ORM\Column(length: 10, enumType: TypeGroupeEnum::class)]
-    #[Groups(['groupe:detail','groupe:light', 'scolarite:read'])]
+    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda'])]
     private TypeGroupeEnum $type;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
-    #[Groups(['groupe:detail','groupe:light'])]
+    #[Groups(['groupe:detail','groupe:light', 'edt_event:read:agenda'])]
     private ?self $parent = null;
 
     #[ORM\Column(nullable: true)]
@@ -67,7 +70,7 @@ class StructureGroupe
     private Collection $semestres;
 
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
-    #[Groups(['groupe:detail'])]
+    #[Groups(['groupe:detail', 'edt_event:read:agenda'])]
     private ?Collection $enfants;
 
     /**

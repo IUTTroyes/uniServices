@@ -501,21 +501,27 @@ FOREIGN_KEY_CHECKS=1');
             $groupe->setLibelle($groupeArray['libelle']);
             $groupe->setCodeApogee(substr($groupeArray['codeApogee'], 0, 25));
             $groupe->setOrdre($groupeArray['ordre']);
+            $groupe->setType(TypeGroupeEnum::TYPE_GROUPE_AUTRE); // Default type
             if (array_key_exists('typeGroupe', $groupeArray) && is_array($groupeArray['typeGroupe'])) {
-                    $type = $groupeArray['typeGroupe']['type'] ?? null;
-                    if ($type && defined('\App\Enum\TypeGroupeEnum::TYPE_GROUPE_' . strtoupper($type))) {
-                        $groupe->setType(constant('\App\Enum\TypeGroupeEnum::TYPE_GROUPE_' . strtoupper($type)));
-                    } else {
-                        $groupe->setType(\App\Enum\TypeGroupeEnum::TYPE_GROUPE_AUTRE);
+                $type = $groupeArray['typeGroupe']['type'] ?? null;
+                if ($type) {
+                    $typeUpper = strtoupper($type);
+                    if (str_contains($typeUpper, 'TP')) {
+                        $groupe->setType(TypeGroupeEnum::TYPE_GROUPE_TP);
+                    } elseif (str_contains($typeUpper, 'TD')) {
+                        $groupe->setType(TypeGroupeEnum::TYPE_GROUPE_TD);
+                    } elseif (str_contains($typeUpper, 'CM')) {
+                        $groupe->setType(TypeGroupeEnum::TYPE_GROUPE_CM);
+                    } elseif (defined('TypeGroupeEnum::TYPE_GROUPE_' . $typeUpper)) {
+                        $groupe->setType(constant('TypeGroupeEnum::TYPE_GROUPE_' . $typeUpper));
                     }
-                    foreach ($groupeArray['typeGroupe']['semestres'] as $semestre) {
-                        if (array_key_exists($semestre, $this->tSemestres)) {
-                            $groupe->addSemestre($this->tSemestres[$semestre]);
-                        }
-                    }
-                } else {
-                    $groupe->setType(\App\Enum\TypeGroupeEnum::TYPE_GROUPE_AUTRE);
                 }
+                foreach ($groupeArray['typeGroupe']['semestres'] as $semestre) {
+                    if (array_key_exists($semestre, $this->tSemestres)) {
+                        $groupe->addSemestre($this->tSemestres[$semestre]);
+                    }
+                }
+            }
             $groupe->setOldId($groupeArray['id']);
             $groupe->setKeyEduSign($groupeArray['edusign']);
             $groupe->setParent(null);
@@ -536,14 +542,27 @@ FOREIGN_KEY_CHECKS=1');
             $enfantGroupe->setCodeApogee(substr($enfant['codeApogee'], 0, 25));
             $enfantGroupe->setOrdre($enfant['ordre']);
             if (array_key_exists('typeGroupe', $enfant) && is_array($enfant['typeGroupe'])) {
+                $enfantGroupe->setType(TypeGroupeEnum::TYPE_GROUPE_AUTRE); // Default type
                 $type = $enfant['typeGroupe']['type'] ?? null;
-                if ($type && defined('\App\Enum\TypeGroupeEnum::TYPE_GROUPE_' . strtoupper($type))) {
-                    $enfantGroupe->setType(constant('\App\Enum\TypeGroupeEnum::TYPE_GROUPE_' . strtoupper($type)));
-                } else {
-                    $enfantGroupe->setType(\App\Enum\TypeGroupeEnum::TYPE_GROUPE_AUTRE);
+                if ($type) {
+                    $typeUpper = strtoupper($type);
+                    if (str_contains($typeUpper, 'TP')) {
+                        $enfantGroupe->setType(TypeGroupeEnum::TYPE_GROUPE_TP);
+                    } elseif (str_contains($typeUpper, 'TD')) {
+                        $enfantGroupe->setType(TypeGroupeEnum::TYPE_GROUPE_TD);
+                    } elseif (str_contains($typeUpper, 'CM')) {
+                        $enfantGroupe->setType(TypeGroupeEnum::TYPE_GROUPE_CM);
+                    } elseif (defined('TypeGroupeEnum::TYPE_GROUPE_' . $typeUpper)) {
+                        $enfantGroupe->setType(constant('TypeGroupeEnum::TYPE_GROUPE_' . $typeUpper));
+                    }
+                }
+                foreach ($enfant['typeGroupe']['semestres'] as $semestre) {
+                    if (array_key_exists($semestre, $this->tSemestres)) {
+                        $enfantGroupe->addSemestre($this->tSemestres[$semestre]);
+                    }
                 }
             } else {
-                $enfantGroupe->setType(\App\Enum\TypeGroupeEnum::TYPE_GROUPE_AUTRE);
+                $enfantGroupe->setType(TypeGroupeEnum::TYPE_GROUPE_AUTRE);
             }
             $enfantGroupe->setOldId($enfant['id']);
             $enfantGroupe->setKeyEduSign($enfant['edusign']);
