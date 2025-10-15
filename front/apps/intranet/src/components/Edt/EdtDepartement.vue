@@ -1,7 +1,7 @@
 <script setup>
 import {VueCal} from 'vue-cal';
 import 'vue-cal/style';
-import {nextTick, onMounted, reactive, ref, watch} from 'vue';
+import {computed, nextTick, onMounted, reactive, ref, watch} from 'vue';
 import { useSemestreStore, useUsersStore } from '@stores';
 import { SimpleSkeleton } from '@components';
 import {getISOWeekNumber} from "@helpers/date";
@@ -161,9 +161,21 @@ const getEventsDepartementWeek = async () => {
               }))
         };
 
-        // If the event is for a TD group with TP children, use the first TP child's schedule
+        // If the event is a CM, it should span across all columns
+        if (event.type === 'CM') {
+          console.log('CM event', event);
+          // For CM events, use the first available schedule (if schedules exist)
+          // We'll make it span across all columns with CSS later
+          mappedEvents.push({
+            ...baseEvent,
+            schedule: schedules.value.length > 0 ? schedules.value[0].id : event.groupe.id,
+            // Flag this as a CM event for styling
+            isCmEvent: true
+          });
+        }
+            // If the event is for a TD group with TP children, use the first TP child's schedule
         // and set width to 200% later to make it span across columns
-        if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
+        else if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
           // Get all TP children
           const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
 
@@ -183,7 +195,7 @@ const getEventsDepartementWeek = async () => {
             });
           }
         } else {
-          // For non-TD events, use the group's ID directly
+          // For non-TD and non-CM events, use the group's ID directly
           mappedEvents.push({
             ...baseEvent,
             schedule: event.groupe.id
@@ -195,6 +207,7 @@ const getEventsDepartementWeek = async () => {
         ...event,
         title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
         overlap: !!detectOverlap(event, mappedEvents),
+        class: event.type === 'TD' ? 'td-event-spanning' : (event.type === 'CM' ? 'cm-event-spanning' : ''),
       }));
     } else {
       events.value = [];
@@ -213,43 +226,14 @@ const getEventsDepartementWeek = async () => {
         eventEl.style.scrollbarWidth = 'none';
         eventEl.style.cssText += '::-webkit-scrollbar { display: none; }';
         eventEl.style.opacity = 0.9;
-
-        // Get the event ID from the DOM element
-        const eventId = eventEl.getAttribute('data-event-id');
-
-        // Try to find the event by _eid first (vue-cal's internal ID)
-        let eventObj = events.value.find(e => e._eid === eventId);
-
-        // If not found by _eid, try to find by id (our own ID)
-        if (!eventObj) {
-          // Extract the original ID from the event element's content or attributes
-          const eventContent = eventEl.textContent;
-          // Look for events that match the content
-          eventObj = events.value.find(e =>
-              e.title && eventContent.includes(e.title) ||
-              e.codeModule && eventContent.includes(e.codeModule)
-          );
-        }
-
-        // Skip if no event object was found
-        if (!eventObj) {
-          console.log('No matching event found for this DOM element');
-          return;
-        }
-
-        // If this is a TD or CM event, set its width to 200%
-        if (eventObj.type === 'TD' || eventObj.type === 'CM') {
-          eventEl.classList.add('td-event-spanning');
-
-          // Debug if event 2943 is getting the class
-          if (eventObj.id === 2943) {
-            console.log('Adding td-event-spanning class to event 2943');
-          }
-        }
       }
     });
   }
 };
+
+const cmEventWidth = computed(() => {
+  return `${schedules.value.length * 100}%`;
+});
 </script>
 
 <template>
@@ -277,7 +261,8 @@ const getEventsDepartementWeek = async () => {
       :theme="false"
       diy
       :events="events"
-      :schedules="schedules">
+      :schedules="schedules"
+      :style="{ '--cm-event-width': cmEventWidth }">
     <template #header="{ view, availableViews, vuecal }">
       <div class="p-6">
         <div class="flex justify-center items-center gap-12 mb-4">
@@ -325,6 +310,7 @@ const getEventsDepartementWeek = async () => {
     </template>
 
     <template #event="{ event }">
+      <!--      {{event.id}}-->
       <EdtEvent :event="event" type="departement" />
     </template>
   </vue-cal>
@@ -341,16 +327,12 @@ const getEventsDepartementWeek = async () => {
   @apply bg-gray-300 bg-opacity-20 py-4 rounded-md flex flex-col items-center uppercase;
 }
 
-:deep(.vuecal__headings) {
-  @apply h-fit;
-}
-
 :deep(.vuecal__weekdays-headings) {
   @apply flex justify-between items-center gap-2;
 }
 
-:deep(.vuecal__time-column) {
-  @apply pt-28;
+:deep(.vuecal__schedules-headings) {
+  @apply bg-gray-300 bg-opacity-20 rounded-md;
 }
 
 :deep(.vuecal--day-view .vuecal__scrollable-wrap .vuecal__scrollable) {
@@ -360,6 +342,11 @@ const getEventsDepartementWeek = async () => {
 /* Style for TD events that span across columns */
 :deep(.td-event-spanning) {
   width: 200% !important; /* Make the event span across two columns */
+}
+
+/* Style for CM events that span across all columns */
+:deep(.cm-event-spanning) {
+  width: var(--cm-event-width) !important;
 }
 
 :deep(.vuecal__schedule) {
