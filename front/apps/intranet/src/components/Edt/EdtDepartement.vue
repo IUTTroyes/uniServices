@@ -138,11 +138,12 @@ const getEventsDepartementWeek = async () => {
         // Définir la couleur en fonction du type de groupe
         let eventColor;
         switch (event.groupe.type) {
+            // couleurs comme dans Celcat
           case 'CM':
-            eventColor = '#FF5733'; // Rouge pour CM
+            eventColor = '#33C1FF'; // Bleu pour CM
             break;
           case 'TD':
-            eventColor = '#33C1FF'; // Bleu pour TD
+            eventColor = '#ffee33'; // Jaune pour TD
             break;
           case 'TP':
             eventColor = '#33FF57'; // Vert pour TP
@@ -160,7 +161,7 @@ const getEventsDepartementWeek = async () => {
           ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
           start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
           end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-          backgroundColor: adjustColor(colorNameToRgb(eventColor), 1, 0.2),
+          backgroundColor: adjustColor(colorNameToRgb(eventColor), 1, 0),
           location: event.salle,
           title: event.libModule,
           type: event.type,
