@@ -66,6 +66,19 @@ class EdtFilter extends AbstractFilter
                 ->andWhere('semestre.id = :semestre')
                 ->setParameter('semestre', $value);
         }
+
+        if ('groupes' === $property && is_array($value)) {
+            $queryBuilder
+                ->join(sprintf('%s.groupes', $alias), 'groupes')
+                ->andWhere('groupes.id IN (:groupes)')
+                ->setParameter('groupes', $value);
+        }
+
+        if ('groupe' === $property && is_array($value)) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.groupe IN (:groupe)', $alias))
+                ->setParameter('groupe', $value);
+        }
     }
 
     public function getDescription(string $resourceClass): array
@@ -111,6 +124,22 @@ class EdtFilter extends AbstractFilter
                     'description' => 'Filter by semester',
                 ],
             ],
+            'groupes' => [
+                'property' => 'groupes',
+                'type' => Type::BUILTIN_TYPE_ARRAY,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by groupes',
+                ],
+            ],
+            'groupe' => [
+                'property' => 'groupe',
+                'type' => Type::BUILTIN_TYPE_ARRAY,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by groupe',
+                ],
+            ]
         ];
     }
 }

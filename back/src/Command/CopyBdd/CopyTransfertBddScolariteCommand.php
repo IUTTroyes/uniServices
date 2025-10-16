@@ -93,9 +93,9 @@ FOREIGN_KEY_CHECKS=1');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant_scolarite_structure_annee');
         $this->entityManager->getConnection()->executeQuery('SET
 FOREIGN_KEY_CHECKS=1');
-//        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant_scolarite_structure_groupe');
-//        $this->entityManager->getConnection()->executeQuery('SET
-//FOREIGN_KEY_CHECKS=1');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant_scolarite_semestre_structure_groupe');
+        $this->entityManager->getConnection()->executeQuery('SET
+FOREIGN_KEY_CHECKS=1');
     }
 
     protected

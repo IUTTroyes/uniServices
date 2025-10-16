@@ -4,7 +4,7 @@ import 'vue-cal/style'
 
 import {onMounted, ref, watch, nextTick} from 'vue'
 import EdtEvent from './EdtEvent.vue'
-import {getPersonnelEdtWeekEventsService, getSemaineUniversitaireService} from "@requests";
+import {getEdtWeekEventsService, getSemaineUniversitaireService} from "@requests";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
@@ -53,7 +53,13 @@ function detectOverlap(event, allEvents) {
 
 const getEventsPersonnelWeek = async () => {
   try {
-    const response = await getPersonnelEdtWeekEventsService(weekUnivNumber.value, personnel.id, anneeUniv.id, departement.id);
+    const params = {
+      semaineFormation: weekUnivNumber.value,
+      personnel: personnel.id,
+      anneeUniversitaire: anneeUniv.id,
+      departement: departement.id,
+    };
+    const response = await getEdtWeekEventsService(params);
     if (response && response.length > 0) {
       const mappedEvents = response.map(event => {
         const startDate = new Date(event.debut);
@@ -110,10 +116,6 @@ const getEventsPersonnelWeek = async () => {
 
   console.log('events', events.value);
 };
-
-onMounted(() => {
-  getEventsPersonnelWeek();
-});
 
 const selectedEvent = ref(null)
 const visible = ref(false)
