@@ -151,6 +151,40 @@ const formattedDate = computed(() => {
       </div>
     </div>
   </div>
+
+  <!-- EdtEtudiant Event Template -->
+  <div v-else-if="type === 'etudiant'" class="rounded-lg !h-full">
+    <div class="p-2 flex flex-col justify-between h-full gap-1">
+      <div>
+        <div class="title font-black">{{ event.title }}</div>
+        <div class="flex gap-1 items-center">
+          <Badge class="!text-black" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">
+            {{ event.type }}
+          </Badge>
+<!--          {{ event.semestre?.libelle }} | -->
+          {{ event.groupe?.libelle }}
+        </div>
+        <div>{{ event.location }}</div>
+      </div>
+      <div v-if="event.overlap" class="flex flex-col gap-2">
+        <div>{{ formattedTime }}</div>
+        <div class="flex items-center gap-2 text-xs">
+          <PhotoUser :user-photo="event.intervenantPhoto" class="!w-6 border border-gray-400"/>
+          {{ event.personnel?.display || 'Inconnu' }}
+        </div>
+      </div>
+      <div v-else class="flex justify-between items-center flex-wrap gap-2">
+        <div class="flex items-center gap-2 text-xs">
+          <PhotoUser :user-photo="event.intervenantPhoto" class="!w-6 border border-gray-400" />
+          {{ event.personnel?.display || 'Inconnu' }}
+        </div>
+        <div class="flex flex-col items-center">
+          <Badge v-if="event.evaluation" severity="danger" class="uppercase">éval.</Badge>
+          <div class="opacity-60">{{ formattedTime }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>
