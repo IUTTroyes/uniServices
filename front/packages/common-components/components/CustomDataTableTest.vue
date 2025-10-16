@@ -1,9 +1,9 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { DataTable, Column, Button } from 'primevue'
-import ButtonInfo from '@components/components/ButtonInfo.vue'
-import ButtonEdit from '@components/components/ButtonEdit.vue'
-import ButtonDelete from '@components/components/ButtonDelete.vue'
+import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue'
+import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
+import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
 import { FilterMatchMode } from '@primevue/core/api'
 import api from '@helpers/axios.js'
 

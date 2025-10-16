@@ -13,6 +13,7 @@ import PhotoUser from '@components/components/PhotoUser.vue';
 import ProfilEtudiant from "@components/components/Etudiant/ProfilEtudiant.vue";
 import ProfilPersonnel from "@components/components/Personnel/ProfilPersonnel.vue";
 import PermissionGuard from "@components/components/Permission/PermissionGuard.vue";
+import MessageCard from "@components/components/Messages/MessageCard.vue";
 
 // Form validation components
 import FormValidator from './components/Forms/FormValidator.vue';
@@ -36,6 +37,7 @@ export {
   ProfilEtudiant,
   ProfilPersonnel,
   PermissionGuard,
+  MessageCard,
 
   // Form validation exports
   FormValidator,

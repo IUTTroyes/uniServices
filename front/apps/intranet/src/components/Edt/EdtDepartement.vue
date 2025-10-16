@@ -3,7 +3,7 @@ import {VueCal} from 'vue-cal';
 import 'vue-cal/style';
 import {computed, nextTick, onMounted, reactive, ref, watch} from 'vue';
 import { useSemestreStore, useUsersStore } from '@stores';
-import { SimpleSkeleton } from '@components';
+import { SimpleSkeleton, MessageCard } from '@components';
 import {getISOWeekNumber} from "@helpers/date";
 import EdtEvent from "./EdtEvent.vue";
 import {getSemestreEdtWeekEventsService, getSemaineUniversitaireService, getGroupesService} from "@requests";
@@ -262,7 +262,10 @@ const cmEventWidth = computed(() => {
       placeholder="Sélectionner un semestre"
       class="w-full"
   ></Select>
+  <MessageCard v-if="!selectedSemestre" class="mt-4" content="Veuillez sélectionner un semestre pour afficher l'emploi du temps.">
+  </MessageCard>
   <vue-cal
+      v-else
       ref="vuecalRef"
       locale="fr"
       hide-weekends
