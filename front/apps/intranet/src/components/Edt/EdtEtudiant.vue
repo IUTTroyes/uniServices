@@ -77,6 +77,22 @@ const getEventsEtudiantWeek = async () => {
     const response = await getEdtWeekEventsService(params);
     if (response && response.length > 0) {
       const mappedEvents = response.map(event => {
+        // Définir la couleur en fonction du type de groupe
+        let eventColor;
+        switch (event.groupe.type) {
+          case 'CM':
+            eventColor = '#FF5733'; // Rouge pour CM
+            break;
+          case 'TD':
+            eventColor = '#33C1FF'; // Bleu pour TD
+            break;
+          case 'TP':
+            eventColor = '#33FF57'; // Vert pour TP
+            break;
+          default:
+            eventColor = '#CCCCCC'; // Gris par défaut
+        }
+
         const startDate = new Date(event.debut);
         const endDate = new Date(event.fin);
 
@@ -85,7 +101,7 @@ const getEventsEtudiantWeek = async () => {
           ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
           start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
           end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-          backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
+          backgroundColor: adjustColor(colorNameToRgb(eventColor), 1, 0.2),
           location: event.salle,
           title: event.codeModule + ' - ' + event.libModule,
           type: event.type,
@@ -271,7 +287,7 @@ function getBadgeSeverity(type) {
     </template>
 
     <template #event="{ event }">
-      <EdtEvent :event="event" type="perso" />
+      <EdtEvent :event="event" type="etudiant" />
     </template>
   </vue-cal>
 </template>
