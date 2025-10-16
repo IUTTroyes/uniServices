@@ -21,30 +21,6 @@ const getPersonnelEdtEventsService = async (personnel, anneeUniv, departement, s
     }
 }
 
-const getPersonnelEdtWeekEventsService = async (semaine, personnel, anneeUniv, departement, showToast = false) => {
-    try {
-        const params = {
-            semaineFormation: semaine,
-            personnel: personnel,
-            anneeUniversitaire: anneeUniv,
-            departement: departement,
-        };
-
-        const response = await apiCall(
-            api.get,
-            [`/api/edt_events`, {params}],
-            'Événéments de l\'emploi du temps du personnel récupérés avec succès',
-            'Erreur lors de la récupération des événements de l\'emploi du temps du personnel',
-            showToast
-        );
-
-        return response.member;
-    } catch (error) {
-        console.error('Erreur dans getPersonnelEdtEventsService:', error);
-        throw error;
-    }
-}
-
 const getSemestreEdtWeekEventsService = async (semaine, semestre, anneeUniv, departement, showToast = false) => {
     try {
         const params = {
@@ -69,8 +45,21 @@ const getSemestreEdtWeekEventsService = async (semaine, semestre, anneeUniv, dep
     }
 }
 
-const getPersonnelDepartementWeekEdtService = async (departement, anneeUniv, limit, page, filters, showToast = false) => {
+const getEdtWeekEventsService = async (params, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api/edt_events`, { params }],
+            'Événéments de l\'emploi du temps du personnel récupérés avec succès',
+            'Erreur lors de la récupération des événements de l\'emploi du temps du personnel',
+            showToast
+        );
 
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getPersonnelEdtEventsService:', error);
+        throw error;
+    }
 }
 
-export { getPersonnelEdtEventsService, getPersonnelEdtWeekEventsService, getPersonnelDepartementWeekEdtService, getSemestreEdtWeekEventsService };
+export { getPersonnelEdtEventsService, getEdtWeekEventsService, getSemestreEdtWeekEventsService };

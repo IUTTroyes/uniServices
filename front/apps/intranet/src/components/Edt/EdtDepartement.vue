@@ -6,7 +6,7 @@ import { useSemestreStore, useUsersStore } from '@stores';
 import { SimpleSkeleton, MessageCard } from '@components';
 import {getISOWeekNumber} from "@helpers/date";
 import EdtEvent from "./EdtEvent.vue";
-import {getSemestreEdtWeekEventsService, getSemaineUniversitaireService, getGroupesService} from "@requests";
+import {getEdtWeekEventsService, getSemaineUniversitaireService, getGroupesService} from "@requests";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import { useToast } from 'primevue/usetoast';
 
@@ -123,12 +123,13 @@ const getEventsDepartementWeek = async () => {
   }
 
   try {
-    const response = await getSemestreEdtWeekEventsService(
-        weekUnivNumber.value,
-        selectedSemestre.value.id,
-        anneeUniv.id,
-        departement.id
-    );
+    const params = {
+      semaineFormation: weekUnivNumber.value,
+      semestre: selectedSemestre.value.id,
+      anneeUniversitaire: anneeUniv.id,
+      departement: departement.id
+    };
+    const response = await getEdtWeekEventsService(params);
 
     if (response && response.length > 0) {
       let mappedEvents = [];

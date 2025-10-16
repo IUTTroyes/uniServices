@@ -1,12 +1,28 @@
 <script setup>
-import { ref, markRaw } from 'vue';
-import EdtPerso from "@/components/Edt/EdtPerso.vue";
+import {ref, markRaw, onMounted} from 'vue';
+import EdtPersonnel from "@/components/Edt/EdtPersonnel.vue";
 import EdtDepartement from "@/components/Edt/EdtDepartement.vue";
+import EdtEtudiant from "../components/Edt/EdtEtudiant.vue";
+import {useUsersStore} from "@stores/user_stores/userStore.js";
 
-const tabs = ref([
-  { title: 'Personnel', component: markRaw(EdtPerso), value: '0' },
-  { title: 'Département', component: markRaw(EdtDepartement), value: '1' },
-]);
+const store = useUsersStore();
+
+const tabs = ref([]);
+
+onMounted( () => {
+  if (store.isPersonnel) {
+    tabs.value =[
+      { title: 'Personnel', component: markRaw(EdtPersonnel), value: '0' },
+      { title: 'Département', component: markRaw(EdtDepartement), value: '1' },
+    ];
+  }
+  if (store.isEtudiant) {
+    tabs.value =[
+      { title: 'Personnel', component: markRaw(EdtEtudiant), value: '0' },
+    ];
+  }
+});
+
 </script>
 
 <template>

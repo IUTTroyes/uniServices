@@ -37,7 +37,7 @@ declare module 'vue' {
     DocumentListItem: typeof import('./src/components/Documents/DocumentListItem.vue')['default']
     EdtDepartement: typeof import('./src/components/Edt/EdtDepartement.vue')['default']
     EdtJour: typeof import('./src/components/Edt/EdtJour.vue')['default']
-    EdtPerso: typeof import('./src/components/Edt/EdtPerso.vue')['default']
+    EdtPersonnel: typeof import('./src/components/Edt/EdtPersonnel.vue')['default']
     EtudiantAddApogee: typeof import('./src/components/Administration/etudiant/EtudiantAddApogee.vue')['default']
     EtudiantAddManuel: typeof import('./src/components/Administration/etudiant/EtudiantAddManuel.vue')['default']
     FicheMatiere: typeof import('./src/components/Pn/FicheMatiere.vue')['default']
