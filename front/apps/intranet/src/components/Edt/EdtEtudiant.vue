@@ -2,9 +2,9 @@
 import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 
-import {onMounted, ref, watch, nextTick} from 'vue'
+import {nextTick, ref, watch} from 'vue'
 import EdtEvent from './EdtEvent.vue'
-import {getEdtWeekEventsService, getSemaineUniversitaireService} from "@requests";
+import {getEdtWeekEventsService, getEtudiantScolaritesService, getSemaineUniversitaireService} from "@requests";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
@@ -12,8 +12,7 @@ import {PhotoUser} from "@components";
 
 // Importer le store des utilisateurs
 const usersStore = useUsersStore();
-const personnel = usersStore.user;
-const departement = usersStore.departementDefaut;
+const etudiant = usersStore.user;
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 
 // Référence vers le composant vue-cal
@@ -51,46 +50,67 @@ function detectOverlap(event, allEvents) {
   );
 }
 
+const getEtudiantGroupes = async () => {
+      const scol = await getEtudiantScolaritesService(etudiant.id, true);
+
+      if (scol && scol.length > 0) {
+        etudiant.scolarites = scol;
+        // Récupère tous les groupes de chaque scolariteSemestre de chaque scolarite
+        etudiant.groupes = scol.flatMap(s =>
+            (s.scolariteSemestre || []).flatMap(ss => ss.groupes || [])
+        );
+      } else {
+        etudiant.scolarites = [];
+        etudiant.groupes = [];
+      }
+    };
+
 const getEventsEtudiantWeek = async () => {
   try {
-    // const response = await getEtudiantEdtWeekEventsService(weekUnivNumber.value, anneeUniv.id);
-    // if (response && response.length > 0) {
-    //   const mappedEvents = response.map(event => {
-    //     const startDate = new Date(event.debut);
-    //     const endDate = new Date(event.fin);
-    //
-    //     return {
-    //       ...event,
-    //       ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
-    //       start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-    //       end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-    //       backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
-    //       location: event.salle,
-    //       title: event.codeModule + ' - ' + event.libModule,
-    //       type: event.type,
-    //       groupe: event.groupe || '**',
-    //       personnel: event.personnel,
-    //       intervenantPhoto: event.personnel.photoName ?? null,
-    //       overlap: false,
-    //       eval: event.evaluation,
-    //       intervenants: event.enseignement.previsionnels
-    //           .filter(intervenant => intervenant.personnel.id !== personnel.id)
-    //           .map(intervenant => ({
-    //             id: intervenant.id,
-    //             display: intervenant.personnel?.display || 'Inconnu',
-    //             photoName: intervenant.personnel?.photoName || null,
-    //           })),
-    //     };
-    //   });
-    //
-    //   events.value = mappedEvents.map(event => ({
-    //     ...event,
-    //     title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
-    //     overlap: !!detectOverlap(event, mappedEvents),
-    //   }));
-    // } else {
-    //   events.value = [];
-    // }
+    await getEtudiantGroupes();
+
+    const params = {
+      semaineFormation: weekUnivNumber.value,
+      anneeUniversitaire: anneeUniv.id,
+      groupe: etudiant.groupes.map(g => g.id),
+    }
+    const response = await getEdtWeekEventsService(params);
+    if (response && response.length > 0) {
+      const mappedEvents = response.map(event => {
+        const startDate = new Date(event.debut);
+        const endDate = new Date(event.fin);
+
+        return {
+          ...event,
+          ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
+          start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
+          end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
+          backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
+          location: event.salle,
+          title: event.codeModule + ' - ' + event.libModule,
+          type: event.type,
+          groupe: event.groupe || '**',
+          personnel: event.personnel,
+          intervenantPhoto: event.personnel.photoName ?? null,
+          overlap: false,
+          eval: event.evaluation,
+          intervenants: event.enseignement.previsionnels
+              .map(intervenant => ({
+                id: intervenant.id,
+                display: intervenant.personnel?.display || 'Inconnu',
+                photoName: intervenant.personnel?.photoName || null,
+              })),
+        };
+      });
+
+      events.value = mappedEvents.map(event => ({
+        ...event,
+        title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
+        overlap: !!detectOverlap(event, mappedEvents),
+      }));
+    } else {
+      events.value = [];
+    }
   } catch (error) {
     console.error('Error fetching events:', error);
   } finally {
@@ -110,10 +130,6 @@ const getEventsEtudiantWeek = async () => {
 
   console.log('events', events.value);
 };
-
-onMounted(() => {
-  getEventsEtudiantWeek();
-});
 
 const selectedEvent = ref(null)
 const visible = ref(false)

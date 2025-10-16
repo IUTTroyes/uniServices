@@ -117,10 +117,6 @@ const getEventsPersonnelWeek = async () => {
   console.log('events', events.value);
 };
 
-onMounted(() => {
-  getEventsPersonnelWeek();
-});
-
 const selectedEvent = ref(null)
 const visible = ref(false)
 
