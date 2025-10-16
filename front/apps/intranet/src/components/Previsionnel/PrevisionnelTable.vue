@@ -1,8 +1,8 @@
 <script setup>
 import { ref, reactive, toRefs } from 'vue';
-import ButtonDelete from "@components/components/ButtonDelete.vue";
-import ButtonDuplicate from "@components/components/ButtonDuplicate.vue";
-import ButtonSave from "@components/components/ButtonSave.vue";
+import ButtonDelete from "@components/components/Buttons/ButtonDelete.vue";
+import ButtonDuplicate from "@components/components/Buttons/ButtonDuplicate.vue";
+import ButtonSave from "@components/components/Buttons/ButtonSave.vue";
 import apiCall from '@helpers/apiCall.js'
 import debounce from '@helpers/debounce.js'
 import createApiService from '@requests/apiService'

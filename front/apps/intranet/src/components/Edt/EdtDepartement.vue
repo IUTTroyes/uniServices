@@ -3,7 +3,7 @@ import {VueCal} from 'vue-cal';
 import 'vue-cal/style';
 import {computed, nextTick, onMounted, reactive, ref, watch} from 'vue';
 import { useSemestreStore, useUsersStore } from '@stores';
-import { SimpleSkeleton } from '@components';
+import { SimpleSkeleton, MessageCard } from '@components';
 import {getISOWeekNumber} from "@helpers/date";
 import EdtEvent from "./EdtEvent.vue";
 import {getSemestreEdtWeekEventsService, getSemaineUniversitaireService, getGroupesService} from "@requests";
@@ -134,6 +134,22 @@ const getEventsDepartementWeek = async () => {
       let mappedEvents = [];
 
       response.forEach(event => {
+        // Définir la couleur en fonction du type de groupe
+        let eventColor;
+        switch (event.groupe.type) {
+          case 'CM':
+            eventColor = '#FF5733'; // Rouge pour CM
+            break;
+          case 'TD':
+            eventColor = '#33C1FF'; // Bleu pour TD
+            break;
+          case 'TP':
+            eventColor = '#33FF57'; // Vert pour TP
+            break;
+          default:
+            eventColor = '#CCCCCC'; // Gris par défaut
+        }
+
         const startDate = new Date(event.debut);
         const endDate = new Date(event.fin);
 
@@ -143,7 +159,7 @@ const getEventsDepartementWeek = async () => {
           ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
           start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
           end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-          backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
+          backgroundColor: adjustColor(colorNameToRgb(eventColor), 1, 0.2),
           location: event.salle,
           title: event.libModule,
           type: event.type,
@@ -246,7 +262,10 @@ const cmEventWidth = computed(() => {
       placeholder="Sélectionner un semestre"
       class="w-full"
   ></Select>
+  <MessageCard v-if="!selectedSemestre" class="mt-4" content="Veuillez sélectionner un semestre pour afficher l'emploi du temps.">
+  </MessageCard>
   <vue-cal
+      v-else
       ref="vuecalRef"
       locale="fr"
       hide-weekends
@@ -318,7 +337,7 @@ const cmEventWidth = computed(() => {
 
 <style scoped>
 :deep(.vuecal__event) {
-  @apply p-0 rounded-md text-sm;
+  @apply p-0 rounded-md text-sm text-black;
 }
 :deep(.vuecal__body) {
   @apply gap-2;

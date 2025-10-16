@@ -134,15 +134,15 @@ const formattedDate = computed(() => {
       </div>
       <div v-if="event.overlap" class="flex flex-col gap-2">
         <div>{{ formattedTime }}</div>
-        <div class="flex items-center gap-2">
-          <PhotoUser :user-photo="event.intervenantPhoto" class="!w-6 border border-gray-400" />
-          {{ event.personnel?.displayCourt || 'Inconnu' }}
+        <div class="flex items-center gap-2 text-xs">
+          <PhotoUser :user-photo="event.intervenantPhoto" class="!w-6 border border-gray-400"/>
+          {{ event.personnel?.display || 'Inconnu' }}
         </div>
       </div>
       <div v-else class="flex justify-between items-center flex-wrap gap-2">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 text-xs">
           <PhotoUser :user-photo="event.intervenantPhoto" class="!w-6 border border-gray-400" />
-          {{ event.personnel?.displayCourt || 'Inconnu' }}
+          {{ event.personnel?.display || 'Inconnu' }}
         </div>
         <div class="flex flex-col items-center">
           <Badge v-if="event.evaluation" severity="danger" class="uppercase">éval.</Badge>
