@@ -4,7 +4,8 @@ import 'vue-cal/style'
 
 import {onMounted, ref, watch, nextTick} from 'vue'
 import EdtEvent from './EdtEvent.vue'
-import {getEdtWeekEventsService, getSemaineUniversitaireService} from "@requests";
+import EdtListe from "./EdtListe.vue";
+import {getEdtEventsService, getSemaineUniversitaireService} from "@requests";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
@@ -15,6 +16,8 @@ const usersStore = useUsersStore();
 const personnel = usersStore.user;
 const departement = usersStore.departementDefaut;
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
+
+const liste = ref(false);
 
 // Référence vers le composant vue-cal
 const vuecalRef = ref(null)
@@ -59,7 +62,7 @@ const getEventsPersonnelWeek = async () => {
       anneeUniversitaire: anneeUniv.id,
       departement: departement.id,
     };
-    const response = await getEdtWeekEventsService(params);
+    const response = await getEdtEventsService(params);
     if (response && response.length > 0) {
       const mappedEvents = response.map(event => {
         const startDate = new Date(event.debut);
@@ -157,7 +160,7 @@ function getBadgeSeverity(type) {
           <strong>Semestre :</strong> {{ selectedEvent.semestre.libelle }}
         </div>
         <div>
-         <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}} étudiants)
+          <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}} étudiants)
         </div>
         <div>
           <strong>Salle :</strong> {{ selectedEvent.location }}
@@ -191,8 +194,16 @@ function getBadgeSeverity(type) {
       </div>
     </div>
   </Dialog>
+  <div class="flex justify-end">
+    <Button v-if="!liste" @click="liste = true">Vue liste</Button>
+    <Button v-else @click="liste = false">Vue calendrier</Button>
+  </div>
 
+  <div v-if="liste" class="flex flex-col gap-2">
+    <EdtListe :events="events"/>
+  </div>
   <vue-cal
+      v-else
       ref="vuecalRef"
       locale="fr"
       hide-weekends

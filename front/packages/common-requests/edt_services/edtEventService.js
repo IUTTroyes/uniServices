@@ -1,7 +1,7 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
-const getEdtWeekEventsService = async (params, showToast = false) => {
+const getEdtEventsService = async (params, showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
@@ -18,4 +18,4 @@ const getEdtWeekEventsService = async (params, showToast = false) => {
     }
 }
 
-export { getEdtWeekEventsService };
+export { getEdtEventsService };
