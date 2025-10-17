@@ -4,7 +4,7 @@ import 'vue-cal/style'
 
 import {nextTick, ref, watch} from 'vue'
 import EdtEvent from './EdtEvent.vue'
-import {getEdtWeekEventsService, getEtudiantScolaritesService, getSemaineUniversitaireService} from "@requests";
+import {getEdtEventsService, getEtudiantScolaritesService, getSemaineUniversitaireService} from "@requests";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
@@ -74,7 +74,7 @@ const getEventsEtudiantWeek = async () => {
       anneeUniversitaire: anneeUniv.id,
       groupe: etudiant.groupes.map(g => g.id),
     }
-    const response = await getEdtWeekEventsService(params);
+    const response = await getEdtEventsService(params);
     if (response && response.length > 0) {
       const mappedEvents = response.map(event => {
         // Définir la couleur en fonction du type de groupe

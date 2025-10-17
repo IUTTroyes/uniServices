@@ -6,7 +6,7 @@ import { useSemestreStore, useUsersStore } from '@stores';
 import { SimpleSkeleton, MessageCard } from '@components';
 import {getISOWeekNumber} from "@helpers/date";
 import EdtEvent from "./EdtEvent.vue";
-import {getEdtWeekEventsService, getSemaineUniversitaireService, getGroupesService} from "@requests";
+import {getEdtEventsService, getSemaineUniversitaireService, getGroupesService} from "@requests";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import { useToast } from 'primevue/usetoast';
 
@@ -129,7 +129,7 @@ const getEventsDepartementWeek = async () => {
       anneeUniversitaire: anneeUniv.id,
       departement: departement.id
     };
-    const response = await getEdtWeekEventsService(params);
+    const response = await getEdtEventsService(params);
 
     if (response && response.length > 0) {
       let mappedEvents = [];
@@ -349,11 +349,11 @@ const cmEventWidth = computed(() => {
 }
 
 :deep(.vuecal__weekdays-headings) {
-  @apply flex justify-between items-center gap-2;
+  @apply flex justify-between items-center gap-2 h-3/4;
 }
 
 :deep(.vuecal__schedules-headings) {
-  @apply bg-gray-300 bg-opacity-20 rounded-md;
+  @apply bg-white rounded-md border-b-2;
 }
 
 :deep(.vuecal--day-view .vuecal__scrollable-wrap .vuecal__scrollable) {
