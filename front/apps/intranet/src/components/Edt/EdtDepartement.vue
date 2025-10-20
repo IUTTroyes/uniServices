@@ -1,7 +1,7 @@
 <script setup>
 import {VueCal} from 'vue-cal';
 import 'vue-cal/style';
-import {computed, nextTick, onMounted, reactive, ref, watch} from 'vue';
+import {computed, nextTick, onMounted, ref, watch} from 'vue';
 import { useSemestreStore, useUsersStore } from '@stores';
 import {SimpleSkeleton, MessageCard, PhotoUser} from '@components';
 import {getISOWeekNumber} from "@helpers/date";
