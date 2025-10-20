@@ -54,7 +54,7 @@ const isToday = computed(() => {
       <div>
         <div class="title font-black">{{ event.title }}</div>
         <div class="flex gap-1 items-center">
-          <Badge class="!text-black" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">
+          <Badge :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">
             {{ event.type }}
           </Badge>
           {{ event.semestre?.libelle }} | {{ event.groupe?.libelle }}
@@ -113,14 +113,14 @@ const isToday = computed(() => {
   <div v-else-if="type === 'departement'" class="rounded-lg !h-full">
     <div class="p-2 flex flex-col justify-between h-full gap-1">
       <div>
-        <div class="flex justify-start items-start gap-1">
+        <div class="flex justify-between items-start gap-1">
           <div class="title font-black">{{ event.title }}</div>
           <div v-if="user.id === event.personnel.id">
-            <Badge severity="primary" class="mt-2">Vous</Badge>
+            <Badge severity="primary">Vous</Badge>
           </div>
         </div>
         <div class="flex gap-1 items-center">
-          <Badge class="!text-black" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">
+          <Badge :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 100), 0.1, 0) : '' }">
             {{ event.type }}
           </Badge>
           {{ event.groupe?.libelle }}

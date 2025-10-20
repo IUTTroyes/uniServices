@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { heuresMinutesDate } from "@helpers/date";
-import { computed } from "vue";
-import { adjustColor, darkenColor } from "@helpers/colors";
+import {heuresMinutesDate} from "@helpers/date";
+import {computed} from "vue";
+import {adjustColor, darkenColor} from "@helpers/colors";
+import {useUsersStore} from "@stores/user_stores/userStore";
 
 interface Event {
   debut: string;
@@ -10,11 +11,17 @@ interface Event {
   type: string;
   backgroundColor?: string;
   jour?: string;
+  jourDate?: Date;
 }
 
 const props = defineProps<{
   events: Event[];
+  type: string;
 }>();
+
+const userStore = useUsersStore();
+
+const user = computed(() => userStore.user);
 
 // Fonction pour regrouper les événements par jour
 const groupBy = (array: Event[], key: (item: Event) => string) => {
@@ -29,40 +36,91 @@ const groupBy = (array: Event[], key: (item: Event) => string) => {
 };
 
 const groupedEvents = computed<Record<string, Event[]>>(() => {
-  const eventsWithFormattedDates = props.events.map(event => ({
-    ...event,
-    debut: heuresMinutesDate(new Date(event.debut)),
-    fin: heuresMinutesDate(new Date(event.fin)),
-    jour: new Date(event.debut).toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-      year: "numeric"
-    })
-  }));
-  return groupBy(eventsWithFormattedDates, event => event.jour!);
+  const eventsWithFormattedDates = props.events.map(event => {
+    const debutDate = new Date(event.debut);
+    return {
+      ...event,
+      debut: heuresMinutesDate(debutDate),
+      fin: heuresMinutesDate(new Date(event.fin)),
+      jourDate: debutDate, // Store the original date for sorting
+      jour: debutDate.toLocaleDateString("fr-FR", {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+        year: "numeric"
+      })
+    };
+  });
+
+  // Group events by day
+  const grouped = groupBy(eventsWithFormattedDates, event => event.jour!);
+
+  // Convert to array, sort by date, and convert back to object
+  return Object.entries(grouped).map(([day, events]) => {
+        // Use the first event's date for sorting (all events in a group have the same day)
+        return {day, events, date: events[0].jourDate};
+      })
+      .sort((a, b) => a.date.getTime() - b.date.getTime())
+      .reduce((result, {day, events}) => {
+        result[day] = events;
+        return result;
+      }, {} as Record<string, Event[]>);
 });
+
+function getBadgeSeverity(type) {
+  const badgeMapping = {
+    ressource: 'primary',
+    sae: 'warn',
+    matiere: 'success',
+  };
+
+  return badgeMapping[type] || 'info'; // Valeur par défaut si le type est inconnu
+}
+
+const rowClass = (data) => {
+  if (props.type === 'personnel') {
+    return {};
+  }
+  if (props.type === 'departement') {
+    return [{ '!bg-primary-500 !bg-opacity-20': data.personnel.id === user.value.id }];
+  }
+};
 </script>
 
 <template>
   <div>
     <div class="flex flex-col gap-4">
       <div v-for="(events, day) in groupedEvents" :key="day">
-        <h2 class="text-lg font-bold">{{ day }}</h2>
-        <DataTable :value="events" class="w-full">
+        <div class="w-full flex justify-center bg-neutral-300 bg-opacity-20 p-4 text-lg font-bold">{{ day }}</div>
+        <DataTable :value="events" class="w-full" striped-rows :rowClass="rowClass">
           <Column field="debut" header="Début" :sortable="true" />
           <Column field="fin" header="Fin" :sortable="true" />
-          <Column field="title" header="Matière/Ressource/SAE" :sortable="true" />
+          <Column field="enseignement.type" header="Type d'enseignement" :sortable="true">
+            <template #body="slotProps">
+              <Badge :severity="getBadgeSeverity(slotProps.data.enseignement.type)" class="uppercase">
+                {{ slotProps.data.enseignement.type }}
+              </Badge>
+            </template>
+          </Column>
+          <Column field="title" header="Enseignement" :sortable="true" />
           <Column field="type" header="Type de groupe" :sortable="true">
             <template #body="slotProps">
-              <div class="rounded-md w-fit px-4 py-1 font-bold text-sm" :style="{ backgroundColor: slotProps.data.backgroundColor ? adjustColor(darkenColor(slotProps.data.backgroundColor, 60), 0, 0.2) : '' }">
+              <Badge class="rounded-md w-fit px-4 py-1 font-bold text-sm" :style="{ backgroundColor: slotProps.data.backgroundColor ? adjustColor(darkenColor(slotProps.data.backgroundColor, 60), 0, 0.2) : '' }">
                 {{ slotProps.data.type }}
-              </div>
+              </Badge>
             </template>
           </Column>
           <Column field="semestre.libelle" header="Semestre" :sortable="true" />
           <Column field="groupe.libelle" header="Groupe" :sortable="true" />
-
+          <Column field="salle" header="Salle" :sortable="true" />
+          <Column field="personnel.display" header="Enseignant.e" :sortable="true" />
+<!--          <Column field="personnel.id" header="" :sortable="true">-->
+<!--            <template #body="slotProps">-->
+<!--              <Badge v-if="user.id === slotProps.data.personnel.id" severity="success" class="!rounded-full w-7 !h-7" size="small">-->
+<!--                <i class="pi pi-check font-black" style="font-size: .8rem"></i>-->
+<!--              </Badge>-->
+<!--            </template>-->
+<!--          </Column>-->
         </DataTable>
       </div>
     </div>

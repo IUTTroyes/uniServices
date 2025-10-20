@@ -1,7 +1,7 @@
 <script setup>
 import {VueCal} from 'vue-cal';
 import 'vue-cal/style';
-import {computed, nextTick, onMounted, reactive, ref, watch} from 'vue';
+import {computed, nextTick, onMounted, ref, watch} from 'vue';
 import { useSemestreStore, useUsersStore } from '@stores';
 import {SimpleSkeleton, MessageCard, PhotoUser} from '@components';
 import {getISOWeekNumber} from "@helpers/date";
@@ -144,13 +144,13 @@ const getEventsDepartementWeek = async () => {
         switch (event.groupe.type) {
             // couleurs comme dans Celcat
           case 'CM':
-            eventColor = '#33C1FF'; // Bleu pour CM
+            eventColor = '#67cfff'; // Bleu pour CM
             break;
           case 'TD':
             eventColor = '#ffee33'; // Jaune pour TD
             break;
           case 'TP':
-            eventColor = '#33FF57'; // Vert pour TP
+            eventColor = '#7aff85'; // Vert pour TP
             break;
           default:
             eventColor = '#CCCCCC'; // Gris par défaut
@@ -165,7 +165,7 @@ const getEventsDepartementWeek = async () => {
           ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
           start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
           end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-          backgroundColor: adjustColor(colorNameToRgb(eventColor), 1, 0),
+          backgroundColor: adjustColor(colorNameToRgb(eventColor), 0.2, 0),
           location: event.salle,
           title: event.libModule,
           type: event.type,
@@ -275,9 +275,55 @@ function getBadgeSeverity(type) {
 
   return badgeMapping[type] || 'info'; // Valeur par défaut si le type est inconnu
 }
+
+// calculer le nombre total d'heures pour l'ensemble des événements affichés
+const totalHeures = computed(() => {
+  return events.value.reduce((total, event) => {
+    const start = new Date(event.start);
+    const end = new Date(event.end);
+    const duration = (end - start) / (1000 * 60 * 60); // durée en heures
+    return total + duration;
+  }, 0);
+});
+
+// calculer le nombre total d'heures par type "CM", "TD", "TP"
+const heuresParType = computed(() => {
+  const totals = {};
+  events.value.forEach(event => {
+    const start = new Date(event.start);
+    const end = new Date(event.end);
+    const duration = (end - start) / (1000 * 60 * 60); // durée en heures
+    totals[event.type] = (totals[event.type] || 0) + duration;
+  });
+  // Retourne un tableau d'objets { type, heures } (heures arrondies à 2 décimales)
+  return Object.keys(totals).map(type => ({
+    type,
+    heures: Math.round(totals[type] * 100) / 100
+  }));
+});
 </script>
 
 <template>
+
+  <div class="flex gap-4 w-full pb-6 overflow-x-auto">
+    <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+      <div>
+        Total heures
+      </div>
+      <div class="text-lg font-bold">
+        {{totalHeures}} h
+      </div>
+    </div>
+    <div v-for="heuresType in heuresParType" class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+      <div>
+        {{heuresType.type}}
+      </div>
+      <div class="text-lg font-bold">
+        {{heuresType.heures}} h
+      </div>
+    </div>
+  </div>
+
   <Dialog v-model:visible="visible" :header="selectedEvent?.title" class="!bg-gray-50 dark:!bg-gray-800 !border-2 !border-primary-500" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
     <div class="flex flex-col gap-2">
       <div>
@@ -385,7 +431,7 @@ function getBadgeSeverity(type) {
         </div>
 
         <div v-if="liste" class="flex flex-col gap-2 mb-12">
-          <EdtListe :events="events"/>
+          <EdtListe :events="events" type="departement"/>
         </div>
 
         <div v-if="view.id === 'day' && liste === true" class="flex justify-center items-center mb-4">

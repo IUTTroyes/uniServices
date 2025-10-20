@@ -2,7 +2,7 @@
 import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 
-import {onMounted, ref, watch, nextTick} from 'vue'
+import {ref, watch, nextTick, computed} from 'vue'
 import EdtEvent from './EdtEvent.vue'
 import EdtListe from "./EdtListe.vue";
 import {getEdtEventsService, getSemaineUniversitaireService} from "@requests";
@@ -138,9 +138,54 @@ function getBadgeSeverity(type) {
 
   return badgeMapping[type] || 'info'; // Valeur par défaut si le type est inconnu
 }
+
+// calculer le nombre total d'heures pour l'ensemble des événements affichés
+const totalHeures = computed(() => {
+  return events.value.reduce((total, event) => {
+    const start = new Date(event.start);
+    const end = new Date(event.end);
+    const duration = (end - start) / (1000 * 60 * 60); // durée en heures
+    return total + duration;
+  }, 0);
+});
+
+// calculer le nombre total d'heures par type "CM", "TD", "TP"
+const heuresParType = computed(() => {
+  const totals = {};
+  events.value.forEach(event => {
+    const start = new Date(event.start);
+    const end = new Date(event.end);
+    const duration = (end - start) / (1000 * 60 * 60); // durée en heures
+    totals[event.type] = (totals[event.type] || 0) + duration;
+  });
+  // Retourne un tableau d'objets { type, heures } (heures arrondies à 2 décimales)
+  return Object.keys(totals).map(type => ({
+    type,
+    heures: Math.round(totals[type] * 100) / 100
+  }));
+});
 </script>
 
 <template>
+
+  <div class="flex gap-4 w-full pb-6 overflow-x-auto">
+    <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+      <div>
+        Total heures
+      </div>
+      <div class="text-lg font-bold">
+        {{totalHeures}} h
+      </div>
+    </div>
+    <div v-for="heuresType in heuresParType" class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+      <div>
+        {{heuresType.type}}
+      </div>
+      <div class="text-lg font-bold">
+        {{heuresType.heures}} h
+      </div>
+    </div>
+  </div>
 
   <Dialog v-model:visible="visible" :header="selectedEvent?.title" class="!bg-gray-50 dark:!bg-gray-800 !border-2 !border-primary-500" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
     <div class="flex flex-col gap-2">
@@ -237,7 +282,7 @@ function getBadgeSeverity(type) {
         </div>
 
         <div v-if="liste" class="flex flex-col gap-2 mb-12">
-          <EdtListe :events="events"/>
+          <EdtListe :events="events" type="personnel"/>
         </div>
 
         <div v-if="view.id === 'day' && liste === true" class="flex justify-center items-center mb-4">
