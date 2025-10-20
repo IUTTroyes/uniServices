@@ -195,15 +195,11 @@ function getBadgeSeverity(type) {
     </div>
   </Dialog>
   <div class="flex justify-end">
-    <Button v-if="!liste" @click="liste = true">Vue liste</Button>
-    <Button v-else @click="liste = false">Vue calendrier</Button>
+    <Button v-if="!liste" @click="liste = true">Afficher la liste</Button>
+    <Button v-else @click="liste = false">Masquer la liste</Button>
   </div>
 
-  <div v-if="liste" class="flex flex-col gap-2">
-    <EdtListe :events="events"/>
-  </div>
   <vue-cal
-      v-else
       ref="vuecalRef"
       locale="fr"
       hide-weekends
@@ -259,6 +255,10 @@ function getBadgeSeverity(type) {
               severity="primary"
           >aujourd'hui</Button>
         </div>
+      </div>
+
+      <div v-if="liste" class="flex flex-col gap-2 mb-12">
+        <EdtListe :events="events"/>
       </div>
     </template>
 

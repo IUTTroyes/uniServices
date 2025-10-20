@@ -53,17 +53,16 @@ const groupedEvents = computed<Record<string, Event[]>>(() => {
           <Column field="debut" header="Début" :sortable="true" />
           <Column field="fin" header="Fin" :sortable="true" />
           <Column field="title" header="Matière/Ressource/SAE" :sortable="true" />
-          <Column
-              field="type"
-              header="Type de groupe"
-              :sortable="true"
-          >
+          <Column field="type" header="Type de groupe" :sortable="true">
             <template #body="slotProps">
               <div class="rounded-md w-fit px-4 py-1 font-bold text-sm" :style="{ backgroundColor: slotProps.data.backgroundColor ? adjustColor(darkenColor(slotProps.data.backgroundColor, 60), 0, 0.2) : '' }">
                 {{ slotProps.data.type }}
               </div>
             </template>
           </Column>
+          <Column field="semestre.libelle" header="Semestre" :sortable="true" />
+          <Column field="groupe.libelle" header="Groupe" :sortable="true" />
+
         </DataTable>
       </div>
     </div>
