@@ -54,7 +54,7 @@ const isToday = computed(() => {
       <div>
         <div class="title font-black">{{ event.title }}</div>
         <div class="flex gap-1 items-center">
-          <Badge class="!text-black" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">
+          <Badge :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">
             {{ event.type }}
           </Badge>
           {{ event.semestre?.libelle }} | {{ event.groupe?.libelle }}
@@ -120,7 +120,7 @@ const isToday = computed(() => {
           </div>
         </div>
         <div class="flex gap-1 items-center">
-          <Badge class="!text-black" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">
+          <Badge :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 100), 0.1, 0) : '' }">
             {{ event.type }}
           </Badge>
           {{ event.groupe?.libelle }}

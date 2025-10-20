@@ -237,7 +237,7 @@ function getBadgeSeverity(type) {
         </div>
 
         <div v-if="liste" class="flex flex-col gap-2 mb-12">
-          <EdtListe :events="events"/>
+          <EdtListe :events="events" type="personnel"/>
         </div>
 
         <div v-if="view.id === 'day' && liste === true" class="flex justify-center items-center mb-4">
