@@ -236,6 +236,17 @@ function getBadgeSeverity(type) {
           />
         </div>
 
+        <div v-if="liste" class="flex flex-col gap-2 mb-12">
+          <EdtListe :events="events"/>
+        </div>
+
+        <div v-if="view.id === 'day' && liste === true" class="flex justify-center items-center mb-4">
+          <div class="text-lg flex flex-col items-center bg-gray-300 bg-opacity-20 rounded-md px-4 py-2 w-full uppercase">
+            <div>{{ view.start.toLocaleDateString('fr-FR', { weekday: 'long' }) }}</div>
+            <div class="font-bold">{{ view.start.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }}</div>
+          </div>
+        </div>
+
         <div class="flex justify-between items-center">
           <div class="view-buttons flex gap-4">
             <Button
@@ -255,10 +266,6 @@ function getBadgeSeverity(type) {
               severity="primary"
           >aujourd'hui</Button>
         </div>
-      </div>
-
-      <div v-if="liste" class="flex flex-col gap-2 mb-12">
-        <EdtListe :events="events"/>
       </div>
     </template>
 
