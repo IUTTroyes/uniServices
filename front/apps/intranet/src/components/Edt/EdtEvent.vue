@@ -113,10 +113,10 @@ const isToday = computed(() => {
   <div v-else-if="type === 'departement'" class="rounded-lg !h-full">
     <div class="p-2 flex flex-col justify-between h-full gap-1">
       <div>
-        <div class="flex justify-start items-start gap-1">
+        <div class="flex justify-between items-start gap-1">
           <div class="title font-black">{{ event.title }}</div>
           <div v-if="user.id === event.personnel.id">
-            <Badge severity="primary" class="mt-2">Vous</Badge>
+            <Badge severity="primary">Vous</Badge>
           </div>
         </div>
         <div class="flex gap-1 items-center">
