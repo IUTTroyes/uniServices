@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import { adjustColor, darkenColor } from "@helpers/colors.js";
 import { PhotoUser } from "@components";
+import { useUsersStore } from "@stores/user_stores/userStore.js";
 
 const props = defineProps({
   event: {
@@ -15,9 +16,10 @@ const props = defineProps({
   }
 });
 
-// No longer needed as styles are applied directly to the vue-cal event elements
+const userStore = useUsersStore();
 
-// Computed property to format time
+const user = computed(() => userStore.user);
+
 const formattedTime = computed(() => {
   if (!props.event.start || !props.event.end) return '';
 
@@ -42,17 +44,6 @@ const isToday = computed(() => {
 
   const today = new Date();
   return today.toDateString() === eventDate.toDateString();
-});
-
-// Computed property to format date
-const formattedDate = computed(() => {
-  if (!props.event.start && !props.event.debut) return '';
-
-  const eventDate = props.event.start instanceof Date
-    ? props.event.start
-    : new Date(props.event.debut);
-
-  return eventDate.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 });
 </script>
 
@@ -122,15 +113,20 @@ const formattedDate = computed(() => {
   <div v-else-if="type === 'departement'" class="rounded-lg !h-full">
     <div class="p-2 flex flex-col justify-between h-full gap-1">
       <div>
-        <div class="title font-black">{{ event.title }}</div>
+        <div class="flex justify-start items-start gap-1">
+          <div class="title font-black">{{ event.title }}</div>
+          <div v-if="user.id === event.personnel.id">
+            <Badge severity="primary" class="mt-2">Vous</Badge>
+          </div>
+        </div>
         <div class="flex gap-1 items-center">
           <Badge class="!text-black" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">
             {{ event.type }}
           </Badge>
-<!--          {{ event.semestre?.libelle }} | -->
           {{ event.groupe?.libelle }}
+          |
+          <div>{{ event.location }}</div>
         </div>
-        <div>{{ event.location }}</div>
       </div>
       <div v-if="event.overlap" class="flex flex-col gap-2">
         <div>{{ formattedTime }}</div>
@@ -148,6 +144,12 @@ const formattedDate = computed(() => {
           <Badge v-if="event.evaluation" severity="danger" class="uppercase">éval.</Badge>
           <div class="opacity-60">{{ formattedTime }}</div>
         </div>
+      </div>
+
+      <div v-if="user.id === event.personnel.id" class="flex gap-2">
+        <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
+        <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
+        <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
       </div>
     </div>
   </div>
