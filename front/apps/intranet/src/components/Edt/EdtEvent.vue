@@ -54,7 +54,7 @@ const isToday = computed(() => {
       <div>
         <div class="title font-black">{{ event.title }}</div>
         <div class="flex gap-1 items-center">
-          <Badge :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">
+          <Badge :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.typeColor, 60), 0, 0.2) : '' }" class="!text-white">
             {{ event.type }}
           </Badge>
           {{ event.semestre?.libelle }} | {{ event.groupe?.libelle }}
@@ -101,7 +101,7 @@ const isToday = computed(() => {
     <div class="flex flex-col justify-center p-4 gap-2">
       <div class="text-lg font-bold">{{ event.text }}</div>
       <div v-if="event.text !== 'Aucun cours'">
-        <div>{{ event.semestre }} | <span class="font-bold">{{ event.groupe }}</span></div>
+        <div>{{ event.semestre.libelle }} | <span class="font-bold">{{ event.groupe.libelle }}</span></div>
         <div class="text-lg font-bold">{{ event.salle }}</div>
       </div>
     </div>

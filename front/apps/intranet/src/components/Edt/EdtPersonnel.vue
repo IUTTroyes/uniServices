@@ -11,7 +11,6 @@ import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
 import {PhotoUser} from "@components";
 
-// Importer le store des utilisateurs
 const usersStore = useUsersStore();
 const personnel = usersStore.user;
 const departement = usersStore.departementDefaut;
@@ -65,6 +64,25 @@ const getEventsPersonnelWeek = async () => {
     const response = await getEdtEventsService(params);
     if (response && response.length > 0) {
       const mappedEvents = response.map(event => {
+        // Définir la couleur en fonction du type de groupe
+        let eventColor;
+        if (event.groupe) {
+          switch (event.groupe.type) {
+              // couleurs comme dans Celcat
+            case 'CM':
+              eventColor = adjustColor(colorNameToRgb(event.couleur), 0.1, 0.2);
+              break;
+            case 'TD':
+              eventColor = adjustColor(colorNameToRgb(event.couleur), 0.3, 0.2);
+              break;
+            case 'TP':
+              eventColor = adjustColor(colorNameToRgb(event.couleur), 0, 0.2);
+              break;
+            default:
+              eventColor = adjustColor(colorNameToRgb(event.couleur), 0.8, 0.2);
+          }
+        }
+
         const startDate = new Date(event.debut);
         const endDate = new Date(event.fin);
 
@@ -74,6 +92,7 @@ const getEventsPersonnelWeek = async () => {
           start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
           end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
           backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
+          typeColor: adjustColor(colorNameToRgb(eventColor), 0.2, 0),
           location: event.salle,
           title: event.codeModule + ' - ' + event.libModule,
           type: event.type,
@@ -116,8 +135,6 @@ const getEventsPersonnelWeek = async () => {
       }
     });
   }
-
-  console.log('events', events.value);
 };
 
 const selectedEvent = ref(null)
@@ -126,7 +143,6 @@ const visible = ref(false)
 const openDialog = ({ event }) => {
   selectedEvent.value = event
   visible.value = true
-  console.log('selected', selectedEvent.value)
 }
 
 function getBadgeSeverity(type) {
@@ -151,18 +167,34 @@ const totalHeures = computed(() => {
 
 // calculer le nombre total d'heures par type "CM", "TD", "TP"
 const heuresParType = computed(() => {
-  const totals = {};
+  // Initialiser les types de base pour qu'ils apparaissent même à 0
+  const totaux = { CM: 0, TD: 0, TP: 0 };
+
   events.value.forEach(event => {
     const start = new Date(event.start);
     const end = new Date(event.end);
     const duration = (end - start) / (1000 * 60 * 60); // durée en heures
-    totals[event.type] = (totals[event.type] || 0) + duration;
+    totaux[event.type] = (totaux[event.type] || 0) + duration;
   });
-  // Retourne un tableau d'objets { type, heures } (heures arrondies à 2 décimales)
-  return Object.keys(totals).map(type => ({
-    type,
-    heures: Math.round(totals[type] * 100) / 100
-  }));
+
+  // Conserver l'ordre CM, TD, TP, puis ajouter les autres types trouvés
+  const result = [];
+  ['CM', 'TD', 'TP'].forEach(type => {
+    result.push({
+      type,
+      heures: Math.round((totaux[type] || 0) * 100) / 100
+    });
+    delete totaux[type];
+  });
+
+  Object.keys(totaux).forEach(type => {
+    result.push({
+      type,
+      heures: Math.round(totaux[type] * 100) / 100
+    });
+  });
+
+  return result;
 });
 </script>
 
@@ -354,6 +386,6 @@ const heuresParType = computed(() => {
 }
 
 :deep(.vuecal__scrollable--day-view .vuecal__time-column) {
-  @apply p-0;
+  @apply p-0 ;
 }
 </style>

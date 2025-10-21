@@ -25,7 +25,8 @@ use Symfony\Component\Uid\UuidV4;
 #[ApiFilter(BooleanFilter::class, properties: ['aPlacer'])]
 #[ApiFilter(EdtFilter::class)]
 #[ApiResource(
-    paginationEnabled: false,
+    paginationEnabled: true,
+    paginationItemsPerPage: 500,
     operations: [
         new GetCollection(normalizationContext: ['groups' => ['edt_event:read:agenda']]),
     ]

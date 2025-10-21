@@ -79,6 +79,20 @@ class EdtFilter extends AbstractFilter
                 ->andWhere(sprintf('%s.groupe IN (:groupe)', $alias))
                 ->setParameter('groupe', $value);
         }
+
+        if ('day' === $property) {
+            $date = new \DateTime($value);
+            $date->setTime(0, 0, 0);
+            $nextDay = clone $date;
+            $nextDay->modify('+1 day');
+
+            $queryBuilder
+                ->andWhere(sprintf('%s.debut >= :day_start', $alias))
+                ->andWhere(sprintf('%s.debut < :day_end', $alias))
+                ->setParameter('day_start', $date)
+                ->setParameter('day_end', $nextDay);
+        }
+
     }
 
     public function getDescription(string $resourceClass): array
@@ -139,7 +153,15 @@ class EdtFilter extends AbstractFilter
                 'openapi' => [
                     'description' => 'Filter by groupe',
                 ],
-            ]
+            ],
+            'day' => [
+                'property' => 'day',
+                'type' => Type::BUILTIN_TYPE_STRING,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter events to only include events on the specified date (format: YYYY-MM-DD)',
+                ]
+            ],
         ];
     }
 }
