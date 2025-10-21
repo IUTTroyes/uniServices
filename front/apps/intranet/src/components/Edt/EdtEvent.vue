@@ -123,8 +123,8 @@ const isToday = computed(() => {
           <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
         </div>
       </div>
-      <Tag v-if="event.isFirst" value="Événement en cours" class="absolute right-2 bottom-2 !text-white !bg-black"/>
-      <Tag v-else-if="!event.isFirst" value="Prochain évènement" class="absolute right-2 bottom-2 !text-white !bg-black"/>
+      <Tag v-if="event.isFirst" value="Événement en cours" class="absolute right-2 bottom-2 !text-white" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.colorFocus, 60), 0, 0.2) : '' }"/>
+      <Tag v-else-if="!event.isFirst" value="Prochain évènement" class="absolute right-2 bottom-2 !text-black" :style="{ backgroundColor: event.colorFocus }"/>
     </div>
   </div>
 
