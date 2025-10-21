@@ -105,11 +105,25 @@ const getEvents = async (date = new Date()) => {
 };
 
 const sortEvents = () => {
-  const ongoingEvent = allEvents.value.find(isEventOngoing);
+  if (allEvents.value.length === 0) {
+    sortedEvents.value = [
+      {
+        text: "Aucun cours",
+        isFirst: true,
+        backgroundColor: "#f0f0f0",
+        colorFocus: "#d0d0d0",
+        dayoff: true,
+      }
+    ];
+    return;
+  }
 
-  if (ongoingEvent) {
-    // Si un événement est en cours, on le prend ainsi que le suivant
-    const nextEvent = allEvents.value.find(event => new Date(event.debut) > new Date(ongoingEvent.fin));
+  const ongoingEventIndex = allEvents.value.findIndex(isEventOngoing);
+
+  if (ongoingEventIndex !== -1) {
+    // Si un événement est en cours, on le prend ainsi que le suivant (s'il existe)
+    const ongoingEvent = allEvents.value[ongoingEventIndex];
+    const nextEvent = allEvents.value[ongoingEventIndex + 1];
     sortedEvents.value = [
       { ...ongoingEvent, isFirst: true },
       ...(nextEvent ? [{ ...nextEvent, isFirst: false }] : [])
@@ -123,6 +137,7 @@ const sortEvents = () => {
         isFirst: true,
         backgroundColor: "#f0f0f0",
         colorFocus: "#d0d0d0",
+        dayoff: false,
       },
       ...(nextEvent ? [{ ...nextEvent, isFirst: false }] : [])
     ];
