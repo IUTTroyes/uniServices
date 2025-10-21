@@ -84,29 +84,47 @@ const isToday = computed(() => {
   </div>
 
   <!-- EdtJour Event Template -->
-  <div v-else-if="type === 'jour'"
-       :class="['flex flex-row justify-between items-start rounded-lg h-full relative text-black',
-               {'border-4': event.isFirst && event.text !== 'Aucun cours'},
+  <div v-else-if="type === 'jour'" class="h-full min-h-32">
+    <div v-if="event.text === 'Aucun cours'" class="flex flex-row justify-start items-start rounded-xl h-full relative text-black text-color palm bg-neutral-400 bg-opacity-20">
+      <div class="flex flex-col justify-center p-4 gap-2">
+        <div class="text-lg font-bold">Aucun événement en cours</div>
+      </div>
+      <Tag v-if="event.isFirst" value="Événement en cours" class="absolute right-2 bottom-2 !text-white !bg-black"/>
+    </div>
+    <div v-else
+         :class="['flex flex-row justify-start items-start rounded-xl h-full relative text-black transition duration-200 ease-in-out border-4 !border-transparent hover:!border-4 hover:!border-primary-500 hover:transition hover:duration-200 hover:ease-in-out hover:cursor-pointer hover:shadow-md',
+               {'border-4': event.isFirst},
                {'text-color palm': event.text === 'Aucun cours'}]"
-       :style="{ borderColor: event.colorFocus, backgroundColor: event.color }">
-    <div v-if="event.text !== 'Aucun cours'" class="flex flex-col justify-center items-center p-4 rounded-l-md h-full" :style="{ backgroundColor: event.colorFocus }">
-      <div v-if="!isToday" class="text-sm font-bold flex flex-col items-center">
-        <span>{{ new Date(event.debut).toLocaleDateString('fr-FR', {weekday: 'long'}) }}</span>
-        <span>{{ new Date(event.debut).toLocaleDateString('fr-FR') }}</span>
+         :style="{ borderColor: event.colorFocus, backgroundColor: event.backgroundColor }">
+      <div class="flex flex-col justify-center items-center p-4 rounded-l-lg h-full" :style="{ backgroundColor: event.colorFocus }">
+        <div v-if="!isToday" class="text-sm font-bold flex flex-col items-center">
+          <span>{{ new Date(event.debut).toLocaleDateString('fr-FR', {weekday: 'long'}) }}</span>
+          <span>{{ new Date(event.debut).toLocaleDateString('fr-FR') }}</span>
+        </div>
+        <div v-else class="text-sm font-bold">Aujourd'hui</div>
+        <div class="text-xl font-black">{{ event.debut?.split('T')[1]?.slice(0, 5) }}</div>
+        <div class="text-xl font-black">{{ event.fin?.split('T')[1]?.slice(0, 5) }}</div>
       </div>
-      <div v-else class="text-sm font-bold">Aujourd'hui</div>
-      <div class="text-xl font-black">{{ event.debut?.split('T')[1]?.slice(0, 5) }}</div>
-      <div class="text-xl font-black">{{ event.fin?.split('T')[1]?.slice(0, 5) }}</div>
-    </div>
-    <div class="flex flex-col justify-center p-4 gap-2">
-      <div class="text-lg font-bold">{{ event.text }}</div>
-      <div v-if="event.text !== 'Aucun cours'">
-        <div>{{ event.semestre.libelle }} | <span class="font-bold">{{ event.groupe.libelle }}</span></div>
-        <div class="text-lg font-bold">{{ event.salle }}</div>
+      <div class="flex flex-col justify-center p-4 gap-2">
+        <div class="text-lg font-bold">{{ event.title || event.text }}</div>
+        <div class="flex gap-1 items-center">
+          <Badge :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.colorFocus, 60), 0, 0.2) : '' }" class="!text-white">
+            {{ event.type }}
+          </Badge>
+          {{ event.semestre?.libelle }} | {{ event.groupe?.libelle }}
+        </div>
+        <div>
+          {{ event.salle }}
+        </div>
+        <div class="flex gap-2">
+          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
+          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
+          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
+        </div>
       </div>
+      <Tag v-if="event.isFirst" value="Événement en cours" class="absolute right-2 bottom-2 !text-white !bg-black"/>
+      <Tag v-else-if="!event.isFirst" value="Prochain évènement" class="absolute right-2 bottom-2 !text-white !bg-black"/>
     </div>
-    <Tag v-if="event.isFirst" value="Événement en cours" class="absolute right-2 bottom-2 !text-white !bg-black"/>
-    <Tag v-else-if="!event.isFirst && event.text !== 'Aucun cours'" value="Prochain évènement" class="absolute right-2 bottom-2 !text-white !bg-black"/>
   </div>
 
   <!-- EdtDepartement Event Template -->
@@ -190,4 +208,10 @@ const isToday = computed(() => {
 </template>
 
 <style scoped>
+.palm {
+  background-image: url("@/assets/illu/palm.svg");
+  background-size: 50%;
+  background-repeat: no-repeat;
+  background-position: right;
+}
 </style>

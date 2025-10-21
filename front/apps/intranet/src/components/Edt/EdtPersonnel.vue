@@ -89,8 +89,8 @@ const getEventsPersonnelWeek = async () => {
         return {
           ...event,
           ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
-          start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-          end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
+          start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000),
+          end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000),
           backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
           typeColor: adjustColor(colorNameToRgb(eventColor), 0.2, 0),
           location: event.salle,

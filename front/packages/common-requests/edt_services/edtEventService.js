@@ -10,10 +10,7 @@ const getEdtEventsService = async (params, showToast = false) => {
             'Erreur lors de la récupération des événements de l\'emploi du temps du personnel',
             showToast
         );
-
-        console.log('API Response in service:', response);
-        // Handle both paginated and non-paginated responses
-        return response.member || response['hydra:member'];
+        return response.member;
     } catch (error) {
         console.error('Erreur dans getPersonnelEdtEventsService:', error);
         throw error;
