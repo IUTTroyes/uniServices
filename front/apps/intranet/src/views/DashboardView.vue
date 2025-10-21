@@ -7,6 +7,7 @@ import DashboardPersonnel from "@/components/Personnel/Dashboard.vue";
 import DashboardEtudiant from "@/components/Etudiant/Dashboard.vue";
 import EdtJour from "@/components/Edt/EdtJour.vue";
 import {CardSkeleton, ArticleSkeleton} from "@components";
+import {ErrorView} from "@components";
 
 const userStore = useUsersStore();
 const initiales = ref("");
@@ -16,6 +17,7 @@ const actuEvents = ref([]);
 const agendaEvents = ref([]);
 const isLoadingActu = ref(true);
 const isLoadingAgenda = ref(true);
+const hasErrorRss = ref(false);
 
 const userInitiales = computed(
     () => userStore.user?.prenom?.charAt(0) + userStore.user?.nom?.charAt(0) || ""
@@ -25,6 +27,7 @@ const getActualites = async () => {
   try {
     actuEvents.value = await getActualitesService();
   } catch (error) {
+    hasErrorRss.value = true;
     console.error("Error fetching actualites:", error);
   } finally {
     isLoadingActu.value = false;
@@ -35,6 +38,7 @@ const getAgenda = async () => {
   try {
     agendaEvents.value = await getAgendaService();
   } catch (error) {
+    hasErrorRss.value = true;
     console.error("Error fetching agenda:", error);
   } finally {
     isLoadingAgenda.value = false;
@@ -126,59 +130,62 @@ const redirectTo = (link) => {
         <div class="font-semibold text-xl">Agenda de l'IUT</div>
         <em>Les évènements à venir</em>
       </div>
-      <div class="card-content flex justify-between gap-10 mb-8">
-        <div v-if="isLoadingAgenda" class="flex justify-between w-full gap-10">
-          <ArticleSkeleton />
-          <ArticleSkeleton />
-          <ArticleSkeleton />
-          <ArticleSkeleton />
-        </div>
-        <div v-else v-for="(event, index) in agendaEvents" class="p-4 rounded-md flex-1 flex flex-col justify-between gap-2">
-          <div class="flex flex-col gap-2 items-start">
-            <div>
-              <div class="font-bold text-lg">
-                {{ event.title }}
-              </div>
-              <div class="text-sm text-muted-color">
-                {{ event.date }}
-              </div>
-            </div>
-            <div>
-              <p>
-                {{ event.content }}
-              </p>
-            </div>
+      <ErrorView v-if="hasErrorRss" />
+      <div v-else>
+        <div class="card-content flex justify-between gap-10 mb-8">
+          <div v-if="isLoadingAgenda" class="flex justify-between w-full gap-10">
+            <ArticleSkeleton />
+            <ArticleSkeleton />
+            <ArticleSkeleton />
+            <ArticleSkeleton />
           </div>
-          <Button class="bg-primary-light" label="En savoir plus" icon="pi pi-external-link" iconPos="right" @click="redirectTo(event.link)"/>
+          <div v-else v-for="(event, index) in agendaEvents" class="p-4 rounded-md flex-1 flex flex-col justify-between gap-2">
+            <div class="flex flex-col gap-2 items-start">
+              <div>
+                <div class="font-bold text-lg">
+                  {{ event.title }}
+                </div>
+                <div class="text-sm text-muted-color">
+                  {{ event.date }}
+                </div>
+              </div>
+              <div>
+                <p>
+                  {{ event.content }}
+                </p>
+              </div>
+            </div>
+            <Button class="bg-primary-light" label="En savoir plus" icon="pi pi-external-link" iconPos="right" @click="redirectTo(event.link)"/>
+          </div>
         </div>
-      </div>
 
-      <div class="card-title mb-4">
-        <div class="font-semibold text-xl">Actualités</div>
-        <em>Les évènements passés</em>
-      </div>
-      <div class="flex justify-between gap-10">
-        <div v-if="isLoadingActu" class="flex justify-between w-full gap-10">
-          <CardSkeleton />
-          <CardSkeleton />
-          <CardSkeleton />
-          <CardSkeleton />
+        <div class="card-title mb-4">
+          <div class="font-semibold text-xl">Actualités</div>
+          <em>Les évènements passés</em>
         </div>
-        <Card v-else v-for="(event, index) in actuEvents" :key="index" style="width: 25rem" class="card-actus flex flex-col justify-between overflow-hidden w-25">
-          <template #header>
-            <div class="h-32 w-full overflow-hidden flex items-center">
-              <img :alt="event.title" :src="event.image" />
-            </div>
-            <div class="text-lg font-bold px-5 pt-3">{{event.title}}</div>
-            <div class="text-sm px-5 text-muted-color">{{event.date}}</div>
-          </template>
-          <template #content>
-            <div class="flex flex-col justify-between gap-2">
-              <div>{{event.content}}</div>
-              <Button label="En savoir plus" icon="pi pi-external-link" iconPos="right" class="bg-primary-light" @click="redirectTo(event.link)"/>
-            </div>
-          </template>
-        </Card>
+        <div class="flex justify-between gap-10">
+          <div v-if="isLoadingActu" class="flex justify-between w-full gap-10">
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+            <CardSkeleton />
+          </div>
+          <Card v-else v-for="(event, index) in actuEvents" :key="index" style="width: 25rem" class="card-actus flex flex-col justify-between overflow-hidden w-25">
+            <template #header>
+              <div class="h-32 w-full overflow-hidden flex items-center">
+                <img :alt="event.title" :src="event.image" />
+              </div>
+              <div class="text-lg font-bold px-5 pt-3">{{event.title}}</div>
+              <div class="text-sm px-5 text-muted-color">{{event.date}}</div>
+            </template>
+            <template #content>
+              <div class="flex flex-col justify-between gap-2">
+                <div>{{event.content}}</div>
+                <Button label="En savoir plus" icon="pi pi-external-link" iconPos="right" class="bg-primary-light" @click="redirectTo(event.link)"/>
+              </div>
+            </template>
+          </Card>
+        </div>
       </div>
     </div>
 

@@ -10,7 +10,6 @@ const getEdtEventsService = async (params, showToast = false) => {
             'Erreur lors de la récupération des événements de l\'emploi du temps du personnel',
             showToast
         );
-
         return response.member;
     } catch (error) {
         console.error('Erreur dans getPersonnelEdtEventsService:', error);

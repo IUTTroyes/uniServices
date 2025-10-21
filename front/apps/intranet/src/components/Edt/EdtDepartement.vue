@@ -288,18 +288,34 @@ const totalHeures = computed(() => {
 
 // calculer le nombre total d'heures par type "CM", "TD", "TP"
 const heuresParType = computed(() => {
-  const totals = {};
+  // Initialiser les types de base pour qu'ils apparaissent même à 0
+  const totaux = { CM: 0, TD: 0, TP: 0 };
+
   events.value.forEach(event => {
     const start = new Date(event.start);
     const end = new Date(event.end);
     const duration = (end - start) / (1000 * 60 * 60); // durée en heures
-    totals[event.type] = (totals[event.type] || 0) + duration;
+    totaux[event.type] = (totaux[event.type] || 0) + duration;
   });
-  // Retourne un tableau d'objets { type, heures } (heures arrondies à 2 décimales)
-  return Object.keys(totals).map(type => ({
-    type,
-    heures: Math.round(totals[type] * 100) / 100
-  }));
+
+  // Conserver l'ordre CM, TD, TP, puis ajouter les autres types trouvés
+  const result = [];
+  ['CM', 'TD', 'TP'].forEach(type => {
+    result.push({
+      type,
+      heures: Math.round((totaux[type] || 0) * 100) / 100
+    });
+    delete totaux[type];
+  });
+
+  Object.keys(totaux).forEach(type => {
+    result.push({
+      type,
+      heures: Math.round(totaux[type] * 100) / 100
+    });
+  });
+
+  return result;
 });
 </script>
 

@@ -113,14 +113,16 @@ const rowClass = (data) => {
           <Column field="semestre.libelle" header="Semestre" :sortable="true" />
           <Column field="groupe.libelle" header="Groupe" :sortable="true" />
           <Column field="salle" header="Salle" :sortable="true" />
-          <Column field="personnel.display" header="Enseignant.e" :sortable="true" />
-<!--          <Column field="personnel.id" header="" :sortable="true">-->
-<!--            <template #body="slotProps">-->
-<!--              <Badge v-if="user.id === slotProps.data.personnel.id" severity="success" class="!rounded-full w-7 !h-7" size="small">-->
-<!--                <i class="pi pi-check font-black" style="font-size: .8rem"></i>-->
-<!--              </Badge>-->
-<!--            </template>-->
-<!--          </Column>-->
+          <Column v-if="props.type !== 'personnel'" field="personnel.display" header="Enseignant.e" :sortable="true" />
+          <Column v-if="props.type === 'personnel'" header="Actions" :sortable="false">
+            <template #body="slotProps">
+              <div class="flex gap-2">
+                <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
+                <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
+                <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
+              </div>
+            </template>
+          </Column>
         </DataTable>
       </div>
     </div>
