@@ -208,7 +208,6 @@ const getEventsDepartementWeek = async () => {
     await getWeekUnivNumber(new Date(vuecalRef.value?.view?.start || new Date()));
 
     if (!selectedSemestre.value && !selectedEnseignant.value && !selectedSalle.value && !selectedEnseignement.value) {
-      console.log('No events to fetch');
       events.value = [];
     } else {
       const params = {
@@ -246,7 +245,6 @@ const getEventsDepartementWeek = async () => {
           const startDate = new Date(event.debut);
           const endDate = new Date(event.fin);
 
-          console.log('event', event);
           const baseEvent = {
             ...event,
             ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
