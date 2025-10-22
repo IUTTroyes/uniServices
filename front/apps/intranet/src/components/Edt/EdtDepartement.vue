@@ -182,25 +182,21 @@ watch(selectedSemestre, async (newValue) => {
     await getSemestreGroupes(newValue);
   }
   await getEventsDepartementWeek()
-  isLoadingEvents.value = false;
 });
 
 watch(selectedEnseignant, async () => {
   isLoadingEvents.value = true;
   await getEventsDepartementWeek();
-  isLoadingEvents.value = false;
 });
 
 watch(selectedSalle, async () => {
   isLoadingEvents.value = true;
   await getEventsDepartementWeek();
-  isLoadingEvents.value = false;
 });
 
 watch(selectedEnseignement, async () => {
   isLoadingEvents.value = true;
   await getEventsDepartementWeek();
-  isLoadingEvents.value = false;
 });
 
 const getEventsDepartementWeek = async () => {
@@ -324,7 +320,6 @@ const getEventsDepartementWeek = async () => {
   } finally {
     //todo: trouver une meilleure solution pour styler les événements après le rendu de vue-cal (éviter le setTimeout)
     await nextTick();
-    isLoadingEvents.value = true;
     setTimeout( () => {
           const eventsObjects = document.querySelectorAll('.vuecal__event');
           eventsObjects.forEach(eventEl => {
