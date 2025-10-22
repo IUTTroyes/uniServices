@@ -55,10 +55,13 @@ const isLoadingGroupes = ref(false);
 const liste = ref(false);
 
 onMounted(async () => {
+  isLoadingEvents.value = true;
   await getSemestres();
   await getEnseignants();
   await getSalles();
   await getEnseignements();
+  await getEventsDepartementWeek();
+  isLoadingEvents.value = false;
 });
 
 const getEnseignants = async () => {
@@ -126,19 +129,6 @@ const getSemestres = async () => {
   }
 };
 
-watch(selectedSemestre, async (newValue) => {
-  isLoadingEvents.value = true;
-  await getEnseignants();
-  await getSalles();
-  await getEnseignements();
-  if (newValue) {
-    await getSemestreGroupes(newValue);
-  }
-  await getWeekUnivNumber(new Date(vuecalRef.value?.view?.start || new Date()));
-  await getEventsDepartementWeek()
-  isLoadingEvents.value = false;
-});
-
 watch(() => vuecalRef.value?.view?.start, async (newValue) => {
   if (newValue && selectedSemestre.value) {
     const startDate = new Date(newValue);
@@ -168,17 +158,9 @@ const getSemestreGroupes = async (semestre) => {
     schedules.value = groupes.map(groupe => ({
       id: groupe.id,
       label: groupe.libelle,
-      class: 'groupe',
-      color: groupe.couleur ? adjustColor(darkenColor(groupe.couleur, 50), 0, 0.2) : '#ccc',
     }));
   } catch (error) {
     console.error('Erreur lors de la récupération des groupes :', error);
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les groupes. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
-      life: 5000,
-    });
   } finally {
     isLoadingGroupes.value = false;
   }
@@ -190,6 +172,18 @@ function detectOverlap(event, allEvents) {
       event !== e
   );
 }
+
+watch(selectedSemestre, async (newValue) => {
+  isLoadingEvents.value = true;
+  await getEnseignants();
+  await getSalles();
+  await getEnseignements();
+  if (newValue) {
+    await getSemestreGroupes(newValue);
+  }
+  await getEventsDepartementWeek()
+  isLoadingEvents.value = false;
+});
 
 watch(selectedEnseignant, async () => {
   isLoadingEvents.value = true;
@@ -211,7 +205,10 @@ watch(selectedEnseignement, async () => {
 
 const getEventsDepartementWeek = async () => {
   try {
+    await getWeekUnivNumber(new Date(vuecalRef.value?.view?.start || new Date()));
+
     if (!selectedSemestre.value && !selectedEnseignant.value && !selectedSalle.value && !selectedEnseignement.value) {
+      console.log('No events to fetch');
       events.value = [];
     } else {
       const params = {
@@ -249,7 +246,7 @@ const getEventsDepartementWeek = async () => {
           const startDate = new Date(event.debut);
           const endDate = new Date(event.fin);
 
-          // Create the base event object
+          console.log('event', event);
           const baseEvent = {
             ...event,
             ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
@@ -257,7 +254,7 @@ const getEventsDepartementWeek = async () => {
             end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
             backgroundColor: adjustColor(colorNameToRgb(eventColor), 0.2, 0),
             location: event.salle,
-            title: event.libModule,
+            title: event.enseignement.codeEnseignement + ' - ' + event.libModule,
             type: event.type,
             groupe: event.groupe || '**',
             personnel: event.personnel,
@@ -327,18 +324,24 @@ const getEventsDepartementWeek = async () => {
   } catch (error) {
     console.error('Error fetching events:', error);
   } finally {
+    //todo: trouver une meilleure solution pour styler les événements après le rendu de vue-cal (éviter le setTimeout)
     await nextTick();
-    const eventsObjects = document.querySelectorAll('.vuecal__event');
-    eventsObjects.forEach(eventEl => {
-      if (eventEl.style.backgroundColor) {
-        eventEl.style.border = `2px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 50), 0, 0.2)}`;
-        eventEl.style.borderTop = `6px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 60), 0, 0.2)}`;
-        eventEl.style.overflow = 'auto';
-        eventEl.style.scrollbarWidth = 'none';
-        eventEl.style.cssText += '::-webkit-scrollbar { display: none; }';
-        eventEl.style.opacity = 0.9;
-      }
-    });
+    isLoadingEvents.value = true;
+    setTimeout( () => {
+          const eventsObjects = document.querySelectorAll('.vuecal__event');
+          eventsObjects.forEach(eventEl => {
+            if (eventEl.style.backgroundColor) {
+              eventEl.style.border = `2px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 50), 0, 0.2)}`;
+              eventEl.style.borderTop = `6px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 60), 0, 0.2)}`;
+              eventEl.style.overflow = 'auto';
+              eventEl.style.scrollbarWidth = 'none';
+              eventEl.style.cssText += '::-webkit-scrollbar { display: none; }';
+              eventEl.style.opacity = 0.9;
+            }
+          });
+          isLoadingEvents.value = false;
+        }, 500
+    )
   }
 };
 
@@ -408,207 +411,209 @@ const heuresParType = computed(() => {
 </script>
 
 <template>
-    <div class="flex gap-4 w-full pb-6 overflow-x-auto">
-      <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+  <div class="flex gap-4 w-full pb-6 overflow-x-auto">
+    <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+      <div>
+        Total heures
+      </div>
+      <div class="text-lg font-bold">
+        {{totalHeures}} h
+      </div>
+    </div>
+    <div v-for="heuresType in heuresParType" class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+      <div>
+        {{heuresType.type}}
+      </div>
+      <div class="text-lg font-bold">
+        {{heuresType.heures}} h
+      </div>
+    </div>
+  </div>
+
+  <Dialog v-model:visible="visible" :header="selectedEvent?.title" class="!bg-gray-50 dark:!bg-gray-800 !border-2 !border-primary-500" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+    <div class="flex flex-col gap-2">
+      <div>
+        {{selectedEvent.start.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}} •
+        {{selectedEvent.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}} -
+        {{selectedEvent.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}}
+      </div>
+      <div class="flex items-center gap-2">
+        <Badge v-if="selectedEvent.eval" severity="danger" class="uppercase">Évaluation</Badge>
+        <Badge :severity="getBadgeSeverity(selectedEvent.enseignement.type)" class="uppercase">
+          {{ selectedEvent.enseignement.type }}
+        </Badge>
+      </div>
+      <div class="flex flex-col gap-1">
         <div>
-          Total heures
+          <strong>Semestre :</strong> {{ selectedEvent.semestre.libelle }}
         </div>
-        <div class="text-lg font-bold">
-          {{totalHeures}} h
+        <div>
+          <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}} étudiants)
+        </div>
+        <div>
+          <strong>Salle :</strong> {{ selectedEvent.location }}
+        </div>
+        <div>
+          <strong>Intervenant :</strong>
+          <div class="flex items-center gap-2">
+            <PhotoUser :user-photo="selectedEvent.intervenantPhoto" class="!w-8 border-2 border-black" />
+            {{ selectedEvent.libPersonnel || 'Inconnu' }}
+          </div>
+        </div>
+        <Divider v-if="selectedEvent.intervenants && selectedEvent.intervenants.length > 0"></Divider>
+        <div v-if="selectedEvent.intervenants && selectedEvent.intervenants.length > 0" class="flex flex-col gap-2">
+          <strong>Autres intervenants sur la {{selectedEvent.enseignement.type}} :</strong>
+          <div class="flex flex-col gap-2">
+            <div v-for="intervenant in selectedEvent.intervenants" :key="intervenant.id" class="flex items-center gap-2">
+              <PhotoUser :user-photo="selectedEvent.intervenantPhoto" class="!w-8 border-2 border-black" />
+              {{ intervenant?.display || 'Inconnu' }}
+            </div>
+          </div>
         </div>
       </div>
-      <div v-for="heuresType in heuresParType" class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
-        <div>
-          {{heuresType.type}}
-        </div>
-        <div class="text-lg font-bold">
-          {{heuresType.heures}} h
+      <Divider></Divider>
+      <div class="flex w-full justify-end">
+        <div class="flex gap-2">
+          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
+          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
+          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
+          <Button v-if="selectedEvent.evaluation" icon="pi pi-file-edit" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Saisir les notes" size="small" v-tooltip.top="'Saisir les notes'"></Button>
         </div>
       </div>
     </div>
+  </Dialog>
 
-    <Dialog v-model:visible="visible" :header="selectedEvent?.title" class="!bg-gray-50 dark:!bg-gray-800 !border-2 !border-primary-500" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-      <div class="flex flex-col gap-2">
-        <div>
-          {{selectedEvent.start.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}} •
-          {{selectedEvent.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}} -
-          {{selectedEvent.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}}
-        </div>
-        <div class="flex items-center gap-2">
-          <Badge v-if="selectedEvent.eval" severity="danger" class="uppercase">Évaluation</Badge>
-          <Badge :severity="getBadgeSeverity(selectedEvent.enseignement.type)" class="uppercase">
-            {{ selectedEvent.enseignement.type }}
-          </Badge>
-        </div>
-        <div class="flex flex-col gap-1">
-          <div>
-            <strong>Semestre :</strong> {{ selectedEvent.semestre.libelle }}
-          </div>
-          <div>
-            <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}} étudiants)
-          </div>
-          <div>
-            <strong>Salle :</strong> {{ selectedEvent.location }}
-          </div>
-          <div>
-            <strong>Intervenant :</strong>
-            <div class="flex items-center gap-2">
-              <PhotoUser :user-photo="selectedEvent.intervenantPhoto" class="!w-8 border-2 border-black" />
-              {{ selectedEvent.libPersonnel || 'Inconnu' }}
-            </div>
-          </div>
-          <Divider v-if="selectedEvent.intervenants && selectedEvent.intervenants.length > 0"></Divider>
-          <div v-if="selectedEvent.intervenants && selectedEvent.intervenants.length > 0" class="flex flex-col gap-2">
-            <strong>Autres intervenants sur la {{selectedEvent.enseignement.type}} :</strong>
-            <div class="flex flex-col gap-2">
-              <div v-for="intervenant in selectedEvent.intervenants" :key="intervenant.id" class="flex items-center gap-2">
-                <PhotoUser :user-photo="selectedEvent.intervenantPhoto" class="!w-8 border-2 border-black" />
-                {{ intervenant?.display || 'Inconnu' }}
-              </div>
-            </div>
-          </div>
-        </div>
-        <Divider></Divider>
-        <div class="flex w-full justify-end">
-          <div class="flex gap-2">
-            <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
-            <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
-            <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
-            <Button v-if="selectedEvent.evaluation" icon="pi pi-file-edit" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Saisir les notes" size="small" v-tooltip.top="'Saisir les notes'"></Button>
-          </div>
-        </div>
-      </div>
-    </Dialog>
-
-    <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/3" />
+  <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/3" />
+  <Select
+      v-else
+      v-model="selectedSemestre"
+      :options="semestresList"
+      optionLabel="libelle"
+      placeholder="Sélectionner un semestre"
+      class="w-full my-6"
+      show-clear
+  ></Select>
+  <div class="flex justify-center items-center gap-4 mb-4">
+    <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>
     <Select
         v-else
-        v-model="selectedSemestre"
-        :options="semestresList"
-        optionLabel="libelle"
-        placeholder="Sélectionner un semestre"
+        v-model="selectedEnseignant"
+        :options="enseignantsList"
+        optionLabel="display"
+        placeholder="Filtrer par enseignant"
         class="w-full my-6"
         show-clear
+        filter
     ></Select>
-      <div class="flex justify-center items-center gap-4 mb-4">
-        <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>
-        <Select
-            v-else
-            v-model="selectedEnseignant"
-            :options="enseignantsList"
-            optionLabel="display"
-            placeholder="Filtrer par enseignant"
-            class="w-full my-6"
-            show-clear
-        ></Select>
-        <SimpleSkeleton v-if="isLoadingSalles" class="w-1/3"/>
-        <Select
-            v-else
-            v-model="selectedSalle"
-            :options="sallesList"
-            optionLabel="libelle"
-            placeholder="Filtrer par salle"
-            class="w-full my-6"
-            show-clear
-        ></Select>
-        <SimpleSkeleton v-if="isLoadingEnseignements" class="w-1/3"/>
-        <Select
-            v-else
-            v-model="selectedEnseignement"
-            :options="enseignementsList"
-            optionLabel="libelle"
-            placeholder="Filtrer par enseignement"
-            class="w-full my-6"
-            show-clear
-        ></Select>
-      </div>
-      <div class="flex justify-end">
-        <Button v-if="!liste" @click="liste = true">Afficher la liste</Button>
-        <Button v-else @click="liste = false">Masquer la liste</Button>
-      </div>
+    <SimpleSkeleton v-if="isLoadingSalles" class="w-1/3"/>
+    <Select
+        v-else
+        v-model="selectedSalle"
+        :options="sallesList"
+        optionLabel="libelle"
+        placeholder="Filtrer par salle"
+        class="w-full my-6"
+        show-clear
+        filter
+    ></Select>
+    <SimpleSkeleton v-if="isLoadingEnseignements" class="w-1/3"/>
+    <Select
+        v-else
+        v-model="selectedEnseignement"
+        :options="enseignementsList"
+        optionLabel="libelle"
+        placeholder="Filtrer par enseignement"
+        class="w-full my-6"
+        show-clear
+        filter
+    ></Select>
+  </div>
+  <div class="flex justify-end">
+    <Button v-if="!liste" @click="liste = true">Afficher la liste</Button>
+    <Button v-else @click="liste = false">Masquer la liste</Button>
+  </div>
 
-      <Loader v-if="isLoadingEvents"/>
-      <vue-cal
-          v-else
-          ref="vuecalRef"
-          locale="fr"
-          hide-weekends
-          time
-          :time-from="8 * 60"
-          :time-to="21 * 60"
-          :time-step="30"
-          week-numbers
-          stack-events
-          :views="['day', 'week']"
-          :default-view="'week'"
-          :theme="false"
-          diy
-          :events="events"
-          :schedules="selectedSemestre ? schedules : []"
-          :style="{ '--cm-event-width': cmEventWidth }"
-          @event-click="openDialog">
-        <template #header="{ view, availableViews, vuecal }">
-          <div class="p-6">
-            <div class="flex justify-center items-center gap-12 mb-4">
-              <Button
-                  icon="pi pi-chevron-circle-left"
-                  @click="view.previous"
-                  class="p-button-text"
-              />
-              <div class="flex flex-col items-center">
-                <span v-html="view.title" class="font-bold text-xl flex flex-col items-center"></span>
-                <span class="text-md text-muted-color">Semaine de formation : {{ weekUnivNumber }}</span>
-              </div>
-              <Button
-                  icon="pi pi-chevron-circle-right"
-                  @click="view.next"
-                  class="p-button-text"
-              />
-            </div>
-
-            <div v-if="liste" class="flex flex-col gap-2 mb-12">
-              <EdtListe :events="events" type="departement"/>
-            </div>
-
-            <div v-if="view.id === 'day' && liste === true" class="flex justify-center items-center mb-4">
-              <div class="text-lg flex flex-col items-center bg-gray-300 bg-opacity-20 rounded-md px-4 py-2 w-full uppercase">
-                <div>{{ view.start.toLocaleDateString('fr-FR', { weekday: 'long' }) }}</div>
-                <div class="font-bold">{{ view.start.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }}</div>
-              </div>
-            </div>
-
-            <div class="flex justify-between items-center">
-              <div class="view-buttons flex gap-4">
-                <Button
-                    v-for="(grid, viewId) in availableViews"
-                    :key="viewId"
-                    @click="vuecal.view.switch(viewId)"
-                    :class="{ 'p-button-primary': view.id === viewId, 'p-button-outlined': view.id !== viewId }"
-                    class="uppercase"
-                >
-                  {{ viewTranslations[viewId] || viewId }}
-                </Button>
-              </div>
-
-              <Button
-                  @click="view.goToToday()"
-                  class="uppercase p-button-outlined"
-                  severity="primary"
-              >aujourd'hui</Button>
-            </div>
+  <Loader v-if="isLoadingEvents"/>
+  <vue-cal
+      v-else
+      ref="vuecalRef"
+      locale="fr"
+      hide-weekends
+      time
+      :time-from="8 * 60"
+      :time-to="21 * 60"
+      :time-step="30"
+      week-numbers
+      stack-events
+      :views="['day', 'week']"
+      :default-view="'week'"
+      :theme="false"
+      diy
+      :events="events"
+      :schedules="selectedSemestre ? schedules : []"
+      :style="{ '--cm-event-width': cmEventWidth }"
+      @event-click="openDialog">
+    <template #header="{ view, availableViews, vuecal }">
+      <div class="p-6">
+        <div class="flex justify-center items-center gap-12 mb-4">
+          <Button
+              icon="pi pi-chevron-circle-left"
+              @click="view.previous"
+              class="p-button-text"
+          />
+          <div class="flex flex-col items-center">
+            <span v-html="view.title" class="font-bold text-xl flex flex-col items-center"></span>
+            <span class="text-md text-muted-color">Semaine de formation : {{ weekUnivNumber }}</span>
           </div>
-        </template>
+          <Button
+              icon="pi pi-chevron-circle-right"
+              @click="view.next"
+              class="p-button-text"
+          />
+        </div>
 
-        <template #weekday-heading="{ label, id, date }">
-          <div :class="id">{{ label }}</div>
-          <strong>{{ new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }}</strong>
-        </template>
+        <div v-if="liste" class="flex flex-col gap-2 mb-12">
+          <EdtListe :events="events" type="departement"/>
+        </div>
 
-        <template #event="{ event }">
-          <!--      {{event.id}}-->
-          <EdtEvent :event="event" type="departement" />
-        </template>
-      </vue-cal>
+        <div v-if="view.id === 'day' && liste === true" class="flex justify-center items-center mb-4">
+          <div class="text-lg flex flex-col items-center bg-gray-300 bg-opacity-20 rounded-md px-4 py-2 w-full uppercase">
+            <div>{{ view.start.toLocaleDateString('fr-FR', { weekday: 'long' }) }}</div>
+            <div class="font-bold">{{ view.start.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }}</div>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <div class="view-buttons flex gap-4">
+            <Button
+                v-for="(grid, viewId) in availableViews"
+                :key="viewId"
+                @click="vuecal.view.switch(viewId)"
+                :class="{ 'p-button-primary': view.id === viewId, 'p-button-outlined': view.id !== viewId }"
+                class="uppercase"
+            >
+              {{ viewTranslations[viewId] || viewId }}
+            </Button>
+          </div>
+
+          <Button
+              @click="view.goToToday()"
+              class="uppercase p-button-outlined"
+              severity="primary"
+          >aujourd'hui</Button>
+        </div>
+      </div>
+    </template>
+
+    <template #weekday-heading="{ label, id, date }">
+      <div :class="id">{{ label }}</div>
+      <strong>{{ new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }}</strong>
+    </template>
+
+    <template #event="{ event }">
+      <EdtEvent :event="event" type="departement" />
+    </template>
+  </vue-cal>
 </template>
 
 <style scoped>
