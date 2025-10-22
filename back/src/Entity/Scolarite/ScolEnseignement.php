@@ -25,6 +25,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: ScolEnseignementRepository::class)]
 #[ApiFilter(EnseignementFilter::class)]
 #[ApiResource(
+    paginationEnabled: false,
     operations: [
         new Get(normalizationContext: ['groups' => ['enseignement:detail', 'enseignement_ue:read']]),
         new GetCollection(normalizationContext: ['groups' => ['enseignement:detail']]),

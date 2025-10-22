@@ -1,14 +1,11 @@
 import api from '@helpers/axios';
-import createApiService from '@requests/apiService';
 import apiCall from '@helpers/apiCall';
 
-const personnelDepartementService = createApiService('/api/structure_departement_personnels');
-
-const getPersonnelsDepartementService = async (departementId, showToast = false) => {
+const getPersonnelsService = async (params, scope = '', showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api/structure_departement_personnels/by_departement/${departementId}`],
+            [`/api${scope}/personnels`, {params}],
             'Personnels récupérés avec succès',
             'Erreur lors de la récupération des personnels',
             showToast
@@ -22,4 +19,4 @@ const getPersonnelsDepartementService = async (departementId, showToast = false)
 
 // todo: méthode get Enseignants /= getPersonnels
 
-export { getPersonnelsDepartementService };
+export { getPersonnelsService };
