@@ -490,13 +490,6 @@ const heuresParType = computed(() => {
         class="w-full my-6"
         show-clear
     ></Select>
-    <div class="flex justify-end">
-      <Button v-if="!liste" @click="liste = true">Afficher la liste</Button>
-      <Button v-else @click="liste = false">Masquer la liste</Button>
-    </div>
-    <!--  <MessageCard v-if="!selectedSemestre" class="mt-4" content="Veuillez sélectionner un semestre pour afficher l'emploi du temps.">-->
-    <!--  </MessageCard>-->
-    <div>
       <div class="flex justify-center items-center gap-4 mb-4">
         <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>
         <Select
@@ -528,6 +521,10 @@ const heuresParType = computed(() => {
             class="w-full my-6"
             show-clear
         ></Select>
+      </div>
+      <div class="flex justify-end">
+        <Button v-if="!liste" @click="liste = true">Afficher la liste</Button>
+        <Button v-else @click="liste = false">Masquer la liste</Button>
       </div>
 
       <Loader v-if="isLoadingEvents"/>
@@ -612,7 +609,6 @@ const heuresParType = computed(() => {
           <EdtEvent :event="event" type="departement" />
         </template>
       </vue-cal>
-    </div>
 </template>
 
 <style scoped>
