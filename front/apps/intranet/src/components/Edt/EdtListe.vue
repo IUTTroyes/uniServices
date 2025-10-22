@@ -85,12 +85,19 @@ const rowClass = (data) => {
     return [{ '!bg-primary-500 !bg-opacity-20': data.personnel.id === user.value.id }];
   }
 };
+
+const todayString = new Date().toLocaleDateString("fr-FR", {
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+  year: "numeric"
+});
 </script>
 
 <template>
   <div>
     <div class="flex flex-col gap-4">
-      <div v-for="(events, day) in groupedEvents" :key="day">
+      <div v-for="(events, day) in groupedEvents" :key="day" :class="{ 'border-2 border-neutral-800 rounded-lg': day === todayString }">
         <div class="w-full flex justify-center bg-neutral-300 bg-opacity-20 p-4 text-lg font-bold">{{ day }}</div>
         <DataTable :value="events" class="w-full" striped-rows :rowClass="rowClass">
           <Column field="debut" header="Début" :sortable="true" />
