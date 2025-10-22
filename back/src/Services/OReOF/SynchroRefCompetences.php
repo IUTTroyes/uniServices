@@ -2,7 +2,9 @@
 
 namespace App\Services\OReOF;
 
+use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Apc\ApcCompetence;
+use App\Entity\Apc\ApcNiveau;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
@@ -73,6 +75,39 @@ class SynchroRefCompetences
             $comp->setNomCourt($competence['nom_court']);
             $comp->setLibelle($competence['libelle']);
             $comp->setCouleur($competence['couleur']);
+            $tabComposantes = [];
+            forEach ($competence['apcComposanteEssentielles'] as $composanteEssentielle) {
+                $tabComposantes[] = [
+                    'libelle' => $composanteEssentielle['libelle'],
+                    'code' => $composanteEssentielle['code'],
+                    'ordre' => $composanteEssentielle['ordre']];
+            }
+            $comp->setComposantesEssentielles($tabComposantes);
+            $tabSitPro = [];
+            foreach ($competence['apcSituationProfessionnelles'] as $situationProfessionnelle) {
+                $tabSitPro[] = [
+                    'libelle' => $situationProfessionnelle['libelle'],
+                ];
+            }
+            $comp->setSituationsProfessionnelles($tabSitPro);
+
+            foreach ($competence['apcNiveaux'] as $apcNiveau) {
+                $apcN = new ApcNiveau($comp);
+                $apcN->setLibelle($apcNiveau['libelle']);
+                $apcN->setOrdre($apcNiveau['ordre']);
+                //todo: gestion de l'année associée
+                foreach ($apcNiveau['apcApprentissageCritiques'] as $ac) {
+                    $apcAc = new ApcApprentissageCritique($apcN);
+                    $apcAc->setLibelle($ac['libelle']);
+                    $apcAc->setCode($ac['code']);
+                    $this->entityManager->persist($apcAc);
+                }
+
+                $this->entityManager->persist($apcN);
+            }
+            $this->entityManager->persist($comp);
         }
+
+        $this->entityManager->flush();
     }
 }

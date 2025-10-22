@@ -19,6 +19,7 @@ export const useAnneeUnivStore = defineStore('anneeUniv', () => {
   const getCurrentAnneeUniv = async () => {
     try {
         anneeUniv.value = await getCurrentAnneeUniversitaireService();
+        console.log('année store', anneeUniv.value)
     } catch (error) {
       console.error('Error fetching user:', error);
     }

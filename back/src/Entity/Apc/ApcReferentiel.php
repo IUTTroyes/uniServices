@@ -2,7 +2,11 @@
 
 namespace App\Entity\Apc;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
@@ -13,29 +17,41 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ApcReferentielRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['referentiel:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['referentiel:read']]),
+    ]
+)]
+#[ApiFilter(SearchFilter::class, properties: ['departement.id' => 'exact', 'departement.libelle' => 'partial'])]
 class ApcReferentiel
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['referentiel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['referentiel:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['referentiel:read'])]
     private ?string $description = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['referentiel:read'])]
     private ?int $anneePublication = null;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'referentiel')]
+    #[Groups(['referentiel:read'])]
     private Collection $diplomes;
 
     #[ORM\ManyToOne(inversedBy: 'referentiels')]
@@ -48,13 +64,13 @@ class ApcReferentiel
     private Collection $competences;
 
     #[ORM\ManyToOne(inversedBy: 'referentiels')]
-    private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
+    private ?StructureAnneeUniversitaire $anneeUniversitaire = null;//todo: a retirer plus pertinent ?
 
     /**
      * @var Collection<int, ApcParcours>
      */
     #[ORM\OneToMany(targetEntity: ApcParcours::class, mappedBy: 'referentiel')]
-    private Collection $parcours;
+    private Collection $parcours; //todo: a retirer plus pertinent, puisque diplome ? ?
 
     /**
      * @var Collection<int, StructurePn>

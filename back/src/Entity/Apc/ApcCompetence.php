@@ -19,28 +19,35 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['competence:read', 'competence:read:full']]),
-        new GetCollection(normalizationContext: ['groups' => ['competence:read', 'competence_ue:read']])
+        new GetCollection(normalizationContext: ['groups' => ['competence:read', 'competence_ue:read']]),
+        new GetCollection(
+            uriTemplate: '/apc_competences-referentiel',
+            filters: [CompetenceFilter::class],
+            normalizationContext: ['groups' => ['competence:referentiel:full']]
+        ),
     ]
 )]
 #[ApiFilter(CompetenceFilter::class)]
 class ApcCompetence
 {
-    use OldIdTrait; //a supprimer après transfert
+    use OldIdTrait; //todo: a supprimer après transfert
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['competence:referentiel:full'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['competence:referentiel:full'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'competence_ue:read'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'competence_ue:read', 'competence:referentiel:full'])]
     private ?string $nomCourt = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'competence_ue:read'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'competence_ue:read', 'competence:referentiel:full'])]
     private ?string $couleur = null;
 
     #[ORM\ManyToOne(inversedBy: 'competences')]
@@ -50,12 +57,15 @@ class ApcCompetence
      * @var Collection<int, ApcNiveau>
      */
     #[ORM\OneToMany(targetEntity: ApcNiveau::class, mappedBy: 'competence')]
+    #[Groups(['competence:referentiel:full'])]
     private Collection $niveaux;
 
     #[ORM\Column]
+    #[Groups(['competence:referentiel:full'])]
     private array $composantesEssentielles = [];
 
     #[ORM\Column]
+    #[Groups(['competence:referentiel:full'])]
     private array $situationsProfessionnelles = [];
 
     /**

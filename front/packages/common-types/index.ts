@@ -35,3 +35,16 @@ export interface PaginationInfo {
 }
 
 export type ViewMode = 'grid' | 'list';
+
+// API Platform JSON-LD entities
+export * from './entity/JsonLd';
+export * from './entity/_placeholders';
+export * from './entity/StructureDiplome';
+export * from './entity/ApcReferentiel';
+export * from './entity/ApcCompetence';
+export * from './entity/ApcNiveau';
+export * from './entity/ApcApprentissageCritique';
+export * from './entity/StructurePn';
+export * from './entity/ApcParcours';
+export * from './entity/StructureAnnee';
+export * from './entity/StructureUe';

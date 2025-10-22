@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Structure\StructureDiplome;
+use App\Entity\Structure\StructureTypeDiplome;
 use App\Repository\Structure\StructureDepartementRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
@@ -29,6 +30,15 @@ class StructureDiplomeFixtures extends Fixture implements OrderedFixtureInterfac
 
     public function load(ObjectManager $manager): void
     {
+
+        $typeDiplome = new StructureTypeDiplome();
+        $typeDiplome->setLibelle('Bachelor Universitaire de Technologie')
+            ->setSigle('BUT')
+            ->setApc(true);
+
+        $manager->persist($typeDiplome);
+
+
         $departement = $this->departementRepository->findOneBy(['libelle' => 'MMI']);
 
         $diplome1 = new StructureDiplome();
@@ -37,6 +47,7 @@ class StructureDiplomeFixtures extends Fixture implements OrderedFixtureInterfac
             ->setCodeCelcatDepartement(123)
             ->setSigle('MMI')
             ->setActif(true)
+            ->setTypeDiplome($typeDiplome)
             ->setLogoPartenaire('logo_partenaire.png')
             ->setDepartement($departement)
         ;
@@ -48,6 +59,7 @@ class StructureDiplomeFixtures extends Fixture implements OrderedFixtureInterfac
             ->setCodeCelcatDepartement(124)
             ->setSigle('MMI DWeb-Di FC')
             ->setActif(true)
+            ->setTypeDiplome($typeDiplome)
             ->setLogoPartenaire('logo_partenaire.png')
             ->setParent($diplome1)
             ->setDepartement($departement)
@@ -60,6 +72,7 @@ class StructureDiplomeFixtures extends Fixture implements OrderedFixtureInterfac
             ->setCodeCelcatDepartement(125)
             ->setSigle('MMI DWeb-Di')
             ->setActif(true)
+            ->setTypeDiplome($typeDiplome)
             ->setLogoPartenaire('logo_partenaire.png')
             ->setParent($diplome1)
             ->setDepartement($departement)
