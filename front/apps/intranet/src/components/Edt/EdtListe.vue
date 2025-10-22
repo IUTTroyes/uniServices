@@ -97,7 +97,7 @@ const todayString = new Date().toLocaleDateString("fr-FR", {
 <template>
   <div>
     <div class="flex flex-col gap-4">
-      <div v-for="(events, day) in groupedEvents" :key="day" :class="{ 'border-2 border-neutral-800 rounded-lg': day === todayString }">
+      <div v-for="(events, day) in groupedEvents" :key="day" :class="{ 'border-2 border-primary rounded-lg': day === todayString }">
         <div class="w-full flex justify-center bg-neutral-300 bg-opacity-20 p-4 text-lg font-bold">{{ day }}</div>
         <DataTable :value="events" class="w-full" striped-rows :rowClass="rowClass">
           <Column field="debut" header="Début" :sortable="true" />

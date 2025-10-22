@@ -182,21 +182,25 @@ watch(selectedSemestre, async (newValue) => {
     await getSemestreGroupes(newValue);
   }
   await getEventsDepartementWeek()
+  isLoadingEvents.value = false;
 });
 
 watch(selectedEnseignant, async () => {
   isLoadingEvents.value = true;
   await getEventsDepartementWeek();
+  isLoadingEvents.value = false;
 });
 
 watch(selectedSalle, async () => {
   isLoadingEvents.value = true;
   await getEventsDepartementWeek();
+  isLoadingEvents.value = false;
 });
 
 watch(selectedEnseignement, async () => {
   isLoadingEvents.value = true;
   await getEventsDepartementWeek();
+  isLoadingEvents.value = false;
 });
 
 const getEventsDepartementWeek = async () => {
@@ -223,7 +227,7 @@ const getEventsDepartementWeek = async () => {
         response.forEach(event => {
           // Définir la couleur en fonction du type de groupe
           let eventColor;
-          switch (event.groupe.type) {
+          switch (event.groupe?.type) {
               // couleurs comme dans Celcat
             case 'CM':
               eventColor = '#67cfff'; // Bleu pour CM
@@ -248,14 +252,14 @@ const getEventsDepartementWeek = async () => {
             end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
             backgroundColor: adjustColor(colorNameToRgb(eventColor), 0.2, 0),
             location: event.salle,
-            title: event.enseignement.codeEnseignement + ' - ' + event.libModule,
+            title: event.enseignement?.codeEnseignement + ' - ' + event.libModule,
             type: event.type,
-            groupe: event.groupe || '**',
+            groupe: event.groupe || { libelle: '**' },
             personnel: event.personnel,
             intervenantPhoto: event.personnel.photoName ?? null,
             overlap: false,
             eval: event.evaluation,
-            intervenants: event.enseignement.previsionnels
+            intervenants: event.enseignement?.previsionnels
                 .filter(intervenant => intervenant.personnel.id !== personnel.id)
                 .map(intervenant => ({
                   id: intervenant.id,
@@ -272,16 +276,17 @@ const getEventsDepartementWeek = async () => {
               ...baseEvent,
               schedule: schedules.value.length > 0 ? schedules.value[0].id : event.groupe.id,
               // Flag this as a CM event for styling
-              isCmEvent: true
+              isCmEvent: true,
+              width: selectedSemestre.value ? `${schedules.value.length * 100}%` : '100%' // Handle width based on selected semester
             });
           }
-              // If the event is for a TD group with TP children, use the first TP child's schedule
+          // If the event is for a TD group with TP children, use the first TP child's schedule
           // and set width to 200% later to make it span across columns
           else if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
             // Get all TP children
             const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
 
-            if (tpChildren.length > 0 && event.type === 'TD') {
+            if (tpChildren.length > 0) {
               // Use only the first TP child's schedule - we'll make it span with CSS later
               mappedEvents.push({
                 ...baseEvent,
@@ -332,7 +337,6 @@ const getEventsDepartementWeek = async () => {
               eventEl.style.opacity = 0.9;
             }
           });
-          isLoadingEvents.value = false;
         }, 500
     )
   }
