@@ -301,36 +301,6 @@ class StructureAnneeUniversitaire
     }
 
     /**
-     * @return Collection<int, ApcReferentiel>
-     */
-    public function getReferentiels(): Collection
-    {
-        return $this->referentiels;
-    }
-
-    public function addReferentiel(ApcReferentiel $referentiel): static
-    {
-        if (!$this->referentiels->contains($referentiel)) {
-            $this->referentiels->add($referentiel);
-            $referentiel->setAnneeUniversitaire($this);
-        }
-
-        return $this;
-    }
-
-    public function removeReferentiel(ApcReferentiel $referentiel): static
-    {
-        if ($this->referentiels->removeElement($referentiel)) {
-            // set the owning side to null (unless already changed)
-            if ($referentiel->getAnneeUniversitaire() === $this) {
-                $referentiel->setAnneeUniversitaire(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * @return Collection<int, ScolEvaluation>
      */
     public function getEvaluations(): Collection

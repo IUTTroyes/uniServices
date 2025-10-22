@@ -7,7 +7,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructurePn;
@@ -50,6 +49,7 @@ class ApcReferentiel
     /**
      * @var Collection<int, StructureDiplome>
      */
+    //todo: pas nécessaire ??
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'referentiel')]
     #[Groups(['referentiel:read'])]
     private Collection $diplomes;
@@ -63,15 +63,6 @@ class ApcReferentiel
     #[ORM\OneToMany(targetEntity: ApcCompetence::class, mappedBy: 'referentiel')]
     private Collection $competences;
 
-    #[ORM\ManyToOne(inversedBy: 'referentiels')]
-    private ?StructureAnneeUniversitaire $anneeUniversitaire = null;//todo: a retirer plus pertinent ?
-
-    /**
-     * @var Collection<int, ApcParcours>
-     */
-    #[ORM\OneToMany(targetEntity: ApcParcours::class, mappedBy: 'referentiel')]
-    private Collection $parcours; //todo: a retirer plus pertinent, puisque diplome ? ?
-
     /**
      * @var Collection<int, StructurePn>
      */
@@ -79,13 +70,13 @@ class ApcReferentiel
     private Collection $pn;
 
     #[ORM\ManyToOne(inversedBy: 'referentiels')]
+    //todo: pas nécessaire ??
     private StructureTypeDiplome $typeDiplome;
 
     public function __construct()
     {
         $this->diplomes = new ArrayCollection();
         $this->competences = new ArrayCollection();
-        $this->parcours = new ArrayCollection();
         $this->pn = new ArrayCollection();
     }
 
@@ -196,48 +187,6 @@ class ApcReferentiel
             // set the owning side to null (unless already changed)
             if ($competence->getReferentiel() === $this) {
                 $competence->setReferentiel(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getAnneeUniversitaire(): ?StructureAnneeUniversitaire
-    {
-        return $this->anneeUniversitaire;
-    }
-
-    public function setAnneeUniversitaire(?StructureAnneeUniversitaire $anneeUniversitaire): static
-    {
-        $this->anneeUniversitaire = $anneeUniversitaire;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, ApcParcours>
-     */
-    public function getParcours(): Collection
-    {
-        return $this->parcours;
-    }
-
-    public function addParcours(ApcParcours $parcours): static
-    {
-        if (!$this->parcours->contains($parcours)) {
-            $this->parcours->add($parcours);
-            $parcours->setReferentiel($this);
-        }
-
-        return $this;
-    }
-
-    public function removeParcours(ApcParcours $parcours): static
-    {
-        if ($this->parcours->removeElement($parcours)) {
-            // set the owning side to null (unless already changed)
-            if ($parcours->getReferentiel() === $this) {
-                $parcours->setReferentiel(null);
             }
         }
 

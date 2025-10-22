@@ -2,17 +2,19 @@
 import {ErrorView, ListSkeleton, SimpleSkeleton} from "@components";
 import {onMounted, ref} from "vue";
 import {useUsersStore} from '@stores'
-import { getReferentiels } from '@requests'
+import {getReferentiels} from '@requests'
 import {useConfirm} from "primevue/useconfirm";
 import {useToast} from "primevue/usetoast";
 import api from '@helpers/axios';
 import AfficheReferentielCompetences from "@/components/Pn/AfficheReferentielCompetences.vue";
+import BlocHelp from "@components/components/BlocHelp.vue"
 
 const usersStore = useUsersStore();
 
 const hasError = ref(false);
 const departementId = ref(null);
 const isLoadingDiplomes = ref(true);
+const create = ref(false);
 const isLoadingReferentiel = ref(true);
 const referentiels = ref([])
 const selectedReferentiel = ref(null)
@@ -35,6 +37,7 @@ const _getReferentiels = async () => {
     referentiels.value = await getReferentiels(departementId.value);
     if (referentiels.value.length > 0) {
       selectedReferentiel.value = referentiels.value[0];
+      isLoadingReferentiel.value = false;
     }
   } catch (error) {
     console.error('Erreur lors du chargement des référentiels:', error);
@@ -45,6 +48,7 @@ const _getReferentiels = async () => {
 }
 
 const changeReferentiel = (referentiel) => {
+  create.value = false;
   isLoadingReferentiel.value = true;
   selectedReferentiel.value = referentiel;
   isLoadingReferentiel.value = false;
@@ -105,23 +109,54 @@ const synchronisationOreof = async () => {
       <Divider/>
       <Tabs :value="selectedReferentiel?.id || referentiels[0]?.id" scrollable>
         <TabList>
-          <Tab v-for="referentiel in referentiels" :key="referentiel.libelle" :value="referentiel.id" @click="changeReferentiel(referentiel)">
+          <Tab v-for="referentiel in referentiels" :key="referentiel.libelle" :value="referentiel.id"
+               @click="changeReferentiel(referentiel)">
             <span>{{ referentiel.libelle }}</span> | <span>{{ referentiel.anneePublication }}</span>
+          </Tab>
+          <Tab value="add-referentiel" @click="create = true">
+            <span>+ Ajouter un référentiel</span>
           </Tab>
         </TabList>
       </Tabs>
     </div>
 
-    <ListSkeleton v-if="isLoadingReferentiel" class="mt-4"/>
-    <div v-else class="mt-6">
+    <template v-if="create">
       <div class="flex justify-between items-center my-6">
-        <h3 class="text-xl font-semibold">Référentiel de compétences : <span class="font-bold">{{ selectedReferentiel.libelle }} ({{ selectedReferentiel.anneePublication }})</span></h3>
-        <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" @click="synchronisationOreof"/>
+        <h3 class="text-xl font-semibold">Créer un nouveau référentiel de compétences</h3>
       </div>
-      <p>{{selectedReferentiel.description}}</p>
-      <AfficheReferentielCompetences :referentiel="selectedReferentiel" v-if="selectedReferentiel" />
-      <div v-else class="text-center text-muted-color">Aucun référentiel selectionné</div>
-    </div>
+      <BlocHelp message="Création d'un nouveau référentiel de compétences"></BlocHelp>
+      <form class="flex flex-col gap-4 mt-2">
+        <div>
+          <label for="oreofId" class="font-bold mb-2 block">Id ORéOF associé</label>
+          <InputText v-model="oreofId" id="oreofId" placeholder="Saisir l'id ORéOF"/>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <Checkbox v-model="pizza" inputId="ingredient2" name="pizza" value="Mushroom" />
+          <label for="ingredient2"> Synchroniser avec ORéBUT </label>
+        </div>
+
+        <Button
+            label="Créer le référentiel de compétences"
+            icon="pi pi-check"
+            class="mt-4"
+        />
+      </form>
+    </template>
+    <template v-else>
+      <ListSkeleton v-if="isLoadingReferentiel" class="mt-4"/>
+      <div v-else class="mt-6">
+        <div class="flex justify-between items-center my-6">
+          <h3 class="text-xl font-semibold">Référentiel de compétences : <span
+              class="font-bold">{{ selectedReferentiel.libelle }} ({{ selectedReferentiel.anneePublication }})</span>
+          </h3>
+          <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" @click="synchronisationOreof"/>
+        </div>
+        <p>{{ selectedReferentiel.description }}</p>
+        <AfficheReferentielCompetences :referentiel="selectedReferentiel" v-if="selectedReferentiel"/>
+        <div v-else class="text-center text-muted-color">Aucun référentiel selectionné</div>
+      </div>
+    </template>
   </div>
 </template>
 

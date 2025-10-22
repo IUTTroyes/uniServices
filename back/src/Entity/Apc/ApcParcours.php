@@ -55,9 +55,6 @@ class ApcParcours
     #[ORM\ManyToMany(targetEntity: ApcNiveau::class, mappedBy: 'parcours')]
     private Collection $niveaux;
 
-    #[ORM\ManyToOne(inversedBy: 'parcours')]
-    private ?ApcReferentiel $referentiel = null;
-
     public function __construct()
     {
         $this->diplome = new ArrayCollection();
@@ -218,18 +215,6 @@ class ApcParcours
         if ($this->niveaux->removeElement($niveau)) {
             $niveau->removeParcours($this);
         }
-
-        return $this;
-    }
-
-    public function getReferentiel(): ?ApcReferentiel
-    {
-        return $this->referentiel;
-    }
-
-    public function setReferentiel(?ApcReferentiel $referentiel): static
-    {
-        $this->referentiel = $referentiel;
 
         return $this;
     }
