@@ -5,6 +5,22 @@ import apiCall from '@helpers/apiCall';
 // ------------------- GET ----------------------
 // ----------------------------------------------
 
+const getEnseignementsService = async (params, scope = '', showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api${scope}/scol_enseignements`, { params }],
+            'Enseignements récupérés avec succès',
+            'Erreur lors de la récupération des enseignements',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getEnseignementsService:', error);
+        throw error;
+    }
+}
+
 const getAllEnseignementsService = async (showToast = false) => {
     try {
         const response = await apiCall(
@@ -96,4 +112,4 @@ const getEnseignementsUeService = async (ueId, showToast = false) => {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getAllEnseignementsService, getEnseignementsSemestreService, getEnseignementService, getEnseignementsDepartementService, getEnseignementsUeService };
+export { getEnseignementsService, getAllEnseignementsService, getEnseignementsSemestreService, getEnseignementService, getEnseignementsDepartementService, getEnseignementsUeService };

@@ -5,7 +5,7 @@ import SelectWeek from '@/components/SelectWeek.vue'
 import api from '@helpers/axios.js'
 import Card from '@components/components/Card.vue'
 import { formatDateCourt, jourDate } from '@helpers/date.js'
-import { getPersonnelsDepartementService } from '@requests/user_services/personnelService.js'
+import { getPersonnelsService } from '@requests/user_services/personnelService.js'
 
 const groupData = ref([])
 
@@ -69,7 +69,10 @@ onMounted(async () => {
       _getSemaines(currentWeek.value.semaineFormation)
       _getCours(currentWeek.value.semaineFormation)
 
-      personnels.value = await getPersonnelsDepartementService(departementId)
+      const params = {
+        departement: departementId,
+      }
+      personnels.value = await getPersonnelsService(params)
       await matieresStore.getMatieres()
       const response = await api.get(`/api/edt/personnels-contraintes/${currentWeek.value.semaineFormation}`)
       constraints.value = await response.data

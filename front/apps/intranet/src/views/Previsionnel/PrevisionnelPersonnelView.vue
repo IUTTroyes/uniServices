@@ -8,7 +8,7 @@ import {
   getEnseignementsSemestreService,
   getEnseignementsDepartementService,
   getPersonnelPreviService,
-  getPersonnelsDepartementService,
+  getPersonnelsService,
   getPersonnelEnseignantHrsService,
   getPersonnelEnseignantTypesHrsService,
   deletePersonnelEnseignantHrsService,
@@ -86,7 +86,10 @@ const getAnneesUniv = async () => {
 const getPersonnelsDepartement = async () => {
   isLoadingPersonnel.value = true;
   try {
-    personnelList.value = await getPersonnelsDepartementService(departementId);
+    const params = {
+      departement: departementId,
+    };
+    personnelList.value = await getPersonnelsService(params);
   } catch (error) {
     hasError.value = true;
     console.error('Erreur lors du chargement des personnels:', error);

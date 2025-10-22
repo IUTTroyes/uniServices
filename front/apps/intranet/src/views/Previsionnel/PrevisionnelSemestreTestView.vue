@@ -2,7 +2,7 @@
 import {onMounted, ref, watch} from 'vue';
 import {useAnneeUnivStore, useEnseignementsStore, useSemestreStore, useUsersStore} from "@stores";
 import {SimpleSkeleton, ListSkeleton, ErrorView} from "@components";
-import {getPersonnelsDepartementService, getSemestrePreviTestService} from "@requests";
+import {getPersonnelsService, getSemestrePreviTestService} from "@requests";
 
 // const tableau = ref([
 //   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -91,7 +91,10 @@ const getPrevi = async (semestreId) => {
         console.error('Erreur lors du chargement des matières:', error);
       }
       try {
-        personnelsList.value = await getPersonnelsDepartementService(departementId);
+        const params = {
+          departement: departementId,
+        };
+        personnelsList.value = await getPersonnelsService(params);
         personnelsList.value = personnelsList.value.map((personnel) => ({
           ...personnel,
           label: `${personnel.personnel.prenom} ${personnel.personnel.nom}`,

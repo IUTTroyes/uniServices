@@ -93,6 +93,19 @@ class EdtFilter extends AbstractFilter
                 ->setParameter('day_end', $nextDay);
         }
 
+        if ('enseignement' === $property) {
+            $queryBuilder
+                ->join(sprintf('%s.enseignement', $alias), 'enseignement')
+                ->andWhere('enseignement.id = :enseignement')
+                ->setParameter('enseignement', $value);
+        }
+
+        if ('salle' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.salle LIKE :salle', $alias))
+                ->setParameter('salle', '%'.$value.'%');
+        }
+
     }
 
     public function getDescription(string $resourceClass): array
