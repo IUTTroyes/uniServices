@@ -182,25 +182,21 @@ watch(selectedSemestre, async (newValue) => {
     await getSemestreGroupes(newValue);
   }
   await getEventsDepartementWeek()
-  // isLoadingEvents.value = false;
 });
 
 watch(selectedEnseignant, async () => {
   isLoadingEvents.value = true;
   await getEventsDepartementWeek();
-  // isLoadingEvents.value = false;
 });
 
 watch(selectedSalle, async () => {
   isLoadingEvents.value = true;
   await getEventsDepartementWeek();
-  // isLoadingEvents.value = false;
 });
 
 watch(selectedEnseignement, async () => {
   isLoadingEvents.value = true;
   await getEventsDepartementWeek();
-  // isLoadingEvents.value = false;
 });
 
 const getEventsDepartementWeek = async () => {
