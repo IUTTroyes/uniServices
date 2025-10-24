@@ -9,20 +9,17 @@ import {getEdtEventsService, getSemaineUniversitaireService} from "@requests";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
-import {PhotoUser} from "@components";
+import {PhotoUser, ErrorView} from "@components";
 
 const usersStore = useUsersStore();
 const personnel = usersStore.user;
 const departement = usersStore.departementDefaut;
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
-
 const liste = ref(false);
-
-// Référence vers le composant vue-cal
 const vuecalRef = ref(null)
 const events = ref([]);
 const weekUnivNumber = ref(0);
-
+const hasError = ref(false);
 const viewTranslations = {
   week: 'SEMAINE',
   day: 'JOUR',
@@ -120,6 +117,7 @@ const getEventsPersonnelWeek = async () => {
       events.value = [];
     }
   } catch (error) {
+    hasError.value = true;
     console.error('Error fetching events:', error);
   } finally {
     await nextTick();
@@ -276,7 +274,9 @@ const heuresParType = computed(() => {
     <Button v-else @click="liste = false">Masquer la liste</Button>
   </div>
 
+  <ErrorView v-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard." />
   <vue-cal
+      v-else
       ref="vuecalRef"
       locale="fr"
       hide-weekends

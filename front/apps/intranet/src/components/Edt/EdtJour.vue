@@ -42,6 +42,7 @@ const isEventOngoing = (event) => {
   return now >= start && now <= end;
 };
 
+//todo: version etudiant
 const getEvents = async (date = new Date()) => {
   try {
     const formattedDate = date.toISOString().split('T')[0];
@@ -63,17 +64,18 @@ const getEvents = async (date = new Date()) => {
             let eventColor;
             if (event.groupe) {
               switch (event.groupe.type) {
+                  // couleurs comme dans Celcat
                 case 'CM':
-                  eventColor = adjustColor(colorNameToRgb(event.couleur), 0.3, 0.2);
+                  eventColor = adjustColor(colorNameToRgb(event.couleur), 0.1, 0.2);
                   break;
                 case 'TD':
-                  eventColor = adjustColor(colorNameToRgb(event.couleur), 0.6, 0.2);
+                  eventColor = adjustColor(colorNameToRgb(event.couleur), 0.3, 0.2);
                   break;
                 case 'TP':
-                  eventColor = adjustColor(colorNameToRgb(event.couleur), 0.9, 0.2);
+                  eventColor = adjustColor(colorNameToRgb(event.couleur), 0, 0.2);
                   break;
                 default:
-                  eventColor = adjustColor(colorNameToRgb(event.couleur), 1.2, 0.2);
+                  eventColor = adjustColor(colorNameToRgb(event.couleur), 0.8, 0.2);
               }
             }
 
@@ -86,8 +88,8 @@ const getEvents = async (date = new Date()) => {
               title: event.codeModule + ' - ' + event.libModule,
               start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000),
               end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000),
-              backgroundColor: adjustColor(colorNameToRgb(event.couleur), 0.5, 0.2),
-              colorFocus: adjustColor(darkenColor(eventColor, 30), 0, 0.2),
+              backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
+              colorFocus: adjustColor(darkenColor(adjustColor(colorNameToRgb(event.couleur), 1, 0.2), 40), 0, 0.2),
               type: event.type,
               groupe: event.groupe || '**',
             };
