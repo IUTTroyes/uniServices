@@ -8,18 +8,16 @@ import {getEdtEventsService, getEtudiantScolaritesService, getSemaineUniversitai
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
-import {PhotoUser} from "@components";
+import {PhotoUser, ErrorView} from "@components";
 
 // Importer le store des utilisateurs
 const usersStore = useUsersStore();
 const etudiant = usersStore.user;
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
-
-// Référence vers le composant vue-cal
 const vuecalRef = ref(null)
 const events = ref([]);
 const weekUnivNumber = ref(0);
-
+const hasError = ref(false);
 const viewTranslations = {
   week: 'SEMAINE',
   day: 'JOUR',
@@ -51,19 +49,24 @@ function detectOverlap(event, allEvents) {
 }
 
 const getEtudiantGroupes = async () => {
-      const scol = await getEtudiantScolaritesService(etudiant.id, true);
+  try {
+    const scol = await getEtudiantScolaritesService(etudiant.id, true);
 
-      if (scol && scol.length > 0) {
-        etudiant.scolarites = scol;
-        // Récupère tous les groupes de chaque scolariteSemestre de chaque scolarite
-        etudiant.groupes = scol.flatMap(s =>
-            (s.scolariteSemestre || []).flatMap(ss => ss.groupes || [])
-        );
-      } else {
-        etudiant.scolarites = [];
-        etudiant.groupes = [];
-      }
-    };
+    if (scol && scol.length > 0) {
+      etudiant.scolarites = scol;
+      // Récupère tous les groupes de chaque scolariteSemestre de chaque scolarite
+      etudiant.groupes = scol.flatMap(s =>
+          (s.scolariteSemestre || []).flatMap(ss => ss.groupes || [])
+      );
+    } else {
+      etudiant.scolarites = [];
+      etudiant.groupes = [];
+    }
+  } catch (error) {
+    hasError.value = true;
+    console.error('Erreur lors de la récupération des scolarités de l\'étudiant :', error);
+  }
+};
 
 const getEventsEtudiantWeek = async () => {
   try {
@@ -80,7 +83,7 @@ const getEventsEtudiantWeek = async () => {
         // Définir la couleur en fonction du type de groupe
         let eventColor;
         switch (event.groupe.type) {
-          // couleurs comme dans Celcat
+            // couleurs comme dans Celcat
           case 'CM':
             eventColor = '#33C1FF'; // Bleu pour CM
             break;
@@ -129,6 +132,7 @@ const getEventsEtudiantWeek = async () => {
       events.value = [];
     }
   } catch (error) {
+    hasError.value = true;
     console.error('Error fetching events:', error);
   } finally {
     await nextTick();
@@ -188,7 +192,7 @@ function getBadgeSeverity(type) {
           <strong>Semestre :</strong> {{ selectedEvent.semestre.libelle }}
         </div>
         <div>
-         <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}} étudiants)
+          <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}} étudiants)
         </div>
         <div>
           <strong>Salle :</strong> {{ selectedEvent.location }}
@@ -223,7 +227,9 @@ function getBadgeSeverity(type) {
     </div>
   </Dialog>
 
+  <ErrorView v-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard." />
   <vue-cal
+      v-else
       ref="vuecalRef"
       locale="fr"
       hide-weekends

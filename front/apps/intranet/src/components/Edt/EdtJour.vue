@@ -42,6 +42,7 @@ const isEventOngoing = (event) => {
   return now >= start && now <= end;
 };
 
+//todo: version etudiant
 const getEvents = async (date = new Date()) => {
   try {
     const formattedDate = date.toISOString().split('T')[0];
