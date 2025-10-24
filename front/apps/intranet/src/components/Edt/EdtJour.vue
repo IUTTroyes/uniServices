@@ -5,16 +5,16 @@ import {getEdtEventsService, getSemaineUniversitaireService} from "@requests";
 import {useUsersStore} from "@stores";
 import {getISOWeekNumber} from "@helpers/date.js";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
-import {PhotoUser} from "@components/index.js";
+import {PhotoUser, ErrorView} from "@components";
 
 const usersStore = useUsersStore();
 const personnel = usersStore.user;
 const departement = usersStore.departementDefaut;
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
-
 const allEvents = ref([]);
 const sortedEvents = ref([]);
 const weekUnivNumber = ref(0);
+const hasError = ref(false);
 
 const getWeekUnivNumber = async (date) => {
   const calendarWeekNumber = getISOWeekNumber(date); // Calcule le numéro de semaine ISO
@@ -102,6 +102,7 @@ const getEvents = async (date = new Date()) => {
     console.log('allEvents', allEvents.value);
     sortEvents();
   } catch (error) {
+    hasError.value = true;
     console.error('Erreur lors de la récupération des événements EDT :', error);
   }
 };
@@ -228,7 +229,8 @@ function getBadgeSeverity(type) {
     </div>
   </Dialog>
 
-  <div class="flex flex-row justify-between gap-4">
+  <ErrorView v-if="hasError" message="Une erreur est survenue lors de la récupération des événements de l'emploi du temps." />
+  <div v-else class="flex flex-row justify-between gap-4">
     <div v-for="(event, index) in sortedEvents" :key="index" class="w-full">
       <EdtEvent :event="event" type="jour" @click="openDialog(event)" />
     </div>
