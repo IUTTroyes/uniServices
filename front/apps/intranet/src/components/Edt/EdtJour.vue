@@ -1,20 +1,21 @@
 <script setup>
 import {onMounted, ref} from 'vue';
 import EdtEvent from './EdtEvent.vue';
-import {getEdtEventsService, getSemaineUniversitaireService} from "@requests";
+import {getEdtEventsService, getEtudiantScolaritesService, getSemaineUniversitaireService} from "@requests";
 import {useUsersStore} from "@stores";
 import {getISOWeekNumber} from "@helpers/date.js";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import {PhotoUser, ErrorView} from "@components";
 
 const usersStore = useUsersStore();
-const personnel = usersStore.user;
+const user = usersStore.user;
 const departement = usersStore.departementDefaut;
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const allEvents = ref([]);
 const sortedEvents = ref([]);
 const weekUnivNumber = ref(0);
 const hasError = ref(false);
+const groupes = ref([]);
 
 const getWeekUnivNumber = async (date) => {
   const calendarWeekNumber = getISOWeekNumber(date); // Calcule le numéro de semaine ISO
@@ -42,9 +43,34 @@ const isEventOngoing = (event) => {
   return now >= start && now <= end;
 };
 
-//todo: version etudiant
+const getEtudiantGroupes = async () => {
+  try {
+    const scol = await getEtudiantScolaritesService(user.id, true);
+
+    if (scol && scol.length > 0) {
+      user.scolarites = scol;
+      // Récupère tous les groupes de chaque scolariteSemestre de chaque scolarite
+      user.groupes = scol.flatMap(s =>
+          (s.scolariteSemestre || []).flatMap(ss => ss.groupes || [])
+      );
+      groupes.value = user.groupes;
+    } else {
+      user.scolarites = [];
+      user.groupes = [];
+    }
+  } catch (error) {
+    hasError.value = true;
+    console.error('Erreur lors de la récupération des scolarités de l\'étudiant :', error);
+  }
+};
+
 const getEvents = async (date = new Date()) => {
   try {
+    if (usersStore.isEtudiant) {
+      await getEtudiantGroupes();
+    }
+    const personnel = usersStore.isPersonnel ? user : null;
+
     const formattedDate = date.toISOString().split('T')[0];
     const currentTime = date.toISOString();
 
@@ -53,6 +79,7 @@ const getEvents = async (date = new Date()) => {
       departement: departement?.id || null,
       anneeUniversitaire: anneeUniv.id || null,
       semaineFormation: weekUnivNumber.value || null,
+      groupe: groupes.value.map(g => g.id) || null,
       'day': formattedDate,
     };
     const response = await getEdtEventsService(params);
