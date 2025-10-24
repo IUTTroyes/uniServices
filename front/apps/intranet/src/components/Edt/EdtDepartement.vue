@@ -544,7 +544,7 @@ const heuresParType = computed(() => {
   </div>
 
   <Loader v-if="isLoadingEvents"/>
-  <ErrorView v-else-if="hasError" message="Erreur lors du chargement des événements."/>
+  <ErrorView v-else-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard."/>
   <vue-cal
       v-else
       ref="vuecalRef"
