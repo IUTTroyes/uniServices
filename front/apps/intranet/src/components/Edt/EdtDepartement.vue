@@ -18,6 +18,7 @@ import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import {useToast} from 'primevue/usetoast';
 import EdtListe from "./EdtListe.vue";
 import Loader from "@components/loader/GlobalLoader.vue";
+import {ErrorView} from "@components";
 
 // Référence vers le composant vue-cal
 const vuecalRef = ref(null)
@@ -31,19 +32,22 @@ const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localSt
 const usersStore = useUsersStore();
 const semestreStore = useSemestreStore();
 const isLoadingSemestres = ref(false);
+const hasErrorSemestres = ref(false);
 const semestresList = ref([]);
 const selectedSemestre = ref(null);
 const isLoadingEnseignants = ref(false);
+const hasErrorEnseignants = ref(false);
 const enseignantsList = ref([]);
 const selectedEnseignant = ref(null);
 const isLoadingSalles = ref(false);
+const hasErrorSalles = ref(false);
 const sallesList = ref([]);
 const selectedSalle = ref(null);
 const isLoadingEnseignements = ref(false);
+const hasErrorEnseignements = ref(false);
 const enseignementsList = ref([]);
 const selectedEnseignement = ref(null);
 const isLoadingEvents = ref(false);
-
 const hasError = ref(false);
 const personnel = usersStore.user;
 const departement = usersStore.departementDefaut;
@@ -55,6 +59,9 @@ const isLoadingGroupes = ref(false);
 const liste = ref(false);
 
 onMounted(async () => {
+  isLoadingEnseignements.value = true;
+  isLoadingEnseignants.value = true;
+  isLoadingSalles.value = true;
   isLoadingEvents.value = true;
   await getSemestres();
   await getEnseignants();
@@ -65,13 +72,13 @@ onMounted(async () => {
 });
 
 const getEnseignants = async () => {
-  isLoadingEnseignants.value = true;
   try {
     const params = {
       departement: departement.id,
     };
     enseignantsList.value = await getPersonnelsService(params);
   } catch (error) {
+    hasErrorEnseignants.value = true;
     console.error('Erreur lors du chargement des enseignants :', error);
   } finally {
     isLoadingEnseignants.value = false;
@@ -79,7 +86,6 @@ const getEnseignants = async () => {
 };
 
 const getSalles = async () => {
-  isLoadingSalles.value = true;
   try {
     sallesList.value = await getSallesService();
   } catch (error) {
@@ -90,7 +96,6 @@ const getSalles = async () => {
 };
 
 const getEnseignements = async () => {
-  isLoadingEnseignements.value = true;
   try {
     const params = {
       semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
@@ -117,14 +122,8 @@ const getSemestres = async () => {
     await semestreStore.getSemestresByDepartement(departement.id, true);
     semestresList.value = semestreStore.semestres;
   } catch (error) {
+    hasErrorSemestres.value = true;
     console.error('Erreur lors du chargement des semestres :', error);
-    hasError.value = true;
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les semestres. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
-      life: 5000,
-    });
   } finally {
     isLoadingSemestres.value = false;
   }
@@ -322,6 +321,7 @@ const getEventsDepartementWeek = async () => {
       }
     }
   } catch (error) {
+    hasError.value = true;
     console.error('Error fetching events:', error);
   } finally {
     //todo: trouver une meilleure solution pour styler les événements après le rendu de vue-cal (éviter le setTimeout)
@@ -482,6 +482,9 @@ const heuresParType = computed(() => {
   </Dialog>
 
   <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/3" />
+  <Message v-else-if="hasErrorSemestres" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
+    Erreur lors du chargement des semestres.
+  </Message>
   <Select
       v-else
       v-model="selectedSemestre"
@@ -493,6 +496,9 @@ const heuresParType = computed(() => {
   ></Select>
   <div class="flex justify-center items-center gap-4 mb-4">
     <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>
+    <Message v-else-if="hasErrorEnseignants" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
+      Erreur lors du chargement des enseignants.
+    </Message>
     <Select
         v-else
         v-model="selectedEnseignant"
@@ -504,6 +510,9 @@ const heuresParType = computed(() => {
         filter
     ></Select>
     <SimpleSkeleton v-if="isLoadingSalles" class="w-1/3"/>
+    <Message v-else-if="hasErrorSalles" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
+      Erreur lors du chargement des salles.
+    </Message>
     <Select
         v-else
         v-model="selectedSalle"
@@ -515,6 +524,9 @@ const heuresParType = computed(() => {
         filter
     ></Select>
     <SimpleSkeleton v-if="isLoadingEnseignements" class="w-1/3"/>
+    <Message v-else-if="hasErrorEnseignements" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
+      Erreur lors du chargement des enseignements.
+    </Message>
     <Select
         v-else
         v-model="selectedEnseignement"
@@ -532,6 +544,7 @@ const heuresParType = computed(() => {
   </div>
 
   <Loader v-if="isLoadingEvents"/>
+  <ErrorView v-else-if="hasError" message="Erreur lors du chargement des événements."/>
   <vue-cal
       v-else
       ref="vuecalRef"
