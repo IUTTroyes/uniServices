@@ -95,6 +95,7 @@ const getEnseignements = async () => {
     const params = {
       semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
       departement: selectedSemestre.value ? null : departement.id,
+      actif: true,
     };
     enseignementsList.value = await getEnseignementsService(params);
 
