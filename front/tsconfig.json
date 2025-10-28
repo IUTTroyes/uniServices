@@ -23,6 +23,9 @@
       "@helpers/*": [
         "packages/common-helpers/*"
       ],
+      "@requests/": [
+        "packages/common-requests/"
+      ],
       "@requests/*": [
         "packages/common-requests/*"
       ],
