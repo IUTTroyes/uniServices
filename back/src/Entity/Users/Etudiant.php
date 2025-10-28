@@ -8,9 +8,9 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
-use ApiPlatform\Metadata\Put;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Etudiant\EtudiantScolarite;
+use App\Entity\Scolarite\ScolBac;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
@@ -167,6 +167,9 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'etudiants')]
     private Collection $groupes;
+
+    #[ORM\ManyToOne(inversedBy: 'etudiants')]
+    private ?ScolBac $bac = null;
 
     public function __construct()
     {
@@ -592,6 +595,18 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     public function removeGroupe(StructureGroupe $groupe): static
     {
         $this->groupes->removeElement($groupe);
+
+        return $this;
+    }
+
+    public function getBac(): ?ScolBac
+    {
+        return $this->bac;
+    }
+
+    public function setBac(?ScolBac $bac): static
+    {
+        $this->bac = $bac;
 
         return $this;
     }

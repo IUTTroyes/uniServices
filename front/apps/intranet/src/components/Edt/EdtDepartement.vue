@@ -129,14 +129,6 @@ const getSemestres = async () => {
   }
 };
 
-watch(() => vuecalRef.value?.view?.start, async (newValue) => {
-  if (newValue && selectedSemestre.value) {
-    const startDate = new Date(newValue);
-    await getWeekUnivNumber(startDate);
-    getEventsDepartementWeek();
-  }
-}, { immediate: true });
-
 const getWeekUnivNumber = async (date) => {
   const calendarWeekNumber = getISOWeekNumber(date);
   try {
@@ -172,6 +164,14 @@ function detectOverlap(event, allEvents) {
       event !== e
   );
 }
+
+watch(() => vuecalRef.value?.view?.start, async (newValue) => {
+  if (newValue) {
+    const startDate = new Date(newValue);
+    await getWeekUnivNumber(startDate);
+    await getEventsDepartementWeek();
+  }
+}, { immediate: true });
 
 watch(selectedSemestre, async (newValue) => {
   isLoadingEvents.value = true;
@@ -269,52 +269,52 @@ const getEventsDepartementWeek = async () => {
           };
 
           // If the event is a CM, it should span across all columns
-          if (event.type === 'CM') {
-            // For CM events, use the first available schedule (if schedules exist)
-            // We'll make it span across all columns with CSS later
-            mappedEvents.push({
-              ...baseEvent,
-              schedule: schedules.value.length > 0 ? schedules.value[0].id : event.groupe.id,
-              // Flag this as a CM event for styling
-              isCmEvent: true,
-              width: selectedSemestre.value ? `${schedules.value.length * 100}%` : '100%' // Handle width based on selected semester
-            });
-          }
-          // If the event is for a TD group with TP children, use the first TP child's schedule
-          // and set width to 200% later to make it span across columns
-          else if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
-            // Get all TP children
-            const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
-
-            if (tpChildren.length > 0) {
-              // Use only the first TP child's schedule - we'll make it span with CSS later
+            if (event.type === 'CM') {
+              // For CM events, only define schedule and width when a semestre is selected
               mappedEvents.push({
                 ...baseEvent,
-                schedule: tpChildren[0].id,
-                // Flag this as a TD event for styling
-                isTdEvent: true
-              });
-            } else {
-              // If no TP children, use the TD group's ID
-              mappedEvents.push({
-                ...baseEvent,
-                schedule: event.groupe.id
+                ...(selectedSemestre.value ? {
+                  schedule: schedules.value.length > 0 ? schedules.value[0].id : event.groupe.id,
+                  // Flag this as a CM event for styling
+                  isCmEvent: true,
+                  width: `${schedules.value.length * 100}%`
+                } : {})
               });
             }
-          } else {
-            // For non-TD and non-CM events, use the group's ID directly
-            mappedEvents.push({
-              ...baseEvent,
-              schedule: event.groupe.id
-            });
-          }
+            // If the event is for a TD group with TP children, use the first TP child's schedule
+            // Only set schedule when a semestre is selected
+            else if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
+              // Get all TP children
+              const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
+
+              if (tpChildren.length > 0) {
+                // Use only the first TP child's schedule when semestre selected
+                mappedEvents.push({
+                  ...baseEvent,
+                  ...(selectedSemestre.value ? { schedule: tpChildren[0].id, isTdEvent: true } : {})
+                });
+              } else {
+                // If no TP children, set schedule only when semestre selected
+                mappedEvents.push({
+                  ...baseEvent,
+                  ...(selectedSemestre.value ? { schedule: event.groupe.id } : {})
+                });
+              }
+            } else {
+              // For non-TD and non-CM events, set schedule only when semestre selected
+              mappedEvents.push({
+                ...baseEvent,
+                ...(selectedSemestre.value ? { schedule: event.groupe.id } : {})
+              });
+            }
+
         });
 
         events.value = mappedEvents.map(event => ({
           ...event,
           title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
           overlap: !!detectOverlap(event, mappedEvents),
-          class: event.type === 'TD' ? 'td-event-spanning' : (event.type === 'CM' ? 'cm-event-spanning' : ''),
+          class: event.type === 'TD' && selectedSemestre?.value ? 'td-event-spanning' : (event.type === 'CM' ? 'cm-event-spanning' : ''),
         }));
       } else {
         events.value = [];
@@ -324,26 +324,24 @@ const getEventsDepartementWeek = async () => {
     hasError.value = true;
     console.error('Error fetching events:', error);
   } finally {
-    //todo: trouver une meilleure solution pour styler les événements après le rendu de vue-cal (éviter le setTimeout)
     await nextTick();
-    setTimeout( () => {
-          const eventsObjects = document.querySelectorAll('.vuecal__event');
-          eventsObjects.forEach(eventEl => {
-            if (eventEl.style.backgroundColor) {
-              eventEl.style.border = `2px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 50), 0, 0.2)}`;
-              eventEl.style.borderTop = `6px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 60), 0, 0.2)}`;
-              eventEl.style.overflow = 'auto';
-              eventEl.style.scrollbarWidth = 'none';
-              eventEl.style.cssText += '::-webkit-scrollbar { display: none; }';
-              eventEl.style.opacity = 0.9;
-            }
-          });
-        }, 500
-    )
+    const eventsObjects = document.querySelectorAll('.vuecal__event');
+    eventsObjects.forEach(eventEl => {
+      if (eventEl.style.backgroundColor) {
+        eventEl.style.border = `2px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 50), 0, 0.2)}`;
+        eventEl.style.borderTop = `6px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 60), 0, 0.2)}`;
+        eventEl.style.overflow = 'auto';
+        eventEl.style.scrollbarWidth = 'none';
+        eventEl.style.cssText += '::-webkit-scrollbar { display: none; }';
+        eventEl.style.opacity = 0.9;
+      }
+    });
+
   }
 };
 
 const cmEventWidth = computed(() => {
+  if (schedules.value.length === 0) return '100%';
   return `${schedules.value.length * 100}%`;
 });
 

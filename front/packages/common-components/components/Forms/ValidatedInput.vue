@@ -117,7 +117,7 @@ const onValidation = (result) => {
             @blur="handleBlur"
         />
 
-        <Dropdown
+        <Select
             v-else-if="type === 'select'"
             :id="name"
             :name="name"

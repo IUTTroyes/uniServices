@@ -541,58 +541,6 @@ const handleGroupSelection = async (scolariteSemestre, groupId) => {
                   </table>
                 </div>
               </div>
-
-
-
-              <!--              <div v-for="semestre in scolarite.scolariteSemestre"-->
-              <!--                   class="card mb-0 w-full h-full">-->
-              <!--                <div class="font-bold text-lg">-->
-              <!--                  {{ semestre.semestre.annee.libelle }} - -->
-              <!--                  <span class="text-muted-color font-normal">{{ semestre.semestre.libelle }}</span>-->
-              <!--                </div>-->
-              <!--                <Divider/>-->
-              <!--                <div class="flex">-->
-              <!--                  <table class="table-auto w-full">-->
-              <!--                    <thead>-->
-              <!--                    <tr>-->
-              <!--                      <th class="text-left px-2 py-1">UE</th>-->
-              <!--                      <th class="text-left px-2 py-1">Moyenne</th>-->
-              <!--                      <th class="text-left px-2 py-1">Décision</th>-->
-              <!--                    </tr>-->
-              <!--                    </thead>-->
-              <!--                    <tbody>-->
-              <!--                    <tr v-for="(moyenneUe, key) in semestre.moyennesUe" :key="key">-->
-              <!--                      <td class="px-2 py-1">UE {{ getUe(key) }}</td>-->
-              <!--                      <td class="px-2 py-1">{{ moyenneUe.moyenne || 'Non renseigné' }}</td>-->
-              <!--                      <td class="px-2 py-1">-->
-              <!--                        <span v-if="moyenneUe.decision === 'V'"><Tag severity="success">V</Tag></span>-->
-              <!--                        <span v-else-if="moyenneUe.decision === 'NV'"><Tag severity="danger">NV</Tag></span>-->
-              <!--                        <span v-else><Tag severity="warning">En attente</Tag></span>-->
-              <!--                      </td>-->
-              <!--                    </tr>-->
-              <!--                    </tbody>-->
-              <!--                  </table>-->
-              <!--                  <table class="table-auto w-full">-->
-              <!--                    <thead>-->
-              <!--                    <tr>-->
-              <!--                      <th class="text-left px-2 py-1">Décision semestre</th>-->
-              <!--                      <th class="text-left px-2 py-1">Proposition</th>-->
-              <!--                    </tr>-->
-              <!--                    </thead>-->
-              <!--                    <tbody>-->
-              <!--                      <tr>-->
-              <!--                        <td class="px-2 py-1">-->
-              <!--                          <span v-if="semestre.decision === true"><Tag severity="success">V</Tag></span>-->
-              <!--                          <span v-else-if="semestre.decision === false"><Tag severity="danger">NV</Tag></span>-->
-              <!--                          <span v-else><Tag severity="warning">En attente</Tag></span>-->
-              <!--                        </td>-->
-              <!--                        <td class="px-2 py-1">{{ semestre.proposition?.libelle || 'Non renseigné' }}</td>-->
-              <!--                      </tr>-->
-              <!--                    </tbody>-->
-              <!--                  </table>-->
-              <!--                </div>-->
-
-              <!--              </div>-->
             </div>
           </TabPanel>
         </TabPanels>
