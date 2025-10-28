@@ -7,6 +7,7 @@ use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Enum\StatutEnum;
 use App\Repository\EtudiantRepository;
+use App\Repository\Scolarite\ScolBacRepository;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use App\Repository\Structure\StructureDepartementRepository;
 use App\Repository\Structure\StructureGroupeRepository;
@@ -32,6 +33,7 @@ class CopyTransfertBddUserCommand extends Command
     protected array $tAnneeUniversitaire = [];
     protected array $tDepartements = [];
     protected array $tGroupes = [];
+    protected array $tBacs = [];
 
     protected SymfonyStyle $io;
 
@@ -42,6 +44,7 @@ class CopyTransfertBddUserCommand extends Command
         StructureDepartementRepository $structureDepartementRepository,
         StructureGroupeRepository $structureGroupeRepository,
         EtudiantRepository $etudiantRepository,
+        ScolBacRepository $scolBacRepository
     )
     {
         parent::__construct();
@@ -50,6 +53,7 @@ class CopyTransfertBddUserCommand extends Command
         $this->tDepartements = $structureDepartementRepository->findAllByIdArray();
         $this->tGroupes = $structureGroupeRepository->findAllByOldIdArray();
         $this->tEtudiants = $etudiantRepository->findAllByOldIdArray();
+        $this->tBacs = $scolBacRepository->findAllByOldIdArray();
     }
 
     protected function configure(): void
@@ -88,6 +92,7 @@ FOREIGN_KEY_CHECKS=1');
 
     private function addPersonnels(): void
     {
+        ini_set('memory_limit', '-1');
         $sql = 'SELECT * FROM personnel';
         $personnels = $this->em->executeQuery($sql)->fetchAllAssociative();
 
@@ -184,6 +189,8 @@ FOREIGN_KEY_CHECKS=1');
 
     private function addEtudiants(): void
     {
+        ini_set('memory_limit', '-1');
+
         $sql = 'SELECT * FROM etudiant WHERE semestre_id IS NOT NULL and annee_sortie = 0'; // juste pour des datas
         $etudiants = $this->em->executeQuery($sql)->fetchAllAssociative();
 
@@ -243,6 +250,8 @@ FOREIGN_KEY_CHECKS=1');
                 $etudiant->setAdresseParentale($objAdresseParentale);
             }
 
+            // Appel à addEtudiantBac
+            $this->addEtudiantBac($etudiant, $etu['bac_id']);
 
             $this->entityManager->persist($etudiant);
             $this->io->info('Etudiant : ' . $etu['nom'] . ' ajouté pour insertion');
@@ -317,6 +326,20 @@ FOREIGN_KEY_CHECKS=1');
             $this->entityManager->persist($groupe);
             $this->entityManager->persist($etudiant);
             $this->io->info('Etudiant : ' . $etudiant->getNom() . ' ajouté au groupe ' . $groupe->getLibelle());
+        }
+    }
+
+    private function addEtudiantBac(Etudiant $etudiant, ?int $bacId): void
+    {
+        if ($bacId !== null) {
+            if (!isset($this->tBacs[$bacId])) {
+                $this->io->warning('Bac ID ' . $bacId . ' non trouvé, skip.');
+                return;
+            }
+            $bac = $this->tBacs[$bacId];
+            $etudiant->setBac($bac);
+            $this->entityManager->persist($etudiant);
+            $this->io->info('Etudiant : ' . $etudiant->getNom() . ' associé au bac ' . $bac->getLibelle());
         }
     }
 
