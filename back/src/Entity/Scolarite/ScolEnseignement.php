@@ -25,6 +25,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: ScolEnseignementRepository::class)]
 #[ApiFilter(EnseignementFilter::class)]
 #[ApiResource(
+    paginationEnabled: false,
     operations: [
         new Get(normalizationContext: ['groups' => ['enseignement:detail', 'enseignement_ue:read']]),
         new GetCollection(normalizationContext: ['groups' => ['enseignement:detail']]),
@@ -76,7 +77,7 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]

@@ -5,8 +5,8 @@ import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 import { getGroupesSemestreService } from '@requests'
-import ButtonEdit from '@components/components/ButtonEdit.vue'
-import ButtonDelete from '@components/components/ButtonDelete.vue'
+import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
+import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
 import DynamicForm from '@components/components/Forms/DynamicForm.vue'
 import BadgeTypeCours from '@components/components/BadgeTypeCours.vue'
 

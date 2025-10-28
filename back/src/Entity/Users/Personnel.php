@@ -2,10 +2,10 @@
 
 namespace App\Entity\Users;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Patch;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
@@ -17,6 +17,7 @@ use App\Entity\Structure\StructureDiplome;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Enum\StatutEnum;
+use App\Filter\PersonnelFilter;
 use App\Repository\PersonnelRepository;
 use App\ValueObject\Adresse;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -28,13 +29,28 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PersonnelRepository::class)]
+#[ApiFilter(PersonnelFilter::class)]
 #[ApiResource(
+    paginationEnabled: false,
     operations: [
-        new Get(normalizationContext: ['groups' => ['personnel:read']]),
-        new GetCollection(
-            normalizationContext: ['groups' => ['personnel:read']],
+        new Get(normalizationContext: ['groups' => ['personnel:detail']]),
+        new Get(
+            uriTemplate: '/mini/personnels/{id}',
+            normalizationContext: ['groups' => ['personnel:light']],
         ),
-        new Patch(normalizationContext: ['groups' => ['personnel:read']]),
+        new Get(
+            uriTemplate: '/maxi/personnels/{id}',
+            normalizationContext: ['groups' => ['personnel:detail']],
+        ),
+        new GetCollection(normalizationContext: ['groups' => ['personnel:detail']]),
+        new GetCollection(
+            uriTemplate: '/mini/personnels',
+            normalizationContext: ['groups' => ['personnel:light']],
+        ),
+        new GetCollection(
+            uriTemplate: '/maxi/personnels',
+            normalizationContext: ['groups' => ['personnel:detail']],
+        ),
     ],
     order: ['nom' => 'ASC'],
 )]
@@ -47,62 +63,63 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['personnel:read', 'departement_personnel:read', 'departement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
+    #[Groups(['personnel:detail', 'departement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['personnel:read', 'departement_personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read'])]
+    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read'])]
+    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['personnel:read', 'edt_event:read:agenda'])]
+    #[Groups(['personnel:detail', 'edt_event:read:agenda'])]
     private ?string $photoName = null;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'responsableDiplome')]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private Collection $responsableDiplome;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'assistantDiplome')]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private Collection $assistantDiplome;
 
     #[ORM\ManyToOne(inversedBy: 'personnels')]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['personnel:detail'])]
     private ?array $adressePersonnelle = null;
 
     /**
      * @var Collection<int, StructureDepartementPersonnel>
      */
     #[ORM\OneToMany(targetEntity: StructureDepartementPersonnel::class, mappedBy: 'personnel', orphanRemoval: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private Collection $departementPersonnels;
 
     /**
@@ -112,76 +129,81 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $absences;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['personnel:detail'])]
     private ?array $idEduSign = null;
 
     /**
      * @var Collection<int, ScolEvaluation>
      */
     #[ORM\ManyToMany(targetEntity: ScolEvaluation::class, mappedBy: 'personnelAutorise')]
+    #[Groups(['personnel:detail'])]
     private Collection $evaluations;
 
     /**
      * @var Collection<int, EdtEvent>
      */
     #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'personnel')]
+    #[Groups(['edt:detail'])]
     private Collection $events;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private ?string $entreprise = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private ?string $telBureau = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private ?array $domaines = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private ?string $bureau = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private ?int $numeroHarpege = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'departement_personnel:read'])]
+    #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
     private ?int $nbHeuresService = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['personnel:detail'])]
     private ?string $mailPerso = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private ?string $sitePerso = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private ?string $siteUniv = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private ?string $responsabilites = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private ?string $posteInterne = null;
 
     #[ORM\Column(length: 15, nullable: true, enumType: StatutEnum::class)]
-    #[Groups(['personnel:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
+    #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
     private ?StatutEnum $statut = null;
 
     #[ORM\Column(length: 3, nullable: true)]
-    #[Groups(['personnel:read', 'departement_personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private ?string $initiales = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['personnel:detail'])]
     private ?array $contraintesEdt = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['personnel:read'])]
+    #[Groups(['personnel:detail'])]
     private ?array $applications = null;
 
 
@@ -189,12 +211,14 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, Previsionnel>
      */
     #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'personnel')]
+    #[Groups(['previsionnel:detail'])]
     private Collection $previsionnels;
 
     /**
      * @var Collection<int, PersonnelEnseignantHrs>
      */
     #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'personnel', orphanRemoval: true)]
+    #[Groups(['personnel:detail'])]
     private Collection $enseignantHrs;
 
     public function __construct()
@@ -679,22 +703,22 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['personnel:read', 'departement_personnel:read', 'previsionnel_semestre:read'])]
+    #[Groups(['personnel:detail', 'previsionnel_semestre:read'])]
     public function getDisplayStatut(): ?string
     {
         return $this->statut->getLibelle() ?? '-';
     }
 
-    #[Groups(['diplome:detail', 'maquette:detail', 'personnel:read', 'departement_personnel:read', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda'])]
+    #[Groups(['diplome:detail', 'maquette:detail', 'personnel:detail', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda'])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();
     }
 
-    #[Groups(['diplome:detail', 'maquette:detail', 'personnel:read', 'departement_personnel:read', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda'])]
+    #[Groups(['diplome:detail', 'maquette:detail', 'personnel:detail', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda'])]
     public function getDisplayCourt(): string
     {
-        return mb_substr($this->getNom(), 0, 4);
+        return mb_substr($this->getPrenom(), 0, 1) . '. ' . mb_substr($this->getNom(), 0, 3);
     }
 
     public function getInitiales(): ?string
@@ -763,7 +787,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['personnel:read', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
+    #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
     public function getStatutSeverity(): string {
         return $this->statut->getBadge();
     }

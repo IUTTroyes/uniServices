@@ -3,7 +3,7 @@ import {computed, onMounted, ref, watch} from 'vue';
 import {useAnneeUnivStore, useEnseignementsStore, useSemestreStore, useUsersStore} from '@stores';
 import {ErrorView, ListSkeleton, SimpleSkeleton} from '@components';
 import {
-  getPersonnelsDepartementService,
+  getPersonnelsService,
   getSemestrePreviService,
   updatePreviEnseignementService,
   updatePreviPersonnelService,
@@ -123,7 +123,10 @@ const getPrevi = async (semestreId) => {
         console.error('Erreur lors du chargement des matières:', error);
       }
       try {
-        personnelsList.value = await getPersonnelsDepartementService(departementId);
+        const params = {
+          departement: departementId,
+        };
+        personnelsList.value = await getPersonnelsService(params);
         personnelsList.value = personnelsList.value.map((personnel) => ({
           ...personnel,
           label: `${personnel.personnel.prenom} ${personnel.personnel.nom}`,

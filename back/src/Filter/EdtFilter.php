@@ -66,6 +66,46 @@ class EdtFilter extends AbstractFilter
                 ->andWhere('semestre.id = :semestre')
                 ->setParameter('semestre', $value);
         }
+
+        if ('groupes' === $property && is_array($value)) {
+            $queryBuilder
+                ->join(sprintf('%s.groupes', $alias), 'groupes')
+                ->andWhere('groupes.id IN (:groupes)')
+                ->setParameter('groupes', $value);
+        }
+
+        if ('groupe' === $property && is_array($value)) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.groupe IN (:groupe)', $alias))
+                ->setParameter('groupe', $value);
+        }
+
+        if ('day' === $property) {
+            $date = new \DateTime($value);
+            $date->setTime(0, 0, 0);
+            $nextDay = clone $date;
+            $nextDay->modify('+1 day');
+
+            $queryBuilder
+                ->andWhere(sprintf('%s.debut >= :day_start', $alias))
+                ->andWhere(sprintf('%s.debut < :day_end', $alias))
+                ->setParameter('day_start', $date)
+                ->setParameter('day_end', $nextDay);
+        }
+
+        if ('enseignement' === $property) {
+            $queryBuilder
+                ->join(sprintf('%s.enseignement', $alias), 'enseignement')
+                ->andWhere('enseignement.id = :enseignement')
+                ->setParameter('enseignement', $value);
+        }
+
+        if ('salle' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.salle LIKE :salle', $alias))
+                ->setParameter('salle', '%'.$value.'%');
+        }
+
     }
 
     public function getDescription(string $resourceClass): array
@@ -110,6 +150,30 @@ class EdtFilter extends AbstractFilter
                 'openapi' => [
                     'description' => 'Filter by semester',
                 ],
+            ],
+            'groupes' => [
+                'property' => 'groupes',
+                'type' => Type::BUILTIN_TYPE_ARRAY,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by groupes',
+                ],
+            ],
+            'groupe' => [
+                'property' => 'groupe',
+                'type' => Type::BUILTIN_TYPE_ARRAY,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by groupe',
+                ],
+            ],
+            'day' => [
+                'property' => 'day',
+                'type' => Type::BUILTIN_TYPE_STRING,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter events to only include events on the specified date (format: YYYY-MM-DD)',
+                ]
             ],
         ];
     }

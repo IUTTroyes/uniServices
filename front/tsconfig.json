@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
+    "lib": ["ES2017", "DOM", "DOM.Iterable"],
     "paths": {
       "@types/*": [
         "packages/common-types/*"

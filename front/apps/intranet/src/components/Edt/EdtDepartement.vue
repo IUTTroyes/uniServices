@@ -1,14 +1,24 @@
 <script setup>
 import {VueCal} from 'vue-cal';
 import 'vue-cal/style';
-import {computed, nextTick, onMounted, reactive, ref, watch} from 'vue';
-import { useSemestreStore, useUsersStore } from '@stores';
-import { SimpleSkeleton } from '@components';
+import {computed, nextTick, onMounted, ref, watch} from 'vue';
+import {useSemestreStore, useUsersStore} from '@stores';
+import {MessageCard, PhotoUser, SimpleSkeleton} from '@components';
 import {getISOWeekNumber} from "@helpers/date";
 import EdtEvent from "./EdtEvent.vue";
-import {getSemestreEdtWeekEventsService, getSemaineUniversitaireService, getGroupesService} from "@requests";
+import {
+  getEdtEventsService,
+  getGroupesService,
+  getPersonnelsService,
+  getSemaineUniversitaireService,
+  getSallesService,
+  getEnseignementsService
+} from "@requests";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
-import { useToast } from 'primevue/usetoast';
+import {useToast} from 'primevue/usetoast';
+import EdtListe from "./EdtListe.vue";
+import Loader from "@components/loader/GlobalLoader.vue";
+import {ErrorView} from "@components";
 
 // Référence vers le composant vue-cal
 const vuecalRef = ref(null)
@@ -22,20 +32,89 @@ const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localSt
 const usersStore = useUsersStore();
 const semestreStore = useSemestreStore();
 const isLoadingSemestres = ref(false);
+const hasErrorSemestres = ref(false);
 const semestresList = ref([]);
 const selectedSemestre = ref(null);
+const isLoadingEnseignants = ref(false);
+const hasErrorEnseignants = ref(false);
+const enseignantsList = ref([]);
+const selectedEnseignant = ref(null);
+const isLoadingSalles = ref(false);
+const hasErrorSalles = ref(false);
+const sallesList = ref([]);
+const selectedSalle = ref(null);
+const isLoadingEnseignements = ref(false);
+const hasErrorEnseignements = ref(false);
+const enseignementsList = ref([]);
+const selectedEnseignement = ref(null);
+const isLoadingEvents = ref(false);
 const hasError = ref(false);
 const personnel = usersStore.user;
 const departement = usersStore.departementDefaut;
 const weekUnivNumber = ref(0);
 const events = ref([]);
-const schedules = ref([]); // Pour les groupes de TP
+const schedules = ref([]);
 const isLoadingGroupes = ref(false);
 
+const liste = ref(false);
+
 onMounted(async () => {
+  isLoadingEnseignements.value = true;
+  isLoadingEnseignants.value = true;
+  isLoadingSalles.value = true;
+  isLoadingEvents.value = true;
   await getSemestres();
+  await getEnseignants();
+  await getSalles();
+  await getEnseignements();
   await getEventsDepartementWeek();
+  isLoadingEvents.value = false;
 });
+
+const getEnseignants = async () => {
+  try {
+    const params = {
+      departement: departement.id,
+    };
+    enseignantsList.value = await getPersonnelsService(params);
+  } catch (error) {
+    hasErrorEnseignants.value = true;
+    console.error('Erreur lors du chargement des enseignants :', error);
+  } finally {
+    isLoadingEnseignants.value = false;
+  }
+};
+
+const getSalles = async () => {
+  try {
+    sallesList.value = await getSallesService();
+  } catch (error) {
+    console.error('Erreur lors du chargement des salles :', error);
+  } finally {
+    isLoadingSalles.value = false;
+  }
+};
+
+const getEnseignements = async () => {
+  try {
+    const params = {
+      semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
+      departement: selectedSemestre.value ? null : departement.id,
+      actif: true,
+    };
+    enseignementsList.value = await getEnseignementsService(params);
+
+    // reconstruire le libelle pour inclure le code_enseignement
+    enseignementsList.value = enseignementsList.value.map(enseignement => ({
+      ...enseignement,
+      libelle: `${enseignement.codeEnseignement} - ${enseignement.libelle}`
+    }));
+  } catch (error) {
+    console.error('Erreur lors du chargement des enseignements :', error);
+  } finally {
+    isLoadingEnseignements.value = false;
+  }
+};
 
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
@@ -43,37 +122,15 @@ const getSemestres = async () => {
     await semestreStore.getSemestresByDepartement(departement.id, true);
     semestresList.value = semestreStore.semestres;
   } catch (error) {
+    hasErrorSemestres.value = true;
     console.error('Erreur lors du chargement des semestres :', error);
-    hasError.value = true;
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les semestres. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
-      life: 5000,
-    });
   } finally {
     isLoadingSemestres.value = false;
   }
 };
 
-watch(selectedSemestre, async (newValue) => {
-  if (newValue) {
-    await getSemestreGroupes(newValue);
-    await getWeekUnivNumber(new Date(vuecalRef.value?.view?.start || new Date()));
-    await getEventsDepartementWeek()
-  }
-});
-
-watch(() => vuecalRef.value?.view?.start, async (newValue) => {
-  if (newValue && selectedSemestre.value) { // Vérifie qu'un semestre est sélectionné
-    const startDate = new Date(newValue);
-    await getWeekUnivNumber(startDate); // Récupère le numéro de semaine de formation
-    getEventsDepartementWeek(); // Met à jour les événements pour la semaine
-  }
-}, { immediate: true });
-
 const getWeekUnivNumber = async (date) => {
-  const calendarWeekNumber = getISOWeekNumber(date); // Calcule le numéro de semaine ISO
+  const calendarWeekNumber = getISOWeekNumber(date);
   try {
     const response = await getSemaineUniversitaireService(calendarWeekNumber, anneeUniv.id);
     weekUnivNumber.value = response[0]?.semaineFormation || 0; // Définit la semaine de formation
@@ -93,17 +150,9 @@ const getSemestreGroupes = async (semestre) => {
     schedules.value = groupes.map(groupe => ({
       id: groupe.id,
       label: groupe.libelle,
-      class: 'groupe',
-      color: groupe.couleur ? adjustColor(darkenColor(groupe.couleur, 50), 0, 0.2) : '#ccc',
     }));
   } catch (error) {
     console.error('Erreur lors de la récupération des groupes :', error);
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les groupes. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
-      life: 5000,
-    });
   } finally {
     isLoadingGroupes.value = false;
   }
@@ -116,106 +165,165 @@ function detectOverlap(event, allEvents) {
   );
 }
 
-const getEventsDepartementWeek = async () => {
-  if (!selectedSemestre.value) {
-    console.warn('Aucun semestre sélectionné, la requête ne sera pas exécutée.');
-    return;
+watch(() => vuecalRef.value?.view?.start, async (newValue) => {
+  if (newValue) {
+    const startDate = new Date(newValue);
+    await getWeekUnivNumber(startDate);
+    await getEventsDepartementWeek();
   }
+}, { immediate: true });
 
+watch(selectedSemestre, async (newValue) => {
+  isLoadingEvents.value = true;
+  await getEnseignants();
+  await getSalles();
+  await getEnseignements();
+  if (newValue) {
+    await getSemestreGroupes(newValue);
+  }
+  await getEventsDepartementWeek()
+  isLoadingEvents.value = false;
+});
+
+watch(selectedEnseignant, async () => {
+  isLoadingEvents.value = true;
+  await getEventsDepartementWeek();
+  isLoadingEvents.value = false;
+});
+
+watch(selectedSalle, async () => {
+  isLoadingEvents.value = true;
+  await getEventsDepartementWeek();
+  isLoadingEvents.value = false;
+});
+
+watch(selectedEnseignement, async () => {
+  isLoadingEvents.value = true;
+  await getEventsDepartementWeek();
+  isLoadingEvents.value = false;
+});
+
+const getEventsDepartementWeek = async () => {
   try {
-    const response = await getSemestreEdtWeekEventsService(
-        weekUnivNumber.value,
-        selectedSemestre.value.id,
-        anneeUniv.id,
-        departement.id
-    );
+    await getWeekUnivNumber(new Date(vuecalRef.value?.view?.start || new Date()));
 
-    if (response && response.length > 0) {
-      let mappedEvents = [];
-
-      response.forEach(event => {
-        const startDate = new Date(event.debut);
-        const endDate = new Date(event.fin);
-
-        // Create the base event object
-        const baseEvent = {
-          ...event,
-          ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
-          start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-          end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-          backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
-          location: event.salle,
-          title: event.libModule,
-          type: event.type,
-          groupe: event.groupe || '**',
-          personnel: event.personnel,
-          intervenantPhoto: event.personnel.photoName ?? null,
-          overlap: false,
-          eval: event.evaluation,
-          intervenants: event.enseignement.previsionnels
-              .filter(intervenant => intervenant.personnel.id !== personnel.id)
-              .map(intervenant => ({
-                id: intervenant.id,
-                display: intervenant.personnel?.display || 'Inconnu',
-                photoName: intervenant.personnel?.photoName || null,
-              }))
-        };
-
-        // If the event is a CM, it should span across all columns
-        if (event.type === 'CM') {
-          console.log('CM event', event);
-          // For CM events, use the first available schedule (if schedules exist)
-          // We'll make it span across all columns with CSS later
-          mappedEvents.push({
-            ...baseEvent,
-            schedule: schedules.value.length > 0 ? schedules.value[0].id : event.groupe.id,
-            // Flag this as a CM event for styling
-            isCmEvent: true
-          });
-        }
-            // If the event is for a TD group with TP children, use the first TP child's schedule
-        // and set width to 200% later to make it span across columns
-        else if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
-          // Get all TP children
-          const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
-
-          if (tpChildren.length > 0 && event.type === 'TD') {
-            // Use only the first TP child's schedule - we'll make it span with CSS later
-            mappedEvents.push({
-              ...baseEvent,
-              schedule: tpChildren[0].id,
-              // Flag this as a TD event for styling
-              isTdEvent: true
-            });
-          } else {
-            // If no TP children, use the TD group's ID
-            mappedEvents.push({
-              ...baseEvent,
-              schedule: event.groupe.id
-            });
-          }
-        } else {
-          // For non-TD and non-CM events, use the group's ID directly
-          mappedEvents.push({
-            ...baseEvent,
-            schedule: event.groupe.id
-          });
-        }
-      });
-
-      events.value = mappedEvents.map(event => ({
-        ...event,
-        title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
-        overlap: !!detectOverlap(event, mappedEvents),
-        class: event.type === 'TD' ? 'td-event-spanning' : (event.type === 'CM' ? 'cm-event-spanning' : ''),
-      }));
-    } else {
+    if (!selectedSemestre.value && !selectedEnseignant.value && !selectedSalle.value && !selectedEnseignement.value) {
       events.value = [];
+    } else {
+      const params = {
+        semaineFormation: weekUnivNumber.value,
+        semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
+        anneeUniversitaire: anneeUniv.id,
+        departement: departement.id,
+        personnel: selectedEnseignant.value ? selectedEnseignant.value.id : null,
+        salle: selectedSalle.value ? selectedSalle.value.id : null,
+        enseignement: selectedEnseignement.value ? selectedEnseignement.value.id : null,
+      };
+      const response = await getEdtEventsService(params);
+
+      if (response && response.length > 0) {
+        let mappedEvents = [];
+
+        response.forEach(event => {
+          // Définir la couleur en fonction du type de groupe
+          let eventColor;
+          switch (event.groupe?.type) {
+              // couleurs comme dans Celcat
+            case 'CM':
+              eventColor = '#67cfff'; // Bleu pour CM
+              break;
+            case 'TD':
+              eventColor = '#ffee33'; // Jaune pour TD
+              break;
+            case 'TP':
+              eventColor = '#7aff85'; // Vert pour TP
+              break;
+            default:
+              eventColor = '#CCCCCC'; // Gris par défaut
+          }
+
+          const startDate = new Date(event.debut);
+          const endDate = new Date(event.fin);
+
+          const baseEvent = {
+            ...event,
+            ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
+            start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
+            end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
+            backgroundColor: adjustColor(colorNameToRgb(eventColor), 0.2, 0),
+            location: event.salle,
+            title: event.enseignement?.codeEnseignement + ' - ' + event.libModule,
+            type: event.type,
+            groupe: event.groupe || { libelle: '**' },
+            personnel: event.personnel,
+            intervenantPhoto: event.personnel.photoName ?? null,
+            overlap: false,
+            eval: event.evaluation,
+            intervenants: event.enseignement?.previsionnels
+                .filter(intervenant => intervenant.personnel.id !== personnel.id)
+                .map(intervenant => ({
+                  id: intervenant.id,
+                  display: intervenant.personnel?.display || 'Inconnu',
+                  photoName: intervenant.personnel?.photoName || null,
+                }))
+          };
+
+          // If the event is a CM, it should span across all columns
+            if (event.type === 'CM') {
+              // For CM events, only define schedule and width when a semestre is selected
+              mappedEvents.push({
+                ...baseEvent,
+                ...(selectedSemestre.value ? {
+                  schedule: schedules.value.length > 0 ? schedules.value[0].id : event.groupe.id,
+                  // Flag this as a CM event for styling
+                  isCmEvent: true,
+                  width: `${schedules.value.length * 100}%`
+                } : {})
+              });
+            }
+            // If the event is for a TD group with TP children, use the first TP child's schedule
+            // Only set schedule when a semestre is selected
+            else if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
+              // Get all TP children
+              const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
+
+              if (tpChildren.length > 0) {
+                // Use only the first TP child's schedule when semestre selected
+                mappedEvents.push({
+                  ...baseEvent,
+                  ...(selectedSemestre.value ? { schedule: tpChildren[0].id, isTdEvent: true } : {})
+                });
+              } else {
+                // If no TP children, set schedule only when semestre selected
+                mappedEvents.push({
+                  ...baseEvent,
+                  ...(selectedSemestre.value ? { schedule: event.groupe.id } : {})
+                });
+              }
+            } else {
+              // For non-TD and non-CM events, set schedule only when semestre selected
+              mappedEvents.push({
+                ...baseEvent,
+                ...(selectedSemestre.value ? { schedule: event.groupe.id } : {})
+              });
+            }
+
+        });
+
+        events.value = mappedEvents.map(event => ({
+          ...event,
+          title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
+          overlap: !!detectOverlap(event, mappedEvents),
+          class: event.type === 'TD' && selectedSemestre?.value ? 'td-event-spanning' : (event.type === 'CM' ? 'cm-event-spanning' : ''),
+        }));
+      } else {
+        events.value = [];
+      }
     }
   } catch (error) {
+    hasError.value = true;
     console.error('Error fetching events:', error);
   } finally {
-    console.log('Events:', events.value);
     await nextTick();
     const eventsObjects = document.querySelectorAll('.vuecal__event');
     eventsObjects.forEach(eventEl => {
@@ -228,25 +336,215 @@ const getEventsDepartementWeek = async () => {
         eventEl.style.opacity = 0.9;
       }
     });
+
   }
 };
 
 const cmEventWidth = computed(() => {
+  if (schedules.value.length === 0) return '100%';
   return `${schedules.value.length * 100}%`;
+});
+
+const selectedEvent = ref(null)
+const visible = ref(false)
+
+const openDialog = ({ event }) => {
+  selectedEvent.value = event
+  visible.value = true
+}
+
+function getBadgeSeverity(type) {
+  const badgeMapping = {
+    ressource: 'primary',
+    sae: 'warn',
+    matiere: 'success',
+  };
+
+  return badgeMapping[type] || 'info'; // Valeur par défaut si le type est inconnu
+}
+
+// calculer le nombre total d'heures pour l'ensemble des événements affichés
+const totalHeures = computed(() => {
+  return events.value.reduce((total, event) => {
+    const start = new Date(event.start);
+    const end = new Date(event.end);
+    const duration = (end - start) / (1000 * 60 * 60); // durée en heures
+    return total + duration;
+  }, 0);
+});
+
+// calculer le nombre total d'heures par type "CM", "TD", "TP"
+const heuresParType = computed(() => {
+  // Initialiser les types de base pour qu'ils apparaissent même à 0
+  const totaux = { CM: 0, TD: 0, TP: 0 };
+
+  events.value.forEach(event => {
+    const start = new Date(event.start);
+    const end = new Date(event.end);
+    const duration = (end - start) / (1000 * 60 * 60); // durée en heures
+    totaux[event.type] = (totaux[event.type] || 0) + duration;
+  });
+
+  // Conserver l'ordre CM, TD, TP, puis ajouter les autres types trouvés
+  const result = [];
+  ['CM', 'TD', 'TP'].forEach(type => {
+    result.push({
+      type,
+      heures: Math.round((totaux[type] || 0) * 100) / 100
+    });
+    delete totaux[type];
+  });
+
+  Object.keys(totaux).forEach(type => {
+    result.push({
+      type,
+      heures: Math.round(totaux[type] * 100) / 100
+    });
+  });
+
+  return result;
 });
 </script>
 
 <template>
+  <div class="flex gap-4 w-full pb-6 overflow-x-auto">
+    <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+      <div>
+        Total heures
+      </div>
+      <div class="text-lg font-bold">
+        {{totalHeures}} h
+      </div>
+    </div>
+    <div v-for="heuresType in heuresParType" class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+      <div>
+        {{heuresType.type}}
+      </div>
+      <div class="text-lg font-bold">
+        {{heuresType.heures}} h
+      </div>
+    </div>
+  </div>
+
+  <Dialog v-model:visible="visible" :header="selectedEvent?.title" class="!bg-gray-50 dark:!bg-gray-800 !border-2 !border-primary-500" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+    <div class="flex flex-col gap-2">
+      <div>
+        {{selectedEvent.start.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}} •
+        {{selectedEvent.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}} -
+        {{selectedEvent.end.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}}
+      </div>
+      <div class="flex items-center gap-2">
+        <Badge v-if="selectedEvent.eval" severity="danger" class="uppercase">Évaluation</Badge>
+        <Badge :severity="getBadgeSeverity(selectedEvent.enseignement.type)" class="uppercase">
+          {{ selectedEvent.enseignement.type }}
+        </Badge>
+      </div>
+      <div class="flex flex-col gap-1">
+        <div>
+          <strong>Semestre :</strong> {{ selectedEvent.semestre.libelle }}
+        </div>
+        <div>
+          <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}} étudiants)
+        </div>
+        <div>
+          <strong>Salle :</strong> {{ selectedEvent.location }}
+        </div>
+        <div>
+          <strong>Intervenant :</strong>
+          <div class="flex items-center gap-2">
+            <PhotoUser :user-photo="selectedEvent.intervenantPhoto" class="!w-8 border-2 border-black" />
+            {{ selectedEvent.libPersonnel || 'Inconnu' }}
+          </div>
+        </div>
+        <Divider v-if="selectedEvent.intervenants && selectedEvent.intervenants.length > 0"></Divider>
+        <div v-if="selectedEvent.intervenants && selectedEvent.intervenants.length > 0" class="flex flex-col gap-2">
+          <strong>Autres intervenants sur la {{selectedEvent.enseignement.type}} :</strong>
+          <div class="flex flex-col gap-2">
+            <div v-for="intervenant in selectedEvent.intervenants" :key="intervenant.id" class="flex items-center gap-2">
+              <PhotoUser :user-photo="selectedEvent.intervenantPhoto" class="!w-8 border-2 border-black" />
+              {{ intervenant?.display || 'Inconnu' }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <Divider></Divider>
+      <div class="flex w-full justify-end">
+        <div class="flex gap-2">
+          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
+          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
+          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
+          <Button v-if="selectedEvent.evaluation" icon="pi pi-file-edit" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Saisir les notes" size="small" v-tooltip.top="'Saisir les notes'"></Button>
+        </div>
+      </div>
+    </div>
+  </Dialog>
+
   <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/3" />
+  <Message v-else-if="hasErrorSemestres" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
+    Erreur lors du chargement des semestres.
+  </Message>
   <Select
       v-else
       v-model="selectedSemestre"
       :options="semestresList"
       optionLabel="libelle"
       placeholder="Sélectionner un semestre"
-      class="w-full"
+      class="w-full my-6"
+      show-clear
   ></Select>
+  <div class="flex justify-center items-center gap-4 mb-4">
+    <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>
+    <Message v-else-if="hasErrorEnseignants" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
+      Erreur lors du chargement des enseignants.
+    </Message>
+    <Select
+        v-else
+        v-model="selectedEnseignant"
+        :options="enseignantsList"
+        optionLabel="display"
+        placeholder="Filtrer par enseignant"
+        class="w-full my-6"
+        show-clear
+        filter
+    ></Select>
+    <SimpleSkeleton v-if="isLoadingSalles" class="w-1/3"/>
+    <Message v-else-if="hasErrorSalles" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
+      Erreur lors du chargement des salles.
+    </Message>
+    <Select
+        v-else
+        v-model="selectedSalle"
+        :options="sallesList"
+        optionLabel="libelle"
+        placeholder="Filtrer par salle"
+        class="w-full my-6"
+        show-clear
+        filter
+    ></Select>
+    <SimpleSkeleton v-if="isLoadingEnseignements" class="w-1/3"/>
+    <Message v-else-if="hasErrorEnseignements" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
+      Erreur lors du chargement des enseignements.
+    </Message>
+    <Select
+        v-else
+        v-model="selectedEnseignement"
+        :options="enseignementsList"
+        optionLabel="libelle"
+        placeholder="Filtrer par enseignement"
+        class="w-full my-6"
+        show-clear
+        filter
+    ></Select>
+  </div>
+  <div class="flex justify-end">
+    <Button v-if="!liste" @click="liste = true">Afficher la liste</Button>
+    <Button v-else @click="liste = false">Masquer la liste</Button>
+  </div>
+
+  <Loader v-if="isLoadingEvents"/>
+  <ErrorView v-else-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard."/>
   <vue-cal
+      v-else
       ref="vuecalRef"
       locale="fr"
       hide-weekends
@@ -261,8 +559,9 @@ const cmEventWidth = computed(() => {
       :theme="false"
       diy
       :events="events"
-      :schedules="schedules"
-      :style="{ '--cm-event-width': cmEventWidth }">
+      :schedules="selectedSemestre ? schedules : []"
+      :style="{ '--cm-event-width': cmEventWidth }"
+      @event-click="openDialog">
     <template #header="{ view, availableViews, vuecal }">
       <div class="p-6">
         <div class="flex justify-center items-center gap-12 mb-4">
@@ -280,6 +579,17 @@ const cmEventWidth = computed(() => {
               @click="view.next"
               class="p-button-text"
           />
+        </div>
+
+        <div v-if="liste" class="flex flex-col gap-2 mb-12">
+          <EdtListe :events="events" type="departement"/>
+        </div>
+
+        <div v-if="view.id === 'day' && liste === true" class="flex justify-center items-center mb-4">
+          <div class="text-lg flex flex-col items-center bg-gray-300 bg-opacity-20 rounded-md px-4 py-2 w-full uppercase">
+            <div>{{ view.start.toLocaleDateString('fr-FR', { weekday: 'long' }) }}</div>
+            <div class="font-bold">{{ view.start.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }) }}</div>
+          </div>
         </div>
 
         <div class="flex justify-between items-center">
@@ -310,7 +620,6 @@ const cmEventWidth = computed(() => {
     </template>
 
     <template #event="{ event }">
-      <!--      {{event.id}}-->
       <EdtEvent :event="event" type="departement" />
     </template>
   </vue-cal>
@@ -318,7 +627,10 @@ const cmEventWidth = computed(() => {
 
 <style scoped>
 :deep(.vuecal__event) {
-  @apply p-0 rounded-md text-sm;
+  @apply rounded-xl text-sm text-black !overflow-scroll p-0 transition duration-200 ease-in-out;
+  &:hover {
+    @apply border !border-primary-500 transition duration-200 ease-in-out cursor-pointer shadow-md z-20;
+  }
 }
 :deep(.vuecal__body) {
   @apply gap-2;
@@ -328,11 +640,11 @@ const cmEventWidth = computed(() => {
 }
 
 :deep(.vuecal__weekdays-headings) {
-  @apply flex justify-between items-center gap-2;
+  @apply flex justify-between items-center gap-2 h-3/4;
 }
 
 :deep(.vuecal__schedules-headings) {
-  @apply bg-gray-300 bg-opacity-20 rounded-md;
+  @apply bg-white rounded-md border-b-2;
 }
 
 :deep(.vuecal--day-view .vuecal__scrollable-wrap .vuecal__scrollable) {

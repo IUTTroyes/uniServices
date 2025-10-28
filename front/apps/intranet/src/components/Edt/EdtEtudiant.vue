@@ -2,25 +2,22 @@
 import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 
-import {onMounted, ref, watch, nextTick} from 'vue'
+import {nextTick, ref, watch} from 'vue'
 import EdtEvent from './EdtEvent.vue'
-import {getPersonnelEdtWeekEventsService, getSemaineUniversitaireService} from "@requests";
+import {getEdtEventsService, getEtudiantScolaritesService, getSemaineUniversitaireService} from "@requests";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
 import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
-import {PhotoUser} from "@components";
+import {PhotoUser, ErrorView} from "@components";
 
 // Importer le store des utilisateurs
 const usersStore = useUsersStore();
-const personnel = usersStore.user;
-const departement = usersStore.departementDefaut;
+const etudiant = usersStore.user;
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
-
-// Référence vers le composant vue-cal
 const vuecalRef = ref(null)
 const events = ref([]);
 const weekUnivNumber = ref(0);
-
+const hasError = ref(false);
 const viewTranslations = {
   week: 'SEMAINE',
   day: 'JOUR',
@@ -30,7 +27,7 @@ watch(() => vuecalRef.value?.view?.start, async (newValue) => {
   if (newValue) {
     const startDate = new Date(newValue);
     await getWeekUnivNumber(startDate); // Récupère le numéro de semaine de formation
-    getEventsPersonnelWeek(); // Met à jour les événements pour la semaine
+    getEventsEtudiantWeek(); // Met à jour les événements pour la semaine
   }
 }, { immediate: true });
 
@@ -51,11 +48,55 @@ function detectOverlap(event, allEvents) {
   );
 }
 
-const getEventsPersonnelWeek = async () => {
+const getEtudiantGroupes = async () => {
   try {
-    const response = await getPersonnelEdtWeekEventsService(weekUnivNumber.value, personnel.id, anneeUniv.id, departement.id);
+    const scol = await getEtudiantScolaritesService(etudiant.id, true);
+
+    if (scol && scol.length > 0) {
+      etudiant.scolarites = scol;
+      // Récupère tous les groupes de chaque scolariteSemestre de chaque scolarite
+      etudiant.groupes = scol.flatMap(s =>
+          (s.scolariteSemestre || []).flatMap(ss => ss.groupes || [])
+      );
+    } else {
+      etudiant.scolarites = [];
+      etudiant.groupes = [];
+    }
+  } catch (error) {
+    hasError.value = true;
+    console.error('Erreur lors de la récupération des scolarités de l\'étudiant :', error);
+  }
+};
+
+const getEventsEtudiantWeek = async () => {
+  try {
+    await getEtudiantGroupes();
+
+    const params = {
+      semaineFormation: weekUnivNumber.value,
+      anneeUniversitaire: anneeUniv.id,
+      groupe: etudiant.groupes.map(g => g.id),
+    }
+    const response = await getEdtEventsService(params);
     if (response && response.length > 0) {
       const mappedEvents = response.map(event => {
+        // Définir la couleur en fonction du type de groupe
+        let eventColor;
+        switch (event.groupe.type) {
+            // couleurs comme dans Celcat
+          case 'CM':
+            eventColor = '#33C1FF'; // Bleu pour CM
+            break;
+          case 'TD':
+            eventColor = '#ffee33'; // Jaune pour TD
+            break;
+          case 'TP':
+            eventColor = '#33FF57'; // Vert pour TP
+            break;
+          default:
+            eventColor = '#CCCCCC'; // Gris par défaut
+        }
+
         const startDate = new Date(event.debut);
         const endDate = new Date(event.fin);
 
@@ -64,7 +105,7 @@ const getEventsPersonnelWeek = async () => {
           ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
           start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
           end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-          backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
+          backgroundColor: adjustColor(colorNameToRgb(eventColor), 1, 0),
           location: event.salle,
           title: event.codeModule + ' - ' + event.libModule,
           type: event.type,
@@ -74,7 +115,6 @@ const getEventsPersonnelWeek = async () => {
           overlap: false,
           eval: event.evaluation,
           intervenants: event.enseignement.previsionnels
-              .filter(intervenant => intervenant.personnel.id !== personnel.id)
               .map(intervenant => ({
                 id: intervenant.id,
                 display: intervenant.personnel?.display || 'Inconnu',
@@ -92,6 +132,7 @@ const getEventsPersonnelWeek = async () => {
       events.value = [];
     }
   } catch (error) {
+    hasError.value = true;
     console.error('Error fetching events:', error);
   } finally {
     await nextTick();
@@ -110,10 +151,6 @@ const getEventsPersonnelWeek = async () => {
 
   console.log('events', events.value);
 };
-
-onMounted(() => {
-  getEventsPersonnelWeek();
-});
 
 const selectedEvent = ref(null)
 const visible = ref(false)
@@ -155,7 +192,7 @@ function getBadgeSeverity(type) {
           <strong>Semestre :</strong> {{ selectedEvent.semestre.libelle }}
         </div>
         <div>
-         <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}} étudiants)
+          <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}} étudiants)
         </div>
         <div>
           <strong>Salle :</strong> {{ selectedEvent.location }}
@@ -190,7 +227,9 @@ function getBadgeSeverity(type) {
     </div>
   </Dialog>
 
+  <ErrorView v-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard." />
   <vue-cal
+      v-else
       ref="vuecalRef"
       locale="fr"
       hide-weekends
@@ -255,7 +294,7 @@ function getBadgeSeverity(type) {
     </template>
 
     <template #event="{ event }">
-      <EdtEvent :event="event" type="perso" />
+      <EdtEvent :event="event" type="etudiant" />
     </template>
   </vue-cal>
 </template>

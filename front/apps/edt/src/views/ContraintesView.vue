@@ -5,7 +5,7 @@ import Alert from '@components/components/Alert.vue'
 import Card from '@components/components/Card.vue'
 import { useWeeksStore } from '@/stores/weeksStore.js'
 import api from '@helpers/axios.js'
-import { getPersonnelsDepartementService } from '@requests/user_services/personnelService.js'
+import { getPersonnelsService } from '@requests/user_services/personnelService.js'
 import { formatDateCourt } from '@helpers/date.js'
 
 const calendrierGeneral = ref(false)
@@ -42,7 +42,10 @@ const optionalCount = ref(0)
 
 onMounted(async () => {
   const departementId = localStorage.getItem('departement')
-  personnels.value = await getPersonnelsDepartementService(departementId)
+  const params = {
+    departement: departementId
+  }
+  personnels.value = await getPersonnelsService(params)
   await weeksStore.fetchWeeks()
   weeks.value = weeksStore.weeks['member']
   selectedWeek.value = weeks.value[0]
