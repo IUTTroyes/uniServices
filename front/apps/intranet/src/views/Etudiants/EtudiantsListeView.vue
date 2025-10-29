@@ -5,7 +5,7 @@ import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue';
 import { ErrorView } from '@components';
-import { getDepartementAnneesService, getEtudiantsScolaritesDepartementService, getEtudiantsScolaritesAnneeService } from '@requests';
+import { getDepartementAnneesService, getEtudiantScolariteService } from '@requests';
 
 import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue';
 import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue';
@@ -83,22 +83,32 @@ const getAnnees = async () => {
   }
 };
 
-const getEtudiantsAnnee = async anneeId => {
-  return await getEtudiantsScolaritesAnneeService(anneeId, false, true);
+const getEtudiantsAnnee = async (anneeId) => {
+  const params = {
+    departement: departementId.value,
+    anneeUniversitaire: selectedAnneeUniversitaire.id,
+    annee: anneeId,
+    limit: 1,
+    page: 1,
+    filters: {},
+  };
+  return await getEtudiantScolariteService(params, '/mini', false);
 };
 
 const getEtudiantsScolarite = async () => {
   loading.value = true;
+  const params = {
+    departement: departementId.value,
+    anneeUniversitaire: selectedAnneeUniversitaire.id,
+    limit: limit.value,
+    page: parseInt(page.value) + 1,
+    filters: filters.value,
+  };
   try {
-    const response = await getEtudiantsScolaritesDepartementService(
-        departementId.value,
-        selectedAnneeUniversitaire.id,
-        limit.value,
-        parseInt(page.value) + 1,
-        filters.value
-    );
-    etudiants.value = response.member;
+    const response = await getEtudiantScolariteService(params);
     nbEtudiants.value = response.totalItems;
+    etudiants.value = response.member;
+    console.log(etudiants.value);
 
     etudiants.value.forEach(etudiant => {
       etudiant.annees = [
@@ -267,6 +277,7 @@ watch(
           <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par email" />
         </template>
       </Column>
+      <Column field="etudiant.bac.libelle" header="Bac"></Column>
       <Column :showFilterMenu="false" style="min-width: 12rem">
         <template #body="slotProps">
           <ButtonInfo tooltip="Voir les détails de l'étudiant" @click="viewEtudiant(slotProps.data)" />

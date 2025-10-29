@@ -23,13 +23,30 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StructureScolariteRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['scolarite:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['scolarite:read']]),
+        new Get(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light']]),
+        new Get(
+            uriTemplate: '/mini/etudiant_scolarites/{id}',
+            normalizationContext: ['groups' => ['scolarite:light']],
+        ),
+        new Get(
+            uriTemplate: '/maxi/etudiant_scolarites/{id}',
+            normalizationContext: ['groups' => ['scolarite:datail']],
+        ),
+        new GetCollection(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light']]),
+        new GetCollection(
+            uriTemplate: '/mini/etudiant_scolarites',
+            normalizationContext: ['groups' => ['scolarite:detail']],
+        ),
+        new GetCollection(
+            uriTemplate: '/maxi/etudiant_scolarites',
+            normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:detail']],
+        ),
+
         new Get(
             uriTemplate: '/etudiant_scolarites/etudiant/{etudiant}/structureAnneeUniversitaire/{structureAnneeUniversitaire}',
-            normalizationContext: ['groups' => ['scolarite:read']],
+            normalizationContext: ['groups' => ['scolarite:detail']],
         )
-    ]
+    ],
 )]
 #[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ApiFilter(EtudiantScolariteFilter::class)]
@@ -40,63 +57,63 @@ class EtudiantScolarite
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['scolarite:read', 'etudiant:read'])]
+    #[Groups(['scolarite:detail', 'scolarite:light'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:detail'])]
     private ?Etudiant $etudiant = null;
 
     #[ORM\Column]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:detail', 'scolarite:light'])]
     private int $ordre = 1;
 
     /**
      * @deprecated
      */
     #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:detail'])]
     private ?float $moyenne = null;
 
     #[ORM\Column]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:detail'])]
     private int $nbAbsences = 0;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:detail'])]
     private ?string $commentaire = null;
 
     #[ORM\Column]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:detail'])]
     private bool $public = false;
 
     /**
      * @deprecated
      */
     #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:detail'])]
     private ?array $moyennesMatiere = null;
 
     // moyennes annuelles
     #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:detail'])]
     private ?array $moyennesUe = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['scolarite:read', 'etudiant:read'])]
+    #[Groups(['scolarite:detail', 'scolarite:light'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:detail'])]
     private ?StructureDepartement $departement = null;
 
     /**
      * @var Collection<int, EtudiantScolariteSemestre>
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'scolarite')]
-    #[Groups(['scolarite:read', 'etudiant:read'])]
+    #[Groups(['scolarite:detail'])]
     private Collection $scolariteSemestre;
 
     /**
@@ -104,15 +121,15 @@ class EtudiantScolarite
      * @deprecated
      */
     #[ORM\ManyToMany(targetEntity: StructureAnnee::class, inversedBy: 'scolarites')]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['scolarite:detail'])]
     private Collection $annee;
 
     #[ORM\Column]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['scolarite:detail'])]
     private bool $actif = false;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite:detail'])]
     private ?bool $decision = null;
 
     #[ORM\ManyToOne(inversedBy: 'etudiantScolaritesPropositions')]

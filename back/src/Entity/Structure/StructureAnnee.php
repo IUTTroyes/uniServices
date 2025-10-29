@@ -37,11 +37,11 @@ class StructureAnnee
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['maquette:detail', 'etudiant:read', 'annee:read'])]
+    #[Groups(['maquette:detail', 'annee:light', 'annee:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['maquette:detail', 'scolarite:read', 'annee:read', 'etudiant:read', 'semestre:detail'])]
+    #[Groups(['maquette:detail', 'scolarite:read', 'annee:read', 'annee:light', 'semestre:detail'])]
     private ?string $libelle = null;
 
     #[ORM\Column]

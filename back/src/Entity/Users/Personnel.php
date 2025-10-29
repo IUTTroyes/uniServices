@@ -31,7 +31,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: PersonnelRepository::class)]
 #[ApiFilter(PersonnelFilter::class)]
 #[ApiResource(
-    paginationEnabled: false,
     operations: [
         new Get(normalizationContext: ['groups' => ['personnel:detail']]),
         new Get(
@@ -53,6 +52,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
     ],
     order: ['nom' => 'ASC'],
+    paginationEnabled: false,
 )]
 #[ORM\HasLifecycleCallbacks]
 class Personnel implements UserInterface, PasswordAuthenticatedUserInterface

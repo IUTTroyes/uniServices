@@ -8,7 +8,6 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
-use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Scolarite\ScolBac;
 use App\Entity\Structure\StructureGroupe;
@@ -30,12 +29,24 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
 #[ORM\Entity(repositoryClass: EtudiantRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['etudiant:read']]),
-//        new Get(
-//            uriTemplate: '/etudiants/{annee}',
-//            normalizationContext: ['groups' => ['etudiant:read']],
-//        ),
-        new GetCollection(normalizationContext: ['groups' => ['etudiant:read']]),
+        new Get(normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light']]),
+        new Get(
+            uriTemplate: '/mini/etudiants/{id}',
+            normalizationContext: ['groups' => ['etudiant:light']],
+        ),
+        new Get(
+            uriTemplate: '/maxi/etudiants/{id}',
+            normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:detail']],
+        ),
+        new GetCollection(normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light']]),
+        new GetCollection(
+            uriTemplate: '/mini/etudiants',
+            normalizationContext: ['groups' => ['etudiant:detail']],
+        ),
+        new GetCollection(
+            uriTemplate: '/maxi/etudiants',
+            normalizationContext: ['groups' => ['etudiant:detail']],
+        ),
         new Patch(normalizationContext: ['groups' => ['etudiant:write']], securityPostDenormalize: "is_granted('CAN_EDIT_ETUDIANT', object)"),
     ]
 )]
@@ -55,126 +66,126 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:detail', 'etudiant:light'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:detail'])]
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:detail', 'etudiant:light'])]
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etudiant:read', 'scolarite:read', 'etudiant:write'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'etudiant:write'])]
     private ?string $mailPerso;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:detail'])]
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:detail', 'etudiant:light'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:detail', 'etudiant:light'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:detail'])]
     private ?string $photoName = null;
 
     /**
      * @var Collection<int, EtudiantScolarite>
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'etudiant', orphanRemoval: true)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:detail'])]
     #[MaxDepth(1)]
     private Collection $scolarites;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
-    #[Groups(['etudiant:read', 'scolarite:read', 'etudiant:write'])]
+    #[Groups(['etudiant:detail', 'etudiant:write'])]
     private ?array $adresseEtudiante = null;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
-    #[Groups(['etudiant:read', 'scolarite:read', 'etudiant:write'])]
+    #[Groups(['etudiant:detail', 'etudiant:write'])]
     private ?array $adresseParentale = null;
 
-    /**
-     * @var Collection<int, EtudiantAbsence>
-     */
-    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'etudiant')]
-    private Collection $absences;
-
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['scolarite:read', 'etudiant:read', 'etudiant:write'])]
+    #[Groups(['etudiant:detail', 'etudiant:write'])]
     private ?string $site_perso = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:detail'])]
     private ?string $site_univ = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:detail'])]
     private ?string $num_etudiant = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:detail'])]
     private ?string $num_ine = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['etudiant:detail'])]
     private ?int $annee_bac = null;
 
     #[ORM\Column]
+    #[Groups(['etudiant:detail'])]
     private ?bool $boursier = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['etudiant:detail'])]
     private ?string $amenagements_particuliers = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:detail'])]
     private ?int $promotion = null;
 
     #[ORM\Column()]
+    #[Groups(['etudiant:detail'])]
     private ?int $annee_sortie = 0;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['etudiant:detail'])]
     private ?\DateTimeInterface $date_naissance = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:read', 'scolarite:read'])]
+    #[Groups(['etudiant:detail', 'etudiant:write'])]
     private ?string $tel1 = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:detail', 'etudiant:write'])]
     private ?string $tel2 = null;
 
     #[ORM\Column(length: 150, nullable: true)]
+    #[Groups(['etudiant:detail'])]
     private ?string $lieu_naissance = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['etudiant:read'])]
+    #[Groups(['etudiant:detail'])]
     private ?array $applications = null;
 
     /**
      * @var Collection<int, StructureGroupe>
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'etudiants')]
+    #[Groups(['etudiant:detail'])]
     private Collection $groupes;
 
     #[ORM\ManyToOne(inversedBy: 'etudiants')]
+    #[Groups(['etudiant:detail', 'etudiant:light'])]
     private ?ScolBac $bac = null;
 
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
-        $this->absences = new ArrayCollection();
         $this->groupes = new ArrayCollection();
     }
 
@@ -375,36 +386,6 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
         ];
 
         return Adresse::fromArray($data);
-    }
-
-    /**
-     * @return Collection<int, EtudiantAbsence>
-     */
-    public function getAbsences(): Collection
-    {
-        return $this->absences;
-    }
-
-    public function addAbsence(EtudiantAbsence $absence): static
-    {
-        if (!$this->absences->contains($absence)) {
-            $this->absences->add($absence);
-            $absence->setEtudiant($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAbsence(EtudiantAbsence $absence): static
-    {
-        if ($this->absences->removeElement($absence)) {
-            // set the owning side to null (unless already changed)
-            if ($absence->getEtudiant() === $this) {
-                $absence->setEtudiant(null);
-            }
-        }
-
-        return $this;
     }
 
     public function getApplications(): ?array

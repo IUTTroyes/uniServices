@@ -10,6 +10,7 @@ use App\Repository\Scolarite\ScolBacRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ScolBacRepository::class)]
 #[ApiResource]
@@ -24,6 +25,7 @@ class ScolBac
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
+    #[Groups('etudiant:light')]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255)]

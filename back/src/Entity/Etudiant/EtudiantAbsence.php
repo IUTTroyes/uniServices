@@ -35,14 +35,7 @@ class EtudiantAbsence
     private ?Personnel $personnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'absences')]
-    private ?Etudiant $etudiant = null;
-
-    #[ORM\ManyToOne(inversedBy: 'absences')]
     private ?ScolEnseignement $enseignement = null;
-
-    #[ORM\ManyToOne()]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?EtudiantScolarite $scolarite = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dateJustification = null;
