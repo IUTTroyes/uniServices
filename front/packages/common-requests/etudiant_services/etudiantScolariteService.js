@@ -5,7 +5,7 @@ import apiCall from '@helpers/apiCall';
 // ------------------- GET ----------------------
 // ----------------------------------------------
 
-const getEtudiantScolariteService = async (params, scope = '', showToast = false) => {
+const getEtudiantsScolariteService = async (params, scope = '', showToast = false) => {
     try {
 
         if (params.filters) {
@@ -32,6 +32,22 @@ const getEtudiantScolariteService = async (params, scope = '', showToast = false
         );
     } catch (error) {
         console.error('Erreur dans getEtudiantScolariteService:', error);
+        throw error;
+    }
+}
+
+const getEtudiantScolariteService = async (id, params, scope='', showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api${scope}/etudiant_scolarites/${id}`, { params }],
+            'Scolarités de l\'étudiant récupérées avec succès',
+            'Erreur lors de la récupération des scolarités de l\'étudiant',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getEtudiantScolaritesService:', error);
         throw error;
     }
 }
@@ -142,4 +158,4 @@ const updateEtudiantScolariteSemestreGroupes = async (scolariteSemestreId, newGr
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getEtudiantScolariteService, getEtudiantScolaritesService, updateEtudiantScolariteService, updateEtudiantScolariteSemestreService, updateEtudiantScolariteSemestreGroupes };
+export { getEtudiantsScolariteService, getEtudiantScolariteService, getEtudiantScolaritesService, updateEtudiantScolariteService, updateEtudiantScolariteSemestreService, updateEtudiantScolariteSemestreGroupes };

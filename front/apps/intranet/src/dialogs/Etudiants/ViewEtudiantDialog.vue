@@ -33,7 +33,7 @@ onMounted(() => {
 
 <template>
   <Dialog header=" " :visible="props.isVisible" modal :style="{ width: '90vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask :closable="true">
-    <ProfilEtudiant :etudiantSco="props.etudiantSco" :isVisible="props.isVisible" :etudiantPhoto="etudiantPhoto" />
+    <ProfilEtudiant :etudiantSco="props.etudiantSco.etudiant.id" :isVisible="props.isVisible" :etudiantPhoto="etudiantPhoto" />
   </Dialog>
 </template>
 

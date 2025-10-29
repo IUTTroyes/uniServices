@@ -4,8 +4,8 @@ import { FilterMatchMode } from '@primevue/core/api';
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue';
-import { ErrorView } from '@components';
-import { getDepartementAnneesService, getEtudiantScolariteService } from '@requests';
+import {ErrorView, ProfilEtudiant} from '@components';
+import { getDepartementAnneesService, getEtudiantsScolariteService, getEtudiantScolariteService } from '@requests';
 
 import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue';
 import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue';
@@ -15,7 +15,7 @@ import { useToast } from 'primevue/usetoast';
 
 const toast = useToast();
 
-import { useSemestreStore, useUsersStore } from '@stores';
+import { useUsersStore } from '@stores';
 import { SimpleSkeleton } from '@components';
 const usersStore = useUsersStore();
 
@@ -30,6 +30,7 @@ const hasError = ref(false);
 
 const etudiants = ref([]);
 const nbEtudiants = ref(0);
+const etudiantPhoto = ref(null);
 const loading = ref(true);
 const page = ref(0);
 const rowOptions = [30, 60, 120];
@@ -92,7 +93,7 @@ const getEtudiantsAnnee = async (anneeId) => {
     page: 1,
     filters: {},
   };
-  return await getEtudiantScolariteService(params, '/mini', false);
+  return await getEtudiantsScolariteService(params, '/mini', false);
 };
 
 const getEtudiantsScolarite = async () => {
@@ -105,10 +106,9 @@ const getEtudiantsScolarite = async () => {
     filters: filters.value,
   };
   try {
-    const response = await getEtudiantScolariteService(params);
+    const response = await getEtudiantsScolariteService(params);
     nbEtudiants.value = response.totalItems;
     etudiants.value = response.member;
-    console.log(etudiants.value);
 
     etudiants.value.forEach(etudiant => {
       etudiant.annees = [
@@ -143,8 +143,9 @@ const onPageChange = async event => {
   await getEtudiantsScolarite();
 };
 
-const viewEtudiant = etudiant => {
+const viewEtudiant = async etudiant => {
   selectedEtudiant.value = etudiant;
+  await getEtudiantPhoto(etudiant);
   showViewDialog.value = true;
 };
 
@@ -157,39 +158,60 @@ const deleteEtudiant = etudiant => {
   console.log(etudiant);
 };
 
-watch(
-      () => ({ ...filters.value }),
-      async (newFilters, oldFilters) => {
-        if (isUpdatingFilter.value) {
-          isUpdatingFilter.value = false;
-          return;
-        }
+const getEtudiantPhoto = async etudiantSco => {
+  etudiantPhoto.value = null;
+  if (etudiantSco?.etudiant.photoName) {
+    const photoPath = new URL(
+        `@common-images/photos_etudiants/${etudiantSco.etudiant.photoName}`,
+        import.meta.url
+    ).href;
 
-        // Gestion spécifique pour le filtre année (objet ou id)
-        const newAnnee = newFilters.annee.value;
-        if (newAnnee && typeof newAnnee === 'object' && newAnnee.id) {
-          isUpdatingFilter.value = true;
-          filters.value.annee.value = newAnnee.id;
-          await getEtudiantsScolarite();
-        } else if (typeof newAnnee === 'number') {
-          await getEtudiantsScolarite();
-        } else if (newAnnee === null || newAnnee === undefined) {
-          await getEtudiantsScolarite();
-        } else {
-          await getEtudiantsScolarite();
-        }
-        // Détection de changement sur les autres filtres
-        if (
+    try {
+      const response = await fetch(photoPath);
+      if (response.ok) {
+        etudiantPhoto.value = photoPath;
+      } else {
+        etudiantPhoto.value = null;
+      }
+    } catch (error) {
+      etudiantPhoto.value = null;
+    }
+  }
+};
+
+watch(
+    () => ({ ...filters.value }),
+    async (newFilters, oldFilters) => {
+      if (isUpdatingFilter.value) {
+        isUpdatingFilter.value = false;
+        return;
+      }
+
+      // Gestion spécifique pour le filtre année (objet ou id)
+      const newAnnee = newFilters.annee.value;
+      if (newAnnee && typeof newAnnee === 'object' && newAnnee.id) {
+        isUpdatingFilter.value = true;
+        filters.value.annee.value = newAnnee.id;
+        await getEtudiantsScolarite();
+      } else if (typeof newAnnee === 'number') {
+        await getEtudiantsScolarite();
+      } else if (newAnnee === null || newAnnee === undefined) {
+        await getEtudiantsScolarite();
+      } else {
+        await getEtudiantsScolarite();
+      }
+      // Détection de changement sur les autres filtres
+      if (
           newFilters.nom.value !== oldFilters.nom.value ||
           newFilters.prenom.value !== oldFilters.prenom.value ||
           newFilters.mailUniv.value !== oldFilters.mailUniv.value ||
           newFilters.global.value !== oldFilters.global.value
-        ) {
-          await getEtudiantsScolarite();
-        }
-      },
-      { deep: true }
-    );
+      ) {
+        await getEtudiantsScolarite();
+      }
+    },
+    { deep: true }
+);
 </script>
 
 <template>
@@ -288,11 +310,11 @@ watch(
       <template #footer> {{ nbEtudiants }} résultat(s).</template>
     </DataTable>
 
-    <ViewEtudiantDialog
-        :isVisible="showViewDialog"
-        :etudiantSco="selectedEtudiant"
-        @update:visible="showViewDialog = $event"
-    />
+    <Dialog header=" " :visible="showViewDialog" modal :style="{ width: '90vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask :closable="true"
+            :isVisible="showViewDialog"
+            @update:visible="showViewDialog = $event">
+      <ProfilEtudiant :etudiantId="selectedEtudiant.etudiant.id" :isVisible="showViewDialog" :etudiantPhoto="etudiantPhoto" />
+    </Dialog>
     <EditEtudiantDialog
         :isVisible="showEditDialog"
         :etudiant="selectedEtudiant"

@@ -85,7 +85,7 @@ class EtudiantScolarite
     private ?string $commentaire = null;
 
     #[ORM\Column]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'scolarite:light'])]
     private bool $public = false;
 
     /**
@@ -125,7 +125,7 @@ class EtudiantScolarite
     private Collection $annee;
 
     #[ORM\Column]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'scolarite:light'])]
     private bool $actif = false;
 
     #[ORM\Column(nullable: true)]
