@@ -315,16 +315,16 @@ watch(
             @update:visible="showViewDialog = $event">
       <ProfilEtudiant :etudiantId="selectedEtudiant.etudiant.id" :isVisible="showViewDialog" :etudiantPhoto="etudiantPhoto" />
     </Dialog>
-    <EditEtudiantDialog
-        :isVisible="showEditDialog"
-        :etudiant="selectedEtudiant"
-        @update:visible="showEditDialog = $event"
-    />
-    <AccessEtudiantDialog
-        :isVisible="showAccessEditDialog"
-        :etudiant="selectedEtudiant"
-        @update:visible="showAccessEditDialog = $event"
-    />
+<!--    <EditEtudiantDialog-->
+<!--        :isVisible="showEditDialog"-->
+<!--        :etudiant="selectedEtudiant"-->
+<!--        @update:visible="showEditDialog = $event"-->
+<!--    />-->
+<!--    <AccessEtudiantDialog-->
+<!--        :isVisible="showAccessEditDialog"-->
+<!--        :etudiant="selectedEtudiant"-->
+<!--        @update:visible="showAccessEditDialog = $event"-->
+<!--    />-->
   </div>
 </template>
 

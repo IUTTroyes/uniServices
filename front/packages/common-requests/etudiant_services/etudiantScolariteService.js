@@ -52,11 +52,11 @@ const getEtudiantScolariteService = async (id, params, scope='', showToast = fal
     }
 }
 
-const getEtudiantScolaritesService = async (etudiantId, actif, showToast = false) => {
+const getEtudiantScolaritesService = async (params, scope='', showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api/etudiant_scolarites?etudiant=${etudiantId}&actif=${actif}`],
+            [`/api${scope}/etudiant_scolarites`, { params }],
             'Scolarités de l\'étudiant récupérées avec succès',
             'Erreur lors de la récupération des scolarités de l\'étudiant',
             showToast
@@ -67,6 +67,22 @@ const getEtudiantScolaritesService = async (etudiantId, actif, showToast = false
         throw error;
     }
 }
+
+// const getEtudiantScolaritesService = async (etudiantId, actif, showToast = false) => {
+//     try {
+//         const response = await apiCall(
+//             api.get,
+//             [`/api/etudiant_scolarites?etudiant=${etudiantId}&actif=${actif}`],
+//             'Scolarités de l\'étudiant récupérées avec succès',
+//             'Erreur lors de la récupération des scolarités de l\'étudiant',
+//             showToast
+//         );
+//         return response.member;
+//     } catch (error) {
+//         console.error('Erreur dans getEtudiantScolaritesService:', error);
+//         throw error;
+//     }
+// }
 
 // ----------------------------------------------
 // ------------------- CREATE -------------------

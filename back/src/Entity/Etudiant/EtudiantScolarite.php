@@ -23,7 +23,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StructureScolariteRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light']]),
+        new Get(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light', 'annee-univ:light']]),
         new Get(
             uriTemplate: '/mini/etudiant_scolarites/{id}',
             normalizationContext: ['groups' => ['scolarite:light']],
@@ -32,7 +32,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/maxi/etudiant_scolarites/{id}',
             normalizationContext: ['groups' => ['scolarite:datail']],
         ),
-        new GetCollection(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light']]),
+        new GetCollection(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light', 'annee-univ:light']]),
         new GetCollection(
             uriTemplate: '/mini/etudiant_scolarites',
             normalizationContext: ['groups' => ['scolarite:detail']],

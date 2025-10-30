@@ -2,12 +2,14 @@
 
 namespace App\Entity\Etudiant;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
+use App\Filter\EtudiantScolariteSemestreFilter;
 use App\Repository\EtudiantScolariteSemestreRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -15,11 +17,12 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantScolariteSemestreRepository::class)]
+#[ApiFilter(EtudiantScolariteSemestreFilter::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['scolarite:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['scolarite:read']]),
-        new Patch(normalizationContext: ['groups' => ['scolarite:read']], securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),
+        new Get(normalizationContext: ['groups' => ['scolarite-semestre:detail']]),
+        new GetCollection(normalizationContext: ['groups' => ['scolarite-semestre:detail', 'semestre:light', 'annee:light']]),
+        new Patch(normalizationContext: ['groups' => ['scolarite-semestre:detail']], securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),
     ]
 )]
 class EtudiantScolariteSemestre
@@ -27,12 +30,12 @@ class EtudiantScolariteSemestre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['scolarite:read', 'etudiant:read'])]
+    #[Groups(['scolarite-semestre:detail', 'etudiant:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['scolarite:read', 'etudiant:read'])]
+    #[Groups(['scolarite-semestre:detail', 'etudiant:read'])]
     private ?StructureSemestre $semestre = null;
 
     /**
@@ -54,28 +57,28 @@ class EtudiantScolariteSemestre
      * @var Collection<int, StructureGroupe>
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'scolariteSemestres')]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite-semestre:detail'])]
     private Collection $groupes;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite-semestre:detail'])]
     private ?float $moyenne = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite-semestre:detail'])]
     private ?array $moyennesMatiere = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite-semestre:detail'])]
     private ?array $moyennesUe = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:read'])]
+    #[Groups(['scolarite-semestre:detail'])]
     private ?bool $decision = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre', cascade: ['persist', 'remove'])]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['scolarite:read', 'etudiant:read'])]
+    #[Groups(['scolarite-semestre:detail', 'etudiant:read'])]
     private ?StructureSemestre $proposition = null;
 
     public function __construct()
