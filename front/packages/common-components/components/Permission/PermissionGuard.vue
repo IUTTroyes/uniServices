@@ -15,7 +15,7 @@ const props = defineProps({
    * Can be a string, an array of strings, or an object with permissions and requireAll properties
    */
   permission: {
-    type: [String, Array, Object],
+    type: [String, Array, Object, Boolean],
     required: true
   },
 

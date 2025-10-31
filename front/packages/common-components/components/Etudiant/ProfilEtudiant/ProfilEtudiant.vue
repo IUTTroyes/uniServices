@@ -1,17 +1,18 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { getEtudiantScolaritesService, getEtudiantScolariteSemestresService, updateEtudiantScolariteSemestreGroupes } from "@requests";
+import { getEtudiantScolaritesService, getEtudiantScolariteSemestresService, updateEtudiantScolariteSemestreGroupes } from "@requests/index.js";
 import { useToast } from "primevue/usetoast";
 import { fr } from "date-fns/locale";
 import { format, parseISO, differenceInYears } from "date-fns";
 import { formatAdresse } from "@helpers/adresse.js";
-import { updateEtudiantService, getUeService, getEtudiantService, getGroupesService } from "@requests";
-import { ValidatedInput, validationRules, ErrorView, PermissionGuard } from "@components";
-import { PhotoUser } from "@components";
-import { useUsersStore } from "@stores";
+import { updateEtudiantService, getUeService, getEtudiantService, getGroupesService } from "@requests/index.js";
+import { ValidatedInput, validationRules, ErrorView, PermissionGuard } from "@components/index.js";
+import { PhotoUser } from "@components/index.js";
+import { useUsersStore } from "@stores/index.js";
 import { hasPermission } from "@utils";
-import { SimpleSkeleton } from "@components";
+import { SimpleSkeleton } from "@components/index.js";
 import noImage from "@images/photos_etudiants/noimage.png";
+import { ScolariteEtudiant } from "@components";
 
 const toast = useToast();
 const userStore = useUsersStore();
@@ -23,12 +24,10 @@ const props = defineProps({
 
 const isLoadingEtudiant = ref(false);
 const etudiant = ref(null);
-const etudiantPhoto = ref(noImage);
 const isLoadingScolarites = ref(true);
 const etudiantScolarites = ref([]);
 const currentScolarite = ref(null);
 const activeTab = ref(null);
-const ueLabels = ref({});
 
 const isEditing = ref(false);
 const formErrors = ref({});
@@ -98,70 +97,46 @@ const getEtudiantDetails = async (etudiantId) => {
 const getEtudiantScolarites = async () => {
   isLoadingScolarites.value = true;
   try {
-    const params = {
-      etudiant: props.etudiantId,
-      _sort: 'anneeUniversitaire.annee:desc'
-    };
+    const params = { etudiant: props.etudiantId, _sort: 'anneeUniversitaire.annee:asc' };
     etudiantScolarites.value = await getEtudiantScolaritesService(params);
 
-    etudiantScolarites.value.sort((a, b) => {
-      const anneeA = a.anneeUniversitaire.annee;
-      const anneeB = b.anneeUniversitaire.annee;
-      return anneeB - anneeA;
-    });
-
-    // Définir la première tab comme active
-    if (etudiantScolarites.value.length > 0) {
-      activeTab.value = etudiantScolarites.value[0].anneeUniversitaire.libelle;
-    }
-
-    if (etudiantScolarites.value.length > 0) {
-      activeTab.value = etudiantScolarites.value[0].anneeUniversitaire.libelle;
-    }
+    // Trier et définir l'onglet actif
+    etudiantScolarites.value.sort((a, b) => b.anneeUniversitaire.annee - a.anneeUniversitaire.annee);
+    activeTab.value = etudiantScolarites.value[0]?.anneeUniversitaire.libelle || null;
 
     for (const scolarite of etudiantScolarites.value) {
-          // Récupérer les scolariteSemestre depuis le service et les injecter
-          try {
-            const params = { scolarite: scolarite.id };
-            const semestres = await getEtudiantScolariteSemestresService(params);
-            scolarite.scolariteSemestre = Array.isArray(semestres) ? semestres : (semestres?.data ?? []);
-          } catch (error) {
-            console.error("Erreur lors de la récupération des scolariteSemestre :", error);
-            scolarite.scolariteSemestre = scolarite.scolariteSemestre ?? [];
-          }
+      try {
+        const semestres = await getEtudiantScolariteSemestresService({ scolarite: scolarite.id });
+        scolarite.scolariteSemestre = Array.isArray(semestres) ? semestres : (semestres?.data ?? []);
+      } catch {
+        scolarite.scolariteSemestre = [];
+      }
 
-          for (const scolariteSemestre of scolarite.scolariteSemestre) {
-            try {
-              const params = { semestre: scolariteSemestre.semestre.id };
-              const groupes = await getGroupesService(params, '/mini');
-              scolariteSemestre.semestre.groupes = Array.isArray(groupes) ? groupes : (groupes?.data ?? []);
-            } catch (error) {
-              console.error("Erreur lors de la récupération des groupes du semestre :", error);
-              scolariteSemestre.semestre.groupes = scolariteSemestre.semestre.groupes ?? [];
-            }
-
-            for (const groupe of scolariteSemestre.semestre.groupes) {
-              if (groupe.type === 'CM') {
-                scolariteSemestre.semestre.groupesCM = scolariteSemestre.semestre.groupesCM ?? [];
-                scolariteSemestre.semestre.groupesCM.push(groupe);
-              } else if (groupe.type === 'TD') {
-                scolariteSemestre.semestre.groupesTD = scolariteSemestre.semestre.groupesTD ?? [];
-                scolariteSemestre.semestre.groupesTD.push(groupe);
-              } else if (groupe.type === 'TP') {
-                scolariteSemestre.semestre.groupesTP = scolariteSemestre.semestre.groupesTP ?? [];
-                scolariteSemestre.semestre.groupesTP.push(groupe);
-              }
-            }
-          }
+      for (const scolariteSemestre of scolarite.scolariteSemestre) {
+        try {
+          const groupes = await getGroupesService({ semestre: scolariteSemestre.semestre.id }, '/mini');
+          scolariteSemestre.semestre.groupes = Array.isArray(groupes) ? groupes : (groupes?.data ?? []);
+        } catch {
+          scolariteSemestre.semestre.groupes = [];
         }
 
+        // Organiser les groupes par type
+        ['CM', 'TD', 'TP', 'Spécial', 'Autre'].forEach(type => {
+          const groupesType = scolariteSemestre.semestre.groupes.filter(g => g.type === type);
+          if (groupesType.length > 0) {
+            scolariteSemestre.semestre[`groupes${type}`] = groupesType;
+          } else {
+            scolariteSemestre.semestre[`groupes${type}`] = [];
+          }
+        });
+      }
+    }
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la récupération :", error);
   } finally {
     isLoadingScolarites.value = false;
     currentScolarite.value = etudiantScolarites.value.find(sco => sco.actif) || null;
-    console.log(etudiantScolarites.value);
   }
 };
 
@@ -235,36 +210,6 @@ const updateEtudiantData = async () => {
     console.error("Erreur lors de la mise à jour :", error);
   } finally {
     isEditing.value = false;
-  }
-};
-
-const getUe = (ueId) => {
-  if (ueLabels.value[ueId]) {
-    return ueLabels.value[ueId];
-  }
-
-  ueLabels.value[ueId] = "Chargement...";
-
-  getUeService(ueId)
-      .then(ue => {
-        ueLabels.value[ueId] = ue.numero;
-      })
-      .catch(error => {
-        console.error("Erreur lors de la récupération de l'UE:", error);
-        ueLabels.value[ueId] = "UE non trouvée";
-      });
-
-  return ueLabels.value[ueId];
-}
-
-const handleGroupSelection = async (scolariteSemestre, groupId, groupType) => {
-  try {
-    // retrouver le type de groupe sélectionné
-    const group = scolariteSemestre.semestre.groupes.find(g => g.id === groupId);
-    const groupType = group ? group.type : null;
-    await updateEtudiantScolariteSemestreGroupes(scolariteSemestre.id, { id: groupId, type: groupType }, true);
-  } catch (error) {
-    console.error("Erreur lors de la sélection du groupe :", error);
   }
 };
 </script>
@@ -435,8 +380,7 @@ const handleGroupSelection = async (scolariteSemestre, groupId, groupType) => {
 </span><span v-else>Non renseigné</span></li>
             </ul>
 
-            <!-- Sensitive information only visible to authorized users -->
-            <PermissionGuard :permission="['isEtudiant', 'canViewEtudiantDetails']">
+            <PermissionGuard :permission="userStore.user.id === etudiant.id || ['isEtudiant', 'canViewEtudiantDetails']">
               <div class="flex md:flex-row flex-col gap-4 flex-wrap w-full">
                 <ul class="md:w-1/3 flex flex-col gap-2">
                   <li><span class="font-bold">Adresse de l'étudiant :</span> {{ formatAdresse(etudiant.adresseEtudiante) || 'Non renseigné' }}</li>
@@ -459,138 +403,9 @@ const handleGroupSelection = async (scolariteSemestre, groupId, groupType) => {
       </div>
     </div>
     <Divider></Divider>
-        <div class="md:px-12 px-4">
-          <div class="flex justify-between gap-4 w-full items-center">
-            <div>
-              <h2 class="text-2xl font-bold">Scolarité</h2>
-              <p class="text-sm text-muted-color">Années universitaires dans lesquelles l'étudiant est ou a été inscrit</p>
-            </div>
-
-            <div>
-            <Button v-if="currentScolarite" label="Plus d'infos sur la scolarité de l'étudiant" />
-              <p class="text-sm text-muted-color">Bilans, notes, absences ...</p>
-            </div>
-
-          </div>
-          <Tabs v-if="etudiantScolarites.length > 0" :value="activeTab">
-            <TabList>
-              <Tab v-for="scolarite in etudiantScolarites"
-                   :key="scolarite.anneeUniversitaire.libelle"
-                   :value="scolarite.anneeUniversitaire.libelle">
-                {{ scolarite.anneeUniversitaire.libelle }}
-              </Tab>
-            </TabList>
-            <TabPanels>
-              <TabPanel v-for="scolarite in etudiantScolarites"
-                        :key="scolarite.anneeUniversitaire.libelle"
-                        :value="scolarite.anneeUniversitaire.libelle">
-                <div class="flex md:flex-row flex-col justify-between gap-2 w-full h-full">
-                  <div v-for="scoSemestre in scolarite.scolariteSemestre"
-                       class="card mb-0 w-1/2">
-                    <div class="font-bold text-lg">
-                      {{ scoSemestre.semestre.annee.libelle }} |
-                      <span class="text-muted-color font-normal">{{ scoSemestre.semestre.libelle }}</span>
-                    </div>
-                    <Divider/>
-                    <div class="text-lg font-medium opacity-70 mb-4">Groupes</div>
-                    <div class="flex justify-between gap-2 w-full">
-                      <!-- Groupe CM -->
-                      <div class="w-1/3 border p-2 rounded-md flex flex-col gap-2">
-                        <Tag severity="info">CM</Tag>
-                        <ValidatedInput
-                            type="select"
-                            v-model="scoSemestre.semestre.selectedGroupCM"
-                            name="groupeCM"
-                            label=""
-                            :options="scoSemestre.semestre.groupesCM?.map(groupe => ({ label: groupe.libelle, value: groupe.id })) ?? []"
-                            :modelValue="scoSemestre.groupes.find(g => g.type === 'CM')?.id || scoSemestre.semestre.selectedGroupCM"
-                            :placeholder="scoSemestre.groupes?.find(g => g.type === 'CM')?.libelle ?? 'Sélectionner un groupe CM'"
-                            @validation="result => handleValidation('groupeCM', result)"
-                            @update:modelValue="groupId => handleGroupSelection(scoSemestre, groupId)"
-                            class="!m-0"
-                        />
-                      </div>
-                      <!-- Groupe TD -->
-                      <div class="w-1/3 border p-2 rounded-md flex flex-col gap-2">
-                        <Tag severity="warning">TD</Tag>
-                        <ValidatedInput
-                            type="select"
-                            v-model="scoSemestre.semestre.selectedGroupTD"
-                            name="groupeTD"
-                            label=""
-                            :options="scoSemestre.semestre.groupesTD?.map(groupe => ({ label: groupe.libelle, value: groupe.id })) ?? []"
-                            :modelValue="scoSemestre.groupes.find(g => g.type === 'TD')?.id || scoSemestre.semestre.selectedGroupTD"
-                            :placeholder="scoSemestre.groupes?.find(g => g.type === 'TD')?.libelle ?? 'Sélectionner un groupe TD'"
-                            @validation="result => handleValidation('groupeTD', result)"
-                            @update:modelValue="groupId => handleGroupSelection(scoSemestre, groupId)"
-                            class="!m-0"
-                        />
-                      </div>
-                      <!-- Groupe TP -->
-                      <div class="w-1/3 border p-2 rounded-md flex flex-col gap-2">
-                        <Tag severity="success">TP</Tag>
-                        <ValidatedInput
-                            type="select"
-                            v-model="scoSemestre.semestre.selectedGroupTP"
-                            name="groupeTP"
-                            label=""
-                            :options="scoSemestre.semestre.groupesTP?.map(groupe => ({ label: groupe.libelle, value: groupe.id })) ?? []"
-                            :modelValue="scoSemestre.groupes.find(g => g.type === 'TP')?.id || scoSemestre.semestre.selectedGroupTP"
-                            :placeholder="scoSemestre.groupes?.find(g => g.type === 'TP')?.libelle ?? 'Sélectionner un groupe TP'"
-                            @validation="result => handleValidation('groupeTP', result)"
-                            @update:modelValue="groupId => handleGroupSelection(scoSemestre, groupId)"
-                            class="!m-0"
-                        />
-                      </div>
-                    </div>
-                    <Divider></Divider>
-                    <div class="text-lg font-medium opacity-70 mb-4">Bilan du semestre</div>
-                    <div class="flex">
-                      <table class="table-auto w-full">
-                        <thead>
-                        <tr>
-                          <th class="text-left px-2 py-1">UE</th>
-                          <th class="text-left px-2 py-1">Moyenne</th>
-                          <th class="text-left px-2 py-1">Décision</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr v-for="(moyenneUe, key) in scoSemestre.moyennesUe" :key="key">
-                          <td class="px-2 py-1">UE {{ getUe(key) }}</td>
-                          <td class="px-2 py-1">{{ moyenneUe.moyenne || 'Non renseigné' }}</td>
-                          <td class="px-2 py-1">
-                            <span v-if="moyenneUe.decision === 'V'"><Tag severity="success">V</Tag></span>
-                            <span v-else-if="moyenneUe.decision === 'NV'"><Tag severity="danger">NV</Tag></span>
-                            <span v-else><Tag severity="warning">En attente</Tag></span>
-                          </td>
-                        </tr>
-                        </tbody>
-                      </table>
-                      <table class="table-auto w-full">
-                        <thead>
-                        <tr>
-                          <th class="text-left px-2 py-1">Décision semestre</th>
-                          <th class="text-left px-2 py-1">Proposition</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                          <td class="px-2 py-1">
-                            <span v-if="scoSemestre.decision === true"><Tag severity="success">V</Tag></span>
-                            <span v-else-if="scoSemestre.decision === false"><Tag severity="danger">NV</Tag></span>
-                            <span v-else><Tag severity="warning">En attente</Tag></span>
-                          </td>
-                          <td class="px-2 py-1">{{ scoSemestre.proposition?.libelle || 'Non renseigné' }}</td>
-                        </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              </TabPanel>
-            </TabPanels>
-          </Tabs>
-        </div>
+    <PermissionGuard :permission="userStore.user.id === etudiant.id">
+    <ScolariteEtudiant :etudiantId="props.etudiantId"/>
+    </PermissionGuard>
   </div>
 </template>
 

@@ -155,6 +155,13 @@ function checkSinglePermission(permission, userStore) {
     return compositePermissions[permission].some(role => userStore[role]) || userStore.isSuperAdmin;
   }
 
+  // si la permission n'est pas reconnue, on vérifie si c'est un test qui renvoie true ou false
+  if (permission === true) {
+    return true;
+  } else if (permission === false) {
+    return false;
+  }
+
   // Permission inconnue, refuser l'accès
   console.warn(`Unknown permission: ${permission}`);
   return false;

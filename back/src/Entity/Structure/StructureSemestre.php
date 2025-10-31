@@ -553,4 +553,16 @@ class StructureSemestre
 
         return $this;
     }
+
+    #[Groups(['semestre:detail', 'semestre:light'])]
+    public function getTypesGroupe(): array
+    {
+        $types = [];
+
+        foreach ($this->groupes as $groupe) {
+            $types[] = $groupe->getType()->value;
+        }
+
+        return array_unique($types);
+    }
 }

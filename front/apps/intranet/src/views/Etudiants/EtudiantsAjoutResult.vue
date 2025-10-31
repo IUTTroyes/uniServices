@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import Dialog from 'primevue/dialog';
 import ProgressSpinner from 'primevue/progressspinner';
-import ProfilEtudiant from '@components/components/Etudiant/ProfilEtudiant.vue';
+import ProfilEtudiant from '@components/components/Etudiant/ProfilEtudiant/ProfilEtudiant.vue';
 import { getEtudiantService } from '@requests';
 import { getEtudiantScolaritesService } from '@requests';
 import noImage from "@images/photos_etudiants/noimage.png";

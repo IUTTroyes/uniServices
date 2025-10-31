@@ -57,7 +57,7 @@ class StructureAnneeUniversitaire
     private ?string $libelle = null;
 
     #[ORM\Column]
-    #[Groups(['annee_universitaire:read', 'scolarite:read'])]
+    #[Groups(['annee_universitaire:read', 'scolarite:read', 'annee-univ:light'])]
     private int $annee;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
