@@ -21,7 +21,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['scolarite-semestre:detail']]),
-        new GetCollection(normalizationContext: ['groups' => ['scolarite-semestre:detail', 'semestre:light', 'annee:light']]),
+        new GetCollection(normalizationContext: ['groups' => ['scolarite-semestre:detail', 'semestre:light', 'annee:light', 'groupe:light']]),
         new Patch(normalizationContext: ['groups' => ['scolarite-semestre:detail']], securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),
     ]
 )]

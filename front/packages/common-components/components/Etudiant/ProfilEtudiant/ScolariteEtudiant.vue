@@ -1,10 +1,10 @@
 <script setup>
 import { ref, onMounted } from "vue";
-import { getEtudiantScolaritesService, getEtudiantScolariteSemestresService, updateEtudiantScolariteSemestreGroupes } from "@requests/index.js";
-import { updateEtudiantService, getUeService, getGroupesService } from "@requests/index.js";
-import { ValidatedInput, ErrorView } from "@components/index.js";
-import { useUsersStore } from "@stores/index.js";
-import { SimpleSkeleton } from "@components/index.js";
+import { getEtudiantScolaritesService, getEtudiantScolariteSemestresService } from "@requests";
+import { updateEtudiantScolariteSemestreService, getUeService, getGroupesService } from "@requests";
+import { ValidatedInput, ErrorView } from "@components";
+import { useUsersStore } from "@stores";
+import { SimpleSkeleton } from "@components";
 
 const props = defineProps({
   isVisible: Boolean,
@@ -89,16 +89,43 @@ const getUe = (ueId) => {
   return ueLabels.value[ueId];
 }
 
-const handleGroupSelection = async (scolariteSemestre, groupId, groupType) => {
-  try {
-    // retrouver le type de groupe sélectionné
-    const group = scolariteSemestre.semestre.groupes.find(g => g.id === groupId);
-    const groupType = group ? group.type : null;
-    await updateEtudiantScolariteSemestreGroupes(scolariteSemestre.id, { id: groupId, type: groupType }, true);
-  } catch (error) {
-    console.error("Erreur lors de la sélection du groupe :", error);
-  }
-};
+const updateScolariteSemestreGroupe = async (scolariteSemestre, groupId, groupType) => {
+    try {
+      const currentGroupes = Array.isArray(scolariteSemestre.groupes) ? [...scolariteSemestre.groupes] : [];
+      const semGroupes = scolariteSemestre.semestre?.groupes ?? [];
+
+      // Trouver l'objet groupe sélectionné dans la liste des groupes du semestre
+      const newGroup = groupId != null ? semGroupes.find(g => g.id === groupId) || { id: groupId, type: groupType } : null;
+
+      // Remplacer ou supprimer l'ancien groupe du même type
+      const idx = currentGroupes.findIndex(g => g.type === groupType);
+      if (idx !== -1) {
+        if (newGroup) {
+          currentGroupes[idx] = newGroup;
+        } else {
+          currentGroupes.splice(idx, 1);
+        }
+      } else if (newGroup) {
+        currentGroupes.push(newGroup);
+      }
+
+      // Mettre à jour le modèle local
+      scolariteSemestre.groupes = currentGroupes;
+      scolariteSemestre.semestre['selectedGroup' + groupType] = groupId ?? null;
+      // dans le tableau transformer les id des groupes en iri
+      currentGroupes.forEach(g => {
+        if (typeof g.id === 'number') {
+          g.id = `/api/structure_groupes/${g.id}`;
+        }
+      })
+
+      // Persister la modification côté serveur (adapter la payload si nécessaire)
+      await updateEtudiantScolariteSemestreService(scolariteSemestre.id, { groupes: currentGroupes.map(g => g.id) }, true);
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour du groupe :", error);
+    } finally {
+    }
+  };
 </script>
 
 <template>
@@ -154,7 +181,7 @@ const handleGroupSelection = async (scolariteSemestre, groupId, groupType) => {
                           :modelValue="scoSemestre.groupes.find(g => g.type === type)?.id || scoSemestre.semestre['selectedGroup' + type]"
                           :placeholder="scoSemestre.groupes?.find(g => g.type === type)?.libelle ?? (`Sélectionner un groupe ${type}`)"
                           @validation="result => handleValidation('groupe' + type, result)"
-                          @update:modelValue="groupId => handleGroupSelection(scoSemestre, groupId, type)"
+                          @update:modelValue="groupId => updateScolariteSemestreGroupe(scoSemestre, groupId, type)"
                           class="!m-0 w-full"
                       />
                     </div>

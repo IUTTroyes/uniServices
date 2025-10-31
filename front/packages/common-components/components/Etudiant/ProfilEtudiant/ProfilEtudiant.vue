@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { getEtudiantScolaritesService, getEtudiantScolariteSemestresService, updateEtudiantScolariteSemestreGroupes } from "@requests/index.js";
+import { getEtudiantScolaritesService, getEtudiantScolariteSemestresService } from "@requests/index.js";
 import { useToast } from "primevue/usetoast";
 import { fr } from "date-fns/locale";
 import { format, parseISO, differenceInYears } from "date-fns";
