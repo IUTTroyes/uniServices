@@ -30,7 +30,6 @@ const hasError = ref(false);
 
 const etudiants = ref([]);
 const nbEtudiants = ref(0);
-const etudiantPhoto = ref(null);
 const loading = ref(true);
 const page = ref(0);
 const rowOptions = [30, 60, 120];
@@ -145,7 +144,6 @@ const onPageChange = async event => {
 
 const viewEtudiant = async etudiant => {
   selectedEtudiant.value = etudiant;
-  await getEtudiantPhoto(etudiant);
   showViewDialog.value = true;
 };
 
@@ -156,27 +154,6 @@ const editEtudiant = etudiant => {
 
 const deleteEtudiant = etudiant => {
   console.log(etudiant);
-};
-
-const getEtudiantPhoto = async etudiantSco => {
-  etudiantPhoto.value = null;
-  if (etudiantSco?.etudiant.photoName) {
-    const photoPath = new URL(
-        `@common-images/photos_etudiants/${etudiantSco.etudiant.photoName}`,
-        import.meta.url
-    ).href;
-
-    try {
-      const response = await fetch(photoPath);
-      if (response.ok) {
-        etudiantPhoto.value = photoPath;
-      } else {
-        etudiantPhoto.value = null;
-      }
-    } catch (error) {
-      etudiantPhoto.value = null;
-    }
-  }
 };
 
 watch(
@@ -313,7 +290,7 @@ watch(
     <Dialog header=" " :visible="showViewDialog" modal :style="{ width: '90vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask :closable="true"
             :isVisible="showViewDialog"
             @update:visible="showViewDialog = $event">
-      <ProfilEtudiant :etudiantId="selectedEtudiant.etudiant.id" :isVisible="showViewDialog" :etudiantPhoto="etudiantPhoto" />
+      <ProfilEtudiant :etudiantId="selectedEtudiant.etudiant.id" :isVisible="showViewDialog" />
     </Dialog>
 <!--    <EditEtudiantDialog-->
 <!--        :isVisible="showEditDialog"-->

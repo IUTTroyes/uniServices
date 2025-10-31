@@ -1,17 +1,14 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { getEtudiantScolaritesService, getEtudiantScolariteSemestresService } from "@requests/index.js";
 import { useToast } from "primevue/usetoast";
 import { fr } from "date-fns/locale";
 import { format, parseISO, differenceInYears } from "date-fns";
 import { formatAdresse } from "@helpers/adresse.js";
-import { updateEtudiantService, getUeService, getEtudiantService, getGroupesService } from "@requests/index.js";
+import { updateEtudiantService, getEtudiantService, getGroupesService } from "@requests/index.js";
 import { ValidatedInput, validationRules, ErrorView, PermissionGuard } from "@components/index.js";
 import { PhotoUser } from "@components/index.js";
 import { useUsersStore } from "@stores/index.js";
-import { hasPermission } from "@utils";
 import { SimpleSkeleton } from "@components/index.js";
-import noImage from "@images/photos_etudiants/noimage.png";
 import { ScolariteEtudiant } from "@components";
 
 const toast = useToast();
@@ -23,17 +20,31 @@ const props = defineProps({
 });
 
 const isLoadingEtudiant = ref(false);
-const etudiant = ref(null);
-const isLoadingScolarites = ref(true);
-const etudiantScolarites = ref([]);
-const currentScolarite = ref(null);
-const activeTab = ref(null);
+const etudiant = ref([]);
 
 const isEditing = ref(false);
 const formErrors = ref({});
 const formValid = ref(true);
 
 const hasError = ref(false);
+
+onMounted(async () => {
+  console.log("Etudiant :", props.etudiantId);
+  await getEtudiantDetails(props.etudiantId);
+});
+
+const getEtudiantDetails = async (etudiantId) => {
+    console.log("Etudiant :", etudiant.value);
+  try {
+    isLoadingEtudiant.value = true;
+    etudiant.value = await getEtudiantService(etudiantId);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des détails de l'étudiant :", error);
+    throw error;
+  } finally {
+    isLoadingEtudiant.value = false;
+  }
+};
 
 const handleValidation = (field, result) => {
   formErrors.value = {
@@ -81,69 +92,6 @@ const copyToClipboard = (email) => {
     });
   }).catch(() => alert("Échec de la copie."));
 };
-
-const getEtudiantDetails = async (etudiantId) => {
-  try {
-    isLoadingEtudiant.value = true;
-    etudiant.value = await getEtudiantService(etudiantId);
-  } catch (error) {
-    console.error("Erreur lors de la récupération des détails de l'étudiant :", error);
-    throw error;
-  } finally {
-    isLoadingEtudiant.value = false;
-  }
-};
-
-const getEtudiantScolarites = async () => {
-  isLoadingScolarites.value = true;
-  try {
-    const params = { etudiant: props.etudiantId, _sort: 'anneeUniversitaire.annee:asc' };
-    etudiantScolarites.value = await getEtudiantScolaritesService(params);
-
-    // Trier et définir l'onglet actif
-    etudiantScolarites.value.sort((a, b) => b.anneeUniversitaire.annee - a.anneeUniversitaire.annee);
-    activeTab.value = etudiantScolarites.value[0]?.anneeUniversitaire.libelle || null;
-
-    for (const scolarite of etudiantScolarites.value) {
-      try {
-        const semestres = await getEtudiantScolariteSemestresService({ scolarite: scolarite.id });
-        scolarite.scolariteSemestre = Array.isArray(semestres) ? semestres : (semestres?.data ?? []);
-      } catch {
-        scolarite.scolariteSemestre = [];
-      }
-
-      for (const scolariteSemestre of scolarite.scolariteSemestre) {
-        try {
-          const groupes = await getGroupesService({ semestre: scolariteSemestre.semestre.id }, '/mini');
-          scolariteSemestre.semestre.groupes = Array.isArray(groupes) ? groupes : (groupes?.data ?? []);
-        } catch {
-          scolariteSemestre.semestre.groupes = [];
-        }
-
-        // Organiser les groupes par type
-        ['CM', 'TD', 'TP', 'Spécial', 'Autre'].forEach(type => {
-          const groupesType = scolariteSemestre.semestre.groupes.filter(g => g.type === type);
-          if (groupesType.length > 0) {
-            scolariteSemestre.semestre[`groupes${type}`] = groupesType;
-          } else {
-            scolariteSemestre.semestre[`groupes${type}`] = [];
-          }
-        });
-      }
-    }
-  } catch (error) {
-    hasError.value = true;
-    console.error("Erreur lors de la récupération :", error);
-  } finally {
-    isLoadingScolarites.value = false;
-    currentScolarite.value = etudiantScolarites.value.find(sco => sco.actif) || null;
-  }
-};
-
-onMounted(async () => {
-  await getEtudiantDetails(props.etudiantId);
-  await getEtudiantScolarites();
-});
 
 // Formater la date de naissance
 const formattedDateNaissance = computed(() => {
@@ -216,7 +164,7 @@ const updateEtudiantData = async () => {
 
 <template>
   <ErrorView v-if="hasError" message="Une erreur est survenue lors du chargement des données."></ErrorView>
-  <SimpleSkeleton v-else-if="isLoadingEtudiant || isLoadingScolarites" />
+  <SimpleSkeleton v-else-if="isLoadingEtudiant" />
   <div v-else>
     <div class="flex items-stretch md:flex-row flex-col gap-6 md:px-12">
       <div class="flex flex-col gap-2 justify-center md:w-1/3 w-full h-auto p-4 mb-0 card scol-profil">
