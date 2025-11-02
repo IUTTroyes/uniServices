@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Student, Staff } from '../types';
+import type {Staff, Student} from '../types';
 
 interface Props {
   person: Student | Staff;
@@ -96,22 +96,19 @@ const getStatusText = (status: string) => {
 
         <!-- Groups -->
         <div :class="viewMode === 'grid' ? 'space-y-1' : 'mt-1'">
-          <div v-for="(groups, type) in person.groups" :key="type" class="flex items-center gap-1">
-            <span :class="viewMode === 'grid' ? 'text-xs font-medium text-gray-700' : 'text-xs font-medium text-gray-700'">
-              {{ type }}:
-            </span>
-            <div class="flex flex-wrap gap-1">
+          <div class="flex gap-1">
+            <template v-for="(groups, type) in person.groups" :key="type">
               <span
                   v-for="group in groups"
                   :key="group"
                   :class="[
-                  'inline-block px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs',
+                  'px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs w-25',
                   viewMode === 'list' ? 'text-xs' : ''
                 ]"
               >
                 {{ group }}
               </span>
-            </div>
+            </template>
           </div>
         </div>
       </div>
