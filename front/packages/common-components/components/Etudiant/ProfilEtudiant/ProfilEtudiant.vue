@@ -29,15 +29,14 @@ const formValid = ref(true);
 const hasError = ref(false);
 
 onMounted(async () => {
-  console.log("Etudiant :", props.etudiantId);
   await getEtudiantDetails(props.etudiantId);
 });
 
 const getEtudiantDetails = async (etudiantId) => {
-    console.log("Etudiant :", etudiant.value);
   try {
     isLoadingEtudiant.value = true;
     etudiant.value = await getEtudiantService(etudiantId);
+    console.log(etudiant.value);
   } catch (error) {
     console.error("Erreur lors de la récupération des détails de l'étudiant :", error);
     throw error;
@@ -193,6 +192,7 @@ const updateEtudiantData = async () => {
               <li><span class="font-bold">Prénom :</span> {{etudiant.prenom}}</li>
               <li><span class="font-bold">Nom :</span> {{etudiant.nom}}</li>
               <li><span class="font-bold">Date de naissance :</span> {{ formattedDateNaissance }} ({{ age }} ans)</li>
+              <li><span class="font-bold">Bac :</span> {{ etudiant.bac?.libelle }}</li>
             </ul>
 
             <ul class="md:w-1/3 flex flex-col gap-2">
@@ -200,6 +200,11 @@ const updateEtudiantData = async () => {
               <li><span class="font-bold">Numéro étudiant :</span> {{ etudiant.num_etudiant }}</li>
               <li><span class="font-bold">Numéro INE :</span> {{ etudiant.num_ine }}</li>
               <li><span class="font-bold">Login URCA :</span> {{ etudiant.username }}</li>
+            </ul>
+
+            <ul class="md:w-1/3 flex flex-col gap-2">
+              <li><span class="font-bold">Mail univ :</span> {{ etudiant.mailUniv }}</li>
+              <li><span class="font-bold">Portfolio univ :</span> {{ etudiant.siteUniv || 'Non renseigné' }}</li>
             </ul>
           </div>
         </div>
@@ -322,20 +327,18 @@ const updateEtudiantData = async () => {
             </div>
           </div>
           <div v-else class="flex md:flex-row flex-col gap-4 flex-wrap">
-            <ul class="md:w-1/3 flex flex-col gap-2">
-              <li><span class="font-bold">Mail personnel :</span> {{etudiant.mailPerso || 'Non renseigné'}}</li>
-              <li><span class="font-bold">Site personnel :</span> <span v-if="etudiant.site_perso"><Button as="a" label="Accéder au site" :href="etudiant.site_perso" target="_blank" rel="noopener" icon="pi pi-external-link" icon-pos="right" severity="primary" size="small"/>
-</span><span v-else>Non renseigné</span></li>
+            <ul class="md:w-full justify-between flex md:flex-row flex-col gap-2">
+              <li class="md:w-1/3 w-full"><span class="font-bold">Mail personnel :</span> {{etudiant.mailPerso || 'Non renseigné'}}</li>
+              <li class="md:w-1/3 w-full"><span class="font-bold">Site personnel :</span> <span v-if="etudiant.site_perso"><Button as="a" label="Accéder au site" :href="etudiant.site_perso" target="_blank" rel="noopener" icon="pi pi-external-link" icon-pos="right" severity="primary" size="small"/></span><span v-else>Non renseigné</span></li>
+              <li class="md:w-1/3 w-full"><span class="font-bold">Téléphone :</span> {{ etudiant.tel1 || 'Non renseigné' }} <span v-if="etudiant.tel2">ou {{ etudiant.tel2 }}</span></li>
             </ul>
 
             <PermissionGuard :permission="userStore.user.id === etudiant.id || ['isEtudiant', 'canViewEtudiantDetails']">
-              <div class="flex md:flex-row flex-col gap-4 flex-wrap w-full">
-                <ul class="md:w-1/3 flex flex-col gap-2">
-                  <li><span class="font-bold">Adresse de l'étudiant :</span> {{ formatAdresse(etudiant.adresseEtudiante) || 'Non renseigné' }}</li>
+              <div class="flex md:flex-row flex-col flex-wrap w-full">
+                <ul class="md:w-1/2 flex flex-col gap-2">
+                  <li><span class="font-bold">Adresse de l'étudiant :</span> {{ formatAdresse(etudiant.adresseEtudiante) ?? 'Non renseigné' }}</li>
                 </ul>
-
-                <ul class="md:w-1/3 flex flex-col gap-2">
-                  <li><span class="font-bold">Téléphone :</span> {{ etudiant.tel1 || 'Non renseigné' }} <span v-if="etudiant.tel2">ou {{ etudiant.tel2 }}</span></li>
+                <ul class="md:w-1/2 flex flex-col gap-2">
                   <li><span class="font-bold">Adresse parentale :</span> {{ formatAdresse(etudiant.adresseParentale) || 'Non renseigné' }}</li>
                 </ul>
               </div>
@@ -352,7 +355,7 @@ const updateEtudiantData = async () => {
     </div>
     <Divider></Divider>
     <PermissionGuard :permission="userStore.user.id === etudiant.id">
-    <ScolariteEtudiant :etudiantId="props.etudiantId"/>
+      <ScolariteEtudiant :etudiantId="props.etudiantId"/>
     </PermissionGuard>
   </div>
 </template>

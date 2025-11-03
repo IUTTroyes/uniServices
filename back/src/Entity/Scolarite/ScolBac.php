@@ -22,10 +22,11 @@ class ScolBac
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups('bac:light')]
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
-    #[Groups('etudiant:light')]
+    #[Groups('bac:light')]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255)]
