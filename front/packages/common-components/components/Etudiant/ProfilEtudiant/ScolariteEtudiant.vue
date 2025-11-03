@@ -59,6 +59,7 @@ const getEtudiantScolarites = async () => {
           const groupesType = scolariteSemestre.semestre.groupes.filter(g => g.type === type);
           scolariteSemestre.semestre[`groupes${type}`] = groupesType.length > 0 ? groupesType : [];
         });
+        scolariteSemestre.typesGroupe = typesGroupe.value;
       }
     }
   } catch (error) {
@@ -167,7 +168,7 @@ const updateScolariteSemestreGroupe = async (scolariteSemestre, groupId, groupTy
                 <Divider/>
                 <div class="text-lg font-medium opacity-70 mb-4">Groupes</div>
                 <div class="flex md:flex-row flex-col gap-2 w-full">
-                  <div v-for="type in typesGroupe" :key="type" class="flex-1 min-w-0">
+                  <div v-for="type in scoSemestre.typesGroupe" :key="type" class="flex-1 min-w-0">
                     <div class="border p-2 rounded-md flex flex-col gap-2 h-full">
                       <Tag :severity="type === 'CM' ? 'info' : type === 'TD' ? 'warning' : type === 'TP' ? 'success' : 'info'">
                         {{ type }}

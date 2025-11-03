@@ -36,7 +36,6 @@ const getEtudiantDetails = async (etudiantId) => {
   try {
     isLoadingEtudiant.value = true;
     etudiant.value = await getEtudiantService(etudiantId);
-    console.log(etudiant.value);
   } catch (error) {
     console.error("Erreur lors de la récupération des détails de l'étudiant :", error);
     throw error;
