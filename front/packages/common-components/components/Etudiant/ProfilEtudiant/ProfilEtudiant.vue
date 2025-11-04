@@ -21,6 +21,7 @@ const props = defineProps({
 
 const isLoadingEtudiant = ref(false);
 const etudiant = ref([]);
+const originalEtudiant = ref(null);
 
 const isEditing = ref(false);
 const formErrors = ref({});
@@ -32,10 +33,13 @@ onMounted(async () => {
   await getEtudiantDetails(props.etudiantId);
 });
 
+// mise à jour de la récupération pour stocker la copie originale
 const getEtudiantDetails = async (etudiantId) => {
   try {
     isLoadingEtudiant.value = true;
     etudiant.value = await getEtudiantService(etudiantId);
+    // garder une copie profonde pour comparaison ultérieure
+    originalEtudiant.value = JSON.parse(JSON.stringify(etudiant.value));
   } catch (error) {
     console.error("Erreur lors de la récupération des détails de l'étudiant :", error);
     throw error;
@@ -50,34 +54,6 @@ const handleValidation = (field, result) => {
     [field]: result.isValid ? null : result.errorMessage
   };
   formValid.value = Object.values(formErrors.value).every(error => error === null);
-};
-
-const initializeAddressObjects = () => {
-  formErrors.value = {};
-  formValid.value = true;
-
-  // Initialize address objects if they don't exist
-  if (!etudiant.value.adresseEtudiante) {
-    etudiant.value.adresseEtudiante = {
-      adresse: "",
-      complement1: "",
-      complement2: "",
-      ville: "",
-      codePostal: "",
-      pays: ""
-    };
-  }
-
-  if (!etudiant.value.adresseParentale) {
-    etudiant.value.adresseParentale = {
-      adresse: "",
-      complement1: "",
-      complement2: "",
-      ville: "",
-      codePostal: "",
-      pays: ""
-    };
-  }
 };
 
 const copyToClipboard = (email) => {
@@ -103,42 +79,82 @@ const age = computed(() => {
   return differenceInYears(new Date(), parseISO(etudiant.value.date_naissance));
 });
 
-const cleanEtudiantObject = (etudiant) => {
-  const cleanedEtudiant = { ...etudiant };
+const initializeAddressObjects = () => {
+  formErrors.value = {};
+  formValid.value = true;
 
-  // Supprimer les propriétés inutiles
-  delete cleanedEtudiant["@id"];
-  delete cleanedEtudiant["@type"];
+  const ensureAddr = (addr) => ({
+    adresse: addr?.adresse ?? "",
+    complement1: addr?.complement1 ?? "",
+    complement2: addr?.complement2 ?? "",
+    ville: addr?.ville ?? "",
+    codePostal: addr?.codePostal ?? "",
+    pays: addr?.pays ?? ""
+  });
 
-  // Reformater les sous-objets (adresseEtudiante et adresseParentale)
-  if (cleanedEtudiant.adresseEtudiante) {
-    cleanedEtudiant.adresseEtudiante = {
-      adresse: cleanedEtudiant.adresseEtudiante.adresse || "",
-      complement1: cleanedEtudiant.adresseEtudiante.complement1 || "",
-      complement2: cleanedEtudiant.adresseEtudiante.complement2 || "",
-      ville: cleanedEtudiant.adresseEtudiante.ville || "",
-      codePostal: cleanedEtudiant.adresseEtudiante.codePostal || "",
-      pays: cleanedEtudiant.adresseEtudiante.pays || "",
-    };
+  // normaliser le modèle d'édition
+  etudiant.value.adresseEtudiante = ensureAddr(etudiant.value.adresseEtudiante);
+  etudiant.value.adresseParentale = ensureAddr(etudiant.value.adresseParentale);
+
+  // éviter les faux positifs : normaliser aussi la copie originale si elle existe
+  if (originalEtudiant.value) {
+    originalEtudiant.value.adresseEtudiante = ensureAddr(originalEtudiant.value.adresseEtudiante);
+    originalEtudiant.value.adresseParentale = ensureAddr(originalEtudiant.value.adresseParentale);
   }
-
-  if (cleanedEtudiant.adresseParentale) {
-    cleanedEtudiant.adresseParentale = {
-      adresse: cleanedEtudiant.adresseParentale.adresse || "",
-      complement1: cleanedEtudiant.adresseParentale.complement1 || "",
-      complement2: cleanedEtudiant.adresseParentale.complement2 || "",
-      ville: cleanedEtudiant.adresseParentale.ville || "",
-      codePostal: cleanedEtudiant.adresseParentale.codePostal || "",
-      pays: cleanedEtudiant.adresseParentale.pays || "",
-    };
-  }
-
-  return cleanedEtudiant;
 };
 
-// Mettre à jour les informations de l'étudiant
+const computeModifiedData = () => {
+  if (!originalEtudiant.value) return {};
+  const modified = {};
+  const orig = originalEtudiant.value || {};
+  const curr = etudiant.value || {};
+  const keys = new Set([...Object.keys(orig), ...Object.keys(curr)]);
+
+  for (const key of keys) {
+    if (key === "@id" || key === "@type") continue;
+
+    const a = orig[key];
+    const b = curr[key];
+
+    // tableaux : comparer par valeur pour éviter les diffs par référence
+    if (Array.isArray(a) || Array.isArray(b)) {
+      const aStr = JSON.stringify(a || []);
+      const bStr = JSON.stringify(b || []);
+      if (aStr !== bStr) modified[key] = b;
+      continue;
+    }
+
+    // objets (adresses -> comparer champs individuellement)
+    if (b && typeof b === "object") {
+      if (key === "adresseEtudiante" || key === "adresseParentale") {
+        const sub = {};
+        const subKeys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
+        for (const sk of subKeys) {
+          const aval = (a || {})[sk];
+          const bval = (b || {})[sk];
+          // considérer null/undefined et "" comme équivalents pour éviter les faux positifs
+          const avalNorm = (aval === null || aval === undefined) ? "" : aval;
+          const bvalNorm = (bval === null || bval === undefined) ? "" : bval;
+          if (JSON.stringify(avalNorm) !== JSON.stringify(bvalNorm)) {
+            sub[sk] = bval;
+          }
+        }
+        if (Object.keys(sub).length) modified[key] = sub;
+      } else {
+        // autres objets : comparaison profonde par JSON
+        if (JSON.stringify(a) !== JSON.stringify(b)) modified[key] = b;
+      }
+    } else {
+      // primitives
+      if (a !== b) modified[key] = b;
+    }
+  }
+
+  return modified;
+};
+
+// envoi uniquement des champs modifiés
 const updateEtudiantData = async () => {
-  // Vérifier si le formulaire est valide avant de soumettre
   if (!formValid.value) {
     toast.add({
       severity: "error",
@@ -149,9 +165,25 @@ const updateEtudiantData = async () => {
     return;
   }
 
+  const modifiedData = computeModifiedData();
+  console.log("modifiedData", modifiedData);
+  if (!modifiedData || Object.keys(modifiedData).length === 0) {
+    toast.add({
+      severity: "info",
+      summary: "Aucune modification",
+      detail: "Aucune donnée modifiée à enregistrer.",
+      life: 3000,
+    });
+    isEditing.value = false;
+    return;
+  }
+
   try {
-    const cleanedEtudiant = cleanEtudiantObject(etudiant.value);
-    await updateEtudiantService(cleanedEtudiant);
+    // updateEtudiantService attend (id, dataModifiees)
+    await updateEtudiantService(props.etudiantId, modifiedData);
+
+    // mettre à jour la copie originale après succès
+    originalEtudiant.value = JSON.parse(JSON.stringify(etudiant.value));
   } catch (error) {
     console.error("Erreur lors de la mise à jour :", error);
   } finally {
