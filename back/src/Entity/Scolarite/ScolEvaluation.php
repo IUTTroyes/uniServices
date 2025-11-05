@@ -2,18 +2,40 @@
 
 namespace App\Entity\Scolarite;
 
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Etudiant\EtudiantNote;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
+use App\Filter\EvaluationFilter;
 use App\Repository\ScolEvaluationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ScolEvaluationRepository::class)]
+#[ApiFilter(EvaluationFilter::class)]
+#[ApiResource(
+    paginationEnabled: false,
+    operations: [
+        new Get(normalizationContext: ['groups' => ['evaluation:detail']]),
+        new GetCollection(normalizationContext: ['groups' => ['evaluation:detail']]),
+        new Get(
+            uriTemplate: '/mini/scol_evaluations/{id}',
+            normalizationContext: ['groups' => ['evaluation:light']],
+        ),
+        new Get(
+            uriTemplate: '/maxi/scol_evaluations/{id}',
+            normalizationContext: ['groups' => ['evaluation:detail']],
+        ),
+    ]
+)]
 class ScolEvaluation
 {
     use UuidTrait;
@@ -21,55 +43,69 @@ class ScolEvaluation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['evaluation:light', 'evaluation:detail'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['evaluation:light', 'evaluation:detail'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['evaluation:detail'])]
     private ?string $commentaire = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['evaluation:detail'])]
     private ?float $coeff = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Groups(['evaluation:detail'])]
     private ?\DateTimeInterface $date = null;
 
     #[ORM\Column]
+    #[Groups(['evaluation:detail'])]
     private ?bool $visible = null;
 
     #[ORM\Column]
+    #[Groups(['evaluation:detail'])]
     private ?bool $modifiable = null;
 
     /**
      * @var Collection<int, Personnel>
      */
     #[ORM\ManyToMany(targetEntity: Personnel::class, inversedBy: 'evaluations')]
+    #[Groups(['evaluation:detail'])]
     private Collection $personnelAutorise;
 
     #[ORM\ManyToOne(inversedBy: 'evaluations')]
+    #[Groups(['evaluation:detail'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'evaluations')]
+    #[Groups(['evaluation:detail'])]
     private ?StructureSemestre $semestre = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'evaluations')]
+    #[Groups(['evaluation:detail'])]
     private ?self $parent = null;
 
     /**
      * @var Collection<int, self>
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    #[Groups(['evaluation:detail'])]
     private Collection $evaluations;
 
     #[ORM\ManyToOne(inversedBy: 'evaluations')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['evaluation:detail'])]
     private ?ScolEnseignement $enseignement = null;
 
     /**
      * @var Collection<int, EtudiantNote>
      */
     #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'evaluation')]
+    #[Groups(['evaluation:detail'])]
     private Collection $notes;
 
     public function __construct()

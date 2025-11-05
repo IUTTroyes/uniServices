@@ -10,6 +10,7 @@ export * from './structure_services/previsionnelService';
 export * from './structure_services/groupeService';
 
 export * from './scol_services/enseignementService';
+export * from './scol_services/evaluationService.js';
 
 export * from './edt_services/edtEventService.js';
 

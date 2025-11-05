@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted, watch} from 'vue';
-import { getSemestresService, getEnseignementsService } from '@requests';
+import { getEvaluationsService, getEnseignementsService } from '@requests';
 import { useUsersStore, useAnneeStore, useDiplomeStore } from '@stores';
 import { SimpleSkeleton } from '@components';
 import { ErrorView, PermissionGuard } from "@components";
@@ -17,6 +17,8 @@ const selectedAnnee = ref({});
 const selectedSemestre = ref({});
 const enseignements = ref([]);
 const isLoadingEnseignements = ref(true);
+const evaluations = ref([]);
+const isLoadingEvaluations = ref(true);
 
 onMounted(() => {
   departementId.value = usersStore.departementDefaut.id;
@@ -58,12 +60,31 @@ const getEnseignements = async () => {
       semestre: selectedSemestre.value.id,
     };
     enseignements.value = await getEnseignementsService(params);
+    for (const enseignement of enseignements.value) {
+      await getEvaluations(enseignement.id);
+      enseignement.evaluations = evaluations.value;
+    }
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching enseignements:', error);
   } finally {
-    console.log(enseignements.value);
     isLoadingEnseignements.value = false;
+  }
+};
+
+const getEvaluations = async (enseignement) => {
+  isLoadingEvaluations.value = true;
+  try {
+    const params = {
+      enseignement: enseignement,
+    };
+    evaluations.value = await getEvaluationsService(params);
+    return evaluations.value;
+  } catch (error) {
+    hasError.value = true;
+    console.error('Error fetching evaluations:', error);
+  } finally {
+    isLoadingEvaluations.value = false;
   }
 };
 </script>
@@ -107,7 +128,9 @@ const getEnseignements = async () => {
               </div>
             </AccordionHeader>
             <AccordionContent>
-              coucou
+              <div v-for="evaluation in enseignement.evaluations">
+                {{evaluation.libelle}}
+              </div>
             </AccordionContent>
           </AccordionPanel>
         </Accordion>

@@ -30,11 +30,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['enseignement:detail', 'enseignement_ue:read']]),
         new GetCollection(normalizationContext: ['groups' => ['enseignement:detail']]),
         new Get(
-            uriTemplate: '/mini/scol_enseignement/{id}',
+            uriTemplate: '/mini/scol_enseignements/{id}',
             normalizationContext: ['groups' => ['enseignement:light']],
         ),
         new Get(
-            uriTemplate: '/maxi/scol_enseignement/{id}',
+            uriTemplate: '/maxi/scol_enseignements/{id}',
             normalizationContext: ['groups' => ['enseignement:detail', 'apprentissage_critique:detail', 'absence:detail', 'evaluation:detail', 'previsionnel:detail', 'edt:detail']],
         ),
     ]
