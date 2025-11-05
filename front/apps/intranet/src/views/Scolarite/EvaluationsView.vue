@@ -56,6 +56,10 @@ const getDiplomes = async () => {
 const getEnseignements = async () => {
   isLoadingEnseignements.value = true;
   try {
+    if (!selectedSemestre.value) {
+      enseignements.value = [];
+      return;
+    }
     const params = {
       semestre: selectedSemestre.value.id,
     };
@@ -84,6 +88,7 @@ const getEvaluations = async (enseignement) => {
     hasError.value = true;
     console.error('Error fetching evaluations:', error);
   } finally {
+    console.log(evaluations.value);
     isLoadingEvaluations.value = false;
   }
 };
@@ -121,50 +126,109 @@ const updateEvaluationVisibility = async (evaluation) => {
         <Select v-if="selectedAnnee" v-model="selectedSemestre" :options="selectedAnnee.semestres" option-label="libelle" placeholder="Sélectionner un semestre" class="w-1/2"/>
       </div>
       <div>
-        <Accordion v-if="selectedSemestre" value="0" class="mt-4">
+        <div class="flex justify-end gap-4">
+<!--           todo: mettre 2 switch pour gérer la visibilité et la possibilité de modifier de l'ensemble -->
+          <Button label="Initialiser les évaluations" icon="pi pi-plus-circle" severity="primary" size="small"/>
+        </div>
+        <Accordion v-if="selectedSemestre && enseignements.length !== 0" value="0" class="mt-4">
           <AccordionPanel v-for="enseignement in enseignements" :value="enseignement.id" :key="enseignement.id">
             <AccordionHeader>
-              <div class="flex justify-between items-center w-full">
-                <div class="flex items-center justify-start gap-4">
-                  <div class="bg-primary-700 p-3 rounded-md">
-                    <i class="pi pi-book text-white w-5 h-5 text-center"></i>
+              <div class="flex flex-col gap-2 w-full">
+                <div class="flex justify-between items-center w-full">
+                  <div class="flex justify-between items-center">
+                    <div class="flex items-center justify-start gap-4">
+                      <div class="bg-primary-700 p-3 rounded-md">
+                        <i class="pi pi-book text-white w-5 h-5 text-center"></i>
+                      </div>
+                      <div class="text-xl font-bold">{{enseignement.codeEnseignement}} - {{enseignement.libelle}}</div>
+                    </div>
                   </div>
-                  <div class="text-xl font-bold">{{enseignement.codeEnseignement}} - {{enseignement.libelle}}</div>
+                  <div class="text-sm text-muted-color mr-4">
+                    {{enseignement.evaluations.length}} évaluations
+                  </div>
                 </div>
-              </div>
-              <div class="text-sm text-muted-color w-full text-right mr-4">
-                {{enseignement.evaluations.length}} évaluations
+                <div class="mr-4">
+                  <div class="p-2 w-full bg-neutral-50 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900 flex flex-col gap-2">
+                    <div class="flex justify-between items-center gap-4">
+                      <div class="flex items-center gap-1 font-bold"><i class="pi pi-check-circle text-primary"></i>Progression Globale</div>
+                    </div>
+                    <div class="flex justify-between items-center gap-4">
+                      <div class="text-sm flex items-center gap-1"><i class="pi pi-users"></i>Notes saisies</div>
+                      <div class="text-sm flex items-center gap-1"><span class="font-bold">20/100</span> (20%)</div>
+                    </div>
+                    <ProgressBar :value="20" class="!h-3"></ProgressBar>
+                    <div class="flex items-center justify-between">
+                      <div class="text-sm"></div>
+                      <div class="text-sm">0/2 évaluations complètes</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </AccordionHeader>
             <AccordionContent>
-              <div class="flex flex-col gap-2">
+              <div v-if="enseignement.evaluations && enseignement.evaluations.length !== 0" class="flex flex-col gap-2">
                 <div v-for="evaluation in enseignement.evaluations" class="card m-0 py-2 px-4">
-                  <div>
-                    <div class="text-lg font-bold">
-                      {{ evaluation.typeIcon }} {{evaluation.libelle}}
+                  <div class="flex flex-col gap-4">
+                    <div class="flex justify-between items-center gap-4">
+                      <div class="flex items-center gap-2">
+                        <div class="text-lg font-bold">
+                          {{ evaluation.typeIcon }} {{evaluation.libelle}}
+                        </div>
+                        <Message severity="info" size="small">
+                          {{evaluation.type ?? ' - Type inconnu'}}
+                        </Message>
+                      </div>
+                      <div>
+                        <Message severity="error" size="small" icon="pi pi-exclamation-triangle">À compléter</Message>
+                      </div>
                     </div>
-                    <Message severity="info" size="small" class="w-fit">
-                      {{evaluation.type ?? ' - Type inconnu'}}
-                    </Message>
+
+                    <div>
+                      <div class="flex justify-between items-center gap-4">
+                        <div class="text-sm flex items-center gap-1"><i class="pi pi-users"></i>Notes saisies</div>
+                        <div class="text-sm flex items-center gap-1"><span class="font-bold">0/25</span> (0%)</div>
+                      </div>
+                      <ProgressBar :value="evaluation.notes?.length" class="!h-3"></ProgressBar>
+                    </div>
                   </div>
                   <Divider/>
                   <div class="flex justify-between items-center gap-4">
                     <div class="flex items-center justify-start gap-2">
+                      <Button label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small"/>
                       <Button label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small"/>
                       <Button label="Supprimer" icon="pi pi-trash" outlined severity="danger" size="small"/>
                     </div>
-                    <div class="flex items-center justify-end gap-1">
+                    <div class="flex items-center justify-end gap-4">
+                      <div class="flex items-center justify-end gap-1">
                         <i :class="evaluation.visible ? 'pi pi-eye text-green-500' : 'pi pi-eye-slash text-gray-400'"></i>
                         <span class="text-sm">{{ evaluation.visible ? 'Visible' : 'Masquée' }}</span>
-                        <ToggleSwitch v-model="evaluation.visible" @change="updateEvaluationVisibility(evaluation)" onLabel="Oui" offLabel="Non" onIcon="pi pi-eye" offIcon="pi pi-eye-slash"/>
+                        <ToggleSwitch v-model="evaluation.visible" @change="updateEvaluationVisibility(evaluation)"/>
+                      </div>
+                      <PermissionGuard :permission="['isChefDepartement']" class="flex items-center justify-end gap-1">
+                        <i :class="evaluation.modifiable ? 'pi pi-lock-open text-green-500' : 'pi pi-lock text-gray-400'"></i>
+                        <span class="text-sm">{{ evaluation.modifiable ? 'Modifiable' : 'Non-modifiable' }}</span>
+                        <ToggleSwitch v-model="evaluation.modifiable" @change="updateEvaluationVisibility(evaluation)"/>
+                      </PermissionGuard>
                     </div>
                   </div>
                 </div>
               </div>
+              <div v-else class="flex justify-center">
+                <Message severity="warn" class="w-fit p-4" icon="pi pi-exclamation-triangle">
+                  Aucune évaluation trouvée.
+                </Message>
+              </div>
+              <div class="flex justify-center mt-4">
+                <Button label="Ajouter une évaluation" icon="pi pi-plus-circle" severity="primary" size="small"/>
+              </div>
             </AccordionContent>
           </AccordionPanel>
         </Accordion>
-
+        <div v-else class="flex justify-center">
+          <Message severity="warn" class="w-fit p-4" icon="pi pi-exclamation-triangle">
+            Aucun enseignement trouvé.
+          </Message>
+        </div>
       </div>
     </div>
   </div>
