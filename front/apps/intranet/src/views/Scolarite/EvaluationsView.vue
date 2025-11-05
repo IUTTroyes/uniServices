@@ -95,7 +95,7 @@ const getEnseignements = async () => {
           <AccordionPanel v-for="enseignement in enseignements" :value="enseignement.id" :key="enseignement.id">
             <AccordionHeader>
               <div class="flex justify-between items-center w-full">
-                <div class="flex items-center justify-start gap-2">
+                <div class="flex items-center justify-start gap-4">
                   <div class="bg-primary-700 p-3 rounded-md">
                     <i class="pi pi-book text-white w-5 h-5 text-center"></i>
                   </div>

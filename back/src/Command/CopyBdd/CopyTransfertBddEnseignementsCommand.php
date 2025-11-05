@@ -4,6 +4,7 @@ namespace App\Command\CopyBdd;
 
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Scolarite\ScolEnseignementUe;
+use App\Entity\Scolarite\ScolEvaluation;
 use App\Enum\TypeEnseignementEnum;
 use App\Repository\Apc\ApcApprentissageCritiqueRepository;
 use App\Repository\Apc\ApcCompetenceRepository;
@@ -17,6 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Uid\UuidV4;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[AsCommand(
@@ -120,6 +122,17 @@ FOREIGN_KEY_CHECKS=1');
                 $matiere->setObjectif($mat['objectifs_module']);
                 $matiere->setPrerequis($mat['pre_requis']);
                 $matiere->setOldId($mat['id']);
+
+                $nbNotes = (int)$mat['nb_notes'];
+                    for ($i = 1; $i <= $nbNotes; $i++) {
+                        $evaluation = new ScolEvaluation();
+                        $evaluation->setLibelle('Évaluation ' . $i);
+                        $evaluation->setEnseignement($matiere);
+                        $evaluation->setVisible(true);
+                        $evaluation->setModifiable(true);
+                        $evaluation->setUuid(new UuidV4());
+                        $this->entityManager->persist($evaluation);
+                    }
 
                 /*
                  * array:30 [
@@ -234,6 +247,17 @@ FOREIGN_KEY_CHECKS=1');
             $matiere->setMotsCles($mat['mots_cles']);
             $matiere->setPrerequis($mat['pre_requis']);
             $matiere->setOldId($mat['id']);
+
+            $nbNotes = (int)$mat['nb_notes'];
+            for ($i = 1; $i <= $nbNotes; $i++) {
+                $evaluation = new ScolEvaluation();
+                $evaluation->setLibelle('Évaluation ' . $i);
+                $evaluation->setEnseignement($matiere);
+                $evaluation->setVisible(true);
+                $evaluation->setModifiable(true);
+                $evaluation->setUuid(new UuidV4());
+                $this->entityManager->persist($evaluation);
+            }
 
             /*
   "id" => 1
@@ -378,6 +402,17 @@ FOREIGN_KEY_CHECKS=1');
             $matiere->setExemple($mat['exemple']);
             $matiere->setLivrables($mat['livrables']);
             $matiere->setOldId($mat['id']);
+
+            $nbNotes = (int)$mat['nb_notes'];
+            for ($i = 1; $i <= $nbNotes; $i++) {
+                $evaluation = new ScolEvaluation();
+                $evaluation->setLibelle('Évaluation ' . $i);
+                $evaluation->setEnseignement($matiere);
+                $evaluation->setVisible(true);
+                $evaluation->setModifiable(true);
+                $evaluation->setUuid(new UuidV4());
+                $this->entityManager->persist($evaluation);
+            }
 
             /*
 ??
