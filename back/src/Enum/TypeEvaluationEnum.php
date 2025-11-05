@@ -4,8 +4,8 @@ namespace App\Enum;
 
 enum TypeEvaluationEnum: string
 {
-    case TYPE_EVALUATION_TP = 'Travaux partiques';
-    case TYPE_EVALUATION_EXAM = 'Exament';
+    case TYPE_EVALUATION_TP = 'Travaux pratiques';
+    case TYPE_EVALUATION_EXAM = 'Examen';
     case TYPE_EVALUATION_PROJET = 'Projet';
 
     public static function getChoices(): array
@@ -23,6 +23,23 @@ enum TypeEvaluationEnum: string
             self::TYPE_EVALUATION_TP->value,
             self::TYPE_EVALUATION_EXAM->value,
             self::TYPE_EVALUATION_PROJET->value,
+        ];
+    }
+
+    public static function getSeverity(): array
+    {
+        return [
+            self::TYPE_EVALUATION_TP->value => 'success',
+            self::TYPE_EVALUATION_EXAM->value => 'warn',
+            self::TYPE_EVALUATION_PROJET->value => 'info',
+        ];
+    }
+    public static function getIcon(): array
+    {
+        return [
+            self::TYPE_EVALUATION_TP->value => '⚙️',
+            self::TYPE_EVALUATION_EXAM->value => '📝',
+            self::TYPE_EVALUATION_PROJET->value => '🧠',
         ];
     }
 }

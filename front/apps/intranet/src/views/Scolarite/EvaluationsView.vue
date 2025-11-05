@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted, watch} from 'vue';
-import { getEvaluationsService, getEnseignementsService } from '@requests';
+import { getEvaluationsService, getEnseignementsService, updateEvaluationService } from '@requests';
 import { useUsersStore, useAnneeStore, useDiplomeStore } from '@stores';
 import { SimpleSkeleton } from '@components';
 import { ErrorView, PermissionGuard } from "@components";
@@ -87,6 +87,15 @@ const getEvaluations = async (enseignement) => {
     isLoadingEvaluations.value = false;
   }
 };
+
+const updateEvaluationVisibility = async (evaluation) => {
+  try {
+    await updateEvaluationService(evaluation.id, { visible: evaluation.visible }, '', true);
+  } catch (error) {
+    hasError.value = true;
+    console.error('Error updating evaluation visibility:', error);
+  }
+}
 </script>
 
 <template>
@@ -120,7 +129,7 @@ const getEvaluations = async (enseignement) => {
                   <div class="bg-primary-700 p-3 rounded-md">
                     <i class="pi pi-book text-white w-5 h-5 text-center"></i>
                   </div>
-                  <div class="text-lg font-bold">{{enseignement.codeEnseignement}} - {{enseignement.libelle}}</div>
+                  <div class="text-xl font-bold">{{enseignement.codeEnseignement}} - {{enseignement.libelle}}</div>
                 </div>
               </div>
               <div class="text-sm text-muted-color w-full text-right mr-4">
@@ -130,12 +139,26 @@ const getEvaluations = async (enseignement) => {
             <AccordionContent>
               <div class="flex flex-col gap-2">
                 <div v-for="evaluation in enseignement.evaluations" class="card m-0 py-2 px-4">
-                  <div class="text-lg font-bold">
-                  {{evaluation.libelle}}
+                  <div>
+                    <div class="text-lg font-bold">
+                      {{ evaluation.typeIcon }} {{evaluation.libelle}}
+                    </div>
+                    <Message severity="info" size="small" class="w-fit">
+                      {{evaluation.type ?? ' - Type inconnu'}}
+                    </Message>
                   </div>
-
-
-<!--                  {{evaluation.type ?? ' - Type inconnu'}}-->
+                  <Divider/>
+                  <div class="flex justify-between items-center gap-4">
+                    <div class="flex items-center justify-start gap-2">
+                      <Button label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small"/>
+                      <Button label="Supprimer" icon="pi pi-trash" outlined severity="danger" size="small"/>
+                    </div>
+                    <div class="flex items-center justify-end gap-1">
+                        <i :class="evaluation.visible ? 'pi pi-eye text-green-500' : 'pi pi-eye-slash text-gray-400'"></i>
+                        <span class="text-sm">{{ evaluation.visible ? 'Visible' : 'Masquée' }}</span>
+                        <ToggleSwitch v-model="evaluation.visible" @change="updateEvaluationVisibility(evaluation)" onLabel="Oui" offLabel="Non" onIcon="pi pi-eye" offIcon="pi pi-eye-slash"/>
+                    </div>
+                  </div>
                 </div>
               </div>
             </AccordionContent>
@@ -153,5 +176,8 @@ const getEvaluations = async (enseignement) => {
 }
 :deep(.p-accordioncontent-content) {
   @apply bg-neutral-200 bg-opacity-20 p-4;
+}
+:deep(.p-message-content) {
+  @apply !py-0 !px-2;
 }
 </style>

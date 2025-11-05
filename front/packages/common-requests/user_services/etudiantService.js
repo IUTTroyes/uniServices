@@ -1,9 +1,6 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 import createApiService from "@requests/apiService";
-
-// Create API service for etudiants endpoint
-const etudiantsService = createApiService('/api/etudiants');
 // ----------------------------------------------
 // ------------------- GET ----------------------
 // ----------------------------------------------
@@ -94,8 +91,8 @@ const importEtudiantApogeeService = async (data, showToast = true) => {
 const updateEtudiantService = async (id, data, showToast = true) => {
     try {
         return await apiCall(
-            etudiantsService.update,
-            [id, data],
+            api.patch,
+            [`/api${scope}/etudiants/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' } }],
             'Étudiant mis à jour avec succès',
             'Erreur lors de la mise à jour de l\'étudiant',
             showToast

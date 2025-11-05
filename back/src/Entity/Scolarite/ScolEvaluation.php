@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 use App\Entity\Etudiant\EtudiantNote;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
@@ -35,6 +36,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
             uriTemplate: '/maxi/scol_evaluations/{id}',
             normalizationContext: ['groups' => ['evaluation:detail']],
         ),
+        new Patch(normalizationContext: ['groups' => ['evaluation:write']]),
+
     ]
 )]
 class ScolEvaluation
@@ -71,8 +74,8 @@ class ScolEvaluation
     #[Groups(['evaluation:detail'])]
     private ?bool $modifiable = null;
 
-    #[ORM\Column(length: 15, enumType: TypeEvaluationEnum::class, nullable: true)]
-    #[Groups(['evaluation:detail'])]
+    #[ORM\Column(length: 25, enumType: TypeEvaluationEnum::class, nullable: true)]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?TypeEvaluationEnum $type = null;
 
     /**
@@ -337,6 +340,18 @@ class ScolEvaluation
     public function setType(?TypeEvaluationEnum $type): void
     {
         $this->type = $type;
+    }
+
+    #[Groups(['evaluation:detail'])]
+    public function getTypeIcon(): ?string
+    {
+        if (null === $this->type) {
+            return null;
+        }
+
+        $severityMap = TypeEvaluationEnum::getIcon();
+
+        return $severityMap[$this->type->value] ?? null;
     }
 
 }
