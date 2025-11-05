@@ -11,6 +11,7 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
+use App\Enum\TypeEvaluationEnum;
 use App\Filter\EvaluationFilter;
 use App\Repository\ScolEvaluationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -69,6 +70,10 @@ class ScolEvaluation
     #[ORM\Column]
     #[Groups(['evaluation:detail'])]
     private ?bool $modifiable = null;
+
+    #[ORM\Column(length: 15, enumType: TypeEvaluationEnum::class, nullable: true)]
+    #[Groups(['evaluation:detail'])]
+    private ?TypeEvaluationEnum $type = null;
 
     /**
      * @var Collection<int, Personnel>
@@ -323,4 +328,15 @@ class ScolEvaluation
 
         return $this;
     }
+
+    public function getType(): ?TypeEvaluationEnum
+    {
+        return $this->type;
+    }
+
+    public function setType(?TypeEvaluationEnum $type): void
+    {
+        $this->type = $type;
+    }
+
 }

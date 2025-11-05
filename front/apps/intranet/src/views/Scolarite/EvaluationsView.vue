@@ -128,8 +128,15 @@ const getEvaluations = async (enseignement) => {
               </div>
             </AccordionHeader>
             <AccordionContent>
-              <div v-for="evaluation in enseignement.evaluations">
-                {{evaluation.libelle}}
+              <div class="flex flex-col gap-2">
+                <div v-for="evaluation in enseignement.evaluations" class="card m-0 py-2 px-4">
+                  <div class="text-lg font-bold">
+                  {{evaluation.libelle}}
+                  </div>
+
+
+<!--                  {{evaluation.type ?? ' - Type inconnu'}}-->
+                </div>
               </div>
             </AccordionContent>
           </AccordionPanel>
@@ -141,5 +148,10 @@ const getEvaluations = async (enseignement) => {
 </template>
 
 <style scoped>
-
+:deep(.p-accordionpanel) {
+  @apply border border-neutral-300 dark:border-neutral-600 rounded-md mb-4;
+}
+:deep(.p-accordioncontent-content) {
+  @apply bg-neutral-200 bg-opacity-20 p-4;
+}
 </style>
