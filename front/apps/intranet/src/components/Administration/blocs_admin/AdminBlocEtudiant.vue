@@ -8,7 +8,8 @@ const panelMenuItems = [
   { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', route: '/administration/etudiant/ajout/' },
   { label: 'Gestion des cohortes', icon: 'pi pi-users', command: () => {} },
   { label: 'Gestion des absences', icon: 'pi pi-calendar', command: () => {} },
-  { label: 'Gestion des notes et évaluations', icon: 'pi pi-book', command: () => {} },
+  { label: 'Gestion des notes et évaluations', icon: 'pi pi-book', route: '/administration/evaluations/' },
+  { label: 'Gestion des notes et évaluations TEST BOLT', icon: 'pi pi-book', route: '/administration/evaluations/test' },
 ];
 </script>
 
