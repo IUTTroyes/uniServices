@@ -85,7 +85,7 @@ router.beforeEach(async(to, from, next) => {
             if (to.path === '/login') {
                 return next();
             }
-            await userStore.getUser()
+            // await userStore.getUser()
 
         } catch (error) {
             console.error(error);

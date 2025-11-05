@@ -8,7 +8,7 @@ import {
   updatePreviEnseignementService,
   updatePreviPersonnelService,
   updatePreviService,
-    getDepartementAnneesService
+    getAnneesService
 } from '@requests';
 import createApiService from "@requests/apiService.js";
 const previService = createApiService('/api/previsionnels');
@@ -83,7 +83,11 @@ const getAnneesSemestres = async () => {
       return;
     }
     try {
-      const annees = await getDepartementAnneesService(departementId, true, false);
+      const params = {
+        departement: departementId,
+        actif: true,
+      };
+      const annees = await getAnneesService(params);
     } catch (error) {
       console.error("Erreur lors de la récupération des années :", error);
       hasError.value = true;

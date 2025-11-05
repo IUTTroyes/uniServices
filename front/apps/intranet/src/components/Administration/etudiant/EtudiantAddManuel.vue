@@ -1,8 +1,7 @@
 <script setup>
 import {onMounted, ref, watch} from "vue";
 import {
-  getAnneeSemestresService,
-  getDepartementAnneesService,
+  getAnneesService,
   createEtudiantsService,
   getAllAnneesUniversitairesService
 } from "@requests";
@@ -58,8 +57,11 @@ const getAnnees = async () => {
   try {
     isLoadingAnnees.value = true;
     const departementId = userStore.departementDefaut.id;
-
-    annees.value = await getDepartementAnneesService(departementId, true);
+    const params = {
+      departement: departementId,
+      actif: true,
+    };
+    annees.value = await getAnneesService(params);
   } catch (error) {
     console.error('Erreur lors du chargement des années :', error);
     hasError.value = true;

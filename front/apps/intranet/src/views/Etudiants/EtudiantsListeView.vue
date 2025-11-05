@@ -5,7 +5,7 @@ import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue';
 import {ErrorView, ProfilEtudiant} from '@components';
-import { getDepartementAnneesService, getEtudiantsScolariteService, getEtudiantScolariteService } from '@requests';
+import { getAnneesService, getEtudiantsScolariteService } from '@requests';
 
 import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue';
 import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue';
@@ -56,7 +56,11 @@ const getAnnees = async () => {
   isLoadingAnnees.value = true;
   isLoadingStats.value = true;
   try {
-    anneesList.value = await getDepartementAnneesService(departementId.value, true);
+    const params = {
+      departement: departementId.value,
+      actif: true,
+    };
+    anneesList.value = await getAnneesService(params);
   } catch (error) {
     console.error('Erreur lors du chargement des années :', error);
     hasError.value = true;

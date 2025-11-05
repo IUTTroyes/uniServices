@@ -27,18 +27,32 @@ class AnneeFilter extends AbstractFilter
                 ->join("d.departement", "departement")
                 ->andWhere("departement.id = :departement")
                 ->setParameter("departement", $value);
-        } elseif ('pn' === $property) {
+        }
+        if ('pn' === $property) {
             $queryBuilder
                 ->join("$alias.pn", "pn")
                 ->andWhere("pn.id = :pn")
                 ->setParameter("pn", $value);
-        } elseif ('diplome' === $property) {
+        }
+        if ('diplome' === $property) {
             $queryBuilder
                 ->join("$alias.pn", "pn")
                 ->join("pn.diplome", "d")
-                ->andWhere("pn.actif = true")
+                ->join("pn.anneeUniversitaire", "a")
+                ->andWhere("a.actif = true")
                 ->andWhere("d.id = :diplome")
                 ->setParameter("diplome", $value);
+        }
+        if ('actif' === $property) {
+            // Normaliser la valeur en booléen (gère "true", "false", "1", "0", 1, 0, true, false)
+            $bool = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($bool === null) {
+                // valeur non convertible -> ne pas appliquer le filtre
+                return;
+            }
+            $queryBuilder
+                ->andWhere("$alias.actif = :actif")
+                ->setParameter("actif", $bool);
         }
     }
 
@@ -69,6 +83,14 @@ class AnneeFilter extends AbstractFilter
                     'description' => 'Filter by diploma',
                 ],
             ],
+            'actif' => [
+                'property' => 'actif',
+                'type' => Type::BUILTIN_TYPE_BOOL,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by actif status',
+                ],
+            ]
         ];
     }
 }
