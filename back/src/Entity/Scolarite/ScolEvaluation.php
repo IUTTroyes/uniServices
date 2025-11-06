@@ -13,6 +13,7 @@ use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
 use App\Enum\TypeEvaluationEnum;
+use App\Enum\TypeGroupeEnum;
 use App\Filter\EvaluationFilter;
 use App\Repository\ScolEvaluationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -26,7 +27,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(
     paginationEnabled: false,
     operations: [
-        new Get(normalizationContext: ['groups' => ['evaluation:detail']]),
+        new Get(normalizationContext: ['groups' => ['evaluation:detail', 'enseignement:light']]),
         new GetCollection(normalizationContext: ['groups' => ['evaluation:detail']]),
         new Get(
             uriTemplate: '/mini/scol_evaluations/{id}',
@@ -37,7 +38,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
             normalizationContext: ['groups' => ['evaluation:detail']],
         ),
         new Patch(normalizationContext: ['groups' => ['evaluation:write']]),
-
     ]
 )]
 class ScolEvaluation
@@ -115,6 +115,11 @@ class ScolEvaluation
     #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'evaluation')]
     #[Groups(['evaluation:detail'])]
     private Collection $notes;
+
+    #[ORM\Column(length: 10, enumType: TypeGroupeEnum::class, nullable: true)]
+    #[\Symfony\Component\Serializer\Attribute\Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail'])]
+    private ?TypeGroupeEnum $typeGroupe;
 
     public function __construct()
     {
@@ -354,4 +359,39 @@ class ScolEvaluation
         return $severityMap[$this->type->value] ?? null;
     }
 
+    #[Groups(['evaluation:detail'])]
+    public function getEtat(): string
+    {
+        if (!$this->date instanceof \DateTimeInterface && null === $this->coeff && $this->personnelAutorise->isEmpty()) {
+            return 'non_initialisee';
+        } else {
+            if ($this->notes->isEmpty()) {
+                return 'planifiee';
+            } else {
+                return 'complete';
+            }
+        }
+
+    }
+
+    public function getTypeGroupe(): ?TypeGroupeEnum
+    {
+        return $this->typeGroupe;
+    }
+
+    public function setTypeGroupe(?TypeGroupeEnum $type): ?self
+    {
+        $this->typeGroupe = $type;
+
+        return $this;
+    }
+
+    #[Groups(['evaluation:detail'])]
+    public function getTypeGroupeChoices(): array
+    {
+        return array_map(
+            fn(TypeGroupeEnum $case): string => $case->value,
+            TypeGroupeEnum::getTypes()
+        );
+    }
 }

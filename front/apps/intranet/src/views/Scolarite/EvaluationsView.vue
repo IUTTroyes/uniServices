@@ -1,9 +1,10 @@
 <script setup>
 import {ref, onMounted, watch} from 'vue';
 import { getEvaluationsService, getEnseignementsService, updateEvaluationService } from '@requests';
-import { useUsersStore, useAnneeStore, useDiplomeStore } from '@stores';
+import { useUsersStore, useDiplomeStore } from '@stores';
 import { SimpleSkeleton } from '@components';
 import { ErrorView, PermissionGuard } from "@components";
+import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 
 const usersStore = useUsersStore();
 const hasError = ref(false);
@@ -19,6 +20,8 @@ const enseignements = ref([]);
 const isLoadingEnseignements = ref(true);
 const evaluations = ref([]);
 const isLoadingEvaluations = ref(true);
+const showDialog = ref(false);
+const selectedEvaluation = ref(null);
 
 onMounted(() => {
   departementId.value = usersStore.departementDefaut.id;
@@ -88,7 +91,6 @@ const getEvaluations = async (enseignement) => {
     hasError.value = true;
     console.error('Error fetching evaluations:', error);
   } finally {
-    console.log(evaluations.value);
     isLoadingEvaluations.value = false;
   }
 };
@@ -101,6 +103,11 @@ const updateEvaluationVisibility = async (evaluation) => {
     console.error('Error updating evaluation visibility:', error);
   }
 }
+
+const openEvaluationDialog = (evaluation) => {
+  selectedEvaluation.value = evaluation;
+  showDialog.value = true;
+};
 </script>
 
 <template>
@@ -127,7 +134,6 @@ const updateEvaluationVisibility = async (evaluation) => {
       </div>
       <div>
         <div class="flex justify-end gap-4">
-<!--           todo: mettre 2 switch pour gérer la visibilité et la possibilité de modifier de l'ensemble -->
           <Button label="Initialiser les évaluations" icon="pi pi-plus-circle" severity="primary" size="small"/>
         </div>
         <Accordion v-if="selectedSemestre && enseignements.length !== 0" value="0" class="mt-4">
@@ -179,7 +185,12 @@ const updateEvaluationVisibility = async (evaluation) => {
                         </Message>
                       </div>
                       <div>
-                        <Message severity="error" size="small" icon="pi pi-exclamation-triangle">À compléter</Message>
+                        <Message
+                            :severity="evaluation.etat === 'non_initialisee' ? 'error' : evaluation.etat === 'planifiee' ? 'warn' : 'success'"
+                            :icon="evaluation.etat === 'non_initialisee' ? 'pi pi-exclamation-triangle' : evaluation.etat === 'planifiee' ? 'pi pi-clock' : 'pi pi-check-circle'"
+                            size="small">
+                          {{ evaluation.etat === 'non_initialisee' ? 'À compléter' : evaluation.etat === 'planifiee' ? 'À saisir' : 'Complet' }}
+                        </Message>
                       </div>
                     </div>
 
@@ -194,8 +205,9 @@ const updateEvaluationVisibility = async (evaluation) => {
                   <Divider/>
                   <div class="flex justify-between items-center gap-4">
                     <div class="flex items-center justify-start gap-2">
-                      <Button label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small"/>
-                      <Button label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small"/>
+                      <Button v-if="evaluation.etat !== 'non_initialisee' " label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small"/>
+                      <Button v-if="evaluation.etat !== 'non_initialisee' " label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small"/>
+                      <Button v-if="evaluation.etat === 'non_initialisee' " label="Initialiser" icon="pi pi-plus" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id)"/>
                       <Button label="Supprimer" icon="pi pi-trash" outlined severity="danger" size="small"/>
                     </div>
                     <div class="flex items-center justify-end gap-4">
@@ -204,10 +216,12 @@ const updateEvaluationVisibility = async (evaluation) => {
                         <span class="text-sm">{{ evaluation.visible ? 'Visible' : 'Masquée' }}</span>
                         <ToggleSwitch v-model="evaluation.visible" @change="updateEvaluationVisibility(evaluation)"/>
                       </div>
-                      <PermissionGuard :permission="['isChefDepartement']" class="flex items-center justify-end gap-1">
-                        <i :class="evaluation.modifiable ? 'pi pi-lock-open text-green-500' : 'pi pi-lock text-gray-400'"></i>
-                        <span class="text-sm">{{ evaluation.modifiable ? 'Modifiable' : 'Non-modifiable' }}</span>
-                        <ToggleSwitch v-model="evaluation.modifiable" @change="updateEvaluationVisibility(evaluation)"/>
+                      <PermissionGuard :permission="['isChefDepartement']">
+                        <div class="flex items-center justify-end gap-1">
+                          <i :class="evaluation.modifiable ? 'pi pi-lock-open text-green-500' : 'pi pi-lock text-gray-400'"></i>
+                          <span class="text-sm">{{ evaluation.modifiable ? 'Modifiable' : 'Non-modifiable' }}</span>
+                          <ToggleSwitch v-model="evaluation.modifiable" @change="updateEvaluationVisibility(evaluation)"/>
+                        </div>
                       </PermissionGuard>
                     </div>
                   </div>
@@ -218,9 +232,9 @@ const updateEvaluationVisibility = async (evaluation) => {
                   Aucune évaluation trouvée.
                 </Message>
               </div>
-              <div class="flex justify-center mt-4">
-                <Button label="Ajouter une évaluation" icon="pi pi-plus-circle" severity="primary" size="small"/>
-              </div>
+              <!--              <div class="flex justify-center mt-4">-->
+              <!--                <Button label="Ajouter une évaluation" icon="pi pi-plus-circle" severity="primary" size="small"/>-->
+              <!--              </div>-->
             </AccordionContent>
           </AccordionPanel>
         </Accordion>
@@ -232,6 +246,10 @@ const updateEvaluationVisibility = async (evaluation) => {
       </div>
     </div>
   </div>
+
+  <Dialog header="" :visible="showDialog" modal :closable="true" :dismissable-mask="true" :style="{ width: '50vw' }">
+    <EvaluationForm :evaluationId="selectedEvaluation"/>
+  </Dialog>
 </template>
 
 <style scoped>

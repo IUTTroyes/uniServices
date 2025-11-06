@@ -21,6 +21,21 @@ const getEvaluationsService = async (params, scope = '', showToast = false) => {
     }
 }
 
+const getEvaluationService = async (evaluationId, scope = '', showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api${scope}/scol_evaluations/${evaluationId}`],
+            'Évaluation récupérée avec succès',
+            'Erreur lors de la récupération de l\'évaluation',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getEvaluationService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- CREATE -------------------
 // ----------------------------------------------
@@ -48,4 +63,4 @@ const updateEvaluationService = async (evaluationId, data, scope = '', showToast
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getEvaluationsService, updateEvaluationService };
+export { getEvaluationsService, updateEvaluationService, getEvaluationService };

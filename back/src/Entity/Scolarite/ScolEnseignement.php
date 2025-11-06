@@ -49,11 +49,11 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement:light', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
@@ -77,7 +77,7 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement:light', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]

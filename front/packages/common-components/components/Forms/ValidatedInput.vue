@@ -11,6 +11,11 @@ const props = defineProps({
     type: [String, Number, Boolean, Array, Object],
     default: null
   },
+  // valeur de l'option (utilisée pour les radios)
+  value: {
+    type: [String, Number, Boolean, Object],
+    default: null
+  },
   rules: {
     type: [Array, Object, String],
     default: null
@@ -59,6 +64,10 @@ const props = defineProps({
   options : {
     type: Array,
     default: () => []
+  },
+  filter: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -129,6 +138,66 @@ const onValidation = (result) => {
             optionValue="value"
             @update:modelValue="updateModelValue"
             @blur="handleBlur"
+            :filter="filter"
+        />
+
+        <MultiSelect
+            v-else-if="type === 'multiselect'"
+            :id="name"
+            :name="name"
+            :options="options"
+            :modelValue="modelValue"
+            :placeholder="placeholder"
+            :class="[inputClass, { 'p-invalid': showError }]"
+            optionLabel="label"
+            optionValue="value"
+            @update:modelValue="updateModelValue"
+            @blur="handleBlur"
+            :filter="filter"
+        />
+
+        <DatePicker
+          v-else-if="type === 'date'"
+          :id="name"
+          :name="name"
+          :modelValue="modelValue"
+          :placeholder="placeholder"
+          :class="[inputClass, { 'p-invalid': showError }]"
+          @update:modelValue="updateModelValue"
+          @blur="handleBlur"
+        />
+
+        <InputNumber
+          v-else-if="type === 'number'"
+          :id="name"
+          :name="name"
+          :modelValue="modelValue"
+          :placeholder="placeholder"
+          :class="[inputClass, { 'p-invalid': showError }]"
+          @update:modelValue="updateModelValue"
+          @blur="handleBlur"
+        />
+
+        <Textarea
+          v-else-if="type === 'textarea'"
+          :id="name"
+          :name="name"
+          :value="modelValue"
+          :placeholder="placeholder"
+          :class="[inputClass, { 'p-invalid': showError }]"
+          @input="updateValue"
+          @blur="handleBlur"
+        />
+
+        <RadioButton
+            v-else-if="type === 'radio'"
+            :inputId="`${name}-${value}`"
+            :name="name"
+            :modelValue="modelValue"
+            :value="value"
+            :class="[inputClass, { 'p-invalid': showError }]"
+            @update:modelValue="updateModelValue"
+            @change="handleBlur"
         />
 
         <small v-if="helpText && !showError" class="text-sm text-muted-color mt-1">{{ helpText }}</small>
