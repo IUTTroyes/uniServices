@@ -247,7 +247,7 @@ const openEvaluationDialog = (evaluation) => {
     </div>
   </div>
 
-  <Dialog header="" :visible="showDialog" modal :closable="true" :dismissable-mask="true" :style="{ width: '50vw' }">
+  <Dialog header="" v-model:visible="showDialog" modal :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
     <EvaluationForm :evaluationId="selectedEvaluation"/>
   </Dialog>
 </template>

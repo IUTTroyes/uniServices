@@ -150,7 +150,10 @@ const updateEvaluation = () => {
           :filter="true"
       />
 
-      <Button label="Mettre à jour l'évaluation" @click="updateEvaluation" :disabled="!formValid" />
+      <div class="flex justify-center items-center gap-4">
+        <Button label="Mettre à jour l'évaluation" @click="updateEvaluation" :disabled="!formValid" />
+        <Button label="Annuler" severity="secondary" @click="updateEvaluation" :disabled="!formValid" />
+      </div>
     </form>
   </div>
 </template>
