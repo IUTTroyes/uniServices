@@ -67,14 +67,10 @@ const updateEvaluation = () => {
 </script>
 
 <template>
-  {{props.evaluation}}
-
-  <h2 class="text-2xl font-bold">Initialisation de l'évaluation</h2>
-  <p class="text-muted-color mb-4">Renseignez les informations de l'évaluation ci-dessous.</p>
 
   <ListSkeleton v-if="isLoading" />
   <div>
-    <div class="card">
+    <div class="card bg-neutral-50 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900">
       <div class="text-lg font-bold text-center">
         {{ evaluation.enseignement?.codeEnseignement }} - {{ evaluation.enseignement?.libelle }}
       </div>
@@ -85,7 +81,7 @@ const updateEvaluation = () => {
           v-model="evaluation.libelle"
           name="libelle"
           label="Libellé"
-          :rules="validationRules.required"
+          :rules="[validationRules.required]"
           @validation="result => handleValidation('libelle', result)"
           help-text="Entrez le libellé de l'évaluation"
       />
@@ -96,7 +92,7 @@ const updateEvaluation = () => {
           name="dateEvaluation"
           label="Date de l'évaluation"
           type="date"
-          :rules="validationRules.required"
+          :rules="[validationRules.required]"
           @validation="result => handleValidation('dateEvaluation', result)"
           help-text="Sélectionnez la date de l'évaluation"
       />
@@ -104,10 +100,9 @@ const updateEvaluation = () => {
       <ValidatedInput
           class="w-full"
           v-model="evaluation.coefficient"
-          name="coefficient"
           label="Coefficient"
           type="number"
-          :rules="['required', validationRules.positiveNumber]"
+          :rules="[validationRules.required]"
           @validation="result => handleValidation('coefficient', result)"
           help-text="Entrez le coefficient de l'évaluation"
       />
@@ -131,7 +126,7 @@ const updateEvaluation = () => {
             name="typesGroupe"
             :label="`${typeGroupe}`"
             :value="typeGroupe"
-            :rules="['required']"
+            :rules="[]"
             type="radio"
             @validation="result => handleValidation(`repartition-${typeGroupe}`, result)"
         />
@@ -144,7 +139,7 @@ const updateEvaluation = () => {
           label="Responsable de l'évaluation"
           type="multiselect"
           :options="personnels.map(personnel => ({ label: `${personnel.nom} ${personnel.prenom}`, value: personnel.id }))"
-          :rules="validationRules.required"
+          :rules="[validationRules.required]"
           @validation="result => handleValidation('responsableId', result)"
           help-text="Sélectionnez les enseignants autorisés à gérer cette évaluation"
           :filter="true"

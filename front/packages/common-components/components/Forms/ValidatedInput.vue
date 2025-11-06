@@ -169,13 +169,11 @@ const onValidation = (result) => {
 
         <InputNumber
           v-else-if="type === 'number'"
-          :id="name"
-          :name="name"
-          :modelValue="modelValue"
-          :placeholder="placeholder"
+          :v-model="modelValue"
           :class="[inputClass, { 'p-invalid': showError }]"
           @update:modelValue="updateModelValue"
           @blur="handleBlur"
+          fluid
         />
 
         <Textarea
