@@ -51,38 +51,38 @@ class ScolEvaluation
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['evaluation:light', 'evaluation:detail'])]
+    #[Groups(['evaluation:light', 'evaluation:detail', 'evaluation:write'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?string $commentaire = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?float $coeff = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?\DateTimeInterface $date = null;
 
     #[ORM\Column]
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?bool $visible = null;
 
     #[ORM\Column]
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?bool $modifiable = null;
 
     #[ORM\Column(length: 25, enumType: TypeEvaluationEnum::class, nullable: true)]
-    #[Groups(['evaluation:detail', 'evaluation:write'])]
+    #[Groups(['evaluation:detail', 'evaluation:write', 'evaluation:write'])]
     private ?TypeEvaluationEnum $type = null;
 
     /**
      * @var Collection<int, Personnel>
      */
     #[ORM\ManyToMany(targetEntity: Personnel::class, inversedBy: 'evaluations')]
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private Collection $personnelAutorise;
 
     #[ORM\ManyToOne(inversedBy: 'evaluations')]
@@ -113,12 +113,12 @@ class ScolEvaluation
      * @var Collection<int, EtudiantNote>
      */
     #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'evaluation')]
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private Collection $notes;
 
     #[ORM\Column(length: 10, enumType: TypeGroupeEnum::class, nullable: true)]
     #[\Symfony\Component\Serializer\Attribute\Groups(['evaluation:detail'])]
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?TypeGroupeEnum $typeGroupe;
 
     public function __construct()

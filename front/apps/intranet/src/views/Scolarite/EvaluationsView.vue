@@ -206,7 +206,7 @@ const openEvaluationDialog = (evaluation) => {
                   <div class="flex justify-between items-center gap-4">
                     <div class="flex items-center justify-start gap-2">
                       <Button v-if="evaluation.etat !== 'non_initialisee' " label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small"/>
-                      <Button v-if="evaluation.etat !== 'non_initialisee' " label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small"/>
+                      <Button v-if="evaluation.etat !== 'non_initialisee' " label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small" @click="openEvaluationDialog(evaluation.id)"/>
                       <Button v-if="evaluation.etat === 'non_initialisee' " label="Initialiser" icon="pi pi-plus" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id)"/>
                       <Button label="Supprimer" icon="pi pi-trash" outlined severity="danger" size="small"/>
                     </div>

@@ -1,160 +1,210 @@
-<script setup>
-import {onMounted, ref} from 'vue';
-import { getEvaluationService, getPersonnelsService } from '@requests';
-import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton } from "@components";
+```vue
+      <script setup>
+      import {onMounted, ref} from 'vue';
+      import { getEvaluationService, getPersonnelsService, updateEvaluationService } from '@requests';
+      import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton } from "@components";
+      import { useUsersStore } from "@stores/user_stores/userStore.js";
 
-const formValid = ref(true);
-const formErrors = ref({});
-const evaluation = ref({})
-const isLoading = ref(true);
-const typesGroupe = ref()
-const departementId = ref(null)
-const personnels = ref([])
+      const formValid = ref(true);
+      const formErrors = ref({});
+      const evaluation = ref({})
+      const isLoading = ref(true);
+      const typesGroupe = ref()
+      const departementId = ref(null)
+      const personnels = ref([])
+      const userStore = useUsersStore();
 
-const props = defineProps({
-  evaluationId: {
-    type: Number,
-    required: true
-  }
-})
+      const props = defineProps({
+        evaluationId: {
+          type: Number,
+          required: true
+        }
+      })
 
-onMounted(async () => {
-  departementId.value = localStorage.getItem('departement');
-  await getEvaluation();
-  await getPersonnels();
-});
+      // helper: parse "YYYY-MM-DD" to Date (avoids timezone shift)
+      const parseApiDate = (dateStr) => {
+        if (!dateStr) return null;
+        if (dateStr instanceof Date) return dateStr;
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return new Date(dateStr);
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[2], 10);
+        return new Date(year, month, day);
+      };
 
-const getEvaluation = async () => {
-  try {
-    isLoading.value = true;
-    evaluation.value = await getEvaluationService(props.evaluationId);
-  } catch (error) {
-    console.error('Erreur lors du chargement de l\'évaluation:', error);
-  } finally {
-    isLoading.value = false;
-  }
-};
+      // helper: format Date to "YYYY-MM-DD" for API
+      const pad = (n) => n.toString().padStart(2, '0');
+      const formatDateForApi = (date) => {
+        if (!date) return null;
+        if (!(date instanceof Date)) return date;
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+      };
 
-const getPersonnels = async () => {
-  try {
-    isLoading.value = true;
-    const params = {
-      departement: departementId.value
-    };
-    personnels.value = await getPersonnelsService(params);
-    return personnels;
-  } catch (error) {
-    console.error('Erreur lors du chargement des personnels:', error);
-    return [];
-  } finally {
-    console.log(personnels.value);
-    isLoading.value = false;
-  }
-};
+      onMounted(async () => {
+        departementId.value = userStore.departementDefaut.id;
+        await getEvaluation();
+        await getPersonnels();
+      });
 
-const handleValidation = (field, result) => {
-  formErrors.value = {
-    ...formErrors.value,
-    [field]: result.isValid ? null : result.errorMessage
-  };
-  formValid.value = Object.values(formErrors.value).every(error => error === null);
-};
+      const getEvaluation = async () => {
+        try {
+          isLoading.value = true;
+          const resp = await getEvaluationService(props.evaluationId);
+          // convert API date string to Date object for PrimeVue DatePicker
+          if (resp && resp.date) {
+            resp.date = parseApiDate(resp.date);
+          }
+          evaluation.value = resp;
+        } catch (error) {
+          console.error('Erreur lors du chargement de l\'évaluation:', error);
+        } finally {
+          console.log(evaluation.value);
+          isLoading.value = false;
+        }
+      };
 
-const updateEvaluation = () => {
-  console.log(evaluation.value);
-}
+      const getPersonnels = async () => {
+        try {
+          isLoading.value = true;
+          const params = {
+            departement: departementId.value
+          };
+          personnels.value = await getPersonnelsService(params);
+          return personnels;
+        } catch (error) {
+          console.error('Erreur lors du chargement des personnels:', error);
+          return [];
+        } finally {
+          console.log(personnels.value);
+          isLoading.value = false;
+        }
+      };
 
-</script>
+      const handleValidation = (field, result) => {
+        formErrors.value = {
+          ...formErrors.value,
+          [field]: result.isValid ? null : result.errorMessage
+        };
+        formValid.value = Object.values(formErrors.value).every(error => error === null);
+      };
 
-<template>
+      const updateEvaluation = async () => {
+        try {
+          if (!formValid.value) {
+            console.log('Le formulaire contient des erreurs de validation.');
+            return;
+          }
+          // préparer payload : transformer relations et la date
+          const payload = { ...evaluation.value };
+          if (payload.enseignement && payload.enseignement.id) {
+            payload.enseignement = `/api/scol_enseignements/${payload.enseignement.id}`;
+          }
+          // transformer Date en "YYYY-MM-DD" attendu par l'API
+          payload.date = formatDateForApi(payload.date);
 
-  <ListSkeleton v-if="isLoading" />
-  <div>
-    <div class="card bg-neutral-50 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900">
-      <div class="text-lg font-bold text-center">
-        {{ evaluation.enseignement?.codeEnseignement }} - {{ evaluation.enseignement?.libelle }}
-      </div>
-    </div>
+          await updateEvaluationService(payload.id, payload, '', true);
+          console.log('Évaluation mise à jour avec succès:', payload);
+          await getEvaluation();
+        } catch (error) {
+          console.error('Erreur lors de la mise à jour de l\'évaluation:', error);
+        }
+      }
 
-    <form @submit.prevent="updateEvaluation()" class="flex flex-col">
-      <ValidatedInput
-          v-model="evaluation.libelle"
-          name="libelle"
-          label="Libellé"
-          :rules="[validationRules.required]"
-          @validation="result => handleValidation('libelle', result)"
-          help-text="Entrez le libellé de l'évaluation"
-      />
+      </script>
 
-      <ValidatedInput
-          class="w-full"
-          v-model="evaluation.dateEvaluation"
-          name="dateEvaluation"
-          label="Date de l'évaluation"
-          type="date"
-          :rules="[validationRules.required]"
-          @validation="result => handleValidation('dateEvaluation', result)"
-          help-text="Sélectionnez la date de l'évaluation"
-      />
+      <template>
 
-      <ValidatedInput
-          class="w-full"
-          v-model="evaluation.coefficient"
-          label="Coefficient"
-          type="number"
-          :rules="[validationRules.required]"
-          @validation="result => handleValidation('coefficient', result)"
-          help-text="Entrez le coefficient de l'évaluation"
-      />
+        <ListSkeleton v-if="isLoading" />
+        <div>
+          {{evaluation.id}}
+          <div class="card bg-neutral-50 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900">
+            <div class="text-lg font-bold text-center">
+              {{ evaluation.enseignement?.codeEnseignement }} - {{ evaluation.enseignement?.libelle }}
+            </div>
+          </div>
 
-      <ValidatedInput
-          class="w-full"
-          v-model="evaluation.commentaire"
-          name="commentaire"
-          label="Commentaire"
-          type="textarea"
-          :rules="[]"
-          @validation="result => handleValidation('commentaire', result)"
-          help-text="Ajoutez un commentaire (optionnel)"
-      />
+          <form @submit.prevent="updateEvaluation()" class="flex flex-col">
+            <ValidatedInput
+                v-model="evaluation.libelle"
+                name="libelle"
+                label="Libellé"
+                :rules="[validationRules.required]"
+                @validation="result => handleValidation('libelle', result)"
+                help-text="Entrez le libellé de l'évaluation"
+            />
 
-      <div class="flex">
-        <ValidatedInput
-            class="w-full"
-            v-for="typeGroupe in evaluation.typeGroupeChoices"
-            v-model="typesGroupe"
-            name="typesGroupe"
-            :label="`${typeGroupe}`"
-            :value="typeGroupe"
-            :rules="[]"
-            type="radio"
-            @validation="result => handleValidation(`repartition-${typeGroupe}`, result)"
-        />
-      </div>
+            <ValidatedInput
+                class="w-full"
+                v-model="evaluation.date"
+                name="dateEvaluation"
+                label="Date de l'évaluation"
+                type="date"
+                :rules="[validationRules.required]"
+                @validation="result => handleValidation('dateEvaluation', result)"
+                help-text="Sélectionnez la date de l'évaluation"
+            />
 
-      <ValidatedInput
-          class="w-full"
-          v-model="evaluation.responsableId"
-          name="responsableId"
-          label="Responsable de l'évaluation"
-          type="multiselect"
-          :options="personnels.map(personnel => ({ label: `${personnel.nom} ${personnel.prenom}`, value: personnel.id }))"
-          :rules="[validationRules.required]"
-          @validation="result => handleValidation('responsableId', result)"
-          help-text="Sélectionnez les enseignants autorisés à gérer cette évaluation"
-          :filter="true"
-      />
+            <ValidatedInput
+                class="w-full"
+                v-model="evaluation.coeff"
+                label="Coefficient"
+                type="number"
+                name="coeff"
+                :rules="[validationRules.required]"
+                @validation="result => handleValidation('coeff', result)"
+                help-text="Entrez le coefficient de l'évaluation"
+                inputId="minmax" :min="0" :max="100"
+            />
 
-      <div class="flex justify-center items-center gap-4">
-        <Button label="Mettre à jour l'évaluation" @click="updateEvaluation" :disabled="!formValid" />
-        <Button label="Annuler" severity="secondary" @click="updateEvaluation" :disabled="!formValid" />
-      </div>
-    </form>
-  </div>
-</template>
+            <ValidatedInput
+                class="w-full"
+                v-model="evaluation.commentaire"
+                name="commentaire"
+                label="Commentaire"
+                type="textarea"
+                :rules="[]"
+                @validation="result => handleValidation('commentaire', result)"
+                help-text="Ajoutez un commentaire (optionnel)"
+            />
 
-<style scoped>
-:deep(.p-component) {
-  @apply w-full;
-}
-</style>
+            <div class="flex">
+              <ValidatedInput
+                  class="w-full"
+                  v-for="typeGroupeChoice in evaluation.typeGroupeChoices"
+                  v-model="evaluation.typeGroupe"
+                  name="typeGroupe"
+                  :label="`${typeGroupeChoice}`"
+                  :value="typeGroupeChoice"
+                  :rules="[]"
+                  type="radio"
+                  @validation="result => handleValidation('typeGroupe', result)"
+              />
+            </div>
+
+            <ValidatedInput
+                class="w-full"
+                v-model="evaluation.personnelAutorise"
+                name="personnelAutorise"
+                label="Responsable de l'évaluation"
+                type="multiselect"
+                :options="personnels.map(personnel => ({ label: `${personnel.nom} ${personnel.prenom}`, value: `/api/personnels/${personnel.id}` }))"
+                :rules="[validationRules.required]"
+                @validation="result => handleValidation('personnelAutorise', result)"
+                help-text="Sélectionnez les enseignants autorisés à gérer cette évaluation"
+                :filter="true"
+            />
+
+            <div class="flex justify-center items-center gap-4">
+              <Button label="Mettre à jour l'évaluation" @click="updateEvaluation" :disabled="!formValid" />
+              <Button label="Annuler" severity="secondary" @click="updateEvaluation" :disabled="!formValid" />
+            </div>
+          </form>
+        </div>
+      </template>
+
+      <style scoped>
+      :deep(.p-component) {
+        @apply w-full;
+      }
+      </style>

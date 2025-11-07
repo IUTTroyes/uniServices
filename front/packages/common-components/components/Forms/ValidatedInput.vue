@@ -164,12 +164,14 @@ const onValidation = (result) => {
           :placeholder="placeholder"
           :class="[inputClass, { 'p-invalid': showError }]"
           @update:modelValue="updateModelValue"
+          dateFormat="dd/mm/yy"
           @blur="handleBlur"
         />
 
         <InputNumber
           v-else-if="type === 'number'"
           :v-model="modelValue"
+          :name="name"
           :class="[inputClass, { 'p-invalid': showError }]"
           @update:modelValue="updateModelValue"
           @blur="handleBlur"
