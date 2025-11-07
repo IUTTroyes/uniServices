@@ -68,6 +68,18 @@ const props = defineProps({
   filter: {
     type: Boolean,
     default: false
+  },
+  inputId: {                 // ajouté pour permettre override de l'id
+    type: String,
+    default: null
+  },
+  min: {                     // ajouté pour InputNumber
+    type: [Number, String],
+    default: null
+  },
+  max: {                     // ajouté pour InputNumber
+    type: [Number, String],
+    default: null
   }
 });
 
@@ -111,6 +123,19 @@ const onValidation = (result) => {
             :class="[inputClass, { 'p-invalid': showError }]"
             @input="updateValue"
             @blur="handleBlur"
+        />
+
+        <InputNumber
+            v-else-if="type === 'number'"
+            :id="inputId || name"
+            :name="name"
+            :modelValue="modelValue"
+            :placeholder="placeholder"
+            :class="[inputClass, { 'p-invalid': showError }]"
+            @update:modelValue="updateModelValue"
+            @blur="handleBlur"
+            :min="min"
+            :max="max"
         />
 
         <Password
@@ -166,16 +191,6 @@ const onValidation = (result) => {
           @update:modelValue="updateModelValue"
           dateFormat="dd/mm/yy"
           @blur="handleBlur"
-        />
-
-        <InputNumber
-          v-else-if="type === 'number'"
-          :v-model="modelValue"
-          :name="name"
-          :class="[inputClass, { 'p-invalid': showError }]"
-          @update:modelValue="updateModelValue"
-          @blur="handleBlur"
-          fluid
         />
 
         <Textarea

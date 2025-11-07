@@ -129,6 +129,7 @@
                 v-model="evaluation.libelle"
                 name="libelle"
                 label="Libellé"
+                type="text"
                 :rules="[validationRules.required]"
                 @validation="result => handleValidation('libelle', result)"
                 help-text="Entrez le libellé de l'évaluation"
@@ -137,7 +138,7 @@
             <ValidatedInput
                 class="w-full"
                 v-model="evaluation.date"
-                name="dateEvaluation"
+                name="date"
                 label="Date de l'évaluation"
                 type="date"
                 :rules="[validationRules.required]"
@@ -148,9 +149,9 @@
             <ValidatedInput
                 class="w-full"
                 v-model="evaluation.coeff"
+                name="coeff"
                 label="Coefficient"
                 type="number"
-                name="coeff"
                 :rules="[validationRules.required]"
                 @validation="result => handleValidation('coeff', result)"
                 help-text="Entrez le coefficient de l'évaluation"
