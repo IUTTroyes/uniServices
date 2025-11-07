@@ -117,7 +117,6 @@
 
         <ListSkeleton v-if="isLoading" />
         <div>
-          {{evaluation.id}}
           <div class="card bg-neutral-50 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900">
             <div class="text-lg font-bold text-center">
               {{ evaluation.enseignement?.codeEnseignement }} - {{ evaluation.enseignement?.libelle }}
@@ -169,18 +168,20 @@
                 help-text="Ajoutez un commentaire (optionnel)"
             />
 
-            <div class="flex">
-              <ValidatedInput
-                  class="w-full"
-                  v-for="typeGroupeChoice in evaluation.typeGroupeChoices"
-                  v-model="evaluation.typeGroupe"
-                  name="typeGroupe"
-                  :label="`${typeGroupeChoice}`"
-                  :value="typeGroupeChoice"
-                  :rules="[]"
-                  type="radio"
-                  @validation="result => handleValidation('typeGroupe', result)"
-              />
+            <div>
+              <div class="">Type de groupe</div>
+              <div class="flex w-full justify-between px-8">
+                <ValidatedInput
+                    v-for="typeGroupeChoice in evaluation.typeGroupeChoices"
+                    v-model="evaluation.typeGroupe"
+                    name="typeGroupe"
+                    :label="`${typeGroupeChoice}`"
+                    :value="typeGroupeChoice"
+                    :rules="[]"
+                    type="radio"
+                    @validation="result => handleValidation('typeGroupe', result)"
+                />
+              </div>
             </div>
 
             <ValidatedInput
