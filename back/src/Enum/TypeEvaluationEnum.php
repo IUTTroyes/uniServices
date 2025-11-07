@@ -20,9 +20,9 @@ enum TypeEvaluationEnum: string
     public static function getTypes(): array
     {
         return [
-            self::TYPE_EVALUATION_TP->value,
-            self::TYPE_EVALUATION_EXAM->value,
-            self::TYPE_EVALUATION_PROJET->value,
+            self::TYPE_EVALUATION_TP,
+            self::TYPE_EVALUATION_EXAM,
+            self::TYPE_EVALUATION_PROJET,
         ];
     }
 

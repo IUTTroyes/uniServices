@@ -28,7 +28,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
     paginationEnabled: false,
     operations: [
         new Get(normalizationContext: ['groups' => ['evaluation:detail', 'enseignement:light']]),
-        new GetCollection(normalizationContext: ['groups' => ['evaluation:detail']]),
+        new GetCollection(normalizationContext: ['groups' => ['evaluation:detail', 'personnel:light']]),
         new Get(
             uriTemplate: '/mini/scol_evaluations/{id}',
             normalizationContext: ['groups' => ['evaluation:light']],
@@ -392,6 +392,14 @@ class ScolEvaluation
         return array_map(
             fn(TypeGroupeEnum $case): string => $case->value,
             TypeGroupeEnum::getTypes()
+        );
+    }
+    #[Groups(['evaluation:detail'])]
+    public function getTypeChoices(): array
+    {
+        return array_map(
+            fn(TypeEvaluationEnum $case): string => $case->value,
+            TypeEvaluationEnum::getTypes()
         );
     }
 }

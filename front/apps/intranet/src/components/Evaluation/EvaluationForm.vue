@@ -59,7 +59,6 @@
         } catch (error) {
           console.error('Erreur lors du chargement de l\'évaluation:', error);
         } finally {
-          console.log(evaluation.value);
           isLoading.value = false;
         }
       };
@@ -76,7 +75,6 @@
           console.error('Erreur lors du chargement des personnels:', error);
           return [];
         } finally {
-          console.log(personnels.value);
           isLoading.value = false;
         }
       };
@@ -92,7 +90,6 @@
       const updateEvaluation = async () => {
         try {
           if (!formValid.value) {
-            console.log('Le formulaire contient des erreurs de validation.');
             return;
           }
           // préparer payload : transformer relations et la date
@@ -104,7 +101,6 @@
           payload.date = formatDateForApi(payload.date);
 
           await updateEvaluationService(payload.id, payload, '', true);
-          console.log('Évaluation mise à jour avec succès:', payload);
           await getEvaluation();
         } catch (error) {
           console.error('Erreur lors de la mise à jour de l\'évaluation:', error);
@@ -133,6 +129,22 @@
                 @validation="result => handleValidation('libelle', result)"
                 help-text="Entrez le libellé de l'évaluation"
             />
+
+            <div>
+              <div class="">Type d'évaluation'</div>
+              <div class="flex w-full justify-between px-8">
+                <ValidatedInput
+                    v-for="typeChoice in evaluation.typeChoices"
+                    v-model="evaluation.type"
+                    name="type"
+                    :label="`${typeChoice}`"
+                    :value="typeChoice"
+                    :rules="[]"
+                    type="radio"
+                    @validation="result => handleValidation('type', result)"
+                />
+              </div>
+            </div>
 
             <ValidatedInput
                 class="w-full"

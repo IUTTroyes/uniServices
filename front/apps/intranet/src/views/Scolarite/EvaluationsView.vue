@@ -91,6 +91,7 @@ const getEvaluations = async (enseignement) => {
     hasError.value = true;
     console.error('Error fetching evaluations:', error);
   } finally {
+    console.log(evaluations.value);
     isLoadingEvaluations.value = false;
   }
 };
@@ -180,8 +181,8 @@ const openEvaluationDialog = (evaluation) => {
                         <div class="text-lg font-bold">
                           {{ evaluation.typeIcon }} {{evaluation.libelle}}
                         </div>
-                        <Message severity="info" size="small">
-                          {{evaluation.type ?? ' - Type inconnu'}}
+                        <Message v-if="evaluation.type" severity="info" size="small">
+                          {{evaluation.type}}
                         </Message>
                       </div>
                       <div>
@@ -200,6 +201,13 @@ const openEvaluationDialog = (evaluation) => {
                         <div class="text-sm flex items-center gap-1"><span class="font-bold">0/25</span> (0%)</div>
                       </div>
                       <ProgressBar :value="evaluation.notes?.length" class="!h-3"></ProgressBar>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                      <div>Saisie autorisée :</div>
+                      <div v-for="personnel in evaluation.personnelAutorise" class="border border-neutral-200 dark:border-neutral-600 rounded-md px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 flex items-center gap-2">
+                        {{personnel.display}}
+                      </div>
                     </div>
                   </div>
                   <Divider/>
