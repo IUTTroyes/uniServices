@@ -33,7 +33,7 @@ export const statuts = [
   { label: 'IE', value: 'IE', severity: 'success' },
   { label: 'ENSAM', value: 'ENSAM', severity: 'primary' },
   { label: 'DO', value: 'DO', severity: 'primary' },
-  { label: 'Vacataire', value: 'VAC', severity: 'success' },
+  { label: 'Vacataire', value: 'vacataire', severity: 'secondary' },//todo: VAC ?
   { label: 'PRCE', value: 'PRCE', severity: 'info' },
   { label: 'BIATSS', value: 'BIATSS', severity: 'warn' },
   { label: 'Autre', value: 'AUTRE', severity: 'secondary' }

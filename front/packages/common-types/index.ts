@@ -48,3 +48,7 @@ export * from './entity/StructurePn';
 export * from './entity/ApcParcours';
 export * from './entity/StructureAnnee';
 export * from './entity/StructureUe';
+export * from './entity/User';
+
+export * from './FilterState';
+

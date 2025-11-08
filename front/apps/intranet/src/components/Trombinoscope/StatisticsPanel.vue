@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import type { Student, Staff, FilterState } from '../types';
+import {computed} from 'vue';
+import type {Etudiant, FilterState, Personnel} from '@types';
 
 interface Props {
-  students: Student[];
-  staff: Staff[];
-  filteredStudents: Student[];
-  filteredStaff: Staff[];
+  students: Etudiant[];
+  staff: Personnel[];
+  filteredStudents: Etudiant[];
+  filteredStaff: Personnel[];
   filters: FilterState;
 }
 
@@ -33,37 +33,25 @@ const studentStats = computed(() => {
     return acc;
   }, {} as Record<string, number>);
 
-  return { semesters, statuses };
+  return {semesters, statuses};
 });
 
 const staffStats = computed(() => {
   if (props.filters.mode !== 'staff') return null;
 
-  const statuses = props.staff.reduce((acc, staff) => {
-    acc[staff.status] = (acc[staff.status] || 0) + 1;
+  const statuses = props.staff.reduce((acc, member) => {
+    const statut = member.statut;
+    const group =
+        ['MCF', 'PRCE', 'PRAG', 'contractuel'].includes(statut) ? 'permanent' :
+            ['VAC', 'ATER', 'vacataire'].includes(statut) ? 'vacataires' :
+                'adm';
+    acc[group] = (acc[group] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
-  const departments = props.staff.reduce((acc, staff) => {
-    acc[staff.department] = (acc[staff.department] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  return { statuses, departments };
+  return {statuses};
 });
 
-const getStatusText = (status: string) => {
-  switch (status) {
-    case 'active':
-      return 'Actifs';
-    case 'inactive':
-      return 'Inactifs';
-    case 'suspended':
-      return 'Suspendus';
-    default:
-      return status;
-  }
-};
 </script>
 
 <template>
@@ -81,7 +69,8 @@ const getStatusText = (status: string) => {
 
         <div v-if="filteredCount < totalCount" class="flex items-center space-x-1">
           <svg class="w-4 h-4 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.586V4z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.586V4z"/>
           </svg>
           <span class="text-sm text-primary-600">Filtré</span>
         </div>
@@ -105,17 +94,9 @@ const getStatusText = (status: string) => {
         </div>
 
         <div v-if="filters.mode === 'staff' && staffStats" class="flex items-center space-x-4">
-          <div class="text-center">
-            <div class="text-sm font-medium text-gray-900">{{ Object.keys(staffStats.departments).length }}</div>
-            <div class="text-xs text-gray-500">Départements</div>
-          </div>
-          <div class="text-center">
-            <div class="text-sm font-medium text-primary-600">{{ staffStats.statuses.Enseignant || 0 }}</div>
-            <div class="text-xs text-gray-500">Enseignants</div>
-          </div>
-          <div class="text-center">
-            <div class="text-sm font-medium text-warning-600">{{ staffStats.statuses.Administratif || 0 }}</div>
-            <div class="text-xs text-gray-500">Admin</div>
+          <div class="text-center" v-for="(statut, key) in staffStats.statuses" :key="key">
+            <div class="text-sm font-medium text-primary-600">{{ staffStats.statuses[key] || 0 }}</div>
+            <div class="text-xs text-gray-500">{{ key }}</div>
           </div>
         </div>
       </div>

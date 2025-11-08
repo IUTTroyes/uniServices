@@ -1,50 +1,18 @@
 <script setup lang="ts">
-import type {Staff, Student} from '../types';
+import type {Personnel, Etudiant} from '@/types';
+
+import { getStatutText, getStatutColor } from "@utils"
 
 interface Props {
-  person: Student | Staff;
+  person: Etudiant | Personnel;
   mode: 'students' | 'staff';
   viewMode: 'grid' | 'list';
 }
 
 defineProps<Props>();
 
-const isStudent = (person: Student | Staff): person is Student => {
+const isStudent = (person: Etudiant | Personnel): person is Etudiant => {
   return 'semester' in person;
-};
-
-const getStatusBadgeClass = (status: string) => {
-  switch (status) {
-    case 'active':
-      return 'badge-success';
-    case 'inactive':
-      return 'badge-warning';
-    case 'suspended':
-      return 'badge-gray';
-    case 'Enseignant':
-      return 'badge-primary';
-    case 'Administratif':
-      return 'badge-warning';
-    case 'Technique':
-      return 'badge-gray';
-    case 'Direction':
-      return 'badge-success';
-    default:
-      return 'badge-gray';
-  }
-};
-
-const getStatusText = (status: string) => {
-  switch (status) {
-    case 'active':
-      return 'Actif';
-    case 'inactive':
-      return 'Inactif';
-    case 'suspended':
-      return 'Suspendu';
-    default:
-      return status;
-  }
 };
 </script>
 
@@ -59,7 +27,7 @@ const getStatusText = (status: string) => {
     <div :class="viewMode === 'grid' ? 'mb-4' : 'flex-shrink-0'">
       <img
           :src="person.photo"
-          :alt="`Photo de ${person.firstName} ${person.lastName}`"
+          :alt="`Photo de ${person.prenom} ${person.nom}`"
           :class="[
           'object-cover border-2 border-gray-200',
           viewMode === 'grid' ? 'w-20 h-20 mx-auto rounded-full' : 'w-16 h-16 rounded-full'
@@ -72,26 +40,27 @@ const getStatusText = (status: string) => {
       <!-- Name -->
       <div :class="viewMode === 'grid' ? 'mb-2' : 'mb-1'">
         <h3 :class="viewMode === 'grid' ? 'text-lg font-semibold text-gray-900' : 'text-base font-semibold text-gray-900'">
-          {{ person.firstName }} {{ person.lastName }}
+          {{ person.prenom }} {{ person.nom }}
         </h3>
         <p :class="viewMode === 'grid' ? 'text-sm text-gray-600' : 'text-xs text-gray-600 truncate'">
-          {{ person.email }}
+          {{ person.mail_univ }}
         </p>
       </div>
 
       <!-- Student Info -->
       <div v-if="isStudent(person)" :class="viewMode === 'grid' ? 'space-y-2' : 'space-y-1'">
+        //semestre...
         <div class="flex items-center justify-center gap-2" v-if="viewMode === 'grid'">
           <span class="badge badge-primary">S{{ person.semester }}</span>
-          <span :class="['badge', getStatusBadgeClass(person.status)]">
-            {{ getStatusText(person.status) }}
-          </span>
+          <Badge :severity="getStatutColor(person.statut)">
+            {{ getStatutText(person.statut) }}
+          </Badge>
         </div>
         <div class="flex items-center gap-2" v-else>
           <span class="badge badge-primary text-xs">S{{ person.semester }}</span>
-          <span :class="['badge text-xs', getStatusBadgeClass(person.status)]">
-            {{ getStatusText(person.status) }}
-          </span>
+          <Badge :severity="getStatutColor(person.statut)">
+            {{ getStatutText(person.statut) }}
+          </Badge>
         </div>
 
         <!-- Groups -->
@@ -116,14 +85,14 @@ const getStatusText = (status: string) => {
       <!-- Staff Info -->
       <div v-else :class="viewMode === 'grid' ? 'space-y-2' : 'space-y-1'">
         <div class="flex items-center justify-center gap-2" v-if="viewMode === 'grid'">
-          <span :class="['badge', getStatusBadgeClass(person.status)]">
-            {{ person.status }}
-          </span>
+          <Badge :severity="getStatutColor(person.statut)">
+            {{ getStatutText(person.statut) }}
+          </Badge>
         </div>
         <div class="flex items-center gap-2" v-else>
-          <span :class="['badge text-xs', getStatusBadgeClass(person.status)]">
-            {{ person.status }}
-          </span>
+          <Badge :severity="getStatutColor(person.statut)">
+            {{ getStatutText(person.statut) }}
+          </Badge>
         </div>
 
         <div :class="viewMode === 'grid' ? 'text-center' : ''">
