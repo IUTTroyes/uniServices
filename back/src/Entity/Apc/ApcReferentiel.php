@@ -2,8 +2,11 @@
 
 namespace App\Entity\Apc;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
-use App\Entity\Structure\StructureAnneeUniversitaire;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructurePn;
@@ -13,29 +16,42 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ApcReferentielRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['referentiel:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['referentiel:read']]),
+    ]
+)]
+#[ApiFilter(SearchFilter::class, properties: ['departement.id' => 'exact', 'departement.libelle' => 'partial'])]
 class ApcReferentiel
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['referentiel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['referentiel:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['referentiel:read'])]
     private ?string $description = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['referentiel:read'])]
     private ?int $anneePublication = null;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
+    //todo: pas nécessaire ??
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'referentiel')]
+    #[Groups(['referentiel:read'])]
     private Collection $diplomes;
 
     #[ORM\ManyToOne(inversedBy: 'referentiels')]
@@ -47,15 +63,6 @@ class ApcReferentiel
     #[ORM\OneToMany(targetEntity: ApcCompetence::class, mappedBy: 'referentiel')]
     private Collection $competences;
 
-    #[ORM\ManyToOne(inversedBy: 'referentiels')]
-    private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
-
-    /**
-     * @var Collection<int, ApcParcours>
-     */
-    #[ORM\OneToMany(targetEntity: ApcParcours::class, mappedBy: 'referentiel')]
-    private Collection $parcours;
-
     /**
      * @var Collection<int, StructurePn>
      */
@@ -63,13 +70,13 @@ class ApcReferentiel
     private Collection $pn;
 
     #[ORM\ManyToOne(inversedBy: 'referentiels')]
+    //todo: pas nécessaire ??
     private StructureTypeDiplome $typeDiplome;
 
     public function __construct()
     {
         $this->diplomes = new ArrayCollection();
         $this->competences = new ArrayCollection();
-        $this->parcours = new ArrayCollection();
         $this->pn = new ArrayCollection();
     }
 
@@ -180,48 +187,6 @@ class ApcReferentiel
             // set the owning side to null (unless already changed)
             if ($competence->getReferentiel() === $this) {
                 $competence->setReferentiel(null);
-            }
-        }
-
-        return $this;
-    }
-
-    public function getAnneeUniversitaire(): ?StructureAnneeUniversitaire
-    {
-        return $this->anneeUniversitaire;
-    }
-
-    public function setAnneeUniversitaire(?StructureAnneeUniversitaire $anneeUniversitaire): static
-    {
-        $this->anneeUniversitaire = $anneeUniversitaire;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, ApcParcours>
-     */
-    public function getParcours(): Collection
-    {
-        return $this->parcours;
-    }
-
-    public function addParcours(ApcParcours $parcours): static
-    {
-        if (!$this->parcours->contains($parcours)) {
-            $this->parcours->add($parcours);
-            $parcours->setReferentiel($this);
-        }
-
-        return $this;
-    }
-
-    public function removeParcours(ApcParcours $parcours): static
-    {
-        if ($this->parcours->removeElement($parcours)) {
-            // set the owning side to null (unless already changed)
-            if ($parcours->getReferentiel() === $this) {
-                $parcours->setReferentiel(null);
             }
         }
 

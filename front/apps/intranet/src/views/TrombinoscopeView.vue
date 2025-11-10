@@ -1,10 +1,20 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { mockStudents, mockStaff } from '@/data/mockData';
+
+import { getEtudiantsService, getPersonnelsService } from '@requests';
 import { useFilters } from '@/composables/useFilters';
 import FilterSidebar from '@/components/Trombinoscope/FilterSidebar.vue';
 import StatisticsPanel from '@/components/Trombinoscope/StatisticsPanel.vue';
 import PersonCard from '@/components/Trombinoscope/PersonCard.vue';
+import {useUsersStore} from '@stores';
+
+const students = ref([]);   // tableau d’étudiants réel
+const staff = ref([]);      // tableau de personnels réel
+const loading = ref(false);
+const error = ref<string | null>(null);
+
+const usersStore = useUsersStore();
+const departementId = usersStore.departementDefaut.id;
 
 // Initialize filters composable
 const {
@@ -14,10 +24,14 @@ const {
   updateFilters,
   resetFilters,
   exportData,
-} = useFilters(mockStudents, mockStaff);
+} = useFilters(students, staff);
+
+
 
 // Computed properties for current filtered data
 const currentFilteredData = computed(() => {
+  console.log('currentFilteredData')
+  console.log(filters.value.mode === 'students' ? filteredStudents.value : filteredStaff.value)
   return filters.value.mode === 'students' ? filteredStudents.value : filteredStaff.value;
 });
 
@@ -46,13 +60,74 @@ const handleKeydown = (event: KeyboardEvent) => {
 };
 
 // Add keyboard event listener
-onMounted(() => {
+onMounted(async () => {
   document.addEventListener('keydown', handleKeydown);
+  console.log('onMounted')
+  await fetchData();
 });
 
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown);
 });
+
+const mapEtudiantToStudentCard = (e: any) => {
+  return {
+    id: e.id,
+    prenom: e.prenom,
+    nom: e.nom,
+    mailUniv: e.mailUniv,
+    photo: photoEtudiantFromName(e.photoName),
+  //  semester: e.semestreCourant?.numero || e.semester,
+    groups: {
+      CM: e.groupes?.CM || [],
+      TD: e.groupes?.TD || [],
+      TP: e.groupes?.TP || [],
+    },
+  };
+}
+
+const mapPersonnelToStaffCard = (p: any) => {
+  return {
+    id: p.id,
+    prenom: p.prenom,
+    nom: p.nom,
+    mailUniv: p.mailUniv,
+    photo: photoPersonnelFromName(p.photoName),
+    statut: p.statut,
+  //  department: p.departement?.code || p.department || '',
+  };
+}
+
+function photoEtudiantFromName(name?: string) {
+  // fallback identique à ce qui est fait ailleurs dans le projet
+  return name ? `/common-images/photos_etudiants/${name}` : '/common-images/photos_etudiants/noimage.png';
+}
+
+function photoPersonnelFromName(name?: string) {
+  return name ? `/common-images/photos_personnels/${name}` : '/common-images/photos_personnels/noimage.png';
+}
+
+async function fetchData() {
+  loading.value = true;
+  error.value = null;
+  try {
+    // À adapter si vous avez des filtres serveur (département, année, etc.)
+    const [etudiantsResp, personnels] = await Promise.all([
+      getEtudiantsService({ 'departement': departementId, 'anneeSortie': 0 }),
+      getPersonnelsService({ 'departement': departementId }),
+    ]);
+
+    // getEtudiantsService retourne typiquement une réponse Hydra
+    const etudiants = etudiantsResp.member || [];
+
+    students.value = await etudiants.map(mapEtudiantToStudentCard);
+    staff.value = await (personnels || []).map(mapPersonnelToStaffCard);
+  } catch (e: any) {
+    error.value = e?.message || 'Erreur lors de la récupération des données.';
+  } finally {
+    loading.value = false;
+  }
+}
 </script>
 
 <template>
@@ -60,8 +135,8 @@ onUnmounted(() => {
     <!-- Sidebar -->
     <FilterSidebar
         :filters="filters"
-        :students="mockStudents"
-        :staff="mockStaff"
+        :students="students"
+        :staff="staff"
         @update-filters="updateFilters"
         @reset-filters="resetFilters"
         @export-data="exportData"
@@ -72,8 +147,8 @@ onUnmounted(() => {
     <div class="flex-1 flex flex-col overflow-hidden">
       <!-- Statistics Panel -->
       <StatisticsPanel
-          :students="mockStudents"
-          :staff="mockStaff"
+          :students="students"
+          :staff="staff"
           :filtered-students="filteredStudents"
           :filtered-staff="filteredStaff"
           :filters="filters"

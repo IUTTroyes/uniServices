@@ -22,9 +22,11 @@ class ApcNiveau
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['competence:referentiel:full'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
+    #[Groups(['competence:referentiel:full'])]
     private ?int $ordre = null;
 
     /**
@@ -42,6 +44,7 @@ class ApcNiveau
      * @var Collection<int, ApcApprentissageCritique>
      */
     #[ORM\OneToMany(targetEntity: ApcApprentissageCritique::class, mappedBy: 'niveau')]
+    #[Groups(['competence:referentiel:full'])]
     private Collection $apprentissageCritique;
 
     /**
@@ -50,8 +53,9 @@ class ApcNiveau
     #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'apcNiveau')]
     private Collection $annees;
 
-    public function __construct()
+    public function __construct(ApcCompetence $competence = null)
     {
+        $this->competence = $competence;
         $this->parcours = new ArrayCollection();
         $this->apprentissageCritique = new ArrayCollection();
         $this->annees = new ArrayCollection();

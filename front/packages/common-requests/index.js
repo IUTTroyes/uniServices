@@ -4,6 +4,7 @@ export * from './structure_services/anneeService';
 export * from './structure_services/semestreService';
 export * from './structure_services/anneeUnivService';
 export * from './structure_services/pnService';
+export * from './structure_services/referentielCompetenceService.js';
 export * from './structure_services/structureCalendrierService';
 export * from './structure_services/ueService';
 export * from './structure_services/previsionnelService';

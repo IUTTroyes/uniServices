@@ -45,7 +45,7 @@ const getCurrentAnneeUniversitaireService = async (showToast = false) => {
             'Erreur lors de la récupération de l\'année universitaire courante',
             showToast
         );
-        return response.member[0];
+        return await response.member[0];
     } catch (error) {
         console.error('Erreur dans getCurrentAnneeUniversitaireService:', error);
         throw error;

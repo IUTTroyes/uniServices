@@ -82,7 +82,7 @@ class ScolEnseignement
 
     #[ORM\Column]
     #[Groups(['enseignement:detail'])]
-    private ?bool $suspendu = null;
+    private ?bool $suspendu = false;
 
     #[ORM\Column(type: Types::JSON)]
     #[Groups(['previsionnel:read', 'enseignement:detail', 'previsionnel_semestre:read'])]
@@ -94,11 +94,11 @@ class ScolEnseignement
 
     #[ORM\Column]
     #[Groups(['enseignement:detail'])]
-    private ?int $nbNotes = null;
+    private ?int $nbNotes = 2;
 
     #[ORM\Column]
     #[Groups(['maquette:detail', 'enseignement:detail'])]
-    private ?bool $mutualisee = null;
+    private ?bool $mutualisee = false;
 
     /**
      * @var Collection<int, self>
@@ -124,7 +124,7 @@ class ScolEnseignement
 
     #[ORM\Column]
     #[Groups(['enseignement:detail'])]
-    private ?bool $bonification = null;
+    private ?bool $bonification = false;
 
     /**
      * @var Collection<int, ApcApprentissageCritique>

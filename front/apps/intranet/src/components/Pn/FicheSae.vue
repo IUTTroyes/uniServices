@@ -1,5 +1,5 @@
 <script setup>
-import {ref, defineProps, computed, onMounted} from 'vue';
+import {ref, computed, onMounted} from 'vue';
 import { marked } from 'marked';
 import { ApcCompetenceBadge, ApcAcBadge } from '@components';
 import {ErrorView} from "@components";

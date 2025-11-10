@@ -1,71 +1,57 @@
 <script setup lang="ts">
 import {ErrorView, ListSkeleton, SimpleSkeleton} from "@components";
 import {onMounted, ref} from "vue";
-import {useDiplomeStore, useUsersStore} from '@stores'
+import {useUsersStore} from '@stores'
+import {getReferentiels} from '@requests'
 import {useConfirm} from "primevue/useconfirm";
 import {useToast} from "primevue/usetoast";
 import api from '@helpers/axios';
+import AfficheReferentielCompetences from "@/components/Pn/AfficheReferentielCompetences.vue";
+import BlocHelp from "@components/components/BlocHelp.vue"
 
-
-const diplomeStore = useDiplomeStore();
 const usersStore = useUsersStore();
 
 const hasError = ref(false);
 const departementId = ref(null);
 const isLoadingDiplomes = ref(true);
+const create = ref(false);
 const isLoadingReferentiel = ref(true);
-const diplomes = ref([])
-const selectedDiplome = ref(null)
+const referentiels = ref([])
+const selectedReferentiel = ref(null)
 
 const confirm = useConfirm();
 const toast = useToast();
 
 onMounted(async () => {
   if (usersStore.departementDefaut) {
-    departementId.value = usersStore.departementDefaut.id;
-    await getDiplomes(departementId.value);
+    departementId.value = await usersStore.departementDefaut.id;
+    await _getReferentiels();
   } else {
     console.error('departementDefaut is not defined');
   }
 })
 
-const getDiplomes = async (departementId) => {
+const _getReferentiels = async () => {
   try {
     isLoadingDiplomes.value = true
-    await diplomeStore.getDiplomesActifsDepartement(departementId); //filtrer sur un niveau de diplôme plus haut ? pour avoir juste MMI 1 fois ?
-    diplomes.value = diplomeStore.diplomes;
-    if (diplomes.value.length > 0) {
-      selectedDiplome.value = diplomes.value[0];
-      await getRefCompetencesForDiplome(selectedDiplome.value.id);
+    referentiels.value = await getReferentiels(departementId.value);
+    if (referentiels.value.length > 0) {
+      selectedReferentiel.value = referentiels.value[0];
+      isLoadingReferentiel.value = false;
     }
   } catch (error) {
-    console.error('Erreur lors du chargement des diplomes:', error);
+    console.error('Erreur lors du chargement des référentiels:', error);
     hasError.value = true;
   } finally {
-    isLoadingDiplomes.value = false
+    isLoadingDiplomes.value = false;
   }
 }
 
-const getRefCompetencesForDiplome = async (diplomeId) => {
-  try {
-    isLoadingReferentiel.value = true;
-    // pn.value = await getPnDiplome(selectedDiplome.value.id, selectedAnneeUniversitaire.id)
-    // console.log(pn.value)
-    // if (pn.value.length > 0) {
-    //   pn.value = pn.value[0];
-    //   nodes.value = transformData(pn.value.annees);
-    // }
-  } catch (error) {
-    console.error('Erreur lors du chargement des PNs:', error);
-    hasError.value = true;
-  } finally {
-    isLoadingReferentiel.value = false;
-  }
-}
-
-const changeDiplome = (diplome) => {
-  selectedDiplome.value = diplome;
-  getRefCompetencesForDiplome(diplome.id);
+const changeReferentiel = (referentiel) => {
+  create.value = false;
+  isLoadingReferentiel.value = true;
+  selectedReferentiel.value = referentiel;
+  isLoadingReferentiel.value = false;
 }
 
 const synchronisationOreof = async () => {
@@ -89,12 +75,11 @@ const synchronisationOreof = async () => {
         life: 3000
       });
       await api.post('/api/oreof/ref-competences/synchronisation', {
-        departementId: departementId.value,
-        diplomeId: selectedDiplome.value.id
+        departementId: departementId.value
       })
           .then(() => {
             toast.add({severity: 'success', summary: 'Succès', detail: 'Synchronisation terminée.', life: 3000});
-            getDiplomes(departementId.value);
+            getReferentiels(departementId.value);
           })
           .catch((error) => {
             console.error('Erreur lors de la synchronisation:', error);
@@ -122,23 +107,56 @@ const synchronisationOreof = async () => {
     <div v-else>
       <h2 class="text-2xl font-bold">Référentiels de compétences</h2>
       <Divider/>
-      <Tabs :value="selectedDiplome?.id || diplomes[0]?.id" scrollable>
+      <Tabs :value="selectedReferentiel?.id || referentiels[0]?.id" scrollable>
         <TabList>
-          <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="changeDiplome(diplome)">
-            <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span>
+          <Tab v-for="referentiel in referentiels" :key="referentiel.libelle" :value="referentiel.id"
+               @click="changeReferentiel(referentiel)">
+            <span>{{ referentiel.libelle }}</span> | <span>{{ referentiel.anneePublication }}</span>
+          </Tab>
+          <Tab value="add-referentiel" @click="create = true">
+            <span>+ Ajouter un référentiel</span>
           </Tab>
         </TabList>
       </Tabs>
     </div>
 
-    <ListSkeleton v-if="isLoadingReferentiel" class="mt-4"/>
-    <div v-else class="mt-6">
+    <template v-if="create">
       <div class="flex justify-between items-center my-6">
-        <div class="text-xl font-bold">{{ selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné` }}</div>
-        <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" @click="synchronisationOreof"/>
+        <h3 class="text-xl font-semibold">Créer un nouveau référentiel de compétences</h3>
       </div>
+      <BlocHelp message="Création d'un nouveau référentiel de compétences"></BlocHelp>
+      <form class="flex flex-col gap-4 mt-2">
+        <div>
+          <label for="oreofId" class="font-bold mb-2 block">Id ORéOF associé</label>
+          <InputText v-model="oreofId" id="oreofId" placeholder="Saisir l'id ORéOF"/>
+        </div>
 
-    </div>
+        <div class="flex items-center gap-2">
+          <Checkbox v-model="pizza" inputId="ingredient2" name="pizza" value="Mushroom" />
+          <label for="ingredient2"> Synchroniser avec ORéBUT </label>
+        </div>
+
+        <Button
+            label="Créer le référentiel de compétences"
+            icon="pi pi-check"
+            class="mt-4"
+        />
+      </form>
+    </template>
+    <template v-else>
+      <ListSkeleton v-if="isLoadingReferentiel" class="mt-4"/>
+      <div v-else class="mt-6">
+        <div class="flex justify-between items-center my-6">
+          <h3 class="text-xl font-semibold">Référentiel de compétences : <span
+              class="font-bold">{{ selectedReferentiel.libelle }} ({{ selectedReferentiel.anneePublication }})</span>
+          </h3>
+          <Button label="Synchronisation depuis ORéOF" icon="pi pi-refresh" @click="synchronisationOreof"/>
+        </div>
+        <p>{{ selectedReferentiel.description }}</p>
+        <AfficheReferentielCompetences :referentiel="selectedReferentiel" v-if="selectedReferentiel"/>
+        <div v-else class="text-center text-muted-color">Aucun référentiel selectionné</div>
+      </div>
+    </template>
   </div>
 </template>
 

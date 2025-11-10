@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import type { FilterState, Student, Staff } from '../types';
+import {getDepartementSemestresService, getGroupesSemestreService} from '@requests'
+import { useUsersStore} from "@stores";
 
+const usersStore = useUsersStore();
+const departementId = usersStore.departementDefaut.id;
+const loaded = ref(false)
 interface Props {
   filters: FilterState;
   students: Student[];
   staff: Staff[];
 }
 
+const semesters = ref([])
 const props = defineProps<Props>();
 
 const emit = defineEmits<{
@@ -16,30 +22,33 @@ const emit = defineEmits<{
   exportData: [];
 }>();
 
-// Computed properties for dynamic options
-const availableSemesters = computed(() => {
-  const semesters = [...new Set(props.students.map(s => s.semester))].sort();
-  return semesters;
+onMounted(async () => {
+  semesters.value = await getDepartementSemestresService(departementId, true);
+  console.log(semesters)
+  loaded.value = true
+  return semesters.value;
 });
 
-const availableGroups = computed(() => {
+const availableGroups = ref([])
+
+const updateAvailableGroups = (async () => {
   if (!props.filters.studentFilters.semester || !props.filters.studentFilters.groupType) {
     return [];
   }
 
-  const studentsInSemester = props.students.filter(s => s.semester === props.filters.studentFilters.semester);
-  const groups = new Set<string>();
+  const groupesSemestre = await getGroupesSemestreService(props.filters.studentFilters.semester)
 
-  studentsInSemester.forEach(student => {
-    const groupType = props.filters.studentFilters.groupType!;
-    student.groups[groupType].forEach(group => groups.add(group));
-  });
+  const groupes = groupesSemestre['member'].filter((groupe: any) => groupe.type === props.filters.studentFilters.groupType)
+  //trier selon libelle
+  const groupesTriees = groupes.sort((a: any, b: any) => a.libelle.localeCompare(b.libelle))
+  //recuperer les libelles
+  const groupesLibelles = groupesTriees.map((groupe: any) => ({ id: groupe.id, libelle: groupe.libelle }));
 
-  return Array.from(groups).sort();
+  availableGroups.value = await groupesLibelles.sort((a: any, b: any) => a.libelle.localeCompare(b.libelle));
 });
 
-const availableStaffStatuses = computed(() => {
-  return [...new Set(props.staff.map(s => s.status))].sort();
+const availableStaffStatuts = computed(() => {
+  return [...new Set(props.staff.map(s => s.statut))].sort();
 });
 
 const availableDepartments = computed(() => {
@@ -55,7 +64,7 @@ const updateMode = (mode: 'students' | 'staff') => {
       group: null
     },
     staffFilters: {
-      status: null,
+      statut: null,
       department: null
     }
   });
@@ -70,6 +79,7 @@ const updateStudentSemester = (semester: number | null) => {
       group: null
     }
   });
+  updateAvailableGroups()
 };
 
 const updateStudentGroupType = (groupType: 'CM' | 'TD' | 'TP' | null) => {
@@ -80,6 +90,7 @@ const updateStudentGroupType = (groupType: 'CM' | 'TD' | 'TP' | null) => {
       group: null
     }
   });
+  updateAvailableGroups()
 };
 
 const updateStudentGroup = (group: string | null) => {
@@ -91,11 +102,11 @@ const updateStudentGroup = (group: string | null) => {
   });
 };
 
-const updateStaffStatus = (status: string | null) => {
+const updateStaffStatut = (statut: string | null) => {
   emit('updateFilters', {
     staffFilters: {
       ...props.filters.staffFilters,
-      status
+      statut
     }
   });
 };
@@ -113,7 +124,7 @@ const updateSearch = (searchTerm: string) => {
   emit('updateFilters', { searchTerm });
 };
 
-const updateSort = (sortBy: 'lastName' | 'firstName' | 'semester' | 'status') => {
+const updateSort = (sortBy: 'nom' | 'prenom' | 'semester' | 'statut') => {
   const sortOrder = props.filters.sortBy === sortBy && props.filters.sortOrder === 'asc' ? 'desc' : 'asc';
   emit('updateFilters', { sortBy, sortOrder });
 };
@@ -124,12 +135,11 @@ const updateViewMode = (viewMode: 'grid' | 'list') => {
 </script>
 
 <template>
-  <div class="bg-white w-80 border-r border-gray-200 p-6 overflow-y-auto">
+  <div class="bg-white w-80 border-r border-gray-200 p-6 overflow-y-auto" v-if="loaded">
     <div class="space-y-6">
       <!-- Header -->
       <div class="text-center">
-        <h2 class="text-xl font-semibold text-gray-900 mb-2">Trombinoscope</h2>
-        <p class="text-sm text-gray-600">Filtrer et rechercher</p>
+        <h2 class="text-xl font-semibold text-gray-900 mb-2">Filtrer et rechercher</h2>
       </div>
 
       <!-- Mode Selection -->
@@ -191,8 +201,8 @@ const updateViewMode = (viewMode: 'grid' | 'list') => {
                 class="input-field text-sm"
             >
               <option value="">Tous les semestres</option>
-              <option v-for="semester in availableSemesters" :key="semester" :value="semester">
-                Semestre {{ semester }}
+              <option v-for="semester in semesters" :key="semester" :value="semester.id">
+                {{ semester.libelle }}
               </option>
             </select>
           </div>
@@ -221,8 +231,8 @@ const updateViewMode = (viewMode: 'grid' | 'list') => {
                 class="input-field text-sm"
             >
               <option value="">Tous les groupes</option>
-              <option v-for="group in availableGroups" :key="group" :value="group">
-                {{ group }}
+              <option v-for="group in availableGroups" :key="group.id" :value="group.id">
+                {{ group.libelle }}
               </option>
             </select>
           </div>
@@ -233,32 +243,17 @@ const updateViewMode = (viewMode: 'grid' | 'list') => {
       <div v-if="filters.mode === 'staff'" class="filter-section">
         <h3 class="text-sm font-medium text-gray-900 mb-3">Filtres personnel</h3>
         <div class="space-y-4">
-          <!-- Status -->
+          <!-- statut -->
           <div>
             <label class="block text-xs font-medium text-gray-700 mb-1">Statut</label>
             <select
-                :value="filters.staffFilters.status || ''"
-                @change="updateStaffStatus($event.target.value || null)"
+                :value="filters.staffFilters.statut || ''"
+                @change="updateStaffStatut($event.target.value || null)"
                 class="input-field text-sm"
             >
               <option value="">Tous les statuts</option>
-              <option v-for="status in availableStaffStatuses" :key="status" :value="status">
-                {{ status }}
-              </option>
-            </select>
-          </div>
-
-          <!-- Department -->
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Département</label>
-            <select
-                :value="filters.staffFilters.department || ''"
-                @change="updateStaffDepartment($event.target.value || null)"
-                class="input-field text-sm"
-            >
-              <option value="">Tous les départements</option>
-              <option v-for="department in availableDepartments" :key="department" :value="department">
-                {{ department }}
+              <option v-for="statut in availableStaffStatuts" :key="statut" :value="statut">
+                {{ statut }}
               </option>
             </select>
           </div>
@@ -271,16 +266,20 @@ const updateViewMode = (viewMode: 'grid' | 'list') => {
         <div class="space-y-4">
           <!-- Sort -->
           <div>
-            <label class="block text-xs font-medium text-gray-700 mb-1">Trier par</label>
+            <label
+                for="sort-by"
+                class="block text-xs font-medium text-gray-700 mb-1">Trier par</label>
             <select
+                id="sort-by"
                 :value="filters.sortBy"
                 @change="updateSort($event.target.value as any)"
                 class="input-field text-sm w-full"
             >
-              <option value="lastName">Nom</option>
-              <option value="firstName">Prénom</option>
+              <option value="nom">Nom</option>
+              <option value="prenom">Prénom</option>
               <option v-if="filters.mode === 'students'" value="semester">Semestre</option>
-              <option v-if="filters.mode === 'staff'" value="status">Statut</option>
+              <option v-if="filters.mode === 'students'" value="groupe">Groupe</option>
+              <option v-if="filters.mode === 'staff'" value="statut">Statut</option>
             </select>
           </div>
 
