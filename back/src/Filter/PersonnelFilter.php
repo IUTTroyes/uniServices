@@ -37,6 +37,16 @@ class PersonnelFilter extends AbstractFilter
                 ->andWhere(sprintf('%s.id = :departement', $departementAlias))
                 ->setParameter('departement', $value);
         }
+        if ('enseignement' === $property) {
+            $enseignementPersonnelAlias = $queryNameGenerator->generateJoinAlias('enseignementPersonnels');
+            $enseignementAlias = $queryNameGenerator->generateJoinAlias('enseignement');
+
+            $queryBuilder
+                ->leftJoin(sprintf('%s.previsionnels', $alias), $enseignementPersonnelAlias)
+                ->leftJoin(sprintf('%s.enseignement', $enseignementPersonnelAlias), $enseignementAlias)
+                ->andWhere(sprintf('%s.id = :enseignement', $enseignementAlias))
+                ->setParameter('enseignement', $value);
+        }
     }
 
     public function getDescription(string $resourceClass): array

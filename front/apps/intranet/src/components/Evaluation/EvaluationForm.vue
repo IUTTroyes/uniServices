@@ -45,6 +45,7 @@
         departementId.value = userStore.departementDefaut.id;
         await getEvaluation();
         await getPersonnels();
+        await getPersonnelEnseignement();
       });
 
       const getEvaluation = async () => {
@@ -78,6 +79,20 @@
           isLoading.value = false;
         }
       };
+
+      const getPersonnelEnseignement = async () => {
+        try {
+          isLoading.value = true;
+          const params = {
+            enseignement: evaluation.value.enseignement.id
+          };
+          evaluation.value.enseignement.personnels = await getPersonnelsService(params);
+        } catch (error) {
+          console.error('Erreur lors du chargement des personnels:', error);
+        } finally {
+          isLoading.value = false;
+        }
+      }
 
       const handleValidation = (field, result) => {
         formErrors.value = {
@@ -116,6 +131,14 @@
           <div class="card bg-neutral-50 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900">
             <div class="text-lg font-bold text-center">
               {{ evaluation.enseignement?.codeEnseignement }} - {{ evaluation.enseignement?.libelle }}
+            </div>
+            <div class="flex items-center justify-center gap-4">
+              <div v-if="evaluation.enseignement?.personnels > 0" v-for="personnel in evaluation.enseignement?.personnels" :key="personnel.id" class="text-center px-3 py-1 bg-primary-100 text-primary-800 rounded-full dark:bg-primary-900 dark:text-primary-300">
+                {{ personnel.display }}
+              </div>
+              <div v-else class="text-center px-3 py-1 bg-primary-100 text-primary-800 rounded-full dark:bg-primary-900 dark:text-primary-300">
+                Aucun enseignant
+              </div>
             </div>
           </div>
 
