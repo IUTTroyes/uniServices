@@ -161,7 +161,6 @@ const submitNotes = async () => {
         if (row.noteId) {
           const etudiant = etudiants.value.find(e => e.id === row.etudiantId);
           // mise à jour
-          //todo: corriger l'erreur sur le uuid au traitement
           if (etudiant.note !== payload.note || etudiant.absenceJustifiee !== payload.absenceJustifiee || etudiant.commentaire !== payload.commentaire) {
             await updateEtudiantNoteService(row.noteId, payload);
           }
