@@ -2,13 +2,25 @@
 
 namespace App\Entity\Etudiant;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\UuidTrait;
 use App\Repository\EtudiantNoteRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantNoteRepository::class)]
+#[ApiResource(
+    operations: [
+        new Post(normalizationContext: ['groups' => ['note:write']]),
+    ],
+    order: ['nom' => 'ASC']
+)]
 class EtudiantNote
 {
     use UuidTrait;
@@ -19,18 +31,22 @@ class EtudiantNote
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Groups('note:write')]
     private ?float $note = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups('note:write')]
     private ?string $commentaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'notes')]
+    #[Groups('note:write')]
     private ?ScolEvaluation $evaluation = null;
 
     #[ORM\ManyToOne()]
     private ?EtudiantScolarite $scolarite = null;
 
     #[ORM\Column]
+    #[Groups('note:write')]
     private ?bool $absenceJustifiee = null;
 
     #[ORM\Column(nullable: true)]
@@ -38,6 +54,7 @@ class EtudiantNote
 
     #[ORM\ManyToOne(inversedBy: 'note')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[Groups('note:write')]
     private ?EtudiantScolariteSemestre $scolariteSemestre = null;
 
     public function getId(): ?int

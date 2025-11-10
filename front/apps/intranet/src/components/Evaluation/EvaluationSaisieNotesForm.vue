@@ -1,7 +1,14 @@
 <script setup>
 import {onMounted, ref, watch} from 'vue';
-import {ErrorView, ListSkeleton, SimpleSkeleton, ArticleSkeleton, ValidatedInput, validationRules} from "@components";
-import {getEvaluationService, getGroupesService, getEtudiantsService} from "@requests";
+import {ErrorView, ListSkeleton, ValidatedInput, validationRules} from "@components";
+import {
+  createEtudiantNoteService,
+  getEtudiantScolariteSemestresService,
+  getEtudiantsService,
+  getEvaluationService,
+  getGroupesService
+} from "@requests";
+import { v4 as uuidv4 } from 'uuid';
 
 const hasError = ref(false);
 const formValid = ref(true);
@@ -78,11 +85,13 @@ const getEtudiants = async () => {
 
     // dans rows, on prépare les données pour la table
     rows.value = etudiants.value.map(e => ({
-      id: e.id,
+      etudiantId: e.id,
       display: `${e.prenom} ${e.nom}`,
       note: -0.01,
-      absence: 1, // Présent par défaut
+      absenceJustifiee: false, // Présent par défaut
       commentaire: '',
+      evaluation: props.evaluationId,
+      scolariteSemestre: null,
     }));
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants:', error);
@@ -101,9 +110,52 @@ const handleValidation = (field, result) => {
 };
 
 const submitNotes = async () => {
-  // À implémenter : envoi des notes au backend
-  console.log('Notes à enregistrer :', rows.value);
+  try {
+    for (const row of rows.value) {
+      row.scolariteSemestre = await getScolariteSemestre(row.etudiantId);
+
+      // retirer etudiantId et display avant enregistrement
+      delete row.etudiantId;
+      delete row.display;
+
+      // transformer evaluation en IRI
+      row.evaluation = `/api/scol_evaluations/${props.evaluationId}`;
+      // transformer scolariteSemestre en IRI
+      row.scolariteSemestre = `/api/etudiant_scolarite_semestres/${row.scolariteSemestre}`;
+      row.uuid = uuidv4();
+      // si absenceJustifiee est à true, on passe la note à -0.01
+      if (row.absenceJustifiee) {
+        row.note = -0.01;
+      }
+
+      await createEtudiantNoteService(row)
+    }
+  } catch (error) {
+    console.error('Erreur lors de la soumission des notes:', error);
+  } finally {
+    toast.add(
+      { severity: 'success', summary: 'Succès', detail: 'Les notes ont été enregistrées avec succès.', life: 3000 }
+    )
+  }
+
 };
+
+const getScolariteSemestre = async (etudiantId) => {
+  try {
+    const params = {
+      etudiant: etudiantId,
+      semestre: props.semestreId,
+    };
+    const response = await getEtudiantScolariteSemestresService(params);
+    if (response && response.length > 0) {
+      return response[0].id;
+    }
+    return null;
+  } catch (error) {
+    console.error('Erreur lors du chargement de la scolarité semestre:', error);
+    return null;
+  }
+}
 </script>
 
 <template>
@@ -151,11 +203,11 @@ const submitNotes = async () => {
           <template #body="slotProps">
             <ValidatedInput
                 class="!mb-0"
-                v-model="slotProps.data.absence"
+                v-model="slotProps.data.absenceJustifiee"
                 type="select"
                 placeholder="Présent"
-                :options="[{ label: 'Présent', value: 1 }, { label: 'Absent', value: 2 }, { label: 'Absence justifiée', value: 3 }]"
-                name="absence"
+                :options="[{ label: 'Présent', value: false }, { label: 'Absence justifiée', value: true }]"
+                name="absenceJustifiee"
                 :rules="[validationRules.required]"
                 @validation="result => handleValidation('absence', result)"
             >
