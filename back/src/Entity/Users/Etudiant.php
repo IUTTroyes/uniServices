@@ -48,7 +48,8 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
             normalizationContext: ['groups' => ['etudiant:detail']],
         ),
         new Patch(normalizationContext: ['groups' => ['etudiant:write']], securityPostDenormalize: "is_granted('CAN_EDIT_ETUDIANT', object)"),
-    ]
+    ],
+    order: ['nom' => 'ASC']
 )]
 #[ORM\HasLifecycleCallbacks]
 #[ApiFilter(EtudiantFilter::class)]

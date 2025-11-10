@@ -120,10 +120,18 @@ const openEvaluationDialog = (evaluationId, mode = 'edit', header) => {
   showDialog.value = true;
 };
 
-// const openEvaluationDialog = (evaluation) => {
-//   selectedEvaluation.value = evaluation;
-//   showDialog.value = true;
-// };
+const getSeverity = (type) => {
+  switch (type) {
+    case 'Examen':
+      return 'error';
+    case 'Travaux Pratiques':
+      return 'info';
+    case 'Projet':
+      return 'warn';
+    default:
+      return 'secondary';
+  }
+};
 </script>
 
 <template>
@@ -196,7 +204,7 @@ const openEvaluationDialog = (evaluationId, mode = 'edit', header) => {
                         <div class="text-lg font-bold">
                           {{ evaluation.typeIcon }} {{evaluation.libelle}}
                         </div>
-                        <Message v-if="evaluation.type" severity="info" size="small">
+                        <Message v-if="evaluation.type" :severity="getSeverity(evaluation.type)" size="small">
                           {{evaluation.type}}
                         </Message>
                       </div>
@@ -282,7 +290,5 @@ const openEvaluationDialog = (evaluationId, mode = 'edit', header) => {
 :deep(.p-accordioncontent-content) {
   @apply bg-neutral-200 bg-opacity-20 p-4;
 }
-:deep(.p-message-content) {
-  @apply !py-0 !px-2;
-}
+
 </style>
