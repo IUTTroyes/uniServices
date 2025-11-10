@@ -47,8 +47,8 @@ const createEtudiantNoteService = async (data, showToast = false) => {
 const updateEtudiantNoteService = async (etudiantNoteId, data, showToast = false) => {
     try {
         return await apiCall(
-            api.put,
-            [`/api/etudiant_notes/${etudiantNoteId}`, data, { headers: { 'Content-Type': 'application/ld+json' }}],
+            api.patch,
+            [`/api/etudiant_notes/${etudiantNoteId}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
             'Note de l\'étudiant mise à jour avec succès',
             'Erreur lors de la mise à jour de la note de l\'étudiant',
             showToast

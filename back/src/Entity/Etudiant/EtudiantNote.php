@@ -28,6 +28,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Put(normalizationContext: ['groups' => ['note:write']]),
     ],
 )]
+#[ORM\HasLifecycleCallbacks]
 class EtudiantNote
 {
     use UuidTrait;
