@@ -2,24 +2,31 @@
 
 namespace App\Entity\Etudiant;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Put;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\UuidTrait;
+use App\Filter\EtudiantNoteFilter;
 use App\Repository\EtudiantNoteRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantNoteRepository::class)]
+#[ApiFilter(EtudiantNoteFilter::class)]
 #[ApiResource(
     operations: [
+        new Get(normalizationContext: ['groups' => ['note:detail']]),
+        new GetCollection(normalizationContext: ['groups' => ['note:detail']]),
         new Post(normalizationContext: ['groups' => ['note:write']]),
+        new Patch(normalizationContext: ['groups' => ['note:write']]),
+        new Put(normalizationContext: ['groups' => ['note:write']]),
     ],
-    order: ['nom' => 'ASC']
 )]
 class EtudiantNote
 {
@@ -28,25 +35,27 @@ class EtudiantNote
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['note:detail'])]
     private ?int $id = null;
 
     #[ORM\Column]
-    #[Groups('note:write')]
+    #[Groups(['note:write', 'note:detail'])]
     private ?float $note = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups('note:write')]
+    #[Groups(['note:write', 'note:detail'])]
     private ?string $commentaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'notes')]
-    #[Groups('note:write')]
+    #[Groups(['note:write', 'note:detail'])]
     private ?ScolEvaluation $evaluation = null;
 
     #[ORM\ManyToOne()]
+    #[Groups(['note:detail'])]
     private ?EtudiantScolarite $scolarite = null;
 
     #[ORM\Column]
-    #[Groups('note:write')]
+    #[Groups(['note:write', 'note:detail'])]
     private ?bool $absenceJustifiee = null;
 
     #[ORM\Column(nullable: true)]
@@ -54,7 +63,7 @@ class EtudiantNote
 
     #[ORM\ManyToOne(inversedBy: 'note')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    #[Groups('note:write')]
+    #[Groups(['note:write', 'note:detail'])]
     private ?EtudiantScolariteSemestre $scolariteSemestre = null;
 
     public function getId(): ?int

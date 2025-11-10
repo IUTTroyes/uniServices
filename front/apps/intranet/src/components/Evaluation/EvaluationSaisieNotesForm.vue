@@ -3,12 +3,16 @@ import {onMounted, ref, watch} from 'vue';
 import {ErrorView, ListSkeleton, ValidatedInput, validationRules} from "@components";
 import {
   createEtudiantNoteService,
+  updateEtudiantNoteService,
+  getEtudiantNotesService,
   getEtudiantScolariteSemestresService,
   getEtudiantsService,
   getEvaluationService,
   getGroupesService
 } from "@requests";
-import { v4 as uuidv4 } from 'uuid';
+import {v4 as uuidv4} from 'uuid';
+import { useToast } from "primevue/usetoast";
+const toast = useToast();
 
 const hasError = ref(false);
 const formValid = ref(true);
@@ -83,21 +87,43 @@ const getEtudiants = async () => {
     };
     etudiants.value = await getEtudiantsService(params);
 
-    // dans rows, on prépare les données pour la table
-    rows.value = etudiants.value.map(e => ({
-      etudiantId: e.id,
-      display: `${e.prenom} ${e.nom}`,
-      note: -0.01,
-      absenceJustifiee: false, // Présent par défaut
-      commentaire: '',
-      evaluation: props.evaluationId,
-      scolariteSemestre: null,
+    for (const etudiant of etudiants.value) {
+      const notes = await getEtudiantNotes(etudiant.id);
+      console.log(notes);
+      if (notes.length > 0) {
+        const note = notes[0];
+        etudiant.note = note.note;
+        etudiant.absenceJustifiee = note.absenceJustifiee;
+        etudiant.commentaire = note.commentaire;
+        etudiant.noteId = note.id;
+      }
+    }
+    rows.value = etudiants.value.map(etudiant => ({
+      etudiantId: etudiant.id,
+      display: etudiant.display || 'Étudiant inconnu',
+      noteId: etudiant.noteId || null,
+      note: etudiant.note !== undefined ? etudiant.note : null,
+      absenceJustifiee: etudiant.absenceJustifiee !== undefined ? etudiant.absenceJustifiee : false,
+      commentaire: etudiant.commentaire || '',
     }));
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants:', error);
   } finally {
     console.log(etudiants.value);
     isLoadingEtudiants.value = false;
+  }
+};
+
+const getEtudiantNotes = async (etudiantId) => {
+  try {
+    const params = {
+      evaluation: props.evaluationId,
+      etudiant: etudiantId,
+    };
+    return await getEtudiantNotesService(params);
+  } catch (error) {
+    console.error('Erreur lors du chargement des notes des étudiants:', error);
+    return [];
   }
 };
 
@@ -110,34 +136,51 @@ const handleValidation = (field, result) => {
 };
 
 const submitNotes = async () => {
+  isLoadingEtudiants.value = true;
   try {
     for (const row of rows.value) {
-      row.scolariteSemestre = await getScolariteSemestre(row.etudiantId);
-
-      // retirer etudiantId et display avant enregistrement
-      delete row.etudiantId;
-      delete row.display;
-
-      // transformer evaluation en IRI
-      row.evaluation = `/api/scol_evaluations/${props.evaluationId}`;
-      // transformer scolariteSemestre en IRI
-      row.scolariteSemestre = `/api/etudiant_scolarite_semestres/${row.scolariteSemestre}`;
-      row.uuid = uuidv4();
-      // si absenceJustifiee est à true, on passe la note à -0.01
-      if (row.absenceJustifiee) {
-        row.note = -0.01;
+      const scolariteId = await getScolariteSemestre(row.etudiantId);
+      if (!scolariteId) {
+        console.error(`Pas de scolarité semestre pour l'étudiant ${row.etudiantId}, saut.`);
+        continue;
       }
 
-      await createEtudiantNoteService(row)
+      // préparer le payload sans champs locaux
+      const payload = {
+        evaluation: `/api/scol_evaluations/${props.evaluationId}`,
+        scolariteSemestre: `/api/etudiant_scolarite_semestres/${scolariteId}`,
+        note: row.absenceJustifiee ? -0.01 : row.note,
+        absenceJustifiee: row.absenceJustifiee,
+        commentaire: row.commentaire || '',
+        uuid: row.noteId ? undefined : uuidv4() // nouveau uuid seulement pour création
+      };
+
+      // supprimer uuid si undefined
+      if (payload.uuid === undefined) {
+        delete payload.uuid;
+      }
+
+      if (row.note) {
+        if (row.noteId) {
+          const etudiant = etudiants.value.find(e => e.id === row.etudiantId);
+          // mise à jour
+          if (etudiant.note !== payload.note || etudiant.absenceJustifiee !== payload.absenceJustifiee || etudiant.commentaire !== payload.commentaire) {
+            await updateEtudiantNoteService(row.noteId, payload);
+          }
+        } else {
+          // création
+          await createEtudiantNoteService(payload);
+        }
+      }
     }
   } catch (error) {
     console.error('Erreur lors de la soumission des notes:', error);
   } finally {
+    isLoadingEtudiants.value = false;
     toast.add(
-      { severity: 'success', summary: 'Succès', detail: 'Les notes ont été enregistrées avec succès.', life: 3000 }
-    )
+        { severity: 'success', summary: 'Succès', detail: 'Les notes ont été enregistrées avec succès.', life: 3000 }
+    );
   }
-
 };
 
 const getScolariteSemestre = async (etudiantId) => {
