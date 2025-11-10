@@ -11,6 +11,7 @@ const groupes = ref([]);
 const selectedGroupe = ref(null);
 const isLoadingEtudiants = ref(true);
 const etudiants = ref([]);
+const rows = ref([]);
 
 const props = defineProps({
   evaluationId: {
@@ -72,6 +73,15 @@ const getEtudiants = async () => {
       groupe: selectedGroupe.value.id,
     };
     etudiants.value = await getEtudiantsService(params);
+
+    // dans rows, on prépare les données pour la table
+    rows.value = etudiants.value.map(e => ({
+      id: e.id,
+      display: `${e.prenom} ${e.nom}`,
+      note: 0,
+      absence: 1, // Présent par défaut
+      commentaire: '',
+    }));
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants:', error);
   } finally {
@@ -93,7 +103,7 @@ const getEtudiants = async () => {
       </TabList>
     </Tabs>
     <ListSkeleton v-if="isLoadingEtudiants"></ListSkeleton>
-    <DataTable v-else :value="etudiants" class="mt-4" responsive-layout="scroll">
+    <DataTable v-else :value="rows" class="mt-4" responsive-layout="scroll">
       <Column header="Etudiant">
         <template #body="slotProps">
           {{ slotProps.data.display }}
