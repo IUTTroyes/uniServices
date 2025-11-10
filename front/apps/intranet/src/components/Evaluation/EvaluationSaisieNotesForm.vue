@@ -1,6 +1,6 @@
 <script setup>
 import {onMounted, ref, watch} from 'vue';
-import {ErrorView, ListSkeleton, SimpleSkeleton, ArticleSkeleton} from "@components";
+import {ErrorView, ListSkeleton, SimpleSkeleton, ArticleSkeleton, ValidatedInput, validationRules} from "@components";
 import {getEvaluationService, getGroupesService, getEtudiantsService} from "@requests";
 
 const hasError = ref(false);
@@ -53,7 +53,7 @@ const getGroupes = async () => {
       semestre: props.semestreId,
       type: evaluation.value.typeGroupe,
     };
-    groupes.value = await getGroupesService(params);
+    groupes.value = await getGroupesService(params, '/mini');
     if (groupes.value.length > 0) {
       selectedGroupe.value = groupes.value[0];
     }
@@ -93,13 +93,55 @@ const getEtudiants = async () => {
       </TabList>
     </Tabs>
     <ListSkeleton v-if="isLoadingEtudiants"></ListSkeleton>
-    <div v-else class="my-8 flex items-center gap-4 w-1/2">
-      <div v-for="etudiant in etudiants" :key="etudiant.id" class="p-4 border
-        border-neutral-300 rounded-md dark:border-neutral-600">
-        <div class="font-bold">
-          {{ etudiant.prenom }} {{ etudiant.nom }}
-        </div>
-      </div>
+    <DataTable v-else :value="etudiants" class="mt-4" responsive-layout="scroll">
+      <Column header="Etudiant">
+        <template #body="slotProps">
+          {{ slotProps.data.display }}
+        </template>
+      </Column>
+
+      <Column header="Note">
+        <template #body="slotProps">
+          <ValidatedInput
+              class="!mb-0"
+              name="note"
+              type="number"
+              v-model="slotProps.data.note"
+              :rules="[validationRules.required]"
+              inputId="minmax" :min="0" :max="20"
+          />
+        </template>
+      </Column>
+
+      <Column header="Absence" style="width:220px">
+        <template #body="slotProps">
+          <ValidatedInput
+              class="!mb-0"
+              v-model="slotProps.data.absence"
+              type="select"
+              placeholder="Présent"
+              :options="[{ label: 'Présent', value: 1 }, { label: 'Absent', value: 2 }, { label: 'Absence justifiée', value: 3 }]"
+              name="absence"
+              :rules="[validationRules.required]"
+          >
+          </ValidatedInput>
+        </template>
+      </Column>
+
+      <Column header="Commentaire">
+        <template #body="slotProps">
+          <ValidatedInput
+              class="!mb-0"
+              name="commentaire"
+              type="text"
+              v-model="slotProps.data.commentaire"
+              :rules="[]"
+          />
+        </template>
+      </Column>
+    </DataTable>
+    <div class="mt-4 flex justify-end">
+      <Button label="Enregistrer les notes" />
     </div>
   </div>
 </template>

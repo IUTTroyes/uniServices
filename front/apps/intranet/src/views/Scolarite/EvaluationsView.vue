@@ -270,7 +270,7 @@ const openEvaluationDialog = (evaluationId, mode = 'edit', header) => {
     </div>
   </div>
 
-  <Dialog :header="dialogHeader" v-model:visible="showDialog" modal :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+  <Dialog :header="dialogHeader" v-model:visible="showDialog" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
     <component :is="dialogComponent" :evaluationId="selectedEvaluation" :semestreId="selectedSemestre.id"/>
   </Dialog>
 </template>
