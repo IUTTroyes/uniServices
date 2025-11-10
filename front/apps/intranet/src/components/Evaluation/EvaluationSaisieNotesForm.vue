@@ -215,7 +215,7 @@ const getScolariteSemestre = async (etudiantId) => {
         <ul class="ml-8">
           <li class="list-disc">Un étudiant noté comme absent non justifié recevra automatiquement un 0.</li>
           <li class="list-disc"><span class="flex flex-col">Un étudiant noté comme absent justifié ne sera pas pénalisé. <span class="text-xs text-muted-color">Si vous ne savez pas encore si l'absence d'un étudiant est justifiée, ne rien saisir.</span></span></li>
-          <li class="list-disc">-0.01 indique une note annulée.</li>
+          <li class="list-disc">-0.01 indique une note non comptabilisée.</li>
         </ul>
       </Message>
       <DataTable :value="rows" class="mt-4" responsive-layout="scroll">
@@ -269,9 +269,9 @@ const getScolariteSemestre = async (etudiantId) => {
         </Column>
       </DataTable>
     </div>
-    <div class="flex justify-center items-center gap-4">
-      <Button label="Enregistrer les notes" @click="submitNotes" :disabled="!formValid" />
-      <Button label="Annuler" severity="secondary" @click="" :disabled="!formValid" />
+    <div class="flex justify-center items-center gap-4 mt-4">
+      <Button class="w-1/2" label="Enregistrer les notes" @click="submitNotes" :disabled="!formValid" />
+      <Button class="w-1/2" label="Annuler" severity="secondary" @click="" :disabled="!formValid" />
     </div>
   </div>
 </template>
