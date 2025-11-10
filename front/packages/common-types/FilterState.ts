@@ -2,15 +2,14 @@ export interface FilterState {
     mode: 'students' | 'staff';
     searchTerm: string;
     studentFilters: {
-        semester: number | null;
+        semester: string | null;
         groupType: 'CM' | 'TD' | 'TP' | null;
         group: string | null;
     };
     staffFilters: {
-        status: string | null;
-        department: string | null;
+        statut: string | null;
     };
-    sortBy: 'lastName' | 'firstName' | 'semester' | 'status';
+    sortBy: 'prenom' | 'nom' | 'semester' | 'statut';
     sortOrder: 'asc' | 'desc';
     viewMode: 'grid' | 'list';
 }

@@ -1,7 +1,8 @@
 import { ref, computed } from 'vue';
+import type { Ref } from 'vue'
 import type { FilterState, Etudiant, Personnel } from '@types';
 
-export function useFilters(students: ref<Etudiant[]>, staff: ref<Personnel[]>) {
+export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
     const filters = ref<FilterState>({
         mode: 'students',
         searchTerm: '',
@@ -37,13 +38,13 @@ export function useFilters(students: ref<Etudiant[]>, staff: ref<Personnel[]>) {
 
         // Apply semester filter
         if (filters.value.studentFilters.semester) {
-            result = result.filter(student => student.semester === filters.value.studentFilters.semester);
+            result = result.filter(student => student.semestre === filters.value.studentFilters.semester);
         }
 
         // Apply group filters
         if (filters.value.studentFilters.groupType) {
             result = result.filter(student => {
-                const groups = student.groups[filters.value.studentFilters.groupType!];
+                const groups = student.groupes[filters.value.studentFilters.groupType!];
                 if (filters.value.studentFilters.group) {
                     return groups.includes(filters.value.studentFilters.group);
                 }
@@ -65,8 +66,8 @@ export function useFilters(students: ref<Etudiant[]>, staff: ref<Personnel[]>) {
                     bValue = b.nom.toLowerCase();
                     break;
                 case 'semester':
-                    aValue = a.semester;
-                    bValue = b.semester;
+                    aValue = a.semestre;
+                    bValue = b.semestre;
                     break;
                 default:
                     aValue = a.nom.toLowerCase();
@@ -145,8 +146,7 @@ export function useFilters(students: ref<Etudiant[]>, staff: ref<Personnel[]>) {
                 group: null,
             },
             staffFilters: {
-                statut: null,
-                department: null,
+                statut: null
             },
             sortBy: 'nom',
             sortOrder: 'asc',
@@ -171,20 +171,20 @@ export function useFilters(students: ref<Etudiant[]>, staff: ref<Personnel[]>) {
                     student.prenom,
                     student.nom,
                     student.mailUniv,
-                    // student.semester.toString(),
-                    student.groups.CM.join(';'),
-                    student.groups.TD.join(';'),
-                    student.groups.TP.join(';')
+                    student.semestre.toString(),
+                    student.groupes['CM'].join('; '),
+                    student.groupes['TD'].join('; '),
+                    student.groupes['TP'].join('; ')
                 ].map(field => `"${field}"`).join(',');
                 csvContent += row + '\n';
             });
         } else {
             csvContent = 'Prénom,Nom,Email,Statut,Département,Poste,Date d\'embauche\n';
-            (currentData as Staff[]).forEach(person => {
+            (currentData as Personnel[]).forEach(person => {
                 const row = [
                     person.prenom,
                     person.nom,
-                    person.mail_univ,
+                    person.mailUniv,
                     person.statut,
                     // person.department,
                     // person.position,
