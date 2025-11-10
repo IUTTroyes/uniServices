@@ -1,10 +1,11 @@
 <script setup>
-import {ref, onMounted, watch} from 'vue';
+import {ref, onMounted, watch, computed} from 'vue';
 import { getEvaluationsService, getEnseignementsService, updateEvaluationService } from '@requests';
 import { useUsersStore, useDiplomeStore } from '@stores';
 import { SimpleSkeleton } from '@components';
 import { ErrorView, PermissionGuard } from "@components";
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
+import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
 
 const usersStore = useUsersStore();
 const hasError = ref(false);
@@ -21,6 +22,8 @@ const isLoadingEnseignements = ref(true);
 const evaluations = ref([]);
 const isLoadingEvaluations = ref(true);
 const showDialog = ref(false);
+const dialogMode = ref(''); // 'init' | 'edit' | 'saisie'
+const dialogHeader = ref('');
 const selectedEvaluation = ref(null);
 
 onMounted(() => {
@@ -91,7 +94,6 @@ const getEvaluations = async (enseignement) => {
     hasError.value = true;
     console.error('Error fetching evaluations:', error);
   } finally {
-    console.log(evaluations.value);
     isLoadingEvaluations.value = false;
   }
 };
@@ -105,10 +107,23 @@ const updateEvaluationVisibility = async (evaluation) => {
   }
 }
 
-const openEvaluationDialog = (evaluation) => {
-  selectedEvaluation.value = evaluation;
+// Choix du composant selon le mode
+const dialogComponent = computed(() => {
+  return dialogMode.value === 'saisie' ? EvaluationSaisieNotesForm : EvaluationForm;
+});
+
+// Ouvre le dialog en passant l'id de l'évaluation et le mode ('init'|'edit'|'saisie')
+const openEvaluationDialog = (evaluationId, mode = 'edit', header) => {
+  selectedEvaluation.value = evaluationId;
+  dialogMode.value = mode;
+  dialogHeader.value = header || (mode === 'saisie' ? 'Saisie des notes' : mode === 'init' ? 'Initialiser l\'évaluation' : 'Modifier l\'évaluation');
   showDialog.value = true;
 };
+
+// const openEvaluationDialog = (evaluation) => {
+//   selectedEvaluation.value = evaluation;
+//   showDialog.value = true;
+// };
 </script>
 
 <template>
@@ -213,8 +228,8 @@ const openEvaluationDialog = (evaluation) => {
                   <Divider/>
                   <div class="flex justify-between items-center gap-4">
                     <div class="flex items-center justify-start gap-2">
-                      <Button v-if="evaluation.etat !== 'non_initialisee' " label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small"/>
-                      <Button v-if="evaluation.etat !== 'non_initialisee' " label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small" @click="openEvaluationDialog(evaluation.id)"/>
+                      <Button v-if="evaluation.etat !== 'non_initialisee'" label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id, 'saisie', 'Saisie des notes')"/>
+                      <Button v-if="evaluation.etat !== 'non_initialisee' " label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small" @click="openEvaluationDialog(evaluation.id, 'edit', 'Édition de l\'évaluation')"/>
                       <Button v-if="evaluation.etat === 'non_initialisee' " label="Initialiser" icon="pi pi-plus" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id)"/>
                       <Button label="Supprimer" icon="pi pi-trash" outlined severity="danger" size="small"/>
                     </div>
@@ -255,8 +270,8 @@ const openEvaluationDialog = (evaluation) => {
     </div>
   </div>
 
-  <Dialog header="Édition de l'évaluation" v-model:visible="showDialog" modal :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-    <EvaluationForm :evaluationId="selectedEvaluation"/>
+  <Dialog :header="dialogHeader" v-model:visible="showDialog" modal :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+    <component :is="dialogComponent" :evaluationId="selectedEvaluation" :semestreId="selectedSemestre.id"/>
   </Dialog>
 </template>
 

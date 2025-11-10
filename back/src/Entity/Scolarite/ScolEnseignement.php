@@ -89,7 +89,7 @@ class ScolEnseignement
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement_ue:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'edt_event:read:agenda'])]
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]

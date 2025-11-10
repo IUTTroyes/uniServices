@@ -22,14 +22,14 @@ const getEtudiantService = async (etudiantId, showToast = false) => {
 
 const getEtudiantsService = async (params = {}, showToast = false, pagination = true) => {
     try {
-        const queryParams = { ...params };
-        return await apiCall(
+        const response= await apiCall(
             api.get,
-            ['/api/etudiants', { params: queryParams }],
+            ['/api/etudiants', { params }],
             'Étudiants récupérés avec succès',
             'Erreur lors de la récupération des étudiants',
             showToast
         );
+        return response.member
     } catch (error) {
         console.error('Erreur dans getEtudiants:', error);
         throw error;
