@@ -55,7 +55,6 @@ const getEvaluation = async () => {
   } catch (error) {
     console.error('Erreur lors du chargement de l\'évaluation:', error);
   } finally {
-    console.log(evaluation.value);
     isLoadingEvaluation.value = false;
   }
 };
@@ -89,7 +88,6 @@ const getEtudiants = async () => {
 
     for (const etudiant of etudiants.value) {
       const notes = await getEtudiantNotes(etudiant.id);
-      console.log(notes);
       if (notes.length > 0) {
         const note = notes[0];
         etudiant.note = note.note;
@@ -109,7 +107,6 @@ const getEtudiants = async () => {
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants:', error);
   } finally {
-    console.log(etudiants.value);
     isLoadingEtudiants.value = false;
   }
 };
@@ -164,6 +161,7 @@ const submitNotes = async () => {
         if (row.noteId) {
           const etudiant = etudiants.value.find(e => e.id === row.etudiantId);
           // mise à jour
+          //todo: corriger l'erreur sur le uuid au traitement
           if (etudiant.note !== payload.note || etudiant.absenceJustifiee !== payload.absenceJustifiee || etudiant.commentaire !== payload.commentaire) {
             await updateEtudiantNoteService(row.noteId, payload);
           }
@@ -218,7 +216,7 @@ const getScolariteSemestre = async (etudiantId) => {
         <ul class="ml-8">
           <li class="list-disc">Un étudiant noté comme absent non justifié recevra automatiquement un 0.</li>
           <li class="list-disc"><span class="flex flex-col">Un étudiant noté comme absent justifié ne sera pas pénalisé. <span class="text-xs text-muted-color">Si vous ne savez pas encore si l'absence d'un étudiant est justifiée, ne rien saisir.</span></span></li>
-          <li class="list-disc">-0.01 indique une note non saisie.</li>
+          <li class="list-disc">-0.01 indique une note annulée.</li>
         </ul>
       </Message>
       <DataTable :value="rows" class="mt-4" responsive-layout="scroll">
