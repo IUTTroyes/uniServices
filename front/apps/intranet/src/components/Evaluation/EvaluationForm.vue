@@ -4,6 +4,8 @@ import { getEvaluationService, getPersonnelsService, updateEvaluationService } f
 import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton } from "@components";
 import { useUsersStore } from "@stores/user_stores/userStore.js";
 
+const emit = defineEmits(['saved', 'close']);
+
 const formValid = ref(true);
 const formErrors = ref({});
 const evaluation = ref({})
@@ -122,6 +124,8 @@ const updateEvaluation = async () => {
     await getEvaluation();
   } catch (error) {
     console.error('Erreur lors de la mise à jour de l\'évaluation:', error);
+  } finally {
+    emit('saved');
   }
 }
 
@@ -240,7 +244,7 @@ const updateEvaluation = async () => {
 
       <div class="flex justify-center items-center gap-4">
         <Button label="Mettre à jour l'évaluation" @click="updateEvaluation" :disabled="!formValid" />
-        <Button label="Annuler" severity="secondary" @click="updateEvaluation" :disabled="!formValid" />
+        <Button label="Annuler" severity="secondary" @click="() => emit('close')" :disabled="!formValid" />
       </div>
     </form>
   </div>

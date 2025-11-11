@@ -133,6 +133,12 @@ const getSeverity = (type) => {
   }
 };
 
+const onEvaluationSaved = async () => {
+  showDialog.value = false;
+  selectedEvaluation.value = null;
+  // rafraîchir la liste des enseignements/évaluations pour le semestre courant
+  await getEnseignements();
+};
 </script>
 
 <template>
@@ -279,7 +285,7 @@ const getSeverity = (type) => {
   </div>
 
   <Dialog :header="dialogHeader" v-model:visible="showDialog" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-    <component :is="dialogComponent" :evaluationId="selectedEvaluation" :semestreId="selectedSemestre.id"/>
+    <component :is="dialogComponent" :evaluationId="selectedEvaluation" :semestreId="selectedSemestre.id" @saved="onEvaluationSaved" @close="showDialog = false"/>
   </Dialog>
 </template>
 
