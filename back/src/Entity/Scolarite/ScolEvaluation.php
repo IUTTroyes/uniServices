@@ -37,7 +37,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
             uriTemplate: '/maxi/scol_evaluations/{id}',
             normalizationContext: ['groups' => ['evaluation:detail']],
         ),
-        new Patch(normalizationContext: ['groups' => ['evaluation:write']]),
+        new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)"),
     ]
 )]
 class ScolEvaluation

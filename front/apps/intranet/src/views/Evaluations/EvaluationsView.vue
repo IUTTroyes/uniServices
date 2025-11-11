@@ -1,9 +1,9 @@
 <script setup>
 import {ref, onMounted, watch, computed} from 'vue';
-import { getEvaluationsService, getEnseignementsService, updateEvaluationService } from '@requests';
-import { useUsersStore, useDiplomeStore } from '@stores';
-import { SimpleSkeleton } from '@components';
-import { ErrorView, PermissionGuard } from "@components";
+import { getEvaluationsService, getEnseignementsService, updateEvaluationService } from '@requests/index.js';
+import { useUsersStore, useDiplomeStore } from '@stores/index.js';
+import { SimpleSkeleton } from '@components/index.js';
+import { ErrorView, PermissionGuard } from "@components/index.js";
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
 
@@ -233,29 +233,28 @@ const getSeverity = (type) => {
                       </div>
                     </div>
                   </div>
-                  <Divider/>
-                  <div class="flex justify-between items-center gap-4">
-                    <div class="flex items-center justify-start gap-2">
-                      <Button v-if="evaluation.etat !== 'non_initialisee'" label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id, 'saisie', 'Saisie des notes')"/>
-                      <Button v-if="evaluation.etat !== 'non_initialisee' " label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small" @click="openEvaluationDialog(evaluation.id, 'edit', 'Édition de l\'évaluation')"/>
-                      <Button v-if="evaluation.etat === 'non_initialisee' " label="Initialiser" icon="pi pi-plus" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id)"/>
-                      <Button label="Supprimer" icon="pi pi-trash" outlined severity="danger" size="small"/>
-                    </div>
-                    <div class="flex items-center justify-end gap-4">
-                      <div class="flex items-center justify-end gap-1">
-                        <i :class="evaluation.visible ? 'pi pi-eye text-green-500' : 'pi pi-eye-slash text-gray-400'"></i>
-                        <span class="text-sm">{{ evaluation.visible ? 'Visible' : 'Masquée' }}</span>
-                        <ToggleSwitch v-model="evaluation.visible" @change="updateEvaluationVisibility(evaluation)"/>
+                  <PermissionGuard :permission="{ permission: 'canManageEvaluation', context: { evaluation } }">
+                    <Divider/>
+                    <div class="flex justify-between items-center gap-4">
+                      <div class="flex items-center justify-start gap-2">
+                        <Button v-if="evaluation.etat !== 'non_initialisee'" label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id, 'saisie', 'Saisie des notes')"/>
+                        <Button v-if="evaluation.etat !== 'non_initialisee' " label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small" @click="openEvaluationDialog(evaluation.id, 'edit', 'Édition de l\'évaluation')"/>
+                        <Button v-if="evaluation.etat === 'non_initialisee' " label="Initialiser" icon="pi pi-plus" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id)"/>
                       </div>
-                      <PermissionGuard :permission="['isChefDepartement']">
+                      <div class="flex items-center justify-end gap-4">
+                        <div class="flex items-center justify-end gap-1">
+                          <i :class="evaluation.visible ? 'pi pi-eye text-green-500' : 'pi pi-eye-slash text-gray-400'"></i>
+                          <span class="text-sm">{{ evaluation.visible ? 'Visible' : 'Masquée' }}</span>
+                          <ToggleSwitch v-model="evaluation.visible" @change="updateEvaluationVisibility(evaluation)"/>
+                        </div>
                         <div class="flex items-center justify-end gap-1">
                           <i :class="evaluation.modifiable ? 'pi pi-lock-open text-green-500' : 'pi pi-lock text-gray-400'"></i>
                           <span class="text-sm">{{ evaluation.modifiable ? 'Modifiable' : 'Non-modifiable' }}</span>
                           <ToggleSwitch v-model="evaluation.modifiable" @change="updateEvaluationVisibility(evaluation)"/>
                         </div>
-                      </PermissionGuard>
+                      </div>
                     </div>
-                  </div>
+                  </PermissionGuard>
                 </div>
               </div>
               <div v-else class="flex justify-center">
@@ -263,9 +262,6 @@ const getSeverity = (type) => {
                   Aucune évaluation trouvée.
                 </Message>
               </div>
-              <!--              <div class="flex justify-center mt-4">-->
-              <!--                <Button label="Ajouter une évaluation" icon="pi pi-plus-circle" severity="primary" size="small"/>-->
-              <!--              </div>-->
             </AccordionContent>
           </AccordionPanel>
         </Accordion>

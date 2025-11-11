@@ -14,11 +14,7 @@ import { useUsersStore } from '@stores';
  */
 const compositePermissions = {
   canViewAdministration: [
-    'isDirection',
-    'isChefDepartement',
-    'isRespParcours',
-    'isDirecteurEtudes',
-    'isAssistant',
+    'isPersonnel',
   ],
   canViewEtudiantDetails: [
     'isScolarite',
@@ -52,6 +48,20 @@ const compositePermissions = {
   ]
 };
 
+export function canManageEvaluation(evaluation) {
+    const userStore = useUsersStore();
+    // si le user fait partie des personnelAutorise de l'évaluation ou est super admin ou chef de département
+    if (userStore.isSuperAdmin) {
+        return true;
+    }
+    if (userStore.isChefDepartement) {
+        return true;
+    }
+    if (evaluation.personnelAutorise && Array.isArray(evaluation.personnelAutorise)) {
+        return evaluation.personnelAutorise.includes(userStore.userId);
+    }
+}
+
 /**
  * Vérifie si l'utilisateur actuel a la permission d'accéder à une fonctionnalité spécifique
  * @param {string|Array} requiredPermission - La/les permission(s) requise(s) pour accéder à la fonctionnalité
@@ -63,24 +73,39 @@ export function hasPermission(requiredPermission, options = {}) {
   const userStore = useUsersStore();
   const { requireAll = false } = options;
 
-  // Si aucun utilisateur n'est encore chargé, refuser l'accès
   if (!userStore.isLoaded) {
     return false;
   }
 
-  // Gérer un tableau de permissions
+  // Normalize single object like { permission, context } to consistent form handled below
+  const normalize = (p) => {
+    if (typeof p === 'object' && !Array.isArray(p)) {
+      // If it's the wrapper that contains permissions array (handled elsewhere), leave as-is
+      if (p.permissions !== undefined) return p;
+      return { permission: p.permission ?? null, context: p.context ?? {} };
+    }
+    // string or boolean
+    return { permission: p, context: {} };
+  };
+
+  // Handle array of permissions (each entry may be string or object)
   if (Array.isArray(requiredPermission)) {
     if (requireAll) {
-      // L'utilisateur doit avoir TOUTES les permissions du tableau
-      return requiredPermission.every(permission => checkSinglePermission(permission, userStore));
+      return requiredPermission.every(p => {
+        const { permission, context } = normalize(p);
+        return checkSinglePermission(permission, userStore, context);
+      });
     } else {
-      // L'utilisateur doit avoir AU MOINS UNE permission du tableau
-      return requiredPermission.some(permission => checkSinglePermission(permission, userStore));
+      return requiredPermission.some(p => {
+        const { permission, context } = normalize(p);
+        return checkSinglePermission(permission, userStore, context);
+      });
     }
   }
 
-  // Gérer une permission unique
-  return checkSinglePermission(requiredPermission, userStore);
+  // Single permission which may be string or object { permission, context }
+  const { permission, context } = normalize(requiredPermission);
+  return checkSinglePermission(permission, userStore, context);
 }
 
 /**
@@ -89,80 +114,45 @@ export function hasPermission(requiredPermission, options = {}) {
  * @param {Object} userStore - L'instance du store utilisateur
  * @returns {boolean} - Vrai si l'utilisateur possède la permission
  */
-function checkSinglePermission(permission, userStore) {
+function checkSinglePermission(permission, userStore, context = {}) {
   // SuperAdmin a accès à tout
   if (userStore.isSuperAdmin) {
     return true;
   }
-  // Vérifier les permissions de type d'utilisateur
-  if (permission === 'isPersonnel') {
-    return userStore.isPersonnel;
-  }
-  if (permission === 'isEtudiant') {
-    return userStore.isEtudiant;
+
+  // Gérer cas booléens passés directement
+  if (permission === true) return true;
+  if (permission === false) return false;
+
+  // Permissions simples (identiques à l'existant)
+  if (permission === 'isPersonnel') return userStore.isPersonnel;
+  if (permission === 'isEtudiant') return userStore.isEtudiant;
+  if (permission === 'isAssistant') return userStore.isAssistant;
+  if (permission === 'isQualite') return userStore.isQualite;
+  if (permission === 'isCompta') return userStore.isCompta;
+  if (permission === 'isScolarite') return userStore.isScolarite;
+  if (permission === 'isDirection') return userStore.isDirection;
+  if (permission === 'isChefDepartement') return userStore.isChefDepartement;
+  if (permission === 'isRespParcours') return userStore.isRespParcours;
+  if (permission === 'isDirecteurEtudes') return userStore.isDirecteurEtudes;
+  if (permission === 'isAbsence') return userStore.isAbsence;
+  if (permission === 'isNote') return userStore.isNote;
+  if (permission === 'isEdt') return userStore.isEdt;
+  if (permission === 'isStage') return userStore.isStage;
+  if (permission === 'isRelaiComm') return userStore.isRelaiComm;
+  if (permission === 'isEdusign') return userStore.isEdusign;
+  if (permission === 'isSuperAdmin') return userStore.isSuperAdmin;
+
+  // Permission spécifique : canManageEvaluation attend un contexte { evaluation }
+  if (permission === 'canManageEvaluation') {
+    return canManageEvaluation(context.evaluation);
   }
 
-  // Vérifier les permissions basées sur les rôles
-  if (permission === 'isAssistant') {
-    return userStore.isAssistant;
-  }
-  if (permission === 'isQualite') {
-    return userStore.isQualite;
-  }
-  if (permission === 'isCompta') {
-    return userStore.isCompta;
-  }
-  if (permission === 'isScolarite') {
-    return userStore.isScolarite;
-  }
-  if (permission === 'isDirection') {
-    return userStore.isDirection;
-  }
-  if (permission === 'isChefDepartement') {
-    return userStore.isChefDepartement;
-  }
-  if (permission === 'isRespParcours') {
-    return userStore.isRespParcours;
-  }
-  if (permission === 'isDirecteurEtudes') {
-    return userStore.isDirecteurEtudes;
-  }
-  if (permission === 'isAbsence') {
-    return userStore.isAbsence;
-  }
-  if (permission === 'isNote') {
-    return userStore.isNote;
-  }
-  if (permission === 'isEdt') {
-    return userStore.isEdt;
-  }
-  if (permission === 'isStage') {
-    return userStore.isStage;
-  }
-  if (permission === 'isRelaiComm') {
-    return userStore.isRelaiComm;
-  }
-  if (permission === 'isEdusign') {
-    return userStore.isEdusign;
-  }
-  if (permission === 'isSuperAdmin') {
-    return userStore.isSuperAdmin;
-  }
-
-  // Vérifier les permissions composites
+  // Permissions composites existantes
   if (permission in compositePermissions) {
-    // Vérifier si l'utilisateur possède l'un des rôles qui accordent cette permission
     return compositePermissions[permission].some(role => userStore[role]) || userStore.isSuperAdmin;
   }
 
-  // si la permission n'est pas reconnue, on vérifie si c'est un test qui renvoie true ou false
-  if (permission === true) {
-    return true;
-  } else if (permission === false) {
-    return false;
-  }
-
-  // Permission inconnue, refuser l'accès
   console.warn(`Unknown permission: ${permission}`);
   return false;
 }
@@ -182,12 +172,23 @@ export const permissionDirective = {
     let options = {};
 
     if (typeof value === 'object' && !Array.isArray(value)) {
-      requiredPermission = value.permissions;
-      options = { requireAll: value.requireAll || false };
+      // Support { permissions: [...], requireAll: true, context: {...} }
+      if (value.permissions !== undefined) {
+        requiredPermission = value.permissions;
+        options.requireAll = value.requireAll || false;
+        options.context = value.context || {};
+      } else if (value.permission !== undefined) {
+        // Support { permission: 'canManageEvaluation', context: { evaluation } }
+        requiredPermission = value.permission;
+        options = { requireAll: value.requireAll || false, context: value.context || {} };
+      } else {
+        requiredPermission = value;
+      }
     } else {
       requiredPermission = value;
     }
 
+    // Si requiredPermission est un objet unique avec contexte, on passe tel quel à hasPermission
     if (!hasPermission(requiredPermission, options)) {
       el.parentNode && el.parentNode.removeChild(el);
     }

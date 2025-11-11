@@ -163,6 +163,13 @@ const submitNotes = async () => {
           // mise à jour
           if (etudiant.note !== payload.note || etudiant.absenceJustifiee !== payload.absenceJustifiee || etudiant.commentaire !== payload.commentaire) {
             await updateEtudiantNoteService(row.noteId, payload);
+
+            // si il n'y a pas eu d'erreur, afficher un message de succès
+            if (!hasError.value) {
+              toast.add(
+                  { severity: 'success', summary: 'Succès', detail: 'Les notes ont été enregistrées avec succès.', life: 5000 }
+              );
+            }
           }
         } else {
           // création
@@ -171,12 +178,12 @@ const submitNotes = async () => {
       }
     }
   } catch (error) {
-    console.error('Erreur lors de la soumission des notes:', error);
+    hasError.value = true;
+    toast.add(
+        { severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors de l\'enregistrement des notes.', life: 5000 }
+    );
   } finally {
     isLoadingEtudiants.value = false;
-    toast.add(
-        { severity: 'success', summary: 'Succès', detail: 'Les notes ont été enregistrées avec succès.', life: 3000 }
-    );
   }
 };
 

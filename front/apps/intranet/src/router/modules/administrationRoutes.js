@@ -110,18 +110,8 @@ export default [
     ]
   },
   {
-    path: 'administration/evaluations/test',
-    component: () => import('@/views/evaluations/EvaluationsListeView.vue'),
-    meta: {
-      breadcrumb: [
-        { label: 'Dashboard', route: '/' },
-        { label: 'Administration', route: '/administration', icon: 'pi pi-wrench' },
-        { label: 'Évaluations', route: null, icon: 'pi pi-clock' }]
-    }
-  },
-  {
     path: 'administration/evaluations',
-    component: () => import('@/views/scolarite/EvaluationsView.vue'),
+    component: () => import('@/views/evaluations/EvaluationsView.vue'),
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },

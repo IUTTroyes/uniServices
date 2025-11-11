@@ -39,9 +39,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/maxi/etudiant_notes',
             normalizationContext: ['groups' => ['note:detail', 'evaluation:detail']],
         ),
-        new Post(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object"),
-        new Patch(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object"),
-        new Put(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object"),
+        new Post(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)"),
+        new Patch(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)"),
+        new Put(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)"),
     ],
 )]
 #[ORM\HasLifecycleCallbacks]
