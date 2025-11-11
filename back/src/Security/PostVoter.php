@@ -54,7 +54,7 @@ class PostVoter extends Voter
         return match($attribute) {
             self::CAN_EDIT_ETUDIANT => $this->canEditEtudiant($post, $user),
             self::CAN_EDIT_SCOL => $this->canEditScolarite($user),
-            self::CAN_EDIT_EVAL => $this->canEditEvaluation($user),
+            self::CAN_EDIT_EVAL => $this->canEditEvaluation($post, $user),
             self::CAN_EDIT_NOTES => $this->canEditNotes($post, $user),
             default => false,
         };
@@ -78,10 +78,15 @@ class PostVoter extends Voter
         return false;
     }
 
-    private function canEditEvaluation(Personnel|Etudiant $user)
+    private function canEditEvaluation(mixed $subject, Personnel|Etudiant $user)
     {
         if ($user instanceof Personnel && (in_array('ROLE_SUPER_ADMIN', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles()) || in_array('ROLE_CHEF_DEPT', $user->getRoles()) || in_array('ROLE_RESP_PARCOURS', $user->getRoles()) || in_array('ROLE_RESP_NOTES', $user->getRoles()) ) ) {
             return true;
+        }
+
+        // Si l'objet est une note, vérifier que le personnel est autorisé sur l'évaluation liée
+        if ($subject instanceof ScolEvaluation && $user instanceof Personnel) {
+            return $subject->getPersonnelAutorise()->contains($user);
         }
 
         return false;
