@@ -140,3 +140,54 @@ if (hasPermission(['isScolarite', 'isDirection'], { requireAll: true })) {
 ## Extension du système
 
 Pour ajouter de nouvelles permissions composées, modifiez le fichier `permissions.js` en ajoutant une nouvelle condition dans la fonction `checkSinglePermission`.
+
+## Permissions contextuelles (avancé)
+
+Au-delà des rôles et des permissions composées, vous pouvez définir des permissions « contextuelles » qui dépendent d’un objet métier (ex.: une évaluation).
+
+Format pris en charge partout (directive, composant, code JS) via `hasPermission`:
+
+- Objet contextuel: `{ permission: string, context?: any }`
+- Exemple pratique: `canManageEvaluation` utilise `context.evaluation`
+
+Exemples d’utilisation:
+
+```vue
+<!-- Dans un template avec PermissionGuard -->
+<PermissionGuard :permission="{ permission: 'canManageEvaluation', context: { evaluation } }">
+  <!-- contenu autorisé -->
+</PermissionGuard>
+
+<!-- Combiner avec d’autres permissions (OR) -->
+<PermissionGuard :permission="{ permissions: [ { permission: 'canManageEvaluation', context: { evaluation } }, 'isDirection' ], requireAll: false }"/>
+```
+
+```js
+// En JavaScript
+import { hasPermission } from '@utils/permissions';
+
+if (hasPermission({ permission: 'canManageEvaluation', context: { evaluation } })) {
+  // ...
+}
+```
+
+Déclaration des handlers contextuels:
+- Dans `permissions.js`, ajoutez une entrée au registre `contextualHandlers`:
+
+```js
+const contextualHandlers = {
+  canManageEvaluation: ({ userStore, context }) => {
+    const evaluation = context?.evaluation;
+    if (!evaluation) return false;
+    if (userStore.isSuperAdmin || userStore.isNote) return true;
+    // Vérification d’appartenance dans evaluation.personnelAutorise ...
+    return /* true/false */
+  },
+  // Ajoutez vos propres handlers ici
+};
+```
+
+Bonnes pratiques:
+- Gardez la logique serveur alignée (Voter/Policy) pour la sécurité.
+- Nommez les permissions contextuelles de manière explicite (`canManageX`, `canEditY`).
+- Réutilisez `hasPermission` pour composer simplement des règles plus riches.

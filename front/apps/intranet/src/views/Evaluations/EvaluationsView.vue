@@ -132,6 +132,7 @@ const getSeverity = (type) => {
       return 'secondary';
   }
 };
+
 </script>
 
 <template>

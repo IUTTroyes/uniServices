@@ -31,12 +31,12 @@ const props = defineProps({
 
 // Determine if the user has the required permission(s)
 const hasRequiredPermission = computed(() => {
-  if (typeof props.permission === 'object' && !Array.isArray(props.permission)) {
-    return hasPermission(props.permission.permissions, {
-      requireAll: props.permission.requireAll || false
-    });
-  }
-
+  // Délègue entièrement à hasPermission qui gère:
+  // - string
+  // - array
+  // - objet composite { permissions, requireAll }
+  // - objet contextuel { permission, context }
+  // - prédicat fonctionnel
   return hasPermission(props.permission);
 });
 </script>
