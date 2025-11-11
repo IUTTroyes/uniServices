@@ -214,6 +214,9 @@ const onEvaluationSaved = async () => {
                         <Message v-if="evaluation.type" :severity="getSeverity(evaluation.type)" size="small">
                           {{evaluation.type}}
                         </Message>
+                        <Message v-if="evaluation.typeGroupe" severity="secondary" size="small">
+                          {{evaluation.typeGroupe}}
+                        </Message>
                       </div>
                       <div>
                         <Message

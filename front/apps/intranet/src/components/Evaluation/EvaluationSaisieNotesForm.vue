@@ -239,7 +239,7 @@ const getScolariteSemestre = async (etudiantId) => {
                 name="note"
                 type="number"
                 v-model="slotProps.data.note"
-                :rules="[validationRules.required]"
+                :rules="[]"
                 inputId="minmax" :min="-0.01" :max="20"
                 @validation="result => handleValidation('note', result)"
             />
@@ -255,7 +255,7 @@ const getScolariteSemestre = async (etudiantId) => {
                 placeholder="Présent"
                 :options="[{ label: 'Présent', value: false }, { label: 'Absence justifiée', value: true }]"
                 name="absenceJustifiee"
-                :rules="[validationRules.required]"
+                :rules="[]"
                 @validation="result => handleValidation('absence', result)"
             >
             </ValidatedInput>
