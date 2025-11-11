@@ -13,6 +13,7 @@ class PostVoter extends Voter
 
     const CAN_EDIT_ETUDIANT = 'CAN_EDIT_ETUDIANT';
     const CAN_EDIT_SCOL = 'CAN_EDIT_SCOL';
+    const CAN_EDIT_EVAL = 'CAN_EDIT_EVAL';
 
     /**
      * @inheritDoc
@@ -50,6 +51,7 @@ class PostVoter extends Voter
         return match($attribute) {
             self::CAN_EDIT_ETUDIANT => $this->canEditEtudiant($post, $user),
             self::CAN_EDIT_SCOL => $this->canEditScolarite($user),
+            self::CAN_EDIT_EVAL => $this->canEditEvaluation($user),
             default => false,
         };
     }
@@ -72,9 +74,12 @@ class PostVoter extends Voter
         return false;
     }
 
-    // todo: à compléter
-    private function canEdit()
+    private function canEditEvaluation(Personnel|Etudiant $user)
     {
+        if ($user instanceof Personnel && (in_array('ROLE_SUPER_ADMIN', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles()) || in_array('ROLE_CHEF_DEPT', $user->getRoles()) || in_array('ROLE_RESP_PARCOURS', $user->getRoles()) || in_array('ROLE_RESP_NOTES', $user->getRoles()) ) ) {
+            return true;
+        }
 
+        return false;
     }
 }
