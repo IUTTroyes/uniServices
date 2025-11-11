@@ -229,8 +229,11 @@ const getSeverity = (type) => {
 
                     <div class="flex flex-wrap items-center gap-2">
                       <div>Saisie autorisée :</div>
-                      <div v-for="personnel in evaluation.personnelAutorise" class="border border-neutral-200 dark:border-neutral-600 rounded-md px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 flex items-center gap-2">
+                      <div v-if="evaluation.personnelAutorise?.length > 0" v-for="personnel in evaluation.personnelAutorise" class="border border-neutral-200 dark:border-neutral-600 rounded-md px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 flex items-center gap-2">
                         {{personnel.display}}
+                      </div>
+                      <div v-else class="border border-neutral-200 dark:border-neutral-600 rounded-md px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 flex items-center gap-2">
+                        Aucun personnel autorisé
                       </div>
                     </div>
                   </div>
