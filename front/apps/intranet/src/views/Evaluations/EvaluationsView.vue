@@ -6,6 +6,7 @@ import { SimpleSkeleton } from '@components/index.js';
 import { ErrorView, PermissionGuard } from "@components/index.js";
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
+import EvaluationListeInitForm from "../../components/Evaluation/EvaluationListeInitForm.vue";
 
 const usersStore = useUsersStore();
 const hasError = ref(false);
@@ -109,12 +110,14 @@ const updateEvaluationVisibility = async (evaluation) => {
 
 // Choix du composant selon le mode
 const dialogComponent = computed(() => {
-  return dialogMode.value === 'saisie' ? EvaluationSaisieNotesForm : EvaluationForm;
+  return dialogMode.value === 'saisie' ? EvaluationSaisieNotesForm : dialogMode.value === 'edit' ? EvaluationForm : dialogMode.value === 'initAll' ? EvaluationListeInitForm : null;
 });
 
 // Ouvre le dialog en passant l'id de l'évaluation et le mode ('init'|'edit'|'saisie')
 const openEvaluationDialog = (evaluationId, mode = 'edit', header) => {
-  selectedEvaluation.value = evaluationId;
+  if (evaluationId) {
+    selectedEvaluation.value = evaluationId;
+  }
   dialogMode.value = mode;
   dialogHeader.value = header || (mode === 'saisie' ? 'Saisie des notes' : mode === 'init' ? 'Initialiser l\'évaluation' : 'Modifier l\'évaluation');
   showDialog.value = true;
@@ -165,7 +168,7 @@ const onEvaluationSaved = async () => {
       </div>
       <div>
         <div class="flex justify-end gap-4">
-          <Button label="Initialiser les évaluations" icon="pi pi-plus-circle" severity="primary" size="small"/>
+          <Button label="Initialiser toutes les évaluations" icon="pi pi-plus-circle" severity="primary" size="small" @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')"/>
         </div>
         <Accordion v-if="selectedSemestre && enseignements.length !== 0" value="0" class="mt-4">
           <AccordionPanel v-for="enseignement in enseignements" :value="enseignement.id" :key="enseignement.id">
@@ -252,7 +255,7 @@ const onEvaluationSaved = async () => {
                       <div class="flex items-center justify-start gap-2">
                         <Button v-if="evaluation.etat !== 'non_initialisee'" label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id, 'saisie', 'Saisie des notes')"/>
                         <Button v-if="evaluation.etat !== 'non_initialisee' " label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small" @click="openEvaluationDialog(evaluation.id, 'edit', 'Édition de l\'évaluation')"/>
-                        <Button v-if="evaluation.etat === 'non_initialisee' " label="Initialiser" icon="pi pi-plus" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id)"/>
+                        <Button v-if="evaluation.etat === 'non_initialisee' " label="Initialiser" icon="pi pi-plus" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id, 'edit', 'Initialiser l\'évaluation')"/>
                       </div>
                       <div class="flex items-center justify-end gap-4">
                         <div class="flex items-center justify-end gap-1">
@@ -288,7 +291,7 @@ const onEvaluationSaved = async () => {
   </div>
 
   <Dialog :header="dialogHeader" v-model:visible="showDialog" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-    <component :is="dialogComponent" :evaluationId="selectedEvaluation" :semestreId="selectedSemestre.id" @saved="onEvaluationSaved" @close="showDialog = false"/>
+    <component :is="dialogComponent" :evaluationId="selectedEvaluation" :enseignements="enseignements" :semestreId="selectedSemestre.id" @saved="onEvaluationSaved" @close="showDialog = false"/>
   </Dialog>
 </template>
 

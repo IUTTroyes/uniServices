@@ -134,7 +134,7 @@ const updateEvaluation = async () => {
 <template>
 
   <ListSkeleton v-if="isLoading" />
-  <div>
+  <div v-else>
     <div class="card bg-neutral-50 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900">
       <div class="text-lg font-bold text-center">
         {{ evaluation.enseignement?.codeEnseignement }} - {{ evaluation.enseignement?.libelle }}
@@ -164,7 +164,7 @@ const updateEvaluation = async () => {
       />
 
       <div>
-        <div class="">Type d'évaluation'</div>
+        <div class="">Type d'évaluation</div>
         <div class="flex w-full justify-between px-8">
           <ValidatedInput
               v-for="typeChoice in evaluation.typeChoices"
@@ -213,27 +213,22 @@ const updateEvaluation = async () => {
           help-text="Ajoutez un commentaire (optionnel)"
       />
 
-      <div>
-        <div class="">Type de groupe</div>
-        <div class="flex w-full justify-between px-8">
-          <ValidatedInput
-              v-for="typeGroupeChoice in evaluation.typeGroupeChoices"
-              v-model="evaluation.typeGroupe"
-              name="typeGroupe"
-              :label="`${typeGroupeChoice}`"
-              :value="typeGroupeChoice"
-              :rules="[]"
-              type="radio"
-              @validation="result => handleValidation('typeGroupe', result)"
-          />
-        </div>
-      </div>
+      <ValidatedInput
+          class="w-full"
+          v-model="evaluation.typeGroupe"
+          name="typeGroupe"
+          label="Type de groupe"
+          type="select"
+          :options="(evaluation.typeGroupeChoices || []).map(c => ({ label: c, value: c }))"
+          :rules="[]"
+          @validation="result => handleValidation('typeGroupe', result)"
+      />
 
       <ValidatedInput
           class="w-full"
           v-model="evaluation.personnelAutorise"
           name="personnelAutorise"
-          label="Responsable de l'évaluation"
+          label="Gestionnaires de l'évaluation"
           type="multiselect"
           :options="personnels.map(personnel => ({ label: `${personnel.nom} ${personnel.prenom}`, value: `/api/personnels/${personnel.id}` }))"
           :rules="[validationRules.required]"

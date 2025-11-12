@@ -58,7 +58,7 @@ export default [
   {
     path: ':semestreId/evaluations/liste',
     name: 'liste-evaluations',
-    component: () => import('@/views/Evaluations/EvaluationsListeView.vue'),
+    component: () => import('@/views/Evaluations/EvaluationsView.vue'),
     meta: {
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
