@@ -134,59 +134,66 @@ const handleValidation = (field, result) => {
 };
 
 const submitNotes = async () => {
-  isLoadingEtudiants.value = true;
-  try {
-    for (const row of rows.value) {
-      const scolariteId = await getScolariteSemestre(row.etudiantId);
-      if (!scolariteId) {
-        console.error(`Pas de scolarité semestre pour l'étudiant ${row.etudiantId}, saut.`);
-        continue;
-      }
+    isLoadingEtudiants.value = true;
+    try {
+      for (const row of rows.value) {
+        const scolariteId = await getScolariteSemestre(row.etudiantId);
+        if (!scolariteId) {
+          console.error(`Pas de scolarité semestre pour l'étudiant ${row.etudiantId}, saut.`);
+          continue;
+        }
 
-      // préparer le payload sans champs locaux
-      const payload = {
-        evaluation: `/api/scol_evaluations/${props.evaluationId}`,
-        scolariteSemestre: `/api/etudiant_scolarite_semestres/${scolariteId}`,
-        note: row.absenceJustifiee ? -0.01 : row.note,
-        absenceJustifiee: row.absenceJustifiee,
-        commentaire: row.commentaire || '',
-        uuid: row.noteId ? undefined : uuidv4() // nouveau uuid seulement pour création
-      };
+        // si absence justifiée, forcer la note à -0.01
+        if (row.absenceJustifiee === true) {
+          row.note = -0.01;
+        }
 
-      // supprimer uuid si undefined
-      if (payload.uuid === undefined) {
-        delete payload.uuid;
-      }
+        // préparer le payload sans champs locaux
+        const payload = {
+          evaluation: `/api/scol_evaluations/${props.evaluationId}`,
+          scolariteSemestre: `/api/etudiant_scolarite_semestres/${scolariteId}`,
+          note: row.absenceJustifiee ? -0.01 : row.note,
+          absenceJustifiee: row.absenceJustifiee,
+          commentaire: row.commentaire || '',
+          uuid: row.noteId ? undefined : uuidv4() // nouveau uuid seulement pour création
+        };
 
-      if (row.note) {
-        if (row.noteId) {
-          const etudiant = etudiants.value.find(e => e.id === row.etudiantId);
-          // mise à jour
-          if (etudiant.note !== payload.note || etudiant.absenceJustifiee !== payload.absenceJustifiee || etudiant.commentaire !== payload.commentaire) {
-            await updateEtudiantNoteService(row.noteId, payload);
+        // supprimer uuid si undefined
+        if (payload.uuid === undefined) {
+          delete payload.uuid;
+        }
 
-            // si il n'y a pas eu d'erreur, afficher un message de succès
-            if (!hasError.value) {
-              toast.add(
+        // accepter 0 et -0.01 ; vérifier présence explicite de la valeur
+        if (row.note !== null && row.note !== undefined) {
+          if (row.noteId) {
+            const etudiant = etudiants.value.find(e => e.id === row.etudiantId);
+            // mise à jour
+            if (etudiant.note !== payload.note || etudiant.absenceJustifiee !== payload.absenceJustifiee || etudiant.commentaire !== payload.commentaire) {
+              await updateEtudiantNoteService(row.noteId, payload);
+
+              // si il n'y a pas eu d'erreur, afficher un message de succès
+              if (!hasError.value) {
+                toast.add(
                   { severity: 'success', summary: 'Succès', detail: 'Les notes ont été enregistrées avec succès.', life: 5000 }
-              );
+                );
+              }
             }
+          } else {
+            // création
+            await createEtudiantNoteService(payload);
           }
-        } else {
-          // création
-          await createEtudiantNoteService(payload);
         }
       }
-    }
-  } catch (error) {
-    hasError.value = true;
-    toast.add(
+    } catch (error) {
+      hasError.value = true;
+      toast.add(
         { severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors de l\'enregistrement des notes.', life: 5000 }
-    );
-  } finally {
-    isLoadingEtudiants.value = false;
-  }
-};
+      );
+    } finally {
+      isLoadingEtudiants.value = false;
+      emit('saved');
+    }
+  };
 
 const getScolariteSemestre = async (etudiantId) => {
   try {

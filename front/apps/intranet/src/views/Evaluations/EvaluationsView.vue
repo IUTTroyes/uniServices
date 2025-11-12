@@ -7,7 +7,9 @@ import { ErrorView, PermissionGuard } from "@components/index.js";
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
 import EvaluationListeInitForm from "../../components/Evaluation/EvaluationListeInitForm.vue";
+import { useToast } from "primevue/usetoast";
 
+const toast = useToast();
 const usersStore = useUsersStore();
 const hasError = ref(false);
 const diplomeStore = useDiplomeStore();
@@ -174,11 +176,28 @@ const calcEnseignementProgress = (enseignement) => {
 const updateEvaluationVisibility = async (evaluation) => {
   try {
     await updateEvaluationService(evaluation.id, { visible: evaluation.visible }, '', true);
+
+    if (!hasError.value) {
+      toast.add({ severity: 'success', summary: 'Succès', detail: 'Visibilité de l\'évaluation mise à jour.', life: 3000 });
+    }
   } catch (error) {
     hasError.value = true;
     console.error('Error updating evaluation visibility:', error);
   }
 }
+
+const updateEvaluationEdit = async (evaluation) => {
+  try {
+    await updateEvaluationService(evaluation.id, { modifiable: evaluation.modifiable }, '', true);
+
+    if (!hasError.value) {
+      toast.add({ severity: 'success', summary: 'Succès', detail: 'Paramètre de modification de l\'évaluation mis à jour.', life: 3000 });
+    }
+  } catch (error) {
+    hasError.value = true;
+    console.error('Error updating evaluation modifiable:', error);
+  }
+};
 
 // Choix du composant selon le mode
 const dialogComponent = computed(() => {
@@ -209,7 +228,7 @@ const getSeverity = (type) => {
 };
 
 const onEvaluationSaved = async () => {
-  showDialog.value = false;
+  // showDialog.value = false;
   selectedEvaluation.value = null;
   // rafraîchir la liste des enseignements/évaluations pour le semestre courant
   await getEnseignements();
@@ -272,10 +291,6 @@ const onEvaluationSaved = async () => {
                       </div>
                     </div>
                     <ProgressBar :value="calcEnseignementProgress(enseignement).percent" class="!h-3"></ProgressBar>
-                    <div class="flex items-center justify-between">
-                      <div class="text-sm"></div>
-                      <div class="text-sm">{{ calcEnseignementProgress(enseignement).enteredTotal }}/{{ calcEnseignementProgress(enseignement).expectedTotal }} notes saisies</div>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -344,7 +359,7 @@ const onEvaluationSaved = async () => {
                         <div class="flex items-center justify-end gap-1">
                           <i :class="evaluation.modifiable ? 'pi pi-lock-open text-green-500' : 'pi pi-lock text-gray-400'"></i>
                           <span class="text-sm">{{ evaluation.modifiable ? 'Modifiable' : 'Non-modifiable' }}</span>
-                          <ToggleSwitch v-model="evaluation.modifiable" @change="updateEvaluationVisibility(evaluation)"/>
+                          <ToggleSwitch v-model="evaluation.modifiable" @change="updateEvaluationEdit(evaluation)"/>
                         </div>
                       </div>
                     </div>
