@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted, watch, computed} from 'vue';
-import { getEvaluationsService, getEnseignementsService, updateEvaluationService } from '@requests/index.js';
+import { getEvaluationsService, getEnseignementsService, updateEvaluationService, getGroupesService, getEtudiantsService } from '@requests/index.js';
 import { useUsersStore, useDiplomeStore } from '@stores/index.js';
 import { SimpleSkeleton } from '@components/index.js';
 import { ErrorView, PermissionGuard } from "@components/index.js";
@@ -27,6 +27,9 @@ const dialogMode = ref(''); // 'init' | 'edit' | 'saisie'
 const dialogHeader = ref('');
 const selectedEvaluation = ref(null);
 
+// Cache: expected total notes per (semestreId, typeGroupe)
+const expectedTotalsByType = ref({});
+
 onMounted(() => {
   departementId.value = usersStore.departementDefaut.id;
   selectedAnneeUniversitaire.value = JSON.parse(localStorage.getItem('selectedAnneeUniv'))
@@ -42,6 +45,49 @@ watch(selectedAnnee, () => {
 watch(selectedSemestre, () => {
   getEnseignements();
 })
+
+// Compute expected totals for notes per typeGroupe in a semestre and cache them
+const makeTypeKey = (semestreId, typeGroupe) => `${semestreId || 'na'}::${typeGroupe || 'na'}`;
+
+const getExpectedTotalForType = async (semestreId, typeGroupe) => {
+  const key = makeTypeKey(semestreId, typeGroupe);
+  if (expectedTotalsByType.value[key] !== undefined) return expectedTotalsByType.value[key];
+  if (!semestreId || !typeGroupe) {
+    expectedTotalsByType.value[key] = 0;
+    return 0;
+  }
+  try {
+    // Fetch groups for semestre and type
+    const groupes = await getGroupesService({ semestre: semestreId, type: typeGroupe }, '/mini');
+    let total = 0;
+    // For each group, fetch students and sum
+    for (const g of Array.isArray(groupes) ? groupes : []) {
+      try {
+        const students = await getEtudiantsService({ groupe: g.id });
+        total += Array.isArray(students) ? students.length : 0;
+      } catch (e) {
+        // ignore individual group errors
+      }
+    }
+    expectedTotalsByType.value[key] = total;
+    return total;
+  } catch (e) {
+    expectedTotalsByType.value[key] = 0;
+    return 0;
+  }
+};
+
+const preloadExpectedTotalsForSemestre = async (semestreId, enseignementsList) => {
+  // Collect unique types from all evaluations
+  const types = new Set();
+  for (const ens of enseignementsList || []) {
+    for (const ev of ens.evaluations || []) {
+      if (ev?.typeGroupe) types.add(ev.typeGroupe);
+    }
+  }
+  const promises = Array.from(types).map(t => getExpectedTotalForType(semestreId, t));
+  await Promise.all(promises);
+};
 
 const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
@@ -75,6 +121,8 @@ const getEnseignements = async () => {
       await getEvaluations(enseignement.id);
       enseignement.evaluations = evaluations.value;
     }
+    // Preload expected totals per typeGroupe for the semestre based on loaded evaluations
+    await preloadExpectedTotalsForSemestre(selectedSemestre.value.id, enseignements.value);
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching enseignements:', error);
@@ -90,6 +138,7 @@ const getEvaluations = async (enseignement) => {
       enseignement: enseignement,
     };
     evaluations.value = await getEvaluationsService(params);
+    console.log(evaluations.value);
     return evaluations.value;
   } catch (error) {
     hasError.value = true;
@@ -98,6 +147,29 @@ const getEvaluations = async (enseignement) => {
     isLoadingEvaluations.value = false;
   }
 };
+
+const calcEvaluationProgress = (evaluation) => {
+  const entered = Array.isArray(evaluation?.notes) ? evaluation.notes.length : 0;
+  const key = makeTypeKey(selectedSemestre.value?.id, evaluation?.typeGroupe);
+  const expected = expectedTotalsByType.value[key] ?? 0;
+  const percent = expected > 0 ? Math.round((entered / expected) * 100) : 0;
+  return { entered, total: expected, percent };
+};
+
+const calcEnseignementProgress = (enseignement) => {
+  const evals = Array.isArray(enseignement?.evaluations) ? enseignement.evaluations : [];
+  let enteredTotal = 0;
+  let expectedTotal = 0;
+  for (const e of evals) {
+    const entered = Array.isArray(e?.notes) ? e.notes.length : 0;
+    const key = makeTypeKey(selectedSemestre.value?.id, e?.typeGroupe);
+    const expected = expectedTotalsByType.value[key] ?? 0;
+    enteredTotal += entered;
+    expectedTotal += expected;
+  }
+  const percent = expectedTotal > 0 ? Math.round((enteredTotal / expectedTotal) * 100) : 0;
+  return { enteredTotal, expectedTotal, percent };
+}
 
 const updateEvaluationVisibility = async (evaluation) => {
   try {
@@ -194,12 +266,15 @@ const onEvaluationSaved = async () => {
                     </div>
                     <div class="flex justify-between items-center gap-4">
                       <div class="text-sm flex items-center gap-1"><i class="pi pi-users"></i>Notes saisies</div>
-                      <div class="text-sm flex items-center gap-1"><span class="font-bold">20/100</span> (20%)</div>
+                      <div class="text-sm flex items-center gap-1">
+                        <span class="font-bold">{{ calcEnseignementProgress(enseignement).enteredTotal }}/{{ calcEnseignementProgress(enseignement).expectedTotal }}</span>
+                        ({{ calcEnseignementProgress(enseignement).percent }}%)
+                      </div>
                     </div>
-                    <ProgressBar :value="20" class="!h-3"></ProgressBar>
+                    <ProgressBar :value="calcEnseignementProgress(enseignement).percent" class="!h-3"></ProgressBar>
                     <div class="flex items-center justify-between">
                       <div class="text-sm"></div>
-                      <div class="text-sm">0/2 évaluations complètes</div>
+                      <div class="text-sm">{{ calcEnseignementProgress(enseignement).enteredTotal }}/{{ calcEnseignementProgress(enseignement).expectedTotal }} notes saisies</div>
                     </div>
                   </div>
                 </div>
@@ -234,9 +309,12 @@ const onEvaluationSaved = async () => {
                     <div>
                       <div class="flex justify-between items-center gap-4">
                         <div class="text-sm flex items-center gap-1"><i class="pi pi-users"></i>Notes saisies</div>
-                        <div class="text-sm flex items-center gap-1"><span class="font-bold">0/25</span> (0%)</div>
+                        <div class="text-sm flex items-center gap-1">
+                          <span class="font-bold">{{ calcEvaluationProgress(evaluation).entered }}/{{ calcEvaluationProgress(evaluation).total }}</span>
+                          ({{ calcEvaluationProgress(evaluation).percent }}%)
+                        </div>
                       </div>
-                      <ProgressBar :value="evaluation.notes?.length" class="!h-3"></ProgressBar>
+                      <ProgressBar :value="calcEvaluationProgress(evaluation).percent" class="!h-3"></ProgressBar>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2">

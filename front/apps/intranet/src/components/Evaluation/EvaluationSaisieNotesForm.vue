@@ -185,7 +185,6 @@ const submitNotes = async () => {
     );
   } finally {
     isLoadingEtudiants.value = false;
-    emit('saved');
   }
 };
 
@@ -220,6 +219,9 @@ const getScolariteSemestre = async (etudiantId) => {
     </Tabs>
     <ListSkeleton v-if="isLoadingEtudiants"></ListSkeleton>
     <div v-else>
+      <Message class="mt-4" severity="warn" icon="pi pi-exclamation-triangle" :sticky="true">
+        Pensez à enregistrer les notes avant de changer de groupe !
+      </Message>
       <Message class="mt-4" severity="info" icon="pi pi-info-circle" :sticky="true">
         <ul class="ml-8">
           <li class="list-disc">Un étudiant noté comme absent non justifié recevra automatiquement un 0.</li>
