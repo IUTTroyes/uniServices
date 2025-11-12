@@ -12,8 +12,9 @@ import {
 } from "@requests";
 import {v4 as uuidv4} from 'uuid';
 import { useToast } from "primevue/usetoast";
-const toast = useToast();
 
+const toast = useToast();
+const emit = defineEmits(['saved', 'close']);
 const hasError = ref(false);
 const formValid = ref(true);
 const formErrors = ref({});
@@ -184,6 +185,7 @@ const submitNotes = async () => {
     );
   } finally {
     isLoadingEtudiants.value = false;
+    emit('saved');
   }
 };
 
@@ -278,7 +280,7 @@ const getScolariteSemestre = async (etudiantId) => {
     </div>
     <div class="flex justify-center items-center gap-4 mt-4">
       <Button class="w-1/2" label="Enregistrer les notes" @click="submitNotes" :disabled="!formValid" />
-      <Button class="w-1/2" label="Annuler" severity="secondary" @click="" :disabled="!formValid" />
+      <Button class="w-1/2" label="Annuler" severity="secondary" @click="() => emit('close')" />
     </div>
   </div>
 </template>

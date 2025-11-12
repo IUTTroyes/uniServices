@@ -47,7 +47,7 @@ const formatDateForApi = (date) => {
 };
 
 onMounted(async () => {
-  departementId.value = userStore.departementDefaut.id;
+  departementId.value = userStore.departementDefaut.id ?? null;
   await getEvaluation();
   await getPersonnels();
   await getPersonnelEnseignement();
@@ -230,7 +230,7 @@ const updateEvaluation = async () => {
           name="personnelAutorise"
           label="Gestionnaires de l'évaluation"
           type="multiselect"
-          :options="personnels.map(personnel => ({ label: `${personnel.nom} ${personnel.prenom}`, value: `/api/personnels/${personnel.id}` }))"
+          :options="personnels.map(personnel => ({ label: personnel.display || `${personnel.nom} ${personnel.prenom}`, value: `/api/personnels/${personnel.id}` }))"
           :rules="[validationRules.required]"
           @validation="result => handleValidation('personnelAutorise', result)"
           help-text="Sélectionnez les enseignants autorisés à gérer cette évaluation"
@@ -239,7 +239,7 @@ const updateEvaluation = async () => {
 
       <div class="flex justify-center items-center gap-4">
         <Button label="Mettre à jour l'évaluation" @click="updateEvaluation" :disabled="!formValid" />
-        <Button label="Annuler" severity="secondary" @click="() => emit('close')" :disabled="!formValid" />
+        <Button label="Annuler" severity="secondary" @click="() => emit('close')" />
       </div>
     </form>
   </div>
