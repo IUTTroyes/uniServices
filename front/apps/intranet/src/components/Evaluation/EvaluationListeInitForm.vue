@@ -74,15 +74,15 @@
     <ListSkeleton v-if="isLoading" />
     <div v-else class="pt-4">
       <Message severity="info" icon="pi pi-info-circle" class="mb-4">
-        Les listes d'enseignant sont filtrées en fonction des données du prévisionnel pour chaque matière, SAE ou ressource.
+        Les listes d'enseignant sont filtrées en fonction des données du prévisionnel pour chaque enseignement.
       </Message>
 
       <div v-for="enseignement in enseignements" :key="enseignement.id" class="p-mb-4 p-p-4 p-border-1 p-border-round p-shadow-2">
-        <div class="p-2 font-bold bg-neutral-100 dark:bg-neutral-800 text-lg">{{ enseignement.codeEnseignement }} - {{ enseignement.libelle }}</div>
+        <div class="p-2 font-bold bg-primary-100 dark:bg-primary-800 text-lg">{{ enseignement.codeEnseignement }} - {{ enseignement.libelle }}</div>
 
-        <div v-if="!enseignement.evaluations || enseignement.evaluations.length === 0" class="text-sm text-neutral-500">
+        <Message v-if="!enseignement.evaluations || enseignement.evaluations.length === 0" severity="error" icon="pi pi-exclamation-triangle" class="my-6">
           Aucune évaluation.
-        </div>
+        </Message>
 
         <div v-else>
           <DataTable :value="enseignement.evaluations" dataKey="id" class="w-full" responsiveLayout="scroll">
@@ -92,7 +92,7 @@
                   class="w-full"
                   v-model="evaluation.libelle"
                   :name="`libelle_${evaluation.id}`"
-                  label="Évaluation"
+                  label=""
                   type="text"
                   :rules="[]"
                   @validation="result => handleValidation(evaluation.id, 'libelle', result)"
@@ -106,7 +106,7 @@
                   class="w-full"
                   v-model="evaluation.coeff"
                   :name="`coeff_${evaluation.id}`"
-                  label="Coefficient"
+                  label=""
                   type="number"
                   :rules="[]"
                   @validation="result => handleValidation(evaluation.id, 'coeff', result)"
@@ -122,7 +122,7 @@
                     v-if="evaluation.typeGroupeChoices && evaluation.typeGroupeChoices.length > 0"
                     v-model="evaluation.typeGroupe"
                     :name="`typeGroupe_${evaluation.id}`"
-                    label="Type de groupe"
+                    label=""
                     type="select"
                     :options="(evaluation.typeGroupeChoices || []).map(c => ({ label: c, value: c }))"
                     :rules="[]"
@@ -141,7 +141,7 @@
                   class="w-full"
                   v-model="evaluation.personnelAutorise"
                   :name="`personnelAutorise_${evaluation.id}`"
-                  label="Intervenants"
+                  label=""
                   type="multiselect"
                   :options="(enseignement.personnels || []).map(p => ({ label: p.display || `${p.nom} ${p.prenom}`, value: `/api/personnels/${p.id}` }))"
                   :rules="[]"
@@ -157,7 +157,7 @@
                   class="w-full"
                   v-model="evaluation.date"
                   :name="`date_${evaluation.id}`"
-                  label="Date"
+                  label=""
                   type="date"
                   :rules="[]"
                   @validation="result => handleValidation(evaluation.id, 'date', result)"
@@ -171,7 +171,7 @@
                   class="w-full"
                   v-model="evaluation.commentaire"
                   :name="`commentaire_${evaluation.id}`"
-                  label="Commentaire"
+                  label=""
                   type="text"
                   :rules="[]"
                   @validation="result => handleValidation(evaluation.id, 'commentaire', result)"
