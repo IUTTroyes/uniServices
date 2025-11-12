@@ -7,9 +7,9 @@ import { getPersonnelsService, updateEvaluationService } from '@requests';
 const emit = defineEmits(['saved', 'close']);
 
 const isLoading = ref(true);
-const savingMap = ref({}); // { [evaluationId]: boolean }
-const errorMap = ref({}); // { [evaluationId]: string|null }
-const formErrors = ref({}); // { [evaluationId]: { field: error } }
+const hasError = ref(false);
+const formValid = ref(true);
+const formErrors = ref({});
 
 const userStore = useUsersStore();
 const departementId = ref(null);
@@ -126,7 +126,7 @@ const saveEvaluation = async (evaluation, enseignement) => {
                 :name="`libelle_${evaluation.id}`"
                 label="Évaluation"
                 type="text"
-                :rules="[validationRules.required]"
+                :rules="[]"
                 @validation="result => handleValidation(evaluation.id, 'libelle', result)"
               />
             </td>
@@ -137,7 +137,7 @@ const saveEvaluation = async (evaluation, enseignement) => {
                 :name="`coeff_${evaluation.id}`"
                 label="Coefficient"
                 type="number"
-                :rules="[validationRules.required]"
+                :rules="[]"
                 @validation="result => handleValidation(evaluation.id, 'coeff', result)"
                 inputId="minmax" :min="0" :max="100"
               />
@@ -151,7 +151,7 @@ const saveEvaluation = async (evaluation, enseignement) => {
                   label="Type de groupe"
                   type="select"
                   :options="(evaluation.typeGroupeChoices || []).map(c => ({ label: c, value: c }))"
-                  :rules="[validationRules.required]"
+                  :rules="[]"
                   @validation="result => handleValidation(evaluation.id, 'typeGroupe', result)"
                 />
                 <div v-else class="text-xs text-neutral-500">
@@ -167,7 +167,7 @@ const saveEvaluation = async (evaluation, enseignement) => {
                 label="Intervenants"
                 type="multiselect"
                 :options="(enseignement.personnels || []).map(p => ({ label: p.display || `${p.nom} ${p.prenom}`, value: `/api/personnels/${p.id}` }))"
-                :rules="[validationRules.required]"
+                :rules="[]"
                 @validation="result => handleValidation(evaluation.id, 'personnelAutorise', result)"
                 :filter="true"
               />
@@ -177,6 +177,10 @@ const saveEvaluation = async (evaluation, enseignement) => {
         </table>
       </div>
       <Divider></Divider>
+    </div>
+    <div class="flex justify-center items-center gap-4 mt-4">
+      <Button class="w-1/2" label="Initialiser les évaluations" @click="" :disabled="!formValid" />
+      <Button class="w-1/2" label="Annuler" severity="secondary" @click="" :disabled="!formValid" />
     </div>
   </div>
 </template>
