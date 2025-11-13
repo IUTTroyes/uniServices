@@ -95,6 +95,10 @@ class EtudiantNote
 
     public function setNote(float $note): static
     {
+        if ($note < 0.0 || $note > 20.0) {
+            throw new \InvalidArgumentException('La valeur doit être comprise entre 0 et 20.');
+        }
+
         $this->note = $note;
 
         return $this;

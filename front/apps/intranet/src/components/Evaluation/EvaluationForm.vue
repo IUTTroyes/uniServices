@@ -6,7 +6,7 @@ import { useUsersStore } from "@stores/user_stores/userStore.js";
 
 const emit = defineEmits(['saved', 'close']);
 
-const formValid = ref(true);
+const formValid = ref(false);
 const formErrors = ref({});
 const evaluation = ref({})
 const isLoading = ref(true);
@@ -110,6 +110,7 @@ const handleValidation = (field, result) => {
 const updateEvaluation = async () => {
   try {
     if (!formValid.value) {
+      toast.add({severity: 'error', summary: 'Erreur de validation', detail: 'Veuillez corriger les erreurs de validation', life: 5000});
       return;
     }
     // préparer payload : transformer relations et la date
@@ -119,7 +120,9 @@ const updateEvaluation = async () => {
     }
     // transformer Date en "YYYY-MM-DD" attendu par l'API
     payload.date = formatDateForApi(payload.date);
-
+    if (evaluation.value.etat === 'non_initialisee') {
+      console.log('ok')
+    }
     await updateEvaluationService(payload.id, payload, '', true);
     await getEvaluation();
   } catch (error) {
@@ -185,7 +188,7 @@ const updateEvaluation = async () => {
           name="date"
           label="Date de l'évaluation"
           type="date"
-          :rules="[validationRules.required]"
+          :rules="[]"
           @validation="result => handleValidation('dateEvaluation', result)"
           help-text="Sélectionnez la date de l'évaluation"
       />
@@ -220,7 +223,7 @@ const updateEvaluation = async () => {
           label="Type de groupe"
           type="select"
           :options="(evaluation.typeGroupeChoices || []).map(c => ({ label: c, value: c }))"
-          :rules="[]"
+          :rules="[validationRules.required]"
           @validation="result => handleValidation('typeGroupe', result)"
       />
 

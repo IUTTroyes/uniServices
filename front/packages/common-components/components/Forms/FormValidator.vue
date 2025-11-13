@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import { validateField, validationRules } from '@components';
 import Message from 'primevue/message';
 
@@ -82,6 +82,12 @@ const handleBlur = () => {
 // Computed property to determine if error should be shown
 const showError = computed(() => {
   return !validationResult.value.isValid && ((touched.value && props.validateOnBlur) || (dirty.value && props.validateOnInput));
+});
+
+// Run initial validation on mount to emit validity to parent without showing errors yet
+onMounted(() => {
+  // Do not set touched/dirty here to avoid displaying the error message prematurely
+  validate();
 });
 
 // Expose validate method to parent components

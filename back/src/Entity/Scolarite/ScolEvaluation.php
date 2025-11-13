@@ -362,16 +362,15 @@ class ScolEvaluation
     #[Groups(['evaluation:detail'])]
     public function getEtat(): string
     {
-        if (!$this->date instanceof \DateTimeInterface && null === $this->coeff && $this->personnelAutorise->isEmpty()) {
+        if (null === $this->coeff && $this->personnelAutorise->isEmpty() && null === $this->typeGroupe) {
             return 'non_initialisee';
         } else {
             if ($this->notes->isEmpty()) {
                 return 'planifiee';
             } else {
-                return 'complete';
+                return '';
             }
         }
-
     }
 
     public function getTypeGroupe(): ?TypeGroupeEnum

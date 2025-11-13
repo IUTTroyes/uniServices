@@ -188,6 +188,7 @@ const submitEval = async () => {
       });
     }
     emit('saved');
+    emit('close');
   }
 };
 </script>

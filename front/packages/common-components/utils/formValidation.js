@@ -33,7 +33,11 @@ export const validationRules = {
 
   // Required field validation
   required: {
-    validate: value => value !== null && value !== undefined && value !== '',
+    validate: value => {
+      if (Array.isArray(value)) return value.length > 0;
+      if (value && typeof value === 'object') return Object.keys(value).length > 0;
+      return value !== null && value !== undefined && value !== '';
+    },
     message: "Ce champ est obligatoire"
   },
 

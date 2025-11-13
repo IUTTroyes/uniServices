@@ -14,7 +14,7 @@ import {v4 as uuidv4} from 'uuid';
 import { useToast } from "primevue/usetoast";
 
 const toast = useToast();
-const emit = defineEmits(['saved', 'close']);
+const emit = defineEmits(['close']);
 const hasError = ref(false);
 const formValid = ref(true);
 const formErrors = ref({});
@@ -35,7 +35,7 @@ const props = defineProps({
   semestreId: {
     type: Number,
     required: false
-  }
+  },
 });
 
 onMounted(async () => {
@@ -191,7 +191,6 @@ const submitNotes = async () => {
       );
     } finally {
       isLoadingEtudiants.value = false;
-      emit('saved');
     }
   };
 

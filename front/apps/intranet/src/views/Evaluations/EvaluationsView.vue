@@ -140,7 +140,6 @@ const getEvaluations = async (enseignement) => {
       enseignement: enseignement,
     };
     evaluations.value = await getEvaluationsService(params);
-    console.log(evaluations.value);
     return evaluations.value;
   } catch (error) {
     hasError.value = true;
@@ -155,6 +154,9 @@ const calcEvaluationProgress = (evaluation) => {
   const key = makeTypeKey(selectedSemestre.value?.id, evaluation?.typeGroupe);
   const expected = expectedTotalsByType.value[key] ?? 0;
   const percent = expected > 0 ? Math.round((entered / expected) * 100) : 0;
+  if (percent === 100) {
+    evaluation.etat = 'complet';
+  }
   return { entered, total: expected, percent };
 };
 
@@ -227,8 +229,8 @@ const getSeverity = (type) => {
   }
 };
 
-const onEvaluationSaved = async () => {
-  // showDialog.value = false;
+const onEvaluationClosed = async () => {
+  showDialog.value = false;
   selectedEvaluation.value = null;
   // rafraîchir la liste des enseignements/évaluations pour le semestre courant
   await getEnseignements();
@@ -312,11 +314,12 @@ const onEvaluationSaved = async () => {
                         </Message>
                       </div>
                       <div>
+                        {{evaluation.etat}}
                         <Message
-                            :severity="evaluation.etat === 'non_initialisee' ? 'error' : evaluation.etat === 'planifiee' ? 'warn' : 'success'"
-                            :icon="evaluation.etat === 'non_initialisee' ? 'pi pi-exclamation-triangle' : evaluation.etat === 'planifiee' ? 'pi pi-clock' : 'pi pi-check-circle'"
+                            :severity="evaluation.etat === 'non_initialisee' ? 'error' : evaluation.etat === 'planifiee' ? 'warn' : evaluation.etat === 'complet' ? 'success' : 'error'"
+                            :icon="evaluation.etat === 'non_initialisee' ? 'pi pi-exclamation-triangle' : evaluation.etat === 'planifiee' ? 'pi pi-clock'  : evaluation.etat === 'complet' ? 'pi pi-check-circle' : 'pi pi-exclamation-triangle'"
                             size="small">
-                          {{ evaluation.etat === 'non_initialisee' ? 'À compléter' : evaluation.etat === 'planifiee' ? 'À saisir' : 'Complet' }}
+                          {{ evaluation.etat === 'non_initialisee' ? 'À compléter' : evaluation.etat === 'planifiee' ? 'À saisir' : evaluation.etat === 'complet' ? 'Complet' : 'Erreur' }}
                         </Message>
                       </div>
                     </div>
@@ -384,7 +387,7 @@ const onEvaluationSaved = async () => {
   </div>
 
   <Dialog :header="dialogHeader" v-model:visible="showDialog" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-    <component :is="dialogComponent" :evaluationId="selectedEvaluation" :enseignements="enseignements" :semestreId="selectedSemestre.id" @saved="onEvaluationSaved" @close="showDialog = false"/>
+    <component :is="dialogComponent" :evaluationId="selectedEvaluation" :enseignements="enseignements" :semestreId="selectedSemestre.id" @saved="onEvaluationClosed" @close="onEvaluationClosed"/>
   </Dialog>
 </template>
 
