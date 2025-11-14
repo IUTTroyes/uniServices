@@ -1,5 +1,5 @@
 <script setup>
-import {onMounted, ref, watch} from 'vue';
+import {onMounted, ref, watch, computed} from 'vue';
 import {ErrorView, ListSkeleton, ValidatedInput, validationRules} from "@components";
 import {
   createEtudiantNoteService,
@@ -26,6 +26,12 @@ const selectedGroupe = ref(null);
 const isLoadingEtudiants = ref(true);
 const etudiants = ref([]);
 const rows = ref([]);
+
+// Validation: seules les lignes de notes existantes (noteId défini) sont obligatoires.
+// Les nouvelles lignes peuvent rester vides sans bloquer l'enregistrement.
+const existingRows = computed(() => rows.value.filter(r => r.noteId !== null && r.noteId !== undefined));
+const existingAllComplete = computed(() => existingRows.value.every(r => r.absenceJustifiee === true || (r.note !== null && r.note !== undefined)));
+const canSubmit = computed(() => existingAllComplete.value);
 
 const props = defineProps({
   evaluationId: {
@@ -134,6 +140,11 @@ const handleValidation = (field, result) => {
 };
 
 const submitNotes = async () => {
+    // Blocage: si des lignes sont partiellement remplies, empêcher la soumission
+    if (!canSubmit.value) {
+      toast.add({ severity: 'error', summary: 'Validation', detail: 'Veuillez compléter les notes existantes ou marquer les absences justifiées pour ces lignes avant d\'enregistrer.', life: 5000 });
+      return;
+    }
     isLoadingEtudiants.value = true;
     try {
       for (const row of rows.value) {
@@ -249,7 +260,7 @@ const getScolariteSemestre = async (etudiantId) => {
                 name="note"
                 type="number"
                 v-model="slotProps.data.note"
-                :rules="[]"
+                :rules="(slotProps.data.noteId !== null && slotProps.data.noteId !== undefined) ? [validationRules.required] : []"
                 inputId="minmax" :min="-0.01" :max="20"
                 @validation="result => handleValidation('note', result)"
             />
@@ -287,7 +298,7 @@ const getScolariteSemestre = async (etudiantId) => {
       </DataTable>
     </div>
     <div class="flex justify-center items-center gap-4 mt-4">
-      <Button class="w-1/2" label="Enregistrer les notes" @click="submitNotes" :disabled="!formValid" />
+      <Button class="w-1/2" label="Enregistrer les notes" @click="submitNotes" :disabled="!canSubmit" />
       <Button class="w-1/2" label="Annuler" severity="secondary" @click="() => emit('close')" />
     </div>
   </div>

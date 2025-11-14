@@ -37,7 +37,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
             uriTemplate: '/maxi/scol_evaluations/{id}',
             normalizationContext: ['groups' => ['evaluation:detail']],
         ),
-        new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)"),
+        new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)", processor: 'App\\State\\ScolEvaluationInitProcessor'),
     ]
 )]
 class ScolEvaluation
@@ -359,18 +359,25 @@ class ScolEvaluation
         return $severityMap[$this->type->value] ?? null;
     }
 
+    #[ORM\Column(length: 20, options: ['default' => 'non_initialisee'])]
+    #[Groups(['evaluation:detail'])]
+    private ?string $etat = 'non_initialisee';
+
     #[Groups(['evaluation:detail'])]
     public function getEtat(): string
     {
-        if (null === $this->coeff && $this->personnelAutorise->isEmpty() && null === $this->typeGroupe) {
-            return 'non_initialisee';
-        } else {
-            if ($this->notes->isEmpty()) {
-                return 'planifiee';
-            } else {
-                return '';
-            }
+        return $this->etat ?? 'non_initialisee';
+    }
+
+    public function setEtat(string $etat): self
+    {
+        // allowed values: non_initialisee, initialisee, planifiee, complet
+        $allowed = ['non_initialisee', 'initialisee', 'planifiee', 'complet'];
+        if (!in_array($etat, $allowed, true)) {
+            throw new \InvalidArgumentException('Etat invalide');
         }
+        $this->etat = $etat;
+        return $this;
     }
 
     public function getTypeGroupe(): ?TypeGroupeEnum

@@ -39,9 +39,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/maxi/etudiant_notes',
             normalizationContext: ['groups' => ['note:detail', 'evaluation:detail']],
         ),
-        new Post(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)"),
-        new Patch(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)"),
-        new Put(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)"),
+        new Post(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)", processor: 'App\\State\\EtudiantNotePersistProcessor'),
+        new Patch(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)", processor: 'App\\State\\EtudiantNotePersistProcessor'),
+        new Put(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)", processor: 'App\\State\\EtudiantNotePersistProcessor'),
     ],
 )]
 #[ORM\HasLifecycleCallbacks]
@@ -55,7 +55,7 @@ class EtudiantNote
     #[Groups(['note:detail'])]
     private ?int $id = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     #[Groups(['note:write', 'note:detail'])]
     private ?float $note = null;
 

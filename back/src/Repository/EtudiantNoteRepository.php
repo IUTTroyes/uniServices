@@ -16,28 +16,24 @@ class EtudiantNoteRepository extends ServiceEntityRepository
         parent::__construct($registry, EtudiantNote::class);
     }
 
-    //    /**
-    //     * @return EtudiantNote[] Returns an array of EtudiantNote objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('e')
-    //            ->andWhere('e.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('e.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function countByEvaluation(\App\Entity\Scolarite\ScolEvaluation $evaluation): int
+    {
+        return (int) $this->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->andWhere('n.evaluation = :evaluation')
+            ->setParameter('evaluation', $evaluation)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 
-    //    public function findOneBySomeField($value): ?EtudiantNote
-    //    {
-    //        return $this->createQueryBuilder('e')
-    //            ->andWhere('e.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function countCompletedByEvaluation(\App\Entity\Scolarite\ScolEvaluation $evaluation): int
+    {
+        return (int) $this->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->andWhere('n.evaluation = :evaluation')
+            ->andWhere('(n.note IS NOT NULL OR n.absenceJustifiee = true)')
+            ->setParameter('evaluation', $evaluation)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

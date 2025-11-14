@@ -72,6 +72,8 @@ FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_ue');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_apc_apprentissage_critique');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_evaluation');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant_note');
         $this->entityManager->getConnection()->executeQuery('SET
 FOREIGN_KEY_CHECKS=1');
     }

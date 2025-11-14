@@ -117,6 +117,7 @@ const updateEvaluation = async () => {
     const payload = { ...evaluation.value };
     if (payload.enseignement && payload.enseignement.id) {
       payload.enseignement = `/api/scol_enseignements/${payload.enseignement.id}`;
+      payload.semestre = `/api/structure_semestres/${props.semestreId}`;
     }
     // transformer Date en "YYYY-MM-DD" attendu par l'API
     payload.date = formatDateForApi(payload.date);

@@ -4,11 +4,13 @@ namespace App\Entity\Traits;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\Uuid;
 
 trait UuidTrait
 {
     #[ORM\Column(type: UuidType::NAME)]
+    #[Groups('evaluation:detail')]
     private Uuid $uuid;
 
     public function getUuidString(): string
