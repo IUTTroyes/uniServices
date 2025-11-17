@@ -52,11 +52,11 @@ class EtudiantNote
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['note:detail'])]
+    #[Groups(['note:detail', 'evaluation:detail', 'note:light'])]
     private ?int $id = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['note:write', 'note:detail'])]
+    #[Groups(['note:write', 'note:detail', 'evaluation:detail'])]
     private ?float $note = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

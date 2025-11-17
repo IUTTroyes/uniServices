@@ -27,12 +27,6 @@ const isLoadingEtudiants = ref(true);
 const etudiants = ref([]);
 const rows = ref([]);
 
-// Validation: seules les lignes de notes existantes (noteId défini) sont obligatoires.
-// Les nouvelles lignes peuvent rester vides sans bloquer l'enregistrement.
-const existingRows = computed(() => rows.value.filter(r => r.noteId !== null && r.noteId !== undefined));
-const existingAllComplete = computed(() => existingRows.value.every(r => r.absenceJustifiee === true || (r.note !== null && r.note !== undefined)));
-const canSubmit = computed(() => existingAllComplete.value);
-
 const props = defineProps({
   evaluationId: {
     type: Number,
@@ -140,70 +134,65 @@ const handleValidation = (field, result) => {
 };
 
 const submitNotes = async () => {
-    // Blocage: si des lignes sont partiellement remplies, empêcher la soumission
-    if (!canSubmit.value) {
-      toast.add({ severity: 'error', summary: 'Validation', detail: 'Veuillez compléter les notes existantes ou marquer les absences justifiées pour ces lignes avant d\'enregistrer.', life: 5000 });
-      return;
-    }
-    isLoadingEtudiants.value = true;
-    try {
-      for (const row of rows.value) {
-        const scolariteId = await getScolariteSemestre(row.etudiantId);
-        if (!scolariteId) {
-          console.error(`Pas de scolarité semestre pour l'étudiant ${row.etudiantId}, saut.`);
-          continue;
-        }
+  isLoadingEtudiants.value = true;
+  try {
+    for (const row of rows.value) {
+      const scolariteId = await getScolariteSemestre(row.etudiantId);
+      if (!scolariteId) {
+        console.error(`Pas de scolarité semestre pour l'étudiant ${row.etudiantId}, saut.`);
+        continue;
+      }
 
-        // si absence justifiée, forcer la note à -0.01
-        if (row.absenceJustifiee === true) {
-          row.note = -0.01;
-        }
+      // si absence justifiée, forcer la note à -0.01
+      if (row.absenceJustifiee === true) {
+        row.note = -0.01;
+      }
 
-        // préparer le payload sans champs locaux
-        const payload = {
-          evaluation: `/api/scol_evaluations/${props.evaluationId}`,
-          scolariteSemestre: `/api/etudiant_scolarite_semestres/${scolariteId}`,
-          note: row.absenceJustifiee ? -0.01 : row.note,
-          absenceJustifiee: row.absenceJustifiee,
-          commentaire: row.commentaire || '',
-          uuid: row.noteId ? undefined : uuidv4() // nouveau uuid seulement pour création
-        };
+      // préparer le payload sans champs locaux
+      const payload = {
+        evaluation: `/api/scol_evaluations/${props.evaluationId}`,
+        scolariteSemestre: `/api/etudiant_scolarite_semestres/${scolariteId}`,
+        note: row.absenceJustifiee ? -0.01 : row.note,
+        absenceJustifiee: row.absenceJustifiee,
+        commentaire: row.commentaire || '',
+        uuid: row.noteId ? undefined : uuidv4() // nouveau uuid seulement pour création
+      };
 
-        // supprimer uuid si undefined
-        if (payload.uuid === undefined) {
-          delete payload.uuid;
-        }
+      // supprimer uuid si undefined
+      if (payload.uuid === undefined) {
+        delete payload.uuid;
+      }
 
-        // accepter 0 et -0.01 ; vérifier présence explicite de la valeur
-        if (row.note !== null && row.note !== undefined) {
-          if (row.noteId) {
-            const etudiant = etudiants.value.find(e => e.id === row.etudiantId);
-            // mise à jour
-            if (etudiant.note !== payload.note || etudiant.absenceJustifiee !== payload.absenceJustifiee || etudiant.commentaire !== payload.commentaire) {
-              await updateEtudiantNoteService(row.noteId, payload);
-
-              // si il n'y a pas eu d'erreur, afficher un message de succès
-              if (!hasError.value) {
-                toast.add(
-                  { severity: 'success', summary: 'Succès', detail: 'Les notes ont été enregistrées avec succès.', life: 5000 }
-                );
-              }
-            }
-          } else {
-            // création
-            await createEtudiantNoteService(payload);
+      // accepter 0 et -0.01 ; vérifier présence explicite de la valeur
+      if (row.note !== null && row.note !== undefined) {
+        if (row.noteId) {
+          const etudiant = etudiants.value.find(e => e.id === row.etudiantId);
+          // mise à jour
+          if (etudiant.note !== payload.note || etudiant.absenceJustifiee !== payload.absenceJustifiee || etudiant.commentaire !== payload.commentaire) {
+            await updateEtudiantNoteService(row.noteId, payload);
           }
+        } else {
+          // création
+          await createEtudiantNoteService(payload);
         }
       }
-    } catch (error) {
-      hasError.value = true;
-      toast.add(
-        { severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors de l\'enregistrement des notes.', life: 5000 }
-      );
-    } finally {
-      isLoadingEtudiants.value = false;
     }
-  };
+    // si il n'y a pas eu d'erreur, afficher un message de succès
+    if (!hasError.value) {
+      toast.add(
+          { severity: 'success', summary: 'Succès', detail: 'Les notes ont été enregistrées avec succès.', life: 5000 }
+      );
+    }
+  } catch (error) {
+    hasError.value = true;
+    toast.add(
+        { severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors de l\'enregistrement des notes.', life: 5000 }
+    );
+  } finally {
+    emit('saved');
+    isLoadingEtudiants.value = false;
+  }
+};
 
 const getScolariteSemestre = async (etudiantId) => {
   try {
@@ -260,7 +249,7 @@ const getScolariteSemestre = async (etudiantId) => {
                 name="note"
                 type="number"
                 v-model="slotProps.data.note"
-                :rules="(slotProps.data.noteId !== null && slotProps.data.noteId !== undefined) ? [validationRules.required] : []"
+                :rules="[]"
                 inputId="minmax" :min="-0.01" :max="20"
                 @validation="result => handleValidation('note', result)"
             />
@@ -298,7 +287,7 @@ const getScolariteSemestre = async (etudiantId) => {
       </DataTable>
     </div>
     <div class="flex justify-center items-center gap-4 mt-4">
-      <Button class="w-1/2" label="Enregistrer les notes" @click="submitNotes" :disabled="!canSubmit" />
+      <Button class="w-1/2" label="Enregistrer les notes" @click="submitNotes"/>
       <Button class="w-1/2" label="Annuler" severity="secondary" @click="() => emit('close')" />
     </div>
   </div>

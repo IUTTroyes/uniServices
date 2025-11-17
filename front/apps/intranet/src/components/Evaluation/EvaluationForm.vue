@@ -119,6 +119,9 @@ const updateEvaluation = async () => {
       payload.enseignement = `/api/scol_enseignements/${payload.enseignement.id}`;
       payload.semestre = `/api/structure_semestres/${props.semestreId}`;
     }
+    payload.notes = Array.isArray(payload.notes)
+      ? payload.notes.map(note => `/api/etudiant_notes/${note.id}`)
+      : [];
     // transformer Date en "YYYY-MM-DD" attendu par l'API
     payload.date = formatDateForApi(payload.date);
     if (evaluation.value.etat === 'non_initialisee') {

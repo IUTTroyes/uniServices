@@ -109,6 +109,7 @@ const normalizeEvalForCompare = (e) => {
     personnelAutorise: perso,
     date: formatDateYMD(raw.date),
     commentaire: raw.commentaire ?? null,
+    semestre: `/api/structure_semestres/${props.semestreId}`
   };
 };
 

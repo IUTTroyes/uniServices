@@ -1,13 +1,18 @@
 <script setup>
-import {ref, onMounted, watch, computed} from 'vue';
-import { getEvaluationsService, getEnseignementsService, updateEvaluationService, getGroupesService, getEtudiantsService } from '@requests/index.js';
-import { useUsersStore, useDiplomeStore } from '@stores/index.js';
-import { SimpleSkeleton } from '@components/index.js';
-import { ErrorView, PermissionGuard } from "@components/index.js";
+import {computed, onMounted, ref, watch} from 'vue';
+import {
+  getEnseignementsService,
+  getEtudiantsService,
+  getEvaluationsService,
+  getGroupesService,
+  updateEvaluationService
+} from '@requests/index.js';
+import {useDiplomeStore, useUsersStore} from '@stores/index.js';
+import {ErrorView, PermissionGuard, SimpleSkeleton} from '@components/index.js';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
 import EvaluationListeInitForm from "../../components/Evaluation/EvaluationListeInitForm.vue";
-import { useToast } from "primevue/usetoast";
+import {useToast} from "primevue/usetoast";
 
 const toast = useToast();
 const usersStore = useUsersStore();
@@ -63,13 +68,13 @@ const getExpectedTotalForType = async (semestreId, typeGroupe) => {
     const groupes = await getGroupesService({ semestre: semestreId, type: typeGroupe }, '/mini');
     let total = 0;
     // For each group, fetch students and sum
-    for (const g of Array.isArray(groupes) ? groupes : []) {
-      try {
+    try {
+      for (const g of Array.isArray(groupes) ? groupes : []) {
         const students = await getEtudiantsService({ groupe: g.id });
         total += Array.isArray(students) ? students.length : 0;
-      } catch (e) {
-        // ignore individual group errors
       }
+    } catch (e) {
+      // ignore errors for all groups
     }
     expectedTotalsByType.value[key] = total;
     return total;
@@ -125,6 +130,10 @@ const getEnseignements = async () => {
     }
     // Preload expected totals per typeGroupe for the semestre based on loaded evaluations
     await preloadExpectedTotalsForSemestre(selectedSemestre.value.id, enseignements.value);
+    // Calculer la progression pour chaque enseignement
+    for (const enseignement of enseignements.value) {
+      calcEnseignementProgress(enseignement);
+    }
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching enseignements:', error);
@@ -140,6 +149,10 @@ const getEvaluations = async (enseignement) => {
       enseignement: enseignement,
     };
     evaluations.value = await getEvaluationsService(params);
+    // Calculer la progression pour chaque évaluation
+    for (const evaluation of evaluations.value) {
+      calcEvaluationProgress(evaluation);
+    }
     return evaluations.value;
   } catch (error) {
     hasError.value = true;
@@ -150,30 +163,41 @@ const getEvaluations = async (enseignement) => {
 };
 
 const calcEvaluationProgress = (evaluation) => {
-  const entered = Array.isArray(evaluation?.notes) ? evaluation.notes.length : 0;
-  const key = makeTypeKey(selectedSemestre.value?.id, evaluation?.typeGroupe);
-  const expected = expectedTotalsByType.value[key] ?? 0;
-  const percent = expected > 0 ? Math.round((entered / expected) * 100) : 0;
-  if (percent === 100) {
-    evaluation.etat = 'complet';
-  }
-  return { entered, total: expected, percent };
-};
+    // Ne compter que les notes existantes et dont la propriété `note` n'est pas null
+    const notesExistantes = Array.isArray(evaluation?.notes) ? evaluation.notes.filter(n => n != null) : [];
+    evaluation.total = notesExistantes.length;
+    evaluation.entered = notesExistantes.filter(n => n.note !== null && n.note !== undefined).length;
+    evaluation.percent = evaluation.total > 0 ? Math.round((evaluation.entered / evaluation.total) * 100) : 0;
+    if (evaluation.percent === 100) {
+      evaluation.etat = 'complet';
+    }
+  };
 
-const calcEnseignementProgress = (enseignement) => {
-  const evals = Array.isArray(enseignement?.evaluations) ? enseignement.evaluations : [];
-  let enteredTotal = 0;
-  let expectedTotal = 0;
-  for (const e of evals) {
-    const entered = Array.isArray(e?.notes) ? e.notes.length : 0;
-    const key = makeTypeKey(selectedSemestre.value?.id, e?.typeGroupe);
-    const expected = expectedTotalsByType.value[key] ?? 0;
-    enteredTotal += entered;
-    expectedTotal += expected;
+  const calcEnseignementProgress = (enseignement) => {
+    const evals = Array.isArray(enseignement?.evaluations) ? enseignement.evaluations : [];
+
+    // Comptes globaux basés uniquement sur les notes existantes
+    enseignement.enteredTotal = 0;
+    enseignement.expectedTotal = 0;
+
+    for (const e of evals) {
+      const notesExistantes = Array.isArray(e?.notes) ? e.notes.filter(n => n != null) : [];
+      const entered = notesExistantes.filter(n => n.note !== null && n.note !== undefined).length;
+      enseignement.enteredTotal += entered;
+      enseignement.expectedTotal += notesExistantes.length;
+    }
+
+    // Le pourcentage global n'est calculé que si TOUTES les évaluations n'ont pas pour état 'non_initialisee'
+    const allHaveNotes = evals.length > 0 && evals.every(e => e.etat !== 'non_initialisee');
+    enseignement.hasIncompleteEvaluations = !allHaveNotes;
+
+    if (allHaveNotes && enseignement.expectedTotal > 0) {
+      enseignement.percent = Math.round((enseignement.enteredTotal / enseignement.expectedTotal) * 100);
+    } else {
+      // pas de pourcentage affiché si toutes les évaluations n'ont pas de notes
+      enseignement.percent = null;
+    }
   }
-  const percent = expectedTotal > 0 ? Math.round((enteredTotal / expectedTotal) * 100) : 0;
-  return { enteredTotal, expectedTotal, percent };
-}
 
 const updateEvaluationVisibility = async (evaluation) => {
   try {
@@ -235,6 +259,10 @@ const onEvaluationClosed = async () => {
   // rafraîchir la liste des enseignements/évaluations pour le semestre courant
   await getEnseignements();
 };
+const onEvaluationSaved = async () => {
+  // rafraîchir la liste des enseignements/évaluations pour le semestre courant
+  await getEnseignements();
+};
 </script>
 
 <template>
@@ -285,14 +313,21 @@ const onEvaluationClosed = async () => {
                     <div class="flex justify-between items-center gap-4">
                       <div class="flex items-center gap-1 font-bold"><i class="pi pi-check-circle text-primary"></i>Progression Globale</div>
                     </div>
+                    <Message v-if="enseignement.hasIncompleteEvaluations" severity="warn" size="small" icon="pi pi-exclamation-triangle">
+                      Les pourcentages ne sont pas affichés car toutes les évaluations de cet enseignement ne sont pas initialisées.
+                    </Message>
                     <div class="flex justify-between items-center gap-4">
                       <div class="text-sm flex items-center gap-1"><i class="pi pi-users"></i>Notes saisies</div>
-                      <div class="text-sm flex items-center gap-1">
-                        <span class="font-bold">{{ calcEnseignementProgress(enseignement).enteredTotal }}/{{ calcEnseignementProgress(enseignement).expectedTotal }}</span>
-                        ({{ calcEnseignementProgress(enseignement).percent }}%)
+                      <div v-if="enseignement.hasIncompleteEvaluations">
+                        <span class="font-bold">—/—</span>
+                        (—)
+                      </div>
+                      <div v-else class="text-sm flex items-center gap-1">
+                        <span class="font-bold">{{ enseignement.enteredTotal }}/{{ enseignement.expectedTotal }}</span>
+                        ({{ enseignement.percent === null ? '—' : enseignement.percent + '%' }})
                       </div>
                     </div>
-                    <ProgressBar :value="calcEnseignementProgress(enseignement).percent" class="!h-3"></ProgressBar>
+                    <ProgressBar :value="enseignement.percent ?? 0" class="!h-3"></ProgressBar>
                   </div>
                 </div>
               </div>
@@ -328,11 +363,11 @@ const onEvaluationClosed = async () => {
                       <div class="flex justify-between items-center gap-4">
                         <div class="text-sm flex items-center gap-1"><i class="pi pi-users"></i>Notes saisies</div>
                         <div class="text-sm flex items-center gap-1">
-                          <span class="font-bold">{{ calcEvaluationProgress(evaluation).entered }}/{{ calcEvaluationProgress(evaluation).total }}</span>
-                          ({{ calcEvaluationProgress(evaluation).percent }}%)
+                          <span class="font-bold">{{ evaluation.entered }}/{{ evaluation.total }}</span>
+                          ({{ evaluation.percent }}%)
                         </div>
                       </div>
-                      <ProgressBar :value="calcEvaluationProgress(evaluation).percent" class="!h-3"></ProgressBar>
+                      <ProgressBar :value="evaluation.percent" class="!h-3"></ProgressBar>
                     </div>
 
                     <div class="flex flex-wrap items-center gap-2">
@@ -387,7 +422,7 @@ const onEvaluationClosed = async () => {
   </div>
 
   <Dialog :header="dialogHeader" v-model:visible="showDialog" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-    <component :is="dialogComponent" :evaluationId="selectedEvaluation" :enseignements="enseignements" :semestreId="selectedSemestre.id" @saved="onEvaluationClosed" @close="onEvaluationClosed"/>
+    <component :is="dialogComponent" :evaluationId="selectedEvaluation" :enseignements="enseignements" :semestreId="selectedSemestre.id" @saved="onEvaluationSaved" @close="onEvaluationClosed"/>
   </Dialog>
 </template>
 
