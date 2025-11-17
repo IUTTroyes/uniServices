@@ -25,7 +25,11 @@ const groupes = ref([]);
 const selectedGroupe = ref(null);
 const isLoadingEtudiants = ref(true);
 const etudiants = ref([]);
-const rows = ref([]);
+const tableRows = ref([]);
+const page = ref(0);
+const rowOptions = [30, 60, 120];
+const limit = ref(rowOptions[0]);
+const offset = computed(() => limit.value * page.value);
 
 const props = defineProps({
   evaluationId: {
@@ -45,6 +49,7 @@ onMounted(async () => {
 
 watch(selectedGroupe, async () => {
   if (selectedGroupe.value) {
+    page.value = 0;
     await getEtudiants();
   }
 })
@@ -84,20 +89,22 @@ const getEtudiants = async () => {
     isLoadingEtudiants.value = true;
     const params = {
       groupe: selectedGroupe.value.id,
+      itemsPerPage: limit.value,
+      page: parseInt(page.value) + 1,
     };
     etudiants.value = await getEtudiantsService(params);
 
     for (const etudiant of etudiants.value) {
-      const notes = await getEtudiantNotes(etudiant.id);
-      if (notes.length > 0) {
-        const note = notes[0];
+      const notesList = await getEtudiantNotes(etudiant.id);
+      if (notesList && notesList.length > 0) {
+        const note = notesList[0];
         etudiant.note = note.note;
         etudiant.absenceJustifiee = note.absenceJustifiee;
         etudiant.commentaire = note.commentaire;
         etudiant.noteId = note.id;
       }
     }
-    rows.value = etudiants.value.map(etudiant => ({
+    tableRows.value = etudiants.value.map(etudiant => ({
       etudiantId: etudiant.id,
       display: etudiant.display || 'Étudiant inconnu',
       noteId: etudiant.noteId || null,
@@ -136,7 +143,7 @@ const handleValidation = (field, result) => {
 const submitNotes = async () => {
   isLoadingEtudiants.value = true;
   try {
-    for (const row of rows.value) {
+    for (const row of tableRows.value) {
       const scolariteId = await getScolariteSemestre(row.etudiantId);
       if (!scolariteId) {
         console.error(`Pas de scolarité semestre pour l'étudiant ${row.etudiantId}, saut.`);
@@ -210,6 +217,18 @@ const getScolariteSemestre = async (etudiantId) => {
     return null;
   }
 }
+
+const onPageChange = async event => {
+  limit.value = event.rows;
+  page.value = event.page;
+  await getEtudiants();
+};
+
+const onRowsChange = async rows => {
+  limit.value = rows;
+  page.value = 0;
+  await getEtudiants();
+};
 </script>
 
 <template>
@@ -225,7 +244,7 @@ const getScolariteSemestre = async (etudiantId) => {
     </Tabs>
     <ListSkeleton v-if="isLoadingEtudiants"></ListSkeleton>
     <div v-else>
-      <Message class="mt-4" severity="warn" icon="pi pi-exclamation-triangle" :sticky="true">
+      <Message class="mt-4" severity="error" icon="pi pi-exclamation-triangle" :sticky="true">
         Pensez à enregistrer les notes avant de changer de groupe !
       </Message>
       <Message class="mt-4" severity="info" icon="pi pi-info-circle" :sticky="true">
@@ -235,7 +254,22 @@ const getScolariteSemestre = async (etudiantId) => {
           <li class="list-disc">-0.01 indique une note non comptabilisée.</li>
         </ul>
       </Message>
-      <DataTable :value="rows" class="mt-4" responsive-layout="scroll">
+
+      <DataTable
+          :value="tableRows"
+          class="mt-4"
+          striped-rows
+          responsive-layout="scroll"
+          lazy
+          paginator
+          :first="offset"
+          :rows="limit"
+          :rowsPerPageOptions="rowOptions"
+          :totalRecords="etudiants.totalItems"
+          @page="onPageChange($event)"
+          @update:rows="onRowsChange($event)"
+          data-key="etudiantId"
+      >
         <Column header="Etudiant">
           <template #body="slotProps">
             {{ slotProps.data.display }}
@@ -284,6 +318,7 @@ const getScolariteSemestre = async (etudiantId) => {
             />
           </template>
         </Column>
+        <template #footer> {{ etudiants.totalItems }} résultat(s).</template>
       </DataTable>
     </div>
     <div class="flex justify-center items-center gap-4 mt-4">

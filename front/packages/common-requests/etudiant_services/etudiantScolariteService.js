@@ -22,7 +22,6 @@ const getEtudiantsScolariteService = async (params, scope = '', showToast = fals
                 params['annee'] = params.filters.annee.value;
             }
         }
-
         return await apiCall(
             api.get,
             [`/api${scope}/etudiant_scolarites`, {params}],

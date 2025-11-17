@@ -29,6 +29,7 @@ const getEtudiantsService = async (params = {}, showToast = false, pagination = 
             'Erreur lors de la récupération des étudiants',
             showToast
         );
+        response.member.totalItems = response.totalItems;
         return response.member
     } catch (error) {
         console.error('Erreur dans getEtudiants:', error);
