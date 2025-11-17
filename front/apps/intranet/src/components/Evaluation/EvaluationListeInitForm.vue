@@ -298,6 +298,20 @@ const submitEval = async () => {
                 />
               </template>
             </Column>
+
+            <Column header="Type d'évaluation">
+              <template #body="{ data: evaluation }">
+                <ValidatedInput
+                    v-if="evaluation.typeChoices && evaluation.typeChoices.length > 0"
+                    v-model="evaluation.type"
+                    :name="`type_${evaluation.id}`"
+                    label=""
+                    type="select"
+                    :options="(evaluation.typeChoices || []).map(c => ({ label: c, value: c }))"
+                    @validation="result => handleValidation(evaluation.id, 'type', result)"
+                />
+              </template>
+            </Column>
           </DataTable>
         </div>
       </div>
