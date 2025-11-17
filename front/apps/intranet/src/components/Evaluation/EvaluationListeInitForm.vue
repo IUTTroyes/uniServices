@@ -106,6 +106,7 @@ const normalizeEvalForCompare = (e) => {
     libelle: raw.libelle ?? null,
     coeff: raw.coeff ?? null,
     typeGroupe: raw.typeGroupe ?? null,
+    type: raw.type ?? null,
     personnelAutorise: perso,
     date: formatDateYMD(raw.date),
     commentaire: raw.commentaire ?? null,
@@ -118,6 +119,7 @@ const shallowEqualEval = (a, b) => {
       (a.libelle ?? null) === (b.libelle ?? null) &&
       (a.coeff ?? null) === (b.coeff ?? null) &&
       (a.typeGroupe ?? null) === (b.typeGroupe ?? null) &&
+      (a.type ?? null) === (b.type ?? null) &&
       arraysEqual(a.personnelAutorise, b.personnelAutorise) &&
       (a.date ?? null) === (b.date ?? null) &&
       (a.commentaire ?? null) === (b.commentaire ?? null)
@@ -161,11 +163,9 @@ const submitEval = async () => {
     const originalEvaluationsNormalized = Object.fromEntries(
         Object.entries(originalEvaluations).map(([id, evalObj]) => [id, normalizeEvalForCompare(evalObj)])
     );
-
     for (const row of rows.value) {
       for (const evaluation of row.evaluations) {
         if (!isEvaluationValid(evaluation.id)) continue;
-
         // Build normalized payload (plain values) for reliable compare and API
         const normalizedPayload = normalizeEvalForCompare(evaluation);
         const originalEvaluationNorm = originalEvaluationsNormalized[evaluation.id];

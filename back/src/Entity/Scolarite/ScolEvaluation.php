@@ -75,7 +75,7 @@ class ScolEvaluation
     private ?bool $modifiable = null;
 
     #[ORM\Column(length: 25, enumType: TypeEvaluationEnum::class, nullable: true)]
-    #[Groups(['evaluation:detail', 'evaluation:write', 'evaluation:write'])]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?TypeEvaluationEnum $type = null;
 
     /**
