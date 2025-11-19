@@ -37,7 +37,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
             uriTemplate: '/maxi/scol_evaluations/{id}',
             normalizationContext: ['groups' => ['evaluation:detail']],
         ),
-        new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)", processor: 'App\\State\\ScolEvaluationInitProcessor'),
+        new GetCollection(
+            uriTemplate: '/enseignement/scol_evaluations',
+            normalizationContext: ['groups' => ['evaluation:detail']],
+            provider: 'App\DataProvider\Evaluation\ScolEvaluationProvider',
+        ),
+        new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)", processor: 'App\DataProvider\Evaluation\ScolEvaluationInitProcessor'),
     ]
 )]
 class ScolEvaluation
@@ -66,10 +71,12 @@ class ScolEvaluation
     #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?\DateTimeInterface $date = null;
 
+    // todo: passer à false par défaut
     #[ORM\Column]
     #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?bool $visible = null;
 
+    // todo: passer à false par défaut
     #[ORM\Column]
     #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?bool $modifiable = null;
@@ -120,6 +127,10 @@ class ScolEvaluation
     #[\Symfony\Component\Serializer\Attribute\Groups(['evaluation:detail'])]
     #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?TypeGroupeEnum $typeGroupe;
+
+    #[ORM\Column(length: 20, options: ['default' => 'non_initialisee'])]
+    #[Groups(['evaluation:detail'])]
+    private ?string $etat = 'non_initialisee';
 
     public function __construct()
     {
@@ -358,10 +369,6 @@ class ScolEvaluation
 
         return $severityMap[$this->type->value] ?? null;
     }
-
-    #[ORM\Column(length: 20, options: ['default' => 'non_initialisee'])]
-    #[Groups(['evaluation:detail'])]
-    private ?string $etat = 'non_initialisee';
 
     #[Groups(['evaluation:detail'])]
     public function getEtat(): string

@@ -25,6 +25,12 @@ class EvaluationFilter extends AbstractFilter
                 ->andWhere(sprintf('%s.enseignement = :enseignement', $alias))
                 ->setParameter('enseignement', $value);
         }
+        if ('anneeUniversitaire' === $property) {
+            $queryBuilder
+                ->join(sprintf('%s.anneeUniversitaire', $alias), 'au')
+                ->andWhere('au.id = :anneeUniversitaire')
+                ->setParameter('anneeUniversitaire', $value);
+        }
     }
 
     public function getDescription(string $resourceClass): array
@@ -35,6 +41,12 @@ class EvaluationFilter extends AbstractFilter
                 'type' => Type::BUILTIN_TYPE_INT,
                 'required' => false,
                 'description' => 'Filter evaluations by enseignement ID.',
+            ],
+            'anneeUniversitaire' => [
+                'property' => 'anneeUniversitaire',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'description' => 'Filter evaluations by annee universitaire ID.',
             ],
         ];
     }

@@ -18,7 +18,7 @@ const toast = useToast();
 const usersStore = useUsersStore();
 const hasError = ref(false);
 const diplomeStore = useDiplomeStore();
-const selectedAnneeUniversitaire = ref(null);
+const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));
 const departementId = ref(null);
 const diplomes = ref({});
 const isLoadingDiplomes = ref(true);
@@ -39,7 +39,6 @@ const expectedTotalsByType = ref({});
 
 onMounted(() => {
   departementId.value = usersStore.departementDefaut.id;
-  selectedAnneeUniversitaire.value = JSON.parse(localStorage.getItem('selectedAnneeUniv'))
   getDiplomes();
 });
 
@@ -52,49 +51,6 @@ watch(selectedAnnee, () => {
 watch(selectedSemestre, () => {
   getEnseignements();
 })
-
-// Compute expected totals for notes per typeGroupe in a semestre and cache them
-const makeTypeKey = (semestreId, typeGroupe) => `${semestreId || 'na'}::${typeGroupe || 'na'}`;
-
-const getExpectedTotalForType = async (semestreId, typeGroupe) => {
-  const key = makeTypeKey(semestreId, typeGroupe);
-  if (expectedTotalsByType.value[key] !== undefined) return expectedTotalsByType.value[key];
-  if (!semestreId || !typeGroupe) {
-    expectedTotalsByType.value[key] = 0;
-    return 0;
-  }
-  try {
-    // Fetch groups for semestre and type
-    const groupes = await getGroupesService({ semestre: semestreId, type: typeGroupe }, '/mini');
-    let total = 0;
-    // For each group, fetch students and sum
-    try {
-      for (const g of Array.isArray(groupes) ? groupes : []) {
-        const students = await getEtudiantsService({ groupe: g.id });
-        total += Array.isArray(students) ? students.length : 0;
-      }
-    } catch (e) {
-      // ignore errors for all groups
-    }
-    expectedTotalsByType.value[key] = total;
-    return total;
-  } catch (e) {
-    expectedTotalsByType.value[key] = 0;
-    return 0;
-  }
-};
-
-const preloadExpectedTotalsForSemestre = async (semestreId, enseignementsList) => {
-  // Collect unique types from all evaluations
-  const types = new Set();
-  for (const ens of enseignementsList || []) {
-    for (const ev of ens.evaluations || []) {
-      if (ev?.typeGroupe) types.add(ev.typeGroupe);
-    }
-  }
-  const promises = Array.from(types).map(t => getExpectedTotalForType(semestreId, t));
-  await Promise.all(promises);
-};
 
 const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
@@ -147,8 +103,11 @@ const getEvaluations = async (enseignement) => {
   try {
     const params = {
       enseignement: enseignement,
+      anneeUniversitaire: selectedAnneeUniversitaire.id
     };
-    evaluations.value = await getEvaluationsService(params);
+    console.log(params);
+    const response = await getEvaluationsService(params, '/enseignement');
+    evaluations.value = response[0] || [];
     // Calculer la progression pour chaque évaluation
     for (const evaluation of evaluations.value) {
       calcEvaluationProgress(evaluation);
@@ -160,6 +119,49 @@ const getEvaluations = async (enseignement) => {
   } finally {
     isLoadingEvaluations.value = false;
   }
+};
+
+// Compute expected totals for notes per typeGroupe in a semestre and cache them
+const makeTypeKey = (semestreId, typeGroupe) => `${semestreId || 'na'}::${typeGroupe || 'na'}`;
+
+const getExpectedTotalForType = async (semestreId, typeGroupe) => {
+  const key = makeTypeKey(semestreId, typeGroupe);
+  if (expectedTotalsByType.value[key] !== undefined) return expectedTotalsByType.value[key];
+  if (!semestreId || !typeGroupe) {
+    expectedTotalsByType.value[key] = 0;
+    return 0;
+  }
+  try {
+    // Fetch groups for semestre and type
+    const groupes = await getGroupesService({ semestre: semestreId, type: typeGroupe }, '/mini');
+    let total = 0;
+    // For each group, fetch students and sum
+    try {
+      for (const g of Array.isArray(groupes) ? groupes : []) {
+        const students = await getEtudiantsService({ groupe: g.id });
+        total += Array.isArray(students) ? students.length : 0;
+      }
+    } catch (e) {
+      // ignore errors for all groups
+    }
+    expectedTotalsByType.value[key] = total;
+    return total;
+  } catch (e) {
+    expectedTotalsByType.value[key] = 0;
+    return 0;
+  }
+};
+
+const preloadExpectedTotalsForSemestre = async (semestreId, enseignementsList) => {
+  // Collect unique types from all evaluations
+  const types = new Set();
+  for (const ens of enseignementsList || []) {
+    for (const ev of ens.evaluations || []) {
+      if (ev?.typeGroupe) types.add(ev.typeGroupe);
+    }
+  }
+  const promises = Array.from(types).map(t => getExpectedTotalForType(semestreId, t));
+  await Promise.all(promises);
 };
 
 const calcEvaluationProgress = (evaluation) => {
@@ -422,7 +424,7 @@ const onEvaluationSaved = async () => {
   </div>
 
   <Dialog :header="dialogHeader" v-model:visible="showDialog" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-    <component :is="dialogComponent" :evaluationId="selectedEvaluation" :enseignements="enseignements" :semestreId="selectedSemestre.id" @saved="onEvaluationSaved" @close="onEvaluationClosed"/>
+    <component v-if="showDialog" :is="dialogComponent" :evaluationId="selectedEvaluation" :enseignements="enseignements" :semestreId="selectedSemestre.id" @saved="onEvaluationSaved" @close="onEvaluationClosed"/>
   </Dialog>
 </template>
 
