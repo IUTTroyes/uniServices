@@ -49,7 +49,6 @@ const formatDateForApi = (date) => {
 onMounted(async () => {
   departementId.value = userStore.departementDefaut.id ?? null;
   await getEvaluation();
-  await getPersonnels();
   await getPersonnelEnseignement();
 });
 
@@ -69,29 +68,13 @@ const getEvaluation = async () => {
   }
 };
 
-const getPersonnels = async () => {
-  try {
-    isLoading.value = true;
-    const params = {
-      departement: departementId.value
-    };
-    personnels.value = await getPersonnelsService(params);
-    return personnels;
-  } catch (error) {
-    console.error('Erreur lors du chargement des personnels:', error);
-    return [];
-  } finally {
-    isLoading.value = false;
-  }
-};
-
 const getPersonnelEnseignement = async () => {
   try {
     isLoading.value = true;
     const params = {
       enseignement: evaluation.value.enseignement.id
     };
-    evaluation.value.enseignement.personnels = await getPersonnelsService(params);
+    personnels.value = await getPersonnelsService(params);
   } catch (error) {
     console.error('Erreur lors du chargement des personnels:', error);
   } finally {

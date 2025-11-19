@@ -66,15 +66,13 @@ class ScolEvaluation
     #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?\DateTimeInterface $date = null;
 
-    // todo: passer à false par défaut
     #[ORM\Column]
     #[Groups(['evaluation:detail', 'evaluation:write'])]
-    private ?bool $visible = null;
+    private ?bool $visible = false;
 
-    // todo: passer à false par défaut
     #[ORM\Column]
     #[Groups(['evaluation:detail', 'evaluation:write'])]
-    private ?bool $modifiable = null;
+    private ?bool $modifiable = false;
 
     #[ORM\Column(length: 25, enumType: TypeEvaluationEnum::class, nullable: true)]
     #[Groups(['evaluation:detail', 'evaluation:write'])]
