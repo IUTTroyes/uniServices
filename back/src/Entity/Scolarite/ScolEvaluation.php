@@ -37,11 +37,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
             uriTemplate: '/maxi/scol_evaluations/{id}',
             normalizationContext: ['groups' => ['evaluation:detail']],
         ),
-        new GetCollection(
-            uriTemplate: '/enseignement/scol_evaluations',
-            normalizationContext: ['groups' => ['evaluation:detail']],
-            provider: 'App\DataProvider\Evaluation\ScolEvaluationProvider',
-        ),
         new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)", processor: 'App\DataProvider\Evaluation\ScolEvaluationInitProcessor'),
     ]
 )]

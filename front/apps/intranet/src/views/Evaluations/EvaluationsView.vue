@@ -106,8 +106,7 @@ const getEvaluations = async (enseignement) => {
       anneeUniversitaire: selectedAnneeUniversitaire.id
     };
     console.log(params);
-    const response = await getEvaluationsService(params, '/enseignement');
-    evaluations.value = response[0] || [];
+    evaluations.value = await getEvaluationsService(params);
     // Calculer la progression pour chaque évaluation
     for (const evaluation of evaluations.value) {
       calcEvaluationProgress(evaluation);
