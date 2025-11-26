@@ -27,8 +27,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiResource(
     paginationEnabled: false,
     operations: [
-        new Get(normalizationContext: ['groups' => ['evaluation:detail', 'enseignement:light']]),
-        new GetCollection(normalizationContext: ['groups' => ['evaluation:detail', 'personnel:light']]),
+        new Get(normalizationContext: ['groups' => ['evaluation:detail', 'personnel:light', 'enseignement:light']]),
+        new GetCollection(normalizationContext: ['groups' => ['evaluation:detail', 'personnel:light', 'enseignement:light']]),
         new Get(
             uriTemplate: '/mini/scol_evaluations/{id}',
             normalizationContext: ['groups' => ['evaluation:light']],
@@ -124,6 +124,9 @@ class ScolEvaluation
     #[ORM\Column(length: 20, options: ['default' => 'non_initialisee'])]
     #[Groups(['evaluation:detail'])]
     private ?string $etat = 'non_initialisee';
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $stats = null;
 
     public function __construct()
     {
@@ -407,5 +410,17 @@ class ScolEvaluation
             fn(TypeEvaluationEnum $case): string => $case->value,
             TypeEvaluationEnum::getTypes()
         );
+    }
+
+    public function getStats(): ?array
+    {
+        return $this->stats;
+    }
+
+    public function setStats(?array $stats): static
+    {
+        $this->stats = $stats;
+
+        return $this;
     }
 }

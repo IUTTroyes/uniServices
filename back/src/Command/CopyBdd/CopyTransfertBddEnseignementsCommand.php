@@ -72,8 +72,7 @@ class CopyTransfertBddEnseignementsCommand extends Command
     private function effacerTables(): void
     {
         // vider les tables de destination et les réinitialiser
-        $this->entityManager->getConnection()->executeQuery('SET
-FOREIGN_KEY_CHECKS=0');
+        $this->entityManager->getConnection()->executeQuery('SET FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_ue');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_apc_apprentissage_critique');
@@ -135,8 +134,8 @@ FOREIGN_KEY_CHECKS=1');
                         $evaluation = new ScolEvaluation();
                         $evaluation->setLibelle('Évaluation ' . $i);
                         $evaluation->setEnseignement($matiere);
-                        $evaluation->setVisible(true);
-                        $evaluation->setModifiable(true);
+                        $evaluation->setVisible(false);
+                        $evaluation->setModifiable(false);
                         $evaluation->setUuid(new UuidV4());
                         $evaluation->setAnneeUniversitaire($this->anneeUniv);
                         $this->entityManager->persist($evaluation);
@@ -261,8 +260,8 @@ FOREIGN_KEY_CHECKS=1');
                 $evaluation = new ScolEvaluation();
                 $evaluation->setLibelle('Évaluation ' . $i);
                 $evaluation->setEnseignement($matiere);
-                $evaluation->setVisible(true);
-                $evaluation->setModifiable(true);
+                $evaluation->setVisible(false);
+                $evaluation->setModifiable(false);
                 $evaluation->setUuid(new UuidV4());
                 $evaluation->setAnneeUniversitaire($this->anneeUniv);
                 $this->entityManager->persist($evaluation);
@@ -417,8 +416,8 @@ FOREIGN_KEY_CHECKS=1');
                 $evaluation = new ScolEvaluation();
                 $evaluation->setLibelle('Évaluation ' . $i);
                 $evaluation->setEnseignement($matiere);
-                $evaluation->setVisible(true);
-                $evaluation->setModifiable(true);
+                $evaluation->setVisible(false);
+                $evaluation->setModifiable(false);
                 $evaluation->setUuid(new UuidV4());
                 //todo: corriger pour récupérer la bonne année universitaire de l'éval depuis l'enseignement
                 $evaluation->setAnneeUniversitaire($this->anneeUniv);

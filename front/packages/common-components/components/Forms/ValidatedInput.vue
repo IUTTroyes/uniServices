@@ -78,6 +78,14 @@ const props = defineProps({
   max: {
     type: [Number, String],
     default: null
+  },
+  minfractiondigits: {
+    type: Number,
+    default: null
+  },
+  maxfractiondigits: {
+    type: Number,
+    default: null
   }
 });
 
@@ -153,6 +161,8 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
             @blur="e => onBlurModelValue(e, handleBlur)"
             :min="min"
             :max="max"
+            :min-fraction-digits="minfractiondigits"
+            :max-fraction-digits="maxfractiondigits"
         />
 
         <Password

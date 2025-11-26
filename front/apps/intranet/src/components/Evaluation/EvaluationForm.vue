@@ -10,7 +10,6 @@ const formValid = ref(false);
 const formErrors = ref({});
 const evaluation = ref({})
 const isLoading = ref(true);
-const typesGroupe = ref()
 const departementId = ref(null)
 const personnels = ref([])
 const userStore = useUsersStore();
@@ -116,6 +115,7 @@ const updateEvaluation = async () => {
     console.error('Erreur lors de la mise à jour de l\'évaluation:', error);
   } finally {
     emit('saved');
+    emit('close')
   }
 }
 

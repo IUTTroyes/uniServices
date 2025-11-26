@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
 use App\Entity\Scolarite\ScolEvaluation;
+use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Filter\EtudiantNoteFilter;
 use App\Repository\EtudiantNoteRepository;
@@ -47,6 +48,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\HasLifecycleCallbacks]
 class EtudiantNote
 {
+    use LifeCycleTrait;
     use UuidTrait;
 
     #[ORM\Id]

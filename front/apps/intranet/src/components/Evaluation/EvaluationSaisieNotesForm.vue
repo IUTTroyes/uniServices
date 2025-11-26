@@ -261,7 +261,7 @@ const onRowsChange = async rows => {
           striped-rows
           responsive-layout="scroll"
           lazy
-          paginator
+          :paginator="selectedGroupe.type!=='TP'"
           :first="offset"
           :rows="limit"
           :rowsPerPageOptions="rowOptions"
@@ -285,6 +285,7 @@ const onRowsChange = async rows => {
                 v-model="slotProps.data.note"
                 :rules="[]"
                 inputId="minmax" :min="-0.01" :max="20"
+                :minfractiondigits="2" :maxfractiondigits="2"
                 @validation="result => handleValidation('note', result)"
             />
           </template>

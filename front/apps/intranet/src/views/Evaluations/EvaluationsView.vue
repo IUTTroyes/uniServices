@@ -8,11 +8,12 @@ import {
   updateEvaluationService
 } from '@requests/index.js';
 import {useDiplomeStore, useUsersStore} from '@stores/index.js';
-import {ErrorView, PermissionGuard, SimpleSkeleton} from '@components/index.js';
+import {ErrorView, PermissionGuard, SimpleSkeleton, ListSkeleton} from '@components/index.js';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
 import EvaluationListeInitForm from "../../components/Evaluation/EvaluationListeInitForm.vue";
 import {useToast} from "primevue/usetoast";
+import EvaluationStatistiques from "../../components/Evaluation/EvaluationStatistiques.vue";
 
 const toast = useToast();
 const usersStore = useUsersStore();
@@ -88,7 +89,7 @@ const getEnseignements = async () => {
     await preloadExpectedTotalsForSemestre(selectedSemestre.value.id, enseignements.value);
     // Calculer la progression pour chaque enseignement
     for (const enseignement of enseignements.value) {
-      calcEnseignementProgress(enseignement);
+      await calcEnseignementProgress(enseignement);
     }
   } catch (error) {
     hasError.value = true;
@@ -109,7 +110,7 @@ const getEvaluations = async (enseignement) => {
     evaluations.value = await getEvaluationsService(params);
     // Calculer la progression pour chaque évaluation
     for (const evaluation of evaluations.value) {
-      calcEvaluationProgress(evaluation);
+      await calcEvaluationProgress(evaluation);
     }
     return evaluations.value;
   } catch (error) {
@@ -164,41 +165,41 @@ const preloadExpectedTotalsForSemestre = async (semestreId, enseignementsList) =
 };
 
 const calcEvaluationProgress = (evaluation) => {
-    // Ne compter que les notes existantes et dont la propriété `note` n'est pas null
-    const notesExistantes = Array.isArray(evaluation?.notes) ? evaluation.notes.filter(n => n != null) : [];
-    evaluation.total = notesExistantes.length;
-    evaluation.entered = notesExistantes.filter(n => n.note !== null && n.note !== undefined).length;
-    evaluation.percent = evaluation.total > 0 ? Math.round((evaluation.entered / evaluation.total) * 100) : 0;
-    if (evaluation.percent === 100) {
-      evaluation.etat = 'complet';
-    }
-  };
-
-  const calcEnseignementProgress = (enseignement) => {
-    const evals = Array.isArray(enseignement?.evaluations) ? enseignement.evaluations : [];
-
-    // Comptes globaux basés uniquement sur les notes existantes
-    enseignement.enteredTotal = 0;
-    enseignement.expectedTotal = 0;
-
-    for (const e of evals) {
-      const notesExistantes = Array.isArray(e?.notes) ? e.notes.filter(n => n != null) : [];
-      const entered = notesExistantes.filter(n => n.note !== null && n.note !== undefined).length;
-      enseignement.enteredTotal += entered;
-      enseignement.expectedTotal += notesExistantes.length;
-    }
-
-    // Le pourcentage global n'est calculé que si TOUTES les évaluations n'ont pas pour état 'non_initialisee'
-    const allHaveNotes = evals.length > 0 && evals.every(e => e.etat !== 'non_initialisee');
-    enseignement.hasIncompleteEvaluations = !allHaveNotes;
-
-    if (allHaveNotes && enseignement.expectedTotal > 0) {
-      enseignement.percent = Math.round((enseignement.enteredTotal / enseignement.expectedTotal) * 100);
-    } else {
-      // pas de pourcentage affiché si toutes les évaluations n'ont pas de notes
-      enseignement.percent = null;
-    }
+  // Ne compter que les notes existantes et dont la propriété `note` n'est pas null
+  const notesExistantes = Array.isArray(evaluation?.notes) ? evaluation.notes.filter(n => n != null) : [];
+  evaluation.total = notesExistantes.length;
+  evaluation.entered = notesExistantes.filter(n => n.note !== null && n.note !== undefined).length;
+  evaluation.percent = evaluation.total > 0 ? Math.round((evaluation.entered / evaluation.total) * 100) : 0;
+  if (evaluation.percent === 100) {
+    evaluation.etat = 'complet';
   }
+};
+
+const calcEnseignementProgress = (enseignement) => {
+  const evals = Array.isArray(enseignement?.evaluations) ? enseignement.evaluations : [];
+
+  // Comptes globaux basés uniquement sur les notes existantes
+  enseignement.enteredTotal = 0;
+  enseignement.expectedTotal = 0;
+
+  for (const e of evals) {
+    const notesExistantes = Array.isArray(e?.notes) ? e.notes.filter(n => n != null) : [];
+    const entered = notesExistantes.filter(n => n.note !== null && n.note !== undefined).length;
+    enseignement.enteredTotal += entered;
+    enseignement.expectedTotal += notesExistantes.length;
+  }
+
+  // Le pourcentage global n'est calculé que si TOUTES les évaluations n'ont pas pour état 'non_initialisee'
+  const allHaveNotes = evals.length > 0 && evals.every(e => e.etat !== 'non_initialisee');
+  enseignement.hasIncompleteEvaluations = !allHaveNotes;
+
+  if (allHaveNotes && enseignement.expectedTotal > 0) {
+    enseignement.percent = Math.round((enseignement.enteredTotal / enseignement.expectedTotal) * 100);
+  } else {
+    // pas de pourcentage affiché si toutes les évaluations n'ont pas de notes
+    enseignement.percent = null;
+  }
+}
 
 const updateEvaluationVisibility = async (evaluation) => {
   try {
@@ -228,10 +229,10 @@ const updateEvaluationEdit = async (evaluation) => {
 
 // Choix du composant selon le mode
 const dialogComponent = computed(() => {
-  return dialogMode.value === 'saisie' ? EvaluationSaisieNotesForm : dialogMode.value === 'edit' ? EvaluationForm : dialogMode.value === 'initAll' ? EvaluationListeInitForm : null;
+  return dialogMode.value === 'saisie' ? EvaluationSaisieNotesForm : dialogMode.value === 'edit' ? EvaluationForm : dialogMode.value === 'initAll' ? EvaluationListeInitForm : dialogMode.value === 'stat' ? EvaluationStatistiques : null;
 });
 
-// Ouvre le dialog en passant l'id de l'évaluation et le mode ('init'|'edit'|'saisie')
+// Ouvre le dialog en passant l'id de l'évaluation et le mode ('init'|'edit'|'saisie'|'stat')
 const openEvaluationDialog = (evaluationId, mode = 'edit', header) => {
   if (evaluationId) {
     selectedEvaluation.value = evaluationId;
@@ -288,7 +289,9 @@ const onEvaluationSaved = async () => {
         <Select v-if="selectedDiplome" v-model="selectedAnnee" :options="selectedDiplome.annees" option-label="libelle" placeholder="Sélectionner une année" class="w-1/2"/>
         <Select v-if="selectedAnnee" v-model="selectedSemestre" :options="selectedAnnee.semestres" option-label="libelle" placeholder="Sélectionner un semestre" class="w-1/2"/>
       </div>
-      <div>
+
+      <ListSkeleton v-if="isLoadingEnseignements" class="w-1/2"/>
+      <div v-else>
         <div class="flex justify-end gap-4">
           <Button label="Initialiser toutes les évaluations" icon="pi pi-plus-circle" severity="primary" size="small" @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')"/>
         </div>
@@ -303,12 +306,17 @@ const onEvaluationSaved = async () => {
                         <i class="pi pi-book text-white w-5 h-5 text-center"></i>
                       </div>
                       <div class="text-xl font-bold">{{enseignement.codeEnseignement}} - {{enseignement.libelle}}</div>
+                      <div class="flex items-center gap-2">
+                        <Button label="" icon="pi pi-eye" outlined severity="info" size="small" @click="" v-tooltip.top="`Voir les détails de l'enseignement`"/>
+                        <Button label="" icon="pi pi-user" outlined severity="warn" size="small" @click="" v-tooltip.top="`Voir le prévisionnel de l'enseignement`"/>
+                      </div>
                     </div>
                   </div>
                   <div class="text-sm text-muted-color mr-4">
                     {{enseignement.evaluations.length}} évaluations
                   </div>
                 </div>
+                <SimpleSkeleton v-if="isLoadingEvaluations" class="w-full"/>
                 <div class="mr-4">
                   <div class="p-2 w-full bg-neutral-50 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900 flex flex-col gap-2">
                     <div class="flex justify-between items-center gap-4">
@@ -334,80 +342,84 @@ const onEvaluationSaved = async () => {
               </div>
             </AccordionHeader>
             <AccordionContent>
-              <div v-if="enseignement.evaluations && enseignement.evaluations.length !== 0" class="flex flex-col gap-2">
-                <div v-for="evaluation in enseignement.evaluations" class="card m-0 py-2 px-4">
-                  <div class="flex flex-col gap-4">
-                    <div class="flex justify-between items-center gap-4">
-                      <div class="flex items-center gap-2">
-                        <div class="text-lg font-bold">
-                          {{ evaluation.typeIcon }} {{evaluation.libelle}}
-                        </div>
-                        <Message v-if="evaluation.type" :severity="getSeverity(evaluation.type)" size="small">
-                          {{evaluation.type}}
-                        </Message>
-                        <Message v-if="evaluation.typeGroupe" severity="secondary" size="small">
-                          {{evaluation.typeGroupe}}
-                        </Message>
-                      </div>
-                      <div>
-                        <Message
-                            :severity="evaluation.etat === 'non_initialisee' ? 'error' : evaluation.etat === 'initialisee' ? 'info' : evaluation.etat === 'planifiee' ? 'warn' : evaluation.etat === 'complet' ? 'success' : 'error'"
-                            :icon="evaluation.etat === 'non_initialisee' ? 'pi pi-exclamation-triangle' : evaluation.etat === 'initialisee' ? 'pi pi-info-circle' : evaluation.etat === 'planifiee' ? 'pi pi-clock'  : evaluation.etat === 'complet' ? 'pi pi-check-circle' : 'pi pi-exclamation-triangle'"
-                            size="small">
-                          {{ evaluation.etat === 'non_initialisee' ? 'À initialiser' : evaluation.etat === 'initialisee' ? 'Initialisée' : evaluation.etat === 'planifiee' ? 'À saisir' : evaluation.etat === 'complet' ? 'Complet' : 'Erreur' }}
-                        </Message>
-                      </div>
-                    </div>
-
-                    <div>
+              <SimpleSkeleton v-if="isLoadingEvaluations" class="w-full"/>
+              <div v-else>
+                <div v-if="enseignement.evaluations && enseignement.evaluations.length !== 0" class="flex flex-col gap-2">
+                  <div v-for="evaluation in enseignement.evaluations" class="card m-0 py-2 px-4">
+                    <div class="flex flex-col gap-4">
                       <div class="flex justify-between items-center gap-4">
-                        <div class="text-sm flex items-center gap-1"><i class="pi pi-users"></i>Notes saisies</div>
-                        <div class="text-sm flex items-center gap-1">
-                          <span class="font-bold">{{ evaluation.entered }}/{{ evaluation.total }}</span>
-                          ({{ evaluation.percent }}%)
+                        <div class="flex items-center gap-2">
+                          <div class="text-lg font-bold">
+                            {{ evaluation.typeIcon }} {{evaluation.libelle}}
+                          </div>
+                          <Message v-if="evaluation.type" :severity="getSeverity(evaluation.type)" size="small">
+                            {{evaluation.type}}
+                          </Message>
+                          <Message v-if="evaluation.typeGroupe" severity="secondary" size="small">
+                            {{evaluation.typeGroupe}}
+                          </Message>
+                        </div>
+                        <div>
+                          <Message
+                              :severity="evaluation.etat === 'non_initialisee' ? 'error' : evaluation.etat === 'initialisee' ? 'info' : evaluation.etat === 'planifiee' ? 'warn' : evaluation.etat === 'complet' ? 'success' : 'error'"
+                              :icon="evaluation.etat === 'non_initialisee' ? 'pi pi-exclamation-triangle' : evaluation.etat === 'initialisee' ? 'pi pi-info-circle' : evaluation.etat === 'planifiee' ? 'pi pi-clock'  : evaluation.etat === 'complet' ? 'pi pi-check-circle' : 'pi pi-exclamation-triangle'"
+                              size="small">
+                            {{ evaluation.etat === 'non_initialisee' ? 'À initialiser' : evaluation.etat === 'initialisee' ? 'Initialisée' : evaluation.etat === 'planifiee' ? 'À saisir' : evaluation.etat === 'complet' ? 'Complet' : 'Erreur' }}
+                          </Message>
                         </div>
                       </div>
-                      <ProgressBar :value="evaluation.percent" class="!h-3"></ProgressBar>
-                    </div>
 
-                    <div class="flex flex-wrap items-center gap-2">
-                      <div>Saisie autorisée :</div>
-                      <div v-if="evaluation.personnelAutorise?.length > 0" v-for="personnel in evaluation.personnelAutorise" class="border border-neutral-200 dark:border-neutral-600 rounded-md px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 flex items-center gap-2">
-                        {{personnel.display}}
+                      <div>
+                        <div class="flex justify-between items-center gap-4">
+                          <div class="text-sm flex items-center gap-1"><i class="pi pi-users"></i>Notes saisies</div>
+                          <div class="text-sm flex items-center gap-1">
+                            <span class="font-bold">{{ evaluation.entered }}/{{ evaluation.total }}</span>
+                            ({{ evaluation.percent }}%)
+                          </div>
+                        </div>
+                        <ProgressBar :value="evaluation.percent" class="!h-3"></ProgressBar>
                       </div>
-                      <div v-else class="border border-neutral-200 dark:border-neutral-600 rounded-md px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 flex items-center gap-2">
-                        Aucun personnel autorisé
+
+                      <div class="flex flex-wrap items-center gap-2">
+                        <div>Saisie autorisée :</div>
+                        <div v-if="evaluation.personnelAutorise?.length > 0" v-for="personnel in evaluation.personnelAutorise" class="border border-neutral-200 dark:border-neutral-600 rounded-md px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 flex items-center gap-2">
+                          {{personnel.display}}
+                        </div>
+                        <div v-else class="border border-neutral-200 dark:border-neutral-600 rounded-md px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 flex items-center gap-2">
+                          Aucun personnel autorisé
+                        </div>
                       </div>
                     </div>
+                    <PermissionGuard :permission="{ permission: 'canManageEvaluation', context: { evaluation } }">
+                      <Divider/>
+                      <div class="flex justify-between items-center gap-4">
+                        <div class="flex items-center justify-start gap-2">
+                          <Button v-if="evaluation.etat !== 'non_initialisee'" label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id, 'saisie', 'Saisie des notes')"/>
+                          <Button v-if="evaluation.etat !== 'non_initialisee' " label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small" @click="openEvaluationDialog(evaluation.id, 'edit', 'Édition de l\'évaluation')"/>
+                          <Button v-if="evaluation.etat !== 'non_initialisee' " label="Statistiques" icon="pi pi-chart-line" outlined severity="info" size="small" @click="openEvaluationDialog(evaluation.id, 'stat', 'Statistiques de l\'évaluation')"/>
+                          <Button v-if="evaluation.etat === 'non_initialisee' " label="Initialiser" icon="pi pi-plus" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id, 'edit', 'Initialiser l\'évaluation')"/>
+                        </div>
+                        <div class="flex items-center justify-end gap-4">
+                          <div class="flex items-center justify-end gap-1">
+                            <i :class="evaluation.visible ? 'pi pi-eye text-green-500' : 'pi pi-eye-slash text-gray-400'"></i>
+                            <span class="text-sm">{{ evaluation.visible ? 'Visible' : 'Masquée' }}</span>
+                            <ToggleSwitch v-model="evaluation.visible" @change="updateEvaluationVisibility(evaluation)" :disabled="evaluation.etat==='non_initialisee'"/>
+                          </div>
+                          <div class="flex items-center justify-end gap-1">
+                            <i :class="evaluation.modifiable ? 'pi pi-lock-open text-green-500' : 'pi pi-lock text-gray-400'"></i>
+                            <span class="text-sm">{{ evaluation.modifiable ? 'Modifiable' : 'Non-modifiable' }}</span>
+                            <ToggleSwitch v-model="evaluation.modifiable" @change="updateEvaluationEdit(evaluation)" :disabled="evaluation.etat==='non_initialisee'"/>
+                          </div>
+                        </div>
+                      </div>
+                    </PermissionGuard>
                   </div>
-                  <PermissionGuard :permission="{ permission: 'canManageEvaluation', context: { evaluation } }">
-                    <Divider/>
-                    <div class="flex justify-between items-center gap-4">
-                      <div class="flex items-center justify-start gap-2">
-                        <Button v-if="evaluation.etat !== 'non_initialisee'" label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id, 'saisie', 'Saisie des notes')"/>
-                        <Button v-if="evaluation.etat !== 'non_initialisee' " label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small" @click="openEvaluationDialog(evaluation.id, 'edit', 'Édition de l\'évaluation')"/>
-                        <Button v-if="evaluation.etat === 'non_initialisee' " label="Initialiser" icon="pi pi-plus" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id, 'edit', 'Initialiser l\'évaluation')"/>
-                      </div>
-                      <div class="flex items-center justify-end gap-4">
-                        <div class="flex items-center justify-end gap-1">
-                          <i :class="evaluation.visible ? 'pi pi-eye text-green-500' : 'pi pi-eye-slash text-gray-400'"></i>
-                          <span class="text-sm">{{ evaluation.visible ? 'Visible' : 'Masquée' }}</span>
-                          <ToggleSwitch v-model="evaluation.visible" @change="updateEvaluationVisibility(evaluation)"/>
-                        </div>
-                        <div class="flex items-center justify-end gap-1">
-                          <i :class="evaluation.modifiable ? 'pi pi-lock-open text-green-500' : 'pi pi-lock text-gray-400'"></i>
-                          <span class="text-sm">{{ evaluation.modifiable ? 'Modifiable' : 'Non-modifiable' }}</span>
-                          <ToggleSwitch v-model="evaluation.modifiable" @change="updateEvaluationEdit(evaluation)"/>
-                        </div>
-                      </div>
-                    </div>
-                  </PermissionGuard>
                 </div>
-              </div>
-              <div v-else class="flex justify-center">
-                <Message severity="warn" class="w-fit p-4" icon="pi pi-exclamation-triangle">
-                  Aucune évaluation trouvée.
-                </Message>
+                <div v-else class="flex justify-center">
+                  <Message severity="warn" class="w-fit p-4" icon="pi pi-exclamation-triangle">
+                    Aucune évaluation trouvée.
+                  </Message>
+                </div>
               </div>
             </AccordionContent>
           </AccordionPanel>
