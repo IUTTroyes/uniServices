@@ -42,7 +42,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
         new Post(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)", processor: 'App\\DataProvider\\Evaluation\\EtudiantNotePersistProcessor'),
         new Patch(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)", processor: 'App\\DataProvider\\Evaluation\\EtudiantNotePersistProcessor'),
-        new Put(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)", processor: 'App\\DataProvider\\Evaluation\\EtudiantNotePersistProcessor'),
     ],
 )]
 #[ORM\HasLifecycleCallbacks]

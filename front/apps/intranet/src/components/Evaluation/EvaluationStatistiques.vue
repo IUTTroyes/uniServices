@@ -1,6 +1,6 @@
 <script setup>
 import {onMounted, ref} from 'vue';
-import {ErrorView} from "@components";
+import {ErrorView, SimpleSkeleton} from "@components";
 import {getEvaluationService} from "@requests/scol_services/evaluationService.js";
 
 const hasError = ref(false);
@@ -113,21 +113,19 @@ const getSeverity = (type) => {
     </div>
 
     <div class="mx-12">
-      <div class="text-xl font-bold">Stats globale</div>
       <div class="flex items-center justify-between gap-4">
         <div class="w-full">
+          <div class="text-xl font-bold mb-4">
+            Résultats
+          </div>
           <div class="flex justify-between items-center gap-4 h-full">
-            <div class="card w-full h-full text-lg flex items-center gap-1 mb-0">
-              <div><i class="pi pi-chart-bar"></i> Moyenne générale</div>
-            </div>
-            <div class="card w-full h-full text-lg flex items-center gap-1 mb-0">
-              <div><i class="pi pi-chart-bar"></i> Médiane</div>
-            </div>
-            <div class="card w-full h-full text-lg flex items-center gap-1 mb-0">
-              <div><i class="pi pi-chart-bar"></i> Note la plus basse</div>
-            </div>
-            <div class="card w-full h-full text-lg flex items-center gap-1 mb-0">
-              <div><i class="pi pi-chart-bar"></i> Note la plus haute</div>
+            <div v-for="(stat, key) in evaluation.stats" class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+              <div class="first-letter:uppercase">
+                {{ key }}
+              </div>
+              <div class="text-lg font-bold">
+                {{ stat }}
+              </div>
             </div>
           </div>
         </div>

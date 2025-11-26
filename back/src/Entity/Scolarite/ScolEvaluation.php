@@ -126,13 +126,18 @@ class ScolEvaluation
     private ?string $etat = 'non_initialisee';
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
-    private ?array $stats = null;
+    #[Groups(['evaluation:detail'])]
+    private ?array $stats = ['moyenne' => 0, 'mediane' => 0, 'min' => 0, 'max' => 0];
 
     public function __construct()
     {
         $this->personnelAutorise = new ArrayCollection();
         $this->evaluations = new ArrayCollection();
         $this->notes = new ArrayCollection();
+
+        if (null === $this->stats) {
+            $this->stats = ['moyenne' => 0, 'mediane' => 0, 'min' => 0, 'max' => 0];
+        }
     }
 
     public function getId(): ?int
@@ -414,7 +419,13 @@ class ScolEvaluation
 
     public function getStats(): ?array
     {
-        return $this->stats;
+        $order = ['moyenne', 'mediane', 'min', 'max'];
+        $stats = $this->stats ?? [];
+        $result = [];
+        foreach ($order as $key) {
+            $result[$key] = array_key_exists($key, $stats) ? $stats[$key] : 0;
+        }
+        return $result;
     }
 
     public function setStats(?array $stats): static

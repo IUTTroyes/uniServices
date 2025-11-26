@@ -40,6 +40,7 @@ class EtudiantNotePersistProcessor implements ProcessorInterface
         if ($total <= 0) {
             // fallback when nothing to evaluate
             $evaluation->setEtat('planifiee');
+            $this->calcEvaluationStats($evaluation);
             $this->em->flush();
             return;
         }
@@ -47,7 +48,55 @@ class EtudiantNotePersistProcessor implements ProcessorInterface
         $newEtat = ($completed >= $total) ? 'complet' : 'planifiee';
         if ($evaluation->getEtat() !== $newEtat) {
             $evaluation->setEtat($newEtat);
-            $this->em->flush();
         }
+
+        $this->calcEvaluationStats($evaluation);
+        $this->em->flush();
+    }
+
+    private function calcEvaluationStats(ScolEvaluation $evaluation): void
+    {
+        $values = [];
+        foreach ($evaluation->getNotes() as $note) {
+            if (!$note instanceof EtudiantNote) {
+                continue;
+            }
+            $n = $note->getNote();
+            // ignore null notes and justified absences
+            if (null === $n || $note->isAbsenceJustifiee()) {
+                continue;
+            }
+            $values[] = (float) $n;
+        }
+
+        if (empty($values)) {
+            $stats = ['moyenne' => 0, 'mediane' => 0, 'min' => 0, 'max' => 0];
+            $evaluation->setStats($stats);
+            return;
+        }
+
+        sort($values, SORT_NUMERIC);
+        $count = count($values);
+        $sum = array_sum($values);
+        $moyenne = round($sum / $count, 2);
+
+        if ($count % 2 === 1) {
+            $mediane = $values[intdiv($count, 2)];
+        } else {
+            $mid = $count / 2;
+            $mediane = ($values[$mid - 1] + $values[$mid]) / 2;
+        }
+        $mediane = round($mediane, 2);
+        $min = round(min($values), 2);
+        $max = round(max($values), 2);
+
+        $stats = [
+            'moyenne' => $moyenne,
+            'mediane' => $mediane,
+            'min' => $min,
+            'max' => $max,
+        ];
+
+        $evaluation->setStats($stats);
     }
 }
