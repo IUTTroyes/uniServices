@@ -14,6 +14,7 @@ import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieN
 import EvaluationListeInitForm from "../../components/Evaluation/EvaluationListeInitForm.vue";
 import {useToast} from "primevue/usetoast";
 import EvaluationStatistiques from "../../components/Evaluation/EvaluationStatistiques.vue";
+import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 
 const toast = useToast();
 const usersStore = useUsersStore();
@@ -344,75 +345,14 @@ const onEvaluationSaved = async () => {
               <SimpleSkeleton v-if="isLoadingEvaluations" class="w-full"/>
               <div v-else>
                 <div v-if="enseignement.evaluations && enseignement.evaluations.length !== 0" class="flex flex-col gap-2">
-                  <div v-for="evaluation in enseignement.evaluations" class="card m-0 py-2 px-4">
-                    <div class="flex flex-col gap-4">
-                      <div class="flex justify-between items-center gap-4">
-                        <div class="flex items-center gap-2">
-                          <div class="text-lg font-bold">
-                            {{ evaluation.typeIcon }} {{evaluation.libelle}}
-                          </div>
-                          <Message v-if="evaluation.type" :severity="getSeverity(evaluation.type)" size="small">
-                            {{evaluation.type}}
-                          </Message>
-                          <Message v-if="evaluation.typeGroupe" severity="secondary" size="small">
-                            {{evaluation.typeGroupe}}
-                          </Message>
-                        </div>
-                        <div>
-                          <Message
-                              :severity="evaluation.etat === 'non_initialisee' ? 'error' : evaluation.etat === 'initialisee' ? 'info' : evaluation.etat === 'planifiee' ? 'warn' : evaluation.etat === 'complet' ? 'success' : 'error'"
-                              :icon="evaluation.etat === 'non_initialisee' ? 'pi pi-exclamation-triangle' : evaluation.etat === 'initialisee' ? 'pi pi-info-circle' : evaluation.etat === 'planifiee' ? 'pi pi-clock'  : evaluation.etat === 'complet' ? 'pi pi-check-circle' : 'pi pi-exclamation-triangle'"
-                              size="small">
-                            {{ evaluation.etat === 'non_initialisee' ? 'À initialiser' : evaluation.etat === 'initialisee' ? 'Initialisée' : evaluation.etat === 'planifiee' ? 'À saisir' : evaluation.etat === 'complet' ? 'Complet' : 'Erreur' }}
-                          </Message>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div class="flex justify-between items-center gap-4">
-                          <div class="text-sm flex items-center gap-1"><i class="pi pi-users"></i>Notes saisies</div>
-                          <div class="text-sm flex items-center gap-1">
-                            <span class="font-bold">{{ evaluation.entered }}/{{ evaluation.total }}</span>
-                            ({{ evaluation.percent }}%)
-                          </div>
-                        </div>
-                        <ProgressBar :value="evaluation.percent" class="!h-3"></ProgressBar>
-                      </div>
-
-                      <div class="flex flex-wrap items-center gap-2">
-                        <div>Saisie autorisée :</div>
-                        <div v-if="evaluation.personnelAutorise?.length > 0" v-for="personnel in evaluation.personnelAutorise" class="border border-neutral-200 dark:border-neutral-600 rounded-md px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 flex items-center gap-2">
-                          {{personnel.display}}
-                        </div>
-                        <div v-else class="border border-neutral-200 dark:border-neutral-600 rounded-md px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 flex items-center gap-2">
-                          Aucun personnel autorisé
-                        </div>
-                      </div>
-                    </div>
-                    <PermissionGuard :permission="{ permission: 'canManageEvaluation', context: { evaluation } }">
-                      <Divider/>
-                      <div class="flex justify-between items-center gap-4">
-                        <div class="flex items-center justify-start gap-2">
-                          <Button v-if="evaluation.etat !== 'non_initialisee'" label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id, 'saisie', 'Saisie des notes')"/>
-                          <Button v-if="evaluation.etat !== 'non_initialisee' " label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small" @click="openEvaluationDialog(evaluation.id, 'edit', 'Édition de l\'évaluation')"/>
-                          <Button v-if="evaluation.etat !== 'non_initialisee' " label="Statistiques" icon="pi pi-chart-line" outlined severity="info" size="small" @click="openEvaluationDialog(evaluation.id, 'stat', 'Statistiques de l\'évaluation')"/>
-                          <Button v-if="evaluation.etat === 'non_initialisee' " label="Initialiser" icon="pi pi-plus" outlined severity="primary" size="small" @click="openEvaluationDialog(evaluation.id, 'edit', 'Initialiser l\'évaluation')"/>
-                        </div>
-                        <div class="flex items-center justify-end gap-4">
-                          <div class="flex items-center justify-end gap-1">
-                            <i :class="evaluation.visible ? 'pi pi-eye text-green-500' : 'pi pi-eye-slash text-gray-400'"></i>
-                            <span class="text-sm">{{ evaluation.visible ? 'Visible' : 'Masquée' }}</span>
-                            <ToggleSwitch v-model="evaluation.visible" @change="updateEvaluationVisibility(evaluation)" :disabled="evaluation.etat==='non_initialisee'"/>
-                          </div>
-                          <div class="flex items-center justify-end gap-1">
-                            <i :class="evaluation.modifiable ? 'pi pi-lock-open text-green-500' : 'pi pi-lock text-gray-400'"></i>
-                            <span class="text-sm">{{ evaluation.modifiable ? 'Modifiable' : 'Non-modifiable' }}</span>
-                            <ToggleSwitch v-model="evaluation.modifiable" @change="updateEvaluationEdit(evaluation)" :disabled="evaluation.etat==='non_initialisee'"/>
-                          </div>
-                        </div>
-                      </div>
-                    </PermissionGuard>
-                  </div>
+                  <EvaluationCard
+                    v-for="evaluation in enseignement.evaluations"
+                    :key="evaluation.id"
+                    :evaluation="evaluation"
+                    @open-dialog="openEvaluationDialog"
+                    @update-visibility="updateEvaluationVisibility"
+                    @update-edit="updateEvaluationEdit"
+                  />
                 </div>
                 <div v-else class="flex justify-center">
                   <Message severity="warn" class="w-fit p-4" icon="pi pi-exclamation-triangle">

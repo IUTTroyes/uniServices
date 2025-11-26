@@ -2,6 +2,8 @@
 import {onMounted, ref} from 'vue';
 import {ErrorView, SimpleSkeleton} from "@components";
 import {getEvaluationService} from "@requests/scol_services/evaluationService.js";
+import EvaluationNotesRepartitionChart from "./EvaluationNotesRepartitionChart.vue";
+import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 
 const hasError = ref(false);
 const isLoading = ref(true);
@@ -64,55 +66,12 @@ const getSeverity = (type) => {
 <template>
   <ErrorView v-if="hasError"></ErrorView>
   <div v-else>
-
-    <div class="card">
-      <div class="flex flex-col gap-4">
-        <div class="flex justify-between items-center gap-4">
-          <div class="flex items-center gap-2">
-            <div class="text-lg font-bold">
-              {{ evaluation.typeIcon }} {{evaluation.libelle}}
-            </div>
-            <Message v-if="evaluation.type" :severity="getSeverity(evaluation.type)" size="small">
-              {{evaluation.type}}
-            </Message>
-            <Message v-if="evaluation.typeGroupe" severity="secondary" size="small">
-              {{evaluation.typeGroupe}}
-            </Message>
-          </div>
-          <div>
-            <Message
-                :severity="evaluation.etat === 'non_initialisee' ? 'error' : evaluation.etat === 'initialisee' ? 'info' : evaluation.etat === 'planifiee' ? 'warn' : evaluation.etat === 'complet' ? 'success' : 'error'"
-                :icon="evaluation.etat === 'non_initialisee' ? 'pi pi-exclamation-triangle' : evaluation.etat === 'initialisee' ? 'pi pi-info-circle' : evaluation.etat === 'planifiee' ? 'pi pi-clock'  : evaluation.etat === 'complet' ? 'pi pi-check-circle' : 'pi pi-exclamation-triangle'"
-                size="small">
-              {{ evaluation.etat === 'non_initialisee' ? 'À initialiser' : evaluation.etat === 'initialisee' ? 'Initialisée' : evaluation.etat === 'planifiee' ? 'À saisir' : evaluation.etat === 'complet' ? 'Complet' : 'Erreur' }}
-            </Message>
-          </div>
-        </div>
-
-        <div>
-          <div class="flex justify-between items-center gap-4">
-            <div class="text-sm flex items-center gap-1"><i class="pi pi-users"></i>Notes saisies</div>
-            <div class="text-sm flex items-center gap-1">
-              <span class="font-bold">{{ evaluation.entered }}/{{ evaluation.total }}</span>
-              ({{ evaluation.percent }}%)
-            </div>
-          </div>
-          <ProgressBar :value="evaluation.percent" class="!h-3"></ProgressBar>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-2">
-          <div>Saisie autorisée :</div>
-          <div v-if="evaluation.personnelAutorise?.length > 0" v-for="personnel in evaluation.personnelAutorise" class="border border-neutral-200 dark:border-neutral-600 rounded-md px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 flex items-center gap-2">
-            {{personnel.display}}
-          </div>
-          <div v-else class="border border-neutral-200 dark:border-neutral-600 rounded-md px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-800 flex items-center gap-2">
-            Aucun personnel autorisé
-          </div>
-        </div>
-      </div>
+    <SimpleSkeleton v-if="isLoading" :width="'100%'" :height="'400px'"/>
+    <div v-else>
+      <EvaluationCard :evaluation="evaluation" class="mb-8"/>
     </div>
 
-    <div class="mx-12">
+    <div class="mx-12 flex flex-col gap-8">
       <div class="flex items-center justify-between gap-4">
         <div class="w-full">
           <div class="text-xl font-bold mb-4">
@@ -129,10 +88,16 @@ const getSeverity = (type) => {
             </div>
           </div>
         </div>
+        </div>
+      <div class="w-full">
+        <div class="text-xl font-bold mb-4">
+          Répartition des notes
+        </div>
+        <div class="flex justify-between items-center gap-4">
+          <EvaluationNotesRepartitionChart :notes="evaluation.notes" class="w-2/3"/>
+        </div>
       </div>
     </div>
-    <!--    <Chart type="radar" :data="chartData" :options="chartOptions" class="w-full md:w-[30rem]" />-->
-
   </div>
 </template>
 
