@@ -99,19 +99,51 @@ const getEtudiants = async () => {
       if (notesList && notesList.length > 0) {
         const note = notesList[0];
         etudiant.note = note.note;
-        etudiant.absenceJustifiee = note.absenceJustifiee;
+        // nouvelle propriété: presenceStatut
+        // fallback: si non fourni (anciennes données), déduire uniquement depuis la valeur de note
+        let presenceStatut = note.presenceStatut;
+        if (!presenceStatut) {
+          const n = note.note;
+          if (n === -0.01) {
+            presenceStatut = 'absent_justifie'; // impossible de distinguer 'dispense' des anciennes données
+          } else if (n === 0) {
+            presenceStatut = 'absent_injustifie';
+          } else {
+            presenceStatut = 'present';
+          }
+        }
+        etudiant.presenceStatut = presenceStatut;
         etudiant.commentaire = note.commentaire;
         etudiant.noteId = note.id;
       }
     }
-    tableRows.value = etudiants.value.map(etudiant => ({
-      etudiantId: etudiant.id,
-      display: etudiant.display || 'Étudiant inconnu',
-      noteId: etudiant.noteId || null,
-      note: etudiant.note !== undefined ? etudiant.note : null,
-      absenceJustifiee: etudiant.absenceJustifiee !== undefined ? etudiant.absenceJustifiee : false,
-      commentaire: etudiant.commentaire || '',
-    }));
+    tableRows.value = etudiants.value.map(etudiant => {
+      // déterminer le statut d'absence (valeur UI) à partir de presenceStatut
+      let absenceStatus = 'present';
+      switch (etudiant.presenceStatut) {
+        case 'absent_injustifie':
+          absenceStatus = 'abs_injustifiee';
+          break;
+        case 'absent_justifie':
+          absenceStatus = 'abs_justifiee';
+          break;
+        case 'dispense':
+          absenceStatus = 'dispense';
+          break;
+        case 'present':
+        default:
+          absenceStatus = 'present';
+      }
+      return {
+        etudiantId: etudiant.id,
+        display: etudiant.display || 'Étudiant inconnu',
+        noteId: etudiant.noteId || null,
+        note: etudiant.note !== undefined ? etudiant.note : null,
+        presenceStatut: etudiant.presenceStatut || 'present',
+        absenceStatus,
+        commentaire: etudiant.commentaire || '',
+      };
+    });
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants:', error);
   } finally {
@@ -140,6 +172,30 @@ const handleValidation = (field, result) => {
   formValid.value = Object.values(formErrors.value).every(error => error === null);
 };
 
+const onAbsenceChange = (row, status) => {
+  row.absenceStatus = status;
+  // map UI status to API presenceStatut
+  switch (status) {
+    case 'abs_injustifiee':
+      row.presenceStatut = 'absent_injustifie';
+      row.note = 0;
+      break;
+    case 'abs_justifiee':
+      row.presenceStatut = 'absent_justifie';
+      row.note = -0.01;
+      break;
+    case 'dispense':
+      row.presenceStatut = 'dispense';
+      row.note = -0.01;
+      break;
+    case 'present':
+    default:
+      row.presenceStatut = 'present';
+      // garder la note saisie par l'utilisateur (ne pas forcer)
+      break;
+  }
+};
+
 const submitNotes = async () => {
   isLoadingEtudiants.value = true;
   try {
@@ -150,17 +206,32 @@ const submitNotes = async () => {
         continue;
       }
 
-      // si absence justifiée, forcer la note à -0.01
-      if (row.absenceJustifiee === true) {
-        row.note = -0.01;
+      // déterminer la note en fonction du statut de présence
+      let computedNote = row.note;
+      const computedPresenceStatut = row.presenceStatut || 'present';
+      switch (computedPresenceStatut) {
+        case 'absent_injustifie':
+          computedNote = 0;
+          break;
+        case 'absent_justifie':
+        case 'dispense':
+          computedNote = -0.01;
+          break;
+        case 'present':
+        default:
+          // garder la note telle quelle
+          break;
       }
 
-      // préparer le payload sans champs locaux
+      // synchroniser les champs conservés
+      row.note = computedNote;
+
+      // préparer le payload
       const payload = {
         evaluation: `/api/scol_evaluations/${props.evaluationId}`,
         scolariteSemestre: `/api/etudiant_scolarite_semestres/${scolariteId}`,
-        note: row.absenceJustifiee ? -0.01 : row.note,
-        absenceJustifiee: row.absenceJustifiee,
+        note: computedNote,
+        presenceStatut: computedPresenceStatut,
         commentaire: row.commentaire || '',
         uuid: row.noteId ? undefined : uuidv4() // nouveau uuid seulement pour création
       };
@@ -175,7 +246,7 @@ const submitNotes = async () => {
         if (row.noteId) {
           const etudiant = etudiants.value.find(e => e.id === row.etudiantId);
           // mise à jour
-          if (etudiant.note !== payload.note || etudiant.absenceJustifiee !== payload.absenceJustifiee || etudiant.commentaire !== payload.commentaire) {
+          if (etudiant.note !== payload.note || etudiant.presenceStatut !== payload.presenceStatut || etudiant.commentaire !== payload.commentaire) {
             await updateEtudiantNoteService(row.noteId, payload);
           }
         } else {
@@ -286,6 +357,7 @@ const onRowsChange = async rows => {
                 :rules="[]"
                 inputId="minmax" :min="-0.01" :max="20"
                 :minfractiondigits="2" :maxfractiondigits="2"
+                :disabled="slotProps.data.absenceStatus !== 'present'"
                 @validation="result => handleValidation('note', result)"
             />
           </template>
@@ -295,12 +367,18 @@ const onRowsChange = async rows => {
           <template #body="slotProps">
             <ValidatedInput
                 class="!mb-0"
-                v-model="slotProps.data.absenceJustifiee"
+                v-model="slotProps.data.absenceStatus"
                 type="select"
                 placeholder="Présent"
-                :options="[{ label: 'Présent', value: false }, { label: 'Absence justifiée', value: true }]"
-                name="absenceJustifiee"
+                :options="[
+                  { label: 'Présent', value: 'present' },
+                  { label: 'Absence injustifiée', value: 'abs_injustifiee' },
+                  { label: 'Absence justifiée', value: 'abs_justifiee' },
+                  { label: 'Dispensé', value: 'dispense' }
+                ]"
+                name="absenceStatus"
                 :rules="[]"
+                @update:modelValue="val => onAbsenceChange(slotProps.data, val)"
                 @validation="result => handleValidation('absence', result)"
             >
             </ValidatedInput>

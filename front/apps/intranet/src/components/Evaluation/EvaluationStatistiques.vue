@@ -71,6 +71,8 @@ const getSeverity = (type) => {
       <EvaluationCard :evaluation="evaluation" class="mb-8"/>
     </div>
 
+    <Divider></Divider>
+
     <div class="mx-12 flex flex-col gap-8">
       <div class="flex items-center justify-between gap-4">
         <div class="w-full">

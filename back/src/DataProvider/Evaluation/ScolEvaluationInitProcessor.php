@@ -99,8 +99,8 @@ class ScolEvaluationInitProcessor implements ProcessorInterface
             $note->setEvaluation($data);
             $note->setScolariteSemestre($ess);
             $note->setScolarite($ess->getScolarite());
-            // Initialisation: note=null, absence=false, commentaire=null
-            $note->setAbsenceJustifiee(false);
+            // Initialisation: note=null, presenceStatut=present, commentaire=null
+            $note->setPresenceStatut(EtudiantNote::STATUT_PRESENT);
             $note->setCommentaire(null);
             $note->setUuid(Uuid::v4());
             $this->em->persist($note);

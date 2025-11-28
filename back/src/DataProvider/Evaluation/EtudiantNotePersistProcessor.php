@@ -62,8 +62,12 @@ class EtudiantNotePersistProcessor implements ProcessorInterface
                 continue;
             }
             $n = $note->getNote();
-            // ignore null notes and justified absences
-            if (null === $n || $note->isAbsenceJustifiee()) {
+            // ignore null notes and justified absences/dispenses (do not include in stats)
+            if (null === $n) {
+                continue;
+            }
+            $ps = $note->getPresenceStatut();
+            if (in_array($ps, [EtudiantNote::STATUT_ABSENT_JUSTIFIE, EtudiantNote::STATUT_DISPENSE], true)) {
                 continue;
             }
             $values[] = (float) $n;

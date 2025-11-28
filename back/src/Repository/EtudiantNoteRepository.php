@@ -31,7 +31,8 @@ class EtudiantNoteRepository extends ServiceEntityRepository
         return (int) $this->createQueryBuilder('n')
             ->select('COUNT(n.id)')
             ->andWhere('n.evaluation = :evaluation')
-            ->andWhere('(n.note IS NOT NULL OR n.absenceJustifiee = true)')
+            ->andWhere('(n.note IS NOT NULL OR n.presenceStatut IN (:ps))')
+            ->setParameter('ps', [EtudiantNote::STATUT_ABSENT_JUSTIFIE, EtudiantNote::STATUT_DISPENSE])
             ->setParameter('evaluation', $evaluation)
             ->getQuery()
             ->getSingleScalarResult();

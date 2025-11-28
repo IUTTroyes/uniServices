@@ -31,9 +31,15 @@ const numericNotes = computed(() => {
       if (n == null) return null;
       if (typeof n === 'number') return isFinite(n) ? n : null;
       if (typeof n === 'object' && n !== null) {
-        if (n.absenceJustifiee === true) return null;
+        const ps = n.presenceStatut ?? n.presence_status ?? null;
+        if (ps === 'absent_justifie' || ps === 'dispense') return null;
         const v = n.note ?? n.Note ?? null;
-        return typeof v === 'number' && isFinite(v) ? v : null;
+        if (typeof v === 'number' && isFinite(v)) {
+          // Exclure les notes techniques non comptabilisées
+          if (v === -0.01) return null;
+          return v;
+        }
+        return null;
       }
       return null;
     })

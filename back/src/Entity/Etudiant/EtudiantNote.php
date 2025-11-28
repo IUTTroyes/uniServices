@@ -47,6 +47,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\HasLifecycleCallbacks]
 class EtudiantNote
 {
+    public const STATUT_PRESENT = 'present';
+    public const STATUT_ABSENT_JUSTIFIE = 'absent_justifie';
+    public const STATUT_DISPENSE = 'dispense';
+    public const STATUT_ABSENT_INJUSTIFIE = 'absent_injustifie';
+
     use LifeCycleTrait;
     use UuidTrait;
 
@@ -72,9 +77,9 @@ class EtudiantNote
     #[Groups(['note:detail'])]
     private ?EtudiantScolarite $scolarite = null;
 
-    #[ORM\Column]
+    #[ORM\Column(length: 32)]
     #[Groups(['note:write', 'note:detail'])]
-    private ?bool $absenceJustifiee = null;
+    private ?string $presenceStatut = self::STATUT_PRESENT;
 
     #[ORM\Column(nullable: true)]
     private ?array $historique = null;
@@ -91,12 +96,21 @@ class EtudiantNote
 
     public function getNote(): ?float
     {
-        return $this->note;
+        switch ($this->presenceStatut) {
+            case self::STATUT_ABSENT_JUSTIFIE:
+            case self::STATUT_DISPENSE:
+                return -0.01;
+            case self::STATUT_ABSENT_INJUSTIFIE:
+                return 0.0;
+            case self::STATUT_PRESENT:
+            default:
+                return $this->note;
+        }
     }
 
     public function setNote(float $note): static
     {
-        if ($note < 0.0 || $note > 20.0) {
+        if ($note < -0.01 || $note > 20.0) {
             throw new \InvalidArgumentException('La valeur doit être comprise entre 0 et 20.');
         }
 
@@ -141,14 +155,26 @@ class EtudiantNote
         return $this;
     }
 
-    public function isAbsenceJustifiee(): ?bool
+    // Nouveaux accesseurs pour le statut de présence
+    public function getPresenceStatut(): ?string
     {
-        return $this->absenceJustifiee;
+        return $this->presenceStatut;
     }
 
-    public function setAbsenceJustifiee(bool $absenceJustifiee): static
+    public function setPresenceStatut(string $presenceStatut): static
     {
-        $this->absenceJustifiee = $absenceJustifiee;
+        $allowed = [
+            self::STATUT_PRESENT,
+            self::STATUT_ABSENT_JUSTIFIE,
+            self::STATUT_DISPENSE,
+            self::STATUT_ABSENT_INJUSTIFIE,
+        ];
+
+        if (!in_array($presenceStatut, $allowed, true)) {
+            throw new \InvalidArgumentException('Statut de présence invalide.');
+        }
+
+        $this->presenceStatut = $presenceStatut;
 
         return $this;
     }
