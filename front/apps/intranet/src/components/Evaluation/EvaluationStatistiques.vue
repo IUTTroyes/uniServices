@@ -68,7 +68,7 @@ const getSeverity = (type) => {
   <div v-else>
     <SimpleSkeleton v-if="isLoading" :width="'100%'" :height="'400px'"/>
     <div v-else>
-      <EvaluationCard :evaluation="evaluation" class="mb-8"/>
+      <EvaluationCard :evaluation="evaluation" :semestreId="props.semestreId" :useLocalDialog="true" class="mb-8"/>
     </div>
 
     <Divider></Divider>

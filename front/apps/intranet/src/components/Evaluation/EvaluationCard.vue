@@ -1,9 +1,19 @@
 <script setup>
-import {defineProps, defineEmits} from 'vue';
+import {defineProps, defineEmits, ref, computed, nextTick} from 'vue';
 import {PermissionGuard} from '@components/index.js';
+import EvaluationSaisieNotesForm from "./EvaluationSaisieNotesForm.vue";
+import EvaluationForm from "./EvaluationForm.vue";
+import EvaluationListeInitForm from "./EvaluationListeInitForm.vue";
+import EvaluationStatistiques from "./EvaluationStatistiques.vue";
+
+const showDialog = ref(false);
+const dialogMode = ref(''); // 'init' | 'edit' | 'saisie'
+const dialogHeader = ref('');
 
 const props = defineProps({
-  evaluation: { type: Object, required: true }
+  evaluation: { type: Object, required: true },
+  semestreId: { type: Number, required: true },
+  useLocalDialog: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(['open-dialog', 'update-visibility', 'update-edit']);
@@ -21,8 +31,19 @@ const getSeverity = (type) => {
   }
 };
 
-const onOpen = (mode, header) => {
-  emit('open-dialog', props.evaluation.id, mode, header);
+const onOpen = async (mode, header) => {
+  if (props.useLocalDialog) {
+    if (showDialog.value) {
+      showDialog.value = false;
+      await nextTick();
+    }
+    dialogMode.value = mode;
+    dialogHeader.value = header;
+    showDialog.value = true;
+  } else {
+    // Déporter l'ouverture au parent pour éviter l'ouverture en double
+    emit('open-dialog', props.evaluation.id, mode, header);
+  }
 };
 
 const onToggleVisibility = () => {
@@ -31,6 +52,19 @@ const onToggleVisibility = () => {
 
 const onToggleEdit = () => {
   emit('update-edit', props.evaluation);
+};
+
+// Choix du composant selon le mode
+const dialogComponent = computed(() => {
+  return dialogMode.value === 'saisie' ? EvaluationSaisieNotesForm : dialogMode.value === 'edit' ? EvaluationForm : dialogMode.value === 'initAll' ? EvaluationListeInitForm : dialogMode.value === 'stat' ? EvaluationStatistiques : null;
+});
+
+const onEvaluationClosed = async () => {
+  // fermeture locale uniquement
+  showDialog.value = false;
+};
+const onEvaluationSaved = async () => {
+  // pas d'action globale ici; le parent gère l'actualisation lorsque le dialog est parent
 };
 </script>
 
@@ -112,6 +146,10 @@ const onToggleEdit = () => {
           </div>
         </div>
       </div>
+
+      <Dialog :header="dialogHeader" v-model:visible="showDialog" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+        <component v-if="showDialog" :is="dialogComponent" :evaluationId="evaluation.id" :semestreId="semestreId" @saved="onEvaluationSaved" @close="onEvaluationClosed"/>
+      </Dialog>
     </PermissionGuard>
   </div>
 </template>

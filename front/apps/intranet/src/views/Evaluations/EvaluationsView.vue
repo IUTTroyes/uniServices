@@ -349,6 +349,7 @@ const onEvaluationSaved = async () => {
                     v-for="evaluation in enseignement.evaluations"
                     :key="evaluation.id"
                     :evaluation="evaluation"
+                    :semestreId="selectedSemestre.id"
                     @open-dialog="openEvaluationDialog"
                     @update-visibility="updateEvaluationVisibility"
                     @update-edit="updateEvaluationEdit"
