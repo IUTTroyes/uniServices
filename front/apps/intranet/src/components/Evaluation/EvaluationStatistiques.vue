@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref} from 'vue';
 import {ErrorView, SimpleSkeleton} from "@components";
-import {getEvaluationService} from "@requests/scol_services/evaluationService.js";
+import {getEvaluationService, updateEvaluationService} from "@requests/scol_services/evaluationService.js";
 import EvaluationNotesRepartitionChart from "./EvaluationNotesRepartitionChart.vue";
 import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 
@@ -61,6 +61,24 @@ const getSeverity = (type) => {
       return 'secondary';
   }
 };
+
+const updateEvaluationVisibility = async (evaluation) => {
+  try {
+    await updateEvaluationService(evaluation.id, { visible: evaluation.visible }, true);
+  } catch (error) {
+    hasError.value = true;
+    console.error('Error updating evaluation visibility:', error);
+  }
+}
+
+const updateEvaluationEdit = async (evaluation) => {
+  try {
+    await updateEvaluationService(evaluation.id, { modifiable: evaluation.modifiable }, true);
+  } catch (error) {
+    hasError.value = true;
+    console.error('Error updating evaluation modifiable:', error);
+  }
+};
 </script>
 
 <template>
@@ -68,7 +86,13 @@ const getSeverity = (type) => {
   <div v-else>
     <SimpleSkeleton v-if="isLoading" :width="'100%'" :height="'400px'"/>
     <div v-else>
-      <EvaluationCard :evaluation="evaluation" :semestreId="props.semestreId" :useLocalDialog="true" class="mb-8"/>
+      <EvaluationCard class="mb-8"
+                      :evaluation="evaluation"
+                      :semestreId="props.semestreId"
+                      :useLocalDialog="true"
+                      @update-visibility="updateEvaluationVisibility"
+                      @update-edit="updateEvaluationEdit"
+      />
     </div>
 
     <Divider></Divider>
@@ -90,7 +114,7 @@ const getSeverity = (type) => {
             </div>
           </div>
         </div>
-        </div>
+      </div>
       <div class="w-full">
         <div class="text-xl font-bold mb-4">
           Répartition des notes

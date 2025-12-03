@@ -203,11 +203,7 @@ const calcEnseignementProgress = (enseignement) => {
 
 const updateEvaluationVisibility = async (evaluation) => {
   try {
-    await updateEvaluationService(evaluation.id, { visible: evaluation.visible }, '', true);
-
-    if (!hasError.value) {
-      toast.add({ severity: 'success', summary: 'Succès', detail: 'Visibilité de l\'évaluation mise à jour.', life: 3000 });
-    }
+    await updateEvaluationService(evaluation.id, { visible: evaluation.visible }, true);
   } catch (error) {
     hasError.value = true;
     console.error('Error updating evaluation visibility:', error);
@@ -216,11 +212,7 @@ const updateEvaluationVisibility = async (evaluation) => {
 
 const updateEvaluationEdit = async (evaluation) => {
   try {
-    await updateEvaluationService(evaluation.id, { modifiable: evaluation.modifiable }, '', true);
-
-    if (!hasError.value) {
-      toast.add({ severity: 'success', summary: 'Succès', detail: 'Paramètre de modification de l\'évaluation mis à jour.', life: 3000 });
-    }
+    await updateEvaluationService(evaluation.id, { modifiable: evaluation.modifiable }, true);
   } catch (error) {
     hasError.value = true;
     console.error('Error updating evaluation modifiable:', error);

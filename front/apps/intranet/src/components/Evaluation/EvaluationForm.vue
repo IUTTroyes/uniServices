@@ -59,6 +59,19 @@ const getEvaluation = async () => {
     if (response && response.date) {
       response.date = parseApiDate(response.date);
     }
+    // Normaliser personnelAutorise pour le multiselect: tableau d'IRIs '/api/personnels/{id}'
+    if (Array.isArray(response?.personnelAutorise)) {
+      response.personnelAutorise = response.personnelAutorise.map(p => {
+        if (typeof p === 'string') return p;
+        if (p && typeof p === 'object') {
+          const id = p.id ?? (typeof p['@id'] === 'string' ? p['@id'].split('/').pop() : undefined);
+          return id ? `/api/personnels/${id}` : null;
+        }
+        return null;
+      }).filter(v => !!v);
+    } else {
+      response.personnelAutorise = [];
+    }
     evaluation.value = response;
   } catch (error) {
     console.error('Erreur lors du chargement de l\'évaluation:', error);
@@ -92,14 +105,18 @@ const handleValidation = (field, result) => {
 const updateEvaluation = async () => {
   try {
     if (!formValid.value) {
-      toast.add({severity: 'error', summary: 'Erreur de validation', detail: 'Veuillez corriger les erreurs de validation', life: 5000});
+      toast.add({severity: 'error', summary: 'Erreur de validation', detail: 'Veuillez corriger les erreurs dans le formulaire', life: 5000});
       return;
     }
     // préparer payload : transformer relations et la date
     const payload = { ...evaluation.value };
-    if (payload.enseignement && payload.enseignement.id) {
+    if (payload.enseignement && payload.enseignement.id && payload.personnelAutorise) {
       payload.enseignement = `/api/scol_enseignements/${payload.enseignement.id}`;
       payload.semestre = `/api/structure_semestres/${props.semestreId}`;
+      // transformer personnels autorisés en URI
+      payload.personnelAutorise = Array.isArray(payload.personnelAutorise)
+        ? payload.personnelAutorise.map(personnel => typeof personnel === 'string' ? personnel : `/api/personnels/${personnel.id}`)
+        : [];
     }
     payload.notes = Array.isArray(payload.notes)
       ? payload.notes.map(note => `/api/etudiant_notes/${note.id}`)
