@@ -417,16 +417,24 @@ class ScolEvaluation
         );
     }
 
-    public function getStats(): ?array
-    {
-        $order = ['moyenne', 'mediane', 'min', 'max'];
-        $stats = $this->stats ?? [];
-        $result = [];
-        foreach ($order as $key) {
-            $result[$key] = array_key_exists($key, $stats) ? $stats[$key] : 0;
-        }
-        return $result;
-    }
+   public function getStats(): ?array
+   {
+       $order = [
+           'moyenne' => 'Moyenne',
+           'mediane' => 'Médiane',
+           'min' => 'Min',
+           'max' => 'Max',
+           'dispenses' => 'Dispensés',
+           'absences_justifiees' => 'Absences justifiées',
+           'absences_injustifiees' => 'Absences injustifiées',
+       ];
+       $stats = $this->stats ?? [];
+       $result = [];
+       foreach ($order as $key => $label) {
+           $result[$label] = array_key_exists($key, $stats) ? $stats[$key] : 0;
+       }
+       return $result;
+   }
 
     public function setStats(?array $stats): static
     {

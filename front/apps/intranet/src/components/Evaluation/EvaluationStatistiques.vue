@@ -50,19 +50,6 @@ const calcEvaluationProgress = (evaluation) => {
   }
 };
 
-const getSeverity = (type) => {
-  switch (type) {
-    case 'Examen':
-      return 'error';
-    case 'Travaux Pratiques':
-      return 'info';
-    case 'Projet':
-      return 'warn';
-    default:
-      return 'secondary';
-  }
-};
-
 const updateEvaluationVisibility = async (evaluation) => {
   try {
     await updateEvaluationService(evaluation.id, { visible: evaluation.visible }, true);
@@ -85,6 +72,13 @@ const updateEvaluationEdit = async (evaluation) => {
     emit('saved');
   }
 };
+
+// Quand un enfant sauvegarde (ex: Saisie des notes depuis la modal Statistiques),
+// recharger l'évaluation locale puis prévenir le parent pour rafraîchir en arrière-plan
+const onChildSaved = async () => {
+  await getEvaluation();
+  emit('saved');
+};
 </script>
 
 <template>
@@ -97,7 +91,7 @@ const updateEvaluationEdit = async (evaluation) => {
                       :semestreId="props.semestreId"
                       :useLocalDialog="true"
                       :inStatsContext="true"
-                      @saved="$emit('saved')"
+                      @saved="onChildSaved"
                       @update-visibility="updateEvaluationVisibility"
                       @update-edit="updateEvaluationEdit"
       />
@@ -111,13 +105,29 @@ const updateEvaluationEdit = async (evaluation) => {
           <div class="text-xl font-bold mb-4">
             Résultats
           </div>
-          <div class="flex justify-between items-center gap-4 h-full">
-            <div v-for="(stat, key) in evaluation.stats" class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
-              <div class="first-letter:uppercase">
-                {{ key }}
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center gap-2 h-full w-full">
+              <div v-for="(entry, idx) in Object.entries(evaluation.stats || {}).slice(0,4)"
+                   :key="'stat-first-'+entry[0]"
+                   class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-1/4 min-w-48 flex flex-col items-center justify-center">
+                <div class="first-letter:uppercase">
+                  {{ entry[0] }}
+                </div>
+                <div class="text-lg font-bold">
+                  {{ entry[1] }}
+                </div>
               </div>
-              <div class="text-lg font-bold">
-                {{ stat }}
+            </div>
+            <div class="flex items-center gap-2 h-full w-full">
+              <div v-for="(entry, idx) in Object.entries(evaluation.stats || {}).slice(4,7)"
+                   :key="'stat-next-'+entry[0]"
+                   class="border border-neutral-300 p-4 rounded-lg w-1/3 min-w-48 flex flex-col items-center justify-center">
+                <div class="first-letter:uppercase">
+                  {{ entry[0] }}
+                </div>
+                <div class="text-lg font-bold">
+                  {{ entry[1] }}
+                </div>
               </div>
             </div>
           </div>
@@ -127,9 +137,7 @@ const updateEvaluationEdit = async (evaluation) => {
         <div class="text-xl font-bold mb-4">
           Répartition des notes
         </div>
-        <div class="flex justify-between items-center gap-4">
-          <EvaluationNotesRepartitionChart :notes="evaluation.notes" class="w-2/3"/>
-        </div>
+        <EvaluationNotesRepartitionChart :notes="evaluation.notes" class="w-full"/>
       </div>
     </div>
   </div>

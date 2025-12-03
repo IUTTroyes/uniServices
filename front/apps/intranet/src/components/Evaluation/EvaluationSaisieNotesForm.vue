@@ -14,7 +14,7 @@ import {v4 as uuidv4} from 'uuid';
 import { useToast } from "primevue/usetoast";
 
 const toast = useToast();
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close', 'saved']);
 const hasError = ref(false);
 const formValid = ref(true);
 const formErrors = ref({});
@@ -390,7 +390,7 @@ const onRowsChange = async rows => {
             <ValidatedInput
                 class="!mb-0"
                 name="commentaire"
-                type="text"
+                type="textarea"
                 v-model="slotProps.data.commentaire"
                 :rules="[]"
                 @validation="result => handleValidation('commentaire', result)"

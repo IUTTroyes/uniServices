@@ -57,24 +57,53 @@ class EtudiantNotePersistProcessor implements ProcessorInterface
     private function calcEvaluationStats(ScolEvaluation $evaluation): void
     {
         $values = [];
+        $absJustifiees = 0;
+        $absInjustifiees = 0;
+        $dispenses = 0;
+
+        $excludeStatuses = [
+            EtudiantNote::STATUT_ABSENT_JUSTIFIE,
+            EtudiantNote::STATUT_ABSENT_INJUSTIFIE,
+            EtudiantNote::STATUT_DISPENSE,
+        ];
+
         foreach ($evaluation->getNotes() as $note) {
             if (!$note instanceof EtudiantNote) {
                 continue;
             }
+
+            $ps = $note->getPresenceStatut();
+
+            // compter les différents types d'absences
+            if ($ps === EtudiantNote::STATUT_ABSENT_JUSTIFIE) {
+                $absJustifiees++;
+            } elseif ($ps === EtudiantNote::STATUT_ABSENT_INJUSTIFIE) {
+                $absInjustifiees++;
+            } elseif ($ps === EtudiantNote::STATUT_DISPENSE) {
+                $dispenses++;
+            }
+
+            // récupérer la note numérique uniquement si elle existe et n'est pas une absence/dispense
             $n = $note->getNote();
-            // ignore null notes and justified absences/dispenses (do not include in stats)
             if (null === $n) {
                 continue;
             }
-            $ps = $note->getPresenceStatut();
-            if (in_array($ps, [EtudiantNote::STATUT_ABSENT_JUSTIFIE, EtudiantNote::STATUT_DISPENSE], true)) {
+            if (in_array($ps, $excludeStatuses, true)) {
                 continue;
             }
-            $values[] = (float) $n;
+            $values[] = $n;
         }
 
         if (empty($values)) {
-            $stats = ['moyenne' => 0, 'mediane' => 0, 'min' => 0, 'max' => 0];
+            $stats = [
+                'moyenne' => 0,
+                'mediane' => 0,
+                'min' => 0,
+                'max' => 0,
+                'absences_justifiees' => $absJustifiees,
+                'absences_injustifiees' => $absInjustifiees,
+                'dispenses' => $dispenses,
+            ];
             $evaluation->setStats($stats);
             return;
         }
@@ -99,6 +128,9 @@ class EtudiantNotePersistProcessor implements ProcessorInterface
             'mediane' => $mediane,
             'min' => $min,
             'max' => $max,
+            'absences_justifiees' => $absJustifiees,
+            'absences_injustifiees' => $absInjustifiees,
+            'dispenses' => $dispenses,
         ];
 
         $evaluation->setStats($stats);

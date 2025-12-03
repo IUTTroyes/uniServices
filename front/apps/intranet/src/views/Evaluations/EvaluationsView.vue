@@ -234,19 +234,6 @@ const openEvaluationDialog = (evaluationId, mode = 'edit', header) => {
   showDialog.value = true;
 };
 
-const getSeverity = (type) => {
-  switch (type) {
-    case 'Examen':
-      return 'error';
-    case 'Travaux Pratiques':
-      return 'info';
-    case 'Projet':
-      return 'warn';
-    default:
-      return 'secondary';
-  }
-};
-
 const onEvaluationClosed = async () => {
   showDialog.value = false;
   selectedEvaluation.value = null;
