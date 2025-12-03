@@ -14,9 +14,10 @@ const props = defineProps({
   evaluation: { type: Object, required: true },
   semestreId: { type: Number, required: true },
   useLocalDialog: { type: Boolean, default: false },
+  inStatsContext: { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['open-dialog', 'update-visibility', 'update-edit']);
+const emit = defineEmits(['open-dialog', 'update-visibility', 'update-edit', 'saved']);
 
 const getSeverity = (type) => {
   switch (type) {
@@ -64,7 +65,8 @@ const onEvaluationClosed = async () => {
   showDialog.value = false;
 };
 const onEvaluationSaved = async () => {
-  // pas d'action globale ici; le parent gère l'actualisation lorsque le dialog est parent
+  // Propager l'événement afin que le parent (ex: modal Statistiques) puisse rafraîchir et remonter jusqu'à la vue
+  emit('saved');
 };
 </script>
 
@@ -130,7 +132,7 @@ const onEvaluationSaved = async () => {
         <div class="flex items-center justify-start gap-2">
           <Button v-if="evaluation.etat !== 'non_initialisee'" label="Saisir les notes" icon="pi pi-file-edit" outlined severity="primary" size="small" @click="onOpen('saisie', 'Saisie des notes')" />
           <Button v-if="evaluation.etat !== 'non_initialisee'" label="Modifier" icon="pi pi-pencil" outlined severity="warn" size="small" @click="onOpen('edit', 'Édition de l\'évaluation')" />
-          <Button v-if="evaluation.etat !== 'non_initialisee'" label="Statistiques" icon="pi pi-chart-line" outlined severity="info" size="small" @click="onOpen('stat', 'Statistiques de l\'évaluation')" />
+          <Button v-if="evaluation.etat !== 'non_initialisee' && !props.inStatsContext" label="Statistiques" icon="pi pi-chart-line" outlined severity="info" size="small" @click="onOpen('stat', 'Statistiques de l\'évaluation')" />
           <Button v-if="evaluation.etat === 'non_initialisee'" label="Initialiser" icon="pi pi-plus" outlined severity="primary" size="small" @click="onOpen('edit', 'Initialiser l\'évaluation')" />
         </div>
         <div class="flex items-center justify-end gap-4">

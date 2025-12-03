@@ -8,6 +8,7 @@ import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 const hasError = ref(false);
 const isLoading = ref(true);
 const evaluation = ref({});
+const emit = defineEmits(['saved', 'close']);
 
 const props = defineProps({
   evaluationId: {
@@ -68,6 +69,9 @@ const updateEvaluationVisibility = async (evaluation) => {
   } catch (error) {
     hasError.value = true;
     console.error('Error updating evaluation visibility:', error);
+  } finally {
+    // prévenir le parent de rafraîchir les données en arrière-plan
+    emit('saved');
   }
 }
 
@@ -77,6 +81,8 @@ const updateEvaluationEdit = async (evaluation) => {
   } catch (error) {
     hasError.value = true;
     console.error('Error updating evaluation modifiable:', error);
+  } finally {
+    emit('saved');
   }
 };
 </script>
@@ -90,6 +96,8 @@ const updateEvaluationEdit = async (evaluation) => {
                       :evaluation="evaluation"
                       :semestreId="props.semestreId"
                       :useLocalDialog="true"
+                      :inStatsContext="true"
+                      @saved="$emit('saved')"
                       @update-visibility="updateEvaluationVisibility"
                       @update-edit="updateEvaluationEdit"
       />

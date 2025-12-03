@@ -126,7 +126,7 @@ const updateEvaluation = async () => {
     if (evaluation.value.etat === 'non_initialisee') {
       console.log('ok')
     }
-    await updateEvaluationService(payload.id, payload, '', true);
+    await updateEvaluationService(payload.id, payload, true);
     await getEvaluation();
   } catch (error) {
     console.error('Erreur lors de la mise à jour de l\'évaluation:', error);
