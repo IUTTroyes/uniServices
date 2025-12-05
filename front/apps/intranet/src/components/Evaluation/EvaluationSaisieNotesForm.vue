@@ -99,8 +99,7 @@ const getEtudiants = async () => {
       if (notesList && notesList.length > 0) {
         const note = notesList[0];
         etudiant.note = note.note;
-        // nouvelle propriété: presenceStatut
-        // fallback: si non fourni (anciennes données), déduire uniquement depuis la valeur de note
+        // si non fourni (anciennes données), déduire uniquement depuis la valeur de note
         let presenceStatut = note.presenceStatut;
         if (!presenceStatut) {
           const n = note.note;
