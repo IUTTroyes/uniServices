@@ -3,6 +3,7 @@ import {ref, markRaw, onMounted} from 'vue';
 import EdtPersonnel from "@/components/Edt/EdtPersonnel.vue";
 import EdtDepartement from "@/components/Edt/EdtDepartement.vue";
 import EdtEtudiant from "../components/Edt/EdtEtudiant.vue";
+import EdtStatistiques from "../components/Edt/EdtStatistiques.vue";
 import {useUsersStore} from "@stores/user_stores/userStore.js";
 
 const store = useUsersStore();
@@ -14,6 +15,7 @@ onMounted( () => {
     tabs.value =[
       { title: 'Personnel', component: markRaw(EdtPersonnel), value: '0' },
       { title: 'Département', component: markRaw(EdtDepartement), value: '1' },
+      { title: 'Statistiques', component: markRaw(EdtStatistiques), value: '2' },
     ];
   }
   if (store.isEtudiant) {

@@ -2,7 +2,7 @@
 import {VueCal} from 'vue-cal';
 import 'vue-cal/style';
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
-import {useSemestreStore, useUsersStore} from '@stores';
+import {useDiplomeStore, useUsersStore} from '@stores';
 import {MessageCard, PhotoUser, SimpleSkeleton} from '@components';
 import {getISOWeekNumber} from "@helpers/date";
 import EdtEvent from "./EdtEvent.vue";
@@ -30,11 +30,12 @@ const viewTranslations = {
 const toast = useToast();
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const usersStore = useUsersStore();
-const semestreStore = useSemestreStore();
-const isLoadingSemestres = ref(false);
-const hasErrorSemestres = ref(false);
-const semestresList = ref([]);
-const selectedSemestre = ref(null);
+const diplomes = ref({});
+const diplomeStore = useDiplomeStore();
+const isLoadingDiplomes = ref(true);
+const selectedDiplome = ref({});
+const selectedAnnee = ref({});
+const selectedSemestre = ref({});
 const isLoadingEnseignants = ref(false);
 const hasErrorEnseignants = ref(false);
 const enseignantsList = ref([]);
@@ -63,13 +64,40 @@ onMounted(async () => {
   isLoadingEnseignants.value = true;
   isLoadingSalles.value = true;
   isLoadingEvents.value = true;
-  await getSemestres();
+  getDiplomes();
   await getEnseignants();
   await getSalles();
   await getEnseignements();
   await getEventsDepartementWeek();
   isLoadingEvents.value = false;
 });
+
+watch(selectedDiplome, () => {
+  selectedAnnee.value = selectedDiplome.value.annees[0];
+});
+watch(selectedAnnee, () => {
+  selectedSemestre.value = selectedAnnee.value.semestres[0];
+})
+watch(selectedSemestre, () => {
+  getEnseignements();
+})
+
+const getDiplomes = async () => {
+  isLoadingDiplomes.value = true;
+  try {
+    diplomes.value = await diplomeStore.diplomes;
+    // retirer les diplomes inactifs
+    diplomes.value = diplomes.value.filter(diplome => diplome.actif);
+  } catch (error) {
+    hasError.value = true;
+    console.error('Error fetching diplomes:', error);
+  } finally {
+    selectedDiplome.value = diplomes.value[0];
+    selectedAnnee.value = selectedDiplome.value.annees[0];
+    selectedSemestre.value = selectedAnnee.value.semestres[0];
+    isLoadingDiplomes.value = false;
+  }
+};
 
 const getEnseignants = async () => {
   try {
@@ -116,19 +144,6 @@ const getEnseignements = async () => {
   }
 };
 
-const getSemestres = async () => {
-  isLoadingSemestres.value = true;
-  try {
-    await semestreStore.getSemestresByDepartement(departement.id, true, '/mini');
-    semestresList.value = semestreStore.semestres;
-  } catch (error) {
-    hasErrorSemestres.value = true;
-    console.error('Erreur lors du chargement des semestres :', error);
-  } finally {
-    isLoadingSemestres.value = false;
-  }
-};
-
 const getWeekUnivNumber = async (date) => {
   const calendarWeekNumber = getISOWeekNumber(date);
   try {
@@ -146,7 +161,7 @@ const getSemestreGroupes = async (semestre) => {
       semestre: semestre.id,
       type: "TP",
     };
-    const groupes = await getGroupesService(params);
+    const groupes = await getGroupesService(params, '/mini');
     schedules.value = groupes.map(groupe => ({
       id: groupe.id,
       label: groupe.libelle,
@@ -479,63 +494,75 @@ const heuresParType = computed(() => {
     </div>
   </Dialog>
 
-  <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/3" />
-  <Message v-else-if="hasErrorSemestres" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
-    Erreur lors du chargement des semestres.
-  </Message>
-  <Select
-      v-else
-      v-model="selectedSemestre"
-      :options="semestresList"
-      optionLabel="libelle"
-      placeholder="Sélectionner un semestre"
-      class="w-full my-6"
-      show-clear
-  ></Select>
-  <div class="flex justify-center items-center gap-4 mb-4">
-    <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>
-    <Message v-else-if="hasErrorEnseignants" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
-      Erreur lors du chargement des enseignants.
-    </Message>
-    <Select
-        v-else
-        v-model="selectedEnseignant"
-        :options="enseignantsList"
-        optionLabel="display"
-        placeholder="Filtrer par enseignant"
-        class="w-full my-6"
-        show-clear
-        filter
-    ></Select>
-    <SimpleSkeleton v-if="isLoadingSalles" class="w-1/3"/>
-    <Message v-else-if="hasErrorSalles" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
-      Erreur lors du chargement des salles.
-    </Message>
-    <Select
-        v-else
-        v-model="selectedSalle"
-        :options="sallesList"
-        optionLabel="libelle"
-        placeholder="Filtrer par salle"
-        class="w-full my-6"
-        show-clear
-        filter
-    ></Select>
-    <SimpleSkeleton v-if="isLoadingEnseignements" class="w-1/3"/>
-    <Message v-else-if="hasErrorEnseignements" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
-      Erreur lors du chargement des enseignements.
-    </Message>
-    <Select
-        v-else
-        v-model="selectedEnseignement"
-        :options="enseignementsList"
-        optionLabel="libelle"
-        placeholder="Filtrer par enseignement"
-        class="w-full my-6"
-        show-clear
-        filter
-    ></Select>
+  <ErrorView v-if="hasError"></ErrorView>
+  <div v-else class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 mb-6 w-full bg-neutral-100/20">
+    <div class="text-lg font-bold mb-4">
+      Filtres
+    </div>
+    <SimpleSkeleton v-if="isLoadingDiplomes" class="w-full"/>
+    <Tabs v-else :value="selectedDiplome.id" scrollable>
+      <TabList>
+        <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="selectedDiplome = diplome">
+        <span>
+          <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span> <Tag v-if="!diplome.actif" severity="danger">Inactif</Tag>
+        </span>
+        </Tab>
+      </TabList>
+    </Tabs>
+    <div v-if="isLoadingDiplomes" class="flex items-center gap-4 w-full">
+      <SimpleSkeleton class="w-1/2"/>
+      <SimpleSkeleton class="w-1/2"/>
+    </div>
+    <div v-else class="mt-8 flex items-center gap-4 w-full">
+      <Select v-if="selectedDiplome" v-model="selectedAnnee" :options="selectedDiplome.annees" option-label="libelle" placeholder="Sélectionner une année" class="w-1/2"/>
+      <Select v-if="selectedAnnee" v-model="selectedSemestre" :options="selectedAnnee.semestres" option-label="libelle" placeholder="Sélectionner un semestre" class="w-1/2"/>
+    </div>
+    <div class="flex justify-center items-center gap-4 mb-4">
+      <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>
+      <Message v-else-if="hasErrorEnseignants" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
+        Erreur lors du chargement des enseignants.
+      </Message>
+      <Select
+          v-else
+          v-model="selectedEnseignant"
+          :options="enseignantsList"
+          optionLabel="display"
+          placeholder="Filtrer par enseignant"
+          class="w-full my-6"
+          show-clear
+          filter
+      ></Select>
+      <SimpleSkeleton v-if="isLoadingSalles" class="w-1/3"/>
+      <Message v-else-if="hasErrorSalles" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
+        Erreur lors du chargement des salles.
+      </Message>
+      <Select
+          v-else
+          v-model="selectedSalle"
+          :options="sallesList"
+          optionLabel="libelle"
+          placeholder="Filtrer par salle"
+          class="w-full my-6"
+          show-clear
+          filter
+      ></Select>
+      <SimpleSkeleton v-if="isLoadingEnseignements" class="w-1/3"/>
+      <Message v-else-if="hasErrorEnseignements" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">
+        Erreur lors du chargement des enseignements.
+      </Message>
+      <Select
+          v-else
+          v-model="selectedEnseignement"
+          :options="enseignementsList"
+          optionLabel="libelle"
+          placeholder="Filtrer par enseignement"
+          class="w-full my-6"
+          show-clear
+          filter
+      ></Select>
+    </div>
   </div>
+
   <div class="flex justify-end">
     <Button v-if="!liste" @click="liste = true">Afficher la liste</Button>
     <Button v-else @click="liste = false">Masquer la liste</Button>
