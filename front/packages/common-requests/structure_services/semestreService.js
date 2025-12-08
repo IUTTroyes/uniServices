@@ -4,12 +4,11 @@ import apiCall from '@helpers/apiCall';
 // ----------------------------------------------
 // ------------------- GET ----------------------
 // ----------------------------------------------
-
-const getSemestresService = async (showToast = false) => {
+const getSemestresService = async (params, scope = '', showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api/structure_semestres`],
+            [`/api${scope}/structure_semestres`, { params }],
             'Semestres récupérés avec succès',
             'Erreur lors de la récupération des semestres',
             showToast
@@ -36,6 +35,10 @@ const getSemestreService = async (semestreId, showToast = false) => {
     }
 }
 
+
+//----------------------------------------------
+//@deprecated use getSemestresService with params
+// ----------------------------------------------
 const getDepartementSemestresService = async (departementId, onlyActif = false, scope = '', showToast = false) => {
     try {
         const response = await apiCall(

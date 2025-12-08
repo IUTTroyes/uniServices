@@ -1,7 +1,7 @@
 <script setup>
 
 import { onMounted, ref, computed } from "vue";
-import { getDepartementSemestresService, getAnneesService } from "@requests";
+import { getAnneesService } from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore, useSemestreStore } from "@stores";
 

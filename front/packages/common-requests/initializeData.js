@@ -88,8 +88,5 @@ const initializeUserData = async () => {
       // on ajoute dans le tableau des diplômes les années associées
         diplome.annees = await anneeStore.getAnneesDiplome(diplome.id);
     }
-
-    const semestreStore = useSemestreStore();
-    await semestreStore.getSemestresByDepartement(departement.id);
   }
 };

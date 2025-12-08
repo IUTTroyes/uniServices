@@ -26,6 +26,12 @@ class DiplomeFilter extends AbstractFilter
                 ->setParameter('departement', $value)
             ;
         }
+        elseif ('actif' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.actif = :actif', $alias))
+                ->setParameter('actif', filter_var($value, FILTER_VALIDATE_BOOLEAN))
+            ;
+        }
     }
 
     public function getDescription(string $resourceClass): array
@@ -37,6 +43,14 @@ class DiplomeFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by departement',
+                ],
+            ],
+            'actif' => [
+                'property' => 'actif',
+                'type' => Type::BUILTIN_TYPE_BOOL,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by actif status',
                 ],
             ],
         ];

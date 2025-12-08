@@ -119,7 +119,7 @@ const getEnseignements = async () => {
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
   try {
-    await semestreStore.getSemestresByDepartement(departement.id, true);
+    await semestreStore.getSemestresByDepartement(departement.id, true, '/mini');
     semestresList.value = semestreStore.semestres;
   } catch (error) {
     hasErrorSemestres.value = true;
@@ -269,44 +269,44 @@ const getEventsDepartementWeek = async () => {
           };
 
           // If the event is a CM, it should span across all columns
-            if (event.type === 'CM') {
-              // For CM events, only define schedule and width when a semestre is selected
+          if (event.type === 'CM') {
+            // For CM events, only define schedule and width when a semestre is selected
+            mappedEvents.push({
+              ...baseEvent,
+              ...(selectedSemestre.value ? {
+                schedule: schedules.value.length > 0 ? schedules.value[0].id : event.groupe.id,
+                // Flag this as a CM event for styling
+                isCmEvent: true,
+                width: `${schedules.value.length * 100}%`
+              } : {})
+            });
+          }
+              // If the event is for a TD group with TP children, use the first TP child's schedule
+          // Only set schedule when a semestre is selected
+          else if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
+            // Get all TP children
+            const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
+
+            if (tpChildren.length > 0) {
+              // Use only the first TP child's schedule when semestre selected
               mappedEvents.push({
                 ...baseEvent,
-                ...(selectedSemestre.value ? {
-                  schedule: schedules.value.length > 0 ? schedules.value[0].id : event.groupe.id,
-                  // Flag this as a CM event for styling
-                  isCmEvent: true,
-                  width: `${schedules.value.length * 100}%`
-                } : {})
+                ...(selectedSemestre.value ? { schedule: tpChildren[0].id, isTdEvent: true } : {})
               });
-            }
-            // If the event is for a TD group with TP children, use the first TP child's schedule
-            // Only set schedule when a semestre is selected
-            else if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
-              // Get all TP children
-              const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
-
-              if (tpChildren.length > 0) {
-                // Use only the first TP child's schedule when semestre selected
-                mappedEvents.push({
-                  ...baseEvent,
-                  ...(selectedSemestre.value ? { schedule: tpChildren[0].id, isTdEvent: true } : {})
-                });
-              } else {
-                // If no TP children, set schedule only when semestre selected
-                mappedEvents.push({
-                  ...baseEvent,
-                  ...(selectedSemestre.value ? { schedule: event.groupe.id } : {})
-                });
-              }
             } else {
-              // For non-TD and non-CM events, set schedule only when semestre selected
+              // If no TP children, set schedule only when semestre selected
               mappedEvents.push({
                 ...baseEvent,
                 ...(selectedSemestre.value ? { schedule: event.groupe.id } : {})
               });
             }
+          } else {
+            // For non-TD and non-CM events, set schedule only when semestre selected
+            mappedEvents.push({
+              ...baseEvent,
+              ...(selectedSemestre.value ? { schedule: event.groupe.id } : {})
+            });
+          }
 
         });
 

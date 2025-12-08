@@ -24,17 +24,26 @@ export const useSemestreStore = defineStore('semestre', () => {
     }
   };
 
-  const getSemestresByDiplome = async (diplomeId, onlyActif = true) => {
+  const getSemestresByDiplome = async (diplomeId, onlyActif = true, scope) => {
     try {
-      semestres.value = await getDiplomeSemestresService(diplomeId, onlyActif);
+      const params = {
+        diplome: diplomeId,
+        actif: onlyActif
+      }
+        return await getSemestresService(params, scope);
     } catch (error) {
       console.error('Error fetching user:', error);
     }
   };
 
-  const getSemestresByDepartement = async (departementId, onlyActif, scope = "") => {
+  const getSemestresByDepartement = async (departementId, onlyActif = true, scope = "") => {
     try {
-      semestres.value = await getDepartementSemestresService(departementId, onlyActif, scope);
+      const params = {
+        departement: departementId,
+        actif: onlyActif
+      }
+      semestres.value = await getSemestresService(params, scope);
+      return semestres.value;
     } catch (error) {
       console.error('Error fetching user:', error);
     }
