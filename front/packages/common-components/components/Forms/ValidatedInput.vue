@@ -90,6 +90,22 @@ const props = defineProps({
   disabled: {
     type: Boolean,
     default: false
+  },
+  selectionMode: {
+    type: String,
+    default: 'single' // or 'range', 'multiple'
+  },
+  manualInput: {
+    type: Boolean,
+    default: false
+  },
+  minDate: {
+    type: Date,
+    default: null
+  },
+  maxDate: {
+    type: Date,
+    default: null
   }
 });
 
@@ -215,6 +231,7 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
 
         <DatePicker
           v-else-if="type === 'date'"
+          showIcon
           :id="name"
           :name="name"
           :modelValue="modelValue"
@@ -223,6 +240,10 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
           @update:modelValue="updateModelValue"
           dateFormat="dd/mm/yy"
           @blur="e => onBlurModelValue(e, handleBlur)"
+          :selectionMode="selectionMode"
+          :manualInput="manualInput"
+          :minDate="minDate"
+          :maxDate="maxDate"
         />
 
         <Textarea
