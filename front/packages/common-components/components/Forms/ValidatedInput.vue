@@ -106,6 +106,10 @@ const props = defineProps({
   maxDate: {
     type: Date,
     default: null
+  },
+  showClear: {
+    type: Boolean,
+    default: false
   }
 });
 
@@ -201,6 +205,7 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
 
         <Select
             v-else-if="type === 'select'"
+            :show-clear="showClear"
             :id="name"
             :name="name"
             :options="options"
@@ -216,6 +221,7 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
 
         <MultiSelect
             v-else-if="type === 'multiselect'"
+            :show-clear="showClear"
             :id="name"
             :name="name"
             :options="options"
@@ -232,6 +238,7 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
         <DatePicker
           v-else-if="type === 'date'"
           showIcon
+          :showButtonBar="true"
           :id="name"
           :name="name"
           :modelValue="modelValue"

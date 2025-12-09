@@ -2,8 +2,13 @@
 import {onMounted, ref, watch} from "vue";
 import {ErrorView, SimpleSkeleton} from "@components";
 import {ValidatedInput} from "@components";
-import {useDiplomeStore} from "@stores/structure_stores/diplomeStore.js";
+import {useDiplomeStore, useUsersStore} from "@stores";
+import {getEnseignementsService} from "@requests/scol_services/enseignementService.js";
+import {getPersonnelsService} from "@requests/user_services/personnelService.js";
+import {getSallesService} from "@requests/salleService.js";
 
+const usersStore = useUsersStore();
+const departement = usersStore.departementDefaut;
 const hasError = ref(false);
 const minDate = ref();
 const maxDate = ref();
@@ -16,13 +21,26 @@ const selectedAnnee = ref(null);
 const selectedSemestre = ref(null);
 const selectedAnneeId = ref(null);
 const selectedSemestreId = ref(null);
-const enseignantId = ref(null);
+const selectedEnseignantId = ref(null);
 const salleId = ref(null);
-const enseignementId = ref(null);
+const selectedEnseignementId = ref(null);
+const enseignements = ref([]);
+const isLoadingEnseignements = ref(false);
+const enseignants = ref([]);
+const isLoadingEnseignants = ref(true);
+const hasErrorEnseignants = ref(false);
+const salles = ref([]);
+const isLoadingSalles = ref(true);
+const selectedSalleId = ref(null);
+
+
 
 onMounted( async() => {
   await calcPeriode();
   await getDiplomes();
+  await getEnseignements();
+  await getEnseignants();
+  await getSalles();
 })
 
 const calcPeriode = () => {
@@ -54,6 +72,54 @@ const getDiplomes = async () => {
   }
 };
 
+const getEnseignements = async () => {
+  isLoadingEnseignements.value = true;
+  try {
+    const params = {
+      semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
+      departement: selectedSemestre.value ? null : departement.id,
+      actif: true,
+    };
+    enseignements.value = await getEnseignementsService(params);
+
+    // reconstruire le libelle pour inclure le code_enseignement
+    enseignements.value = enseignements.value.map(enseignement => ({
+      ...enseignement,
+      libelle: `${enseignement.codeEnseignement} - ${enseignement.libelle}`
+    }));
+  } catch (error) {
+    console.error('Erreur lors du chargement des enseignements :', error);
+  } finally {
+    isLoadingEnseignements.value = false;
+  }
+};
+
+const getEnseignants = async () => {
+  isLoadingEnseignants.value = true;
+  try {
+    const params = {
+      departement: departement.id,
+    };
+    enseignants.value = await getPersonnelsService(params);
+    console.log(enseignants.value?.[0] ?? null);
+  } catch (error) {
+    hasErrorEnseignants.value = true;
+    console.error('Erreur lors du chargement des enseignants :', error);
+  } finally {
+    isLoadingEnseignants.value = false;
+  }
+};
+
+const getSalles = async () => {
+  try {
+    salles.value = await getSallesService();
+  } catch (error) {
+    console.error('Erreur lors du chargement des salles :', error);
+  } finally {
+    isLoadingSalles.value = false;
+  }
+};
+
 watch(selectedAnneeId, (newId) => {
   if (!selectedDiplome.value) return;
   selectedAnnee.value = (selectedDiplome.value.annees || []).find(a => a.id === newId) || null;
@@ -62,9 +128,10 @@ watch(selectedAnneeId, (newId) => {
   selectedSemestreId.value = selectedSemestre.value?.id ?? null;
 });
 
-watch(selectedSemestreId, (newId) => {
+watch(selectedSemestreId, async (newId) => {
   if (!selectedAnnee.value) return;
   selectedSemestre.value = (selectedAnnee.value.semestres || []).find(s => s.id === newId) || null;
+  await getEnseignements();
 });
 const setDiplome = (diplome) => {
   selectedDiplome.value = diplome;
@@ -72,6 +139,18 @@ const setDiplome = (diplome) => {
   selectedAnneeId.value = selectedAnnee.value?.id ?? null;
   selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
   selectedSemestreId.value = selectedSemestre.value?.id ?? null;
+};
+
+const clearFilters = () => {
+  selectedDiplome.value = diplomes.value?.[0] || null;
+  selectedAnnee.value = selectedDiplome.value?.annees?.[0] || null;
+  selectedAnneeId.value = selectedAnnee.value?.id ?? null;
+  selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
+  selectedSemestreId.value = selectedSemestre.value?.id ?? null;
+  periode.value = null;
+  selectedEnseignantId.value = null;
+  selectedEnseignementId.value = null;
+  selectedSalleId.value = null;
 };
 </script>
 
@@ -128,34 +207,64 @@ const setDiplome = (diplome) => {
             :manualInput="false"
             :minDate="minDate"
             :maxDate="maxDate"
+            placeholder="Sélectionner une période"
         />
 
+      <div v-if="isLoadingEnseignements" class="w-full">
+        <div>Enseignements</div>
+        <SimpleSkeleton class="w-full"/>
+      </div>
       <ValidatedInput
-          v-model="enseignantId"
-          name="enseignant"
-          label="Enseignant"
-          type="select"
-          :rules="[]"
-          class="w-full"
-      />
-
-      <ValidatedInput
-          v-model="salleId"
-          name="salle"
-          label="Salles"
-          type="select"
-          :rules="[]"
-          class="w-full"
-      />
-
-      <ValidatedInput
-          v-model="hasError"
+          v-else
+          v-model="selectedEnseignementId"
+          :options="enseignements.map(enseignement => ({...enseignement, label: enseignement.libelle, value: enseignement.id}))"
           name="enseignement"
           label="Enseignements"
           type="select"
           :rules="[]"
           class="w-full"
+          placeholder="Sélectionner un enseignement"
+          :show-clear="true"
       />
+
+      <div v-if="isLoadingEnseignants" class="w-full">
+        <div>Enseignants</div>
+        <SimpleSkeleton class="w-full"/>
+      </div>
+      <ValidatedInput
+          v-else
+          v-model="selectedEnseignantId"
+          :options="enseignants.map(enseignant => ({...enseignant, label: enseignant.display, value: enseignant.id}))"
+          name="enseignant"
+          label="Enseignants"
+          type="select"
+          :rules="[]"
+          class="w-full"
+          placeholder="Sélectionner un enseignant"
+          :show-clear="true"
+      />
+
+
+      <div v-if="isLoadingSalles" class="w-full">
+        <div>Salles</div>
+        <SimpleSkeleton class="w-full"/>
+      </div>
+      <ValidatedInput
+          v-else
+          v-model="selectedSalleId"
+          :options="salles.map(salle => ({...salle, label: salle.libelle, value: salle.id}))"
+          name="salle"
+          label="Salles"
+          type="select"
+          :rules="[]"
+          class="w-full"
+          placeholder="Sélectionner une salle"
+          :showClear="true"
+      />
+    </div>
+
+    <div class="flex items-center justify-end gap-4 w-full">
+      <Button label="Réinitialiser les filtres" icon="pi pi-filter" severity="secondary" @click="clearFilters"/>
     </div>
   </div>
 

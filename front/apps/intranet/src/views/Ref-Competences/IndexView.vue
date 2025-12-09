@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ErrorView, ListSkeleton, SimpleSkeleton} from "@components";
+import {ErrorView, ListSkeleton, SimpleSkeleton, ValidatedInput, validationRules} from "@components";
 import {onMounted, ref} from "vue";
 import {useUsersStore} from '@stores'
 import {getReferentiels} from '@requests'
@@ -18,6 +18,8 @@ const create = ref(false);
 const isLoadingReferentiel = ref(true);
 const referentiels = ref([])
 const selectedReferentiel = ref(null)
+const oreofId = ref<string | null>(null)
+const pizza = ref(false)
 
 const confirm = useConfirm();
 const toast = useToast();
@@ -127,8 +129,14 @@ const synchronisationOreof = async () => {
       <BlocHelp message="Création d'un nouveau référentiel de compétences"></BlocHelp>
       <form class="flex flex-col gap-4 mt-2">
         <div>
-          <label for="oreofId" class="font-bold mb-2 block">Id ORéOF associé</label>
-          <InputText v-model="oreofId" id="oreofId" placeholder="Saisir l'id ORéOF"/>
+          <ValidatedInput
+            v-model="oreofId"
+            name="oreofId"
+            label="Id ORéOF associé"
+            type="text"
+            :rules="[]"
+            placeholder="Saisir l'id ORéOF"
+          />
         </div>
 
         <div class="flex items-center gap-2">
