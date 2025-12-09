@@ -3,9 +3,7 @@ import {onMounted, ref, watch} from "vue";
 import {ErrorView, SimpleSkeleton} from "@components";
 import {ValidatedInput} from "@components";
 import {useDiplomeStore, useUsersStore} from "@stores";
-import {getEnseignementsService} from "@requests/scol_services/enseignementService.js";
-import {getPersonnelsService} from "@requests/user_services/personnelService.js";
-import {getSallesService} from "@requests/salleService.js";
+import {getEnseignementsService, getPersonnelsService, getSallesService, getEdtEventsService} from "@requests";
 
 const usersStore = useUsersStore();
 const departement = usersStore.departementDefaut;
@@ -32,7 +30,8 @@ const hasErrorEnseignants = ref(false);
 const salles = ref([]);
 const isLoadingSalles = ref(true);
 const selectedSalleId = ref(null);
-
+const isLoadingEvents = ref(false);
+const events = ref([]);
 
 
 onMounted( async() => {
@@ -101,7 +100,6 @@ const getEnseignants = async () => {
       departement: departement.id,
     };
     enseignants.value = await getPersonnelsService(params);
-    console.log(enseignants.value?.[0] ?? null);
   } catch (error) {
     hasErrorEnseignants.value = true;
     console.error('Erreur lors du chargement des enseignants :', error);
@@ -152,6 +150,33 @@ const clearFilters = () => {
   selectedEnseignementId.value = null;
   selectedSalleId.value = null;
 };
+
+const getEvents = async () => {
+  isLoadingEvents.value = true;
+  try {
+    const params = {
+      departement: departement.id,
+      annee: selectedAnnee.value ? selectedAnnee.value.id : null,
+      semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
+      enseignement: selectedEnseignementId.value,
+      personnel: selectedEnseignantId.value,
+      salle: selectedSalleId.value,
+      dateDebut: periode.value ? periode.value[0].toISOString().split('T')[0] : null,
+      dateFin: periode.value ? periode.value[1].toISOString().split('T')[0] : null,
+    }
+    events.value = await getEdtEventsService(params, '/stats');
+
+    console.log(events);
+  } catch (error) {
+    console.error('Erreur lors du chargement des événements :', error);
+  } finally {
+    isLoadingEvents.value = false;
+  }
+};
+
+const applyFilters = async () => {
+  await getEvents();
+};
 </script>
 
 <template>
@@ -175,42 +200,43 @@ const clearFilters = () => {
         <SimpleSkeleton class="w-1/2"/>
       </div>
       <div v-else class="mt-8 flex items-center gap-4 w-full">
-              <ValidatedInput
-                  v-model="selectedAnneeId"
-                  :options="(selectedDiplome?.annees || []).map(annee => ({...annee, label: annee.libelle, value: annee.id}))"
-                  name="annee"
-                  label="Années"
-                  type="select"
-                  :rules="[]"
-                  class="w-full"
-              />
-              <ValidatedInput
-                  v-model="selectedSemestreId"
-                  :options="(selectedAnnee?.semestres || []).map(semestre => ({...semestre, label: semestre.libelle, value: semestre.id}))"
-                  name="semestre"
-                  label="Semestres"
-                  type="select"
-                  :rules="[]"
-                  class="w-full"
-              />
-            </div>
+        <ValidatedInput
+            v-model="selectedAnneeId"
+            :options="(selectedDiplome?.annees || []).map(annee => ({...annee, label: annee.libelle, value: annee.id}))"
+            name="annee"
+            label="Années"
+            type="select"
+            :rules="[]"
+            class="w-full"
+        />
+        <ValidatedInput
+            v-model="selectedSemestreId"
+            :options="(selectedAnnee?.semestres || []).map(semestre => ({...semestre, label: semestre.libelle, value: semestre.id}))"
+            name="semestre"
+            label="Semestres"
+            type="select"
+            :rules="[]"
+            class="w-full"
+        />
+      </div>
     </div>
     <Divider></Divider>
-    <div class="flex items-start gap-4">
-        <ValidatedInput
-            v-model="periode"
-            name="date"
-            label="Période"
-            type="date"
-            :rules="[]"
-            selectionMode="range"
-            :manualInput="false"
-            :minDate="minDate"
-            :maxDate="maxDate"
-            placeholder="Sélectionner une période"
-        />
+    <div class="flex items-start flex-wrap gap-4 mb-6">
+      <ValidatedInput
+          v-model="periode"
+          name="date"
+          label="Période"
+          type="date"
+          :rules="[]"
+          selectionMode="range"
+          :manualInput="false"
+          :minDate="minDate"
+          :maxDate="maxDate"
+          placeholder="Sélectionner une période"
+          class="!mb-0"
+      />
 
-      <div v-if="isLoadingEnseignements" class="w-full">
+      <div v-if="isLoadingEnseignements" class="w-1/4">
         <div>Enseignements</div>
         <SimpleSkeleton class="w-full"/>
       </div>
@@ -222,12 +248,12 @@ const clearFilters = () => {
           label="Enseignements"
           type="select"
           :rules="[]"
-          class="w-full"
+          class="w-1/4 !mb-0"
           placeholder="Sélectionner un enseignement"
           :show-clear="true"
       />
 
-      <div v-if="isLoadingEnseignants" class="w-full">
+      <div v-if="isLoadingEnseignants" class="w-1/4">
         <div>Enseignants</div>
         <SimpleSkeleton class="w-full"/>
       </div>
@@ -239,13 +265,13 @@ const clearFilters = () => {
           label="Enseignants"
           type="select"
           :rules="[]"
-          class="w-full"
+          class="w-1/4 !mb-0"
           placeholder="Sélectionner un enseignant"
           :show-clear="true"
       />
 
 
-      <div v-if="isLoadingSalles" class="w-full">
+      <div v-if="isLoadingSalles" class="w-1/4">
         <div>Salles</div>
         <SimpleSkeleton class="w-full"/>
       </div>
@@ -257,13 +283,14 @@ const clearFilters = () => {
           label="Salles"
           type="select"
           :rules="[]"
-          class="w-full"
+          class="w-1/4 !mb-0"
           placeholder="Sélectionner une salle"
           :showClear="true"
       />
     </div>
 
     <div class="flex items-center justify-end gap-4 w-full">
+      <Button label="Appliquer les filtres" icon="pi pi-filter" severity="primary" @click="applyFilters"/>
       <Button label="Réinitialiser les filtres" icon="pi pi-filter" severity="secondary" @click="clearFilters"/>
     </div>
   </div>

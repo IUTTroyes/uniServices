@@ -16,6 +16,7 @@ use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
 use App\Filter\EdtFilter;
 use App\Repository\Edt\EdtEventRepository;
+use App\State\Edt\EdtStatsProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -28,6 +29,11 @@ use Symfony\Component\Uid\UuidV4;
     paginationEnabled: false,
     operations: [
         new GetCollection(normalizationContext: ['groups' => ['edt_event:read:agenda']]),
+        new GetCollection(
+            uriTemplate: '/stats/edt_events',
+            normalizationContext: ['groups' => ['edt_event:read:agenda']],
+            provider: EdtStatsProvider::class,
+        ),
     ]
 )]
 #[ORM\HasLifecycleCallbacks]
