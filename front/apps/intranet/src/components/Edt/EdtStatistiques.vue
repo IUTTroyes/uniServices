@@ -5,6 +5,7 @@ import {ValidatedInput} from "@components";
 import {useDiplomeStore, useUsersStore} from "@stores";
 import {getEnseignementsService, getPersonnelsService, getSallesService, getEdtEventsService} from "@requests";
 import { getAnneeUniversitaireService } from "@requests";
+import Loader from "@components/loader/GlobalLoader.vue";
 
 // Aide: formater un objet Date en YYYY-MM-DD en heure locale (sans décalage de fuseau)
 const formaterDateLocale = (d) => {
@@ -210,26 +211,26 @@ watch(selectedAnneeId, (newId) => {
 });
 
 watch(selectedSemestreId, async (newId) => {
-  if (!selectedAnnee.value) return;
-  selectedSemestre.value = (selectedAnnee.value.semestres || []).find(s => s.id === newId) || null;
-  await getEnseignements();
-  await getEventsData();
+  if (selectedAnnee.value) {
+    selectedSemestre.value = (selectedAnnee.value.semestres || []).find(s => s.id === newId) || null;
+  }
+  getEventsData();
+  getEnseignements();
 });
 const setDiplome = async (diplome) => {
-    selectedDiplome.value = diplome;
-    if (!diplome) {
-      selectedAnnee.value = null;
-      selectedAnneeId.value = null;
-      selectedSemestre.value = null;
-      selectedSemestreId.value = null;
-      await getEventsData();
-      return;
-    }
-    selectedAnnee.value = diplome.annees?.[0] || null;
-    selectedAnneeId.value = selectedAnnee.value?.id ?? null;
-    selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
-    selectedSemestreId.value = selectedSemestre.value?.id ?? null;
-  };
+  selectedDiplome.value = diplome;
+  if (!diplome) {
+    selectedAnnee.value = null;
+    selectedAnneeId.value = null;
+    selectedSemestre.value = null;
+    selectedSemestreId.value = null;
+    return;
+  }
+  selectedAnnee.value = diplome.annees?.[0] || null;
+  selectedAnneeId.value = selectedAnnee.value?.id ?? null;
+  selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
+  selectedSemestreId.value = selectedSemestre.value?.id ?? null;
+};
 
 const reinitialiserFiltres = () => {
   // Aucun diplôme/année/semestre sélectionné par défaut
@@ -433,10 +434,11 @@ const applyFilters = async () => {
     </div>
   </div>
 
-  <div>
+  <Loader v-if="isLoadingEventsData" class="my-12"/>
+  <div v-else>
     <div class="text-xl font-bold mb-4">
       Statistiques pour
-        <span v-if="selectedAnnee"> - {{ selectedAnnee.libelle }}
+      <span v-if="selectedAnnee"> - {{ selectedAnnee.libelle }}
           <span v-if="selectedSemestre" class="font-medium text-muted-color"> - {{ selectedSemestre.libelle }}</span>
         </span>
       <span v-else>Tous les diplômes</span>
@@ -445,12 +447,7 @@ const applyFilters = async () => {
       <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
         <div class="text-lg font-bold mb-4">Nombre d'heures programmées</div>
 
-        <div v-if="isLoadingEventsData" class="flex gap-4">
-          <SimpleSkeleton class="w-1/3"/>
-          <SimpleSkeleton class="w-1/3"/>
-          <SimpleSkeleton class="w-1/3"/>
-        </div>
-        <div v-else>
+        <div>
           <div v-if="eventsData">
             <div class="mb-4 flex flex-col justify-center items-center w-full border border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-white/10">
               <div class="text-lg">Total d'heures programmées</div>
@@ -474,10 +471,6 @@ const applyFilters = async () => {
       </div>
       <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
         <div class="text-lg font-bold mb-4">Répartition par types d'activités</div>
-        <div v-if="isLoadingEventsData">
-          <SimpleSkeleton class="w-full"/>
-        </div>
-        <div v-else>
           <div v-if="eventsData">
             <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
             <Chart type="pie" :data="chartData" :options="optionsGraphique" v-if="chartData" class="w-full h-full" />
@@ -492,7 +485,6 @@ const applyFilters = async () => {
             </DataTable>
           </div>
           <div v-else class="text-gray-500">Aucune répartition disponible.</div>
-        </div>
       </div>
     </div>
   </div>
