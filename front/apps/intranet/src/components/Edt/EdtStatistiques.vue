@@ -1,10 +1,21 @@
 <script setup>
-import {onMounted, ref, watch} from "vue";
+import {onMounted, ref, watch, computed} from "vue";
 import {ErrorView, SimpleSkeleton} from "@components";
 import {ValidatedInput} from "@components";
 import {useDiplomeStore, useUsersStore} from "@stores";
 import {getEnseignementsService, getPersonnelsService, getSallesService, getEdtEventsService} from "@requests";
+import { getAnneeUniversitaireService } from "@requests";
 
+// Aide: formater un objet Date en YYYY-MM-DD en heure locale (sans décalage de fuseau)
+const formaterDateLocale = (d) => {
+  if (!d) return null;
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const usersStore = useUsersStore();
 const departement = usersStore.departementDefaut;
 const hasError = ref(false);
@@ -20,7 +31,6 @@ const selectedSemestre = ref(null);
 const selectedAnneeId = ref(null);
 const selectedSemestreId = ref(null);
 const selectedEnseignantId = ref(null);
-const salleId = ref(null);
 const selectedEnseignementId = ref(null);
 const enseignements = ref([]);
 const isLoadingEnseignements = ref(false);
@@ -30,27 +40,98 @@ const hasErrorEnseignants = ref(false);
 const salles = ref([]);
 const isLoadingSalles = ref(true);
 const selectedSalleId = ref(null);
-const isLoadingEvents = ref(false);
-const events = ref([]);
+const isLoadingEventsData = ref(false);
+const eventsData = ref(null);
 
 
 onMounted( async() => {
-  await calcPeriode();
+  await setPeriodeFromAnneeUniversitaire();
   await getDiplomes();
   await getEnseignements();
   await getEnseignants();
   await getSalles();
-})
+});
 
-const calcPeriode = () => {
-  const today = new Date();
-  const priorDate = new Date();
-  priorDate.setDate(today.getDate() - 30);
-  minDate.value = priorDate;
-  maxDate.value = today;
-  // valeur par défaut pour la plage de dates
-  periode.value = [minDate.value, maxDate.value];
-}
+const deriveBornesAnneeUniv = (au) => {
+  // Calcul les dates de début et de fin de l'année universitaire à partir du libellé ou de la date actuelle
+  const now = new Date();
+  const match = au?.libelle ? au.libelle.match(/(\d{4})\s*[-/]\s*(\d{4})/) : null;
+  let startYear;
+  let endYear;
+  if (match) {
+    startYear = parseInt(match[1], 10);
+    endYear = parseInt(match[2], 10);
+  } else {
+    const m = now.getMonth(); // 0=Jan, 8=Sep
+    if (m >= 8) { // Sep..Dec → academic year starts this year
+      startYear = now.getFullYear();
+      endYear = now.getFullYear() + 1;
+    } else { // Jan..Aug → academic year started last year
+      startYear = now.getFullYear() - 1;
+      endYear = now.getFullYear();
+    }
+  }
+  const start = new Date(startYear, 8, 1, 0, 0, 0, 0); // 1 Sep startYear
+  const end = new Date(endYear, 7, 31, 23, 59, 59, 999); // 31 Aug endYear
+  return { start, end };
+};
+
+const bornerDate = (d, min, max) => {
+  // Contraint une date entre min et max
+  if (!d) return d;
+  if (d < min) return new Date(min);
+  if (d > max) return new Date(max);
+  return d;
+};
+
+const setPeriodeFromAnneeUniversitaire = async () => {
+  try {
+    let anneeUniversitaire = anneeUniv;
+    if (anneeUniversitaire?.id) {
+      try {
+        // Récupère l'AU complète au cas où d'autres infos seraient nécessaires plus tard ; pas indispensable pour les bornes
+        anneeUniversitaire = await getAnneeUniversitaireService(anneeUniversitaire.id);
+      } catch (e) {
+        // ignore, we will still use libelle from localStorage
+        anneeUniversitaire = anneeUniv;
+      }
+    }
+    const { start, end } = deriveBornesAnneeUniv(anneeUniversitaire);
+    minDate.value = start;
+    maxDate.value = end;
+
+    // Si l'année universitaire est active, utiliser la semaine en cours comme période par défaut sinon toute l'année
+    const isActiveAu = anneeUniversitaire?.actif === true || anneeUniversitaire?.isActif === true;
+    if (isActiveAu) {
+      const now = new Date();
+      // Calculer le lundi et vendredi de la semaine en cours
+      const day = now.getDay();
+      const diffToMonday = (day + 6) % 7;
+      const monday = new Date(now);
+      monday.setHours(0, 0, 0, 0);
+      monday.setDate(now.getDate() - diffToMonday);
+      const friday = new Date(monday);
+      friday.setDate(monday.getDate() + 4);
+      friday.setHours(23, 59, 59, 999);
+      const clampedStart = bornerDate(monday, start, end);
+      const clampedEnd = bornerDate(friday, start, end);
+      periode.value = [clampedStart, clampedEnd];
+    } else {
+      // Utiliser toute l'année universitaire
+      periode.value = [new Date(start), new Date(end)];
+    }
+  } catch (e) {
+    // En cas d'erreur, définir une période par défaut de 30 jours avant/après aujourd'hui
+    const today = new Date();
+    const priorDate = new Date();
+    priorDate.setDate(today.getDate() - 30);
+    const futureDate = new Date();
+    futureDate.setDate(today.getDate() + 30);
+    minDate.value = priorDate;
+    maxDate.value = futureDate;
+    periode.value = [minDate.value, maxDate.value];
+  }
+};
 
 const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
@@ -139,43 +220,81 @@ const setDiplome = (diplome) => {
   selectedSemestreId.value = selectedSemestre.value?.id ?? null;
 };
 
-const clearFilters = () => {
+const reinitialiserFiltres = () => {
   selectedDiplome.value = diplomes.value?.[0] || null;
   selectedAnnee.value = selectedDiplome.value?.annees?.[0] || null;
   selectedAnneeId.value = selectedAnnee.value?.id ?? null;
   selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
   selectedSemestreId.value = selectedSemestre.value?.id ?? null;
-  periode.value = null;
+  // reset period to full academic year bounds
+  periode.value = [minDate.value, maxDate.value];
   selectedEnseignantId.value = null;
   selectedEnseignementId.value = null;
   selectedSalleId.value = null;
 };
 
-const getEvents = async () => {
-  isLoadingEvents.value = true;
+const getDonneesEvenements = async () => {
+  isLoadingEventsData.value = true;
   try {
+    let debutDate = Array.isArray(periode.value) ? periode.value[0] : null;
+    let finDate = Array.isArray(periode.value) ? periode.value[1] : null;
+    if (debutDate || finDate) {
+      debutDate = bornerDate(debutDate || minDate.value, minDate.value, maxDate.value);
+      finDate = bornerDate(finDate || maxDate.value, minDate.value, maxDate.value);
+    }
+
     const params = {
       departement: departement.id,
-      annee: selectedAnnee.value ? selectedAnnee.value.id : null,
       semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
       enseignement: selectedEnseignementId.value,
       personnel: selectedEnseignantId.value,
       salle: selectedSalleId.value,
-      dateDebut: periode.value ? periode.value[0].toISOString().split('T')[0] : null,
-      dateFin: periode.value ? periode.value[1].toISOString().split('T')[0] : null,
+      debut: debutDate ? formaterDateLocale(debutDate) : null,
+      fin: finDate ? formaterDateLocale(finDate) : null,
     }
-    events.value = await getEdtEventsService(params, '/stats');
+    const resp = await getEdtEventsService(params, '/stats');
+    eventsData.value = Array.isArray(resp) ? (resp[0] || null) : resp;
 
-    console.log(events);
+    console.log(eventsData.value);
   } catch (error) {
     console.error('Erreur lors du chargement des événements :', error);
   } finally {
-    isLoadingEvents.value = false;
+    isLoadingEventsData.value = false;
+  }
+};
+
+
+// Préparer les données pour le chart
+const chartData = computed(() => {
+  const rep = eventsData.value?.repartition || null;
+  if (!rep || !rep.length) return null;
+  const labels = rep.map(r => r.type);
+  const data = rep.map(r => Number(r.pourcentage) || 0);
+  const palette = ['#4dc9f6','#f67019','#f53794','#537bc4','#acc236','#166a8f','#00a950','#58595b','#8549ba'];
+  const backgroundColor = labels.map((_, i) => palette[i % palette.length]);
+  return {
+    labels,
+    datasets: [
+      {
+        data,
+        backgroundColor,
+      }
+    ]
+  };
+});
+
+const optionsGraphique = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'bottom'
+    }
   }
 };
 
 const applyFilters = async () => {
-  await getEvents();
+  await getDonneesEvenements();
 };
 </script>
 
@@ -291,22 +410,65 @@ const applyFilters = async () => {
 
     <div class="flex items-center justify-end gap-4 w-full">
       <Button label="Appliquer les filtres" icon="pi pi-filter" severity="primary" @click="applyFilters"/>
-      <Button label="Réinitialiser les filtres" icon="pi pi-filter" severity="secondary" @click="clearFilters"/>
+      <Button label="Réinitialiser les filtres" icon="pi pi-filter" severity="secondary" @click="reinitialiserFiltres"/>
     </div>
   </div>
 
-  <div class="flex items-center gap-4">
+  <div class="flex items-stretch gap-4 h-full">
     <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
       <div class="text-lg font-bold mb-4">Nombre d'heures programmées</div>
-    </div>
-    <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
-      <div class="text-lg font-bold mb-4">Répartition des types d'activités</div>
-    </div>
-  </div>
+
+      <div v-if="isLoadingEventsData" class="flex gap-4">
+        <SimpleSkeleton class="w-1/3"/>
+        <SimpleSkeleton class="w-1/3"/>
+        <SimpleSkeleton class="w-1/3"/>
+      </div>
+      <div v-else>
+        <div v-if="eventsData">
+          <div class="mb-4 flex flex-col justify-center items-center w-full border border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-white/10">
+            <div class="text-lg">Total d'heures programmées</div>
+            <div class="text-2xl font-bold">{{ eventsData.totalHeures }} h</div>
+          </div>
+          <Divider></Divider>
+          <div v-if="eventsData.heuresParType && Object.keys(eventsData.heuresParType).length" class="mb-4 border border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-white/10">
+            <div class="text-center text-lg">Heures par type</div>
+            <DataTable :value="Object.entries(eventsData.heuresParType).map(([type, heures]) => ({ type, heures }))" class="w-full">
+              <Column field="type" header="Type d'activité" />
+              <Column field="heures" header="Heures programmées">
+                <template #body="slotProps">
+                  {{ slotProps.data.heures }} h
+                </template>
+              </Column>
+            </DataTable>
+          </div>
+         </div>
+         <div v-else class="text-gray-500">Aucune donnée à afficher pour les filtres sélectionnés.</div>
+       </div>
+     </div>
+     <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+       <div class="text-lg font-bold mb-4">Répartition par types d'activités</div>
+       <div v-if="isLoadingEventsData">
+         <SimpleSkeleton class="w-full"/>
+       </div>
+       <div v-else>
+         <div v-if="eventsData">
+           <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
+           <Chart type="pie" :data="chartData" :options="optionsGraphique" v-if="chartData" class="w-full h-full" />
+
+           <DataTable :value="eventsData.repartition" class="mt-4">
+             <Column field="type" header="Type d'activité" />
+             <Column field="pourcentage" header="Pourcentage (%)">
+                <template #body="slotProps">
+                  {{ slotProps.data.pourcentage }} %
+                </template>
+              </Column>
+            </DataTable>
+         </div>
+         <div v-else class="text-gray-500">Aucune répartition disponible.</div>
+       </div>
+     </div>
+   </div>
 </template>
 
 <style scoped>
-#date {
-  width: 100% !important;
-}
 </style>

@@ -31,8 +31,9 @@ use Symfony\Component\Uid\UuidV4;
         new GetCollection(normalizationContext: ['groups' => ['edt_event:read:agenda']]),
         new GetCollection(
             uriTemplate: '/stats/edt_events',
-            normalizationContext: ['groups' => ['edt_event:read:agenda']],
+            normalizationContext: ['groups' => ['edt_stats:read']],
             provider: EdtStatsProvider::class,
+            output: \App\ApiDto\Edt\EdtStatsDto::class,
         ),
     ]
 )]

@@ -7,6 +7,7 @@ use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use DateTime;
 use App\ApiDto\Edt\EdtStatsDto;
 
 class EdtStatsProvider implements ProviderInterface
@@ -25,49 +26,63 @@ class EdtStatsProvider implements ProviderInterface
             $data = $this->collectionProvider->provide($operation, $uriVariables, $context);
 
             if (empty($data)) {
-                return [];
+                // Renvoie un DTO vide
+                return new EdtStatsDto();
             }
 
-            // calculer la somme des durées (en heures)
-            $totalSeconds = 0;
+            $dto = new EdtStatsDto();
+
+            $totals = [
+                'totalHeures' => 0.0,
+            ];
+
+            $byType = [];
+
             foreach ($data as $item) {
-                // supposer que $item a getDebut() et getFin() retournant \DateTimeInterface ou null
-                $debut = method_exists($item, 'getDebut') ? $item->getDebut() : null;
-                $fin = method_exists($item, 'getFin') ? $item->getFin() : null;
-                if ($debut instanceof \DateTimeInterface && $fin instanceof \DateTimeInterface) {
-                    $totalSeconds += $fin->getTimestamp() - $debut->getTimestamp();
-                }
-            }
-            $totalHeures = $totalSeconds > 0 ? round($totalSeconds / 3600, 2) : 0.0;
+                $start = $item->getDebut();
+                $end = $item->getFin();
 
-            $dto = new EdtStatsDto();
-            $dto->setTotalHeures($totalHeures);
+                // $start et $end sont déjà des \DateTimeInterface si l'entité est bien configurée
+                if (!$start || !$end) continue;
 
-            // retourner un tableau de DTOs pour une opération de collection
-            return [$dto];
-        } else {
-            $data = $this->itemProvider->provide($operation, $uriVariables, $context);
-            if (null === $data) {
-                return null;
+                $interval = $start->diff($end);
+                $duration = $interval->h + ($interval->days * 24) + ($interval->i / 60); // durée en heures
+
+                $totals['totalHeures'] += $duration;
+
+                $type = (string) $item->getType();
+                if ($type === '') $type = 'UNKNOWN';
+
+                if (!isset($byType[$type])) $byType[$type] = 0.0;
+                $byType[$type] += $duration;
             }
-            // pour un item, convertir l'entité en DTO si besoin
-            $dto = new EdtStatsDto();
-            // mapping minimal : exemple pour totalHours calculé depuis l'item unique
-            $debut = method_exists($data, 'getDebut') ? $data->getDebut() : null;
-            $fin = method_exists($data, 'getFin') ? $data->getFin() : null;
-            if ($debut instanceof \DateTimeInterface && $fin instanceof \DateTimeInterface) {
-                $hours = round(($fin->getTimestamp() - $debut->getTimestamp()) / 3600, 2);
-            } else {
-                $hours = 0.0;
+
+            $heuresParType = [
+                'CM' => 0,
+                'TD' => 0,
+                'TP' => 0,
+            ];
+            foreach ($byType as $type => $heures) {
+                $heuresParType[$type] = (float) $heures;
             }
-            $dto->setTotalHeures($hours);
+
+            $total = (float) $totals['totalHeures'];
+
+            // Construire la répartition comme tableau [{type, heures, pourcentage}, ...]
+            $repartition = [];
+            foreach ($heuresParType as $type => $heures) {
+                $pourcentage = $total > 0 ? round(($heures / $total) * 100, 1) : 0.0;
+                $repartition[] = ['type' => $type, 'heures' => $heures, 'pourcentage' => $pourcentage];
+            }
+
+            $dto->setTotalHeures($total);
+            $dto->setHeuresParType($heuresParType);
+            $dto->setRepartition($repartition);
+
             return $dto;
         }
-    }
 
-    public function syntheseToDto($item): EdtStatsDto
-    {
-        return $item;
+        // Cas item: on effectue un simple pass-through également
+        return $this->itemProvider->provide($operation, $uriVariables, $context);
     }
-
 }
