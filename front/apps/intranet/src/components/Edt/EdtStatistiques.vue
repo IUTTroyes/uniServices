@@ -50,6 +50,7 @@ onMounted( async() => {
   await getEnseignements();
   await getEnseignants();
   await getSalles();
+  await getEventsData();
 });
 
 const deriveBornesAnneeUniv = (au) => {
@@ -143,11 +144,12 @@ const getDiplomes = async () => {
     hasError.value = true;
     console.error('Error fetching diplomes:', error);
   } finally {
-    selectedDiplome.value = diplomes.value?.[0] || null;
-    selectedAnnee.value = selectedDiplome.value?.annees?.[0] || null;
-    selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
-    selectedAnneeId.value = selectedAnnee.value?.id ?? null;
-    selectedSemestreId.value = selectedSemestre.value?.id ?? null;
+    // Par défaut, aucun diplôme/année/semestre sélectionné
+    selectedDiplome.value = null;
+    selectedAnnee.value = null;
+    selectedSemestre.value = null;
+    selectedAnneeId.value = null;
+    selectedSemestreId.value = null;
     isLoadingDiplomes.value = false;
   }
 };
@@ -211,21 +213,31 @@ watch(selectedSemestreId, async (newId) => {
   if (!selectedAnnee.value) return;
   selectedSemestre.value = (selectedAnnee.value.semestres || []).find(s => s.id === newId) || null;
   await getEnseignements();
+  await getEventsData();
 });
-const setDiplome = (diplome) => {
-  selectedDiplome.value = diplome;
-  selectedAnnee.value = diplome?.annees?.[0] || null;
-  selectedAnneeId.value = selectedAnnee.value?.id ?? null;
-  selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
-  selectedSemestreId.value = selectedSemestre.value?.id ?? null;
-};
+const setDiplome = async (diplome) => {
+    selectedDiplome.value = diplome;
+    if (!diplome) {
+      selectedAnnee.value = null;
+      selectedAnneeId.value = null;
+      selectedSemestre.value = null;
+      selectedSemestreId.value = null;
+      await getEventsData();
+      return;
+    }
+    selectedAnnee.value = diplome.annees?.[0] || null;
+    selectedAnneeId.value = selectedAnnee.value?.id ?? null;
+    selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
+    selectedSemestreId.value = selectedSemestre.value?.id ?? null;
+  };
 
 const reinitialiserFiltres = () => {
-  selectedDiplome.value = diplomes.value?.[0] || null;
-  selectedAnnee.value = selectedDiplome.value?.annees?.[0] || null;
-  selectedAnneeId.value = selectedAnnee.value?.id ?? null;
-  selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
-  selectedSemestreId.value = selectedSemestre.value?.id ?? null;
+  // Aucun diplôme/année/semestre sélectionné par défaut
+  selectedDiplome.value = null;
+  selectedAnnee.value = null;
+  selectedAnneeId.value = null;
+  selectedSemestre.value = null;
+  selectedSemestreId.value = null;
   // reset period to full academic year bounds
   periode.value = [minDate.value, maxDate.value];
   selectedEnseignantId.value = null;
@@ -233,7 +245,7 @@ const reinitialiserFiltres = () => {
   selectedSalleId.value = null;
 };
 
-const getDonneesEvenements = async () => {
+const getEventsData = async () => {
   isLoadingEventsData.value = true;
   try {
     let debutDate = Array.isArray(periode.value) ? periode.value[0] : null;
@@ -294,7 +306,7 @@ const optionsGraphique = {
 };
 
 const applyFilters = async () => {
-  await getDonneesEvenements();
+  await getEventsData();
 };
 </script>
 
@@ -307,6 +319,9 @@ const applyFilters = async () => {
       <SimpleSkeleton v-if="isLoadingDiplomes" class="w-full"/>
       <Tabs v-else :value="selectedDiplome ? selectedDiplome.id : null" scrollable>
         <TabList>
+          <Tab :key="0" :value="null" @click="setDiplome(null)">
+            <span>Tous les diplômes</span>
+          </Tab>
           <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="setDiplome(diplome)">
         <span>
           <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span> <Tag v-if="!diplome.actif" severity="danger">Inactif</Tag>
@@ -327,6 +342,8 @@ const applyFilters = async () => {
             type="select"
             :rules="[]"
             class="w-full"
+            :show-clear="true"
+            :disabled="!selectedDiplome"
         />
         <ValidatedInput
             v-model="selectedSemestreId"
@@ -336,6 +353,8 @@ const applyFilters = async () => {
             type="select"
             :rules="[]"
             class="w-full"
+            :show-clear="true"
+            :disabled="!selectedAnnee"
         />
       </div>
     </div>
@@ -414,60 +433,69 @@ const applyFilters = async () => {
     </div>
   </div>
 
-  <div class="flex items-stretch gap-4 h-full">
-    <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
-      <div class="text-lg font-bold mb-4">Nombre d'heures programmées</div>
+  <div>
+    <div class="text-xl font-bold mb-4">
+      Statistiques pour
+        <span v-if="selectedAnnee"> - {{ selectedAnnee.libelle }}
+          <span v-if="selectedSemestre" class="font-medium text-muted-color"> - {{ selectedSemestre.libelle }}</span>
+        </span>
+      <span v-else>Tous les diplômes</span>
+    </div>
+    <div class="flex items-stretch gap-4 h-full">
+      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+        <div class="text-lg font-bold mb-4">Nombre d'heures programmées</div>
 
-      <div v-if="isLoadingEventsData" class="flex gap-4">
-        <SimpleSkeleton class="w-1/3"/>
-        <SimpleSkeleton class="w-1/3"/>
-        <SimpleSkeleton class="w-1/3"/>
+        <div v-if="isLoadingEventsData" class="flex gap-4">
+          <SimpleSkeleton class="w-1/3"/>
+          <SimpleSkeleton class="w-1/3"/>
+          <SimpleSkeleton class="w-1/3"/>
+        </div>
+        <div v-else>
+          <div v-if="eventsData">
+            <div class="mb-4 flex flex-col justify-center items-center w-full border border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-white/10">
+              <div class="text-lg">Total d'heures programmées</div>
+              <div class="text-2xl font-bold">{{ eventsData.totalHeures }} h</div>
+            </div>
+            <Divider></Divider>
+            <div v-if="eventsData.heuresParType && Object.keys(eventsData.heuresParType).length" class="mb-4 border border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-white/10">
+              <div class="text-center text-lg">Heures par type</div>
+              <DataTable :value="Object.entries(eventsData.heuresParType).map(([type, heures]) => ({ type, heures }))" class="w-full">
+                <Column field="type" header="Type d'activité" />
+                <Column field="heures" header="Heures programmées">
+                  <template #body="slotProps">
+                    {{ slotProps.data.heures }} h
+                  </template>
+                </Column>
+              </DataTable>
+            </div>
+          </div>
+          <div v-else class="text-gray-500">Aucune donnée à afficher pour les filtres sélectionnés.</div>
+        </div>
       </div>
-      <div v-else>
-        <div v-if="eventsData">
-          <div class="mb-4 flex flex-col justify-center items-center w-full border border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-white/10">
-            <div class="text-lg">Total d'heures programmées</div>
-            <div class="text-2xl font-bold">{{ eventsData.totalHeures }} h</div>
-          </div>
-          <Divider></Divider>
-          <div v-if="eventsData.heuresParType && Object.keys(eventsData.heuresParType).length" class="mb-4 border border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-white/10">
-            <div class="text-center text-lg">Heures par type</div>
-            <DataTable :value="Object.entries(eventsData.heuresParType).map(([type, heures]) => ({ type, heures }))" class="w-full">
-              <Column field="type" header="Type d'activité" />
-              <Column field="heures" header="Heures programmées">
-                <template #body="slotProps">
-                  {{ slotProps.data.heures }} h
-                </template>
-              </Column>
-            </DataTable>
-          </div>
-         </div>
-         <div v-else class="text-gray-500">Aucune donnée à afficher pour les filtres sélectionnés.</div>
-       </div>
-     </div>
-     <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
-       <div class="text-lg font-bold mb-4">Répartition par types d'activités</div>
-       <div v-if="isLoadingEventsData">
-         <SimpleSkeleton class="w-full"/>
-       </div>
-       <div v-else>
-         <div v-if="eventsData">
-           <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
-           <Chart type="pie" :data="chartData" :options="optionsGraphique" v-if="chartData" class="w-full h-full" />
+      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+        <div class="text-lg font-bold mb-4">Répartition par types d'activités</div>
+        <div v-if="isLoadingEventsData">
+          <SimpleSkeleton class="w-full"/>
+        </div>
+        <div v-else>
+          <div v-if="eventsData">
+            <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
+            <Chart type="pie" :data="chartData" :options="optionsGraphique" v-if="chartData" class="w-full h-full" />
 
-           <DataTable :value="eventsData.repartition" class="mt-4">
-             <Column field="type" header="Type d'activité" />
-             <Column field="pourcentage" header="Pourcentage (%)">
+            <DataTable :value="eventsData.repartition" class="mt-4">
+              <Column field="type" header="Type d'activité" />
+              <Column field="pourcentage" header="Pourcentage (%)">
                 <template #body="slotProps">
                   {{ slotProps.data.pourcentage }} %
                 </template>
               </Column>
             </DataTable>
-         </div>
-         <div v-else class="text-gray-500">Aucune répartition disponible.</div>
-       </div>
-     </div>
-   </div>
+          </div>
+          <div v-else class="text-gray-500">Aucune répartition disponible.</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped>

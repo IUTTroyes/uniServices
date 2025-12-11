@@ -217,6 +217,7 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
             @update:modelValue="updateModelValue"
             @blur="e => onBlurModelValue(e, handleBlur)"
             :filter="filter"
+            :disabled="disabled"
         />
 
         <MultiSelect
