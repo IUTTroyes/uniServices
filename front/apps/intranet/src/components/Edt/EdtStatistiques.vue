@@ -6,6 +6,7 @@ import {useDiplomeStore, useUsersStore} from "@stores";
 import {getEnseignementsService, getPersonnelsService, getSallesService, getEdtEventsService} from "@requests";
 import { getAnneeUniversitaireService } from "@requests";
 import Loader from "@components/loader/GlobalLoader.vue";
+import {PermissionGuard} from "@components";
 
 // Aide: formater un objet Date en YYYY-MM-DD en heure locale (sans décalage de fuseau)
 const formaterDateLocale = (d) => {
@@ -390,7 +391,7 @@ const applyFilters = async () => {
       </div>
     </div>
     <Divider></Divider>
-    <div class="flex items-start flex-wrap gap-4 mb-6">
+    <div class="flex items-end flex-wrap gap-4 mb-6 h-full">
       <ValidatedInput
           v-model="periode"
           name="date"
@@ -422,24 +423,6 @@ const applyFilters = async () => {
           :show-clear="true"
       />
 
-      <div v-if="isLoadingEnseignants" class="w-1/4">
-        <div>Enseignants</div>
-        <SimpleSkeleton class="w-full"/>
-      </div>
-      <ValidatedInput
-          v-else
-          v-model="selectedEnseignantId"
-          :options="enseignants.map(enseignant => ({...enseignant, label: enseignant.display, value: enseignant.id}))"
-          name="enseignant"
-          label="Enseignants"
-          type="select"
-          :rules="[]"
-          class="w-1/4 !mb-0"
-          placeholder="Sélectionner un enseignant"
-          :show-clear="true"
-      />
-
-
       <div v-if="isLoadingSalles" class="w-1/4">
         <div>Salles</div>
         <SimpleSkeleton class="w-full"/>
@@ -456,6 +439,36 @@ const applyFilters = async () => {
           placeholder="Sélectionner une salle"
           :showClear="true"
       />
+
+      <PermissionGuard :permission="'canViewPersonnelDetails'" :showFallback="true">
+        <div v-if="isLoadingEnseignants" class="w-1/4">
+          <div>Enseignants</div>
+          <SimpleSkeleton class="w-full"/>
+        </div>
+        <ValidatedInput
+            v-else
+            v-model="selectedEnseignantId"
+            :options="enseignants.map(enseignant => ({...enseignant, label: enseignant.display, value: enseignant.id}))"
+            name="enseignant"
+            label="Enseignants"
+            type="select"
+            :rules="[]"
+            class="w-1/4 !mb-0"
+            placeholder="Sélectionner un enseignant"
+            :show-clear="true"
+        />
+
+        <template #fallback>
+          <div>
+              <div>Mes statistiques</div>
+              <ToggleSwitch
+                v-model="selectedEnseignantId"
+                @change="!selectedEnseignantId ? selectedEnseignantId = null : selectedEnseignantId = usersStore.user.id"
+              />
+            </div>
+        </template>
+      </PermissionGuard>
+
     </div>
 
     <div class="flex items-center justify-end gap-4 w-full">
@@ -466,7 +479,7 @@ const applyFilters = async () => {
 
   <Loader v-if="isLoadingEventsData" class="my-12"/>
   <div v-else class="flex flex-col gap-6 w-full">
-    <div class="text-xl font-bold mb-4">
+    <div class="text-xl font-bold">
       Statistiques pour
       <span v-if="selectedAnnee"> - {{ selectedAnnee.libelle }}
           <span v-if="selectedSemestre" class="font-medium text-muted-color"> - {{ selectedSemestre.libelle }}</span>

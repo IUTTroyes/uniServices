@@ -33,7 +33,8 @@ const compositePermissions = {
   canViewPersonnelDetails: [
     'isDirection',
     'isAssistant',
-    'isChefDepartement'
+    'isChefDepartement',
+    'isDirecteurEtudes'
   ],
   canEditPersonnelDetails: [
     'isDirection'
@@ -79,12 +80,12 @@ const contextualHandlers = {
 
     const list = Array.isArray(evaluation.personnelAutorise) ? evaluation.personnelAutorise : [];
     return list.some(p => p && typeof p === 'object' && (
-      (p.id && currentIds.includes(p.id)) ||
-      (p.userId && currentIds.includes(p.userId)) ||
-      (p.uid && currentIds.includes(p.uid)) ||
-      (p.email && currentEmails.includes(p.email)) ||
-      (p.login && currentLogins.includes(p.login)) ||
-      (p.username && currentLogins.includes(p.username))
+        (p.id && currentIds.includes(p.id)) ||
+        (p.userId && currentIds.includes(p.userId)) ||
+        (p.uid && currentIds.includes(p.uid)) ||
+        (p.email && currentEmails.includes(p.email)) ||
+        (p.login && currentLogins.includes(p.login)) ||
+        (p.username && currentLogins.includes(p.username))
     ));
   },
 };
@@ -109,17 +110,17 @@ export function hasPermission(requiredPermission, options = {}) {
   // Supporte les éléments de types variés: string, fonction, objet composite, objet contextuel
   if (Array.isArray(requiredPermission)) {
     return requireAll
-      ? requiredPermission.every(permission => hasPermission(permission))
-      : requiredPermission.some(permission => hasPermission(permission));
+        ? requiredPermission.every(permission => hasPermission(permission))
+        : requiredPermission.some(permission => hasPermission(permission));
   }
 
   // 2) Objet contextuel { permission: string, context?: any }
   if (
-    requiredPermission &&
-    typeof requiredPermission === 'object' &&
-    !Array.isArray(requiredPermission) &&
-    Object.prototype.hasOwnProperty.call(requiredPermission, 'permission') &&
-    typeof requiredPermission.permission === 'string'
+      requiredPermission &&
+      typeof requiredPermission === 'object' &&
+      !Array.isArray(requiredPermission) &&
+      Object.prototype.hasOwnProperty.call(requiredPermission, 'permission') &&
+      typeof requiredPermission.permission === 'string'
   ) {
     const name = requiredPermission.permission;
     const handler = contextualHandlers[name];
@@ -137,17 +138,17 @@ export function hasPermission(requiredPermission, options = {}) {
 
   // 3) Ancien objet composite { permissions, requireAll }
   if (
-    requiredPermission &&
-    typeof requiredPermission === 'object' &&
-    !Array.isArray(requiredPermission) &&
-    Object.prototype.hasOwnProperty.call(requiredPermission, 'permissions')
+      requiredPermission &&
+      typeof requiredPermission === 'object' &&
+      !Array.isArray(requiredPermission) &&
+      Object.prototype.hasOwnProperty.call(requiredPermission, 'permissions')
   ) {
     const perms = requiredPermission.permissions;
     const all = !!requiredPermission.requireAll;
     if (Array.isArray(perms)) {
       return all
-        ? perms.every(p => hasPermission(p))
-        : perms.some(p => hasPermission(p));
+          ? perms.every(p => hasPermission(p))
+          : perms.some(p => hasPermission(p));
     }
     return hasPermission(perms);
   }
