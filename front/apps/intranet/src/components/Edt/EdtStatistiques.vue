@@ -46,12 +46,14 @@ const eventsData = ref(null);
 
 
 onMounted( async() => {
+  isLoadingEventsData.value = true;
   await setPeriodeFromAnneeUniversitaire();
   await getDiplomes();
   await getEnseignements();
   await getEnseignants();
   await getSalles();
   await getEventsData();
+  isLoadingEventsData.value = false;
 });
 
 const deriveBornesAnneeUniv = (au) => {
@@ -278,8 +280,8 @@ const getEventsData = async () => {
 
 
 // Préparer les données pour le chart
-const chartData = computed(() => {
-  const rep = eventsData.value?.repartition || null;
+const chartDataTypes = computed(() => {
+  const rep = eventsData.value?.repartitionTypes || null;
   if (!rep || !rep.length) return null;
   const labels = rep.map(r => r.type);
   const data = rep.map(r => Number(r.pourcentage) || 0);
@@ -296,7 +298,35 @@ const chartData = computed(() => {
   };
 });
 
-const optionsGraphique = {
+const chartDataSemestres = computed(() => {
+  const rep = eventsData.value?.repartitionSemestres || null;
+  if (!rep || !rep.length) return null;
+  const labels = rep.map(r => r.semestre);
+  const data = rep.map(r => Number(r.pourcentage) || 0);
+  const palette = ['#4dc9f6','#f67019','#f53794','#537bc4','#acc236','#166a8f','#00a950','#58595b','#8549ba'];
+  const backgroundColor = labels.map((_, i) => palette[i % palette.length]);
+  return {
+    labels,
+    datasets: [
+      {
+        data,
+        backgroundColor,
+      }
+    ]
+  };
+});
+
+const optionGraphTypes = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'bottom'
+    }
+  }
+};
+
+const optionGraphSemestres = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -435,7 +465,7 @@ const applyFilters = async () => {
   </div>
 
   <Loader v-if="isLoadingEventsData" class="my-12"/>
-  <div v-else>
+  <div v-else class="flex flex-col gap-6 w-full">
     <div class="text-xl font-bold mb-4">
       Statistiques pour
       <span v-if="selectedAnnee"> - {{ selectedAnnee.libelle }}
@@ -473,9 +503,9 @@ const applyFilters = async () => {
         <div class="text-lg font-bold mb-4">Répartition par types d'activités</div>
           <div v-if="eventsData">
             <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
-            <Chart type="pie" :data="chartData" :options="optionsGraphique" v-if="chartData" class="w-full h-full" />
+            <Chart v-if="chartDataTypes" type="pie" :data="chartDataTypes" :options="optionGraphTypes" class="w-full h-full" />
 
-            <DataTable :value="eventsData.repartition" class="mt-4">
+            <DataTable :value="eventsData.repartitionTypes" class="mt-4">
               <Column field="type" header="Type d'activité" />
               <Column field="pourcentage" header="Pourcentage (%)">
                 <template #body="slotProps">
@@ -486,6 +516,28 @@ const applyFilters = async () => {
           </div>
           <div v-else class="text-gray-500">Aucune répartition disponible.</div>
       </div>
+    </div>
+    <div v-if="!selectedAnnee" class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+      <div class="text-lg font-bold mb-4">Répartition par semestres</div>
+      <div v-if="eventsData">
+        <div class="text-sm text-gray-600 mb-2">Pourcentage par semestres</div>
+        <Chart v-if="chartDataSemestres" type="pie" :data="chartDataSemestres" :options="optionGraphSemestres" class="w-full h-full" />
+
+        <DataTable :value="eventsData.repartitionSemestres" class="mt-4">
+          <Column field="semestre" header="Semestre" />
+          <Column field="heures" header="Heures programmées">
+            <template #body="slotProps">
+              {{ slotProps.data.heures }} h
+            </template>
+          </Column>
+          <Column field="pourcentage" header="Pourcentage (%)">
+            <template #body="slotProps">
+              {{ slotProps.data.pourcentage }} %
+            </template>
+          </Column>
+        </DataTable>
+      </div>
+      <div v-else class="text-gray-500">Aucune répartition disponible.</div>
     </div>
   </div>
 </template>

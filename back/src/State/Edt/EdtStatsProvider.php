@@ -37,6 +37,7 @@ class EdtStatsProvider implements ProviderInterface
             ];
 
             $byType = [];
+            $bySemestre = [];
 
             foreach ($data as $item) {
                 $start = $item->getDebut();
@@ -55,6 +56,10 @@ class EdtStatsProvider implements ProviderInterface
 
                 if (!isset($byType[$type])) $byType[$type] = 0.0;
                 $byType[$type] += $duration;
+
+                $semestre = (string) $item->getSemestre()->getLibelle();
+                if (!isset($bySemestre[$semestre])) $bySemestre[$semestre] = 0.0;
+                $bySemestre[$semestre] += $duration;
             }
 
             $heuresParType = [
@@ -69,15 +74,27 @@ class EdtStatsProvider implements ProviderInterface
             $total = (float) $totals['totalHeures'];
 
             // Construire la répartition comme tableau [{type, heures, pourcentage}, ...]
-            $repartition = [];
+            $repartitionTypes = [];
             foreach ($heuresParType as $type => $heures) {
                 $pourcentage = $total > 0 ? round(($heures / $total) * 100, 1) : 0.0;
-                $repartition[] = ['type' => $type, 'heures' => $heures, 'pourcentage' => $pourcentage];
+                $repartitionTypes[] = ['type' => $type, 'heures' => $heures, 'pourcentage' => $pourcentage];
+            }
+
+            $heuresParSemestre = [];
+            foreach ($bySemestre as $semestre => $heures) {
+                $heuresParSemestre[$semestre] = (float) $heures;
+            }
+
+            $repartitionSemestres = [];
+            foreach ($heuresParSemestre as $semestre => $heures) {
+                $pourcentage = $total > 0 ? round(($heures / $total) * 100, 1) : 0.0;
+                $repartitionSemestres[] = ['semestre' => $semestre, 'heures' => $heures, 'pourcentage' => $pourcentage];
             }
 
             $dto->setTotalHeures($total);
             $dto->setHeuresParType($heuresParType);
-            $dto->setRepartition($repartition);
+            $dto->setRepartitionTypes($repartitionTypes);
+            $dto->setRepartitionSemestres($repartitionSemestres);
 
             return $dto;
         }

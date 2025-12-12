@@ -20,7 +20,14 @@ class EdtStatsDto
      * Exemple : [ ['type' => 'CM', 'heures' => 12.5, 'pourcentage' => 30.5], ... ]
      */
     #[Groups(['edt_stats:read'])]
-    protected array $repartition = [];
+    protected array $repartitionTypes = [];
+
+    /**
+     * Répartition des heures par semestre.
+     * Exemple : [ ['semestre' => 'S1', 'heures' => 12.5, 'pourcentage' => 30.5], ... ]
+     */
+    #[Groups(['edt_stats:read'])]
+    protected array $repartitionSemestres = [];
 
     public function getTotalHeures(): float
     {
@@ -42,13 +49,23 @@ class EdtStatsDto
         $this->heuresParType = $heuresParType;
     }
 
-    public function getRepartition(): array
+    public function getRepartitionTypes(): array
     {
-        return $this->repartition;
+        return $this->repartitionTypes;
     }
 
-    public function setRepartition(array $repartition): void
+    public function setRepartitionTypes(array $repartitionTypes): void
     {
-        $this->repartition = $repartition;
+        $this->repartitionTypes = $repartitionTypes;
+    }
+
+    public function getRepartitionSemestres(): array
+    {
+        return $this->repartitionSemestres;
+    }
+
+    public function setRepartitionSemestres(array $repartitionSemestres): void
+    {
+        $this->repartitionSemestres = $repartitionSemestres;
     }
 }
