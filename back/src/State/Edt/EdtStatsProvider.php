@@ -7,6 +7,7 @@ use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
+use App\Repository\Previsionnel\PrevisionnelRepository;
 use DateTime;
 use App\ApiDto\Edt\EdtStatsDto;
 
@@ -16,6 +17,7 @@ class EdtStatsProvider implements ProviderInterface
     public function __construct(
         private CollectionProvider $collectionProvider,
         private ItemProvider $itemProvider,
+        private PrevisionnelRepository $previsionnelRepository,
     )
     {
     }
@@ -38,6 +40,8 @@ class EdtStatsProvider implements ProviderInterface
 
             $byType = [];
             $bySemestre = [];
+            $byEnseignement = [];
+            $byEnseignant = [];
 
             foreach ($data as $item) {
                 $start = $item->getDebut();
@@ -60,6 +64,31 @@ class EdtStatsProvider implements ProviderInterface
                 $semestre = (string) $item->getSemestre()->getLibelle();
                 if (!isset($bySemestre[$semestre])) $bySemestre[$semestre] = 0.0;
                 $bySemestre[$semestre] += $duration;
+
+                $enseignement = $item->getEnseignement();
+                $enseignementLibelle = $enseignement?->getLibelle();
+                $enseignementId = $enseignement?->getId();
+                if ($enseignementLibelle) {
+                    if (!isset($byEnseignement[$enseignementLibelle])) {
+                        $byEnseignement[$enseignementLibelle] = [
+                            'id' => $enseignementId,
+                            'heures' => 0.0,
+                        ];
+                    }
+                    // Si plusieurs événements partagent le même libellé mais que l'id est manquant, tenter de le définir
+                    if (!isset($byEnseignement[$enseignementLibelle]['id']) && $enseignementId) {
+                        $byEnseignement[$enseignementLibelle]['id'] = $enseignementId;
+                    }
+                    $byEnseignement[$enseignementLibelle]['heures'] += $duration;
+                }
+
+                $enseignantDisplay = $item->getPersonnel()?->getDisplay();
+                if ($enseignantDisplay) {
+                    if (!isset($byEnseignant[$enseignantDisplay])) {
+                        $byEnseignant[$enseignantDisplay] = 0.0;
+                    }
+                    $byEnseignant[$enseignantDisplay] += $duration;
+                }
             }
 
             $heuresParType = [
@@ -91,10 +120,48 @@ class EdtStatsProvider implements ProviderInterface
                 $repartitionSemestres[] = ['semestre' => $semestre, 'heures' => $heures, 'pourcentage' => $pourcentage];
             }
 
+            $heuresParEnseignements = [];
+            foreach ($byEnseignement as $enseignementLibelle => $infos) {
+                // $infos should be ['id' => ?, 'heures' => float]
+                $heuresParEnseignements[$enseignementLibelle] = [
+                    'id' => $infos['id'] ?? null,
+                    'heures' => (float) ($infos['heures'] ?? 0.0),
+                ];
+            }
+
+            $heuresParEnseignants = [];
+            foreach ($byEnseignant as $enseignantId => $heures) {
+                $heuresParEnseignants[$enseignantId] = (float) $heures;
+            }
+
+            // pour faire çà j'ai besoin de récupérer toujours les cours de l'année et non d'une période car je ne peux pas comparer le prévi à un ensemble partiel d'heures
+            $heuresRestantesAPoser = 0;
+            $heuresPrevisionnel = 0;
+            // todo: récupérer les prévi relatifs aux évents et faire la différence entre ce qui est posé et ce qui reste à poser
+            foreach ($heuresParEnseignements as $enseignementLibelle => $infos) {
+                $previsionnels = $this->previsionnelRepository->findBy(['enseignement' => $infos['id']]);
+                if ($previsionnels) {
+                    foreach ($previsionnels as $previsionnel) {
+                        // dans le prévi on additionne toutes les heures contenues dans le tableau $previsionnel->getHeures();
+                        $previHeuresTotal = 0;
+                        foreach ($previsionnel->getHeures() as $heure) {
+                            $previHeuresTotal += $heure;
+                        }
+                        $heuresPrevisionnel += $previHeuresTotal;
+                    }
+                    $heuresRestantesAPoser += max(0, $heuresPrevisionnel - $infos['heures']);
+                    // ajouter le tout dans le tableau de le répartition par enseignement
+                    $heuresParEnseignements[$enseignementLibelle]['heures_previsionnel'] = $heuresPrevisionnel;
+                    $heuresParEnseignements[$enseignementLibelle]['heures_restantes_a_poser'] = max(0, $heuresPrevisionnel - $infos['heures']);
+                }
+            }
+
             $dto->setTotalHeures($total);
             $dto->setHeuresParType($heuresParType);
             $dto->setRepartitionTypes($repartitionTypes);
             $dto->setRepartitionSemestres($repartitionSemestres);
+            $dto->setRepartitionEnseignements($heuresParEnseignements);
+            $dto->setRepartitionEnseignants($heuresParEnseignants);
 
             return $dto;
         }

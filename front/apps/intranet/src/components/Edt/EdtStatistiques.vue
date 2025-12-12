@@ -489,7 +489,6 @@ const applyFilters = async () => {
     <div class="flex items-stretch gap-4 h-full">
       <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
         <div class="text-lg font-bold mb-4">Nombre d'heures programmées</div>
-
         <div>
           <div v-if="eventsData">
             <div class="mb-4 flex flex-col justify-center items-center w-full border border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-white/10">
@@ -516,8 +515,7 @@ const applyFilters = async () => {
         <div class="text-lg font-bold mb-4">Répartition par types d'activités</div>
           <div v-if="eventsData">
             <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
-            <Chart v-if="chartDataTypes" type="pie" :data="chartDataTypes" :options="optionGraphTypes" class="w-full h-full" />
-
+            <Chart v-if="chartDataTypes" type="pie" :data="chartDataTypes" :options="optionGraphTypes" />
             <DataTable :value="eventsData.repartitionTypes" class="mt-4">
               <Column field="type" header="Type d'activité" />
               <Column field="pourcentage" header="Pourcentage (%)">
@@ -530,6 +528,11 @@ const applyFilters = async () => {
           <div v-else class="text-gray-500">Aucune répartition disponible.</div>
       </div>
     </div>
+    <PermissionGuard :permission="'canViewPersonnelDetails'">
+      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+        <div class="text-lg font-bold mb-4">Heures restantes à poser</div>
+      </div>
+    </PermissionGuard>
     <div v-if="!selectedAnnee" class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
       <div class="text-lg font-bold mb-4">Répartition par semestres</div>
       <div v-if="eventsData">
