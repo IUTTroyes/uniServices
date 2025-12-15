@@ -77,40 +77,12 @@ class PreviStatsEdtProvider implements ProviderInterface
                 }
             }
 
-            // EDT: récupérer les événements correspondants selon les mêmes filtres (si présents)
+            // EDT: récupérer les événements correspondants via le repository (filtres: semestre et année universitaire)
             $filters = $context['filters'] ?? [];
-            $qb = $this->edtEventRepository->createQueryBuilder('e')
-                ->leftJoin('e.enseignement', 'ens')
-                ->leftJoin('e.semestre', 'sem')
-                ->leftJoin('e.anneeUniversitaire', 'au')
-                ->addSelect('ens')
-                ->addSelect('sem')
-                ->addSelect('au');
+            $semestreId = !empty($filters['semestre']) ? (int) $filters['semestre'] : null;
+            $anneeUniversitaireId = !empty($filters['anneeUniversitaire']) ? (int) $filters['anneeUniversitaire'] : null;
 
-            if (!empty($filters['anneeUniversitaire'])) {
-                $qb->andWhere('au.id = :auId')->setParameter('auId', $filters['anneeUniversitaire']);
-            }
-            if (!empty($filters['semestre'])) {
-                $qb->andWhere('sem.id = :semId')->setParameter('semId', $filters['semestre']);
-            }
-            if (!empty($filters['enseignement'])) {
-                $qb->andWhere('ens.id = :ensId')->setParameter('ensId', $filters['enseignement']);
-            }
-            // Filtre departement via l'enseignement si fourni
-            if (!empty($filters['departement'])) {
-                // Joins pour remonter au département via l'enseignement
-                $qb->leftJoin('ens.enseignementUes', 'seue')
-                   ->leftJoin('seue.ue', 'ue')
-                   ->leftJoin('ue.semestre', 'ss')
-                   ->leftJoin('ss.annee', 'sa')
-                   ->leftJoin('sa.pn', 'pn')
-                   ->leftJoin('pn.diplome', 'sd')
-                   ->leftJoin('sd.departement', 'sde')
-                   ->andWhere('sde.id = :departementId')
-                   ->setParameter('departementId', $filters['departement']);
-            }
-
-            $events = $qb->getQuery()->getResult();
+            $events = $this->edtEventRepository->findForStatsBySemestreAndAnneeUniversitaire($semestreId, $anneeUniversitaireId);
 
             $edtByEnsType = [];
             $edtByEnseignant = [];
