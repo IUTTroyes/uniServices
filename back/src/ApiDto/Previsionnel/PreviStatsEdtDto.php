@@ -12,6 +12,10 @@ class PreviStatsEdtDto
     #[Groups(['previsionnel_stats_edt:read'])]
     protected array $statPreviEdtEnseignant = [];
 
+    // Liste dynamique des types de groupes (CM, TD, TP, ...)
+    #[Groups(['previsionnel_stats_edt:read'])]
+    protected array $typesGroupes = [];
+
     public function getStatPreviEdtEnseignement(): array
     {
         return $this->statPreviEdtEnseignement;
@@ -30,6 +34,16 @@ class PreviStatsEdtDto
     public function setStatPreviEdtEnseignant(array $statPreviEdtEnseignant): void
     {
         $this->statPreviEdtEnseignant = $statPreviEdtEnseignant;
+    }
+
+    public function getTypesGroupes(): array
+    {
+        return $this->typesGroupes;
+    }
+
+    public function setTypesGroupes(array $typesGroupes): void
+    {
+        $this->typesGroupes = $typesGroupes;
     }
 
 }

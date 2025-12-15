@@ -286,7 +286,7 @@ const getStatsPreviData = async () => {
   try {
     const params = {
       semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
-      anneeUniversitaire: anneeUniv.value,
+      anneeUniversitaire: anneeUniv.id,
     }
     statsPreviData.value = await getPrevisService(params, '/stats_edt');
     console.log(statsPreviData.value);
@@ -355,8 +355,11 @@ const optionGraphSemestres = {
   }
 };
 
-// Types de groupe affichés dans le comparatif
-const typesList = ['CM', 'TD', 'TP', 'Projet'];
+// Types de groupe affichés dans le comparatif (dynamiques selon le provider)
+const typesList = computed(() => {
+  const types = statsPreviData.value?.typesGroupes;
+  return Array.isArray(types) && types.length > 0 ? types : ['CM', 'TD', 'TP', 'Projet'];
+});
 
 // Pivot des lignes (enseignement, type) en une ligne par enseignement avec sous-colonnes par type
 const comparatifPreviRows = computed(() => {
@@ -368,7 +371,7 @@ const comparatifPreviRows = computed(() => {
     if (!map.has(key)) {
       const base = { enseignement: key };
       // init all sub-fields to 0 for predictable columns
-      for (const t of typesList) {
+      for (const t of typesList.value) {
         base[`previ_${t}`] = 0;
         base[`edt_${t}`] = 0;
       }
@@ -376,19 +379,16 @@ const comparatifPreviRows = computed(() => {
     }
     const row = map.get(key);
     const t = r.type;
-    if (typesList.includes(t)) {
+    if (typesList.value.includes(t)) {
       row[`previ_${t}`] = Number(r.heures_previsionnel || 0);
       row[`edt_${t}`] = Number(r.heures_edt || 0);
     }
   }
-  // Filtrer les lignes vides (aucune heure ni prévue ni programmée)
-  return Array.from(map.values()).filter(line => {
-    return typesList.some(t => (line[`previ_${t}`] || 0) > 0 || (line[`edt_${t}`] || 0) > 0);
-  });
+    return Array.from(map.values());
 });
 
 // Helpers: totaux et différence
-const sumByPrefix = (line, prefix) => typesList.reduce((acc, t) => acc + Number(line[`${prefix}_${t}`] || 0), 0);
+const sumByPrefix = (line, prefix) => typesList.value.reduce((acc, t) => acc + Number(line[`${prefix}_${t}`] || 0), 0);
 const previTotal = (line) => sumByPrefix(line, 'previ');
 const edtTotal = (line) => sumByPrefix(line, 'edt');
 const diffTotal = (line) => previTotal(line) - edtTotal(line);
@@ -397,12 +397,6 @@ const diffSeverity = (line) => {
   if (d === 0) return 'success'; // égal
   if (d < 0) return 'danger';    // trop programmé
   return 'warning';               // pas assez
-};
-const diffLabel = (line) => {
-  const d = diffTotal(line);
-  if (d === 0) return 'OK';
-  if (d < 0) return 'Trop';
-  return 'Manque';
 };
 
 const applyFilters = async () => {
@@ -680,8 +674,7 @@ const applyFilters = async () => {
               <Column>
                 <template #body="slotProps">
                   <Tag :severity="diffSeverity(slotProps.data)" rounded>
-                    <span class="mr-2">{{ diffTotal(slotProps.data) }} h</span>
-                    <span>({{ diffLabel(slotProps.data) }})</span>
+                    {{ diffTotal(slotProps.data) }} h
                   </Tag>
                 </template>
               </Column>

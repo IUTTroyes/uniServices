@@ -33,7 +33,19 @@ class PreviStatsEdtProvider implements ProviderInterface
                 return $dto;
             }
 
-            $typesList = ['CM', 'TD', 'TP', 'Projet'];
+            // Détermination dynamique des types de groupes à partir des lignes de prévisionnel
+            $typesSet = [];
+            foreach ($data as $previ) {
+                $heures = (array) $previ->getHeures();
+                $groupes = (array) $previ->getGroupes();
+                $keys = array_unique(array_merge(array_keys($heures), array_keys($groupes)));
+                foreach ($keys as $k) {
+                    if ($k !== null && $k !== '') {
+                        $typesSet[$k] = true;
+                    }
+                }
+            }
+            $typesList = array_keys($typesSet);
 
             // Prévisionnel: heures par enseignement et par type
             $previByEnsType = [];
@@ -48,13 +60,16 @@ class PreviStatsEdtProvider implements ProviderInterface
                 if ($libelle) {
                     $ensIdByLibelle[$libelle] = $ensId ?? ($ensIdByLibelle[$libelle] ?? null);
                     if (!isset($previByEnsType[$libelle])) {
-                        $previByEnsType[$libelle] = ['CM' => 0.0, 'TD' => 0.0, 'TP' => 0.0, 'Projet' => 0.0];
+                        $previByEnsType[$libelle] = [];
                     }
                     $heures = (array) $previ->getHeures();
                     $groupes = (array) $previ->getGroupes();
                     foreach ($typesList as $t) {
                         $h = (float) ($heures[$t] ?? 0.0);
                         $g = array_key_exists($t, $groupes) ? (int) $groupes[$t] : 1;
+                        if (!isset($previByEnsType[$libelle][$t])) {
+                            $previByEnsType[$libelle][$t] = 0.0;
+                        }
                         $previByEnsType[$libelle][$t] += $h * $g;
                     }
                 }
@@ -159,6 +174,7 @@ class PreviStatsEdtProvider implements ProviderInterface
 
             $dto->setStatPreviEdtEnseignement($rows);
             $dto->setStatPreviEdtEnseignant($rowsTeachers);
+            $dto->setTypesGroupes($typesList);
             return $dto;
         }
 
