@@ -47,7 +47,6 @@ class EdtStatsProvider implements ProviderInterface
                 $start = $item->getDebut();
                 $end = $item->getFin();
 
-                // $start et $end sont déjà des \DateTimeInterface si l'entité est bien configurée
                 if (!$start || !$end) continue;
 
                 $interval = $start->diff($end);
@@ -56,7 +55,7 @@ class EdtStatsProvider implements ProviderInterface
                 $totals['totalHeures'] += $duration;
 
                 $type = (string) $item->getType();
-                if ($type === '') $type = 'UNKNOWN';
+                if ($type === '') $type = 'Type inconnu';
 
                 if (!isset($byType[$type])) $byType[$type] = 0.0;
                 $byType[$type] += $duration;
@@ -132,28 +131,6 @@ class EdtStatsProvider implements ProviderInterface
             $heuresParEnseignants = [];
             foreach ($byEnseignant as $enseignantId => $heures) {
                 $heuresParEnseignants[$enseignantId] = (float) $heures;
-            }
-
-            // pour faire çà j'ai besoin de récupérer toujours les cours de l'année et non d'une période car je ne peux pas comparer le prévi à un ensemble partiel d'heures
-            $heuresRestantesAPoser = 0;
-            $heuresPrevisionnel = 0;
-            // todo: récupérer les prévi relatifs aux évents et faire la différence entre ce qui est posé et ce qui reste à poser
-            foreach ($heuresParEnseignements as $enseignementLibelle => $infos) {
-                $previsionnels = $this->previsionnelRepository->findBy(['enseignement' => $infos['id']]);
-                if ($previsionnels) {
-                    foreach ($previsionnels as $previsionnel) {
-                        // dans le prévi on additionne toutes les heures contenues dans le tableau $previsionnel->getHeures();
-                        $previHeuresTotal = 0;
-                        foreach ($previsionnel->getHeures() as $heure) {
-                            $previHeuresTotal += $heure;
-                        }
-                        $heuresPrevisionnel += $previHeuresTotal;
-                    }
-                    $heuresRestantesAPoser += max(0, $heuresPrevisionnel - $infos['heures']);
-                    // ajouter le tout dans le tableau de le répartition par enseignement
-                    $heuresParEnseignements[$enseignementLibelle]['heures_previsionnel'] = $heuresPrevisionnel;
-                    $heuresParEnseignements[$enseignementLibelle]['heures_restantes_a_poser'] = max(0, $heuresPrevisionnel - $infos['heures']);
-                }
             }
 
             $dto->setTotalHeures($total);

@@ -13,6 +13,29 @@ const previsionnelsPersonnelService = createApiService('/api/previsionnels_perso
 // ----------------------------------------------
 // ------------------- GET ----------------------
 // ----------------------------------------------
+const getPrevisService = async (params, scope ='', showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            [`/api${scope}/previsionnels`, { params }],
+            'Previ récupérés avec succès',
+            'Erreur lors de la récupération des previ',
+            showToast
+        );
+        // Certains endpoints d'ApiPlatform retournent { member: [...] } (ou hydra:member),
+        // d'autres (notamment nos endpoints personnalisés retournant un DTO) retournent
+        // directement un objet. On gère les deux cas.
+        if (!response) return null;
+        if (Array.isArray(response)) return response; // déjà un tableau
+        if (response.member) return response.member;
+        if (response['hydra:member']) return response['hydra:member'];
+        // sinon c'est probablement un DTO / objet simple (ex: EdtStatsDto)
+        return response;
+    } catch (error) {
+        console.error('Erreur dans getPrevisService:', error);
+        throw error;
+    }
+}
 
 const getSemestrePreviService = async (semestreId, anneeUnivId, showToast = false) => {
     try {
@@ -155,4 +178,4 @@ const updatePreviService = async (previId, data, showToast = true) => {
     }
 }
 
-export { getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService, getSemestrePreviTestService, getPersonnelPreviService };
+export { getPrevisService, getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService, getSemestrePreviTestService, getPersonnelPreviService };

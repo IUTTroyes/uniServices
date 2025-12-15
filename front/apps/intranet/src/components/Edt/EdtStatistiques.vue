@@ -1,9 +1,9 @@
 <script setup>
 import {onMounted, ref, watch, computed} from "vue";
-import {ErrorView, SimpleSkeleton} from "@components";
+import {ErrorView, SimpleSkeleton, ListSkeleton} from "@components";
 import {ValidatedInput} from "@components";
 import {useDiplomeStore, useUsersStore} from "@stores";
-import {getEnseignementsService, getPersonnelsService, getSallesService, getEdtEventsService} from "@requests";
+import {getEnseignementsService, getPersonnelsService, getSallesService, getEdtEventsService, getPrevisService} from "@requests";
 import { getAnneeUniversitaireService } from "@requests";
 import Loader from "@components/loader/GlobalLoader.vue";
 import {PermissionGuard} from "@components";
@@ -44,6 +44,8 @@ const isLoadingSalles = ref(true);
 const selectedSalleId = ref(null);
 const isLoadingEventsData = ref(false);
 const eventsData = ref(null);
+const statsPreviData = ref(null);
+const isLoadingStatsPreviData = ref(false);
 
 
 onMounted( async() => {
@@ -218,6 +220,7 @@ watch(selectedSemestreId, async (newId) => {
     selectedSemestre.value = (selectedAnnee.value.semestres || []).find(s => s.id === newId) || null;
   }
   getEventsData();
+  getStatsPreviData();
   getEnseignements();
 });
 const setDiplome = async (diplome) => {
@@ -271,11 +274,25 @@ const getEventsData = async () => {
     const resp = await getEdtEventsService(params, '/stats');
     eventsData.value = Array.isArray(resp) ? (resp[0] || null) : resp;
 
-    console.log(eventsData.value);
   } catch (error) {
     console.error('Erreur lors du chargement des événements :', error);
   } finally {
     isLoadingEventsData.value = false;
+  }
+};
+
+const getStatsPreviData = async () => {
+  isLoadingStatsPreviData.value = true;
+  try {
+    const params = {
+      semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
+    }
+    statsPreviData.value = await getPrevisService(params, '/stats_edt');
+    console.log(statsPreviData.value);
+  } catch (error) {
+    console.error('Erreur lors du chargement des données prévisionnelles :', error);
+  } finally {
+    isLoadingStatsPreviData.value = false;
   }
 };
 
@@ -335,6 +352,56 @@ const optionGraphSemestres = {
       position: 'bottom'
     }
   }
+};
+
+// Types de groupe affichés dans le comparatif
+const typesList = ['CM', 'TD', 'TP', 'Projet'];
+
+// Pivot des lignes (enseignement, type) en une ligne par enseignement avec sous-colonnes par type
+const comparatifPreviRows = computed(() => {
+  const rows = statsPreviData.value?.statPreviEdtEnseignement || [];
+  if (!Array.isArray(rows) || rows.length === 0) return [];
+  const map = new Map();
+  for (const r of rows) {
+    const key = r.enseignement;
+    if (!map.has(key)) {
+      const base = { enseignement: key };
+      // init all sub-fields to 0 for predictable columns
+      for (const t of typesList) {
+        base[`previ_${t}`] = 0;
+        base[`edt_${t}`] = 0;
+      }
+      map.set(key, base);
+    }
+    const row = map.get(key);
+    const t = r.type;
+    if (typesList.includes(t)) {
+      row[`previ_${t}`] = Number(r.heures_previsionnel || 0);
+      row[`edt_${t}`] = Number(r.heures_edt || 0);
+    }
+  }
+  // Filtrer les lignes vides (aucune heure ni prévue ni programmée)
+  return Array.from(map.values()).filter(line => {
+    return typesList.some(t => (line[`previ_${t}`] || 0) > 0 || (line[`edt_${t}`] || 0) > 0);
+  });
+});
+
+// Helpers: totaux et différence
+const sumByPrefix = (line, prefix) => typesList.reduce((acc, t) => acc + Number(line[`${prefix}_${t}`] || 0), 0);
+const previTotal = (line) => sumByPrefix(line, 'previ');
+const edtTotal = (line) => sumByPrefix(line, 'edt');
+const diffTotal = (line) => previTotal(line) - edtTotal(line);
+const diffSeverity = (line) => {
+  const d = diffTotal(line);
+  if (d === 0) return 'success'; // égal
+  if (d < 0) return 'danger';    // trop programmé
+  return 'warning';               // pas assez
+};
+const diffLabel = (line) => {
+  const d = diffTotal(line);
+  if (d === 0) return 'OK';
+  if (d < 0) return 'Trop';
+  return 'Manque';
 };
 
 const applyFilters = async () => {
@@ -460,12 +527,12 @@ const applyFilters = async () => {
 
         <template #fallback>
           <div>
-              <div>Mes statistiques</div>
-              <ToggleSwitch
+            <div>Mes statistiques</div>
+            <ToggleSwitch
                 v-model="selectedEnseignantId"
                 @change="!selectedEnseignantId ? selectedEnseignantId = null : selectedEnseignantId = usersStore.user.id"
-              />
-            </div>
+            />
+          </div>
         </template>
       </PermissionGuard>
 
@@ -512,29 +579,24 @@ const applyFilters = async () => {
         </div>
       </div>
       <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
-        <div class="text-lg font-bold mb-4">Répartition par types d'activités</div>
-          <div v-if="eventsData">
-            <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
-            <Chart v-if="chartDataTypes" type="pie" :data="chartDataTypes" :options="optionGraphTypes" />
-            <DataTable :value="eventsData.repartitionTypes" class="mt-4">
-              <Column field="type" header="Type d'activité" />
-              <Column field="pourcentage" header="Pourcentage (%)">
-                <template #body="slotProps">
-                  {{ slotProps.data.pourcentage }} %
-                </template>
-              </Column>
-            </DataTable>
-          </div>
-          <div v-else class="text-gray-500">Aucune répartition disponible.</div>
+        <div class="text-lg font-bold">Répartition par types d'activités</div>
+        <div v-if="eventsData">
+          <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
+          <Chart v-if="chartDataTypes" type="pie" :data="chartDataTypes" :options="optionGraphTypes" />
+          <DataTable :value="eventsData.repartitionTypes" class="mt-4">
+            <Column field="type" header="Type d'activité" />
+            <Column field="pourcentage" header="Pourcentage (%)">
+              <template #body="slotProps">
+                {{ slotProps.data.pourcentage }} %
+              </template>
+            </Column>
+          </DataTable>
+        </div>
+        <div v-else class="text-gray-500">Aucune répartition disponible.</div>
       </div>
     </div>
-    <PermissionGuard :permission="'canViewPersonnelDetails'">
-      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
-        <div class="text-lg font-bold mb-4">Heures restantes à poser</div>
-      </div>
-    </PermissionGuard>
     <div v-if="!selectedAnnee" class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
-      <div class="text-lg font-bold mb-4">Répartition par semestres</div>
+      <div class="text-lg font-bold">Répartition par semestres</div>
       <div v-if="eventsData">
         <div class="text-sm text-gray-600 mb-2">Pourcentage par semestres</div>
         <Chart v-if="chartDataSemestres" type="pie" :data="chartDataSemestres" :options="optionGraphSemestres" class="w-full h-full" />
@@ -555,6 +617,78 @@ const applyFilters = async () => {
       </div>
       <div v-else class="text-gray-500">Aucune répartition disponible.</div>
     </div>
+    <Divider/>
+    <ListSkeleton v-if="isLoadingStatsPreviData" class="w-full"/>
+    <PermissionGuard :permission="'canViewPersonnelDetails'">
+      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+        <div class="mb-4">
+          <div class="text-lg font-bold">Comparatif prévisionnel</div>
+          <em>Cette section compare les heures programmées avec les heures prévues selon les enseignements associés.</em>
+        </div>
+        <Message severity="info" class="mb-4" icon="pi pi-question-circle">
+          Les filtres ne sont pas pris en compte dans ce comparatif, qui se base uniquement sur le diplôme, l'année et le semestre sélectionnés.
+        </Message>
+        <Message v-if="!selectedDiplome" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-exclamation-triangle">
+          Veuillez sélectionner un diplôme, une année et un semestre pour afficher le comparatif prévisionnel.
+        </Message>
+        <div v-if="comparatifPreviRows && selectedSemestre">
+          <Message v-if="comparatifPreviRows < 1" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
+            Aucune donnée de comparatif prévisionnel disponible pour les filtres sélectionnés.
+          </Message>
+          <div class="flex">
+            <DataTable :value="comparatifPreviRows" class="mt-4">
+              <ColumnGroup type="header">
+                <Row>
+                  <Column header="Enseignement" :rowspan="2" />
+                  <Column header="Heures prévisionnel" :colspan="typesList.length + 1" />
+                  <Column header="Heures edt" :colspan="typesList.length + 1" />
+                  <Column header="Différence" :rowspan="2" />
+                </Row>
+                <Row>
+                  <Column v-for="t in typesList" :key="'previ-h-' + t" :header="t" />
+                  <Column header="Total" />
+                  <Column v-for="t in typesList" :key="'edt-h-' + t" :header="t" />
+                  <Column header="Total" />
+                </Row>
+              </ColumnGroup>
+
+              <Column field="enseignement" />
+
+              <Column v-for="t in typesList" :key="'previ-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
+                <template #body="slotProps">
+                  {{ (slotProps.data['previ_' + t] || 0) }} h
+                </template>
+              </Column>
+              <Column>
+                <template #body="slotProps">
+                  <strong>{{ previTotal(slotProps.data) }} h</strong>
+                </template>
+              </Column>
+
+              <Column v-for="t in typesList" :key="'edt-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
+                <template #body="slotProps">
+                  {{ (slotProps.data['edt_' + t] || 0) }} h
+                </template>
+              </Column>
+              <Column>
+                <template #body="slotProps">
+                  <strong>{{ edtTotal(slotProps.data) }} h</strong>
+                </template>
+              </Column>
+
+              <Column>
+                <template #body="slotProps">
+                  <Tag :severity="diffSeverity(slotProps.data)" rounded>
+                    <span class="mr-2">{{ diffTotal(slotProps.data) }} h</span>
+                    <span>({{ diffLabel(slotProps.data) }})</span>
+                  </Tag>
+                </template>
+              </Column>
+            </DataTable>
+          </div>
+        </div>
+      </div>
+    </PermissionGuard>
   </div>
 </template>
 
