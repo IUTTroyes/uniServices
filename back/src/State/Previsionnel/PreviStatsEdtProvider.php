@@ -144,13 +144,16 @@ class PreviStatsEdtProvider implements ProviderInterface
                     $previ = (float) ($previByEnsType[$libelle][$t] ?? 0.0);
                     $edt = (float) ($edtByEnsType[$libelle][$t] ?? 0.0);
                     if ($previ > 0 || $edt > 0) {
+                        $heures_diff = $previ - $edt;
+// todo: les heures_diff si il y a plus d'heures en EDT que prévisionnel on doit afficher un positif et inversement
+
                         $rows[] = [
                             'id' => $ensId,
                             'enseignement' => $libelle,
                             'type' => $t,
                             'heures_previsionnel' => $previ,
                             'heures_edt' => $edt,
-                            'heures_diff' => $previ - $edt,
+                            'heures_diff' => $heures_diff,
                         ];
                     }
                 }
