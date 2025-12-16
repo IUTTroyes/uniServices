@@ -391,12 +391,17 @@ const comparatifPreviRows = computed(() => {
 const sumByPrefix = (line, prefix) => typesList.value.reduce((acc, t) => acc + Number(line[`${prefix}_${t}`] || 0), 0);
 const previTotal = (line) => sumByPrefix(line, 'previ');
 const edtTotal = (line) => sumByPrefix(line, 'edt');
-const diffTotal = (line) => previTotal(line) - edtTotal(line);
+const diffTotal = (line) => {
+    const diff = previTotal(line) - edtTotal(line);
+    if (diff === 0) return 0;
+    const value = -diff;
+    return diff < 0 ? `+${value}` : `${value}`;
+  };
 const diffSeverity = (line) => {
   const d = diffTotal(line);
   if (d === 0) return 'success'; // égal
-  if (d < 0) return 'danger';    // trop programmé
-  return 'warning';               // pas assez
+  if (d > 0) return 'danger';    // trop programmé
+  return 'warn';               // pas assez
 };
 
 const applyFilters = async () => {
@@ -627,11 +632,11 @@ const applyFilters = async () => {
           Veuillez sélectionner un diplôme, une année et un semestre pour afficher le comparatif prévisionnel.
         </Message>
         <div v-if="comparatifPreviRows && selectedSemestre">
-          <Message v-if="comparatifPreviRows < 1" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
+          <Message v-if="comparatifPreviRows.length < 1" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
             Aucune donnée de comparatif prévisionnel disponible pour les filtres sélectionnés.
           </Message>
           <div class="flex">
-            <DataTable :value="comparatifPreviRows" class="mt-4">
+            <DataTable :value="comparatifPreviRows" class="mt-4 w-full" show-gridlines paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]">
               <ColumnGroup type="header">
                 <Row>
                   <Column header="Enseignement" :rowspan="2" />
@@ -640,9 +645,9 @@ const applyFilters = async () => {
                   <Column header="Différence" :rowspan="2" />
                 </Row>
                 <Row>
-                  <Column v-for="t in typesList" :key="'previ-h-' + t" :header="t" />
+                  <Column v-for="t in typesList" :key="'previ-h-' + t" :header="t" :class="t === 'CM' ? '!bg-purple-400' : t === 'TD' ? '!bg-green-400' : t === 'TP' ? '!bg-yellow-400' : t === 'Projet' ? '!bg-blue-400' : ''" class="!bg-opacity-40 !text-nowrap"/>
                   <Column header="Total" />
-                  <Column v-for="t in typesList" :key="'edt-h-' + t" :header="t" />
+                  <Column v-for="t in typesList" :key="'edt-h-' + t" :header="t" :class="t === 'CM' ? '!bg-purple-400' : t === 'TD' ? '!bg-green-400' : t === 'TP' ? '!bg-yellow-400' : t === 'Projet' ? '!bg-blue-400' : ''" class="!bg-opacity-40 !text-nowrap"/>
                   <Column header="Total" />
                 </Row>
               </ColumnGroup>
