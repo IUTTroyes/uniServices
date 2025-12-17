@@ -47,6 +47,12 @@ const eventsData = ref(null);
 const statsPreviData = ref(null);
 const isLoadingStatsPreviData = ref(false);
 
+const features = [
+  { id: 'enseignant', libelle: 'Par enseignant' },
+  { id: 'enseignement', libelle: 'Par enseignement' },
+];
+const selectedFeature = ref(features[0].id);
+
 
 onMounted( async() => {
   isLoadingEventsData.value = true;
@@ -56,6 +62,7 @@ onMounted( async() => {
   await getEnseignants();
   await getSalles();
   await getEventsData();
+  await getStatsPreviData();
   isLoadingEventsData.value = false;
 });
 
@@ -286,6 +293,7 @@ const getStatsPreviData = async () => {
   try {
     const params = {
       semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
+      departement: selectedSemestre.value ? null : departement.id,
       anneeUniversitaire: anneeUniv.id,
     }
     statsPreviData.value = await getPrevisService(params, '/stats_edt');
@@ -362,7 +370,7 @@ const typesList = computed(() => {
 });
 
 // Pivot des lignes (enseignement, type) en une ligne par enseignement avec sous-colonnes par type
-const comparatifPreviRows = computed(() => {
+const comparatifPreviRowsEnseignement = computed(() => {
   const rows = statsPreviData.value?.statPreviEdtEnseignement || [];
   if (!Array.isArray(rows) || rows.length === 0) return [];
   const map = new Map();
@@ -384,8 +392,42 @@ const comparatifPreviRows = computed(() => {
       row[`edt_${t}`] = Number(r.heures_edt || 0);
     }
   }
-    return Array.from(map.values());
+  return Array.from(map.values());
 });
+
+// Pivot des lignes (enseignant, type) en une ligne par enseignant avec sous-colonnes par type
+const comparatifPreviRowsEnseignant = computed(() => {
+  const rows = statsPreviData.value?.statPreviEdtEnseignant || [];
+  if (!Array.isArray(rows) || rows.length === 0) return [];
+  const map = new Map();
+  for (const r of rows) {
+    const key = r.enseignant;
+    if (!map.has(key)) {
+      const base = { enseignant: key };
+      for (const t of typesList.value) {
+        base[`previ_${t}`] = 0;
+        base[`edt_${t}`] = 0;
+      }
+      map.set(key, base);
+    }
+    const row = map.get(key);
+    const t = r.type;
+    if (typesList.value.includes(t)) {
+      row[`previ_${t}`] = Number(r.heures_previsionnel || 0);
+      row[`edt_${t}`] = Number(r.heures_edt || 0);
+    }
+  }
+  return Array.from(map.values());
+});
+
+// Choix des lignes affichées selon la feature sélectionnée
+const displayedComparatifRows = computed(() => {
+  return selectedFeature.value === 'enseignant' ? comparatifPreviRowsEnseignant.value : comparatifPreviRowsEnseignement.value;
+});
+
+// Clé et entête de la première colonne selon la feature
+const firstColKey = computed(() => selectedFeature.value === 'enseignant' ? 'enseignant' : 'enseignement');
+const firstColHeader = computed(() => selectedFeature.value === 'enseignant' ? 'Enseignant' : 'Enseignement');
 
 // Helpers: totaux et différence
 const sumByPrefix = (line, prefix) => typesList.value.reduce((acc, t) => acc + Number(line[`${prefix}_${t}`] || 0), 0);
@@ -628,18 +670,30 @@ const applyFilters = async () => {
         <Message severity="info" class="mb-4" icon="pi pi-question-circle">
           Les filtres ne sont pas pris en compte dans ce comparatif, qui se base uniquement sur le diplôme, l'année et le semestre sélectionnés.
         </Message>
-        <Message v-if="!selectedDiplome" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-exclamation-triangle">
-          Veuillez sélectionner un diplôme, une année et un semestre pour afficher le comparatif prévisionnel.
-        </Message>
-        <div v-if="comparatifPreviRows && selectedSemestre">
-          <Message v-if="comparatifPreviRows.length < 1" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
+        <div class="text-xl font-bold">
+          Comparatif pour
+          <span v-if="selectedAnnee"> - {{ selectedAnnee.libelle }}
+          <span v-if="selectedSemestre" class="font-medium text-muted-color"> - {{ selectedSemestre.libelle }}</span>
+        </span>
+          <span v-else>Tous les diplômes</span>
+        </div>
+        <div v-if="displayedComparatifRows">
+          <Message v-if="displayedComparatifRows.length < 1" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
             Aucune donnée de comparatif prévisionnel disponible pour les filtres sélectionnés.
           </Message>
-          <div class="flex">
-            <DataTable :value="comparatifPreviRows" class="mt-4 w-full" show-gridlines paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]">
+          <div class="flex flex-col gap-4 w-full items-center justify-center" v-else>
+            <SelectButton
+              :options="features"
+              v-model="selectedFeature"
+              class="w-full justify-center"
+              optionLabel="libelle"
+              optionValue="id"
+            />
+
+            <DataTable :value="displayedComparatifRows" class="mt-4 w-full" show-gridlines paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]">
               <ColumnGroup type="header">
                 <Row>
-                  <Column header="Enseignement" :rowspan="2" />
+                  <Column :header="firstColHeader" :rowspan="2" />
                   <Column header="Heures prévisionnel" :colspan="typesList.length + 1" />
                   <Column header="Heures edt" :colspan="typesList.length + 1" />
                   <Column header="Différence" :rowspan="2" />
@@ -652,7 +706,11 @@ const applyFilters = async () => {
                 </Row>
               </ColumnGroup>
 
-              <Column field="enseignement" />
+              <Column>
+                <template #body="slotProps">
+                  {{ slotProps.data[firstColKey] }}
+                </template>
+              </Column>
 
               <Column v-for="t in typesList" :key="'previ-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
                 <template #body="slotProps">

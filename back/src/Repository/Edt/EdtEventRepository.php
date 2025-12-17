@@ -28,9 +28,14 @@ class EdtEventRepository extends ServiceEntityRepository
             ->leftJoin('e.enseignement', 'ens')
             ->leftJoin('e.semestre', 'sem')
             ->leftJoin('e.anneeUniversitaire', 'au')
+            ->leftJoin('e.personnel', 'p')
             ->addSelect('ens')
             ->addSelect('sem')
-            ->addSelect('au');
+            ->addSelect('au')
+            ->addSelect('p')
+            // trier par nom puis prénom du personnel afin de faciliter un ordre stable côté fournisseur
+            ->orderBy('p.nom', 'ASC')
+            ->addOrderBy('p.prenom', 'ASC');
 
         if ($anneeUniversitaireId) {
             $qb->andWhere('au.id = :auId')->setParameter('auId', $anneeUniversitaireId);
