@@ -13,6 +13,18 @@
             "src/ApiResource/.gitignore"
         ]
     },
+    "davidannebicque/html-to-spreadsheet-bundle": {
+        "version": "0.2",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "0.1",
+            "ref": "f054008082babf0f3e5e26d34eade43a74af5ede"
+        },
+        "files": [
+            "config/packages/html_to_spreadsheet.yaml"
+        ]
+    },
     "doctrine/deprecations": {
         "version": "1.1",
         "recipe": {

@@ -434,11 +434,11 @@ const sumByPrefix = (line, prefix) => typesList.value.reduce((acc, t) => acc + N
 const previTotal = (line) => sumByPrefix(line, 'previ');
 const edtTotal = (line) => sumByPrefix(line, 'edt');
 const diffTotal = (line) => {
-    const diff = previTotal(line) - edtTotal(line);
-    if (diff === 0) return 0;
-    const value = -diff;
-    return diff < 0 ? `+${value}` : `${value}`;
-  };
+  const diff = previTotal(line) - edtTotal(line);
+  if (diff === 0) return 0;
+  const value = -diff;
+  return diff < 0 ? `+${value}` : `${value}`;
+};
 const diffSeverity = (line) => {
   const d = diffTotal(line);
   if (d === 0) return 'success'; // égal
@@ -683,11 +683,11 @@ const applyFilters = async () => {
           </Message>
           <div class="flex flex-col gap-4 w-full items-center justify-center" v-else>
             <SelectButton
-              :options="features"
-              v-model="selectedFeature"
-              class="w-full justify-center"
-              optionLabel="libelle"
-              optionValue="id"
+                :options="features"
+                v-model="selectedFeature"
+                class="w-full justify-center"
+                optionLabel="libelle"
+                optionValue="id"
             />
 
             <DataTable :value="displayedComparatifRows" class="mt-4 w-full" show-gridlines paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]">
@@ -742,6 +742,13 @@ const applyFilters = async () => {
                 </template>
               </Column>
             </DataTable>
+
+            <div class="flex items-center justify-end w-full gap-4">
+              <router-link :to="`/administration/previsionnel/semestre`">
+                <Button label="Accéder au prévisionnel" icon="pi pi-arrow-right" severity="primary" class="mt-4" @click="" />
+              </router-link>
+              <Button label="Exporter en xlsx" icon="pi pi-file" severity="success" class="mt-4" @click="$refs.comparatifTable.exportCSV()" />
+            </div>
           </div>
         </div>
       </div>
