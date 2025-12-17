@@ -3,11 +3,11 @@ name: CI-Back
 on:
   push:
     branches: [main]
-    paths: 
+    paths:
       - 'back/**'
   pull_request:
     branches: [main]
-    paths: 
+    paths:
       - 'back/**'
 
 jobs:
@@ -35,7 +35,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '8.2' # Symfony 7 est compatible avec PHP >= 8.1
+        php-version: '8.4.*'
         extensions: mbstring, intl, pdo_mysql
         coverage: none
 
