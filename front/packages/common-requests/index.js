@@ -32,3 +32,5 @@ export * from './apc_services/competenceService.js';
 export * from './questionnaire_services/questionnaireService.js'
 
 export * from './salleService.js';
+
+export * from './export/exportService.js';

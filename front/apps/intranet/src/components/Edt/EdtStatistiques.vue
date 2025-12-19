@@ -3,7 +3,7 @@ import {onMounted, ref, watch, computed} from "vue";
 import {ErrorView, SimpleSkeleton, ListSkeleton} from "@components";
 import {ValidatedInput} from "@components";
 import {useDiplomeStore, useUsersStore} from "@stores";
-import {getEnseignementsService, getPersonnelsService, getSallesService, getEdtEventsService, getPrevisService} from "@requests";
+import {getEnseignementsService, getPersonnelsService, getSallesService, getEdtEventsService, getPrevisService, exportService} from "@requests";
 import { getAnneeUniversitaireService } from "@requests";
 import Loader from "@components/loader/GlobalLoader.vue";
 import {PermissionGuard} from "@components";
@@ -449,6 +449,14 @@ const diffSeverity = (line) => {
 const applyFilters = async () => {
   await getEventsData();
 };
+
+const exportData = async () => {
+  try {
+    await exportService(statsPreviData.value)
+  } catch (error) {
+    console.error('Erreur lors de l\'export des données :', error);
+  }
+}
 </script>
 
 <template>
@@ -747,7 +755,7 @@ const applyFilters = async () => {
               <router-link :to="`/administration/previsionnel/semestre`">
                 <Button label="Accéder au prévisionnel" icon="pi pi-arrow-right" severity="primary" class="mt-4" @click="" />
               </router-link>
-              <Button label="Exporter en xlsx" icon="pi pi-file" severity="success" class="mt-4" @click="$refs.comparatifTable.exportCSV()" />
+              <Button label="Exporter en xlsx" icon="pi pi-file" severity="success" class="mt-4" @click="exportData()" />
             </div>
           </div>
         </div>

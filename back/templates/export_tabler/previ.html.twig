@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Export prévisionnel</title>
+</head>
+<body>
+{# Déterminer les types #}
+{% set types = (stats.typesGroupes is defined and stats.typesGroupes|length > 0) ? stats.typesGroupes : ['CM','TD','TP','Projet'] %}
+
+{# ------------------ Feuille 1: Comparatif par Enseignant ------------------ #}
+{% set rowsEns = stats.statPreviEdtEnseignant|default([]) %}
+{% set aggEns = {} %}
+{% for r in rowsEns %}
+    {% set label = r.enseignant|default(null) %}
+    {% if label %}
+        {% if aggEns[label] is not defined %}
+            {% set previInit = {} %}
+            {% set edtInit = {} %}
+            {% for t in types %}
+                {% set previInit = previInit|merge({ (t): 0 }) %}
+                {% set edtInit = edtInit|merge({ (t): 0 }) %}
+            {% endfor %}
+            {% set aggEns = aggEns|merge({ (label): { 'previ': previInit, 'edt': edtInit } }) %}
+        {% endif %}
+        {% set t = r.type|default(null) %}
+        {% if t is not null and (t in types) %}
+            {% set pv = (aggEns[label].previ[t] + (r.heures_previsionnel|default(0))) %}
+            {% set ev = (aggEns[label].edt[t] + (r.heures_edt|default(0))) %}
+            {% set newPrevi = aggEns[label].previ|merge({ (t): pv }) %}
+            {% set newEdt = aggEns[label].edt|merge({ (t): ev }) %}
+            {% set aggEns = aggEns|merge({ (label): { 'previ': newPrevi, 'edt': newEdt } }) %}
+        {% endif %}
+    {% endif %}
+{% endfor %}
+{% set labelsEns = aggEns|keys|sort %}
+
+<h2>Comparatif par Enseignant</h2>
+<table data-xls-sheet="1">
+    <thead>
+    <tr>
+        <th>Enseignant</th>
+        {% for t in types %}
+            <th>Previ {{ t }}</th>
+            <th>EDT {{ t }}</th>
+        {% endfor %}
+        <th>Total Previ</th>
+        <th>Total EDT</th>
+        <th>Différence (EDT-Previ)</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for label in labelsEns %}
+        {% set vals = aggEns[label] %}
+        {% set totalPrevi = 0 %}
+        {% set totalEdt = 0 %}
+        <tr>
+            <td>{{ label }}</td>
+            {% for t in types %}
+                {% set pv = vals.previ[t]|default(0) %}
+                {% set ev = vals.edt[t]|default(0) %}
+                {% set totalPrevi = totalPrevi + pv %}
+                {% set totalEdt = totalEdt + ev %}
+                <td>{{ pv }}</td>
+                <td>{{ ev }}</td>
+            {% endfor %}
+            <td>{{ totalPrevi }}</td>
+            <td>{{ totalEdt }}</td>
+            <td>{{ (totalEdt - totalPrevi) }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{# ------------------ Feuille 2: Comparatif par Enseignement ------------------ #}
+{% set rowsEtt = stats.statPreviEdtEnseignement|default([]) %}
+{% set aggEtt = {} %}
+{% for r in rowsEtt %}
+    {% set label = r.enseignement|default(null) %}
+    {% if label %}
+        {% if aggEtt[label] is not defined %}
+            {% set previInit = {} %}
+            {% set edtInit = {} %}
+            {% for t in types %}
+                {% set previInit = previInit|merge({ (t): 0 }) %}
+                {% set edtInit = edtInit|merge({ (t): 0 }) %}
+            {% endfor %}
+            {% set aggEtt = aggEtt|merge({ (label): { 'previ': previInit, 'edt': edtInit } }) %}
+        {% endif %}
+        {% set t = r.type|default(null) %}
+        {% if t is not null and (t in types) %}
+            {% set pv = (aggEtt[label].previ[t] + (r.heures_previsionnel|default(0))) %}
+            {% set ev = (aggEtt[label].edt[t] + (r.heures_edt|default(0))) %}
+            {% set newPrevi = aggEtt[label].previ|merge({ (t): pv }) %}
+            {% set newEdt = aggEtt[label].edt|merge({ (t): ev }) %}
+            {% set aggEtt = aggEtt|merge({ (label): { 'previ': newPrevi, 'edt': newEdt } }) %}
+        {% endif %}
+    {% endif %}
+{% endfor %}
+{% set labelsEtt = aggEtt|keys|sort %}
+
+<h2>Comparatif par Enseignement</h2>
+<table data-xls-sheet="2">
+    <thead>
+    <tr>
+        <th>Enseignement</th>
+        {% for t in types %}
+            <th>Previ {{ t }}</th>
+            <th>EDT {{ t }}</th>
+        {% endfor %}
+        <th>Total Previ</th>
+        <th>Total EDT</th>
+        <th>Différence (EDT-Previ)</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for label in labelsEtt %}
+        {% set vals = aggEtt[label] %}
+        {% set totalPrevi = 0 %}
+        {% set totalEdt = 0 %}
+        <tr>
+            <td>{{ label }}</td>
+            {% for t in types %}
+                {% set pv = vals.previ[t]|default(0) %}
+                {% set ev = vals.edt[t]|default(0) %}
+                {% set totalPrevi = totalPrevi + pv %}
+                {% set totalEdt = totalEdt + ev %}
+                <td>{{ pv }}</td>
+                <td>{{ ev }}</td>
+            {% endfor %}
+            <td>{{ totalPrevi }}</td>
+            <td>{{ totalEdt }}</td>
+            <td>{{ (totalEdt - totalPrevi) }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>
+
