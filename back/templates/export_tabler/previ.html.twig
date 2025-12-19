@@ -9,31 +9,31 @@
 {% set types = (stats.typesGroupes is defined and stats.typesGroupes|length > 0) ? stats.typesGroupes : ['CM','TD','TP','Projet'] %}
 
 {# ------------------ Feuille 1: Comparatif par Enseignant ------------------ #}
-{% set rowsEns = stats.statPreviEdtEnseignant|default([]) %}
-{% set aggEns = {} %}
-{% for r in rowsEns %}
-    {% set label = r.enseignant|default(null) %}
-    {% if label %}
-        {% if aggEns[label] is not defined %}
+{% set lignesEnseignant = stats.statPreviEdtEnseignant|default([]) %}
+{% set heuresParEnseignant = {} %}
+{% for ligne in lignesEnseignant %}
+    {% set nomEnseignant = ligne.enseignant|default(null) %}
+    {% if nomEnseignant %}
+        {% if heuresParEnseignant[nomEnseignant] is not defined %}
             {% set previInit = {} %}
             {% set edtInit = {} %}
             {% for t in types %}
                 {% set previInit = previInit|merge({ (t): 0 }) %}
                 {% set edtInit = edtInit|merge({ (t): 0 }) %}
             {% endfor %}
-            {% set aggEns = aggEns|merge({ (label): { 'previ': previInit, 'edt': edtInit } }) %}
+            {% set heuresParEnseignant = heuresParEnseignant|merge({ (nomEnseignant): { 'previ': previInit, 'edt': edtInit } }) %}
         {% endif %}
-        {% set t = r.type|default(null) %}
+        {% set t = ligne.type|default(null) %}
         {% if t is not null and (t in types) %}
-            {% set pv = (aggEns[label].previ[t] + (r.heures_previsionnel|default(0))) %}
-            {% set ev = (aggEns[label].edt[t] + (r.heures_edt|default(0))) %}
-            {% set newPrevi = aggEns[label].previ|merge({ (t): pv }) %}
-            {% set newEdt = aggEns[label].edt|merge({ (t): ev }) %}
-            {% set aggEns = aggEns|merge({ (label): { 'previ': newPrevi, 'edt': newEdt } }) %}
+            {% set heuresPreviType = (heuresParEnseignant[nomEnseignant].previ[t] + (ligne.heures_previsionnel|default(0))) %}
+            {% set heuresEdtType = (heuresParEnseignant[nomEnseignant].edt[t] + (ligne.heures_edt|default(0))) %}
+            {% set newPrevi = heuresParEnseignant[nomEnseignant].previ|merge({ (t): heuresPreviType }) %}
+            {% set newEdt = heuresParEnseignant[nomEnseignant].edt|merge({ (t): heuresEdtType }) %}
+            {% set heuresParEnseignant = heuresParEnseignant|merge({ (nomEnseignant): { 'previ': newPrevi, 'edt': newEdt } }) %}
         {% endif %}
     {% endif %}
 {% endfor %}
-{% set labelsEns = aggEns|keys|sort %}
+{% set enseignantsTries = heuresParEnseignant|keys|sort %}
 
 <h2>Comparatif par Enseignant</h2>
 <table data-xls-sheet="1">
@@ -50,19 +50,19 @@
     </tr>
     </thead>
     <tbody>
-    {% for label in labelsEns %}
-        {% set vals = aggEns[label] %}
+    {% for enseignant in enseignantsTries %}
+        {% set donneesEnseignant = heuresParEnseignant[enseignant] %}
         {% set totalPrevi = 0 %}
         {% set totalEdt = 0 %}
         <tr>
-            <td>{{ label }}</td>
+            <td>{{ enseignant }}</td>
             {% for t in types %}
-                {% set pv = vals.previ[t]|default(0) %}
-                {% set ev = vals.edt[t]|default(0) %}
-                {% set totalPrevi = totalPrevi + pv %}
-                {% set totalEdt = totalEdt + ev %}
-                <td>{{ pv }}</td>
-                <td>{{ ev }}</td>
+                {% set heuresPreviType = donneesEnseignant.previ[t]|default(0) %}
+                {% set heuresEdtType = donneesEnseignant.edt[t]|default(0) %}
+                {% set totalPrevi = totalPrevi + heuresPreviType %}
+                {% set totalEdt = totalEdt + heuresEdtType %}
+                <td>{{ heuresPreviType }}</td>
+                <td>{{ heuresEdtType }}</td>
             {% endfor %}
             <td>{{ totalPrevi }}</td>
             <td>{{ totalEdt }}</td>
@@ -73,31 +73,31 @@
 </table>
 
 {# ------------------ Feuille 2: Comparatif par Enseignement ------------------ #}
-{% set rowsEtt = stats.statPreviEdtEnseignement|default([]) %}
-{% set aggEtt = {} %}
-{% for r in rowsEtt %}
-    {% set label = r.enseignement|default(null) %}
-    {% if label %}
-        {% if aggEtt[label] is not defined %}
+{% set lignesEnseignement = stats.statPreviEdtEnseignement|default([]) %}
+{% set heuresParEnseignement = {} %}
+{% for ligne in lignesEnseignement %}
+    {% set libelleEnseignement = ligne.enseignement|default(null) %}
+    {% if libelleEnseignement %}
+        {% if heuresParEnseignement[libelleEnseignement] is not defined %}
             {% set previInit = {} %}
             {% set edtInit = {} %}
             {% for t in types %}
                 {% set previInit = previInit|merge({ (t): 0 }) %}
                 {% set edtInit = edtInit|merge({ (t): 0 }) %}
             {% endfor %}
-            {% set aggEtt = aggEtt|merge({ (label): { 'previ': previInit, 'edt': edtInit } }) %}
+            {% set heuresParEnseignement = heuresParEnseignement|merge({ (libelleEnseignement): { 'previ': previInit, 'edt': edtInit } }) %}
         {% endif %}
-        {% set t = r.type|default(null) %}
+        {% set t = ligne.type|default(null) %}
         {% if t is not null and (t in types) %}
-            {% set pv = (aggEtt[label].previ[t] + (r.heures_previsionnel|default(0))) %}
-            {% set ev = (aggEtt[label].edt[t] + (r.heures_edt|default(0))) %}
-            {% set newPrevi = aggEtt[label].previ|merge({ (t): pv }) %}
-            {% set newEdt = aggEtt[label].edt|merge({ (t): ev }) %}
-            {% set aggEtt = aggEtt|merge({ (label): { 'previ': newPrevi, 'edt': newEdt } }) %}
+            {% set heuresPreviType = (heuresParEnseignement[libelleEnseignement].previ[t] + (ligne.heures_previsionnel|default(0))) %}
+            {% set heuresEdtType = (heuresParEnseignement[libelleEnseignement].edt[t] + (ligne.heures_edt|default(0))) %}
+            {% set newPrevi = heuresParEnseignement[libelleEnseignement].previ|merge({ (t): heuresPreviType }) %}
+            {% set newEdt = heuresParEnseignement[libelleEnseignement].edt|merge({ (t): heuresEdtType }) %}
+            {% set heuresParEnseignement = heuresParEnseignement|merge({ (libelleEnseignement): { 'previ': newPrevi, 'edt': newEdt } }) %}
         {% endif %}
     {% endif %}
 {% endfor %}
-{% set labelsEtt = aggEtt|keys|sort %}
+{% set enseignementsTries = heuresParEnseignement|keys|sort %}
 
 <h2>Comparatif par Enseignement</h2>
 <table data-xls-sheet="2">
@@ -114,19 +114,19 @@
     </tr>
     </thead>
     <tbody>
-    {% for label in labelsEtt %}
-        {% set vals = aggEtt[label] %}
+    {% for enseignement in enseignementsTries %}
+        {% set donneesEnseignement = heuresParEnseignement[enseignement] %}
         {% set totalPrevi = 0 %}
         {% set totalEdt = 0 %}
         <tr>
-            <td>{{ label }}</td>
+            <td>{{ enseignement }}</td>
             {% for t in types %}
-                {% set pv = vals.previ[t]|default(0) %}
-                {% set ev = vals.edt[t]|default(0) %}
-                {% set totalPrevi = totalPrevi + pv %}
-                {% set totalEdt = totalEdt + ev %}
-                <td>{{ pv }}</td>
-                <td>{{ ev }}</td>
+                {% set heuresPreviType = donneesEnseignement.previ[t]|default(0) %}
+                {% set heuresEdtType = donneesEnseignement.edt[t]|default(0) %}
+                {% set totalPrevi = totalPrevi + heuresPreviType %}
+                {% set totalEdt = totalEdt + heuresEdtType %}
+                <td>{{ heuresPreviType }}</td>
+                <td>{{ heuresEdtType }}</td>
             {% endfor %}
             <td>{{ totalPrevi }}</td>
             <td>{{ totalEdt }}</td>
