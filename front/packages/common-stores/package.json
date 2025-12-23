@@ -1,5 +1,12 @@
 {
-  "name": "common-stores",
-  "version": "1.0.0",
-  "main": "index.js"
+  "name": "@shared/stores",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./index.ts",
+  "exports": {
+    ".": {
+      "import": "./index.ts",
+      "types": "./index.ts"
+    }
+  }
 }

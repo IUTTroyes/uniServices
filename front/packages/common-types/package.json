@@ -1,5 +1,5 @@
 {
-  "name": "@shared/helpers",
+  "name": "@shared/types",
   "version": "0.0.0",
   "type": "module",
   "main": "./index.ts",

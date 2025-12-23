@@ -14,8 +14,8 @@ export * from './scol_services/enseignementService';
 
 export * from './edt_services/edtEventService.js';
 
-export * from './user_services/etudiantService';
-export * from './user_services/personnelService';
+export { updateEtudiantService, getEtudiantService, createEtudiantService, createEtudiantsService, importEtudiantApogeeService, getEtudiantsService } from './user_services/etudiantService';
+export { getPersonnelsService } from './user_services/personnelService';
 export * from './user_services/userService';
 
 export * from './ext_data_services/siteIutService';

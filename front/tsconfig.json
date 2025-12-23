@@ -3,35 +3,55 @@
     "baseUrl": ".",
     "lib": ["ES2017", "DOM", "DOM.Iterable"],
     "paths": {
+      // nouvelle version avec package.json et index.ts obligatoire
+      "@types": [
+        "packages/common-types/index.ts"
+      ],
+      "@requests": [
+        "packages/common-requests/index.ts"
+      ],
+      "@stores": [
+        "packages/common-stores/index.ts"
+      ],
+      "@components": [
+        "packages/common-components/index.ts"
+      ],
+      "@config": [
+        "packages/common-global-data/index.ts"
+      ],
+      "@helpers": [
+        "packages/common-helpers/index.ts"
+      ],
+
+      // old supprimer ne fois refactor fait
       "@types/*": [
         "packages/common-types/*"
       ],
-      "@/*": [
-        "apps/*/src"
+      "@requests/*": [
+        "packages/common-requests/*"
       ],
+
       "@components/*": [
         "packages/common-components/*"
       ],
       "@config/*": [
         "packages/common-global-data/*"
       ],
+      "@helpers/*": [
+        "packages/common-helpers/*"
+      ],
+      "@stores/*": [
+        "packages/common-stores/*"
+      ],
+      // a conserver pour le moment
+//      "@/*": [
+//        "apps/*/src"
+//      ],
       "@styles/*": [
         "packages/common-styles/*"
       ],
       "@images/*": [
         "packages/common-images/*"
-      ],
-      "@helpers/*": [
-        "packages/common-helpers/*"
-      ],
-      "@requests/": [
-        "packages/common-requests/"
-      ],
-      "@requests/*": [
-        "packages/common-requests/*"
-      ],
-      "@stores/*": [
-        "packages/common-stores/*"
       ],
       "@common-images/*": [
         "packages/common-images/*"

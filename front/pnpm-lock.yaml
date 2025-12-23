@@ -193,11 +193,21 @@ importers:
 
   apps/intranet: {}
 
+  packages/common-components: {}
+
+  packages/common-global-data: {}
+
   packages/common-helpers: {}
+
+  packages/common-requests: {}
 
   packages/common-stores: {}
 
   packages/common-styles: {}
+
+  packages/common-types: {}
+
+  packages/common-utils: {}
 
 packages:
 
