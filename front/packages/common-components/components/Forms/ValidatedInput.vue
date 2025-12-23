@@ -1,5 +1,5 @@
-<script setup>
-import { computed } from 'vue';
+<script setup lang="ts">
+import { computed, nextTick } from 'vue';
 import FormValidator from './FormValidator.vue';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
@@ -9,6 +9,10 @@ import { validationRules } from '@components';
 const props = defineProps({
   modelValue: {
     type: [String, Number, Boolean, Array, Object],
+    default: null
+  },
+  value: {
+    type: [String, Number, Boolean, Object],
     default: null
   },
   rules: {
@@ -47,7 +51,6 @@ const props = defineProps({
     type: String,
     default: ''
   },
-  // Password component specific props
   feedback: {
     type: Boolean,
     default: false
@@ -59,21 +62,88 @@ const props = defineProps({
   options : {
     type: Array,
     default: () => []
+  },
+  filter: {
+    type: Boolean,
+    default: false
+  },
+  inputId: {
+    type: String,
+    default: null
+  },
+  min: {
+    type: [Number, String],
+    default: null
+  },
+  max: {
+    type: [Number, String],
+    default: null
+  },
+  minfractiondigits: {
+    type: Number,
+    default: null
+  },
+  maxfractiondigits: {
+    type: Number,
+    default: null
+  },
+  disabled: {
+    type: Boolean,
+    default: false
+  },
+  selectionMode: {
+    type: String,
+    default: 'single' // or 'range', 'multiple'
+  },
+  manualInput: {
+    type: Boolean,
+    default: false
+  },
+  minDate: {
+    type: Date,
+    default: null
+  },
+  maxDate: {
+    type: Date,
+    default: null
+  },
+  showClear: {
+    type: Boolean,
+    default: false
   }
 });
 
-const emit = defineEmits(['update:modelValue', 'validation']);
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: any): void;
+  (e: 'blur', event?: Event): void;
+  (e: 'validation', result: any): void;
+}>();
 
-const updateValue = (event) => {
-  emit('update:modelValue', event.target.value);
+const updateValue = (eventOrValue: any) => {
+  const value =
+      eventOrValue && typeof eventOrValue === 'object' && 'target' in eventOrValue
+          ? eventOrValue.target.value
+          : eventOrValue;
+  emit('update:modelValue', value);
 };
 
-const updateModelValue = (value) => {
-  emit('update:modelValue', value);
+const updateModelValue = (value: any) => {
+  // utilisé par InputNumber/Select qui émettent la valeur directement
+  updateValue(value);
+};
+
+const handleBlur = (event?: Event) => {
+  emit('blur', event);
 };
 
 const onValidation = (result) => {
   emit('validation', result);
+};
+
+// Wrapper utilisé dans le template pour attendre que le modelValue soit mis à jour
+const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
+  await nextTick();
+  handleBlurFn(event);
 };
 </script>
 
@@ -104,6 +174,22 @@ const onValidation = (result) => {
             @blur="handleBlur"
         />
 
+        <InputNumber
+            v-if="type === 'number'"
+            :id="inputId || name"
+            :name="name"
+            :placeholder="placeholder"
+            :modelValue="modelValue"
+            :class="[inputClass]"
+            @update:modelValue="updateModelValue"
+            @blur="e => onBlurModelValue(e, handleBlur)"
+            :min="min"
+            :max="max"
+            :min-fraction-digits="minfractiondigits"
+            :max-fraction-digits="maxfractiondigits"
+            :disabled="disabled"
+        />
+
         <Password
             v-else-if="type === 'password'"
             :inputId="name"
@@ -113,12 +199,13 @@ const onValidation = (result) => {
             :feedback="feedback"
             :toggleMask="toggleMask"
             :modelValue="modelValue"
-            @update:modelValue="updateModelValue"
+            @input="updateValue"
             @blur="handleBlur"
         />
 
-        <Dropdown
+        <Select
             v-else-if="type === 'select'"
+            :show-clear="showClear"
             :id="name"
             :name="name"
             :options="options"
@@ -128,7 +215,65 @@ const onValidation = (result) => {
             optionLabel="label"
             optionValue="value"
             @update:modelValue="updateModelValue"
-            @blur="handleBlur"
+            @blur="e => onBlurModelValue(e, handleBlur)"
+            :filter="filter"
+            :disabled="disabled"
+        />
+
+        <MultiSelect
+            v-else-if="type === 'multiselect'"
+            :show-clear="showClear"
+            :id="name"
+            :name="name"
+            :options="options"
+            :modelValue="modelValue"
+            :placeholder="placeholder"
+            :class="[inputClass, { 'p-invalid': showError }]"
+            optionLabel="label"
+            optionValue="value"
+            @update:modelValue="updateModelValue"
+            @blur="e => onBlurModelValue(e, handleBlur)"
+            :filter="filter"
+        />
+
+        <DatePicker
+          v-else-if="type === 'date'"
+          showIcon
+          :showButtonBar="true"
+          :id="name"
+          :name="name"
+          :modelValue="modelValue"
+          :placeholder="placeholder"
+          :class="[inputClass, { 'p-invalid': showError }]"
+          @update:modelValue="updateModelValue"
+          dateFormat="dd/mm/yy"
+          @blur="e => onBlurModelValue(e, handleBlur)"
+          :selectionMode="selectionMode"
+          :manualInput="manualInput"
+          :minDate="minDate"
+          :maxDate="maxDate"
+        />
+
+        <Textarea
+          v-else-if="type === 'textarea'"
+          :id="name"
+          :name="name"
+          :value="modelValue"
+          :placeholder="placeholder"
+          :class="[inputClass, { 'p-invalid': showError }]"
+          @input="updateValue"
+          @blur="handleBlur"
+        />
+
+        <RadioButton
+            v-else-if="type === 'radio'"
+            :inputId="`${name}-${value}`"
+            :name="name"
+            :modelValue="modelValue"
+            :value="value"
+            :class="[inputClass, { 'p-invalid': showError }]"
+            @update:modelValue="updateModelValue"
+            @change="e => onBlurModelValue(e, handleBlur)"
         />
 
         <small v-if="helpText && !showError" class="text-sm text-muted-color mt-1">{{ helpText }}</small>

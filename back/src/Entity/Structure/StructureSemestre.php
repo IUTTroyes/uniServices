@@ -128,7 +128,7 @@ class StructureSemestre
     private Collection $groupes;
 
     #[ORM\ManyToOne(inversedBy: 'semestres')]
-    #[Groups(['semestre:detail', 'scolarite:read', 'enseignement:read', 'etudiant:read'])]
+    #[Groups(['semestre:detail', 'annee:light', 'scolarite:read', 'enseignement:read', 'etudiant:read'])]
     private ?StructureAnnee $annee = null;
 
     /**
@@ -553,4 +553,16 @@ class StructureSemestre
 
         return $this;
     }
+
+    #[Groups(['semestre:detail', 'semestre:light'])]
+        public function getTypesGroupe(): array
+        {
+            $types = [];
+
+            foreach ($this->groupes as $groupe) {
+                $types[] = $groupe->getType()->value;
+            }
+
+            return array_values(array_unique($types));
+        }
 }

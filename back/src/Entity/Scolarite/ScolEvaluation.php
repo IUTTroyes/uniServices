@@ -2,18 +2,44 @@
 
 namespace App\Entity\Scolarite;
 
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 use App\Entity\Etudiant\EtudiantNote;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
+use App\Enum\TypeEvaluationEnum;
+use App\Enum\TypeGroupeEnum;
+use App\Filter\EvaluationFilter;
 use App\Repository\ScolEvaluationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ScolEvaluationRepository::class)]
+#[ApiFilter(EvaluationFilter::class)]
+#[ApiResource(
+    paginationEnabled: false,
+    operations: [
+        new Get(normalizationContext: ['groups' => ['evaluation:detail', 'personnel:light', 'enseignement:light']]),
+        new GetCollection(normalizationContext: ['groups' => ['evaluation:detail', 'personnel:light', 'enseignement:light']]),
+        new Get(
+            uriTemplate: '/mini/scol_evaluations/{id}',
+            normalizationContext: ['groups' => ['evaluation:light']],
+        ),
+        new Get(
+            uriTemplate: '/maxi/scol_evaluations/{id}',
+            normalizationContext: ['groups' => ['evaluation:detail']],
+        ),
+        new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)", processor: 'App\DataProvider\Evaluation\ScolEvaluationInitProcessor'),
+    ]
+)]
 class ScolEvaluation
 {
     use UuidTrait;
@@ -21,62 +47,97 @@ class ScolEvaluation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['evaluation:light', 'evaluation:detail'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['evaluation:light', 'evaluation:detail', 'evaluation:write'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?string $commentaire = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?float $coeff = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?\DateTimeInterface $date = null;
 
     #[ORM\Column]
-    private ?bool $visible = null;
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
+    private ?bool $visible = false;
 
     #[ORM\Column]
-    private ?bool $modifiable = null;
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
+    private ?bool $modifiable = false;
+
+    #[ORM\Column(length: 25, enumType: TypeEvaluationEnum::class, nullable: true)]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
+    private ?TypeEvaluationEnum $type = null;
 
     /**
      * @var Collection<int, Personnel>
      */
     #[ORM\ManyToMany(targetEntity: Personnel::class, inversedBy: 'evaluations')]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private Collection $personnelAutorise;
 
     #[ORM\ManyToOne(inversedBy: 'evaluations')]
+    #[Groups(['evaluation:detail'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'evaluations')]
+    #[Groups(['evaluation:detail'])]
     private ?StructureSemestre $semestre = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'evaluations')]
+    #[Groups(['evaluation:detail'])]
     private ?self $parent = null;
 
     /**
      * @var Collection<int, self>
      */
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    #[Groups(['evaluation:detail'])]
     private Collection $evaluations;
 
     #[ORM\ManyToOne(inversedBy: 'evaluations')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['evaluation:detail'])]
     private ?ScolEnseignement $enseignement = null;
 
     /**
      * @var Collection<int, EtudiantNote>
      */
     #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'evaluation')]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private Collection $notes;
+
+    #[ORM\Column(length: 10, enumType: TypeGroupeEnum::class, nullable: true)]
+    #[\Symfony\Component\Serializer\Attribute\Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
+    private ?TypeGroupeEnum $typeGroupe;
+
+    #[ORM\Column(length: 20, options: ['default' => 'non_initialisee'])]
+    #[Groups(['evaluation:detail'])]
+    private ?string $etat = 'non_initialisee';
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['evaluation:detail'])]
+    private ?array $stats = ['moyenne' => 0, 'mediane' => 0, 'min' => 0, 'max' => 0];
 
     public function __construct()
     {
         $this->personnelAutorise = new ArrayCollection();
         $this->evaluations = new ArrayCollection();
         $this->notes = new ArrayCollection();
+
+        if (null === $this->stats) {
+            $this->stats = ['moyenne' => 0, 'mediane' => 0, 'min' => 0, 'max' => 0];
+        }
     }
 
     public function getId(): ?int
@@ -284,6 +345,100 @@ class ScolEvaluation
                 $note->setEvaluation(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getType(): ?TypeEvaluationEnum
+    {
+        return $this->type;
+    }
+
+    public function setType(?TypeEvaluationEnum $type): void
+    {
+        $this->type = $type;
+    }
+
+    #[Groups(['evaluation:detail'])]
+    public function getTypeIcon(): ?string
+    {
+        if (null === $this->type) {
+            return null;
+        }
+
+        $severityMap = TypeEvaluationEnum::getIcon();
+
+        return $severityMap[$this->type->value] ?? null;
+    }
+
+    #[Groups(['evaluation:detail'])]
+    public function getEtat(): string
+    {
+        return $this->etat ?? 'non_initialisee';
+    }
+
+    public function setEtat(string $etat): self
+    {
+        // allowed values: non_initialisee, initialisee, planifiee, complet
+        $allowed = ['non_initialisee', 'initialisee', 'planifiee', 'complet'];
+        if (!in_array($etat, $allowed, true)) {
+            throw new \InvalidArgumentException('Etat invalide');
+        }
+        $this->etat = $etat;
+        return $this;
+    }
+
+    public function getTypeGroupe(): ?TypeGroupeEnum
+    {
+        return $this->typeGroupe;
+    }
+
+    public function setTypeGroupe(?TypeGroupeEnum $type): ?self
+    {
+        $this->typeGroupe = $type;
+
+        return $this;
+    }
+
+    #[Groups(['evaluation:detail'])]
+    public function getTypeGroupeChoices(): array
+    {
+        return array_map(
+            fn(TypeGroupeEnum $case): string => $case->value,
+            TypeGroupeEnum::getTypes()
+        );
+    }
+    #[Groups(['evaluation:detail'])]
+    public function getTypeChoices(): array
+    {
+        return array_map(
+            fn(TypeEvaluationEnum $case): string => $case->value,
+            TypeEvaluationEnum::getTypes()
+        );
+    }
+
+   public function getStats(): ?array
+   {
+       $order = [
+           'moyenne' => 'Moyenne',
+           'mediane' => 'Médiane',
+           'min' => 'Min',
+           'max' => 'Max',
+           'dispenses' => 'Dispensés',
+           'absences_justifiees' => 'Absences justifiées',
+           'absences_injustifiees' => 'Absences injustifiées',
+       ];
+       $stats = $this->stats ?? [];
+       $result = [];
+       foreach ($order as $key => $label) {
+           $result[$label] = array_key_exists($key, $stats) ? $stats[$key] : 0;
+       }
+       return $result;
+   }
+
+    public function setStats(?array $stats): static
+    {
+        $this->stats = $stats;
 
         return $this;
     }

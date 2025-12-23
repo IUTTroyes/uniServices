@@ -11,6 +11,7 @@ export * from './structure_services/previsionnelService';
 export * from './structure_services/groupeService';
 
 export * from './scol_services/enseignementService';
+export * from './scol_services/evaluationService.js';
 
 export * from './edt_services/edtEventService.js';
 
@@ -20,7 +21,9 @@ export * from './user_services/userService';
 
 export * from './ext_data_services/siteIutService';
 
-export * from './etudiant_services/etudiantScolariteService'
+export * from './etudiant_services/etudiantScolariteService';
+export * from './etudiant_services/etudiantScolariteSemestreService';
+export * from './etudiant_services/etudiantNoteService';
 
 export * from './personnel_services/personnelHrsService.js'
 
@@ -29,3 +32,5 @@ export * from './apc_services/competenceService.js';
 export * from './questionnaire_services/questionnaireService.js'
 
 export * from './salleService.js';
+
+export * from './export/exportService.js';

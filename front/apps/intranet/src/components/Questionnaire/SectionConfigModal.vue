@@ -64,12 +64,13 @@
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Titre de la section
             </label>
-            <input
+            <ValidatedInput
                 v-model="localSection.titre"
+                name="sectionTitle"
+                label="Titre de la section"
                 type="text"
-                class="input-field"
+                :rules="[validationRules.required]"
                 placeholder="Titre de la section"
-                required
             />
           </div>
 
@@ -77,10 +78,12 @@
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Modèle de titre
             </label>
-            <input
+            <ValidatedInput
                 v-model="localSection.opt!.titleTemplate"
+                name="titleTemplate"
+                label="Modèle de titre"
                 type="text"
-                class="input-field"
+                :rules="[]"
                 placeholder="Évaluation de {element}"
             />
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -93,10 +96,12 @@
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Description (optionnelle)
           </label>
-          <textarea
+          <ValidatedInput
               v-model="localSection.description"
-              class="input-field"
-              rows="3"
+              name="description"
+              label="Description (optionnelle)"
+              type="textarea"
+              :rules="[]"
               placeholder="Description de la section"
           />
         </div>
@@ -136,10 +141,12 @@
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Nom du type d'élément
               </label>
-              <input
+              <ValidatedInput
                   v-model="localSection.opt.sourceLabel"
+                  name="sourceLabel"
+                  label="Nom du type d'élément"
                   type="text"
-                  class="input-field"
+                  :rules="[validationRules.required]"
                   placeholder="Ex: Projets, Équipes, Produits..."
               />
             </div>
@@ -179,17 +186,21 @@
                     class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg"
                 >
                   <div class="flex-1 grid grid-cols-2 gap-3">
-                    <input
+                    <ValidatedInput
                         v-model="element.name"
+                        name="elementName"
+                        label="Nom"
                         type="text"
+                        :rules="[validationRules.required]"
                         placeholder="Nom"
-                        class="input-field"
                     />
-                    <input
+                    <ValidatedInput
                         v-model="element.code"
+                        name="elementCode"
+                        label="Code (optionnel)"
                         type="text"
+                        :rules="[]"
                         placeholder="Code (optionnel)"
-                        class="input-field"
                     />
                   </div>
                   <Button
@@ -300,6 +311,7 @@
 </template>
 
 <script setup lang="ts">
+import { ValidatedInput, validationRules } from '@components';
 import { ref, computed, onMounted, watch } from 'vue';
 import {
   XMarkIcon,

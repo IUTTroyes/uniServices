@@ -93,6 +93,24 @@ class EdtFilter extends AbstractFilter
                 ->setParameter('day_end', $nextDay);
         }
 
+        if ('debut' === $property) {
+            $date = new \DateTime($value);
+            $date->setTime(0, 0, 0);
+
+            $queryBuilder
+                ->andWhere(sprintf('%s.debut >= :debut', $alias))
+                ->setParameter('debut', $date);
+        }
+
+        if ('fin' === $property) {
+            $date = new \DateTime($value);
+            $date->setTime(23, 59, 59);
+
+            $queryBuilder
+                ->andWhere(sprintf('%s.fin <= :fin', $alias))
+                ->setParameter('fin', $date);
+        }
+
         if ('enseignement' === $property) {
             $queryBuilder
                 ->join(sprintf('%s.enseignement', $alias), 'enseignement')
@@ -173,6 +191,22 @@ class EdtFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter events to only include events on the specified date (format: YYYY-MM-DD)',
+                ]
+            ],
+            'debut' => [
+                'property' => 'debut',
+                'type' => Type::BUILTIN_TYPE_STRING,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter events to only include events starting from the specified date (format: YYYY-MM-DD)',
+                ]
+            ],
+            'fin' => [
+                'property' => 'fin',
+                'type' => Type::BUILTIN_TYPE_STRING,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter events to only include events ending before the specified date (format: YYYY-MM-DD)',
                 ]
             ],
         ];

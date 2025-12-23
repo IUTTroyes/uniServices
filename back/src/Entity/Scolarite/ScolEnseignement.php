@@ -30,11 +30,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['enseignement:detail', 'enseignement_ue:read']]),
         new GetCollection(normalizationContext: ['groups' => ['enseignement:detail']]),
         new Get(
-            uriTemplate: '/mini/scol_enseignement/{id}',
+            uriTemplate: '/mini/scol_enseignements/{id}',
             normalizationContext: ['groups' => ['enseignement:light']],
         ),
         new Get(
-            uriTemplate: '/maxi/scol_enseignement/{id}',
+            uriTemplate: '/maxi/scol_enseignements/{id}',
             normalizationContext: ['groups' => ['enseignement:detail', 'apprentissage_critique:detail', 'absence:detail', 'evaluation:detail', 'previsionnel:detail', 'edt:detail']],
         ),
     ]
@@ -49,11 +49,11 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement:light', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
@@ -77,7 +77,7 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement:light', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
@@ -89,7 +89,7 @@ class ScolEnseignement
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement_ue:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'edt_event:read:agenda'])]
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]
@@ -143,6 +143,7 @@ class ScolEnseignement
      * @var Collection<int, ScolEvaluation>
      */
     #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'enseignement')]
+    #[Groups(['enseignement:detail'])]
     private Collection $evaluations;
 
     /**

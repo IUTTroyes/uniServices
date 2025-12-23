@@ -4,8 +4,8 @@ import { FilterMatchMode } from '@primevue/core/api';
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue';
-import { ErrorView } from '@components';
-import { getDepartementAnneesService, getEtudiantsScolaritesDepartementService, getEtudiantsScolaritesAnneeService } from '@requests';
+import {ErrorView, ProfilEtudiant} from '@components';
+import { getAnneesService, getEtudiantsScolariteService } from '@requests';
 
 import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue';
 import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue';
@@ -15,7 +15,7 @@ import { useToast } from 'primevue/usetoast';
 
 const toast = useToast();
 
-import { useSemestreStore, useUsersStore } from '@stores';
+import { useUsersStore } from '@stores';
 import { SimpleSkeleton } from '@components';
 const usersStore = useUsersStore();
 
@@ -56,7 +56,11 @@ const getAnnees = async () => {
   isLoadingAnnees.value = true;
   isLoadingStats.value = true;
   try {
-    anneesList.value = await getDepartementAnneesService(departementId.value, true);
+    const params = {
+      departement: departementId.value,
+      actif: true,
+    };
+    anneesList.value = await getAnneesService(params);
   } catch (error) {
     console.error('Erreur lors du chargement des années :', error);
     hasError.value = true;
@@ -83,22 +87,31 @@ const getAnnees = async () => {
   }
 };
 
-const getEtudiantsAnnee = async anneeId => {
-  return await getEtudiantsScolaritesAnneeService(anneeId, false, true);
+const getEtudiantsAnnee = async (anneeId) => {
+  const params = {
+    departement: departementId.value,
+    anneeUniversitaire: selectedAnneeUniversitaire.id,
+    annee: anneeId,
+    limit: 1,
+    page: 1,
+    filters: {},
+  };
+  return await getEtudiantsScolariteService(params, '/mini', false);
 };
 
 const getEtudiantsScolarite = async () => {
   loading.value = true;
+  const params = {
+    departement: departementId.value,
+    anneeUniversitaire: selectedAnneeUniversitaire.id,
+    limit: limit.value,
+    page: parseInt(page.value) + 1,
+    filters: filters.value,
+  };
   try {
-    const response = await getEtudiantsScolaritesDepartementService(
-        departementId.value,
-        selectedAnneeUniversitaire.id,
-        limit.value,
-        parseInt(page.value) + 1,
-        filters.value
-    );
-    etudiants.value = response.member;
+    const response = await getEtudiantsScolariteService(params);
     nbEtudiants.value = response.totalItems;
+    etudiants.value = response.member;
 
     etudiants.value.forEach(etudiant => {
       etudiant.annees = [
@@ -133,7 +146,7 @@ const onPageChange = async event => {
   await getEtudiantsScolarite();
 };
 
-const viewEtudiant = etudiant => {
+const viewEtudiant = async etudiant => {
   selectedEtudiant.value = etudiant;
   showViewDialog.value = true;
 };
@@ -148,38 +161,38 @@ const deleteEtudiant = etudiant => {
 };
 
 watch(
-      () => ({ ...filters.value }),
-      async (newFilters, oldFilters) => {
-        if (isUpdatingFilter.value) {
-          isUpdatingFilter.value = false;
-          return;
-        }
+    () => ({ ...filters.value }),
+    async (newFilters, oldFilters) => {
+      if (isUpdatingFilter.value) {
+        isUpdatingFilter.value = false;
+        return;
+      }
 
-        // Gestion spécifique pour le filtre année (objet ou id)
-        const newAnnee = newFilters.annee.value;
-        if (newAnnee && typeof newAnnee === 'object' && newAnnee.id) {
-          isUpdatingFilter.value = true;
-          filters.value.annee.value = newAnnee.id;
-          await getEtudiantsScolarite();
-        } else if (typeof newAnnee === 'number') {
-          await getEtudiantsScolarite();
-        } else if (newAnnee === null || newAnnee === undefined) {
-          await getEtudiantsScolarite();
-        } else {
-          await getEtudiantsScolarite();
-        }
-        // Détection de changement sur les autres filtres
-        if (
+      // Gestion spécifique pour le filtre année (objet ou id)
+      const newAnnee = newFilters.annee.value;
+      if (newAnnee && typeof newAnnee === 'object' && newAnnee.id) {
+        isUpdatingFilter.value = true;
+        filters.value.annee.value = newAnnee.id;
+        await getEtudiantsScolarite();
+      } else if (typeof newAnnee === 'number') {
+        await getEtudiantsScolarite();
+      } else if (newAnnee === null || newAnnee === undefined) {
+        await getEtudiantsScolarite();
+      } else {
+        await getEtudiantsScolarite();
+      }
+      // Détection de changement sur les autres filtres
+      if (
           newFilters.nom.value !== oldFilters.nom.value ||
           newFilters.prenom.value !== oldFilters.prenom.value ||
           newFilters.mailUniv.value !== oldFilters.mailUniv.value ||
           newFilters.global.value !== oldFilters.global.value
-        ) {
-          await getEtudiantsScolarite();
-        }
-      },
-      { deep: true }
-    );
+      ) {
+        await getEtudiantsScolarite();
+      }
+    },
+    { deep: true }
+);
 </script>
 
 <template>
@@ -267,6 +280,7 @@ watch(
           <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par email" />
         </template>
       </Column>
+      <Column field="etudiant.bac.libelle" header="Bac"></Column>
       <Column :showFilterMenu="false" style="min-width: 12rem">
         <template #body="slotProps">
           <ButtonInfo tooltip="Voir les détails de l'étudiant" @click="viewEtudiant(slotProps.data)" />
@@ -277,21 +291,21 @@ watch(
       <template #footer> {{ nbEtudiants }} résultat(s).</template>
     </DataTable>
 
-    <ViewEtudiantDialog
-        :isVisible="showViewDialog"
-        :etudiantSco="selectedEtudiant"
-        @update:visible="showViewDialog = $event"
-    />
-    <EditEtudiantDialog
-        :isVisible="showEditDialog"
-        :etudiant="selectedEtudiant"
-        @update:visible="showEditDialog = $event"
-    />
-    <AccessEtudiantDialog
-        :isVisible="showAccessEditDialog"
-        :etudiant="selectedEtudiant"
-        @update:visible="showAccessEditDialog = $event"
-    />
+    <Dialog header=" " :visible="showViewDialog" modal :style="{ width: '90vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }" dismissable-mask :closable="true"
+            :isVisible="showViewDialog"
+            @update:visible="showViewDialog = $event">
+      <ProfilEtudiant :etudiantId="selectedEtudiant.etudiant.id" :isVisible="showViewDialog" />
+    </Dialog>
+<!--    <EditEtudiantDialog-->
+<!--        :isVisible="showEditDialog"-->
+<!--        :etudiant="selectedEtudiant"-->
+<!--        @update:visible="showEditDialog = $event"-->
+<!--    />-->
+<!--    <AccessEtudiantDialog-->
+<!--        :isVisible="showAccessEditDialog"-->
+<!--        :etudiant="selectedEtudiant"-->
+<!--        @update:visible="showAccessEditDialog = $event"-->
+<!--    />-->
   </div>
 </template>
 

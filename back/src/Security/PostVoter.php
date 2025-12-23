@@ -2,6 +2,8 @@
 
 namespace App\Security;
 
+use App\Entity\Etudiant\EtudiantNote;
+use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -13,13 +15,15 @@ class PostVoter extends Voter
 
     const CAN_EDIT_ETUDIANT = 'CAN_EDIT_ETUDIANT';
     const CAN_EDIT_SCOL = 'CAN_EDIT_SCOL';
+    const CAN_EDIT_EVAL = 'CAN_EDIT_EVAL';
+    const CAN_EDIT_NOTES = 'CAN_EDIT_NOTES';
 
     /**
      * @inheritDoc
      */
     protected function supports(string $attribute, mixed $subject): bool
     {
-        if (!in_array($attribute, [self::CAN_EDIT_ETUDIANT, self::CAN_EDIT_SCOL])) {
+        if (!in_array($attribute, [self::CAN_EDIT_ETUDIANT, self::CAN_EDIT_SCOL, self::CAN_EDIT_EVAL, self::CAN_EDIT_NOTES])) {
             return false;
         }
 
@@ -50,6 +54,8 @@ class PostVoter extends Voter
         return match($attribute) {
             self::CAN_EDIT_ETUDIANT => $this->canEditEtudiant($post, $user),
             self::CAN_EDIT_SCOL => $this->canEditScolarite($user),
+            self::CAN_EDIT_EVAL => $this->canEditEvaluation($post, $user),
+            self::CAN_EDIT_NOTES => $this->canEditNotes($post, $user),
             default => false,
         };
     }
@@ -72,9 +78,34 @@ class PostVoter extends Voter
         return false;
     }
 
-    // todo: à compléter
-    private function canEdit()
+    private function canEditEvaluation(mixed $subject, Personnel|Etudiant $user)
     {
+        if ($user instanceof Personnel && (in_array('ROLE_SUPER_ADMIN', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles()) || in_array('ROLE_CHEF_DEPT', $user->getRoles()) || in_array('ROLE_RESP_PARCOURS', $user->getRoles()) || in_array('ROLE_RESP_NOTES', $user->getRoles()) ) ) {
+            return true;
+        }
 
+        // Si l'objet est une note, vérifier que le personnel est autorisé sur l'évaluation liée
+        if ($subject instanceof ScolEvaluation && $user instanceof Personnel) {
+            return $subject->getPersonnelAutorise()->contains($user);
+        }
+
+        return false;
+    }
+
+    private function canEditNotes(mixed $subject, Personnel|Etudiant $user): bool
+    {
+        if ($user instanceof Personnel && (in_array('ROLE_SUPER_ADMIN', $user->getRoles()) || in_array('ROLE_ADMIN', $user->getRoles()) || in_array('ROLE_CHEF_DEPT', $user->getRoles()) || in_array('ROLE_RESP_PARCOURS', $user->getRoles()) || in_array('ROLE_RESP_NOTES', $user->getRoles()) ) ) {
+            return true;
+        }
+
+        // Si l'objet est une note, vérifier que le personnel est autorisé sur l'évaluation liée
+        if ($subject instanceof EtudiantNote) {
+            $evaluation = $subject->getEvaluation();
+            if ($evaluation instanceof ScolEvaluation && $user instanceof Personnel) {
+                return $evaluation->getPersonnelAutorise()->contains($user);
+            }
+        }
+
+        return false;
     }
 }

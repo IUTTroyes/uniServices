@@ -33,7 +33,11 @@ export const validationRules = {
 
   // Required field validation
   required: {
-    validate: value => value !== null && value !== undefined && value !== '',
+    validate: value => {
+      if (Array.isArray(value)) return value.length > 0;
+      if (value && typeof value === 'object') return Object.keys(value).length > 0;
+      return value !== null && value !== undefined && value !== '';
+    },
     message: "Ce champ est obligatoire"
   },
 
@@ -60,6 +64,18 @@ export const validationRules = {
     pattern: /^[a-zA-Z0-9]+$/,
     message: "Ce champ doit contenir uniquement des lettres et des chiffres"
   },
+
+  // Min numeric value validation
+  minValue: (min) => ({
+    validate: value => !value || parseFloat(value) >= min,
+    message: `La valeur doit être supérieure ou égale à ${min}`
+  }),
+
+  // Max numeric value validation
+  maxValue: (max) => ({
+    validate: value => !value || parseFloat(value) <= max,
+    message: `La valeur doit être inférieure ou égale à ${max}`
+  }),
 
   // Match validation (for password confirmation, etc.)
   match: (reference, errorMessage = "Les valeurs ne correspondent pas") => ({
@@ -103,9 +119,9 @@ export const validateField = (value, rules) => {
 
   // Check if the field is required
   const isRequired = ruleArray.some(rule =>
-    rule === validationRules.required ||
-    (typeof rule === 'string' && rule === 'required') ||
-    (rule && rule.validate && rule.validate.toString() === validationRules.required.validate.toString())
+      rule === validationRules.required ||
+      (typeof rule === 'string' && rule === 'required') ||
+      (rule && rule.validate && rule.validate.toString() === validationRules.required.validate.toString())
   );
 
   // If the field is empty and not required, skip validation

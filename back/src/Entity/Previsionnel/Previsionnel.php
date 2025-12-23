@@ -15,6 +15,7 @@ use App\ApiDto\Previsionnel\PrevisionnelEnseignementDto;
 use App\ApiDto\Previsionnel\PrevisionnelPersonnelDto;
 use App\ApiDto\Previsionnel\PrevisionnelSemestreDto;
 use App\ApiDto\Previsionnel\PrevisionnelSemestreTestDto;
+use App\ApiDto\Previsionnel\PreviStatsEdtDto;
 use App\Entity\Edt\EdtProgression;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
@@ -26,6 +27,7 @@ use App\State\Previsionnel\PrevisionnelEnseignementProvider;
 use App\State\Previsionnel\PrevisionnelPersonnelProvider;
 use App\State\Previsionnel\PrevisionnelSemestreProvider;
 use App\State\Previsionnel\PrevisionnelSemestreTestProvider;
+use App\State\Previsionnel\PreviStatsEdtProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -67,6 +69,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['previsionnel_personnel:read']],
             output: PrevisionnelPersonnelDto::class,
             provider: PrevisionnelPersonnelProvider::class,
+        ),
+        new GetCollection(
+            uriTemplate: '/stats_edt/previsionnels',
+            normalizationContext: ['groups' => ['previsionnel_stats_edt:read']],
+            provider: PreviStatsEdtProvider::class,
+            output: PreviStatsEdtDto::class,
         ),
         new Patch(normalizationContext: ['groups' => ['previsionnel:read']]),
         new Post(normalizationContext: ['groups' => ['previsionnel:read']]),

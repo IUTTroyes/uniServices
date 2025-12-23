@@ -24,7 +24,11 @@ class SemestreFilter extends AbstractFilter
         if ('diplome' === $property) {
             $queryBuilder
                 ->innerJoin(StructureAnnee::class, 'sa', 'WITH', sprintf('%s.annee = sa.id', $alias))
-                ->andWhere('sa.diplome = :diplome')
+                ->innerJoin('sa.pn', 'pn')
+                ->innerJoin('pn.anneeUniversitaire', 'au')
+                ->innerJoin('pn.diplome', 'd')
+                ->andWhere('au.actif = true')
+                ->andWhere('d.id = :diplome')
                 ->setParameter('diplome', $value)
                 ->orderBy(sprintf('%s.ordreLmd', $alias), 'ASC')
                 ->addOrderBy(sprintf('%s.libelle', $alias), 'ASC')
@@ -33,7 +37,9 @@ class SemestreFilter extends AbstractFilter
             $queryBuilder
                 ->innerJoin(StructureAnnee::class, 'sa', 'WITH', sprintf('%s.annee = sa.id', $alias))
                 ->innerJoin('sa.pn', 'pn')
+                ->innerJoin('pn.anneeUniversitaire', 'au')
                 ->innerJoin('pn.diplome', 'd')
+                ->andWhere('au.actif = true')
                 ->andWhere('d.departement = :departement')
                 ->setParameter('departement', $value)
                 ->orderBy(sprintf('%s.ordreLmd', $alias), 'ASC')
@@ -43,6 +49,11 @@ class SemestreFilter extends AbstractFilter
             $queryBuilder
                 ->andWhere(sprintf('%s.annee = :annee', $alias))
                 ->setParameter('annee', $value)
+            ;
+        } elseif ('actif' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.actif = :actif', $alias))
+                ->setParameter('actif', filter_var($value, FILTER_VALIDATE_BOOLEAN))
             ;
         }
     }
@@ -72,6 +83,14 @@ class SemestreFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by year',
+                ],
+            ],
+            'actif' => [
+                'property' => 'actif',
+                'type' => Type::BUILTIN_TYPE_BOOL,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by active semesters',
                 ],
             ],
         ];

@@ -100,7 +100,7 @@ FOREIGN_KEY_CHECKS=1');
                 ],
                 'timeout' => 600,
             ]);
-            $data = json_decode($response->getContent(), true);
+            $data = json_decode($response->getContent(), true) ?? [];
             $allData = array_merge($allData, $data);
             $page++;
         } while (count($data) === $limit);

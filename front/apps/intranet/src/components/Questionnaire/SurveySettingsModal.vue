@@ -112,10 +112,12 @@
         <!-- Thank You Message -->
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Message de remerciement</h3>
-          <textarea
+          <ValidatedInput
               v-model="localSettings.thankYouMessage"
-              class="input-field"
-              rows="4"
+              name="thankYouMessage"
+              label="Message de remerciement"
+              type="textarea"
+              :rules="[]"
               placeholder="Merci d'avoir participé à cette enquête..."
           />
         </div>
@@ -137,6 +139,7 @@
 </template>
 
 <script setup lang="ts">
+import { ValidatedInput, validationRules } from '@components';
 import {onMounted, ref} from 'vue';
 import {XMarkIcon} from '@heroicons/vue/24/outline';
 import type {Survey, SurveySettings} from '@/types/survey';

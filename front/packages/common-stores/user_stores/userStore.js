@@ -40,7 +40,6 @@ export const useUsersStore = defineStore('users', () => {
         }
         isLoading.value = true;
         try {
-            console.log('Fetching user : ' + userType + ' - ' + userId);
             user.value = await getUserService(userType, userId);
 
             userPhoto.value = noImage;
@@ -106,7 +105,6 @@ export const useUsersStore = defineStore('users', () => {
 
     const changeDepartement = async (departementId) => {
         try {
-            console.log('Changing departement : ' + departementId);
             if (!Array.isArray(departements.value)) {
                 console.error('departements.value is not an array');
                 return;
@@ -123,10 +121,8 @@ export const useUsersStore = defineStore('users', () => {
                 return;
             }
 
-            console.log('departementchange', departement);
             departements.value = await changeDepartementActifService(departement.departementPersonnel.id);
             // récupérer le département qui a defaut = true
-            console.log(departements.value);
             departementPersonnelDefaut.value = Array.isArray(departements.value) ?
                 await departements.value.find(departement => departement.defaut === true) : null;
 
@@ -203,13 +199,11 @@ export const useUsersStore = defineStore('users', () => {
         };
 
         temporaryRole.value = roleMap[roleName] || null;
-        console.log(`Temporary role set to: ${temporaryRole.value}`);
     };
 
     // Méthode pour effacer le rôle temporaire
     const clearTemporaryRole = () => {
         temporaryRole.value = null;
-        console.log('Temporary role cleared');
     };
 
     // Vérifier si un rôle spécifique est actif

@@ -10,7 +10,7 @@ const getPersonnelsService = async (params, scope = '', showToast = false) => {
             'Erreur lors de la récupération des personnels',
             showToast
         );
-        return response['member'];
+        return response.member;
     } catch (error) {
         console.error('Erreur dans getPersonnelsDepartementService:', error);
         throw error;

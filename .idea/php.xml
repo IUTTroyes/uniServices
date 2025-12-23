@@ -198,6 +198,15 @@
       <path value="$PROJECT_DIR$/back/vendor/symfony/mime" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-intl-idn" />
       <path value="$PROJECT_DIR$/back/vendor/egulias/email-validator" />
+      <path value="$PROJECT_DIR$/back/vendor/maennchen/zipstream-php" />
+      <path value="$PROJECT_DIR$/back/vendor/psr/http-message" />
+      <path value="$PROJECT_DIR$/back/vendor/psr/simple-cache" />
+      <path value="$PROJECT_DIR$/back/vendor/psr/http-factory" />
+      <path value="$PROJECT_DIR$/back/vendor/psr/http-client" />
+      <path value="$PROJECT_DIR$/back/vendor/davidannebicque/html-to-spreadsheet-bundle" />
+      <path value="$PROJECT_DIR$/back/vendor/markbaker/complex" />
+      <path value="$PROJECT_DIR$/back/vendor/markbaker/matrix" />
+      <path value="$PROJECT_DIR$/back/vendor/phpoffice/phpspreadsheet" />
       <path value="$PROJECT_DIR$/backend/vendor/symfony/yaml" />
       <path value="$PROJECT_DIR$/backend/vendor/symfony/mime" />
       <path value="$PROJECT_DIR$/backend/vendor/symfony/doctrine-messenger" />

@@ -4,6 +4,7 @@ namespace App\Command\CopyBdd;
 
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
+use App\Entity\Scolarite\ScolBac;
 use App\Repository\EtudiantRepository;
 use App\Repository\ScolEnseignementRepository;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
@@ -105,6 +106,7 @@ FOREIGN_KEY_CHECKS=1');
 
         $this->effacerTables();
         $this->addEtudiantScolarite();
+        $this->addScolBac();
 
         $this->io->success('Processus de recopie terminé.');
 
@@ -309,6 +311,22 @@ FOREIGN_KEY_CHECKS=1');
                     $this->entityManager->persist($scolarite);
                 }
             }
+        }
+        $this->entityManager->flush();
+    }
+
+    private function addScolBac(): void
+    {
+        $sql = 'SELECT * FROM bac WHERE 1';
+        $bacs = $this->em->executeQuery($sql)->fetchAllAssociative();
+
+        foreach ($bacs as $bac) {
+            $scolBac = new ScolBac();
+            $scolBac->setLibelle($bac['libelle']);
+            $scolBac->setLibelleLong($bac['libelle_long']);
+            $scolBac->setOldId($bac['id']);
+            $scolBac->setCodeApogee($bac['code_apogee']);
+            $this->entityManager->persist($scolBac);
         }
         $this->entityManager->flush();
     }

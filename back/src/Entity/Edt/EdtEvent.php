@@ -6,6 +6,8 @@ use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
+use App\ApiDto\Edt\EdtStatsDto;
+use App\ApiDto\Edt\EdtStatsPreviDto;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureGroupe;
@@ -16,6 +18,8 @@ use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
 use App\Filter\EdtFilter;
 use App\Repository\Edt\EdtEventRepository;
+use App\State\Edt\EdtStatsPreviProvider;
+use App\State\Edt\EdtStatsProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -28,6 +32,18 @@ use Symfony\Component\Uid\UuidV4;
     paginationEnabled: false,
     operations: [
         new GetCollection(normalizationContext: ['groups' => ['edt_event:read:agenda']]),
+        new GetCollection(
+            uriTemplate: '/stats/edt_events',
+            normalizationContext: ['groups' => ['edt_stats:read']],
+            provider: EdtStatsProvider::class,
+            output: EdtStatsDto::class,
+        ),
+        new GetCollection(
+            uriTemplate: '/stats_previ/edt_events',
+            normalizationContext: ['groups' => ['edt_stats:read']],
+            provider: EdtStatsPreviProvider::class,
+            output: EdtStatsPreviDto::class,
+        ),
     ]
 )]
 #[ORM\HasLifecycleCallbacks]

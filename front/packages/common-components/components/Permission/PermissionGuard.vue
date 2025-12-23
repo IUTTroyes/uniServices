@@ -15,7 +15,7 @@ const props = defineProps({
    * Can be a string, an array of strings, or an object with permissions and requireAll properties
    */
   permission: {
-    type: [String, Array, Object],
+    type: [String, Array, Object, Boolean],
     required: true
   },
 
@@ -31,12 +31,12 @@ const props = defineProps({
 
 // Determine if the user has the required permission(s)
 const hasRequiredPermission = computed(() => {
-  if (typeof props.permission === 'object' && !Array.isArray(props.permission)) {
-    return hasPermission(props.permission.permissions, {
-      requireAll: props.permission.requireAll || false
-    });
-  }
-
+  // Délègue entièrement à hasPermission qui gère:
+  // - string
+  // - array
+  // - objet composite { permissions, requireAll }
+  // - objet contextuel { permission, context }
+  // - prédicat fonctionnel
   return hasPermission(props.permission);
 });
 </script>

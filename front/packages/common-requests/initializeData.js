@@ -8,15 +8,10 @@ import { useAnneeUnivStore, useUsersStore, useDiplomeStore, useAnneeStore, useSe
  */
 export const initializeAppData = async () => {
   try {
-    console.log('Initializing application data...');
-
     // Initialize academic year data
     await initializeAcademicYearData();
-
     // Initialize user data
     await initializeUserData();
-
-    console.log('Application data initialized successfully');
   } catch (error) {
     console.error('Error initializing application data:', error);
   }
@@ -91,14 +86,7 @@ const initializeUserData = async () => {
     // pour chaque diplôme, on récupère les années associées
     for (const diplome of diplomes) {
       // on ajoute dans le tableau des diplômes les années associées
-        diplome.annees = await anneeStore.getAnneesDiplome(departement.id);
+        diplome.annees = await anneeStore.getAnneesDiplome(diplome.id);
     }
-
-    const semestreStore = useSemestreStore();
-    await semestreStore.getSemestresByDepartement(departement.id);
-
-
-
-    console.log('User data initialized successfully');
   }
 };

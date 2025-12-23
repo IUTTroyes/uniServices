@@ -1,6 +1,6 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
-
+import createApiService from "@requests/apiService";
 // ----------------------------------------------
 // ------------------- GET ----------------------
 // ----------------------------------------------
@@ -22,14 +22,15 @@ const getEtudiantService = async (etudiantId, showToast = false) => {
 
 const getEtudiantsService = async (params = {}, showToast = false, pagination = true) => {
     try {
-        const queryParams = { ...params };
-        return await apiCall(
+        const response= await apiCall(
             api.get,
-            ['/api/etudiants', { params: queryParams }],
+            ['/api/etudiants', { params }],
             'Étudiants récupérés avec succès',
             'Erreur lors de la récupération des étudiants',
             showToast
         );
+        response.member.totalItems = response.totalItems;
+        return response.member
     } catch (error) {
         console.error('Erreur dans getEtudiants:', error);
         throw error;
@@ -88,15 +89,11 @@ const importEtudiantApogeeService = async (data, showToast = true) => {
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
-const updateEtudiantService = async (etudiant, showToast = true) => {
+const updateEtudiantService = async (id, data, showToast = true) => {
     try {
         return await apiCall(
             api.patch,
-            [`/api/etudiants/${etudiant.id}`, etudiant, {
-                headers: {
-                    'Content-Type': 'application/merge-patch+json',
-                },
-            }],
+            [`/api${scope}/etudiants/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' } }],
             'Étudiant mis à jour avec succès',
             'Erreur lors de la mise à jour de l\'étudiant',
             showToast

@@ -6,7 +6,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use App\Controller\Structure\GroupesParSemestreController;
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
@@ -26,15 +25,24 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(GroupeFilter::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['diplome:read', 'diplome:read:full']]),
+        new Get(normalizationContext: ['groups' => ['groupe:detail', 'diplome:read', 'diplome:read:full']]),
+        new Get(
+            uriTemplate: '/mini/structure_groupes/{id}',
+            normalizationContext: ['groups' => ['groupe:light']],
+        ),
+        new Get(
+            uriTemplate: '/maxi/structure_groupes/{id}',
+            normalizationContext: ['groups' => ['groupe:detail']],
+        ),
         new GetCollection(normalizationContext: ['groups' => ['groupe:detail']]),
-//        new GetCollection(
-//            uriTemplate: '/structure_groupes/semestre/{semestreId}',
-//            controller: GroupesParSemestreController::class,
-//            normalizationContext: ['groups' => ['semestre:read']],
-//            read: false,
-//            name: 'groupes_par_semestre'
-//        ),
+        new GetCollection(
+            uriTemplate: '/mini/structure_groupes',
+            normalizationContext: ['groups' => ['groupe:light']],
+        ),
+        new GetCollection(
+            uriTemplate: '/maxi/structure_groupes',
+            normalizationContext: ['groups' => ['groupe:detail']],
+        ),
     ]
 )]
 class StructureGroupe

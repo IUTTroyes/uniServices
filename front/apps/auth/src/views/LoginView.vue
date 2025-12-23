@@ -50,7 +50,7 @@ const handleSubmit = async () => {
   errorMessage.value = '';
 
   try {
-    const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/login`, {
+    const response = await axios.post(import.meta.env.VITE_API_URL + '/auth/login', {
       username: username.value,
       password: password.value
     });
@@ -182,10 +182,7 @@ const handleValidation = (field, result) => {
               <router-link to="/reset-password" class="font-medium underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié ?</router-link>
             </div>
             <div class="w-full flex flex-col gap-2">
-              <Message v-if="!formValid" severity="error">
-                Veuillez corriger les erreurs dans le formulaire avant de soumettre
-              </Message>
-              <Message v-else-if="errorMessage" severity="error">
+              <Message v-if="errorMessage" severity="error">
                 {{ errorMessage }}
               </Message>
               <Button :label="isLoading ? 'Connexion...' : 'Connexion invité'" class="w-full" type="submit"

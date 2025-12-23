@@ -14,11 +14,7 @@ import { useUsersStore } from '@stores';
  */
 const compositePermissions = {
   canViewAdministration: [
-    'isDirection',
-    'isChefDepartement',
-    'isRespParcours',
-    'isDirecteurEtudes',
-    'isAssistant',
+    'isPersonnel',
   ],
   canViewEtudiantDetails: [
     'isScolarite',
@@ -37,7 +33,8 @@ const compositePermissions = {
   canViewPersonnelDetails: [
     'isDirection',
     'isAssistant',
-    'isChefDepartement'
+    'isChefDepartement',
+    'isDirecteurEtudes'
   ],
   canEditPersonnelDetails: [
     'isDirection'
@@ -50,6 +47,47 @@ const compositePermissions = {
     'isRespParcours',
     'isDirecteurEtudes'
   ]
+};
+
+// Handlers de permissions contextuelles nommées
+// Permet d'écrire: hasPermission({ permission: 'canManageEvaluation', context: { evaluation } })
+const contextualHandlers = {
+  canManageEvaluation: ({ userStore, context }) => {
+    const evaluation = context?.evaluation;
+    if (!evaluation) return false;
+
+    if (userStore.isSuperAdmin) return true;
+    if (userStore.isNote) return true;
+
+    const currentIds = [
+      userStore?.personnel?.id,
+      userStore?.user?.id,
+      userStore?.id,
+      userStore?.uid,
+    ].filter(Boolean);
+
+    const currentEmails = [
+      userStore?.email,
+      userStore?.user?.email,
+      userStore?.personnel?.email,
+    ].filter(Boolean);
+
+    const currentLogins = [
+      userStore?.username,
+      userStore?.login,
+      userStore?.user?.username,
+    ].filter(Boolean);
+
+    const list = Array.isArray(evaluation.personnelAutorise) ? evaluation.personnelAutorise : [];
+    return list.some(p => p && typeof p === 'object' && (
+        (p.id && currentIds.includes(p.id)) ||
+        (p.userId && currentIds.includes(p.userId)) ||
+        (p.uid && currentIds.includes(p.uid)) ||
+        (p.email && currentEmails.includes(p.email)) ||
+        (p.login && currentLogins.includes(p.login)) ||
+        (p.username && currentLogins.includes(p.username))
+    ));
+  },
 };
 
 /**
@@ -68,18 +106,54 @@ export function hasPermission(requiredPermission, options = {}) {
     return false;
   }
 
-  // Gérer un tableau de permissions
+  // 1) Tableau de permissions (OR par défaut, AND si requireAll)
+  // Supporte les éléments de types variés: string, fonction, objet composite, objet contextuel
   if (Array.isArray(requiredPermission)) {
-    if (requireAll) {
-      // L'utilisateur doit avoir TOUTES les permissions du tableau
-      return requiredPermission.every(permission => checkSinglePermission(permission, userStore));
-    } else {
-      // L'utilisateur doit avoir AU MOINS UNE permission du tableau
-      return requiredPermission.some(permission => checkSinglePermission(permission, userStore));
-    }
+    return requireAll
+        ? requiredPermission.every(permission => hasPermission(permission))
+        : requiredPermission.some(permission => hasPermission(permission));
   }
 
-  // Gérer une permission unique
+  // 2) Objet contextuel { permission: string, context?: any }
+  if (
+      requiredPermission &&
+      typeof requiredPermission === 'object' &&
+      !Array.isArray(requiredPermission) &&
+      Object.prototype.hasOwnProperty.call(requiredPermission, 'permission') &&
+      typeof requiredPermission.permission === 'string'
+  ) {
+    const name = requiredPermission.permission;
+    const handler = contextualHandlers[name];
+    if (typeof handler === 'function') {
+      try {
+        return !!handler({ userStore, context: requiredPermission.context });
+      } catch (e) {
+        console.warn('Erreur handler permission contextuelle:', name, e);
+        return false;
+      }
+    }
+    // Aucun handler contextuel: retomber sur la vérification standard (rôles/permissions composites)
+    return checkSinglePermission(name, userStore);
+  }
+
+  // 3) Ancien objet composite { permissions, requireAll }
+  if (
+      requiredPermission &&
+      typeof requiredPermission === 'object' &&
+      !Array.isArray(requiredPermission) &&
+      Object.prototype.hasOwnProperty.call(requiredPermission, 'permissions')
+  ) {
+    const perms = requiredPermission.permissions;
+    const all = !!requiredPermission.requireAll;
+    if (Array.isArray(perms)) {
+      return all
+          ? perms.every(p => hasPermission(p))
+          : perms.some(p => hasPermission(p));
+    }
+    return hasPermission(perms);
+  }
+
+  // 4) String / fonction / booléen: traités dans checkSinglePermission
   return checkSinglePermission(requiredPermission, userStore);
 }
 
@@ -153,6 +227,25 @@ function checkSinglePermission(permission, userStore) {
   if (permission in compositePermissions) {
     // Vérifier si l'utilisateur possède l'un des rôles qui accordent cette permission
     return compositePermissions[permission].some(role => userStore[role]) || userStore.isSuperAdmin;
+  }
+
+  // si la permission n'est pas reconnue, on vérifie si c'est un test qui renvoie true ou false
+  if (permission === true) {
+    return true;
+  } else if (permission === false) {
+    return false;
+  }
+
+  // Support d'un prédicat fonctionnel pour des contrôles contextuels
+  // La fonction peut recevoir le userStore en argument (optionnel)
+  if (typeof permission === 'function') {
+    try {
+      const result = permission(userStore);
+      return !!result;
+    } catch (e) {
+      console.warn('Erreur lors de l\'évaluation de la permission fonctionnelle:', e);
+      return false;
+    }
   }
 
   // Permission inconnue, refuser l'accès

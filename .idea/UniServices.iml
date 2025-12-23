@@ -185,6 +185,15 @@
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/mailer" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/mime" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/polyfill-intl-idn" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/davidannebicque/html-to-spreadsheet-bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/maennchen/zipstream-php" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/markbaker/complex" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/markbaker/matrix" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/phpoffice/phpspreadsheet" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/psr/http-client" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/psr/http-factory" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/psr/http-message" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/psr/simple-cache" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -10,7 +10,8 @@ import ApcCompetenceBadge from "@components/Apc/ApcCompetenceBadge.vue";
 import ApcAcBadge from "@components/Apc/ApcAcBadge.vue";
 import ErrorView from '@components/components/ErrorView.vue';
 import PhotoUser from '@components/components/PhotoUser.vue';
-import ProfilEtudiant from "@components/components/Etudiant/ProfilEtudiant.vue";
+import ProfilEtudiant from "@components/components/Etudiant/ProfilEtudiant/ProfilEtudiant.vue";
+import ScolariteEtudiant from "@components/components/Etudiant/ProfilEtudiant/ScolariteEtudiant.vue";
 import ProfilPersonnel from "@components/components/Personnel/ProfilPersonnel.vue";
 import PermissionGuard from "@components/components/Permission/PermissionGuard.vue";
 import MessageCard from "@components/components/Messages/MessageCard.vue";
@@ -35,6 +36,7 @@ export {
   ErrorView,
   PhotoUser,
   ProfilEtudiant,
+  ScolariteEtudiant,
   ProfilPersonnel,
   PermissionGuard,
   MessageCard,

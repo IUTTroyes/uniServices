@@ -4,9 +4,12 @@ namespace App\Command\CopyBdd;
 
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Scolarite\ScolEnseignementUe;
+use App\Entity\Scolarite\ScolEvaluation;
+use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Enum\TypeEnseignementEnum;
 use App\Repository\Apc\ApcApprentissageCritiqueRepository;
 use App\Repository\Apc\ApcCompetenceRepository;
+use App\Repository\Structure\StructureAnneeUniversitaireRepository;
 use App\Repository\Structure\StructureUeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
@@ -17,6 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\Uid\UuidV4;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[AsCommand(
@@ -31,6 +35,7 @@ class CopyTransfertBddEnseignementsCommand extends Command
     protected array $tCompetences = [];
     protected array $tUes = [];
     protected array $tApprentissages = [];
+    protected ?StructureAnneeUniversitaire $anneeUniv = null;
 
     protected SymfonyStyle $io;
     protected string $base_url;
@@ -42,6 +47,7 @@ class CopyTransfertBddEnseignementsCommand extends Command
         ApcApprentissageCritiqueRepository $apcApprentissageCritiqueRepository,
         ApcCompetenceRepository            $apcCompetenceRepository,
         StructureUeRepository              $structureUeRepository,
+        StructureAnneeUniversitaireRepository $structureAnneeUniversitaireRepository,
         protected HttpClientInterface      $httpClient,
         ParameterBagInterface              $params
     )
@@ -50,6 +56,7 @@ class CopyTransfertBddEnseignementsCommand extends Command
         $this->tCompetences = $apcCompetenceRepository->findAllByOldIdArray();
         $this->tApprentissages = $apcApprentissageCritiqueRepository->findAllByOldIdArray();
         $this->tUes = $structureUeRepository->findAllByOldIdArray();
+        $this->anneeUniv = $structureAnneeUniversitaireRepository->findOneBy(['actif' => true,]);
         $this->base_url = $params->get('URL_INTRANET_V3');
         $this->httpClient = HttpClient::create([
             'verify_peer' => false,
@@ -65,11 +72,12 @@ class CopyTransfertBddEnseignementsCommand extends Command
     private function effacerTables(): void
     {
         // vider les tables de destination et les réinitialiser
-        $this->entityManager->getConnection()->executeQuery('SET
-FOREIGN_KEY_CHECKS=0');
+        $this->entityManager->getConnection()->executeQuery('SET FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_ue');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_enseignement_apc_apprentissage_critique');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE scol_evaluation');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE etudiant_note');
         $this->entityManager->getConnection()->executeQuery('SET
 FOREIGN_KEY_CHECKS=1');
     }
@@ -120,6 +128,18 @@ FOREIGN_KEY_CHECKS=1');
                 $matiere->setObjectif($mat['objectifs_module']);
                 $matiere->setPrerequis($mat['pre_requis']);
                 $matiere->setOldId($mat['id']);
+
+                $nbNotes = (int)$mat['nb_notes'];
+                    for ($i = 1; $i <= $nbNotes; $i++) {
+                        $evaluation = new ScolEvaluation();
+                        $evaluation->setLibelle('Évaluation ' . $i);
+                        $evaluation->setEnseignement($matiere);
+                        $evaluation->setVisible(false);
+                        $evaluation->setModifiable(false);
+                        $evaluation->setUuid(new UuidV4());
+                        $evaluation->setAnneeUniversitaire($this->anneeUniv);
+                        $this->entityManager->persist($evaluation);
+                    }
 
                 /*
                  * array:30 [
@@ -234,6 +254,18 @@ FOREIGN_KEY_CHECKS=1');
             $matiere->setMotsCles($mat['mots_cles']);
             $matiere->setPrerequis($mat['pre_requis']);
             $matiere->setOldId($mat['id']);
+
+            $nbNotes = (int)$mat['nb_notes'];
+            for ($i = 1; $i <= $nbNotes; $i++) {
+                $evaluation = new ScolEvaluation();
+                $evaluation->setLibelle('Évaluation ' . $i);
+                $evaluation->setEnseignement($matiere);
+                $evaluation->setVisible(false);
+                $evaluation->setModifiable(false);
+                $evaluation->setUuid(new UuidV4());
+                $evaluation->setAnneeUniversitaire($this->anneeUniv);
+                $this->entityManager->persist($evaluation);
+            }
 
             /*
   "id" => 1
@@ -378,6 +410,19 @@ FOREIGN_KEY_CHECKS=1');
             $matiere->setExemple($mat['exemple']);
             $matiere->setLivrables($mat['livrables']);
             $matiere->setOldId($mat['id']);
+
+            $nbNotes = (int)$mat['nb_notes'];
+            for ($i = 1; $i <= $nbNotes; $i++) {
+                $evaluation = new ScolEvaluation();
+                $evaluation->setLibelle('Évaluation ' . $i);
+                $evaluation->setEnseignement($matiere);
+                $evaluation->setVisible(false);
+                $evaluation->setModifiable(false);
+                $evaluation->setUuid(new UuidV4());
+                //todo: corriger pour récupérer la bonne année universitaire de l'éval depuis l'enseignement
+                $evaluation->setAnneeUniversitaire($this->anneeUniv);
+                $this->entityManager->persist($evaluation);
+            }
 
             /*
 ??

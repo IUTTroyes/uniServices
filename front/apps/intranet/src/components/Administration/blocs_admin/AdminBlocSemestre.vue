@@ -1,7 +1,7 @@
 <script setup>
 
 import { onMounted, ref, computed } from "vue";
-import { getDepartementSemestresService, getDepartementAnneesService } from "@requests";
+import { getAnneesService } from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore, useSemestreStore } from "@stores";
 
@@ -69,6 +69,10 @@ const panelMenuItems = computed(() => {
   ]
 })
 
+onMounted(async () => {
+  await getAnneesSemestres();
+});
+
 const getAnneesSemestres = async () => {
   try {
     isLoading.value = true;
@@ -80,13 +84,17 @@ const getAnneesSemestres = async () => {
       return;
     }
     try {
-      const annees = await getDepartementAnneesService(departementId, true, false);
+      const params = {
+        departement: departementId,
+        actif: true,
+      };
+      const annees = await getAnneesService(params);
+      console.log(annees)
       // Créer un nouvel objet pour stocker les années de formation initiale et continue
       anneesGrouped.value = {
         fi: annees.filter(a => a.opt.alternance === false).map(a => a),
         fc: annees.filter(a => a.opt.alternance === true).map(a => a),
       };
-      console.log(anneesGrouped);
     } catch (error) {
       console.error("Erreur lors de la récupération des années :", error);
       hasError.value = true;
@@ -98,14 +106,12 @@ const getAnneesSemestres = async () => {
   } finally {
     isLoading.value = false;
 
-    selectedSemestre.value = anneesGrouped.value.fi[0].semestres[0];
+    selectedSemestre.value =
+        anneesGrouped.value.fi?.[0]?.semestres?.[0] ??
+        anneesGrouped.value.fc?.[0]?.semestres?.[0] ??
+        null;
   }
-}
-
-
-onMounted(
-    getAnneesSemestres
-);
+};
 
 const selectSemestre = (semestre) => {
   selectedSemestre.value = semestre;
@@ -128,7 +134,6 @@ const selectSemestre = (semestre) => {
       <ErrorView v-else-if="hasError" />
       <Message v-else-if="anneesGrouped.fi.length < 1 && anneesGrouped.fc.length < 1" severity="error" icon="pi pi-times-circle" class="m-6">
         Aucun semestre disponible.
-        {{anneesGrouped}}
       </Message>
       <div v-else class="flex gap-10 mt-4">
         <div class="w-1/2 flex gap-4">
