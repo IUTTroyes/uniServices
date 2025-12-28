@@ -4,8 +4,11 @@ namespace App\Entity\Questionnaires;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
+use App\Enum\QuestStatutEnum;
 use App\Repository\Questionnaires\QuestionnaireRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -13,10 +16,13 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: QuestionnaireRepository::class)]
-#[ApiResource()]
+#[ApiResource(
+    normalizationContext: ['groups' => ['questionnaire:read']],
+)]
 #[ORM\HasLifecycleCallbacks]
 class Questionnaire
 {
@@ -25,6 +31,7 @@ class Questionnaire
 
     #[ORM\Column(type: UuidType::NAME)]
     #[ApiProperty(identifier: true)]
+    #[Groups(['questionnaire:read'])]
     private Uuid $uuid;
 
     public function getUuidString(): string
@@ -50,36 +57,61 @@ class Questionnaire
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    private ?string $titre = null;
+    #[Groups(['questionnaire:read'])]
+    private ?string $title = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['questionnaire:read'])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $dateOuverture = null;
+    #[Groups(['questionnaire:read'])]
+    private ?\DateTimeInterface $openingDate = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    private ?\DateTimeInterface $dateFermeture = null;
+    #[Groups(['questionnaire:read'])]
+    private ?\DateTimeInterface $closingDate = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $texteDebut = null;
+    #[Groups(['questionnaire:read'])]
+    private ?string $startText = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    private ?string $texteFin = null;
+    #[Groups(['questionnaire:read'])]
+    private ?string $endText = null;
 
     /**
      * @var Collection<int, QuestionnaireSection>
      */
-    #[ORM\OneToMany(targetEntity: QuestionnaireSection::class, mappedBy: 'questionnaire')]
-    private Collection $questionnaireSections;
+    #[ORM\OneToMany(targetEntity: QuestionnaireSection::class, mappedBy: 'questionnaire', cascade: ['persist', 'remove'])]
+    private Collection $sections;
 
-    #[ORM\Column(length: 50)]
-    private ?string $status = null;
+    #[ORM\Column(length: 50, nullable: false, enumType: QuestStatutEnum::class)]
+    #[Groups(['questionnaire:read'])]
+    private ?QuestStatutEnum $status = null;
+
+    /**
+     * @var Collection<int, QuestionnaireSectionInstance>
+     */
+    #[ORM\OneToMany(targetEntity: QuestionnaireSectionInstance::class, mappedBy: 'questionnaire', cascade: ['persist', 'remove'])]
+    private Collection $sectionInstances;
+
+    /**
+     * @var Collection<int, QuestionnaireInvitation>
+     */
+    #[ORM\OneToMany(targetEntity: QuestionnaireInvitation::class, mappedBy: 'questionnaire', cascade: ['persist', 'remove'])]
+    private Collection $invitations;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['questionnaire:read'])]
+    private ?\DateTimeImmutable $publishedAt = null;
 
     public function __construct()
     {
         $this->setOpt([]);
-        $this->questionnaireSections = new ArrayCollection();
+        $this->sections = new ArrayCollection();
+        $this->sectionInstances = new ArrayCollection();
+        $this->invitations = new ArrayCollection();
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -104,14 +136,14 @@ class Questionnaire
         return $this->id;
     }
 
-    public function getTitre(): ?string
+    public function getTitle(): ?string
     {
-        return $this->titre;
+        return $this->title;
     }
 
-    public function setTitre(?string $titre): static
+    public function setTitle(?string $title): static
     {
-        $this->titre = $titre;
+        $this->title = $title;
 
         return $this;
     }
@@ -128,50 +160,50 @@ class Questionnaire
         return $this;
     }
 
-    public function getDateOuverture(): ?\DateTimeInterface
+    public function getOpeningDate(): ?\DateTimeInterface
     {
-        return $this->dateOuverture;
+        return $this->openingDate;
     }
 
-    public function setDateOuverture(?\DateTimeInterface $dateOuverture): static
+    public function setOpeningDate(?\DateTimeInterface $openingDate): static
     {
-        $this->dateOuverture = $dateOuverture;
+        $this->openingDate = $openingDate;
 
         return $this;
     }
 
-    public function getDateFermeture(): ?\DateTimeInterface
+    public function getClosingDate(): ?\DateTimeInterface
     {
-        return $this->dateFermeture;
+        return $this->closingDate;
     }
 
-    public function setDateFermeture(?\DateTimeInterface $dateFermeture): static
+    public function setClosingDate(?\DateTimeInterface $closingDate): static
     {
-        $this->dateFermeture = $dateFermeture;
+        $this->closingDate = $closingDate;
 
         return $this;
     }
 
-    public function getTexteDebut(): ?string
+    public function getStartText(): ?string
     {
-        return $this->texteDebut;
+        return $this->startText;
     }
 
-    public function setTexteDebut(?string $texteDebut): static
+    public function setStartText(?string $startText): static
     {
-        $this->texteDebut = $texteDebut;
+        $this->startText = $startText;
 
         return $this;
     }
 
-    public function getTexteFin(): ?string
+    public function getEndText(): ?string
     {
-        return $this->texteFin;
+        return $this->endText;
     }
 
-    public function setTexteFin(?string $texteFin): static
+    public function setEndText(?string $endText): static
     {
-        $this->texteFin = $texteFin;
+        $this->endText = $endText;
 
         return $this;
     }
@@ -179,15 +211,15 @@ class Questionnaire
     /**
      * @return Collection<int, QuestionnaireSection>
      */
-    public function getQuestionnaireSections(): Collection
+    public function getSections(): Collection
     {
-        return $this->questionnaireSections;
+        return $this->sections;
     }
 
     public function addQuestionnaireSection(QuestionnaireSection $questionnaireSection): static
     {
-        if (!$this->questionnaireSections->contains($questionnaireSection)) {
-            $this->questionnaireSections->add($questionnaireSection);
+        if (!$this->sections->contains($questionnaireSection)) {
+            $this->sections->add($questionnaireSection);
             $questionnaireSection->setQuestionnaire($this);
         }
 
@@ -196,7 +228,7 @@ class Questionnaire
 
     public function removeQuestionnaireSection(QuestionnaireSection $questionnaireSection): static
     {
-        if ($this->questionnaireSections->removeElement($questionnaireSection)) {
+        if ($this->sections->removeElement($questionnaireSection)) {
             // set the owning side to null (unless already changed)
             if ($questionnaireSection->getQuestionnaire() === $this) {
                 $questionnaireSection->setQuestionnaire(null);
@@ -206,15 +238,104 @@ class Questionnaire
         return $this;
     }
 
-    public function getStatus(): ?string
+    public function getStatus(): ?QuestStatutEnum
     {
         return $this->status;
     }
 
-    public function setStatus(string $status): static
+    public function setStatus(QuestStatutEnum $status): static
     {
         $this->status = $status;
 
         return $this;
+    }
+
+    #[Groups(['questionnaire:read'])]
+    public function getStatutSeverity(): string {
+        return $this->status->getBadge();
+    }
+
+    /**
+     * @return Collection<int, QuestionnaireSectionInstance>
+     */
+    public function getSectionInstances(): Collection
+    {
+        return $this->sectionInstances;
+    }
+
+    public function addQuestionnaireSectionInstance(QuestionnaireSectionInstance $questionnaireSectionInstance): static
+    {
+        if (!$this->sectionInstances->contains($questionnaireSectionInstance)) {
+            $this->sectionInstances->add($questionnaireSectionInstance);
+            $questionnaireSectionInstance->setQuestionnaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQuestionnaireSectionInstance(QuestionnaireSectionInstance $questionnaireSectionInstance): static
+    {
+        if ($this->sectionInstances->removeElement($questionnaireSectionInstance)) {
+            // set the owning side to null (unless already changed)
+            if ($questionnaireSectionInstance->getQuestionnaire() === $this) {
+                $questionnaireSectionInstance->setQuestionnaire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, QuestionnaireInvitation>
+     */
+    public function getInvitations(): Collection
+    {
+        return $this->invitations;
+    }
+
+    public function addQuestionnaireInvitation(QuestionnaireInvitation $questionnaireInvitation): static
+    {
+        if (!$this->invitations->contains($questionnaireInvitation)) {
+            $this->invitations->add($questionnaireInvitation);
+            $questionnaireInvitation->setQuestionnaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQuestionnaireInvitation(QuestionnaireInvitation $questionnaireInvitation): static
+    {
+        if ($this->invitations->removeElement($questionnaireInvitation)) {
+            // set the owning side to null (unless already changed)
+            if ($questionnaireInvitation->getQuestionnaire() === $this) {
+                $questionnaireInvitation->setQuestionnaire(null);
+            }
+        }
+
+        return $this;
+    }
+
+    #[Groups(['questionnaire:read'])]
+    public function isPublished(): bool {
+        return $this->getStatus() === QuestStatutEnum::PUBLISHED;
+    }
+
+    public function publishNow(): void
+    {
+        $this->setStatus(QuestStatutEnum::PUBLISHED);
+        $this->setPublishedAt(new \DateTimeImmutable());
+    }
+
+    public function getPublishedAt(): ?\DateTimeImmutable
+    {
+        return $this->publishedAt;
+    }
+
+    public function setPublishedAt(?\DateTimeImmutable $publishedAt): static
+    {
+        $this->publishedAt = $publishedAt;
+
+        return $this;
+
     }
 }

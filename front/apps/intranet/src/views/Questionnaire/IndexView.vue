@@ -1,5 +1,4 @@
 <template>
-  ----
   <div class="p-6">
     <!-- Header -->
     <div class="flex items-center justify-between mb-8">
@@ -140,7 +139,7 @@
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
             Mes questionnaires
           </h2>
-          <router-link to="/administration/qualite/enquetes/builder" class="text-primary-600 dark:text-primary-400 hover:underline text-sm">
+          <router-link to="/administration/qualite/enquetes/liste" class="text-primary-600 dark:text-primary-400 hover:underline text-sm">
             Voir tout
           </router-link>
         </div>
@@ -148,12 +147,12 @@
         <div class="space-y-4">
           <div
             v-for="survey in recentSurveys"
-            :key="survey.id"
+            :key="survey.uuid"
             class="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-gray-300 dark:hover:border-gray-500 transition-colors"
           >
             <div class="flex-1">
               <h3 class="font-medium text-gray-900 dark:text-white">
-                {{ survey.titre }}
+                {{ survey.title }}
               </h3>
               <div class="flex items-center space-x-4 mt-1">
                 <span
@@ -167,12 +166,14 @@
                   {{ survey.status === 'published' ? 'Publié' : 'Brouillon' }}
                 </span>
                 <span class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ formatDate(survey.updated) }}
+                  {{ formatDate(survey.updatedAt) }}
                 </span>
               </div>
             </div>
 
             <div class="flex items-center space-x-2">
+              <!--                  v-if="!survey.published"-->
+
               <router-link
                 :to="`/administration/qualite/enquetes/builder/${survey.uuid}`"
                 class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
@@ -183,7 +184,7 @@
 
               <router-link
                 v-if="survey.status === 'published'"
-                :to="`/administration/qualite/enquetes/responses/${survey.id}`"
+                :to="`/administration/qualite/enquetes/responses/${survey.uuid}`"
                 class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
                 title="Réponses"
               >
@@ -351,7 +352,7 @@ import { useResponseStore } from '@/stores/responses';
 import { useUIStore } from '@/stores/ui';
 import { format, formatRelative } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import type { Survey } from '@/types/survey';
+import type { Survey } from '@types';
 
 const surveyStore = useSurveyStore();
 const responseStore = useResponseStore();
@@ -361,13 +362,13 @@ const showTemplates = ref(false);
 
 const recentSurveys = computed(() =>
   surveyStore.surveys
-    .sort((a, b) => b.updated.getTime() - a.updated.getTime())
+    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
     .slice(0, 5)
 );
 
 const averageCompletionRate = computed(() => {
   const rates = surveyStore.publishedSurveys.map(survey =>
-    responseStore.completionRate(survey.id)
+    responseStore.completionRate(survey.uuid)
   );
   return rates.length > 0
     ? Math.round(rates.reduce((sum, rate) => sum + rate, 0) / rates.length)
@@ -380,18 +381,18 @@ const recentActivity = computed(() => {
   // Add survey creation activities
   surveyStore.surveys.forEach(survey => {
     activities.push({
-      id: `survey-${survey.id}`,
+      id: `survey-${survey.uuid}`,
       type: 'survey_created',
-      message: `Questionnaire "${survey.titre}" créé`,
-      timestamp: survey.created
+      message: `Questionnaire "${survey.title}" créé`,
+      timestamp: survey.createdAt
     });
 
     if (survey.status === 'published') {
       activities.push({
-        id: `publish-${survey.id}`,
+        id: `publish-${survey.uuid}`,
         type: 'survey_published',
-        message: `Questionnaire "${survey.titre}" publié`,
-        timestamp: survey.updated
+        message: `Questionnaire "${survey.title}" publié`,
+        timestamp: survey.updatedAt
       });
     }
   });
@@ -399,11 +400,11 @@ const recentActivity = computed(() => {
   // Add response activities
   responseStore.responses.forEach(response => {
     if (response.completed) {
-      const survey = surveyStore.surveys.find(s => s.id === response.surveyId);
+      const survey = surveyStore.surveys.find(s => s.uuid === response.surveyId);
       activities.push({
         id: `response-${response.id}`,
         type: 'response_received',
-        message: `Nouvelle réponse pour "${survey?.titre || 'Questionnaire'}"`,
+        message: `Nouvelle réponse pour "${survey?.title || 'Questionnaire'}"`,
         timestamp: response.submittedAt || response.lastActivity
       });
     }
@@ -459,6 +460,7 @@ const templates = [
   }
 ];
 
+// todo: déplacer en helper...
 function formatDate(date: Date): string {
   return format(date, 'dd/MM/yyyy', { locale: fr });
 }
@@ -466,6 +468,7 @@ function formatDate(date: Date): string {
 function formatRelativeTime(date: Date): string {
   return formatRelative(date, new Date(), { locale: fr });
 }
+// fin todo:
 
 function getActivityColor(type: string): string {
   const colors = {
@@ -486,15 +489,15 @@ function getActivityIcon(type: string) {
 }
 
 function duplicateSurvey(survey: Survey) {
-  const duplicate = surveyStore.duplicateSurvey(survey.id);
+  const duplicate = surveyStore.duplicateSurvey(survey.uuid);
   if (duplicate) {
     //redirect to the new survey builder
-    window.location.href = `/builder/${duplicate.id}`;
+    window.location.href = `/builder/${duplicate.uuid}`;
   }
 }
 
 function deleteSurvey(survey: Survey) {
-  if (confirm(`Êtes-vous sûr de vouloir supprimer "${survey.titre}" ?`)) {
+  if (confirm(`Êtes-vous sûr de vouloir supprimer "${survey.title}" ?`)) {
     surveyStore.deleteSurvey(survey.uuid);
   }
 }
@@ -508,30 +511,12 @@ function createFromTemplate(template: any) {
     `Le questionnaire "${template.title}" a été créé à partir du modèle.`
   );
   // Redirect to builder
-  window.location.href = `/builder/${survey.id}`;
+  window.location.href = `/builder/${survey.uuid}`;
 }
 
 onMounted(async () => {
-  await surveyStore.loadFromLocalStorage();
+  await surveyStore.loadQuestionnaires();
   responseStore.loadFromLocalStorage();
-  // Generate demo data if no surveys exist
-  // if (surveyStore.surveys.length === 0) {
-  //   const demoSurvey = surveyStore.createSurvey(
-  //     'Questionnaire de satisfaction client',
-  //     'Un exemple de questionnaire pour évaluer la satisfaction de vos clients'
-  //   );
-  //
-  //   // Add some demo questions
-  //   const section = demoSurvey.sections[0];
-  //   surveyStore.addQuestion(section.id, 'single_choice', 'Comment évaluez-vous notre service ?');
-  //   surveyStore.addQuestion(section.id, 'scale', 'Sur une échelle de 1 à 10, quelle note donneriez-vous ?');
-  //   surveyStore.addQuestion(section.id, 'text_long', 'Avez-vous des commentaires ou suggestions ?');
-  //
-  //   surveyStore.setSurveyStatus(demoSurvey.id, 'published');
-  //
-  //   // Generate demo responses
-  //   responseStore.generateDemoData(demoSurvey.id, 25);
-  // }
 });
 </script>
 

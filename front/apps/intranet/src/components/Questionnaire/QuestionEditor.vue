@@ -12,7 +12,7 @@
         <div class="flex items-center justify-between mb-4">
           <div class="flex items-center space-x-3">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
-              Q{{ question.ordre }}
+              Q{{ question.sortOrder }}
             </span>
             <span
               :class="[
@@ -25,8 +25,8 @@
             <div class="flex items-center space-x-2">
               <input
                 type="checkbox"
-                :checked="question.obligatoire"
-                @change="updateQuestion({ required: !question.obligatoire })"
+                :checked="question.required"
+                @change="updateQuestion({ required: !question.required })"
                 class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
               />
               <span class="text-sm text-gray-600 dark:text-gray-400">Obligatoire</span>
@@ -56,8 +56,8 @@
         <!-- Question Title -->
         <div class="mb-4">
           <input
-            :value="question.libelle"
-            @change="updateQuestion({ libelle: ($event.target as HTMLInputElement).value })"
+            :value="question.label"
+            @change="updateQuestion({ label: ($event.target as HTMLInputElement).value })"
             class="text-lg font-medium w-full bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-3 py-2 border border-gray-200 dark:border-gray-600"
             placeholder="Tapez votre question ici..."
           />
@@ -317,13 +317,13 @@ import {
 } from '@heroicons/vue/24/outline';
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
-import type { Question, QuestionOption } from '@types/survey.ts';
+import type { Question, QuestionOption } from '@types';
 import { v4 as uuidv4 } from 'uuid';
 import ConditionalLogicModal from './ConditionalLogicModal.vue';
 
 interface Props {
   question: Question;
-  sectionId: number;
+  sectionId: string;
   index: number;
   allQuestions?: Question[];
   allSections?: any[];
@@ -332,6 +332,7 @@ interface Props {
 interface Emits {
   update: [questionId: string, updates: Partial<Question>];
   delete: [questionId: string];
+  duplicate: [questionId: string];
 }
 
 const props = defineProps<Props>();
@@ -342,9 +343,9 @@ const matrixRows = ref<string[]>(['Ligne 1', 'Ligne 2']);
 const matrixColumns = ref<string[]>(['Pas du tout', 'Peu', 'Moyennement', 'Beaucoup', 'Énormément']);
 
 const questionOptions = computed({
-  get: () => props.question.reponses || [],
+  get: () => props.question.choices || [],
   set: (value: QuestionOption[]) => {
-    updateQuestion({ options: value });
+    updateQuestion({ choices: value });
   }
 });
 
@@ -352,7 +353,6 @@ const conditionalRules = computed(() => props.question.conditionalRules || []);
 const hasConditionalRules = computed(() => conditionalRules.value.length > 0);
 
 function updateQuestion(updates: Partial<Question>) {
-  console.log('Updating question:', props, updates);
   emit('update', props.question.uuid, updates);
 }
 
@@ -397,19 +397,19 @@ function addOption() {
     text: `Option ${reponses.length + 1}`,
     value: `option${reponses.length + 1}`
   });
-  updateQuestion({ reponses });
+  updateQuestion({ choices: reponses });
 }
 
 function updateOption(index: number, updates: Partial<QuestionOption>) {
-  const options = [...questionOptions.value];
-  options[index] = { ...options[index], ...updates };
-  updateQuestion({ options });
+  const reponses = [...questionOptions.value];
+  reponses[index] = { ...reponses[index], ...updates };
+  updateQuestion({ choices: reponses });
 }
 
 function removeOption(index: number) {
-  const options = [...questionOptions.value];
-  options.splice(index, 1);
-  updateQuestion({ options });
+  const reponses = [...questionOptions.value];
+  reponses.splice(index, 1);
+  updateQuestion({ choices: reponses });
 }
 
 // Matrix management
@@ -439,8 +439,9 @@ function updateMatrixColumn(index: number, value: string) {
 
 // Other actions
 function duplicateQuestion() {
+
   // This would be handled by the parent component
-  console.log('Duplicate question:', props.question.id);
+  emit('duplicate', props.question);
 }
 
 function updateConditionalRules(rules: any[]) {
@@ -462,7 +463,7 @@ function getConditionalRuleDescription(rule: any): string {
   };
 
   const operatorLabel = operatorLabels[rule.operator] || rule.operator;
-  const baseDescription = `Si "${sourceQuestion.title}" ${operatorLabel} "${rule.value}"`;
+  const baseDescription = `Si "${sourceQuestion.label}" ${operatorLabel} "${rule.value}"`;
 
   switch (rule.type) {
     case 'show_hide':

@@ -12,6 +12,9 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\OptionTrait;
 use App\Enum\QuestTypeQuestionEnum;
 use App\Repository\Questionnaires\QuestionnaireQuestionRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -25,7 +28,7 @@ use Symfony\Component\Uid\Uuid;
         new GetCollection(),
         ],
     uriVariables: [
-        'questionnaireSectionId' => new Link(fromClass: QuestionnaireSection::class, toProperty: 'section'),
+        'questionnaireSectionId' => new Link(toProperty: 'section', fromClass: QuestionnaireSection::class),
     ]
 )]
 #[ApiResource(
@@ -35,6 +38,7 @@ use Symfony\Component\Uid\Uuid;
         new Post()
     ]
 )]
+#[ORM\Index(name: 'idx_question_section_ordre', columns: ['section_id', 'sort_order'])]
 class QuestionnaireQuestion
 {
     use OptionTrait;
@@ -48,7 +52,7 @@ class QuestionnaireQuestion
 
     #[ORM\Column(length: 255)]
     #[Groups(['questionnaire_section:read'])]
-    private ?string $libelle = null;
+    private ?string $label = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['questionnaire_section:read'])]
@@ -60,19 +64,15 @@ class QuestionnaireQuestion
 
     #[ORM\Column]
     #[Groups(['questionnaire_section:read'])]
-    private ?bool $obligatoire = true;
+    private ?bool $required = true;
 
     #[ORM\Column]
     #[Groups(['questionnaire_section:read'])]
-    private ?int $ordre = null;
+    private ?int $sortOrder = null;
 
     #[ORM\Column(nullable: true)]
     #[Groups(['questionnaire_section:read'])]
-    private ?array $parametres = [];
-
-    #[ORM\Column(nullable: true)]
-    #[Groups(['questionnaire_section:read'])]
-    private ?array $reponses = null;
+    private ?array $choices = null;
 
     #[ORM\ManyToOne(inversedBy: 'questionnaireQuestions')]
     private ?QuestionnaireSection $section = null;
@@ -81,6 +81,16 @@ class QuestionnaireQuestion
     #[ApiProperty(identifier: true)]
     #[Groups(['questionnaire_section:read'])]
     private Uuid $uuid;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['questionnaire_section:read'])]
+    private ?array $conditionalRules = null;
+
+    /**
+     * @var Collection<int, QuestionnaireAnswer>
+     */
+    #[ORM\OneToMany(targetEntity: QuestionnaireAnswer::class, mappedBy: 'question')]
+    private Collection $answers;
 
     public function getUuidString(): string
     {
@@ -101,6 +111,7 @@ class QuestionnaireQuestion
     {
         $this->setOpt([]);
         $this->uuid = Uuid::v4(); // Génère un nouvel UUID à chaque création
+        $this->answers = new ArrayCollection();
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -119,14 +130,14 @@ class QuestionnaireQuestion
         return $this->id;
     }
 
-    public function getLibelle(): ?string
+    public function getLabel(): ?string
     {
-        return $this->libelle;
+        return $this->label;
     }
 
-    public function setLibelle(string $libelle): static
+    public function setLabel(string $label): static
     {
-        $this->libelle = $libelle;
+        $this->label = $label;
 
         return $this;
     }
@@ -157,48 +168,36 @@ class QuestionnaireQuestion
 
     public function isObligatoire(): ?bool
     {
-        return $this->obligatoire;
+        return $this->required;
     }
 
-    public function setObligatoire(bool $obligatoire): static
+    public function setRequired(bool $required): static
     {
-        $this->obligatoire = $obligatoire;
+        $this->required = $required;
 
         return $this;
     }
 
-    public function getOrdre(): ?int
+    public function getSortOrder(): ?int
     {
-        return $this->ordre;
+        return $this->sortOrder;
     }
 
-    public function setOrdre(int $ordre): static
+    public function setSortOrder(int $sortOrder): static
     {
-        $this->ordre = $ordre;
+        $this->sortOrder = $sortOrder;
 
         return $this;
     }
 
-    public function getParametres(): ?array
+    public function getChoices(): ?array
     {
-        return $this->parametres ?? [];
+        return $this->choices ?? [];
     }
 
-    public function setParametres(?array $parametres): static
+    public function setChoices(?array $choices): static
     {
-        $this->parametres = $parametres;
-
-        return $this;
-    }
-
-    public function getReponses(): ?array
-    {
-        return $this->reponses ?? [];
-    }
-
-    public function setReponses(?array $reponses): static
-    {
-        $this->reponses = $reponses;
+        $this->choices = $choices;
 
         return $this;
     }
@@ -211,6 +210,48 @@ class QuestionnaireQuestion
     public function setSection(?QuestionnaireSection $section): static
     {
         $this->section = $section;
+
+        return $this;
+    }
+
+    public function getConditionalRules(): ?array
+    {
+        return $this->conditionalRules ?? [];
+    }
+
+    public function setConditionalRules(?array $conditionalRules): static
+    {
+        $this->conditionalRules = $conditionalRules;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, QuestionnaireAnswer>
+     */
+    public function getAnswers(): Collection
+    {
+        return $this->answers;
+    }
+
+    public function addQuestionnaireReponse(QuestionnaireAnswer $questionnaireReponse): static
+    {
+        if (!$this->answers->contains($questionnaireReponse)) {
+            $this->answers->add($questionnaireReponse);
+            $questionnaireReponse->setQuestion($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQuestionnaireReponse(QuestionnaireAnswer $questionnaireReponse): static
+    {
+        if ($this->answers->removeElement($questionnaireReponse)) {
+            // set the owning side to null (unless already changed)
+            if ($questionnaireReponse->getQuestion() === $this) {
+                $questionnaireReponse->setQuestion(null);
+            }
+        }
 
         return $this;
     }

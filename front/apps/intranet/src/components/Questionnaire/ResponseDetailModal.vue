@@ -183,7 +183,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
-import type { Response, Survey, Participant } from '@/types/survey';
+import type { Answer, Survey, Participant } from '@types';
 import { useResponseStore } from '@/stores/responses';
 import { useUIStore } from '@/stores/ui';
 import { format } from 'date-fns';

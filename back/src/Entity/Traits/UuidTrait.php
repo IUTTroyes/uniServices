@@ -10,7 +10,7 @@ use Symfony\Component\Uid\Uuid;
 trait UuidTrait
 {
     #[ORM\Column(type: UuidType::NAME)]
-    #[Groups('evaluation:detail')]
+    #[Groups(['evaluation:detail', 'questionnaire_section:read'])]
     private Uuid $uuid;
 
     public function getUuidString(): string

@@ -19,13 +19,13 @@
                 rows="2"
             />
           </div>
-          <Button
-              severity="primary"
-              class="ml-2"
-              @click="showSettings = true"
-          >
-            <Cog6ToothIcon class="w-4 h-4" />
-          </Button>
+<!--          <Button-->
+<!--              severity="primary"-->
+<!--              class="ml-2"-->
+<!--              @click="showSettings = true"-->
+<!--          >-->
+<!--            <Cog6ToothIcon class="w-4 h-4" />-->
+<!--          </Button>-->
         </div>
 
 
@@ -50,10 +50,10 @@
           >
             <div
                 v-for="(section, index) in sections"
-                :key="section.id"
+                :key="section.uuid"
                 :class="[
                 'border rounded-lg p-3 cursor-pointer transition-colors',
-                currentSection?.id === section.id
+                currentSection?.uuid === section.uuid
                   ? 'border-primary-300 bg-primary-50 dark:border-primary-600 dark:bg-primary-900'
                   : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
               ]"
@@ -66,10 +66,10 @@
                   </div>
                   <div class="flex-1">
                     <h4 class="text-sm font-medium text-gray-900 dark:text-white">
-                      {{ section.titre }}
+                      {{ section.title }}
                     </h4>
                     <p class="text-xs text-gray-500 dark:text-gray-400">
-                      {{ section.questionnaireQuestions.length }} question{{ section.questionnaireQuestions.length > 1 ? 's' : '' }}
+                      {{ section.questions.length }} question{{ section.questions.length > 1 ? 's' : '' }}
                     </p>
                   </div>
                 </div>
@@ -100,15 +100,15 @@
       <div class="p-4 border-t border-gray-200 dark:border-gray-700">
         <Button
             severity="secondary"
-            @click="showPublishSettings = true"
+            @click="showSettings = true"
             class="w-full text-sm"
         >
           <Cog6ToothIcon class="w-4 h-4" />
-          Paramètres de publication
+          Paramètres du questionnaire
         </Button>
         <Button
             v-if="currentSurvey && currentSurvey.status === 'draft'"
-            @click="publishSurvey = true"
+            @click="publishSurvey"
             severity="primary"
             class="w-full mt-2 text-sm"
         >
@@ -125,10 +125,10 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center space-x-4">
             <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ currentSection?.titre || 'Sélectionnez une section' }}
+              {{ currentSection?.title || 'Sélectionnez une section' }}
             </h2>
             <span class="text-sm text-gray-500 dark:text-gray-400">
-              {{ currentSection?.questionnaireQuestions.length || 0 }} question{{ (currentSection?.questionnaireQuestions.length || 0) > 1 ? 's' : '' }}
+              {{ currentSection?.questions.length || 0 }} question{{ (currentSection?.questions.length || 0) > 1 ? 's' : '' }}
             </span>
           </div>
           <div class="flex items-center space-x-2">
@@ -159,7 +159,7 @@
           </p>
         </div>
 
-        <div v-else-if="currentSection.questionnaireQuestions.length === 0" class="text-center py-12">
+        <div v-else-if="currentSection.questions.length === 0" class="text-center py-12">
           <QuestionMarkCircleIcon class="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
             Aucune question
@@ -185,14 +185,15 @@
           >
             <QuestionEditor
                 v-for="(question, index) in currentSectionQuestions"
-                :key="question.id"
+                :key="question.uuid"
                 :question="question"
-                :section-id="currentSection.id"
+                :section-id="currentSection.uuid"
                 :index="index"
                 :all-questions="allQuestions"
                 :all-sections="sections"
                 @update="updateQuestion"
                 @delete="deleteQuestion"
+                @duplicate="duplicateQuestion"
             />
           </draggable>
         </div>
@@ -200,13 +201,15 @@
     </div>
   </div>
 
-  <!-- Survey Settings Modal -->
-  <SurveyPublishSettingsModal
-      v-if="showPublishSettings"
-      :survey="currentSurvey"
-      @close="showPublishSettings = false"
-      @update="updateSurveyPublishSettings"
-  />
+  <!-- Survey Settings Modal
+  todo: a déclencher sur publication ??
+  -->
+<!--  <SurveyPublishSettingsModal-->
+<!--      v-if="showSettings"-->
+<!--      :survey="currentSurvey"-->
+<!--      @close="showSettings = false"-->
+<!--      @update="updateSurveyPublishSettings"-->
+<!--  />-->
 
   <SurveySettingsModal
       v-if="showSettings"
@@ -218,7 +221,7 @@
   <!-- Preview Modal -->
   <SurveyPreviewModal
       v-if="showPreview"
-      :survey="currentSurvey"
+      :uuid="currentSurvey.uuid"
       @close="showPreview = false"
   />
 
@@ -237,27 +240,18 @@ import { useRoute } from 'vue-router';
 import {
   PlusIcon,
   Bars3Icon,
-  EllipsisVerticalIcon,
-  PencilIcon,
-  DocumentDuplicateIcon,
-  TrashIcon,
   Cog6ToothIcon,
   EyeIcon,
   DocumentTextIcon,
   QuestionMarkCircleIcon,
-  ChatBubbleLeftRightIcon,
-  ListBulletIcon,
-  PencilSquareIcon,
-  ScaleIcon,
-  TableCellsIcon,
-  QueueListIcon, RocketLaunchIcon
+  RocketLaunchIcon
 } from '@heroicons/vue/24/outline';
 import ActionDropdown from '@components/components/ActionDropdown.vue';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
 
 import { useSurveyStore } from '@/stores/survey';
 import { useUIStore } from '@/stores/ui';
-import type { Section, Question, QuestionType } from '@/types/survey';
+import type { Section, Question, QuestionType } from '@types';
 
 // Components (these would be separate files)
 import QuestionEditor from '@/components/Questionnaire/QuestionEditor.vue';
@@ -270,7 +264,6 @@ const surveyStore = useSurveyStore();
 const uiStore = useUIStore();
 
 const showSettings = ref(false);
-const showPublishSettings = ref(false);
 const showPreview = ref(false);
 const showSectionModal = ref(false);
 const editingSection = ref<Section | null>(null);
@@ -299,10 +292,10 @@ const surveyTitle = ref('');
 const surveyDescription = ref('');
 
 const currentSectionQuestions = computed({
-  get: () => currentSection.value?.questionnaireQuestions || [],
+  get: () => currentSection.value?.questions || [],
   set: (value) => {
     if (currentSection.value) {
-      currentSection.value.questionnaireQuestions = value;
+      currentSection.value.questions = value;
       surveyStore.updateSurvey({});
     }
   }
@@ -310,13 +303,13 @@ const currentSectionQuestions = computed({
 
 const allQuestions = computed(() => {
   if (!currentSurvey.value) return [];
-  return sections.value.flatMap(section => section.questionnaireQuestions);
+  return sections.value.flatMap(section => section.questions);
 });
 
 // Watch for survey changes
 watch(currentSurvey, (survey) => {
   if (survey) {
-    surveyTitle.value = survey.titre;
+    surveyTitle.value = survey.title;
     surveyDescription.value = survey.description || '';
   }
 }, { immediate: true });
@@ -324,7 +317,7 @@ watch(currentSurvey, (survey) => {
 // Survey management
 function updateSurveyTitle() {
   if (currentSurvey.value && surveyTitle.value.trim()) {
-    surveyStore.updateSurvey({ titre: surveyTitle.value.trim() });
+    surveyStore.updateSurvey({ title: surveyTitle.value.trim() });
   }
 }
 
@@ -334,37 +327,38 @@ function updateSurveyDescription() {
   }
 }
 
-function updateSurveySettings(settings: any) {
-  surveyStore.updateSurvey({ settings });
+function updateSurveySettings(opt: any) {
+  surveyStore.updateSurvey({ opt });
   showSettings.value = false;
 }
 
 // Section management
-function saveSection(section: Section) {
+async function saveSection(section: Section) {
   if (editingSection.value) {
     // Update existing section
-    surveyStore.updateSection(section.id, section);
+    await surveyStore.updateSection(section.uuid, section);
   } else {
     // Add new section
-    if (section.typeSection === 'configurable' && section.configurable) {
+    if (section.typeSection === 'configurable' && section.opt) {
       // Create multiple sections for configurable type
-      section.configurable.elements.forEach((element, index) => {
-        const sectionTitle = section.configurable!.titleTemplate.replace('{element}', element.name);
-        const newSection = surveyStore.addSection(sectionTitle, section.description);
+      for (const element of section.opt.elements) {
+        const index = section.opt.elements.indexOf(element);
+        const sectionTitle = section.opt!.titleTemplate.replace('{element}', element.name);
+        const newSection = await surveyStore.addSection(sectionTitle, section.description);
 
         // Store reference to original configurable section and element
-        surveyStore.updateSection(newSection.id, {
+        await surveyStore.updateSection(newSection.uuid, {
           typeSection: 'configurable',
           opt: {
-            ...section.configurable!,
+            ...section.opt!,
             elements: [element] // Each generated section has only one element
           }
         });
-      });
+      }
     } else {
       // Normal section
-      const newSection = surveyStore.addSection(section.titre, section.description);
-      surveyStore.updateSection(newSection.id, { typeSection: 'normal' });
+      const newSection = await surveyStore.addSection(section.title, section.description);
+      await surveyStore.updateSection(newSection.uuid, { typeSection: 'normal' });
     }
   }
 
@@ -378,7 +372,7 @@ function closeSectionModal() {
 }
 
 function selectSection(section: Section) {
-  surveyStore.selectSection(section.id);
+  surveyStore.selectSection(section.uuid);
 }
 
 function editSection(section: Section) {
@@ -386,20 +380,20 @@ function editSection(section: Section) {
   showSectionModal.value = true;
 }
 
-function duplicateSection(section: Section) {
+async function duplicateSection(section: Section) {
   // Implementation for duplicating section
-  const newSection = surveyStore.addSection(`${section.title} (copie)`);
+  const newSection = await surveyStore.addSection(`${section.title} (copie)`);
   // Copy questions
-  section.questionnaireQuestions.forEach(question => {
-    const newQuestion = { ...question, id: Date.now().toString() + Math.random() };
-    surveyStore.addQuestion(newSection.id, question.type, question.title);
-  });
+  for (const question of section.questions) {
+    const newQuestion = { ...question, uuid: undefined }; // Reset UUID for new question
+    await surveyStore.addQuestion(newSection.uuid, question.typeQuestion, newQuestion);
+  }
   uiStore.addNotification('success', 'Section dupliquée', 'La section a été dupliquée avec succès.');
 }
 
 function deleteSection(section: Section) {
   if (confirm('Êtes-vous sûr de vouloir supprimer cette section ?')) {
-    surveyStore.deleteSection(section.id);
+    surveyStore.deleteSection(section.uuid);
     uiStore.addNotification('success', 'Section supprimée', 'La section a été supprimée avec succès.');
   }
 }
@@ -411,25 +405,39 @@ function onSectionReorder(event: any) {
 // Question management
 function addQuestion(type: QuestionType) {
   if (!currentSection.value) return;
-  surveyStore.addQuestion(currentSection.value.id, type);
+  surveyStore.addQuestion(currentSection.value.uuid, type);
 }
 
 function updateQuestion(questionId: string, updates: Partial<Question>) {
-  console.log('updateQuestion', questionId);
   if (!currentSection.value) return;
-  surveyStore.updateQuestion(currentSection.value.id, questionId, updates);
+  surveyStore.updateQuestion(currentSection.value.uuid, questionId, updates);
 }
 
-function deleteQuestion(questionId: string) {
+function deleteQuestion(question: Question) {
   if (!currentSection.value) return;
   if (confirm('Êtes-vous sûr de vouloir supprimer cette question ?')) {
-    surveyStore.removeQuestion(currentSection.value.id, questionId);
+    surveyStore.removeQuestion(currentSection.value.uuid, question.uuid);
+  }
+}
+
+function duplicateQuestion(question: Question) {
+  if (!currentSection.value) return;
+  if (confirm(`Êtes-vous sûr de vouloir dupliquer cette question : ${question.label} ?`)) {
+    surveyStore.duplicateQuestion(currentSection.value.uuid, question);
   }
 }
 
 function onQuestionReorder(event: any) {
   if (!currentSection.value) return;
-  surveyStore.reorderQuestions(currentSection.value.id, event.oldIndex, event.newIndex);
+  surveyStore.reorderQuestions(currentSection.value.uuid, event.oldIndex, event.newIndex);
+}
+
+function updateSurveyPublishSettings() {
+
+}
+
+function publishSurvey() {
+  //todo: déclencher la route pour générer les sections + envoyer les token. Modal de confirmation?
 }
 
 // Initialize

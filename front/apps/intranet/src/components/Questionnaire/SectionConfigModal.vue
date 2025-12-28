@@ -61,11 +61,8 @@
         <!-- Basic Section Info -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Titre de la section
-            </label>
             <ValidatedInput
-                v-model="localSection.titre"
+                v-model="localSection.title"
                 name="sectionTitle"
                 label="Titre de la section"
                 type="text"
@@ -75,9 +72,6 @@
           </div>
 
           <div v-if="localSection.typeSection === 'configurable'">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Modèle de titre
-            </label>
             <ValidatedInput
                 v-model="localSection.opt!.titleTemplate"
                 name="titleTemplate"
@@ -85,17 +79,12 @@
                 type="text"
                 :rules="[]"
                 placeholder="Évaluation de {element}"
+                helpText="Utilisez {element} pour insérer le nom de l'élément"
             />
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Utilisez {element} pour insérer le nom de l'élément
-            </p>
           </div>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Description (optionnelle)
-          </label>
           <ValidatedInput
               v-model="localSection.description"
               name="description"
@@ -326,7 +315,7 @@ import {
   CubeIcon,
   WrenchScrewdriverIcon
 } from '@heroicons/vue/24/outline';
-import type { Section, ConfigurableElement } from '@/types/survey';
+import type { Section, ConfigurableElement } from '@types';
 import { v4 as uuidv4 } from 'uuid';
 
 interface Props {
@@ -353,11 +342,13 @@ const sourceTypes = [
 ];
 
 const localSection = ref<Section>({
-  id: '',
-  titre: '',
+  id: null,
+  title: '',
   description: '',
-  questionnaireQuestions: [],
-  typeSection: 'normal'
+  questions: [],
+  typeSection: 'normal',
+  uuid: uuidv4(),
+  sortOrder: 0
 });
 
 const isEditing = computed(() => !!props.section);
@@ -450,11 +441,11 @@ function handleCSVImport(event: Event) {
 }
 
 function saveSection() {
-  if (!localSection.value.titre.trim()) return;
+  if (!localSection.value.title.trim()) return;
 
   // Generate ID if new section
-  if (!localSection.value.id) {
-    localSection.value.id = uuidv4();
+  if (!localSection.value.uuid) {
+    localSection.value.uuid = uuidv4();
   }
 
   // Clean up configurable settings if normal section

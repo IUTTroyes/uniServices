@@ -2,15 +2,15 @@ export interface Question {
     id?: number;
     uuid?: string;
     typeQuestion: QuestionType;
-    libelle: string;
-    ordre: number;
-    description?: string;
-    obligatoire: boolean;
-    reponses?: QuestionOption[];
+    label: string;
+    sortOrder: number;
+    help?: string;
+    required: boolean;
+    choices?: QuestionOption[];
     validation?: QuestionValidation;
     conditional?: ConditionalRule;
     conditionalRules?: ConditionalRule[];
-    metadata?: Record<string, any>;
+    opt?: Record<string, any>;
 }
 
 export interface QuestionOption {
@@ -50,10 +50,10 @@ export type QuestionType =
 export interface Section {
     id?: number;
     uuid: string;
-    ordre: number;
-    titre: string;
+    sortOrder: number;
+    title: string;
     description?: string;
-    questionnaireQuestions: Question[];
+    questions: Question[];
     conditional?: ConditionalRule;
     typeSection: 'normal' | 'configurable';
     opt?: {
@@ -73,15 +73,20 @@ export interface ConfigurableElement {
 }
 
 export interface Survey {
-    id?: number;
     uuid: string;
-    titre: string;
+    title: string;
     description?: string;
+    startText?: string;
+    endText?: string;
     sections: Section[];
     opt: SurveySettings;
     status: 'draft' | 'published' | 'closed';
     createdBy: string;
-    version: number;
+    updatedAt?: Date;
+    createdAt?: Date;
+    publishedAt?: Date;
+    openingDate?: Date;
+    closingDate?: Date;
 }
 
 export interface SurveySettings {
@@ -90,12 +95,9 @@ export interface SurveySettings {
     allowBack: boolean;
     showProgress: boolean;
     requireCompletion: boolean;
-    startDate?: Date;
-    endDate?: Date;
-    thankYouMessage?: string;
 }
 
-export interface Response {
+export interface Answer {
     id: string;
     surveyId: string;
     participantId?: string;
