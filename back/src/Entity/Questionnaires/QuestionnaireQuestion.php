@@ -14,7 +14,6 @@ use App\Enum\QuestTypeQuestionEnum;
 use App\Repository\Questionnaires\QuestionnaireQuestionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -26,7 +25,7 @@ use Symfony\Component\Uid\Uuid;
     uriTemplate: '/questionnaire_sections/{questionnaireSectionId}/questionnaire_questions',
     operations: [
         new GetCollection(),
-        ],
+    ],
     uriVariables: [
         'questionnaireSectionId' => new Link(toProperty: 'section', fromClass: QuestionnaireSection::class),
     ]
@@ -117,12 +116,18 @@ class QuestionnaireQuestion
     public function configureOptions(OptionsResolver $resolver): void
     {
         // You can define default options here if needed
-        // $resolver->setDefaults([
-        //     'some_option' => 'default_value',
-        // ]);
+        $resolver->setDefaults([
+            'min' => 0,
+            'max' => 100,
+            'minLength' => 1,
+            'maxLength' => 255,
+        ]);
 
         // You can also set allowed types for options
-        // $resolver->setAllowedTypes('some_option', 'string');
+        $resolver->setAllowedTypes('min', 'int');
+        $resolver->setAllowedTypes('max', 'int');
+        $resolver->setAllowedTypes('minLength', 'int');
+        $resolver->setAllowedTypes('maxLength', 'int');
     }
 
     public function getId(): ?int

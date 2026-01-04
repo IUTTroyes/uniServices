@@ -175,7 +175,7 @@ export const useSurveyStore = defineStore('survey', () => {
         const index = currentSections.value.findIndex(s => s.id === sectionId);
         if (index !== -1) {
             currentSections.value.splice(index, 1);
-            if (currentSection.value?.id === sectionId) {
+            if (currentSection.value?.uuid === sectionId) {
                 currentSection.value = currentSections.value[0] || null;
             }
             updateSurvey({});
@@ -231,7 +231,7 @@ export const useSurveyStore = defineStore('survey', () => {
             uuid: uuidv4(),
             typeQuestion: question.typeQuestion,
             label: question.label + ' (Copie)',
-            description: question.description,
+            help: question.help,
             sortOrder: currentSection.value.questions.length + 1,
             required: question.required,
             choices: question.choices,

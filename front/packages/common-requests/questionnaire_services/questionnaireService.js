@@ -46,7 +46,7 @@ const getPreviewQuestionnaire = async (id, showToast = false) => {
           showToast
         );
     } catch (error) {
-        console.error('Erreur dans getQuestionnaire:', error);
+        console.error('Erreur dans getPreviewQuestionnaire:', error);
         throw error;
     }
 }
@@ -61,7 +61,7 @@ const getPreviewQuestionnaireSection = async (id, keySection, showToast = false)
           showToast
         );
     } catch (error) {
-        console.error('Erreur dans getQuestionnaire:', error);
+        console.error('Erreur dans getPreviewQuestionnaireSection:', error);
         throw error;
     }
 }
@@ -79,7 +79,7 @@ const afficheQuestionnaire = async (id, showToast = false) => {
         );
         return response;
     } catch (error) {
-        console.error('Erreur dans getQuestionnaire:', error);
+        console.error('Erreur dans afficheQuestionnaire:', error);
         throw error;
     }
 }
@@ -95,7 +95,7 @@ const getQuestionnaireSections = async (id, showToast = false) => {
         );
         return response.member;
     } catch (error) {
-        console.error('Erreur dans getQuestionnaire:', error);
+        console.error('Erreur dans getQuestionnaireSections:', error);
         throw error;
     }
 }
@@ -236,30 +236,28 @@ const createQuestionInSection = async (sectionUuid, question, showToast = false)
           showToast
         );
     } catch (error) {
-        console.error('Erreur dans createQuestion:', error);
+        console.error('Erreur dans createQuestionInSection:', error);
         throw error;
     }
 }
 
 const updateQuestionInSection = async (id, question, showToast = false) => {
-    console.log('updateQuestionInSection', question);
     try {
-        const response = await apiCall(
-            api.patch,
-            [`/api/questionnaire_questions/${id}`,
-                {...question},
-                {
-                    headers: {
-                        'Content-Type': 'application/merge-patch+json'
-                    }
-            }],
-            'Question mise à jour avec succès',
-            'Erreur lors de la mise à jour de la question',
-            showToast
+        return await apiCall(
+          api.patch,
+          [`/api/questionnaire_questions/${id}`,
+              { ...question },
+              {
+                  headers: {
+                      'Content-Type': 'application/merge-patch+json'
+                  }
+              }],
+          'Question mise à jour avec succès',
+          'Erreur lors de la mise à jour de la question',
+          showToast
         );
-        return response;
     } catch (error) {
-        console.error('Erreur dans updateQuestion:', error);
+        console.error('Erreur dans updateQuestionInSection:', error);
         throw error;
     }
 }
@@ -275,7 +273,7 @@ const deleteQuestionInSection = async (id, showToast = false) => {
         );
         return response;
     } catch (error) {
-        console.error('Erreur dans deleteQuestion:', error);
+        console.error('Erreur dans deleteQuestionInSection:', error);
         throw error;
     }
 }
@@ -286,6 +284,8 @@ const deleteQuestionInSection = async (id, showToast = false) => {
 export {
     getPreviewQuestionnaire,
     getPreviewQuestionnaireSection,
+
+    afficheQuestionnaire,
 
     getAllQuestionnaires,
     getQuestionnaire,

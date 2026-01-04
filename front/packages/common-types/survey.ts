@@ -57,10 +57,11 @@ export interface Section {
     conditional?: ConditionalRule;
     typeSection: 'normal' | 'configurable';
     opt?: {
-        sourceType: 'subjects' | 'departments' | 'teams' | 'products' | 'custom';
+        sourceType: 'matiere' | 'ressource' | 'sae' | 'previsionnel';
         sourceLabel: string; // Label for the source type (e.g., "Matières", "Départements")
         elements: ConfigurableElement[];
-        titleTemplate: string; // Template for section title (e.g., "Évaluation de {element}")
+        titleTemplate: string; // Template for section title (e.g., "Évaluation de {element}"),
+        selectedSemesters: { id: number; libelle: string }[];
     };
 }
 

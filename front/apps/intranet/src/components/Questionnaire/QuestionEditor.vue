@@ -133,7 +133,7 @@
                 <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Valeur minimale</label>
                 <input
                   type="number"
-                  :value="question.validation?.min || 1"
+                  :value="question.opt?.min || 1"
                   @input="updateValidation({ min: parseInt(($event.target as HTMLInputElement).value) })"
                   class="input-field"
                   min="0"
@@ -143,7 +143,7 @@
                 <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Valeur maximale</label>
                 <input
                   type="number"
-                  :value="question.validation?.max || 10"
+                  :value="question.opt?.max || 10"
                   @input="updateValidation({ max: parseInt(($event.target as HTMLInputElement).value) })"
                   class="input-field"
                   min="1"
@@ -175,7 +175,7 @@
                 <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Longueur minimale</label>
                 <input
                   type="number"
-                  :value="question.validation?.minLength || ''"
+                  :value="question.opt?.minLength || ''"
                   @input="updateValidation({ minLength: parseInt(($event.target as HTMLInputElement).value) || undefined })"
                   class="input-field"
                   min="0"
@@ -186,7 +186,7 @@
                 <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Longueur maximale</label>
                 <input
                   type="number"
-                  :value="question.validation?.maxLength || ''"
+                  :value="question.opt?.maxLength || ''"
                   @input="updateValidation({ maxLength: parseInt(($event.target as HTMLInputElement).value) || undefined })"
                   class="input-field"
                   min="1"
@@ -356,10 +356,12 @@ function updateQuestion(updates: Partial<Question>) {
   emit('update', props.question.uuid, updates);
 }
 
-function updateValidation(validation: Partial<Question['validation']>) {
-  const currentValidation = props.question.validation || {};
+function updateValidation(opt: Partial<Question['opt']>) {
+  const currentValidation = props.question.opt || {};
+  console.log('val1', currentValidation)
+  console.log('val2', { ...currentValidation, ...opt })
   updateQuestion({
-    validation: { ...currentValidation, ...validation }
+    opt: { ...currentValidation, ...opt }
   });
 }
 
