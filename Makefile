@@ -23,3 +23,7 @@ start-front: create-symlinks
 # Lancer les deux simultanément grâce à `&`
 start-all:
 	$(MAKE) start-back & $(MAKE) start-front
+
+# lancer la console de docker
+cli:
+	docker exec -it uniservice-web /bin/bash && cd /var/www/uniservice
