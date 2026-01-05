@@ -84,6 +84,13 @@ const handleSubmit = async () => {
   }
 };
 
+// Détection de la touche Entrée : lance la connexion si les deux champs sont remplis
+const onEnter = () => {
+  if (username.value && password.value) {
+    handleSubmit();
+  }
+};
+
 const handleValidation = (field, result) => {
   formErrors.value = {
     ...formErrors.value,
@@ -152,7 +159,7 @@ const handleValidation = (field, result) => {
         <Divider></Divider>
 
         <p class="text-center">Compte invité</p>
-        <form @submit.prevent="handleSubmit" class="flex flex-col">
+        <form @submit.prevent="handleSubmit" @keydown.enter.prevent="onEnter" class="flex flex-col">
           <ValidatedInput
               v-model="username"
               name="username"
