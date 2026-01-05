@@ -148,11 +148,21 @@ class PreviStatsEdtProvider implements ProviderInterface
             $allEnsIds = array_unique(array_merge(array_keys($previByEnsType), array_keys($edtByEnsType)));
             foreach ($allEnsIds as $ensId) {
                 $display = $ensDisplayById[$ensId] ?? '';
+
+                // Calculer les totaux par enseignement (somme sur tous les types)
+                $totalPrevi = 0.0;
+                $totalEdt = 0.0;
+                foreach ($typesList as $tt) {
+                    $totalPrevi += (float) ($previByEnsType[$ensId][$tt] ?? 0.0);
+                    $totalEdt += (float) ($edtByEnsType[$ensId][$tt] ?? 0.0);
+                }
+
                 foreach ($typesList as $t) {
                     $previ = (float) ($previByEnsType[$ensId][$t] ?? 0.0);
                     $edt = (float) ($edtByEnsType[$ensId][$t] ?? 0.0);
                     if ($previ > 0 || $edt > 0) {
-                        $heures_diff = $previ - $edt;
+                        // Utiliser la différence des totaux (edt total - prévi total) pour l'enseignement
+                        $heures_diff = $totalEdt - $totalPrevi;
 
                         $rows[] = [
                             'id' => $ensId,
@@ -187,7 +197,7 @@ class PreviStatsEdtProvider implements ProviderInterface
                             'type' => $t,
                             'heures_previsionnel' => $previ,
                             'heures_edt' => $edt,
-                            'heures_diff' => $previ - $edt,
+                            'heures_diff' => $edt - $previ,
                         ];
                     }
                 }
@@ -205,7 +215,7 @@ class PreviStatsEdtProvider implements ProviderInterface
                             'type' => $t,
                             'heures_previsionnel' => $previ,
                             'heures_edt' => $edt,
-                            'heures_diff' => $previ - $edt,
+                            'heures_diff' => $edt - $previ,
                         ];
                     }
                 }

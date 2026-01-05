@@ -1,12 +1,17 @@
 <script setup>
-import {onMounted, ref, watch, computed} from "vue";
-import {ErrorView, SimpleSkeleton, ListSkeleton} from "@components";
-import {ValidatedInput} from "@components";
+import {computed, onMounted, ref, watch} from "vue";
+import {ErrorView, ListSkeleton, PermissionGuard, SimpleSkeleton, ValidatedInput} from "@components";
 import {useDiplomeStore, useUsersStore} from "@stores";
-import {getEnseignementsService, getPersonnelsService, getSallesService, getEdtEventsService, getPrevisService, exportService} from "@requests";
-import { getAnneeUniversitaireService } from "@requests";
+import {
+  exportService,
+  getAnneeUniversitaireService,
+  getEdtEventsService,
+  getEnseignementsService,
+  getPersonnelsService,
+  getPrevisService,
+  getSallesService
+} from "@requests";
 import Loader from "@components/loader/GlobalLoader.vue";
-import {PermissionGuard} from "@components";
 
 // Aide: formater un objet Date en YYYY-MM-DD en heure locale (sans décalage de fuseau)
 const formaterDateLocale = (d) => {
@@ -391,6 +396,7 @@ const comparatifPreviRowsEnseignement = computed(() => {
       row[`previ_${t}`] = Number(r.heures_previsionnel || 0);
       row[`edt_${t}`] = Number(r.heures_edt || 0);
     }
+    row['heures_diff'] = r.heures_diff || 0;
   }
   return Array.from(map.values());
 });
@@ -416,6 +422,7 @@ const comparatifPreviRowsEnseignant = computed(() => {
       row[`previ_${t}`] = Number(r.heures_previsionnel || 0);
       row[`edt_${t}`] = Number(r.heures_edt || 0);
     }
+    row['heures_diff'] = r.heures_diff || 0;
   }
   return Array.from(map.values());
 });
@@ -434,10 +441,7 @@ const sumByPrefix = (line, prefix) => typesList.value.reduce((acc, t) => acc + N
 const previTotal = (line) => sumByPrefix(line, 'previ');
 const edtTotal = (line) => sumByPrefix(line, 'edt');
 const diffTotal = (line) => {
-  const diff = previTotal(line) - edtTotal(line);
-  if (diff === 0) return 0;
-  const value = -diff;
-  return diff < 0 ? `+${value}` : `${value}`;
+  return edtTotal(line) - previTotal(line);
 };
 const diffSeverity = (line) => {
   const d = diffTotal(line);
@@ -745,7 +749,9 @@ const exportData = async () => {
               <Column>
                 <template #body="slotProps">
                   <Tag :severity="diffSeverity(slotProps.data)" rounded>
-                    {{ diffTotal(slotProps.data) }} h
+                    <i v-if="diffTotal(slotProps.data) > 0" class="pi pi-arrow-up"></i>
+                    <i v-else-if="diffTotal(slotProps.data) < 0" class="pi pi-arrow-down"></i>
+                    {{ (slotProps.data['heures_diff'] || 0) }} h
                   </Tag>
                 </template>
               </Column>
