@@ -188,6 +188,23 @@ class PreviStatsEdtProvider implements ProviderInterface
                 // éviter doublons
                 if (isset($seenTeachers[$enseignantDisplay])) continue;
                 $seenTeachers[$enseignantDisplay] = true;
+
+                // --- CHANGEMENT : calculer les totaux par enseignant ---
+                $totalPreviTeacher = 0.0;
+                $totalEdtTeacher = 0.0;
+                if (isset($previByEnseignantType[$enseignantDisplay])) {
+                    foreach ($previByEnseignantType[$enseignantDisplay] as $val) {
+                        $totalPreviTeacher += (float) $val;
+                    }
+                }
+                if (isset($edtByEnseignantType[$enseignantDisplay])) {
+                    foreach ($edtByEnseignantType[$enseignantDisplay] as $val) {
+                        $totalEdtTeacher += (float) $val;
+                    }
+                }
+                $totalDiffTeacher = $totalEdtTeacher - $totalPreviTeacher;
+                // --- fin changement ---
+
                 foreach ($typesList as $t) {
                     $previ = (float) ($previByEnseignantType[$enseignantDisplay][$t] ?? 0.0);
                     $edt = (float) ($edtByEnseignantType[$enseignantDisplay][$t] ?? 0.0);
@@ -197,7 +214,8 @@ class PreviStatsEdtProvider implements ProviderInterface
                             'type' => $t,
                             'heures_previsionnel' => $previ,
                             'heures_edt' => $edt,
-                            'heures_diff' => $edt - $previ,
+                            // Utiliser la différence des totaux par enseignant
+                            'heures_diff' => $totalDiffTeacher,
                         ];
                     }
                 }
@@ -206,6 +224,23 @@ class PreviStatsEdtProvider implements ProviderInterface
             // Puis compléter avec les enseignants provenant du prévisionnel qui n'apparaissent pas dans les événements
             foreach ($allTeachers as $teacher) {
                 if (isset($seenTeachers[$teacher])) continue;
+
+                // --- CHANGEMENT : calculer les totaux par enseignant (pour ceux provenant du prévisionnel) ---
+                $totalPreviTeacher = 0.0;
+                $totalEdtTeacher = 0.0;
+                if (isset($previByEnseignantType[$teacher])) {
+                    foreach ($previByEnseignantType[$teacher] as $val) {
+                        $totalPreviTeacher += (float) $val;
+                    }
+                }
+                if (isset($edtByEnseignantType[$teacher])) {
+                    foreach ($edtByEnseignantType[$teacher] as $val) {
+                        $totalEdtTeacher += (float) $val;
+                    }
+                }
+                $totalDiffTeacher = $totalEdtTeacher - $totalPreviTeacher;
+                // --- fin changement ---
+
                 foreach ($typesList as $t) {
                     $previ = (float) ($previByEnseignantType[$teacher][$t] ?? 0.0);
                     $edt = (float) ($edtByEnseignantType[$teacher][$t] ?? 0.0);
@@ -215,7 +250,8 @@ class PreviStatsEdtProvider implements ProviderInterface
                             'type' => $t,
                             'heures_previsionnel' => $previ,
                             'heures_edt' => $edt,
-                            'heures_diff' => $edt - $previ,
+                            // Utiliser la différence des totaux par enseignant
+                            'heures_diff' => $totalDiffTeacher,
                         ];
                     }
                 }
