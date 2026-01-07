@@ -43,14 +43,14 @@
     </tr>
     <tr><th data-xls-colspan="12"></th></tr>
     <tr>
-        <th data-xls-font-bold="true" data-xls-font-size="14">Enseignant</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Enseignant</th>
         {% for t in types %}
-            <th data-xls-font-bold="true" data-xls-font-size="14">Previ {{ t }}</th>
-            <th data-xls-font-bold="true" data-xls-font-size="14">EDT {{ t }}</th>
+            <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Previ {{ t }}</th>
+            <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">EDT {{ t }}</th>
         {% endfor %}
-        <th data-xls-font-bold="true" data-xls-font-size="14">Total Previ</th>
-        <th data-xls-font-bold="true" data-xls-font-size="14">Total EDT</th>
-        <th data-xls-font-bold="true" data-xls-font-size="14">Différence (EDT-Previ)</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Total Previ</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Total EDT</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Différence (EDT-Previ)</th>
     </tr>
     </thead>
     <tbody>
@@ -59,29 +59,29 @@
         {% set totalPrevi = 0 %}
         {% set totalEdt = 0 %}
         <tr>
-            <td data-xls-type="text">{{ enseignant }}</td>
+            <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="text">{{ enseignant }}</td>
             {% for t in types %}
                 {% set heuresPreviType = donneesEnseignant.previ[t]|default(0) %}
                 {% set heuresEdtType = donneesEnseignant.edt[t]|default(0) %}
                 {% set totalPrevi = totalPrevi + heuresPreviType %}
                 {% set totalEdt = totalEdt + heuresEdtType %}
-                <td data-xls-type="number">{{ heuresPreviType }}</td>
-                <td data-xls-type="number">{{ heuresEdtType }}</td>
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ heuresPreviType }}</td>
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ heuresEdtType }}</td>
             {% endfor %}
-            <td data-xls-type="number">{{ totalPrevi }}</td>
-            <td data-xls-type="number">{{ totalEdt }}</td>
+            <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ totalPrevi }}</td>
+            <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ totalEdt }}</td>
             {% if (totalEdt - totalPrevi) < 0 %}
-                <td data-xls-type="number"
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number"
                         data-xls-bg-color="#FFEBCC"
                         data-xls-font-color="#CC7B00"
                         data-xls-font-bold="true">{{ (totalEdt - totalPrevi) }}</td>
             {% elseif (totalEdt - totalPrevi) > 0 %}
-                <td data-xls-type="number"
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number"
                     data-xls-bg-color="#FFCCCC"
                     data-xls-font-color="#FF0000"
                     data-xls-font-bold="true">{{ (totalEdt - totalPrevi) }}</td>
             {% else %}
-                <td data-xls-type="number"
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number"
                     data-xls-bg-color="#CCFFCC"
                     data-xls-font-color="#04D100"
                     data-xls-font-bold="true">{{ (totalEdt - totalPrevi) }}</td>
@@ -126,14 +126,14 @@
     </tr>
     <tr><th data-xls-colspan="12"></th></tr>
     <tr>
-        <th data-xls-font-bold="true" data-xls-font-size="14">Enseignement</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Enseignement</th>
         {% for t in types %}
-            <th data-xls-font-bold="true" data-xls-font-size="14">Previ {{ t }}</th>
-            <th data-xls-font-bold="true" data-xls-font-size="14">EDT {{ t }}</th>
+            <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Previ {{ t }}</th>
+            <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">EDT {{ t }}</th>
         {% endfor %}
-        <th data-xls-font-bold="true" data-xls-font-size="14">Total Previ</th>
-        <th data-xls-font-bold="true" data-xls-font-size="14">Total EDT</th>
-        <th data-xls-font-bold="true" data-xls-font-size="14">Différence (EDT-Previ)</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Total Previ</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Total EDT</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Différence (EDT-Previ)</th>
     </tr>
     </thead>
     <tbody>
@@ -142,29 +142,29 @@
         {% set totalPrevi = 0 %}
         {% set totalEdt = 0 %}
         <tr>
-            <td>{{ enseignement }}</td>
+            <td data-xls-border="thin" data-xls-border-color="000000">{{ enseignement }}</td>
             {% for t in types %}
                 {% set heuresPreviType = donneesEnseignement.previ[t]|default(0) %}
                 {% set heuresEdtType = donneesEnseignement.edt[t]|default(0) %}
                 {% set totalPrevi = totalPrevi + heuresPreviType %}
                 {% set totalEdt = totalEdt + heuresEdtType %}
-                <td data-xls-type="number">{{ heuresPreviType }}</td>
-                <td data-xls-type="number">{{ heuresEdtType }}</td>
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ heuresPreviType }}</td>
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ heuresEdtType }}</td>
             {% endfor %}
-            <td data-xls-type="number">{{ totalPrevi }}</td>
-            <td data-xls-type="number">{{ totalEdt }}</td>
+            <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ totalPrevi }}</td>
+            <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ totalEdt }}</td>
             {% if (totalEdt - totalPrevi) < 0 %}
-                <td data-xls-type="number"
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number"
                     data-xls-bg-color="#FFEBCC"
                     data-xls-font-color="#CC7B00"
                     data-xls-font-bold="true">{{ (totalEdt - totalPrevi) }}</td>
             {% elseif (totalEdt - totalPrevi) > 0 %}
-                <td data-xls-type="number"
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number"
                     data-xls-bg-color="#FFCCCC"
                     data-xls-font-color="#FF0000"
                     data-xls-font-bold="true">{{ (totalEdt - totalPrevi) }}</td>
             {% else %}
-                <td data-xls-type="number"
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number"
                     data-xls-bg-color="#CCFFCC"
                     data-xls-font-color="#04D100"
                     data-xls-font-bold="true">{{ (totalEdt - totalPrevi) }}</td>
