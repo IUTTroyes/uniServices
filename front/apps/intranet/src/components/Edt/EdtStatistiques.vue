@@ -175,9 +175,12 @@ const getDiplomes = async () => {
 const getEnseignements = async () => {
   isLoadingEnseignements.value = true;
   try {
+    console.log(selectedSemestre.value);
+    console.log(selectedAnnee.value);
     const params = {
       semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
-      departement: selectedSemestre.value ? null : departement.id,
+      annee: selectedAnnee.value ? selectedAnnee.value.id : null,
+      departement: selectedAnnee.value ? null : departement.id,
       actif: true,
     };
     enseignements.value = await getEnseignementsService(params);
