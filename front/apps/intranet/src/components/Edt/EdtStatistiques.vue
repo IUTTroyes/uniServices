@@ -175,8 +175,6 @@ const getDiplomes = async () => {
 const getEnseignements = async () => {
   isLoadingEnseignements.value = true;
   try {
-    console.log(selectedSemestre.value);
-    console.log(selectedAnnee.value);
     const params = {
       semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
       annee: selectedAnnee.value ? selectedAnnee.value.id : null,
@@ -246,7 +244,6 @@ watch(selectedSemestreId, async (newId) => {
 const setDiplome = async (diplome) => {
   selectedDiplome.value = diplome;
   if (!diplome) {
-    console.log(selectedDiplome.value);
     selectedAnnee.value = null;
     selectedAnneeId.value = null;
     selectedSemestre.value = null;
@@ -313,7 +310,6 @@ const getStatsPreviData = async () => {
       anneeUniversitaire: anneeUniv.id,
     }
     statsPreviData.value = await getPrevisService(params, '/stats_edt');
-    console.log(statsPreviData.value);
   } catch (error) {
     console.error('Erreur lors du chargement des données prévisionnelles :', error);
   } finally {
@@ -467,7 +463,7 @@ const applyFilters = async () => {
 
 const exportDataPrevi = async () => {
   try {
-    await exportService(statsPreviData.value, '/previ', 'export_previsionnel')
+    await exportService(statsPreviData.value, 'previ', 'export_previsionnel')
   } catch (error) {
     console.error('Erreur lors de l\'export des données :', error);
   }
@@ -475,7 +471,6 @@ const exportDataPrevi = async () => {
 
 const exportDataHeures = async () => {
   try {
-    console.log(eventsData.value);
     await exportService(eventsData.value, '/edt-heures', 'export_heures_edt')
   } catch (error) {
     console.error('Erreur lors de l\'export des données :', error);
