@@ -308,7 +308,8 @@ const getStatsPreviData = async () => {
   try {
     const params = {
       semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
-      departement: selectedSemestre.value ? null : departement.id,
+      annee: selectedAnnee.value ? selectedAnnee.value.id : null,
+      departement: selectedAnnee.value ? null : departement.id,
       anneeUniversitaire: anneeUniv.id,
     }
     statsPreviData.value = await getPrevisService(params, '/stats_edt');

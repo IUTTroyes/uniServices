@@ -96,9 +96,17 @@ class PreviStatsEdtProvider implements ProviderInterface
             // EDT: récupérer les événements correspondants via le repository (filtres: semestre et année universitaire)
             $filters = $context['filters'] ?? [];
             $semestreId = !empty($filters['semestre']) ? (int) $filters['semestre'] : null;
+            $anneeId = !empty($filters['annee']) ? (int) $filters['annee'] : null;
             $anneeUniversitaireId = !empty($filters['anneeUniversitaire']) ? (int) $filters['anneeUniversitaire'] : null;
 
+            if ($semestreId) {
             $events = $this->edtEventRepository->findForStatsBySemestreAndAnneeUniversitaire($semestreId, $anneeUniversitaireId);
+            } elseif ($anneeId) {
+                $events = $this->edtEventRepository->findForStatsByAnneeAndAnneeUniversitaire($anneeId, $anneeUniversitaireId);
+            } else {
+                // Pas de filtre semestre/année: récupérer tous les événements pour l'année universitaire si fournie
+                $events = $this->edtEventRepository->findForStatsByAnneeAndAnneeUniversitaire(null, $anneeUniversitaireId);
+            }
 
             $edtByEnsType = [];
             // EDT: heures par enseignant et par type

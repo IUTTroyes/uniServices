@@ -23,6 +23,7 @@ class PrevisionnelFilter extends AbstractFilter
         'personnel' => 'personnel',
         'anneeUniversitaire' => 'anneeUniversitaire',
         'departement' => 'departement',
+        'annee' => 'annee',
         'semestre' => 'semestre',
         'enseignement' => 'enseignement',
         'diplome' => 'diplome',
@@ -59,6 +60,18 @@ class PrevisionnelFilter extends AbstractFilter
                 ->join(StructureSemestre::class, 'ss', 'WITH', 'ue.semestre = ss.id')
                 ->andWhere('ss.id = :semestre')
                 ->setParameter('semestre', $value)
+            ;
+        }
+
+        if ('annee' === $property) {
+            $queryBuilder
+                ->join(ScolEnseignement::class, 'se2', 'WITH', sprintf('%s.enseignement = se2.id', $alias))
+                ->join('se2.enseignementUes', 'seue2')
+                ->join(StructureUe::class, 'ue2', 'WITH', 'seue2.ue = ue2.id')
+                ->join(StructureSemestre::class, 'ss2', 'WITH', 'ue2.semestre = ss2.id')
+                ->join(StructureAnnee::class, 'sa2', 'WITH', 'ss2.annee = sa2.id')
+                ->andWhere('sa2.id = :annee')
+                ->setParameter('annee', $value)
             ;
         }
 
@@ -148,6 +161,14 @@ class PrevisionnelFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by enseignement',
+                ],
+            ],
+            'annee' => [
+                'property' => 'annee',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by annee',
                 ],
             ],
         ];
