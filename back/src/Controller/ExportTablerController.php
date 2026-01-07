@@ -37,12 +37,28 @@ class ExportTablerController extends AbstractController
     {
         $content = (string) $request->getContent();
         $data = json_decode($content, true) ?? [];
+//        dd($data);
 
         // Passer les données brutes au template Twig, la construction des feuilles se fait côté vue
         return $this->renderSpreadsheet(
             'export_tabler/previ.html.twig',
             ['stats' => $data],
             'export_previsionnel.xlsx'
+        );
+    }
+
+    // Endpoint pour traiter les données prévisionnelles et construire le tableau d'export
+    #[Route('/export/edt-heures', name: 'app_export_edt_heures', methods: ['POST'])]
+    public function exportHeures(Request $request): Response
+    {
+        $content = (string) $request->getContent();
+        $data = json_decode($content, true) ?? [];
+
+        // Passer les données brutes au template Twig, la construction des feuilles se fait côté vue
+        return $this->renderSpreadsheet(
+            'export_tabler/edt_heures.html.twig',
+            ['stats' => $data],
+            'export_edt_heures.xlsx'
         );
     }
 }

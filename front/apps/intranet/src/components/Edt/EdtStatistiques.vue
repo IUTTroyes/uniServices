@@ -463,7 +463,44 @@ const applyFilters = async () => {
 
 const exportDataPrevi = async () => {
   try {
-    await exportService(statsPreviData.value, 'previ', 'export_previsionnel')
+    // insérer l'année et le semestre et la période dans statsPreviData avant export
+    // Préparer une copie pour ne pas muter l'original
+    const payload = JSON.parse(JSON.stringify(statsPreviData.value || {}));
+
+    // Insérer année sélectionnée
+    if (selectedAnnee.value) {
+      payload.annee = {
+        id: selectedAnnee.value.id ?? null,
+        libelle: selectedAnnee.value.libelle ?? null
+      };
+    } else {
+      payload.annee = null;
+    }
+
+    // Insérer semestre sélectionné
+    if (selectedSemestre.value) {
+      payload.semestre = {
+        id: selectedSemestre.value.id ?? null,
+        libelle: selectedSemestre.value.libelle ?? null
+      };
+    } else {
+      payload.semestre = null;
+    }
+
+    // Insérer période (format YYYY-MM-DD)
+    if (Array.isArray(periode.value) && periode.value[0] && periode.value[1]) {
+      payload.periode = {
+        debut: formaterDateLocale(periode.value[0]),
+        fin: formaterDateLocale(periode.value[1])
+      };
+    } else {
+      payload.periode = null;
+    }
+
+    // Inclure l'année universitaire courante si disponible
+    payload.anneeUniversitaire = anneeUniv?.id ?? null;
+
+    await exportService(payload, 'previ', 'export_previsionnel')
   } catch (error) {
     console.error('Erreur lors de l\'export des données :', error);
   }

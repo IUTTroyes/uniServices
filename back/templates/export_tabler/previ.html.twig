@@ -39,14 +39,18 @@
 <table data-xls-sheet="Comparatif par enseignant" data-xls-autosize="true">
     <thead>
     <tr>
-        <th>Enseignant</th>
+        <th data-xls-colspan="12" data-xls-font-bold="true" data-xls-font-size="24">Comparatif prévisionnel pour {{ stats.annee.libelle|default('') }} - {{ stats.semestre.libelle|default('') }} | {{ stats.periode.debut|default('') }} - {{ stats.periode.fin|default('') }}</th>
+    </tr>
+    <tr><th data-xls-colspan="12"></th></tr>
+    <tr>
+        <th data-xls-font-bold="true" data-xls-font-size="14">Enseignant</th>
         {% for t in types %}
-            <th>Previ {{ t }}</th>
-            <th>EDT {{ t }}</th>
+            <th data-xls-font-bold="true" data-xls-font-size="14">Previ {{ t }}</th>
+            <th data-xls-font-bold="true" data-xls-font-size="14">EDT {{ t }}</th>
         {% endfor %}
-        <th>Total Previ</th>
-        <th>Total EDT</th>
-        <th>Différence (EDT-Previ)</th>
+        <th data-xls-font-bold="true" data-xls-font-size="14">Total Previ</th>
+        <th data-xls-font-bold="true" data-xls-font-size="14">Total EDT</th>
+        <th data-xls-font-bold="true" data-xls-font-size="14">Différence (EDT-Previ)</th>
     </tr>
     </thead>
     <tbody>
@@ -118,14 +122,18 @@
 <table data-xls-sheet="Comparatif par enseignement" data-xls-autosize="true">
     <thead>
     <tr>
-        <th>Enseignement</th>
+        <th data-xls-colspan="12" data-xls-font-bold="true" data-xls-font-size="24">Comparatif prévisionnel pour {{ stats.annee.libelle|default('') }} - {{ stats.semestre.libelle|default('') }} | {{ stats.periode.debut|default('') }} - {{ stats.periode.fin|default('') }}</th>
+    </tr>
+    <tr><th data-xls-colspan="12"></th></tr>
+    <tr>
+        <th data-xls-font-bold="true" data-xls-font-size="14">Enseignement</th>
         {% for t in types %}
-            <th>Previ {{ t }}</th>
-            <th>EDT {{ t }}</th>
+            <th data-xls-font-bold="true" data-xls-font-size="14">Previ {{ t }}</th>
+            <th data-xls-font-bold="true" data-xls-font-size="14">EDT {{ t }}</th>
         {% endfor %}
-        <th>Total Previ</th>
-        <th>Total EDT</th>
-        <th>Différence (EDT-Previ)</th>
+        <th data-xls-font-bold="true" data-xls-font-size="14">Total Previ</th>
+        <th data-xls-font-bold="true" data-xls-font-size="14">Total EDT</th>
+        <th data-xls-font-bold="true" data-xls-font-size="14">Différence (EDT-Previ)</th>
     </tr>
     </thead>
     <tbody>
