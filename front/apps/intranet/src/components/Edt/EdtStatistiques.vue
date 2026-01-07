@@ -456,7 +456,7 @@ const applyFilters = async () => {
 
 const exportData = async () => {
   try {
-    await exportService(statsPreviData.value)
+    await exportService(statsPreviData.value, '/previ', 'export_previsionnel')
   } catch (error) {
     console.error('Erreur lors de l\'export des données :', error);
   }
