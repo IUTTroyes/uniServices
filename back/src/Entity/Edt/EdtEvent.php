@@ -38,12 +38,6 @@ use Symfony\Component\Uid\UuidV4;
             provider: EdtStatsProvider::class,
             output: EdtStatsDto::class,
         ),
-        new GetCollection(
-            uriTemplate: '/stats_previ/edt_events',
-            normalizationContext: ['groups' => ['edt_stats:read']],
-            provider: EdtStatsPreviProvider::class,
-            output: EdtStatsPreviDto::class,
-        ),
     ]
 )]
 #[ORM\HasLifecycleCallbacks]

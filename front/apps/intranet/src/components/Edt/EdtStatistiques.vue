@@ -220,11 +220,16 @@ const getSalles = async () => {
 };
 
 watch(selectedAnneeId, (newId) => {
-  if (!selectedDiplome.value) return;
-  selectedAnnee.value = (selectedDiplome.value.annees || []).find(a => a.id === newId) || null;
-  // réinitialiser semestre si année change
-  selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
-  selectedSemestreId.value = selectedSemestre.value?.id ?? null;
+  if (selectedDiplome.value) {
+    selectedAnnee.value = (selectedDiplome.value.annees || []).find(a => a.id === newId) || null;
+  } else {
+    selectedAnnee.value = null;
+  }
+  selectedSemestre.value = null;
+  selectedSemestreId.value = null;
+  getEventsData();
+  getStatsPreviData();
+  getEnseignements();
 });
 
 watch(selectedSemestreId, async (newId) => {
@@ -238,6 +243,7 @@ watch(selectedSemestreId, async (newId) => {
 const setDiplome = async (diplome) => {
   selectedDiplome.value = diplome;
   if (!diplome) {
+    console.log(selectedDiplome.value);
     selectedAnnee.value = null;
     selectedAnneeId.value = null;
     selectedSemestre.value = null;
@@ -246,8 +252,8 @@ const setDiplome = async (diplome) => {
   }
   selectedAnnee.value = diplome.annees?.[0] || null;
   selectedAnneeId.value = selectedAnnee.value?.id ?? null;
-  selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
-  selectedSemestreId.value = selectedSemestre.value?.id ?? null;
+  selectedSemestre.value = null;
+  selectedSemestreId.value = null;
 };
 
 const reinitialiserFiltres = () => {
@@ -277,6 +283,7 @@ const getEventsData = async () => {
     const params = {
       departement: departement.id,
       semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
+      annee: selectedAnnee.value ? selectedAnnee.value.id : null,
       enseignement: selectedEnseignementId.value,
       personnel: selectedEnseignantId.value,
       salle: selectedSalleId.value,
@@ -454,9 +461,18 @@ const applyFilters = async () => {
   await getEventsData();
 };
 
-const exportData = async () => {
+const exportDataPrevi = async () => {
   try {
     await exportService(statsPreviData.value, '/previ', 'export_previsionnel')
+  } catch (error) {
+    console.error('Erreur lors de l\'export des données :', error);
+  }
+}
+
+const exportDataHeures = async () => {
+  try {
+    console.log(eventsData.value);
+    await exportService(eventsData.value, '/edt-heures', 'export_heures_edt')
   } catch (error) {
     console.error('Erreur lors de l\'export des données :', error);
   }
@@ -495,7 +511,7 @@ const exportData = async () => {
             type="select"
             :rules="[]"
             class="w-full"
-            :show-clear="true"
+            :show-clear="false"
             :disabled="!selectedDiplome"
         />
         <ValidatedInput
@@ -628,16 +644,17 @@ const exportData = async () => {
                 </Column>
               </DataTable>
             </div>
+            <Button label="Exporter en xlsx" icon="pi pi-file" severity="secondary" class="w-full" @click="exportDataHeures()" />
           </div>
           <div v-else class="text-gray-500">Aucune donnée à afficher pour les filtres sélectionnés.</div>
         </div>
       </div>
-      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full flex flex-col">
         <div class="text-lg font-bold">Répartition par types d'activités</div>
-        <div v-if="eventsData">
-          <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
+        <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
+        <div v-if="eventsData" class="flex flex-col justify-start gap-4 h-full">
           <Chart v-if="chartDataTypes" type="pie" :data="chartDataTypes" :options="optionGraphTypes" />
-          <DataTable :value="eventsData.repartitionTypes" class="mt-4">
+          <DataTable :value="eventsData.repartitionTypes" >
             <Column field="type" header="Type d'activité" />
             <Column field="pourcentage" header="Pourcentage (%)">
               <template #body="slotProps">
@@ -759,9 +776,9 @@ const exportData = async () => {
 
             <div class="flex items-center justify-end w-full gap-4">
               <router-link :to="`/administration/previsionnel/semestre`">
-                <Button label="Accéder au prévisionnel" icon="pi pi-arrow-right" severity="primary" class="mt-4" @click="" />
+                <Button label="Accéder au prévisionnel" icon="pi pi-arrow-right" severity="primary" @click="" />
               </router-link>
-              <Button label="Exporter en xlsx" icon="pi pi-file" severity="success" class="mt-4" @click="exportData()" />
+              <Button label="Exporter en xlsx" icon="pi pi-file" severity="secondary" @click="exportDataPrevi()" />
             </div>
           </div>
         </div>

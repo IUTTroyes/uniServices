@@ -124,6 +124,15 @@ class EdtFilter extends AbstractFilter
                 ->setParameter('salle', '%'.$value.'%');
         }
 
+        if ('annee' === $property) {
+            $queryBuilder
+                ->join(sprintf('%s.semestre', $alias), 'semestre2')
+                ->join('semestre2.annee', 'annee2')
+                ->andWhere('annee2.id = :annee2')
+                ->setParameter('annee2', $value)
+            ;
+        }
+
     }
 
     public function getDescription(string $resourceClass): array
@@ -209,6 +218,30 @@ class EdtFilter extends AbstractFilter
                     'description' => 'Filter events to only include events ending before the specified date (format: YYYY-MM-DD)',
                 ]
             ],
+            'enseignement' => [
+                'property' => 'enseignement',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by enseignement',
+                ],
+            ],
+            'salle' => [
+                'property' => 'salle',
+                'type' => Type::BUILTIN_TYPE_STRING,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by salle (partial match)',
+                ],
+            ],
+            'annee' => [
+                'property' => 'annee',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by annee',
+                ],
+            ]
         ];
     }
 }

@@ -42,6 +42,7 @@ class EdtStatsProvider implements ProviderInterface
             $bySemestre = [];
             $byEnseignement = [];
             $byEnseignant = [];
+            $stats_export = [];
 
             foreach ($data as $item) {
                 $start = $item->getDebut();
