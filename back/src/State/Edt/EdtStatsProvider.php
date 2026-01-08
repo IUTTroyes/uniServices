@@ -45,6 +45,19 @@ class EdtStatsProvider implements ProviderInterface
             $stats_export = [];
 
             foreach ($data as $item) {
+                // ajouter chaque item dans stats_export
+                $stats_export[] = [
+                    'id' => $item->getId(),
+                    'type' => (string) $item->getType(),
+                    'semestre' => (string) $item->getSemestre()?->getLibelle(),
+                    'enseignement' => $item->getEnseignement()?->getLibelle(),
+                    'enseignant' => $item->getPersonnel()?->getDisplay(),
+                    'date' => $item->getDate()?->format('Y-m-d'),
+                    'debut' => (string) ($item->getDebut()?->format('H:i') ?? ''),
+                    'fin' => (string) ($item->getFin()?->format('H:i') ?? ''),
+                    'salle' => $item->getSalle(),
+                    'groupe' => $item->getGroupe()?->getLibelle(),
+                ];
                 $start = $item->getDebut();
                 $end = $item->getFin();
 
@@ -140,6 +153,7 @@ class EdtStatsProvider implements ProviderInterface
             $dto->setRepartitionSemestres($repartitionSemestres);
             $dto->setRepartitionEnseignements($heuresParEnseignements);
             $dto->setRepartitionEnseignants($heuresParEnseignants);
+            $dto->setExportData($stats_export);
 
             return $dto;
         }

@@ -60,6 +60,9 @@ class EdtEvent
     private ?int $jour = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $date = null;
+
+    #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
     #[Groups(['edt_event:read:agenda'])]
     private ?\DateTimeInterface $debut = null;
 
@@ -173,6 +176,28 @@ class EdtEvent
     public function setJour(?int $jour): static
     {
         $this->jour = $jour;
+
+        return $this;
+    }
+
+    public function getUuid(): UuidV4
+    {
+        return $this->uuid;
+    }
+
+    public function setUuid(UuidV4 $uuid): void
+    {
+        $this->uuid = $uuid;
+    }
+
+    public function getDate(): ?\DateTimeInterface
+    {
+        return $this->date;
+    }
+
+    public function setDate(?\DateTimeInterface $date): static
+    {
+        $this->date = $date;
 
         return $this;
     }

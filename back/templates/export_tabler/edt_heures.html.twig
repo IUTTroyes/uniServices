@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Export heures edt</title>
+</head>
+<body>
+{% set by_semestre = stats.by_semestre %}
+
+<h1>Export des heures programmées</h1>
+
+{# Une feuille par semestre #}
+{% for semestre, events in by_semestre %}
+    <table data-xls-sheet="{{ semestre }}" data-xls-autosize="true">
+        <thead>
+        <tr>
+            <th data-xls-colspan="12" data-xls-font-bold="true" data-xls-font-size="24">Heures programmées pour {{ stats.annee.libelle|default('') }} - {{ semestre }} | du {{ stats.periode.debut|default('') }} au {{ stats.periode.fin|default('') }}</th>
+        </tr>
+        <tr>
+            <th>Date</th>
+            <th>Heure début</th>
+            <th>Heure fin</th>
+            <th>Module</th>
+            <th>Enseignant</th>
+            <th>Salle</th>
+            <th>Groupe</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for event in events %}
+            <tr>
+                <td data-xls-apply="date" data-xls-type="date">
+                    {{ event.date|date('Y-m-d') }}
+                </td>
+                <td>
+                    {{ event.debut }}
+                </td>
+                <td>
+                    {{ event.fin }}
+                </td>
+                <td>{{ event.enseignement }}</td>
+                <td>{{ event.enseignant }}</td>
+                <td>{{ event.salle }}</td>
+                <td>{{ event.groupe }}</td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <td>
+                Total d'heures programmées
+            </td>
+            <td data-xls-colspan="6">
+                {{ stats.total_heures_par_semestre[semestre]|default(0) }}
+            </td>
+        </tr>
+        </tbody>
+    </table>
+{% endfor %}
+</body>
+</html>

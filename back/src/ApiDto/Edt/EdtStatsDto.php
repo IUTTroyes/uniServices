@@ -43,6 +43,12 @@ class EdtStatsDto
     #[Groups(['edt_stats:read'])]
     protected array $repartitionEnseignants = [];
 
+    /**
+     * data pour export des heures
+     */
+    #[Groups(['edt_stats:read'])]
+    protected array $export_data = [];
+
     public function getTotalHeures(): float
     {
         return $this->totalHeures;
@@ -102,4 +108,15 @@ class EdtStatsDto
     {
         $this->repartitionEnseignants = $repartitionEnseignants;
     }
+
+    public function getExportData(): array
+    {
+        return $this->export_data;
+    }
+
+    public function setExportData(array $export_data): void
+    {
+        $this->export_data = $export_data;
+    }
+
 }

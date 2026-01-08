@@ -19,7 +19,7 @@ const formaterDateLocale = (d) => {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${day}-${month}-${year}`;
 };
 
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
@@ -293,6 +293,7 @@ const getEventsData = async () => {
     const resp = await getEdtEventsService(params, '/stats');
     eventsData.value = Array.isArray(resp) ? (resp[0] || null) : resp;
 
+    console.log(eventsData);
   } catch (error) {
     console.error('Erreur lors du chargement des événements :', error);
   } finally {
@@ -508,11 +509,45 @@ const exportDataPrevi = async () => {
 
 const exportDataHeures = async () => {
   try {
-    await exportService(eventsData.value, '/edt-heures', 'export_heures_edt')
+    const payload = JSON.parse(JSON.stringify(eventsData.value || {}));
+
+    // Insérer période (format YYYY-MM-DD)
+    if (Array.isArray(periode.value) && periode.value[0] && periode.value[1]) {
+      payload.periode = {
+        debut: formaterDateLocale(periode.value[0]),
+        fin: formaterDateLocale(periode.value[1])
+      };
+    } else {
+      payload.periode = null;
+    }
+    // Insérer l'année sélectionnée
+    if (selectedAnnee.value) {
+      payload.annee = {
+        id: selectedAnnee.value.id ?? null,
+        libelle: selectedAnnee.value.libelle ?? null
+      };
+    } else {
+      payload.annee = null;
+    }
+    // Insérer le semestre sélectionné
+    if (selectedSemestre.value) {
+      payload.semestre = {
+        id: selectedSemestre.value.id ?? null,
+        libelle: selectedSemestre.value.libelle ?? null
+      };
+    } else {
+      payload.semestre = null;
+    }
+    // Inclure l'année universitaire courante si disponible
+    payload.anneeUniversitaire = anneeUniv?.id ?? null;
+
+    await exportService(payload, 'edt-heures', 'export_heures_edt')
   } catch (error) {
     console.error('Erreur lors de l\'export des données :', error);
   }
 }
+
+// todo: taux de réalisation des heures (programmé vs prévu)
 </script>
 
 <template>
