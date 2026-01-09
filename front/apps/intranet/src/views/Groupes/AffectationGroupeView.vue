@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue'
+import {computed, onMounted, ref, watch, nextTick} from 'vue'
 import {ErrorView, SimpleSkeleton} from "@components/index.js";
 import Loader from '@components/loader/GlobalLoader.vue'
 import {typesGroupes} from '@config/uniServices.js';
@@ -12,7 +12,9 @@ import {
   updateEtudiantScolariteSemestreService
 } from "@requests";
 import {useRoute} from "vue-router";
+import { useToast } from 'primevue/usetoast';
 
+const toast = useToast();
 const route = useRoute();
 const hasError = ref(false);
 const semestre = ref({});
@@ -231,9 +233,94 @@ const assignGroupe = async (etudiantScolariteSemestreId, groupeId) => {
       return g.id;
     });
 
-    await updateEtudiantScolariteSemestreService(etudiantScolariteSemestreId, { groupes: payloadGroupes }, true);
+    await updateEtudiantScolariteSemestreService(etudiantScolariteSemestreId, { groupes: payloadGroupes }, false);
   } catch (error) {
     console.error("Erreur lors de l'affectation du groupe :", error);
+    // afficher un toast d'erreur' si aucun toast identique n'est présent
+    const existingToast = Array.from(document.querySelectorAll('.p-toast-message')).some(el =>
+        el.textContent && el.textContent.includes('Affectation mise à jour')
+    );
+    if (!existingToast) {
+      toast.add({ severity: 'success', summary: 'Un problème est survenu', detail: 'Le groupe n\'a pas été mis à jour', life: 3000 });
+    }
+  } finally {
+    // afficher un toast de succès si aucun toast identique n'est présent
+    const existingToast = Array.from(document.querySelectorAll('.p-toast-message')).some(el =>
+      el.textContent && el.textContent.includes('Affectation mise à jour')
+    );
+    if (!existingToast) {
+      toast.add({ severity: 'success', summary: 'Affectation mise à jour', detail: 'Le groupe a été affecté avec succès.', life: 3000 });
+    }
+  }
+};
+
+// Ajout : refs pour cases d'entête et helpers de normalisation / états
+const headerCheckboxRefs = new Map();
+
+const normalizeId = (id) => {
+  if (typeof id === 'string' && id.startsWith('/')) {
+    const parts = id.split('/');
+    const last = parts[parts.length - 1];
+    const parsed = parseInt(last, 10);
+    if (!isNaN(parsed)) return parsed;
+  }
+  return id;
+};
+
+const isAllSelected = (group) => {
+  if (!etudiantsScolariteSemestre.value.length) return false;
+  const gid = normalizeId(group.id);
+  return etudiantsScolariteSemestre.value.every(sco => {
+    return sco.groupeAffecte && normalizeId(sco.groupeAffecte.id) === gid;
+  });
+};
+
+const isSomeSelected = (group) => {
+  const gid = normalizeId(group.id);
+  const some = etudiantsScolariteSemestre.value.some(sco => {
+    return sco.groupeAffecte && normalizeId(sco.groupeAffecte.id) === gid;
+  });
+  return some && !isAllSelected(group);
+};
+
+const registerHeaderCheckbox = (el, group) => {
+  if (!el) {
+    headerCheckboxRefs.delete(normalizeId(group.id));
+    return;
+  }
+  headerCheckboxRefs.set(normalizeId(group.id), el);
+  nextTick(() => {
+    el.indeterminate = isSomeSelected(group);
+    el.checked = isAllSelected(group);
+  });
+};
+
+// Mettre à jour l'état des cases d'entête quand les étudiants changent
+watch(etudiantsScolariteSemestre, () => {
+  headerCheckboxRefs.forEach((el, gid) => {
+    // retrouver l'objet groupe correspondant (si possible) pour recalculer les états
+    const allGroupes = Object.values(groupes.value).flat();
+    const group = allGroupes.find(g => normalizeId(g.id) === normalizeId(gid));
+    if (group && el) {
+      el.indeterminate = isSomeSelected(group);
+      el.checked = isAllSelected(group);
+    }
+  });
+}, { deep: true });
+
+// Action déclenchée par la case d'entête : cocher/décocher pour tous
+const toggleSelectAllForGroup = async (group, event) => {
+  const checked = event.target.checked;
+  // Appliquer pour tous les étudiants (parallèle)
+  await Promise.all(etudiantsScolariteSemestre.value.map(sco => {
+    // si décoché => groupeId null pour supprimer l'affectation de ce type
+    return assignGroupe(sco.id, checked ? normalizeId(group.id) : null);
+  }));
+  // Mettre à jour l'état visuel
+  const el = headerCheckboxRefs.get(normalizeId(group.id));
+  if (el) {
+    el.indeterminate = false;
+    el.checked = checked;
   }
 };
 </script>
@@ -268,38 +355,39 @@ const assignGroupe = async (etudiantScolariteSemestreId, groupeId) => {
             </Tab>
           </TabList>
         </Tabs>
-        <div v-if="selectedGroupe && groupes[selectedGroupe]">
-          <ul>
-            <li v-for="g in groupes[selectedGroupe]" :key="g.id">
-              {{ g.libelle }}
-            </li>
-          </ul>
-        </div>
 
-        <table v-if="selectedGroupe && groupes[selectedGroupe]" class="w-full border-collapse table-auto">
-          <thead>
-            <tr class="bg-gray-200">
-              <th class="border p-2 text-left">N° étudiant</th>
-              <th class="border p-2 text-left">Nom</th>
-              <th class="border p-2 text-left">Prénom</th>
-              <th class="border p-2 text-left">Bac</th>
-              <th v-for="g in groupes[selectedGroupe]" :key="g.id">
-                {{ g.libelle }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="etudiantScolariteSemestre in etudiantsScolariteSemestre" :key="etudiantScolariteSemestre.id ">
-              <td class="border p-2">{{ etudiantScolariteSemestre.etudiant.numEtudiant }}</td>
-              <td class="border p-2">{{ etudiantScolariteSemestre.etudiant.nom }}</td>
-              <td class="border p-2 text-left">{{ etudiantScolariteSemestre.etudiant.prenom }}</td>
-              <td class="border p-2 text-left">{{ etudiantScolariteSemestre.etudiant.bac }}</td>
-              <td class="border p-2 text-left" v-for="g in groupes[selectedGroupe]" :key="g.id">
-                <RadioButton v-model="etudiantScolariteSemestre.groupeAffecte" :value="g" :name="`groupe-${etudiantScolariteSemestre.id}`" :inputId="`groupe-${etudiantScolariteSemestre.id}-${g.id}`" @change="assignGroupe(etudiantScolariteSemestre.id, g.id)"/>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <DataTable v-if="selectedGroupe && groupes[selectedGroupe]" :value="etudiantsScolariteSemestre" responsiveLayout="scroll" class="w-full">
+          <Column field="etudiant.numEtudiant" header="N° étudiant" />
+          <Column field="etudiant.nom" header="Nom" />
+          <Column field="etudiant.prenom" header="Prénom" />
+          <Column field="etudiant.bac" header="Bac" />
+          <Column v-for="g in groupes[selectedGroupe]" :key="g.id">
+            <!-- Entête : checkbox pour cocher/décocher ce groupe pour toutes les lignes -->
+            <template #header>
+              <div class="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  :ref="el => registerHeaderCheckbox(el, g)"
+                  @change="toggleSelectAllForGroup(g, $event)"
+                  :aria-label="`Tout sélectionner ${g.libelle}`"
+                />
+                <span>{{ g.libelle }}</span>
+              </div>
+            </template>
+
+            <template #body="{ data }">
+              <div class="p-1">
+                <RadioButton
+                    v-model="data.groupeAffecte"
+                    :value="g"
+                    :name="`groupe-${data.id}`"
+                    :inputId="`groupe-${data.id}-${g.id}`"
+                    @change="assignGroupe(data.id, g.id)"
+                />
+              </div>
+            </template>
+          </Column>
+        </DataTable>
 
         <div v-else-if="!isLoadingGroupes" class="flex items-center justify-center gap-2">
           <Message severity="warn" class="w-fit" icon="pi pi-exclamation-triangle">
