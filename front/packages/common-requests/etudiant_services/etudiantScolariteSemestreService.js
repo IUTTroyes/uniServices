@@ -26,6 +26,21 @@ const getEtudiantScolariteSemestresService = async (params, scope = '', showToas
     }
 }
 
+const getEtudiantScolariteSemestreService = async (id, scope = '', showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api${scope}/etudiant_scolarite_semestres/${id}`],
+            'Semestre de la Scolarité de l\'étudiant récupéré avec succès',
+            'Erreur lors de la récupération du Semestre de la Scolarité de l\'étudiant',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getEtudiantScolariteSemestreService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- CREATE -------------------
 // ----------------------------------------------

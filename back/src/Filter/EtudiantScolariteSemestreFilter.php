@@ -48,6 +48,13 @@ class EtudiantScolariteSemestreFilter extends AbstractFilter
                 ->andWhere('etudiant.id = :etudiant')
                 ->setParameter("etudiant", $value);
         }
+
+        if ('anneeUniversitaire' === $property) {
+            $queryBuilder
+                ->join("$alias.scolarite", 'scolarite')
+                ->andWhere('scolarite.anneeUniversitaire = :anneeUniversitaire')
+                ->setParameter("anneeUniversitaire", $value);
+        }
     }
 
     public function getDescription(string $resourceClass): array
@@ -61,6 +68,30 @@ class EtudiantScolariteSemestreFilter extends AbstractFilter
                     'description' => 'Filter by scolarite',
                 ],
             ],
+            'semestre' => [
+                'property' => 'semestre',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by semestre',
+                ],
+            ],
+            'etudiant' => [
+                'property' => 'etudiant',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by etudiant',
+                ],
+            ],
+            'anneeUniversitaire' => [
+                'property' => 'anneeUniversitaire',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by anneeUniversitaire',
+                ],
+            ]
         ];
     }
 }

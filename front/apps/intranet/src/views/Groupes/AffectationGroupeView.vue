@@ -4,7 +4,7 @@ import {ErrorView, SimpleSkeleton} from "@components/index.js";
 import Loader from '@components/loader/GlobalLoader.vue'
 import { typesGroupes } from '@config/uniServices.js';
 import {useSemestreStore, useUsersStore} from "@stores";
-import { getSemestresService, getSemestreService, getGroupesService } from "@requests";
+import { getSemestresService, getSemestreService, getGroupesService, getEtudiantScolariteSemestresService } from "@requests";
 import {useRoute} from "vue-router";
 
 const route = useRoute();
@@ -20,11 +20,15 @@ const isLoadingSemestres = ref(true);
 const typesList = computed(() => Object.keys(groupes.value));
 const usersStore = useUsersStore();
 const departementId = usersStore.departementDefaut.id;
+const etudiants = ref([]);
+const isLoadingEtudiants = ref(true);
+const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 
 onMounted(async () => {
   await getSemestre();
   await getSemestres();
   await getGroupes();
+  await getEtudiants();
 });
 
 watch(() => semestreStore.semestre, (newSemestre) => {
@@ -114,6 +118,24 @@ const getGroupes = async () => {
   }
 };
 
+const getEtudiants = async () => {
+  isLoadingEtudiants.value = true;
+  hasError.value = false;
+  try {
+    const params = {
+      anneeUniversitaire: anneeUniv.id,
+      semestre: semestre.value.id,
+    };
+    etudiants.value = await getEtudiantScolariteSemestresService(params, '/manage-groupes');
+  } catch (error) {
+    hasError.value = true;
+    console.error("Erreur lors de la récupération des étudiants :", error);
+  } finally {
+    isLoadingEtudiants.value = false;
+
+    console.log(etudiants.value);
+  }
+};
 </script>
 
 <template>
@@ -154,9 +176,23 @@ const getGroupes = async () => {
           </ul>
         </div>
 
-        <!-- message si aucun groupe -->
-        <div v-else-if="!isLoadingGroupes">
-          Aucun groupe pour le type sélectionné.
+        <table v-if="selectedGroupe && groupes[selectedGroupe]" class="w-full border-collapse table-auto">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="border p-2 text-left">Étudiant</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="etudiant in etudiants" :key="etudiant.id ">
+              <td class="border p-2">{{ etudiant.nom }} {{ etudiant.prenom }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div v-else-if="!isLoadingGroupes" class="flex items-center justify-center gap-2">
+          <Message severity="warn" class="w-fit" icon="pi pi-exclamation-triangle">
+            Aucun groupe pour le semestre ou le type sélectionné.
+          </Message>
         </div>
       </div>
     </div>

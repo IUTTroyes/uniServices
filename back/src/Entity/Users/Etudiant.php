@@ -67,7 +67,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['etudiant:detail', 'etudiant:light'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
@@ -90,11 +90,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['etudiant:detail', 'etudiant:light'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['etudiant:detail', 'etudiant:light'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]

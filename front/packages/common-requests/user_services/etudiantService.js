@@ -20,7 +20,7 @@ const getEtudiantService = async (etudiantId, showToast = false) => {
     }
 }
 
-const getEtudiantsService = async (params = {}, showToast = false, pagination = true) => {
+const getEtudiantsService = async (params, scope = '', showToast = false, pagination = true) => {
     try {
         const response= await apiCall(
             api.get,
