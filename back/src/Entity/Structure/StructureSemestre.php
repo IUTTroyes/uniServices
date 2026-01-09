@@ -128,7 +128,7 @@ class StructureSemestre
     private Collection $groupes;
 
     #[ORM\ManyToOne(inversedBy: 'semestres')]
-    #[Groups(['semestre:detail', 'annee:light', 'scolarite:read', 'enseignement:read', 'etudiant:read'])]
+    #[Groups(['semestre:detail', 'semestre:light', 'annee:light', 'scolarite:read', 'enseignement:read', 'etudiant:read'])]
     private ?StructureAnnee $annee = null;
 
     /**

@@ -133,8 +133,7 @@ export default [
     ]
   },
   {
-    path: 'administration/semestre',
-    component: () => import('@/views/AdministrationView.vue'),
+    path: 'administration/semestre/:semestreId',
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },

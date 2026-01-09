@@ -8,7 +8,6 @@ import administrationRoutes from "./modules/administrationRoutes.js";
 import {useUsersStore} from "@stores";
 import { hasPermission } from '@utils';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
-import { computed } from 'vue';
 
 // Define the menu structure
 const intranetMenu = [
@@ -55,11 +54,22 @@ const router = createRouter({
                     };
                 });
 
+                // If route.meta.breadcrumb is a function, call it to get the items (this allows reading stores lazily)
+                let breadcrumbItems = route.meta.breadcrumb || [];
+                if (typeof route.meta.breadcrumb === 'function') {
+                    try {
+                        breadcrumbItems = route.meta.breadcrumb(route) || [];
+                    } catch (e) {
+                        console.error('Error while evaluating breadcrumb function for route', route.name, e);
+                        breadcrumbItems = [];
+                    }
+                }
+
                 return {
                     menuItems: processedMenu,
                     logoUrl: Logo,
                     appName: appName,
-                    breadcrumbItems: route.meta.breadcrumb || []
+                    breadcrumbItems
                 };
             },
             children: [
