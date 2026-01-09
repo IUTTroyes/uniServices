@@ -265,9 +265,35 @@ class PreviStatsEdtProvider implements ProviderInterface
                 }
             }
 
+            // Calculer le taux global de réalisation (heures EDT réalisées / heures prévues) sur l'ensemble de la sélection
+            $total_previ = 0.0;
+            $total_edt = 0.0;
+
+            // Somme des heures prévues (toutes matières, tous types)
+            foreach ($previByEnsType as $ensIdTmp => $types) {
+                foreach ($types as $t => $val) {
+                    $total_previ += (float) $val;
+                }
+            }
+
+            // Somme des heures réalisées (EDT) (toutes matières, tous types)
+            foreach ($edtByEnsType as $ensIdTmp => $types) {
+                foreach ($types as $t => $val) {
+                    $total_edt += (float) $val;
+                }
+            }
+
+            if ($total_previ > 0.0) {
+                $taux_realisation = ($total_edt / $total_previ) * 100.0;
+            } else {
+                // S'il n'y a pas de prévisionnel: 100% si on a des heures réalisées, sinon 0%
+                $taux_realisation = ($total_edt > 0.0) ? 100.0 : 0.0;
+            }
+
             $dto->setStatPreviEdtEnseignement($rows);
             $dto->setStatPreviEdtEnseignant($rowsTeachers);
             $dto->setTypesGroupes($typesList);
+            $dto->setTauxRealisation((int) round($taux_realisation));
             return $dto;
         }
 

@@ -761,8 +761,7 @@ const exportDataHeures = async () => {
     </div>
     <Divider/>
     <ListSkeleton v-if="isLoadingStatsPreviData" class="w-full"/>
-    <PermissionGuard :permission="'canViewPersonnelDetails'">
-      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+      <div v-else class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
         <div class="mb-4">
           <div class="text-lg font-bold">Comparatif prévisionnel</div>
           <em>Cette section compare les heures programmées avec les heures prévues selon les enseignements associés.</em>
@@ -777,84 +776,106 @@ const exportDataHeures = async () => {
         </span>
           <span v-else>Tous les diplômes</span>
         </div>
-        <div v-if="displayedComparatifRows">
-          <Message v-if="displayedComparatifRows.length < 1" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
-            Aucune donnée de comparatif prévisionnel disponible pour les filtres sélectionnés.
-          </Message>
-          <div class="flex flex-col gap-4 w-full items-center justify-center" v-else>
-            <SelectButton
-                :options="features"
-                v-model="selectedFeature"
-                class="w-full justify-center"
-                optionLabel="libelle"
-                optionValue="id"
-            />
-
-            <DataTable :value="displayedComparatifRows" class="mt-4 w-full" show-gridlines paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]">
-              <ColumnGroup type="header">
-                <Row>
-                  <Column :header="firstColHeader" :rowspan="2" />
-                  <Column header="Heures prévisionnel" :colspan="typesList.length + 1" />
-                  <Column header="Heures edt" :colspan="typesList.length + 1" />
-                  <Column header="Différence" :rowspan="2" />
-                </Row>
-                <Row>
-                  <Column v-for="t in typesList" :key="'previ-h-' + t" :header="t" :class="t === 'CM' ? '!bg-purple-400' : t === 'TD' ? '!bg-green-400' : t === 'TP' ? '!bg-yellow-400' : t === 'Projet' ? '!bg-blue-400' : ''" class="!bg-opacity-40 !text-nowrap"/>
-                  <Column header="Total" />
-                  <Column v-for="t in typesList" :key="'edt-h-' + t" :header="t" :class="t === 'CM' ? '!bg-purple-400' : t === 'TD' ? '!bg-green-400' : t === 'TP' ? '!bg-yellow-400' : t === 'Projet' ? '!bg-blue-400' : ''" class="!bg-opacity-40 !text-nowrap"/>
-                  <Column header="Total" />
-                </Row>
-              </ColumnGroup>
-
-              <Column>
-                <template #body="slotProps">
-                  {{ slotProps.data[firstColKey] }}
-                </template>
-              </Column>
-
-              <Column v-for="t in typesList" :key="'previ-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
-                <template #body="slotProps">
-                  {{ (slotProps.data['previ_' + t] || 0) }} h
-                </template>
-              </Column>
-              <Column>
-                <template #body="slotProps">
-                  <strong>{{ previTotal(slotProps.data) }} h</strong>
-                </template>
-              </Column>
-
-              <Column v-for="t in typesList" :key="'edt-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
-                <template #body="slotProps">
-                  {{ (slotProps.data['edt_' + t] || 0) }} h
-                </template>
-              </Column>
-              <Column>
-                <template #body="slotProps">
-                  <strong>{{ edtTotal(slotProps.data) }} h</strong>
-                </template>
-              </Column>
-
-              <Column>
-                <template #body="slotProps">
-                  <Tag :severity="diffSeverity(slotProps.data)" rounded>
-                    <i v-if="diffTotal(slotProps.data) > 0" class="pi pi-arrow-up"></i>
-                    <i v-else-if="diffTotal(slotProps.data) < 0" class="pi pi-arrow-down"></i>
-                    {{ (slotProps.data['heures_diff'] || 0) }} h
-                  </Tag>
-                </template>
-              </Column>
-            </DataTable>
-
-            <div class="flex items-center justify-end w-full gap-4">
-              <router-link :to="`/administration/previsionnel/semestre`">
-                <Button label="Accéder au prévisionnel" icon="pi pi-arrow-right" severity="primary" @click="" />
-              </router-link>
-              <Button label="Exporter en xlsx" icon="pi pi-file" severity="secondary" @click="exportDataPrevi()" />
+        <div class="flex w-full justify-center">
+          <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-1/2 min-w-48 flex flex-col items-center justify-center my-4">
+            <div>
+              Taux de réalisation des heures prévisionnelles
+            </div>
+            <div class="text-lg font-bold">
+              <div v-if="statsPreviData && Number(statsPreviData.taux_realisation) > 100" class="text-red-600 text-center">
+                <div>
+                  Dépassement des heures prévisionnel
+                </div>
+                <div>
+                  {{ statsPreviData.taux_realisation }} %
+                </div>
+              </div>
+              <div v-else-if="statsPreviData">
+                {{ statsPreviData.taux_realisation }} %
+              </div>
+              <div v-else>-</div>
             </div>
           </div>
         </div>
+        <PermissionGuard :permission="'canViewPersonnelDetails'">
+          <div v-if="displayedComparatifRows">
+            <Message v-if="displayedComparatifRows.length < 1" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
+              Aucune donnée de comparatif prévisionnel disponible pour les filtres sélectionnés.
+            </Message>
+            <div class="flex flex-col gap-4 w-full items-center justify-center" v-else>
+              <SelectButton
+                  :options="features"
+                  v-model="selectedFeature"
+                  class="w-full justify-center"
+                  optionLabel="libelle"
+                  optionValue="id"
+              />
+
+              <DataTable :value="displayedComparatifRows" class="mt-4 w-full" show-gridlines paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]">
+                <ColumnGroup type="header">
+                  <Row>
+                    <Column :header="firstColHeader" :rowspan="2" />
+                    <Column header="Heures prévisionnel" :colspan="typesList.length + 1" />
+                    <Column header="Heures edt" :colspan="typesList.length + 1" />
+                    <Column header="Différence" :rowspan="2" />
+                  </Row>
+                  <Row>
+                    <Column v-for="t in typesList" :key="'previ-h-' + t" :header="t" :class="t === 'CM' ? '!bg-purple-400' : t === 'TD' ? '!bg-green-400' : t === 'TP' ? '!bg-yellow-400' : t === 'Projet' ? '!bg-blue-400' : ''" class="!bg-opacity-40 !text-nowrap"/>
+                    <Column header="Total" />
+                    <Column v-for="t in typesList" :key="'edt-h-' + t" :header="t" :class="t === 'CM' ? '!bg-purple-400' : t === 'TD' ? '!bg-green-400' : t === 'TP' ? '!bg-yellow-400' : t === 'Projet' ? '!bg-blue-400' : ''" class="!bg-opacity-40 !text-nowrap"/>
+                    <Column header="Total" />
+                  </Row>
+                </ColumnGroup>
+
+                <Column>
+                  <template #body="slotProps">
+                    {{ slotProps.data[firstColKey] }}
+                  </template>
+                </Column>
+
+                <Column v-for="t in typesList" :key="'previ-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
+                  <template #body="slotProps">
+                    {{ (slotProps.data['previ_' + t] || 0) }} h
+                  </template>
+                </Column>
+                <Column>
+                  <template #body="slotProps">
+                    <strong>{{ previTotal(slotProps.data) }} h</strong>
+                  </template>
+                </Column>
+
+                <Column v-for="t in typesList" :key="'edt-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
+                  <template #body="slotProps">
+                    {{ (slotProps.data['edt_' + t] || 0) }} h
+                  </template>
+                </Column>
+                <Column>
+                  <template #body="slotProps">
+                    <strong>{{ edtTotal(slotProps.data) }} h</strong>
+                  </template>
+                </Column>
+
+                <Column>
+                  <template #body="slotProps">
+                    <Tag :severity="diffSeverity(slotProps.data)" rounded>
+                      <i v-if="diffTotal(slotProps.data) > 0" class="pi pi-arrow-up"></i>
+                      <i v-else-if="diffTotal(slotProps.data) < 0" class="pi pi-arrow-down"></i>
+                      {{ (slotProps.data['heures_diff'] || 0) }} h
+                    </Tag>
+                  </template>
+                </Column>
+              </DataTable>
+
+              <div class="flex items-center justify-end w-full gap-4">
+                <router-link :to="`/administration/previsionnel/semestre`">
+                  <Button label="Accéder au prévisionnel" icon="pi pi-arrow-right" severity="primary" @click="" />
+                </router-link>
+                <Button label="Exporter en xlsx" icon="pi pi-file" severity="secondary" @click="exportDataPrevi()" />
+              </div>
+            </div>
+          </div>
+        </PermissionGuard>
       </div>
-    </PermissionGuard>
   </div>
 </template>
 
