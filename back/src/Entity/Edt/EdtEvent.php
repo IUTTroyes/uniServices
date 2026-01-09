@@ -18,7 +18,6 @@ use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
 use App\Filter\EdtFilter;
 use App\Repository\Edt\EdtEventRepository;
-use App\State\Edt\EdtStatsPreviProvider;
 use App\State\Edt\EdtStatsProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;

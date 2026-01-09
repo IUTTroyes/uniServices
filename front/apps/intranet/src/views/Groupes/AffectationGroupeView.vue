@@ -1,10 +1,16 @@
 <script setup>
-import { ref, onMounted, watch, computed } from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 import {ErrorView, SimpleSkeleton} from "@components/index.js";
 import Loader from '@components/loader/GlobalLoader.vue'
-import { typesGroupes } from '@config/uniServices.js';
+import {typesGroupes} from '@config/uniServices.js';
 import {useSemestreStore, useUsersStore} from "@stores";
-import { getSemestresService, getSemestreService, getGroupesService, getEtudiantScolariteSemestresService } from "@requests";
+import {
+  getEtudiantScolariteSemestresService,
+  getGroupesService,
+  getSemestreService,
+  getSemestresService,
+  updateEtudiantScolariteSemestreService
+} from "@requests";
 import {useRoute} from "vue-router";
 
 const route = useRoute();
@@ -20,7 +26,7 @@ const isLoadingSemestres = ref(true);
 const typesList = computed(() => Object.keys(groupes.value));
 const usersStore = useUsersStore();
 const departementId = usersStore.departementDefaut.id;
-const etudiants = ref([]);
+const etudiantsScolariteSemestre = ref([]);
 const isLoadingEtudiants = ref(true);
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 
@@ -39,7 +45,9 @@ watch(() => semestreStore.semestre, (newSemestre) => {
 watch(semestre, async (newSemestre, oldSemestre) => {
   if (newSemestre.id !== oldSemestre.id) {
     await getGroupes();
-}
+    await getEtudiants();
+    syncPreselectedRadios();
+  }
 });
 
 watch(groupes, (newVal) => {
@@ -47,6 +55,13 @@ watch(groupes, (newVal) => {
   if (types.length > 0 && !selectedGroupe.value) {
     selectedGroupe.value = types[0];
   }
+  // dès que la liste des groupes par type évolue, recalcule la présélection
+  syncPreselectedRadios();
+});
+
+// re-synchroniser lors du changement d'onglet/type sélectionné
+watch(selectedGroupe, () => {
+  syncPreselectedRadios();
 });
 
 const getSemestre = async () => {
@@ -110,6 +125,9 @@ const getGroupes = async () => {
     if (types.length > 0 && !selectedGroupe.value) {
       selectedGroupe.value = types[0];
     }
+
+    // synchroniser la présélection des radios dès que les groupes sont connus
+    syncPreselectedRadios();
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la récupération des groupes :", error);
@@ -126,14 +144,96 @@ const getEtudiants = async () => {
       anneeUniversitaire: anneeUniv.id,
       semestre: semestre.value.id,
     };
-    etudiants.value = await getEtudiantScolariteSemestresService(params, '/manage-groupes');
+    etudiantsScolariteSemestre.value = await getEtudiantScolariteSemestresService(params, '/manage-groupes');
+
+    // Après chargement des étudiants, synchroniser la présélection
+    syncPreselectedRadios();
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la récupération des étudiants :", error);
   } finally {
     isLoadingEtudiants.value = false;
+  }
+};
 
-    console.log(etudiants.value);
+const syncPreselectedRadios = () => {
+  try {
+    const type = selectedGroupe.value;
+    if (!type) return;
+
+    const listeGroupesType = groupes.value?.[type] || [];
+
+    etudiantsScolariteSemestre.value.forEach((sco) => {
+      const assigned = (sco.groupes || []).find((g) => g?.type === type);
+      if (!assigned) {
+        sco.groupeAffecte = null;
+        return;
+      }
+
+      // Normaliser l'ID si c'est une IRI
+      let assignedId = assigned.id;
+      if (typeof assignedId === 'string' && assignedId.startsWith('/')) {
+        const parts = assignedId.split('/');
+        const last = parts[parts.length - 1];
+        const parsed = parseInt(last, 10);
+        if (!isNaN(parsed)) assignedId = parsed;
+      }
+
+      const match = listeGroupesType.find((g) => g.id === assignedId);
+      sco.groupeAffecte = match || null;
+    });
+  } catch (e) {
+    console.error('Erreur lors de la synchronisation des présélections de radios :', e);
+  }
+};
+
+const assignGroupe = async (etudiantScolariteSemestreId, groupeId) => {
+  try {
+    // Retrouver l'objet scolariteSemestre concerné
+    const scolariteSemestre = etudiantsScolariteSemestre.value.find(e => e.id === etudiantScolariteSemestreId);
+    if (!scolariteSemestre) return;
+
+    const groupType = selectedGroupe.value; // ex: 'CM', 'TD', 'TP'
+
+    // Copie de la liste actuelle des groupes affectés à l'étudiant pour ce semestre
+    const currentGroupes = Array.isArray(scolariteSemestre.groupes) ? [...scolariteSemestre.groupes] : [];
+
+    // L'ensemble des groupes du semestre (tous types confondus) pour retrouver l'objet complet
+    const semGroupes = Object.values(groupes.value).flat();
+
+    // Trouver l'objet groupe sélectionné (ou créer un placeholder avec id/type)
+    const newGroup = groupeId != null
+      ? (semGroupes.find(g => g.id === groupeId) || { id: groupeId, type: groupType })
+      : null;
+
+    // Remplacer/supprimer le groupe du même type dans la liste actuelle
+    const idx = currentGroupes.findIndex(g => g.type === groupType);
+    if (idx !== -1) {
+      if (newGroup) {
+        currentGroupes[idx] = newGroup;
+      } else {
+        currentGroupes.splice(idx, 1);
+      }
+    } else if (newGroup) {
+      currentGroupes.push(newGroup);
+    }
+
+    // Mettre à jour le modèle local pour réactivité immédiate
+    scolariteSemestre.groupes = currentGroupes;
+    scolariteSemestre.groupeAffecte = newGroup;
+
+    // Construire le payload en IRI
+    const payloadGroupes = currentGroupes.map(g => {
+      if (typeof g.id === 'number') {
+        return `/api/structure_groupes/${g.id}`;
+      }
+      // si g.id est un objet (Hydra/IRI déjà), le laisser tel quel
+      return g.id;
+    });
+
+    await updateEtudiantScolariteSemestreService(etudiantScolariteSemestreId, { groupes: payloadGroupes }, true);
+  } catch (error) {
+    console.error("Erreur lors de l'affectation du groupe :", error);
   }
 };
 </script>
@@ -179,12 +279,24 @@ const getEtudiants = async () => {
         <table v-if="selectedGroupe && groupes[selectedGroupe]" class="w-full border-collapse table-auto">
           <thead>
             <tr class="bg-gray-200">
-              <th class="border p-2 text-left">Étudiant</th>
+              <th class="border p-2 text-left">N° étudiant</th>
+              <th class="border p-2 text-left">Nom</th>
+              <th class="border p-2 text-left">Prénom</th>
+              <th class="border p-2 text-left">Bac</th>
+              <th v-for="g in groupes[selectedGroupe]" :key="g.id">
+                {{ g.libelle }}
+              </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="etudiant in etudiants" :key="etudiant.id ">
-              <td class="border p-2">{{ etudiant.nom }} {{ etudiant.prenom }}</td>
+            <tr v-for="etudiantScolariteSemestre in etudiantsScolariteSemestre" :key="etudiantScolariteSemestre.id ">
+              <td class="border p-2">{{ etudiantScolariteSemestre.etudiant.numEtudiant }}</td>
+              <td class="border p-2">{{ etudiantScolariteSemestre.etudiant.nom }}</td>
+              <td class="border p-2 text-left">{{ etudiantScolariteSemestre.etudiant.prenom }}</td>
+              <td class="border p-2 text-left">{{ etudiantScolariteSemestre.etudiant.bac }}</td>
+              <td class="border p-2 text-left" v-for="g in groupes[selectedGroupe]" :key="g.id">
+                <RadioButton v-model="etudiantScolariteSemestre.groupeAffecte" :value="g" :name="`groupe-${etudiantScolariteSemestre.id}`" :inputId="`groupe-${etudiantScolariteSemestre.id}-${g.id}`" @change="assignGroupe(etudiantScolariteSemestre.id, g.id)"/>
+              </td>
             </tr>
           </tbody>
         </table>

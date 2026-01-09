@@ -54,11 +54,11 @@ class StructureGroupe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda'])]
+    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'scolarite-semestre:manage-groupes'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda'])]
+    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'scolarite-semestre:manage-groupes'])]
     private string $libelle;
 
     #[ORM\Column(length: 10, enumType: TypeGroupeEnum::class)]
