@@ -356,10 +356,10 @@ const toggleSelectAllForGroup = async (group, event) => {
           </TabList>
         </Tabs>
 
-        <DataTable v-if="selectedGroupe && groupes[selectedGroupe]" :value="etudiantsScolariteSemestre" responsiveLayout="scroll" class="w-full">
+        <DataTable v-if="selectedGroupe && groupes[selectedGroupe]" :value="etudiantsScolariteSemestre" responsiveLayout="scroll" class="w-full" scrollable scroll-height="60vh">
           <Column field="etudiant.numEtudiant" header="N° étudiant" />
-          <Column field="etudiant.nom" header="Nom" />
-          <Column field="etudiant.prenom" header="Prénom" />
+          <Column field="etudiant.nom" header="Nom" frozen/>
+          <Column field="etudiant.prenom" header="Prénom" frozen/>
           <Column field="etudiant.bac" header="Bac" />
           <Column v-for="g in groupes[selectedGroupe]" :key="g.id">
             <!-- Entête : checkbox pour cocher/décocher ce groupe pour toutes les lignes -->
