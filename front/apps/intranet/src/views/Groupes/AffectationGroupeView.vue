@@ -32,6 +32,12 @@ const etudiantsScolariteSemestre = ref([]);
 const isLoadingEtudiants = ref(true);
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 
+const nbEtudiants = ref(0);
+const page = ref(0);
+const rowOptions = [30, 60, 120];
+const limit = ref(rowOptions[0]);
+const offset = computed(() => limit.value * page.value);
+
 onMounted(async () => {
   await getSemestre();
   await getSemestres();
@@ -73,20 +79,17 @@ const getSemestre = async () => {
   try {
     const semestreId = route.params.semestreId;
     semestre.value = await getSemestreService(semestreId, '/mini');
-    console.log(semestre.value);
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la récupération du semestre :", error);
   } finally {
     isLoadingSemestre.value = false;
-    console.log(semestre.value);
   }
 };
 
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
   hasError.value = false;
-  console.log(semestre.value)
   try {
     const params = {
       departement: departementId,
@@ -145,8 +148,23 @@ const getEtudiants = async () => {
     const params = {
       anneeUniversitaire: anneeUniv.id,
       semestre: semestre.value.id,
+      limit: limit.value,
+      page: parseInt(page.value) + 1,
     };
-    etudiantsScolariteSemestre.value = await getEtudiantScolariteSemestresService(params, '/manage-groupes');
+
+    // 1) Récupération de la page courante via l'endpoint manage-groupes (DTO spécifique)
+    const responsePage = await getEtudiantScolariteSemestresService(params, '/manage-groupes');
+    etudiantsScolariteSemestre.value = responsePage.member ?? responsePage;
+
+    // 2) Récupération d'un total fiable via l'endpoint standard (qui expose bien totalItems)
+    const countParams = {
+      anneeUniversitaire: anneeUniv.id,
+      semestre: semestre.value.id,
+      limit: 1,
+      page: 1,
+    };
+    const responseCount = await getEtudiantScolariteSemestresService(countParams);
+    nbEtudiants.value = responseCount.totalItems ?? (Array.isArray(responseCount.member) ? responseCount.member.length : 0);
 
     // Après chargement des étudiants, synchroniser la présélection
     syncPreselectedRadios();
@@ -283,25 +301,48 @@ const isSomeSelected = (group) => {
   return some && !isAllSelected(group);
 };
 
+// Helpers pour la colonne "Sans grp." (aucun groupe)
+const isAllNoneSelected = () => {
+  if (!etudiantsScolariteSemestre.value.length) return false;
+  return etudiantsScolariteSemestre.value.every(sco => !sco.groupeAffecte);
+};
+
+const isSomeNoneSelected = () => {
+  const some = etudiantsScolariteSemestre.value.some(sco => !sco.groupeAffecte);
+  return some && !isAllNoneSelected();
+};
+
 const registerHeaderCheckbox = (el, group) => {
   if (!el) {
     headerCheckboxRefs.delete(normalizeId(group.id));
     return;
   }
-  headerCheckboxRefs.set(normalizeId(group.id), el);
+  const gid = normalizeId(group.id);
+  headerCheckboxRefs.set(gid, el);
   nextTick(() => {
-    el.indeterminate = isSomeSelected(group);
-    el.checked = isAllSelected(group);
+    if (gid === 'none') {
+      el.indeterminate = isSomeNoneSelected();
+      el.checked = isAllNoneSelected();
+    } else {
+      el.indeterminate = isSomeSelected(group);
+      el.checked = isAllSelected(group);
+    }
   });
 };
 
 // Mettre à jour l'état des cases d'entête quand les étudiants changent
 watch(etudiantsScolariteSemestre, () => {
   headerCheckboxRefs.forEach((el, gid) => {
+    if (!el) return;
+    if (gid === 'none') {
+      el.indeterminate = isSomeNoneSelected();
+      el.checked = isAllNoneSelected();
+      return;
+    }
     // retrouver l'objet groupe correspondant (si possible) pour recalculer les états
     const allGroupes = Object.values(groupes.value).flat();
     const group = allGroupes.find(g => normalizeId(g.id) === normalizeId(gid));
-    if (group && el) {
+    if (group) {
       el.indeterminate = isSomeSelected(group);
       el.checked = isAllSelected(group);
     }
@@ -322,6 +363,26 @@ const toggleSelectAllForGroup = async (group, event) => {
     el.indeterminate = false;
     el.checked = checked;
   }
+};
+
+// Action pour la colonne "Sans grp." => définit tout le monde sans groupe pour le type sélectionné
+const toggleSelectAllNone = async (event) => {
+  const checked = event.target.checked;
+  await Promise.all(etudiantsScolariteSemestre.value.map(sco => {
+    // checked => tout le monde sans groupe; uncheck => on ne force pas de groupe (état inchangé)
+    return assignGroupe(sco.id, checked ? null : (sco.groupeAffecte ? normalizeId(sco.groupeAffecte.id) : null));
+  }));
+  const el = headerCheckboxRefs.get('none');
+  if (el) {
+    el.indeterminate = false;
+    el.checked = checked;
+  }
+};
+
+const onPageChange = async (event) => {
+  limit.value = event.rows;
+  page.value = event.page;
+  await getEtudiants();
 };
 </script>
 
@@ -356,7 +417,24 @@ const toggleSelectAllForGroup = async (group, event) => {
           </TabList>
         </Tabs>
 
-        <DataTable v-if="selectedGroupe && groupes[selectedGroupe]" :value="etudiantsScolariteSemestre" responsiveLayout="scroll" class="w-full" scrollable scroll-height="60vh">
+        <DataTable
+            v-if="selectedGroupe && groupes[selectedGroupe]"
+            :value="etudiantsScolariteSemestre"
+            responsiveLayout="scroll"
+            class="w-full"
+            scrollable
+            scroll-height="60vh"
+            lazy
+            striped-rows
+            paginator
+            :first="offset"
+            :rows="limit"
+            :rowsPerPageOptions="rowOptions"
+            :totalRecords="nbEtudiants"
+            :loading="isLoadingEtudiants"
+            @page="onPageChange($event)"
+            @update:rows="limit = $event"
+        >
           <Column field="etudiant.numEtudiant" header="N° étudiant" />
           <Column field="etudiant.nom" header="Nom" frozen/>
           <Column field="etudiant.prenom" header="Prénom" frozen/>
@@ -387,6 +465,32 @@ const toggleSelectAllForGroup = async (group, event) => {
               </div>
             </template>
           </Column>
+<!--         colonne pour aucun groupe -->
+          <Column>
+            <template #header>
+              <div class="flex items-center gap-2">
+                <input
+                    type="checkbox"
+                    :ref="el => registerHeaderCheckbox(el, { id: 'none' })"
+                    @change="toggleSelectAllNone($event)"
+                    :aria-label="`Tout désélectionner`"
+                />
+                <span>Sans grp.</span>
+              </div>
+            </template>
+            <template #body="{ data }">
+              <div class="p-1">
+                <RadioButton
+                    v-model="data.groupeAffecte"
+                    :value="null"
+                    :name="`groupe-${data.id}`"
+                    :inputId="`groupe-${data.id}-none`"
+                    @change="assignGroupe(data.id, null)"
+                />
+              </div>
+            </template>
+          </Column>
+          <template #footer> {{ nbEtudiants }} résultat(s).</template>
         </DataTable>
 
         <div v-else-if="!isLoadingGroupes" class="flex items-center justify-center gap-2">

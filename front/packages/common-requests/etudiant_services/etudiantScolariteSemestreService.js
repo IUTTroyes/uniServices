@@ -19,7 +19,7 @@ const getEtudiantScolariteSemestresService = async (params, scope = '', showToas
             'Erreur lors de la récupération du Semestre de la Scolarité de l\'étudiant',
             showToast
         );
-        return reponse.member;
+        return reponse;
     } catch (error) {
         console.error('Erreur dans getEtudiantScolariteSemestresService:', error);
         throw error;
