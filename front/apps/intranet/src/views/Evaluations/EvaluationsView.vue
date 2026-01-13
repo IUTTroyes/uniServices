@@ -8,7 +8,7 @@ import {
   getGroupesService,
   updateEvaluationService
 } from '@requests/index.js';
-import {useDiplomeStore, useUsersStore, useSemestreStore} from '@stores/index.js';
+import {useDiplomeStore, useUsersStore} from '@stores/index.js';
 import {ErrorView, PermissionGuard, SimpleSkeleton, ListSkeleton} from '@components/index.js';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
@@ -21,7 +21,6 @@ const toast = useToast();
 const route = useRoute();
 const usersStore = useUsersStore();
 const diplomeStore = useDiplomeStore();
-const semestreStore = useSemestreStore();
 const hasError = ref(false);
 const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));
 const departementId = ref(null);
@@ -78,28 +77,18 @@ watch(selectedSemestre, () => {
 });
 
 // React to route changes (e.g., navigation from Admin Bloc with a semestre id)
-watch(() => route.params.id, (newId) => {
+watch(() => route.params.semestreId, (newId) => {
   if (!newId) return;
   isPreselecting.value = true;
   const ok = preselectBySemestreId(newId);
   isPreselecting.value = false;
   if (ok) {
     getEnseignements();
+  } else {
+    hasError.value = true;
   }
 });
 
-// Fallback: react to store semestre selection if route has no id
-watch(() => semestreStore.semestre, (newSem) => {
-  if (route.params.id) return; // route param has priority
-  if (newSem && newSem.id) {
-    isPreselecting.value = true;
-    const ok = preselectBySemestreId(newSem.id);
-    isPreselecting.value = false;
-    if (ok) {
-      getEnseignements();
-    }
-  }
-}, { deep: true });
 
 const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
@@ -111,14 +100,15 @@ const getDiplomes = async () => {
     hasError.value = true;
     console.error('Error fetching diplomes:', error);
   } finally {
-    // Try to preselect using route param or semestre store, otherwise fallback
-    const routeSemId = route?.params?.id;
-    const storeSemId = semestreStore?.semestre?.id;
-    const ok = preselectBySemestreId(routeSemId || storeSemId);
+    // Require semestreId from route; no global fallback
+    const routeSemId = route?.params?.semestreId;
+    const ok = preselectBySemestreId(routeSemId);
     if (!ok) {
-      selectedDiplome.value = diplomes.value?.[0] || {};
-      selectedAnnee.value = selectedDiplome.value?.annees?.[0] || {};
-      selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || {};
+      hasError.value = true;
+      // Keep selections empty to prevent unintended loads
+      selectedDiplome.value = {};
+      selectedAnnee.value = {};
+      selectedSemestre.value = {};
     }
     isLoadingDiplomes.value = false;
   }
