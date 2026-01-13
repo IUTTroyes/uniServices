@@ -1,5 +1,6 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue';
+import { useRoute } from 'vue-router';
 import {
   getEnseignementsService,
   getEtudiantsService,
@@ -7,7 +8,7 @@ import {
   getGroupesService,
   updateEvaluationService
 } from '@requests/index.js';
-import {useDiplomeStore, useUsersStore} from '@stores/index.js';
+import {useDiplomeStore, useUsersStore, useSemestreStore} from '@stores/index.js';
 import {ErrorView, PermissionGuard, SimpleSkeleton, ListSkeleton} from '@components/index.js';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
@@ -17,11 +18,14 @@ import EvaluationStatistiques from "../../components/Evaluation/EvaluationStatis
 import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 
 const toast = useToast();
+const route = useRoute();
 const usersStore = useUsersStore();
-const hasError = ref(false);
 const diplomeStore = useDiplomeStore();
+const semestreStore = useSemestreStore();
+const hasError = ref(false);
 const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));
 const departementId = ref(null);
+const isPreselecting = ref(false);
 const diplomes = ref({});
 const isLoadingDiplomes = ref(true);
 const selectedDiplome = ref({});
@@ -44,15 +48,58 @@ onMounted(() => {
   getDiplomes();
 });
 
+// Try to select diploma/annee/semestre based on a semestreId
+const preselectBySemestreId = (semestreId) => {
+  if (!semestreId || !Array.isArray(diplomes.value)) return false;
+  for (const d of diplomes.value) {
+    for (const a of d.annees || []) {
+      const found = (a.semestres || []).find(s => String(s.id) === String(semestreId));
+      if (found) {
+        selectedDiplome.value = d;
+        selectedAnnee.value = a;
+        selectedSemestre.value = found;
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
 watch(selectedDiplome, () => {
-  selectedAnnee.value = selectedDiplome.value.annees[0];
+  if (isPreselecting.value) return;
+  selectedAnnee.value = selectedDiplome.value?.annees?.[0] || {};
 });
 watch(selectedAnnee, () => {
-  selectedSemestre.value = selectedAnnee.value.semestres[0];
-})
+  if (isPreselecting.value) return;
+  selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || {};
+});
 watch(selectedSemestre, () => {
   getEnseignements();
-})
+});
+
+// React to route changes (e.g., navigation from Admin Bloc with a semestre id)
+watch(() => route.params.id, (newId) => {
+  if (!newId) return;
+  isPreselecting.value = true;
+  const ok = preselectBySemestreId(newId);
+  isPreselecting.value = false;
+  if (ok) {
+    getEnseignements();
+  }
+});
+
+// Fallback: react to store semestre selection if route has no id
+watch(() => semestreStore.semestre, (newSem) => {
+  if (route.params.id) return; // route param has priority
+  if (newSem && newSem.id) {
+    isPreselecting.value = true;
+    const ok = preselectBySemestreId(newSem.id);
+    isPreselecting.value = false;
+    if (ok) {
+      getEnseignements();
+    }
+  }
+}, { deep: true });
 
 const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
@@ -64,9 +111,15 @@ const getDiplomes = async () => {
     hasError.value = true;
     console.error('Error fetching diplomes:', error);
   } finally {
-    selectedDiplome.value = diplomes.value[0];
-    selectedAnnee.value = selectedDiplome.value.annees[0];
-    selectedSemestre.value = selectedAnnee.value.semestres[0];
+    // Try to preselect using route param or semestre store, otherwise fallback
+    const routeSemId = route?.params?.id;
+    const storeSemId = semestreStore?.semestre?.id;
+    const ok = preselectBySemestreId(routeSemId || storeSemId);
+    if (!ok) {
+      selectedDiplome.value = diplomes.value?.[0] || {};
+      selectedAnnee.value = selectedDiplome.value?.annees?.[0] || {};
+      selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || {};
+    }
     isLoadingDiplomes.value = false;
   }
 };
