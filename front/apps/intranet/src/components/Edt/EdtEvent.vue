@@ -1,8 +1,9 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { adjustColor, darkenColor } from "@helpers/colors.js";
 import { PhotoUser } from "@components";
 import { useUsersStore } from "@stores/user_stores/userStore.js";
+import EventAppel from "./EventAppel.vue";
 
 const props = defineProps({
   event: {
@@ -12,7 +13,7 @@ const props = defineProps({
   type: {
     type: String,
     required: true,
-    validator: (value) => ['perso', 'jour', 'departement'].includes(value)
+    validator: (value) => ['perso', 'jour', 'departement', 'etudiant'].includes(value)
   }
 });
 
@@ -45,6 +46,22 @@ const isToday = computed(() => {
   const today = new Date();
   return today.toDateString() === eventDate.toDateString();
 });
+
+// GÉRER DEUX DIALOGUES DISTINCTS
+const dialogAppelVisible = ref(false);
+const dialogPlanVisible = ref(false);
+const selectedEvent = ref(null);
+
+const openDialog = (dialogType, ev) => {
+  selectedEvent.value = ev || props.event;
+  if (dialogType === 'appel') {
+    dialogAppelVisible.value = true;
+  } else if (dialogType === 'plan') {
+    dialogPlanVisible.value = true;
+  } else {
+    console.log(`Open dialog for event type: ${dialogType}`);
+  }
+};
 </script>
 
 <template>
@@ -64,16 +81,16 @@ const isToday = computed(() => {
       <div v-if="event.overlap" class="flex flex-col gap-2">
         <div>{{ formattedTime }}</div>
         <div class="flex gap-2">
-          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
-          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
-          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
+          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'" @click.stop="openDialog('appel', event)"></Button>
+          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'" @click.stop></Button>
+          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'" @click.stop="openDialog('plan', event)"></Button>
         </div>
       </div>
       <div v-else class="flex justify-between items-center flex-wrap gap-2">
         <div class="flex gap-2">
-          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
-          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
-          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
+          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'" @click.stop="openDialog('appel', event)"></Button>
+          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'" @click.stop></Button>
+          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'" @click.stop="openDialog('plan', event)"></Button>
         </div>
         <div class="flex flex-col items-center">
           <Badge v-if="event.evaluation" severity="danger" class="uppercase">éval.</Badge>
@@ -118,9 +135,9 @@ const isToday = computed(() => {
           {{ event.salle }}
         </div>
         <div class="flex gap-2">
-          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
-          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
-          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
+          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'" @click.stop="openDialog('appel', event)"></Button>
+          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'" @click.stop></Button>
+          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'" @click.stop="openDialog('plan', event)"></Button>
         </div>
       </div>
       <Tag v-if="event.isFirst" value="Événement en cours" class="absolute right-2 bottom-2 !text-white" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.colorFocus, 60), 0, 0.2) : '' }"/>
@@ -165,10 +182,10 @@ const isToday = computed(() => {
         </div>
       </div>
 
-      <div v-if="user.id === event.personnel.id" class="flex gap-2">
-        <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
-        <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
-        <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
+      <div v-if="user.id === event.personnel.id" class="flex gap-2 z-20">
+        <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'" @click="openDialog('appel', event)"></Button>
+        <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'" @click.stop></Button>
+        <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'" @click="openDialog('plan', event)"></Button>
       </div>
     </div>
   </div>
@@ -206,6 +223,27 @@ const isToday = computed(() => {
       </div>
     </div>
   </div>
+
+  <!-- DIALOG POUR L'APPEL -->
+  <Dialog header="Faire l'appel"
+          v-model:visible="dialogAppelVisible"
+          :modal="true"
+          closable
+          :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+    <EventAppel :event="event" />
+  </Dialog>
+
+  <!-- DIALOG POUR LE PLAN DE COURS -->
+  <Dialog header="Plan de cours"
+          v-model:visible="dialogPlanVisible"
+          :modal="true"
+          closable
+          :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+    <div>
+      <p>Contenu du plan de cours pour l'événement {{ selectedEvent ? selectedEvent.title : '' }}</p>
+      <!-- Ajouter ici l'aperçu du plan de cours ou embed -->
+    </div>
+  </Dialog>
 </template>
 
 <style scoped>
