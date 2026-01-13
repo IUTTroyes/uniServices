@@ -43,10 +43,31 @@ class EtudiantScolariteSemestreFilter extends AbstractFilter
 
         if ('etudiant' === $property) {
             $queryBuilder
-                ->join("$alias.scolarite", 'scolarite')
-                ->join('scolarite.etudiant', 'etudiant')
+                ->join("$alias.scolarite", 'scolarite2')
+                ->join('scolarite2.etudiant', 'etudiant')
                 ->andWhere('etudiant.id = :etudiant')
                 ->setParameter("etudiant", $value);
+        }
+        if ('nom' === $property) {
+            $queryBuilder
+                ->join("$alias.scolarite", 'scolarite3')
+                ->join('scolarite3.etudiant', 'etudiant')
+                ->andWhere('etudiant.nom LIKE :nom')
+                ->setParameter("nom", "$value%");
+        }
+        if ('prenom' === $property) {
+            $queryBuilder
+                ->join("$alias.scolarite", 'scolarite4')
+                ->join('scolarite4.etudiant', 'etudiant')
+                ->andWhere('etudiant.prenom LIKE :prenom')
+                ->setParameter("prenom", "$value%");
+        }
+        if ('numEtudiant' === $property) {
+            $queryBuilder
+                ->join("$alias.scolarite", 'scolarite5')
+                ->join('scolarite5.etudiant', 'etudiant')
+                ->andWhere('etudiant.numEtudiant LIKE :numEtudiant')
+                ->setParameter("numEtudiant", "$value%");
         }
 
         if ('anneeUniversitaire' === $property) {

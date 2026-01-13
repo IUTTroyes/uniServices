@@ -13,6 +13,7 @@ import {
 } from "@requests";
 import {useRoute} from "vue-router";
 import { useToast } from 'primevue/usetoast';
+import {FilterMatchMode} from "@primevue/core/api";
 
 const toast = useToast();
 const route = useRoute();
@@ -37,6 +38,12 @@ const page = ref(0);
 const rowOptions = [30, 60, 120];
 const limit = ref(rowOptions[0]);
 const offset = computed(() => limit.value * page.value);
+
+const filters = ref({
+  numEtudiant: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  nom: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+  prenom: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
+});
 
 onMounted(async () => {
   await getSemestre();
@@ -150,6 +157,7 @@ const getEtudiants = async () => {
       semestre: semestre.value.id,
       limit: limit.value,
       page: parseInt(page.value) + 1,
+      filters: filters.value,
     };
 
     // 1) Récupération de la page courante via l'endpoint manage-groupes (DTO spécifique)
@@ -162,6 +170,7 @@ const getEtudiants = async () => {
       semestre: semestre.value.id,
       limit: 1,
       page: 1,
+      filters: filters.value,
     };
     const responseCount = await getEtudiantScolariteSemestresService(countParams);
     nbEtudiants.value = responseCount.totalItems ?? (Array.isArray(responseCount.member) ? responseCount.member.length : 0);
@@ -384,6 +393,23 @@ const onPageChange = async (event) => {
   page.value = event.page;
   await getEtudiants();
 };
+
+// Déclenche un rechargement serveur quand les filtres changent
+watch(
+  () => ({ ...filters.value }),
+  async (newFilters, oldFilters) => {
+    const changed = (
+      newFilters.nom?.value !== oldFilters.nom?.value ||
+      newFilters.prenom?.value !== oldFilters.prenom?.value ||
+      newFilters.numEtudiant?.value !== oldFilters.numEtudiant?.value
+    );
+    if (changed) {
+      page.value = 0; // revenir à la première page
+      await getEtudiants();
+    }
+  },
+  { deep: true }
+);
 </script>
 
 <template>
@@ -419,6 +445,7 @@ const onPageChange = async (event) => {
 
         <DataTable
             v-if="selectedGroupe && groupes[selectedGroupe]"
+            v-model:filters="filters"
             :value="etudiantsScolariteSemestre"
             responsiveLayout="scroll"
             class="w-full"
@@ -427,6 +454,8 @@ const onPageChange = async (event) => {
             lazy
             striped-rows
             paginator
+            filterDisplay="row"
+            dataKey="id"
             :first="offset"
             :rows="limit"
             :rowsPerPageOptions="rowOptions"
@@ -435,9 +464,51 @@ const onPageChange = async (event) => {
             @page="onPageChange($event)"
             @update:rows="limit = $event"
         >
-          <Column field="etudiant.numEtudiant" header="N° étudiant" />
-          <Column field="etudiant.nom" header="Nom" frozen/>
-          <Column field="etudiant.prenom" header="Prénom" frozen/>
+          <Column field="numEtudiant" header="N° étudiant">
+            <template #body="{ data }">
+              <div class="p-1">
+                {{ data.etudiant.numEtudiant }}
+              </div>
+            </template>
+            <template #filter="{ filterModel, filterCallback }">
+              <InputText
+                  v-model="filterModel.value"
+                  placeholder="Filtrer par n° étudiant"
+                  class="w-full"
+                  @input="filterCallback()"
+              />
+            </template>
+          </Column>
+          <Column field="nom" header="Nom" frozen>
+            <template #body="{ data }">
+              <div class="p-1">
+                {{ data.etudiant.nom }}
+              </div>
+            </template>
+            <template #filter="{ filterModel, filterCallback }">
+              <InputText
+                  v-model="filterModel.value"
+                  placeholder="Filtrer par nom"
+                  class="w-full"
+                  @input="filterCallback()"
+              />
+            </template>
+          </Column>
+          <Column field="prenom" header="Prénom" frozen>
+            <template #body="{ data }">
+              <div class="p-1">
+                {{ data.etudiant.prenom }}
+              </div>
+            </template>
+            <template #filter="{ filterModel, filterCallback }">
+              <InputText
+                  v-model="filterModel.value"
+                  placeholder="Filtrer par prénom"
+                  class="w-full"
+                  @input="filterCallback()"
+              />
+            </template>
+          </Column>
           <Column field="etudiant.bac" header="Bac" />
           <Column v-for="g in groupes[selectedGroupe]" :key="g.id">
             <!-- Entête : checkbox pour cocher/décocher ce groupe pour toutes les lignes -->

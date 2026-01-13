@@ -11,15 +11,24 @@ const etudiantScolariteSemestresService = createApiService('/api/etudiant_scolar
 
 const getEtudiantScolariteSemestresService = async (params, scope = '', showToast = false) => {
     try {
-
-        const reponse = await apiCall(
+        if (params.filters) {
+            if (params.filters.nom) {
+                params['nom'] = params.filters.nom.value;
+            }
+            if (params.filters.prenom) {
+                params['prenom'] = params.filters.prenom.value;
+            }
+            if (params.filters.numEtudiant) {
+                params['numEtudiant'] = params.filters.numEtudiant.value;
+            }
+        }
+        return await apiCall(
             api.get,
             [`/api${scope}/etudiant_scolarite_semestres`, {params}],
             'Semestre de la Scolarité de l\'étudiant récupérées avec succès',
             'Erreur lors de la récupération du Semestre de la Scolarité de l\'étudiant',
             showToast
         );
-        return reponse;
     } catch (error) {
         console.error('Erreur dans getEtudiantScolariteSemestresService:', error);
         throw error;
