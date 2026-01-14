@@ -27,6 +27,7 @@ export default defineConfig(({ mode }) => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, `apps/${appName}/src`),
+        '@composables': path.resolve(__dirname, `apps/${appName}/src/composables`),
         '@types': path.resolve(__dirname, 'packages/common-types'),
         '@components': path.resolve(__dirname, 'packages/common-components'),
         '@config': path.resolve(__dirname, 'packages/common-global-data'),

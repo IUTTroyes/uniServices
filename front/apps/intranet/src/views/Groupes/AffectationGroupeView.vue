@@ -32,6 +32,8 @@ const departementId = usersStore.departementDefaut.id;
 const etudiantsScolariteSemestre = ref([]);
 const isLoadingEtudiants = ref(true);
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
+import { useEtudiantFilters } from '@composables/filters/usersFilters/useEtudiantFilters';
+const { filters, watchChanges } = useEtudiantFilters();
 
 const nbEtudiants = ref(0);
 const page = ref(0);
@@ -39,11 +41,7 @@ const rowOptions = [30, 60, 120];
 const limit = ref(rowOptions[0]);
 const offset = computed(() => limit.value * page.value);
 
-const filters = ref({
-  numEtudiant: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  nom: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  prenom: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-});
+
 
 onMounted(async () => {
   await getSemestre();

@@ -50,10 +50,10 @@ const isStudent = (person: Etudiant | Personnel): person is Etudiant => {
       <!-- Student Info -->
       <div v-if="isStudent(person)" :class="viewMode === 'grid' ? 'space-y-2' : 'space-y-1'">
         <div class="flex items-center justify-center gap-2" v-if="viewMode === 'grid'">
-          <span class="badge badge-primary">S{{ person.scolarite }}</span><!-- todo: semestre -->
+          <span class="badge badge-primary">{{ person.scolarite }}</span><!-- todo: semestre -->
         </div>
         <div class="flex items-center gap-2" v-else>
-          <span class="badge badge-primary text-xs">S{{ person.scolarite }}</span><!-- todo: semestre -->
+          <span class="badge badge-primary text-xs">{{ person.scolarite }}</span><!-- todo: semestre -->
         </div>
 
         <!-- Groups -->

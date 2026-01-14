@@ -23,6 +23,9 @@
       "@helpers": [
         "packages/common-helpers/index.ts"
       ],
+      "@utils": [
+        "packages/common-utils/index.ts"
+      ],
 
       // old supprimer ne fois refactor fait
       "@types/*": [
