@@ -43,7 +43,7 @@ const isStudent = (person: Etudiant | Personnel): person is Etudiant => {
           {{ person.prenom }} {{ person.nom }}
         </h3>
         <p :class="viewMode === 'grid' ? 'text-sm text-gray-600' : 'text-xs text-gray-600 truncate'">
-          {{ person.mail_univ }}
+          {{ person.mailUniv }}
         </p>
       </div>
 

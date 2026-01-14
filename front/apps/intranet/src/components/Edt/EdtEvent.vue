@@ -5,6 +5,8 @@ import { PhotoUser } from "@components";
 import { useUsersStore } from "@stores/user_stores/userStore.js";
 import EventAppel from "./EventAppel.vue";
 
+defineOptions({ inheritAttrs: false });
+
 const props = defineProps({
   event: {
     type: Object,
@@ -66,7 +68,7 @@ const openDialog = (dialogType, ev) => {
 
 <template>
   <!-- EdtPerso Event Template -->
-  <div v-if="type === 'perso'" class="rounded-lg !h-full">
+  <div v-if="type === 'perso'" class="rounded-lg !h-full" v-on="$attrs">
     <div class="p-2 flex flex-col justify-between h-full gap-1">
       <div>
         <div class="title font-black">{{ event.title }}</div>
@@ -101,7 +103,7 @@ const openDialog = (dialogType, ev) => {
   </div>
 
   <!-- EdtJour Event Template -->
-  <div v-else-if="type === 'jour'" class="h-full min-h-32">
+  <div v-else-if="type === 'jour'" class="h-full min-h-32" v-on="$attrs">
     <div v-if="event.text === 'Aucun cours'" class="flex flex-row justify-start items-start rounded-xl h-full relative text-black text-color palm bg-neutral-400 bg-opacity-20">
       <div class="flex flex-col justify-center p-4 gap-2">
         <div v-if="event.dayoff" class="text-lg font-bold">Aucun événement aujourd'hui</div>
@@ -146,7 +148,7 @@ const openDialog = (dialogType, ev) => {
   </div>
 
   <!-- EdtDepartement Event Template -->
-  <div v-else-if="type === 'departement'" class="rounded-lg !h-full">
+  <div v-else-if="type === 'departement'" class="rounded-lg !h-full" v-on="$attrs">
     <div class="p-2 flex flex-col justify-between h-full gap-1">
       <div>
         <div class="flex justify-between items-start gap-1">
@@ -191,7 +193,7 @@ const openDialog = (dialogType, ev) => {
   </div>
 
   <!-- EdtEtudiant Event Template -->
-  <div v-else-if="type === 'etudiant'" class="rounded-lg !h-full">
+  <div v-else-if="type === 'etudiant'" class="rounded-lg !h-full" v-on="$attrs">
     <div class="p-2 flex flex-col justify-between h-full gap-1">
       <div>
         <div class="title font-black">{{ event.title }}</div>

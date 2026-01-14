@@ -22,15 +22,15 @@ const getEtudiantService = async (etudiantId, showToast = false) => {
 
 const getEtudiantsService = async (params, scope = '', showToast = false, pagination = true) => {
     try {
-        const response= await apiCall(
+        const response = await apiCall(
             api.get,
-            ['/api/etudiants', { params }],
+            [`/api${scope}/etudiants`, { params }],
             'Étudiants récupérés avec succès',
             'Erreur lors de la récupération des étudiants',
             showToast
         );
-        response.member.totalItems = response.totalItems;
-        return response.member
+        return response.member;
+        // response.member.totalItems = response.totalItems;
     } catch (error) {
         console.error('Erreur dans getEtudiants:', error);
         throw error;

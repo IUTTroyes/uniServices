@@ -292,8 +292,6 @@ const getEventsData = async () => {
     }
     const resp = await getEdtEventsService(params, '/stats');
     eventsData.value = Array.isArray(resp) ? (resp[0] || null) : resp;
-
-    console.log(eventsData);
   } catch (error) {
     console.error('Erreur lors du chargement des événements :', error);
   } finally {
