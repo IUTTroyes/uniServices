@@ -1,12 +1,12 @@
 export function formatDateCourt(date) {
     const d = new Date(date);
-    if (isNaN(d.getTime())) return '';
+    if (isNaN(d.getTime())) return 'Invalid Date';
     return d.toLocaleDateString();
 }
 
 export function formatDateLong(date) {
     const d = new Date(date);
-    if (isNaN(d.getTime())) return '';
+    if (isNaN(d.getTime())) return 'Invalid Date';
     return d.toLocaleDateString('fr-FR', {
         weekday: 'long',
         year: 'numeric',
@@ -17,7 +17,7 @@ export function formatDateLong(date) {
 
 export function jourDate(date) {
     const d = new Date(date);
-    if (isNaN(d.getTime())) return '';
+    if (isNaN(d.getTime())) return 'Invalid Date';
     return d.toLocaleDateString('fr-FR', {
         weekday: 'long'
     });
@@ -25,7 +25,7 @@ export function jourDate(date) {
 
 export function heuresMinutesDate(date) {
     const localDate = new Date(date);
-    if (isNaN(localDate.getTime())) return '';
+    if (isNaN(localDate.getTime())) return 'Invalid Date';
     return localDate.toLocaleTimeString('fr-FR', {
         hour: '2-digit',
         minute: '2-digit'
