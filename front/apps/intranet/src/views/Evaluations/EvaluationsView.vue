@@ -7,9 +7,9 @@ import {
   getEvaluationsService,
   getGroupesService,
   updateEvaluationService
-} from '@requests/index.js';
-import {useDiplomeStore, useUsersStore} from '@stores/index.js';
-import {ErrorView, PermissionGuard, SimpleSkeleton, ListSkeleton} from '@components/index.js';
+} from '@requests';
+import {useDiplomeStore, useUsersStore} from '@stores';
+import {ErrorView, PermissionGuard, SimpleSkeleton, ListSkeleton} from '@components';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
 import EvaluationListeInitForm from "../../components/Evaluation/EvaluationListeInitForm.vue";

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import {ErrorView, SimpleSkeleton} from "@components/index.js";
+import {ErrorView, SimpleSkeleton} from "@components";
 import { typesGroupes } from '@config/uniServices.js';
 import {useSemestreStore} from "@stores";
 import { useRoute } from 'vue-router';

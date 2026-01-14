@@ -4,11 +4,11 @@ import { useToast } from "primevue/usetoast";
 import { fr } from "date-fns/locale";
 import { format, parseISO, differenceInYears } from "date-fns";
 import { formatAdresse } from "@helpers/adresse.js";
-import { updateEtudiantService, getEtudiantService, getGroupesService } from "@requests/index.js";
-import { ValidatedInput, validationRules, ErrorView, PermissionGuard } from "@components/index.js";
-import { PhotoUser } from "@components/index.js";
-import { useUsersStore } from "@stores/index.js";
-import { SimpleSkeleton } from "@components/index.js";
+import { updateEtudiantService, getEtudiantService, getGroupesService } from "@requests";
+import { ValidatedInput, validationRules, ErrorView, PermissionGuard } from "@components";
+import { PhotoUser } from "@components";
+import { useUsersStore } from "@stores";
+import { SimpleSkeleton } from "@components";
 import { ScolariteEtudiant } from "@components";
 
 const toast = useToast();

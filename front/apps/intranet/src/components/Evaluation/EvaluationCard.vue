@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, nextTick } from 'vue';
-import {PermissionGuard} from '@components/index.js';
+import {PermissionGuard} from '@components';
 import EvaluationSaisieNotesForm from "./EvaluationSaisieNotesForm.vue";
 import EvaluationForm from "./EvaluationForm.vue";
 import EvaluationListeInitForm from "./EvaluationListeInitForm.vue";
