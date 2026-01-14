@@ -26,7 +26,7 @@ class ScolBac
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
-    #[Groups('bac:light')]
+    #[Groups(['bac:light', 'scolarite-semestre:manage-groupes'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255)]

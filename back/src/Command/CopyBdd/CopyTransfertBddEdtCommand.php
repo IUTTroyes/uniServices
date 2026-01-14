@@ -103,10 +103,10 @@ FOREIGN_KEY_CHECKS=1');
         $reponses = $this->httpClient->request('GET', $this->base_url . '/edt-intranet');
         $edts = $reponses->toArray();
         foreach ($edts as $ed) {
-//            dd($ed);
             if (array_key_exists($ed['prof'], $this->tPersonnels) && array_key_exists($ed['matiere'], $this->tMatieres)) {
                 $edt = new EdtEvent();
                 $edt->setUuid(UuidV4::v4());
+                $edt->setDate(new \DateTime($ed['date']));
                 $edt->setDebut(new \DateTime($ed['debut']));
                 $edt->setFin(new \DateTime($ed['fin']));
                 $edt->setSalle($ed['salle']);

@@ -1,15 +1,19 @@
 <script setup>
-
-import { onMounted, ref, computed } from "vue";
+import { onMounted, ref, computed, watch } from "vue";
 import { getAnneesService } from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore, useSemestreStore } from "@stores";
 
 const userStore = useUsersStore();
+const semestreStore = useSemestreStore();
 const selectedSemestre = ref(null);
 const isLoading = ref(true);
 const hasError = ref(false);
 const anneesGrouped = ref({ fi: [], fc: [] });
+
+watch(selectedSemestre, (newVal) => {
+  semestreStore.setSelectedSemestre(newVal);
+})
 
 const panelMenuItems = computed(() => {
   if (!selectedSemestre.value) return []

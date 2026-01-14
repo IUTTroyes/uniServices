@@ -36,17 +36,21 @@
 {% set enseignantsTries = heuresParEnseignant|keys|sort %}
 
 <h2>Comparatif par Enseignant</h2>
-<table data-xls-sheet="1">
+<table data-xls-sheet="Comparatif par enseignant" data-xls-autosize="true">
     <thead>
     <tr>
-        <th>Enseignant</th>
+        <th data-xls-colspan="12" data-xls-font-bold="true" data-xls-font-size="24">Comparatif prévisionnel pour {{ stats.annee.libelle|default('') }} - {{ stats.semestre.libelle|default('') }} | du {{ stats.periode.debut|default('') }} au {{ stats.periode.fin|default('') }}</th>
+    </tr>
+    <tr><th data-xls-colspan="12"></th></tr>
+    <tr>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Enseignant</th>
         {% for t in types %}
-            <th>Previ {{ t }}</th>
-            <th>EDT {{ t }}</th>
+            <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Previ {{ t }}</th>
+            <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">EDT {{ t }}</th>
         {% endfor %}
-        <th>Total Previ</th>
-        <th>Total EDT</th>
-        <th>Différence (EDT-Previ)</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Total Previ</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Total EDT</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Différence (EDT-Previ)</th>
     </tr>
     </thead>
     <tbody>
@@ -55,18 +59,33 @@
         {% set totalPrevi = 0 %}
         {% set totalEdt = 0 %}
         <tr>
-            <td>{{ enseignant }}</td>
+            <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="text">{{ enseignant }}</td>
             {% for t in types %}
                 {% set heuresPreviType = donneesEnseignant.previ[t]|default(0) %}
                 {% set heuresEdtType = donneesEnseignant.edt[t]|default(0) %}
                 {% set totalPrevi = totalPrevi + heuresPreviType %}
                 {% set totalEdt = totalEdt + heuresEdtType %}
-                <td>{{ heuresPreviType }}</td>
-                <td>{{ heuresEdtType }}</td>
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ heuresPreviType }}</td>
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ heuresEdtType }}</td>
             {% endfor %}
-            <td>{{ totalPrevi }}</td>
-            <td>{{ totalEdt }}</td>
-            <td>{{ (totalEdt - totalPrevi) }}</td>
+            <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ totalPrevi }}</td>
+            <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ totalEdt }}</td>
+            {% if (totalEdt - totalPrevi) < 0 %}
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number"
+                        data-xls-bg-color="#FFEBCC"
+                        data-xls-font-color="#CC7B00"
+                        data-xls-font-bold="true">{{ (totalEdt - totalPrevi) }}</td>
+            {% elseif (totalEdt - totalPrevi) > 0 %}
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number"
+                    data-xls-bg-color="#FFCCCC"
+                    data-xls-font-color="#FF0000"
+                    data-xls-font-bold="true">{{ (totalEdt - totalPrevi) }}</td>
+            {% else %}
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number"
+                    data-xls-bg-color="#CCFFCC"
+                    data-xls-font-color="#04D100"
+                    data-xls-font-bold="true">{{ (totalEdt - totalPrevi) }}</td>
+            {% endif %}
         </tr>
     {% endfor %}
     </tbody>
@@ -100,17 +119,21 @@
 {% set enseignementsTries = heuresParEnseignement|keys|sort %}
 
 <h2>Comparatif par Enseignement</h2>
-<table data-xls-sheet="2">
+<table data-xls-sheet="Comparatif par enseignement" data-xls-autosize="true">
     <thead>
     <tr>
-        <th>Enseignement</th>
+        <th data-xls-colspan="12" data-xls-font-bold="true" data-xls-font-size="24">Comparatif prévisionnel pour {{ stats.annee.libelle|default('') }} - {{ stats.semestre.libelle|default('') }} | {{ stats.periode.debut|default('') }} - {{ stats.periode.fin|default('') }}</th>
+    </tr>
+    <tr><th data-xls-colspan="12"></th></tr>
+    <tr>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Enseignement</th>
         {% for t in types %}
-            <th>Previ {{ t }}</th>
-            <th>EDT {{ t }}</th>
+            <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Previ {{ t }}</th>
+            <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">EDT {{ t }}</th>
         {% endfor %}
-        <th>Total Previ</th>
-        <th>Total EDT</th>
-        <th>Différence (EDT-Previ)</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Total Previ</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Total EDT</th>
+        <th data-xls-border="thin" data-xls-border-color="000000" data-xls-font-bold="true" data-xls-font-size="14">Différence (EDT-Previ)</th>
     </tr>
     </thead>
     <tbody>
@@ -119,18 +142,33 @@
         {% set totalPrevi = 0 %}
         {% set totalEdt = 0 %}
         <tr>
-            <td>{{ enseignement }}</td>
+            <td data-xls-border="thin" data-xls-border-color="000000">{{ enseignement }}</td>
             {% for t in types %}
                 {% set heuresPreviType = donneesEnseignement.previ[t]|default(0) %}
                 {% set heuresEdtType = donneesEnseignement.edt[t]|default(0) %}
                 {% set totalPrevi = totalPrevi + heuresPreviType %}
                 {% set totalEdt = totalEdt + heuresEdtType %}
-                <td>{{ heuresPreviType }}</td>
-                <td>{{ heuresEdtType }}</td>
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ heuresPreviType }}</td>
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ heuresEdtType }}</td>
             {% endfor %}
-            <td>{{ totalPrevi }}</td>
-            <td>{{ totalEdt }}</td>
-            <td>{{ (totalEdt - totalPrevi) }}</td>
+            <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ totalPrevi }}</td>
+            <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number">{{ totalEdt }}</td>
+            {% if (totalEdt - totalPrevi) < 0 %}
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number"
+                    data-xls-bg-color="#FFEBCC"
+                    data-xls-font-color="#CC7B00"
+                    data-xls-font-bold="true">{{ (totalEdt - totalPrevi) }}</td>
+            {% elseif (totalEdt - totalPrevi) > 0 %}
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number"
+                    data-xls-bg-color="#FFCCCC"
+                    data-xls-font-color="#FF0000"
+                    data-xls-font-bold="true">{{ (totalEdt - totalPrevi) }}</td>
+            {% else %}
+                <td data-xls-border="thin" data-xls-border-color="000000" data-xls-type="number"
+                    data-xls-bg-color="#CCFFCC"
+                    data-xls-font-color="#04D100"
+                    data-xls-font-bold="true">{{ (totalEdt - totalPrevi) }}</td>
+            {% endif %}
         </tr>
     {% endfor %}
     </tbody>

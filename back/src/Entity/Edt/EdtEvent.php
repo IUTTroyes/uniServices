@@ -18,7 +18,6 @@ use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
 use App\Filter\EdtFilter;
 use App\Repository\Edt\EdtEventRepository;
-use App\State\Edt\EdtStatsPreviProvider;
 use App\State\Edt\EdtStatsProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -37,12 +36,6 @@ use Symfony\Component\Uid\UuidV4;
             normalizationContext: ['groups' => ['edt_stats:read']],
             provider: EdtStatsProvider::class,
             output: EdtStatsDto::class,
-        ),
-        new GetCollection(
-            uriTemplate: '/stats_previ/edt_events',
-            normalizationContext: ['groups' => ['edt_stats:read']],
-            provider: EdtStatsPreviProvider::class,
-            output: EdtStatsPreviDto::class,
         ),
     ]
 )]
@@ -64,6 +57,10 @@ class EdtEvent
 
     #[ORM\Column(nullable: true)]
     private ?int $jour = null;
+
+    #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
+    #[Groups(['edt_event:read:agenda'])]
+    private ?\DateTimeInterface $date = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
     #[Groups(['edt_event:read:agenda'])]
@@ -179,6 +176,28 @@ class EdtEvent
     public function setJour(?int $jour): static
     {
         $this->jour = $jour;
+
+        return $this;
+    }
+
+    public function getUuid(): UuidV4
+    {
+        return $this->uuid;
+    }
+
+    public function setUuid(UuidV4 $uuid): void
+    {
+        $this->uuid = $uuid;
+    }
+
+    public function getDate(): ?\DateTimeInterface
+    {
+        return $this->date;
+    }
+
+    public function setDate(?\DateTimeInterface $date): static
+    {
+        $this->date = $date;
 
         return $this;
     }

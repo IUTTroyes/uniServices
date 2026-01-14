@@ -1,12 +1,17 @@
 <script setup>
-import {onMounted, ref, watch, computed} from "vue";
-import {ErrorView, SimpleSkeleton, ListSkeleton} from "@components";
-import {ValidatedInput} from "@components";
+import {computed, onMounted, ref, watch} from "vue";
+import {ErrorView, ListSkeleton, PermissionGuard, SimpleSkeleton, ValidatedInput} from "@components";
 import {useDiplomeStore, useUsersStore} from "@stores";
-import {getEnseignementsService, getPersonnelsService, getSallesService, getEdtEventsService, getPrevisService, exportService} from "@requests";
-import { getAnneeUniversitaireService } from "@requests";
+import {
+  exportService,
+  getAnneeUniversitaireService,
+  getEdtEventsService,
+  getEnseignementsService,
+  getPersonnelsService,
+  getPrevisService,
+  getSallesService
+} from "@requests";
 import Loader from "@components/loader/GlobalLoader.vue";
-import {PermissionGuard} from "@components";
 
 // Aide: formater un objet Date en YYYY-MM-DD en heure locale (sans décalage de fuseau)
 const formaterDateLocale = (d) => {
@@ -14,7 +19,7 @@ const formaterDateLocale = (d) => {
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  return `${day}-${month}-${year}`;
 };
 
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
@@ -172,7 +177,8 @@ const getEnseignements = async () => {
   try {
     const params = {
       semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
-      departement: selectedSemestre.value ? null : departement.id,
+      annee: selectedAnnee.value ? selectedAnnee.value.id : null,
+      departement: selectedAnnee.value ? null : departement.id,
       actif: true,
     };
     enseignements.value = await getEnseignementsService(params);
@@ -215,11 +221,16 @@ const getSalles = async () => {
 };
 
 watch(selectedAnneeId, (newId) => {
-  if (!selectedDiplome.value) return;
-  selectedAnnee.value = (selectedDiplome.value.annees || []).find(a => a.id === newId) || null;
-  // réinitialiser semestre si année change
-  selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
-  selectedSemestreId.value = selectedSemestre.value?.id ?? null;
+  if (selectedDiplome.value) {
+    selectedAnnee.value = (selectedDiplome.value.annees || []).find(a => a.id === newId) || null;
+  } else {
+    selectedAnnee.value = null;
+  }
+  selectedSemestre.value = null;
+  selectedSemestreId.value = null;
+  getEventsData();
+  getStatsPreviData();
+  getEnseignements();
 });
 
 watch(selectedSemestreId, async (newId) => {
@@ -241,8 +252,8 @@ const setDiplome = async (diplome) => {
   }
   selectedAnnee.value = diplome.annees?.[0] || null;
   selectedAnneeId.value = selectedAnnee.value?.id ?? null;
-  selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || null;
-  selectedSemestreId.value = selectedSemestre.value?.id ?? null;
+  selectedSemestre.value = null;
+  selectedSemestreId.value = null;
 };
 
 const reinitialiserFiltres = () => {
@@ -272,6 +283,7 @@ const getEventsData = async () => {
     const params = {
       departement: departement.id,
       semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
+      annee: selectedAnnee.value ? selectedAnnee.value.id : null,
       enseignement: selectedEnseignementId.value,
       personnel: selectedEnseignantId.value,
       salle: selectedSalleId.value,
@@ -280,7 +292,6 @@ const getEventsData = async () => {
     }
     const resp = await getEdtEventsService(params, '/stats');
     eventsData.value = Array.isArray(resp) ? (resp[0] || null) : resp;
-
   } catch (error) {
     console.error('Erreur lors du chargement des événements :', error);
   } finally {
@@ -293,11 +304,11 @@ const getStatsPreviData = async () => {
   try {
     const params = {
       semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
-      departement: selectedSemestre.value ? null : departement.id,
+      annee: selectedAnnee.value ? selectedAnnee.value.id : null,
+      departement: selectedAnnee.value ? null : departement.id,
       anneeUniversitaire: anneeUniv.id,
     }
     statsPreviData.value = await getPrevisService(params, '/stats_edt');
-    console.log(statsPreviData.value);
   } catch (error) {
     console.error('Erreur lors du chargement des données prévisionnelles :', error);
   } finally {
@@ -391,6 +402,7 @@ const comparatifPreviRowsEnseignement = computed(() => {
       row[`previ_${t}`] = Number(r.heures_previsionnel || 0);
       row[`edt_${t}`] = Number(r.heures_edt || 0);
     }
+    row['heures_diff'] = r.heures_diff || 0;
   }
   return Array.from(map.values());
 });
@@ -416,6 +428,7 @@ const comparatifPreviRowsEnseignant = computed(() => {
       row[`previ_${t}`] = Number(r.heures_previsionnel || 0);
       row[`edt_${t}`] = Number(r.heures_edt || 0);
     }
+    row['heures_diff'] = r.heures_diff || 0;
   }
   return Array.from(map.values());
 });
@@ -434,10 +447,7 @@ const sumByPrefix = (line, prefix) => typesList.value.reduce((acc, t) => acc + N
 const previTotal = (line) => sumByPrefix(line, 'previ');
 const edtTotal = (line) => sumByPrefix(line, 'edt');
 const diffTotal = (line) => {
-  const diff = previTotal(line) - edtTotal(line);
-  if (diff === 0) return 0;
-  const value = -diff;
-  return diff < 0 ? `+${value}` : `${value}`;
+  return edtTotal(line) - previTotal(line);
 };
 const diffSeverity = (line) => {
   const d = diffTotal(line);
@@ -450,13 +460,92 @@ const applyFilters = async () => {
   await getEventsData();
 };
 
-const exportData = async () => {
+const exportDataPrevi = async () => {
   try {
-    await exportService(statsPreviData.value)
+    // insérer l'année et le semestre et la période dans statsPreviData avant export
+    // Préparer une copie pour ne pas muter l'original
+    const payload = JSON.parse(JSON.stringify(statsPreviData.value || {}));
+
+    // Insérer année sélectionnée
+    if (selectedAnnee.value) {
+      payload.annee = {
+        id: selectedAnnee.value.id ?? null,
+        libelle: selectedAnnee.value.libelle ?? null
+      };
+    } else {
+      payload.annee = null;
+    }
+
+    // Insérer semestre sélectionné
+    if (selectedSemestre.value) {
+      payload.semestre = {
+        id: selectedSemestre.value.id ?? null,
+        libelle: selectedSemestre.value.libelle ?? null
+      };
+    } else {
+      payload.semestre = null;
+    }
+
+    // Insérer période (format YYYY-MM-DD)
+    if (Array.isArray(periode.value) && periode.value[0] && periode.value[1]) {
+      payload.periode = {
+        debut: formaterDateLocale(periode.value[0]),
+        fin: formaterDateLocale(periode.value[1])
+      };
+    } else {
+      payload.periode = null;
+    }
+
+    // Inclure l'année universitaire courante si disponible
+    payload.anneeUniversitaire = anneeUniv?.id ?? null;
+
+    await exportService(payload, 'previ', 'export_previsionnel')
   } catch (error) {
     console.error('Erreur lors de l\'export des données :', error);
   }
 }
+
+const exportDataHeures = async () => {
+  try {
+    const payload = JSON.parse(JSON.stringify(eventsData.value || {}));
+
+    // Insérer période (format YYYY-MM-DD)
+    if (Array.isArray(periode.value) && periode.value[0] && periode.value[1]) {
+      payload.periode = {
+        debut: formaterDateLocale(periode.value[0]),
+        fin: formaterDateLocale(periode.value[1])
+      };
+    } else {
+      payload.periode = null;
+    }
+    // Insérer l'année sélectionnée
+    if (selectedAnnee.value) {
+      payload.annee = {
+        id: selectedAnnee.value.id ?? null,
+        libelle: selectedAnnee.value.libelle ?? null
+      };
+    } else {
+      payload.annee = null;
+    }
+    // Insérer le semestre sélectionné
+    if (selectedSemestre.value) {
+      payload.semestre = {
+        id: selectedSemestre.value.id ?? null,
+        libelle: selectedSemestre.value.libelle ?? null
+      };
+    } else {
+      payload.semestre = null;
+    }
+    // Inclure l'année universitaire courante si disponible
+    payload.anneeUniversitaire = anneeUniv?.id ?? null;
+
+    await exportService(payload, 'edt-heures', 'export_heures_edt')
+  } catch (error) {
+    console.error('Erreur lors de l\'export des données :', error);
+  }
+}
+
+// todo: taux de réalisation des heures (programmé vs prévu)
 </script>
 
 <template>
@@ -491,7 +580,7 @@ const exportData = async () => {
             type="select"
             :rules="[]"
             class="w-full"
-            :show-clear="true"
+            :show-clear="false"
             :disabled="!selectedDiplome"
         />
         <ValidatedInput
@@ -624,16 +713,17 @@ const exportData = async () => {
                 </Column>
               </DataTable>
             </div>
+            <Button label="Exporter en xlsx" icon="pi pi-file" severity="secondary" class="w-full" @click="exportDataHeures()" />
           </div>
           <div v-else class="text-gray-500">Aucune donnée à afficher pour les filtres sélectionnés.</div>
         </div>
       </div>
-      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full flex flex-col">
         <div class="text-lg font-bold">Répartition par types d'activités</div>
-        <div v-if="eventsData">
-          <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
+        <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
+        <div v-if="eventsData" class="flex flex-col justify-start gap-4 h-full">
           <Chart v-if="chartDataTypes" type="pie" :data="chartDataTypes" :options="optionGraphTypes" />
-          <DataTable :value="eventsData.repartitionTypes" class="mt-4">
+          <DataTable :value="eventsData.repartitionTypes" >
             <Column field="type" header="Type d'activité" />
             <Column field="pourcentage" header="Pourcentage (%)">
               <template #body="slotProps">
@@ -669,8 +759,7 @@ const exportData = async () => {
     </div>
     <Divider/>
     <ListSkeleton v-if="isLoadingStatsPreviData" class="w-full"/>
-    <PermissionGuard :permission="'canViewPersonnelDetails'">
-      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+      <div v-else class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
         <div class="mb-4">
           <div class="text-lg font-bold">Comparatif prévisionnel</div>
           <em>Cette section compare les heures programmées avec les heures prévues selon les enseignements associés.</em>
@@ -685,82 +774,106 @@ const exportData = async () => {
         </span>
           <span v-else>Tous les diplômes</span>
         </div>
-        <div v-if="displayedComparatifRows">
-          <Message v-if="displayedComparatifRows.length < 1" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
-            Aucune donnée de comparatif prévisionnel disponible pour les filtres sélectionnés.
-          </Message>
-          <div class="flex flex-col gap-4 w-full items-center justify-center" v-else>
-            <SelectButton
-                :options="features"
-                v-model="selectedFeature"
-                class="w-full justify-center"
-                optionLabel="libelle"
-                optionValue="id"
-            />
-
-            <DataTable :value="displayedComparatifRows" class="mt-4 w-full" show-gridlines paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]">
-              <ColumnGroup type="header">
-                <Row>
-                  <Column :header="firstColHeader" :rowspan="2" />
-                  <Column header="Heures prévisionnel" :colspan="typesList.length + 1" />
-                  <Column header="Heures edt" :colspan="typesList.length + 1" />
-                  <Column header="Différence" :rowspan="2" />
-                </Row>
-                <Row>
-                  <Column v-for="t in typesList" :key="'previ-h-' + t" :header="t" :class="t === 'CM' ? '!bg-purple-400' : t === 'TD' ? '!bg-green-400' : t === 'TP' ? '!bg-yellow-400' : t === 'Projet' ? '!bg-blue-400' : ''" class="!bg-opacity-40 !text-nowrap"/>
-                  <Column header="Total" />
-                  <Column v-for="t in typesList" :key="'edt-h-' + t" :header="t" :class="t === 'CM' ? '!bg-purple-400' : t === 'TD' ? '!bg-green-400' : t === 'TP' ? '!bg-yellow-400' : t === 'Projet' ? '!bg-blue-400' : ''" class="!bg-opacity-40 !text-nowrap"/>
-                  <Column header="Total" />
-                </Row>
-              </ColumnGroup>
-
-              <Column>
-                <template #body="slotProps">
-                  {{ slotProps.data[firstColKey] }}
-                </template>
-              </Column>
-
-              <Column v-for="t in typesList" :key="'previ-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
-                <template #body="slotProps">
-                  {{ (slotProps.data['previ_' + t] || 0) }} h
-                </template>
-              </Column>
-              <Column>
-                <template #body="slotProps">
-                  <strong>{{ previTotal(slotProps.data) }} h</strong>
-                </template>
-              </Column>
-
-              <Column v-for="t in typesList" :key="'edt-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
-                <template #body="slotProps">
-                  {{ (slotProps.data['edt_' + t] || 0) }} h
-                </template>
-              </Column>
-              <Column>
-                <template #body="slotProps">
-                  <strong>{{ edtTotal(slotProps.data) }} h</strong>
-                </template>
-              </Column>
-
-              <Column>
-                <template #body="slotProps">
-                  <Tag :severity="diffSeverity(slotProps.data)" rounded>
-                    {{ diffTotal(slotProps.data) }} h
-                  </Tag>
-                </template>
-              </Column>
-            </DataTable>
-
-            <div class="flex items-center justify-end w-full gap-4">
-              <router-link :to="`/administration/previsionnel/semestre`">
-                <Button label="Accéder au prévisionnel" icon="pi pi-arrow-right" severity="primary" class="mt-4" @click="" />
-              </router-link>
-              <Button label="Exporter en xlsx" icon="pi pi-file" severity="success" class="mt-4" @click="exportData()" />
+        <div class="flex w-full justify-center">
+          <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-1/2 min-w-48 flex flex-col items-center justify-center my-4">
+            <div>
+              Taux de réalisation des heures prévisionnelles
+            </div>
+            <div class="text-lg font-bold">
+              <div v-if="statsPreviData && Number(statsPreviData.taux_realisation) > 100" class="text-red-600 text-center">
+                <div>
+                  Dépassement des heures prévisionnel
+                </div>
+                <div>
+                  {{ statsPreviData.taux_realisation }} %
+                </div>
+              </div>
+              <div v-else-if="statsPreviData">
+                {{ statsPreviData.taux_realisation }} %
+              </div>
+              <div v-else>-</div>
             </div>
           </div>
         </div>
+        <PermissionGuard :permission="'canViewPersonnelDetails'">
+          <div v-if="displayedComparatifRows">
+            <Message v-if="displayedComparatifRows.length < 1" severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
+              Aucune donnée de comparatif prévisionnel disponible pour les filtres sélectionnés.
+            </Message>
+            <div class="flex flex-col gap-4 w-full items-center justify-center" v-else>
+              <SelectButton
+                  :options="features"
+                  v-model="selectedFeature"
+                  class="w-full justify-center"
+                  optionLabel="libelle"
+                  optionValue="id"
+              />
+
+              <DataTable :value="displayedComparatifRows" class="mt-4 w-full" show-gridlines paginator :rows="10" :rowsPerPageOptions="[10, 25, 50]">
+                <ColumnGroup type="header">
+                  <Row>
+                    <Column :header="firstColHeader" :rowspan="2" />
+                    <Column header="Heures prévisionnel" :colspan="typesList.length + 1" />
+                    <Column header="Heures edt" :colspan="typesList.length + 1" />
+                    <Column header="Différence" :rowspan="2" />
+                  </Row>
+                  <Row>
+                    <Column v-for="t in typesList" :key="'previ-h-' + t" :header="t" :class="t === 'CM' ? '!bg-purple-400' : t === 'TD' ? '!bg-green-400' : t === 'TP' ? '!bg-yellow-400' : t === 'Projet' ? '!bg-blue-400' : ''" class="!bg-opacity-40 !text-nowrap"/>
+                    <Column header="Total" />
+                    <Column v-for="t in typesList" :key="'edt-h-' + t" :header="t" :class="t === 'CM' ? '!bg-purple-400' : t === 'TD' ? '!bg-green-400' : t === 'TP' ? '!bg-yellow-400' : t === 'Projet' ? '!bg-blue-400' : ''" class="!bg-opacity-40 !text-nowrap"/>
+                    <Column header="Total" />
+                  </Row>
+                </ColumnGroup>
+
+                <Column>
+                  <template #body="slotProps">
+                    {{ slotProps.data[firstColKey] }}
+                  </template>
+                </Column>
+
+                <Column v-for="t in typesList" :key="'previ-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
+                  <template #body="slotProps">
+                    {{ (slotProps.data['previ_' + t] || 0) }} h
+                  </template>
+                </Column>
+                <Column>
+                  <template #body="slotProps">
+                    <strong>{{ previTotal(slotProps.data) }} h</strong>
+                  </template>
+                </Column>
+
+                <Column v-for="t in typesList" :key="'edt-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
+                  <template #body="slotProps">
+                    {{ (slotProps.data['edt_' + t] || 0) }} h
+                  </template>
+                </Column>
+                <Column>
+                  <template #body="slotProps">
+                    <strong>{{ edtTotal(slotProps.data) }} h</strong>
+                  </template>
+                </Column>
+
+                <Column>
+                  <template #body="slotProps">
+                    <Tag :severity="diffSeverity(slotProps.data)" rounded>
+                      <i v-if="diffTotal(slotProps.data) > 0" class="pi pi-arrow-up"></i>
+                      <i v-else-if="diffTotal(slotProps.data) < 0" class="pi pi-arrow-down"></i>
+                      {{ (slotProps.data['heures_diff'] || 0) }} h
+                    </Tag>
+                  </template>
+                </Column>
+              </DataTable>
+
+              <div class="flex items-center justify-end w-full gap-4">
+                <router-link :to="`/administration/previsionnel/semestre`">
+                  <Button label="Accéder au prévisionnel" icon="pi pi-arrow-right" severity="primary" @click="" />
+                </router-link>
+                <Button label="Exporter en xlsx" icon="pi pi-file" severity="secondary" @click="exportDataPrevi()" />
+              </div>
+            </div>
+          </div>
+        </PermissionGuard>
       </div>
-    </PermissionGuard>
   </div>
 </template>
 

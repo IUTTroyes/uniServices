@@ -96,9 +96,17 @@ class PreviStatsEdtProvider implements ProviderInterface
             // EDT: récupérer les événements correspondants via le repository (filtres: semestre et année universitaire)
             $filters = $context['filters'] ?? [];
             $semestreId = !empty($filters['semestre']) ? (int) $filters['semestre'] : null;
+            $anneeId = !empty($filters['annee']) ? (int) $filters['annee'] : null;
             $anneeUniversitaireId = !empty($filters['anneeUniversitaire']) ? (int) $filters['anneeUniversitaire'] : null;
 
+            if ($semestreId) {
             $events = $this->edtEventRepository->findForStatsBySemestreAndAnneeUniversitaire($semestreId, $anneeUniversitaireId);
+            } elseif ($anneeId) {
+                $events = $this->edtEventRepository->findForStatsByAnneeAndAnneeUniversitaire($anneeId, $anneeUniversitaireId);
+            } else {
+                // Pas de filtre semestre/année: récupérer tous les événements pour l'année universitaire si fournie
+                $events = $this->edtEventRepository->findForStatsByAnneeAndAnneeUniversitaire(null, $anneeUniversitaireId);
+            }
 
             $edtByEnsType = [];
             // EDT: heures par enseignant et par type
@@ -148,11 +156,21 @@ class PreviStatsEdtProvider implements ProviderInterface
             $allEnsIds = array_unique(array_merge(array_keys($previByEnsType), array_keys($edtByEnsType)));
             foreach ($allEnsIds as $ensId) {
                 $display = $ensDisplayById[$ensId] ?? '';
+
+                // Calculer les totaux par enseignement (somme sur tous les types)
+                $totalPrevi = 0.0;
+                $totalEdt = 0.0;
+                foreach ($typesList as $tt) {
+                    $totalPrevi += (float) ($previByEnsType[$ensId][$tt] ?? 0.0);
+                    $totalEdt += (float) ($edtByEnsType[$ensId][$tt] ?? 0.0);
+                }
+
                 foreach ($typesList as $t) {
                     $previ = (float) ($previByEnsType[$ensId][$t] ?? 0.0);
                     $edt = (float) ($edtByEnsType[$ensId][$t] ?? 0.0);
                     if ($previ > 0 || $edt > 0) {
-                        $heures_diff = $previ - $edt;
+                        // Utiliser la différence des totaux (edt total - prévi total) pour l'enseignement
+                        $heures_diff = $totalEdt - $totalPrevi;
 
                         $rows[] = [
                             'id' => $ensId,
@@ -178,6 +196,23 @@ class PreviStatsEdtProvider implements ProviderInterface
                 // éviter doublons
                 if (isset($seenTeachers[$enseignantDisplay])) continue;
                 $seenTeachers[$enseignantDisplay] = true;
+
+                // --- CHANGEMENT : calculer les totaux par enseignant ---
+                $totalPreviTeacher = 0.0;
+                $totalEdtTeacher = 0.0;
+                if (isset($previByEnseignantType[$enseignantDisplay])) {
+                    foreach ($previByEnseignantType[$enseignantDisplay] as $val) {
+                        $totalPreviTeacher += (float) $val;
+                    }
+                }
+                if (isset($edtByEnseignantType[$enseignantDisplay])) {
+                    foreach ($edtByEnseignantType[$enseignantDisplay] as $val) {
+                        $totalEdtTeacher += (float) $val;
+                    }
+                }
+                $totalDiffTeacher = $totalEdtTeacher - $totalPreviTeacher;
+                // --- fin changement ---
+
                 foreach ($typesList as $t) {
                     $previ = (float) ($previByEnseignantType[$enseignantDisplay][$t] ?? 0.0);
                     $edt = (float) ($edtByEnseignantType[$enseignantDisplay][$t] ?? 0.0);
@@ -187,7 +222,8 @@ class PreviStatsEdtProvider implements ProviderInterface
                             'type' => $t,
                             'heures_previsionnel' => $previ,
                             'heures_edt' => $edt,
-                            'heures_diff' => $previ - $edt,
+                            // Utiliser la différence des totaux par enseignant
+                            'heures_diff' => $totalDiffTeacher,
                         ];
                     }
                 }
@@ -196,6 +232,23 @@ class PreviStatsEdtProvider implements ProviderInterface
             // Puis compléter avec les enseignants provenant du prévisionnel qui n'apparaissent pas dans les événements
             foreach ($allTeachers as $teacher) {
                 if (isset($seenTeachers[$teacher])) continue;
+
+                // --- CHANGEMENT : calculer les totaux par enseignant (pour ceux provenant du prévisionnel) ---
+                $totalPreviTeacher = 0.0;
+                $totalEdtTeacher = 0.0;
+                if (isset($previByEnseignantType[$teacher])) {
+                    foreach ($previByEnseignantType[$teacher] as $val) {
+                        $totalPreviTeacher += (float) $val;
+                    }
+                }
+                if (isset($edtByEnseignantType[$teacher])) {
+                    foreach ($edtByEnseignantType[$teacher] as $val) {
+                        $totalEdtTeacher += (float) $val;
+                    }
+                }
+                $totalDiffTeacher = $totalEdtTeacher - $totalPreviTeacher;
+                // --- fin changement ---
+
                 foreach ($typesList as $t) {
                     $previ = (float) ($previByEnseignantType[$teacher][$t] ?? 0.0);
                     $edt = (float) ($edtByEnseignantType[$teacher][$t] ?? 0.0);
@@ -205,15 +258,42 @@ class PreviStatsEdtProvider implements ProviderInterface
                             'type' => $t,
                             'heures_previsionnel' => $previ,
                             'heures_edt' => $edt,
-                            'heures_diff' => $previ - $edt,
+                            // Utiliser la différence des totaux par enseignant
+                            'heures_diff' => $totalDiffTeacher,
                         ];
                     }
                 }
             }
 
+            // Calculer le taux global de réalisation (heures EDT réalisées / heures prévues) sur l'ensemble de la sélection
+            $total_previ = 0.0;
+            $total_edt = 0.0;
+
+            // Somme des heures prévues (toutes matières, tous types)
+            foreach ($previByEnsType as $ensIdTmp => $types) {
+                foreach ($types as $t => $val) {
+                    $total_previ += (float) $val;
+                }
+            }
+
+            // Somme des heures réalisées (EDT) (toutes matières, tous types)
+            foreach ($edtByEnsType as $ensIdTmp => $types) {
+                foreach ($types as $t => $val) {
+                    $total_edt += (float) $val;
+                }
+            }
+
+            if ($total_previ > 0.0) {
+                $taux_realisation = ($total_edt / $total_previ) * 100.0;
+            } else {
+                // S'il n'y a pas de prévisionnel: 100% si on a des heures réalisées, sinon 0%
+                $taux_realisation = ($total_edt > 0.0) ? 100.0 : 0.0;
+            }
+
             $dto->setStatPreviEdtEnseignement($rows);
             $dto->setStatPreviEdtEnseignant($rowsTeachers);
             $dto->setTypesGroupes($typesList);
+            $dto->setTauxRealisation((int) round($taux_realisation));
             return $dto;
         }
 

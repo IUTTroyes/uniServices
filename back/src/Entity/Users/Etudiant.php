@@ -67,7 +67,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['etudiant:detail', 'etudiant:light'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
@@ -90,11 +90,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['etudiant:detail', 'etudiant:light'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['etudiant:detail', 'etudiant:light'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -126,7 +126,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $site_univ = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:detail'])]
+    #[Groups(['etudiant:detail', 'scolarite-semestre:manage-groupes'])]
     private ?string $num_etudiant = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -181,7 +181,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private Collection $groupes;
 
     #[ORM\ManyToOne(inversedBy: 'etudiants')]
-    #[Groups(['etudiant:detail', 'etudiant:light'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
     private ?ScolBac $bac = null;
 
     public function __construct()

@@ -49,11 +49,16 @@ export const useSemestreStore = defineStore('semestre', () => {
     }
   };
 
+  const setSelectedSemestre = (semestreData) => {
+    semestre.value = semestreData;
+  }
+
   return {
     getSemestre,
     getSemestres,
     getSemestresByDepartement,
     getSemestresByDiplome,
+    setSelectedSemestre,
     semestre,
     semestres
   };

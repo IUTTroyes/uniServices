@@ -1,5 +1,6 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue';
+import { useRoute } from 'vue-router';
 import {
   getEnseignementsService,
   getEtudiantsService,
@@ -17,11 +18,13 @@ import EvaluationStatistiques from "../../components/Evaluation/EvaluationStatis
 import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 
 const toast = useToast();
+const route = useRoute();
 const usersStore = useUsersStore();
-const hasError = ref(false);
 const diplomeStore = useDiplomeStore();
+const hasError = ref(false);
 const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));
 const departementId = ref(null);
+const isPreselecting = ref(false);
 const diplomes = ref({});
 const isLoadingDiplomes = ref(true);
 const selectedDiplome = ref({});
@@ -44,15 +47,48 @@ onMounted(() => {
   getDiplomes();
 });
 
+// Try to select diploma/annee/semestre based on a semestreId
+const preselectBySemestreId = (semestreId) => {
+  if (!semestreId || !Array.isArray(diplomes.value)) return false;
+  for (const d of diplomes.value) {
+    for (const a of d.annees || []) {
+      const found = (a.semestres || []).find(s => String(s.id) === String(semestreId));
+      if (found) {
+        selectedDiplome.value = d;
+        selectedAnnee.value = a;
+        selectedSemestre.value = found;
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
 watch(selectedDiplome, () => {
-  selectedAnnee.value = selectedDiplome.value.annees[0];
+  if (isPreselecting.value) return;
+  selectedAnnee.value = selectedDiplome.value?.annees?.[0] || {};
 });
 watch(selectedAnnee, () => {
-  selectedSemestre.value = selectedAnnee.value.semestres[0];
-})
+  if (isPreselecting.value) return;
+  selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || {};
+});
 watch(selectedSemestre, () => {
   getEnseignements();
-})
+});
+
+// React to route changes (e.g., navigation from Admin Bloc with a semestre id)
+watch(() => route.params.semestreId, (newId) => {
+  if (!newId) return;
+  isPreselecting.value = true;
+  const ok = preselectBySemestreId(newId);
+  isPreselecting.value = false;
+  if (ok) {
+    getEnseignements();
+  } else {
+    hasError.value = true;
+  }
+});
+
 
 const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
@@ -64,9 +100,16 @@ const getDiplomes = async () => {
     hasError.value = true;
     console.error('Error fetching diplomes:', error);
   } finally {
-    selectedDiplome.value = diplomes.value[0];
-    selectedAnnee.value = selectedDiplome.value.annees[0];
-    selectedSemestre.value = selectedAnnee.value.semestres[0];
+    // Require semestreId from route; no global fallback
+    const routeSemId = route?.params?.semestreId;
+    const ok = preselectBySemestreId(routeSemId);
+    if (!ok) {
+      hasError.value = true;
+      // Keep selections empty to prevent unintended loads
+      selectedDiplome.value = {};
+      selectedAnnee.value = {};
+      selectedSemestre.value = {};
+    }
     isLoadingDiplomes.value = false;
   }
 };

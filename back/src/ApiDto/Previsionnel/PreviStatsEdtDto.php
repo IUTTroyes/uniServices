@@ -16,6 +16,9 @@ class PreviStatsEdtDto
     #[Groups(['previsionnel_stats_edt:read'])]
     protected array $typesGroupes = [];
 
+    #[Groups(['previsionnel_stats_edt:read'])]
+    protected int $taux_realisation = 0;
+
     public function getStatPreviEdtEnseignement(): array
     {
         return $this->statPreviEdtEnseignement;
@@ -44,6 +47,16 @@ class PreviStatsEdtDto
     public function setTypesGroupes(array $typesGroupes): void
     {
         $this->typesGroupes = $typesGroupes;
+    }
+
+    public function getTauxRealisation(): int
+    {
+        return $this->taux_realisation;
+    }
+
+    public function setTauxRealisation(int $taux_realisation): void
+    {
+        $this->taux_realisation = $taux_realisation;
     }
 
 }

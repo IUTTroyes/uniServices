@@ -110,16 +110,6 @@ export default [
     ]
   },
   {
-    path: 'administration/evaluations',
-    component: () => import('@/views/evaluations/EvaluationsView.vue'),
-    meta: {
-      breadcrumb: [
-        { label: 'Dashboard', route: '/' },
-        { label: 'Administration', route: '/administration', icon: 'pi pi-wrench' },
-        { label: 'Évaluations', route: null, icon: 'pi pi-clock' }]
-    }
-  },
-  {
     path: 'administration/stages',
     // component: () => import('@/views/Stages/AdministrationView.vue'),
     // meta: {
@@ -133,8 +123,7 @@ export default [
     ]
   },
   {
-    path: 'administration/semestre',
-    component: () => import('@/views/AdministrationView.vue'),
+    path: 'administration/semestre/:semestreId',
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },

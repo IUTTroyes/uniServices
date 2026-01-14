@@ -20,11 +20,11 @@ const getSemestresService = async (params, scope = '', showToast = false) => {
     }
 }
 
-const getSemestreService = async (semestreId, showToast = false) => {
+const getSemestreService = async (semestreId, scope = '',showToast = false) => {
     try {
         return await apiCall(
             api.get,
-            [`/api/structure_semestres/${semestreId}`],
+            [`/api${scope}/structure_semestres/${semestreId}`],
             'Semestre récupéré avec succès',
             'Erreur lors de la récupération du semestre',
             showToast

@@ -46,4 +46,29 @@ class EdtEventRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    public function findForStatsByAnneeAndAnneeUniversitaire(?int $annee, ?int $anneeUniversitaireId): array
+    {
+        $qb = $this->createQueryBuilder('e')
+            ->leftJoin('e.enseignement', 'ens')
+            ->leftJoin('e.semestre', 'sem')
+            ->leftJoin('e.anneeUniversitaire', 'au')
+            ->leftJoin('e.personnel', 'p')
+            ->addSelect('ens')
+            ->addSelect('sem')
+            ->addSelect('au')
+            ->addSelect('p')
+            // trier par nom puis prénom du personnel afin de faciliter un ordre stable côté fournisseur
+            ->orderBy('p.nom', 'ASC')
+            ->addOrderBy('p.prenom', 'ASC');
+
+        if ($anneeUniversitaireId) {
+            $qb->andWhere('au.id = :auId')->setParameter('auId', $anneeUniversitaireId);
+        }
+        if ($annee) {
+            $qb->andWhere('sem.annee = :annee')->setParameter('annee', $annee);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

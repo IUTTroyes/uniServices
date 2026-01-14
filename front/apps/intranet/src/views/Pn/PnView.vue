@@ -104,6 +104,7 @@ const showDetails = (item, semestre) => {
     </div>
     <div v-else>
       <h2 class="text-2xl font-bold">Programmes pédagogiques nationaux</h2>
+      <em>Gestion de la maquette pédagogique</em>
       <Divider/>
       <Tabs :value="selectedDiplome?.id || diplomes[0]?.id" scrollable>
         <TabList>

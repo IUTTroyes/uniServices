@@ -1,6 +1,9 @@
+// Removed top-level store call; breadcrumb that needs the store is created lazily
+import { useSemestreStore } from "@stores";
+
 export default [
   {
-    path: ':semestreId/groupes/structure',
+    path: 'groupes/structure',
     name: 'structure-groupe',
     component: () => import('@/views/Groupes/StructureGroupeView.vue'),
     meta: {
@@ -14,21 +17,26 @@ export default [
     },
   },
   {
-    path: ':semestreId/groupes/affectation',
+    path: 'groupes/affectation',
     name: 'affectation-groupe',
     component: () => import('@/views/Groupes/AffectationGroupeView.vue'),
+    // breadcrumb is a function so we can read the store at render time (not at module import)
     meta: {
-      breadcrumb: [{ label: 'Dashboard', route: '/' }, {
-        label: 'Administration',
-        route: '/administration',
-        icon: 'pi pi-wrench'
-      },
-        { label: 'Semestre', route: null },
-        { label: 'Affectation des groupes', route: null }]
+      breadcrumb: () => {
+        const semestreStore = useSemestreStore();
+        const selectedSemestre = semestreStore.semestre;
+        return [{ label: 'Dashboard', route: '/' }, {
+          label: 'Administration',
+          route: '/administration',
+          icon: 'pi pi-wrench'
+        },
+        { label: selectedSemestre?.libelle ?? 'Semestre', route: null },
+        { label: 'Affectation des groupes', route: null }];
+      }
     },
   },
   {
-    path: ':semestreId/absences/liste',
+    path: 'absences/liste',
     name: 'liste-absences',
     component: () => import('@/views/Groupes/StructureGroupeView.vue'),
     meta: {
@@ -42,7 +50,7 @@ export default [
     },
   },
   {
-    path: ':semestreId/justificatifs-absences/liste',
+    path: 'justificatifs-absences/liste',
     name: 'liste-justificatifs-absences',
     component: () => import('@/views/Groupes/StructureGroupeView.vue'),
     meta: {
@@ -56,7 +64,7 @@ export default [
     },
   },
   {
-    path: ':semestreId/evaluations/liste',
+    path: 'evaluations/liste',
     name: 'liste-evaluations',
     component: () => import('@/views/Evaluations/EvaluationsView.vue'),
     meta: {
@@ -70,7 +78,7 @@ export default [
     },
   },
   {
-    path: ':semestreId/rattrapages/liste',
+    path: 'rattrapages/liste',
     name: 'liste-rattrapages',
     component: () => import('@/views/Groupes/StructureGroupeView.vue'),
     meta: {
@@ -84,7 +92,7 @@ export default [
     },
   },
   {
-    path: ':semestreId/mccc/liste',
+    path: 'mccc/liste',
     name: 'liste-mccc',
     component: () => import('@/views/Groupes/StructureGroupeView.vue'),
     meta: {
@@ -98,7 +106,7 @@ export default [
     },
   },
   {
-    path: ':semestreId/sous-commission',
+    path: 'sous-commission',
     name: 'sous-commission',
     component: () => import('@/views/Groupes/StructureGroupeView.vue'),
     meta: {

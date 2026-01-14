@@ -275,7 +275,7 @@ const getEventsDepartementWeek = async () => {
             overlap: false,
             eval: event.evaluation,
             intervenants: event.enseignement?.previsionnels
-                .filter(intervenant => intervenant.personnel.id !== personnel.id)
+                .filter(intervenant => intervenant.personnel?.id !== personnel.id)
                 .map(intervenant => ({
                   id: intervenant.id,
                   display: intervenant.personnel?.display || 'Inconnu',

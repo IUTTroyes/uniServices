@@ -29,6 +29,15 @@ class EnseignementFilter extends AbstractFilter
             ;
         }
 
+        if ('annee' === $property) {
+            $queryBuilder
+                ->join("$alias.enseignementUes", "enseignementUe2")
+                ->join("enseignementUe2.ue", "ue2")
+                ->join("ue2.semestre", "semestre2")
+                ->andWhere("semestre2.annee = :annee")
+                ->setParameter("annee", $value);
+        }
+
         if ('departement' === $property || ('departement' === $property && 'actif' === $property)) {
             $queryBuilder
                 ->join("$alias.enseignementUes", "enseignementUe")
@@ -89,6 +98,14 @@ class EnseignementFilter extends AbstractFilter
                     'description' => 'Filter by actif status',
                 ],
             ],
+            'annee' => [
+                'property' => 'annee',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by année',
+                ],
+            ]
         ];
     }
 }

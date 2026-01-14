@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import {computed, onMounted, onUnmounted, ref} from 'vue';
-
-import {getEtudiantsService, getPersonnelsService} from '@requests';
-import {useFilters} from '@/composables/useFilters';
+import { getEtudiantsService, getPersonnelsService } from '@requests/';
+import { useFilters } from '@/composables/useFilters';
 import FilterSidebar from '@/components/Trombinoscope/FilterSidebar.vue';
 import StatisticsPanel from '@/components/Trombinoscope/StatisticsPanel.vue';
 import PersonCard from '@/components/Trombinoscope/PersonCard.vue';

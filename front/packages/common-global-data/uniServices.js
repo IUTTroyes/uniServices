@@ -38,3 +38,12 @@ export const statuts = [
   { label: 'BIATSS', value: 'BIATSS', severity: 'warn' },
   { label: 'Autre', value: 'AUTRE', severity: 'secondary' }
 ]
+
+export const typesGroupes = [
+    { label: 'Cours Magistral', value: 'CM' },
+    { label: 'Travaux Dirigés', value: 'TD' },
+    { label: 'Travaux Pratiques', value: 'TP' },
+    { label: 'Langue', value: 'LV' },
+    { label: 'Projet', value: 'PROJET' },
+    { label: 'Autre', value: 'AUTRE' }
+];

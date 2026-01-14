@@ -1,9 +1,13 @@
 export function formatDateCourt(date) {
-    return new Date(date).toLocaleDateString();
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString();
 }
 
 export function formatDateLong(date) {
-    return new Date(date).toLocaleDateString('fr-FR', {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('fr-FR', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
@@ -12,13 +16,16 @@ export function formatDateLong(date) {
 }
 
 export function jourDate(date) {
-    return new Date(date).toLocaleDateString('fr-FR', {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('fr-FR', {
         weekday: 'long'
     });
 }
 
 export function heuresMinutesDate(date) {
     const localDate = new Date(date);
+    if (isNaN(localDate.getTime())) return '';
     return localDate.toLocaleTimeString('fr-FR', {
         hour: '2-digit',
         minute: '2-digit'
@@ -26,7 +33,8 @@ export function heuresMinutesDate(date) {
 }
 
 export function getISOWeekNumber(date) {
-    const tempDate = new Date(date.getTime());
+    const tempDate = new Date(date);
+    if (isNaN(tempDate.getTime())) return NaN;
     tempDate.setHours(0, 0, 0, 0);
     tempDate.setDate(tempDate.getDate() + 3 - ((tempDate.getDay() + 6) % 7));
     const week1 = new Date(tempDate.getFullYear(), 0, 4);

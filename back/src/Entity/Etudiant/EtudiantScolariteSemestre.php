@@ -2,15 +2,18 @@
 
 namespace App\Entity\Etudiant;
 
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use App\ApiDto\EtudiantScolariteSemestre\EtudiantScolariteSemestreDto;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
 use App\Filter\EtudiantScolariteSemestreFilter;
 use App\Repository\EtudiantScolariteSemestreRepository;
+use App\State\EtudiantScolariteSemestre\EtudiantScolariteSemestreProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -21,8 +24,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['scolarite-semestre:detail']]),
+        new GetCollection(
+            uriTemplate: '/manage-groupes/etudiant_scolarite_semestres',
+            normalizationContext: ['groups' => ['scolarite-semestre:manage-groupes']],
+            provider: EtudiantScolariteSemestreProvider::class,
+            output: EtudiantScolariteSemestreDto::class
+        ),
         new GetCollection(normalizationContext: ['groups' => ['scolarite-semestre:detail', 'semestre:light', 'annee:light', 'groupe:light']]),
-        new Patch(normalizationContext: ['groups' => ['scolarite-semestre:detail']], securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),
+        new Patch(normalizationContext: ['groups' => ['scolarite-semestre:write']], securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),
     ]
 )]
 class EtudiantScolariteSemestre
@@ -30,7 +39,7 @@ class EtudiantScolariteSemestre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['scolarite-semestre:detail', 'etudiant:read'])]
+    #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite-semestre:manage-groupes'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre', cascade: ['persist', 'remove'])]
@@ -51,13 +60,14 @@ class EtudiantScolariteSemestre
     private Collection $note;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
+    #[Groups(['scolarite-semestre:manage-groupes'])]
     private ?EtudiantScolarite $scolarite = null;
 
     /**
      * @var Collection<int, StructureGroupe>
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'scolariteSemestres')]
-    #[Groups(['scolarite-semestre:detail'])]
+    #[Groups(['scolarite-semestre:detail', 'scolarite-semestre:manage-groupes', 'scolarite-semestre:write'])]
     private Collection $groupes;
 
     #[ORM\Column(nullable: true)]

@@ -1,4 +1,4 @@
 export const capitalize = (str) => {
-  if (str == null || str === '') return str;
+  if (typeof str !== 'string' || str.length === 0) return '';
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
