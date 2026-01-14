@@ -21,13 +21,14 @@ export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
     console.log('useFilters')
 
     const filteredStudents = computed(() => {
-        console.log('filteredStudents--')
         if (filters.value.mode !== 'students') return [];
 
         let result = [...students.value];
+        console.log('result', result)
 
+        console.log(filters.value)
         // Apply search filter
-        if (filters.value.searchTerm) {
+        if (filters.value.searchTerm && filters.value.searchTerm.trim() !== '') {
             const searchLower = filters.value.searchTerm.toLowerCase();
             result = result.filter(student =>
                 student.prenom.toLowerCase().includes(searchLower) ||
@@ -78,6 +79,8 @@ export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
             if (aValue > bValue) return filters.value.sortOrder === 'asc' ? 1 : -1;
             return 0;
         });
+
+        console.log('fin', result)
 
         return result;
     });

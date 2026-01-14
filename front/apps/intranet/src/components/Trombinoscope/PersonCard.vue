@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type {Personnel, Etudiant} from '@/types';
+import type {Personnel, Etudiant} from '@types';
 
 import { getStatutText, getStatutColor } from "@utils"
 
@@ -12,7 +12,7 @@ interface Props {
 defineProps<Props>();
 
 const isStudent = (person: Etudiant | Personnel): person is Etudiant => {
-  return 'semester' in person;
+  return 'scolarites' in person;
 };
 </script>
 
@@ -26,7 +26,7 @@ const isStudent = (person: Etudiant | Personnel): person is Etudiant => {
     <!-- Photo -->
     <div :class="viewMode === 'grid' ? 'mb-4' : 'flex-shrink-0'">
       <img
-          :src="person.photo"
+          :src="person.photoName"
           :alt="`Photo de ${person.prenom} ${person.nom}`"
           :class="[
           'object-cover border-2 border-gray-200',
@@ -43,30 +43,23 @@ const isStudent = (person: Etudiant | Personnel): person is Etudiant => {
           {{ person.prenom }} {{ person.nom }}
         </h3>
         <p :class="viewMode === 'grid' ? 'text-sm text-gray-600' : 'text-xs text-gray-600 truncate'">
-          {{ person.mail_univ }}
+          {{ person.mailUniv }}
         </p>
       </div>
 
       <!-- Student Info -->
       <div v-if="isStudent(person)" :class="viewMode === 'grid' ? 'space-y-2' : 'space-y-1'">
-        //semestre...
         <div class="flex items-center justify-center gap-2" v-if="viewMode === 'grid'">
-          <span class="badge badge-primary">S{{ person.semester }}</span>
-          <Badge :severity="getStatutColor(person.statut)">
-            {{ getStatutText(person.statut) }}
-          </Badge>
+          <span class="badge badge-primary">S{{ person.scolarite }}</span><!-- todo: semestre -->
         </div>
         <div class="flex items-center gap-2" v-else>
-          <span class="badge badge-primary text-xs">S{{ person.semester }}</span>
-          <Badge :severity="getStatutColor(person.statut)">
-            {{ getStatutText(person.statut) }}
-          </Badge>
+          <span class="badge badge-primary text-xs">S{{ person.scolarite }}</span><!-- todo: semestre -->
         </div>
 
         <!-- Groups -->
         <div :class="viewMode === 'grid' ? 'space-y-1' : 'mt-1'">
           <div class="flex gap-1">
-            <template v-for="(groups, type) in person.groups" :key="type">
+            <template v-for="(groups, type) in person.groupes" :key="type">
               <span
                   v-for="group in groups"
                   :key="group"

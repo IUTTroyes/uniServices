@@ -1,5 +1,6 @@
 import type { ApiResource } from './JsonLd';
 import {Groupe} from "@types";
+import {ScolariteSemestre} from "@types";
 
 export interface EtudiantFields {
     id?: number;
@@ -8,8 +9,10 @@ export interface EtudiantFields {
     username: string;
     mailUniv: string;
     photoName: string;
-    semestre: string; //todo : semestre ? objet
+    scolarite: ScolariteSemestre; //scolarite active
+    scolarites: ScolariteSemestre[];
     groupes: Groupe[];
+    statut: 'etudiant';
 }
 
 export type Etudiant = ApiResource<EtudiantFields>;

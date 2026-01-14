@@ -50,6 +50,7 @@ export * from './entity/StructureAnnee';
 export * from './entity/StructureUe';
 export * from './entity/User';
 export * from './entity/Groupe';
+export * from './entity/Scolarite';
 
 export * from './FilterState';
 export * from './survey';
