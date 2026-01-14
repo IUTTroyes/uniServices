@@ -20,7 +20,7 @@
                   Date de début
                 </label>
                 <input
-                    v-model="localSettings.startDate"
+                    v-model="localSurvey.openingDate"
                     type="datetime-local"
                     class="input-field"
                 />
@@ -30,7 +30,7 @@
                   Date de fin
                 </label>
                 <input
-                    v-model="localSettings.endDate"
+                    v-model="localSurvey.closingDate"
                     type="datetime-local"
                     class="input-field"
                 />
@@ -109,12 +109,25 @@
           </div>
         </div>
 
+        <!-- Message d'introduction -->
+        <div>
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Message d'introduction/présentation</h3>
+          <ValidatedInput
+              v-model="localSurvey.startText"
+              name="startText"
+              label="Message d'introduction/présentation"
+              type="textarea"
+              :rules="[]"
+              placeholder="Ce questionnaire ..."
+          />
+        </div>
+
         <!-- Thank You Message -->
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Message de remerciement</h3>
           <ValidatedInput
-              v-model="localSettings.thankYouMessage"
-              name="thankYouMessage"
+              v-model="localSurvey.endText"
+              name="endText"
               label="Message de remerciement"
               type="textarea"
               :rules="[]"
@@ -140,9 +153,8 @@
 
 <script setup lang="ts">
 import { ValidatedInput, validationRules } from '@components';
-import {onMounted, ref} from 'vue';
-import {XMarkIcon} from '@heroicons/vue/24/outline';
-import type {Survey, SurveySettings} from '@/types/survey';
+import {onMounted, ref, watch } from 'vue';
+import type {Survey, SurveySettings} from '@types';
 
 interface Props {
   survey: Survey | null;
@@ -151,37 +163,53 @@ interface Props {
 interface Emits {
   close: [];
   update: [settings: SurveySettings];
+  updateSurvey: [survey: Survey | null];
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
+const localSurvey = ref<Survey>();
 const localSettings = ref<SurveySettings>({
   anonymous: false,
   autoSave: true,
   allowBack: true,
   showProgress: true,
-  requireCompletion: false,
-  startDate: undefined,
-  endDate: undefined,
-  thankYouMessage: 'Merci d\'avoir participé à cette enquête !'
+  requireCompletion: false
 });
+
+watch(
+    () => props.survey,
+    (s) => {
+      if (s) {
+        // clone profond simple (compatible navigateur / Node)
+        try {
+          // prefer structuredClone si dispo
+          // @ts-ignore
+          localSurvey.value = typeof structuredClone === 'function' ? structuredClone(s) : JSON.parse(JSON.stringify(s));
+        } catch {
+          localSurvey.value = JSON.parse(JSON.stringify(s));
+        }
+
+        // remplir localSettings à partir des opt ou des champs racine si présents
+        localSettings.value = {
+          ...(s.opt ?? {})
+        };
+      } else {
+        localSurvey.value = null;
+        localSettings.value = {
+          anonymous: false,
+          autoSave: true,
+          allowBack: true,
+          showProgress: true,
+          requireCompletion: false
+        };
+      }
+    },
+    { immediate: true }
+);
 
 function saveSettings() {
   emit('update', localSettings.value);
 }
-
-onMounted(() => {
-  if (props.survey?.settings) {
-    localSettings.value = {...props.survey.settings};
-
-    // Convert dates for datetime-local inputs
-    if (localSettings.value.startDate) {
-      localSettings.value.startDate = new Date(localSettings.value.startDate).toISOString().slice(0, 16) as any;
-    }
-    if (localSettings.value.endDate) {
-      localSettings.value.endDate = new Date(localSettings.value.endDate).toISOString().slice(0, 16) as any;
-    }
-  }
-});
 </script>

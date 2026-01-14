@@ -2,7 +2,7 @@ export * from './structure_services/departementService';
 export * from './structure_services/diplomeService';
 export * from './structure_services/anneeService';
 export * from './structure_services/semestreService';
-export * from './structure_services/anneeUnivService';
+export { getAllAnneesUniversitairesService, getAnneeUniversitaireService, getCurrentAnneeUniversitaireService } from './structure_services/anneeUnivService';
 export * from './structure_services/pnService';
 export * from './structure_services/referentielCompetenceService.js';
 export * from './structure_services/structureCalendrierService';
@@ -15,8 +15,8 @@ export * from './scol_services/evaluationService.js';
 
 export * from './edt_services/edtEventService.js';
 
-export * from './user_services/etudiantService';
-export * from './user_services/personnelService';
+export { updateEtudiantService, getEtudiantService, createEtudiantService, createEtudiantsService, importEtudiantApogeeService, getEtudiantsService } from './user_services/etudiantService';
+export { getPersonnelsService } from './user_services/personnelService';
 export * from './user_services/userService';
 
 export * from './ext_data_services/siteIutService';

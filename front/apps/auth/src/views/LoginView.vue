@@ -48,7 +48,6 @@ const handleSubmit = async () => {
 
   isLoading.value = true;
   errorMessage.value = '';
-
   try {
     const response = await axios.post(import.meta.env.VITE_BASE_URL + '/api/login', {
       username: username.value,
@@ -82,6 +81,13 @@ const handleSubmit = async () => {
         : 'Une erreur est survenue, veuillez contacter l\'administrateur du site';
   } finally {
     isLoading.value = false;
+  }
+};
+
+// Détection de la touche Entrée : lance la connexion si les deux champs sont remplis
+const onEnter = () => {
+  if (username.value && password.value) {
+    handleSubmit();
   }
 };
 
@@ -153,7 +159,7 @@ const handleValidation = (field, result) => {
         <Divider></Divider>
 
         <p class="text-center">Compte invité</p>
-        <form @submit.prevent="handleSubmit" class="flex flex-col">
+        <form @submit.prevent="handleSubmit" @keydown.enter.prevent="onEnter" class="flex flex-col">
           <ValidatedInput
               v-model="username"
               name="username"

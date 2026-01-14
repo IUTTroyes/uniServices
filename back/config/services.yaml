@@ -34,3 +34,16 @@ services:
         arguments:
             $entityManager: '@doctrine.orm.entity_manager'
         tags: [ 'api_platform.state_provider' ]
+
+    App\Domain\Questionnaire\Repeat\RepeatItemsProviderRegistry:
+        arguments:
+            $providers: !tagged_iterator app.repeat_items_provider
+
+    App\Infrastructure\Questionnaire\Repeat\Types\MatiereRepeatItemsProvider:
+        tags: [ 'app.repeat_items_provider' ]
+
+#    App\Infrastructure\Questionnaire\Repeat\RessourceRepeatItemsProvider:
+#        tags: [ 'app.repeat_items_provider' ]
+#
+#    App\Infrastructure\Questionnaire\Repeat\ServiceRepeatItemsProvider:
+#        tags: [ 'app.repeat_items_provider' ]

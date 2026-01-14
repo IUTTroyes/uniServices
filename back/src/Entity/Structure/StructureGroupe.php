@@ -141,7 +141,7 @@ class StructureGroupe
         return $this->type;
     }
 
-    public function setType(TypeGroupeEnum $type): ?self
+    public function setType(TypeGroupeEnum $type): static
     {
         $this->type = $type;
 

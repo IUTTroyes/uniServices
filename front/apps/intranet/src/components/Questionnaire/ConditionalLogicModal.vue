@@ -59,7 +59,7 @@
                 :key="question.id"
                 :value="question.id"
               >
-                {{ question.title }}
+                {{ question.libelle }}
               </option>
             </select>
           </div>
@@ -84,13 +84,13 @@
               <div v-if="sourceQuestion">
                 <!-- Single/Multiple Choice -->
                 <select
-                  v-if="['single_choice', 'multiple_choice'].includes(sourceQuestion.type)"
+                  v-if="['single_choice', 'multiple_choice'].includes(sourceQuestion.typeQuestion)"
                   v-model="rule.value"
                   class="input-field"
                 >
                   <option value="">Sélectionnez une option</option>
                   <option
-                    v-for="option in sourceQuestion.options"
+                    v-for="option in sourceQuestion.reponses"
                     :key="option.id"
                     :value="option.text"
                   >
@@ -100,7 +100,7 @@
 
                 <!-- Scale -->
                 <input
-                  v-else-if="sourceQuestion.type === 'scale'"
+                  v-else-if="sourceQuestion.typeQuestion === 'scale'"
                   v-model.number="rule.value"
                   type="number"
                   :min="sourceQuestion.validation?.min || 1"
@@ -111,7 +111,7 @@
 
                 <!-- Text -->
                 <input
-                  v-else-if="['text_short', 'text_long'].includes(sourceQuestion.type)"
+                  v-else-if="['text_short', 'text_long'].includes(sourceQuestion.typeQuestion)"
                   v-model="rule.value"
                   type="text"
                   class="input-field"
@@ -155,6 +155,7 @@
                   <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
                     Questions concernées
                   </h4>
+
                   <div class="space-y-2 max-h-40 overflow-y-auto">
                     <label
                       v-for="question in targetQuestions"
@@ -167,7 +168,7 @@
                         :value="question.id"
                         class="text-primary-600 focus:ring-primary-500 rounded"
                       />
-                      <span class="text-sm text-gray-700 dark:text-gray-300">{{ question.title }}</span>
+                      <span class="text-sm text-gray-700 dark:text-gray-300">{{ question.libelle }}</span>
                     </label>
                   </div>
                 </div>
@@ -183,7 +184,7 @@
                   :key="section.id"
                   :value="section.id"
                 >
-                  {{ section.title }}
+                  {{ section.titre }}
                 </option>
               </select>
             </div>
@@ -251,7 +252,7 @@
                         :value="question.id"
                         class="text-primary-600 focus:ring-primary-500 rounded"
                       />
-                      <span class="text-sm text-gray-700 dark:text-gray-300">{{ question.title }}</span>
+                      <span class="text-sm text-gray-700 dark:text-gray-300">{{ question.libelle }}</span>
                     </label>
                   </div>
                 </div>
@@ -518,7 +519,7 @@ function getRuleDescription(): string {
   if (!sourceQ) return '';
 
   const operatorLabel = availableOperators.value.find(op => op.value === rule.value.operator)?.label || rule.value.operator;
-  const baseDescription = `Si "${sourceQ.title}" ${operatorLabel} "${rule.value.value}"`;
+  const baseDescription = `Si "${sourceQ.libelle}" ${operatorLabel} "${rule.value.value}"`;
 
   switch (selectedRuleType.value) {
     case 'show_hide':
@@ -528,7 +529,7 @@ function getRuleDescription(): string {
 
     case 'jump_section':
       const targetSection = availableSections.value.find(s => s.id === rule.value.targetSectionId);
-      return `${baseDescription}, alors aller à la section "${targetSection?.title || 'Inconnue'}"`;
+      return `${baseDescription}, alors aller à la section "${targetSection?.titre || 'Inconnue'}"`;
 
     case 'end_survey':
       return `${baseDescription}, alors terminer le questionnaire`;
@@ -557,7 +558,7 @@ function getExistingRuleDescription(existingRule: ConditionalLogicRule): string 
   };
 
   const operatorLabel = operatorLabels[existingRule.operator] || existingRule.operator;
-  return `Si "${sourceQ.title}" ${operatorLabel} "${existingRule.value}"`;
+  return `Si "${sourceQ.libelle}" ${operatorLabel} "${existingRule.value}"`;
 }
 
 function getRuleTypeLabel(type: string): string {

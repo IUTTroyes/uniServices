@@ -1,6 +1,12 @@
 {
-  "name": "common-helpers",
-  "version": "1.0.0",
-  "main": "index.js",
-  "type": "module"
+  "name": "@shared/helpers",
+  "version": "0.0.0",
+  "type": "module",
+  "main": "./index.ts",
+  "exports": {
+    ".": {
+      "import": "./index.ts",
+      "types": "./index.ts"
+    }
+  }
 }

@@ -7,13 +7,16 @@ use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 trait LifeCycleTrait
 {
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+    #[Groups(['questionnaire:read'])]
     private ?CarbonImmutable $created = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[Groups(['questionnaire:read'])]
     private ?CarbonInterface $updated = null;
 
     public function getCreated(): ?CarbonImmutable

@@ -1,5 +1,5 @@
-import api from '@helpers/axios';
-import apiCall from '@helpers/apiCall';
+import api from '@helpers/axios'
+import apiCall from '@helpers/apiCall'
 
 // ----------------------------------------------
 // ------------------- GET ----------------------
@@ -7,14 +7,13 @@ import apiCall from '@helpers/apiCall';
 
 const getAllQuestionnaires = async ( showToast = false) => {
     try {
-        const response = await apiCall(
-            api.get,
-            [`/api/questionnaires`],
-            'Questionnaires récupérés avec succès',
-            'Erreur lors de la récupération des questionnaires',
-            showToast
+        return await apiCall(
+          api.get,
+          [`/api/questionnaires`],
+          'Questionnaires récupérés avec succès',
+          'Erreur lors de la récupération des questionnaires',
+          showToast
         );
-        return response.member;
     } catch (error) {
         console.error('Erreur dans getAllQuestionnaires:', error);
         throw error;
@@ -37,6 +36,54 @@ const getQuestionnaire = async (id, showToast = false) => {
     }
 }
 
+const getPreviewQuestionnaire = async (id, showToast = false) => {
+    try {
+        return await apiCall(
+          api.get,
+          [`/api/questionnaires/${id}/preview/index`],
+          'Questionnaire récupéré avec succès',
+          'Erreur lors de la récupération du questionnaire',
+          showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getPreviewQuestionnaire:', error);
+        throw error;
+    }
+}
+
+const getPreviewQuestionnaireSection = async (id, keySection, showToast = false) => {
+    try {
+        return await apiCall(
+          api.get,
+          [`/api/questionnaires/${id}/preview/sections/${keySection}`],
+          'Section récupérée avec succès',
+          'Erreur lors de la récupération de la section',
+          showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getPreviewQuestionnaireSection:', error);
+        throw error;
+    }
+}
+
+const afficheQuestionnaire = async (id, showToast = false) => {
+    //calcule et renvoi l'intégralité du questionnaire prêt à être affiché (apercu ou mode réponse).
+    // todo: A voir si pas judicieux de faire par section ?
+    try {
+        const response = await apiCall(
+          api.get,
+          [`/api/questionnaires/${id}/affiche`],
+          'Questionnaire généré et récupéré avec succès',
+          'Erreur lors de la récupération du questionnaire',
+          showToast
+        );
+        return response;
+    } catch (error) {
+        console.error('Erreur dans afficheQuestionnaire:', error);
+        throw error;
+    }
+}
+
 const getQuestionnaireSections = async (id, showToast = false) => {
     try {
         const response = await apiCall(
@@ -48,7 +95,7 @@ const getQuestionnaireSections = async (id, showToast = false) => {
         );
         return response.member;
     } catch (error) {
-        console.error('Erreur dans getQuestionnaire:', error);
+        console.error('Erreur dans getQuestionnaireSections:', error);
         throw error;
     }
 }
@@ -175,44 +222,42 @@ const deleteSectionQuestionnaire = async (id, showToast = false) => {
 
 const createQuestionInSection = async (sectionUuid, question, showToast = false) => {
     try {
-        const response = await apiCall(
-            api.post,
-            [`/api/questionnaire_questions`,
-                {...question, section: `/api/questionnaire_sections/${sectionUuid}`},
-                {
-                    headers: {
-                        'Content-Type': 'application/ld+json'
-                    }
-            }],
-            'Question créée avec succès',
-            'Erreur lors de la création de la question',
-            showToast
+        return await apiCall(
+          api.post,
+          [`/api/questionnaire_questions`,
+              { ...question, section: `/api/questionnaire_sections/${sectionUuid}` },
+              {
+                  headers: {
+                      'Content-Type': 'application/ld+json'
+                  }
+              }],
+          'Question créée avec succès',
+          'Erreur lors de la création de la question',
+          showToast
         );
-        return response;
     } catch (error) {
-        console.error('Erreur dans createQuestion:', error);
+        console.error('Erreur dans createQuestionInSection:', error);
         throw error;
     }
 }
 
 const updateQuestionInSection = async (id, question, showToast = false) => {
     try {
-        const response = await apiCall(
-            api.patch,
-            [`/api/questionnaire_questions/${id}`,
-                {...question},
-                {
-                    headers: {
-                        'Content-Type': 'application/merge-patch+json'
-                    }
-            }],
-            'Question mise à jour avec succès',
-            'Erreur lors de la mise à jour de la question',
-            showToast
+        return await apiCall(
+          api.patch,
+          [`/api/questionnaire_questions/${id}`,
+              { ...question },
+              {
+                  headers: {
+                      'Content-Type': 'application/merge-patch+json'
+                  }
+              }],
+          'Question mise à jour avec succès',
+          'Erreur lors de la mise à jour de la question',
+          showToast
         );
-        return response;
     } catch (error) {
-        console.error('Erreur dans updateQuestion:', error);
+        console.error('Erreur dans updateQuestionInSection:', error);
         throw error;
     }
 }
@@ -228,14 +273,20 @@ const deleteQuestionInSection = async (id, showToast = false) => {
         );
         return response;
     } catch (error) {
-        console.error('Erreur dans deleteQuestion:', error);
+        console.error('Erreur dans deleteQuestionInSection:', error);
         throw error;
     }
 }
 
 
 
+
 export {
+    getPreviewQuestionnaire,
+    getPreviewQuestionnaireSection,
+
+    afficheQuestionnaire,
+
     getAllQuestionnaires,
     getQuestionnaire,
     getQuestionnaireSections,

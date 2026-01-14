@@ -17,6 +17,9 @@ use App\State\UniEdt\PersonnelsContraintesProvider;
     ],
     openapi: new Operation(
         tags: ['Personnels Contraintes'],
+        responses: [
+            '200' => new Response(description: 'Ok'),
+        ],
         summary: 'Récupère les contraintes des personnels pour une semaine de formation donnée',
         parameters: [
            new Parameter(
@@ -26,9 +29,6 @@ use App\State\UniEdt\PersonnelsContraintesProvider;
                schema: ['type' => 'integer'],
                description: 'La semaine de formation au format numerique',
            ),
-        ],
-        responses: [
-            '200' => new Response(description: 'Ok'),
         ],
     ),
     //doc swagger

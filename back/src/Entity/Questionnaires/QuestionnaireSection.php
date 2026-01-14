@@ -7,6 +7,8 @@ use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\OptionTrait;
+use App\Entity\Traits\UuidTrait;
+use App\Enum\QuestTypeRepeatEnum;
 use App\Enum\QuestTypeSectionEnum;
 use App\Repository\Questionnaires\QuestionnaireSectionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -20,12 +22,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: QuestionnaireSectionRepository::class)]
 #[ApiResource(
     uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections',
-    uriVariables: [
-        'questionnaireId' => new Link(fromClass: Questionnaire::class, toProperty: 'questionnaire'),
-    ],
     operations: [
         new GetCollection(normalizationContext: ['groups' => ['questionnaire_section:read']],),
-        ]
+        ],
+    uriVariables: [
+        'questionnaireId' => new Link(fromClass: Questionnaire::class, toProperty: 'questionnaire'),
+    ]
 )]
 #[ApiResource(
     operations: [
@@ -34,9 +36,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Post()
     ]
 )]
+#[ORM\Index(name: 'idx_section_questionnaire_ordre', columns: ['questionnaire_id', 'sort_order'])]
 class QuestionnaireSection
 {
     use OptionTrait;
+    use UuidTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -49,7 +53,7 @@ class QuestionnaireSection
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['questionnaire_section:read'])]
-    private ?string $titre = null;
+    private ?string $title = null;
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['questionnaire_section:read'])]
@@ -61,20 +65,27 @@ class QuestionnaireSection
 
     #[ORM\Column]
     #[Groups(['questionnaire_section:read'])]
-    private ?int $ordre = null;
+    private ?int $sortOrder = null;
 
     /**
      * @var Collection<int, QuestionnaireQuestion>
      */
-    #[ORM\OneToMany(targetEntity: QuestionnaireQuestion::class, mappedBy: 'section')]
+    #[ORM\OneToMany(targetEntity: QuestionnaireQuestion::class, mappedBy: 'section', cascade: ['persist', 'remove'])]
     #[Groups(['questionnaire_section:read'])]
-    private Collection $questionnaireQuestions;
+    private Collection $questions;
+
+    /**
+     * @var Collection<int, QuestionnaireSectionInstance>
+     */
+    #[ORM\OneToMany(targetEntity: QuestionnaireSectionInstance::class, mappedBy: 'section', cascade: ['persist', 'remove'])]
+    private Collection $sectionInstances;
 
 
     public function __construct()
     {
         $this->setOpt([]);
-        $this->questionnaireQuestions = new ArrayCollection();
+        $this->questions = new ArrayCollection();
+        $this->sectionInstances = new ArrayCollection();
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -109,14 +120,14 @@ class QuestionnaireSection
         return $this;
     }
 
-    public function getTitre(): ?string
+    public function getTitle(): ?string
     {
-        return $this->titre;
+        return $this->title;
     }
 
-    public function setTitre(?string $titre): static
+    public function setTitle(?string $title): static
     {
-        $this->titre = $titre;
+        $this->title = $title;
 
         return $this;
     }
@@ -145,14 +156,14 @@ class QuestionnaireSection
         return $this;
     }
 
-    public function getOrdre(): ?int
+    public function getSortOrder(): ?int
     {
-        return $this->ordre;
+        return $this->sortOrder;
     }
 
-    public function setOrdre(int $ordre): static
+    public function setSortOrder(int $sortOrder): static
     {
-        $this->ordre = $ordre;
+        $this->sortOrder = $sortOrder;
 
         return $this;
     }
@@ -160,15 +171,15 @@ class QuestionnaireSection
     /**
      * @return Collection<int, QuestionnaireQuestion>
      */
-    public function getQuestionnaireQuestions(): Collection
+    public function getQuestions(): Collection
     {
-        return $this->questionnaireQuestions;
+        return $this->questions;
     }
 
     public function addQuestionnaireQuestion(QuestionnaireQuestion $questionnaireQuestion): static
     {
-        if (!$this->questionnaireQuestions->contains($questionnaireQuestion)) {
-            $this->questionnaireQuestions->add($questionnaireQuestion);
+        if (!$this->questions->contains($questionnaireQuestion)) {
+            $this->questions->add($questionnaireQuestion);
             $questionnaireQuestion->setSection($this);
         }
 
@@ -177,7 +188,7 @@ class QuestionnaireSection
 
     public function removeQuestionnaireQuestion(QuestionnaireQuestion $questionnaireQuestion): static
     {
-        if ($this->questionnaireQuestions->removeElement($questionnaireQuestion)) {
+        if ($this->questions->removeElement($questionnaireQuestion)) {
             // set the owning side to null (unless already changed)
             if ($questionnaireQuestion->getSection() === $this) {
                 $questionnaireQuestion->setSection(null);
@@ -185,5 +196,45 @@ class QuestionnaireSection
         }
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, QuestionnaireSectionInstance>
+     */
+    public function getSectionInstances(): Collection
+    {
+        return $this->sectionInstances;
+    }
+
+    public function addQuestionnaireSectionInstance(QuestionnaireSectionInstance $questionnaireSectionInstance): static
+    {
+        if (!$this->sectionInstances->contains($questionnaireSectionInstance)) {
+            $this->sectionInstances->add($questionnaireSectionInstance);
+            $questionnaireSectionInstance->setSection($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQuestionnaireSectionInstance(QuestionnaireSectionInstance $questionnaireSectionInstance): static
+    {
+        if ($this->sectionInstances->removeElement($questionnaireSectionInstance)) {
+            // set the owning side to null (unless already changed)
+            if ($questionnaireSectionInstance->getSection() === $this) {
+                $questionnaireSectionInstance->setSection(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getRepeatSource(): ?QuestTypeRepeatEnum
+    {
+        //si section configurable, on retourne le type de répétition qui est dans opt
+        $opts = $this->getOpt();
+        if (!array_key_exists('repeat_source', $opts) || $opts['repeat_source'] === null) {
+            return null;
+        }
+        return QuestTypeRepeatEnum::tryFrom($opts['repeat_source']);
     }
 }

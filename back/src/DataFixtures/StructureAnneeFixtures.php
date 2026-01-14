@@ -47,7 +47,7 @@ class StructureAnneeFixtures extends Fixture implements OrderedFixtureInterface
             ->setLibelleLong('Première année de BUT MMI')
             ->setActif(true)
             ->setCouleur('red')
-            //->setDiplome($pn1->getDiplome())
+            ->setPn($pn1)
         ;
         $manager->persist($annee1);
 
@@ -59,7 +59,7 @@ class StructureAnneeFixtures extends Fixture implements OrderedFixtureInterface
             ->setLibelleLong('Deuxiéme année de B.U.T. MMI - parcours Développement web et dispositifs interactifs')
             ->setActif(true)
             ->setCouleur('purple')
-            //->setDiplome($pn2->getDiplome())
+            ->setPn($pn2)
             ;
         $manager->persist($annee2);
 

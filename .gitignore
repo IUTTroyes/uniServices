@@ -4,3 +4,8 @@
 /front/apps/auth/public/common-images/
 /front/apps/edt/public/common-images/
 /front/apps/intranet/public/common-images/
+/.idea
+.DS_Store
+/back/.DS_Store
+/front/.DS_Store
+/front/apps/.DS_Store
