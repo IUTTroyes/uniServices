@@ -119,6 +119,7 @@ async function fetchData() {
 
     const etudiants = etudiantsResp || [];
     students.value = etudiants.map(mapEtudiantToStudentCard);
+    console.log(students.value);
     staff.value = (personnels || []).map(mapPersonnelToStaffCard);
   } catch (e: any) {
     error.value = e?.message || 'Erreur lors de la récupération des données.';

@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use App\ApiDto\Etudiant\EtudiantTrombinoscopeDto;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Scolarite\ScolBac;
 use App\Entity\Structure\StructureGroupe;
@@ -16,6 +17,7 @@ use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Filter\EtudiantFilter;
 use App\Repository\EtudiantRepository;
+use App\State\Etudiant\EtudiantTrombinoscopeProvider;
 use App\ValueObject\Adresse;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -46,6 +48,12 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
         new GetCollection(
             uriTemplate: '/maxi/etudiants',
             normalizationContext: ['groups' => ['etudiant:detail']],
+        ),
+        new GetCollection(
+            uriTemplate: '/trombinoscope/etudiants',
+            normalizationContext: ['groups' => ['etudiant:detail']],
+            provider: EtudiantTrombinoscopeProvider::class,
+            output: EtudiantTrombinoscopeDto::class,
         ),
         new Patch(normalizationContext: ['groups' => ['etudiant:write']], securityPostDenormalize: "is_granted('CAN_EDIT_ETUDIANT', object)"),
     ],
