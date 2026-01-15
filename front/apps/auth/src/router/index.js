@@ -7,6 +7,7 @@ import { LayoutComponent } from '@components'
 import ConfigurationRoutes from '@/router/modules/configurationRoutes.js'
 import ResetPasswordView from "@/views/ResetPasswordView.vue";
 import ResetPasswordConfirmView from "@/views/ResetPasswordConfirmView.vue";
+import LogoIut from "@common-images/logo/logo_iut.png"
 
 const intranetMenu = [
   {
@@ -49,7 +50,7 @@ const router = createRouter({
       path: '/portail',
       component: AppPortail,
       props: route => ({
-        logoUrl: 'common-images/logo/logo_iut.png',
+        logoUrl: LogoIut,
         appName: 'Uniservices',
       }),
     },
@@ -57,7 +58,7 @@ const router = createRouter({
       path: '/configuration/',
       component: LayoutComponent,
       props: route => ({
-        logoUrl: 'common-images/logo/logo_iut.png',
+        logoUrl: LogoIut,
         appName: 'Uniservices',
         menuItems: intranetMenu,
         breadcrumbItems: route.meta.breadcrumb || []
@@ -70,7 +71,7 @@ const router = createRouter({
       path: '/profil',
       component: AppProfil,
       props: route => ({
-        logoUrl: 'common-images/logo/logo_iut.png',
+        logoUrl: LogoIut,
         appName: 'Profil',
       }),
     }

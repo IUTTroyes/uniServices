@@ -26,6 +26,9 @@
       "@utils": [
         "packages/common-utils/index.ts"
       ],
+      "@images": [
+        "packages/common-images/index.ts"
+      ],
 
       // old supprimer ne fois refactor fait
       "@types/*": [

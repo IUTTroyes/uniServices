@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue';
 import Logo from '@components/components/Logo.vue';
+import LogoIut from '@images/logo/logo_iut.png';
 import axios from 'axios';
 import { tools } from '@config/uniServices.js';
 import {ValidatedInput, validationRules} from "@components";
@@ -107,7 +108,7 @@ const handleValidation = (field, result) => {
     <div class="md:w-3/4 w-full h-full flex md:flex-row flex-col shadow-xl">
       <div class="bg-black bg-opacity-60 text-white backdrop-blur-sm p-12 md:rounded-tl-xl md:rounded-bl-xl rounded-tl-xl rounded-tr-xl w-full flex flex-col gap-4">
         <div class="flex items-center w-full gap-4">
-          <Logo logo-url="common-images/logo/logo_iut.png" alt="logo de l'iut" class="w-1/4 rounded-md"/>
+          <Logo :logo-url="LogoIut" alt="logo de l'iut" class="w-1/4 rounded-md"/>
           <div>
             <div class="text-2xl font-bold">Bienvenue sur UniServices</div>
             <div>Plateforme de gestion centralisée des services universitaires</div>
