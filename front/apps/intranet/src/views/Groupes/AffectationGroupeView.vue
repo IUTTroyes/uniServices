@@ -13,7 +13,7 @@ import {
 } from "@requests";
 import {useRoute} from "vue-router";
 import { useToast } from 'primevue/usetoast';
-import {FilterMatchMode} from "@primevue/core/api";
+import { useEtudiantFilters } from '@composables/filters/usersFilters/useEtudiantFilters';
 
 const toast = useToast();
 const route = useRoute();
@@ -32,8 +32,13 @@ const departementId = usersStore.departementDefaut.id;
 const etudiantsScolariteSemestre = ref([]);
 const isLoadingEtudiants = ref(true);
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
-import { useEtudiantFilters } from '@composables/filters/usersFilters/useEtudiantFilters';
+
 const { filters, watchChanges } = useEtudiantFilters();
+// Déclenche un rechargement serveur quand les filtres changent
+watchChanges(async () => {
+  page.value = 0;
+  await getEtudiants();
+});
 
 const nbEtudiants = ref(0);
 const page = ref(0);
@@ -230,8 +235,8 @@ const assignGroupe = async (etudiantScolariteSemestreId, groupeId) => {
 
     // Trouver l'objet groupe sélectionné (ou créer un placeholder avec id/type)
     const newGroup = groupeId != null
-      ? (semGroupes.find(g => g.id === groupeId) || { id: groupeId, type: groupType })
-      : null;
+        ? (semGroupes.find(g => g.id === groupeId) || { id: groupeId, type: groupType })
+        : null;
 
     // Remplacer/supprimer le groupe du même type dans la liste actuelle
     const idx = currentGroupes.findIndex(g => g.type === groupType);
@@ -271,7 +276,7 @@ const assignGroupe = async (etudiantScolariteSemestreId, groupeId) => {
   } finally {
     // afficher un toast de succès si aucun toast identique n'est présent
     const existingToast = Array.from(document.querySelectorAll('.p-toast-message')).some(el =>
-      el.textContent && el.textContent.includes('Affectation mise à jour')
+        el.textContent && el.textContent.includes('Affectation mise à jour')
     );
     if (!existingToast) {
       toast.add({ severity: 'success', summary: 'Affectation mise à jour', detail: 'Le groupe a été affecté avec succès.', life: 3000 });
@@ -391,23 +396,6 @@ const onPageChange = async (event) => {
   page.value = event.page;
   await getEtudiants();
 };
-
-// Déclenche un rechargement serveur quand les filtres changent
-watch(
-  () => ({ ...filters.value }),
-  async (newFilters, oldFilters) => {
-    const changed = (
-      newFilters.nom?.value !== oldFilters.nom?.value ||
-      newFilters.prenom?.value !== oldFilters.prenom?.value ||
-      newFilters.numEtudiant?.value !== oldFilters.numEtudiant?.value
-    );
-    if (changed) {
-      page.value = 0; // revenir à la première page
-      await getEtudiants();
-    }
-  },
-  { deep: true }
-);
 </script>
 
 <template>
@@ -513,10 +501,10 @@ watch(
             <template #header>
               <div class="flex items-center gap-2">
                 <input
-                  type="checkbox"
-                  :ref="el => registerHeaderCheckbox(el, g)"
-                  @change="toggleSelectAllForGroup(g, $event)"
-                  :aria-label="`Tout sélectionner ${g.libelle}`"
+                    type="checkbox"
+                    :ref="el => registerHeaderCheckbox(el, g)"
+                    @change="toggleSelectAllForGroup(g, $event)"
+                    :aria-label="`Tout sélectionner ${g.libelle}`"
                 />
                 <span>{{ g.libelle }}</span>
               </div>
@@ -534,7 +522,7 @@ watch(
               </div>
             </template>
           </Column>
-<!--         colonne pour aucun groupe -->
+          <!--         colonne pour aucun groupe -->
           <Column>
             <template #header>
               <div class="flex items-center gap-2">

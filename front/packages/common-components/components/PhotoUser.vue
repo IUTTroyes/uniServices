@@ -31,7 +31,7 @@ watch(
 </script>
 
 <template>
-  <img :src="photoSrc" alt="photo de profil" class="rounded-full w-full h-auto">
+  <img :src="photoSrc" alt="photo de profil" class="rounded-full">
 </template>
 
 <style scoped>

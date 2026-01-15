@@ -6,17 +6,15 @@ import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue';
 import {ErrorView, ProfilEtudiant} from '@components';
 import { getAnneesService, getEtudiantsScolariteService } from '@requests';
-
-import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue';
-import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue';
-
-import AccessEtudiantDialog from '@/dialogs/etudiants/AccessEtudiantDialog.vue';
+// import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue';
+// import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue';
+// import AccessEtudiantDialog from '@/dialogs/etudiants/AccessEtudiantDialog.vue';
 import { useToast } from 'primevue/usetoast';
-
-const toast = useToast();
-
 import { useUsersStore } from '@stores';
 import { SimpleSkeleton } from '@components';
+import { useEtudiantFilters } from '@composables/filters/usersFilters/useEtudiantFilters';
+
+const toast = useToast();
 const usersStore = useUsersStore();
 
 const departementId = ref(null);
@@ -37,12 +35,9 @@ const rowOptions = [30, 60, 120];
 const limit = ref(rowOptions[0]);
 const offset = computed(() => limit.value * page.value);
 
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  nom: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  prenom: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  mailUniv: { value: null, matchMode: FilterMatchMode.STARTS_WITH },
-  annee: { value: null, matchMode: FilterMatchMode.EQUALS },
+const {filters, watchChanges} = useEtudiantFilters();
+watchChanges(async() => {
+  await getEtudiantsScolarite();
 });
 
 const showViewDialog = ref(false);
@@ -130,6 +125,7 @@ const getEtudiantsScolarite = async () => {
       life: 5000,
     });
   } finally {
+    console.log(etudiants.value)
     loading.value = false;
   }
 };
@@ -159,40 +155,6 @@ const editEtudiant = etudiant => {
 const deleteEtudiant = etudiant => {
   console.log(etudiant);
 };
-
-watch(
-    () => ({ ...filters.value }),
-    async (newFilters, oldFilters) => {
-      if (isUpdatingFilter.value) {
-        isUpdatingFilter.value = false;
-        return;
-      }
-
-      // Gestion spécifique pour le filtre année (objet ou id)
-      const newAnnee = newFilters.annee.value;
-      if (newAnnee && typeof newAnnee === 'object' && newAnnee.id) {
-        isUpdatingFilter.value = true;
-        filters.value.annee.value = newAnnee.id;
-        await getEtudiantsScolarite();
-      } else if (typeof newAnnee === 'number') {
-        await getEtudiantsScolarite();
-      } else if (newAnnee === null || newAnnee === undefined) {
-        await getEtudiantsScolarite();
-      } else {
-        await getEtudiantsScolarite();
-      }
-      // Détection de changement sur les autres filtres
-      if (
-          newFilters.nom.value !== oldFilters.nom.value ||
-          newFilters.prenom.value !== oldFilters.prenom.value ||
-          newFilters.mailUniv.value !== oldFilters.mailUniv.value ||
-          newFilters.global.value !== oldFilters.global.value
-      ) {
-        await getEtudiantsScolarite();
-      }
-    },
-    { deep: true }
-);
 </script>
 
 <template>
@@ -261,8 +223,10 @@ watch(
           <Select
               v-else
               v-model="filters.annee.value"
+              :show-clear="true"
               :options="anneesList"
               optionLabel="libelle"
+              optionValue="id"
               placeholder="Sélectionner une année"
               class="w-full"
           >
@@ -280,7 +244,6 @@ watch(
           <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par email" />
         </template>
       </Column>
-      <Column field="etudiant.bac.libelle" header="Bac"></Column>
       <Column :showFilterMenu="false" style="min-width: 12rem">
         <template #body="slotProps">
           <ButtonInfo tooltip="Voir les détails de l'étudiant" @click="viewEtudiant(slotProps.data)" />

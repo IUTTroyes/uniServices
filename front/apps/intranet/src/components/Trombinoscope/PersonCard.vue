@@ -2,6 +2,7 @@
 import type {Personnel, Etudiant} from '@types';
 
 import { getStatutText, getStatutColor } from "@utils"
+import { PhotoUser } from "@components";
 
 interface Props {
   person: Etudiant | Personnel;
@@ -25,14 +26,15 @@ const isStudent = (person: Etudiant | Personnel): person is Etudiant => {
   >
     <!-- Photo -->
     <div :class="viewMode === 'grid' ? 'mb-4' : 'flex-shrink-0'">
-      <img
-          :src="person.photoName"
-          :alt="`Photo de ${person.prenom} ${person.nom}`"
-          :class="[
-          'object-cover border-2 border-gray-200',
-          viewMode === 'grid' ? 'w-20 h-20 mx-auto rounded-full' : 'w-16 h-16 rounded-full'
-        ]"
-      />
+<!--      <img-->
+<!--          :src="person.photoName"-->
+<!--          :alt="`Photo de ${person.prenom} ${person.nom}`"-->
+<!--          :class="[-->
+<!--          'object-cover border-2 border-gray-200',-->
+<!--          viewMode === 'grid' ? 'w-20 h-20 mx-auto rounded-full' : 'w-16 h-16 rounded-full'-->
+<!--        ]"-->
+<!--      />-->
+      <PhotoUser :user-photo="person.photoName" class="rounded-full !w-32 h-auto border-8 border-gray-300 border-opacity-60 mx-auto"/>
     </div>
 
     <!-- Info -->
