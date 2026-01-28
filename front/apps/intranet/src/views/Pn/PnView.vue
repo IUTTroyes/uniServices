@@ -68,7 +68,7 @@ const getDiplomes = async (departementId) => {
     hasError.value = true
   } finally {
     if (diplomes.value.length > 0) {
-      selectedDiplome.value = diplomes.value[0]
+      selectedDiplome.value =  selectedDiplome.value ? selectedDiplome.value : diplomes.value[0]
       selectedPn.value = selectedDiplome.value?.pns?.find(pn => pn.anneeUniversitaire?.actif === true) || null
     }
     isLoadingDiplomes.value = false
@@ -109,7 +109,9 @@ const deleteObject = async (objectType, id) => {
     } catch (error) {
       console.error(`Erreur lors de la suppression de l'année :`, error)
     } finally {
-      await getDiplomes(departementId.value)
+      // retirer uniquement le Pn de l'affichage sans recharger toute la page
+      selectedDiplome.value.pns = selectedDiplome.value.pns.filter(pn => pn.id !== id)
+      selectedPn.value = null
     }
   }
   if (objectType === 'annee') {
@@ -118,7 +120,8 @@ const deleteObject = async (objectType, id) => {
     } catch (error) {
       console.error(`Erreur lors de la suppression de l'année :`, error)
     } finally {
-      await getDiplomes(departementId.value)
+      // retirer uniquement l'année de l'affichage sans recharger toute la page
+      selectedPn.value.annees = selectedPn.value.annees.filter(annee => annee.id !== id)
     }
   }
   if (objectType === 'semestre') {
@@ -127,7 +130,11 @@ const deleteObject = async (objectType, id) => {
     } catch (error) {
       console.error(`Erreur lors de la suppression du semestre :`, error)
     } finally {
-      await getDiplomes(departementId.value)
+      // retirer uniquement le semestre de l'affichage sans recharger toute la page
+      const pn = selectedPn.value
+      pn.annees.forEach(annee => {
+        annee.semestres = annee.semestres.filter(semestre => semestre.id !== id)
+      })
     }
   }
   if (objectType === 'ue') {
@@ -136,7 +143,13 @@ const deleteObject = async (objectType, id) => {
     } catch (error) {
       console.error(`Erreur lors de la suppression de l'UE :`, error)
     } finally {
-      await getDiplomes(departementId.value)
+      // retirer uniquement l'UE de l'affichage sans recharger toute la page
+      const pn = selectedPn.value
+      pn.annees.forEach(annee => {
+        annee.semestres.forEach(semestre => {
+          semestre.ues = semestre.ues.filter(ue => ue.id !== id)
+        })
+      })
     }
   }
   if (objectType === 'enseignement') {
@@ -145,7 +158,15 @@ const deleteObject = async (objectType, id) => {
     } catch (error) {
       console.error(`Erreur lors de la suppression de l'enseignement :`, error)
     } finally {
-      await getDiplomes(departementId.value)
+      // retirer uniquement l'enseignement de l'affichage sans recharger toute la page
+      const pn = selectedPn.value
+      pn.annees.forEach(annee => {
+        annee.semestres.forEach(semestre => {
+          semestre.ues.forEach(ue => {
+            ue.enseignementUes = ue.enseignementUes.filter(eu => eu.id !== id)
+          })
+        })
+      })
     }
   }
 }

@@ -3,13 +3,18 @@
 namespace App\Entity\Scolarite;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use App\Entity\Structure\StructureUe;
 use App\Repository\Scolarite\ScolEnseignementUeRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ScolEnseignementUeRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Delete()
+    ]
+)]
 class ScolEnseignementUe
 {
     #[ORM\Id]

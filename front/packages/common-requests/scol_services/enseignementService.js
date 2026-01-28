@@ -116,7 +116,7 @@ const deleteEnseignementUeService = async (enseignementId, showToast = false) =>
     try {
         return await apiCall(
             api.delete,
-            [`/api/scol_enseignements_ues/${enseignementId}`],
+            [`/api/scol_enseignement_ues/${enseignementId}`],
             'Enseignement supprimé avec succès',
             'Erreur lors de la suppression de l\'enseignement',
             showToast
