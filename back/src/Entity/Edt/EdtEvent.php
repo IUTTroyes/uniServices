@@ -129,7 +129,7 @@ class EdtEvent
     #[ORM\Column(nullable: true)]
     private ?int $departementCodeCelcat = null;
 
-    #[ORM\ManyToOne(inversedBy: 'edtEvents')]
+    #[ORM\ManyToOne(inversedBy: 'events')]
     #[Groups(['edt_event:read:agenda'])]
     private ?StructureSemestre $semestre = null;
 
