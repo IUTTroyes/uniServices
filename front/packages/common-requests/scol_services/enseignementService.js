@@ -112,4 +112,19 @@ const getEnseignementsUeService = async (ueId, showToast = false) => {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getEnseignementsService, getAllEnseignementsService, getEnseignementsSemestreService, getEnseignementService, getEnseignementsDepartementService, getEnseignementsUeService };
+const deleteEnseignementUeService = async (enseignementId, showToast = false) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api/scol_enseignements_ues/${enseignementId}`],
+            'Enseignement supprimé avec succès',
+            'Erreur lors de la suppression de l\'enseignement',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deleteEnseignementUeService:', error);
+        throw error;
+    }
+}
+
+export { getEnseignementsService, getAllEnseignementsService, getEnseignementsSemestreService, getEnseignementService, getEnseignementsDepartementService, getEnseignementsUeService, deleteEnseignementUeService };

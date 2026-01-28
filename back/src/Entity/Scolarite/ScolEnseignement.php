@@ -103,11 +103,11 @@ class ScolEnseignement
     /**
      * @var Collection<int, self>
      */
-    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['remove'], orphanRemoval: true)]
     #[Groups(['maquette:detail', 'enseignement_ue:read', 'enseignement:detail'])]
     private Collection $enfants;
 
-    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants', cascade: ['remove'])]
     #[Groups(['maquette:detail', 'enseignement_ue:read', 'enseignement:detail'])]
     private ?self $parent = null;
 
@@ -136,7 +136,7 @@ class ScolEnseignement
     /**
      * @var Collection<int, EtudiantAbsence>
      */
-    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'enseignement')]
+    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'enseignement', cascade: ['remove'], orphanRemoval: true)]
     private Collection $absences;
 
     /**
@@ -149,7 +149,7 @@ class ScolEnseignement
     /**
      * @var Collection<int, EdtEvent>
      */
-    #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'enseignement')]
+    #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'enseignement', cascade: ['remove'], orphanRemoval: true)]
     private Collection $edtEvents;
 
     /**
@@ -162,7 +162,7 @@ class ScolEnseignement
     /**
      * @var Collection<int, Previsionnel>
      */
-    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'enseignement')]
+    #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'enseignement', cascade: ['remove'], orphanRemoval: true)]
     #[Groups(['enseignement:detail', 'edt_event:read:agenda'])]
     private Collection $previsionnels;
 

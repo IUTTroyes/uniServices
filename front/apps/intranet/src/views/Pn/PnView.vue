@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue'
 import { useAnneeUnivStore, useUsersStore } from '@stores'
 import { ErrorView, SimpleSkeleton } from '@components'
-import { getDiplomesService, deleteAnneeService, deletePnService, deleteDiplomeService } from '@requests'
+import { getDiplomesService, deleteAnneeService, deletePnService, deleteDiplomeService, deleteSemestreService, deleteUeService, deleteEnseignementUeService } from '@requests'
 import { synchronisationProgrameOreofService } from '@/service/oreofService.ts'
 import Loader from '@components/loader/GlobalLoader.vue'
 import FicheRessource from '../../components/Pn/FicheRessource.vue'
@@ -99,6 +99,8 @@ const deleteObject = async (objectType, id) => {
       await deleteDiplomeService(id, 'true')
     } catch (error) {
       console.error(`Erreur lors de la suppression de l'année :`, error)
+    } finally {
+      await getDiplomes(departementId.value)
     }
   }
   if (objectType === 'pn') {
@@ -106,6 +108,8 @@ const deleteObject = async (objectType, id) => {
       await deletePnService(id, 'true')
     } catch (error) {
       console.error(`Erreur lors de la suppression de l'année :`, error)
+    } finally {
+      await getDiplomes(departementId.value)
     }
   }
   if (objectType === 'annee') {
@@ -113,6 +117,35 @@ const deleteObject = async (objectType, id) => {
       await deleteAnneeService(id, 'true')
     } catch (error) {
       console.error(`Erreur lors de la suppression de l'année :`, error)
+    } finally {
+      await getDiplomes(departementId.value)
+    }
+  }
+  if (objectType === 'semestre') {
+    try {
+      await deleteSemestreService(id, 'true')
+    } catch (error) {
+      console.error(`Erreur lors de la suppression du semestre :`, error)
+    } finally {
+      await getDiplomes(departementId.value)
+    }
+  }
+  if (objectType === 'ue') {
+    try {
+      await deleteUeService(id, 'true')
+    } catch (error) {
+      console.error(`Erreur lors de la suppression de l'UE :`, error)
+    } finally {
+      await getDiplomes(departementId.value)
+    }
+  }
+  if (objectType === 'enseignement') {
+    try {
+      await deleteEnseignementUeService(id, 'true')
+    } catch (error) {
+      console.error(`Erreur lors de la suppression de l'enseignement :`, error)
+    } finally {
+      await getDiplomes(departementId.value)
     }
   }
 }

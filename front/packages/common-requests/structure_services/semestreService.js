@@ -100,4 +100,19 @@ const getAnneeSemestresService = async (anneeId, showToast = false) => {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getSemestresService, getSemestreService, getDepartementSemestresService, getDiplomeSemestresService, getAnneeSemestresService };
+const deleteSemestreService = async (semestreId, showToast = false) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api/structure_semestres/${semestreId}`],
+            'Semestre supprimé avec succès',
+            'Erreur lors de la suppression du semestre',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deleteSemestreService:', error);
+        throw error;
+    }
+}
+
+export { getSemestresService, getSemestreService, getDepartementSemestresService, getDiplomeSemestresService, getAnneeSemestresService, deleteSemestreService };

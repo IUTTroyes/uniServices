@@ -4,6 +4,7 @@ namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcCompetence;
@@ -21,7 +22,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['ue:read', 'ue:read:full']]),
-        new GetCollection(normalizationContext: ['groups' => ['ue:read']])
+        new GetCollection(normalizationContext: ['groups' => ['ue:read']]),
+        new Delete()
     ]
 )]
 #[ApiFilter(UeFilter::class)]

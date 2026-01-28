@@ -5,6 +5,7 @@ namespace App\Entity\Structure;
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Edt\EdtContraintesSemestre;
@@ -72,6 +73,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/groupe-detail/structure_semestres',
             normalizationContext: ['groups' => ['semestre:light', 'groupe:detail']]
         ),
+        new Delete()
     ]
 )]
 #[ORM\HasLifecycleCallbacks]

@@ -48,4 +48,19 @@ const getSemestreUesService = async (semestre, showToast = false) => {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getUeService, getSemestreUesService };
+const deleteUeService = async (ueId, showToast = false) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api/structure_ues/${ueId}`],
+            'UE supprimée avec succès',
+            'Erreur lors de la suppression de l\'UE',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deleteUeService:', error);
+        throw error;
+    }
+}
+
+export { getUeService, getSemestreUesService, deleteUeService };
