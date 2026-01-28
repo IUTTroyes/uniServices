@@ -7,7 +7,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use App\ApiDto\Edt\EdtStatsDto;
-use App\ApiDto\Edt\EdtStatsPreviDto;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureGroupe;
