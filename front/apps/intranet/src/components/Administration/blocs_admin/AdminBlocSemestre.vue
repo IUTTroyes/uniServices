@@ -1,22 +1,31 @@
 <script setup>
 import { onMounted, ref, computed, watch } from "vue";
 import { getAnneesService } from "@requests";
-import {ErrorView, ListSkeleton} from "@components";
-import { useUsersStore, useSemestreStore } from "@stores";
+import { ErrorView, ListSkeleton } from "@components";
+import { useUsersStore, useSemestreStore, useAnneeStore } from "@stores";
 
 const userStore = useUsersStore();
 const semestreStore = useSemestreStore();
-const selectedSemestre = ref(null);
+const anneeStore = useAnneeStore();
+
+const selectedAnnee = ref(null);
 const isLoading = ref(true);
 const hasError = ref(false);
 const anneesGrouped = ref({ fi: [], fc: [] });
 
-watch(selectedSemestre, (newVal) => {
-  semestreStore.setSelectedSemestre(newVal);
-})
+// When the selected year changes, store it globally and select the first semester of that year if needed
+watch(selectedAnnee, (newVal) => {
+  anneeStore.setSelectedAnnee(newVal);
+  const firstSem = newVal?.semestres?.[0] ?? null;
+  semestreStore.setSelectedSemestre(firstSem);
+});
+
+const firstSemestreId = computed(() => selectedAnnee.value?.semestres?.[0]?.id ?? null);
 
 const panelMenuItems = computed(() => {
-  if (!selectedSemestre.value) return []
+  // For now, actions needing a semestre use the first semester of the selected year
+  const sid = firstSemestreId.value;
+  if (!selectedAnnee.value) return [];
   return [
     {
       label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
@@ -28,10 +37,10 @@ const panelMenuItems = computed(() => {
       label: 'Groupes', icon: 'pi pi-users', command: () => {}, items: [
         {
           label: 'Composition des groupes', icon: 'pi pi-list',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/groupes/affectation',
+          route: sid ? '/administration/semestre/' + sid + '/groupes/affectation' : null,
         },
         {
-          label: 'Structure des groupes', icon: 'pi pi-cog', route: '/administration/semestre/' + selectedSemestre.value.id + '/groupes/structure',
+          label: 'Structure des groupes', icon: 'pi pi-cog', route: sid ? '/administration/semestre/' + sid + '/groupes/structure' : null,
         }
       ]
     },
@@ -39,11 +48,11 @@ const panelMenuItems = computed(() => {
       label: 'Absences', icon: 'pi pi-calendar', command: () => {}, items: [
         {
           label: 'Liste des absences', icon: 'pi pi-list',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/absences/liste',
+          route: sid ? '/administration/semestre/' + sid + '/absences/liste' : null,
         },
         {
           label: 'Liste des justificatifs', icon: 'pi pi-folder-open',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/justificatifs-absences/liste',
+          route: sid ? '/administration/semestre/' + sid + '/justificatifs-absences/liste' : null,
         },
         { label: 'Suivi des pointages de présence', icon: 'pi pi-eye', command: () => {} },
       ]
@@ -52,32 +61,32 @@ const panelMenuItems = computed(() => {
       label: 'Notes et Évaluations', icon: 'pi pi-book', command: () => {}, items: [
         {
           label: 'Liste des notes', icon: 'pi pi-list',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/evaluations/liste'
+          route: sid ? '/administration/semestre/' + sid + '/evaluations/liste' : null
         },
         { label: 'Gestion des évaluations', icon: 'pi pi-cog', command: () => {} },
         {
           label: 'Demandes de rattrapages', icon: 'pi pi-history',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/rattrapages/liste' },
+          route: sid ? '/administration/semestre/' + sid + '/rattrapages/liste' : null },
         { label: 'Modalités du contrôle continu', icon: 'pi pi-map',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/mccc/liste'
+          route: sid ? '/administration/semestre/' + sid + '/mccc/liste' : null
         },
       ]
     },
     {
       label: 'Fin de semestre', icon: 'pi pi-check', command: () => {}, items: [
         { label: 'Préparation de la sous-commission', icon: 'pi pi-calculator',
-          route: '/administration/semestre/' + selectedSemestre.value.id + '/sous-commission'},
+          route: sid ? '/administration/semestre/' + sid + '/sous-commission' : null},
         { label: 'Changement de semestre des étudiants', icon: 'pi pi-forward', command: () => {} },
       ]
     },
   ]
-})
-
-onMounted(async () => {
-  await getAnneesSemestres();
 });
 
-const getAnneesSemestres = async () => {
+onMounted(async () => {
+  await getAnnees();
+});
+
+const getAnnees = async () => {
   try {
     isLoading.value = true;
     const departementId = userStore.departementDefaut.id;
@@ -93,7 +102,6 @@ const getAnneesSemestres = async () => {
         actif: true,
       };
       const annees = await getAnneesService(params);
-      console.log(annees)
       // Créer un nouvel objet pour stocker les années de formation initiale et continue
       anneesGrouped.value = {
         fi: annees.filter(a => a.opt.alternance === false).map(a => a),
@@ -105,20 +113,21 @@ const getAnneesSemestres = async () => {
     }
 
   } catch (error) {
-    console.error("Erreur lors de la récupération des semestres :", error);
+    console.error("Erreur lors de la récupération des années :", error);
     hasError.value = true;
   } finally {
     isLoading.value = false;
 
-    selectedSemestre.value =
-        anneesGrouped.value.fi?.[0]?.semestres?.[0] ??
-        anneesGrouped.value.fc?.[0]?.semestres?.[0] ??
+    // sélectionner par défaut la première année disponible (FI puis FC)
+    selectedAnnee.value =
+        anneesGrouped.value.fi?.[0] ??
+        anneesGrouped.value.fc?.[0] ??
         null;
   }
 };
 
-const selectSemestre = (semestre) => {
-  selectedSemestre.value = semestre;
+const selectAnnee = (annee) => {
+  selectedAnnee.value = annee;
 };
 </script>
 
@@ -129,43 +138,36 @@ const selectSemestre = (semestre) => {
         <div class="flex items-center pl-2">
           <i class="pi pi-briefcase bg-yellow-400 bg-opacity-20 rounded-full p-4 text-yellow-500"/>
           <div class="flex flex-col">
-            <span class="font-bold px-2 capitalize">Semestres</span>
-            <em class="text-muted-color px-2">Étudiants, absences, notes, fin de semestre</em>
+            <span class="font-bold px-2 capitalize">Années</span>
+            <em class="text-muted-color px-2">Étudiants, absences, notes, fin d'année</em>
           </div>
         </div>
       </template>
       <ListSkeleton v-if="isLoading" class="mt-4"/>
       <ErrorView v-else-if="hasError" />
       <Message v-else-if="anneesGrouped.fi.length < 1 && anneesGrouped.fc.length < 1" severity="error" icon="pi pi-times-circle" class="m-6">
-        Aucun semestre disponible.
+        Aucune année disponible.
       </Message>
       <div v-else class="flex gap-10 mt-4">
         <div class="w-1/2 flex gap-4">
-          <ul v-for="(annee, type) in anneesGrouped" class="w-1/2">
+          <ul v-for="(list, type) in anneesGrouped" class="w-1/2">
             <Fieldset :legend="type === 'fi' ? 'Formation Initiale' : 'Formation continue'" class="max-h-96 overflow-auto">
               <ul>
-                <li v-for="annee in annee"
+                <li v-for="annee in list"
                     :key="annee.id"
                     class="mb-2 text-sm">
-                  <div class="text-muted-color text-sm">{{ annee.libelle }}</div>
-                  <ul>
-                    <li v-for="semestre in annee.semestres"
-                        :key="semestre.id"
-                        @click="selectSemestre(semestre)"
-                        class="cursor-pointer w-full border-b p-1">
-                      <div class="hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2"
-                           :class="{'bg-primary-400 bg-opacity-10': selectedSemestre && selectedSemestre.id === semestre.id}">
-                        {{ semestre.libelle }}
-                      </div>
-                    </li>
-                  </ul>
+                  <div @click="selectAnnee(annee)"
+                       class="cursor-pointer hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2 border"
+                       :class="{'bg-primary-400 bg-opacity-10': selectedAnnee && selectedAnnee.id === annee.id}">
+                    {{ annee.libelle }}
+                  </div>
                 </li>
               </ul>
             </Fieldset>
           </ul>
         </div>
-        <div class="w-1/2 " v-if="selectedSemestre">
-          <h3 class="font-bold text-xl mb-4">Actions pour {{ selectedSemestre.libelle }}</h3>
+        <div class="w-1/2 " v-if="selectedAnnee">
+          <h3 class="font-bold text-xl mb-4">Actions pour {{ selectedAnnee.libelle }}</h3>
           <PanelMenu :model="panelMenuItems" multiple>
             <template #item="{ item }">
               <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>

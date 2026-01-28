@@ -5,6 +5,7 @@ import {getAnneesService} from '@requests'
 export const useAnneeStore = defineStore('annee', () => {
 
   const annees = ref({});
+  const annee = ref(null);
 
   const getAnneesDepartement = async (departementId) => {
     try {
@@ -24,9 +25,15 @@ export const useAnneeStore = defineStore('annee', () => {
     }
   };
 
+  const setSelectedAnnee = (anneeData) => {
+    annee.value = anneeData;
+  };
+
   return {
     getAnneesDepartement,
     annees,
+    annee,
     getAnneesDiplome,
+    setSelectedAnnee,
   };
 })
