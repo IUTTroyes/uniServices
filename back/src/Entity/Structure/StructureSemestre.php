@@ -134,44 +134,44 @@ class StructureSemestre
     /**
      * @var Collection<int, StructureUe>
      */
-    #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'semestre')]
+    #[ORM\OneToMany(targetEntity: StructureUe::class, mappedBy: 'semestre', orphanRemoval: true, cascade: ['remove'])]
     #[Groups(['semestre:detail', 'maquette:detail', 'pn:read'])]
     private Collection $ues;
 
     /**
      * @var Collection<int, ScolEvaluation>
      */
-    #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'semestre')]
+    #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'semestre', orphanRemoval: true, cascade: ['remove'])]
     #[Groups(['semestre:detail'])]
     private Collection $evaluations;
 
     /**
      * @var Collection<int, EdtEvent>
      */
-    #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'semestre')]
+    #[ORM\OneToMany(targetEntity: EdtEvent::class, mappedBy: 'semestre', orphanRemoval: true, cascade: ['remove'])]
     private Collection $events;
 
     /**
      * @var Collection<int, EdtContraintesSemestre>
      */
-    #[ORM\OneToMany(targetEntity: EdtContraintesSemestre::class, mappedBy: 'semestre')]
+    #[ORM\OneToMany(targetEntity: EdtContraintesSemestre::class, mappedBy: 'semestre', orphanRemoval: true, cascade: ['remove'])]
     private Collection $contraintesSemestres;
 
-    #[ORM\OneToMany(mappedBy: 'semestre', targetEntity: EtudiantScolariteSemestre::class, cascade: ['persist'])]
+    #[ORM\OneToMany(mappedBy: 'semestre', targetEntity: EtudiantScolariteSemestre::class, cascade: ['persist', 'remove'], orphanRemoval: true)]
     #[Groups(['semestre:detail'])]
     private Collection $scolariteSemestre;
 
     /**
      * @var Collection<int, StagePeriode>
      */
-    #[ORM\OneToMany(targetEntity: StagePeriode::class, mappedBy: 'semestreProgramme')]
+    #[ORM\OneToMany(targetEntity: StagePeriode::class, mappedBy: 'semestreProgramme', orphanRemoval: true, cascade: ['remove'])]
     #[Groups(['semestre:detail'])]
     private Collection $stagePeriodes;
 
     /**
      * @var Collection<int, PersonnelEnseignantHrs>
      */
-    #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'semestre')]
+    #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'semestre', orphanRemoval: true, cascade: ['remove'])]
     private Collection $enseignantHrs;
 
     public function __construct()

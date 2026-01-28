@@ -5,6 +5,7 @@ namespace App\Entity\Structure;
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcNiveau;
@@ -24,6 +25,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['annee:read']]),
         new GetCollection(normalizationContext: ['groups' => ['annee:read']]),
+        new Delete(),
     ]
 )]
 #[ApiFilter(AnneeFilter::class)]
@@ -62,7 +64,7 @@ class StructureAnnee
     /**
      * @var Collection<int, StructureSemestre>
      */
-    #[ORM\OneToMany(targetEntity: StructureSemestre::class, mappedBy: 'annee')]
+    #[ORM\OneToMany(targetEntity: StructureSemestre::class, mappedBy: 'annee', orphanRemoval: true, cascade: ['remove'])]
     #[Groups(['maquette:detail', 'annee:read'])]
     private Collection $semestres;
 

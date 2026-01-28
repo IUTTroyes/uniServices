@@ -18,7 +18,7 @@ class ScolEnseignementUe
     #[Groups(['maquette:detail'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'enseignementUes')]
+    #[ORM\ManyToOne(inversedBy: 'enseignementUes', cascade: ['remove'])]
     #[Groups(['maquette:detail', 'pn:read'])]
     private ?ScolEnseignement $enseignement;
 

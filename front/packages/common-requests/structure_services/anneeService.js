@@ -32,4 +32,19 @@ const getAnneesService = async (params, scope = '', showToast = false) => {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getAnneesService };
+const deleteAnneeService = async (anneeId, showToast = false) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api/structure_annees/${anneeId}`],
+            'Année supprimée avec succès',
+            'Erreur lors de la suppression de l\'année',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deleteAnneeService:', error);
+        throw error;
+    }
+}
+
+export { getAnneesService, deleteAnneeService };

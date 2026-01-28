@@ -2,12 +2,14 @@
 import { onMounted, ref } from 'vue'
 import { useAnneeUnivStore, useUsersStore } from '@stores'
 import { ErrorView, SimpleSkeleton } from '@components'
-import { getDiplomesService } from '@requests'
+import { getDiplomesService, deleteAnneeService, deletePnService, deleteDiplomeService } from '@requests'
 import { synchronisationProgrameOreofService } from '@/service/oreofService.ts'
 import Loader from '@components/loader/GlobalLoader.vue'
 import FicheRessource from '../../components/Pn/FicheRessource.vue'
 import FicheSae from '../../components/Pn/FicheSae.vue'
 import FicheMatiere from '../../components/Pn/FicheMatiere.vue'
+import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
+import {PermissionGuard} from "@components";
 
 const usersStore = useUsersStore()
 const anneeUnivStore = useAnneeUnivStore()
@@ -90,6 +92,30 @@ const showDetails = (item, semestre) => {
     console.error('Item is null or undefined')
   }
 }
+
+const deleteObject = async (objectType, id) => {
+  if (objectType === 'diplome') {
+    try {
+      await deleteDiplomeService(id, 'true')
+    } catch (error) {
+      console.error(`Erreur lors de la suppression de l'année :`, error)
+    }
+  }
+  if (objectType === 'pn') {
+    try {
+      await deletePnService(id, 'true')
+    } catch (error) {
+      console.error(`Erreur lors de la suppression de l'année :`, error)
+    }
+  }
+  if (objectType === 'annee') {
+    try {
+      await deleteAnneeService(id, 'true')
+    } catch (error) {
+      console.error(`Erreur lors de la suppression de l'année :`, error)
+    }
+  }
+}
 </script>
 
 <template>
@@ -118,6 +144,10 @@ const showDetails = (item, semestre) => {
 
     <Loader v-if="isLoadingDiplome" class="mt-6"/>
     <div v-else class="mt-6">
+      <PermissionGuard permission="isSuperAdmin">
+        <ButtonDelete tooltip="Supprimer ce Diplôme" @confirm-delete="deleteObject('diplome', selectedDiplome.id)"/>
+        <Tag severity="info">ID Diplome: {{ selectedDiplome.id }}</Tag>
+      </PermissionGuard>
       <div class="flex justify-between items-center my-6">
         <div class="text-xl font-bold">{{ selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné` }}</div>
         <Button
@@ -129,12 +159,20 @@ const showDetails = (item, semestre) => {
         {{ selectedDiplome?.responsableDiplome?.display ?? `Pas de responsable` }}
       </div>
       <template v-if="selectedPn">
+        <PermissionGuard permission="isSuperAdmin">
+          <ButtonDelete tooltip="Supprimer ce Pn" @confirm-delete="deleteObject('pn', selectedPn.id)"/>
+          <Tag severity="info">ID Pn: {{ selectedPn.id }}</Tag>
+        </PermissionGuard>
         <Fieldset v-for="annee in selectedPn.annees" :legend="`${annee.libelle}`" :toggleable="true">
           <template #toggleicon>
             <i class="pi pi-angle-down"></i>
           </template>
           <div class="border-l-4 border-primary-500 pl-4">
             <div class="mb-1 text-lg">{{ annee.libelleLong }}</div>
+            <PermissionGuard permission="isSuperAdmin">
+              <ButtonDelete tooltip="Supprimer cette année du Pn" @confirm-delete="deleteObject('annee', annee.id)"/>
+              <Tag severity="info">ID Année: {{ annee.id }}</Tag>
+            </PermissionGuard>
             <div class="my-6 flex flex-row items-center gap-4">
               <table class="text-lg">
                 <thead>
@@ -155,6 +193,10 @@ const showDetails = (item, semestre) => {
             </div>
 
             <div v-for="semestre in annee.semestres" class="ml-6 border-l-4 border-primary-300 pl-4">
+              <PermissionGuard permission="isSuperAdmin">
+                <ButtonDelete tooltip="Supprimer ce semestre du Pn" @confirm-delete="deleteObject('semestre', semestre.id)"/>
+                <Tag severity="info">ID Semestre: {{ semestre.id }}</Tag>
+              </PermissionGuard>
               <div class="mt-6 mb-2 flex flex-row items-center gap-4">
                 <table class="text-lg">
                   <thead>
@@ -179,6 +221,10 @@ const showDetails = (item, semestre) => {
                 <template #toggleicon>
                   <i class="pi pi-angle-down"></i>
                 </template>
+                <PermissionGuard permission="isSuperAdmin">
+                  <ButtonDelete tooltip="Supprimer cette UE du Pn" @confirm-delete="deleteObject('ue', ue.id)"/>
+                  <Tag severity="info">ID UE: {{ ue.id }}</Tag>
+                </PermissionGuard>
                 <div class="my-6 flex flex-row items-center gap-4">
                   <table class="text-lg">
                     <thead>
@@ -220,6 +266,10 @@ const showDetails = (item, semestre) => {
                            severity="danger">Ressource parent
                       </Tag>
                     </template>
+                    <PermissionGuard permission="isSuperAdmin">
+                      <ButtonDelete tooltip="Supprimer cet enseignment" @confirm-delete="deleteObject('enseignement', enseignementUe.id)"/>
+                      <Tag severity="info">ID EnseignementUe: {{ enseignementUe.id }}</Tag>
+                    </PermissionGuard>
                     <div class="my-6 flex flex-row items-center gap-4">
                       <table class="text-lg">
                         <thead>

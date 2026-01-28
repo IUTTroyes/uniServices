@@ -53,5 +53,19 @@ const getDiplomesService = async (params, scope = '', showToast = false) => {
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
+const deleteDiplomeService = async (diplomeId, showToast = false) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api/structure_diplomes/${diplomeId}`],
+            'Diplôme supprimé avec succès',
+            'Erreur lors de la suppression du diplôme',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deleteDiplomeService:', error);
+        throw error;
+    }
+}
 
-export { getAllDiplomesService, getDiplomesService };
+export { getAllDiplomesService, getDiplomesService, deleteDiplomeService };

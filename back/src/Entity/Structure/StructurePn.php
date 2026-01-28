@@ -4,6 +4,7 @@ namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcReferentiel;
@@ -20,6 +21,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['pn:detail']]),
         new GetCollection(normalizationContext: ['groups' => ['pn:detail']]),
+        new Delete(),
     ]
 )]
 #[ApiFilter(PnFilter::class)]
@@ -28,7 +30,7 @@ class StructurePn
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['pn:detail'])]
+    #[Groups(['pn:detail', 'maquette:detail'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
@@ -51,7 +53,7 @@ class StructurePn
     /**
      * @var Collection<int, StructureAnnee>
      */
-    #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'pn')]
+    #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'pn', orphanRemoval: true, cascade: ['remove'])]
     #[Groups(['pn:detail', 'maquette:detail'])]
     private Collection $annees;
 

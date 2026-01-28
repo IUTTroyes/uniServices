@@ -71,7 +71,7 @@ class StructureUe
     /**
      * @var Collection<int, ScolEnseignementUe>
      */
-    #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'ue')]
+    #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'ue', orphanRemoval: true, cascade: ['remove'])]
     #[Groups(['maquette:detail'])]
     private Collection $enseignementUes;
 

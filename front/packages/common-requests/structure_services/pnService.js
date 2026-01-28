@@ -66,4 +66,19 @@ const getPnDiplome = async (diplomeId, anneeUnivId, showToast = false) => {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getAllPns, getPnsDiplome, getPnDiplome };
+const deletePnService = async (pnId, showToast = false) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api/structure_pns/${pnId}`],
+            'PN supprimé avec succès',
+            'Erreur lors de la suppression du PN',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deletePnService:', error);
+        throw error;
+    }
+}
+
+export { getAllPns, getPnsDiplome, getPnDiplome, deletePnService };

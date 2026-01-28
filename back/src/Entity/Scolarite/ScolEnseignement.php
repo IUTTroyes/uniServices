@@ -142,7 +142,7 @@ class ScolEnseignement
     /**
      * @var Collection<int, ScolEvaluation>
      */
-    #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'enseignement')]
+    #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'enseignement', cascade: ['remove'], orphanRemoval: true)]
     #[Groups(['enseignement:detail'])]
     private Collection $evaluations;
 

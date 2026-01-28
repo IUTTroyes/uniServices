@@ -5,6 +5,7 @@ namespace App\Entity\Structure;
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
@@ -67,6 +68,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/maquette/structure_diplomes',
             normalizationContext: ['groups' => ['maquette:detail']],
         ),
+        new Delete(),
     ],
     paginationEnabled: false
 )]
@@ -125,7 +127,7 @@ class StructureDiplome
     #[Groups(['diplome:detail'])]
     private ?string $logoPartenaireName = null;
 
-    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome', fetch: 'EAGER')]
+    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome', cascade: ['remove'], fetch: 'EAGER', orphanRemoval: true)]
     #[Groups(['diplome:detail', 'maquette:detail'])]
     private Collection $pns;
 
@@ -153,7 +155,7 @@ class StructureDiplome
     #[Groups(['diplome:detail'])]
     private ?ApcReferentiel $referentiel = null;
 
-    #[ORM\ManyToOne(inversedBy: 'diplome')]
+    #[ORM\ManyToOne(cascade: ['remove'], inversedBy: 'diplome')]
     #[Groups(['diplome:detail', 'maquette:detail'])]
     private ?ApcParcours $parcours = null;
 
