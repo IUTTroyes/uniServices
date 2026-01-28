@@ -4,7 +4,6 @@ namespace App\DataFixtures;
 
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
-use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Users\Etudiant;
 use App\Enum\TypeGroupeEnum;
