@@ -7,9 +7,8 @@ export const useAnneeStore = defineStore('annee', () => {
   const annees = ref({});
   const annee = ref(null);
 
-  const getAnneesDepartement = async (departementId) => {
+  const getAnneesDepartement = async (params) => {
     try {
-      const params = { departement: departementId };
       annees.value = await getAnneesService(params);
     } catch (error) {
       console.error('Error fetching annee:', error);

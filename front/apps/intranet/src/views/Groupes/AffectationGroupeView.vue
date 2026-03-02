@@ -3,7 +3,7 @@ import {computed, onMounted, ref, watch, nextTick} from 'vue'
 import {ErrorView, SimpleSkeleton} from "@components";
 import Loader from '@components/loader/GlobalLoader.vue'
 import {typesGroupes} from '@config/uniServices.js';
-import {useSemestreStore, useUsersStore} from "@stores";
+import {useSemestreStore, useUsersStore, useAnneeStore} from "@stores";
 import {
   getEtudiantScolariteSemestresService,
   getGroupesService,
@@ -32,6 +32,9 @@ const departementId = usersStore.departementDefaut.id;
 const etudiantsScolariteSemestre = ref([]);
 const isLoadingEtudiants = ref(true);
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
+const anneeStore = useAnneeStore();
+const annees = ref([]);
+const annee = ref({});
 
 const { filters, watchChanges } = useEtudiantFilters();
 // Déclenche un rechargement serveur quand les filtres changent
@@ -49,10 +52,14 @@ const offset = computed(() => limit.value * page.value);
 
 
 onMounted(async () => {
+  await getAnnees();
   await getSemestre();
+  await getAnnee();
   await getSemestres();
   await getGroupes();
   await getEtudiants();
+
+  console.log(annees)
 });
 
 watch(() => semestreStore.semestre, (newSemestre) => {
@@ -68,6 +75,21 @@ watch(semestre, async (newSemestre, oldSemestre) => {
   }
 });
 
+// watcher pour relancer getGroupes et getSemestres quand annee change
+watch(annee, async (newAnnee, oldAnnee) => {
+  if (newAnnee.id !== oldAnnee.id) {
+    await getSemestres();
+    // si le semestre sélectionné n'est pas dans la nouvelle liste, on sélectionne le premier de la liste
+    if (!semestres.value.some(s => s.id === semestre.value.id)) {
+      semestre.value = semestres.value[0] || {};
+    }
+    await getGroupes();
+    await getEtudiants();
+    syncPreselectedRadios();
+  }
+});
+
+
 watch(groupes, (newVal) => {
   const types = Object.keys(newVal);
   if (types.length > 0 && !selectedGroupe.value) {
@@ -82,13 +104,47 @@ watch(selectedGroupe, () => {
   syncPreselectedRadios();
 });
 
+const getAnnees = async () => {
+  if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
+    annees.value = anneeStore.annees;
+  } else {
+    try {
+      const params = {
+        departement: departementId,
+        actif: true,
+      };
+      await anneeStore.getAnneesDepartement(params);
+      annees.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
+    } catch (error) {
+      console.error("Erreur lors de la récupération des années :", error);
+      hasError.value = true;
+    }
+  }
+};
+
+const getAnnee = async () => {
+  isLoadingSemestre.value = true;
+  hasError.value = false;
+  // Récupération de l'id de l'année via le semestre sélectionné
+  try {
+    const anneeId = semestre.value.annee.id
+    await anneeStore.setSelectedAnnee(anneeId);
+    annee.value = anneeStore.annee;
+  } catch (error) {
+    hasError.value = true;
+    console.error("Erreur lors de la récupération de l'année :", error);
+  } finally {
+    isLoadingSemestre.value = false;
+  }
+};
+
 const getSemestre = async () => {
   isLoadingSemestre.value = true;
   hasError.value = false;
   // Récupération de l'id du semestre dans l'url
   try {
     const semestreId = route.params.semestreId;
-    semestre.value = await getSemestreService(semestreId, '/mini');
+    semestre.value = await getSemestreService(semestreId);
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la récupération du semestre :", error);
@@ -102,13 +158,15 @@ const getSemestres = async () => {
   hasError.value = false;
   try {
     const params = {
-      departement: departementId,
+      annee: annee.value.id,
     };
+    console.log(semestre.value);
     semestres.value = await getSemestresService(params, '/mini');
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la récupération des semestres :", error);
   } finally {
+
     isLoadingSemestres.value = false;
   }
 };
@@ -406,11 +464,18 @@ const onPageChange = async (event) => {
         <em>Répartir les étudiants dans les groupes</em>
       </div>
       <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
-      <Select v-else class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Sélectionner un semestre">
-        <template #value>
-          Changer de semestre
-        </template>
-      </Select>
+      <div v-else class="flex gap-4">
+        <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
+          <template #value>
+            Changer d'année
+          </template>
+        </Select>
+        <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres">
+          <template #value>
+            Changer de semestre
+          </template>
+        </Select>
+      </div>
     </div>
     <Divider/>
     <ErrorView v-if="hasError"></ErrorView>

@@ -101,7 +101,9 @@ const getAnnees = async () => {
         departement: departementId,
         actif: true,
       };
-      const annees = await getAnneesService(params);
+      // const annees = await getAnneesService(params);
+      await anneeStore.getAnneesDepartement(params);
+      const annees = anneeStore.annees;
       // Créer un nouvel objet pour stocker les années de formation initiale et continue
       anneesGrouped.value = {
         fi: annees.filter(a => a.opt.alternance === false).map(a => a),
@@ -170,7 +172,7 @@ const selectAnnee = (annee) => {
           <h3 class="font-bold text-xl mb-4">Actions pour {{ selectedAnnee.libelle }}</h3>
           <PanelMenu :model="panelMenuItems" multiple>
             <template #item="{ item }">
-              <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+              <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" :annees="anneesGrouped.value" custom>
                 <a v-ripple class="flex items-center cursor-pointer text-surface-700 dark:text-surface-0 px-4 py-2" :href="href" @click="navigate">
                   <span :class="item.icon" />
                   <span class="ml-2">{{ item.label }}</span>
