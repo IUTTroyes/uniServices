@@ -7,8 +7,8 @@ import {useSemestreStore, useUsersStore, useAnneeStore} from "@stores";
 import {
   getEtudiantScolariteSemestresService,
   getGroupesService,
-  getSemestreService,
   getSemestresService,
+  getAnneeService,
   updateEtudiantScolariteSemestreService
 } from "@requests";
 import {useRoute} from "vue-router";
@@ -19,12 +19,11 @@ const toast = useToast();
 const route = useRoute();
 const hasError = ref(false);
 const semestre = ref({});
-const isLoadingSemestre = ref(true);
 const groupes = ref({});
 const isLoadingGroupes = ref(true);
 const selectedGroupe = ref(null);
 const semestreStore = useSemestreStore();
-const semestres = ref(semestreStore.semestres);
+const semestres = ref([]);
 const isLoadingSemestres = ref(true);
 const typesList = computed(() => Object.keys(groupes.value));
 const usersStore = useUsersStore();
@@ -35,6 +34,7 @@ const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localSt
 const anneeStore = useAnneeStore();
 const annees = ref([]);
 const annee = ref({});
+const isLoadingAnnee = ref(true);
 
 const { filters, watchChanges } = useEtudiantFilters();
 // Déclenche un rechargement serveur quand les filtres changent
@@ -53,13 +53,14 @@ const offset = computed(() => limit.value * page.value);
 
 onMounted(async () => {
   await getAnnees();
-  await getSemestre();
   await getAnnee();
   await getSemestres();
+  // Sélectionner le premier semestre de l'année par défaut
+  if (semestres.value.length > 0 && !semestre.value.id) {
+    semestre.value = semestres.value[0];
+  }
   await getGroupes();
   await getEtudiants();
-
-  console.log(annees)
 });
 
 watch(() => semestreStore.semestre, (newSemestre) => {
@@ -123,33 +124,18 @@ const getAnnees = async () => {
 };
 
 const getAnnee = async () => {
-  isLoadingSemestre.value = true;
+  isLoadingAnnee.value = true;
   hasError.value = false;
-  // Récupération de l'id de l'année via le semestre sélectionné
+  // Récupération de l'id de l'année via l'URL
   try {
-    const anneeId = semestre.value.annee.id
-    await anneeStore.setSelectedAnnee(anneeId);
-    annee.value = anneeStore.annee;
+    const anneeId = route.params.anneeId;
+    annee.value = await getAnneeService(anneeId);
+    await anneeStore.setSelectedAnnee(annee.value);
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la récupération de l'année :", error);
   } finally {
-    isLoadingSemestre.value = false;
-  }
-};
-
-const getSemestre = async () => {
-  isLoadingSemestre.value = true;
-  hasError.value = false;
-  // Récupération de l'id du semestre dans l'url
-  try {
-    const semestreId = route.params.semestreId;
-    semestre.value = await getSemestreService(semestreId);
-  } catch (error) {
-    hasError.value = true;
-    console.error("Erreur lors de la récupération du semestre :", error);
-  } finally {
-    isLoadingSemestre.value = false;
+    isLoadingAnnee.value = false;
   }
 };
 
@@ -460,7 +446,7 @@ const onPageChange = async (event) => {
   <div class="card min-h-full">
     <div class="flex justify-between items-end w-full">
       <div>
-        <h2 class="text-2xl font-bold flex items-end gap-2">Composition des groupes du <SimpleSkeleton v-if="isLoadingSemestre" class="!w-32"></SimpleSkeleton><span v-else>{{semestre.libelle}}</span></h2>
+        <h2 class="text-2xl font-bold flex items-end gap-2">Composition des groupes du <span>{{semestre.libelle}}</span></h2>
         <em>Répartir les étudiants dans les groupes</em>
       </div>
       <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>

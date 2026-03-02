@@ -2,11 +2,21 @@ import previsionnelRoutes from './previsionnelRoutes.js'
 import stageAdministrationRoutes from './stageAdministrationRoutes.js'
 import semestreAdministrationRoutes from './semestreAdministrationRoutes.js'
 import questionnaireAdministrationRoutes from './questionnaireAdministrationRoutes.js'
+import PersonnelsView from "@/views/Personnels/PersonnelsView.vue";
+import EtudiantsListeView from "@/views/Etudiants/EtudiantsListeView.vue";
+import EtudiantsAjoutView from "@/views/Etudiants/EtudiantsAjoutView.vue";
+import AdministrationView from '@/views/AdministrationView.vue';
+import EtudiantAddApogee from '@/components/Administration/etudiant/EtudiantAddApogee.vue';
+import EtudiantAddManuel from '@/components/Administration/etudiant/EtudiantAddManuel.vue';
+import EtudiantsAjoutResult from '@/views/Etudiants/EtudiantsAjoutResult.vue';
+import PnView from '@/views/Pn/PnView.vue';
+import RefCompetencesIndexView from '@/views/Ref-Competences/IndexView.vue';
+import PrevisionnelView from '@/views/Previsionnel/PrevisionnelView.vue';
 
 export default [
   {
     path: 'administration',
-    component: () => import('@/views/AdministrationView.vue'),
+    component: AdministrationView,
     meta: {
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
@@ -17,7 +27,7 @@ export default [
   },
   {
     path: 'administration/personnels',
-    component: () => import('@/views/personnels/PersonnelsView.vue'),
+    component: PersonnelsView,
     meta: {
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
@@ -36,7 +46,7 @@ export default [
     children: [
       {
         path: '',
-        component: () => import('@/views/etudiants/EtudiantsListeView.vue'),
+        component: EtudiantsListeView,
         meta: {
           breadcrumb: [{ label: 'Dashboard', route: '/' }, {
             label: 'Administration',
@@ -46,7 +56,7 @@ export default [
       },
       {
         path: 'ajout',
-        component: () => import('@/views/etudiants/EtudiantsAjoutView.vue'),
+        component: EtudiantsAjoutView,
         meta: {
           breadcrumb: [{ label: 'Dashboard', route: '/' }, {
             label: 'Administration',
@@ -56,16 +66,16 @@ export default [
         children: [
           {
             path: 'apogee',
-            component: () => import('@/components/Administration/etudiant/EtudiantAddApogee.vue'),
+            component: EtudiantAddApogee,
           },{
             path: 'manuel',
-            component: () => import('@/components/Administration/etudiant/EtudiantAddManuel.vue'),
+            component: EtudiantAddManuel,
           },
         ]
       },
       {
         path: 'ajout/result',
-        component: () => import('@/views/Etudiants/EtudiantsAjoutResult.vue'),
+        component: EtudiantsAjoutResult,
         meta: {
           breadcrumb: [{ label: 'Dashboard', route: '/' }, {
             label: 'Administration',
@@ -78,7 +88,7 @@ export default [
   },
   {
     path: 'administration/pn',
-    component: () => import('@/views/pn/PnView.vue'),
+    component: PnView,
     meta: {
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
@@ -88,7 +98,7 @@ export default [
   },
   {
     path: 'administration/referentiels-competences',
-    component: () => import('@/views/Ref-Competences/IndexView.vue'),
+    component: RefCompetencesIndexView,
     meta: {
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
@@ -98,7 +108,7 @@ export default [
   },
   {
     path: 'administration/previsionnel',
-    component: () => import('@/views/previsionnel/PrevisionnelView.vue'),
+    component: PrevisionnelView,
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
@@ -123,12 +133,12 @@ export default [
     ]
   },
   {
-    path: 'administration/semestre/:semestreId',
+    path: 'administration/annee/:anneeId',
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Administration', route: '/administration', icon: 'pi pi-wrench' },
-        { label: 'Semestre', route: null }
+        { label: 'Année', route: null }
       ]
     },
     children: [

@@ -1,5 +1,5 @@
 // Removed top-level store call; breadcrumb that needs the store is created lazily
-import { useSemestreStore } from "@stores";
+import { useAnneeStore } from "@stores";
 
 export default [
   {
@@ -12,7 +12,7 @@ export default [
         route: '/administration',
         icon: 'pi pi-wrench'
       },
-      { label: 'Semestre', route: null },
+      { label: 'Année', route: null },
       { label: 'Structure des groupes', route: null }]
     },
   },
@@ -23,14 +23,14 @@ export default [
     // breadcrumb is a function so we can read the store at render time (not at module import)
     meta: {
       breadcrumb: () => {
-        const semestreStore = useSemestreStore();
-        const selectedSemestre = semestreStore.semestre;
+        const anneeStore = useAnneeStore();
+        const selectedAnnee = anneeStore.annee;
         return [{ label: 'Dashboard', route: '/' }, {
           label: 'Administration',
           route: '/administration',
           icon: 'pi pi-wrench'
         },
-        { label: selectedSemestre?.libelle ?? 'Semestre', route: null },
+        { label: selectedAnnee?.libelle ?? 'Année', route: null },
         { label: 'Affectation des groupes', route: null }];
       }
     },
@@ -45,8 +45,8 @@ export default [
         route: '/administration',
         icon: 'pi pi-wrench'
       },
-        { label: 'Semestre', route: null },
-        { label: 'Liste des absences du semestre', route: null }]
+        { label: 'Année', route: null },
+        { label: 'Liste des absences', route: null }]
     },
   },
   {
@@ -59,8 +59,8 @@ export default [
         route: '/administration',
         icon: 'pi pi-wrench'
       },
-        { label: 'Semestre', route: null },
-        { label: 'Liste des justificatifs d\'absences du semestre', route: null }]
+        { label: 'Année', route: null },
+        { label: 'Liste des justificatifs d\'absences', route: null }]
     },
   },
   {
@@ -73,8 +73,8 @@ export default [
         route: '/administration',
         icon: 'pi pi-wrench'
       },
-        { label: 'Semestre', route: null },
-        { label: 'Evaluations du semestre', route: null }]
+        { label: 'Année', route: null },
+        { label: 'Evaluations', route: null }]
     },
   },
   {
@@ -87,8 +87,8 @@ export default [
         route: '/administration',
         icon: 'pi pi-wrench'
       },
-        { label: 'Semestre', route: null },
-        { label: 'Rattrapages du semestre', route: null }]
+        { label: 'Année', route: null },
+        { label: 'Rattrapages', route: null }]
     },
   },
   {
@@ -101,8 +101,8 @@ export default [
         route: '/administration',
         icon: 'pi pi-wrench'
       },
-        { label: 'Semestre', route: null },
-        { label: 'MCCC du semestre', route: null }]
+        { label: 'Année', route: null },
+        { label: 'MCCC', route: null }]
     },
   },
   {
@@ -115,8 +115,8 @@ export default [
         route: '/administration',
         icon: 'pi pi-wrench'
       },
-        { label: 'Semestre', route: null },
-        { label: 'Sous commission du semestre', route: null }]
+        { label: 'Année', route: null },
+        { label: 'Sous commission', route: null }]
     },
   },
 ]

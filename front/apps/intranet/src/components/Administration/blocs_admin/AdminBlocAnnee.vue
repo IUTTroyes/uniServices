@@ -20,11 +20,11 @@ watch(selectedAnnee, (newVal) => {
   semestreStore.setSelectedSemestre(firstSem);
 });
 
-const firstSemestreId = computed(() => selectedAnnee.value?.semestres?.[0]?.id ?? null);
+const anneeId = computed(() => selectedAnnee.value?.id ?? null);
 
 const panelMenuItems = computed(() => {
-  // For now, actions needing a semestre use the first semester of the selected year
-  const sid = firstSemestreId.value;
+  // Use the annee id for routes
+  const aid = anneeId.value;
   if (!selectedAnnee.value) return [];
   return [
     {
@@ -37,10 +37,10 @@ const panelMenuItems = computed(() => {
       label: 'Groupes', icon: 'pi pi-users', command: () => {}, items: [
         {
           label: 'Composition des groupes', icon: 'pi pi-list',
-          route: sid ? '/administration/semestre/' + sid + '/groupes/affectation' : null,
+          route: aid ? '/administration/annee/' + aid + '/groupes/affectation' : null,
         },
         {
-          label: 'Structure des groupes', icon: 'pi pi-cog', route: sid ? '/administration/semestre/' + sid + '/groupes/structure' : null,
+          label: 'Structure des groupes', icon: 'pi pi-cog', route: aid ? '/administration/annee/' + aid + '/groupes/structure' : null,
         }
       ]
     },
@@ -48,11 +48,11 @@ const panelMenuItems = computed(() => {
       label: 'Absences', icon: 'pi pi-calendar', command: () => {}, items: [
         {
           label: 'Liste des absences', icon: 'pi pi-list',
-          route: sid ? '/administration/semestre/' + sid + '/absences/liste' : null,
+          route: aid ? '/administration/annee/' + aid + '/absences/liste' : null,
         },
         {
           label: 'Liste des justificatifs', icon: 'pi pi-folder-open',
-          route: sid ? '/administration/semestre/' + sid + '/justificatifs-absences/liste' : null,
+          route: aid ? '/administration/annee/' + aid + '/justificatifs-absences/liste' : null,
         },
         { label: 'Suivi des pointages de présence', icon: 'pi pi-eye', command: () => {} },
       ]
@@ -61,21 +61,21 @@ const panelMenuItems = computed(() => {
       label: 'Notes et Évaluations', icon: 'pi pi-book', command: () => {}, items: [
         {
           label: 'Liste des notes', icon: 'pi pi-list',
-          route: sid ? '/administration/semestre/' + sid + '/evaluations/liste' : null
+          route: aid ? '/administration/annee/' + aid + '/evaluations/liste' : null
         },
         { label: 'Gestion des évaluations', icon: 'pi pi-cog', command: () => {} },
         {
           label: 'Demandes de rattrapages', icon: 'pi pi-history',
-          route: sid ? '/administration/semestre/' + sid + '/rattrapages/liste' : null },
+          route: aid ? '/administration/annee/' + aid + '/rattrapages/liste' : null },
         { label: 'Modalités du contrôle continu', icon: 'pi pi-map',
-          route: sid ? '/administration/semestre/' + sid + '/mccc/liste' : null
+          route: aid ? '/administration/annee/' + aid + '/mccc/liste' : null
         },
       ]
     },
     {
       label: 'Fin de semestre', icon: 'pi pi-check', command: () => {}, items: [
         { label: 'Préparation de la sous-commission', icon: 'pi pi-calculator',
-          route: sid ? '/administration/semestre/' + sid + '/sous-commission' : null},
+          route: aid ? '/administration/annee/' + aid + '/sous-commission' : null},
         { label: 'Changement de semestre des étudiants', icon: 'pi pi-forward', command: () => {} },
       ]
     },

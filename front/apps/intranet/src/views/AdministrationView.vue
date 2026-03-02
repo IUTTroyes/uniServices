@@ -1,5 +1,5 @@
 <script setup>
-import AdminBlocSemestre from '@/components/Administration/blocs_admin/AdminBlocSemestre.vue'
+import AdminBlocAnnee from '@/components/Administration/blocs_admin/AdminBlocAnnee.vue'
 import AdminBlocEtudiant from '@/components/Administration/blocs_admin/AdminBlocEtudiant.vue'
 import AdminBlocPersonnel from '@/components/Administration/blocs_admin/AdminBlocPersonnel.vue'
 import AdminBlocPn from '@/components/Administration/blocs_admin/AdminBlocPn.vue'
@@ -11,7 +11,7 @@ import AdminBlocQualite from "../components/Administration/blocs_admin/AdminBloc
 <template>
   <div class="card">
     <div class="card-body flex flex-col gap-10">
-      <admin-bloc-semestre class="w-full"/>
+      <admin-bloc-annee class="w-full"/>
       <div class="flex flex-row justify-between gap-10">
         <admin-bloc-etudiant class="w-full"/>
         <admin-bloc-personnel class="w-full"/>

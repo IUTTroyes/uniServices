@@ -12,7 +12,7 @@ declare module 'vue' {
     AdminBlocPersonnel: typeof import('./src/components/Administration/blocs_admin/AdminBlocPersonnel.vue')['default']
     AdminBlocPn: typeof import('./src/components/Administration/blocs_admin/AdminBlocPn.vue')['default']
     AdminBlocQualite: typeof import('./src/components/Administration/blocs_admin/AdminBlocQualite.vue')['default']
-    AdminBlocSemestre: typeof import('./src/components/Administration/blocs_admin/AdminBlocSemestre.vue')['default']
+    AdminBlocAnnee: typeof import('./src/components/Administration/blocs_admin/AdminBlocAnnee.vue')['default']
     AdminBlocStage: typeof import('./src/components/Administration/blocs_admin/AdminBlocStage.vue')['default']
     AfficheReferentielCompetences: typeof import('./src/components/Pn/AfficheReferentielCompetences.vue')['default']
     ApcCompetence: typeof import('./src/components/Pn/ApcCompetence.vue')['default']

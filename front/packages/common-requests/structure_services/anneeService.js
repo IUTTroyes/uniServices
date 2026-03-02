@@ -20,6 +20,21 @@ const getAnneesService = async (params, scope = '', showToast = false) => {
     }
 }
 
+const getAnneeService = async (anneeId, showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api/structure_annees/${anneeId}`],
+            'Année récupérée avec succès',
+            'Erreur lors de la récupération de l\'année',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getAnneeService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- CREATE -------------------
 // ----------------------------------------------
@@ -47,4 +62,4 @@ const deleteAnneeService = async (anneeId, showToast = false) => {
     }
 }
 
-export { getAnneesService, deleteAnneeService };
+export { getAnneesService, getAnneeService, deleteAnneeService };
