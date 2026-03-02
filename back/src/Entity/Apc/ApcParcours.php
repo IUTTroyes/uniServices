@@ -25,7 +25,7 @@ class ApcParcours
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['maquette:detail'])]
+    #[Groups(['maquette:detail', 'groupe:structure'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 10, nullable: true)]
@@ -46,7 +46,7 @@ class ApcParcours
     /**
      * @var Collection<int, StructureGroupe>
      */
-    #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'parcours')]
+    #[ORM\OneToMany(targetEntity: StructureGroupe::class, mappedBy: 'parcours')]
     private Collection $groupes;
 
     /**
@@ -180,6 +180,7 @@ class ApcParcours
     {
         if (!$this->groupes->contains($groupe)) {
             $this->groupes->add($groupe);
+            $groupe->setParcours($this);
         }
 
         return $this;
@@ -187,7 +188,12 @@ class ApcParcours
 
     public function removeGroupe(StructureGroupe $groupe): static
     {
-        $this->groupes->removeElement($groupe);
+        if ($this->groupes->removeElement($groupe)) {
+            // set the owning side to null (unless already changed)
+            if ($groupe->getParcours() === $this) {
+                $groupe->setParcours(null);
+            }
+        }
 
         return $this;
     }

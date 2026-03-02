@@ -7,13 +7,17 @@ export default [
     name: 'structure-groupe',
     component: () => import('@/views/Groupes/StructureGroupeView.vue'),
     meta: {
-      breadcrumb: [{ label: 'Dashboard', route: '/' }, {
-        label: 'Administration',
-        route: '/administration',
-        icon: 'pi pi-wrench'
-      },
-      { label: 'Année', route: null },
-      { label: 'Structure des groupes', route: null }]
+      breadcrumb: () => {
+        const anneeStore = useAnneeStore();
+        const selectedAnnee = anneeStore.annee;
+        return [{ label: 'Dashboard', route: '/' }, {
+          label: 'Administration',
+          route: '/administration',
+          icon: 'pi pi-wrench'
+        },
+          { label: selectedAnnee?.libelle ?? 'Année', route: null },
+          { label: 'Structure des groupes', route: null }];
+      }
     },
   },
   {

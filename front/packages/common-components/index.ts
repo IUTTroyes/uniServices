@@ -15,6 +15,7 @@ import ScolariteEtudiant from "@components/components/Etudiant/ProfilEtudiant/Sc
 import ProfilPersonnel from "@components/components/Personnel/ProfilPersonnel.vue";
 import PermissionGuard from "@components/components/Permission/PermissionGuard.vue";
 import MessageCard from "@components/components/Messages/MessageCard.vue";
+import GlobalLoader from "@components/loader/GlobalLoader.vue";
 
 // Form validation components
 import FormValidator from './components/Forms/FormValidator.vue';
@@ -23,6 +24,7 @@ import ExampleValidatedForm from './components/Forms/ExampleValidatedForm.vue';
 import { validationRules, validateField } from './utils/formValidation';
 
 export {
+  GlobalLoader,
   LayoutComponent,
   LoginComponent,
   FooterComponent,

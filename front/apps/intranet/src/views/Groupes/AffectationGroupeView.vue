@@ -1,7 +1,7 @@
 <script setup>
 import {computed, onMounted, ref, watch, nextTick} from 'vue'
 import {ErrorView, SimpleSkeleton} from "@components";
-import Loader from '@components/loader/GlobalLoader.vue'
+import {GlobalLoader} from "@components";
 import {typesGroupes} from '@config/uniServices.js';
 import {useSemestreStore, useUsersStore, useAnneeStore} from "@stores";
 import {

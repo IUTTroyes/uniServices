@@ -43,6 +43,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/maxi/structure_groupes',
             normalizationContext: ['groups' => ['groupe:detail']],
         ),
+        new GetCollection(
+            uriTemplate: '/structure/structure_groupes',
+            normalizationContext: ['groups' => ['groupe:structure']],
+        ),
     ]
 )]
 class StructureGroupe
@@ -54,39 +58,36 @@ class StructureGroupe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'scolarite-semestre:manage-groupes'])]
+    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'scolarite-semestre:manage-groupes', 'groupe:structure'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'scolarite-semestre:manage-groupes'])]
+    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'scolarite-semestre:manage-groupes', 'groupe:structure'])]
     private string $libelle;
 
     #[ORM\Column(length: 10, enumType: TypeGroupeEnum::class)]
-    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda'])]
+    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'groupe:structure'])]
     private TypeGroupeEnum $type;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
-    #[Groups(['groupe:detail','groupe:light', 'edt_event:read:agenda'])]
+    #[Groups(['groupe:detail','groupe:light', 'edt_event:read:agenda', 'groupe:structure'])]
     private ?self $parent = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['groupe:detail'])]
+    #[Groups(['groupe:detail', 'groupe:structure'])]
     private ?int $ordre = null;
 
     #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'groupes')]
     private Collection $semestres;
 
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]
-    #[Groups(['groupe:detail', 'edt_event:read:agenda'])]
+    #[Groups(['groupe:detail', 'edt_event:read:agenda', 'groupe:structure'])]
     private ?Collection $enfants;
 
-    /**
-     * @var Collection<int, ApcParcours>
-     */
-    #[ORM\ManyToMany(targetEntity: ApcParcours::class, mappedBy: 'groupes')]
-    #[Groups(['groupe:detail'])]
-    private Collection $parcours;
+    #[ORM\ManyToOne(targetEntity: ApcParcours::class, inversedBy: 'groupes')]
+    #[Groups(['groupe:detail', 'groupe:structure'])]
+    private ?ApcParcours $parcours = null;
 
     /**
      * @var Collection<int, EdtEvent>
@@ -113,7 +114,6 @@ class StructureGroupe
     {
         $this->semestres = new ArrayCollection();
         $this->enfants = new ArrayCollection();
-        $this->parcours = new ArrayCollection();
         $this->edtEvents = new ArrayCollection();
         $this->scolariteSemestres = new ArrayCollection();
         $this->etudiants = new ArrayCollection();
@@ -226,29 +226,14 @@ class StructureGroupe
         return $this;
     }
 
-    /**
-     * @return Collection<int, ApcParcours>
-     */
-    public function getParcours(): Collection
+    public function getParcours(): ?ApcParcours
     {
         return $this->parcours;
     }
 
-    public function addParcour(ApcParcours $parcour): static
+    public function setParcours(?ApcParcours $parcours): static
     {
-        if (!$this->parcours->contains($parcour)) {
-            $this->parcours->add($parcour);
-            $parcour->addGroupe($this);
-        }
-
-        return $this;
-    }
-
-    public function removeParcour(ApcParcours $parcour): static
-    {
-        if ($this->parcours->removeElement($parcour)) {
-            $parcour->removeGroupe($this);
-        }
+        $this->parcours = $parcours;
 
         return $this;
     }

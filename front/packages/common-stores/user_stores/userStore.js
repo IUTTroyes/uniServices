@@ -139,7 +139,8 @@ export const useUsersStore = defineStore('users', () => {
                 await departements.value.filter(departement => departement.defaut === false) : [];
             departementsNotDefaut.value = Array.isArray(departementsPersonnelNotDefaut.value) ?
                 await departementsPersonnelNotDefaut.value.map(departement => departement.departement) : [];
-            window.location.reload();
+            // renvoyer vers la page d'accueil après le changement de département
+            window.location.href = '/';
         } catch (error) {
             console.error('Error changing department:', error);
         }
