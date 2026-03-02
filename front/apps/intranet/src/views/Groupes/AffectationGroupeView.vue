@@ -84,6 +84,7 @@ watch(annee, async (newAnnee, oldAnnee) => {
     if (!semestres.value.some(s => s.id === semestre.value.id)) {
       semestre.value = semestres.value[0] || {};
     }
+    await anneeStore.setSelectedAnnee(newAnnee)
     await getGroupes();
     await getEtudiants();
     syncPreselectedRadios();
