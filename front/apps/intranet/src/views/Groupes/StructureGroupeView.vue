@@ -145,6 +145,19 @@ const getGroupes = async () => {
     console.log(groupes.value)
   }
 };
+
+const synchroApogee = async () => {
+  isLoadingGroupes.value = true;
+  hasError.value = false;
+  try {
+
+  } catch (error) {
+    hasError.value = true;
+    console.error("Erreur lors de la synchronisation des groupes :", error);
+  } finally {
+    isLoadingGroupes.value = false;
+  }
+};
 </script>
 
 <template>
@@ -165,6 +178,10 @@ const getGroupes = async () => {
             Changer d'année
           </template>
         </Select>
+        <Button
+            @click="synchroApogee()"
+            label="Synchronisation depuis Apogée"
+            icon="pi pi-refresh"/>
       </div>
     </div>
     <Divider />
@@ -181,10 +198,14 @@ const getGroupes = async () => {
                 :empty-message="'Aucun groupe de type ' + type + ' pour ce semestre.'"
                 striped-rows
                 class="w-full">
-              <Column field="ordre" header="Ordre" />
-              <Column field="libelle" header="Libellé" />
-              <Column field="codeApogee" header="Code Apogée" />
-              <Column field="parent.libelle" header="Parent" />
+              <Column field="ordre" header="Ordre">
+                <template #body="slotProps">
+                  <span class="text-muted-color">{{ slotProps.data.ordre !== null ? slotProps.data.ordre : '-' }}</span>
+                </template>
+              </Column>
+              <Column field="libelle" header="Libellé" class="font-black"/>
+              <Column field="codeApogee" header="Code Apogée" class="font-bold"/>
+              <Column field="parent.libelle" header="Parent" class="text-muted-color"/>
               <Column field="parcours.libelle" header="Parcours" />
             </DataTable>
           </div>
