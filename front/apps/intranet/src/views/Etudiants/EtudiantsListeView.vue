@@ -6,7 +6,7 @@ import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue';
 import {ErrorView, ProfilEtudiant} from '@components';
-import { getAnneesService, getEtudiantsScolariteService } from '@requests';
+import { getAnneesService, getEtudiantsScolariteService, demissionEtudiantScolariteService } from '@requests';
 // import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue';
 // import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue';
 // import AccessEtudiantDialog from '@/dialogs/etudiants/AccessEtudiantDialog.vue';
@@ -89,6 +89,7 @@ const getEtudiantsAnnee = async (anneeId) => {
     departement: departementId.value,
     anneeUniversitaire: selectedAnneeUniversitaire.id,
     annee: anneeId,
+    actif: true,
     limit: 1,
     page: 1,
     filters: {},
@@ -101,6 +102,7 @@ const getEtudiantsScolarite = async () => {
   const params = {
     departement: departementId.value,
     anneeUniversitaire: selectedAnneeUniversitaire.id,
+    actif: true,
     itemsPerPage: limit.value,
     page: parseInt(page.value) + 1,
     filters: filters.value,
@@ -127,7 +129,6 @@ const getEtudiantsScolarite = async () => {
       life: 5000,
     });
   } finally {
-    console.log(etudiants.value)
     loading.value = false;
   }
 };
@@ -162,7 +163,17 @@ const editEtudiant = etudiant => {
 };
 
 const deleteEtudiant = etudiant => {
-  console.log(etudiant);
+ try {
+   demissionEtudiantScolariteService(etudiant.id, true);
+ } catch (error) {
+   console.error('Erreur lors de la démission de l\'étudiant :', error);
+   toast.add({
+     severity: 'error',
+     summary: 'Erreur',
+     detail: 'Impossible de marquer l\'étudiant comme démissionnaire. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+     life: 5000,
+   });
+ }
 };
 </script>
 

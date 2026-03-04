@@ -114,7 +114,6 @@ FOREIGN_KEY_CHECKS=1');
 
         foreach ($parcours as $par) {
             $parcour = new ApcParcours();
-            $parcour->setReferentiel($this->tReferentiels[$par['apc_referentiel_id']]);
             $parcour->setLibelle($par['libelle']);
             $parcour->setOldId($par['id']);
             $parcour->setActif($par['actif']);

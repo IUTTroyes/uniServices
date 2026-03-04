@@ -111,8 +111,27 @@ const updateEtudiantScolariteService = async (scolariteId, updatedData, showToas
     }
 }
 
+const demissionEtudiantScolariteService = async (scolariteId, showToast = false) => {
+    try {
+        return await apiCall(
+            api.patch,
+            [`/api/etudiant_scolarites/demission/${scolariteId}`,  {
+                headers: {
+                    'Content-Type': 'application/merge-patch+json',
+                },
+            }],
+            'Démission de l\'étudiant appliquée avec succès',
+            'Erreur lors de la démission de l\'étudiant',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans demissionEtudiantScolariteService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getEtudiantsScolariteService, getEtudiantScolariteService, getEtudiantScolaritesService, updateEtudiantScolariteService };
+export { getEtudiantsScolariteService, getEtudiantScolariteService, getEtudiantScolaritesService, updateEtudiantScolariteService, demissionEtudiantScolariteService };

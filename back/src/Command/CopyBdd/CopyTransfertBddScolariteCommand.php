@@ -133,6 +133,9 @@ FOREIGN_KEY_CHECKS=1');
                     $scolarite->setUuid(UuidV4::v4());
                     $scolarite->setEtudiant($this->tEtudiants[$etu['id']]);
                     $scolarite->setAnneeUniversitaire($this->tAnneeUniversitaire[$scol['annee']]);
+                    if ($this->tAnneeUniversitaire[$scol['annee']]->isActif()) {
+                        $scolarite->setActif(true);
+                    }
 
                     // Définir les propriétés globales de la scolarité
                     $scolarite->setMoyenne(isset($scol['bilan']['moyenne']) ? round($scol['bilan']['moyenne'], 2) : 0);

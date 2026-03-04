@@ -7,20 +7,21 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 use App\Entity\Structure\StructureAnnee;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Filter\EtudiantScolariteFilter;
-use App\Repository\Structure\StructureScolariteRepository;
+use App\Repository\EtudiantScolariteRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
-#[ORM\Entity(repositoryClass: StructureScolariteRepository::class)]
+#[ORM\Entity(repositoryClass: EtudiantScolariteRepository::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light', 'annee-univ:light']]),
@@ -41,11 +42,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/maxi/etudiant_scolarites',
             normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:detail']],
         ),
-
         new Get(
             uriTemplate: '/etudiant_scolarites/etudiant/{etudiant}/structureAnneeUniversitaire/{structureAnneeUniversitaire}',
             normalizationContext: ['groups' => ['scolarite:detail']],
-        )
+        ),
     ],
 )]
 #[ApiFilter(BooleanFilter::class, properties: ['actif'])]

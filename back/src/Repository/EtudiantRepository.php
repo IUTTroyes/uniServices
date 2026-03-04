@@ -18,4 +18,13 @@ class EtudiantRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Etudiant::class);
     }
+
+    public function save(Etudiant $entity, bool $flush = false): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
 }
