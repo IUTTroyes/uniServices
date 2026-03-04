@@ -72,7 +72,6 @@ const getEvents = async (date = new Date()) => {
     const personnel = usersStore.isPersonnel ? user : null;
 
     const formattedDate = date.toISOString().split('T')[0];
-    const currentTime = date.toISOString();
 
     const params = {
       personnel: personnel?.id || null,
@@ -85,8 +84,14 @@ const getEvents = async (date = new Date()) => {
     const response = await getEdtEventsService(params);
 
     if (response && response.length > 0) {
+      const now = new Date();
       allEvents.value = response
-          .filter(event => new Date(event.fin) > new Date(currentTime)) // Exclure les événements déjà terminés
+          .filter(event => {
+            // Ajuster le fuseau horaire pour la comparaison
+            const endDate = new Date(event.fin);
+            const adjustedEnd = new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000);
+            return adjustedEnd > now; // Exclure les événements déjà terminés
+          })
           .map(event => {
             let eventColor;
             if (event.groupe) {
@@ -125,8 +130,6 @@ const getEvents = async (date = new Date()) => {
       // Trier les événements par heure de début
       allEvents.value.sort((a, b) => new Date(a.debut) - new Date(b.debut));
     }
-
-    console.log('allEvents', allEvents.value);
     sortEvents();
   } catch (error) {
     hasError.value = true;
@@ -159,19 +162,24 @@ const sortEvents = () => {
       ...(nextEvent ? [{ ...nextEvent, isFirst: false }] : [])
     ];
   } else {
-    // Si aucun événement en cours, on affiche "aucun événement en cours" et le prochain événement
-    const nextEvent = allEvents.value[0];
+    // Si aucun événement en cours, on cherche le premier événement futur
+    const now = new Date();
+    const nextEventIndex = allEvents.value.findIndex(event => event.start > now);
+    const nextEvent = nextEventIndex !== -1 ? allEvents.value[nextEventIndex] : null;
+
     sortedEvents.value = [
       {
         text: "Aucun cours",
         isFirst: true,
         backgroundColor: "#f0f0f0",
         colorFocus: "#d0d0d0",
-        dayoff: false,
+        dayoff: !nextEvent, // dayoff seulement s'il n'y a plus de cours à venir
       },
       ...(nextEvent ? [{ ...nextEvent, isFirst: false }] : [])
     ];
   }
+  // logger les événements triés
+  console.log('Événements triés :', sortedEvents.value);
 };
 
 onMounted(async () => {

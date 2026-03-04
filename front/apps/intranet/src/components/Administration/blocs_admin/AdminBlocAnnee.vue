@@ -30,7 +30,7 @@ const panelMenuItems = computed(() => {
     {
       label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
         { label: 'Liste des étudiants', icon: 'pi pi-list', route: aid ? `/administration/etudiant?annee=${aid}` : '/administration/etudiant' },
-        { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', command: () => {} },
+        // { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', command: () => {} },
       ]
     },
     {
