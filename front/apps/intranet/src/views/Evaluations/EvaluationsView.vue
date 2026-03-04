@@ -2,13 +2,15 @@
 import {computed, onMounted, ref, watch} from 'vue';
 import { useRoute } from 'vue-router';
 import {
+  getAnneeService,
   getEnseignementsService,
   getEtudiantsService,
   getEvaluationsService,
   getGroupesService,
+  getSemestresService,
   updateEvaluationService
 } from '@requests';
-import {useDiplomeStore, useUsersStore} from '@stores';
+import {useUsersStore, useAnneeStore, useSemestreStore} from '@stores';
 import {ErrorView, PermissionGuard, SimpleSkeleton, ListSkeleton} from '@components';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
@@ -20,16 +22,20 @@ import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 const toast = useToast();
 const route = useRoute();
 const usersStore = useUsersStore();
-const diplomeStore = useDiplomeStore();
+const anneeStore = useAnneeStore();
+const semestreStore = useSemestreStore();
 const hasError = ref(false);
 const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));
 const departementId = ref(null);
-const isPreselecting = ref(false);
-const diplomes = ref({});
-const isLoadingDiplomes = ref(true);
-const selectedDiplome = ref({});
-const selectedAnnee = ref({});
-const selectedSemestre = ref({});
+
+// Années et semestres
+const annees = ref([]);
+const annee = ref({});
+const semestres = ref([]);
+const semestre = ref({});
+const isLoadingAnnees = ref(true);
+const isLoadingSemestres = ref(true);
+
 const enseignements = ref([]);
 const isLoadingEnseignements = ref(true);
 const evaluations = ref([]);
@@ -42,87 +48,101 @@ const selectedEvaluation = ref(null);
 // Cache: expected total notes per (semestreId, typeGroupe)
 const expectedTotalsByType = ref({});
 
-onMounted(() => {
+onMounted(async () => {
   departementId.value = usersStore.departementDefaut.id;
-  getDiplomes();
+  await getAnnees();
+  await getAnnee();
+  await getSemestres();
+  // Sélectionner le premier semestre de l'année par défaut
+  if (semestres.value.length > 0 && !semestre.value.id) {
+    semestre.value = semestres.value[0];
+  }
 });
 
-// Try to select diploma/annee/semestre based on a semestreId
-const preselectBySemestreId = (semestreId) => {
-  if (!semestreId || !Array.isArray(diplomes.value)) return false;
-  for (const d of diplomes.value) {
-    for (const a of d.annees || []) {
-      const found = (a.semestres || []).find(s => String(s.id) === String(semestreId));
-      if (found) {
-        selectedDiplome.value = d;
-        selectedAnnee.value = a;
-        selectedSemestre.value = found;
-        return true;
-      }
+// watcher pour relancer getEnseignements quand semestre change
+watch(semestre, async (newSemestre, oldSemestre) => {
+  if (newSemestre?.id && newSemestre.id !== oldSemestre?.id) {
+    await getEnseignements();
+  }
+});
+
+// watcher pour relancer getSemestres quand annee change
+watch(annee, async (newAnnee, oldAnnee) => {
+  if (newAnnee?.id && newAnnee.id !== oldAnnee?.id) {
+    await getSemestres();
+    // si le semestre sélectionné n'est pas dans la nouvelle liste, on sélectionne le premier de la liste
+    if (!semestres.value.some(s => s.id === semestre.value.id)) {
+      semestre.value = semestres.value[0] || {};
+    }
+    await anneeStore.setSelectedAnnee(newAnnee);
+  }
+});
+
+const getAnnees = async () => {
+  isLoadingAnnees.value = true;
+  if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
+    annees.value = anneeStore.annees;
+  } else {
+    try {
+      const params = {
+        departement: departementId.value,
+        actif: true,
+      };
+      await anneeStore.getAnneesDepartement(params);
+      annees.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
+    } catch (error) {
+      console.error("Erreur lors de la récupération des années :", error);
+      hasError.value = true;
     }
   }
-  return false;
+  isLoadingAnnees.value = false;
 };
 
-watch(selectedDiplome, () => {
-  if (isPreselecting.value) return;
-  selectedAnnee.value = selectedDiplome.value?.annees?.[0] || {};
-});
-watch(selectedAnnee, () => {
-  if (isPreselecting.value) return;
-  selectedSemestre.value = selectedAnnee.value?.semestres?.[0] || {};
-});
-watch(selectedSemestre, () => {
-  getEnseignements();
-});
-
-// React to route changes (e.g., navigation from Admin Bloc with a semestre id)
-watch(() => route.params.semestreId, (newId) => {
-  if (!newId) return;
-  isPreselecting.value = true;
-  const ok = preselectBySemestreId(newId);
-  isPreselecting.value = false;
-  if (ok) {
-    getEnseignements();
-  } else {
-    hasError.value = true;
-  }
-});
-
-
-const getDiplomes = async () => {
-  isLoadingDiplomes.value = true;
+const getAnnee = async () => {
+  isLoadingAnnees.value = true;
+  hasError.value = false;
   try {
-    diplomes.value = await diplomeStore.diplomes;
-    // retirer les diplomes inactifs
-    diplomes.value = diplomes.value.filter(diplome => diplome.actif);
+    // Récupération de l'id de l'année via l'URL ou sélection de la première année disponible
+    const anneeId = route.params.anneeId;
+    if (anneeId) {
+      annee.value = await getAnneeService(anneeId);
+    } else if (annees.value.length > 0) {
+      annee.value = annees.value[0];
+    }
+    await anneeStore.setSelectedAnnee(annee.value);
   } catch (error) {
     hasError.value = true;
-    console.error('Error fetching diplomes:', error);
+    console.error("Erreur lors de la récupération de l'année :", error);
   } finally {
-    // Require semestreId from route; no global fallback
-    const routeSemId = route?.params?.semestreId;
-    const ok = preselectBySemestreId(routeSemId);
-    if (!ok) {
-      hasError.value = true;
-      // Keep selections empty to prevent unintended loads
-      selectedDiplome.value = {};
-      selectedAnnee.value = {};
-      selectedSemestre.value = {};
-    }
-    isLoadingDiplomes.value = false;
+    isLoadingAnnees.value = false;
+  }
+};
+
+const getSemestres = async () => {
+  isLoadingSemestres.value = true;
+  hasError.value = false;
+  try {
+    const params = {
+      annee: annee.value.id,
+    };
+    semestres.value = await getSemestresService(params, '/mini');
+  } catch (error) {
+    hasError.value = true;
+    console.error("Erreur lors de la récupération des semestres :", error);
+  } finally {
+    isLoadingSemestres.value = false;
   }
 };
 
 const getEnseignements = async () => {
   isLoadingEnseignements.value = true;
   try {
-    if (!selectedSemestre.value) {
+    if (!semestre.value) {
       enseignements.value = [];
       return;
     }
     const params = {
-      semestre: selectedSemestre.value.id,
+      semestre: semestre.value.id,
     };
     enseignements.value = await getEnseignementsService(params);
     for (const enseignement of enseignements.value) {
@@ -130,7 +150,7 @@ const getEnseignements = async () => {
       enseignement.evaluations = evaluations.value;
     }
     // Preload expected totals per typeGroupe for the semestre based on loaded evaluations
-    await preloadExpectedTotalsForSemestre(selectedSemestre.value.id, enseignements.value);
+    await preloadExpectedTotalsForSemestre(semestre.value.id, enseignements.value);
     // Calculer la progression pour chaque enseignement
     for (const enseignement of enseignements.value) {
       await calcEnseignementProgress(enseignement);
@@ -281,11 +301,11 @@ const onEvaluationClosed = async () => {
   showDialog.value = false;
   selectedEvaluation.value = null;
   // rafraîchir la liste des enseignements/évaluations pour le semestre courant
-  await getEnseignements();
+  // await getEnseignements();
 };
 const onEvaluationSaved = async () => {
   // rafraîchir la liste des enseignements/évaluations pour le semestre courant
-  await getEnseignements();
+  // await getEnseignements();
 };
 </script>
 
@@ -293,31 +313,29 @@ const onEvaluationSaved = async () => {
   <div class="card">
     <ErrorView v-if="hasError"></ErrorView>
     <div v-else>
-      <SimpleSkeleton v-if="isLoadingDiplomes" class="w-full"/>
-      <Tabs v-else :value="selectedDiplome.id" scrollable>
-        <TabList>
-          <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="selectedDiplome = diplome">
-        <span>
-          <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span> <Tag v-if="!diplome.actif" severity="danger">Inactif</Tag>
-        </span>
-          </Tab>
-        </TabList>
-      </Tabs>
-      <div v-if="isLoadingDiplomes" class="flex items-center gap-4 w-1/2">
-        <SimpleSkeleton class="w-1/2"/>
-        <SimpleSkeleton class="w-1/2"/>
+      <div class="flex justify-between items-end w-full">
+        <div>
+          <h2 class="text-2xl font-bold flex items-end gap-2">
+            Évaluations du
+            <SimpleSkeleton v-if="isLoadingSemestres" class="!w-32"></SimpleSkeleton>
+            <span v-else>{{ semestre.libelle }}</span>
+          </h2>
+          <em>Gérer les évaluations et la saisie des notes</em>
+        </div>
+        <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
+        <div v-else class="flex gap-4">
+          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
+          <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
+        </div>
       </div>
-      <div v-else class="my-8 flex items-center gap-4 w-1/2">
-        <Select v-if="selectedDiplome" v-model="selectedAnnee" :options="selectedDiplome.annees" option-label="libelle" placeholder="Sélectionner une année" class="w-1/2"/>
-        <Select v-if="selectedAnnee" v-model="selectedSemestre" :options="selectedAnnee.semestres" option-label="libelle" placeholder="Sélectionner un semestre" class="w-1/2"/>
-      </div>
+      <Divider />
 
       <ListSkeleton v-if="isLoadingEnseignements" class="w-1/2"/>
       <div v-else>
         <div class="flex justify-end gap-4">
           <Button label="Initialiser toutes les évaluations" icon="pi pi-plus-circle" severity="primary" size="small" @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')"/>
         </div>
-        <Accordion v-if="selectedSemestre && enseignements.length !== 0" value="0" class="mt-4">
+        <Accordion v-if="semestre && enseignements.length !== 0" value="0" class="mt-4">
           <AccordionPanel v-for="enseignement in enseignements" :value="enseignement.id" :key="enseignement.id">
             <AccordionHeader>
               <div class="flex flex-col gap-2 w-full">
@@ -371,7 +389,7 @@ const onEvaluationSaved = async () => {
                     v-for="evaluation in enseignement.evaluations"
                     :key="evaluation.id"
                     :evaluation="evaluation"
-                    :semestreId="selectedSemestre.id"
+                    :semestreId="semestre.id"
                     @open-dialog="openEvaluationDialog"
                     @update-visibility="updateEvaluationVisibility"
                     @update-edit="updateEvaluationEdit"
@@ -396,7 +414,7 @@ const onEvaluationSaved = async () => {
   </div>
 
   <Dialog :header="dialogHeader" v-model:visible="showDialog" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-    <component v-if="showDialog" :is="dialogComponent" :evaluationId="selectedEvaluation" :enseignements="enseignements" :semestreId="selectedSemestre.id" @saved="onEvaluationSaved" @close="onEvaluationClosed"/>
+    <component v-if="showDialog" :is="dialogComponent" :evaluationId="selectedEvaluation" :enseignements="enseignements" :semestreId="semestre.id" @saved="onEvaluationSaved" @close="onEvaluationClosed"/>
   </Dialog>
 </template>
 

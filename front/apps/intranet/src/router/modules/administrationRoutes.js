@@ -1,6 +1,6 @@
 import previsionnelRoutes from './previsionnelRoutes.js'
 import stageAdministrationRoutes from './stageAdministrationRoutes.js'
-import semestreAdministrationRoutes from './semestreAdministrationRoutes.js'
+import semestreAdministrationRoutes from './anneeAdministrationRoutes.js'
 import questionnaireAdministrationRoutes from './questionnaireAdministrationRoutes.js'
 import PersonnelsView from "@/views/Personnels/PersonnelsView.vue";
 import EtudiantsListeView from "@/views/Etudiants/EtudiantsListeView.vue";

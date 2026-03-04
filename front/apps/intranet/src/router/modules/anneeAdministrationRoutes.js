@@ -72,13 +72,17 @@ export default [
     name: 'liste-evaluations',
     component: () => import('@/views/Evaluations/EvaluationsView.vue'),
     meta: {
-      breadcrumb: [{ label: 'Dashboard', route: '/' }, {
-        label: 'Administration',
-        route: '/administration',
-        icon: 'pi pi-wrench'
-      },
-        { label: 'Année', route: null },
-        { label: 'Evaluations', route: null }]
+      breadcrumb: () => {
+        const anneeStore = useAnneeStore();
+        const selectedAnnee = anneeStore.annee;
+        return [{ label: 'Dashboard', route: '/' }, {
+          label: 'Administration',
+          route: '/administration',
+          icon: 'pi pi-wrench'
+        },
+          { label: selectedAnnee?.libelle ?? 'Année', route: null },
+          { label: 'Évaluations', route: null }];
+      }
     },
   },
   {
