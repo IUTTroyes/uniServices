@@ -189,9 +189,9 @@ const synchroApogee = async () => {
     <div v-else class="flex items-start justify-center gap-2">
       <GlobalLoader v-if="isLoadingGroupes" class="w-full h-64" />
       <div v-else v-for="semestre in semestres" :key="semestre.id" class="p-4 w-full card">
-        <h3 class="text-lg font-bold mb-4">Semestre {{ semestre.libelle }}</h3>
+        <h3 class="text-xl font-black mb-4">Semestre {{ semestre.libelle }}</h3>
         <div v-for="(groupesType, type) in groupes" :key="type" class="mb-4 bg-primary-300/20 rounded-md p-2">
-          <h4 class="font-semibold mb-2">Type de groupe {{ type }}</h4>
+          <h4 class="font-lg font-bold mb-2">Type de groupe {{ type }}</h4>
           <div class="flex flex-wrap gap-4">
             <DataTable
                 :value="groupesType"

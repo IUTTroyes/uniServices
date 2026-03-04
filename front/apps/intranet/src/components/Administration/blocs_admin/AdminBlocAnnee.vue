@@ -29,7 +29,7 @@ const panelMenuItems = computed(() => {
   return [
     {
       label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
-        { label: 'Liste des étudiants', icon: 'pi pi-list', command: () => {} },
+        { label: 'Liste des étudiants', icon: 'pi pi-list', route: aid ? `/administration/etudiant?annee=${aid}` : '/administration/etudiant' },
         { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', command: () => {} },
       ]
     },

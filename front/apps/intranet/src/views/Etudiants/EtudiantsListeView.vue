@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import { FilterMatchMode } from '@primevue/core/api';
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
@@ -15,6 +16,7 @@ import { SimpleSkeleton } from '@components';
 import { useEtudiantFilters } from '@composables/filters/usersFilters/useEtudiantFilters';
 
 const toast = useToast();
+const route = useRoute();
 const usersStore = useUsersStore();
 
 const departementId = ref(null);
@@ -99,7 +101,7 @@ const getEtudiantsScolarite = async () => {
   const params = {
     departement: departementId.value,
     anneeUniversitaire: selectedAnneeUniversitaire.id,
-    limit: limit.value,
+    itemsPerPage: limit.value,
     page: parseInt(page.value) + 1,
     filters: filters.value,
   };
@@ -133,6 +135,13 @@ const getEtudiantsScolarite = async () => {
 onMounted(async () => {
   departementId.value = usersStore.departementDefaut.id;
   await getAnnees();
+
+  // Initialiser le filtre d'année depuis le query parameter si présent
+  const anneeFromQuery = route.query.annee;
+  if (anneeFromQuery) {
+    filters.value.annee.value = parseInt(anneeFromQuery);
+  }
+
   await getEtudiantsScolarite();
 });
 
@@ -259,16 +268,6 @@ const deleteEtudiant = etudiant => {
             @update:visible="showViewDialog = $event">
       <ProfilEtudiant :etudiantId="selectedEtudiant.etudiant.id" :isVisible="showViewDialog" />
     </Dialog>
-<!--    <EditEtudiantDialog-->
-<!--        :isVisible="showEditDialog"-->
-<!--        :etudiant="selectedEtudiant"-->
-<!--        @update:visible="showEditDialog = $event"-->
-<!--    />-->
-<!--    <AccessEtudiantDialog-->
-<!--        :isVisible="showAccessEditDialog"-->
-<!--        :etudiant="selectedEtudiant"-->
-<!--        @update:visible="showAccessEditDialog = $event"-->
-<!--    />-->
   </div>
 </template>
 
