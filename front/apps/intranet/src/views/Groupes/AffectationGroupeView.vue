@@ -1,7 +1,6 @@
 <script setup>
 import {computed, onMounted, ref, watch, nextTick} from 'vue'
 import {ErrorView, SimpleSkeleton} from "@components";
-import {GlobalLoader} from "@components";
 import {typesGroupes} from '@config/uniServices.js';
 import {useSemestreStore, useUsersStore, useAnneeStore} from "@stores";
 import {
@@ -441,6 +440,184 @@ const onPageChange = async (event) => {
   page.value = event.page;
   await getEtudiants();
 };
+
+const isSynchroLoading = ref(false);
+
+const synchroParents = async () => {
+  isSynchroLoading.value = true;
+  try {
+    // Récupérer tous les groupes du semestre pour avoir les relations parent
+    const allGroupes = Object.values(groupes.value).flat();
+
+    // Construire un map pour accès rapide par ID
+    const groupeMap = new Map();
+    allGroupes.forEach(g => {
+      groupeMap.set(g.id, g);
+      // Si l'ID est une IRI, on ajoute aussi la version numérique
+      if (typeof g.id === 'string') {
+        const numId = parseInt(g.id.split('/').pop(), 10);
+        if (!isNaN(numId)) groupeMap.set(numId, g);
+      }
+    });
+
+    // Fonction pour remonter la hiérarchie et récupérer tous les parents
+    const getParentChain = (groupe) => {
+      const parents = [];
+      let current = groupe;
+      while (current?.parent) {
+        // Normaliser l'ID du parent
+        let parentId = current.parent.id ?? current.parent;
+        if (typeof parentId === 'string' && parentId.startsWith('/')) {
+          const parts = parentId.split('/');
+          parentId = parseInt(parts[parts.length - 1], 10);
+        }
+        const parentGroupe = groupeMap.get(parentId);
+        if (parentGroupe) {
+          parents.push(parentGroupe);
+          current = parentGroupe;
+        } else {
+          break;
+        }
+      }
+      return parents;
+    };
+
+    // Ordre de priorité des types (du plus bas au plus haut niveau)
+    const typePriority = { 'TP': 1, 'LV': 2, 'PROJET': 2, 'AUTRE': 2, 'TD': 3, 'CM': 4 };
+
+    // Compteur pour le feedback
+    let updatedCount = 0;
+    let errorCount = 0;
+
+    // Traiter chaque étudiant
+    for (const sco of etudiantsScolariteSemestre.value) {
+      try {
+        // Récupérer les groupes actuels de l'étudiant
+        const currentGroupes = Array.isArray(sco.groupes) ? [...sco.groupes] : [];
+
+        // Trouver le groupe de plus bas niveau dans la hiérarchie
+        let lowestGroupe = null;
+        let lowestPriority = Infinity;
+
+        for (const g of currentGroupes) {
+          const groupeObj = groupeMap.get(normalizeId(g.id));
+          if (groupeObj) {
+            const priority = typePriority[groupeObj.type] || 99;
+            if (priority < lowestPriority) {
+              lowestPriority = priority;
+              lowestGroupe = groupeObj;
+            }
+          }
+        }
+
+        if (!lowestGroupe) {
+          // Pas de groupe assigné, rien à synchroniser
+          continue;
+        }
+
+        // Récupérer tous les parents
+        const parentChain = getParentChain(lowestGroupe);
+
+        if (parentChain.length === 0) {
+          // Pas de parents à ajouter
+          continue;
+        }
+
+        // Construire la nouvelle liste de groupes
+        // On garde le groupe de plus bas niveau et on ajoute les parents manquants
+        const currentTypes = new Set(currentGroupes.map(g => {
+          const obj = groupeMap.get(normalizeId(g.id));
+          return obj?.type;
+        }));
+
+        const newGroupes = [...currentGroupes];
+        let hasChanges = false;
+
+        for (const parent of parentChain) {
+          // Vérifier si ce type de groupe n'est pas déjà présent
+          if (!currentTypes.has(parent.type)) {
+            newGroupes.push(parent);
+            currentTypes.add(parent.type);
+            hasChanges = true;
+          } else {
+            // Remplacer le groupe existant par le parent correct si différent
+            const existingIndex = newGroupes.findIndex(g => {
+              const obj = groupeMap.get(normalizeId(g.id));
+              return obj?.type === parent.type;
+            });
+            if (existingIndex !== -1) {
+              const existingId = normalizeId(newGroupes[existingIndex].id);
+              if (existingId !== parent.id) {
+                newGroupes[existingIndex] = parent;
+                hasChanges = true;
+              }
+            }
+          }
+        }
+
+        if (!hasChanges) {
+          continue;
+        }
+
+        // Mettre à jour l'étudiant via l'API
+        const payloadGroupes = newGroupes.map(g => {
+          const gid = normalizeId(g.id);
+          if (typeof gid === 'number') {
+            return `/api/structure_groupes/${gid}`;
+          }
+          return g.id;
+        });
+
+        await updateEtudiantScolariteSemestreService(sco.id, { groupes: payloadGroupes }, false);
+
+        // Mettre à jour le modèle local
+        sco.groupes = newGroupes;
+        updatedCount++;
+      } catch (error) {
+        console.error(`Erreur lors de la synchronisation pour l'étudiant ${sco.id}:`, error);
+        errorCount++;
+      }
+    }
+
+    // Rafraîchir les données
+    await getEtudiants();
+    syncPreselectedRadios();
+
+    // Afficher le résultat
+    if (errorCount > 0) {
+      toast.add({
+        severity: 'warn',
+        summary: 'Synchronisation partielle',
+        detail: `${updatedCount} étudiant(s) mis à jour, ${errorCount} erreur(s).`,
+        life: 5000
+      });
+    } else if (updatedCount > 0 && errorCount === 0) {
+      toast.add({
+        severity: 'success',
+        summary: 'Synchronisation réussie',
+        detail: `Les groupes ont été mis à jour.`,
+        life: 3000
+      });
+    } else {
+      toast.add({
+        severity: 'info',
+        summary: 'Aucune modification',
+        detail: 'Tous les groupes parents étaient déjà correctement assignés.',
+        life: 3000
+      });
+    }
+  } catch (error) {
+    console.error('Erreur lors de la synchronisation des parents:', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Une erreur est survenue lors de la synchronisation.',
+      life: 5000
+    });
+  } finally {
+    isSynchroLoading.value = false;
+  }
+};
 </script>
 
 <template>
@@ -462,6 +639,17 @@ const onPageChange = async (event) => {
             Changer de semestre
           </template>
         </Select>
+        <div class="flex items-center gap-1">
+            <Button
+                label="Synchroniser les parents"
+                icon="pi pi-sync"
+                @click="synchroParents()"
+                class="p-button"
+                :loading="isSynchroLoading"
+                :disabled="isLoadingEtudiants || isLoadingGroupes"
+            />
+          <i class="pi pi-question-circle text-primary font-black" v-tooltip.top="`Permet de remplir automatiquement les groupes parents (CM, TD...) en fonction des affectations des groupes enfants (TP...).`"></i>
+        </div>
       </div>
     </div>
     <Divider/>
@@ -471,7 +659,9 @@ const onPageChange = async (event) => {
         Vous pouvez ne remplir que le groupe de plus bas niveau (TP) et synchroniser pour remplir automatiquement les groupes parents. Si les groupes sont saisis dans Apogée, vous pouvez aussi les synchroniser (il faut attendre 24h entre la saisie dans Apogée et la possibilité de synchroniser).
 
       </Message>
-      <Loader v-if="isLoadingGroupes" class="my-12"></Loader>
+      <div v-if="isLoadingGroupes" class="flex items-center justify-center my-12">
+        <ProgressSpinner style="width: 50px; height: 50px" />
+      </div>
       <div v-else class="flex flex-col gap-4">
         <Tabs :value="selectedGroupe" scrollable>
           <TabList>

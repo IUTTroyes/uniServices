@@ -301,11 +301,11 @@ const onEvaluationClosed = async () => {
   showDialog.value = false;
   selectedEvaluation.value = null;
   // rafraîchir la liste des enseignements/évaluations pour le semestre courant
-  // await getEnseignements();
+  await getEnseignements();
 };
 const onEvaluationSaved = async () => {
   // rafraîchir la liste des enseignements/évaluations pour le semestre courant
-  // await getEnseignements();
+  await getEnseignements();
 };
 </script>
 

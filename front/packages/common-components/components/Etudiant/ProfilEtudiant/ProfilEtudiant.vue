@@ -197,7 +197,7 @@ const updateEtudiantData = async () => {
   <SimpleSkeleton v-else-if="isLoadingEtudiant" />
   <div v-else>
     <div class="flex items-stretch md:flex-row flex-col gap-6 md:px-12">
-      <div class="flex flex-col gap-2 justify-center md:w-1/3 w-full h-auto p-4 mb-0 card scol-profil">
+      <div class="flex flex-col gap-2 justify-center md:w-1/3 w-full h-auto p-4 mb-0 card bg-primary-400 dark:bg-neutral-950">
         <div class="w-full flex justify-center">
           <PhotoUser :user-photo="etudiant.photoName" class="rounded-full w-40 h-auto border-8 border-gray-300 border-opacity-60"/>
         </div>
@@ -392,10 +392,5 @@ const updateEtudiantData = async () => {
 </template>
 
 <style scoped>
-.scol-profil {
-  background-image: url("@/assets/illu/files.svg");
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-}
+
 </style>
