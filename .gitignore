@@ -9,3 +9,32 @@
 /back/.DS_Store
 /front/.DS_Store
 /front/apps/.DS_Store
+
+# Environment files (sensitive data)
+.env
+.env.local
+.env.*.local
+*.env
+
+# JWT Keys
+/back/config/jwt/*.pem
+
+# Logs
+*.log
+/back/var/log/
+
+# Cache
+/back/var/cache/
+
+# Database dumps
+*.sql
+*.dump
+
+# IDE and editors
+*.swp
+*.swo
+*~
+.vscode/
+
+# OS files
+Thumbs.db
