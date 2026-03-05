@@ -11,10 +11,8 @@
 /front/apps/.DS_Store
 
 # Environment files (sensitive data)
-.env
 .env.local
 .env.*.local
-*.env
 
 # JWT Keys
 /back/config/jwt/*.pem
