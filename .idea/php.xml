@@ -141,7 +141,6 @@
       <path value="$PROJECT_DIR$/back/vendor/psr/log" />
       <path value="$PROJECT_DIR$/back/vendor/psr/container" />
       <path value="$PROJECT_DIR$/back/vendor/lcobucci/jwt" />
-      <path value="$PROJECT_DIR$/back/vendor/lcobucci/clock" />
       <path value="$PROJECT_DIR$/back/vendor/lexik/jwt-authentication-bundle" />
       <path value="$PROJECT_DIR$/back/vendor/twig/twig" />
       <path value="$PROJECT_DIR$/back/vendor/doctrine/lexer" />

@@ -100,7 +100,6 @@
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/doctrine/orm" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/doctrine/persistence" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/doctrine/sql-formatter" />
-      <excludeFolder url="file://$MODULE_DIR$/back/vendor/lcobucci/clock" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/lcobucci/jwt" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/lexik/jwt-authentication-bundle" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/nelmio/cors-bundle" />
