@@ -22,29 +22,25 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      redirect: (to) => {
-        const token = localStorage.getItem('token')
-        if (token) {
-          return '/portail'
-        } else {
-          return '/login'
-        }
-      }
+      redirect: '/portail'
     },
     {
       path: '/login',
       name: 'login',
       component: LoginView,
+      meta: { public: true }
     },
     {
       path: '/reset-password',
       name: 'reset-password',
       component: ResetPasswordView,
+      meta: { public: true }
     },
     {
       path: '/reset-password/confirm',
       name: 'reset-password-confirm',
       component: ResetPasswordConfirmView,
+      meta: { public: true }
     },
     {
       path: '/portail',
@@ -78,52 +74,50 @@ const router = createRouter({
   ]
 })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, from) => {
   // mise à jour du title
-  document.title = to.meta.title ?  (to.meta.title + ' | Uniservices ') : 'Uniservices';
+  document.title = to.meta.title ? (to.meta.title + ' | Uniservices ') : 'Uniservices';
 
-  const token = localStorage.getItem('token')
   const userStore = useUsersStore()
 
-  if (!userStore.isLoaded && !userStore.isLoading) {
-    try {
-      // si la route est login ou reset password, on ne charge pas l'utilisateur
-      if (to.path === '/login' || to.path === '/reset-password' || to.path === '/reset-password/confirm') {
-        return next()
-      }
-      await userStore.getUser()
-
-    } catch (error) {
-      console.error(error)
-    }
-  }
-
+  // Gestion du paramètre logout
   const urlParams = new URLSearchParams(window.location.search)
   if (urlParams.has('logout')) {
-    localStorage.removeItem('token')
-    window.location.replace('http://localhost:3000/auth/login')
+    await userStore.logout()
+    return // logout redirige automatiquement
   }
 
-  if (token) {
-    const tokenParts = token.split('.')
-    const payload = JSON.parse(atob(tokenParts[1]))
-    const exp = payload.exp * 1000 // Convert to milliseconds
+  // Routes publiques : pas besoin de vérifier l'authentification
+  if (to.meta.public) {
+    // Si déjà authentifié et va vers login, rediriger vers portail
+    if (to.path === '/login' && userStore.isAuthInitialized && userStore.userId) {
+      return '/portail'
+    }
+    return true
+  }
 
-    if (Date.now() >= exp) {
-      localStorage.removeItem('token')
-      return window.location.href = 'http://localhost:3000/auth/login'
+  // Routes protégées : vérifier l'authentification
+  try {
+    // Initialiser l'authentification si pas encore fait
+    const authInfo = await userStore.initAuth()
+
+    if (!authInfo) {
+      // Non authentifié, rediriger vers login
+      window.location.href = '/auth/login'
+      return false
     }
 
-    if (to.path === '/login') {
-      return next('/portail')
+    // Charger les données utilisateur si pas encore fait
+    if (!userStore.isLoaded && !userStore.isLoading) {
+      await userStore.getUser()
     }
-  }
 
-  if (!token && to.path !== '/login' && to.path !== '/reset-password' && to.path !== '/reset-password/confirm') {
-    return window.location.href = 'http://localhost:3000/auth/login'
+    return true
+  } catch (error) {
+    console.error('Auth error:', error)
+    window.location.href = '/auth/login'
+    return false
   }
-
-  next()
 })
 
 export default router

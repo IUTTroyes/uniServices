@@ -43,6 +43,11 @@ export default defineConfig(({ mode }) => {
     base: base,
     server: {
       proxy: {
+        '/api': {
+          target: 'http://localhost:8000',
+          changeOrigin: true,
+          secure: false,
+        },
         '/auth': {
           target: 'http://localhost:3000',
           changeOrigin: true,

@@ -83,53 +83,45 @@ const router = createRouter({
     ]
 });
 
-router.beforeEach(async(to, from, next) => {
-    document.title = to.meta.title ?  (to.meta.title + ' | Intranet - Uniservices ') : 'UniTranet - Uniservices';
+router.beforeEach(async (to, from) => {
+    document.title = to.meta.title ? (to.meta.title + ' | Intranet - Uniservices ') : 'UniTranet - Uniservices';
 
-    const token = localStorage.getItem('token');
     const userStore = useUsersStore();
 
-    if (!userStore.isLoaded && !userStore.isLoading) {
-        try {
-            // si la route est login, on ne charge pas l'utilisateur
-            if (to.path === '/login') {
-                return next();
-            }
-            // await userStore.getUser()
-
-        } catch (error) {
-            console.error(error);
-        }
-    }
-
+    // Gestion du paramètre logout
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('logout')) {
-        localStorage.removeItem('token');
-        localStorage.removeItem('selectedAnneeUniv');
-        window.location.replace('http://localhost:3000/auth/login');
+        await userStore.logout();
+        return; // logout redirige automatiquement
     }
 
-    if (token) {
-        const tokenParts = token.split('.');
-        const payload = JSON.parse(atob(tokenParts[1]));
-        const exp = payload.exp * 1000; // Convert to milliseconds
+    // Routes publiques
+    if (to.meta.public) {
+        return true;
+    }
 
-        if (Date.now() >= exp) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('selectedAnneeUniv');
-            return window.location.href = 'http://localhost:3000/auth/login';
+    // Routes protégées : vérifier l'authentification
+    try {
+        // Initialiser l'authentification si pas encore fait
+        const authInfo = await userStore.initAuth();
+
+        if (!authInfo) {
+            // Non authentifié, rediriger vers login
+            window.location.href = '/auth/login';
+            return false;
         }
 
-        if (to.path === '/login') {
-            return next('/portail');
+        // Charger les données utilisateur si pas encore fait
+        if (!userStore.isLoaded && !userStore.isLoading) {
+            await userStore.getUser();
         }
-    }
 
-    if (!token && to.path !== '/login') {
-        return window.location.href = 'http://localhost:3000/auth/login';
+        return true;
+    } catch (error) {
+        console.error('Auth error:', error);
+        window.location.href = '/auth/login';
+        return false;
     }
-
-    next();
 });
 
 export default router;

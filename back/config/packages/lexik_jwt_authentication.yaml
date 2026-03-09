@@ -2,4 +2,21 @@ lexik_jwt_authentication:
     secret_key: '%env(resolve:JWT_SECRET_KEY)%'
     public_key: '%env(resolve:JWT_PUBLIC_KEY)%'
     pass_phrase: '%env(JWT_PASSPHRASE)%'
-    token_ttl: 14400 # 4 heures
+    token_ttl: 900 # 15 minutes (token court car on utilise le refresh token)
+    # Extraction du token depuis les cookies ou le header Authorization
+    token_extractors:
+        cookie:
+            enabled: true
+            name: BEARER
+        authorization_header:
+            enabled: true
+            prefix: Bearer
+            name: Authorization
+    set_cookies:
+        BEARER: # Nom du cookie
+            lifetime: 900 # 15 minutes
+            samesite: lax
+            path: /
+            domain: null
+            httpOnly: true
+            secure: false # Mettre true en production avec HTTPS

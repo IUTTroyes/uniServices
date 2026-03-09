@@ -22,6 +22,15 @@ services:
         tags:
             - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_created, method: onJWTCreated }
 
+    # Listener pour ajouter les cookies HTTP-only lors de l'authentification
+    App\EventListener\AuthenticationSuccessListener:
+        arguments:
+            $refreshTokenGenerator: '@gesdinet_jwt_refresh_token.refresh_token_generator'
+            $refreshTokenManager: '@gesdinet_jwt_refresh_token.refresh_token_manager'
+            $refreshTokenTtl: 1209600 # 14 jours
+        tags:
+            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_success, method: onAuthenticationSuccess, priority: -10 }
+
     # this creates a service per class whose id is the fully-qualified class name
     App\:
         resource: '../src/'

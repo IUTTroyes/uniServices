@@ -9,13 +9,12 @@ import {
 } from "@requests";
 import {useAnneeUnivStore, useDepartementStore} from '@stores';
 import noImage from "@images/photos_etudiants/noimage.png";
+import { getAuthenticatedUser, logout as authLogout } from "@helpers/authService";
 
 export const useUsersStore = defineStore('users', () => {
-    const token = localStorage.getItem('token');
-    const tokenParts = token?.split('.');
-    const payload = tokenParts ? JSON.parse(atob(tokenParts[1])) : {};
-    const userId = payload.userId;
-    const userType = payload.type;
+    // Les informations utilisateur seront récupérées depuis le serveur
+    const userId = ref(null);
+    const userType = ref(null);
     const applications = ref([]);
     const user = ref(null);
     const userPhoto = ref([]);
@@ -31,31 +30,61 @@ export const useUsersStore = defineStore('users', () => {
 
     const isLoading = ref(false);
     const isLoaded = ref(false);
+    const isAuthInitialized = ref(false);
 
     const anneeUnivStore = useAnneeUnivStore();
+
+    // Initialiser les informations d'authentification depuis le serveur
+    const initAuth = async () => {
+        if (isAuthInitialized.value) {
+            return { userId: userId.value, userType: userType.value };
+        }
+
+        try {
+            const authInfo = await getAuthenticatedUser();
+            if (authInfo && authInfo.authenticated) {
+                userId.value = authInfo.userId;
+                userType.value = authInfo.type;
+                isAuthInitialized.value = true;
+                return { userId: userId.value, userType: userType.value };
+            }
+            return null;
+        } catch (error) {
+            console.error('Error initializing auth:', error);
+            return null;
+        }
+    };
 
     const getUser = async (force = false) => {
         if (isLoaded.value && !force) {
             return user.value;
         }
+
+        // S'assurer que l'authentification est initialisée
+        const authInfo = await initAuth();
+        if (!authInfo) {
+            console.error('User not authenticated');
+            return null;
+        }
+
         isLoading.value = true;
         try {
-            user.value = await getUserService(userType, userId);
+            user.value = await getUserService(userType.value, userId.value);
 
             userPhoto.value = noImage;
             applications.value = user.value.applications || [];
 
-            if (userType === 'personnels') {
+            if (userType.value === 'personnels') {
                 const departementStore = useDepartementStore();
                 // Utiliser les départements en cache si disponibles, ou forcer le rechargement si nécessaire
-                departements.value = await departementStore.getDepartementsPersonnel(userId, force);
+                departements.value = await departementStore.getDepartementsPersonnel(userId.value, force);
 
                 // Traiter les départements pour extraire les informations spécifiques au personnel
                 if (Array.isArray(departements.value)) {
                     departements.value = departements.value.map(departement => {
                         if (!departement.departementPersonnels) return departement;
 
-                        const personnelDepartements = departement.departementPersonnels.filter(dp => dp.personnel.id === userId);
+                        const personnelDepartements = departement.departementPersonnels.filter(dp => dp.personnel.id === userId.value);
                         departement.departementPersonnel = personnelDepartements.length > 0 ? personnelDepartements[0] : null;
 
                         delete departement.departementPersonnels;
@@ -82,9 +111,9 @@ export const useUsersStore = defineStore('users', () => {
                 departementDefaut.value = departements.value.find(departement => departement.departementPersonnel?.defaut === true) || {};
                 departementsNotDefaut.value = departements.value.filter(departement => departement.departementPersonnel?.defaut === false) || [];
             }
-            if (userType === 'etudiants') {
+            if (userType.value === 'etudiants') {
                 try {
-                    const scolarites = await getEtudiantScolaritesService(userId, true);
+                    const scolarites = await getEtudiantScolaritesService(userId.value, true);
                     scolariteActif.value = Array.isArray(scolarites) && scolarites.length > 0 ? scolarites[0] : null;
                     departementDefaut.value = scolariteActif.value?.departement || {};
                 } catch (error) {
@@ -160,7 +189,7 @@ export const useUsersStore = defineStore('users', () => {
             ).filter(Boolean);
         }
         try {
-            user.value = await updateUserService(userType, userId, data);
+            user.value = await updateUserService(userType.value, userId.value, data);
         } catch (error) {
             console.error('Error updating user:', error);
         } finally {
@@ -217,8 +246,8 @@ export const useUsersStore = defineStore('users', () => {
         return user.value && user.value.roles && Array.isArray(user.value.roles) ? user.value.roles.includes(role) : false;
     };
 
-    const isPersonnel = computed(() => userType === 'personnels');
-    const isEtudiant = computed(() => userType === 'etudiants');
+    const isPersonnel = computed(() => userType.value === 'personnels');
+    const isEtudiant = computed(() => userType.value === 'etudiants');
     const isAssistant = computed(() => hasRole('ROLE_ASSISTANT'));
     const isQualite = computed(() => hasRole('ROLE_QUALITE'));
     const isCompta = computed(() => hasRole('ROLE_COMPTA'));
@@ -236,8 +265,14 @@ export const useUsersStore = defineStore('users', () => {
     const isAdmin = computed(() => hasRole('ROLE_SUPER_ADMIN') || hasRole('ROLE_DIRECTION') || hasRole('ROLE_SCOLARITE') || hasRole('ROLE_ASSISTANT') || hasRole('ROLE_CHEF_DEPARTEMENT') || hasRole('ROLE_DIRECTEUR_ETUDES'));
     const isSuperAdmin = computed(() => hasRole('ROLE_SUPER_ADMIN'));
 
+    // Fonction de déconnexion
+    const logout = async () => {
+        await authLogout();
+    };
+
     return {
         user,
+        userId,
         userType,
         applications,
         departements,
@@ -245,6 +280,8 @@ export const useUsersStore = defineStore('users', () => {
         departementsPersonnelNotDefaut,
         departementsNotDefaut,
         getUser,
+        initAuth,
+        logout,
         userPhoto,
         changeDepartement,
         updateUser,
@@ -253,6 +290,7 @@ export const useUsersStore = defineStore('users', () => {
         scolariteActif,
         isLoading,
         isLoaded,
+        isAuthInitialized,
         isPersonnel,
         isEtudiant,
         isAssistant,

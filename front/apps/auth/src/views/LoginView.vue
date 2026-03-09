@@ -50,21 +50,17 @@ const handleSubmit = async () => {
   isLoading.value = true;
   errorMessage.value = '';
   try {
-    const response = await axios.post(import.meta.env.VITE_BASE_URL + '/api/login', {
+    // Les cookies HTTP-only sont définis automatiquement par le serveur
+    // Utilise le proxy Vite configuré pour /api
+    await axios.post('/api/login', {
       username: username.value,
       password: password.value
+    }, {
+      withCredentials: true // Important: permet la réception des cookies
     });
 
-    const token = response.data.token;
-    if (!token) {
-      throw new Error('Token non valide');
-    }
-
-    localStorage.setItem('token', token);
-    // Note: Pour une sécurité optimale, le token devrait être stocké côté serveur via un cookie HttpOnly
-    // Le cookie ci-dessous est accessible par JS, préférer l'authentification via header Authorization
-    document.cookie = `token=${token}; path=/; secure; SameSite=Strict`;
-
+    // Plus besoin de stocker le token dans localStorage
+    // Le cookie HTTP-only est géré automatiquement par le navigateur
     location.href = '/auth/portail';
   } catch (error) {
     errorMessage.value = error.response && error.response.status === 401

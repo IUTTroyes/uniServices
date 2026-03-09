@@ -30,6 +30,13 @@ security:
                 max_attempts: 5
                 interval: '1 minute'
 
+        refresh:
+            pattern: ^/api/token/refresh
+            stateless: true
+            refresh_jwt:
+                check_path: /api/token/refresh
+                provider: chain_provider
+
         api:
             pattern: ^/api
             stateless: true
@@ -67,7 +74,9 @@ security:
     # Note: Only the *first* access control that matches will be used
     access_control:
         - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/token/refresh, roles: PUBLIC_ACCESS }
         - { path: ^/api/change_password, roles: PUBLIC_ACCESS }
+        - { path: ^/api/logout, roles: PUBLIC_ACCESS }
 #        - { path: ^/api,       roles: IS_AUTHENTICATED_FULLY }
         - { path: ^/api,       roles: PUBLIC_ACCESS }
         # - { path: ^/admin, roles: ROLE_ADMIN }
