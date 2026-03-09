@@ -91,7 +91,7 @@ const handleSubmit = async () => {
                 name="password"
                 type="password"
                 label="Nouveau mot de passe"
-                :rules="[validationRules.required, validationRules.minLength(8)]"
+                :rules="[validationRules.required, validationRules.strongPassword]"
                 @validation="result => handleValidation('password', result)"
             />
             <ValidatedInput

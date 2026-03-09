@@ -81,7 +81,21 @@ export const validationRules = {
   match: (reference, errorMessage = "Les valeurs ne correspondent pas") => ({
     validate: value => value === reference,
     message: errorMessage
-  })
+  }),
+
+  // Strong password validation (min 8 chars, 1 uppercase, 1 lowercase, 1 digit, 1 special char)
+  strongPassword: {
+    validate: value => {
+      if (!value) return false;
+      const hasMinLength = value.length >= 8;
+      const hasLowerCase = /[a-z]/.test(value);
+      const hasUpperCase = /[A-Z]/.test(value);
+      const hasDigit = /[0-9]/.test(value);
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(value);
+      return hasMinLength && hasLowerCase && hasUpperCase && hasDigit && hasSpecialChar;
+    },
+    message: "Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial (!@#$%^&*(),.?\":{}|<>)"
+  }
 };
 
 /**

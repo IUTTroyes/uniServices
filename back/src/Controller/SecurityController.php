@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\ApiDto\Security\ResetPasswordDto;
 use App\Entity\ResetToken;
 use App\Repository\EtudiantRepository;
 use App\Repository\PersonnelRepository;
@@ -16,6 +17,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class SecurityController extends AbstractController
 {
@@ -36,7 +38,8 @@ class SecurityController extends AbstractController
     {
         $user = $this->getUser();
         if (!$user) {
-            return new JsonResponse(['error' => 'Invalid credentials'], JsonResponse::HTTP_UNAUTHORIZED);
+            // Message générique pour ne pas révéler si l'utilisateur existe ou non
+            return new JsonResponse(['error' => 'Identifiants invalides'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 
         // Générez un token JWT pour l'utilisateur authentifié
@@ -45,9 +48,17 @@ class SecurityController extends AbstractController
         // ajouter l'ID de l'utilisateur au token
         $dispatcher->dispatch(new JWTCreatedEvent(['token' => $token], $user));
 
-        return new JsonResponse([
+        $response = new JsonResponse([
             'token' => $token
         ]);
+
+        // Ajouter des en-têtes de sécurité
+        $response->headers->set('X-Content-Type-Options', 'nosniff');
+        $response->headers->set('X-Frame-Options', 'DENY');
+        $response->headers->set('Cache-Control', 'no-store, no-cache, must-revalidate');
+        $response->headers->set('Pragma', 'no-cache');
+
+        return $response;
     }
 
     #[Route('/api/change_password', name: 'api_reset_pwd', methods: ['POST'])]
@@ -82,9 +93,10 @@ class SecurityController extends AbstractController
 
             $this->resetTokenRepository->save($tokenEntity, true);
 
+            $url_front = $_ENV['URL_FRONTEND'];
             // Construire le mail de réinitialisation
             $resetUrl = sprintf(
-                'http://localhost:3000/auth/reset-password/confirm?token=%s',
+                $url_front.'/auth/reset-password/confirm?token=%s',
                 $resetToken
             );
 
@@ -108,12 +120,31 @@ class SecurityController extends AbstractController
 
 
     #[Route('/api/reset_password', name: 'api_reset_password', methods: ['POST'])]
-    public function resetPassword(Request $request, UserPasswordHasherInterface $passwordHasher): JsonResponse
+    public function resetPassword(
+        Request $request,
+        UserPasswordHasherInterface $passwordHasher,
+        ValidatorInterface $validator
+    ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
         if (!isset($data['token']) || !isset($data['password'])) {
             return new JsonResponse(['error' => 'Token et mot de passe requis'], JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // Créer et valider le DTO
+        $resetPasswordDto = new ResetPasswordDto();
+        $resetPasswordDto->token = $data['token'];
+        $resetPasswordDto->password = $data['password'];
+
+        $errors = $validator->validate($resetPasswordDto);
+
+        if (count($errors) > 0) {
+            $errorMessages = [];
+            foreach ($errors as $error) {
+                $errorMessages[] = $error->getMessage();
+            }
+            return new JsonResponse(['error' => $errorMessages], JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $token = $data['token'];

@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import {onMounted, ref} from 'vue';
 import Logo from '@components/components/Logo.vue';
 import {ValidatedInput, validationRules} from "@components";
 import { updateUserPasswordService } from "@requests";
@@ -14,6 +14,10 @@ const errorMessage = ref('');
 
 const validationState = ref({
   email: false,
+});
+
+onMounted(() => {
+  formValid === true;
 });
 
 const handleValidation = (field, result) => {
@@ -71,10 +75,7 @@ const handleSubmit = async () => {
               <router-link to="/login" class="font-medium ml-2 text-right cursor-pointer text-primary underline">Retour au login</router-link>
             </div>
             <div class="w-full flex flex-col gap-2">
-              <Message v-if="!formValid" severity="error">
-                Veuillez corriger les erreurs dans le formulaire avant de soumettre
-              </Message>
-              <Message v-else-if="errorMessage" severity="error">
+              <Message v-if="errorMessage" severity="error">
                 {{ errorMessage }}
               </Message>
               <Button label="Ré-initialiser le mot de passe" class="w-full" type="submit" :disabled="!formValid"

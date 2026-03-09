@@ -55,28 +55,18 @@ const handleSubmit = async () => {
       password: password.value
     });
 
-    console.log('API response:', response.data); // Log de la réponse de l'API
-
     const token = response.data.token;
     if (!token) {
       throw new Error('Token non valide');
     }
 
     localStorage.setItem('token', token);
-    document.cookie = `token=${token}; path=/; domain=.localhost; secure; SameSite=Lax`;
+    // Note: Pour une sécurité optimale, le token devrait être stocké côté serveur via un cookie HttpOnly
+    // Le cookie ci-dessous est accessible par JS, préférer l'authentification via header Authorization
+    document.cookie = `token=${token}; path=/; secure; SameSite=Strict`;
 
-    location.reload();
     location.href = '/auth/portail';
   } catch (error) {
-    console.error('Login failed:', error);
-    if (error.response) {
-      console.error('Error response data:', error.response.data);
-      console.error('Error response status:', error.response.status);
-      console.error('Error response headers:', error.response.headers);
-    }
-    if (error.request) {
-      console.error('Error request:', error.request);
-    }
     errorMessage.value = error.response && error.response.status === 401
         ? 'Login ou mot de passe incorrect'
         : 'Une erreur est survenue, veuillez contacter l\'administrateur du site';
