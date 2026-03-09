@@ -16,7 +16,9 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class SecurityController extends AbstractController
@@ -62,8 +64,22 @@ class SecurityController extends AbstractController
     }
 
     #[Route('/api/change_password', name: 'api_reset_pwd', methods: ['POST'])]
-    public function changePassword(Request $request, MailerInterface $mailer): JsonResponse
+    #[IsGranted('PUBLIC_ACCESS')]
+    public function changePassword(
+        Request $request,
+        MailerInterface $mailer,
+        RateLimiterFactory $passwordResetLimiter
+    ): JsonResponse
     {
+        // Rate limiting : max 3 demandes par IP par heure
+        $limiter = $passwordResetLimiter->create($request->getClientIp());
+        if (false === $limiter->consume(1)->isAccepted()) {
+            return new JsonResponse(
+                ['message' => 'Trop de demandes. Veuillez réessayer plus tard.'],
+                JsonResponse::HTTP_TOO_MANY_REQUESTS
+            );
+        }
+
         $emailAddress = $request->getContent();
 
         // chercher un utilisateur par son email dans les champs mail_univ ou mail_perso des entités Etudiant et Personnel
@@ -77,12 +93,19 @@ class SecurityController extends AbstractController
             // Nettoyer les anciens tokens pour cet utilisateur
             $this->resetTokenRepository->removeExpiredTokens();
 
+            // Supprimer les anciens tokens de cet utilisateur (un seul token actif à la fois)
+            $this->resetTokenRepository->removeTokensForUser($user);
+
             // Générer un token de réinitialisation
             $resetToken = bin2hex(random_bytes(32));
 
+            // Stocker le HASH du token (pas le token en clair)
+            // Ainsi, si la BDD est compromise, les tokens ne peuvent pas être utilisés
+            $hashedToken = hash('sha256', $resetToken);
+
             // Créer et sauvegarder le token en base
             $tokenEntity = new ResetToken();
-            $tokenEntity->setToken($resetToken);
+            $tokenEntity->setToken($hashedToken);
 
             // Associer le token à l'utilisateur (étudiant ou personnel)
             if ($user->getTypeUser() === 'etudiant') {
@@ -120,12 +143,23 @@ class SecurityController extends AbstractController
 
 
     #[Route('/api/reset_password', name: 'api_reset_password', methods: ['POST'])]
+    #[IsGranted('PUBLIC_ACCESS')]
     public function resetPassword(
         Request $request,
         UserPasswordHasherInterface $passwordHasher,
-        ValidatorInterface $validator
+        ValidatorInterface $validator,
+        RateLimiterFactory $passwordResetLimiter
     ): JsonResponse
     {
+        // Rate limiting : protection contre le brute force
+        $limiter = $passwordResetLimiter->create($request->getClientIp());
+        if (false === $limiter->consume(1)->isAccepted()) {
+            return new JsonResponse(
+                ['error' => 'Trop de tentatives. Veuillez réessayer plus tard.'],
+                JsonResponse::HTTP_TOO_MANY_REQUESTS
+            );
+        }
+
         $data = json_decode($request->getContent(), true);
 
         if (!isset($data['token']) || !isset($data['password'])) {
@@ -150,8 +184,11 @@ class SecurityController extends AbstractController
         $token = $data['token'];
         $password = $data['password'];
 
+        // Hasher le token reçu pour le comparer avec celui stocké en base
+        $hashedToken = hash('sha256', $token);
+
         // Rechercher le token dans la base de données
-        $resetToken = $this->resetTokenRepository->findOneByToken($token);
+        $resetToken = $this->resetTokenRepository->findOneByTokenSecure($hashedToken);
 
         if (!$resetToken) {
             return new JsonResponse(['error' => 'Token invalide'], JsonResponse::HTTP_BAD_REQUEST);

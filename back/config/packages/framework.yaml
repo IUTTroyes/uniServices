@@ -9,6 +9,13 @@ framework:
     #esi: true
     #fragments: true
 
+    # Rate limiters
+    rate_limiter:
+        password_reset:
+            policy: 'fixed_window'
+            limit: 3
+            interval: '1 hour'
+
 when@test:
     framework:
         test: true

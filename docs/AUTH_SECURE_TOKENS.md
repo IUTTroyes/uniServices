@@ -4,6 +4,27 @@
 
 Cette implémentation utilise des cookies HTTP-only pour stocker les tokens JWT, ce qui offre une meilleure sécurité contre les attaques XSS par rapport au stockage dans localStorage.
 
+## Mesures de sécurité implémentées
+
+### Tokens JWT (Access Token)
+- **Durée de vie** : 15 minutes (courte pour limiter les risques)
+- **Stockage** : Cookie HTTP-only (inaccessible en JavaScript)
+- **Extraction** : Depuis le cookie ou le header Authorization
+
+### Refresh Token
+- **Durée de vie** : 14 jours
+- **Rotation** : Nouveau token à chaque utilisation (`single_use: true`)
+- **Stockage** : Cookie HTTP-only
+- **Révocation** : Supprimé de la BDD à la déconnexion
+
+### Reset Token (Réinitialisation mot de passe)
+- **Durée de vie** : 24 heures
+- **Stockage en BDD** : Hash SHA-256 (pas le token en clair)
+- **Protection timing attack** : Comparaison avec `hash_equals()`
+- **Usage unique** : Supprimé après utilisation
+- **Un seul actif** : Les anciens tokens sont supprimés à chaque nouvelle demande
+- **Rate limiting** : Max 3 demandes par IP par heure
+
 ## Architecture
 
 ### Backend (Symfony)
@@ -151,4 +172,5 @@ cookie:
 - Assurez-vous que le frontend et le backend sont sur le même domaine (ou sous-domaines)
 - En production, utilisez HTTPS et `secure: true` pour les cookies
 - Implémentez un mécanisme de révocation des refresh tokens si nécessaire
+
 
