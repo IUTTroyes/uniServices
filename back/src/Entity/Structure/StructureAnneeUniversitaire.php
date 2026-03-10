@@ -35,7 +35,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['annee_universitaire:read']]),
         new GetCollection(normalizationContext: ['groups' => ['annee_universitaire:read']]),
-        new Post(),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)"),
         new Patch(),
         new Delete()
     ]

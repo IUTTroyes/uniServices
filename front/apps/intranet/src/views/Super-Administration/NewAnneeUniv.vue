@@ -1,6 +1,6 @@
 <script setup>
       import {ref, onMounted} from "vue";
-      import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton } from "@components";
+      import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton, Access } from "@components";
       import {useAnneeUnivStore} from "@stores";
       import {createAnneeUniversitaireService} from "@requests";
 
@@ -74,62 +74,67 @@
             <p class="text-muted-color">Créez une nouvelle année universitaire en remplissant le formulaire ci-dessous.</p>
           </div>
 
-          <Message v-if="currentAnneeUniv" severity="info" class="mb-4 flex items-center flex-col justify-center text-center">
-            L'année universitaire actuelle est : <strong>{{ currentAnneeUniv.libelle }}</strong>. <br>
-            Vous allez créer l'année universitaire qui succédera à celle-ci même si vous en avez sélectionné une autre dans la liste du menu.
-          </Message>
+          <PermissionGuard permission="isSuperAdmin" :showFallback="true">
+            <Message v-if="currentAnneeUniv" severity="info" class="mb-4 flex items-center flex-col justify-center text-center">
+              L'année universitaire actuelle est : <strong>{{ currentAnneeUniv.libelle }}</strong>.
+            </Message>
 
-          <form @submit.prevent="createAnneeUniv()" class="flex flex-col">
-            <ValidatedInput
-                v-model="anneeUniv.libelle"
-                name="libelle"
-                label="Libellé"
-                type="text"
-                :rules="[validationRules.required]"
-                @validation="result => handleValidation('libelle', result)"
-                help-text="Entrez le libellé de l'évaluation (ex: 2024-2025)"
-            />
+            <form @submit.prevent="createAnneeUniv()" class="flex flex-col">
+              <ValidatedInput
+                  v-model="anneeUniv.libelle"
+                  name="libelle"
+                  label="Libellé"
+                  type="text"
+                  :rules="[validationRules.required]"
+                  @validation="result => handleValidation('libelle', result)"
+                  help-text="Entrez le libellé de l'évaluation (ex: 2024-2025)"
+              />
 
-            <ValidatedInput
-                v-model="anneeUniv.annee"
-                name="annee"
-                label="Année"
-                type="number"
-                :rules="[validationRules.required]"
-                @validation="result => handleValidation('annee', result)"
-                help-text="Sélectionnez la date de début de l'année universitaire"
-            />
+              <ValidatedInput
+                  v-model="anneeUniv.annee"
+                  name="annee"
+                  label="Année"
+                  type="number"
+                  :rules="[validationRules.required]"
+                  @validation="result => handleValidation('annee', result)"
+                  help-text="Sélectionnez la date de début de l'année universitaire"
+              />
 
-            <ValidatedInput
-                v-model="anneeUniv.commentaire"
-                name="commentaire"
-                label="Commentaire"
-                type="textarea"
-                :rules="[]"
-                @validation="result => handleValidation('commentaire', result)"
-                help-text="Entrez un commentaire optionnel pour cette année universitaire"
-            />
+              <ValidatedInput
+                  v-model="anneeUniv.commentaire"
+                  name="commentaire"
+                  label="Commentaire"
+                  type="textarea"
+                  :rules="[]"
+                  @validation="result => handleValidation('commentaire', result)"
+                  help-text="Entrez un commentaire optionnel pour cette année universitaire"
+              />
 
-            <div class="mb-4">
-              <label class="block mb-2 font-medium">Actif</label>
-              <div class="flex gap-4">
-                <div v-for="choice in activeChoice" :key="choice.value" class="flex items-center gap-2">
-                  <RadioButton
-                      v-model="anneeUniv.actif"
-                      :inputId="`actif-${choice.value}`"
-                      name="actif"
-                      :value="choice.value"
-                  />
-                  <label :for="`actif-${choice.value}`">{{ choice.label }}</label>
+              <div class="mb-4">
+                <label class="block mb-2 font-medium">Actif</label>
+                <div class="flex gap-4">
+                  <div v-for="choice in activeChoice" :key="choice.value" class="flex items-center gap-2">
+                    <RadioButton
+                        v-model="anneeUniv.actif"
+                        :inputId="`actif-${choice.value}`"
+                        name="actif"
+                        :value="choice.value"
+                    />
+                    <label :for="`actif-${choice.value}`">{{ choice.label }}</label>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="flex justify-center items-center gap-4">
-              <Button label="Créer l'année universitaire" @click="createAnneeUniv" :disabled="!formValid" />
-              <Button label="Annuler" severity="secondary"/>
-            </div>
-          </form>
+              <div class="flex justify-center items-center gap-4">
+                <Button label="Créer l'année universitaire" @click="createAnneeUniv" :disabled="!formValid" />
+                <Button label="Annuler" severity="secondary"/>
+              </div>
+            </form>
+
+            <template #fallback>
+              <Access></Access>
+            </template>
+          </PermissionGuard>
         </div>
       </template>
 

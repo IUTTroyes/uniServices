@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { hasPermission } from '@utils/permissions';
+import { useUsersStore } from '@stores';
 
 /**
  * Component for conditional rendering based on permissions
@@ -29,8 +30,21 @@ const props = defineProps({
   }
 });
 
+const userStore = useUsersStore();
+
 // Determine if the user has the required permission(s)
 const hasRequiredPermission = computed(() => {
+  // Accéder explicitement aux propriétés réactives du store qui affectent les permissions
+  // pour garantir que le computed se recalcule quand ces valeurs changent.
+  // Ceci est nécessaire car hasPermission est une fonction externe qui accède au store
+  // mais Vue ne peut pas toujours tracker les dépendances à travers les appels de fonction.
+  // eslint-disable-next-line no-unused-vars
+  const _temporaryRole = userStore.temporaryRole;
+  // eslint-disable-next-line no-unused-vars
+  const _isLoaded = userStore.isLoaded;
+  // eslint-disable-next-line no-unused-vars
+  const _user = userStore.user;
+
   // Délègue entièrement à hasPermission qui gère:
   // - string
   // - array

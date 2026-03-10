@@ -16,6 +16,7 @@ import ProfilPersonnel from "@components/components/Personnel/ProfilPersonnel.vu
 import PermissionGuard from "@components/components/Permission/PermissionGuard.vue";
 import MessageCard from "@components/components/Messages/MessageCard.vue";
 import GlobalLoader from "@components/loader/GlobalLoader.vue";
+import Access from "@components/pages/auth/Access.vue";
 
 // Form validation components
 import FormValidator from './components/Forms/FormValidator.vue';
@@ -42,6 +43,7 @@ export {
   ProfilPersonnel,
   PermissionGuard,
   MessageCard,
+  Access,
 
   // Form validation exports
   FormValidator,
