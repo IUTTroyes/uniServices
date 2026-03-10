@@ -1,6 +1,6 @@
 <?php
 
-namespace App\DataProvider\Evaluation;
+namespace App\State\Processor\Evaluation;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;

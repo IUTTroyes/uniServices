@@ -195,6 +195,14 @@
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/psr/simple-cache" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/rate-limiter" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/gesdinet/jwt-refresh-token-bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/jawira/db-draw" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/jawira/doctrine-diagram-bundle" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/jawira/doctrine-diagram-contracts" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/jawira/entity-draw" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/jawira/plantuml-client" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/jawira/plantuml-encoding" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/jawira/plantuml-to-image" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/jawira/the-lost-functions" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

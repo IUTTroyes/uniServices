@@ -13,4 +13,5 @@ return [
     Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle::class => ['dev' => true, 'test' => true],
     Davidannebicque\HtmlToSpreadsheetBundle\HtmlToSpreadsheetBundle::class => ['all' => true],
     Gesdinet\JWTRefreshTokenBundle\GesdinetJWTRefreshTokenBundle::class => ['all' => true],
+    Jawira\DoctrineDiagramBundle\DoctrineDiagramBundle::class => ['dev' => true, 'test' => true],
 ];

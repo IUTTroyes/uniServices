@@ -23,6 +23,7 @@ use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
+use App\State\Processor\AnneeUniv\AnneeUnivInitProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -35,7 +36,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['annee_universitaire:read']]),
         new GetCollection(normalizationContext: ['groups' => ['annee_universitaire:read']]),
-        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)"),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)", processor: AnneeUnivInitProcessor::class),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)"),
         new Delete(security: "is_granted('CAN_EDIT_ANNEE_UNIV', object)")
     ]

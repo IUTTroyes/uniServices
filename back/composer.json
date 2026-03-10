@@ -94,6 +94,7 @@
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "^3.6",
+        "jawira/doctrine-diagram-bundle": "^1.2",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-doctrine": "^2.0",
