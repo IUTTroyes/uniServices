@@ -100,6 +100,10 @@ const redirectTo = (link) => {
         <div class="card-content flex flex-col gap-4">
           <div class="flex items-center gap-4">
             <Button label="Changement d'année universitaire" icon="pi pi-arrow-right" severity="primary"/>
+            <router-link to="/super-administration/annee-universitaire" class="p-button p-component p-button-secondary">
+              <span class="p-button-icon pi pi-clock"></span>
+              <span class="p-button-label">Années Universitaires</span>
+            </router-link>
           </div>
           <div class="flex items-center gap-4">
             <Button label="Gestion du site" icon="pi pi-building" severity="secondary"/>

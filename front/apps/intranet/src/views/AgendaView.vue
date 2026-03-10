@@ -29,7 +29,7 @@ onMounted( () => {
 
 <template>
   <div class="card">
-    <div class="title">
+    <div class="card-title mb-4">
       <h1 class="text-2xl font-bold">Emploi du temps</h1>
       <p class="text-muted-color">Consultez votre emploi du temps personnel ou celui de votre département.</p>
     </div>

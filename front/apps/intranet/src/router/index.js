@@ -5,6 +5,7 @@ import agendaRoutes from "./modules/agendaRoutes.js";
 import trombinoscopeRoutes from "./modules/trombinoscopeRoutes.js";
 import profilRoutes from "./modules/profilRoutes.js";
 import administrationRoutes from "./modules/administrationRoutes.js";
+import superAdministrationRoutes from "./modules/superAdministrationRoutes.js";
 import {useUsersStore} from "@stores";
 import { hasPermission } from '@utils';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
@@ -77,7 +78,8 @@ const router = createRouter({
                 ...agendaRoutes,
                 ...trombinoscopeRoutes,
                 ...profilRoutes,
-                ...administrationRoutes
+                ...administrationRoutes,
+                ...superAdministrationRoutes,
             ]
         },
     ]
