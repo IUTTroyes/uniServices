@@ -19,7 +19,8 @@ const isLoadingDiplomes = ref(true)
 const isLoadingDiplome = ref(true)
 const diplomes = ref([])
 const selectedDiplome = ref(null)
-const selectedPn = ref(null)
+const anneeUniversitaire = ref(null)
+const pn = ref(null)
 const oreofId = ref(687)
 
 const hasError = ref(false)
@@ -29,11 +30,12 @@ const visibleDialogOreof = ref(false)
 const dialogContent = ref(null)
 
 onMounted(async () => {
-  await anneeUnivStore.getCurrentAnneeUniv()
+  await anneeUnivStore.getCurrentAnneeUniv();
   if (usersStore.departementDefaut) {
-    departementId.value = usersStore.departementDefaut.id
-    await getDiplomes(departementId.value)
-    changeDiplome(diplomes.value[0])
+    anneeUniversitaire.value = anneeUnivStore.selectedAnneeUniv;
+    departementId.value = usersStore.departementDefaut.id;
+    await getDiplomes(departementId.value);
+    changeDiplome(diplomes.value[0]);
   } else {
     console.error('departementDefaut is not defined')
   }
@@ -69,7 +71,7 @@ const getDiplomes = async (departementId) => {
   } finally {
     if (diplomes.value.length > 0) {
       selectedDiplome.value =  selectedDiplome.value ? selectedDiplome.value : diplomes.value[0]
-      selectedPn.value = selectedDiplome.value?.pns?.find(pn => pn.anneeUniversitaire?.actif === true) || null
+      pn.value = selectedDiplome.value?.pns?.find(pn => pn.anneeUniversitaire?.id === anneeUniversitaire.value.id) || null
     }
     isLoadingDiplomes.value = false
   }
@@ -78,7 +80,7 @@ const getDiplomes = async (departementId) => {
 const changeDiplome = (diplome) => {
   isLoadingDiplome.value = true
   selectedDiplome.value = diplome
-  selectedPn.value = selectedDiplome.value?.pns?.find(pn => pn.anneeUniversitaire?.actif === true) || null
+  pn.value = selectedDiplome.value?.pns?.find(pn => pn.anneeUniversitaire?.id === anneeUniversitaire.value.id) || null
   isLoadingDiplome.value = false
 }
 
@@ -111,7 +113,7 @@ const deleteObject = async (objectType, id) => {
     } finally {
       // retirer uniquement le Pn de l'affichage sans recharger toute la page
       selectedDiplome.value.pns = selectedDiplome.value.pns.filter(pn => pn.id !== id)
-      selectedPn.value = null
+      pn.value = null
     }
   }
   if (objectType === 'annee') {
@@ -121,7 +123,7 @@ const deleteObject = async (objectType, id) => {
       console.error(`Erreur lors de la suppression de l'année :`, error)
     } finally {
       // retirer uniquement l'année de l'affichage sans recharger toute la page
-      selectedPn.value.annees = selectedPn.value.annees.filter(annee => annee.id !== id)
+      pn.value.annees = pn.value.annees.filter(annee => annee.id !== id)
     }
   }
   if (objectType === 'semestre') {
@@ -131,7 +133,7 @@ const deleteObject = async (objectType, id) => {
       console.error(`Erreur lors de la suppression du semestre :`, error)
     } finally {
       // retirer uniquement le semestre de l'affichage sans recharger toute la page
-      const pn = selectedPn.value
+      const pn = pn.value
       pn.annees.forEach(annee => {
         annee.semestres = annee.semestres.filter(semestre => semestre.id !== id)
       })
@@ -144,7 +146,7 @@ const deleteObject = async (objectType, id) => {
       console.error(`Erreur lors de la suppression de l'UE :`, error)
     } finally {
       // retirer uniquement l'UE de l'affichage sans recharger toute la page
-      const pn = selectedPn.value
+      const pn = pn.value
       pn.annees.forEach(annee => {
         annee.semestres.forEach(semestre => {
           semestre.ues = semestre.ues.filter(ue => ue.id !== id)
@@ -159,7 +161,7 @@ const deleteObject = async (objectType, id) => {
       console.error(`Erreur lors de la suppression de l'enseignement :`, error)
     } finally {
       // retirer uniquement l'enseignement de l'affichage sans recharger toute la page
-      const pn = selectedPn.value
+      const pn = pn.value
       pn.annees.forEach(annee => {
         annee.semestres.forEach(semestre => {
           semestre.ues.forEach(ue => {
@@ -212,12 +214,12 @@ const deleteObject = async (objectType, id) => {
       <div class="text-muted-color mb-4">Responsable du diplome :
         {{ selectedDiplome?.responsableDiplome?.display ?? `Pas de responsable` }}
       </div>
-      <template v-if="selectedPn">
+      <template v-if="pn">
         <PermissionGuard permission="isSuperAdmin">
-          <ButtonDelete tooltip="Supprimer ce Pn" @confirm-delete="deleteObject('pn', selectedPn.id)"/>
-          <Tag severity="info">ID Pn: {{ selectedPn.id }}</Tag>
+          <ButtonDelete tooltip="Supprimer ce Pn" @confirm-delete="deleteObject('pn', pn.id)"/>
+          <Tag severity="info">ID Pn: {{ pn.id }}</Tag>
         </PermissionGuard>
-        <Fieldset v-for="annee in selectedPn.annees" :legend="`${annee.libelle}`" :toggleable="true">
+        <Fieldset v-for="annee in pn.annees" :legend="`${annee.libelle}`" :toggleable="true">
           <template #toggleicon>
             <i class="pi pi-angle-down"></i>
           </template>
