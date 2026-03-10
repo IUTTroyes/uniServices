@@ -2,6 +2,7 @@
       import {ref, onMounted} from "vue";
       import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton } from "@components";
       import {useAnneeUnivStore} from "@stores";
+      import {createAnneeUniversitaireService} from "@requests";
 
       const anneeUnivStore = useAnneeUnivStore();
       const anneeUniv = ref({
@@ -51,8 +52,14 @@
 
       const createAnneeUniv = async () => {
         try {
+          const data = {
+            libelle: anneeUniv.value.libelle,
+            annee: anneeUniv.value.annee,
+            commentaire: anneeUniv.value.commentaire,
+            actif: anneeUniv.value.actif
+          };
           // Appeler le service pour créer l'année universitaire
-          // await createAnneeUnivService(anneeUniv.value);
+          await createAnneeUniversitaireService(data, true)
           console.log("Année universitaire créée:", anneeUniv.value);
         } catch (error) {
           console.error("Erreur lors de la création de l'année universitaire:", error);

@@ -56,6 +56,21 @@ const getCurrentAnneeUniversitaireService = async (showToast = false) => {
 // ------------------- CREATE -------------------
 // ----------------------------------------------
 
+const createAnneeUniversitaireService = async (data, showToast = false) => {
+    try {
+        return await apiCall(
+            api.post,
+            [`/api/structure_annee_universitaires`, data, { headers: { 'Content-Type': 'application/ld+json' }}],
+            'Année universitaire créée avec succès',
+            'Erreur lors de la création de l\'année universitaire',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans createAnneeUniversitaireService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
@@ -64,4 +79,4 @@ const getCurrentAnneeUniversitaireService = async (showToast = false) => {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getAllAnneesUniversitairesService, getAnneeUniversitaireService, getCurrentAnneeUniversitaireService };
+export { getAllAnneesUniversitairesService, getAnneeUniversitaireService, getCurrentAnneeUniversitaireService, createAnneeUniversitaireService };
