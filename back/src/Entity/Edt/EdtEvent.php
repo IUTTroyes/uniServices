@@ -5,7 +5,11 @@ namespace App\Entity\Edt;
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\ApiDto\Edt\EdtStatsDto;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
@@ -36,6 +40,10 @@ use Symfony\Component\Uid\UuidV4;
             provider: EdtStatsProvider::class,
             output: EdtStatsDto::class,
         ),
+        new Get(normalizationContext: ['groups' => ['edt_event:read:agenda']]),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_EDT', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_EDT', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_EDT', object)"),
     ]
 )]
 #[ORM\HasLifecycleCallbacks]

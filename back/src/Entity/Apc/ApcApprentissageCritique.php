@@ -2,6 +2,12 @@
 
 namespace App\Entity\Apc;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Traits\OldIdTrait;
 use App\Repository\Apc\ApcApprentissageCritiqueRepository;
@@ -12,6 +18,15 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ApcApprentissageCritiqueRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['ac:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['ac:read']]),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_APC_AC', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_APC_AC', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_APC_AC', object)"),
+    ]
+)]
 class ApcApprentissageCritique
 {
     use OldIdTrait;

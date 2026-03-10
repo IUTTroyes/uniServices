@@ -2,12 +2,27 @@
 
 namespace App\Entity\Edt;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureCalendrier;
 use App\Repository\Edt\EdtCreneauxInterditsSemaineRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EdtCreneauxInterditsSemaineRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['edt_creneaux:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['edt_creneaux:read']]),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_EDT_CRENEAUX', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_EDT_CRENEAUX', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_EDT_CRENEAUX', object)"),
+    ]
+)]
 class EdtCreneauxInterditsSemaine
 {
     #[ORM\Id]

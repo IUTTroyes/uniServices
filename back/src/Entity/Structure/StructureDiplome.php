@@ -9,6 +9,8 @@ use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
@@ -68,7 +70,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/maquette/structure_diplomes',
             normalizationContext: ['groups' => ['maquette:detail']],
         ),
-        new Delete(),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_DIPLOME', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_DIPLOME', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_DIPLOME', object)"),
     ],
     paginationEnabled: false
 )]

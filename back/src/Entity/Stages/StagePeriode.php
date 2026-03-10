@@ -3,6 +3,11 @@
 namespace App\Entity\Stages;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
 use App\Repository\Stages\StagePeriodeRepository;
@@ -12,7 +17,15 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: StagePeriodeRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['stage_periode:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['stage_periode:read']]),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_STAGE_PERIODE', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_STAGE_PERIODE', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_STAGE_PERIODE', object)"),
+    ]
+)]
 class StagePeriode
 {
     #[ORM\Id]

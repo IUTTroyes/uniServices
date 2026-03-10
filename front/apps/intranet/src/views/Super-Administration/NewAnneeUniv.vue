@@ -63,6 +63,8 @@
           console.log("Année universitaire créée:", anneeUniv.value);
         } catch (error) {
           console.error("Erreur lors de la création de l'année universitaire:", error);
+        } finally {
+
         }
       };
       </script>
@@ -77,6 +79,8 @@
           <PermissionGuard permission="isSuperAdmin" :showFallback="true">
             <Message v-if="currentAnneeUniv" severity="info" class="mb-4 flex items-center flex-col justify-center text-center">
               L'année universitaire actuelle est : <strong>{{ currentAnneeUniv.libelle }}</strong>.
+              <br>
+              Créer une année universitaire va lancer la synchronisation des données pour la nouvelle année, depuis ORéOF. Vous recevrez une notification lorsque la synchronisation sera terminée.
             </Message>
 
             <form @submit.prevent="createAnneeUniv()" class="flex flex-col">

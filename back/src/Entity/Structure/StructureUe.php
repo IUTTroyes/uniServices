@@ -7,6 +7,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcCompetence;
 use App\Entity\Scolarite\ScolEnseignementUe;
 use App\Entity\Traits\LifeCycleTrait;
@@ -23,7 +25,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['ue:read', 'ue:read:full']]),
         new GetCollection(normalizationContext: ['groups' => ['ue:read']]),
-        new Delete()
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_UE', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_UE', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_UE', object)")
     ]
 )]
 #[ApiFilter(UeFilter::class)]

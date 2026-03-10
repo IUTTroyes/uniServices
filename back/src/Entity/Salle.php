@@ -3,8 +3,11 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Repository\SalleRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -15,6 +18,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['salle:detail']]),
         new GetCollection(normalizationContext: ['groups' => ['salle:detail']]),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_SALLE', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_SALLE', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_SALLE', object)"),
     ],
     order: ['libelle' => 'ASC'],
 )]

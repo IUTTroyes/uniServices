@@ -76,9 +76,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
             provider: PreviStatsEdtProvider::class,
             output: PreviStatsEdtDto::class,
         ),
-        new Patch(normalizationContext: ['groups' => ['previsionnel:read']]),
-        new Post(normalizationContext: ['groups' => ['previsionnel:read']]),
-        new Delete(normalizationContext: ['groups' => ['previsionnel:read']]),
+        new Patch(normalizationContext: ['groups' => ['previsionnel:read']], securityPostDenormalize: "is_granted('CAN_EDIT_PREVISIONNEL', object)"),
+        new Post(normalizationContext: ['groups' => ['previsionnel:read']], securityPostDenormalize: "is_granted('CAN_EDIT_PREVISIONNEL', object)"),
+        new Delete(normalizationContext: ['groups' => ['previsionnel:read']], security: "is_granted('CAN_DELETE_PREVISIONNEL', object)"),
     ],
     paginationEnabled: false,
 )]

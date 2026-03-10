@@ -35,9 +35,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['annee_universitaire:read']]),
         new GetCollection(normalizationContext: ['groups' => ['annee_universitaire:read']]),
-        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)"),
-        new Patch(),
-        new Delete()
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)"),
+        new Delete(security: "is_granted('CAN_EDIT_ANNEE_UNIV', object)")
     ]
 )]
 #[ORM\HasLifecycleCallbacks]

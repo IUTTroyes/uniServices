@@ -2,6 +2,12 @@
 
 namespace App\Entity\Apc;
 
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\OldIdTrait;
@@ -14,6 +20,15 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ApcParcoursRepository::class)]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['parcours:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['parcours:read']]),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_APC_PARCOURS', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_APC_PARCOURS', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_APC_PARCOURS', object)"),
+    ]
+)]
 class ApcParcours
 {
     use OptionTrait;

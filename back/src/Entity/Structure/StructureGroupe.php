@@ -4,8 +4,11 @@ namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
@@ -47,6 +50,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/structure/structure_groupes',
             normalizationContext: ['groups' => ['groupe:structure']],
         ),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_GROUPE', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_GROUPE', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_GROUPE', object)"),
     ]
 )]
 class StructureGroupe

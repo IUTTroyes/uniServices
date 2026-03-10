@@ -8,6 +8,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtContraintesSemestre;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
@@ -73,7 +75,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/groupe-detail/structure_semestres',
             normalizationContext: ['groups' => ['semestre:light', 'groupe:detail']]
         ),
-        new Delete()
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_SEMESTRE', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_SEMESTRE', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_SEMESTRE', object)")
     ]
 )]
 #[ORM\HasLifecycleCallbacks]

@@ -4,8 +4,11 @@ namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Traits\LifeCycleTrait;
@@ -26,6 +29,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new GetCollection(normalizationContext: ['groups' => ['departement:read']]),
         new Get(normalizationContext: ['groups' => ['departement:read']]),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_DEPARTEMENT', object)"),
     ]
 )]
 #[ApiFilter(DepartementFilter::class)]

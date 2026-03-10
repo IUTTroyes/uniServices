@@ -4,8 +4,11 @@ namespace App\Entity\Scolarite;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantAbsence;
@@ -37,6 +40,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/maxi/scol_enseignements/{id}',
             normalizationContext: ['groups' => ['enseignement:detail', 'apprentissage_critique:detail', 'absence:detail', 'evaluation:detail', 'previsionnel:detail', 'edt:detail']],
         ),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_ENSEIGNEMENT', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_ENSEIGNEMENT', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_ENSEIGNEMENT', object)"),
     ]
 )]
 class ScolEnseignement

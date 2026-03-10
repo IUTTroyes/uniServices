@@ -4,8 +4,11 @@ namespace App\Entity\Users;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
@@ -50,6 +53,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/maxi/personnels',
             normalizationContext: ['groups' => ['personnel:detail']],
         ),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_PERSONNEL', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_PERSONNEL', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_PERSONNEL', object)"),
     ],
     order: ['nom' => 'ASC'],
     paginationEnabled: false,

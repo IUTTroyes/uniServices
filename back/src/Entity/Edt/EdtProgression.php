@@ -18,10 +18,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new GetCollection(),
-        new Post(),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_EDT_PROGRESSION', object)"),
         new Get(),
-        new Put(),
-        new Delete(),
+        new Put(security: "is_granted('CAN_EDIT_EDT_PROGRESSION', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_EDT_PROGRESSION', object)"),
     ],
 )]
 class EdtProgression

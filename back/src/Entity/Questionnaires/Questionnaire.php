@@ -4,8 +4,11 @@ namespace App\Entity\Questionnaires;
 
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Enum\QuestStatutEnum;
@@ -21,6 +24,13 @@ use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: QuestionnaireRepository::class)]
 #[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['questionnaire:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['questionnaire:read']]),
+        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_QUESTIONNAIRE', object)"),
+        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_QUESTIONNAIRE', object)"),
+        new Delete(security: "is_granted('CAN_DELETE_QUESTIONNAIRE', object)"),
+    ],
     normalizationContext: ['groups' => ['questionnaire:read']],
 )]
 #[ORM\HasLifecycleCallbacks]
