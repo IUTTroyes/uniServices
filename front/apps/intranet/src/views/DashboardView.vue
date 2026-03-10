@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
+import {PermissionGuard} from "@components";
 import { useUsersStore } from "@stores";
 import { formatDateLong } from "@helpers/date.js";
 import { getActualitesService, getAgendaService } from "@requests";
@@ -91,37 +92,60 @@ const redirectTo = (link) => {
       </div>
     </div>
 
+    <PermissionGuard permission="isSuperAdmin">
+      <div class="card mb-5">
+        <div class="card-title mb-4">
+          <div class="font-semibold text-xl">Super-Administration</div>
+        </div>
+        <div class="card-content flex flex-col gap-4">
+          <div class="flex items-center gap-4">
+            <Button label="Changement d'année universitaire" icon="pi pi-arrow-right" severity="primary"/>
+          </div>
+          <div class="flex items-center gap-4">
+            <Button label="Gestion du site" icon="pi pi-building" severity="secondary"/>
+            <Button label="Variables de configuration" icon="pi pi-cog" severity="secondary"/>
+            <Button label="Années Universitaires" icon="pi pi-clock" severity="secondary"/>
+            <Button label="Celcat" icon="pi pi-calendar" severity="secondary"/>
+            <Button label="Edusign" icon="pi pi-qrcode" severity="secondary"/>
+            <Button label="Gestion des départements" icon="pi pi-folder-open" severity="secondary"/>
+          </div>
+        </div>
+      </div>
+    </PermissionGuard>
+
     <div class="card">
       <div class="card-title mb-4">
         <div class="font-semibold text-xl">Aujourd'hui</div>
       </div>
-      <div class="card-content flex flex-col gap-16">
+      <div class="card-content flex flex-col gap-8">
         <div>
           <div class="text-lg text-muted-color font-semibold mb-2">Mes cours à venir</div>
           <EdtJour />
         </div>
-        <hr v-if="userStore.isAssistant">
-        <div v-if="userStore.isAssistant" class="absences flex flex-col gap-2">
-          <div class="text-lg text-muted-color font-semibold">Suivi des absences entre {{ new Date().getHours() < 13 ? '8h00 et 13h00' : '13h00 et 21h00' }}</div>
+        <PermissionGuard permission="isAssistant">
+          <hr>
+          <div class="absences flex flex-col gap-2">
+            <div class="text-lg text-muted-color font-semibold">Suivi des absences entre {{ new Date().getHours() < 13 ? '8h00 et 13h00' : '13h00 et 21h00' }}</div>
 
-          <Message severity="info" icon="pi pi-info-circle">{{ absences.length }} absent.s sur la demie journée en cours.</Message>
+            <Message severity="info" icon="pi pi-info-circle">{{ absences.length }} absent.s sur la demie journée en cours.</Message>
 
-          <DataTable :value="absences" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" stripedRows showGridlines tableStyle="min-width: 50rem"
-                     paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
-                     currentPageReportTemplate="{first} to {last} of {totalRecords}">
-            <template #paginatorstart>
-              <Button type="button" icon="pi pi-refresh" text />
-            </template>
-            <template #paginatorend>
-              <Button type="button" icon="pi pi-download" text />
-            </template>
-            <Column field="semestre" header="Semestre" sortable style="width: 25%"></Column>
-            <Column field="etudiant" header="Etudiant" sortable style="width: 25%"></Column>
-            <Column field="heure" header="Heure" sortable style="width: 25%"></Column>
-            <Column field="prof" header="Prof." sortable style="width: 25%"></Column>
-            <Column field="matiere" header="Matière" sortable style="width: 25%"></Column>
-          </DataTable>
-        </div>
+            <DataTable :value="absences" paginator :rows="5" :rowsPerPageOptions="[5, 10, 20, 50]" stripedRows showGridlines tableStyle="min-width: 50rem"
+                       paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink"
+                       currentPageReportTemplate="{first} to {last} of {totalRecords}">
+              <template #paginatorstart>
+                <Button type="button" icon="pi pi-refresh" text />
+              </template>
+              <template #paginatorend>
+                <Button type="button" icon="pi pi-download" text />
+              </template>
+              <Column field="semestre" header="Semestre" sortable style="width: 25%"></Column>
+              <Column field="etudiant" header="Etudiant" sortable style="width: 25%"></Column>
+              <Column field="heure" header="Heure" sortable style="width: 25%"></Column>
+              <Column field="prof" header="Prof." sortable style="width: 25%"></Column>
+              <Column field="matiere" header="Matière" sortable style="width: 25%"></Column>
+            </DataTable>
+          </div>
+        </PermissionGuard>
       </div>
     </div>
 
@@ -189,8 +213,12 @@ const redirectTo = (link) => {
       </div>
     </div>
 
-    <DashboardPersonnel v-if="userStore.isPersonnel" />
-    <DashboardEtudiant v-else-if="userStore.isEtudiant" />
+    <PermissionGuard permission="isPersonnel">
+      <DashboardPersonnel v-if="userStore.isPersonnel"/>
+    </PermissionGuard>
+    <PermissionGuard permission="isEtudiant">
+      <DashboardEtudiant v-if="userStore.isEtudiant" />
+    </PermissionGuard>
   </div>
 </template>
 

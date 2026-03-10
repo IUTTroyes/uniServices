@@ -148,7 +148,8 @@ onMounted(async () => {
     <div v-if="(enseignementLocal.enfants && enseignementLocal.enfants.length >= 1) || enseignementLocal.parent" class="border-gray-200 border p-6 rounded-xl my-6">
       <div v-if="enseignementLocal.enfants && enseignementLocal.enfants.length >= 1" class="font-bold text-lg">Ressources enfants :</div>
       <div v-else class="font-bold text-lg">Ressource parent :</div>
-      <div v-if="enseignementLocal.enfants && enseignementLocal.enfants.length >= 1" v-for="enfant in enseignementLocal.enfants" :key="enfant.id" class="p-6 rounded-xl my-6 flex flex-row items-center gap-4">
+      <template v-if="enseignementLocal.enfants && enseignementLocal.enfants.length >= 1">
+        <div v-for="enfant in enseignementLocal.enfants" :key="enfant.id" class="p-6 rounded-xl my-6 flex flex-row items-center gap-4">
         <table class="text-lg">
           <thead>
           <tr class="border-b">
@@ -176,6 +177,7 @@ onMounted(async () => {
         <Button icon="pi pi-book" rounded outlined severity="primary" @click="" v-tooltip.top="`Accéder au plan de cours`"/>
         <Button icon="pi pi-cog" rounded outlined severity="warn" @click="" v-tooltip.top="`Accéder aux paramètres`"/>
       </div>
+      </template>
       <div v-else-if="enseignementLocal.parent" class="p-6 rounded-xl my-6 flex flex-row items-center gap-4">
         <table class="text-lg">
           <thead>

@@ -114,7 +114,9 @@ const deleteHrs = async (id) => {
     <ColumnGroup type="header">
       <Row>
         <Column :header="props.headerTitle" :colspan="headerTitlecolspan" class="!bg-gray-300 !bg-opacity-20"/>
-        <Column v-if="props.topHeaderCols.length > 0" v-for="(topHeaderCol, index) in props.topHeaderCols" :key="index" :header="topHeaderCol.header" :colspan="topHeaderCol.colspan" :class="topHeaderCol.class"/>
+        <template v-if="props.topHeaderCols.length > 0">
+          <Column v-for="(topHeaderCol, index) in props.topHeaderCols" :key="index" :header="topHeaderCol.header" :colspan="topHeaderCol.colspan" :class="topHeaderCol.class"/>
+        </template>
       </Row>
       <Row>
         <Column v-for="(col, index) in props.columns" :key="index" :header="col.header" :colspan="col.colspan" :rowspan="col.rowspan" :sortable="col.sortable" :field="col.field" :class="col.class"/>

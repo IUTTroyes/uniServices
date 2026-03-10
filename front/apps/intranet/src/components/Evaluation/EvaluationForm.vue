@@ -150,9 +150,11 @@ const updateEvaluation = async () => {
         Enseignant(s) de la {{evaluation.enseignement?.type}} :
       </div>
       <div class="flex items-center justify-center gap-4">
-        <div v-if="evaluation.enseignement?.personnels?.length > 0" v-for="personnel in evaluation.enseignement?.personnels" :key="personnel.id" class="text-center px-3 py-1 bg-primary-100 text-primary-800 rounded-full dark:bg-primary-900 dark:text-primary-300">
+        <template v-if="evaluation.enseignement?.personnels?.length > 0">
+          <div v-for="personnel in evaluation.enseignement?.personnels" :key="personnel.id" class="text-center px-3 py-1 bg-primary-100 text-primary-800 rounded-full dark:bg-primary-900 dark:text-primary-300">
           {{ personnel.display }}
         </div>
+        </template>
         <div v-else class="text-center px-3 py-1 bg-primary-100 text-primary-800 rounded-full dark:bg-primary-900 dark:text-primary-300">
           Aucun enseignant
         </div>
