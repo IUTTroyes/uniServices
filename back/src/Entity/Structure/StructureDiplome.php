@@ -14,6 +14,7 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
+use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -114,10 +115,6 @@ class StructureDiplome
     #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
     private ?string $sigle = null;
 
-    #[ORM\Column]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
-    private bool $actif = true;
-
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
     #[Groups(['diplome:detail', 'maquette:detail'])]
@@ -174,12 +171,21 @@ class StructureDiplome
     #[Groups(['diplome:detail'])]
     private Collection $enseignantHrs;
 
+    /**
+     * @var Collection<int, StructureAnneeUniversitaire>
+     */
+    #[ORM\ManyToMany(targetEntity: StructureAnneeUniversitaire::class, inversedBy: 'diplomes')]
+    #[ORM\JoinTable(name: 'structure_diplome_annee_universitaire')]
+    #[Groups(['diplome:detail'])]
+    private Collection $anneesUniversitaires;
+
     public function __construct()
     {
         $this->enfants = new ArrayCollection();
         $this->pns = new ArrayCollection();
         $this->setOpt([]);
         $this->enseignantHrs = new ArrayCollection();
+        $this->anneesUniversitaires = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -255,18 +261,6 @@ class StructureDiplome
     public function setSigle(?string $sigle): static
     {
         $this->sigle = $sigle;
-
-        return $this;
-    }
-
-    public function isActif(): ?bool
-    {
-        return $this->actif;
-    }
-
-    public function setActif(bool $actif): static
-    {
-        $this->actif = $actif;
 
         return $this;
     }
@@ -517,6 +511,30 @@ class StructureDiplome
                 $enseignantHr->setDiplome(null);
             }
         }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureAnneeUniversitaire>
+     */
+    public function getAnneesUniversitaires(): Collection
+    {
+        return $this->anneesUniversitaires;
+    }
+
+    public function addAnneeUniversitaire(StructureAnneeUniversitaire $anneeUniversitaire): static
+    {
+        if (!$this->anneesUniversitaires->contains($anneeUniversitaire)) {
+            $this->anneesUniversitaires->add($anneeUniversitaire);
+        }
+
+        return $this;
+    }
+
+    public function removeAnneeUniversitaire(StructureAnneeUniversitaire $anneeUniversitaire): static
+    {
+        $this->anneesUniversitaires->removeElement($anneeUniversitaire);
 
         return $this;
     }

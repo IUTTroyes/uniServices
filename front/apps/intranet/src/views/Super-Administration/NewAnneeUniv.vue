@@ -167,11 +167,8 @@ const getDiplomes = async () => {
           <div>
             <div class="card-title mb-4">
               <h1 class="text-xl font-bold">Gestion des diplômes</h1>
-              <p class="text-muted-color">Activez ou désactivez des diplômes pour la nouvelle année universitaire.</p>
+              <p class="text-muted-color">Définissez quels diplômes seront actifs pour la nouvelle année universitaire.</p>
             </div>
-            <Message severity="info" class="mb-4 flex items-center flex-col justify-center text-center">
-
-            </Message>
             <ListSkeleton v-if="isLoadingDiplomes" :count="3" class="mb-4" />
             <template v-else>
               <div v-for="diplome in diplomes" :key="diplome.id">

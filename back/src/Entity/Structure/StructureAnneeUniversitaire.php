@@ -140,6 +140,12 @@ class StructureAnneeUniversitaire
     #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'annee_universitaire')]
     private Collection $enseignantHrs;
 
+    /**
+     * @var Collection<int, StructureDiplome>
+     */
+    #[ORM\ManyToMany(targetEntity: StructureDiplome::class, mappedBy: 'anneesUniversitaires')]
+    private Collection $diplomes;
+
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
@@ -156,6 +162,7 @@ class StructureAnneeUniversitaire
         $this->previsionnels = new ArrayCollection();
         $this->stagePeriodes = new ArrayCollection();
         $this->enseignantHrs = new ArrayCollection();
+        $this->diplomes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -536,6 +543,33 @@ class StructureAnneeUniversitaire
             if ($enseignantHr->getAnneeUniversitaire() === $this) {
                 $enseignantHr->setAnneeUniversitaire(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureDiplome>
+     */
+    public function getDiplomes(): Collection
+    {
+        return $this->diplomes;
+    }
+
+    public function addDiplome(StructureDiplome $diplome): static
+    {
+        if (!$this->diplomes->contains($diplome)) {
+            $this->diplomes->add($diplome);
+            $diplome->addAnneeUniversitaire($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDiplome(StructureDiplome $diplome): static
+    {
+        if ($this->diplomes->removeElement($diplome)) {
+            $diplome->removeAnneeUniversitaire($this);
         }
 
         return $this;

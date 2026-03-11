@@ -212,6 +212,7 @@ FOREIGN_KEY_CHECKS=1');
 
     private function addDiplomes(): void
     {
+        $anneeUnivPn = $this->structureAnneeUniversitaireRepository->findOneBy(['actif' => true]);
         $sql = "SELECT * FROM diplome WHERE parent_id IS NULL";
         $diplomes = $this->em->executeQuery($sql)->fetchAllAssociative();
         foreach ($diplomes as $dip) {
@@ -221,7 +222,7 @@ FOREIGN_KEY_CHECKS=1');
                 $diplome = new StructureDiplome();
                 $diplome->setDepartement($this->tDepartements[$dip['departement_id']]);
                 $diplome->setLibelle($dip['libelle']);
-                $diplome->setActif((bool)$dip['actif']);
+                $diplome->addAnneeUniversitaire($anneeUnivPn);
                 $diplome->setSigle($dip['sigle']);
                 $diplome->setKeyEduSign($dip['key_edu_sign']);
                 $diplome->setVolumeHoraire($dip['volume_horaire']);
@@ -258,8 +259,6 @@ FOREIGN_KEY_CHECKS=1');
                 $sql = "SELECT * FROM ppn WHERE diplome_id = " . $dip['id'] . " ORDER BY created DESC LIMIT 1";
                 $ppns = $this->em->executeQuery($sql)->fetchAllAssociative();
 
-                $anneeUnivPn = $this->structureAnneeUniversitaireRepository->findOneBy(['actif' => true]);
-
                 $pn = new StructurePn($diplome);
                 $pn->setLibelle($ppns[0]['libelle']);
                 $pn->setAnneePublication($ppns[0]['annee']);
@@ -278,7 +277,7 @@ FOREIGN_KEY_CHECKS=1');
                     $diplomeEnfant = new StructureDiplome();
                     $diplomeEnfant->setDepartement($this->tDepartements[$dipE['departement_id']]);
                     $diplomeEnfant->setLibelle($dipE['libelle']);
-                    $diplomeEnfant->setActif((bool)$dipE['actif']);
+                    $diplomeEnfant->addAnneeUniversitaire($anneeUnivPn);
                     $diplomeEnfant->setSigle($dipE['sigle']);
                     $diplomeEnfant->setKeyEduSign($dipE['key_edu_sign']);
                     $diplomeEnfant->setVolumeHoraire($dipE['volume_horaire']);
