@@ -49,6 +49,20 @@ const getDiplomesService = async (params, scope = '', showToast = false) => {
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
+const updateDiplomeService = async (diplomeId, data, showToast = false) => {
+    try {
+        return await apiCall(
+            api.patch,
+            [`/api/structure_diplomes/${diplomeId}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
+            'Diplôme mis à jour avec succès',
+            'Erreur lors de la mise à jour du diplôme',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans updateDiplomeService:', error);
+        throw error;
+    }
+}
 
 // ----------------------------------------------
 // ------------------- DELETE -------------------
@@ -68,4 +82,4 @@ const deleteDiplomeService = async (diplomeId, showToast = false) => {
     }
 }
 
-export { getAllDiplomesService, getDiplomesService, deleteDiplomeService };
+export { getAllDiplomesService, getDiplomesService, updateDiplomeService, deleteDiplomeService };
