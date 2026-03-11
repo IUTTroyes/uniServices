@@ -90,19 +90,29 @@ const deleteDiplomeFromAnneeUniv = async (diplomeId) => {
     hasError.value = true;
   }
 }
+
+const editAnneeUniv = (anneeUniv) => {
+  // Redirection vers la page d'édition de l'année universitaire
+  router.push({ path: `/super-administration/annee-universitaire/${anneeUniv.id}/edit` });
+}
 </script>
 
 <template>
   <div class="card">
     <div class="card-title mb-8">
-      <div class="flex items-center gap-4">
-        <Button icon="pi pi-arrow-left" severity="secondary" text rounded @click="goBack" v-tooltip.top="'Retour'" />
-        <div>
-          <h1 class="text-2xl font-bold">Diplômes de l'Année Universitaire</h1>
-          <p class="text-muted-color" v-if="anneeUniv">
-            Année universitaire <strong>{{ anneeUniv.libelle }}</strong>
-          </p>
+      <div class="flex items-center gap-4 justify-between">
+        <div class="flex items-center gap-4">
+          <Button icon="pi pi-arrow-left" severity="secondary" text rounded @click="goBack" v-tooltip.top="'Retour'" />
+          <div>
+            <h1 class="text-2xl font-bold">Diplômes de l'Année Universitaire</h1>
+            <p class="text-muted-color" v-if="anneeUniv">
+              Année universitaire <strong>{{ anneeUniv.libelle }}</strong>
+            </p>
+          </div>
         </div>
+        <Button severity="primary" @click="editAnneeUniv(anneeUniv)">
+        Ajouter des diplômes
+        </Button>
       </div>
     </div>
 
