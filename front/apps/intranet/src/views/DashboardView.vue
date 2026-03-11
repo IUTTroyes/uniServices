@@ -170,6 +170,7 @@ const redirectTo = (link) => {
             <ArticleSkeleton />
             <ArticleSkeleton />
           </div>
+          <Message v-else-if="agendaEvents.length === 0" severity="info" icon="pi pi-info-circle" class="w-full">Aucun évènement à venir.</Message>
           <div v-else v-for="(event, index) in agendaEvents" class="p-4 rounded-md flex-1 flex flex-col justify-between gap-2">
             <div class="flex flex-col gap-2 items-start">
               <div>
@@ -201,6 +202,7 @@ const redirectTo = (link) => {
             <CardSkeleton />
             <CardSkeleton />
           </div>
+          <Message v-else-if="actuEvents.length === 0" severity="info" icon="pi pi-info-circle" class="w-full">Aucune actualité.</Message>
           <Card v-else v-for="(event, index) in actuEvents" :key="index" style="width: 25rem" class="card-actus flex flex-col justify-between overflow-hidden w-25">
             <template #header>
               <div class="h-32 w-full overflow-hidden flex items-center">

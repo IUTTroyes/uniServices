@@ -5,30 +5,33 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class RssController extends AbstractController
 {
+    public function __construct(
+        private readonly HttpClientInterface $httpClient
+    ) {
+    }
+
     private function loadRss(string $url): ?\SimpleXMLElement
     {
-        $context = stream_context_create([
-            'ssl' => [
-                // Attention: désactive la vérification SSL (workaround temporaire)
-                // Idéalement, corriger la chaîne de certificats du serveur ou installer un bundle CA à jour.
+        try {
+            $response = $this->httpClient->request('GET', $url, [
+                'timeout' => 10,
                 'verify_peer' => false,
-                'verify_peer_name' => false,
-            ],
-            'http' => [
-                'timeout' => 8,
-                'ignore_errors' => true,
-                'header' => "User-Agent: uniServices/1.0\r\n",
-            ],
-        ]);
+                'verify_host' => false,
+                'headers' => [
+                    'User-Agent' => 'uniServices/1.0',
+                ],
+            ]);
 
-        \libxml_use_internal_errors(true);
-        $content = @file_get_contents($url, false, $context);
-        if ($content === false) {
+            $content = $response->getContent();
+        } catch (\Exception $e) {
             return null;
         }
+
+        \libxml_use_internal_errors(true);
         $xml = @simplexml_load_string($content);
         if ($xml === false) {
             return null;
