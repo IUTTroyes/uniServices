@@ -2,8 +2,9 @@
 import {computed, onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {Access, ErrorView, ListSkeleton, PermissionGuard} from "@components";
-import {getAnneeUniversitaireService, getDiplomesService} from "@requests";
+import {getAnneeUniversitaireService, getDiplomesService, deleteDiplomeFromAnneeUnivService} from "@requests";
 import ButtonInfo from "@components/components/Buttons/ButtonInfo.vue";
+import ButtonDelete from "@components/components/Buttons/ButtonDelete.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -79,6 +80,16 @@ const viewDiplome = (diplome) => {
 const goBack = () => {
   router.push('/super-administration/annees-universitaires');
 };
+
+const deleteDiplomeFromAnneeUniv = async (diplomeId) => {
+  try {
+    await deleteDiplomeFromAnneeUnivService(anneeUnivId.value, diplomeId);
+    await getDiplomes();
+  } catch (error) {
+    console.error("Erreur lors de la suppression du diplôme de l'année universitaire:", error);
+    hasError.value = true;
+  }
+}
 </script>
 
 <template>
@@ -130,9 +141,10 @@ const goBack = () => {
                       <span v-else>-</span>
                     </template>
                   </Column>
-                  <Column header="Actions" style="min-width: 6rem">
+                  <Column header="Actions">
                     <template #body="slotProps">
                       <ButtonInfo tooltip="Voir le diplôme" icon="pi pi-eye" @click="viewDiplome(slotProps.data)" />
+                      <ButtonDelete tooltip="Supprimer l'association" icon="pi pi-trash" class="ml-2" @confirm-delete="deleteDiplomeFromAnneeUniv(slotProps.data.id)" />
                     </template>
                   </Column>
                 </DataTable>

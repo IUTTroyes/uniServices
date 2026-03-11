@@ -114,12 +114,12 @@ const editAnneeUniv = (anneeUniv) => {
             </template>
           </Column>
         <Column field="commentaire" header="Commentaire"></Column>
-        <Column header="Actions" :showFilterMenu="false" style="min-width: 12rem">
+        <Column header="Actions" :showFilterMenu="false">
           <template #body="slotProps">
             <ButtonInfo tooltip="Voir les diplômes" icon="pi pi-book" @click="viewDiplomes(slotProps.data)" />
             <ButtonEdit tooltip="Modifier l'année universitaire" icon="pi pi-pencil" @click="editAnneeUniv(slotProps.data)" />
-            <ButtonDelete tooltip="Supprimer l'année universitaire" icon="pi pi-trash" @confirm-delete="deleteAnneeUniv(slotProps.data)" :disabled="slotProps.data.actif" />
             <ButtonSave tooltip="Activer l'année universitaire" icon="pi pi-check" @click="activateAnneeUniv(slotProps.data)" :disabled="slotProps.data.actif" />
+            <ButtonDelete tooltip="Supprimer l'année universitaire" icon="pi pi-trash" @confirm-delete="deleteAnneeUniv(slotProps.data)" :disabled="slotProps.data.actif" />
           </template>
         </Column>
       </DataTable>

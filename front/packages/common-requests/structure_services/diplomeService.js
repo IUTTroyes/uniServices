@@ -60,6 +60,21 @@ const updateDiplomeService = async (diplomeId, data, showToast = false) => {
     }
 }
 
+const deleteDiplomeFromAnneeUnivService = async (anneeUnivId, diplomeId, showToast = false) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api/structure_annee_universitaire/${anneeUnivId}/diplomes/${diplomeId}`],
+            'Diplôme supprimé de l\'année universitaire avec succès',
+            'Erreur lors de la suppression du diplôme de l\'année universitaire',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deleteDiplomeFromAnneeUnivService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
@@ -78,4 +93,4 @@ const deleteDiplomeService = async (diplomeId, showToast = false) => {
     }
 }
 
-export { getAllDiplomesService, getDiplomesService, updateDiplomeService, deleteDiplomeService };
+export { getAllDiplomesService, getDiplomesService, updateDiplomeService, deleteDiplomeService, deleteDiplomeFromAnneeUnivService };
