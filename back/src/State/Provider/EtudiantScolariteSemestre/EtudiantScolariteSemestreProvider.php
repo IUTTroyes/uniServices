@@ -1,6 +1,6 @@
 <?php
 
-namespace App\State\EtudiantScolariteSemestre;
+namespace App\State\Provider\EtudiantScolariteSemestre;
 
 use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
 use ApiPlatform\Doctrine\Orm\State\ItemProvider;

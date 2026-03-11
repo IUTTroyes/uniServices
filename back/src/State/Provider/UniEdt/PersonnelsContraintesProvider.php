@@ -1,6 +1,6 @@
 <?php
 
-namespace App\State\UniEdt;
+namespace App\State\Provider\UniEdt;
 
 use ApiPlatform\Metadata\CollectionOperationInterface;
 use ApiPlatform\Metadata\Operation;

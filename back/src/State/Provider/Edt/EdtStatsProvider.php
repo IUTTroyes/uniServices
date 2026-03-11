@@ -1,6 +1,6 @@
 <?php
 
-namespace App\State\Edt;
+namespace App\State\Provider\Edt;
 
 use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
 use ApiPlatform\Doctrine\Orm\State\ItemProvider;

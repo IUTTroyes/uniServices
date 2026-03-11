@@ -1,6 +1,6 @@
 <?php
 
-namespace App\State\Previsionnel;
+namespace App\State\Provider\Previsionnel;
 
 use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
 use ApiPlatform\Doctrine\Orm\State\ItemProvider;

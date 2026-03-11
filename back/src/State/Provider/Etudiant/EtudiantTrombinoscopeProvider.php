@@ -1,6 +1,6 @@
 <?php
 
-namespace App\State\Etudiant;
+namespace App\State\Provider\Etudiant;
 
 use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
 use ApiPlatform\Doctrine\Orm\State\ItemProvider;
