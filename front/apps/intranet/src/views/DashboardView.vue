@@ -175,7 +175,7 @@ const redirectTo = (link) => {
             <div class="flex flex-col gap-2 items-start">
               <div>
                 <div class="font-bold text-lg">
-                  {{ event.title }}
+                  {{ event.title.length > 50 ? event.title.slice(0, 50) + '...' : event.title }}
                 </div>
                 <div class="text-sm text-muted-color">
                   {{ event.date }}
@@ -208,7 +208,7 @@ const redirectTo = (link) => {
               <div class="h-32 w-full overflow-hidden flex items-center">
                 <img :alt="event.title" :src="event.image" />
               </div>
-              <div class="text-lg font-bold px-5 pt-3">{{event.title}}</div>
+              <div class="text-lg font-bold px-5 pt-3">{{ event.title.length > 50 ? event.title.slice(0, 50) + '...' : event.title }}</div>
               <div class="text-sm px-5 text-muted-color">{{event.date}}</div>
             </template>
             <template #content>
