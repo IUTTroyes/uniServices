@@ -1,6 +1,6 @@
 <?php
 
-namespace App\State\Questionnaire\Provider\Preview;
+namespace App\State\Provider\Questionnaire\Preview;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;

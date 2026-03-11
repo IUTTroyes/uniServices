@@ -1,6 +1,6 @@
 <?php
 
-namespace App\State\Questionnaire\Provider\Publish;
+namespace App\State\Provider\Questionnaire\Publish;
 
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
