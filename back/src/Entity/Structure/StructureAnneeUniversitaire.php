@@ -36,8 +36,15 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['annee_universitaire:read']]),
         new GetCollection(normalizationContext: ['groups' => ['annee_universitaire:read']]),
-        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)", processor: AnneeUnivInitProcessor::class),
-        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)"),
+        new Post(
+            securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)",
+            denormalizationContext: ['groups' => ['annee_universitaire:write']],
+            processor: AnneeUnivInitProcessor::class
+        ),
+        new Patch(
+            securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)",
+            denormalizationContext: ['groups' => ['annee_universitaire:write']]
+        ),
         new Delete(security: "is_granted('CAN_EDIT_ANNEE_UNIV', object)")
     ]
 )]
@@ -54,14 +61,15 @@ class StructureAnneeUniversitaire
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
-    #[Groups(['annee_universitaire:read', 'scolarite:read', 'annee-univ:light'])]
+    #[Groups(['annee_universitaire:read', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
-    #[Groups(['annee_universitaire:read', 'scolarite:read', 'annee-univ:light'])]
+    #[Groups(['annee_universitaire:read', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light'])]
     private int $annee;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['annee_universitaire:write'])]
     private ?string $commentaire = null;
 
     /**
@@ -83,7 +91,7 @@ class StructureAnneeUniversitaire
     private Collection $personnels;
 
     #[ORM\Column]
-    #[Groups(['annee_universitaire:read', 'maquette:detail', 'pn:read', 'scolarite:read', 'etudiant:read'])]
+    #[Groups(['annee_universitaire:read', 'annee_universitaire:write', 'maquette:detail', 'pn:read', 'scolarite:read', 'etudiant:read'])]
     private bool $actif = false;
 
     /**
@@ -144,6 +152,7 @@ class StructureAnneeUniversitaire
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\ManyToMany(targetEntity: StructureDiplome::class, mappedBy: 'anneesUniversitaires')]
+    #[Groups(['annee_universitaire:read', 'annee_universitaire:write'])]
     private Collection $diplomes;
 
     public function __construct()

@@ -2,7 +2,7 @@
 import {ref, onMounted} from "vue";
 import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton, Access } from "@components";
 import {useAnneeUnivStore, useDiplomeStore} from "@stores";
-import {createAnneeUniversitaireService, updateDiplomeService} from "@requests";
+import {createAnneeUniversitaireService} from "@requests";
 
 const hasError = ref(false);
 
@@ -27,6 +27,7 @@ const activeChoice = ref([
 
 const diplomeStore = useDiplomeStore();
 const diplomes = ref([]);
+const selectedDiplomes = ref([]);
 const isLoadingDiplomes = ref(false);
 
 
@@ -63,13 +64,27 @@ const handleValidation = (field, result) => {
   formValid.value = Object.values(formErrors.value).every(error => error === null);
 };
 
+const toggleDiplome = (diplomeId) => {
+  const index = selectedDiplomes.value.indexOf(diplomeId);
+  if (index > -1) {
+    selectedDiplomes.value.splice(index, 1);
+  } else {
+    selectedDiplomes.value.push(diplomeId);
+  }
+};
+
+const isDiplomeSelected = (diplomeId) => {
+  return selectedDiplomes.value.includes(diplomeId);
+};
+
 const createAnneeUniv = async () => {
   try {
     const data = {
       libelle: anneeUniv.value.libelle,
       annee: anneeUniv.value.annee,
       commentaire: anneeUniv.value.commentaire,
-      actif: anneeUniv.value.actif
+      actif: anneeUniv.value.actif,
+      diplomes: selectedDiplomes.value.map(id => `/api/structure_diplomes/${id}`)
     };
     // Appeler le service pour créer l'année universitaire
     await createAnneeUniversitaireService(data, true)
@@ -84,7 +99,9 @@ const createAnneeUniv = async () => {
 const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
   try {
-    diplomes.value = diplomeStore.diplomes
+    diplomes.value = diplomeStore.diplomes;
+    // Par défaut, sélectionner tous les diplômes
+    selectedDiplomes.value = (diplomes.value || []).map(d => d.id);
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la récupération des diplômes:", error);
@@ -167,7 +184,7 @@ const getDiplomes = async () => {
           <div>
             <div class="card-title mb-4">
               <h1 class="text-xl font-bold">Gestion des diplômes</h1>
-              <p class="text-muted-color">Définissez quels diplômes seront actifs pour la nouvelle année universitaire.</p>
+              <p class="text-muted-color">Définissez quels diplômes seront associés à la nouvelle année universitaire.</p>
             </div>
             <ListSkeleton v-if="isLoadingDiplomes" :count="3" class="mb-4" />
             <template v-else>
@@ -175,9 +192,10 @@ const getDiplomes = async () => {
                 <div class="p-2 border rounded mb-2 flex justify-between items-center">
                   <h3 class="font-semibold">{{ diplome.libelle }}</h3>
                   <ToggleButton
-                      v-model="diplome.actif"
-                      onLabel="Actif"
-                      offLabel="Inactif"
+                      :modelValue="isDiplomeSelected(diplome.id)"
+                      @update:modelValue="toggleDiplome(diplome.id)"
+                      onLabel="Associé"
+                      offLabel="Non associé"
                       onIcon="pi pi-check"
                       offIcon="pi pi-times"
                   />

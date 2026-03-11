@@ -98,6 +98,7 @@ FOREIGN_KEY_CHECKS=0');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_type_diplome');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_departement');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_diplome');
+        $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_diplome_annee_universitaire');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_pn');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_annee');
         $this->entityManager->getConnection()->executeQuery('TRUNCATE TABLE structure_semestre');

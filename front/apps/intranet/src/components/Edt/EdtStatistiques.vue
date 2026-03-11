@@ -156,8 +156,6 @@ const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
   try {
     diplomes.value = await diplomeStore.diplomes;
-    // retirer les diplomes inactifs
-    diplomes.value = (diplomes.value || []).filter(diplome => diplome.actif);
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching diplomes:', error);
@@ -562,7 +560,7 @@ const exportDataHeures = async () => {
           </Tab>
           <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="setDiplome(diplome)">
         <span>
-          <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span> <Tag v-if="!diplome.actif" severity="danger">Inactif</Tag>
+          <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span>
         </span>
           </Tab>
         </TabList>

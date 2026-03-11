@@ -14,8 +14,6 @@ const getAllDiplomesService = async (showToast = false) => {
             'Erreur lors de la récupération des diplômes',
             showToast
         );
-        // Trie les diplômes pour mettre les actifs en premier
-        response.member.sort((a, b) => (b.actif === true) - (a.actif === true));
         return response.member;
     } catch (error) {
         console.error('Erreur dans getAllDiplomesService:', error);
@@ -32,8 +30,6 @@ const getDiplomesService = async (params, scope = '', showToast = false) => {
             'Erreur lors de la récupération des diplômes',
             showToast
         );
-        // Trie les diplômes pour mettre les actifs en premier
-        response.member.sort((a, b) => (b.actif === true) - (a.actif === true));
         return response.member;
     } catch (error) {
         console.error('Erreur dans getDiplomesService:', error);

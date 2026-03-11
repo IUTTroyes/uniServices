@@ -2,7 +2,6 @@
 
 namespace App\Entity\Structure;
 
-use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -29,7 +28,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDiplomeRepository::class)]
-#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ApiFilter(DiplomeFilter::class)]
 #[ApiResource(
     operations: [
@@ -537,5 +535,15 @@ class StructureDiplome
         $this->anneesUniversitaires->removeElement($anneeUniversitaire);
 
         return $this;
+    }
+
+    public function getLogoPartenaireName(): ?string
+    {
+        return $this->logoPartenaireName;
+    }
+
+    public function setLogoPartenaireName(?string $logoPartenaireName): void
+    {
+        $this->logoPartenaireName = $logoPartenaireName;
     }
 }

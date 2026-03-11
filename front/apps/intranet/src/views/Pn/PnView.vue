@@ -64,6 +64,10 @@ const getDiplomes = async (departementId) => {
     const params = {
       departement: departementId,
     }
+    // Filtrer par année universitaire sélectionnée si disponible
+    if (anneeUniversitaire.value?.id) {
+      params.anneeUniversitaire = anneeUniversitaire.value.id
+    }
     diplomes.value = await getDiplomesService(params, '/maquette')
   } catch (error) {
     console.error('Erreur lors du chargement des diplomes:', error)
@@ -192,7 +196,6 @@ const deleteObject = async (objectType, id) => {
         <TabList>
           <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="changeDiplome(diplome)">
             <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span>
-            <Tag v-if="!diplome.actif" severity="danger">Inactif</Tag>
           </Tab>
         </TabList>
       </Tabs>

@@ -26,10 +26,11 @@ class DiplomeFilter extends AbstractFilter
                 ->setParameter('departement', $value)
             ;
         }
-        elseif ('actif' === $property) {
+        elseif ('anneeUniversitaire' === $property) {
             $queryBuilder
-                ->andWhere(sprintf('%s.actif = :actif', $alias))
-                ->setParameter('actif', filter_var($value, FILTER_VALIDATE_BOOLEAN))
+                ->join(sprintf('%s.anneesUniversitaires', $alias), 'anneeUniv')
+                ->andWhere('anneeUniv.id = :anneeUniversitaire')
+                ->setParameter('anneeUniversitaire', $value)
             ;
         }
     }
@@ -45,12 +46,12 @@ class DiplomeFilter extends AbstractFilter
                     'description' => 'Filter by departement',
                 ],
             ],
-            'actif' => [
-                'property' => 'actif',
-                'type' => Type::BUILTIN_TYPE_BOOL,
+            'anneeUniversitaire' => [
+                'property' => 'anneeUniversitaire',
+                'type' => Type::BUILTIN_TYPE_INT,
                 'required' => false,
                 'openapi' => [
-                    'description' => 'Filter by actif status',
+                    'description' => 'Filter by année universitaire',
                 ],
             ],
         ];

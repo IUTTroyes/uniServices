@@ -38,7 +38,9 @@ class EnseignementFilter extends AbstractFilter
                 ->setParameter("annee", $value);
         }
 
-        if ('departement' === $property || ('departement' === $property && 'actif' === $property)) {
+        if ('departement' === $property) {
+            $anneeUniversitaireId = $context['filters']['anneeUniversitaire'] ?? null;
+
             $queryBuilder
                 ->join("$alias.enseignementUes", "enseignementUe")
                 ->join("enseignementUe.ue", "ue")
@@ -49,9 +51,18 @@ class EnseignementFilter extends AbstractFilter
                 ->join("pn.diplome", "diplome")
                 ->join("diplome.departement", "departement")
                 ->andWhere("departement.id = :departement")
-                ->andWhere("anneeUniversitaire.actif = true")
-                ->andWhere("diplome.actif = true")
                 ->setParameter("departement", $value);
+
+            if ($anneeUniversitaireId) {
+                $queryBuilder
+                    ->join("diplome.anneesUniversitaires", "diplomeAnneeUniv")
+                    ->andWhere("diplomeAnneeUniv.id = :anneeUniversitaireId")
+                    ->andWhere("anneeUniversitaire.id = :anneeUniversitaireId")
+                    ->setParameter("anneeUniversitaireId", $anneeUniversitaireId);
+            } else {
+                $queryBuilder
+                    ->andWhere("anneeUniversitaire.actif = true");
+            }
         }
 
         if ('ue' === $property) {
@@ -104,6 +115,14 @@ class EnseignementFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by année',
+                ],
+            ],
+            'anneeUniversitaire' => [
+                'property' => 'anneeUniversitaire',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by année universitaire',
                 ],
             ]
         ];
