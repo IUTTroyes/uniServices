@@ -3,6 +3,7 @@ import {ref, onMounted} from "vue";
 import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton, Access } from "@components";
 import {useAnneeUnivStore, useDiplomeStore} from "@stores";
 import {createAnneeUniversitaireService} from "@requests";
+import router from "@/router/index.js";
 
 const hasError = ref(false);
 
@@ -92,7 +93,7 @@ const createAnneeUniv = async () => {
   } catch (error) {
     console.error("Erreur lors de la création de l'année universitaire:", error);
   } finally {
-
+    await router.push('/')
   }
 };
 
@@ -100,8 +101,8 @@ const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
   try {
     diplomes.value = diplomeStore.diplomes;
-    // Par défaut, sélectionner tous les diplômes
-    selectedDiplomes.value = (diplomes.value || []).map(d => d.id);
+    // Par défaut, aucun diplôme n'est sélectionné
+    selectedDiplomes.value = [];
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la récupération des diplômes:", error);
@@ -190,7 +191,7 @@ const getDiplomes = async () => {
             <template v-else>
               <div v-for="diplome in diplomes" :key="diplome.id">
                 <div class="p-2 border rounded mb-2 flex justify-between items-center">
-                  <h3 class="font-semibold">{{ diplome.libelle }}</h3>
+                  <h3 class="font-semibold">{{ diplome.typeDiplome.sigle }} - {{ diplome.libelle }}</h3>
                   <ToggleButton
                       :modelValue="isDiplomeSelected(diplome.id)"
                       @update:modelValue="toggleDiplome(diplome.id)"

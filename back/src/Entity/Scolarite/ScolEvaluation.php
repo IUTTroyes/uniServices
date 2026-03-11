@@ -16,6 +16,7 @@ use App\Enum\TypeEvaluationEnum;
 use App\Enum\TypeGroupeEnum;
 use App\Filter\EvaluationFilter;
 use App\Repository\ScolEvaluationRepository;
+use App\State\Processor\Evaluation\ScolEvaluationInitProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -37,7 +38,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
             uriTemplate: '/maxi/scol_evaluations/{id}',
             normalizationContext: ['groups' => ['evaluation:detail']],
         ),
-        new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)", processor: 'App\DataProvider\Evaluation\ScolEvaluationInitProcessor'),
+        new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)", processor: ScolEvaluationInitProcessor::class),
     ]
 )]
 class ScolEvaluation

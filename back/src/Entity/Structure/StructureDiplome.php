@@ -172,7 +172,7 @@ class StructureDiplome
     /**
      * @var Collection<int, StructureAnneeUniversitaire>
      */
-    #[ORM\ManyToMany(targetEntity: StructureAnneeUniversitaire::class, inversedBy: 'diplomes')]
+    #[ORM\ManyToMany(targetEntity: StructureAnneeUniversitaire::class, inversedBy: 'diplomes', cascade: ['persist'])]
     #[ORM\JoinTable(name: 'structure_diplome_annee_universitaire')]
     #[Groups(['diplome:detail'])]
     private Collection $anneesUniversitaires;
