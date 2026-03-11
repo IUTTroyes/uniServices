@@ -5,3 +5,4 @@ export interface StructureDepartement extends ApiResource<{ id?: number; libelle
 export interface StructureTypeDiplome extends ApiResource<{ id?: number; libelle?: string | null }>{}
 export interface ScolEnseignement extends ApiResource<{ id?: number; libelle?: string | null }>{}
 export interface PersonnelEnseignantHrs extends ApiResource<{ id?: number }>{}
+export interface StructureUe extends ApiResource<{ id?: number; libelle?: string | null }>{}

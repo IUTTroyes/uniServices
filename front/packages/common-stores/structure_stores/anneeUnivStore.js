@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
-import {getAllAnneesUniversitairesService, getCurrentAnneeUniversitaireService, getAnneeUniversitaireService } from '@requests'
+import {getAllAnneesUniversitairesService, getCurrentAnneeUniversitaireService, getAnneeUniversitaireService, activateAnneeUniversitaireService } from '@requests'
 
 export const useAnneeUnivStore = defineStore('anneeUniv', () => {
 
@@ -51,6 +51,18 @@ export const useAnneeUnivStore = defineStore('anneeUniv', () => {
     selectedAnneeUniv.value = anneeToStore;
   }
 
+  const activateAnneeUniv = async (id) => {
+    try {
+      await activateAnneeUniversitaireService(id, true);
+      // Rafraîchir la liste des années après activation
+      await getAllAnneesUniv();
+      await getCurrentAnneeUniv();
+    } catch (error) {
+      console.error('Erreur lors de l\'activation de l\'année universitaire:', error);
+      throw error;
+    }
+  }
+
   return {
     getAllAnneesUniv,
     getCurrentAnneeUniv,
@@ -59,5 +71,6 @@ export const useAnneeUnivStore = defineStore('anneeUniv', () => {
     anneesUniv,
     selectedAnneeUniv,
     setSelectedAnneeUniv,
+    activateAnneeUniv,
   };
 })

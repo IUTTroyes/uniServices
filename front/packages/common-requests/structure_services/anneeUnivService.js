@@ -75,8 +75,53 @@ const createAnneeUniversitaireService = async (data, showToast = false) => {
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
 
+const updateAnneeUniversitaireService = async (id, data, showToast = false) => {
+    try {
+        return await apiCall(
+            api.patch,
+            [`/api/structure_annee_universitaires/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
+            'Année universitaire mise à jour avec succès',
+            'Erreur lors de la mise à jour de l\'année universitaire',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans updateAnneeUniversitaireService:', error);
+        throw error;
+    }
+}
+
+const activateAnneeUniversitaireService = async (id, showToast = false) => {
+    try {
+        return await apiCall(
+            api.patch,
+            [`/api/structure_annee_universitaires/${id}`, { actif: true }, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
+            'Année universitaire activée avec succès',
+            'Erreur lors de l\'activation de l\'année universitaire',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans activateAnneeUniversitaireService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getAllAnneesUniversitairesService, getAnneeUniversitaireService, getCurrentAnneeUniversitaireService, createAnneeUniversitaireService };
+const deleteAnneeUniversitaireService = async (id, showToast = false) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api/structure_annee_universitaires/${id}`],
+            'Année universitaire supprimée avec succès',
+            'Erreur lors de la suppression de l\'année universitaire',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deleteAnneeUniversitaireService:', error);
+        throw error;
+    }
+}
+
+export { getAllAnneesUniversitairesService, getAnneeUniversitaireService, getCurrentAnneeUniversitaireService, createAnneeUniversitaireService, updateAnneeUniversitaireService, activateAnneeUniversitaireService, deleteAnneeUniversitaireService };

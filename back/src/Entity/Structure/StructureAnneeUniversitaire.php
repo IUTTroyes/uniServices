@@ -48,7 +48,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
         new Patch(
             securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)",
-            denormalizationContext: ['groups' => ['annee_universitaire:write']]
+            denormalizationContext: ['groups' => ['annee_universitaire:write']],
+            processor: AnneeUnivInitProcessor::class
         ),
         new Delete(security: "is_granted('CAN_EDIT_ANNEE_UNIV', object)")
     ]

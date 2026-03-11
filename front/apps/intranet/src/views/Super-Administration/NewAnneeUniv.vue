@@ -93,6 +93,9 @@ const createAnneeUniv = async () => {
   } catch (error) {
     console.error("Erreur lors de la création de l'année universitaire:", error);
   } finally {
+    if (anneeUniv.value.actif) {
+      await anneeUnivStore.getCurrentAnneeUniv();
+    }
     await router.push('/')
   }
 };

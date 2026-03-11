@@ -17,4 +17,16 @@ class StructureAnneeUniversitaireRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, StructureAnneeUniversitaire::class);
     }
+
+    public function setAllAnneeUnivInactifExcept(StructureAnneeUniversitaire $anneeUniversitaire): void
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->update()
+            ->set('a.actif', ':inactif')
+            ->where('a.id != :id')
+            ->setParameter('inactif', false)
+            ->setParameter('id', $anneeUniversitaire->getId());
+
+        $qb->getQuery()->execute();
+    }
 }
