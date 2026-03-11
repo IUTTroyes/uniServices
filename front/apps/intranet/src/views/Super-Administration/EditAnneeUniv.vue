@@ -1,18 +1,26 @@
 <script setup>
-import {ref, onMounted, computed} from "vue";
+import { ref, onMounted, computed } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton, Access } from "@components";
-import {useAnneeUnivStore} from "@stores";
-import {createAnneeUniversitaireService, getDiplomesService} from "@requests";
-import router from "@/router/index.js";
+import { useAnneeUnivStore } from "@stores";
+import { getAnneeUniversitaireService, updateAnneeUniversitaireService, getDiplomesService } from "@requests";
+
+const route = useRoute();
+const router = useRouter();
 
 const hasError = ref(false);
+const isLoading = ref(true);
 
 const anneeUnivStore = useAnneeUnivStore();
+const anneeUnivId = computed(() => route.params.id);
 const anneeUniv = ref({
   libelle: "",
+  annee: null,
+  commentaire: "",
   actif: false,
 });
-const currentAnneeUniv = ref(null);
+const originalAnneeUniv = ref(null);
+
 const formValid = ref(true);
 const formErrors = ref(null);
 const activeChoice = ref([
@@ -50,29 +58,32 @@ const diplomesByDepartement = computed(() => {
   return Object.values(grouped).sort((a, b) => a.libelle.localeCompare(b.libelle));
 });
 
-
 onMounted(async () => {
-  await getCurrentAnneeUniv();
+  await loadAnneeUniv();
   await getDiplomes();
 });
 
-const getCurrentAnneeUniv = async () => {
+const loadAnneeUniv = async () => {
   try {
-    await anneeUnivStore.getCurrentAnneeUniv();
-    currentAnneeUniv.value = await anneeUnivStore.anneeUniv;
-    if (currentAnneeUniv.value) {
-      anneeUniv.value.annee = currentAnneeUniv.value.annee + 1; // Proposer l'année suivante
+    isLoading.value = true;
+    const data = await getAnneeUniversitaireService(anneeUnivId.value);
+    anneeUniv.value = {
+      libelle: data.libelle,
+      annee: data.annee,
+      commentaire: data.commentaire || "",
+      actif: data.actif,
+    };
+    originalAnneeUniv.value = { ...anneeUniv.value };
 
-      // Calcul du libellé de l'année suivante (ex: "2025-2026" -> "2026-2027")
-      const [anneeDebut, anneeFin] = currentAnneeUniv.value.libelle.split('-').map(Number);
-      anneeUniv.value.libelle = `${anneeDebut + 1}-${anneeFin + 1}`;
+    // Récupérer les diplômes déjà associés
+    if (data.diplomes && Array.isArray(data.diplomes)) {
+      selectedDiplomes.value = data.diplomes.map(d => d.id);
     }
   } catch (error) {
-    console.error("Erreur lors de la récupération de l'année universitaire actuelle:", error);
+    console.error("Erreur lors de la récupération de l'année universitaire:", error);
     hasError.value = true;
   } finally {
-    handleValidation('libelle', { isValid: !!anneeUniv.value.libelle, errorMessage: "Le libellé est requis." });
-    handleValidation('annee', { isValid: !!anneeUniv.value.annee, errorMessage: "L'année est requise." });
+    isLoading.value = false;
   }
 };
 
@@ -97,7 +108,7 @@ const isDiplomeSelected = (diplomeId) => {
   return selectedDiplomes.value.includes(diplomeId);
 };
 
-const createAnneeUniv = async () => {
+const updateAnneeUniv = async () => {
   try {
     const data = {
       libelle: anneeUniv.value.libelle,
@@ -106,16 +117,18 @@ const createAnneeUniv = async () => {
       actif: anneeUniv.value.actif,
       diplomes: selectedDiplomes.value.map(id => `/api/structure_diplomes/${id}`)
     };
-    // Appeler le service pour créer l'année universitaire
-    await createAnneeUniversitaireService(data, true)
-    console.log("Année universitaire créée:", anneeUniv.value);
-  } catch (error) {
-    console.error("Erreur lors de la création de l'année universitaire:", error);
-  } finally {
+
+    await updateAnneeUniversitaireService(anneeUnivId.value, data, true);
+
+    // Si l'année est devenue active, rafraîchir le store
     if (anneeUniv.value.actif) {
       await anneeUnivStore.getCurrentAnneeUniv();
     }
-    await router.push('/')
+
+    await router.push('/super-administration/annees-universitaires');
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour de l'année universitaire:", error);
+    hasError.value = true;
   }
 };
 
@@ -124,8 +137,6 @@ const getDiplomes = async () => {
   try {
     // Récupérer tous les diplômes via le service (pas seulement ceux du département)
     diplomes.value = await getDiplomesService({});
-    // Par défaut, aucun diplôme n'est sélectionné
-    selectedDiplomes.value = [];
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la récupération des diplômes:", error);
@@ -133,73 +144,79 @@ const getDiplomes = async () => {
     isLoadingDiplomes.value = false;
   }
 };
+
+const cancel = () => {
+  router.push('/super-administration/annees-universitaires');
+};
 </script>
 
 <template>
   <div class="card">
     <div class="card-title mb-8">
-      <h1 class="text-2xl font-bold">Nouvelle Année Universitaire</h1>
-      <p class="text-muted-color">Créez une nouvelle année universitaire en remplissant le formulaire ci-dessous.</p>
+      <h1 class="text-2xl font-bold">Modifier l'Année Universitaire</h1>
+      <p class="text-muted-color">Modifiez les informations de l'année universitaire.</p>
     </div>
 
     <ErrorView v-if="hasError"/>
+    <ListSkeleton v-else-if="isLoading" :count="5" />
     <template v-else>
       <PermissionGuard permission="isSuperAdmin" :showFallback="true">
-        <Message v-if="currentAnneeUniv" severity="info" class="mb-4 flex items-center flex-col justify-center text-center">
-          L'année universitaire actuelle est : <strong>{{ currentAnneeUniv.libelle }}</strong>.
-          <br>
-          Créer une année universitaire va lancer la synchronisation des données pour la nouvelle année, depuis ORéOF. Vous recevrez une notification lorsque la synchronisation sera terminée.
+        <Message v-if="anneeUniv.actif" severity="warn" class="mb-4 flex items-center flex-col justify-center text-center">
+          <i class="pi pi-exclamation-triangle mr-2"></i>
+          Cette année universitaire est actuellement <strong>active</strong>.
+          La désactiver signifie qu'aucune année universitaire ne sera active.
         </Message>
 
-        <form @submit.prevent="createAnneeUniv()" class="flex flex-col">
+        <form @submit.prevent="updateAnneeUniv()" class="flex flex-col">
           <div>
             <div class="flex flex-row gap-4 items-center">
               <ValidatedInput
-                  v-model="anneeUniv.libelle"
-                  name="libelle"
-                  label="Libellé"
-                  type="text"
-                  :rules="[validationRules.required]"
-                  @validation="result => handleValidation('libelle', result)"
-                  help-text="Entrez le libellé de l'évaluation (ex: 2024-2025)"
-                  class="w-full"
+                v-model="anneeUniv.libelle"
+                name="libelle"
+                label="Libellé"
+                type="text"
+                :rules="[validationRules.required]"
+                @validation="result => handleValidation('libelle', result)"
+                help-text="Entrez le libellé de l'année universitaire (ex: 2024-2025)"
+                class="w-full"
               />
 
               <ValidatedInput
-                  v-model="anneeUniv.annee"
-                  name="annee"
-                  label="Année"
-                  type="number"
-                  :rules="[validationRules.required]"
-                  @validation="result => handleValidation('annee', result)"
-                  help-text="Sélectionnez la date de début de l'année universitaire"
-                  class="w-full"
+                v-model="anneeUniv.annee"
+                name="annee"
+                label="Année"
+                type="number"
+                :rules="[validationRules.required]"
+                @validation="result => handleValidation('annee', result)"
+                help-text="Sélectionnez l'année de début"
+                class="w-full"
               />
             </div>
 
             <ValidatedInput
-                v-model="anneeUniv.commentaire"
-                name="commentaire"
-                label="Commentaire"
-                type="textarea"
-                :rules="[]"
-                @validation="result => handleValidation('commentaire', result)"
-                help-text="Entrez un commentaire optionnel pour cette année universitaire"
+              v-model="anneeUniv.commentaire"
+              name="commentaire"
+              label="Commentaire"
+              type="textarea"
+              :rules="[]"
+              @validation="result => handleValidation('commentaire', result)"
+              help-text="Entrez un commentaire optionnel pour cette année universitaire"
             />
 
             <div class="mb-4">
-              <label class="block mb-2 font-medium">Définir l'année universitaire comme active après sa création ?</label>
+              <label class="block mb-2 font-medium">Année universitaire active ?</label>
               <div class="flex gap-4">
                 <div v-for="choice in activeChoice" :key="choice.value" class="flex items-center gap-2">
                   <RadioButton
-                      v-model="anneeUniv.actif"
-                      :inputId="`actif-${choice.value}`"
-                      name="actif"
-                      :value="choice.value"
+                    v-model="anneeUniv.actif"
+                    :inputId="`actif-${choice.value}`"
+                    name="actif"
+                    :value="choice.value"
                   />
                   <label :for="`actif-${choice.value}`">{{ choice.label }}</label>
                 </div>
               </div>
+              <small class="text-muted-color">Attention : activer cette année désactivera automatiquement l'année actuellement active.</small>
             </div>
           </div>
 
@@ -208,7 +225,7 @@ const getDiplomes = async () => {
           <div>
             <div class="card-title mb-4">
               <h1 class="text-xl font-bold">Gestion des diplômes</h1>
-              <p class="text-muted-color">Définissez quels diplômes seront associés à la nouvelle année universitaire.</p>
+              <p class="text-muted-color">Modifiez les diplômes associés à cette année universitaire.</p>
             </div>
             <ListSkeleton v-if="isLoadingDiplomes" :count="3" class="mb-4" />
             <template v-else>
@@ -232,12 +249,12 @@ const getDiplomes = async () => {
                       <div class="p-2 border rounded mb-2 flex justify-between items-center">
                         <h3 class="font-semibold">{{ diplome.typeDiplome?.sigle || '' }} - {{ diplome.libelle }}</h3>
                         <ToggleButton
-                            :modelValue="isDiplomeSelected(diplome.id)"
-                            @update:modelValue="toggleDiplome(diplome.id)"
-                            onLabel="Associé"
-                            offLabel="Non associé"
-                            onIcon="pi pi-check"
-                            offIcon="pi pi-times"
+                          :modelValue="isDiplomeSelected(diplome.id)"
+                          @update:modelValue="toggleDiplome(diplome.id)"
+                          onLabel="Associé"
+                          offLabel="Non associé"
+                          onIcon="pi pi-check"
+                          offIcon="pi pi-times"
                         />
                       </div>
                     </div>
@@ -247,9 +264,9 @@ const getDiplomes = async () => {
             </template>
           </div>
 
-          <div class="flex justify-center items-center gap-4">
-            <Button label="Créer l'année universitaire" @click="createAnneeUniv" :disabled="!formValid" />
-            <Button label="Annuler" severity="secondary"/>
+          <div class="flex justify-center items-center gap-4 mt-4">
+            <Button label="Enregistrer les modifications" type="submit" :disabled="!formValid" />
+            <Button label="Annuler" severity="secondary" @click="cancel" />
           </div>
         </form>
 
@@ -264,3 +281,4 @@ const getDiplomes = async () => {
 <style scoped>
 
 </style>
+

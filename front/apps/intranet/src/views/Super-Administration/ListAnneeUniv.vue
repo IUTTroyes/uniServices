@@ -114,7 +114,7 @@ const editAnneeUniv = (anneeUniv) => {
             </template>
           </Column>
         <Column field="commentaire" header="Commentaire"></Column>
-        <Column :showFilterMenu="false" style="min-width: 12rem">
+        <Column header="Actions" :showFilterMenu="false" style="min-width: 12rem">
           <template #body="slotProps">
             <ButtonInfo tooltip="Voir les diplômes" icon="pi pi-book" @click="viewDiplomes(slotProps.data)" />
             <ButtonEdit tooltip="Modifier l'année universitaire" icon="pi pi-pencil" @click="editAnneeUniv(slotProps.data)" />
