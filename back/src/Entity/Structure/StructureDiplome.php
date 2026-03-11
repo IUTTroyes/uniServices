@@ -86,11 +86,11 @@ class StructureDiplome
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'annee_universitaire:detail'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'annee_universitaire:detail'])]
     private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome', cascade: ['persist'])]

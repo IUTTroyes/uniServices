@@ -99,10 +99,13 @@ const redirectTo = (link) => {
         </div>
         <div class="card-content flex flex-col gap-4">
           <div class="flex items-center gap-4">
-            <Button label="Changement d'année universitaire" icon="pi pi-arrow-right" severity="primary"/>
-            <router-link to="/super-administration/annee-universitaire" class="p-button p-component p-button-secondary">
-              <span class="p-button-icon pi pi-clock"></span>
-              <span class="p-button-label">Années Universitaires</span>
+            <router-link to="/super-administration/annee-universitaire" class="p-button p-component p-button-primary">
+              <span class="p-button-icon pi pi-arrow-right"></span>
+              <span class="p-button-label">Changement d'année universitaire</span>
+            </router-link>
+            <router-link to="/super-administration/annees-universitaires" class="p-button p-component p-button-primary">
+              <span class="p-button-icon pi pi-list"></span>
+              <span class="p-button-label">Années universitaires</span>
             </router-link>
           </div>
           <div class="flex items-center gap-4">

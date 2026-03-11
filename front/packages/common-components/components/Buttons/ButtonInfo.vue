@@ -5,11 +5,15 @@ const props = defineProps({
     type: String,
     required: true
   },
+  'icon': {
+    type: String,
+    default: 'pi pi-info'
+  }
 })
 </script>
 
 <template>
-  <Button icon="pi pi-info"
+  <Button :icon="icon"
           outlined
           severity="info"
           rounded
