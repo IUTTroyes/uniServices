@@ -97,24 +97,15 @@ const redirectTo = (link) => {
         <div class="card-title mb-4">
           <div class="font-semibold text-xl">Super-Administration</div>
         </div>
-        <div class="card-content flex flex-col gap-4">
-          <div class="flex items-center gap-4">
-            <router-link to="/super-administration/annee-universitaire" class="p-button p-component p-button-primary">
-              <span class="p-button-icon pi pi-arrow-right"></span>
-              <span class="p-button-label">Changement d'année universitaire</span>
-            </router-link>
-            <router-link to="/super-administration/annees-universitaires" class="p-button p-component p-button-primary">
-              <span class="p-button-icon pi pi-list"></span>
-              <span class="p-button-label">Années universitaires</span>
-            </router-link>
+        <div class="card-content flex items-center justify-between">
+          <div>
+            <p>Accédez aux outils de super-administration et aux blocs dédiés.</p>
           </div>
-          <div class="flex items-center gap-4">
-            <Button label="Gestion du site" icon="pi pi-building" severity="secondary"/>
-            <Button label="Variables de configuration" icon="pi pi-cog" severity="secondary"/>
-            <Button label="Années Universitaires" icon="pi pi-clock" severity="secondary"/>
-            <Button label="Celcat" icon="pi pi-calendar" severity="secondary"/>
-            <Button label="Edusign" icon="pi pi-qrcode" severity="secondary"/>
-            <Button label="Gestion des départements" icon="pi pi-folder-open" severity="secondary"/>
+          <div>
+            <router-link to="/super-administration" class="p-button p-component p-button-primary">
+              <span class="p-button-icon pi pi-cog"></span>
+              <span class="p-button-label">Ouvrir la Super-Administration</span>
+            </router-link>
           </div>
         </div>
       </div>

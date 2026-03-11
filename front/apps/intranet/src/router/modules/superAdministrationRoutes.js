@@ -2,8 +2,21 @@ import NewAnneeUniv from "@/views/Super-Administration/NewAnneeUniv.vue";
 import ListAnneeUniv from "@/views/Super-Administration/ListAnneeUniv.vue";
 import EditAnneeUniv from "@/views/Super-Administration/EditAnneeUniv.vue";
 import AnneeUnivDiplomes from "@/views/Super-Administration/AnneeUnivDiplomes.vue";
+import SuperAdministrationView from "@/views/SuperAdministrationView.vue";
 
 export default [
+  {
+    path: 'super-administration',
+    component: SuperAdministrationView,
+    meta: {
+      breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+        label: 'Super-Administration',
+        route: null,
+        icon: 'pi pi-cog'
+      }]
+    },
+  },
+
   {
     path: 'super-administration/annee-universitaire',
     component: NewAnneeUniv,
