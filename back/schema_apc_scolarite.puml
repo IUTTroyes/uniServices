@@ -1,0 +1,177 @@
+@startuml
+hide empty members
+hide circle
+skinparam MinClassWidth 150
+skinparam LineType Ortho
+title back
+!theme _none_
+entity apc_apprentissage_critique {
+* id: integer
+--
+ niveau_id: integer
+* libelle: text
+ code: string
+ old_id: integer
+}
+entity apc_competence {
+* id: integer
+--
+ referentiel_id: integer
+* libelle: string
+ nom_court: string
+ couleur: string
+* composantes_essentielles: json
+* situations_professionnelles: json
+ old_id: integer
+}
+entity apc_niveau {
+* id: integer
+--
+ competence_id: integer
+* libelle: string
+* ordre: integer
+}
+entity apc_niveau_apc_parcours {
+* apc_niveau_id: integer
+* apc_parcours_id: integer
+--
+}
+entity apc_parcours {
+* id: integer
+--
+* libelle: string
+ sigle: string
+* actif: boolean
+ couleur: string
+* opt: json
+ old_id: integer
+}
+entity apc_referentiel {
+* id: integer
+--
+ departement_id: integer
+ type_diplome_id: integer
+* libelle: string
+ description: text
+ annee_publication: integer
+}
+entity doctrine_migration_versions {
+* version: string
+--
+ executed_at: datetime
+ execution_time: integer
+}
+entity etudiant_scolarite_semestre_structure_groupe {
+* etudiant_scolarite_semestre_id: integer
+* structure_groupe_id: integer
+--
+}
+entity etudiant_scolarite_structure_annee {
+* etudiant_scolarite_id: integer
+* structure_annee_id: integer
+--
+}
+entity etudiant_structure_groupe {
+* etudiant_id: integer
+* structure_groupe_id: integer
+--
+}
+entity refresh_tokens {
+* id: integer
+--
+* refresh_token: string
+* username: string
+* valid: datetime
+}
+entity scol_bac {
+* id: integer
+--
+* libelle: string
+* libelle_long: string
+ code_apogee: string
+ old_id: integer
+}
+entity scol_enseignement {
+* id: integer
+--
+ parent_id: integer
+ sae_id: integer
+* libelle: string
+ libelle_court: string
+ pre_requis: text
+ objectif: text
+ description: text
+ mots_cles: text
+ code_enseignement: string
+* suspendu: boolean
+* heures: json
+* type: string
+* nb_notes: integer
+* mutualisee: boolean
+ livrables: text
+ exemple: text
+* bonification: boolean
+ code_apogee: string
+ old_id: integer
+}
+entity scol_enseignement_apc_apprentissage_critique {
+* scol_enseignement_id: integer
+* apc_apprentissage_critique_id: integer
+--
+}
+entity scol_enseignement_ue {
+* id: integer
+--
+ enseignement_id: integer
+ ue_id: integer
+* ects: float
+* coefficient: float
+}
+entity scol_evaluation {
+* id: integer
+--
+ annee_universitaire_id: integer
+ semestre_id: integer
+ parent_id: integer
+* enseignement_id: integer
+* libelle: string
+ commentaire: string
+ coeff: float
+ date: datetime
+* visible: boolean
+* modifiable: boolean
+ type: string
+ type_groupe: string
+* etat: string
+ stats: json
+* uuid: uuid
+}
+entity scol_evaluation_personnel {
+* scol_evaluation_id: integer
+* personnel_id: integer
+--
+}
+entity stage_periode_structure_semestre {
+* stage_periode_id: integer
+* structure_semestre_id: integer
+--
+}
+entity structure_groupe_structure_semestre {
+* structure_groupe_id: integer
+* structure_semestre_id: integer
+--
+}
+apc_apprentissage_critique }o--o| apc_niveau
+apc_competence }o--o| apc_referentiel
+apc_niveau }o--o| apc_competence
+apc_niveau_apc_parcours }o--|| apc_parcours
+apc_niveau_apc_parcours }o--|| apc_niveau
+scol_enseignement }o--o| scol_enseignement
+scol_enseignement }o--o| scol_enseignement
+scol_enseignement_apc_apprentissage_critique }o--|| apc_apprentissage_critique
+scol_enseignement_apc_apprentissage_critique }o--|| scol_enseignement
+scol_enseignement_ue }o--o| scol_enseignement
+scol_evaluation }o--o| scol_evaluation
+scol_evaluation }o--|| scol_enseignement
+scol_evaluation_personnel }o--|| scol_evaluation
+@enduml

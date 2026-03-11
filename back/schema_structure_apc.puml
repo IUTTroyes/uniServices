@@ -1,0 +1,282 @@
+@startuml
+hide empty members
+hide circle
+skinparam MinClassWidth 150
+skinparam LineType Ortho
+title back
+!theme _none_
+entity apc_apprentissage_critique {
+* id: integer
+--
+ niveau_id: integer
+* libelle: text
+ code: string
+ old_id: integer
+}
+entity apc_competence {
+* id: integer
+--
+ referentiel_id: integer
+* libelle: string
+ nom_court: string
+ couleur: string
+* composantes_essentielles: json
+* situations_professionnelles: json
+ old_id: integer
+}
+entity apc_niveau {
+* id: integer
+--
+ competence_id: integer
+* libelle: string
+* ordre: integer
+}
+entity apc_niveau_apc_parcours {
+* apc_niveau_id: integer
+* apc_parcours_id: integer
+--
+}
+entity apc_parcours {
+* id: integer
+--
+* libelle: string
+ sigle: string
+* actif: boolean
+ couleur: string
+* opt: json
+ old_id: integer
+}
+entity apc_referentiel {
+* id: integer
+--
+ departement_id: integer
+ type_diplome_id: integer
+* libelle: string
+ description: text
+ annee_publication: integer
+}
+entity doctrine_migration_versions {
+* version: string
+--
+ executed_at: datetime
+ execution_time: integer
+}
+entity etudiant_scolarite_semestre_structure_groupe {
+* etudiant_scolarite_semestre_id: integer
+* structure_groupe_id: integer
+--
+}
+entity etudiant_scolarite_structure_annee {
+* etudiant_scolarite_id: integer
+* structure_annee_id: integer
+--
+}
+entity etudiant_structure_groupe {
+* etudiant_id: integer
+* structure_groupe_id: integer
+--
+}
+entity refresh_tokens {
+* id: integer
+--
+* refresh_token: string
+* username: string
+* valid: datetime
+}
+entity scol_enseignement_apc_apprentissage_critique {
+* scol_enseignement_id: integer
+* apc_apprentissage_critique_id: integer
+--
+}
+entity scol_evaluation_personnel {
+* scol_evaluation_id: integer
+* personnel_id: integer
+--
+}
+entity stage_periode_structure_semestre {
+* stage_periode_id: integer
+* structure_semestre_id: integer
+--
+}
+entity structure_annee {
+* id: integer
+--
+ niveau_id: integer
+ pn_id: integer
+* libelle: string
+* ordre: integer
+ libelle_long: string
+* actif: boolean
+ couleur: string
+ apogee_code_version: string
+ apogee_code_etape: string
+* created: datetime_immutable
+ updated: datetime
+* opt: json
+}
+entity structure_annee_universitaire {
+* id: integer
+--
+* libelle: string
+* annee: integer
+ commentaire: text
+* actif: boolean
+* created: datetime_immutable
+ updated: datetime
+ old_id: integer
+}
+entity structure_calendrier {
+* id: integer
+--
+ annee_universitaire_id: integer
+* semaine_formation: integer
+* semaine_reelle: integer
+* date_lundi: datetime
+}
+entity structure_departement {
+* id: integer
+--
+* libelle: string
+ logo_name: string
+ tel_contact: string
+ couleur: string
+ site_web: string
+ description: text
+* actif: boolean
+* uuid: uuid
+* created: datetime_immutable
+ updated: datetime
+* opt: json
+ old_id: integer
+}
+entity structure_departement_personnel {
+* id: integer
+--
+* personnel_id: integer
+ departement_id: integer
+* roles: json
+* defaut: boolean
+* affectation: boolean
+}
+entity structure_diplome {
+* id: integer
+--
+ responsable_diplome_id: integer
+ assistant_diplome_id: integer
+ parent_id: integer
+ departement_id: integer
+ type_diplome_id: integer
+ referentiel_id: integer
+ parcours_id: integer
+* libelle: string
+* volume_horaire: integer
+ code_celcat_departement: integer
+ sigle: string
+* actif: boolean
+ logo_partenaire_name: string
+ apogee_code_version: string
+ apogee_code_diplome: string
+ apogee_code_departement: string
+ cle_oreof: integer
+ key_edu_sign: string
+* created: datetime_immutable
+ updated: datetime
+* opt: json
+ old_id: integer
+}
+entity structure_groupe {
+* id: integer
+--
+ parent_id: integer
+ parcours_id: integer
+* libelle: string
+* type: string
+ ordre: integer
+ code_apogee: string
+ key_edu_sign: string
+ old_id: integer
+}
+entity structure_groupe_structure_semestre {
+* structure_groupe_id: integer
+* structure_semestre_id: integer
+--
+}
+entity structure_pn {
+* id: integer
+--
+ diplome_id: integer
+ annee_universitaire_id: integer
+ apc_referentiel_id: integer
+* libelle: string
+* annee_publication: integer
+}
+entity structure_semestre {
+* id: integer
+--
+ annee_id: integer
+* libelle: string
+* ordre_annee: integer
+* ordre_lmd: integer
+* actif: boolean
+* nb_groupes_cm: integer
+* nb_groupes_td: integer
+* nb_groupes_tp: integer
+ code_element: string
+* created: datetime_immutable
+ updated: datetime
+* opt: json
+ key_edu_sign: string
+ old_id: integer
+}
+entity structure_type_diplome {
+* id: integer
+--
+* libelle: string
+* sigle: string
+* apc: boolean
+}
+entity structure_ue {
+* id: integer
+--
+ competence_id: integer
+ semestre_id: integer
+* libelle: string
+* numero: integer
+* nb_ects: float
+* actif: boolean
+* bonification: boolean
+* code_element: string
+ old_id: integer
+}
+apc_apprentissage_critique }o--o| apc_niveau
+apc_competence }o--o| apc_referentiel
+apc_niveau }o--o| apc_competence
+apc_niveau_apc_parcours }o--|| apc_parcours
+apc_niveau_apc_parcours }o--|| apc_niveau
+apc_referentiel }o--o| structure_type_diplome
+apc_referentiel }o--o| structure_departement
+etudiant_scolarite_semestre_structure_groupe }o--|| structure_groupe
+etudiant_scolarite_structure_annee }o--|| structure_annee
+etudiant_structure_groupe }o--|| structure_groupe
+scol_enseignement_apc_apprentissage_critique }o--|| apc_apprentissage_critique
+stage_periode_structure_semestre }o--|| structure_semestre
+structure_annee }o--o| structure_pn
+structure_annee }o--o| apc_niveau
+structure_calendrier }o--o| structure_annee_universitaire
+structure_departement_personnel }o--o| structure_departement
+structure_diplome }o--o| structure_type_diplome
+structure_diplome }o--o| apc_parcours
+structure_diplome }o--o| structure_diplome
+structure_diplome }o--o| apc_referentiel
+structure_diplome }o--o| structure_departement
+structure_groupe }o--o| apc_parcours
+structure_groupe }o--o| structure_groupe
+structure_groupe_structure_semestre }o--|| structure_semestre
+structure_groupe_structure_semestre }o--|| structure_groupe
+structure_pn }o--o| structure_diplome
+structure_pn }o--o| structure_annee_universitaire
+structure_pn }o--o| apc_referentiel
+structure_semestre }o--o| structure_annee
+structure_ue }o--o| apc_competence
+structure_ue }o--o| structure_semestre
+@enduml
