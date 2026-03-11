@@ -155,7 +155,7 @@ const setPeriodeFromAnneeUniversitaire = async () => {
 const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
   try {
-    diplomes.value = await diplomeStore.diplomes;
+    diplomes.value = diplomeStore.diplomes;
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching diplomes:', error);
