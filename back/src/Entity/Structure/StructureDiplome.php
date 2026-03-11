@@ -482,7 +482,7 @@ class StructureDiplome
     {
         $annees = [];
         foreach ($this->getPns() as $pn) {
-            if ($pn->isActif()) {
+            if ($pn->getAnneeUniversitaire()->isActif()) {
                 foreach ($pn->getAnnees() as $annee) {
                     $annees[] = $annee;
                 }
