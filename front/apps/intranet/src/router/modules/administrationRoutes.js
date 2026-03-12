@@ -5,7 +5,7 @@ import questionnaireAdministrationRoutes from './questionnaireAdministrationRout
 import PersonnelsView from "@/views/Personnels/PersonnelsView.vue";
 import EtudiantsListeView from "@/views/Etudiants/EtudiantsListeView.vue";
 import EtudiantsAjoutView from "@/views/Etudiants/EtudiantsAjoutView.vue";
-import AdministrationView from '@/views/AdministrationView.vue';
+import AdministrationView from '@/views/Administration/AdministrationView.vue';
 import EtudiantAddApogee from '@/components/Administration/etudiant/EtudiantAddApogee.vue';
 import EtudiantAddManuel from '@/components/Administration/etudiant/EtudiantAddManuel.vue';
 import EtudiantsAjoutResult from '@/views/Etudiants/EtudiantsAjoutResult.vue';

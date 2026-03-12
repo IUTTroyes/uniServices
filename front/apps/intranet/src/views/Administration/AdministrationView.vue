@@ -4,8 +4,8 @@ import AdminBlocEtudiant from '@/components/Administration/blocs_admin/AdminBloc
 import AdminBlocPersonnel from '@/components/Administration/blocs_admin/AdminBlocPersonnel.vue'
 import AdminBlocPn from '@/components/Administration/blocs_admin/AdminBlocPn.vue'
 import AdminBlocEdt from '@/components/Administration/blocs_admin/AdminBlocEdt.vue'
-import AdminBlocStage from '../components/Administration/blocs_admin/AdminBlocStage.vue'
-import AdminBlocQualite from "../components/Administration/blocs_admin/AdminBlocQualite.vue";
+import AdminBlocStage from '../../components/Administration/blocs_admin/AdminBlocStage.vue'
+import AdminBlocQualite from "../../components/Administration/blocs_admin/AdminBlocQualite.vue";
 </script>
 
 <template>

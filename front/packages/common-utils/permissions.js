@@ -14,7 +14,13 @@ import { useUsersStore } from '@stores';
  */
 const compositePermissions = {
   canViewAdministration: [
-    'isPersonnel',
+    'isChefDepartement',
+    'isRespParcours',
+    'isDirecteurEtudes',
+    'isAssistant',
+    'isScolarite',
+    'isNote',
+
   ],
   canViewEtudiantDetails: [
     'isScolarite',

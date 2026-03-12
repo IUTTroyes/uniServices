@@ -27,7 +27,7 @@ const intranetMenu = [
                 label: 'Super Admin',
                 icon: 'pi pi-fw pi-cog',
                 to: '/super-administration',
-                permission: 'canViewSuperAdministration'
+                permission: 'isSuperAdmin'
             }
         ]
     }

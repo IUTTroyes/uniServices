@@ -1,7 +1,7 @@
-import NewAnneeUniv from "@/views/Super-Administration/NewAnneeUniv.vue";
-import ListAnneeUniv from "@/views/Super-Administration/ListAnneeUniv.vue";
-import EditAnneeUniv from "@/views/Super-Administration/EditAnneeUniv.vue";
-import AnneeUnivDiplomes from "@/views/Super-Administration/AnneeUnivDiplomes.vue";
+import NewAnneeUniv from "@/components/SuperAdministration/annee_univ/NewAnneeUniv.vue";
+import ListAnneeUniv from "@/components/SuperAdministration/annee_univ/ListAnneeUniv.vue";
+import EditAnneeUniv from "@/components/SuperAdministration/annee_univ/EditAnneeUniv.vue";
+import AnneeUnivDiplomes from "@/components/SuperAdministration/annee_univ/AnneeUnivDiplomes.vue";
 import SuperAdministrationView from "@/views/SuperAdministrationView.vue";
 
 export default [

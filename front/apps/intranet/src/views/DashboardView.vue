@@ -92,25 +92,6 @@ const redirectTo = (link) => {
       </div>
     </div>
 
-    <PermissionGuard permission="isSuperAdmin">
-      <div class="card mb-5">
-        <div class="card-title mb-4">
-          <div class="font-semibold text-xl">Super-Administration</div>
-        </div>
-        <div class="card-content flex items-center justify-between">
-          <div>
-            <p>Accédez aux outils de super-administration et aux blocs dédiés.</p>
-          </div>
-          <div>
-            <router-link to="/super-administration" class="p-button p-component p-button-primary">
-              <span class="p-button-icon pi pi-cog"></span>
-              <span class="p-button-label">Ouvrir la Super-Administration</span>
-            </router-link>
-          </div>
-        </div>
-      </div>
-    </PermissionGuard>
-
     <div class="card">
       <div class="card-title mb-4">
         <div class="font-semibold text-xl">Aujourd'hui</div>
