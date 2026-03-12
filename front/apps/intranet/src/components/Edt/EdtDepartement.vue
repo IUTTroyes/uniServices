@@ -424,11 +424,6 @@ const heuresParType = computed(() => {
 </script>
 
 <template>
-  <Message v-if="!diplomes || !selectedDiplome?.annees || selectedDiplome?.annees.length < 1 || !selectedAnnee?.semestres || selectedAnnee?.semestres.length < 1" severity="error" class="mb-4 flex items-center justify-center">
-    <i class="pi pi-exclamation-triangle mr-2"></i>
-    <strong>Attention !</strong> La structure de votre département n'est pas complète.
-  </Message>
-
   <div class="flex gap-4 w-full pb-6 overflow-x-auto">
     <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
       <div>
