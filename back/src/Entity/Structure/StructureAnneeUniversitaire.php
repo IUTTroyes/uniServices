@@ -38,17 +38,17 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['annee_universitaire:detail']]),
         new GetCollection(
-            normalizationContext: ['groups' => ['annee_universitaire:detail']],
-            order: ['annee' => 'DESC']
+            order: ['annee' => 'DESC'],
+            normalizationContext: ['groups' => ['annee_universitaire:detail']]
         ),
         new Post(
-            securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)",
             denormalizationContext: ['groups' => ['annee_universitaire:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)",
             processor: AnneeUnivInitProcessor::class
         ),
         new Patch(
-            securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)",
             denormalizationContext: ['groups' => ['annee_universitaire:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE_UNIV', object)",
             processor: AnneeUnivInitProcessor::class
         ),
         new Delete(security: "is_granted('CAN_EDIT_ANNEE_UNIV', object)")
@@ -87,7 +87,7 @@ class StructureAnneeUniversitaire
     /**
      * @var Collection<int, StructurePn>
      */
-    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'anneeUniversitaire')]
+    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'anneeUniversitaire', orphanRemoval: true, cascade: ['remove'])]
     private Collection $pns;
 
     /**

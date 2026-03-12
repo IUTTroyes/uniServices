@@ -5,6 +5,7 @@ import '@styles/main.scss';
 import router from './router';
 import { initializeAppData } from '@requests/initializeData';
 import { registerPermissionDirective } from '@utils';
+import { setupInactivityTimer } from '@helpers/authService';
 
 import Aura from '@primevue/themes/aura';
 import PrimeVue from 'primevue/config';
@@ -70,6 +71,9 @@ loaderApp.mount(loadingElement);
 
 // Initialiser les données
 await initializeAppData();
+
+// Initialiser le minuteur d'inactivité (45 min)
+setupInactivityTimer();
 
 // Supprimer le contenu temporaire après l'initialisation
 document.body.removeChild(loadingElement);

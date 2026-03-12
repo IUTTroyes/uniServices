@@ -4,6 +4,7 @@ import App from './App.vue';
 import '@styles/main.scss';
 import router from './router';
 import { registerPermissionDirective } from '@utils';
+import { setupInactivityTimer } from '@helpers/authService';
 
 import Aura from '@primevue/themes/aura';
 import PrimeVue from 'primevue/config';
@@ -55,5 +56,8 @@ app.use(pinia);
 
 // Register the permission directive
 registerPermissionDirective(app);
+
+// Initialiser le minuteur d'inactivité (45 min)
+setupInactivityTimer();
 
 app.mount('#app');

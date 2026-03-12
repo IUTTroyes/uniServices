@@ -36,15 +36,27 @@ const refreshToken = async () => {
 
 // Fonction de déconnexion
 const logout = () => {
+    // Éviter les boucles de déconnexion si on est déjà sur la page de login
+    if (window.location.pathname === '/auth/login' || window.location.pathname === '/auth/login/') return;
+
     // Appeler l'endpoint de logout pour supprimer les cookies côté serveur
     axios.post(`${baseURL}/api/logout`, {}, { withCredentials: true })
+        .catch(() => {}) // Ignorer les erreurs au logout
         .finally(() => {
-            window.location.replace('/auth/login');
+            // Utiliser une redirection propre vers l'application auth
+            window.location.href = '/auth/login';
         });
 };
 
 api.interceptors.request.use(
     config => {
+        // Réinitialiser le minuteur d'inactivité à chaque requête API sortante
+        import('@helpers/authService').then(auth => {
+            if (auth && typeof auth.resetInactivityTimer === 'function') {
+                auth.resetInactivityTimer();
+            }
+        }).catch(() => {});
+
         // Les cookies sont envoyés automatiquement grâce à withCredentials: true
         // Plus besoin de gérer le token manuellement dans le header
         return config;
@@ -87,7 +99,7 @@ api.interceptors.response.use(
                 if (refreshed) {
                     processQueue(null);
                     isRefreshing = false;
-                    // Réessayer la requête originale
+                    // Réessayer la requête originale avec l'instance api
                     return api(originalRequest);
                 } else {
                     processQueue(new Error('Refresh failed'));
@@ -101,6 +113,11 @@ api.interceptors.response.use(
                 logout();
                 return Promise.reject(refreshError);
             }
+        }
+
+        // Si l'erreur est un 401 et que c'est déjà un retry, ou si le refresh a échoué
+        if (error.response && error.response.status === 401 && (originalRequest._retry || originalRequest.url.includes('/api/token/refresh'))) {
+            logout();
         }
 
         return Promise.reject(error);
