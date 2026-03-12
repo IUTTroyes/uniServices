@@ -94,6 +94,7 @@ const getDiplomes = async () => {
     console.error('Error fetching diplomes:', error);
   } finally {
     selectedDiplome.value = diplomes.value[0] ?? null;
+    console.log(selectedDiplome.value)
     selectedAnnee.value = selectedDiplome.value?.annees[0] ?? null;
     selectedSemestre.value = selectedAnnee.value?.semestres[0] ?? null;
     isLoadingDiplomes.value = false;
@@ -423,6 +424,11 @@ const heuresParType = computed(() => {
 </script>
 
 <template>
+  <Message v-if="!diplomes || !selectedDiplome?.annees || selectedDiplome?.annees.length < 1 || !selectedAnnee?.semestres || selectedAnnee?.semestres.length < 1" severity="error" class="mb-4 flex items-center justify-center">
+    <i class="pi pi-exclamation-triangle mr-2"></i>
+    <strong>Attention !</strong> La structure de votre département n'est pas complète.
+  </Message>
+
   <div class="flex gap-4 w-full pb-6 overflow-x-auto">
     <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
       <div>
@@ -494,11 +500,6 @@ const heuresParType = computed(() => {
       </div>
     </div>
   </Dialog>
-
-  <Message v-if="!diplomes || !selectedDiplome?.annees || selectedDiplome?.annees.length < 1 || !selectedAnnee?.semestres || selectedAnnee?.semestres.length < 1" severity="error" class="mb-4 flex items-center justify-center">
-    <i class="pi pi-exclamation-triangle mr-2"></i>
-    <strong>Attention !</strong> La structure de votre département n'est pas complète.
-  </Message>
   <ErrorView v-if="hasError"></ErrorView>
   <div v-else class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 mb-6 w-full bg-neutral-100/20">
     <div class="text-lg font-bold mb-4">

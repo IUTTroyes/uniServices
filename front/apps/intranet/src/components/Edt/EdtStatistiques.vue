@@ -547,6 +547,10 @@ const exportDataHeures = async () => {
 </script>
 
 <template>
+  <Message v-if="selectedDiplome !== null && (!diplomes || !selectedDiplome?.annees || selectedDiplome?.annees.length < 1)" severity="error" class="mb-4 flex items-center justify-center">
+    <i class="pi pi-exclamation-triangle mr-2"></i>
+    <strong>Attention !</strong> La structure de votre département n'est pas complète.
+  </Message>
   <ErrorView v-if="hasError"></ErrorView>
   <div v-else class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 mb-6 w-full bg-neutral-100/20">
     <div class="text-lg font-bold mb-4">Filtres</div>

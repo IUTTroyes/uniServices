@@ -89,8 +89,12 @@ const initializeUserData = async () => {
     const anneeStore = useAnneeStore();
     // pour chaque diplôme, on récupère les années associées
     for (const diplome of diplomes) {
+      const params = {
+        diplome: diplome.id,
+        anneeUniversitaire: anneeUniv.id
+      }
       // on ajoute dans le tableau des diplômes les années associées
-        diplome.annees = await anneeStore.getAnneesDiplome(diplome.id);
+        diplome.annees = await anneeStore.getAnneesDiplome(params);
     }
   }
 };

@@ -470,19 +470,6 @@ class StructureDiplome
         return $this;
     }
 
-    public function getAnnees(): ?array
-    {
-        $annees = [];
-        foreach ($this->getPns() as $pn) {
-            if ($pn->getAnneeUniversitaire()->isActif()) {
-                foreach ($pn->getAnnees() as $annee) {
-                    $annees[] = $annee;
-                }
-            }
-        }
-        return $annees;
-    }
-
     /**
      * @return Collection<int, PersonnelEnseignantHrs>
      */

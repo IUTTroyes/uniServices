@@ -15,9 +15,8 @@ export const useAnneeStore = defineStore('annee', () => {
     }
   };
 
-  const getAnneesDiplome = async (diplomeId) => {
+  const getAnneesDiplome = async (params) => {
     try {
-      const params = { diplome: diplomeId };
       return await getAnneesService(params);
     } catch (error) {
       console.error('Error fetching annee:', error);

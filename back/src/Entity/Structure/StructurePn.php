@@ -54,7 +54,7 @@ class StructurePn
      * @var Collection<int, StructureAnnee>
      */
     #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'pn', orphanRemoval: true, cascade: ['remove'])]
-    #[Groups(['pn:detail', 'maquette:detail'])]
+    #[Groups(['pn:detail', 'maquette:detail', 'diplome:detail'])]
     private Collection $annees;
 
     public function __construct(StructureDiplome $diplome)
