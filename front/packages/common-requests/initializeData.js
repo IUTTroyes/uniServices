@@ -76,10 +76,14 @@ const initializeUserData = async () => {
 
   if (user && userStore.userType === 'personnels') {
     const departement = userStore.departementDefaut;
-
+    const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
     const diplomeStore = useDiplomeStore();
     // Fetch diplomas for the default department
-    await diplomeStore.getDiplomesDepartement(departement.id);
+    const params = {
+      departement: departement.id,
+      anneeUniversitaire: anneeUniv.id
+    }
+    await diplomeStore.getDiplomesDepartement(params);
     const diplomes = diplomeStore.diplomes;
 
     const anneeStore = useAnneeStore();

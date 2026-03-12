@@ -23,6 +23,7 @@ export default [
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
+        { label: 'Super-Administration', route: '/super-administration' },
         {
           label: 'Nouvelle Année Universitaire',
           route: null,
@@ -37,6 +38,7 @@ export default [
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
+        { label: 'Super-Administration', route: '/super-administration' },
         {
           label: 'Années Universitaires',
           route: null,
@@ -51,6 +53,7 @@ export default [
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
+        { label: 'Super-Administration', route: '/super-administration' },
         {
           label: 'Années Universitaires',
           route: '/super-administration/annees-universitaires',
@@ -70,6 +73,7 @@ export default [
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
+        { label: 'Super-Administration', route: '/super-administration' },
         {
           label: 'Années Universitaires',
           route: '/super-administration/annees-universitaires',

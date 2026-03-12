@@ -64,7 +64,7 @@ onMounted(async () => {
   isLoadingEnseignants.value = true;
   isLoadingSalles.value = true;
   isLoadingEvents.value = true;
-  getDiplomes();
+  await getDiplomes();
   await getEnseignants();
   await getSalles();
   await getEnseignements();
@@ -73,26 +73,29 @@ onMounted(async () => {
 });
 
 watch(selectedDiplome, () => {
-  selectedAnnee.value = selectedDiplome.value.annees[0];
+  selectedAnnee.value = selectedDiplome.value?.annees[0] ?? null;
 });
 watch(selectedAnnee, () => {
-  selectedSemestre.value = selectedAnnee.value.semestres[0];
+  selectedSemestre.value = selectedAnnee.value?.semestres[0] ?? null;
 })
 watch(selectedSemestre, () => {
-  getEnseignements();
+  if (selectedSemestre) {
+    getEnseignements();
+  }
 })
 
 const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
   try {
-    diplomes.value = await diplomeStore.diplomes;
+    diplomes.value = diplomeStore.diplomes;
+    console.log(diplomes.value)
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching diplomes:', error);
   } finally {
-    selectedDiplome.value = diplomes.value[0];
-    selectedAnnee.value = selectedDiplome.value.annees[0];
-    selectedSemestre.value = selectedAnnee.value.semestres[0];
+    selectedDiplome.value = diplomes.value[0] ?? null;
+    selectedAnnee.value = selectedDiplome.value?.annees[0] ?? null;
+    selectedSemestre.value = selectedAnnee.value?.semestres[0] ?? null;
     isLoadingDiplomes.value = false;
   }
 };
@@ -124,7 +127,7 @@ const getSalles = async () => {
 const getEnseignements = async () => {
   try {
     const params = {
-      semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
+      semestre: selectedSemestre.value ? selectedSemestre.value?.id : null,
       departement: selectedSemestre.value ? null : departement.id,
       actif: true,
     };
@@ -492,13 +495,17 @@ const heuresParType = computed(() => {
     </div>
   </Dialog>
 
+  <Message v-if="!diplomes || !selectedDiplome?.annees || selectedDiplome?.annees.length < 1 || !selectedAnnee?.semestres || selectedAnnee?.semestres.length < 1" severity="error" class="mb-4 flex items-center justify-center">
+    <i class="pi pi-exclamation-triangle mr-2"></i>
+    <strong>Attention !</strong> La structure de votre département n'est pas complète.
+  </Message>
   <ErrorView v-if="hasError"></ErrorView>
   <div v-else class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 mb-6 w-full bg-neutral-100/20">
     <div class="text-lg font-bold mb-4">
       Filtres
     </div>
     <SimpleSkeleton v-if="isLoadingDiplomes" class="w-full"/>
-    <Tabs v-else :value="selectedDiplome.id" scrollable>
+    <Tabs v-else :value="selectedDiplome?.id" scrollable>
       <TabList>
         <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="selectedDiplome = diplome">
         <span>
