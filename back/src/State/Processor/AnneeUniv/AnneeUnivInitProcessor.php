@@ -32,9 +32,9 @@ class AnneeUnivInitProcessor implements ProcessorInterface
         );
 
         if ($isNew) {
+            // Créer un "pn" par diplôme
             $diplomes = $data->getDiplomes();
             foreach ($diplomes as $diplome) {
-                // Déléguer la création d'un "pn" par diplôme (implémentation à compléter si nécessaire)
                 $pn = $this->createPn($diplome);
                 $pn->setAnneeUniversitaire($data);
                 $pn->setLibelle('PN '.$diplome->getDepartement()->getLibelle().'-'.$diplome->getLibelle().'-'.$data->getLibelle());
@@ -46,7 +46,6 @@ class AnneeUnivInitProcessor implements ProcessorInterface
             }
         }
 
-        // Persist les changements faits à l'année universitaire (Doctrine suivra l'entité)
         $this->em->flush();
 
         if (!$isAnneeUniv) {

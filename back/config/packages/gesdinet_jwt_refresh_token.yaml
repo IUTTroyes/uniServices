@@ -9,7 +9,7 @@ gesdinet_jwt_refresh_token:
         path: /
         domain: null
         http_only: true
-        secure: false # Mettre true en production avec HTTPS
+        secure: '%env(bool:JWT_COOKIE_SECURE)%' # Mettre true en production avec HTTPS
         remove_token_from_body: true
 
 

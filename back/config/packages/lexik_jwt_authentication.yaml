@@ -19,4 +19,4 @@ lexik_jwt_authentication:
             path: /
             domain: null
             httpOnly: true
-            secure: false # Mettre true en production avec HTTPS
+            secure: '%env(bool:JWT_COOKIE_SECURE)%' # Mettre true en production avec HTTPS

@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Users\Etudiant;
 use Doctrine\ORM\EntityManagerInterface;
 use Gesdinet\JWTRefreshTokenBundle\Model\RefreshTokenManagerInterface;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -17,7 +18,8 @@ class AuthController extends AbstractController
 {
     public function __construct(
         private RefreshTokenManagerInterface $refreshTokenManager,
-        private EntityManagerInterface $entityManager
+        private EntityManagerInterface $entityManager,
+        private ParameterBagInterface $parameterBag
     ) {
     }
 
@@ -36,13 +38,15 @@ class AuthController extends AbstractController
             }
         }
 
+        $secure = $this->parameterBag->get('JWT_COOKIE_SECURE') === 'true' || $this->parameterBag->get('JWT_COOKIE_SECURE') === true;
+        
         // Supprimer les cookies
         $response->headers->setCookie(
             Cookie::create('BEARER')
                 ->withValue('')
                 ->withExpires(new \DateTime('-1 hour'))
                 ->withPath('/')
-                ->withSecure(false)
+                ->withSecure($secure)
                 ->withHttpOnly(true)
                 ->withSameSite(Cookie::SAMESITE_LAX)
         );
@@ -52,7 +56,7 @@ class AuthController extends AbstractController
                 ->withValue('')
                 ->withExpires(new \DateTime('-1 hour'))
                 ->withPath('/')
-                ->withSecure(false)
+                ->withSecure($secure)
                 ->withHttpOnly(true)
                 ->withSameSite(Cookie::SAMESITE_LAX)
         );

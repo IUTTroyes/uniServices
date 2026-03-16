@@ -1,5 +1,6 @@
 import NewAnneeUniv from "@/components/SuperAdministration/annee_univ/NewAnneeUniv.vue";
 import ListAnneeUniv from "@/components/SuperAdministration/annee_univ/ListAnneeUniv.vue";
+import ListDepartement from "@/views/Super-Administration/ListDepartement.vue";
 import EditAnneeUniv from "@/components/SuperAdministration/annee_univ/EditAnneeUniv.vue";
 import AnneeUnivDiplomes from "@/components/SuperAdministration/annee_univ/AnneeUnivDiplomes.vue";
 import SuperAdministrationView from "@/views/SuperAdministrationView.vue";
@@ -83,6 +84,21 @@ export default [
           label: 'Diplômes',
           route: null,
           icon: 'pi pi-book'
+        }
+      ]
+    },
+  },
+  {
+    path: 'super-administration/departements',
+    component: ListDepartement,
+    meta: {
+      breadcrumb: [
+        { label: 'Dashboard', route: '/' },
+        { label: 'Super-Administration', route: '/super-administration' },
+        {
+          label: 'Départements',
+          route: null,
+          icon: 'pi pi-wrench'
         }
       ]
     },

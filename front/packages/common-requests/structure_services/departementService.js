@@ -7,13 +7,14 @@ import apiCall from '@helpers/apiCall';
 
 const getAllDepartementsService = async (showToast = false) => {
     try {
-        return await apiCall(
+        const response = await apiCall(
             api.get,
             ['/api/structure_departements'],
             'Départements récupérés avec succès',
             'Erreur lors de la récupération des départements',
             showToast
         );
+        return response.member
     } catch (error) {
         console.error('Erreur dans getAllDepartementsService:', error);
         throw error;

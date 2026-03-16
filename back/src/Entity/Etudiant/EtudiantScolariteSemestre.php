@@ -12,7 +12,7 @@ use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
 use App\Filter\EtudiantScolariteSemestreFilter;
 use App\Repository\EtudiantScolariteSemestreRepository;
-use App\State\EtudiantScolariteSemestre\EtudiantScolariteSemestreProvider;
+use App\State\Provider\EtudiantScolariteSemestre\EtudiantScolariteSemestreProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;

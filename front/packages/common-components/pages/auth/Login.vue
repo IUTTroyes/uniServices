@@ -1,24 +1,24 @@
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import api from '@helpers/axios';
-import Logo from '@components/components/Logo.vue';
 
+const router = useRouter();
 const username = ref('');
 const password = ref('');
 const checked = ref(false);
 const handleSubmit = async () => {
   try {
-    const response = await api.post('/api/login', {
+    await api.post('/api/login', {
       username: username.value,
       password: password.value
     });
-    console.log('api response', response.data);
-    // localStorage.setItem('token', response.data.token);
-    // document.cookie = `token=${response.data.token}; Secure; SameSite=None`;
-    // location.reload();
+
+    // Redirection vers l'accueil après login réussi
+    // Les cookies sont gérés automatiquement par le serveur et l'intercepteur axios
+    router.push('/');
   } catch (error) {
-    console.error('Login failed:', error.response.data);
-    // Handle login error (e.g., show error message)
+    console.error('Login failed:', error.response?.data || error.message);
   }
 };
 </script>
