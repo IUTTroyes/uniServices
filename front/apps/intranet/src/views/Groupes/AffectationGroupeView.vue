@@ -34,10 +34,12 @@ const anneeStore = useAnneeStore();
 const annees = ref([]);
 const annee = ref({});
 const isLoadingAnnee = ref(true);
+const isInitialLoading = ref(true);
 
 const { filters, watchChanges } = useEtudiantFilters();
 // Déclenche un rechargement serveur quand les filtres changent
 watchChanges(async () => {
+  if (isInitialLoading.value) return;
   page.value = 0;
   await getEtudiants();
 });
@@ -51,15 +53,23 @@ const offset = computed(() => limit.value * page.value);
 
 
 onMounted(async () => {
-  await getAnnees();
-  await getAnnee();
-  await getSemestres();
-  // Sélectionner le premier semestre de l'année par défaut
-  if (semestres.value.length > 0 && !semestre.value.id) {
-    semestre.value = semestres.value[0];
+  isInitialLoading.value = true;
+  try {
+    await getAnnees();
+    await getAnnee();
+    await getSemestres();
+    // Sélectionner le premier semestre de l'année par défaut
+    if (semestres.value.length > 0 && !semestre.value.id) {
+      semestre.value = semestres.value[0];
+    }
+    await getGroupes();
+    await getEtudiants();
+  } catch (error) {
+    console.error("Erreur lors de l'initialisation :", error);
+    hasError.value = true;
+  } finally {
+    isInitialLoading.value = false;
   }
-  await getGroupes();
-  await getEtudiants();
 });
 
 watch(() => semestreStore.semestre, (newSemestre) => {
@@ -68,6 +78,7 @@ watch(() => semestreStore.semestre, (newSemestre) => {
 
 // watcher pour relancer getGroupes quand semestre change
 watch(semestre, async (newSemestre, oldSemestre) => {
+  if (isInitialLoading.value) return;
   if (newSemestre.id !== oldSemestre.id) {
     await getGroupes();
     await getEtudiants();
@@ -77,6 +88,7 @@ watch(semestre, async (newSemestre, oldSemestre) => {
 
 // watcher pour relancer getGroupes et getSemestres quand annee change
 watch(annee, async (newAnnee, oldAnnee) => {
+  if (isInitialLoading.value) return;
   if (newAnnee.id !== oldAnnee.id) {
     await getSemestres();
     // si le semestre sélectionné n'est pas dans la nouvelle liste, on sélectionne le premier de la liste
@@ -93,7 +105,7 @@ watch(annee, async (newAnnee, oldAnnee) => {
 
 watch(groupes, (newVal) => {
   const types = Object.keys(newVal);
-  if (types.length > 0 && !selectedGroupe.value) {
+  if (types.length > 0 && (!selectedGroupe.value || !types.includes(selectedGroupe.value))) {
     selectedGroupe.value = types[0];
   }
   // dès que la liste des groupes par type évolue, recalcule la présélection
@@ -146,7 +158,6 @@ const getSemestres = async () => {
     const params = {
       annee: annee.value.id,
     };
-    console.log(semestre.value);
     semestres.value = await getSemestresService(params, '/mini');
   } catch (error) {
     hasError.value = true;
@@ -181,7 +192,7 @@ const getGroupes = async () => {
 
     // initialiser selectedGroupe si nécessaire
     const types = Object.keys(groupes.value);
-    if (types.length > 0 && !selectedGroupe.value) {
+    if (types.length > 0 && (!selectedGroupe.value || !types.includes(selectedGroupe.value))) {
       selectedGroupe.value = types[0];
     }
 
@@ -207,20 +218,25 @@ const getEtudiants = async () => {
       filters: filters.value,
     };
 
-    // 1) Récupération de la page courante via l'endpoint manage-groupes (DTO spécifique)
+    // Récupération de la page courante via l'endpoint manage-groupes (DTO spécifique)
     const responsePage = await getEtudiantScolariteSemestresService(params, '/manage-groupes');
     etudiantsScolariteSemestre.value = responsePage.member ?? responsePage;
 
-    // 2) Récupération d'un total fiable via l'endpoint standard (qui expose bien totalItems)
-    const countParams = {
-      anneeUniversitaire: anneeUniv.id,
-      semestre: semestre.value.id,
-      limit: 1,
-      page: 1,
-      filters: filters.value,
-    };
-    const responseCount = await getEtudiantScolariteSemestresService(countParams);
-    nbEtudiants.value = responseCount.totalItems ?? (Array.isArray(responseCount.member) ? responseCount.member.length : 0);
+    // Récupération du total directement depuis la réponse Hydra si disponible
+    if (responsePage.totalItems !== undefined) {
+      nbEtudiants.value = responsePage.totalItems;
+    } else {
+      // Fallback si l'endpoint manage-groupes ne renvoie pas le totalItems
+      const countParams = {
+        anneeUniversitaire: anneeUniv.id,
+        semestre: semestre.value.id,
+        limit: 1,
+        page: 1,
+        filters: filters.value,
+      };
+      const responseCount = await getEtudiantScolariteSemestresService(countParams);
+      nbEtudiants.value = responseCount.totalItems ?? (Array.isArray(responseCount.member) ? responseCount.member.length : 0);
+    }
 
     // Après chargement des étudiants, synchroniser la présélection
     syncPreselectedRadios();
@@ -308,23 +324,15 @@ const assignGroupe = async (etudiantScolariteSemestreId, groupeId) => {
     });
 
     await updateEtudiantScolariteSemestreService(etudiantScolariteSemestreId, { groupes: payloadGroupes }, false);
-  } catch (error) {
-    console.error("Erreur lors de l'affectation du groupe :", error);
-    // afficher un toast d'erreur' si aucun toast identique n'est présent
-    const existingToast = Array.from(document.querySelectorAll('.p-toast-message')).some(el =>
-        el.textContent && el.textContent.includes('Affectation mise à jour')
-    );
-    if (!existingToast) {
-      toast.add({ severity: 'success', summary: 'Un problème est survenu', detail: 'Le groupe n\'a pas été mis à jour', life: 3000 });
-    }
-  } finally {
-    // afficher un toast de succès si aucun toast identique n'est présent
-    const existingToast = Array.from(document.querySelectorAll('.p-toast-message')).some(el =>
-        el.textContent && el.textContent.includes('Affectation mise à jour')
-    );
-    if (!existingToast) {
+
+    // Afficher un toast de succès seulement s'il n'y en a pas déjà un (évite les spams en sélection multiple)
+    const existingSuccessToast = Array.from(document.querySelectorAll('.p-toast-message-success')).length > 0;
+    if (!existingSuccessToast) {
       toast.add({ severity: 'success', summary: 'Affectation mise à jour', detail: 'Le groupe a été affecté avec succès.', life: 3000 });
     }
+  } catch (error) {
+    console.error("Erreur lors de l'affectation du groupe :", error);
+    toast.add({ severity: 'error', summary: 'Un problème est survenu', detail: 'Le groupe n\'a pas été mis à jour', life: 3000 });
   }
 };
 
