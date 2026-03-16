@@ -2,7 +2,7 @@
 import {computed, onMounted, ref, watch, nextTick} from 'vue'
 import {ErrorView, SimpleSkeleton} from "@components";
 import {typesGroupes} from '@config/uniServices.js';
-import {useSemestreStore, useUsersStore, useAnneeStore} from "@stores";
+import {useSemestreStore, useUsersStore, useAnneeStore, useAnneeUnivStore} from "@stores";
 import {
   getEtudiantScolariteSemestresService,
   getGroupesService,
@@ -29,7 +29,7 @@ const usersStore = useUsersStore();
 const departementId = usersStore.departementDefaut.id;
 const etudiantsScolariteSemestre = ref([]);
 const isLoadingEtudiants = ref(true);
-const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
+const anneeUniv = useAnneeUnivStore().selectedAnneeUniv;
 const anneeStore = useAnneeStore();
 const annees = ref([]);
 const annee = ref({});
