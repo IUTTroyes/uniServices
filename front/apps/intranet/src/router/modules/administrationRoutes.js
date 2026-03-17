@@ -18,6 +18,7 @@ export default [
     path: 'administration',
     component: AdministrationView,
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
         route: null,
@@ -29,6 +30,7 @@ export default [
     path: 'administration/personnels',
     component: PersonnelsView,
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
         route: '/administration'
@@ -38,6 +40,7 @@ export default [
   {
     path: 'administration/etudiant',
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
         route: '/administration'
@@ -90,6 +93,7 @@ export default [
     path: 'administration/pn',
     component: PnView,
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
         route: '/administration'
@@ -100,6 +104,7 @@ export default [
     path: 'administration/referentiels-competences',
     component: RefCompetencesIndexView,
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
         route: '/administration'
@@ -110,6 +115,7 @@ export default [
     path: 'administration/previsionnel',
     component: PrevisionnelView,
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Administration', route: '/administration', icon: 'pi pi-wrench' },
@@ -121,6 +127,9 @@ export default [
   },
   {
     path: 'administration/stages',
+    meta: {
+        permission: 'canViewAdministration',
+    },
     // component: () => import('@/views/Stages/AdministrationView.vue'),
     // meta: {
     //   breadcrumb: [
@@ -135,6 +144,7 @@ export default [
   {
     path: 'administration/annee/:anneeId',
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Administration', route: '/administration', icon: 'pi pi-wrench' },
@@ -147,6 +157,9 @@ export default [
   },
   {
     path: 'administration/qualite',
+    meta: {
+        permission: 'canViewAdministration',
+    },
     children: [
       ...questionnaireAdministrationRoutes
     ]

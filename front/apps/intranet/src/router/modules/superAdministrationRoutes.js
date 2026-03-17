@@ -10,6 +10,7 @@ export default [
     path: 'super-administration',
     component: SuperAdministrationView,
     meta: {
+      permission: 'isSuperAdmin',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Super-Administration',
         route: null,
