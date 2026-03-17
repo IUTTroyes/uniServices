@@ -128,7 +128,7 @@ router.beforeEach(async (to, from) => {
         const requiredPermission = to.meta.permission || to.matched.find(record => record.meta.permission)?.meta.permission;
         if (requiredPermission && !hasPermission(requiredPermission)) {
             console.warn(`Access denied to ${to.path}. Missing permission: ${requiredPermission}`);
-            return { path: '/' }; // Rediriger vers le dashboard ou une page 403
+            window.location.href= "/";
         }
 
         return true;

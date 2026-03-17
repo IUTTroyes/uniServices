@@ -23,6 +23,7 @@ export default [
     path: 'super-administration/annee-universitaire',
     component: NewAnneeUniv,
     meta: {
+      permission: 'isSuperAdmin',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Super-Administration', route: '/super-administration' },
@@ -38,6 +39,7 @@ export default [
     path: 'super-administration/annees-universitaires',
     component: ListAnneeUniv,
     meta: {
+      permission: 'isSuperAdmin',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Super-Administration', route: '/super-administration' },
@@ -53,6 +55,7 @@ export default [
     path: 'super-administration/annee-universitaire/:id/edit',
     component: EditAnneeUniv,
     meta: {
+      permission: 'isSuperAdmin',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Super-Administration', route: '/super-administration' },
@@ -73,6 +76,7 @@ export default [
     path: 'super-administration/annee-universitaire/:id/diplomes',
     component: AnneeUnivDiplomes,
     meta: {
+      permission: 'isSuperAdmin',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Super-Administration', route: '/super-administration' },
@@ -93,6 +97,7 @@ export default [
     path: 'super-administration/departements',
     component: ListDepartement,
     meta: {
+      permission: 'isSuperAdmin',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Super-Administration', route: '/super-administration' },
