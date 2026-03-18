@@ -17,6 +17,7 @@ use App\Entity\Traits\OptionTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Filter\DepartementFilter;
 use App\Repository\Structure\StructureDepartementRepository;
+use App\State\Processor\Departement\DepartementUpdateProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -28,9 +29,16 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new GetCollection(normalizationContext: ['groups' => ['departement:read']]),
+        new GetCollection(
+            uriTemplate: '/administration/structure_departements',
+            normalizationContext: ['groups' => ['departement:administration']],
+        ),
         new Get(normalizationContext: ['groups' => ['departement:read']]),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)"),
-        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)"),
+        new Patch(
+            securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)",
+            processor: DepartementUpdateProcessor::class
+        ),
         new Delete(security: "is_granted('CAN_DELETE_DEPARTEMENT', object)"),
     ]
 )]
@@ -46,11 +54,11 @@ class StructureDepartement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(groups: ['departement:read', 'personnel:read', 'departement_personnel:read', 'scoralite:read', 'diplome:detail', 'pn:detail', 'pn:light'])]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'departement_personnel:read', 'scoralite:read', 'diplome:detail', 'pn:detail', 'pn:light'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(groups: ['departement:read', 'personnel:read', 'etudiant:read', 'departement_personnel:read', 'scolarite:read', 'diplome:detail', 'pn:detail', 'pn:light'])]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'etudiant:read', 'departement_personnel:read', 'scolarite:read', 'diplome:detail', 'pn:detail', 'pn:light'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -69,7 +77,7 @@ class StructureDepartement
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups(groups: ['departement:read', 'personnel:read'])]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'diplome:detail', 'pn:detail', 'pn:light'])]
     private ?bool $actif = null;
 
     /**

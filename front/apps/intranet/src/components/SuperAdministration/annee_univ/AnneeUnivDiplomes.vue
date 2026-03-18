@@ -50,10 +50,12 @@ const diplomesByDepartement = computed(() => {
     const diplome = pn.diplome;
     const deptName = diplome?.departement?.libelle || 'Sans département';
     const deptId = diplome?.departement?.id || 'none';
+    const deptActif = diplome?.departement?.actif || 'unknown';
     if (!grouped[deptId]) {
       grouped[deptId] = {
         id: deptId,
         libelle: deptName,
+        actif: deptActif,
         pns: []
       };
     }
@@ -134,7 +136,7 @@ const editAnneeUniv = (anneeUniv) => {
         <template v-else>
           <Tabs v-model:value="activeTabIndex">
             <TabList>
-              <Tab v-for="(dept, index) in diplomesByDepartement" :key="dept.id" :value="index">
+              <Tab v-for="(dept, index) in diplomesByDepartement" :key="dept.id" :value="index" :class="!dept.actif ? '!text-red-500' : ''">
                 {{ dept.libelle }}
                 <Badge :value="dept.pns.length" severity="secondary" class="ml-2" />
               </Tab>

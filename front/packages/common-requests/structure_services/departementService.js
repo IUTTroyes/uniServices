@@ -5,11 +5,11 @@ import apiCall from '@helpers/apiCall';
 // ------------------- GET ----------------------
 // ----------------------------------------------
 
-const getAllDepartementsService = async (showToast = false) => {
+const getAllDepartementsService = async (scope = "",showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            ['/api/structure_departements'],
+            [`/api${scope}/structure_departements`],
             'Départements récupérés avec succès',
             'Erreur lors de la récupération des départements',
             showToast
@@ -80,8 +80,27 @@ const changeDepartementActifService = async (departementId, showToast = true) =>
     }
 }
 
+const updateDepartementService = async (departementId, data,showToast = true) => {
+    try {
+        return await apiCall(
+            api.patch,
+            [`/api/structure_departements/${departementId}`, data, {
+                headers: {
+                    'Content-Type': 'application/merge-patch+json'
+                }
+            }],
+            'Département mis à jour avec succès',
+            'Erreur lors de la mise à jour du département',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans updateDepartementService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getAllDepartementsService, getDepartementService, getDepartementsPersonnelService, changeDepartementActifService };
+export { getAllDepartementsService, getDepartementService, getDepartementsPersonnelService, changeDepartementActifService, updateDepartementService };
