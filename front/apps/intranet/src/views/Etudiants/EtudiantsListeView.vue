@@ -1,32 +1,30 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { FilterMatchMode } from '@primevue/core/api';
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue';
 import {ErrorView, ProfilEtudiant} from '@components';
-import { getAnneesService, getEtudiantsScolariteService, demissionEtudiantScolariteService } from '@requests';
-// import ViewEtudiantDialog from '@/dialogs/etudiants/ViewEtudiantDialog.vue';
-// import EditEtudiantDialog from '@/dialogs/etudiants/EditEtudiantDialog.vue';
-// import AccessEtudiantDialog from '@/dialogs/etudiants/AccessEtudiantDialog.vue';
+import { getEtudiantsScolariteService, demissionEtudiantScolariteService } from '@requests';
 import { useToast } from 'primevue/usetoast';
-import { useUsersStore } from '@stores';
+import { useUsersStore, useAnneeStore, useAnneeUnivStore } from '@stores';
 import { SimpleSkeleton } from '@components';
 import { useEtudiantFilters } from '@composables/filters/usersFilters/useEtudiantFilters';
 
 const toast = useToast();
 const route = useRoute();
+const hasError = ref(false);
 const usersStore = useUsersStore();
+const anneeStore = useAnneeStore();
+const anneeUnivStore = useAnneeUnivStore()
 
-const departementId = ref(null);
+const departementId = computed(() => usersStore.departementDefaut ? usersStore.departementDefaut.id : null);
+
 const anneesList = ref([]);
-
 const isLoadingAnnees = ref(false);
 const isLoadingStats = ref(false);
 
-const isUpdatingFilter = ref(false);
-const hasError = ref(false);
+const isInitialLoading = ref(true);
 
 const etudiants = ref([]);
 const nbEtudiants = ref(0);
@@ -39,48 +37,79 @@ const offset = computed(() => limit.value * page.value);
 
 const {filters, watchChanges} = useEtudiantFilters();
 watchChanges(async() => {
+  if (isInitialLoading.value) return;
+  page.value = 0;
   await getEtudiantsScolarite();
 });
 
 const showViewDialog = ref(false);
 const showEditDialog = ref(false);
-const showAccessEditDialog = ref(false);
 const selectedEtudiant = ref(null);
 
-const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));
+const selectedAnneeUniversitaire = anneeUnivStore.selectedAnneeUniv;
+
+onMounted(async () => {
+  isInitialLoading.value = true;
+  try {
+    departementId.value = usersStore.departementDefaut.id;
+    await getAnnees();
+
+    // Initialiser le filtre d'année depuis le query parameter si présent
+    const anneeFromQuery = route.query.annee;
+    if (anneeFromQuery) {
+      filters.value.annee.value = parseInt(anneeFromQuery);
+    }
+  } catch (error) {
+    console.error("Erreur lors de l'initialisation :", error);
+    hasError.value = true;
+  } finally {
+    isInitialLoading.value = false;
+  }
+});
 
 const getAnnees = async () => {
   isLoadingAnnees.value = true;
   isLoadingStats.value = true;
-  try {
-    const params = {
-      departement: departementId.value,
-      actif: true,
-    };
-    anneesList.value = await getAnneesService(params);
-  } catch (error) {
-    console.error('Erreur lors du chargement des années :', error);
-    hasError.value = true;
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les années. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
-      life: 5000,
-    });
-  } finally {
+  if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
+    anneesList.value = anneeStore.annees;
     isLoadingAnnees.value = false;
-
+    fetchAnneesStats();
+  } else {
     try {
-      // pour chaque anneeList
-      for (const annee of anneesList.value) {
-        const etudiantsCount = await getEtudiantsAnnee(annee.id);
-        annee.etudiantsCount = etudiantsCount.totalItems;
-      }
+      const params = {
+        departement: departementId.value,
+        actif: true,
+      };
+      await anneeStore.getAnneesDepartement(params);
+      anneesList.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
     } catch (error) {
-      console.error('Erreur lors de la sélection de l\'année par défaut :', error);
+      console.error('Erreur lors du chargement des années :', error);
+      hasError.value = true;
     } finally {
-      isLoadingStats.value = false;
+      isLoadingAnnees.value = false;
+      // Charger les stats de manière asynchrone sans bloquer
+      fetchAnneesStats();
     }
+  }
+};
+
+const fetchAnneesStats = async () => {
+  isLoadingStats.value = true;
+  try {
+    const requests = anneesList.value.map(async (annee) => {
+      try {
+        const response = await getEtudiantsAnnee(annee.id);
+        annee.etudiantsCount = response.totalItems;
+      } catch (e) {
+        console.error(`Erreur stats pour l'année ${annee.id}:`, e);
+        annee.etudiantsCount = 0;
+      }
+    });
+    await Promise.all(requests);
+  } catch (error) {
+    console.error('Erreur lors du chargement des statistiques :', error);
+  } finally {
+    isLoadingStats.value = false;
   }
 };
 
@@ -108,10 +137,9 @@ const getEtudiantsScolarite = async () => {
     filters: filters.value,
   };
   try {
-    const response = await getEtudiantsScolariteService(params);
+    const response = await getEtudiantsScolariteService(params, '/administration');
     nbEtudiants.value = response.totalItems;
     etudiants.value = response.member;
-
     etudiants.value.forEach(etudiant => {
       etudiant.annees = [
         ...new Set(
@@ -122,29 +150,10 @@ const getEtudiantsScolarite = async () => {
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants :', error);
     hasError.value = true;
-    toast.add({
-      severity: 'error',
-      summary: 'Erreur',
-      detail: 'Impossible de charger les étudiants. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
-      life: 5000,
-    });
   } finally {
     loading.value = false;
   }
 };
-
-onMounted(async () => {
-  departementId.value = usersStore.departementDefaut.id;
-  await getAnnees();
-
-  // Initialiser le filtre d'année depuis le query parameter si présent
-  const anneeFromQuery = route.query.annee;
-  if (anneeFromQuery) {
-    filters.value.annee.value = parseInt(anneeFromQuery);
-  }
-
-  await getEtudiantsScolarite();
-});
 
 const onPageChange = async event => {
   limit.value = event.rows;
@@ -216,6 +225,7 @@ const deleteEtudiant = etudiant => {
         @update:rows="limit = $event"
         :globalFilterFields="['nom', 'prenom']"
     >
+      <Column field="anneeUniversitaire"></Column>
       <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 12rem">
         <template #body="{ data }">
           {{ data.etudiant.nom }}

@@ -632,7 +632,7 @@ const synchroParents = async () => {
   <div class="card min-h-full">
     <div class="flex justify-between items-end w-full">
       <div>
-        <h2 class="text-2xl font-bold flex items-end gap-2">Composition des groupes du <span>{{semestre.libelle}}</span></h2>
+        <h2 class="text-2xl font-bold flex items-end gap-2">Composition des groupes de <span>{{annee.libelle}}</span></h2>
         <em>Répartir les étudiants dans les groupes</em>
       </div>
       <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>

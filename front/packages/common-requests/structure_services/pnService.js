@@ -21,6 +21,23 @@ const getAllPns = async (showToast = false) => {
     }
 }
 
+const getPns = async (params, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.get,
+            ['/api/structure_pns', { params }],
+            'PNs récupérés avec succès',
+            'Erreur lors de la récupération des PNs',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans getAllPns:', error);
+        throw error;
+    }
+}
+
+
 const getPnsDiplome = async (diplomeId, showToast = false) => {
     try {
         const response = await apiCall(
@@ -81,4 +98,4 @@ const deletePnService = async (pnId, showToast = false) => {
     }
 }
 
-export { getAllPns, getPnsDiplome, getPnDiplome, deletePnService };
+export { getAllPns, getPns, getPnsDiplome, getPnDiplome, deletePnService };

@@ -1,13 +1,14 @@
 <script setup>
 import { onMounted, ref, computed, watch } from "vue";
-import { getAnneesService } from "@requests";
 import { ErrorView, ListSkeleton } from "@components";
-import { useUsersStore, useSemestreStore, useAnneeStore } from "@stores";
+import { useUsersStore, useSemestreStore, useAnneeStore, useAnneeUnivStore } from "@stores";
 
 const userStore = useUsersStore();
 const semestreStore = useSemestreStore();
 const anneeStore = useAnneeStore();
+const anneeUnivStore = useAnneeUnivStore();
 
+const selectedAnneeUniversitaire = anneeUnivStore.selectedAnneeUniv;
 const selectedAnnee = ref(null);
 const isLoading = ref(true);
 const hasError = ref(false);
@@ -99,9 +100,8 @@ const getAnnees = async () => {
     try {
       const params = {
         departement: departementId,
-        actif: true,
+        anneeUniversitaire: selectedAnneeUniversitaire.id
       };
-      // const annees = await getAnneesService(params);
       await anneeStore.getAnneesDepartement(params);
       const annees = anneeStore.annees;
       // Créer un nouvel objet pour stocker les années de formation initiale et continue

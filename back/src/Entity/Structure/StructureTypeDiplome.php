@@ -25,7 +25,7 @@ class StructureTypeDiplome
     private string $libelle;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['type-diplome:detail', 'type-diplome:light', 'maquette:detail', 'diplome:detail', 'diplome:light'])]
+    #[Groups(['type-diplome:detail', 'type-diplome:light', 'maquette:detail', 'diplome:detail', 'diplome:light', 'pn:detail'])]
     private string $sigle;
 
     #[ORM\Column]

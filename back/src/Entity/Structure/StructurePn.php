@@ -34,13 +34,15 @@ class StructurePn
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['pn:detail', 'maquette:detail'])]
     private string $libelle;
 
     #[ORM\Column]
-    #[Groups(['maquette:detail'])]
+    #[Groups(['pn:detail', 'maquette:detail'])]
     private int $anneePublication;
 
     #[ORM\ManyToOne(inversedBy: 'pns')]
+    #[Groups(['pn:detail'])]
     private ?StructureDiplome $diplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'pns')]

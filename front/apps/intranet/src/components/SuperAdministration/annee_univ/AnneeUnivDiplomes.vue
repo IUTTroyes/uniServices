@@ -2,7 +2,7 @@
 import {computed, onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {Access, ErrorView, ListSkeleton, PermissionGuard} from "@components";
-import {getAnneeUniversitaireService, getDiplomesService, deleteDiplomeFromAnneeUnivService} from "@requests";
+import {getAnneeUniversitaireService, getPns, deletePnService, deleteDiplomeFromAnneeUnivService} from "@requests";
 import ButtonInfo from "@components/components/Buttons/ButtonInfo.vue";
 import ButtonDelete from "@components/components/Buttons/ButtonDelete.vue";
 
@@ -14,27 +14,8 @@ const isLoading = ref(true);
 
 const anneeUnivId = computed(() => route.params.id);
 const anneeUniv = ref(null);
-const diplomes = ref([]);
+const pns = ref([]);
 const activeTabIndex = ref(0);
-
-// Grouper les diplômes par département
-const diplomesByDepartement = computed(() => {
-  const grouped = {};
-  diplomes.value.forEach(diplome => {
-    const deptName = diplome.departement?.libelle || 'Sans département';
-    const deptId = diplome.departement?.id || 'none';
-    if (!grouped[deptId]) {
-      grouped[deptId] = {
-        id: deptId,
-        libelle: deptName,
-        diplomes: []
-      };
-    }
-    grouped[deptId].diplomes.push(diplome);
-  });
-  // Trier les départements par nom
-  return Object.values(grouped).sort((a, b) => a.libelle.localeCompare(b.libelle));
-});
 
 const page = ref(0);
 const rowOptions = [5, 10, 20];
@@ -43,7 +24,42 @@ const limit = ref(rowOptions[0]);
 
 onMounted(async () => {
   await loadAnneeUniv();
-  await getDiplomes();
+  await getPnsAnneeUniv();
+});
+
+const getPnsAnneeUniv = async () => {
+  try {
+    isLoading.value = true;
+    const params = {
+      anneeUniversitaire: anneeUnivId.value,
+    };
+    pns.value = await getPns(params);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des PNs:", error);
+    hasError.value = true;
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Grouper les diplômes par département
+const diplomesByDepartement = computed(() => {
+  const grouped = {};
+  pns.value.forEach(pn => {
+    const diplome = pn.diplome;
+    const deptName = diplome?.departement?.libelle || 'Sans département';
+    const deptId = diplome?.departement?.id || 'none';
+    if (!grouped[deptId]) {
+      grouped[deptId] = {
+        id: deptId,
+        libelle: deptName,
+        pns: []
+      };
+    }
+    grouped[deptId].pns.push(pn);
+  });
+  // Trier les départements par nom
+  return Object.values(grouped).sort((a, b) => a.libelle.localeCompare(b.libelle));
 });
 
 const loadAnneeUniv = async () => {
@@ -58,21 +74,6 @@ const loadAnneeUniv = async () => {
   }
 };
 
-const getDiplomes = async () => {
-  try {
-    isLoading.value = true;
-    const params = {
-      anneeUniversitaire: anneeUnivId.value,
-    };
-    diplomes.value = await getDiplomesService(params);
-  } catch (error) {
-    console.error("Erreur lors de la récupération des diplômes:", error);
-    hasError.value = true;
-  } finally {
-    isLoading.value = false;
-  }
-};
-
 const viewDiplome = (diplome) => {
   router.push({ path: `/administration/diplome/${diplome.id}` });
 };
@@ -81,12 +82,12 @@ const goBack = () => {
   router.push('/super-administration/annees-universitaires');
 };
 
-const deleteDiplomeFromAnneeUniv = async (diplomeId) => {
+const deletePn = async (pnId) => {
   try {
-    await deleteDiplomeFromAnneeUnivService(anneeUnivId.value, diplomeId);
-    await getDiplomes();
+    await deletePnService(pnId);
+    await getPns();
   } catch (error) {
-    console.error("Erreur lors de la suppression du diplôme de l'année universitaire:", error);
+    console.error("Erreur lors de la suppression du PN:", error);
     hasError.value = true;
   }
 }
@@ -125,7 +126,7 @@ const editAnneeUniv = (anneeUniv) => {
           <span class="text-muted-color">Année : {{ anneeUniv.annee }}</span>
         </div>
 
-        <Message v-if="diplomes.length === 0" severity="info" class="mb-4">
+        <Message v-if="pns.length === 0" severity="info" class="mb-4">
           Aucun diplôme n'est associé à cette année universitaire.
         </Message>
 
@@ -134,27 +135,27 @@ const editAnneeUniv = (anneeUniv) => {
             <TabList>
               <Tab v-for="(dept, index) in diplomesByDepartement" :key="dept.id" :value="index">
                 {{ dept.libelle }}
-                <Badge :value="dept.diplomes.length" severity="secondary" class="ml-2" />
+                <Badge :value="dept.pns.length" severity="secondary" class="ml-2" />
               </Tab>
             </TabList>
             <TabPanels>
               <TabPanel v-for="(dept, index) in diplomesByDepartement" :key="dept.id" :value="index">
-                <DataTable :value="dept.diplomes" striped-rows>
-                  <Column field="libelle" header="Libellé">
+                <DataTable :value="dept.pns" striped-rows>
+                  <Column field="diplome.libelle" header="Libellé">
                     <template #body="slotProps">
-                      <span class="font-semibold">{{ slotProps.data.libelle }}</span>
+                      <span class="font-semibold">{{ slotProps.data.diplome?.libelle }}</span>
                     </template>
                   </Column>
-                  <Column field="typeDiplome" header="Type">
+                  <Column field="diplome.typeDiplome" header="Type">
                     <template #body="slotProps">
-                      <Tag v-if="slotProps.data.typeDiplome" :value="slotProps.data.typeDiplome.sigle" severity="info" />
+                      <Tag v-if="slotProps.data.diplome?.typeDiplome" :value="slotProps.data.diplome.typeDiplome.sigle" severity="info" />
                       <span v-else>-</span>
                     </template>
                   </Column>
                   <Column header="Actions">
                     <template #body="slotProps">
-                      <ButtonInfo tooltip="Voir le diplôme" icon="pi pi-eye" @click="viewDiplome(slotProps.data)" />
-                      <ButtonDelete tooltip="Supprimer l'association" icon="pi pi-trash" class="ml-2" @confirm-delete="deleteDiplomeFromAnneeUniv(slotProps.data.id)" />
+                      <ButtonInfo tooltip="Voir le diplôme" icon="pi pi-eye" @click="viewDiplome(slotProps.data.diplome)" />
+                      <ButtonDelete tooltip="Supprimer l'association" icon="pi pi-trash" class="ml-2" @confirm-delete="deletePn(slotProps.data.id)" />
                     </template>
                   </Column>
                 </DataTable>

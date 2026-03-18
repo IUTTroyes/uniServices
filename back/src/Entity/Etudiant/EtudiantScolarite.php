@@ -42,6 +42,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/maxi/etudiant_scolarites',
             normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:detail']],
         ),
+        new GetCollection(
+            uriTemplate: '/administration/etudiant_scolarites',
+            normalizationContext: ['groups' => ['scolarite:administration']],
+            securityPostDenormalize: "is_granted('CAN_VIEW_SCOL', object)",
+        ),
         new Get(
             uriTemplate: '/etudiant_scolarites/etudiant/{etudiant}/structureAnneeUniversitaire/{structureAnneeUniversitaire}',
             normalizationContext: ['groups' => ['scolarite:detail']],
@@ -57,12 +62,12 @@ class EtudiantScolarite
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['scolarite:detail', 'scolarite:light'])]
+    #[Groups(['scolarite:detail', 'scolarite:light', 'scolarite:administration'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['scolarite:detail', 'scolarite-semestre:manage-groupes'])]
+    #[Groups(['scolarite:detail', 'scolarite-semestre:manage-groupes', 'scolarite:administration'])]
     private ?Etudiant $etudiant = null;
 
     #[ORM\Column]
@@ -102,18 +107,18 @@ class EtudiantScolarite
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['scolarite:detail', 'scolarite:light'])]
+    #[Groups(['scolarite:detail', 'scolarite:light', 'scolarite:administration'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'scolarite:administration'])]
     private ?StructureDepartement $departement = null;
 
     /**
      * @var Collection<int, EtudiantScolariteSemestre>
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'scolarite')]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'scolarite:administration'])]
     private Collection $scolariteSemestre;
 
     /**
@@ -121,11 +126,11 @@ class EtudiantScolarite
      * @deprecated
      */
     #[ORM\ManyToMany(targetEntity: StructureAnnee::class, inversedBy: 'scolarites')]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'scolarite:administration'])]
     private Collection $annee;
 
     #[ORM\Column]
-    #[Groups(['scolarite:detail', 'scolarite:light'])]
+    #[Groups(['scolarite:detail', 'scolarite:light', 'scolarite:administration'])]
     private bool $actif = false;
 
     #[ORM\Column(nullable: true)]

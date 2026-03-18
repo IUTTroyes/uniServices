@@ -17,7 +17,7 @@ use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Filter\EtudiantFilter;
 use App\Repository\EtudiantRepository;
-use App\State\Etudiant\EtudiantTrombinoscopeProvider;
+use App\State\Provider\Etudiant\EtudiantTrombinoscopeProvider;
 use App\ValueObject\Adresse;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -75,7 +75,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes', 'scolarite:administration'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
@@ -83,7 +83,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['etudiant:detail', 'etudiant:light'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite:administration'])]
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -98,11 +98,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes', 'scolarite:administration'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes', 'scolarite:administration'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]

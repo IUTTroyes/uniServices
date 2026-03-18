@@ -90,7 +90,7 @@ class StructureDiplome
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'annee_universitaire:detail'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'annee_universitaire:detail', 'pn:detail'])]
     private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome', cascade: ['persist'])]
@@ -131,7 +131,7 @@ class StructureDiplome
     private Collection $pns;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
-    #[Groups(['diplome:detail'])]
+    #[Groups(['diplome:detail', 'pn:detail'])]
     private ?StructureDepartement $departement = null;
 
     #[ORM\Column(length: 3, nullable: true)]
@@ -147,7 +147,7 @@ class StructureDiplome
     private ?string $apogeeCodeDepartement = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'pn:detail'])]
     private ?StructureTypeDiplome $typeDiplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
