@@ -86,7 +86,7 @@ const goBack = () => {
 const deletePn = async (pnId) => {
   try {
     await deletePnService(pnId);
-    await getPns();
+    await getPnsAnneeUniv(); // Recharger la liste après suppression
   } catch (error) {
     console.error("Erreur lors de la suppression du PN:", error);
     hasError.value = true;
