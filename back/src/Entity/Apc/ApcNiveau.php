@@ -55,6 +55,9 @@ class ApcNiveau
     #[Groups('enseignement:detail')]
     private ?ApcCompetence $competence = null;
 
+    #[ORM\ManyToOne(inversedBy: 'niveaux')]
+    private ?StructureAnnee $annee = null;
+
     /**
      * @var Collection<int, ApcApprentissageCritique>
      */
@@ -62,18 +65,11 @@ class ApcNiveau
     #[Groups(['competence:referentiel:full'])]
     private Collection $apprentissageCritique;
 
-    /**
-     * @var Collection<int, StructureAnnee>
-     */
-    #[ORM\OneToMany(targetEntity: StructureAnnee::class, mappedBy: 'apcNiveau')]
-    private Collection $annees;
-
     public function __construct(ApcCompetence $competence = null)
     {
         $this->competence = $competence;
         $this->parcours = new ArrayCollection();
         $this->apprentissageCritique = new ArrayCollection();
-        $this->annees = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -183,32 +179,14 @@ class ApcNiveau
         return $this->getCompetence()?->getNomCourt().' - Niveau '.$niv.'('.$this->ordre.')';
     }
 
-    /**
-     * @return Collection<int, StructureAnnee>
-     */
-    public function getAnnees(): Collection
+    public function getAnnee(): ?StructureAnnee
     {
-        return $this->annees;
+        return $this->annee;
     }
 
-    public function addAnnee(StructureAnnee $annee): static
+    public function setAnnee(?StructureAnnee $annee): static
     {
-        if (!$this->annees->contains($annee)) {
-            $this->annees->add($annee);
-            $annee->setNiveau($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAnnee(StructureAnnee $annee): static
-    {
-        if ($this->annees->removeElement($annee)) {
-            // set the owning side to null (unless already changed)
-            if ($annee->getNiveau() === $this) {
-                $annee->setNiveau(null);
-            }
-        }
+        $this->annee = $annee;
 
         return $this;
     }

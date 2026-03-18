@@ -14,7 +14,6 @@ class PnFilter extends AbstractFilter
         'personnel' => 'personnel',
         'anneeUniversitaire' => 'anneeUniversitaire',
         'departement' => 'departement',
-        'semestre' => 'semestre',
         'enseignement' => 'enseignement',
         'diplome' => 'diplome',
     ];

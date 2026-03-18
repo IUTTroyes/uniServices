@@ -86,11 +86,11 @@ class StructureDiplome
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'annee_universitaire:detail'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'annee_universitaire:detail', 'pn:light'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'annee_universitaire:detail', 'pn:detail'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'annee_universitaire:detail', 'pn:detail', 'pn:light'])]
     private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome', cascade: ['persist'])]
@@ -110,7 +110,7 @@ class StructureDiplome
     private ?int $codeCelcatDepartement = null;
 
     #[ORM\Column(length: 40, nullable: true)]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'pn:light'])]
     private ?string $sigle = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
@@ -127,11 +127,11 @@ class StructureDiplome
     private ?string $logoPartenaireName = null;
 
     #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'diplome', cascade: ['remove'], fetch: 'EAGER', orphanRemoval: true)]
-    #[Groups(['diplome:detail', 'maquette:detail'])]
+    #[Groups(['diplome:detail', 'maquette:detail', 'pn:light'])]
     private Collection $pns;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
-    #[Groups(['diplome:detail', 'pn:detail'])]
+    #[Groups(['diplome:detail', 'pn:detail', 'pn:light'])]
     private ?StructureDepartement $departement = null;
 
     #[ORM\Column(length: 3, nullable: true)]
@@ -147,7 +147,7 @@ class StructureDiplome
     private ?string $apogeeCodeDepartement = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'pn:detail'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'pn:detail', 'pn:light'])]
     private ?StructureTypeDiplome $typeDiplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]

@@ -63,11 +63,11 @@ class StructureAnneeUniversitaire
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['annee_universitaire:detail', 'etudiant:read', 'maquette:detail', 'annee-univ:light'])]
+    #[Groups(['annee_universitaire:detail', 'etudiant:read', 'maquette:detail', 'annee-univ:light', 'pn:light'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
-    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light'])]
+    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light', 'pn:light'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
@@ -81,7 +81,7 @@ class StructureAnneeUniversitaire
     /**
      * @var Collection<int, EtudiantScolarite>
      */
-    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'anneeUniversitaire')]
+    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'anneeUniversitaire', orphanRemoval: true, cascade: ['remove'])]
     private Collection $scolarites;
 
     /**

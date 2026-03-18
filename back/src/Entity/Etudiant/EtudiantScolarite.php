@@ -117,7 +117,7 @@ class EtudiantScolarite
     /**
      * @var Collection<int, EtudiantScolariteSemestre>
      */
-    #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'scolarite')]
+    #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'scolarite', orphanRemoval: true, cascade: ['remove'])]
     #[Groups(['scolarite:detail', 'scolarite:administration'])]
     private Collection $scolariteSemestre;
 
@@ -138,6 +138,7 @@ class EtudiantScolarite
     private ?bool $decision = null;
 
     #[ORM\ManyToOne(inversedBy: 'etudiantScolaritesPropositions')]
+    #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?StructureAnnee $proposition = null;
 
     public function __construct()

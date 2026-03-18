@@ -76,9 +76,11 @@ class StructureAnnee
     #[Groups(['annee:read', 'maquette:detail'])]
     private ?string $apogeeCodeEtape = null;
 
-    // todo: inverser car 1 annee a N niveaux
-    #[ORM\ManyToOne(inversedBy: 'annees')]
-    private ?ApcNiveau $niveau = null;
+    /**
+     * @var Collection<int, ApcNiveau>
+     */
+    #[ORM\OneToMany(targetEntity: ApcNiveau::class, mappedBy: 'annee', orphanRemoval: true, cascade: ['remove'])]
+    private Collection $niveaux;
 
     /**
      * @var Collection<int, EtudiantScolarite>
@@ -92,7 +94,7 @@ class StructureAnnee
     /**
      * @var Collection<int, EtudiantScolarite>
      */
-    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'proposition')]
+    #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'proposition', orphanRemoval: true, cascade: ['remove'])]
     private Collection $etudiantScolaritesPropositions;
 
     public function __construct()
@@ -101,6 +103,7 @@ class StructureAnnee
         $this->setOpt([]);
         $this->scolarites = new ArrayCollection();
         $this->etudiantScolaritesPropositions = new ArrayCollection();
+        $this->niveaux = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -231,14 +234,32 @@ class StructureAnnee
         return $this;
     }
 
-    public function getNiveau(): ?ApcNiveau
+    /**
+     * @return Collection<int, ApcNiveau>
+     */
+    public function getNiveaux(): Collection
     {
-        return $this->niveau;
+        return $this->niveaux;
     }
 
-    public function setNiveau(?ApcNiveau $niveau): static
+    public function addNiveau(ApcNiveau $niveau): static
     {
-        $this->niveau = $niveau;
+        if (!$this->niveaux->contains($niveau)) {
+            $this->niveaux->add($niveau);
+            $niveau->setAnnee($this);
+        }
+
+        return $this;
+    }
+
+    public function removeNiveau(ApcNiveau $niveau): static
+    {
+        if ($this->niveaux->removeElement($niveau)) {
+            // set the owning side to null (unless already changed)
+            if ($niveau->getAnnee() === $this) {
+                $niveau->setAnnee(null);
+            }
+        }
 
         return $this;
     }

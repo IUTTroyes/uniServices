@@ -41,8 +41,8 @@ class EtudiantScolariteSemestre
     #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite-semestre:manage-groupes'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'scolariteSemestre', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
     #[Groups(['scolarite-semestre:detail', 'etudiant:read'])]
     private ?StructureSemestre $semestre = null;
 
@@ -85,8 +85,8 @@ class EtudiantScolariteSemestre
     #[Groups(['scolarite-semestre:detail'])]
     private ?bool $decision = null;
 
-    #[ORM\ManyToOne(inversedBy: 'scolariteSemestre', cascade: ['persist', 'remove'])]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['scolarite-semestre:detail', 'etudiant:read'])]
     private ?StructureSemestre $proposition = null;
 

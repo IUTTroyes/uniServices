@@ -2,14 +2,14 @@
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton, Access } from "@components";
-import { useAnneeUnivStore } from "@stores";
 import { getAnneeUniversitaireService, updateAnneeUniversitaireService, getDiplomesService } from "@requests";
+import {useAnneeUnivStore} from "@stores";
 
 const route = useRoute();
 const router = useRouter();
-
 const hasError = ref(false);
 const isLoading = ref(true);
+const activeTabIndex = ref(0);
 
 const anneeUnivStore = useAnneeUnivStore();
 const anneeUnivId = computed(() => route.params.id);
@@ -19,7 +19,9 @@ const anneeUniv = ref({
   commentaire: "",
   actif: false,
 });
-const originalAnneeUniv = ref(null);
+
+const diplomes = ref([]);
+const selectedDiplomes = ref([]);
 
 const formValid = ref(true);
 const formErrors = ref(null);
@@ -34,57 +36,76 @@ const activeChoice = ref([
   }
 ]);
 
-const diplomes = ref([]);
-const selectedDiplomes = ref([]);
-const isLoadingDiplomes = ref(false);
-const activeTabIndex = ref(0);
-
-// Grouper les diplômes par département
-const diplomesByDepartement = computed(() => {
-  const grouped = {};
-  diplomes.value.forEach(diplome => {
-    const deptName = diplome.departement?.libelle || 'Sans département';
-    const deptId = diplome.departement?.id || 'none';
-    if (!grouped[deptId]) {
-      grouped[deptId] = {
-        id: deptId,
-        libelle: deptName,
-        diplomes: []
-      };
-    }
-    grouped[deptId].diplomes.push(diplome);
-  });
-  // Trier les départements par nom
-  return Object.values(grouped).sort((a, b) => a.libelle.localeCompare(b.libelle));
-});
-
 onMounted(async () => {
-  await loadAnneeUniv();
+  await getAnneeUniv();
   await getDiplomes();
 });
 
-const loadAnneeUniv = async () => {
+const getAnneeUniv = async () => {
   try {
     isLoading.value = true;
     const data = await getAnneeUniversitaireService(anneeUnivId.value);
     anneeUniv.value = {
       libelle: data.libelle,
       annee: data.annee,
-      commentaire: data.commentaire || "",
+      commentaire: data.commentaire,
       actif: data.actif,
     };
-    originalAnneeUniv.value = { ...anneeUniv.value };
-
-    // Récupérer les diplômes déjà associés
-    if (data.diplomes && Array.isArray(data.diplomes)) {
-      selectedDiplomes.value = data.diplomes.map(d => d.id);
-    }
   } catch (error) {
     console.error("Erreur lors de la récupération de l'année universitaire:", error);
     hasError.value = true;
   } finally {
+  }
+}
+
+const getDiplomes = async () => {
+  try {
+    diplomes.value = await getDiplomesService({}, '/pn-light');
+
+    //marquer les diplomes déjà associés (qui ont un pn dont l'année universitaire = anneeUniv
+    selectedDiplomes.value = diplomes.value
+      .filter(diplome =>
+        diplome.pns && diplome.pns.some(pn => pn.anneeUniversitaire?.id === parseInt(anneeUnivId.value))
+      )
+      .map(diplome => diplome.id);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des diplômes:", error);
+    hasError.value = true;
+  } finally {
+    console.log("diplomes", diplomes.value);
+    await triDiplomesParDepartement();
     isLoading.value = false;
   }
+}
+
+
+const triDiplomesParDepartement = async () => {
+  try {
+    const grouped = {};
+    diplomes.value.forEach(diplome => {
+      const deptName = diplome.departement?.libelle || 'Sans département';
+      const deptId = diplome.departement?.id || 'none';
+      if (!grouped[deptId]) {
+        grouped[deptId] = {
+          id: deptId,
+          libelle: deptName,
+          diplomes: []
+        };
+      }
+      grouped[deptId].diplomes.push(diplome);
+    });
+    // Trier les départements par nom
+    diplomes.value = Object.values(grouped).sort((a, b) => a.libelle.localeCompare(b.libelle));
+  } catch (error) {
+    console.error("Erreur lors du tri des diplômes par département:", error);
+    hasError.value = true;
+  } finally {
+    console.log("diplomes triés", diplomes.value);
+  }
+}
+
+const isDiplomeSelected = (diplomeId) => {
+  return selectedDiplomes.value.includes(diplomeId);
 };
 
 const handleValidation = (field, result) => {
@@ -95,19 +116,6 @@ const handleValidation = (field, result) => {
   formValid.value = Object.values(formErrors.value).every(error => error === null);
 };
 
-const toggleDiplome = (diplomeId) => {
-  const index = selectedDiplomes.value.indexOf(diplomeId);
-  if (index > -1) {
-    selectedDiplomes.value.splice(index, 1);
-  } else {
-    selectedDiplomes.value.push(diplomeId);
-  }
-};
-
-const isDiplomeSelected = (diplomeId) => {
-  return selectedDiplomes.value.includes(diplomeId);
-};
-
 const updateAnneeUniv = async () => {
   try {
     const data = {
@@ -115,7 +123,7 @@ const updateAnneeUniv = async () => {
       annee: anneeUniv.value.annee,
       commentaire: anneeUniv.value.commentaire,
       actif: anneeUniv.value.actif,
-      diplomes: selectedDiplomes.value.map(id => `/api/structure_diplomes/${id}`)
+      diplomes: selectedDiplomes.value.map(id => ({ id }))
     };
 
     await updateAnneeUniversitaireService(anneeUnivId.value, data, true);
@@ -129,19 +137,6 @@ const updateAnneeUniv = async () => {
   } catch (error) {
     console.error("Erreur lors de la mise à jour de l'année universitaire:", error);
     hasError.value = true;
-  }
-};
-
-const getDiplomes = async () => {
-  isLoadingDiplomes.value = true;
-  try {
-    // Récupérer tous les diplômes via le service (pas seulement ceux du département)
-    diplomes.value = await getDiplomesService({});
-  } catch (error) {
-    hasError.value = true;
-    console.error("Erreur lors de la récupération des diplômes:", error);
-  } finally {
-    isLoadingDiplomes.value = false;
   }
 };
 
@@ -161,46 +156,40 @@ const cancel = () => {
     <ListSkeleton v-else-if="isLoading" :count="5" />
     <template v-else>
       <PermissionGuard permission="isSuperAdmin" :showFallback="true">
-        <Message v-if="anneeUniv.actif" severity="warn" class="mb-4 flex items-center flex-col justify-center text-center">
-          <i class="pi pi-exclamation-triangle mr-2"></i>
-          Cette année universitaire est actuellement <strong>active</strong>.
-          La désactiver signifie qu'aucune année universitaire ne sera active.
-        </Message>
-
         <form @submit.prevent="updateAnneeUniv()" class="flex flex-col">
           <div>
             <div class="flex flex-row gap-4 items-center">
               <ValidatedInput
-                v-model="anneeUniv.libelle"
-                name="libelle"
-                label="Libellé"
-                type="text"
-                :rules="[validationRules.required]"
-                @validation="result => handleValidation('libelle', result)"
-                help-text="Entrez le libellé de l'année universitaire (ex: 2024-2025)"
-                class="w-full"
+                  v-model="anneeUniv.libelle"
+                  name="libelle"
+                  label="Libellé"
+                  type="text"
+                  :rules="[validationRules.required]"
+                  @validation="result => handleValidation('libelle', result)"
+                  help-text="Entrez le libellé de l'année universitaire (ex: 2024-2025)"
+                  class="w-full"
               />
 
               <ValidatedInput
-                v-model="anneeUniv.annee"
-                name="annee"
-                label="Année"
-                type="number"
-                :rules="[validationRules.required]"
-                @validation="result => handleValidation('annee', result)"
-                help-text="Sélectionnez l'année de début"
-                class="w-full"
+                  v-model="anneeUniv.annee"
+                  name="annee"
+                  label="Année"
+                  type="number"
+                  :rules="[validationRules.required]"
+                  @validation="result => handleValidation('annee', result)"
+                  help-text="Sélectionnez l'année de début"
+                  class="w-full"
               />
             </div>
 
             <ValidatedInput
-              v-model="anneeUniv.commentaire"
-              name="commentaire"
-              label="Commentaire"
-              type="textarea"
-              :rules="[]"
-              @validation="result => handleValidation('commentaire', result)"
-              help-text="Entrez un commentaire optionnel pour cette année universitaire"
+                v-model="anneeUniv.commentaire"
+                name="commentaire"
+                label="Commentaire"
+                type="textarea"
+                :rules="[]"
+                @validation="result => handleValidation('commentaire', result)"
+                help-text="Entrez un commentaire optionnel pour cette année universitaire"
             />
 
             <div class="mb-4">
@@ -208,10 +197,10 @@ const cancel = () => {
               <div class="flex gap-4">
                 <div v-for="choice in activeChoice" :key="choice.value" class="flex items-center gap-2">
                   <RadioButton
-                    v-model="anneeUniv.actif"
-                    :inputId="`actif-${choice.value}`"
-                    name="actif"
-                    :value="choice.value"
+                      v-model="anneeUniv.actif"
+                      :inputId="`actif-${choice.value}`"
+                      name="actif"
+                      :value="choice.value"
                   />
                   <label :for="`actif-${choice.value}`">{{ choice.label }}</label>
                 </div>
@@ -227,34 +216,35 @@ const cancel = () => {
               <h1 class="text-xl font-bold">Gestion des diplômes</h1>
               <p class="text-muted-color">Modifiez les diplômes associés à cette année universitaire.</p>
             </div>
-            <ListSkeleton v-if="isLoadingDiplomes" :count="3" class="mb-4" />
+
+            <ListSkeleton v-if="isLoading" :count="3" class="mb-4" />
             <template v-else>
-              <div v-if="diplomesByDepartement.length === 0" class="text-muted-color text-center py-4">
+              <div v-if="diplomes.length === 0" class="text-muted-color text-center py-4">
                 Aucun diplôme disponible.
               </div>
               <Tabs v-else v-model:value="activeTabIndex">
                 <TabList>
-                  <Tab v-for="(dept, index) in diplomesByDepartement" :key="dept.id" :value="index">
+                  <Tab v-for="(dept, index) in diplomes" :key="dept.id" :value="index">
                     {{ dept.libelle }}
                     <Badge
-                      :value="dept.diplomes.filter(d => isDiplomeSelected(d.id)).length + '/' + dept.diplomes.length"
-                      :severity="dept.diplomes.filter(d => isDiplomeSelected(d.id)).length > 0 ? 'success' : 'secondary'"
-                      class="ml-2"
+                        :value="dept.diplomes.filter(d => isDiplomeSelected(d.id)).length + '/' + dept.diplomes.length"
+                        :severity="dept.diplomes.filter(d => isDiplomeSelected(d.id)).length > 0 ? 'success' : 'secondary'"
+                        class="ml-2"
                     />
                   </Tab>
                 </TabList>
                 <TabPanels>
-                  <TabPanel v-for="(dept, index) in diplomesByDepartement" :key="dept.id" :value="index">
+                  <TabPanel v-for="(dept, index) in diplomes" :key="dept.id" :value="index">
                     <div v-for="diplome in dept.diplomes" :key="diplome.id">
                       <div class="p-2 border rounded mb-2 flex justify-between items-center">
                         <h3 class="font-semibold">{{ diplome.typeDiplome?.sigle || '' }} - {{ diplome.libelle }}</h3>
                         <ToggleButton
-                          :modelValue="isDiplomeSelected(diplome.id)"
-                          @update:modelValue="toggleDiplome(diplome.id)"
-                          onLabel="Associé"
-                          offLabel="Non associé"
-                          onIcon="pi pi-check"
-                          offIcon="pi pi-times"
+                            :modelValue="isDiplomeSelected(diplome.id)"
+                            @update:modelValue="toggleDiplome(diplome.id)"
+                            onLabel="Associé"
+                            offLabel="Non associé"
+                            onIcon="pi pi-check"
+                            offIcon="pi pi-times"
                         />
                       </div>
                     </div>
@@ -269,7 +259,6 @@ const cancel = () => {
             <Button label="Annuler" severity="secondary" @click="cancel" />
           </div>
         </form>
-
         <template #fallback>
           <Access></Access>
         </template>

@@ -12,6 +12,7 @@ use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructurePn;
 use App\Repository\EtudiantNoteRepository;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
+use App\Repository\Structure\StructurePnRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
 class AnneeUnivInitProcessor implements ProcessorInterface
@@ -19,6 +20,7 @@ class AnneeUnivInitProcessor implements ProcessorInterface
     public function __construct(
         private readonly EntityManagerInterface $em,
         private readonly StructureAnneeUniversitaireRepository $anneeUniversitaireRepository,
+        private readonly StructurePnRepository $structurePnRepository,
     ) {
     }
 
@@ -26,18 +28,20 @@ class AnneeUnivInitProcessor implements ProcessorInterface
     {
         $isAnneeUniv = $data instanceof StructureAnneeUniversitaire;
         $isNew = $isAnneeUniv && (
-            $operation instanceof Post ||
-            (isset($context['method']) && strtoupper($context['method']) === 'POST') ||
-            (isset($context['collection_operation_name']) && strtolower($context['collection_operation_name']) === 'post')
-        );
+                $operation instanceof Post ||
+                (isset($context['method']) && strtoupper($context['method']) === 'POST') ||
+                (isset($context['collection_operation_name']) && strtolower($context['collection_operation_name']) === 'post')
+            );
 
-        if ($isNew) {
-            // Créer un "pn" par diplôme
-            $diplomes = $data->getDiplomes();
-            foreach ($diplomes as $diplome) {
+        // Créer un "pn" par diplôme
+        $diplomes = $data->getDiplomes();
+
+        foreach ($diplomes as $diplome) {
+            $pn = $this->structurePnRepository->findOneBy(['diplome' => $diplome, 'anneeUniversitaire' => $data]);
+            if (!$pn) {
                 $pn = $this->createPn($diplome);
                 $pn->setAnneeUniversitaire($data);
-                $pn->setLibelle('PN '.$diplome->getDepartement()->getLibelle().'-'.$diplome->getLibelle().'-'.$data->getLibelle());
+                $pn->setLibelle('PN ' . $diplome->getDepartement()->getLibelle() . '-' . $diplome->getLibelle() . '-' . $data->getLibelle());
                 $pn->setAnneePublication($data->getAnnee());
                 $this->em->persist($pn);
                 $this->em->flush();

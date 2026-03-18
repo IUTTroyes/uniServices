@@ -167,6 +167,9 @@ class StructureSemestre
     #[Groups(['semestre:detail'])]
     private Collection $scolariteSemestre;
 
+    #[ORM\OneToMany(mappedBy: 'proposition', targetEntity: EtudiantScolariteSemestre::class, cascade: ['remove'], orphanRemoval: true)]
+    private Collection $scolariteSemestrePropositions;
+
     /**
      * @var Collection<int, StagePeriode>
      */
@@ -189,6 +192,7 @@ class StructureSemestre
         $this->events = new ArrayCollection();
         $this->contraintesSemestres = new ArrayCollection();
         $this->scolariteSemestre = new ArrayCollection();
+        $this->scolariteSemestrePropositions = new ArrayCollection();
         $this->stagePeriodes = new ArrayCollection();
         $this->enseignantHrs = new ArrayCollection();
     }

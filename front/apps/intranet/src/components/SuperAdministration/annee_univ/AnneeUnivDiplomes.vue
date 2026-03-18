@@ -32,6 +32,7 @@ const getPnsAnneeUniv = async () => {
     isLoading.value = true;
     const params = {
       anneeUniversitaire: anneeUnivId.value,
+      pagination: false,
     };
     pns.value = await getPns(params);
   } catch (error) {

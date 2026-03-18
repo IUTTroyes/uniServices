@@ -17,11 +17,11 @@ class StructureTypeDiplome
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['type-diplome:detail', 'type-diplome:light'])]
+    #[Groups(['type-diplome:detail', 'type-diplome:light', 'pn:light'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['maquette:detail', 'type-diplome:detail'])]
+    #[Groups(['maquette:detail', 'type-diplome:detail', 'pn:light'])]
     private string $libelle;
 
     #[ORM\Column(length: 20)]
