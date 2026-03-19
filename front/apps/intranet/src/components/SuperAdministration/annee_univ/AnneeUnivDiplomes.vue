@@ -50,7 +50,7 @@ const diplomesByDepartement = computed(() => {
     const diplome = pn.diplome;
     const deptName = diplome?.departement?.libelle || 'Sans département';
     const deptId = diplome?.departement?.id || 'none';
-    const deptActif = diplome?.departement?.actif || 'unknown';
+    const deptActif = diplome?.departement?.actif || false;
     if (!grouped[deptId]) {
       grouped[deptId] = {
         id: deptId,
@@ -61,6 +61,7 @@ const diplomesByDepartement = computed(() => {
     }
     grouped[deptId].pns.push(pn);
   });
+  console.log(grouped)
   // Trier les départements par nom
   return Object.values(grouped).sort((a, b) => a.libelle.localeCompare(b.libelle));
 });
