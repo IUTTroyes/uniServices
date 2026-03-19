@@ -85,11 +85,13 @@ const triDiplomesParDepartement = async () => {
     diplomes.value.forEach(diplome => {
       const deptName = diplome.departement?.libelle || 'Sans département';
       const deptId = diplome.departement?.id || 'none';
+      const deptActif = diplome?.departement?.actif || false;
       if (!grouped[deptId]) {
         grouped[deptId] = {
           id: deptId,
           libelle: deptName,
-          diplomes: []
+          diplomes: [],
+          actif: deptActif,
         };
       }
       grouped[deptId].diplomes.push(diplome);
@@ -224,7 +226,7 @@ const cancel = () => {
               </div>
               <Tabs v-else v-model:value="activeTabIndex">
                 <TabList>
-                  <Tab v-for="(dept, index) in diplomes" :key="dept.id" :value="index">
+                  <Tab v-for="(dept, index) in diplomes" :key="dept.id" :value="index" :class="!dept.actif ? '!text-red-500' : ''">
                     {{ dept.libelle }}
                     <Badge
                         :value="dept.diplomes.filter(d => isDiplomeSelected(d.id)).length + '/' + dept.diplomes.length"
