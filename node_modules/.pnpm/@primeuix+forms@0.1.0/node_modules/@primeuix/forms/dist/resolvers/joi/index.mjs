@@ -1,0 +1,2 @@
+import{toValues as i}from"@primeuix/forms/utils";import{isNotEmpty as f}from"@primeuix/utils";var c=(l,y,p)=>async({values:e,name:s})=>{let{sync:u=!1,raw:n=!1}=p||{};try{let t=await l[u?"validate":"validateAsync"](e,{abortEarly:!1,...y});return{values:i(n?e:t,s),errors:{}}}catch(t){if(t?.details)return{values:i(n?e:void 0,s),errors:t.details.reduce((r,o)=>{let a=f(o.path)?o.path.join("."):s;return a&&(r[a]||=[],r[a].push(o)),r},{})};throw t}};export{c as joiResolver};
+//# sourceMappingURL=index.mjs.map

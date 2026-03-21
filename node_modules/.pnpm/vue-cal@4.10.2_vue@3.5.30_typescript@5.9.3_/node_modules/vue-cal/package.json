@@ -1,0 +1,70 @@
+{
+  "name": "vue-cal",
+  "version": "4.10.2",
+  "description": "A Vue JS full calendar, no dependency, no BS. :metal:",
+  "author": "Antoni Andre <antoniandre.web@gmail.com>",
+  "homepage": "https://antoniandre.github.io/vue-cal-v4",
+  "repository": "https://github.com/antoniandre/vue-cal-v4",
+  "license": "MIT",
+  "funding": "https://github.com/sponsors/antoniandre",
+  "main": "dist/vue-cal.cjs.js",
+  "unpkg": "dist/vue-cal.iife.js",
+  "jsdelivr": "dist/vue-cal.iife.js",
+  "module": "dist/vue-cal.es.js",
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/vue-cal.es.js",
+      "require": "./dist/vue-cal.cjs.js"
+    },
+    "./package.json": "./package.json",
+    "./dist/*": "./dist/*"
+  },
+  "keywords": [
+    "vuecal",
+    "vue cal",
+    "vue calendar",
+    "full calendar",
+    "calendar events",
+    "vue",
+    "vuejs",
+    "vue 3",
+    "vue 2",
+    "ui"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build --base /vue-cal-v4/",
+    "build-bundle": "BUNDLE=true vite build && mv ./dist/style.css ./dist/vuecal.css && rm ./dist/favicon.ico",
+    "serve": "vite preview --outDir docs --base /vue-cal-v4/",
+    "lint": "vite lint"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.26.0",
+    "@babel/eslint-parser": "^7.26.5",
+    "@fortawesome/fontawesome-free": "^5.15.4",
+    "@mdi/font": "^7.4.47",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "@vue/compiler-sfc": "^3.5.13",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "postcss": "^8.4.49",
+    "pug": "^3.0.3",
+    "rollup": "^4.30.1",
+    "sass": "^1.83.1",
+    "simple-syntax-highlighter": "^3.1.1",
+    "terser": "^5.37.0",
+    "vite": "^5.4.11",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "wave-ui": "^3.18.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.2.0"
+  }
+}

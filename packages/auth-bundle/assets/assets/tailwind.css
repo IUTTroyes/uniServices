@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@import "tailwindcss-primeui";
+
+@source "/Users/cyndel/Web/uniServices/packages/*/assets/**/*.vue";
+@source "/Users/cyndel/Web/uniServices/shared/**/*.vue";
