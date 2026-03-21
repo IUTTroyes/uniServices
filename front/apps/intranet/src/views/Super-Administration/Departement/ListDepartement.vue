@@ -70,7 +70,6 @@ const updateDepartement = async (departement) => {
           <template #body="slotProps">
             <ButtonDelete v-if="slotProps.data.actif" tooltip="Suspendre le département" icon="pi pi-trash" @confirm-delete="updateDepartement(slotProps.data)" />
             <ButtonSave v-else tooltip="Activer le département" icon="pi pi-check" @confirm-save="updateDepartement(slotProps.data)" :disabled="slotProps.data.actif" />
-
           </template>
         </Column>
       </DataTable>

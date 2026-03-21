@@ -140,8 +140,8 @@ const getDiplomes = async () => {
 <template>
   <div class="card">
     <div class="card-title mb-8">
-      <h1 class="text-2xl font-bold">Nouvelle Année Universitaire</h1>
-      <p class="text-muted-color">Créez une nouvelle année universitaire en remplissant le formulaire ci-dessous.</p>
+      <h1 class="text-2xl font-bold">Nouvelle année universitaire</h1>
+      <p class="text-muted-color">Créez une nouvelle année universitaire.</p>
     </div>
 
     <ErrorView v-if="hasError"/>
