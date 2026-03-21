@@ -1,6 +1,0 @@
-{
-    "name": "@uni-service/edt",
-    "version": "0.1.0",
-    "main": "src/main.js",
-    "type": "module"
-}
