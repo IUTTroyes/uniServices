@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\IntranetBundle\Controller;
+namespace IntranetBundle\Controller;
 
 use App\Repository\EtudiantRepository;
 use App\Repository\EtudiantScolariteRepository;

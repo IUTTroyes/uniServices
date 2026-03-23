@@ -12,12 +12,12 @@
   },
   "autoload": {
     "psr-4": {
-      "IUTTroyes\\EdtBundle\\": "src/"
+      "EdtBundle\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "IUTTroyes\\EdtBundle\\Tests\\": "tests/"
+      "EdtBundle\\Tests\\": "tests/"
     }
   },
   "extra": {

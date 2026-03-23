@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\IntranetBundle\Controller;
+namespace IntranetBundle\Controller;
 
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDiplome;

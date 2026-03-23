@@ -5,18 +5,15 @@
       <sourceFolder url="file://$MODULE_DIR$/back/src" isTestSource="false" packagePrefix="App\" />
       <sourceFolder url="file://$MODULE_DIR$/back/tests" isTestSource="true" packagePrefix="App\Tests\" />
       <sourceFolder url="file://$MODULE_DIR$/backend/tests" isTestSource="true" />
-      <sourceFolder url="file://$MODULE_DIR$/back/packages/auth-bundle/src" isTestSource="false" packagePrefix="IUTTroyes\AuthBundle\" />
-      <sourceFolder url="file://$MODULE_DIR$/back/packages/auth-bundle/tests" isTestSource="true" packagePrefix="IUTTroyes\AuthBundle\Tests\" />
-      <sourceFolder url="file://$MODULE_DIR$/back/packages/edt-bundle/src" isTestSource="false" packagePrefix="IUTTroyes\EdtBundle\" />
-      <sourceFolder url="file://$MODULE_DIR$/back/packages/edt-bundle/tests" isTestSource="true" packagePrefix="IUTTroyes\EdtBundle\Tests\" />
-      <sourceFolder url="file://$MODULE_DIR$/back/packages/intranet-bundle/src" isTestSource="false" packagePrefix="IUTTroyes\IntranetBundle\" />
-      <sourceFolder url="file://$MODULE_DIR$/back/packages/intranet-bundle/tests" isTestSource="true" packagePrefix="IUTTroyes\IntranetBundle\Tests\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/auth-bundle/src" isTestSource="false" packagePrefix="IUTTroyes\AuthBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/auth-bundle/tests" isTestSource="true" packagePrefix="IUTTroyes\AuthBundle\Tests\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/edt-bundle/src" isTestSource="false" packagePrefix="IUTTroyes\EdtBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/edt-bundle/tests" isTestSource="true" packagePrefix="IUTTroyes\EdtBundle\Tests\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/intranet-bundle/src" isTestSource="false" packagePrefix="IUTTroyes\IntranetBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/intranet-bundle/tests" isTestSource="true" packagePrefix="IUTTroyes\IntranetBundle\Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/back/../packages/auth-bundle/src" isTestSource="false" packagePrefix="AuthBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/back/../packages/edt-bundle/src" isTestSource="false" packagePrefix="EdtBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/back/../packages/intranet-bundle/src" isTestSource="false" packagePrefix="IntranetBundle\" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/cache" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/collections" />

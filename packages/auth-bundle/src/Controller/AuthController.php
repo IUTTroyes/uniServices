@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\AuthBundle\Controller;
+namespace AuthBundle\Controller;
 
 use App\Entity\Users\Etudiant;
 use Doctrine\ORM\EntityManagerInterface;

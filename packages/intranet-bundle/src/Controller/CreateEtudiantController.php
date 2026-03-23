@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace IUTTroyes\IntranetBundle\Controller;
+namespace IntranetBundle\Controller;
 
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;

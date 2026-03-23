@@ -12,12 +12,12 @@
   },
   "autoload": {
     "psr-4": {
-      "IUTTroyes\\IntranetBundle\\": "src/"
+      "IntranetBundle\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "IUTTroyes\\IntranetBundle\\Tests\\": "tests/"
+      "IntranetBundle\\Tests\\": "tests/"
     }
   },
   "extra": {

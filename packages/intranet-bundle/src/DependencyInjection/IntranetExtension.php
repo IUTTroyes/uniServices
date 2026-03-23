@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\IntranetBundle\DependencyInjection;
+namespace IntranetBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;

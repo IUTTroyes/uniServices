@@ -1,9 +1,9 @@
 <?php
 
-namespace App\Entity\Etudiant;
+namespace IntranetBundle\Entity\Etudiant;
 
 use App\Entity\Traits\UuidTrait;
-use App\Repository\EtudiantAbsenceJustificatifRepository;
+use IntranetBundle\Repository\EtudiantAbsenceJustificatifRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;

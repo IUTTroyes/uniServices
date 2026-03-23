@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\AuthBundle\Controller;
+namespace AuthBundle\Controller;
 
 use App\ApiDto\Security\ResetPasswordDto;
 use App\Entity\ResetToken;

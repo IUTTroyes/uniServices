@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace IntranetBundle\Repository;
 
-use App\Entity\Etudiant\EtudiantAbsence;
+use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

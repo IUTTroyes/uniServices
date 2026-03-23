@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\EdtBundle\DependencyInjection;
+namespace EdtBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;

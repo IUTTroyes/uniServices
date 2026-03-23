@@ -53,7 +53,10 @@
     },
     "autoload": {
         "psr-4": {
-            "App\\": "src/"
+            "App\\": "src/",
+            "AuthBundle\\": "../packages/auth-bundle/src/",
+            "EdtBundle\\": "../packages/edt-bundle/src/",
+            "IntranetBundle\\": "../packages/intranet-bundle/src/"
         }
     },
     "autoload-dev": {

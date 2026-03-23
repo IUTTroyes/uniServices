@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\AuthBundle;
+namespace AuthBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

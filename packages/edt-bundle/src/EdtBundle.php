@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\EdtBundle;
+namespace EdtBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 

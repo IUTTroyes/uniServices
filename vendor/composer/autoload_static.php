@@ -61,6 +61,21 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
         array (
             'Nette\\' => 6,
         ),
+        'I' => 
+        array (
+            'IntranetBundle\\Tests\\' => 21,
+            'IntranetBundle\\' => 15,
+        ),
+        'E' => 
+        array (
+            'EdtBundle\\Tests\\' => 16,
+            'EdtBundle\\' => 10,
+        ),
+        'A' => 
+        array (
+            'AuthBundle\\Tests\\' => 17,
+            'AuthBundle\\' => 11,
+        ),
     );
 
     public static $prefixDirsPsr4 = array (
@@ -188,6 +203,30 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
         'Nette\\' => 
         array (
             0 => __DIR__ . '/..' . '/nette/utils/src',
+        ),
+        'IntranetBundle\\Tests\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/packages/intranet-bundle/tests',
+        ),
+        'IntranetBundle\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/packages/intranet-bundle/src',
+        ),
+        'EdtBundle\\Tests\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/packages/edt-bundle/tests',
+        ),
+        'EdtBundle\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/packages/edt-bundle/src',
+        ),
+        'AuthBundle\\Tests\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/packages/auth-bundle/tests',
+        ),
+        'AuthBundle\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/packages/auth-bundle/src',
         ),
     );
 

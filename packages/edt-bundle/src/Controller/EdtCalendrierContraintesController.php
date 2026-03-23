@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace IUTTroyes\EdtBundle\Controller;
+namespace EdtBundle\Controller;
 
 use App\Entity\Edt\EdtContraintesSemestre;
 use App\Repository\Edt\EdtContraintesSemestreRepository;

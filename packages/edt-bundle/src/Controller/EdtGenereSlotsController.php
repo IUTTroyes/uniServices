@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\EdtBundle\Controller;
+namespace EdtBundle\Controller;
 
 use App\Repository\Edt\EdtProgressionRepository;
 use App\Repository\Previsionnel\PrevisionnelRepository;

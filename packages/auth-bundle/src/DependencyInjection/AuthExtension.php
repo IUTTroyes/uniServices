@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\AuthBundle\DependencyInjection;
+namespace AuthBundle\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;

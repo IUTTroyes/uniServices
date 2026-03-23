@@ -10,16 +10,16 @@
     },
     "autoload": {
         "psr-4": {
-            "IUTTroyes\\AuthBundle\\": "packages/auth-bundle/src/",
-            "IUTTroyes\\EdtBundle\\": "packages/edt-bundle/src/",
-            "IUTTroyes\\IntranetBundle\\": "packages/intranet-bundle/src/"
+            "AuthBundle\\": "packages/auth-bundle/src/",
+            "EdtBundle\\": "packages/edt-bundle/src/",
+            "IntranetBundle\\": "packages/intranet-bundle/src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "IUTTroyes\\AuthBundle\\Tests\\": "packages/auth-bundle/tests/",
-            "IUTTroyes\\EdtBundle\\Tests\\": "packages/edt-bundle/tests/",
-            "IUTTroyes\\IntranetBundle\\Tests\\": "packages/intranet-bundle/tests/"
+            "AuthBundle\\Tests\\": "packages/auth-bundle/tests/",
+            "EdtBundle\\Tests\\": "packages/edt-bundle/tests/",
+            "IntranetBundle\\Tests\\": "packages/intranet-bundle/tests/"
         }
     },
     "extra": {

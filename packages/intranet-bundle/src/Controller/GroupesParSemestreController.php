@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\IntranetBundle\Controller;
+namespace IntranetBundle\Controller;
 
 use App\Repository\Structure\StructureGroupeRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

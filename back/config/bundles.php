@@ -14,4 +14,7 @@ return [
     Davidannebicque\HtmlToSpreadsheetBundle\HtmlToSpreadsheetBundle::class => ['all' => true],
     Gesdinet\JWTRefreshTokenBundle\GesdinetJWTRefreshTokenBundle::class => ['all' => true],
     Jawira\DoctrineDiagramBundle\DoctrineDiagramBundle::class => ['dev' => true, 'test' => true],
+    AuthBundle\AuthBundle::class => ['all' => true],
+    EdtBundle\EdtBundle::class => ['all' => true],
+    IntranetBundle\IntranetBundle::class => ['all' => true],
 ];

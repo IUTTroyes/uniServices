@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Entity\Etudiant;
+namespace IntranetBundle\Entity\Etudiant;
 
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
-use App\Repository\EtudiantAbsenceRepository;
+use IntranetBundle\Repository\EtudiantAbsenceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -45,7 +45,7 @@ class EtudiantAbsence
 
     #[ORM\ManyToOne(inversedBy: 'absence')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?EtudiantScolariteSemestre $scolariteSemestre = null;
+    private ?\App\Entity\Etudiant\EtudiantScolariteSemestre $scolariteSemestre = null;
 
     public function getId(): ?int
     {
@@ -160,12 +160,12 @@ class EtudiantAbsence
         return $this;
     }
 
-    public function getScolariteSemestre(): ?EtudiantScolariteSemestre
+    public function getScolariteSemestre(): ?\App\Entity\Etudiant\EtudiantScolariteSemestre
     {
         return $this->scolariteSemestre;
     }
 
-    public function setScolariteSemestre(?EtudiantScolariteSemestre $scolariteSemestre): static
+    public function setScolariteSemestre(?\App\Entity\Etudiant\EtudiantScolariteSemestre $scolariteSemestre): static
     {
         $this->scolariteSemestre = $scolariteSemestre;
 

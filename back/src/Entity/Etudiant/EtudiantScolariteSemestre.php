@@ -47,9 +47,9 @@ class EtudiantScolariteSemestre
     private ?StructureSemestre $semestre = null;
 
     /**
-     * @var Collection<int, EtudiantAbsence>
+     * @var Collection<int, \IntranetBundle\Entity\Etudiant\EtudiantAbsence>
      */
-    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'semestre')]
+    #[ORM\OneToMany(targetEntity: \IntranetBundle\Entity\Etudiant\EtudiantAbsence::class, mappedBy: 'scolariteSemestre')]
     private Collection $absence;
 
     /**
@@ -115,14 +115,14 @@ class EtudiantScolariteSemestre
     }
 
     /**
-     * @return Collection<int, EtudiantAbsence>
+     * @return Collection<int, \IntranetBundle\Entity\Etudiant\EtudiantAbsence>
      */
     public function getAbsence(): Collection
     {
         return $this->absence;
     }
 
-    public function addAbsence(EtudiantAbsence $absence): static
+    public function addAbsence(\IntranetBundle\Entity\Etudiant\EtudiantAbsence $absence): static
     {
         if (!$this->absence->contains($absence)) {
             $this->absence->add($absence);
@@ -132,7 +132,7 @@ class EtudiantScolariteSemestre
         return $this;
     }
 
-    public function removeAbsence(EtudiantAbsence $absence): static
+    public function removeAbsence(\IntranetBundle\Entity\Etudiant\EtudiantAbsence $absence): static
     {
         if ($this->absence->removeElement($absence)) {
             // set the owning side to null (unless already changed)

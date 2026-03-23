@@ -12,12 +12,12 @@
   },
   "autoload": {
     "psr-4": {
-      "IUTTroyes\\AuthBundle\\": "src/"
+      "AuthBundle\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "IUTTroyes\\AuthBundle\\Tests\\": "tests/"
+      "AuthBundle\\Tests\\": "tests/"
     }
   },
   "extra": {

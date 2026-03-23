@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace IntranetBundle\Repository;
 
-use App\Entity\Etudiant\EtudiantAbsenceJustificatif;
+use IntranetBundle\Entity\Etudiant\EtudiantAbsenceJustificatif;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

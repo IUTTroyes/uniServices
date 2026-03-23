@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\IntranetBundle;
+namespace IntranetBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
