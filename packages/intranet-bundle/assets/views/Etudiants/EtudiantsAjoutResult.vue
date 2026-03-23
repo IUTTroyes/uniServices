@@ -93,7 +93,7 @@ const viewEtudiantProfile = async (etudiantId) => {
 
 <template>
   <div class="card">
-    <h2 class="text-2xl font-bold mb-4">Résultat de l'import d'étudiants</h2>
+    <h2 class="text-2xl! font-bold mb-4">Résultat de l'import d'étudiants</h2>
     <Divider />
 
     <!-- Modal for student profile -->
@@ -129,7 +129,7 @@ const viewEtudiantProfile = async (etudiantId) => {
     </div>
 
     <div class="results">
-      <h3 class="text-xl font-bold mb-2">Détails des lignes traitées</h3>
+      <h3 class="text-xl! font-bold mb-2">Détails des lignes traitées</h3>
       <DataTable :value="processedLines" stripedRows paginator :rows="10"
                  :rowsPerPageOptions="[5, 10, 20, 50]" tableStyle="min-width: 50rem">
         <Column field="nom" header="Nom" sortable></Column>
@@ -172,7 +172,7 @@ const viewEtudiantProfile = async (etudiantId) => {
     </div>
 
     <div v-if="errors.length > 0" class="errors mt-4">
-      <h3 class="text-xl font-bold mb-2">Erreurs détaillées</h3>
+      <h3 class="text-xl! font-bold mb-2">Erreurs détaillées</h3>
       <ul class="list-disc pl-5">
         <li v-for="(error, index) in errors" :key="index" class="text-red-500">{{ error }}</li>
       </ul>

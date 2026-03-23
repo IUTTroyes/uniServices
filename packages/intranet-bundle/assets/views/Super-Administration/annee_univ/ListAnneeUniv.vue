@@ -86,7 +86,7 @@ const editAnneeUniv = (anneeUniv) => {
 <template>
   <div class="card">
     <div class="card-title mb-8">
-      <h1 class="text-2xl font-bold">Années Universitaires</h1>
+      <h1 class="text-2xl! mb-0! font-bold">Années Universitaires</h1>
       <p class="text-muted-color">Gérez les années universitaires.</p>
     </div>
 

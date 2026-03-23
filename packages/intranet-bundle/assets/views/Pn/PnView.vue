@@ -189,7 +189,7 @@ const deleteObject = async (objectType, id) => {
       </div>
     </div>
     <div v-else>
-      <h2 class="text-2xl font-bold">Programmes pédagogiques nationaux</h2>
+      <h2 class="text-2xl! mb-0! font-bold">Programmes pédagogiques nationaux</h2>
       <em>Gestion de la maquette pédagogique</em>
       <Divider/>
       <Tabs :value="selectedDiplome?.id || diplomes[0]?.id" scrollable>

@@ -189,11 +189,11 @@ const deleteEtudiant = etudiant => {
 <template>
   <ErrorView v-if="hasError" />
   <div v-else class="card">
-    <h2 class="text-2xl font-bold mb-4">Tous les étudiants inscrits dans le département</h2>
+    <h2 class="text-2xl! font-bold mb-4">Tous les étudiants inscrits dans le département</h2>
 
     <div class="flex gap-4 w-full pb-6 overflow-x-auto">
       <SimpleSkeleton v-if="isLoadingAnnees" class="w-full" />
-      <div v-for="annee in anneesList" :key="annee.id" class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex items-center justify-center">
+      <div v-for="annee in anneesList" :key="annee.id" class="bg-neutral-100 dark:bg-neutral-800 p-4 rounded-lg w-full min-w-48 flex items-center justify-center">
         <SimpleSkeleton v-if="isLoadingStats" />
         <div v-else>
           <div>

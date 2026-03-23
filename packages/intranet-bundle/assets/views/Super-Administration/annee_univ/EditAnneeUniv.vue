@@ -150,7 +150,7 @@ const cancel = () => {
 <template>
   <div class="card">
     <div class="card-title mb-8">
-      <h1 class="text-2xl font-bold">Modifier l'Année Universitaire</h1>
+      <h1 class="text-2xl! font-bold mb-0!">Modifier l'Année Universitaire</h1>
       <p class="text-muted-color">Modifiez les informations de l'année universitaire.</p>
     </div>
 
@@ -215,7 +215,7 @@ const cancel = () => {
 
           <div>
             <div class="card-title mb-4">
-              <h1 class="text-xl font-bold">Gestion des diplômes</h1>
+              <h1 class="text-xl! mb-0! font-bold">Gestion des diplômes</h1>
               <p class="text-muted-color">Modifiez les diplômes associés à cette année universitaire.</p>
             </div>
 
@@ -226,7 +226,7 @@ const cancel = () => {
               </div>
               <Tabs v-else v-model:value="activeTabIndex">
                 <TabList>
-                  <Tab v-for="(dept, index) in diplomes" :key="dept.id" :value="index" :class="!dept.actif ? '!text-red-500' : ''">
+                  <Tab v-for="(dept, index) in diplomes" :key="dept.id" :value="index" :class="!dept.actif ? 'text-red-500!' : ''">
                     {{ dept.libelle }}
                     <Badge
                         :value="dept.diplomes.filter(d => isDiplomeSelected(d.id)).length + '/' + dept.diplomes.length"
@@ -238,8 +238,8 @@ const cancel = () => {
                 <TabPanels>
                   <TabPanel v-for="(dept, index) in diplomes" :key="dept.id" :value="index">
                     <div v-for="diplome in dept.diplomes" :key="diplome.id">
-                      <div class="p-2 border rounded mb-2 flex justify-between items-center">
-                        <h3 class="font-semibold">{{ diplome.typeDiplome?.sigle || '' }} - {{ diplome.libelle }}</h3>
+                      <div class="p-2 border border-neutral-200 dark:border-neutral-700 rounded-md mb-2 flex justify-between items-center">
+                        <p class="font-semibold mb-0!">{{ diplome.typeDiplome?.sigle || '' }} - {{ diplome.libelle }}</p>
                         <ToggleButton
                             :modelValue="isDiplomeSelected(diplome.id)"
                             @update:modelValue="toggleDiplome(diplome.id)"

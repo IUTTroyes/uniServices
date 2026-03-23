@@ -140,7 +140,7 @@ const getDiplomes = async () => {
 <template>
   <div class="card">
     <div class="card-title mb-8">
-      <h1 class="text-2xl font-bold">Nouvelle année universitaire</h1>
+      <h1 class="text-2xl! mb-0! font-bold">Nouvelle année universitaire</h1>
       <p class="text-muted-color">Créez une nouvelle année universitaire.</p>
     </div>
 
@@ -209,7 +209,7 @@ const getDiplomes = async () => {
 
           <div>
             <div class="card-title mb-4">
-              <h1 class="text-xl font-bold">Gestion des diplômes</h1>
+              <h1 class="text-xl! mb-0! font-bold">Gestion des diplômes</h1>
               <p class="text-muted-color">Définissez quels diplômes seront associés à la nouvelle année universitaire.</p>
             </div>
             <ListSkeleton v-if="isLoadingDiplomes" :count="3" class="mb-4" />
@@ -231,8 +231,8 @@ const getDiplomes = async () => {
                 <TabPanels>
                   <TabPanel v-for="(dept, index) in diplomesByDepartement" :key="dept.id" :value="index">
                     <div v-for="diplome in dept.diplomes" :key="diplome.id">
-                      <div class="p-2 border rounded mb-2 flex justify-between items-center">
-                        <h3 class="font-semibold">{{ diplome.typeDiplome?.sigle || '' }} - {{ diplome.libelle }}</h3>
+                      <div class="p-2 border border-neutral-200 dark:border-neutral-700 rounded-md mb-2 flex justify-between items-center">
+                        <p class="font-semibold mb-0!">{{ diplome.typeDiplome?.sigle || '' }} - {{ diplome.libelle }}</p>
                         <ToggleButton
                             :modelValue="isDiplomeSelected(diplome.id)"
                             @update:modelValue="toggleDiplome(diplome.id)"

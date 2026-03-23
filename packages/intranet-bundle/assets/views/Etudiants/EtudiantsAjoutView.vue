@@ -26,7 +26,7 @@ onMounted(async () => {
 
 <template>
   <div class="card">
-    <h2 class="text-2xl font-bold mb-4">Ajouter des étudiants</h2>
+    <h2 class="text-2xl! font-bold mb-4">Ajouter des étudiants</h2>
     <Divider/>
     <Tabs :value="activeTab" scrollable>
       <TabList>

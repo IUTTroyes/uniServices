@@ -315,7 +315,7 @@ const onEvaluationSaved = async () => {
     <div v-else>
       <div class="flex justify-between items-end w-full">
         <div>
-          <h2 class="text-2xl font-bold flex items-end gap-2">
+          <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">
             Évaluations du
             <SimpleSkeleton v-if="isLoadingSemestres" class="!w-32"></SimpleSkeleton>
             <span v-else>{{ semestre.libelle }}</span>
