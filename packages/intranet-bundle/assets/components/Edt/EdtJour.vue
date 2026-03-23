@@ -211,7 +211,7 @@ function getBadgeSeverity(type) {
 </script>
 
 <template>
-  <Dialog v-model:visible="visible" :header="selectedEvent?.title" class="!bg-gray-50 dark:!bg-gray-800 !border-2 !border-primary-500" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+  <Dialog v-model:visible="visible" :header="selectedEvent?.title" class="bg-gray-50! dark:bg-gray-800! border-2! border-primary-500!" :style="{ width: '25vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
     <div class="flex flex-col gap-2">
       <div>
         {{selectedEvent.start.toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}} •
@@ -229,7 +229,7 @@ function getBadgeSeverity(type) {
           <strong>Semestre :</strong> {{ selectedEvent.semestre.libelle }}
         </div>
         <div>
-          <strong>Groupe :</strong> <Badge class="!text-black" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}} étudiants)
+          <strong>Groupe :</strong> <Badge class="text-black!" :style="{ backgroundColor: selectedEvent?.backgroundColor ? adjustColor(darkenColor(selectedEvent.backgroundColor, 60), 0, 0.2) : '' }">{{ selectedEvent?.type }}</Badge> {{ selectedEvent?.groupe?.libelle }} ({{selectedEvent?.groupe?.etudiants?.length || 0}} étudiants)
         </div>
         <div>
           <strong>Salle :</strong> {{ selectedEvent.location }}
@@ -237,7 +237,7 @@ function getBadgeSeverity(type) {
         <div>
           <strong>Intervenant :</strong>
           <div class="flex items-center gap-2">
-            <PhotoUser :user-photo="selectedEvent.intervenantPhoto" class="!w-8 border-2 border-black" />
+            <PhotoUser :user-photo="selectedEvent.intervenantPhoto" class="w-8! border-2 border-black" />
             {{ selectedEvent.libPersonnel || 'Inconnu' }}
           </div>
         </div>
@@ -246,7 +246,7 @@ function getBadgeSeverity(type) {
           <strong>Autres intervenants sur la {{selectedEvent.enseignement.type}} :</strong>
           <div class="flex flex-col gap-2">
             <div v-for="intervenant in selectedEvent.intervenants" :key="intervenant.id" class="flex items-center gap-2">
-              <PhotoUser :user-photo="selectedEvent.intervenantPhoto" class="!w-8 border-2 border-black" />
+              <PhotoUser :user-photo="selectedEvent.intervenantPhoto" class="w-8! border-2 border-black" />
               {{ intervenant?.display || 'Inconnu' }}
             </div>
           </div>
@@ -255,10 +255,10 @@ function getBadgeSeverity(type) {
       <Divider></Divider>
       <div class="flex w-full justify-end">
         <div class="flex gap-2">
-          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
-          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
-          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
-          <Button v-if="selectedEvent.evaluation" icon="pi pi-file-edit" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Saisir les notes" size="small" v-tooltip.top="'Saisir les notes'"></Button>
+          <Button icon="pi pi-list" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'"></Button>
+          <Button icon="pi pi-check-circle" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'"></Button>
+          <Button icon="pi pi-book" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'"></Button>
+          <Button v-if="selectedEvent.evaluation" icon="pi pi-file-edit" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Saisir les notes" size="small" v-tooltip.top="'Saisir les notes'"></Button>
         </div>
       </div>
     </div>

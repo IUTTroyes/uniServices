@@ -68,12 +68,12 @@ const openDialog = (dialogType, ev) => {
 
 <template>
   <!-- EdtPerso Event Template -->
-  <div v-if="type === 'perso'" class="rounded-lg !h-full" v-on="$attrs">
+  <div v-if="type === 'perso'" class="rounded-lg h-full!" v-on="$attrs">
     <div class="p-2 flex flex-col justify-between h-full gap-1">
       <div>
         <div class="title font-black">{{ event.title }}</div>
         <div class="flex gap-1 items-center">
-          <Badge :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.typeColor, 60), 0, 0.2) : '' }" class="!text-white">
+          <Badge :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.typeColor, 60), 0, 0.2) : '' }" class="text-white!">
             {{ event.type }}
           </Badge>
           {{ event.semestre?.libelle }} | {{ event.groupe?.libelle }}
@@ -83,16 +83,16 @@ const openDialog = (dialogType, ev) => {
       <div v-if="event.overlap" class="flex flex-col gap-2">
         <div>{{ formattedTime }}</div>
         <div class="flex gap-2">
-          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'" @click.stop="openDialog('appel', event)"></Button>
-          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'" @click.stop></Button>
-          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'" @click.stop="openDialog('plan', event)"></Button>
+          <Button icon="pi pi-list" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'" @click.stop="openDialog('appel', event)"></Button>
+          <Button icon="pi pi-check-circle" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'" @click.stop></Button>
+          <Button icon="pi pi-book" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'" @click.stop="openDialog('plan', event)"></Button>
         </div>
       </div>
       <div v-else class="flex justify-between items-center flex-wrap gap-2">
         <div class="flex gap-2">
-          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'" @click.stop="openDialog('appel', event)"></Button>
-          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'" @click.stop></Button>
-          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'" @click.stop="openDialog('plan', event)"></Button>
+          <Button icon="pi pi-list" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'" @click.stop="openDialog('appel', event)"></Button>
+          <Button icon="pi pi-check-circle" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'" @click.stop></Button>
+          <Button icon="pi pi-book" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'" @click.stop="openDialog('plan', event)"></Button>
         </div>
         <div class="flex flex-col items-center">
           <Badge v-if="event.evaluation" severity="danger" class="uppercase">éval.</Badge>
@@ -104,16 +104,16 @@ const openDialog = (dialogType, ev) => {
 
   <!-- EdtJour Event Template -->
   <div v-else-if="type === 'jour'" class="h-full min-h-32" v-on="$attrs">
-    <div v-if="event.text === 'Aucun cours'" class="flex flex-row justify-start items-start rounded-xl h-full relative text-black text-color palm bg-neutral-400 bg-opacity-20">
+    <div v-if="event.text === 'Aucun cours'" class="flex flex-row justify-start items-start rounded-xl h-full relative text-black palm bg-neutral-100 bg-opacity-20">
       <div class="flex flex-col justify-center p-4 gap-2">
         <div v-if="event.dayoff" class="text-lg font-bold">Aucun événement aujourd'hui</div>
         <div v-else class="text-lg font-bold">Aucun événement en cours</div>
       </div>
-      <Tag v-if="event.isFirst" value="Événement en cours" class="absolute right-2 bottom-2 !text-white !bg-black"/>
+      <Tag v-if="event.isFirst" value="Événement en cours" class="absolute right-2 bottom-2 text-white! bg-black!"/>
     </div>
     <div v-else
-         :class="['flex flex-row justify-start items-start rounded-xl h-full relative text-black transition duration-200 ease-in-out border-4 !border-transparent hover:!border-4 hover:!border-primary-500 hover:transition hover:duration-200 hover:ease-in-out hover:cursor-pointer hover:shadow-md',
-               {'!border-4 !border-primary-300': event.isFirst},
+         :class="['flex flex-row justify-start items-start rounded-xl h-full relative text-black transition duration-200 ease-in-out border-4 border-transparent! hover:border-4! hover:border-primary-500! hover:transition hover:duration-200 hover:ease-in-out hover:cursor-pointer hover:shadow-md',
+               {'border-4! border-primary-300!': event.isFirst},
                {'text-color palm': event.text === 'Aucun cours'}]"
          :style="{ borderColor: event.colorFocus, backgroundColor: event.backgroundColor }">
       <div class="flex flex-col justify-center items-center p-4 rounded-l-lg h-full" :style="{ backgroundColor: event.colorFocus }">
@@ -128,7 +128,7 @@ const openDialog = (dialogType, ev) => {
       <div class="flex flex-col justify-center p-4 gap-2">
         <div class="text-lg font-bold">{{ event.title || event.text }}</div>
         <div class="flex gap-1 items-center">
-          <Badge :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.colorFocus, 60), 0, 0.2) : '' }" class="!text-white">
+          <Badge :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.colorFocus, 60), 0, 0.2) : '' }" class="text-white!">
             {{ event.type }}
           </Badge>
           {{ event.semestre?.libelle }} | {{ event.groupe?.libelle }}
@@ -137,18 +137,18 @@ const openDialog = (dialogType, ev) => {
           {{ event.salle }}
         </div>
         <div class="flex gap-2">
-          <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'" @click.stop="openDialog('appel', event)"></Button>
-          <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'" @click.stop></Button>
-          <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'" @click.stop="openDialog('plan', event)"></Button>
+          <Button icon="pi pi-list" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'" @click.stop="openDialog('appel', event)"></Button>
+          <Button icon="pi pi-check-circle" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'" @click.stop></Button>
+          <Button icon="pi pi-book" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'" @click.stop="openDialog('plan', event)"></Button>
         </div>
       </div>
-      <Tag v-if="event.isFirst" value="Événement en cours" class="absolute right-2 bottom-2 !text-white" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.colorFocus, 60), 0, 0.2) : '' }"/>
-      <Tag v-else-if="!event.isFirst" value="Prochain évènement" class="absolute right-2 bottom-2 !text-black" :style="{ backgroundColor: event.colorFocus }"/>
+      <Tag v-if="event.isFirst" value="Événement en cours" class="absolute right-2 bottom-2 text-white!" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.colorFocus, 60), 0, 0.2) : '' }"/>
+      <Tag v-else-if="!event.isFirst" value="Prochain évènement" class="absolute right-2 bottom-2 text-black!" :style="{ backgroundColor: event.colorFocus }"/>
     </div>
   </div>
 
   <!-- EdtDepartement Event Template -->
-  <div v-else-if="type === 'departement'" class="rounded-lg !h-full" v-on="$attrs">
+  <div v-else-if="type === 'departement'" class="rounded-lg h-full!" v-on="$attrs">
     <div class="p-2 flex flex-col justify-between h-full gap-1">
       <div>
         <div class="flex justify-between items-start gap-1">
@@ -169,13 +169,13 @@ const openDialog = (dialogType, ev) => {
       <div v-if="event.overlap" class="flex flex-col gap-2">
         <div>{{ formattedTime }}</div>
         <div class="flex items-center gap-2 text-xs">
-          <PhotoUser :user-photo="event.intervenantPhoto" class="!w-6 border border-gray-400"/>
+          <PhotoUser :user-photo="event.intervenantPhoto" class="w-6! border border-gray-400"/>
           {{ event.personnel?.displayCourt || 'Inconnu' }}
         </div>
       </div>
       <div v-else class="flex justify-between items-center flex-wrap gap-2">
         <div class="flex items-center gap-2 text-xs">
-          <PhotoUser :user-photo="event.intervenantPhoto" class="!w-6 border border-gray-400" />
+          <PhotoUser :user-photo="event.intervenantPhoto" class="w-6! border border-gray-400" />
           {{ event.personnel?.displayCourt || 'Inconnu' }}
         </div>
         <div class="flex flex-col items-center">
@@ -185,20 +185,20 @@ const openDialog = (dialogType, ev) => {
       </div>
 
       <div v-if="user.id === event.personnel.id" class="flex gap-2 z-20">
-        <Button icon="pi pi-list" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'" @click="openDialog('appel', event)"></Button>
-        <Button icon="pi pi-check-circle" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'" @click.stop></Button>
-        <Button icon="pi pi-book" class="!bg-white !bg-opacity-50 !text-black hover:!bg-opacity-100" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'" @click="openDialog('plan', event)"></Button>
+        <Button icon="pi pi-list" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Appel" size="small" v-tooltip.top="'Faire l\'appel'" @click="openDialog('appel', event)"></Button>
+        <Button icon="pi pi-check-circle" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Tous présents" size="small" v-tooltip.top="'Marquer tout le monde présents'" @click.stop></Button>
+        <Button icon="pi pi-book" class="bg-white! bg-opacity-50! text-black! hover:bg-opacity-100!" rounded aria-label="Plan de cours" size="small" v-tooltip.top="'Voir le plan de cours'" @click="openDialog('plan', event)"></Button>
       </div>
     </div>
   </div>
 
   <!-- EdtEtudiant Event Template -->
-  <div v-else-if="type === 'etudiant'" class="rounded-lg !h-full" v-on="$attrs">
+  <div v-else-if="type === 'etudiant'" class="rounded-lg h-full!" v-on="$attrs">
     <div class="p-2 flex flex-col justify-between h-full gap-1">
       <div>
         <div class="title font-black">{{ event.title }}</div>
         <div class="flex gap-1 items-center">
-          <Badge class="!text-black" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">
+          <Badge class="text-black!" :style="{ backgroundColor: event.backgroundColor ? adjustColor(darkenColor(event.backgroundColor, 60), 0, 0.2) : '' }">
             {{ event.type }}
           </Badge>
 <!--          {{ event.semestre?.libelle }} | -->
@@ -209,13 +209,13 @@ const openDialog = (dialogType, ev) => {
       <div v-if="event.overlap" class="flex flex-col gap-2">
         <div>{{ formattedTime }}</div>
         <div class="flex items-center gap-2 text-xs">
-          <PhotoUser :user-photo="event.intervenantPhoto" class="!w-6 border border-gray-400"/>
+          <PhotoUser :user-photo="event.intervenantPhoto" class="w-6! border border-gray-400"/>
           {{ event.personnel?.display || 'Inconnu' }}
         </div>
       </div>
       <div v-else class="flex justify-between items-center flex-wrap gap-2">
         <div class="flex items-center gap-2 text-xs">
-          <PhotoUser :user-photo="event.intervenantPhoto" class="!w-6 border border-gray-400" />
+          <PhotoUser :user-photo="event.intervenantPhoto" class="w-6! border border-gray-400" />
           {{ event.personnel?.display || 'Inconnu' }}
         </div>
         <div class="flex flex-col items-center">

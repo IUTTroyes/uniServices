@@ -74,7 +74,7 @@
     "uuid": "^13.0.0",
     "vee-validate": "^4.15.1",
     "vitest": "^4.1.0",
-    "vue-cal": "^4.10.2",
+    "vue-cal": "^5.0.1-rc.25",
     "vue-chartjs": "^5.3.3",
     "vue-draggable-next": "^2.3.0",
     "yup": "^1.7.1"

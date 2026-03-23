@@ -141,8 +141,8 @@ importers:
         specifier: ^4.1.0
         version: 4.1.0(@types/node@25.5.0)(jsdom@29.0.1)(vite@6.4.1(@types/node@25.5.0)(jiti@2.6.1)(lightningcss@1.32.0)(sass@1.98.0)(yaml@2.8.3))
       vue-cal:
-        specifier: ^4.10.2
-        version: 4.10.2(vue@3.5.30(typescript@5.9.3))
+        specifier: ^5.0.1-rc.25
+        version: 5.0.1-rc.40(vue@3.5.30(typescript@5.9.3))
       vue-chartjs:
         specifier: ^5.3.3
         version: 5.3.3(chart.js@4.5.1)(vue@3.5.30(typescript@5.9.3))
@@ -3590,10 +3590,10 @@ packages:
   vscode-uri@3.1.0:
     resolution: {integrity: sha512-/BpdSx+yCQGnCvecbyXdxHDkuk55/G3xwnC0GqY4gmQ3j+A+g8kzzgB4Nk/SINjqn6+waqw3EgbVF2QKExkRxQ==}
 
-  vue-cal@4.10.2:
-    resolution: {integrity: sha512-VHaoqI2DLGlwo4BGoUKF97PqKdxGFHCilj2co40zraQXucolALDaYNdpSfdP1kO3f+uznuqbEFH3n/SF5fHPpQ==}
+  vue-cal@5.0.1-rc.40:
+    resolution: {integrity: sha512-OirrwhxT2aWwhTpYu18R9ZFBHYIkA3UOnD+IsjBpqsM5fudMa3Dn17Jw/05gPpf1F4qslEOQWMcK2ZYN20CTjQ==}
     peerDependencies:
-      vue: ^3.2.0
+      vue: ^3.5.11
 
   vue-chartjs@5.3.3:
     resolution: {integrity: sha512-jqxtL8KZ6YJ5NTv6XzrzLS7osyegOi28UGNZW0h9OkDL7Sh1396ht4Dorh04aKrl2LiSalQ84WtqiG0RIJb0tA==}
@@ -7121,7 +7121,7 @@ snapshots:
 
   vscode-uri@3.1.0: {}
 
-  vue-cal@4.10.2(vue@3.5.30(typescript@5.9.3)):
+  vue-cal@5.0.1-rc.40(vue@3.5.30(typescript@5.9.3)):
     dependencies:
       vue: 3.5.30(typescript@5.9.3)
 

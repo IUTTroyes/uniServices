@@ -5,6 +5,18 @@
       <sourceFolder url="file://$MODULE_DIR$/back/src" isTestSource="false" packagePrefix="App\" />
       <sourceFolder url="file://$MODULE_DIR$/back/tests" isTestSource="true" packagePrefix="App\Tests\" />
       <sourceFolder url="file://$MODULE_DIR$/backend/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/back/packages/auth-bundle/src" isTestSource="false" packagePrefix="IUTTroyes\AuthBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/back/packages/auth-bundle/tests" isTestSource="true" packagePrefix="IUTTroyes\AuthBundle\Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/back/packages/edt-bundle/src" isTestSource="false" packagePrefix="IUTTroyes\EdtBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/back/packages/edt-bundle/tests" isTestSource="true" packagePrefix="IUTTroyes\EdtBundle\Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/back/packages/intranet-bundle/src" isTestSource="false" packagePrefix="IUTTroyes\IntranetBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/back/packages/intranet-bundle/tests" isTestSource="true" packagePrefix="IUTTroyes\IntranetBundle\Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/auth-bundle/src" isTestSource="false" packagePrefix="IUTTroyes\AuthBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/auth-bundle/tests" isTestSource="true" packagePrefix="IUTTroyes\AuthBundle\Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/edt-bundle/src" isTestSource="false" packagePrefix="IUTTroyes\EdtBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/edt-bundle/tests" isTestSource="true" packagePrefix="IUTTroyes\EdtBundle\Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/intranet-bundle/src" isTestSource="false" packagePrefix="IUTTroyes\IntranetBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/intranet-bundle/tests" isTestSource="true" packagePrefix="IUTTroyes\IntranetBundle\Tests\" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/cache" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/collections" />
@@ -203,6 +215,36 @@
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/jawira/plantuml-encoding" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/jawira/plantuml-to-image" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/jawira/the-lost-functions" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/composer" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/nette/utils" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/phar-io/version" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/psr/container" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/psr/event-dispatcher" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/psr/log" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/sebastian/diff" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/config" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/console" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/dependency-injection" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/deprecation-contracts" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/error-handler" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/event-dispatcher" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/event-dispatcher-contracts" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/filesystem" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/finder" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/http-foundation" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/http-kernel" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-ctype" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-intl-grapheme" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-intl-normalizer" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-mbstring" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/polyfill-php85" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/process" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/service-contracts" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/string" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/var-dumper" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symfony/var-exporter" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/symplify/monorepo-builder" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/webmozart/assert" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

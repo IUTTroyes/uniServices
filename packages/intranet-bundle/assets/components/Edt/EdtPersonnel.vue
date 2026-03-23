@@ -199,7 +199,7 @@ const heuresParType = computed(() => {
 <template>
 
   <div class="flex gap-4 w-full pb-6 overflow-x-auto">
-    <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+    <div class="bg-neutral-100 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
       <div>
         Total heures
       </div>
@@ -207,7 +207,7 @@ const heuresParType = computed(() => {
         {{totalHeures}} h
       </div>
     </div>
-    <div v-for="heuresType in heuresParType" class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+    <div v-for="heuresType in heuresParType" class="bg-neutral-100 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
       <div>
         {{heuresType.type}}
       </div>
@@ -292,7 +292,6 @@ const heuresParType = computed(() => {
       diy
       :events="events"
       @event-click="openDialog">
-
     <!-- En-tête personnalisé -->
     <template #header="{ view, availableViews, vuecal }">
       <div class="p-6">
