@@ -552,9 +552,8 @@ const exportDataHeures = async () => {
 
 <template>
   <ErrorView v-if="hasError"></ErrorView>
-  <div v-else class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 mb-6 w-full bg-neutral-100/20">
+  <div v-else class="bg-neutral-100 dark:bg-neutral-800 bg-opacity-20 rounded-lg p-6 mb-6 w-full ">
     <div class="text-lg font-bold mb-4">Filtres</div>
-
     <div>
       <SimpleSkeleton v-if="isLoadingDiplomes" class="w-full"/>
       <Tabs v-else :value="selectedDiplome ? selectedDiplome.id : null" scrollable>
@@ -695,16 +694,16 @@ const exportDataHeures = async () => {
       <span v-else>Tous les diplômes</span>
     </div>
     <div class="flex items-stretch gap-4 h-full">
-      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+      <div class="border border-neutral-300 dark:border-neutral-700 rounded-lg p-6 w-full">
         <div class="text-lg font-bold mb-4">Nombre d'heures programmées</div>
         <div>
           <div v-if="eventsData">
-            <div class="mb-4 flex flex-col justify-center items-center w-full border border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-white/10">
+            <div class="mb-4 flex flex-col justify-center items-center w-full border border-neutral-300 dark:border-neutral-700 rounded-lg p-6 bg-neutral-100 dark:bg-neutral-800">
               <div class="text-lg">Total d'heures programmées</div>
               <div class="text-2xl font-bold">{{ eventsData.totalHeures }} h</div>
             </div>
             <Divider></Divider>
-            <div v-if="eventsData.heuresParType && Object.keys(eventsData.heuresParType).length" class="mb-4 border border-gray-300 dark:border-gray-700 rounded-lg p-6 bg-white/10">
+            <div v-if="eventsData.heuresParType && Object.keys(eventsData.heuresParType).length" class="mb-4 border border-neutral-300 dark:border-neutral-700 rounded-lg p-6 bg-neutral-100 dark:bg-neutral-800">
               <div class="text-center text-lg">Heures par type</div>
               <DataTable :value="Object.entries(eventsData.heuresParType).map(([type, heures]) => ({ type, heures }))" class="w-full">
                 <Column field="type" header="Type d'activité" />
@@ -717,12 +716,12 @@ const exportDataHeures = async () => {
             </div>
             <Button label="Exporter en xlsx" icon="pi pi-file" severity="secondary" class="w-full" @click="exportDataHeures()" />
           </div>
-          <div v-else class="text-gray-500">Aucune donnée à afficher pour les filtres sélectionnés.</div>
+          <div v-else class="text-neutral-500">Aucune donnée à afficher pour les filtres sélectionnés.</div>
         </div>
       </div>
-      <div class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full flex flex-col">
+      <div class="border border-neutral-300 dark:border-neutral-700 rounded-lg p-6 w-full flex flex-col">
         <div class="text-lg font-bold">Répartition par types d'activités</div>
-        <div class="text-sm text-gray-600 mb-2">Pourcentage par types</div>
+        <div class="text-sm text-neutral-600 mb-2">Pourcentage par types</div>
         <div v-if="eventsData" class="flex flex-col justify-start gap-4 h-full">
           <Chart v-if="chartDataTypes" type="pie" :data="chartDataTypes" :options="optionGraphTypes" />
           <DataTable :value="eventsData.repartitionTypes" >
@@ -734,13 +733,13 @@ const exportDataHeures = async () => {
             </Column>
           </DataTable>
         </div>
-        <div v-else class="text-gray-500">Aucune répartition disponible.</div>
+        <div v-else class="text-neutral-500">Aucune répartition disponible.</div>
       </div>
     </div>
-    <div v-if="!selectedAnnee" class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+    <div v-if="!selectedAnnee" class="border border-neutral-300 dark:border-neutral-700 rounded-lg p-6 w-full">
       <div class="text-lg font-bold">Répartition par semestres</div>
       <div v-if="eventsData">
-        <div class="text-sm text-gray-600 mb-2">Pourcentage par semestres</div>
+        <div class="text-sm text-neutral-600 mb-2">Pourcentage par semestres</div>
         <Chart v-if="chartDataSemestres" type="pie" :data="chartDataSemestres" :options="optionGraphSemestres" class="w-full h-full" />
 
         <DataTable :value="eventsData.repartitionSemestres" class="mt-4">
@@ -757,11 +756,11 @@ const exportDataHeures = async () => {
           </Column>
         </DataTable>
       </div>
-      <div v-else class="text-gray-500">Aucune répartition disponible.</div>
+      <div v-else class="text-neutral-500">Aucune répartition disponible.</div>
     </div>
     <Divider/>
     <ListSkeleton v-if="isLoadingStatsPreviData" class="w-full"/>
-    <div v-else class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 w-full">
+    <div v-else class="border border-neutral-300 dark:border-neutral-700 rounded-lg p-6 w-full">
       <div class="mb-4">
         <div class="text-lg font-bold">Comparatif prévisionnel</div>
         <em>Cette section compare les heures programmées avec les heures prévues selon les enseignements associés.</em>
@@ -777,7 +776,7 @@ const exportDataHeures = async () => {
         <span v-else>Tous les diplômes</span>
       </div>
       <div class="flex w-full justify-center">
-        <div class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-1/2 min-w-48 flex flex-col items-center justify-center my-4">
+        <div class="bg-neutral-100 dark:bg-neutral-800 p-4 rounded-lg w-1/2 min-w-48 flex flex-col items-center justify-center my-4">
           <div>
             Taux de réalisation des heures prévisionnelles
           </div>
@@ -820,9 +819,9 @@ const exportDataHeures = async () => {
                   <Column header="Différence" :rowspan="2" />
                 </Row>
                 <Row>
-                  <Column v-for="t in typesList" :key="'previ-h-' + t" :header="t" :class="t === 'CM' ? '!bg-purple-400' : t === 'TD' ? '!bg-green-400' : t === 'TP' ? '!bg-yellow-400' : t === 'Projet' ? '!bg-blue-400' : ''" class="!bg-opacity-40 !text-nowrap"/>
+                  <Column v-for="t in typesList" :key="'previ-h-' + t" :header="t" :class="t === 'CM' ? 'bg-purple-400/40!' : t === 'TD' ? 'bg-green-400/40!' : t === 'TP' ? 'bg-yellow-400/40!' : t === 'Projet' ? 'bg-blue-400/40!' : ''" class="text-nowrap"/>
                   <Column header="Total" />
-                  <Column v-for="t in typesList" :key="'edt-h-' + t" :header="t" :class="t === 'CM' ? '!bg-purple-400' : t === 'TD' ? '!bg-green-400' : t === 'TP' ? '!bg-yellow-400' : t === 'Projet' ? '!bg-blue-400' : ''" class="!bg-opacity-40 !text-nowrap"/>
+                  <Column v-for="t in typesList" :key="'edt-h-' + t" :header="t" :class="t === 'CM' ? 'bg-purple-400/40!' : t === 'TD' ? 'bg-green-400/40!' : t === 'TP' ? 'bg-yellow-400/40!' : t === 'Projet' ? 'bg-blue-400/40!' : ''" class="text-nowrap"/>
                   <Column header="Total" />
                 </Row>
               </ColumnGroup>
@@ -833,7 +832,7 @@ const exportDataHeures = async () => {
                 </template>
               </Column>
 
-              <Column v-for="t in typesList" :key="'previ-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
+              <Column v-for="t in typesList" :key="'previ-' + t" :class="t === 'CM' ? 'bg-purple-400/20' : t === 'TD' ? 'bg-green-400/20' : t === 'TP' ? 'bg-yellow-400/20' : t === 'Projet' ? 'bg-blue-400/20' : ''" class="text-nowrap">
                 <template #body="slotProps">
                   {{ (slotProps.data['previ_' + t] || 0) }} h
                 </template>
@@ -844,7 +843,7 @@ const exportDataHeures = async () => {
                 </template>
               </Column>
 
-              <Column v-for="t in typesList" :key="'edt-' + t" :class="t === 'CM' ? 'bg-purple-400' : t === 'TD' ? 'bg-green-400' : t === 'TP' ? 'bg-yellow-400' : t === 'Projet' ? 'bg-blue-400' : ''" class="bg-opacity-20 text-nowrap">
+              <Column v-for="t in typesList" :key="'edt-' + t" :class="t === 'CM' ? 'bg-purple-400/20' : t === 'TD' ? 'bg-green-400/20' : t === 'TP' ? 'bg-yellow-400/20' : t === 'Projet' ? 'bg-blue-400/20' : ''" class="text-nowrap">
                 <template #body="slotProps">
                   {{ (slotProps.data['edt_' + t] || 0) }} h
                 </template>

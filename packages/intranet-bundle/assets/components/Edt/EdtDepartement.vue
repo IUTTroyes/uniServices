@@ -496,7 +496,7 @@ const heuresParType = computed(() => {
     </div>
   </Dialog>
   <ErrorView v-if="hasError"></ErrorView>
-  <div v-else class="bg-neutral-100 dark:bg-neutral-800 bg-opacity-20 rounded-lg p-6 mb-6 w-full ">
+  <div v-else class="bg-neutral-100 dark:bg-neutral-800 rounded-lg p-6 mb-6 w-full ">
     <div class="text-lg font-bold mb-4">
       Filtres
     </div>
