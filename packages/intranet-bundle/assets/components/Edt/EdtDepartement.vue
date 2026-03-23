@@ -1,6 +1,6 @@
 <script setup>
-import VueCal from 'vue-cal';
-import 'vue-cal/dist/vuecal.css';
+import {VueCal} from 'vue-cal'
+import 'vue-cal/style'
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
 import {useDiplomeStore, useUsersStore} from '@stores';
 import {MessageCard, PhotoUser, SimpleSkeleton} from '@components';
@@ -425,7 +425,7 @@ const heuresParType = computed(() => {
 
 <template>
   <div class="flex gap-4 w-full pb-6 overflow-x-auto">
-    <div class="bg-neutral-300/20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+    <div class="bg-neutral-100 dark:bg-neutral-800 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
       <div>
         Total heures
       </div>
@@ -433,7 +433,7 @@ const heuresParType = computed(() => {
         {{totalHeures}} h
       </div>
     </div>
-    <div v-for="heuresType in heuresParType" class="bg-neutral-300/20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+    <div v-for="heuresType in heuresParType" class="bg-neutral-100 dark:bg-neutral-800 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
       <div>
         {{heuresType.type}}
       </div>
@@ -496,7 +496,7 @@ const heuresParType = computed(() => {
     </div>
   </Dialog>
   <ErrorView v-if="hasError"></ErrorView>
-  <div v-else class="border border-gray-300 dark:border-gray-700 rounded-lg p-6 mb-6 w-full bg-neutral-100/20">
+  <div v-else class="bg-neutral-100 dark:bg-neutral-800 bg-opacity-20 rounded-lg p-6 mb-6 w-full ">
     <div class="text-lg font-bold mb-4">
       Filtres
     </div>
@@ -665,8 +665,9 @@ const heuresParType = computed(() => {
 :deep(.vuecal__body) {
   @apply gap-2;
 }
+
 :deep(.vuecal__weekday) {
-  @apply bg-gray-300/20 py-4 rounded-md flex flex-col items-center uppercase;
+  @apply bg-neutral-100 dark:bg-neutral-800 py-4 rounded-md flex flex-col items-center uppercase;
 }
 
 :deep(.vuecal__weekdays-headings) {
@@ -674,11 +675,15 @@ const heuresParType = computed(() => {
 }
 
 :deep(.vuecal__schedules-headings) {
-  @apply bg-white rounded-md border-b-2;
+  @apply rounded-md;
 }
 
 :deep(.vuecal--day-view .vuecal__scrollable-wrap .vuecal__scrollable) {
   @apply p-6;
+}
+
+:deep(.vuecal__cell) {
+  @apply border border-neutral-100 dark:border-neutral-700 rounded-md;
 }
 
 /* Style for TD events that span across columns */

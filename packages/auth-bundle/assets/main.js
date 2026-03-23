@@ -6,7 +6,7 @@ import router from './router';
 import { registerPermissionDirective } from '@utils';
 import { setupInactivityTimer } from '@helpers/authService';
 
-import Aura from '@primevue/themes/aura';
+import Aura from '@primeuix/themes/aura';
 import PrimeVue from 'primevue/config';
 import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
@@ -16,7 +16,7 @@ import Tooltip from 'primevue/tooltip';
 
 import '@/assets/styles.scss';
 import '@/assets/tailwind.css';
-import {definePreset} from "@primevue/themes";
+import {definePreset} from "@primeuix/themes";
 
 const MyPreset = definePreset(Aura, {
     semantic: {

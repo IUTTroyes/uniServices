@@ -1,6 +1,6 @@
 <script setup>
-import VueCal from 'vue-cal'
-import 'vue-cal/dist/vuecal.css'
+import { VueCal } from 'vue-cal'
+import 'vue-cal/style'
 
 import {nextTick, ref, watch} from 'vue'
 import EdtEvent from './EdtEvent.vue'

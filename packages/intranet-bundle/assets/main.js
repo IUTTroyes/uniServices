@@ -7,14 +7,14 @@ import { initializeAppData } from '@requests/initializeData';
 import { registerPermissionDirective } from '@utils';
 import { setupInactivityTimer } from '@helpers/authService';
 
-import Aura from '@primevue/themes/aura';
+import Aura from '@primeuix/themes/aura';
 import PrimeVue from 'primevue/config';
 import ConfirmationService from 'primevue/confirmationservice';
 import ToastService from 'primevue/toastservice';
 import Ripple from 'primevue/ripple';
 import StyleClass from 'primevue/styleclass';
 import Tooltip from 'primevue/tooltip';
-import { definePreset } from '@primevue/themes';
+import { definePreset } from '@primeuix/themes';
 import '@/assets/styles.scss';
 import '@/assets/tailwind.css';
 import fr from '@config/fr.json'

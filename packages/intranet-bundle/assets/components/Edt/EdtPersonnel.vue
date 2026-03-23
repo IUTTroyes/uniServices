@@ -1,6 +1,6 @@
 <script setup>
-import VueCal from 'vue-cal'
-import 'vue-cal/dist/vuecal.css'
+import {VueCal} from 'vue-cal'
+import 'vue-cal/style'
 
 import {ref, watch, nextTick, computed} from 'vue'
 import EdtEvent from './EdtEvent.vue'
@@ -199,7 +199,7 @@ const heuresParType = computed(() => {
 <template>
 
   <div class="flex gap-4 w-full pb-6 overflow-x-auto">
-    <div class="bg-neutral-100 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+    <div class="bg-neutral-100 dark:bg-neutral-800 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
       <div>
         Total heures
       </div>
@@ -207,7 +207,7 @@ const heuresParType = computed(() => {
         {{totalHeures}} h
       </div>
     </div>
-    <div v-for="heuresType in heuresParType" class="bg-neutral-100 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
+    <div v-for="heuresType in heuresParType" class="bg-neutral-100 dark:bg-neutral-800 bg-opacity-20 p-4 rounded-lg w-full min-w-48 flex flex-col items-center justify-center">
       <div>
         {{heuresType.type}}
       </div>
@@ -375,11 +375,11 @@ const heuresParType = computed(() => {
 }
 
 :deep(.vuecal__cell) {
-  @apply border border-gray-200 dark:border-gray-800 border-black/20 rounded-md;
+  @apply border border-neutral-100 dark:border-neutral-700 rounded-md;
 }
 
 :deep(.vuecal__weekday) {
-  @apply bg-gray-200/20 dark:bg-gray-800 py-4 rounded-md flex flex-col items-center uppercase;
+  @apply bg-neutral-100 dark:bg-neutral-800 py-4 rounded-md flex flex-col items-center uppercase;
 }
 
 :deep(.vuecal__weekdays-headings) {

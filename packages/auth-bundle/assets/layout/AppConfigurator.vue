@@ -1,8 +1,8 @@
 <script setup>
 import { useLayout } from '@/layout/composables/layout';
-import { $t, updatePreset, updateSurfacePalette } from '@primevue/themes';
-import Aura from '@primevue/themes/aura';
-import Lara from '@primevue/themes/lara';
+import { $t, updatePreset, updateSurfacePalette } from '@primeuix/themes';
+import Aura from '@primeuix/themes/aura';
+import Lara from '@primeuix/themes/lara';
 import { ref } from 'vue';
 
 const { layoutConfig, setPrimary, setSurface, setPreset, isDarkTheme, setMenuMode } = useLayout();
