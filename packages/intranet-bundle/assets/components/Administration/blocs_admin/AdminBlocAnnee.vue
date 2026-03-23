@@ -138,7 +138,7 @@ const selectAnnee = (annee) => {
     <Fieldset class="w-full">
       <template #legend>
         <div class="flex items-center pl-2">
-          <i class="pi pi-briefcase bg-yellow-400 bg-opacity-20 rounded-full p-4 text-yellow-500"/>
+          <i class="pi pi-briefcase bg-yellow-400/20 rounded-full p-4 text-yellow-500"/>
           <div class="flex flex-col">
             <span class="font-bold px-2 capitalize">Années</span>
             <em class="text-muted-color px-2">Étudiants, absences, notes, fin d'année</em>
@@ -159,8 +159,8 @@ const selectAnnee = (annee) => {
                     :key="annee.id"
                     class="mb-2 text-sm">
                   <div @click="selectAnnee(annee)"
-                       class="cursor-pointer hover:bg-primary-400 hover:bg-opacity-10 rounded-md w-full p-2 border"
-                       :class="{'bg-primary-400 bg-opacity-10': selectedAnnee && selectedAnnee.id === annee.id}">
+                       class="cursor-pointer hover:bg-primary-400/10 rounded-md w-full p-2 border border-neutral-200 dark:border-neutral-700"
+                       :class="{'bg-primary-400/20': selectedAnnee && selectedAnnee.id === annee.id}">
                     {{ annee.libelle }}
                   </div>
                 </li>

@@ -11,7 +11,7 @@ const panelMenuItems = [
       <Fieldset class="w-full h-full">
         <template #legend>
           <div class="flex items-center pl-2">
-            <i class="pi pi-briefcase bg-blue-400 bg-opacity-20 rounded-full p-4 text-blue-500"/>
+            <i class="pi pi-briefcase bg-blue-400/20 rounded-full p-4 text-blue-500"/>
             <div class="flex flex-col">
               <span class="font-bold px-2 capitalize">Personnels</span>
               <em class="text-muted-color px-2">Infos, prévisionnels, HRS/Primes</em>

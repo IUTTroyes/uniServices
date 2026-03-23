@@ -17,7 +17,7 @@ const panelMenuItems = [
       <Fieldset class="w-full h-full">
         <template #legend>
           <div class="flex items-center pl-2">
-            <i class="pi pi-star bg-red-400 bg-opacity-20 rounded-full p-4 text-red-500"/>
+            <i class="pi pi-star bg-red-400/20 rounded-full p-4 text-red-500"/>
             <div class="flex flex-col">
               <span class="font-bold px-2 capitalize">Qualité</span>
               <em class="text-muted-color px-2">Enquêtes, ...</em>

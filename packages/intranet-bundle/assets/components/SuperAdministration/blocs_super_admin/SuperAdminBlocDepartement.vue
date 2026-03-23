@@ -15,7 +15,7 @@ const panelMenuItems = [
       <Fieldset class="w-full h-full">
         <template #legend>
           <div class="flex items-center pl-2">
-            <i class="pi pi-flag bg-lime-400 bg-opacity-20 rounded-full p-4 text-lime-500"/>
+            <i class="pi pi-flag bg-lime-400/20 rounded-full p-4 text-lime-500"/>
             <div class="flex flex-col">
               <span class="font-bold px-2 capitalize">Départements</span>
               <em class="text-muted-color px-2">Gestion globale des départements</em>

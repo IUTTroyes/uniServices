@@ -16,7 +16,7 @@ const panelMenuItems = [
       <Fieldset class="w-full h-full">
         <template #legend>
           <div class="flex items-center pl-2">
-            <i class="pi pi-users bg-orange-400 bg-opacity-20 rounded-full p-4 text-orange-500"/>
+            <i class="pi pi-users bg-orange-400/20 rounded-full p-4 text-orange-500"/>
             <div class="flex flex-col">
               <span class="font-bold px-2 capitalize">PPN</span>
               <em class="text-muted-color px-2">Programmes pédagogiques, matières, plans de cours</em>

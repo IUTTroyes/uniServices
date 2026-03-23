@@ -104,7 +104,7 @@ const openDialog = (dialogType, ev) => {
 
   <!-- EdtJour Event Template -->
   <div v-else-if="type === 'jour'" class="h-full min-h-32" v-on="$attrs">
-    <div v-if="event.text === 'Aucun cours'" class="flex flex-row justify-start items-start rounded-xl h-full relative text-black palm bg-neutral-100 bg-opacity-20">
+    <div v-if="event.text === 'Aucun cours'" class="flex flex-row justify-start items-start rounded-xl h-full relative palm bg-neutral-100 dark:bg-neutral-700">
       <div class="flex flex-col justify-center p-4 gap-2">
         <div v-if="event.dayoff" class="text-lg font-bold">Aucun événement aujourd'hui</div>
         <div v-else class="text-lg font-bold">Aucun événement en cours</div>
