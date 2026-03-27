@@ -1,29 +1,30 @@
-export * from './structure_services/departementService';
-export * from './structure_services/diplomeService';
-export * from './structure_services/anneeService';
-export * from './structure_services/semestreService';
-export * from './structure_services/anneeUnivService';
-export * from './structure_services/pnService';
+export * from './structure_services/departementService.js';
+export * from './structure_services/diplomeService.js';
+export * from './structure_services/anneeService.js';
+export * from './structure_services/semestreService.js';
+export * from './structure_services/anneeUnivService.js';
+export * from './structure_services/pnService.js';
 export * from './structure_services/referentielCompetenceService.js';
-export * from './structure_services/structureCalendrierService';
-export * from './structure_services/ueService';
-export * from './structure_services/previsionnelService';
-export * from './structure_services/groupeService';
+export * from './structure_services/structureCalendrierService.js';
+export * from './structure_services/ueService.js';
+export * from './structure_services/previsionnelService.js';
+export * from './structure_services/groupeService.js';
 
-export * from './scol_services/enseignementService';
+export * from './scol_services/enseignementService.js';
 export * from './scol_services/evaluationService.js';
 
 export * from './edt_services/edtEventService.js';
 
-export { updateEtudiantService, getEtudiantService, createEtudiantService, createEtudiantsService, importEtudiantApogeeService, getEtudiantsService } from './user_services/etudiantService';
-export { getPersonnelsService } from './user_services/personnelService';
-export * from './user_services/userService';
+export * from './user_services/etudiantService.js';
+export * from './user_services/personnelService.js';
+export * from './user_services/userService.js';
 
-export * from './ext_data_services/siteIutService';
+export * from './ext_data_services/siteIutService.js';
 
-export * from './etudiant_services/etudiantScolariteService';
-export * from './etudiant_services/etudiantScolariteSemestreService';
-export * from './etudiant_services/etudiantNoteService';
+export * from './etudiant_services/etudiantScolariteService.js';
+export * from './etudiant_services/etudiantScolariteSemestreService.js';
+export * from './etudiant_services/etudiantNoteService.js';
+export * from './etudiant_services/etudiantAbsenceService.js';
 
 export * from './personnel_services/personnelHrsService.js'
 

@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Webmozart\\Assert\\' => array($vendorDir . '/webmozart/assert/src'),
+    'UnifolioBundle\\' => array($baseDir . '/packages/unifolio-bundle/src'),
     'Symplify\\SymplifyKernel\\' => array($vendorDir . '/symplify/monorepo-builder/src-deps/symplify-kernel/src'),
     'Symplify\\SmartFileSystem\\' => array($vendorDir . '/symplify/monorepo-builder/src-deps/smart-file-system/src'),
     'Symplify\\PackageBuilder\\' => array($vendorDir . '/symplify/monorepo-builder/src-deps/package-builder/src'),

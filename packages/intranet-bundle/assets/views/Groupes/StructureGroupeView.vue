@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, computed, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import {getAnneeService, getGroupesService, getSemestresService} from "@requests";
 import { ErrorView, SimpleSkeleton, GlobalLoader } from "@components";
 import { useUsersStore, useSemestreStore, useAnneeStore } from "@stores";
@@ -164,7 +164,7 @@ const synchroApogee = async () => {
   <div class="card min-h-full">
     <div class="flex justify-between items-end w-full">
       <div>
-        <h2 class="text-2xl! mb-0!font-bold flex items-end gap-2">
+        <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">
           Structure des groupes du
           <SimpleSkeleton v-if="isLoadingSemestres" class="!w-32"></SimpleSkeleton>
           <span v-else>{{ semestre.libelle }}</span>
@@ -175,7 +175,7 @@ const synchroApogee = async () => {
       <div v-else class="flex gap-4">
         <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
           <template #value>
-            Changer d'année
+            {{ annee.libelle || "Changer d'année'" }}
           </template>
         </Select>
         <Button

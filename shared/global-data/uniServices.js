@@ -1,34 +1,16 @@
 import LogoIut from "@images/logo/logo_intranet_iut_troyes.svg";
-import LogoUnifolio from "@images/logo/logo_unifolio.png";
-import LogoCorrecto from "@images/logo/logo_correcto.png";
-import LogoEdt from "@images/logo/logo_uniedt.png";
+import toolsMeta from "./tools.generated.json";
 
-export const tools = [
-  {
-    name: "UniTranet",
-    description: "Gestion de la structure des formations et des étudiants.",
-    url: "http://localhost:3001/intranet",
-    logo: LogoIut,
-  },
-  {
-    name: "UniFolio",
-    description: "Outil de création et de gestion de portfolios universitaires.",
-    url: "http://localhost:3002/unifolio",
-    logo: LogoUnifolio,
-  },
-  {
-    name: "Correcto",
-    description: "Plateforme de correction des travaux et des examens.",
-    url: "http://localhost:3004/correcto",
-    logo: LogoCorrecto,
-  },
-  {
-    name: "UniEdt",
-    description: "Plateforme de conception des emplois du temps et gestion des contraintes.",
-    url: "http://localhost:3003/edt",
-    logo: LogoEdt,
-  }
-]
+// La liste des outils est désormais générée automatiquement à partir des bundles
+// via le fichier tools.generated.json (créé/maintenu par les scripts PHP).
+// Par défaut, tous les logos utilisent LogoIut. La valeur 'url' provient du registre
+// ou est construite par défaut comme un chemin relatif "/<slug>".
+export const tools = (toolsMeta || []).map(item => ({
+  name: item.name,
+  description: item.description,
+  url: item.url || `/${item.urlSlug}`,
+  logo: LogoIut || item.logo,
+}));
 
 export const statuts = [
   { label: 'Maître de conférences', value: 'MCF', severity: 'info' },

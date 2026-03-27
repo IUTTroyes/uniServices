@@ -12,7 +12,8 @@
         "psr-4": {
             "AuthBundle\\": "packages/auth-bundle/src/",
             "EdtBundle\\": "packages/edt-bundle/src/",
-            "IntranetBundle\\": "packages/intranet-bundle/src/"
+            "IntranetBundle\\": "packages/intranet-bundle/src/",
+            "UnifolioBundle\\": "packages/unifolio-bundle/src/"
         }
     },
     "autoload-dev": {
@@ -31,6 +32,7 @@
     "replace": {
         "iuttroyes/auth-bundle": "self.version",
         "iuttroyes/edt-bundle": "self.version",
-        "iuttroyes/intranet-bundle": "self.version"
+        "iuttroyes/intranet-bundle": "self.version",
+        "iuttroyes/unifolio-bundle": "self.version"
     }
 }

@@ -205,85 +205,62 @@ Chaque bundle doit être compilé indépendamment pour que ses assets soient dis
 
 ## Création d'un Nouveau Bundle
 
-Pour ajouter un nouveau bundle au projet (ex: `nom-bundle`), suivez ces étapes :
+Pour ajouter un nouveau bundle au projet (ex: `nom-bundle`), utilisez le script d'automatisation :
 
-### 1. Création de la structure du dossier
-Créez un nouveau dossier dans `packages/nom-bundle` avec la structure suivante :
 ```bash
-packages/nom-bundle/
-├── assets/             # Code source Vue.js
-├── src/                # Code source PHP
-│   └── NomBundle.php   # Classe du Bundle
-├── composer.json
-├── package.json
-└── vite.config.js
+php scripts/create-bundle.php nom-bundle
 ```
 
-### 2. Configuration PHP (Composer)
-Dans `packages/nom-bundle/composer.json` :
-```json
-{
-  "name": "iuttroyes/nom-bundle",
-  "type": "symfony-bundle",
-  "autoload": {
-    "psr-4": { "NomBundle\\": "src/" }
-  }
-}
+Le script vous demandera interactivement :
+- **Nom de l'outil** (ex: `Mon Appli`)
+- **Description** (ex: `Gestion de mes données`)
+- **URL Slug** (ex: `mon-appli` pour la structure)
+- **URL complète** (ex: `http://localhost:3000/mon-appli/` pour le lien dans la navigation)
+
+Vous pouvez également passer ces informations via des arguments pour éviter les questions :
+
+```bash
+php scripts/create-bundle.php nom-bundle \
+  --display-name="Nom lisible" \
+  --description="Description de l'outil" \
+  --url-slug="slug" \
+  --url="http://localhost:3000/slug/"
 ```
 
-Dans le `composer.json` à la **racine du projet** :
-- Ajoutez le namespace dans `autoload` -> `psr-4` : `"NomBundle\\": "packages/nom-bundle/src/"`
-- Ajoutez le bundle dans `replace` : `"iuttroyes/nom-bundle": "self.version"`
+Le logo est par défaut `LogoIut`.
 
-Créez la classe `packages/nom-bundle/src/NomBundle.php` :
-```php
-<?php
-namespace NomBundle;
-use Symfony\Component\HttpKernel\Bundle\Bundle;
+### Ce que fait le script :
+1. Crée l'arborescence du bundle dans `packages/nom-bundle/`.
+2. Génère la classe PHP du Bundle (`NomBundle.php`).
+3. Génère les fichiers `composer.json`, `package.json` et `vite.config.js` pré-configurés.
+4. Crée un fichier `packages/nom-bundle/bundle.meta.json` (nom, description, urlSlug, url) utilisé pour le registre des outils.
+5. Met à jour le `composer.json` à la racine et dans `back/` pour l'autoloading.
+6. Enregistre le bundle dans `back/config/bundles.php`.
+7. Reconstruit automatiquement `shared/global-data/tools.generated.json` en scannant tous les bundles locaux et les outils externes (dans `shared/global-data/external-tools/`).
 
-class NomBundle extends Bundle {
-    public function getPath(): string {
-        return \dirname(__DIR__);
-    }
-}
-```
-
-Activez le bundle dans `back/config/bundles.php` :
-```php
-NomBundle\NomBundle::class => ['all' => true],
-```
-
-### 3. Configuration Frontend (Vue.js)
-Dans `packages/nom-bundle/package.json` :
-```json
-{
-  "name": "@uni/nom-bundle",
-  "private": true,
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build"
-  }
-}
-```
-
-Copiez et adaptez un fichier `vite.config.js` d'un autre bundle pour configurer le build vers `src/Resources/public`.
-
-### 4. Finalisation
-1. Installez les dépendances : `pnpm install`
-2. Mettez à jour autoload : `composer dump-autoload` (ou `composer install`)
+### Après l'exécution :
+1. Installez les nouvelles dépendances et liez le workspace : `pnpm install`
+2. Mettez à jour l'autoload PHP : `composer dump-autoload`
+3. (Optionnel) Ajoutez des commandes `dev` et `build` dans le `Makefile` racine pour faciliter la gestion de ce bundle.
 
 ## Désinstallation d'un Bundle
 
-Si vous souhaitez retirer un bundle du projet (par exemple `edt-bundle`) :
+Si vous souhaitez retirer un bundle du projet (par exemple `nom-bundle`), utilisez le script d'automatisation :
 
-1. **Supprimer le répertoire** : `rm -rf packages/edt-bundle`
-2. **Nettoyer le cache pnpm** : `pnpm install` (mettra à jour les workspaces)
-3. **Mettre à jour Composer** :
-    - Supprimer manuellement les références au bundle dans le `composer.json` racine (sections `autoload`, `autoload-dev` et `replace`).
-    - Exécuter `composer update` pour nettoyer les dépendances.
-4. **Nettoyer Symfony** :
-    - Vérifier si le bundle était enregistré dans `back/config/bundles.php` et le retirer si nécessaire.
-    - Supprimer les éventuelles configurations spécifiques dans `back/config/packages/`.
+```bash
+php scripts/remove-bundle.php nom-bundle
+```
+
+### Ce que fait le script :
+1. Supprime le répertoire du bundle dans `packages/`.
+2. Retire les configurations d'autoloading dans le `composer.json` racine et dans `back/`.
+3. Retire le bundle de `back/config/bundles.php`.
+4. Reconstruit automatiquement `shared/global-data/tools.generated.json` (mise à jour de la liste des outils côté front).
+
+### Après l'exécution :
+1. Mettez à jour les workspaces : `pnpm install`
+2. Mettez à jour l'autoload PHP : `composer dump-autoload` (à la racine et dans `back/`)
+3. Videz le cache Symfony : `cd back && bin/console cache:clear`
 
 ## Technologies Utilisées
 

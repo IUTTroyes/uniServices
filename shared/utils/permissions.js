@@ -52,6 +52,9 @@ const compositePermissions = {
     'isChefDepartement',
     'isRespParcours',
     'isDirecteurEtudes'
+  ],
+  canEditAbsences: [
+      'isAbsence',
   ]
 };
 

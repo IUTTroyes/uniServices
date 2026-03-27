@@ -639,12 +639,12 @@ const synchroParents = async () => {
       <div v-else class="flex gap-4">
         <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
           <template #value>
-            Changer d'année
+            {{ annee?.libelle || "Changer d'année" }}
           </template>
         </Select>
         <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres">
           <template #value>
-            Changer de semestre
+            {{ semestre?.libelle || "Changer de semestre" }}
           </template>
         </Select>
         <div class="flex items-center gap-1">

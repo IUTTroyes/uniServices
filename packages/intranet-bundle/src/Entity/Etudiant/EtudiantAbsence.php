@@ -2,6 +2,12 @@
 
 namespace IntranetBundle\Entity\Etudiant;
 
+use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\UuidTrait;
@@ -12,6 +18,15 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EtudiantAbsenceRepository::class)]
+#[ApiFilter(BooleanFilter::class, properties: ['justifiee'])]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            uriTemplate: '/administration/etudiant_absences',
+            normalizationContext: ['groups' => ['absence:administration']],
+        )
+    ]
+)]
 class EtudiantAbsence
 {
     use UuidTrait;
@@ -45,7 +60,7 @@ class EtudiantAbsence
 
     #[ORM\ManyToOne(inversedBy: 'absence')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    private ?\App\Entity\Etudiant\EtudiantScolariteSemestre $scolariteSemestre = null;
+    private ?EtudiantScolariteSemestre $scolariteSemestre = null;
 
     public function getId(): ?int
     {
@@ -124,18 +139,6 @@ class EtudiantAbsence
         return $this;
     }
 
-    public function getScolarite(): ?EtudiantScolarite
-    {
-        return $this->scolarite;
-    }
-
-    public function setScolarite(?EtudiantScolarite $scolarite): static
-    {
-        $this->scolarite = $scolarite;
-
-        return $this;
-    }
-
     public function getDateJustification(): ?\DateTimeInterface
     {
         return $this->dateJustification;
@@ -160,12 +163,12 @@ class EtudiantAbsence
         return $this;
     }
 
-    public function getScolariteSemestre(): ?\App\Entity\Etudiant\EtudiantScolariteSemestre
+    public function getScolariteSemestre(): ?EtudiantScolariteSemestre
     {
         return $this->scolariteSemestre;
     }
 
-    public function setScolariteSemestre(?\App\Entity\Etudiant\EtudiantScolariteSemestre $scolariteSemestre): static
+    public function setScolariteSemestre(?EtudiantScolariteSemestre $scolariteSemestre): static
     {
         $this->scolariteSemestre = $scolariteSemestre;
 

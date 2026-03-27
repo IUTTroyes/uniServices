@@ -22,6 +22,10 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
         array (
             'Webmozart\\Assert\\' => 17,
         ),
+        'U' => 
+        array (
+            'UnifolioBundle\\' => 15,
+        ),
         'S' => 
         array (
             'Symplify\\SymplifyKernel\\' => 24,
@@ -82,6 +86,10 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
         'Webmozart\\Assert\\' => 
         array (
             0 => __DIR__ . '/..' . '/webmozart/assert/src',
+        ),
+        'UnifolioBundle\\' => 
+        array (
+            0 => __DIR__ . '/../..' . '/packages/unifolio-bundle/src',
         ),
         'Symplify\\SymplifyKernel\\' => 
         array (

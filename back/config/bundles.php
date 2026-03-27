@@ -17,4 +17,5 @@ return [
     AuthBundle\AuthBundle::class => ['all' => true],
     EdtBundle\EdtBundle::class => ['all' => true],
     IntranetBundle\IntranetBundle::class => ['all' => true],
+    UnifolioBundle\UnifolioBundle::class => ['all' => true],
 ];

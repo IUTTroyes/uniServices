@@ -42,15 +42,20 @@ export default [
   {
     path: 'absences/liste',
     name: 'liste-absences',
-    component: () => import('@/views/Groupes/StructureGroupeView.vue'),
+    component: () => import('@/views/Absence/AbsenceListeView.vue'),
     meta: {
-      breadcrumb: [{ label: 'Dashboard', route: '/' }, {
-        label: 'Administration',
-        route: '/administration',
-        icon: 'pi pi-wrench'
-      },
-        { label: 'Année', route: null },
-        { label: 'Liste des absences', route: null }]
+      permission: 'isPersonnel',
+      breadcrumb: () => {
+        const anneeStore = useAnneeStore();
+        const selectedAnnee = anneeStore.annee;
+        return [{ label: 'Dashboard', route: '/' }, {
+          label: 'Administration',
+          route: '/administration',
+          icon: 'pi pi-wrench'
+        },
+          { label: selectedAnnee?.libelle ?? 'Année', route: null },
+          { label: 'Liste des absences', route: null }];
+      }
     },
   },
   {

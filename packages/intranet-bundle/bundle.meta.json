@@ -1,0 +1,6 @@
+{
+  "name": "UniTranet",
+  "description": "Gestion de la structure des formations et des étudiants.",
+  "urlSlug": "intranet",
+  "url": "http://localhost:3001/intranet/"
+}

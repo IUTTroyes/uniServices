@@ -3,12 +3,12 @@ import stageAdministrationRoutes from './stageAdministrationRoutes.js'
 import semestreAdministrationRoutes from './anneeAdministrationRoutes.js'
 import questionnaireAdministrationRoutes from './questionnaireAdministrationRoutes.js'
 import PersonnelsView from "@/views/Personnels/PersonnelsView.vue";
-import EtudiantsListeView from "@/views/Etudiants/EtudiantsListeView.vue";
-import EtudiantsAjoutView from "@/views/Etudiants/EtudiantsAjoutView.vue";
+import EtudiantsListeView from "@/views/Administration/Etudiants/EtudiantsListeView.vue";
+import EtudiantsAjoutView from "@/views/Administration/Etudiants/EtudiantsAjoutView.vue";
 import AdministrationView from '@/views/Administration/AdministrationView.vue';
 import EtudiantAddApogee from '@/components/Administration/etudiant/EtudiantAddApogee.vue';
 import EtudiantAddManuel from '@/components/Administration/etudiant/EtudiantAddManuel.vue';
-import EtudiantsAjoutResult from '@/views/Etudiants/EtudiantsAjoutResult.vue';
+import EtudiantsAjoutResultView from '@/views/Administration/Etudiants/EtudiantsAjoutResultView.vue';
 import PnView from '@/views/Pn/PnView.vue';
 import RefCompetencesIndexView from '@/views/Ref-Competences/IndexView.vue';
 import PrevisionnelView from '@/views/Previsionnel/PrevisionnelView.vue';
@@ -78,7 +78,7 @@ export default [
       },
       {
         path: 'ajout/result',
-        component: EtudiantsAjoutResult,
+        component: EtudiantsAjoutResultView,
         meta: {
           breadcrumb: [{ label: 'Dashboard', route: '/' }, {
             label: 'Administration',
