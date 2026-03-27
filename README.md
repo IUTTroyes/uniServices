@@ -203,6 +203,75 @@ Chaque bundle doit être compilé indépendamment pour que ses assets soient dis
 3. Écrire des tests pour les nouvelles fonctionnalités
 4. Soumettre une pull request pour révision
 
+## Création d'un Nouveau Bundle
+
+Pour ajouter un nouveau bundle au projet (ex: `nom-bundle`), suivez ces étapes :
+
+### 1. Création de la structure du dossier
+Créez un nouveau dossier dans `packages/nom-bundle` avec la structure suivante :
+```bash
+packages/nom-bundle/
+├── assets/             # Code source Vue.js
+├── src/                # Code source PHP
+│   └── NomBundle.php   # Classe du Bundle
+├── composer.json
+├── package.json
+└── vite.config.js
+```
+
+### 2. Configuration PHP (Composer)
+Dans `packages/nom-bundle/composer.json` :
+```json
+{
+  "name": "iuttroyes/nom-bundle",
+  "type": "symfony-bundle",
+  "autoload": {
+    "psr-4": { "NomBundle\\": "src/" }
+  }
+}
+```
+
+Dans le `composer.json` à la **racine du projet** :
+- Ajoutez le namespace dans `autoload` -> `psr-4` : `"NomBundle\\": "packages/nom-bundle/src/"`
+- Ajoutez le bundle dans `replace` : `"iuttroyes/nom-bundle": "self.version"`
+
+Créez la classe `packages/nom-bundle/src/NomBundle.php` :
+```php
+<?php
+namespace NomBundle;
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+
+class NomBundle extends Bundle {
+    public function getPath(): string {
+        return \dirname(__DIR__);
+    }
+}
+```
+
+Activez le bundle dans `back/config/bundles.php` :
+```php
+NomBundle\NomBundle::class => ['all' => true],
+```
+
+### 3. Configuration Frontend (Vue.js)
+Dans `packages/nom-bundle/package.json` :
+```json
+{
+  "name": "@uni/nom-bundle",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  }
+}
+```
+
+Copiez et adaptez un fichier `vite.config.js` d'un autre bundle pour configurer le build vers `src/Resources/public`.
+
+### 4. Finalisation
+1. Installez les dépendances : `pnpm install`
+2. Mettez à jour autoload : `composer dump-autoload` (ou `composer install`)
+
 ## Désinstallation d'un Bundle
 
 Si vous souhaitez retirer un bundle du projet (par exemple `edt-bundle`) :
