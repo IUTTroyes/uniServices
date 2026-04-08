@@ -4,16 +4,8 @@
 
 <template>
     <div class="container w-full h-full flex flex-col gap-4 justify-center items-center mx-auto">
-        <div class="loader flex flex-row items-center justify-center gap-2 w-full h-14">
-          <div class="loadItem bg-primary-800 w-2 h-1" style="animation-delay: 0s"></div>
-          <div class="loadItem bg-primary-800 w-2 h-1" style="animation-delay: 0.1s"></div>
-          <div class="loadItem bg-primary-500 w-2 h-1" style="animation-delay: 0.2s"></div>
-          <div class="loadItem bg-primary-300 w-2 h-1" style="animation-delay: 0.3s"></div>
-          <div class="loadItem bg-primary-300 w-2 h-1" style="animation-delay: 0.4s"></div>
-          <div class="loadItem bg-primary-500 w-2 h-1" style="animation-delay: 0.5s"></div>
-          <div class="loadItem bg-primary-800 w-2 h-1" style="animation-delay: 0.6s"></div>
-          <div class="loadItem bg-primary-800 w-2 h-1" style="animation-delay: 0.7s"></div>
-        </div>
+      <ProgressSpinner style="width: 50px; height: 50px" strokeWidth="8" fill="transparent"
+                       animationDuration=".5s" aria-label="Chargement en cours" />
         <div>Chargement en cours ...</div>
     </div>
 </template>

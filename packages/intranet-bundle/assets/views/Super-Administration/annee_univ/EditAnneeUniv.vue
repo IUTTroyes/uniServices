@@ -110,6 +110,16 @@ const isDiplomeSelected = (diplomeId) => {
   return selectedDiplomes.value.includes(diplomeId);
 };
 
+const toggleDiplome = (diplomeId) => {
+  const index = selectedDiplomes.value.indexOf(diplomeId);
+  if (index > -1) {
+    selectedDiplomes.value.splice(index, 1);
+  } else {
+    selectedDiplomes.value.push(diplomeId);
+  }
+  console.log("selectedDiplomes", selectedDiplomes.value);
+}
+
 const handleValidation = (field, result) => {
   formErrors.value = {
     ...formErrors.value,
@@ -120,12 +130,15 @@ const handleValidation = (field, result) => {
 
 const updateAnneeUniv = async () => {
   try {
+    // transformer les diplomes sélectionnés en IRI
+    const selectedDiplomesIri = selectedDiplomes.value.map(id => `/api/structure_diplomes/${id}`);
+
     const data = {
       libelle: anneeUniv.value.libelle,
       annee: anneeUniv.value.annee,
       commentaire: anneeUniv.value.commentaire,
       actif: anneeUniv.value.actif,
-      diplomes: selectedDiplomes.value.map(id => ({ id }))
+      diplomes: selectedDiplomesIri,
     };
 
     await updateAnneeUniversitaireService(anneeUnivId.value, data, true);
