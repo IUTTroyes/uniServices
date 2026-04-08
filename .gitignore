@@ -36,3 +36,8 @@
 
 # OS files
 Thumbs.db
+
+# Bundle files
+vendor/
+**/node_modules/
+

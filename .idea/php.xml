@@ -448,6 +448,75 @@
       <path value="$PROJECT_DIR$/back/vendor/jawira/doctrine-diagram-contracts" />
       <path value="$PROJECT_DIR$/back/vendor/jawira/doctrine-diagram-bundle" />
       <path value="$PROJECT_DIR$/back/vendor/jawira/plantuml-encoding" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/composer" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/psr/cache" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/nikic/php-parser" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/psr/log" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/psr/container" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/psr/event-dispatcher" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/cache" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/framework-bundle" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/phpunit/php-file-iterator" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/phpunit/php-invoker" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/var-dumper" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/event-dispatcher" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/config" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/polyfill-ctype" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/phar-io/version" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/phar-io/manifest" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/myclabs/deep-copy" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/staabm/side-effects-detector" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/phpunit/php-code-coverage" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/phpunit/php-text-template" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/phpunit/phpunit" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/phpunit/php-timer" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/http-foundation" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/service-contracts" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/routing" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/deprecation-contracts" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/cache-contracts" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/error-handler" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/var-exporter" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/doctrine-bridge" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/finder" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/event-dispatcher-contracts" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/polyfill-intl-normalizer" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/filesystem" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/string" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/polyfill-php85" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/http-kernel" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/polyfill-php84" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/polyfill-intl-grapheme" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/polyfill-mbstring" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/console" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/symfony/dependency-injection" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/theseer/tokenizer" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/doctrine/doctrine-bundle" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/doctrine/deprecations" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/doctrine/sql-formatter" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/doctrine/collections" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/object-reflector" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/object-enumerator" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/global-state" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/comparator" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/doctrine/inflector" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/doctrine/dbal" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/doctrine/lexer" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/doctrine/event-manager" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/doctrine/orm" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/doctrine/instantiator" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/doctrine/persistence" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/exporter" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/environment" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/code-unit" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/recursion-context" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/diff" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/code-unit-reverse-lookup" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/complexity" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/cli-parser" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/version" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/type" />
+      <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/lines-of-code" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
@@ -462,6 +531,7 @@
   </component>
   <component name="PhpUnit">
     <phpunit_settings>
+      <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/packages/intranet-bundle/vendor/autoload.php" />
       <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/back/vendor/autoload.php" />
       <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/vendor/autoload.php" />
     </phpunit_settings>

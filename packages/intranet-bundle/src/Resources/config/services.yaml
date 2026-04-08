@@ -1,0 +1,10 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  IntranetBundle\:
+    resource: '../../'
+    exclude:
+      - '../../Entity/'
+      - '../../IntranetBundle.php'
