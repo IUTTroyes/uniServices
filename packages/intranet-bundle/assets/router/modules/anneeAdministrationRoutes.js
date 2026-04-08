@@ -59,6 +59,25 @@ export default [
     },
   },
   {
+    path: 'absence/new',
+    name: 'new-absence',
+    component: () => import('@/views/Absence/AbsenceNewView.vue'),
+    meta: {
+      permission: 'isPersonnel',
+      breadcrumb: () => {
+        const anneeStore = useAnneeStore();
+        const selectedAnnee = anneeStore.annee;
+        return [{ label: 'Dashboard', route: '/' }, {
+          label: 'Administration',
+          route: '/administration',
+          icon: 'pi pi-wrench'
+        },
+          { label: selectedAnnee?.libelle ?? 'Année', route: null },
+          { label: 'Saisir des absences', route: null }];
+      }
+    },
+  },
+  {
     path: 'justificatifs-absences/liste',
     name: 'liste-justificatifs-absences',
     component: () => import('@/views/Groupes/StructureGroupeView.vue'),

@@ -27,9 +27,9 @@ onMounted(async () => {
   await getAnnees();
   await getAnnee();
   await getSemestres();
-  // Sélectionner le premier semestre de l'année par défaut
+  // Sélectionner le semestre actif par défaut
   if (semestres.value.length > 0 && !semestre.value.id) {
-    semestre.value = semestres.value[0];
+    semestre.value = semestres.value.find(s => s.actif) || semestres.value[0];
   }
 });
 
@@ -101,9 +101,9 @@ watch(semestre, async (newSemestre, oldSemestre) => {
 watch(annee, async (newAnnee, oldAnnee) => {
   if (newAnnee.id !== oldAnnee.id) {
     await getSemestres();
-    // si le semestre sélectionné n'est pas dans la nouvelle liste, on sélectionne le premier de la liste
+    // si le semestre sélectionné n'est pas dans la nouvelle liste, on sélectionne celui actif
     if (!semestres.value.some(s => s.id === semestre.value.id)) {
-      semestre.value = semestres.value[0] || {};
+      semestre.value = semestres.value.find(s => s.actif) || semestres.value[0];
     }
     await anneeStore.setSelectedAnnee(newAnnee)
   }
@@ -128,7 +128,7 @@ const getAbsences = async () => {
 <template>
   <div class="card min-h-full">
     <div class="mb-6">
-      <div class="flex justify-between items-end w-full mb-6">
+      <div class="flex justify-between items-center w-full mb-6">
         <div>
           <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">
             Liste des absences
@@ -149,7 +149,9 @@ const getAbsences = async () => {
         </div>
       </div>
       <div class="w-full flex justify-end items-center">
-        <Button label="Créer une absence" icon="pi pi-plus" @click="getAbsences()" severity="primary"/>
+        <router-link :to="{ name: 'new-absence', params: { anneeId: annee?.id } }">
+          <Button label="Créer une absence" icon="pi pi-plus" @click="getAbsences()" severity="primary"/>
+        </router-link>
       </div>
     </div>
 

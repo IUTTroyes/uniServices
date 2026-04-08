@@ -1,6 +1,6 @@
 <?php
 
-namespace IUTTroyes\IntranetBundle\Filter;
+namespace IntranetBundle\Filter;
 
 use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;

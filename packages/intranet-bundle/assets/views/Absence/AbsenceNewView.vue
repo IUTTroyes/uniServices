@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
-import {SimpleSkeleton, ErrorView} from "@components";
+import {SimpleSkeleton, ErrorView, validationRules, ValidatedInput, ListSkeleton} from "@components";
 import {useAnneeStore, useSemestreStore, useUsersStore} from "@stores";
 import {getAnneeService, getSemestresService} from "@requests";
 import {useRoute} from "vue-router";
@@ -18,14 +18,18 @@ const semestre = ref({});
 const annees = ref([]);
 const annee = ref({});
 const isLoadingAnnee = ref(true);
+const groupes = ref([]);
+const typesGroupes = ref([]);
+const isLoadingGroupes = ref(true);
+const selectedTypeGroupe = ref(null);
 
 onMounted(async () => {
   await getAnnees();
   await getAnnee();
   await getSemestres();
-  // Sélectionner le premier semestre de l'année par défaut
+  // Sélectionner le semestre actif par défaut
   if (semestres.value.length > 0 && !semestre.value.id) {
-    semestre.value = semestres.value[0];
+    semestre.value = semestres.value.find(s => s.actif) || semestres.value[0];
   }
 });
 
@@ -86,10 +90,10 @@ watch(() => semestreStore.semestre, (newSemestre) => {
   semestre.value = newSemestre;
 });
 
-// watcher pour relancer getGroupes quand semestre change
+// watcher pour relancer getTypesGroupes quand semestre change
 watch(semestre, async (newSemestre, oldSemestre) => {
   if (newSemestre.id !== oldSemestre.id) {
-    await getAbsences();
+    await getTypesGroupes();
   }
 });
 
@@ -99,23 +103,36 @@ watch(annee, async (newAnnee, oldAnnee) => {
     await getSemestres();
     // si le semestre sélectionné n'est pas dans la nouvelle liste, on sélectionne le premier de la liste
     if (!semestres.value.some(s => s.id === semestre.value.id)) {
-      semestre.value = semestres.value[0] || {};
+      semestre.value = semestres.value.find(s => s.actif) || semestres.value[0];
     }
     await anneeStore.setSelectedAnnee(newAnnee)
   }
 });
 
-const getAbsences = async () => {
+const getTypesGroupes = async () => {
+  try {
+    isLoadingGroupes.value = true;
+    typesGroupes.value = semestre.value.typesGroupe;
+  } catch (error) {
+    console.error('Erreur lors du chargement des groupes:', error);
+    hasError.value = true;
+  } finally {
+    selectedTypeGroupe.value = typesGroupes.value[0];
+    isLoadingGroupes.value = false;
+  }
+};
+
+const getEnseignements = async () => {
 
 }
 </script>
 
 <template>
   <div class="card min-h-full">
-    <div class="flex justify-between items-end w-full mb-6">
+    <div class="flex justify-between items-center w-full mb-6">
       <div>
         <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">
-          Liste des absences
+          Saisir des absences
         </h2>
       </div>
       <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
@@ -133,8 +150,51 @@ const getAbsences = async () => {
       </div>
     </div>
 
-    <div class="w-full flex justify-end items-center">
-      <Button label="Créer une absence" icon="pi pi-plus" @click="getAbsences()" severity="primary"/>
+    <div>
+      <ErrorView v-if="hasError"/>
+      <div v-else>
+        <div class="card">
+          <div class="flex flex-row gap-4">
+            <ValidatedInput
+                name="libelle"
+                label="Ressource"
+                type="select"
+                :options="[{label: 'Ressource 1', value: '1'}, {label: 'Ressource 2', value: '2'}]"
+                :rules="[validationRules.required]"
+                @validation=""
+                help-text="Sélectionnez la ressource"
+                class="w-full"
+            />
+            <ValidatedInput
+                name="libelle"
+                label="Date"
+                type="date"
+                :rules="[validationRules.required]"
+                @validation=""
+                help-text="Sélectionnez la date"
+                class="w-full"
+            />
+            <ValidatedInput
+                name="libelle"
+                label="Heure"
+                type="select"
+                :options="[{label: 'Heure 1', value: '1'}, {label: 'Heure 2', value: '2'}]"
+                :rules="[validationRules.required]"
+                @validation=""
+                help-text="Sélectionnez l'heure de début du créneau"
+                class="w-full"
+            />
+          </div>
+          <ListSkeleton v-if="isLoadingGroupes" class="flex items-center gap-4 w-1/2"></ListSkeleton>
+          <Tabs v-else :value="selectedTypeGroupe" scrollable>
+            <TabList>
+              <Tab v-for="typeGroupe in typesGroupes" :key="typeGroupe" :value="typeGroupe" @click="selectedTypeGroupe = groupe">
+                {{ typeGroupe }}
+              </Tab>
+            </TabList>
+          </Tabs>
+        </div>
+      </div>
     </div>
   </div>
 </template>
