@@ -33,7 +33,13 @@ class EtudiantScolariteSemestreFilter extends AbstractFilter
                 ->andWhere('scolarite.id = :scolarite')
                 ->setParameter("scolarite", $value);
         }
-
+        if ('groupe' === $property) {
+            // si c'est l'un des groupes lié via la proprité groupes de l'entité
+            $queryBuilder
+                ->join("$alias.groupes", 'groupe')
+                ->andWhere('groupe.id = :groupe')
+                ->setParameter("groupe", $value);
+        }
         if ('semestre' === $property) {
             $queryBuilder
                 ->join("$alias.semestre", 'semestre')
@@ -87,6 +93,14 @@ class EtudiantScolariteSemestreFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by scolarite',
+                ],
+            ],
+            'groupe' => [
+                'property' => 'groupe',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by groupe',
                 ],
             ],
             'semestre' => [

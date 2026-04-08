@@ -2,13 +2,14 @@
 import { onMounted, ref, watch } from "vue";
 import {SimpleSkeleton, ErrorView, validationRules, ValidatedInput, ListSkeleton} from "@components";
 import {useAnneeStore, useSemestreStore, useUsersStore} from "@stores";
-import {getAnneeService, getSemestresService, getGroupesService, getEnseignementsService} from "@requests";
+import {getAnneeService, getSemestresService, getGroupesService, getEnseignementsService, getEtudiantScolariteSemestresService} from "@requests";
 import {useRoute} from "vue-router";
 import {Button} from "primevue";
 
 const route = useRoute();
 const hasError = ref(false);
 const usersStore = useUsersStore();
+const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const departementId = usersStore.departementDefaut.id;
 const semestreStore = useSemestreStore();
 const anneeStore = useAnneeStore();
@@ -29,6 +30,8 @@ const isLoadingEnseignements = ref(false);
 const date = new Date();
 const heure = ref(null);
 const heures = ref([]);
+const etudiantsScolSemestre = ref([]);
+const isLoadingEtudiants = ref(false);
 
 
 onMounted(async () => {
@@ -138,6 +141,12 @@ watch(selectedTypeGroupe, async (newTypeGroupe, oldTypeGroupe) => {
   }
 })
 
+watch(selectedGroupe, async (newGroupe, oldGroupe) => {
+  if (newGroupe !== oldGroupe) {
+    await getEtudiantsScolSemestre();
+  }
+})
+
 const getTypesGroupes = async () => {
   try {
     isLoadingTypesGroupes.value = true;
@@ -159,7 +168,7 @@ const getGroupes = async () => {
       semestre: semestre.value.id,
       type: selectedTypeGroupe.value
     }
-    groupes.value = await getGroupesService(params);
+    groupes.value = await getGroupesService(params, '/mini');
   } catch (error) {
     console.error('Erreur lors du chargement des groupes:', error);
     hasError.value = true;
@@ -181,6 +190,23 @@ const getEnseignements = async () => {
     hasError.value = true;
   } finally {
     isLoadingEnseignements.value = false;
+  }
+}
+
+const getEtudiantsScolSemestre = async () => {
+  try {
+    isLoadingEtudiants.value = true;
+    const params = {
+      groupe: selectedGroupe.value.id,
+      anneeUniversitaire: anneeUniv.id,
+    }
+    etudiantsScolSemestre.value = await getEtudiantScolariteSemestresService(params);
+    console.log(etudiantsScolSemestre.value)
+  } catch (error) {
+    console.error('Erreur lors du chargement des étudiants scolarité semestre:', error);
+    hasError.value = true;
+  } finally {
+    isLoadingEtudiants.value = false;
   }
 }
 </script>
@@ -251,9 +277,23 @@ const getEnseignements = async () => {
           <div>
             <SimpleSkeleton v-if="isLoadingGroupes" class="!w-60 !h-10 my-2"></SimpleSkeleton>
             <div v-else class="flex gap-4 my-2">
-              <Button v-for="groupe in groupes">
+              <Button v-for="groupe in groupes" @click="selectedGroupe = groupe">
                 {{ groupe.libelle }}
               </Button>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex">
+          <ListSkeleton v-if="isLoadingEtudiants" class="!w-60 !h-10 my-2"/>
+          <div v-else class="flex gap-4">
+            <div v-if="etudiantsScolSemestre.length > 0">
+              <div v-for="etudiantScolSemestre in etudiantsScolSemestre">
+                {{etudiantScolSemestre.etudiant.prenom}}
+              </div>
+            </div>
+            <div v-else class="flex gap-4">
+              ok
             </div>
           </div>
         </div>
