@@ -2,7 +2,7 @@
 import { onMounted, ref, watch } from "vue";
 import {SimpleSkeleton, ErrorView, validationRules, ValidatedInput, ListSkeleton} from "@components";
 import {useAnneeStore, useSemestreStore, useUsersStore} from "@stores";
-import {getAnneeService, getSemestresService} from "@requests";
+import {getAnneeService, getSemestresService, getGroupesService, getEnseignementsService} from "@requests";
 import {useRoute} from "vue-router";
 import {Button} from "primevue";
 
@@ -19,9 +19,17 @@ const annees = ref([]);
 const annee = ref({});
 const isLoadingAnnee = ref(true);
 const groupes = ref([]);
-const typesGroupes = ref([]);
 const isLoadingGroupes = ref(true);
+const selectedGroupe = ref([]);
+const typesGroupes = ref([]);
+const isLoadingTypesGroupes = ref(true);
 const selectedTypeGroupe = ref(null);
+const enseignements = ref([]);
+const isLoadingEnseignements = ref(false);
+const date = new Date();
+const heure = ref(null);
+const heures = ref([]);
+
 
 onMounted(async () => {
   await getAnnees();
@@ -31,7 +39,21 @@ onMounted(async () => {
   if (semestres.value.length > 0 && !semestre.value.id) {
     semestre.value = semestres.value.find(s => s.actif) || semestres.value[0];
   }
+  await constructHeures();
 });
+
+const constructHeures = () => {
+  // construire un tableau qui va de 8h00 à 19h45 avec une incrémentation de 15min
+  const startHour = 8;
+  const endHour = 20;
+  const endMinute = 30;
+  for (let hour = startHour; hour <= endHour; hour++) {
+    for (let minute = 0; minute < endMinute; minute += 15) {
+      const heureStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      heures.value.push(heureStr);
+    }
+  }
+}
 
 const getAnnees = async () => {
   if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
@@ -93,6 +115,7 @@ watch(() => semestreStore.semestre, (newSemestre) => {
 // watcher pour relancer getTypesGroupes quand semestre change
 watch(semestre, async (newSemestre, oldSemestre) => {
   if (newSemestre.id !== oldSemestre.id) {
+    await getEnseignements();
     await getTypesGroupes();
   }
 });
@@ -109,21 +132,56 @@ watch(annee, async (newAnnee, oldAnnee) => {
   }
 });
 
+watch(selectedTypeGroupe, async (newTypeGroupe, oldTypeGroupe) => {
+  if (newTypeGroupe !== oldTypeGroupe) {
+    await getGroupes();
+  }
+})
+
 const getTypesGroupes = async () => {
   try {
-    isLoadingGroupes.value = true;
+    isLoadingTypesGroupes.value = true;
     typesGroupes.value = semestre.value.typesGroupe;
   } catch (error) {
     console.error('Erreur lors du chargement des groupes:', error);
     hasError.value = true;
   } finally {
     selectedTypeGroupe.value = typesGroupes.value[0];
-    isLoadingGroupes.value = false;
+    isLoadingTypesGroupes.value = false;
   }
 };
 
-const getEnseignements = async () => {
+const getGroupes = async () => {
+  try {
+    isLoadingGroupes.value = true;
+    console.log(selectedTypeGroupe.value);
+    const params = {
+      semestre: semestre.value.id,
+      type: selectedTypeGroupe.value
+    }
+    groupes.value = await getGroupesService(params);
+  } catch (error) {
+    console.error('Erreur lors du chargement des groupes:', error);
+    hasError.value = true;
+  } finally {
+    isLoadingGroupes.value = false;
+  }
+}
 
+const getEnseignements = async () => {
+  try {
+    isLoadingEnseignements.value = true;
+    const params = {
+      semestre: semestre.value.id,
+    }
+    enseignements.value = await getEnseignementsService(params);
+    console.log(enseignements.value)
+  } catch (error) {
+    console.error('Erreur lors du chargement des enseignements:', error);
+    hasError.value = true;
+  } finally {
+    isLoadingEnseignements.value = false;
+  }
 }
 </script>
 
@@ -159,8 +217,7 @@ const getEnseignements = async () => {
                 name="libelle"
                 label="Ressource"
                 type="select"
-                :options="[{label: 'Ressource 1', value: '1'}, {label: 'Ressource 2', value: '2'}]"
-                :rules="[validationRules.required]"
+                :options="enseignements.map(e => ({ label: e.display, value: e.id }))"
                 @validation=""
                 help-text="Sélectionnez la ressource"
                 class="w-full"
@@ -169,7 +226,6 @@ const getEnseignements = async () => {
                 name="libelle"
                 label="Date"
                 type="date"
-                :rules="[validationRules.required]"
                 @validation=""
                 help-text="Sélectionnez la date"
                 class="w-full"
@@ -178,21 +234,28 @@ const getEnseignements = async () => {
                 name="libelle"
                 label="Heure"
                 type="select"
-                :options="[{label: 'Heure 1', value: '1'}, {label: 'Heure 2', value: '2'}]"
-                :rules="[validationRules.required]"
+                :options="heures.map(h => ({ label: h, value: h }))"
                 @validation=""
                 help-text="Sélectionnez l'heure de début du créneau"
                 class="w-full"
             />
           </div>
-          <ListSkeleton v-if="isLoadingGroupes" class="flex items-center gap-4 w-1/2"></ListSkeleton>
+          <ListSkeleton v-if="isLoadingTypesGroupes" class="flex items-center gap-4 w-1/2"></ListSkeleton>
           <Tabs v-else :value="selectedTypeGroupe" scrollable>
             <TabList>
-              <Tab v-for="typeGroupe in typesGroupes" :key="typeGroupe" :value="typeGroupe" @click="selectedTypeGroupe = groupe">
+              <Tab v-for="typeGroupe in typesGroupes" :key="typeGroupe" :value="typeGroupe" @click="selectedTypeGroupe = typeGroupe">
                 {{ typeGroupe }}
               </Tab>
             </TabList>
           </Tabs>
+          <div>
+            <SimpleSkeleton v-if="isLoadingGroupes" class="!w-60 !h-10 my-2"></SimpleSkeleton>
+            <div v-else class="flex gap-4 my-2">
+              <Button v-for="groupe in groupes">
+                {{ groupe.libelle }}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

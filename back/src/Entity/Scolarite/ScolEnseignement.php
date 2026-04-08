@@ -200,6 +200,7 @@ class ScolEnseignement
         return $this;
     }
 
+    #[Groups(['enseignement:detail'])]
     public function getDisplay(): string
     {
         return $this->codeEnseignement.' - '.$this->libelle;
