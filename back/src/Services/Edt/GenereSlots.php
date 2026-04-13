@@ -3,7 +3,7 @@
 namespace App\Services\Edt;
 
 use App\Entity\Edt\EdtEvent;
-use App\Entity\Previsionnel\Previsionnel;
+use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use Doctrine\ORM\EntityManagerInterface;
 
 class GenereSlots

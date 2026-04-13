@@ -44,7 +44,7 @@ const logout = () => {
         .catch(() => {}) // Ignorer les erreurs au logout
         .finally(() => {
             // Utiliser une redirection propre vers l'application auth
-            window.location.href = '/auth/login';
+            window.location.href = window.location.origin + '/auth/login';
         });
 };
 

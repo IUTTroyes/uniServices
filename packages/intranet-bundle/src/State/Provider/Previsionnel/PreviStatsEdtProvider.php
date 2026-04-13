@@ -1,14 +1,14 @@
 <?php
 
-namespace App\State\Provider\Previsionnel;
+namespace IntranetBundle\State\Provider\Previsionnel;
 
 use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
 use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\ApiDto\Previsionnel\PreviStatsEdtDto;
-use App\Repository\Previsionnel\PrevisionnelRepository;
+use IntranetBundle\Dto\Previsionnel\PreviStatsEdtDto;
+use IntranetBundle\Repository\Previsionnel\PrevisionnelRepository;
 use App\Repository\Edt\EdtEventRepository;
 
 class PreviStatsEdtProvider implements ProviderInterface

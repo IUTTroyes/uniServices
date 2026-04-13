@@ -5,13 +5,6 @@ import { tools } from '@config/uniServices.js';
 import Logo from '@components/components/Logo.vue';
 import { onMounted } from 'vue';
 
-const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1];
-if (token) {
-  localStorage.setItem('token', token);
-}
-
-const tokenParts = token?.split('.');
-const payload = tokenParts ? JSON.parse(atob(tokenParts[1])) : {};
 const userStore = useUsersStore();
 
 const isEnabledUrl = (tool) => {

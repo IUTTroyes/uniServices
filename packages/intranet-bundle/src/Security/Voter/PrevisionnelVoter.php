@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Security;
+namespace IntranetBundle\Security\Voter;
 
-use App\Entity\Previsionnel\Previsionnel;
+use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;

@@ -13,7 +13,7 @@ use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
-use IntranetBundle\Repository\EtudiantAbsenceRepository;
+use IntranetBundle\Repository\Etudiant\EtudiantAbsenceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 

@@ -3,7 +3,7 @@
 namespace App\Controller\Edt;
 
 use App\Repository\Edt\EdtProgressionRepository;
-use App\Repository\Previsionnel\PrevisionnelRepository;
+use IntranetBundle\Repository\Previsionnel\PrevisionnelRepository;
 use App\Services\Edt\GenereSlots;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

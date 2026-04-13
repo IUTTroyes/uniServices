@@ -12,7 +12,7 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
 use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
-use App\Entity\Previsionnel\Previsionnel;
+use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartementPersonnel;

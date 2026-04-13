@@ -9,7 +9,7 @@ import api from '@helpers/axios';
 // Cache pour les informations utilisateur
 let cachedUserInfo = null;
 let inactivityTimeout = null;
-const INACTIVITY_LIMIT = 45 * 60 * 1000; // 45 minutes en millisecondes
+const INACTIVITY_LIMIT = 24 * 60 * 60 * 1000; // 24 heures en millisecondes
 
 /**
  * Réinitialise le minuteur d'inactivité

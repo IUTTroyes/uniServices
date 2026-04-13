@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Entity\Previsionnel;
+namespace IntranetBundle\Entity\Previsionnel;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
@@ -10,24 +10,24 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Put;
-use App\ApiDto\Previsionnel\PrevisionnelAllPersonnelsDto;
-use App\ApiDto\Previsionnel\PrevisionnelEnseignementDto;
-use App\ApiDto\Previsionnel\PrevisionnelPersonnelDto;
-use App\ApiDto\Previsionnel\PrevisionnelSemestreDto;
-use App\ApiDto\Previsionnel\PrevisionnelSemestreTestDto;
-use App\ApiDto\Previsionnel\PreviStatsEdtDto;
+use IntranetBundle\Dto\Previsionnel\PrevisionnelAllPersonnelsDto;
+use IntranetBundle\Dto\Previsionnel\PrevisionnelEnseignementDto;
+use IntranetBundle\Dto\Previsionnel\PrevisionnelPersonnelDto;
+use IntranetBundle\Dto\Previsionnel\PrevisionnelSemestreDto;
+use IntranetBundle\Dto\Previsionnel\PrevisionnelSemestreTestDto;
+use IntranetBundle\Dto\Previsionnel\PreviStatsEdtDto;
 use App\Entity\Edt\EdtProgression;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Users\Personnel;
-use App\Filter\PrevisionnelFilter;
-use App\Repository\Previsionnel\PrevisionnelRepository;
-use App\State\Provider\Previsionnel\PrevisionnelAllPersonnelsProvider;
-use App\State\Provider\Previsionnel\PrevisionnelEnseignementProvider;
-use App\State\Provider\Previsionnel\PrevisionnelPersonnelProvider;
-use App\State\Provider\Previsionnel\PrevisionnelSemestreProvider;
-use App\State\Provider\Previsionnel\PrevisionnelSemestreTestProvider;
-use App\State\Provider\Previsionnel\PreviStatsEdtProvider;
+use IntranetBundle\Filter\PrevisionnelFilter;
+use IntranetBundle\Repository\Previsionnel\PrevisionnelRepository;
+use IntranetBundle\State\Provider\Previsionnel\PrevisionnelAllPersonnelsProvider;
+use IntranetBundle\State\Provider\Previsionnel\PrevisionnelEnseignementProvider;
+use IntranetBundle\State\Provider\Previsionnel\PrevisionnelPersonnelProvider;
+use IntranetBundle\State\Provider\Previsionnel\PrevisionnelSemestreProvider;
+use IntranetBundle\State\Provider\Previsionnel\PrevisionnelSemestreTestProvider;
+use IntranetBundle\State\Provider\Previsionnel\PreviStatsEdtProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\OptionsResolver\OptionsResolver;

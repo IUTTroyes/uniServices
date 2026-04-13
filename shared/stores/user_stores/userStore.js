@@ -48,9 +48,14 @@ export const useUsersStore = defineStore('users', () => {
                 isAuthInitialized.value = true;
                 return { userId: userId.value, userType: userType.value };
             }
+            // En cas d'échec d'authentification, on s'assure que les valeurs sont nulles
+            userId.value = null;
+            userType.value = null;
+            isAuthInitialized.value = true; // On a tenté l'init, donc c'est fait
             return null;
         } catch (error) {
             console.error('Error initializing auth:', error);
+            isAuthInitialized.value = true;
             return null;
         }
     };

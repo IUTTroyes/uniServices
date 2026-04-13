@@ -20,8 +20,6 @@ import '@/assets/tailwind.css';
 import fr from '@config/fr.json'
 
 
-const token = document.cookie.split('; ').find(row => row.startsWith('token'))?.split('=')[1];
-if (token) localStorage.setItem('token', token);
 
 const MyPreset = definePreset(Aura, {
     semantic: {

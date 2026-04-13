@@ -2,7 +2,7 @@
 
 namespace App\Command\CopyBdd;
 
-use App\Entity\Previsionnel\Previsionnel;
+use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Repository\PersonnelRepository;
 use App\Repository\ScolEnseignementRepository;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;

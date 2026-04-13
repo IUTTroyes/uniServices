@@ -1,13 +1,13 @@
 <?php
 
-namespace App\State\Provider\Previsionnel;
+namespace IntranetBundle\State\Provider\Previsionnel;
 
 use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
 use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\ApiDto\Previsionnel\PrevisionnelEnseignementDto;
+use IntranetBundle\Dto\Previsionnel\PrevisionnelEnseignementDto;
 
 class PrevisionnelEnseignementProvider implements ProviderInterface
 {

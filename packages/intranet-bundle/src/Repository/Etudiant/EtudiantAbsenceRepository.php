@@ -1,6 +1,6 @@
 <?php
 
-namespace IntranetBundle\Repository;
+namespace IntranetBundle\Repository\Etudiant;
 
 use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\ApiDto\Previsionnel;
+namespace IntranetBundle\Dto\Previsionnel;
 
 use Symfony\Component\Serializer\Attribute\Groups;
 

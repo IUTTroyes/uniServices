@@ -1,6 +1,6 @@
 <?php
 
-namespace App\ApiDto\Previsionnel;
+namespace IntranetBundle\Dto\Previsionnel;
 
 use App\Entity\Users\Personnel;
 use App\Enum\TypeEnseignementEnum;

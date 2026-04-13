@@ -115,7 +115,7 @@ router.beforeEach(async (to, from) => {
 
         if (!authInfo) {
             // Non authentifié, rediriger vers login
-            window.location.href = '/auth/login';
+            window.location.href = window.location.origin + '/auth/login';
             return false;
         }
 
@@ -134,7 +134,7 @@ router.beforeEach(async (to, from) => {
         return true;
     } catch (error) {
         console.error('Auth error:', error);
-        window.location.href = '/auth/login';
+        window.location.href = window.location.origin + '/auth/login';
         return false;
     }
 });

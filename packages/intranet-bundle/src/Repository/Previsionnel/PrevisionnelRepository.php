@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository\Previsionnel;
+namespace IntranetBundle\Repository\Previsionnel;
 
-use App\Entity\Previsionnel\Previsionnel;
+use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

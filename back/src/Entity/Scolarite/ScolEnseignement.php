@@ -12,7 +12,7 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Edt\EdtEvent;
 use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
-use App\Entity\Previsionnel\Previsionnel;
+use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Enum\TypeEnseignementEnum;
