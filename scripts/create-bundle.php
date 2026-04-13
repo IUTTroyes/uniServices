@@ -59,6 +59,7 @@ if (empty($fullUrl)) {
 }
 
 $projectRoot = dirname(__DIR__);
+require_once $projectRoot . '/scripts/utils/regenerate-tools-registry.php';
 $bundlePath = $projectRoot . '/packages/' . $bundleKebab;
 
 if (is_dir($bundlePath)) {
@@ -211,44 +212,16 @@ if (!str_contains($bundlesConfigRaw, "$bundlePascal\\$bundlePascal::class")) {
 }
 
 // 8. Regenerate tools registry from all bundle.meta.json (local + external)
-$toolsOut = $projectRoot . '/shared/global-data/tools.generated.json';
-$packagesDir = $projectRoot . '/packages';
-$externalDir = $projectRoot . '/shared/global-data/external-tools';
-$entries = [];
+regenerate_tools_registry($projectRoot);
 
-// Helper to scan a directory for meta files
-$scanMeta = function($dir) use (&$entries) {
-    if (is_dir($dir)) {
-        foreach (scandir($dir) as $item) {
-            if ($item === '.' || $item === '..') continue;
-            
-            $path = $dir . '/' . $item;
-            $metaPath = is_dir($path) ? $path . '/bundle.meta.json' : $path;
-            
-            if (is_file($metaPath) && str_ends_with($metaPath, '.meta.json')) {
-                $data = json_decode(file_get_contents($metaPath), true);
-                if (isset($data['name'], $data['description'], $data['urlSlug'])) {
-                    $entries[] = [
-                        'name' => $data['name'],
-                        'description' => $data['description'],
-                        'urlSlug' => $data['urlSlug'],
-                        'url' => $data['url'] ?? "/{$data['urlSlug']}",
-                    ];
-                }
-            }
-        }
-    }
-};
-
-$scanMeta($packagesDir);
-$scanMeta($externalDir);
-
-file_put_contents($toolsOut, json_encode($entries, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+echo "- Updating PHP autoloading...\n";
+passthru("composer dump-autoload");
+if (is_dir($projectRoot . '/back')) {
+    passthru("cd back && composer dump-autoload && bin/console cache:clear");
+}
 
 echo "\nBundle $bundlePascal created successfully!\n";
 echo "Next steps:\n";
 echo "1. Run 'pnpm install' to link the new workspace.\n";
-echo "2. Run 'composer dump-autoload' at root and in 'back/' to update PHP autoloading.\n";
-echo "3. Run 'cd back && bin/console cache:clear' to refresh Symfony bundle list.\n";
-echo "4. Update 'Makefile' if you want to add dev/build commands for this bundle.\n";
-echo "5. Front: la liste des outils a été mise à jour (shared/global-data/tools.generated.json).\n";
+echo "2. Update 'Makefile' if you want to add dev/build commands for this bundle.\n";
+echo "3. Front: la liste des outils a été mise à jour (shared/global-data/tools.generated.json).\n";

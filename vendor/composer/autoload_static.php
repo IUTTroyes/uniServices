@@ -18,15 +18,15 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
     );
 
     public static $prefixLengthsPsr4 = array (
-        'W' => 
+        'W' =>
         array (
             'Webmozart\\Assert\\' => 17,
         ),
-        'U' => 
+        'U' =>
         array (
             'UnifolioBundle\\' => 15,
         ),
-        'S' => 
+        'S' =>
         array (
             'Symplify\\SymplifyKernel\\' => 24,
             'Symplify\\SmartFileSystem\\' => 25,
@@ -55,27 +55,27 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
             'Symfony\\Component\\Console\\' => 26,
             'Symfony\\Component\\Config\\' => 25,
         ),
-        'P' => 
+        'P' =>
         array (
             'Psr\\Log\\' => 8,
             'Psr\\EventDispatcher\\' => 20,
             'Psr\\Container\\' => 14,
         ),
-        'N' => 
+        'N' =>
         array (
             'Nette\\' => 6,
         ),
-        'I' => 
+        'I' =>
         array (
             'IntranetBundle\\Tests\\' => 21,
             'IntranetBundle\\' => 15,
         ),
-        'E' => 
+        'E' =>
         array (
             'EdtBundle\\Tests\\' => 16,
             'EdtBundle\\' => 10,
         ),
-        'A' => 
+        'A' =>
         array (
             'AuthBundle\\Tests\\' => 17,
             'AuthBundle\\' => 11,
@@ -83,156 +83,156 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
     );
 
     public static $prefixDirsPsr4 = array (
-        'Webmozart\\Assert\\' => 
+        'Webmozart\\Assert\\' =>
         array (
             0 => __DIR__ . '/..' . '/webmozart/assert/src',
         ),
-        'UnifolioBundle\\' => 
+        'UnifolioBundle\\' =>
         array (
             0 => __DIR__ . '/../..' . '/packages/unifolio-bundle/src',
         ),
-        'Symplify\\SymplifyKernel\\' => 
+        'Symplify\\SymplifyKernel\\' =>
         array (
             0 => __DIR__ . '/..' . '/symplify/monorepo-builder/src-deps/symplify-kernel/src',
         ),
-        'Symplify\\SmartFileSystem\\' => 
+        'Symplify\\SmartFileSystem\\' =>
         array (
             0 => __DIR__ . '/..' . '/symplify/monorepo-builder/src-deps/smart-file-system/src',
         ),
-        'Symplify\\PackageBuilder\\' => 
+        'Symplify\\PackageBuilder\\' =>
         array (
             0 => __DIR__ . '/..' . '/symplify/monorepo-builder/src-deps/package-builder/src',
         ),
-        'Symplify\\MonorepoBuilder\\' => 
+        'Symplify\\MonorepoBuilder\\' =>
         array (
             0 => __DIR__ . '/..' . '/symplify/monorepo-builder/src',
             1 => __DIR__ . '/..' . '/symplify/monorepo-builder/packages',
         ),
-        'Symplify\\EasyTesting\\' => 
+        'Symplify\\EasyTesting\\' =>
         array (
             0 => __DIR__ . '/..' . '/symplify/monorepo-builder/src-deps/easy-testing/src',
         ),
-        'Symplify\\AutowireArrayParameter\\' => 
+        'Symplify\\AutowireArrayParameter\\' =>
         array (
             0 => __DIR__ . '/..' . '/symplify/monorepo-builder/src-deps/autowire-array-parameter/src',
         ),
-        'Symfony\\Polyfill\\Php85\\' => 
+        'Symfony\\Polyfill\\Php85\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-php85',
         ),
-        'Symfony\\Polyfill\\Mbstring\\' => 
+        'Symfony\\Polyfill\\Mbstring\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
         ),
-        'Symfony\\Polyfill\\Intl\\Normalizer\\' => 
+        'Symfony\\Polyfill\\Intl\\Normalizer\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-intl-normalizer',
         ),
-        'Symfony\\Polyfill\\Intl\\Grapheme\\' => 
+        'Symfony\\Polyfill\\Intl\\Grapheme\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-intl-grapheme',
         ),
-        'Symfony\\Polyfill\\Ctype\\' => 
+        'Symfony\\Polyfill\\Ctype\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/polyfill-ctype',
         ),
-        'Symfony\\Contracts\\Service\\' => 
+        'Symfony\\Contracts\\Service\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/service-contracts',
         ),
-        'Symfony\\Contracts\\EventDispatcher\\' => 
+        'Symfony\\Contracts\\EventDispatcher\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/event-dispatcher-contracts',
         ),
-        'Symfony\\Component\\VarExporter\\' => 
+        'Symfony\\Component\\VarExporter\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/var-exporter',
         ),
-        'Symfony\\Component\\VarDumper\\' => 
+        'Symfony\\Component\\VarDumper\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/var-dumper',
         ),
-        'Symfony\\Component\\String\\' => 
+        'Symfony\\Component\\String\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/string',
         ),
-        'Symfony\\Component\\Process\\' => 
+        'Symfony\\Component\\Process\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/process',
         ),
-        'Symfony\\Component\\HttpKernel\\' => 
+        'Symfony\\Component\\HttpKernel\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/http-kernel',
         ),
-        'Symfony\\Component\\HttpFoundation\\' => 
+        'Symfony\\Component\\HttpFoundation\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/http-foundation',
         ),
-        'Symfony\\Component\\Finder\\' => 
+        'Symfony\\Component\\Finder\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/finder',
         ),
-        'Symfony\\Component\\Filesystem\\' => 
+        'Symfony\\Component\\Filesystem\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/filesystem',
         ),
-        'Symfony\\Component\\EventDispatcher\\' => 
+        'Symfony\\Component\\EventDispatcher\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/event-dispatcher',
         ),
-        'Symfony\\Component\\ErrorHandler\\' => 
+        'Symfony\\Component\\ErrorHandler\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/error-handler',
         ),
-        'Symfony\\Component\\DependencyInjection\\' => 
+        'Symfony\\Component\\DependencyInjection\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/dependency-injection',
         ),
-        'Symfony\\Component\\Console\\' => 
+        'Symfony\\Component\\Console\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/console',
         ),
-        'Symfony\\Component\\Config\\' => 
+        'Symfony\\Component\\Config\\' =>
         array (
             0 => __DIR__ . '/..' . '/symfony/config',
         ),
-        'Psr\\Log\\' => 
+        'Psr\\Log\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/log/src',
         ),
-        'Psr\\EventDispatcher\\' => 
+        'Psr\\EventDispatcher\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/event-dispatcher/src',
         ),
-        'Psr\\Container\\' => 
+        'Psr\\Container\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/container/src',
         ),
-        'Nette\\' => 
+        'Nette\\' =>
         array (
             0 => __DIR__ . '/..' . '/nette/utils/src',
         ),
-        'IntranetBundle\\Tests\\' => 
+        'IntranetBundle\\Tests\\' =>
         array (
             0 => __DIR__ . '/../..' . '/packages/intranet-bundle/tests',
         ),
-        'IntranetBundle\\' => 
+        'IntranetBundle\\' =>
         array (
             0 => __DIR__ . '/../..' . '/packages/intranet-bundle/src',
         ),
-        'EdtBundle\\Tests\\' => 
+        'EdtBundle\\Tests\\' =>
         array (
             0 => __DIR__ . '/../..' . '/packages/edt-bundle/tests',
         ),
-        'EdtBundle\\' => 
+        'EdtBundle\\' =>
         array (
             0 => __DIR__ . '/../..' . '/packages/edt-bundle/src',
         ),
-        'AuthBundle\\Tests\\' => 
+        'AuthBundle\\Tests\\' =>
         array (
             0 => __DIR__ . '/../..' . '/packages/auth-bundle/tests',
         ),
-        'AuthBundle\\' => 
+        'AuthBundle\\' =>
         array (
             0 => __DIR__ . '/../..' . '/packages/auth-bundle/src',
         ),
