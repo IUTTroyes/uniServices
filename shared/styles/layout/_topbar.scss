@@ -104,6 +104,12 @@
         margin-left: auto;
         display: flex;
         gap: 1rem;
+        align-items: center;
+
+        .layout-topbar-search {
+            flex-grow: 1;
+            max-width: 300px;
+        }
     }
 
     .layout-topbar-menu-content {
@@ -206,7 +212,7 @@
                 }
 
                 span {
-                    font-weight: medium;
+                    font-weight: 500;
                     display: block;
                 }
             }

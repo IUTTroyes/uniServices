@@ -243,6 +243,32 @@ Le logo est par défaut `LogoIut`.
 2. Mettez à jour l'autoload PHP : `composer dump-autoload`
 3. (Optionnel) Ajoutez des commandes `dev` et `build` dans le `Makefile` racine pour faciliter la gestion de ce bundle.
 
+## Activation et Désactivation d'un Bundle
+
+Si vous souhaitez désactiver temporairement un bundle sans supprimer ses fichiers (pour qu'il ne soit plus chargé par Symfony et n'apparaisse plus dans le registre des outils), utilisez :
+
+```bash
+php scripts/deactivate-bundle.php nom-bundle
+```
+
+Pour réactiver un bundle précédemment désactivé :
+
+```bash
+php scripts/activate-bundle.php nom-bundle
+```
+
+### Ce que font ces scripts :
+1. **Désactivation** :
+    - Retire le bundle de `back/config/bundles.php`.
+    - Retire l'autoloading du `composer.json` racine et de `back/composer.json`.
+    - Renomme `bundle.meta.json` en `.disabled` pour le masquer du registre.
+    - Met à jour automatiquement l'autoloading PHP et vide le cache Symfony.
+2. **Activation** :
+    - Restaure le bundle dans `back/config/bundles.php`.
+    - Restaure l'autoloading dans les fichiers `composer.json`.
+    - Réactive le fichier de méta-données.
+    - Met à jour l'autoloading PHP et vide le cache Symfony.
+
 ## Désinstallation d'un Bundle
 
 Si vous souhaitez retirer un bundle du projet (par exemple `nom-bundle`), utilisez le script d'automatisation :

@@ -66,8 +66,8 @@ watch(() => userStore.temporaryRole?.value, () => {
         const roleKey = role.property.toUpperCase().replace('IS', '');
         const roleValue = `ROLE_${roleKey}`;
         rolesItems.value[index].active = userStore.temporaryRole?.value ?
-          (userStore.temporaryRole?.value === roleValue) :
-          userStore[role.property];
+            (userStore.temporaryRole?.value === roleValue) :
+            userStore[role.property];
       }
     });
   }
@@ -169,12 +169,12 @@ const fetchData = async () => {
       if (userStore.userType === 'personnels') {
         // Mapper les départements pour le menu déroulant
         deptItems.value = Array.isArray(userStore.departementsNotDefaut)
-          ? userStore.departementsNotDefaut.map(departement => ({
+            ? userStore.departementsNotDefaut.map(departement => ({
               label: departement.libelle,
               id: departement.id,
               command: () => changeDepartement(departement.id)
             }))
-          : [];
+            : [];
 
         // Définir le libellé du département par défaut
         departementLabel.value = userStore.departementDefaut?.libelle || '';
@@ -312,62 +312,68 @@ const selectAnneeUniversitaire = (annee) => {
       <button v-if="route.path !== '/portail'" class="layout-menu-button layout-topbar-action" @click="onMenuToggle">
         <i class="pi pi-bars"></i>
       </button>
-      <router-link to="/" class="layout-topbar-logo">
-        <Logo :logo-url="logoUrl" alt="logo" class="rounded-xl p-2"/> <span class="text-lg">{{appName}}</span>
-      </router-link>
-      <button v-if="userStore.userType === 'personnels'" type="button" class="layout-topbar-action-app" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
-        <span>Département {{ departementLabel }}</span>
-        <i class="pi pi-arrow-right-arrow-left"></i>
-      </button>
-      <div v-else-if="userStore.userType === 'etudiants'">
-        <span>Département {{ departementLabel }}</span>
-      </div>
-      <Menu ref="deptMenu" id="dept_menu" :model="deptItems" :popup="true" />
 
-      <button v-if="showRolesMenu" type="button" class="layout-topbar-action-app" @click="toggleRolesMenu" aria-haspopup="true" aria-controls="roles_menu">
-        <span>Rôles</span>
-        <i class="pi pi-shield"></i>
-      </button>
-      <Menu ref="rolesMenu" id="roles_menu" :model="rolesItems" :popup="true" />
+      <router-link to="/" class="layout-topbar-logo">
+        <Logo :logo-url="logoUrl" alt="logo" class="rounded-xl"/> <span class="text-lg">{{appName}}</span>
+      </router-link>
+    </div>
+
+    <div v-if="route.path !== '/portail'" class="layout-topbar-search hidden lg:block">
+      <IconField>
+        <InputIcon class="pi pi-search" />
+        <InputText v-model="search" placeholder="Recherche" />
+      </IconField>
     </div>
 
     <div class="layout-topbar-actions">
-      <div v-if="route.path !== '/portail'" class="layout-topbar-search">
+      <div v-if="route.path !== '/portail'" class="layout-topbar-search lg:hidden">
         <IconField>
           <InputIcon class="pi pi-search" />
           <InputText v-model="search" placeholder="Recherche" />
         </IconField>
       </div>
 
-      <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
-        <i class="pi pi-microsoft text-primary"></i>
-        <span>Applications</span>
-      </button>
-      <Menu ref="toolsMenu" id="tools_menu" :model="tools" :popup="true">
-        <template #item="{ item, props }">
-          <a v-if="item.url && isEnabled(item)" :href="item.url" v-ripple v-bind="props.action">
-            <Logo :logo-url="item.logo" class="logo_menu" />
-            <span class="ml-2">{{ item.name }}</span>
-          </a>
-        </template>
-      </Menu>
-
-      <div class="layout-config-menu">
-        <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
-          <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>
-        </button>
-      </div>
-
       <button
           class="layout-topbar-menu-button layout-topbar-action"
-          v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }"
-
-      >
+          v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }">
         <i class="pi pi-ellipsis-v"></i>
       </button>
 
       <div class="layout-topbar-menu lg:block">
         <div class="layout-topbar-menu-content">
+          <a href="http://localhost:3000/portail" v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text">
+            <i class="pi pi-arrow-left"></i>
+            <span>Portail</span>
+          </a>
+
+          <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
+            <i class="pi pi-microsoft text-primary"></i>
+            <span>Applications</span>
+          </button>
+          <Menu ref="toolsMenu" id="tools_menu" :model="tools" :popup="true">
+            <template #item="{ item, props }">
+              <a v-if="item.url && isEnabled(item)" :href="item.url" v-ripple v-bind="props.action">
+                <Logo :logo-url="item.logo" class="logo_menu" />
+                <span class="ml-2">{{ item.name }}</span>
+              </a>
+            </template>
+          </Menu>
+
+          <button v-if="userStore.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
+            <i class="pi pi-arrow-right-arrow-left"></i>
+            <span>{{ departementLabel }}</span>
+          </button>
+          <div v-else-if="userStore.userType === 'etudiants'" class="hidden lg:inline-flex">
+            <span>{{ departementLabel }}</span>
+          </div>
+          <Menu ref="deptMenu" id="dept_menu" :model="deptItems" :popup="true" />
+
+          <button v-if="showRolesMenu" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleRolesMenu" aria-haspopup="true" aria-controls="roles_menu">
+            <i class="pi pi-shield"></i>
+            <span>Rôles</span>
+          </button>
+          <Menu ref="rolesMenu" id="roles_menu" :model="rolesItems" :popup="true" />
+
 
           <button  v-if="route.path !== '/portail' && userStore.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
             <i class="pi pi-calendar"></i>
@@ -383,6 +389,11 @@ const selectAnneeUniversitaire = (annee) => {
             <i class="pi pi-bell"></i>
             <span>Notifications</span>
           </button>
+          <div class="layout-config-menu">
+            <button type="button" class="layout-topbar-action" @click="toggleDarkMode">
+              <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>
+            </button>
+          </div>
           <button type="button" class="layout-topbar-action layout-topbar-action-highlight"  @click="toggleProfileMenu" aria-haspopup="true" aria-controls="profile_menu">
             <template v-if="userStore.userPhoto">
               <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full">
