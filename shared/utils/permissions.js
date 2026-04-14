@@ -1,4 +1,5 @@
 import { useUsersStore } from '@stores';
+import { watch } from 'vue';
 
 /**
  * Utilitaire de permissions pour le contrôle d'accès basé sur les rôles
@@ -54,7 +55,7 @@ const compositePermissions = {
     'isDirecteurEtudes'
   ],
   canEditAbsences: [
-      'isAbsence',
+    'isAbsence',
   ]
 };
 
@@ -166,6 +167,46 @@ export function hasPermission(requiredPermission, options = {}) {
   return checkSinglePermission(requiredPermission, userStore);
 }
 
+export const ROLE_MAP = {
+  isAssistant: 'ROLE_ASSISTANT',
+  isQualite: 'ROLE_QUALITE',
+  isCompta: 'ROLE_COMPTA',
+  isScolarite: 'ROLE_SCOLARITE',
+  isDirection: 'ROLE_DIRECTION',
+  isChefDepartement: 'ROLE_CHEF_DEPARTEMENT',
+  isRespParcours: 'ROLE_RESP_PARCOURS',
+  isDirecteurEtudes: 'ROLE_DIRECTEUR_ETUDES',
+  isAbsence: 'ROLE_ABSENCE',
+  isNote: 'ROLE_NOTE',
+  isEdt: 'ROLE_EDT',
+  isStage: 'ROLE_STAGE',
+  isRelaiComm: 'ROLE_RELAI_COMM',
+  isEdusign: 'ROLE_EDUSIGN',
+  isReferent: 'ROLE_REFERENT',
+  isSuperAdmin: 'ROLE_SUPER_ADMIN'
+};
+
+export const AVAILABLE_ROLES = [
+  { property: 'isPersonnel', label: 'Personnel', role: 'ROLE_PERSONNEL' },
+  { property: 'isEtudiant', label: 'Etudiant', role: 'ROLE_ETUDIANT' },
+  { property: 'isAssistant', label: 'Assistant', role: 'ROLE_ASSISTANT' },
+  { property: 'isQualite', label: 'Qualité', role: 'ROLE_QUALITE' },
+  { property: 'isCompta', label: 'Compta', role: 'ROLE_COMPTA' },
+  { property: 'isScolarite', label: 'Scolarité', role: 'ROLE_SCOLARITE' },
+  { property: 'isDirection', label: 'Direction', role: 'ROLE_DIRECTION' },
+  { property: 'isChefDepartement', label: 'Chef Département', role: 'ROLE_CHEF_DEPARTEMENT' },
+  { property: 'isRespParcours', label: 'Responsable Parcours', role: 'ROLE_RESP_PARCOURS' },
+  { property: 'isDirecteurEtudes', label: 'Directeur Etudes', role: 'ROLE_DIRECTEUR_ETUDES' },
+  { property: 'isAbsence', label: 'Absence', role: 'ROLE_ABSENCE' },
+  { property: 'isNote', label: 'Note', role: 'ROLE_NOTE' },
+  { property: 'isEdt', label: 'EDT', role: 'ROLE_EDT' },
+  { property: 'isStage', label: 'Stage', role: 'ROLE_STAGE' },
+  { property: 'isRelaiComm', label: 'Relai Communication', role: 'ROLE_RELAI_COMM' },
+  { property: 'isEdusign', label: 'Edusign', role: 'ROLE_EDUSIGN' },
+  { property: 'isReferent', label: 'Referent', role: 'ROLE_REFERENT' },
+  { property: 'isSuperAdmin', label: 'Super Admin', role: 'ROLE_SUPER_ADMIN' }
+];
+
 /**
  * Vérifie si l'utilisateur actuel possède une permission spécifique
  * @param {string} permission - La permission à vérifier
@@ -173,11 +214,16 @@ export function hasPermission(requiredPermission, options = {}) {
  * @returns {boolean} - Vrai si l'utilisateur possède la permission
  */
 function checkSinglePermission(permission, userStore) {
-  // SuperAdmin a accès à tout
-  if (userStore.isSuperAdmin) {
+  // Si un rôle temporaire est défini, on ignore le statut SuperAdmin pour permettre une impersonnalisation réelle
+  // Sauf si le rôle temporaire lui-même est ROLE_SUPER_ADMIN
+  const isImpersonating = !!userStore.temporaryRole && userStore.temporaryRole !== 'ROLE_SUPER_ADMIN';
+
+  // SuperAdmin a accès à tout (sauf en mode impersonnalisation)
+  if (userStore.isSuperAdmin && !isImpersonating) {
     return true;
   }
-  // Vérifier les permissions de type d'utilisateur
+
+  // Vérifier les types d'utilisateurs
   if (permission === 'isPersonnel') {
     return userStore.isPersonnel;
   }
@@ -185,57 +231,15 @@ function checkSinglePermission(permission, userStore) {
     return userStore.isEtudiant;
   }
 
-  // Vérifier les permissions basées sur les rôles
-  if (permission === 'isAssistant') {
-    return userStore.isAssistant;
-  }
-  if (permission === 'isQualite') {
-    return userStore.isQualite;
-  }
-  if (permission === 'isCompta') {
-    return userStore.isCompta;
-  }
-  if (permission === 'isScolarite') {
-    return userStore.isScolarite;
-  }
-  if (permission === 'isDirection') {
-    return userStore.isDirection;
-  }
-  if (permission === 'isChefDepartement') {
-    return userStore.isChefDepartement;
-  }
-  if (permission === 'isRespParcours') {
-    return userStore.isRespParcours;
-  }
-  if (permission === 'isDirecteurEtudes') {
-    return userStore.isDirecteurEtudes;
-  }
-  if (permission === 'isAbsence') {
-    return userStore.isAbsence;
-  }
-  if (permission === 'isNote') {
-    return userStore.isNote;
-  }
-  if (permission === 'isEdt') {
-    return userStore.isEdt;
-  }
-  if (permission === 'isStage') {
-    return userStore.isStage;
-  }
-  if (permission === 'isRelaiComm') {
-    return userStore.isRelaiComm;
-  }
-  if (permission === 'isEdusign') {
-    return userStore.isEdusign;
-  }
-  if (permission === 'isSuperAdmin') {
-    return userStore.isSuperAdmin;
+  // Vérifier les permissions basées sur les rôles via la map
+  if (permission in ROLE_MAP) {
+    return userStore[permission];
   }
 
   // Vérifier les permissions composites
   if (permission in compositePermissions) {
     // Vérifier si l'utilisateur possède l'un des rôles qui accordent cette permission
-    return compositePermissions[permission].some(role => userStore[role]) || userStore.isSuperAdmin;
+    return compositePermissions[permission].some(role => userStore[role]);
   }
 
   // si la permission n'est pas reconnue, on vérifie si c'est un test qui renvoie true ou false
@@ -272,22 +276,49 @@ function checkSinglePermission(permission, userStore) {
  */
 export const permissionDirective = {
   mounted(el, binding) {
-    const value = binding.value;
-    let requiredPermission;
-    let options = {};
-
-    if (typeof value === 'object' && !Array.isArray(value)) {
-      requiredPermission = value.permissions;
-      options = { requireAll: value.requireAll || false };
-    } else {
-      requiredPermission = value;
-    }
-
-    if (!hasPermission(requiredPermission, options)) {
-      el.parentNode && el.parentNode.removeChild(el);
+    // On garde une trace du watch pour pouvoir le nettoyer
+    el._permissionWatch = watch(
+      () => {
+        const store = useUsersStore();
+        return [store.isLoaded, store.temporaryRole, store.user?.roles];
+      },
+      () => {
+        updatePermission(el, binding);
+      },
+      { deep: true, immediate: true }
+    );
+  },
+  unmounted(el) {
+    if (el._permissionWatch) {
+      el._permissionWatch();
+      delete el._permissionWatch;
     }
   }
 };
+
+function updatePermission(el, binding) {
+  const value = binding.value;
+  let requiredPermission;
+  let options = {};
+
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    requiredPermission = value.permissions;
+    options = { requireAll: value.requireAll || false };
+  } else {
+    requiredPermission = value;
+  }
+
+  const hasPerm = hasPermission(requiredPermission, options);
+
+  if (!hasPerm) {
+    // On cache l'élément au lieu de le supprimer définitivement du DOM
+    // car le store peut être chargé plus tard ou le rôle peut changer (impersonnalisation)
+    el.style.setProperty('display', 'none', 'important');
+  } else {
+    // On réaffiche l'élément si la permission est accordée
+    el.style.removeProperty('display');
+  }
+}
 
 /**
  * Register the permission directive with Vue

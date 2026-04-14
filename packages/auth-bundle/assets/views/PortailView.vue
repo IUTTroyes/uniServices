@@ -4,6 +4,7 @@ import {useUsersStore} from "@stores";
 import { tools } from '@config/uniServices.js';
 import Logo from '@components/components/Logo.vue';
 import { onMounted } from 'vue';
+import {PermissionGuard} from "@components";
 
 const userStore = useUsersStore();
 
@@ -59,19 +60,20 @@ const props = defineProps({
                 <Logo :logo-url="tool.logo" :alt="`logo de ${tool.name}`"/>
               </div>
               <h5 class="mb-2 text-surface-900 dark:text-surface-0">{{ tool.name }}</h5>
-              <span class="text-surface-600 dark:text-surface-200">
-                                {{ tool.description }}
-                            </span>
+              <span class="text-surface-600 dark:text-surface-200">{{ tool.description }}</span>
             </div>
           </div>
         </a>
       </div>
     </div>
-    <div class="text-center">
-      <a href="/configuration">
-        <i class="pi pi-wrench"> Configurer UniServices</i>
-      </a>
+<!--    <PermissionGuard permission="isReferent">-->
+    <div class="text-center absolute bottom-0 left-0 right-0 mb-4">
+      <router-link to="/configuration">
+        <Button type="button" severity="primary" icon="pi pi-wrench" label="Configuration" rounded>
+        </Button>
+      </router-link>
     </div>
+<!--    </PermissionGuard>-->
 
   </main>
 </template>

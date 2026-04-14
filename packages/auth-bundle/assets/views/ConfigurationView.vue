@@ -1,9 +1,5 @@
 <script setup>
-import { TopbarComponent } from '@components'
-import { useUsersStore } from '@stores'
-import { tools } from '@config/uniServices.js'
-import Logo from '@components/components/Logo.vue'
-import { onMounted } from 'vue'
+
 
 const panelMenuUserItems = [
   { label: 'Gestion des accès', icon: 'pi pi-users', route: '/configuration/gestion-acces' },

@@ -18,7 +18,16 @@ Le système distingue deux types principaux d'utilisateurs :
 - **Étudiants** (`isEtudiant`)
 - **Personnel** (`isPersonnel`)
 
-Pour le personnel, différents rôles sont disponibles :
+### Hiérarchie des rôles
+
+Il existe une hiérarchie entre les rôles. Un utilisateur est soit un Personnel, soit un Étudiant.
+
+- Le rôle **Personnel** est le rôle de base pour la plupart des autres rôles (Scolarité, Direction, Chef de Département, etc.). Si un utilisateur possède l'un de ces rôles spécifiques, il possède également automatiquement le rôle `isPersonnel`.
+- Le rôle **Étudiant** est actuellement autonome, mais pourrait également avoir des sous-rôles à l'avenir.
+
+Cette hiérarchie est respectée même lors de l'utilisation des rôles temporaires (impersonnalisation). Par exemple, si vous sélectionnez le rôle temporaire "Scolarité", les vérifications pour `isPersonnel` renverront également `true`.
+
+### Liste des rôles spécifiques au Personnel
 
 - `isAssistant` - Assistants administratifs
 - `isQualite` - Responsables qualité
@@ -51,15 +60,17 @@ Cette approche simplifie la gestion des droits pour les administrateurs système
 
 En plus des rôles simples, le système définit des permissions composées qui combinent plusieurs rôles :
 
-- `canViewStudentDetails` - Peut voir les détails des étudiants
-- `canEditStudentDetails` - Peut modifier les détails des étudiants
+- `canViewEtudiantDetails` - Peut voir les détails des étudiants
+- `canEditEtudiantDetails` - Peut modifier les détails des étudiants
 - `canViewPersonnelDetails` - Peut voir les détails du personnel
 - `canEditPersonnelDetails` - Peut modifier les détails du personnel
-- `canViewGrades` - Peut voir les notes
+- `canViewNotes` - Peut voir les notes
 
 ## Utilisation de la directive `v-permission`
 
-La directive `v-permission` permet de contrôler la visibilité d'un élément en fonction des permissions de l'utilisateur.
+La directive `v-permission` permet de contrôler la visibilité d'un élément en fonction des permissions de l'utilisateur. Elle est réactive et s'adapte automatiquement aux changements du store (chargement des données, changement de rôle temporaire) grâce à un observateur (`watch`) interne.
+
+> **Note importante** : Contrairement au composant `PermissionGuard` qui peut supprimer complètement le contenu du DOM ou afficher un contenu alternatif, la directive `v-permission` utilise la propriété CSS `display: none !important` pour masquer l'élément si l'utilisateur n'a pas les droits. Cela garantit que l'élément peut réapparaître dynamiquement si les permissions changent sans nécessiter un remontage du composant.
 
 ### Exemples
 
@@ -102,7 +113,7 @@ Le composant `PermissionGuard` offre plus de flexibilité que la directive, nota
 </PermissionGuard>
 
 <!-- Avec plusieurs permissions (OR logique) -->
-<PermissionGuard :permission="['isEtudiant', 'canViewStudentDetails']">
+<PermissionGuard :permission="['isEtudiant', 'canViewEtudiantDetails']">
   <p>Contenu visible par l'étudiant lui-même ou par les utilisateurs autorisés</p>
 </PermissionGuard>
 ```
@@ -129,6 +140,43 @@ if (hasPermission(['isScolarite', 'isDirection'], { requireAll: true })) {
   // Code exécuté uniquement si l'utilisateur a tous les rôles
 }
 ```
+
+## Gestion des accès aux routes (Vue Router)
+
+Le système de permissions est intégré aux gardes de navigation de Vue Router (`router.beforeEach`) dans chaque bundle (`auth`, `intranet`, `edt`).
+
+### Configuration des routes
+
+Pour protéger une route, ajoutez une propriété `permission` dans l'objet `meta` de la définition de la route :
+
+```javascript
+// Exemple dans un fichier de routes
+export default [
+  {
+    path: 'gestion-acces',
+    component: GestionAccesView,
+    name: 'gestion-acces',
+    meta: {
+      permission: 'isSuperAdmin', // Permission requise
+      breadcrumb: [/* ... */]
+    },
+  }
+]
+```
+
+### Fonctionnement du garde de navigation
+
+Dans chaque `router/index.js`, le garde effectue les actions suivantes :
+1. Attend l'initialisation de l'authentification (`userStore.initAuth()`).
+2. Charge les données de l'utilisateur si nécessaire (`userStore.getUser()`).
+3. Vérifie la permission définie dans `to.meta.permission`.
+   - Si la route actuelle n'a pas de permission, il vérifie les routes parentes (`to.matched`).
+4. Si la permission est manquante, l'utilisateur est redirigé vers la page `/access` (Accès Refusé).
+
+### Cas particuliers
+
+- **Routes publiques** : Marquez les routes publiques avec `meta: { public: true }` pour ignorer les vérifications d'authentification et de permissions.
+- **Permissions héritées** : Si une route parente possède une permission, toutes ses routes enfants en héritent automatiquement, sauf si elles définissent leur propre permission plus restrictive.
 
 ## Bonnes pratiques
 

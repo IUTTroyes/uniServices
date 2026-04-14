@@ -1,4 +1,4 @@
-import { LayoutComponent } from '@components'
+import { LayoutComponent, Access } from '@components'
 import { createRouter, createWebHistory } from 'vue-router'
 import dashboardRoutes from './modules/dashboardRoutes'
 import edtRoutes from './modules/edtRoutes'
@@ -6,6 +6,7 @@ import progressionRoutes from './modules/progressionRoutes'
 import contraintesRoutes from './modules/contraintesRoutes'
 import calendrierRoutes from './modules/calendrierRoutes.js'
 import { useUsersStore } from '@stores'
+import { hasPermission } from '@utils'
 
 const edtMenu = [
   {
@@ -40,6 +41,12 @@ const router = createRouter({
         ...calendrierRoutes
       ]
     },
+    {
+      path: '/access',
+      name: 'access',
+      component: Access,
+      meta: { title: 'Accès Refusé' }
+    }
   ]
 })
 
@@ -71,6 +78,12 @@ router.beforeEach(async (to, from) => {
 
     if (!userStore.isLoaded && !userStore.isLoading) {
       await userStore.getUser()
+    }
+
+    // Vérification des permissions
+    const requiredPermission = to.meta.permission || to.matched.find(record => record.meta.permission)?.meta.permission;
+    if (requiredPermission && !hasPermission(requiredPermission)) {
+      return '/access';
     }
 
     return true

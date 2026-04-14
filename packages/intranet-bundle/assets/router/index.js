@@ -1,4 +1,4 @@
-import { LayoutComponent } from '@components';
+import { LayoutComponent, Access } from '@components';
 import { createRouter, createWebHistory } from 'vue-router';
 import dashboardRoutes from './modules/dashboardRoutes';
 import agendaRoutes from "./modules/agendaRoutes.js";
@@ -88,6 +88,12 @@ const router = createRouter({
                 ...superAdministrationRoutes,
             ]
         },
+        {
+            path: '/access',
+            name: 'access',
+            component: Access,
+            meta: { title: 'Accès Refusé' }
+        }
     ]
 });
 
@@ -127,8 +133,7 @@ router.beforeEach(async (to, from) => {
         // Vérification des permissions
         const requiredPermission = to.meta.permission || to.matched.find(record => record.meta.permission)?.meta.permission;
         if (requiredPermission && !hasPermission(requiredPermission)) {
-            console.warn(`Access denied to ${to.path}. Missing permission: ${requiredPermission}`);
-            window.location.href= "/";
+            return '/access';
         }
 
         return true;

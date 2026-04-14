@@ -3,7 +3,8 @@ import LoginView from '@/views/LoginView.vue'
 import AppPortail from '@/views/PortailView.vue'
 import AppProfil from '@/views/ProfilView.vue'
 import { useUsersStore } from '@stores/user_stores/userStore.js'
-import { LayoutComponent } from '@components'
+import { LayoutComponent, Access } from '@components'
+import { hasPermission } from '@utils'
 import ConfigurationRoutes from '@/router/modules/configurationRoutes.js'
 import ResetPasswordView from "@/views/ResetPasswordView.vue";
 import ResetPasswordConfirmView from "@/views/ResetPasswordConfirmView.vue";
@@ -70,6 +71,12 @@ const router = createRouter({
         logoUrl: LogoIut,
         appName: 'Profil',
       }),
+    },
+    {
+      path: '/access',
+      name: 'access',
+      component: Access,
+      meta: { title: 'Accès Refusé' }
     }
   ]
 })
@@ -110,6 +117,12 @@ router.beforeEach(async (to, from) => {
     // Charger les données utilisateur si pas encore fait
     if (!userStore.isLoaded && !userStore.isLoading) {
       await userStore.getUser()
+    }
+
+    // Vérification des permissions
+    const requiredPermission = to.meta.permission || to.matched.find(record => record.meta.permission)?.meta.permission;
+    if (requiredPermission && !hasPermission(requiredPermission)) {
+      return '/access'; // Rediriger vers la page d'accès refusé
     }
 
     return true

@@ -1,11 +1,13 @@
 <script setup>
 import {useLayout} from './composables/layout.js';
 import {computed, onMounted, ref, watch} from 'vue';
+import { AVAILABLE_ROLES } from "@utils/permissions";
 import Logo from '@components/components/Logo.vue';
 import {useAnneeUnivStore, useUsersStore} from "@stores";
 import {useRoute, useRouter} from 'vue-router';
 import {tools} from '@config/uniServices.js';
 import noImage from "@images/photos_etudiants/noimage.png";
+import {PermissionGuard} from "@components";
 
 const anneeUnivStore = useAnneeUnivStore();
 const userStore = useUsersStore();
@@ -37,40 +39,20 @@ watch(() => userStore.user, async () => {
 });
 
 // Surveiller les changements du rôle temporaire pour mettre à jour l'interface utilisateur
-watch(() => userStore.temporaryRole?.value, () => {
+watch(() => userStore.temporaryRole, () => {
   // Mettre à jour l'état actif des éléments de rôle lorsque le rôle temporaire change
   if (rolesItems.value.length > 0) {
-    const roleProperties = [
-      { property: 'isPersonnel', label: 'Personnel' },
-      { property: 'isEtudiant', label: 'Etudiant' },
-      { property: 'isAssistant', label: 'Assistant' },
-      { property: 'isQualite', label: 'Qualité' },
-      { property: 'isCompta', label: 'Compta' },
-      { property: 'isScolarite', label: 'Scolarité' },
-      { property: 'isDirection', label: 'Direction' },
-      { property: 'isChefDepartement', label: 'Chef Département' },
-      { property: 'isRespParcours', label: 'Responsable Parcours' },
-      { property: 'isDirecteurEtudes', label: 'Directeur Etudes' },
-      { property: 'isAbsence', label: 'Absence' },
-      { property: 'isNote', label: 'Note' },
-      { property: 'isEdt', label: 'EDT' },
-      { property: 'isStage', label: 'Stage' },
-      { property: 'isRelaiComm', label: 'Relai Communication' },
-      { property: 'isEdusign', label: 'Edusign' },
-      { property: 'isSuperAdmin', label: 'Super Admin' }
-    ];
-
-    // Mettre à jour l'état actif de chaque élément de rôle en utilisant la même logique que le mappage initial
-    roleProperties.forEach((role, index) => {
-      if (index < rolesItems.value.length - 1) { // Ignorer l'option "Réinitialiser"
-        const roleKey = role.property.toUpperCase().replace('IS', '');
-        const roleValue = `ROLE_${roleKey}`;
-        rolesItems.value[index].active = userStore.temporaryRole?.value ?
-            (userStore.temporaryRole?.value === roleValue) :
+    AVAILABLE_ROLES.forEach((role, index) => {
+      if (rolesItems.value[index]) {
+        rolesItems.value[index].active = userStore.temporaryRole ?
+            (userStore.temporaryRole === role.role) :
             userStore[role.property];
       }
     });
   }
+
+  // afficher le role impersonnalisé dans la console pour le développement
+  console.log('Rôle temporaire actuel:', userStore.temporaryRole);
 });
 
 const fetchData = async () => {
@@ -110,51 +92,18 @@ const fetchData = async () => {
     }
 
     if (userStore.user) {
-      const roleProperties = [
-        { property: 'isPersonnel', label: 'Personnel' },
-        { property: 'isEtudiant', label: 'Etudiant' },
-        { property: 'isAssistant', label: 'Assistant' },
-        { property: 'isQualite', label: 'Qualité' },
-        { property: 'isCompta', label: 'Compta' },
-        { property: 'isScolarite', label: 'Scolarité' },
-        { property: 'isDirection', label: 'Direction' },
-        { property: 'isChefDepartement', label: 'Chef Département' },
-        { property: 'isRespParcours', label: 'Responsable Parcours' },
-        { property: 'isDirecteurEtudes', label: 'Directeur Etudes' },
-        { property: 'isAbsence', label: 'Absence' },
-        { property: 'isNote', label: 'Note' },
-        { property: 'isEdt', label: 'EDT' },
-        { property: 'isStage', label: 'Stage' },
-        { property: 'isRelaiComm', label: 'Relai Communication' },
-        { property: 'isEdusign', label: 'Edusign' },
-        { property: 'isSuperAdmin', label: 'Super Admin' }
-      ];
-
-      // Fonction pour gérer la sélection des rôles
-      const selectRole = (roleName, property) => {
-        // Si le rôle est déjà actif en tant que rôle temporaire, le supprimer
-        if (userStore.temporaryRole?.value === `ROLE_${property.toUpperCase().replace('IS', '')}`) {
-          userStore.clearTemporaryRole();
-        } else {
-          // Sinon, le définir comme rôle temporaire
-          userStore.setTemporaryRole(roleName);
-        }
-        console.log(userStore.user);
-      };
-
       // Mapper les rôles aux éléments du menu avec l'état actif et la fonction de commande
-      rolesItems.value = roleProperties.map(role => {
-        const roleKey = role.property.toUpperCase().replace('IS', '');
-        const roleValue = `ROLE_${roleKey}`;
-        return {
-          label: role.label,
-          command: () => selectRole(role.label, role.property),
-          // Ajouter la propriété active pour montrer quel rôle est actuellement actif
-          // Si temporaryRole est défini, seul ce rôle sera actif
-          // Si temporaryRole n'est pas défini, utiliser la propriété calculée
-          active: userStore.temporaryRole?.value ? (userStore.temporaryRole?.value === roleValue) : userStore[role.property]
-        };
-      });
+      rolesItems.value = AVAILABLE_ROLES.map(role => ({
+        label: role.label,
+        command: () => {
+          if (userStore.temporaryRole === role.role) {
+            userStore.clearTemporaryRole();
+          } else {
+            userStore.setTemporaryRole(role.role);
+          }
+        },
+        active: userStore.temporaryRole ? (userStore.temporaryRole === role.role) : userStore[role.property]
+      }));
 
       // Ajouter une option "Réinitialiser le rôle" à la fin
       rolesItems.value.push({
@@ -374,12 +323,13 @@ const selectAnneeUniversitaire = (annee) => {
           </button>
           <Menu ref="rolesMenu" id="roles_menu" :model="rolesItems" :popup="true" />
 
-
-          <button  v-if="route.path !== '/portail' && userStore.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
-            <i class="pi pi-calendar"></i>
-            <span>{{selectedAnneeUniversitaire?.label}}</span>
-          </button>
-          <Menu ref="anneeMenu" id="annee_menu" :model="anneeItems" :popup="true" />
+          <PermissionGuard permission="isPersonnel">
+            <button type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
+              <i class="pi pi-calendar"></i>
+              <span>{{selectedAnneeUniversitaire?.label}}</span>
+            </button>
+            <Menu ref="anneeMenu" id="annee_menu" :model="anneeItems" :popup="true" />
+          </PermissionGuard>
 
           <button type="button" class="layout-topbar-action">
             <i class="pi pi-inbox"></i>

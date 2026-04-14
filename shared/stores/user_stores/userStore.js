@@ -26,7 +26,7 @@ export const useUsersStore = defineStore('users', () => {
     const statuts = ref([]);
     const scolariteActif = ref({});
     const currentAnneeUniv = ref({});
-    const temporaryRole = ref([]);
+    const temporaryRole = ref(null);
 
     const isLoading = ref(false);
     const isLoaded = ref(false);
@@ -211,32 +211,8 @@ export const useUsersStore = defineStore('users', () => {
     };
 
     // Méthode pour définir temporairement un rôle utilisateur
-    const setTemporaryRole = (roleName) => {
-        // Convertir le nom du rôle au format ROLE_ correspondant
-        const roleMap = {
-            'Personnel': 'ROLE_PERSONNEL',
-            'Etudiant': 'ROLE_ETUDIANT',
-            'Assistant': 'ROLE_ASSISTANT',
-            'Qualité': 'ROLE_QUALITE',
-            'Qualite': 'ROLE_QUALITE',
-            'Compta': 'ROLE_COMPTA',
-            'Scolarité': 'ROLE_SCOLARITE',
-            'Scolarite': 'ROLE_SCOLARITE',
-            'Direction': 'ROLE_DIRECTION',
-            'Chef Département': 'ROLE_CHEF_DEPARTEMENT',
-            'Chef Departement': 'ROLE_CHEF_DEPARTEMENT',
-            'Responsable Parcours': 'ROLE_RESP_PARCOURS',
-            'Directeur Etudes': 'ROLE_DIRECTEUR_ETUDES',
-            'Absence': 'ROLE_ABSENCE',
-            'Note': 'ROLE_NOTE',
-            'EDT': 'ROLE_EDT',
-            'Stage': 'ROLE_STAGE',
-            'Relai Communication': 'ROLE_RELAI_COMM',
-            'Edusign': 'ROLE_EDUSIGN',
-            'Super Admin': 'ROLE_SUPER_ADMIN'
-        };
-
-        temporaryRole.value = roleMap[roleName] || null;
+    const setTemporaryRole = (role) => {
+        temporaryRole.value = role;
     };
 
     // Méthode pour effacer le rôle temporaire
@@ -245,17 +221,34 @@ export const useUsersStore = defineStore('users', () => {
     };
 
     // Vérifier si un rôle spécifique est actif
-    // Si temporaryRole est défini, vérifier uniquement ce rôle (mode exclusif)
+    // Si temporaryRole est défini, vérifier ce rôle (mode exclusif)
+    // On gère une hiérarchie simple : presque tous les rôles impliquent ROLE_PERSONNEL
     // Si temporaryRole n'est pas défini, vérifier les rôles originaux
     const hasRole = (role) => {
-        if (temporaryRole.value && temporaryRole.value.length > 0) {
-            return temporaryRole.value === role;
+        if (temporaryRole.value) {
+            // Correspondance exacte
+            if (temporaryRole.value === role) {
+                return true;
+            }
+
+            // Hiérarchie : Si on a un rôle spécifique, on est aussi Personnel (sauf pour ROLE_ETUDIANT)
+            if (role === 'ROLE_PERSONNEL' && temporaryRole.value !== 'ROLE_ETUDIANT') {
+                return true;
+            }
+
+            // Hiérarchie inverse : Si on est en mode ROLE_PERSONNEL, on n'a pas les sous-rôles spécifiques (déjà géré par le premier if)
+            return false;
         }
         return user.value && user.value.roles && Array.isArray(user.value.roles) ? user.value.roles.includes(role) : false;
     };
 
-    const isPersonnel = computed(() => userType.value === 'personnels');
-    const isEtudiant = computed(() => userType.value === 'etudiants');
+    const isPersonnel = computed(() => hasRole('ROLE_PERSONNEL'));
+    const isEtudiant = computed(() => {
+        if (temporaryRole.value) {
+            return temporaryRole.value === 'ROLE_ETUDIANT';
+        }
+        return userType.value === 'etudiants';
+    });
     const isAssistant = computed(() => hasRole('ROLE_ASSISTANT'));
     const isQualite = computed(() => hasRole('ROLE_QUALITE'));
     const isCompta = computed(() => hasRole('ROLE_COMPTA'));
@@ -271,6 +264,7 @@ export const useUsersStore = defineStore('users', () => {
     const isRelaiComm = computed(() => hasRole('ROLE_RELAI_COMM'));
     const isEdusign = computed(() => hasRole('ROLE_EDUSIGN'));
     const isAdmin = computed(() => hasRole('ROLE_SUPER_ADMIN') || hasRole('ROLE_DIRECTION') || hasRole('ROLE_SCOLARITE') || hasRole('ROLE_ASSISTANT') || hasRole('ROLE_CHEF_DEPARTEMENT') || hasRole('ROLE_DIRECTEUR_ETUDES'));
+    const isReferent = computed(() => hasRole('ROLE_REFERENT'));
     const isSuperAdmin = computed(() => hasRole('ROLE_SUPER_ADMIN'));
 
     // Fonction de déconnexion
@@ -316,6 +310,7 @@ export const useUsersStore = defineStore('users', () => {
         isRelaiComm,
         isEdusign,
         isSuperAdmin,
+        isReferent,
         isAdmin,
         setTemporaryRole,
         clearTemporaryRole,

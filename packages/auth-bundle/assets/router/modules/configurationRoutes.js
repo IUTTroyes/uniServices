@@ -9,6 +9,7 @@ export default [
     component: ConfigurationView,
     name: 'Configuration',
     meta: {
+      permission: 'isReferent',
       breadcrumb: [{ label: 'Portail', route: '/portail' }, {
         label: 'Configuration',
         route: null
@@ -20,6 +21,7 @@ export default [
     component: TypeDiplomeView,
     name: 'type-diplome',
     meta: {
+      permission: 'isReferent',
       breadcrumb: [{ label: 'Portail', route: '/portail' }, {
         label: 'Configuration',
         route: '/configuration'
@@ -34,6 +36,7 @@ export default [
     component: AnneeUniversitaireView,
     name: 'annee-universitaire',
     meta: {
+      permission: 'isReferent',
       breadcrumb: [{ label: 'Portail', route: '/portail' }, {
         label: 'Configuration',
         route: '/configuration'
@@ -48,6 +51,7 @@ export default [
     component: GestionAccesView,
     name: 'gestion-acces',
     meta: {
+      permission: 'isReferent',
       breadcrumb: [{ label: 'Portail', route: '/portail' }, {
         label: 'Configuration',
         route: '/configuration'
