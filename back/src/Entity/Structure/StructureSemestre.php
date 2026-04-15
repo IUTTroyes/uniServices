@@ -39,10 +39,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['semestre:light']],
         ),
         new Get(
-            uriTemplate: '/maxi/structure_semestres/{id}',
-            normalizationContext: ['groups' => ['semestre:detail', 'annee:detail', 'group:detail', 'ue:detail', 'evaluation:detail', 'edt_event:detail', 'edt_contrainte:detail','scolarite_semestre:detail', 'stage_periode:detail', 'enseignant_hrs:detail']],
-        ),
-        new Get(
             uriTemplate: '/annee-light/structure_semestres/{id}',
             normalizationContext: ['groups' => ['semestre:light', 'annee:light']],
         ),
@@ -54,10 +50,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(
             uriTemplate: '/mini/structure_semestres',
             normalizationContext: ['groups' => ['semestre:light']],
-        ),
-        new GetCollection(
-            uriTemplate: '/maxi/structure_semestres',
-            normalizationContext: ['groups' => ['semestre:detail', 'annee:detail', 'group:detail', 'ue:detail', 'evaluation:detail', 'edt_event:detail', 'edt_contrainte:detail','scolarite_semestre:detail', 'stage_periode:detail', 'enseignant_hrs:detail']],
         ),
         new GetCollection(
             uriTemplate: '/annee-light/structure_semestres',

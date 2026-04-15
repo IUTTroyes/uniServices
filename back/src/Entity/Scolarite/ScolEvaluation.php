@@ -30,14 +30,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['evaluation:detail', 'personnel:light', 'enseignement:light']]),
         new GetCollection(normalizationContext: ['groups' => ['evaluation:detail', 'personnel:light', 'enseignement:light']]),
-        new Get(
-            uriTemplate: '/mini/scol_evaluations/{id}',
-            normalizationContext: ['groups' => ['evaluation:light']],
-        ),
-        new Get(
-            uriTemplate: '/maxi/scol_evaluations/{id}',
-            normalizationContext: ['groups' => ['evaluation:detail']],
-        ),
         new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)", processor: ScolEvaluationInitProcessor::class),
     ]
 )]
@@ -48,11 +40,11 @@ class ScolEvaluation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['evaluation:light', 'evaluation:detail'])]
+    #[Groups(['evaluation:detail'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['evaluation:light', 'evaluation:detail', 'evaluation:write'])]
+    #[Groups(['evaluation:detail', 'evaluation:write'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]

@@ -22,23 +22,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['note:detail']]),
-        new Get(
-            uriTemplate: '/mini/etudiant_notes/{id}',
-            normalizationContext: ['groups' => ['note:light']],
-        ),
-        new Get(
-            uriTemplate: '/maxi/etudiant_notes/{id}',
-            normalizationContext: ['groups' => ['note:detail', 'evaluation:detail']],
-        ),
         new GetCollection(normalizationContext: ['groups' => ['note:detail']]),
-        new GetCollection(
-            uriTemplate: '/mini/etudiant_notes',
-            normalizationContext: ['groups' => ['note:light']],
-        ),
-        new GetCollection(
-            uriTemplate: '/maxi/etudiant_notes',
-            normalizationContext: ['groups' => ['note:detail', 'evaluation:detail']],
-        ),
         new Post(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)", processor: 'App\\DataProvider\\Evaluation\\EtudiantNotePersistProcessor'),
         new Patch(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)", processor: 'App\\DataProvider\\Evaluation\\EtudiantNotePersistProcessor'),
     ],
@@ -57,7 +41,7 @@ class EtudiantNote
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['note:detail', 'evaluation:detail', 'note:light'])]
+    #[Groups(['note:detail', 'evaluation:detail'])]
     private ?int $id = null;
 
     #[ORM\Column(nullable: true)]

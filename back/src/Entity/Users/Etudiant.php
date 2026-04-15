@@ -32,29 +32,7 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light']]),
-        new Get(
-            uriTemplate: '/mini/etudiants/{id}',
-            normalizationContext: ['groups' => ['etudiant:light']],
-        ),
-        new Get(
-            uriTemplate: '/maxi/etudiants/{id}',
-            normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:detail']],
-        ),
         new GetCollection(normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light']]),
-        new GetCollection(
-            uriTemplate: '/mini/etudiants',
-            normalizationContext: ['groups' => ['etudiant:detail']],
-        ),
-        new GetCollection(
-            uriTemplate: '/maxi/etudiants',
-            normalizationContext: ['groups' => ['etudiant:detail']],
-        ),
-        new GetCollection(
-            uriTemplate: '/trombinoscope/etudiants',
-            normalizationContext: ['groups' => ['etudiant:detail']],
-            provider: EtudiantTrombinoscopeProvider::class,
-            output: EtudiantTrombinoscopeDto::class,
-        ),
         new Patch(normalizationContext: ['groups' => ['etudiant:write']], securityPostDenormalize: "is_granted('CAN_EDIT_ETUDIANT', object)"),
     ],
     order: ['nom' => 'ASC']
@@ -75,7 +53,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes', 'scolarite:administration'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
@@ -83,7 +61,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite:administration'])]
+    #[Groups(['etudiant:detail', 'etudiant:light'])]
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -98,11 +76,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes', 'scolarite:administration'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes', 'scolarite:administration'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]

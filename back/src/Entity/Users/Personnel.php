@@ -36,23 +36,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['personnel:detail']]),
-        new Get(
-            uriTemplate: '/mini/personnels/{id}',
-            normalizationContext: ['groups' => ['personnel:light']],
-        ),
-        new Get(
-            uriTemplate: '/maxi/personnels/{id}',
-            normalizationContext: ['groups' => ['personnel:detail']],
-        ),
         new GetCollection(normalizationContext: ['groups' => ['personnel:detail']]),
-        new GetCollection(
-            uriTemplate: '/mini/personnels',
-            normalizationContext: ['groups' => ['personnel:light']],
-        ),
-        new GetCollection(
-            uriTemplate: '/maxi/personnels',
-            normalizationContext: ['groups' => ['personnel:detail']],
-        ),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_PERSONNEL', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_PERSONNEL', object)"),
         new Delete(security: "is_granted('CAN_DELETE_PERSONNEL', object)"),

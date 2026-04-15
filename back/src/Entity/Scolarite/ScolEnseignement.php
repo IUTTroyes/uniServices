@@ -32,13 +32,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['enseignement:detail', 'enseignement_ue:read']]),
         new GetCollection(normalizationContext: ['groups' => ['enseignement:detail']]),
-        new Get(
-            uriTemplate: '/mini/scol_enseignements/{id}',
+        new GetCollection(
             normalizationContext: ['groups' => ['enseignement:light']],
-        ),
-        new Get(
-            uriTemplate: '/maxi/scol_enseignements/{id}',
-            normalizationContext: ['groups' => ['enseignement:detail', 'apprentissage_critique:detail', 'absence:detail', 'evaluation:detail', 'previsionnel:detail', 'edt:detail']],
+            uriTemplate: 'light/scol_enseignements',
         ),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_ENSEIGNEMENT', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_ENSEIGNEMENT', object)"),
@@ -59,7 +55,7 @@ class ScolEnseignement
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement:light', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
@@ -83,7 +79,7 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement:light', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
@@ -200,7 +196,7 @@ class ScolEnseignement
         return $this;
     }
 
-    #[Groups(['enseignement:detail'])]
+    #[Groups(['enseignement:detail', 'enseignement:light'])]
     public function getDisplay(): string
     {
         return $this->codeEnseignement.' - '.$this->libelle;
