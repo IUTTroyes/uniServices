@@ -179,7 +179,7 @@ const getEnseignements = async () => {
       departement: selectedAnnee.value ? null : departement.id,
       actif: true,
     };
-    enseignements.value = await getEnseignementsService(params);
+    enseignements.value = await getEnseignementsService(params, '/light');
 
     console.log('Enseignements récupérés :', enseignements.value);
 
