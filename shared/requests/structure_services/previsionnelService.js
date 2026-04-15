@@ -1,14 +1,5 @@
 import api from '@helpers/axios';
-import createApiService from '@requests/apiService';
 import apiCall from '@helpers/apiCall';
-
-// Create API services for different endpoints
-const previsionnelsService = createApiService('/api/previsionnels');
-const previsionnelsSemestreService = createApiService('/api/previsionnels_semestre');
-const previsionnelsSemestreTestService = createApiService('/api/previsionnels_semestre_test');
-const previsionnelsEnseignementService = createApiService('/api/previsionnels_enseignement');
-const previsionnelsAllPersonnelsService = createApiService('/api/previsionnels_all_personnels');
-const previsionnelsPersonnelService = createApiService('/api/previsionnels_personnel');
 
 // ----------------------------------------------
 // ------------------- GET ----------------------
@@ -121,6 +112,20 @@ const getPersonnelPreviService = async (departementId, anneeUnivId, personnelId,
 // ------------------- CREATE -------------------
 // ----------------------------------------------
 
+const createPreviService = async (data, showToast = true) => {
+    try {
+        return await apiCall(
+            api.post,
+            [`/api/previsionnels`, data, { headers: { 'Content-Type': 'application/ld+json' }}],
+            'Prévisionnel créé avec succès',
+            'Erreur lors de la création de l\'élément du prévisionnel',
+            showToast
+        )
+    } catch (error) {
+        console.error('Erreur dans createPreviService:', error);
+        throw error;
+    }
+}
 
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
@@ -132,8 +137,8 @@ const updatePreviEnseignementService = async (previId, enseignementId, showToast
         const data = { enseignement: enseignementIri };
 
         await apiCall(
-            previsionnelsService.update,
-            [previId, data],
+            api.patch,
+            [`/api/previsionnels/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
             'L\'élément a été mis à jour avec succès',
             'Erreur lors de la mise à jour de l\'élément',
             showToast
@@ -150,8 +155,8 @@ const updatePreviPersonnelService = async (previId, personnelId, showToast = tru
         const data = { personnel: personnelIri };
 
         await apiCall(
-            previsionnelsService.update,
-            [previId, data],
+            api.patch,
+            [`/api/previsionnels/${previId}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
             'L\'élément a été mis à jour avec succès',
             'Erreur lors de la mise à jour de l\'élément',
             showToast
@@ -164,10 +169,9 @@ const updatePreviPersonnelService = async (previId, personnelId, showToast = tru
 
 const updatePreviService = async (previId, data, showToast = true) => {
     try {
-        console.log('data', data);
         await apiCall(
-            previsionnelsService.update,
-            [previId, data],
+            api.patch,
+            [`/api/previsionnels/${previId}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
             'L\'élément a été mis à jour avec succès',
             'Erreur lors de la mise à jour de l\'élément',
             showToast
@@ -178,4 +182,4 @@ const updatePreviService = async (previId, data, showToast = true) => {
     }
 }
 
-export { getPrevisService, getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService, getSemestrePreviTestService, getPersonnelPreviService };
+export { getPrevisService, getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService, getSemestrePreviTestService, getPersonnelPreviService, createPreviService };

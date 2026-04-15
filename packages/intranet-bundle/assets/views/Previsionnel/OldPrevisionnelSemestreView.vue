@@ -1,119 +1,112 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue';
-import {SimpleSkeleton, ErrorView, ListSkeleton} from "@components";
-import {useAnneeStore, useEnseignementsStore, useUsersStore} from "@stores";
+import {useAnneeUnivStore, useEnseignementsStore, useSemestreStore, useUsersStore} from '@stores';
+import {ErrorView, ListSkeleton, SimpleSkeleton} from '@components';
 import {
-  createPreviService,
   getPersonnelsService,
   getSemestrePreviService,
-  getSemestresService, updatePreviEnseignementService, updatePreviPersonnelService,
-  updatePreviService
-} from "@requests";
-import {showDanger} from "@helpers";
-import PrevisionnelTable from "@/components/Previsionnel/PrevisionnelTable.vue";
+  updatePreviEnseignementService,
+  updatePreviPersonnelService,
+  updatePreviService,
+    getAnneesService,
+    createPreviService
+} from '@requests';
+import PrevisionnelTable from '@/components/Previsionnel/PrevisionnelTable.vue';
+import apiCall from "@helpers/apiCall.js";
+import { showSuccess, showDanger } from '@helpers/toast.js';
 
-const hasError = ref(false);
-const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
-const usersStore = useUsersStore();
+const userStore = useUsersStore();
+const semestreStore = useSemestreStore();
+const anneeUnivStore = useAnneeUnivStore();
 const enseignementStore = useEnseignementsStore();
-const departementId = usersStore.departementDefaut.id;
-const anneeStore = useAnneeStore();
-const annees = ref([]);
-const isLoadingAnnees = ref(true);
-const selectedAnnee = ref(null);
-const semestres = ref([]);
-const isLoadingSemestres = ref(true);
+const departementId = userStore.departementDefaut.id;
+
+const semestresList = ref([]);
 const selectedSemestre = ref(null);
-const isLoadingPrevisionnel = ref(true);
-const previSemestre = ref(null);
+const semestreDetails = ref(null);
 const enseignementsList = ref([]);
 const selectedEnseignement = ref(null);
 const personnelsList = ref([]);
 const selectedPersonnel = ref(null);
+
+
+const anneesUnivList = ref([]);
+const selectedAnneeUniv = ref(null);
+
+const isLoadingSemestres = ref(false);
+const isLoadingAnneesUniv = ref(false);
+const isLoadingPrevisionnel = ref(true);
+
+const previSemestre = ref(null);
+
 const isEditing = ref(false);
+const hasError = ref(false);
+
 const size = ref({ label: 'Petit', value: 'small' });
 const sizeOptions = ref([
   { label: 'Petit', value: 'small' },
   { label: 'Normal', value: 'null' },
   { label: 'Large', value: 'large' }
 ]);
+
 const searchTerm = ref('');
 const filters = ref({
   'libelleEnseignement': { value: null, matchMode: 'contains' }
 });
-watch(searchTerm, (newTerm) => {
-  filters.value['libelleEnseignement'].value = newTerm;
-});
-
-onMounted(async () => {
-  await getAnnees();
-})
-
-const getAnnees = async () => {
-  isLoadingAnnees.value = true;
-  try {
-    if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
-      annees.value = anneeStore.annees;
-    } else {
-      const params = {
-        departement: departementId,
-        actif: true,
-        anneeUniversitaire: anneeUniv.id,
-      };
-      await anneeStore.getAnneesDepartement(params);
-      annees.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
-    }
-  } catch (error) {
-    console.error("Erreur lors de la récupération des années :", error);
-    hasError.value = true;
-  } finally {
-    console.log(annees.value)
-    isLoadingAnnees.value = false;
-    if (annees.value.length > 0) {
-      selectedAnnee.value = annees.value[0];
-    }
-  }
-};
 
 const getSemestres = async () => {
   isLoadingSemestres.value = true;
-  hasError.value = false;
   try {
-    const params = {
-      annee: selectedAnnee.value.id,
-    };
-    semestres.value = await getSemestresService(params, '/mini');
+    await semestreStore.semestres;
   } catch (error) {
+    console.error('Erreur lors du chargement des semestres:', error);
     hasError.value = true;
-    console.error("Erreur lors de la récupération des semestres :", error);
   } finally {
-// Sélectionner le semestre actif par défaut
-    isLoadingSemestres.value = false;
-    if (semestres.value.length > 0) {
-      selectedSemestre.value = semestres.value.find(s => s.actif) || semestres.value[0];
+    semestresList.value = semestreStore.semestres || [];
+    if (semestresList.value.length > 0) {
+      selectedSemestre.value = semestresList.value[0];
     }
+    isLoadingSemestres.value = false;
   }
 };
 
-//watcher si selecedAnnee change
-watch(selectedAnnee, async (newAnnee, oldAnnee) => {
-  if (newAnnee) {
-    await getSemestres();
-  }
-})
+const getAnneesSemestres = async () => {
+  try {
+    isLoadingSemestres.value = true;
+    const departementId = userStore.departementDefaut.id;
 
-watch(selectedSemestre, async (newSemestre, oldSemestre) => {
-  if (newSemestre) {
-    await getPrevi(newSemestre.id);
+    if (!departementId) {
+      console.error("Aucun département par défaut trouvé pour l'utilisateur.");
+      hasError.value = true;
+      return;
+    }
+    try {
+      const params = {
+        departement: departementId,
+        actif: true,
+      };
+      const annees = await getAnneesService(params);
+    } catch (error) {
+      console.error("Erreur lors de la récupération des années :", error);
+      hasError.value = true;
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération des semestres :", error);
+    hasError.value = true;
+  } finally {
+    isLoadingSemestres.value = false;
   }
-})
+}
 
 const getPrevi = async (semestreId) => {
   if (semestreId) {
     isLoadingPrevisionnel.value = true;
 
     try {
-      previSemestre.value = await getSemestrePreviService(selectedSemestre.value.id, anneeUniv.id);
+      await semestreStore.getSemestre(semestreId);
+      semestreDetails.value = semestreStore.semestre;
+
+      previSemestre.value = await getSemestrePreviService(selectedSemestre.value.id, selectedAnneeUniv.value.id);
       console.log('previSemestre', previSemestre.value);
       try {
         if (selectedSemestre.value) {
@@ -134,13 +127,11 @@ const getPrevi = async (semestreId) => {
       try {
         const params = {
           departement: departementId,
-          pagination: false,
         };
         personnelsList.value = await getPersonnelsService(params);
-        console.log('personnelsList', personnelsList.value);
         personnelsList.value = personnelsList.value.map((personnel) => ({
           ...personnel,
-          label: `${personnel.display}`,
+          label: `${personnel.personnel.prenom} ${personnel.personnel.nom}`,
           value: personnel
         }));
       } catch (error) {
@@ -157,19 +148,30 @@ const getPrevi = async (semestreId) => {
   }
 };
 
+const getAnneesUniv = async () => {
+  isLoadingAnneesUniv.value = true;
+  await anneeUnivStore.getAllAnneesUniv();
+  anneesUnivList.value = anneeUnivStore.anneesUniv.sort((a, b) => b.id - a.id);
+  await anneeUnivStore.getCurrentAnneeUniv();
+  selectedAnneeUniv.value = anneeUnivStore.anneeUniv;
+  isLoadingAnneesUniv.value = false;
+};
 
+onMounted(async () => {
+  await getSemestres();
+  await getAnneesSemestres();
+  await getAnneesUniv();
+});
 
+watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv]) => {
+  if (newSemestre && newAnneeUniv) {
+    await getPrevi(newSemestre.id, newAnneeUniv.id);
+  }
+});
 
-
-//-------------------------
-//-------------------------
-//-------------------------
-//-------------------------
-//-------------------------
-
-
-
-
+watch(searchTerm, (newTerm) => {
+  filters.value['libelleEnseignement'].value = newTerm;
+});
 
 const duplicatePrevi = async (previId) => {
   try {
@@ -360,17 +362,17 @@ const columns = ref([
   { header: 'Type', field: 'typeEnseignement', sortable: true, colspan: 1 },
   { header: 'Nb profs', field: 'personnels.length', colspan: 1 },
 
-  { header: 'Maq.', field: 'heures.CM.Maquette', colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h'},
-  { header: 'Prévi.', field: 'heures.CM.Previsionnel', colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h' },
-  { header: 'Diff.', field: 'heures.CM.Diff', sortable: true, colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { header: 'Maq.', field: 'heures.CM.Maquette', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h'},
+  { header: 'Prévi.', field: 'heures.CM.Previsionnel', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Diff.', field: 'heures.CM.Diff', sortable: true, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
 
-  { header: 'Maq.', field: 'heures.TD.Maquette', colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h' },
-  { header: 'Prévi.', field: 'heures.TD.Previsionnel', colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h' },
-  { header: 'Diff.', field: 'heures.TD.Diff', sortable: true, colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { header: 'Maq.', field: 'heures.TD.Maquette', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Prévi.', field: 'heures.TD.Previsionnel', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Diff.', field: 'heures.TD.Diff', sortable: true, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
 
-  { header: 'Maq.', field: 'heures.TP.Maquette', colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h' },
-  { header: 'Prévi.', field: 'heures.TP.Previsionnel', colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h' },
-  { header: 'Diff.', field: 'heures.TP.Diff', sortable: true, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { header: 'Maq.', field: 'heures.TP.Maquette', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Prévi.', field: 'heures.TP.Previsionnel', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { header: 'Diff.', field: 'heures.TP.Diff', sortable: true, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
 
   { header: 'Maq.', field: 'heures.Total.Maquette', colspan: 1, unit: ' h' },
   { header: 'Prévi.', field: 'heures.Total.Previsionnel', colspan: 1, unit: ' h' },
@@ -384,23 +386,23 @@ const additionalRows = ref ([
 ]);
 
 const topHeaderCols = ref([
-  { header: 'CM', colspan: 3, class: '!bg-purple-400/20' },
-  { header: 'TD', colspan: 3, class: '!bg-green-400/20' },
-  { header: 'TP', colspan: 3, class: '!bg-amber-400/20' },
+  { header: 'CM', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
+  { header: 'TD', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
+  { header: 'TP', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
   { header: 'Total', colspan: 3 }
 ]);
 
 const footerCols = computed(() => [
   { footer: 'Total', colspan: 4 },
-  { footer: previSemestre.value[2].CM.Maquette, colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h' },
-  { footer: previSemestre.value[2].CM.Previsionnel, colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h' },
-  { footer: previSemestre.value[2].CM.Diff, colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-  { footer: previSemestre.value[2].TD.Maquette, colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h' },
-  { footer: previSemestre.value[2].TD.Previsionnel, colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h' },
-  { footer: previSemestre.value[2].TD.Diff, colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-  { footer: previSemestre.value[2].TP.Maquette, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h' },
-  { footer: previSemestre.value[2].TP.Previsionnel, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h' },
-  { footer: previSemestre.value[2].TP.Diff, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { footer: previSemestre.value[2].CM.Maquette, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestre.value[2].CM.Previsionnel, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestre.value[2].CM.Diff, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { footer: previSemestre.value[2].TD.Maquette, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestre.value[2].TD.Previsionnel, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestre.value[2].TD.Diff, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+  { footer: previSemestre.value[2].TP.Maquette, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestre.value[2].TP.Previsionnel, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+  { footer: previSemestre.value[2].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
   { footer: previSemestre.value[2].Total.Maquette, colspan: 1, class: '!text-nowrap', unit: ' h' },
   { footer: previSemestre.value[2].Total.Previsionnel, colspan: 1, class: '!text-nowrap', unit: ' h' },
   { footer: previSemestre.value[2].Total.Diff, colspan: 1, unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
@@ -415,32 +417,32 @@ const columnsForm = ref([
 
   { header: 'Intervenant', field: 'intervenant', sortable: true, colspan: 1, class: '!wrapper !text-wrap', form: true, formType: 'select', formOptions: personnelsList, placeholder: "Sélectionner un intervenant", id: 'id', formAction: (previId, event) => { updateIntervenantPrevi(previId, event)} },
 
-  { header: 'Nb H/Gr.', name: 'nbHrGrpCM', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
+  { header: 'Nb H/Gr.', name: 'nbHrGrpCM', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
 
-  { header: 'Nb Gr.', name: 'NbGrpCM', field: 'heures.CM.NbGrp', colspan: 1, class: '!bg-purple-400/20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
+  { header: 'Nb Gr.', name: 'NbGrpCM', field: 'heures.CM.NbGrp', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
 
-  { header: 'Séances', field: 'heures.CM.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-purple-400/20 !max-w-20', form: false },
+  { header: 'Séances', field: 'heures.CM.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !max-w-20', form: false },
 
-  { header: 'Nb H/Gr.', name: 'nbHrGrpTD', field: 'heures.TD.NbHrGrp', colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
+  { header: 'Nb H/Gr.', name: 'nbHrGrpTD', field: 'heures.TD.NbHrGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
 
-  { header: 'Nb Gr.', name: 'nbGrpTD', field: 'heures.TD.NbGrp', colspan: 1, class: '!bg-green-400/20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
+  { header: 'Nb Gr.', name: 'nbGrpTD', field: 'heures.TD.NbGrp', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
 
-  { header: 'Séances', field: 'heures.TD.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-green-400/20 !max-w-20', form: false },
+  { header: 'Séances', field: 'heures.TD.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !max-w-20', form: false },
 
-  { header: 'Nb H/Gr.', name: 'nbHrGrpTD', field: 'heures.TP.NbHrGrp', colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
+  { header: 'Nb H/Gr.', name: 'nbHrGrpTD', field: 'heures.TP.NbHrGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) } },
 
-  { header: 'Nb Gr.', name: 'nbGrpTD', field: 'heures.TP.NbGrp', colspan: 1, class: '!bg-amber-400/20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
+  { header: 'Nb Gr.', name: 'nbGrpTD', field: 'heures.TP.NbGrp', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) } },
 
-  { header: 'Séances', field: 'heures.TP.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-amber-400/20 !max-w-20', form: false },
+  { header: 'Séances', field: 'heures.TP.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !max-w-20', form: false },
 
   { header: 'Dupliquer', field: 'id', colspan: 1, button: true, buttonIcon: 'pi pi-copy', id: 'id', buttonAction: (id) => {duplicatePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn', duplicate: true },
   { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', id: 'id', buttonAction: (id) => {deletePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'danger', delete: true },
 ]);
 
 const topHeaderColsForm = ref([
-  { header: 'CM', colspan: 3, class: '!bg-purple-400/20' },
-  { header: 'TD', colspan: 3, class: '!bg-green-400/20' },
-  { header: 'TP', colspan: 3, class: '!bg-amber-400/20' },
+  { header: 'CM', colspan: 3, class: '!bg-purple-400 !bg-opacity-20' },
+  { header: 'TD', colspan: 3, class: '!bg-green-400 !bg-opacity-20' },
+  { header: 'TP', colspan: 3, class: '!bg-amber-400 !bg-opacity-20' },
   { header: '', colspan: 2 },
 ]);
 
@@ -456,28 +458,28 @@ const additionalRowsForm = computed(() => [
   ],
   [
     { footer: '', colspan: 2, class: '!text-center !font-bold'},
-    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-purple-400/20 !text-nowrap !font-bold' },
-    { footer: 'Nb hr saisi', colspan: 1, class: '!bg-purple-400/20 !text-nowrap !font-bold' },
-    { footer: 'Diff', colspan: 1, class: '!bg-purple-400/20 !text-nowrap !font-bold' },
-    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-green-400/20 !text-nowrap !font-bold' },
-    { footer: 'Nb hr saisi', colspan: 1, class: '!bg-green-400/20 !text-nowrap !font-bold' },
-    { footer: 'Diff', colspan: 1, class: '!bg-green-400/20 !text-nowrap !font-bold' },
-    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-amber-400/20 !text-nowrap !font-bold' },
-    { footer: 'Nb hr saisi', colspan: 1, class: '!bg-amber-400/20 !text-nowrap !font-bold' },
-    { footer: 'Diff', colspan: 1, class: '!bg-amber-400/20 !text-nowrap !font-bold' },
+    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Nb hr saisi', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Diff', colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Nb hr saisi', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Diff', colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Nb hr attendu', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Nb hr saisi', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap !font-bold' },
+    { footer: 'Diff', colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap !font-bold' },
     { footer: '', colspan: 2 },
   ],
   [
     { footer: 'Vérification du total d\'heures par étudiant', colspan: 2 },
-    { footer: previSemestre.value[3].CM.NbHrAttendu, colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h' },
-    { footer: previSemestre.value[3].CM.NbHrSaisi, colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h' },
-    { footer: previSemestre.value[3].CM.Diff, colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-    { footer: previSemestre.value[3].TD.NbHrAttendu, colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h' },
-    { footer: previSemestre.value[3].TD.NbHrSaisi, colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h' },
-    { footer: previSemestre.value[3].TD.Diff, colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
-    { footer: previSemestre.value[3].TP.NbHrAttendu, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h' },
-    { footer: previSemestre.value[3].TP.NbHrSaisi, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h' },
-    { footer: previSemestre.value[3].TP.Diff, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+    { footer: previSemestre.value[3].CM.NbHrAttendu, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[3].CM.NbHrSaisi, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[3].CM.Diff, colspan: 1, class: '!bg-purple-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+    { footer: previSemestre.value[3].TD.NbHrAttendu, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[3].TD.NbHrSaisi, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[3].TD.Diff, colspan: 1, class: '!bg-green-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
+    { footer: previSemestre.value[3].TP.NbHrAttendu, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[3].TP.NbHrSaisi, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h' },
+    { footer: previSemestre.value[3].TP.Diff, colspan: 1, class: '!bg-amber-400 !bg-opacity-20 !text-nowrap', unit: ' h', tag: true, tagClass: (value) => value === 0 ? '!bg-green-400 !text-white' : (value < 0 ? '!bg-amber-400 !text-white' : '!bg-red-400 !text-white'), tagSeverity: (value) => value === 0 ? 'success' : (value < 0 ? 'warn' : 'danger'), tagIcon: (value) => value === 0 ? 'pi pi-check' : (value < 0 ? 'pi pi-arrow-down' : 'pi pi-arrow-up') },
     { footer: '', colspan: 2 },
   ],
   [
@@ -503,27 +505,36 @@ const footerColsForm = computed(() => [
   <div v-else class="px-4 flex flex-col">
     <div class="flex justify-between gap-10">
       <div class="flex gap-6 w-1/2">
-        <SimpleSkeleton v-if="isLoadingAnnees" class="!w-60 !h-10"></SimpleSkeleton>
-        <Select v-else class="w-60" v-model="selectedAnnee" option-label="libelle" :options="annees">
-          <template #value>
-            {{ selectedAnnee?.libelle || "Sélectionner une année" }}
-          </template>
-        </Select>
-        <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
-        <Select v-else class="w-60" v-model="selectedSemestre" option-label="libelle" :options="semestres">
-          <template #value>
-            {{ selectedSemestre?.libelle || "Sélectionner un semestre" }}
-          </template>
-        </Select>
+        <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/2" />
+        <IftaLabel v-else class="w-1/2">
+          <Select
+              v-model="selectedSemestre"
+              :options="semestresList"
+              optionLabel="libelle"
+              placeholder="Sélectionner un semestre"
+              class="w-full"
+          />
+          <label for="semestre">Semestre</label>
+        </IftaLabel>
+        <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/2" />
+        <IftaLabel v-else class="w-1/2">
+          <Select
+              v-model="selectedAnneeUniv"
+              :options="anneesUnivList"
+              optionLabel="libelle"
+              placeholder="Sélectionner une année universitaire"
+              class="w-full"
+          />
+          <label for="anneeUniversitaire">Année universitaire</label>
+        </IftaLabel>
       </div>
       <Button v-if="!isEditing" label="Saisir le prévisionnel" icon="pi pi-plus" @click="isEditing = !isEditing" />
       <Button v-else label="Afficher le prévisionnel" icon="pi pi-eye" @click="isEditing = !isEditing" />
     </div>
-
     <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
     <div v-else>
       <Message v-if="previSemestre < 1 || previSemestre[1].length < 1" severity="error" icon="pi pi-times-circle">
-        Aucun prévisionnel pour ce semestre
+        Aucun prévisionnel pour cette année universitaire et ce semestre
       </Message>
       <div v-else>
         <div class="flex w-full justify-between my-6">

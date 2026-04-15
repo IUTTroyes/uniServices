@@ -113,7 +113,7 @@ const deleteHrs = async (id) => {
     <!-- Groupe de colonnes pour l'en-tête -->
     <ColumnGroup type="header">
       <Row>
-        <Column :header="props.headerTitle" :colspan="headerTitlecolspan" class="!bg-gray-300 !bg-opacity-20"/>
+        <Column :header="props.headerTitle" :colspan="headerTitlecolspan" class="bg-gray-300/20!"/>
         <template v-if="props.topHeaderCols.length > 0">
           <Column v-for="(topHeaderCol, index) in props.topHeaderCols" :key="index" :header="topHeaderCol.header" :colspan="topHeaderCol.colspan" :class="topHeaderCol.class"/>
         </template>

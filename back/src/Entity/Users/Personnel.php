@@ -42,7 +42,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Delete(security: "is_granted('CAN_DELETE_PERSONNEL', object)"),
     ],
     order: ['nom' => 'ASC'],
-    paginationEnabled: false,
 )]
 #[ORM\HasLifecycleCallbacks]
 class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
