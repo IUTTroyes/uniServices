@@ -4,7 +4,7 @@ import EdtPersonnel from "@/components/Edt/EdtPersonnel.vue";
 import EdtDepartement from "@/components/Edt/EdtDepartement.vue";
 import EdtEtudiant from "../components/Edt/EdtEtudiant.vue";
 import EdtStatistiques from "../components/Edt/EdtStatistiques.vue";
-import {useUsersStore} from "@stores/user_stores/userStore.js";
+import {useUsersStore} from "@stores";
 
 const store = useUsersStore();
 
@@ -30,7 +30,7 @@ onMounted( () => {
 <template>
   <div class="card">
     <div class="card-title mb-4">
-      <h1 class="text-2xl font-bold">Emploi du temps</h1>
+      <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">Emploi du temps</h2>
       <p class="text-muted-color">Consultez votre emploi du temps personnel ou celui de votre département.</p>
     </div>
 

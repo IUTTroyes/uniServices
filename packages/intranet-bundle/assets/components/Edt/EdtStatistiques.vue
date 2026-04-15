@@ -181,10 +181,12 @@ const getEnseignements = async () => {
     };
     enseignements.value = await getEnseignementsService(params);
 
+    console.log('Enseignements récupérés :', enseignements.value);
+
     // reconstruire le libelle pour inclure le code_enseignement
     enseignements.value = enseignements.value.map(enseignement => ({
       ...enseignement,
-      libelle: `${enseignement.codeEnseignement} - ${enseignement.libelle}`
+      libelle: `${enseignement.display}`
     }));
   } catch (error) {
     console.error('Erreur lors du chargement des enseignements :', error);

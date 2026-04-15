@@ -35,7 +35,7 @@ const redirectTo = (link) => {
                         </template>
                     </div>
                     <div class="ml-4">
-                        <h1 class="text-2xl font-semibold"><span class="font-light">Bonjour,</span> {{ store.user.prenom }}</h1>
+                      <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2"><span class="font-light">Bonjour,</span> {{ store.user.prenom }}</h2>
                         <small>{{ formatDateLong(date) }}</small>
                     </div>
                 </div>
