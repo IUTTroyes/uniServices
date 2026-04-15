@@ -1,0 +1,1 @@
+import{aL as s,r as n,aM as a,aK as o}from"./index-DdW8-gy6.js";const m=s("enseignements",()=>{const r=n([]);return{enseignements:r,getMatieres:async()=>{try{const e=await a();r.value=e.data}catch(e){console.error("Error fetching enseignements:",e)}},getMatieresSemestre:async e=>{try{r.value=await o(e)}catch(t){console.error("Error fetching enseignements:",t)}}}});export{m as u};

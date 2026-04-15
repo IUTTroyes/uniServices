@@ -1,0 +1,2 @@
+import{toValues as u}from"@primeuix/forms/utils";import{isNotEmpty as c}from"@primeuix/utils";var R=(p,a,i)=>async({values:n,name:r})=>{let{raw:l=!1}=i||{};try{let[t,y]=p.validate(n,a);return t?{values:u(void 0,r),errors:t.failures().reduce((e,s)=>{let o=c(s.path)?s.path.join("."):r;return o&&(e[o]||=[],e[o].push(s)),e},{})}:{values:u(l?n:y,r),errors:{}}}catch(t){throw t}};export{R as superStructResolver};
+//# sourceMappingURL=index.mjs.map

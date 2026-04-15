@@ -16,6 +16,19 @@ class StructureDiplomeRepository extends ServiceEntityRepository
         parent::__construct($registry, StructureDiplome::class);
     }
 
+    // en passant par le lien diplome->pns (collection)->anneeUniversitaire
+    public function findByAnneeUniversitaire(int $anneeUniversitaire)
+    {
+        return $this->createQueryBuilder('d')
+            ->join('d.pns', 'p')
+            ->join('p.anneeUniversitaire', 'au')
+            ->andWhere('au.id = :anneeUniversitaire')
+            ->setParameter('anneeUniversitaire', $anneeUniversitaire)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
 //    /**
 //     * @return StructureDiplome[] Returns an array of StructureDiplome objects
 //     */

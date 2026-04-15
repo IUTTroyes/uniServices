@@ -1,0 +1,1 @@
+import{a as o,b as a}from"./index-DdW8-gy6.js";const c=async(r,s="",n=!1)=>{try{return(await o(a.get,[`/api${s}/personnels`,{params:r}],"Personnels récupérés avec succès","Erreur lors de la récupération des personnels",n)).member}catch(e){throw console.error("Erreur dans getPersonnelsDepartementService:",e),e}};export{c as g};

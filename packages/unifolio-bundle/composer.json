@@ -1,0 +1,15 @@
+{
+    "name": "iuttroyes/unifolio-bundle",
+    "type": "symfony-bundle",
+    "description": "UnifolioBundle for uniServices",
+    "require": {
+        "php": "^8.2",
+        "symfony/framework-bundle": "^7.0",
+        "symfony/http-kernel": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "UnifolioBundle\\": "src/"
+        }
+    }
+}

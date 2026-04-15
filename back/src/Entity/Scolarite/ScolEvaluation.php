@@ -409,6 +409,7 @@ class ScolEvaluation
             TypeGroupeEnum::getTypes()
         );
     }
+
     #[Groups(['evaluation:detail'])]
     public function getTypeChoices(): array
     {

@@ -1,0 +1,2 @@
+import{toValues as y}from"@primeuix/forms/utils";import{isNotEmpty as c}from"@primeuix/utils";import{getDotPath as R,safeParse as m,safeParseAsync as P}from"valibot";var b=(n,a,f)=>async({values:t,name:r})=>{let{sync:l=!1,raw:u=!1}=f||{};try{let e=l?m(n,t,{abortPipeEarly:!1,...a}):await P(n,t,{abortPipeEarly:!1,...a});return e.success?{values:y(u?t:e.output,r),errors:{}}:{values:y(u?t:void 0,r),errors:e.issues?.reduce((s,i)=>{let p=R(i),o=c(p)?p:r;return o&&(s[o]||=[],s[o].push(i)),s},{})}}catch(e){throw e}};export{b as valibotResolver};
+//# sourceMappingURL=index.mjs.map

@@ -1,0 +1,1 @@
+import{y as o,o as c,c as n,d as s,q as t}from"./index-DdW8-gy6.js";const r={},i={class:"card my-6 mx-4"};function a(_,p){const e=t;return c(),n("div",i,[s(e,{label:"Dupliquer un prévisionnel",icon:"pi pi-copy",severity:"info"})])}const d=o(r,[["render",a]]);export{d as default};

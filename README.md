@@ -17,91 +17,66 @@ Le projet est structuré en deux parties principales :
 
 ### Backend (Symfony 7)
 
-Le backend est développé avec Symfony 7, un framework PHP moderne. Il suit une architecture en couches avec une séparation claire des responsabilités :
+Le backend est développé avec Symfony 7. L'architecture a évolué vers une structure modulaire basée sur des **Symfony Bundles** indépendants situés dans le dossier `packages/`.
 
-- **Controllers** : Gèrent les requêtes HTTP et retournent les réponses
-- **Entities** : Représentent les modèles de données et leurs relations
-- **Repositories** : Fournissent des méthodes pour accéder aux données
-- **Services** : Contiennent la logique métier
-- **ApiDto** : Objets de transfert de données pour les réponses API
-- **ApiResource** : Définitions des ressources API (API Platform)
-- **State** : Fournisseurs d'état pour API Platform
-- **DataFixtures** : Données de test
-- **Command** : Commandes console
-- **EventListener** : Écouteurs d'événements
-- **Filter** : Filtres de requête
-- **Security** : Code lié à la sécurité
-- **Utils** : Fonctions utilitaires
-- **ValueObject** : Objets valeur
+Le projet `back/` sert de noyau et utilise ces bundles. Les responsabilités sont réparties comme suit :
 
-### Frontend (Vue.js 3)
+- **Bundles (`packages/`)** : Contiennent la logique métier spécifique à chaque application (Auth, Edt, Intranet), incluant leurs propres contrôleurs API et assets Vue.js.
+- **Entities (`back/src/Entity`)** : Représentent les modèles de données partagés.
+- **Repositories (`back/src/Repository`)** : Accès aux données.
+- **ApiResource (`back/src/ApiResource`)** : Définitions API Platform.
+- **State (`back/src/State`)** : Providers et Processors pour API Platform.
 
-Le frontend est développé avec Vue.js 3 et organisé comme un monorepo avec plusieurs applications partageant des packages communs :
+### Frontend (Vue.js 3 - Architecture Bundles)
 
-#### Applications
-- **auth** : Gestion de l'authentification
-- **edt** : Gestion des emplois du temps
-- **intranet** : Application principale de l'intranet
-- **tests** : Tests automatisés
+Le frontend est intégré au sein des Symfony Bundles dans `packages/{app}-bundle/assets/`. Il utilise une architecture monorepo gérée par `pnpm` et `monorepo-builder`.
 
-#### Packages Partagés
-- **common-components** : Composants UI réutilisables
-- **common-global-data** : Données globales partagées
-- **common-helpers** : Fonctions utilitaires
-- **common-images** : Images partagées
-- **common-requests** : Fonctions de requêtes API
-- **common-stores** : Gestion d'état partagée (Pinia)
-- **common-styles** : Styles CSS partagés
+#### Bundles Applicatifs (`packages/`)
+- **auth-bundle** : Gestion de l'authentification.
+- **edt-bundle** : Gestion des emplois du temps.
+- **intranet-bundle** : Application principale de l'intranet.
+
+#### Ressources Partagées (`shared/`)
+Les ressources communes sont centralisées dans le dossier `shared/` et importées par les bundles via des alias :
+- **components** : Composants PrimeVue réutilisables.
+- **stores** : Gestion d'état (Pinia).
+- **requests** : Fonctions de requêtes API et services CRUD.
+- **styles** : Styles SCSS et Tailwind partagés.
+- **helpers** : Fonctions utilitaires transverses.
+- **images** : Assets graphiques communs.
+- **global-data** : Configuration et données statiques (ex: traductions).
+- **types** : Définitions TypeScript.
+- **utils** : Utilitaires techniques (directives Vue, etc.).
 
 ## Structure des Répertoires
 
 ```
 uniServices/
-├── back/                  # Backend Symfony
-│   ├── bin/               # Exécutables
-│   ├── config/            # Configuration
-│   ├── migrations/        # Migrations de base de données
-│   ├── public/            # Fichiers publics
-│   ├── src/               # Code source
-│   │   ├── ApiDto/        # Objets de transfert de données
-│   │   ├── ApiResource/   # Ressources API
-│   │   ├── Command/       # Commandes console
-│   │   ├── Controller/    # Contrôleurs HTTP
-│   │   ├── DataFixtures/  # Données de test
-│   │   ├── DataProvider/  # Fournisseurs de données
-│   │   ├── Entity/        # Entités de base de données
-│   │   ├── Enum/          # Types énumération
-│   │   ├── EventListener/ # Écouteurs d'événements
-│   │   ├── Filter/        # Filtres de requête
-│   │   ├── Interfaces/    # Définitions d'interfaces
-│   │   ├── Repository/    # Repositories de données
-│   │   ├── Security/      # Code lié à la sécurité
-│   │   ├── Services/      # Services métier
-│   │   ├── State/         # Fournisseurs d'état
-│   │   ├── Utils/         # Fonctions utilitaires
-│   │   └── ValueObject/   # Objets valeur
-│   ├── templates/         # Templates Twig
-│   ├── translations/      # Fichiers de traduction
-│   ├── var/               # Fichiers variables (cache, logs)
-│   └── vendor/            # Dépendances
-├── front/                 # Frontend Vue.js
-│   ├── apps/              # Applications
-│   │   ├── auth/          # App d'authentification
-│   │   ├── edt/           # App d'emploi du temps
-│   │   ├── intranet/      # App principale
-│   │   └── tests/         # Tests
-│   ├── packages/          # Packages partagés
-│   │   ├── common-components/ # Composants UI
-│   │   ├── common-global-data/ # Données globales
-│   │   ├── common-helpers/ # Fonctions utilitaires
-│   │   ├── common-images/ # Images partagées
-│   │   ├── common-requests/ # Requêtes API
-│   │   ├── common-stores/ # Stores Pinia
-│   │   └── common-styles/ # Styles CSS
-│   ├── stories/           # Stories Storybook
-│   └── .storybook/        # Configuration Storybook
-├── cypress/               # Tests E2E Cypress
-└── Makefile               # Commandes Make
+├── packages/               # Bundles Symfony indépendants
+│   ├── auth-bundle/        # Bundle d'authentification
+│   ├── edt-bundle/         # Bundle emploi du temps
+│   └── intranet-bundle/    # Bundle intranet principal
+│       ├── assets/         # Code source Vue.js du bundle
+│       ├── src/            # Code PHP (Bundle, DI, Controllers)
+│       │   ├── Resources/
+│       │   │   ├── config/ # Routes et configuration Symfony
+│       │   │   └── public/ # Assets Vue compilés
+│       │   └── Controller/ # Contrôleurs API du bundle
+│       └── vite.config.js  # Configuration de build du bundle
+├── shared/                 # Ressources frontend partagées
+│   ├── components/         # Composants UI
+│   ├── stores/             # Stores Pinia
+│   ├── requests/           # Requêtes API
+│   ├── styles/             # SCSS et Tailwind
+│   └── ...
+├── back/                   # Noyau Backend Symfony
+│   ├── config/             # Configuration globale
+│   ├── src/                # Entités, Repositories, API Resources
+│   └── ...
+├── monorepo-builder.php    # Gestion du monorepo PHP
+├── package.json            # Configuration monorepo JS (pnpm workspaces)
+├── docker-compose.yml      # Infrastructure Docker
+└── Makefile                # Commandes de gestion centralisées
 ```
 
 ## Standards de Codage et Conventions
@@ -181,12 +156,16 @@ uniServices/
 
 ### Alias Frontend
 
-- **@** : Accès au dossier `src` du projet
-- **@components** : Composants communs dans `common-components/`
-- **@styles** : Styles communs dans `common-styles/`
-- **@helpers** : Fonctions communes dans `common-helpers/`
-- **@stores** : Stores communs dans `common-stores/`
-- **@requests** : Requêtes API communes dans `common-requests/`
+Les alias permettent d'accéder aux ressources partagées depuis n'importe quel bundle :
+
+- **@** : Accès au dossier `assets` du bundle courant
+- **@components** : Composants partagés (`shared/components`)
+- **@styles** : Styles partagés (`shared/styles`)
+- **@helpers** : Fonctions utilitaires partagées (`shared/helpers`)
+- **@stores** : Gestion d'état partagée (`shared/stores`)
+- **@requests** : Requêtes API partagées (`shared/requests`)
+- **@images** : Images partagées (`shared/images`)
+- **@config** : Données de configuration et traductions (`shared/global-data`)
 
 ## Flux de Développement
 
@@ -194,16 +173,28 @@ uniServices/
 
 1. Cloner le dépôt
 2. Installer les dépendances backend : `cd back && composer install`
-3. Installer les dépendances frontend : `cd front && pnpm install`
-4. Créer les liens symboliques : `make create-symlinks`
+3. Installer les dépendances du monorepo (JS) : `pnpm install`
+4. Fusionner les configurations Composer des bundles : `vendor/bin/monorepo-builder merge`
 
 ### Démarrage du Projet
 
-- Démarrer le backend : `make start-back`
-- Démarrer le frontend : `make start-front`
-- Démarrer les deux : `make start-all`
-- Démarrer Storybook : `make start-storybook`
-- Arrêter le projet : `make stop-all`
+Le `Makefile` à la racine permet de piloter l'ensemble de la structure :
+
+- Démarrer le backend (Symfony) : `make start-back`
+- Démarrer les serveurs de dev Vite (tous les bundles) : `make start-front`
+- Démarrer tout le projet : `make start-all`
+
+Pour lancer un bundle spécifique en développement :
+- Auth : `npm run dev:auth`
+- Edt : `npm run dev:edt`
+- Intranet : `npm run dev:intranet`
+
+### Build des Assets
+
+Chaque bundle doit être compilé indépendamment pour que ses assets soient disponibles pour Symfony :
+
+- Build complet : `npm run build:auth && npm run build:edt && npm run build:intranet`
+- Les fichiers compilés sont générés dans `packages/{bundle}/src/Resources/public/`
 
 ### Développement
 
@@ -212,25 +203,108 @@ uniServices/
 3. Écrire des tests pour les nouvelles fonctionnalités
 4. Soumettre une pull request pour révision
 
+## Création d'un Nouveau Bundle
+
+Pour ajouter un nouveau bundle au projet (ex: `nom-bundle`), utilisez le script d'automatisation :
+
+```bash
+php scripts/create-bundle.php nom-bundle
+```
+
+Le script vous demandera interactivement :
+- **Nom de l'outil** (ex: `Mon Appli`)
+- **Description** (ex: `Gestion de mes données`)
+- **URL Slug** (ex: `mon-appli` pour la structure)
+- **URL complète** (ex: `http://localhost:3000/mon-appli/` pour le lien dans la navigation)
+
+Vous pouvez également passer ces informations via des arguments pour éviter les questions :
+
+```bash
+php scripts/create-bundle.php nom-bundle \
+  --display-name="Nom lisible" \
+  --description="Description de l'outil" \
+  --url-slug="slug" \
+  --url="http://localhost:3000/slug/"
+```
+
+Le logo est par défaut `LogoIut`.
+
+### Ce que fait le script :
+1. Crée l'arborescence du bundle dans `packages/nom-bundle/`.
+2. Génère la classe PHP du Bundle (`NomBundle.php`).
+3. Génère les fichiers `composer.json`, `package.json` et `vite.config.js` pré-configurés.
+4. Crée un fichier `packages/nom-bundle/bundle.meta.json` (nom, description, urlSlug, url) utilisé pour le registre des outils.
+5. Met à jour le `composer.json` à la racine et dans `back/` pour l'autoloading.
+6. Enregistre le bundle dans `back/config/bundles.php`.
+7. Reconstruit automatiquement `shared/global-data/tools.generated.json` en scannant tous les bundles locaux et les outils externes (dans `shared/global-data/external-tools/`).
+
+### Après l'exécution :
+1. Installez les nouvelles dépendances et liez le workspace : `pnpm install`
+2. Mettez à jour l'autoload PHP : `composer dump-autoload`
+3. (Optionnel) Ajoutez des commandes `dev` et `build` dans le `Makefile` racine pour faciliter la gestion de ce bundle.
+
+## Activation et Désactivation d'un Bundle
+
+Si vous souhaitez désactiver temporairement un bundle sans supprimer ses fichiers (pour qu'il ne soit plus chargé par Symfony et n'apparaisse plus dans le registre des outils), utilisez :
+
+```bash
+php scripts/deactivate-bundle.php nom-bundle
+```
+
+Pour réactiver un bundle précédemment désactivé :
+
+```bash
+php scripts/activate-bundle.php nom-bundle
+```
+
+### Ce que font ces scripts :
+1. **Désactivation** :
+    - Retire le bundle de `back/config/bundles.php`.
+    - Retire l'autoloading du `composer.json` racine et de `back/composer.json`.
+    - Renomme `bundle.meta.json` en `.disabled` pour le masquer du registre.
+    - Met à jour automatiquement l'autoloading PHP et vide le cache Symfony.
+2. **Activation** :
+    - Restaure le bundle dans `back/config/bundles.php`.
+    - Restaure l'autoloading dans les fichiers `composer.json`.
+    - Réactive le fichier de méta-données.
+    - Met à jour l'autoloading PHP et vide le cache Symfony.
+
+## Désinstallation d'un Bundle
+
+Si vous souhaitez retirer un bundle du projet (par exemple `nom-bundle`), utilisez le script d'automatisation :
+
+```bash
+php scripts/remove-bundle.php nom-bundle
+```
+
+### Ce que fait le script :
+1. Supprime le répertoire du bundle dans `packages/`.
+2. Retire les configurations d'autoloading dans le `composer.json` racine et dans `back/`.
+3. Retire le bundle de `back/config/bundles.php`.
+4. Reconstruit automatiquement `shared/global-data/tools.generated.json` (mise à jour de la liste des outils côté front).
+
+### Après l'exécution :
+1. Mettez à jour les workspaces : `pnpm install`
+2. Mettez à jour l'autoload PHP : `composer dump-autoload` (à la racine et dans `back/`)
+3. Videz le cache Symfony : `cd back && bin/console cache:clear`
+
 ## Technologies Utilisées
 
 ### Backend
 - PHP 8.2+
 - Symfony 7
-- API Platform
+- API Platform 4
 - Doctrine ORM
-- PHPStan pour l'analyse statique
+- Monorepo Builder (Symplify)
 
 ### Frontend
 - Vue.js 3
-- Vite
-- Pinia pour la gestion d'état
-- PrimeVue pour les composants UI
-- Tailwind CSS pour le styling
-- Storybook pour la documentation des composants
-- Cypress pour les tests E2E
-- ESLint et Prettier pour le formatage du code
-- pnpm pour la gestion des packages
+- Vite 6
+- Tailwind CSS v4
+- Pinia (Gestion d'état)
+- PrimeVue v4 (Composants UI)
+- pnpm (Gestion des packages)
+- Vitest / Cypress (Tests)
 
 ## Tests
 
@@ -238,11 +312,9 @@ uniServices/
 - PHPUnit pour les tests unitaires et fonctionnels
 - Exécuter les tests : `cd back && php bin/phpunit`
 
-### Frontend
-- Vitest pour les tests unitaires
-- Cypress pour les tests E2E
-- Exécuter les tests unitaires : `cd front && pnpm test`
-- Exécuter les tests E2E : `cd front && pnpm cypress:run`
+### Frontend (Bundles)
+- Exécuter les tests unitaires (depuis la racine) : `pnpm test`
+- Exécuter les tests E2E : `pnpm cypress:run`
 
 ## Déploiement
 

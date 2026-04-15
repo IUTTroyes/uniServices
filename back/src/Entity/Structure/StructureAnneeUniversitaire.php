@@ -17,7 +17,7 @@ use App\Entity\Edt\EdtCreneauxInterditsSemaine;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
-use App\Entity\Previsionnel\Previsionnel;
+use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Stages\StagePeriode;
 use App\Entity\Traits\LifeCycleTrait;

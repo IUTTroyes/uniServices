@@ -1,0 +1,1 @@
+import{f as s,c as r,b as a,t as o,A as c}from"./index-6nPNuiHD.js";const i={class:"card"},l={class:"font-semibold text-xl mb-4"},_={__name:"Card",props:{title:{type:String,required:!0}},setup(t){return(e,n)=>(s(),r("div",i,[a("div",l,o(t.title),1),c(e.$slots,"default")]))}};export{_};

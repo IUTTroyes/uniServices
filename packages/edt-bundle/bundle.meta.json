@@ -1,0 +1,6 @@
+{
+  "name": "UniEdt",
+  "description": "Plateforme de conception des emplois du temps et gestion des contraintes.",
+  "urlSlug": "edt",
+  "url": "http://localhost:3003/edt/"
+}

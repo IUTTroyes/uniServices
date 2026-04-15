@@ -7,7 +7,7 @@ use ApiPlatform\Doctrine\Orm\State\ItemProvider;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProviderInterface;
-use App\Repository\Previsionnel\PrevisionnelRepository;
+use IntranetBundle\Repository\Previsionnel\PrevisionnelRepository;
 use DateTime;
 use App\ApiDto\Edt\EdtStatsDto;
 

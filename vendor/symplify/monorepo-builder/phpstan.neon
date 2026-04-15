@@ -1,0 +1,12 @@
+parameters:
+    level: 8
+
+    paths:
+        - src
+        - config
+        - tests
+    unused_public:
+        methods: false
+
+    scanFiles:
+        - vendor/symfony/dependency-injection/Loader/Configurator/ContainerConfigurator.php

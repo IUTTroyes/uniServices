@@ -1,0 +1,61 @@
+{
+  "name": "@primeuix/forms",
+  "version": "0.1.0",
+  "author": "PrimeTek Informatics",
+  "description": "Forms utilities for PrimeUI Libraries",
+  "keywords": [
+    "forms",
+    "validation",
+    "utilities",
+    "primeng",
+    "primereact",
+    "primevue",
+    "primeuix"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/primefaces/primeuix.git",
+    "directory": "packages/forms"
+  },
+  "bugs": {
+    "url": "https://github.com/primefaces/primeuix/issues"
+  },
+  "exports": {
+    "./*": {
+      "types": "./dist/*/index.d.mts",
+      "import": "./dist/*/index.mjs",
+      "default": "./dist/*/index.mjs"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "umd",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@primeuix/utils": "^0.6.0"
+  },
+  "devDependencies": {
+    "yup": "^1.4.0",
+    "zod": "^3.23.8",
+    "joi": "^17.13.3",
+    "valibot": "^0.42.1",
+    "superstruct": "^2.0.2"
+  },
+  "engines": {
+    "node": ">=12.11.0"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production INPUT_DIR=src/ OUTPUT_DIR=dist/ pnpm run build:package",
+    "build:dev": "cross-env NODE_ENV=development INPUT_DIR=src/ OUTPUT_DIR=dist/ pnpm run build:dev:package",
+    "build:package": "tsup",
+    "build:dev:package": "tsup --watch",
+    "dev:link": "pnpm link --global && npm link"
+  }
+}

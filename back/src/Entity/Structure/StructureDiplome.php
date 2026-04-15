@@ -169,6 +169,8 @@ class StructureDiplome
     #[Groups(['diplome:detail'])]
     private Collection $enseignantHrs;
 
+    /**@deprecated */
+    //todo: utiliser le lien diplome->pn->anneeUniversitaire
     /**
      * @var Collection<int, StructureAnneeUniversitaire>
      */

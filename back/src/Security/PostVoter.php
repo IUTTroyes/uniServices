@@ -2,8 +2,8 @@
 
 namespace App\Security;
 
-use App\Entity\Etudiant\EtudiantAbsence;
-use App\Entity\Etudiant\EtudiantAbsenceJustificatif;
+use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
+use IntranetBundle\Entity\Etudiant\EtudiantAbsenceJustificatif;
 use App\Entity\Etudiant\EtudiantNote;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;

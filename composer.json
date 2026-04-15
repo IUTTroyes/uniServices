@@ -1,0 +1,38 @@
+{
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "symplify/monorepo-builder": "^12.5"
+    },
+    "require": {
+        "php": "^8.2",
+        "symfony/framework-bundle": "^7.0",
+        "symfony/http-kernel": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "AuthBundle\\": "packages/auth-bundle/src/",
+            "EdtBundle\\": "packages/edt-bundle/src/",
+            "IntranetBundle\\": "packages/intranet-bundle/src/",
+            "UnifolioBundle\\": "packages/unifolio-bundle/src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "AuthBundle\\Tests\\": "packages/auth-bundle/tests/",
+            "EdtBundle\\Tests\\": "packages/edt-bundle/tests/",
+            "IntranetBundle\\Tests\\": "packages/intranet-bundle/tests/"
+        }
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": false,
+            "require": "7.0.*"
+        }
+    },
+    "replace": {
+        "iuttroyes/auth-bundle": "self.version",
+        "iuttroyes/edt-bundle": "self.version",
+        "iuttroyes/intranet-bundle": "self.version",
+        "iuttroyes/unifolio-bundle": "self.version"
+    }
+}

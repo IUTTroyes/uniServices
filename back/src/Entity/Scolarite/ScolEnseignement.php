@@ -11,8 +11,8 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Edt\EdtEvent;
-use App\Entity\Etudiant\EtudiantAbsence;
-use App\Entity\Previsionnel\Previsionnel;
+use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
+use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Enum\TypeEnseignementEnum;
@@ -200,6 +200,7 @@ class ScolEnseignement
         return $this;
     }
 
+    #[Groups(['enseignement:detail'])]
     public function getDisplay(): string
     {
         return $this->codeEnseignement.' - '.$this->libelle;

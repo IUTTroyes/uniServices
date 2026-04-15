@@ -1,0 +1,26 @@
+[
+    {
+        "name": "UniEdt",
+        "description": "Plateforme de conception des emplois du temps et gestion des contraintes.",
+        "urlSlug": "edt",
+        "url": "http://localhost:3003/edt/"
+    },
+    {
+        "name": "UniTranet",
+        "description": "Gestion de la structure des formations et des \u00e9tudiants.",
+        "urlSlug": "intranet",
+        "url": "http://localhost:3001/intranet/"
+    },
+    {
+        "name": "UniFolio",
+        "description": "Outil de cr\u00e9ation et de gestion de portfolios universitaires.",
+        "urlSlug": "unifolio",
+        "url": "/unifolio"
+    },
+    {
+        "name": "Correcto",
+        "description": "Plateforme de correction des travaux et des examens.",
+        "urlSlug": "correcto",
+        "url": "/correcto"
+    }
+]
