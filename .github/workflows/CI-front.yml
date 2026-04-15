@@ -1,14 +1,20 @@
-name: CI-Front
+name: CI-Packages
 
 on:
   push:
     branches: [main]
-    paths: 
-    - 'front/**'
+    paths:
+    - 'packages/**'
+    - 'shared/**'
+    - 'package.json'
+    - 'pnpm-workspace.yaml'
   pull_request:
     branches: [main]
-    paths: 
-    - 'front/**'
+    paths:
+    - 'packages/**'
+    - 'shared/**'
+    - 'package.json'
+    - 'pnpm-workspace.yaml'
 
 jobs:
   build:
@@ -21,15 +27,16 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: '18.12.1' # Version compatible avec pnpm
+        node-version: '20'
 
     - name: Install pnpm
       run: npm install -g pnpm
 
-    - name: Install front dependencies
-      working-directory: ./front
+    - name: Install dependencies
       run: pnpm install --no-frozen-lockfile
 
-    - name: Run frontend tests
-      working-directory: ./front
-      run: npm run test
+    - name: Run builds
+      run: pnpm run build --if-present
+
+    - name: Run tests
+      run: pnpm run test --if-present
