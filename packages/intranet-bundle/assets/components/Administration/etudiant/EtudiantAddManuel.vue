@@ -228,6 +228,7 @@ const downloadCsv = () => {
       <div class="flex flex-col items-center justify-center h-full">
       </div>
       <Toast />
+      <!--    todo: définir la taille max du fichier      -->
       <FileUpload
           name="csvUpload"
           :multiple="false"

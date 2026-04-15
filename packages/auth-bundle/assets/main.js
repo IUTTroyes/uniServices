@@ -2,6 +2,7 @@ import { createApp } from 'vue';
 import { createPinia } from "pinia";
 import App from './App.vue';
 import '@styles/main.scss';
+import { initializeAppData } from '@requests/initializeData';
 import router from './router';
 import { registerPermissionDirective } from '@utils';
 import { setupInactivityTimer } from '@helpers/authService';
@@ -60,7 +61,27 @@ app.use(pinia);
 // Register the permission directive
 registerPermissionDirective(app);
 
-// Initialiser le minuteur d'inactivité (45 min)
-setupInactivityTimer();
+// Ajouter un contenu temporaire avant le montage
+import GlobalLoader from '@components/loader/GlobalLoader.vue';
+const loadingElement = document.createElement('div');
+loadingElement.id = 'loading';
+document.body.appendChild(loadingElement);
 
-app.mount('#app');
+const loaderApp = createApp(GlobalLoader);
+loaderApp.mount(loadingElement);
+
+// Initialiser les données et monter l'application
+(async () => {
+    try {
+        await initializeAppData();
+        // Initialiser le minuteur d'inactivité (45 min)
+        setupInactivityTimer();
+    } catch (error) {
+        console.error('Erreur lors de l\'initialisation de l\'application:', error);
+    } finally {
+        // Supprimer le contenu temporaire après l'initialisation
+        document.body.removeChild(loadingElement);
+        // Monter l'application
+        app.mount('#app');
+    }
+})();

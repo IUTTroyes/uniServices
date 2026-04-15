@@ -14,7 +14,7 @@ const anneeUniv = ref({
 });
 const currentAnneeUniv = ref(null);
 const formValid = ref(true);
-const formErrors = ref(null);
+const formErrors = ref({});
 const activeChoice = ref([
   {
     label: "Non",

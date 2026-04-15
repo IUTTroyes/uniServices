@@ -1,3 +1,5 @@
+export * from './etablissementService.js';
+
 export * from './structure_services/departementService.js';
 export * from './structure_services/diplomeService.js';
 export * from './structure_services/anneeService.js';

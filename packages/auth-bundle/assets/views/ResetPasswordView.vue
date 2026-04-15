@@ -17,7 +17,6 @@ const validationState = ref({
 });
 
 onMounted(() => {
-  formValid === true;
 });
 
 const handleValidation = (field, result) => {

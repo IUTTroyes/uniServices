@@ -16,6 +16,11 @@ class EtablissementRepository extends ServiceEntityRepository
         parent::__construct($registry, Etablissement::class);
     }
 
+    public function findSingleEtablissement(): ?Etablissement
+    {
+        return $this->findOneBy([]);
+    }
+
     //    /**
     //     * @return Etablissement[] Returns an array of Etablissement objects
     //     */

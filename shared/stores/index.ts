@@ -1,3 +1,4 @@
+import { useEtablissementStore } from './etablissementStore'
 import { useUsersStore } from './user_stores/userStore'
 import { useSemestreStore } from './structure_stores/semestreStore'
 import { useProfesseursStore } from './user_stores/personnelStore'
@@ -9,6 +10,7 @@ import { useDepartementStore } from './structure_stores/departementStore'
 
 
 export {
+  useEtablissementStore,
   useUsersStore,
   useSemestreStore,
   useProfesseursStore,

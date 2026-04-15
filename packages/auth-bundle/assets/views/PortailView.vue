@@ -66,14 +66,14 @@ const props = defineProps({
         </a>
       </div>
     </div>
-<!--    <PermissionGuard permission="isReferent">-->
+    <PermissionGuard permission="isReferent">
     <div class="text-center absolute bottom-0 left-0 right-0 mb-4">
       <router-link to="/configuration">
         <Button type="button" severity="primary" icon="pi pi-wrench" label="Configuration" rounded>
         </Button>
       </router-link>
     </div>
-<!--    </PermissionGuard>-->
+    </PermissionGuard>
 
   </main>
 </template>

@@ -24,7 +24,7 @@ const diplomes = ref([]);
 const selectedDiplomes = ref([]);
 
 const formValid = ref(true);
-const formErrors = ref(null);
+const formErrors = ref({});
 const activeChoice = ref([
   {
     label: "Non",

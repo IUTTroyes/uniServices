@@ -1,5 +1,5 @@
 import {ref} from 'vue';
-import { useAnneeUnivStore, useUsersStore, useDiplomeStore, useAnneeStore, useSemestreStore } from '@stores';
+import { useAnneeUnivStore, useUsersStore, useDiplomeStore, useAnneeStore, useEtablissementStore } from '@stores';
 
 /**
  * Initialize application data
@@ -8,6 +8,7 @@ import { useAnneeUnivStore, useUsersStore, useDiplomeStore, useAnneeStore, useSe
  */
 export const initializeAppData = async () => {
   try {
+    await initializeEtablissementData();
     // Initialize academic year data
     await initializeAcademicYearData();
     // Initialize user data
@@ -16,6 +17,11 @@ export const initializeAppData = async () => {
     console.error('Error initializing application data:', error);
   }
 };
+
+const initializeEtablissementData = async () => {
+  const etablissementStore = useEtablissementStore();
+  await etablissementStore.getEtablissement();
+}
 
 /**
  * Initialize academic year data

@@ -276,6 +276,19 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
             @change="e => onBlurModelValue(e, handleBlur)"
         />
 
+        <input
+            v-else-if="type === 'file'"
+            :id="name"
+            :name="name"
+            type="file"
+            :class="[inputClass, 'p-inputtext', { 'p-invalid': showError }]"
+            @change="e => {
+              const file = e.target.files[0];
+              updateValue(file);
+              handleBlur(e);
+            }"
+        />
+
         <small v-if="helpText && !showError" class="text-sm text-muted-color mt-1">{{ helpText }}</small>
       </template>
     </FormValidator>

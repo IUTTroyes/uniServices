@@ -2,6 +2,7 @@ import ConfigurationView from '@/views/ConfigurationView.vue'
 import TypeDiplomeView from '@/views/configuration/TypeDiplomeView.vue'
 import AnneeUniversitaireView from '@/views/configuration/AnneeUniversitaireView.vue'
 import GestionAccesView from '@/views/configuration/GestionAccesView.vue'
+import EtablissementView from "@/views/configuration/EtablissementView.vue";
 
 export default [
   {
@@ -12,6 +13,21 @@ export default [
       permission: 'isReferent',
       breadcrumb: [{ label: 'Portail', route: '/portail' }, {
         label: 'Configuration',
+        route: null
+      }]
+    },
+  },
+  {
+    path: 'etablissement',
+    component: EtablissementView,
+    name: 'etablissement',
+    meta: {
+      permission: 'isSuperAdmin',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Établissement',
         route: null
       }]
     },
