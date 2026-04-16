@@ -350,6 +350,17 @@ const updateIntervenantPrevi = (previId, personnel) => {
   previForm.intervenant = typeof personnel.display === 'string' ? personnel.display : `${personnel.prenom} ${personnel.nom}`;
 };
 
+const updateEnseignementPrevi = (previId, enseignement) => {
+  // Récupérer le prévisionnel à modifier
+  let previForm = previSemestre.value[0].find(previ => previ.id === previId);
+  if (!previForm) return;
+
+  // Mettre à jour localement
+  previForm.idEnseignement = enseignement.id;
+  previForm.libelleEnseignement = enseignement.display;
+  previForm.codeEnseignement = enseignement.code;
+};
+
 watch(isEditing, async (newIsEditing) => {
   if (!newIsEditing) {
     await getPrevi(selectedSemestre.value?.id);
@@ -609,7 +620,7 @@ const footerColsForm = computed(() => {
       </div>
       <div v-else>
         <Message severity="info" class="my-6 flex justify-center" icon="pi pi-info-circle">
-          Cliquer sur une ligne pour l'éditer
+          Cliquer sur une ligne pour l'éditer, enregistrer les modifications ligne par ligne
         </Message>
           <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
         <PrevisionnelTable
