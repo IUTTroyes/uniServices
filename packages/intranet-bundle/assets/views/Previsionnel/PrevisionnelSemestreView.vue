@@ -8,8 +8,6 @@ import {
   getPersonnelsService,
   getSemestrePreviService,
   getSemestresService,
-  updatePreviEnseignementService,
-  updatePreviPersonnelService,
   updatePreviService
 } from "@requests";
 import { showDanger } from "@helpers";
@@ -32,6 +30,8 @@ const isLoadingSemestres = ref(true);
 const selectedSemestre = ref(null);
 const isLoadingPrevisionnel = ref(true);
 const previSemestre = ref(null);
+const previSemestreOriginal = ref(null); // Copie pour annulation
+const editingRowId = ref(null);
 const enseignementsList = ref([]);
 const selectedEnseignement = ref(null);
 const personnelsList = ref([]);
@@ -126,6 +126,7 @@ const getPrevi = async (semestreId) => {
     // [3] : Totaux d'heures par étudiant (CM, TD, TP) avec comparaison attendu/saisi
     // [5] : Totaux d'heures (Classique et Équivalent TD)
     previSemestre.value = await getSemestrePreviService(semestreId, anneeUniv.id);
+    previSemestreOriginal.value = JSON.parse(JSON.stringify(previSemestre.value));
 
     // Chargement des listes pour les sélections dans le formulaire
     await Promise.all([
@@ -247,80 +248,106 @@ const duplicatePrevi = async (previId) => {
   }
 };
 
-const updateHeuresPrevi = async (previId, type, valeur) => {
-  try {
-    const previForm = previSemestre.value[0].find(p => p.id === previId);
-    if (!previForm) return;
+const updateHeuresPrevi = (previId, type, valeur) => {
+  const previForm = previSemestre.value[0].find(p => p.id === previId);
+  if (!previForm) return;
 
-    const newValue = parseFloat(valeur);
-    if (isNaN(newValue)) return;
+  const newValue = parseFloat(valeur);
+  // On accepte 0, mais on rejette ce qui n'est pas un nombre
+  if (isNaN(newValue)) return;
 
-    // Mise à jour locale immédiate pour réactivité de l'UI
-    previForm.heures[type].NbHrGrp = newValue;
-    previForm.heures[type].NbSeanceGrp = Math.round(newValue * previForm.heures[type].NbGrp * 10) / 10;
-    refreshTotals();
+  const DUREE_SEANCE = 1;
 
-    // Préparation de l'objet d'heures pour l'API (attends les totaux NbHrGrp * NbGrp)
-    const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-      const h = previForm.heures[key];
-      acc[key] = (h.NbHrGrp || 0) * (h.NbGrp || 0);
-      return acc;
-    }, {});
-
-    await updatePreviService(previId, { heures: newHeures });
-  } catch (error) {
-    showDanger('Une erreur est survenue lors de la mise à jour des heures', error);
-    // Optionnel: Recharger les données en cas d'erreur pour resynchroniser
-    await getPrevi(selectedSemestre.value.id);
-  }
+  // Mise à jour locale immédiate pour réactivité de l'UI
+  previForm.heures[type].NbHrGrp = newValue;
+  const nbGrp = parseInt(previForm.heures[type].NbGrp) || 0;
+  previForm.heures[type].NbSeanceGrp = Math.round(((newValue / DUREE_SEANCE) * nbGrp) * 10) / 10;
+  refreshTotals();
 };
 
-const updateGroupesPrevi = async (previId, type, valeur) => {
+const updateGroupesPrevi = (previId, type, valeur) => {
+  const previForm = previSemestre.value[0].find(p => p.id === previId);
+  if (!previForm) return;
+
+  const newValue = parseInt(valeur);
+  // On accepte 0
+  if (isNaN(newValue)) return;
+
+  const DUREE_SEANCE = 1;
+
+  // Mise à jour locale immédiate
+  previForm.groupes[type] = newValue;
+  previForm.heures[type].NbGrp = newValue;
+  const nbHrGrp = parseFloat(previForm.heures[type].NbHrGrp) || 0;
+  previForm.heures[type].NbSeanceGrp = Math.round(((nbHrGrp / DUREE_SEANCE) * newValue) * 10) / 10;
+  refreshTotals();
+};
+
+const saveRow = async (previId) => {
   try {
     const previForm = previSemestre.value[0].find(p => p.id === previId);
     if (!previForm) return;
 
-    const newValue = parseInt(valeur);
-    if (isNaN(newValue)) return;
+    // Calcul des heures totales par type (NbHrGrp * NbGrp)
+    const newHeures = {};
+    const types = ['CM', 'TD', 'TP', 'Projet'];
+    const DUREE_SEANCE = 1;
 
-    // Mise à jour locale immédiate
-    previForm.groupes[type] = newValue;
-    previForm.heures[type].NbGrp = newValue;
-    previForm.heures[type].NbSeanceGrp = previForm.heures[type].NbHrGrp * newValue;
-    refreshTotals();
-
-    // Si le nombre de groupes devient 0, on pourrait aussi vouloir mettre à jour l'API pour les heures
-    // car le total NbHrGrp * NbGrp change
-    const newHeures = ['CM', 'TD', 'TP', 'Projet'].reduce((acc, key) => {
-      const h = previForm.heures[key];
-      acc[key] = (h.NbHrGrp || 0) * (h.NbGrp || 0);
-      return acc;
-    }, {});
-
-    // Mise à jour groupes ET heures (car elles dépendent du NbGrp pour le calcul côté API)
-    await updatePreviService(previId, {
-      groupes: { ...previForm.groupes },
-      heures: newHeures
+    types.forEach(type => {
+      const h = previForm.heures[type];
+      if (h) {
+        if (type === 'Projet') {
+          newHeures[type] = parseFloat(h.NbHrGrp) || 0;
+          previForm.heures[type].NbSeanceGrp = Math.round((newHeures[type] / DUREE_SEANCE) * 10) / 10;
+        } else {
+          const nbHrGrp = parseFloat(h.NbHrGrp) || 0;
+          const nbGrp = parseInt(h.NbGrp) || 0;
+          newHeures[type] = nbHrGrp * nbGrp;
+          previForm.heures[type].NbSeanceGrp = Math.round(((nbHrGrp / DUREE_SEANCE) * nbGrp) * 10) / 10;
+        }
+      } else {
+        newHeures[type] = 0;
+      }
     });
+
+    const newGroupes = {};
+    types.forEach(type => {
+      newGroupes[type] = parseInt(previForm.heures[type]?.NbGrp || previForm.groupes[type]) || 0;
+    });
+
+    const dataToUpdate = {
+      groupes: newGroupes,
+      heures: newHeures,
+      personnel: `/api/personnels/${previForm.idPersonnel}`
+    };
+
+    // Si l'enseignement a été modifié, on l'ajoute aussi
+    if (previForm.idEnseignement) {
+      dataToUpdate.enseignement = `/api/scol_enseignements/${previForm.idEnseignement}`;
+    }
+
+    await updatePreviService(previId, dataToUpdate);
+
+    editingRowId.value = null;
+    previSemestreOriginal.value = JSON.parse(JSON.stringify(previSemestre.value));
   } catch (error) {
-    showDanger('Une erreur est survenue lors de la mise à jour des groupes', error);
-    await getPrevi(selectedSemestre.value.id);
+    showDanger('Une erreur est survenue lors de l\'enregistrement', error);
   }
 };
 
-const updateIntervenantPrevi = async (previId, personnel) => {
-  try {
-    // Récupérer le prévisionnel à modifier
-    let previForm = previSemestre.value[0].find(previ => previ.id === previId);
-    // Mettre à jour l'intervenant du prévisionnel
-    await updatePreviPersonnelService(previId, personnel.id);
-    // Mettre à jour le prévisionnel
-    previForm.idPersonnel = personnel.id;
-    // Ensure intervenant is a string, not an object
-    previForm.intervenant = typeof personnel.display === 'string' ? personnel.display : `${personnel.prenom} ${personnel.nom}`;
-  } catch (error) {
-    console.error('Erreur lors de la mise à jour de l\'intervenant :', error);
-  }
+const cancelRow = (previId) => {
+  previSemestre.value = JSON.parse(JSON.stringify(previSemestreOriginal.value));
+  editingRowId.value = null;
+};
+
+const updateIntervenantPrevi = (previId, personnel) => {
+  // Récupérer le prévisionnel à modifier
+  let previForm = previSemestre.value[0].find(previ => previ.id === previId);
+  if (!previForm) return;
+
+  // Mettre à jour localement
+  previForm.idPersonnel = personnel.id;
+  previForm.intervenant = typeof personnel.display === 'string' ? personnel.display : `${personnel.prenom} ${personnel.nom}`;
 };
 
 watch(isEditing, async (newIsEditing) => {
@@ -432,28 +459,29 @@ const footerCols = computed(() => {
 // ------------------------------------------------------------------------------------------------------------
 
 const columnsForm = ref([
-  { header: 'Matière', field: 'libelleEnseignement', sortable: true, colspan: 1, class: '!overflow-hidden !truncate', form: true, formType: 'select', formOptions: enseignementsList, placeholder: "Sélectionner une matière", id: 'id', formAction: (previId, event) => { updatePreviEnseignementService(previId, event.id)}, disabled: () => false },
+  { header: 'Matière', field: 'libelleEnseignement', sortable: true, colspan: 1, class: '!overflow-hidden !truncate', form: true, formType: 'select', formOptions: enseignementsList, placeholder: "Sélectionner une matière", id: 'id', formAction: (previId, event) => { updateEnseignementPrevi(previId, event)}, disabled: () => false, style: 'min-width: 250px' },
 
-  { header: 'Intervenant', field: 'intervenant', sortable: true, colspan: 1, class: '!wrapper !text-wrap', form: true, formType: 'select', formOptions: personnelsList, placeholder: "Sélectionner un intervenant", id: 'id', formAction: (previId, event) => { updateIntervenantPrevi(previId, event)}, disabled: () => false },
+  { header: 'Intervenant', field: 'intervenant', sortable: true, colspan: 1, class: '!wrapper !text-wrap', form: true, formType: 'select', formOptions: personnelsList, placeholder: "Sélectionner un intervenant", id: 'id', formAction: (previId, event) => { updateIntervenantPrevi(previId, event)}, disabled: () => false, style: 'min-width: 200px' },
 
-  { header: 'Nb H/Gr.', name: 'nbHrGrpCM', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) }, disabled: (data) => (data.heures.CM.NbGrp || 0) <= 0 },
+{ header: 'Nb H/Gr.', name: 'nbHrGrpCM', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) }, disabled: false },
 
   { header: 'Nb Gr.', name: 'NbGrpCM', field: 'heures.CM.NbGrp', colspan: 1, class: '!bg-purple-400/20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) }, disabled: () => false },
 
   { header: 'Séances', field: 'heures.CM.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-purple-400/20 !max-w-20', form: false },
 
-  { header: 'Nb H/Gr.', name: 'nbHrGrpTD', field: 'heures.TD.NbHrGrp', colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) }, disabled: (data) => (data.heures.TD.NbGrp || 0) <= 0 },
+{ header: 'Nb H/Gr.', name: 'nbHrGrpTD', field: 'heures.TD.NbHrGrp', colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) }, disabled: false },
 
   { header: 'Nb Gr.', name: 'nbGrpTD', field: 'heures.TD.NbGrp', colspan: 1, class: '!bg-green-400/20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TD', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) }, disabled: () => false },
 
   { header: 'Séances', field: 'heures.TD.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-green-400/20 !max-w-20', form: false },
 
-  { header: 'Nb H/Gr.', name: 'nbHrGrpTD', field: 'heures.TP.NbHrGrp', colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) }, disabled: (data) => (data.heures.TP.NbGrp || 0) <= 0 },
+{ header: 'Nb H/Gr.', name: 'nbHrGrpTD', field: 'heures.TP.NbHrGrp', colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) }, disabled: false },
 
   { header: 'Nb Gr.', name: 'nbGrpTD', field: 'heures.TP.NbGrp', colspan: 1, class: '!bg-amber-400/20 !text-nowrap', form: true, formType:'text', id: 'id', type: 'TP', formAction: (previId, type, event) => { updateGroupesPrevi(previId, type, event) }, disabled: () => false },
 
   { header: 'Séances', field: 'heures.TP.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-amber-400/20 !max-w-20', form: false },
 
+  { header: 'Actions', field: 'id', colspan: 1, button: true, saveRow: true, class: 'w-24' },
   { header: 'Dupliquer', field: 'id', colspan: 1, button: true, buttonIcon: 'pi pi-copy', id: 'id', buttonAction: (id) => {duplicatePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn', duplicate: true },
   { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', id: 'id', buttonAction: (id) => {deletePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'danger', delete: true },
 ]);
@@ -462,7 +490,7 @@ const topHeaderColsForm = ref([
   { header: 'CM', colspan: 3, class: '!bg-purple-400/20' },
   { header: 'TD', colspan: 3, class: '!bg-green-400/20' },
   { header: 'TP', colspan: 3, class: '!bg-amber-400/20' },
-  { header: '', colspan: 2 },
+  { header: '', colspan: 3 },
 ]);
 
 const additionalRowsForm = computed(() => {
@@ -476,7 +504,7 @@ const additionalRowsForm = computed(() => {
       { footer: 'Ajouter une entrée au prévisionnel', colspan: 2, class: '!text-center !font-bold'},
       { footer: enseignementsList.value, colspan: 4, form: true, formType: 'select', placeholder: "Sélectionner une matière", formAction: (e) => { selectedEnseignement.value = e } },
       { footer: personnelsList.value, colspan: 4, form: true, formType: 'select', placeholder: "Sélectionner un intervenant", formAction: (p) => { selectedPersonnel.value = p } },
-      { footer: 'Ajouter', colspan: 3, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addPrevi(selectedPersonnel.value, selectedEnseignement.value) }, buttonClass: () => '!w-full', buttonSeverity: () => 'success' },
+      { footer: 'Ajouter', colspan: 4, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addPrevi(selectedPersonnel.value, selectedEnseignement.value) }, buttonClass: () => '!w-full', buttonSeverity: () => 'success' },
     ],
     [
       { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
@@ -492,7 +520,7 @@ const additionalRowsForm = computed(() => {
       { footer: 'Nb hr attendu', colspan: 1, class: '!bg-amber-400/20 !text-nowrap !font-bold' },
       { footer: 'Nb hr saisi', colspan: 1, class: '!bg-amber-400/20 !text-nowrap !font-bold' },
       { footer: 'Diff', colspan: 1, class: '!bg-amber-400/20 !text-nowrap !font-bold' },
-      { footer: '', colspan: 2 },
+      { footer: '', colspan: 3 },
     ],
     [
       { footer: 'Vérification du total d\'heures par étudiant', colspan: 2 },
@@ -505,19 +533,19 @@ const additionalRowsForm = computed(() => {
       { footer: totals.TP.NbHrAttendu, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h' },
       { footer: totals.TP.NbHrSaisi, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h' },
       { footer: totals.TP.Diff, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h', tag: true, tagClass, tagSeverity, tagIcon },
-      { footer: '', colspan: 2 },
+      { footer: '', colspan: 3 },
     ],
     [
       { footer: '', colspan: 2},
       { footer: 'Classique', colspan: 4, class: '!text-nowrap !text-center font-bold' },
       { footer: 'Équivalent TD', colspan: 5, class: '!text-nowrap !text-center font-bold' },
-      { footer: '', colspan: 2 },
+      { footer: '', colspan: 3 },
     ],
     [
       { footer: 'Total d\'heures', colspan: 2},
       { footer: totalEquiv?.TotalClassique, colspan: 4, class: '!text-nowrap !text-center', unit: ' h' },
       { footer: totalEquiv?.TotalTd, colspan: 5, class: '!text-nowrap !text-center', unit: ' h' },
-      { footer: '', colspan: 2 },
+      { footer: '', colspan: 3 },
     ],
   ];
 });
@@ -580,10 +608,16 @@ const footerColsForm = computed(() => {
             :headerTitlecolspan="4"/>
       </div>
       <div v-else>
-        <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
+        <Message severity="info" class="my-6 flex justify-center" icon="pi pi-info-circle">
+          Cliquer sur une ligne pour l'éditer
+        </Message>
+          <ListSkeleton v-if="isLoadingPrevisionnel" class="mt-6" />
         <PrevisionnelTable
             v-else
             origin="previSemestreForm"
+            v-model:editingRowId="editingRowId"
+            @save-row="saveRow"
+            @cancel-row="cancelRow"
             :columns="columnsForm"
             :topHeaderCols="topHeaderColsForm"
             :additionalRows="additionalRowsForm"

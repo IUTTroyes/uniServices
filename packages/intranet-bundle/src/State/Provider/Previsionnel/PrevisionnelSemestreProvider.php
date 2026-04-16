@@ -284,9 +284,9 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                     'NbSeanceGrp' => round((($item->getGroupes()['TP'] !== 0 ? $item->getHeures()['TP']/$item->getGroupes()['TP'] : $item->getHeures()['TP']) / $item::DUREE_SEANCE) * $item->getGroupes()['TP'], 1),
                 ],
                 'Projet' => [
-                    'NbHrGrp' => $item->getHeures()['Projet'],
+                    'NbHrGrp' => round($item->getHeures()['Projet'], 1),
                     'NbGrp' => $item->getGroupes()['Projet'],
-                    'NbSeanceGrp' => ($item->getHeures()['Projet'] / $item::DUREE_SEANCE),
+                    'NbSeanceGrp' => round($item->getHeures()['Projet'] / $item::DUREE_SEANCE, 1),
                 ],
             ]
         );

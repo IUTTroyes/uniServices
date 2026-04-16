@@ -150,42 +150,6 @@ const deletePreviService = async (previId, showToast = true) => {
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
 
-const updatePreviEnseignementService = async (previId, enseignementId, showToast = true) => {
-    try {
-        const enseignementIri = `/api/scol_enseignements/${enseignementId}`;
-        const data = { enseignement: enseignementIri };
-
-        await apiCall(
-            api.patch,
-            [`/api/previsionnels/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
-            'L\'élément a été mis à jour avec succès',
-            'Erreur lors de la mise à jour de l\'élément',
-            showToast
-        );
-    } catch (error) {
-        console.error('Erreur dans updatePreviEnseignementService:', error);
-        throw error;
-    }
-}
-
-const updatePreviPersonnelService = async (previId, personnelId, showToast = true) => {
-    try {
-        const personnelIri = `/api/personnels/${personnelId}`;
-        const data = { personnel: personnelIri };
-
-        await apiCall(
-            api.patch,
-            [`/api/previsionnels/${previId}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
-            'L\'élément a été mis à jour avec succès',
-            'Erreur lors de la mise à jour de l\'élément',
-            showToast
-        );
-    } catch (error) {
-        console.error('Erreur dans updatePreviPersonnelService:', error);
-        throw error;
-    }
-}
-
 const updatePreviService = async (previId, data, showToast = true) => {
     try {
         await apiCall(
@@ -201,4 +165,4 @@ const updatePreviService = async (previId, data, showToast = true) => {
     }
 }
 
-export { getPrevisService, getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService, getSemestrePreviTestService, getPersonnelPreviService, createPreviService, deletePreviService };
+export { getPrevisService, getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviService, getSemestrePreviTestService, getPersonnelPreviService, createPreviService, deletePreviService };

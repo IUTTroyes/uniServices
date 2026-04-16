@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, toRefs } from 'vue';
+import { ref, reactive, toRefs, watch } from 'vue';
 import ButtonDelete from "@components/components/Buttons/ButtonDelete.vue";
 import ButtonDuplicate from "@components/components/Buttons/ButtonDuplicate.vue";
 import ButtonSave from "@components/components/Buttons/ButtonSave.vue";
@@ -31,6 +31,10 @@ const getDebouncedActionPrevi = (formAction, id, type, test) => {
 
 // Définition des propriétés du composant
 const props = defineProps({
+  editingRowId: {
+    type: [Number, String],
+    default: null
+  },
   origin: {
     type: String,
     required: true
@@ -77,6 +81,8 @@ const props = defineProps({
   }
 });
 
+const emit = defineEmits(['update:editingRowId', 'save-row', 'cancel-row']);
+
 // Utilisation de reactive pour rendre les données réactives
 const state = reactive({
   data: props.data
@@ -84,9 +90,39 @@ const state = reactive({
 
 const { data } = toRefs(state);
 
+
+const onRowClick = (rowData) => {
+  if (props.origin === 'previSemestreForm' && props.editingRowId !== rowData.id) {
+    emit('update:editingRowId', rowData.id);
+  }
+};
+
+const cancelRow = (id) => {
+  emit('cancel-row', id);
+};
+
+const handleKeyDown = (event, rowData) => {
+  if (event.key === 'Enter') {
+    emit('save-row', rowData.id);
+  } else if (event.key === 'Escape') {
+    emit('cancel-row', rowData.id);
+  }
+};
+
 // Fonction utilitaire pour obtenir la valeur d'un champ donné dans les données
 const getFieldValue = (data, field) => {
+  if (!field) return '';
   return field.split('.').reduce((acc, part) => acc && acc[part], data);
+};
+
+// Fonction pour mettre à jour une valeur imbriquée dans un objet
+const setFieldValue = (data, field, value) => {
+  const parts = field.split('.');
+  const last = parts.pop();
+  const obj = parts.reduce((acc, part) => acc && acc[part], data);
+  if (obj && last) {
+    obj[last] = value;
+  }
 };
 
 // Fonction pour supprimer un prévisionnel
@@ -109,7 +145,8 @@ const deleteHrs = async (id) => {
 
 <template>
   <DataTable scrollHeight="800px"
-             scrollable :value="data" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows :size="props.size" show-gridlines>
+             scrollable :value="data" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows :size="props.size" show-gridlines
+             @row-click="(event) => onRowClick(event.data)">
     <!-- Groupe de colonnes pour l'en-tête -->
     <ColumnGroup type="header">
       <Row>
@@ -123,46 +160,58 @@ const deleteHrs = async (id) => {
       </Row>
     </ColumnGroup>
     <!-- Colonnes dynamiques avec slots pour personnalisation -->
-    <Column v-for="(col, index) in props.columns" :key="index" :field="col.field" :header="col.header" :sortable="col.sortable" :class="col.class">
+    <Column v-for="(col, index) in props.columns" :key="index" :field="col.field" :header="col.header" :sortable="col.sortable" :class="col.class" :style="col.style">
       <template #body="slotProps">
         <slot :name="`body-${col.field}`" :data="slotProps.data" :value="getFieldValue(slotProps.data, col.field)">
+          <div v-if="props.editingRowId === slotProps.data.id && col.form" class="relative group">
+            <InputText
+                v-if="col.formType === 'text'"
+                :modelValue="getFieldValue(slotProps.data, col.field)"
+                @update:modelValue="(val) => setFieldValue(slotProps.data, col.field, val)"
+                :placeholder="getFieldValue(slotProps.data, col.field)"
+                @keydown="(event) => handleKeyDown(event, slotProps.data)"
+                class="max-w-20"
+                v-tooltip.top="col.tooltip"
+                :disabled="col.disabled ? col.disabled(slotProps.data) : false"
+                autofocus
+            />
 
-          <InputText
-              v-if="col.form && col.formType === 'text'"
-              v-model="slotProps.data[col.field]"
-              :placeholder="getFieldValue(slotProps.data, col.field)"
-              @blur="getDebouncedActionPrevi(col.formAction, getFieldValue(slotProps.data, col.id), col.type, col.test)($event.target.value)"
-              class="max-w-20"
-              v-tooltip.top="col.tooltip"
-              :disabled="col.disabled ? col.disabled(slotProps.data) : false"
-          />
+            <Select v-else-if="col.formType === 'select'"
+                    :modelValue="getFieldValue(slotProps.data, col.field)"
+                    :options="col.formOptions"
+                    optionLabel="label"
+                    :placeholder="typeof getFieldValue(slotProps.data, col.field) === 'object' ? (getFieldValue(slotProps.data, col.field)?.label || 'Sélectionner un intervenant') : getFieldValue(slotProps.data, col.field)"
+                    class="max-w-52"
+                    @update:modelValue="(event) => { setFieldValue(slotProps.data, col.field, event); col.formAction(getFieldValue(slotProps.data, col.id), event); }"
+                    @keydown="(event) => handleKeyDown(event, slotProps.data)"
+                    v-tooltip.top="col.tooltip ? col.tooltip : slotProps.data[col.field]"
+                    :disabled="col.disabled ? col.disabled(slotProps.data) : false"
+            >
+            </Select>
+          </div>
 
-          <Select v-else-if="col.form && col.formType === 'select'"
-                  :modelValue="slotProps.data[col.field]"
-                  :options="col.formOptions"
-                  optionLabel="label"
-                  :placeholder="typeof getFieldValue(slotProps.data, col.field) === 'object' ? (getFieldValue(slotProps.data, col.field)?.label || 'Sélectionner un intervenant') : getFieldValue(slotProps.data, col.field)"
-                  class="max-w-52"
-                  @update:modelValue="(event) => { col.formAction(getFieldValue(slotProps.data, col.id), event); }"
-                  v-tooltip.top="col.tooltip ? col.tooltip : slotProps.data[col.field]"
-                  :disabled="col.disabled ? col.disabled(slotProps.data) : false"
-          >
-          </Select>
+          <template v-else>
+            <div v-if="col.button && col.saveRow" class="flex gap-2">
+              <Button icon="pi pi-check" severity="success" size="small" rounded @click.stop="emit('save-row', slotProps.data.id)" v-tooltip.top="'Enregistrer'" />
+              <Button icon="pi pi-times" severity="secondary" size="small" rounded @click.stop="cancelRow(slotProps.data.id)" v-tooltip.top="'Annuler'" />
+            </div>
 
-          <ButtonDelete v-else-if="col.button & col.delete" tooltip="Supprimer l'élément du prévi" @confirm-delete="deletePrevi(slotProps.data)" :class="col.class"/>
+            <ButtonDelete v-else-if="col.button & col.delete" tooltip="Supprimer l'élément du prévi" @confirm-delete="deletePrevi(slotProps.data)" :class="col.class"/>
 
-          <ButtonDuplicate v-else-if="col.button & col.duplicate" tooltip="Dupliquer l'élément dans le prévi" @confirm-duplicate="(event) => { col.buttonAction(getFieldValue(slotProps.data, col.id), event); }" :class="col.class"/>
+            <ButtonDuplicate v-else-if="col.button & col.duplicate" tooltip="Dupliquer l'élément dans le prévi" @confirm-duplicate="(event) => { col.buttonAction(getFieldValue(slotProps.data, col.id), event); }" :class="col.class"/>
 
-          <Button v-else-if="col.button" :icon="col.buttonIcon" @click="col.buttonAction(getFieldValue(slotProps.data, col.id))" :class="col.buttonClass(col.field)" :label="col.field" :severity="col.buttonSeverity(col.field)"/>
+            <Button v-else-if="col.button" :icon="col.buttonIcon" @click="col.buttonAction(getFieldValue(slotProps.data, col.id))" :class="col.buttonClass(col.field)" :label="col.field" :severity="col.buttonSeverity(col.field)"/>
 
 
-          <Tag v-else-if="col.tag" class="w-max" :class="col.tagClass(getFieldValue(slotProps.data, col.field))" :severity="col.tagSeverity(getFieldValue(slotProps.data, col.field))" :icon="col.tagIcon(getFieldValue(slotProps.data, col.field))">
-            {{ col.tagContent ? col.tagContent(getFieldValue(slotProps.data, col.field)) : getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && col.tagSeverity(getFieldValue(slotProps.data, col.field)) !== 'secondary'" v-tooltip.top="col.tooltip"> {{ col.unit }}</span>
-          </Tag>
-          <span v-else>{{ getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && !(typeof getFieldValue(slotProps.data, col.field) === 'string' && getFieldValue(slotProps.data, col.field).includes('autre département'))" v-tooltip.top="col.tooltip"> {{ col.unit }}</span></span>
+            <Tag v-else-if="col.tag" class="w-max" :class="col.tagClass(getFieldValue(slotProps.data, col.field))" :severity="col.tagSeverity(getFieldValue(slotProps.data, col.field))" :icon="col.tagIcon(getFieldValue(slotProps.data, col.field))">
+              {{ col.tagContent ? col.tagContent(getFieldValue(slotProps.data, col.field)) : getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && col.tagSeverity(getFieldValue(slotProps.data, col.field)) !== 'secondary'" v-tooltip.top="col.tooltip"> {{ col.unit }}</span>
+            </Tag>
+            <span v-else>{{ getFieldValue(slotProps.data, col.field) }}<span v-if="col.unit && !(typeof getFieldValue(slotProps.data, col.field) === 'string' && getFieldValue(slotProps.data, col.field).includes('autre département'))" v-tooltip.top="col.tooltip"> {{ col.unit }}</span></span>
+          </template>
         </slot>
       </template>
     </Column>
+
 
     <!-- Groupe de colonnes pour le pied de page -->
     <ColumnGroup v-if="footerCols.length > 0 || additionalRows.length > 0" type="footer">
