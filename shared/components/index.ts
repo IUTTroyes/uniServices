@@ -17,6 +17,7 @@ import PermissionGuard from "./components/Permission/PermissionGuard.vue";
 import MessageCard from "./components/Messages/MessageCard.vue";
 import GlobalLoader from "./loader/GlobalLoader.vue";
 import Access from "./pages/Access.vue";
+import ButtonDelete from "./components/Buttons/ButtonDelete.vue";
 
 // Form validation components
 import FormValidator from './components/Forms/FormValidator.vue';
@@ -44,6 +45,7 @@ export {
   PermissionGuard,
   MessageCard,
   Access,
+  ButtonDelete,
 
   // Form validation exports
   FormValidator,

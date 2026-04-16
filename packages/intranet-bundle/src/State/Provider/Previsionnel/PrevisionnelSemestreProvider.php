@@ -26,8 +26,40 @@ class PrevisionnelSemestreProvider implements ProviderInterface
         if ($operation instanceof GetCollection) {
             $data = $this->collectionProvider->provide($operation, $uriVariables, $context);
 
+            $output = [
+                'previForm' => [],
+                'previSynthese' => [],
+                'total' => [
+                    'CM' => ['Maquette' => 0, 'Previsionnel' => 0, 'Diff' => 0],
+                    'TD' => ['Maquette' => 0, 'Previsionnel' => 0, 'Diff' => 0],
+                    'TP' => ['Maquette' => 0, 'Previsionnel' => 0, 'Diff' => 0],
+                    'Total' => ['Maquette' => 0, 'Previsionnel' => 0, 'Diff' => 0],
+                ],
+                'verifTotalEtudiant' => [
+                    'CM' => ['NbHrAttendu' => 0, 'NbHrSaisi' => 0, 'Diff' => 0],
+                    'TD' => ['NbHrAttendu' => 0, 'NbHrSaisi' => 0, 'Diff' => 0],
+                    'TP' => ['NbHrAttendu' => 0, 'NbHrSaisi' => 0, 'Diff' => 0],
+                ],
+                'totalForm' => [
+                    'CM' => 0,
+                    'TD' => 0,
+                    'TP' => 0,
+                    'Total' => 0,
+                ],
+                'TotalEquTd' => [
+                    'TotalClassique' => 0,
+                    'TotalTd' => 0,
+                ],
+            ];
+
             if (empty($data)) {
-                return [];
+                $output['totalForm'] = [
+                    'CM' => 0,
+                    'TD' => 0,
+                    'TP' => 0,
+                    'Total' => 0,
+                ];
+                return array_values($output);
             }
 
             $totalCM = [
@@ -180,7 +212,7 @@ class PrevisionnelSemestreProvider implements ProviderInterface
                 'TotalTd' => round($totalCM['Previsionnel'] * $item->getEnseignement()::MAJORATION_CM + $totalTD['Previsionnel'] + $totalTP['Previsionnel'], 1),
             ];
 
-            return $output;
+            return array_values($output);
         } else {
             $data = $this->itemProvider->provide($operation, $uriVariables, $context);
         }

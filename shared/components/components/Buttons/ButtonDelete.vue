@@ -6,6 +6,11 @@ const props = defineProps({
     type: String,
     required: true
   },
+  'label': {
+    type: String,
+    required: false,
+    default: ''
+  }
 })
 
 const emit = defineEmits(['confirm-delete'])
@@ -41,6 +46,7 @@ const showConfirmDialog = () => {
           v-tooltip.bottom="tooltip"
           class="mr-2"
           @click="showConfirmDialog"
+          :label="label"
            />
 </template>
 

@@ -134,6 +134,7 @@ const deleteHrs = async (id) => {
               @blur="getDebouncedActionPrevi(col.formAction, getFieldValue(slotProps.data, col.id), col.type, col.test)($event.target.value)"
               class="max-w-20"
               v-tooltip.top="col.tooltip"
+              :disabled="col.disabled ? col.disabled(slotProps.data) : false"
           />
 
           <Select v-else-if="col.form && col.formType === 'select'"
@@ -144,6 +145,7 @@ const deleteHrs = async (id) => {
                   class="max-w-52"
                   @update:modelValue="(event) => { col.formAction(getFieldValue(slotProps.data, col.id), event); }"
                   v-tooltip.top="col.tooltip ? col.tooltip : slotProps.data[col.field]"
+                  :disabled="col.disabled ? col.disabled(slotProps.data) : false"
           >
           </Select>
 

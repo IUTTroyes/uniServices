@@ -519,7 +519,7 @@
       <path value="$PROJECT_DIR$/packages/intranet-bundle/vendor/sebastian/lines-of-code" />
     </include_path>
   </component>
-  <component name="PhpProjectSharedConfiguration" php_language_level="8.5" />
+  <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
   <component name="PhpStan">
     <PhpStan_settings>
       <PhpStanConfiguration tool_path="$PROJECT_DIR$/back/vendor/bin/phpstan" />

@@ -128,6 +128,25 @@ const createPreviService = async (data, showToast = true) => {
 }
 
 // ----------------------------------------------
+// ------------------- DELETE -------------------
+// ----------------------------------------------
+
+const deletePreviService = async (previId, showToast = true) => {
+    try {
+        await apiCall(
+            api.delete,
+            [`/api/previsionnels/${previId}`],
+            'Prévisionnel supprimé avec succès',
+            'Erreur lors de la suppression du prévisionnel',
+            showToast
+        )
+    } catch (error) {
+        console.error('Erreur dans deletePreviService:', error);
+        throw error;
+    }
+}
+
+// ----------------------------------------------
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
 
@@ -182,4 +201,4 @@ const updatePreviService = async (previId, data, showToast = true) => {
     }
 }
 
-export { getPrevisService, getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService, getSemestrePreviTestService, getPersonnelPreviService, createPreviService };
+export { getPrevisService, getSemestrePreviService, getSemestreEnseignementPreviService, getAnneeUnivPreviService, updatePreviEnseignementService, updatePreviPersonnelService, updatePreviService, getSemestrePreviTestService, getPersonnelPreviService, createPreviService, deletePreviService };
