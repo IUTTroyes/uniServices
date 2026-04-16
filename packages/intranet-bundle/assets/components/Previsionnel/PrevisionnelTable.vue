@@ -189,16 +189,17 @@ const deleteHrs = async (id) => {
             >
             </Select>
           </div>
-
           <template v-else>
-            <div v-if="col.button && col.saveRow" class="flex gap-2">
-              <Button icon="pi pi-check" severity="success" size="small" rounded @click.stop="emit('save-row', slotProps.data.id)" v-tooltip.top="'Enregistrer'" />
-              <Button icon="pi pi-times" severity="secondary" size="small" rounded @click.stop="cancelRow(slotProps.data.id)" v-tooltip.top="'Annuler'" />
+            <div v-if="col.actions" class="flex gap-2 justify-center">
+              <template v-if="props.editingRowId === slotProps.data.id">
+                <Button icon="pi pi-check" severity="success" size="small" rounded @click.stop="emit('save-row', slotProps.data.id)" v-tooltip.top="'Enregistrer'" />
+                <Button icon="pi pi-times" severity="secondary" size="small" rounded @click.stop="cancelRow(slotProps.data.id)" v-tooltip.top="'Annuler'" />
+              </template>
+              <template v-else>
+                <ButtonDuplicate v-if="col.duplicate" tooltip="Dupliquer l'élément dans le prévi" @confirm-duplicate="(event) => { col.duplicateAction(getFieldValue(slotProps.data, col.id), event); }" :class="col.class"/>
+                <ButtonDelete v-if="col.delete" tooltip="Supprimer l'élément du prévi" @confirm-delete="deletePrevi(slotProps.data)" :class="col.class"/>
+              </template>
             </div>
-
-            <ButtonDelete v-else-if="col.button & col.delete" tooltip="Supprimer l'élément du prévi" @confirm-delete="deletePrevi(slotProps.data)" :class="col.class"/>
-
-            <ButtonDuplicate v-else-if="col.button & col.duplicate" tooltip="Dupliquer l'élément dans le prévi" @confirm-duplicate="(event) => { col.buttonAction(getFieldValue(slotProps.data, col.id), event); }" :class="col.class"/>
 
             <Button v-else-if="col.button" :icon="col.buttonIcon" @click="col.buttonAction(getFieldValue(slotProps.data, col.id))" :class="col.buttonClass(col.field)" :label="col.field" :severity="col.buttonSeverity(col.field)"/>
 

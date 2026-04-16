@@ -492,16 +492,14 @@ const columnsForm = ref([
 
   { header: 'Séances', field: 'heures.TP.NbSeanceGrp', sortable: false, colspan: 1, class: '!bg-amber-400/20 !max-w-20', form: false },
 
-  { header: 'Actions', field: 'id', colspan: 1, button: true, saveRow: true, class: 'w-24' },
-  { header: 'Dupliquer', field: 'id', colspan: 1, button: true, buttonIcon: 'pi pi-copy', id: 'id', buttonAction: (id) => {duplicatePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'warn', duplicate: true },
-  { header: 'Supprimer', field: '', colspan: 1, button: true, buttonIcon: 'pi pi-trash', id: 'id', buttonAction: (id) => {deletePrevi(id)}, buttonClass: () => '!w-full', buttonSeverity: () => 'danger', delete: true },
+  { header: 'Actions', field: 'id', colspan: 1, actions: true, duplicate: true, duplicateAction: (id) => {duplicatePrevi(id)}, delete: true, class: 'w-24' },
 ]);
 
 const topHeaderColsForm = ref([
   { header: 'CM', colspan: 3, class: '!bg-purple-400/20' },
   { header: 'TD', colspan: 3, class: '!bg-green-400/20' },
   { header: 'TP', colspan: 3, class: '!bg-amber-400/20' },
-  { header: '', colspan: 3 },
+  { header: '', colspan: 1 },
 ]);
 
 const additionalRowsForm = computed(() => {
@@ -515,10 +513,10 @@ const additionalRowsForm = computed(() => {
       { footer: 'Ajouter une entrée au prévisionnel', colspan: 2, class: '!text-center !font-bold'},
       { footer: enseignementsList.value, colspan: 4, form: true, formType: 'select', placeholder: "Sélectionner une matière", formAction: (e) => { selectedEnseignement.value = e } },
       { footer: personnelsList.value, colspan: 4, form: true, formType: 'select', placeholder: "Sélectionner un intervenant", formAction: (p) => { selectedPersonnel.value = p } },
-      { footer: 'Ajouter', colspan: 4, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addPrevi(selectedPersonnel.value, selectedEnseignement.value) }, buttonClass: () => '!w-full', buttonSeverity: () => 'success' },
+      { footer: 'Ajouter', colspan: 2, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addPrevi(selectedPersonnel.value, selectedEnseignement.value) }, buttonClass: () => '!w-full', buttonSeverity: () => 'success' },
     ],
     [
-      { footer: 'Synthèse', colspan: 19, class: '!text-center !font-bold'},
+      { footer: 'Synthèse', colspan: 17, class: '!text-center !font-bold'},
     ],
     [
       { footer: '', colspan: 2, class: '!text-center !font-bold'},
@@ -531,7 +529,7 @@ const additionalRowsForm = computed(() => {
       { footer: 'Nb hr attendu', colspan: 1, class: '!bg-amber-400/20 !text-nowrap !font-bold' },
       { footer: 'Nb hr saisi', colspan: 1, class: '!bg-amber-400/20 !text-nowrap !font-bold' },
       { footer: 'Diff', colspan: 1, class: '!bg-amber-400/20 !text-nowrap !font-bold' },
-      { footer: '', colspan: 3 },
+      { footer: '', colspan: 1 },
     ],
     [
       { footer: 'Vérification du total d\'heures par étudiant', colspan: 2 },
@@ -544,19 +542,19 @@ const additionalRowsForm = computed(() => {
       { footer: totals.TP.NbHrAttendu, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h' },
       { footer: totals.TP.NbHrSaisi, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h' },
       { footer: totals.TP.Diff, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h', tag: true, tagClass, tagSeverity, tagIcon },
-      { footer: '', colspan: 3 },
+      { footer: '', colspan: 1 },
     ],
     [
       { footer: '', colspan: 2},
       { footer: 'Classique', colspan: 4, class: '!text-nowrap !text-center font-bold' },
       { footer: 'Équivalent TD', colspan: 5, class: '!text-nowrap !text-center font-bold' },
-      { footer: '', colspan: 3 },
+      { footer: '', colspan: 1 },
     ],
     [
       { footer: 'Total d\'heures', colspan: 2},
       { footer: totalEquiv?.TotalClassique, colspan: 4, class: '!text-nowrap !text-center', unit: ' h' },
       { footer: totalEquiv?.TotalTd, colspan: 5, class: '!text-nowrap !text-center', unit: ' h' },
-      { footer: '', colspan: 3 },
+      { footer: '', colspan: 1 },
     ],
   ];
 });
