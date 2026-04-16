@@ -196,7 +196,7 @@ const deleteHrs = async (id) => {
                 <Button icon="pi pi-times" severity="secondary" size="small" rounded @click.stop="cancelRow(slotProps.data.id)" v-tooltip.top="'Annuler'" />
               </template>
               <template v-else>
-                <ButtonDuplicate v-if="col.duplicate" tooltip="Dupliquer l'élément dans le prévi" @confirm-duplicate="(event) => { col.duplicateAction(getFieldValue(slotProps.data, col.id), event); }" :class="col.class"/>
+                <ButtonDuplicate v-if="col.duplicate" tooltip="Dupliquer l'élément dans le prévi" @confirm-duplicate="col.duplicateAction(slotProps.data.id)" :class="col.class"/>
                 <ButtonDelete v-if="col.delete" tooltip="Supprimer l'élément du prévi" @confirm-delete="deletePrevi(slotProps.data)" :class="col.class"/>
               </template>
             </div>

@@ -234,7 +234,11 @@ const duplicatePrevi = async (previId) => {
       referent: false,
       heures: Object.keys(previToDuplicate.heures).reduce((acc, key) => {
         const h = previToDuplicate.heures[key];
-        acc[key] = (h.NbHrGrp || 0) * (h.NbGrp || 0);
+        if (key === 'Projet') {
+          acc[key] = parseFloat(h.NbHrGrp) || 0;
+        } else {
+          acc[key] = (parseFloat(h.NbHrGrp) || 0) * (parseInt(h.NbGrp) || 0);
+        }
         return acc;
       }, {}),
       groupes: previToDuplicate.groupes,
