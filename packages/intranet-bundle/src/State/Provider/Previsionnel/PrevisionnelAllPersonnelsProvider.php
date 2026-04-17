@@ -195,7 +195,7 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
         // Cache the personnel object to avoid repeated access
         $personnel = $group['personnel'];
 
-        $prevMatiere->setLibelle($personnel->getNom() . ' PrevisionnelAllPersonnelsProvider.php' .$personnel->getPrenom());
+        $prevMatiere->setLibelle($personnel->getNom() . ' ' .$personnel->getPrenom());
         $prevMatiere->setPersonnel($personnel);
         $prevMatiere->setHeures($group['heures']);
         $prevMatiere->setCount($group['count']);

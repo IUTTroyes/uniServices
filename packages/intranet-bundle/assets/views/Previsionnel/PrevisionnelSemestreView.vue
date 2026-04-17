@@ -17,7 +17,6 @@ import { useToast } from "primevue/usetoast";
 const toast = useToast();
 const hasError = ref(false);
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
-const selectedAnneeUniv = ref(anneeUniv);
 const usersStore = useUsersStore();
 const enseignementStore = useEnseignementsStore();
 const departementId = usersStore.departementDefaut.id;
@@ -119,7 +118,7 @@ const getPrevi = async (semestreId) => {
 
   isLoadingPrevisionnel.value = true;
   try {
-    // previSemestre est un tableau complexe renvoyé par le service :
+    // previSemestre est un tableau renvoyé par le service :
     // [0] : Données pour le formulaire (heures par personnel/enseignement)
     // [1] : Données pour la synthèse (heures agrégées par enseignement)
     // [2] : Totaux généraux pour la synthèse
@@ -230,7 +229,7 @@ const duplicatePrevi = async (previId) => {
 
     const newPreviData = {
       personnel: `/api/personnels/${previToDuplicate.idPersonnel}`,
-      anneeUniversitaire: `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`,
+      anneeUniversitaire: `/api/structure_annee_universitaires/${anneeUniv.value.id}`,
       referent: false,
       heures: Object.keys(previToDuplicate.heures).reduce((acc, key) => {
         const h = previToDuplicate.heures[key];
@@ -380,7 +379,7 @@ const addPrevi = async (personnel, enseignement) => {
   try {
     const dataNewPrevi = {
       personnel: `/api/personnels/${personnel.id}`,
-      anneeUniversitaire: `/api/structure_annee_universitaires/${selectedAnneeUniv.value.id}`,
+      anneeUniversitaire: `/api/structure_annee_universitaires/${anneeUniv.value.id}`,
       referent: false,
       heures: { CM: 0, TD: 0, TP: 0, Projet: 0 },
       groupes: { CM: 0, TD: 0, TP: 0, Projet: 0 },

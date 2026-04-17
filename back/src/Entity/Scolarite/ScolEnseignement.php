@@ -34,7 +34,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(normalizationContext: ['groups' => ['enseignement:detail']]),
         new GetCollection(
             normalizationContext: ['groups' => ['enseignement:light']],
-            uriTemplate: 'light/scol_enseignements',
+            uriTemplate: 'mini/scol_enseignements',
         ),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_ENSEIGNEMENT', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_ENSEIGNEMENT', object)"),

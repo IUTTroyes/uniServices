@@ -76,11 +76,11 @@ const getSemestreEnseignementPreviService = async (semestreId, enseignementId, a
     }
 }
 
-const getAnneeUnivPreviService = async (departementId, anneeUnivId, showToast = false) => {
+const getAnneeUnivPreviService = async (params, showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api/previsionnels_all_personnels?anneeUniversitaire=${anneeUnivId}&departement=${departementId}`],
+            [`/api/previsionnels_all_personnels` , { params }],
             'Prévisionnels de l\'année universitaire récupérés avec succès',
             'Erreur lors de la récupération des prévisionnels de l\'année universitaire',
             showToast
@@ -92,11 +92,11 @@ const getAnneeUnivPreviService = async (departementId, anneeUnivId, showToast = 
     }
 }
 
-const getPersonnelPreviService = async (departementId, anneeUnivId, personnelId, showToast = false) => {
+const getPersonnelPreviService = async (params, showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api/previsionnels_personnel?anneeUniversitaire=${anneeUnivId}&personnel=${personnelId}&departement=${departementId}`],
+            [`/api/previsionnels_personnel` , { params }],
             'Prévisionnel du personnel récupéré avec succès',
             'Erreur lors de la récupération du prévisionnel du personnel',
             showToast

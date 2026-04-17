@@ -24,7 +24,7 @@ onMounted(() => {
 
 <template>
   <div class="card">
-    <h2 class="text-2xl font-bold">Gestion des prévisionnels</h2>
+    <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">Gestion des prévisionnels</h2>
     <Divider/>
     <Tabs value="/administration/previsionnel/semestre" scrollable>
       <TabList>

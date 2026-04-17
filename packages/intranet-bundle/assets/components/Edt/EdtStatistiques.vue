@@ -179,9 +179,7 @@ const getEnseignements = async () => {
       departement: selectedAnnee.value ? null : departement.id,
       actif: true,
     };
-    enseignements.value = await getEnseignementsService(params, '/light');
-
-    console.log('Enseignements récupérés :', enseignements.value);
+    enseignements.value = await getEnseignementsService(params, '/mini');
 
     // reconstruire le libelle pour inclure le code_enseignement
     enseignements.value = enseignements.value.map(enseignement => ({
