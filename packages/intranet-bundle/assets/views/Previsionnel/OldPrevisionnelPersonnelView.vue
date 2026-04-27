@@ -749,8 +749,6 @@ const footerColsForm = computed(() => [
   <div v-else class="px-4 flex flex-col">
     <div class="flex justify-between gap-10">
       <div class="flex gap-6 w-1/2">
-
-
         <div v-if="isEditing" class="w-1/2">
           <SimpleSkeleton v-if="isLoadingPersonnel" width="100%" />
           <IftaLabel v-else class="w-full">

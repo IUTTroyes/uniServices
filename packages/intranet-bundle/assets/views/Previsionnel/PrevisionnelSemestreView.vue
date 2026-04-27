@@ -33,7 +33,7 @@ const previSemestreOriginal = ref(null); // Copie pour annulation
 const editingRowId = ref(null);
 const enseignementsList = ref([]);
 const selectedEnseignement = ref(null);
-const personnelsList = ref([]);
+const personnels = ref([]);
 const selectedPersonnel = ref(null);
 const isEditing = ref(false);
 const size = ref({ label: 'Petit', value: 'small' });
@@ -130,7 +130,7 @@ const getPrevi = async (semestreId) => {
     // Chargement des listes pour les sélections dans le formulaire
     await Promise.all([
       fetchEnseignements(semestreId),
-      fetchPersonnels()
+      getPersonnels()
     ]);
 
   } catch (error) {
@@ -154,11 +154,11 @@ const fetchEnseignements = async (semestreId) => {
   }
 };
 
-const fetchPersonnels = async () => {
+const getPersonnels = async () => {
   try {
     const params = { departement: departementId, pagination: false };
     const personnels = await getPersonnelsService(params);
-    personnelsList.value = (personnels || []).map((p) => ({
+    personnels.value = (personnels || []).map((p) => ({
       ...p,
       label: p.display,
       value: p
@@ -475,7 +475,7 @@ const footerCols = computed(() => {
 const columnsForm = ref([
   { header: 'Matière', field: 'libelleEnseignement', sortable: true, colspan: 1, class: '!overflow-hidden !truncate', form: true, formType: 'select', formOptions: enseignementsList, placeholder: "Sélectionner une matière", id: 'id', formAction: (previId, event) => { updateEnseignementPrevi(previId, event)}, disabled: () => false, style: 'min-width: 250px' },
 
-  { header: 'Intervenant', field: 'intervenant', sortable: true, colspan: 1, class: '!wrapper !text-wrap', form: true, formType: 'select', formOptions: personnelsList, placeholder: "Sélectionner un intervenant", id: 'id', formAction: (previId, event) => { updateIntervenantPrevi(previId, event)}, disabled: () => false, style: 'min-width: 200px' },
+  { header: 'Intervenant', field: 'intervenant', sortable: true, colspan: 1, class: '!wrapper !text-wrap', form: true, formType: 'select', formOptions: personnels, placeholder: "Sélectionner un intervenant", id: 'id', formAction: (previId, event) => { updateIntervenantPrevi(previId, event)}, disabled: () => false, style: 'min-width: 200px' },
 
 { header: 'Nb H/Gr.', name: 'nbHrGrpCM', field: 'heures.CM.NbHrGrp', colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h', form: true, formType:'text', id: 'id', type: 'CM', formAction: (previId, type, event) => { updateHeuresPrevi(previId, type, event) }, disabled: false },
 
@@ -515,7 +515,7 @@ const additionalRowsForm = computed(() => {
     [
       { footer: 'Ajouter une entrée au prévisionnel', colspan: 2, class: '!text-center !font-bold'},
       { footer: enseignementsList.value, colspan: 4, form: true, formType: 'select', placeholder: "Sélectionner une matière", formAction: (e) => { selectedEnseignement.value = e } },
-      { footer: personnelsList.value, colspan: 4, form: true, formType: 'select', placeholder: "Sélectionner un intervenant", formAction: (p) => { selectedPersonnel.value = p } },
+      { footer: personnels.value, colspan: 4, form: true, formType: 'select', placeholder: "Sélectionner un intervenant", formAction: (p) => { selectedPersonnel.value = p } },
       { footer: 'Ajouter', colspan: 2, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addPrevi(selectedPersonnel.value, selectedEnseignement.value) }, buttonClass: () => '!w-full', buttonSeverity: () => 'success' },
     ],
     [

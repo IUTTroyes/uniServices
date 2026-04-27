@@ -17,6 +17,4 @@ const getPersonnelsService = async (params, scope = '', showToast = false) => {
     }
 }
 
-// todo: méthode get Enseignants /= getPersonnels
-
 export { getPersonnelsService };

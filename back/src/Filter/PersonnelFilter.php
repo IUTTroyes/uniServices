@@ -47,6 +47,14 @@ class PersonnelFilter extends AbstractFilter
                 ->andWhere(sprintf('%s.id = :enseignement', $enseignementAlias))
                 ->setParameter('enseignement', $value);
         }
+        if ('enseignant' === $property) {
+            // si true : récupérer les personnels dont statut != "BIATSS"
+            if ($value) {
+                $queryBuilder
+                    ->andWhere(sprintf('%s.statut != :statut', $alias))
+                    ->setParameter('statut', 'BIATSS');
+            }
+        }
     }
 
     public function getDescription(string $resourceClass): array
@@ -60,6 +68,21 @@ class PersonnelFilter extends AbstractFilter
                     'description' => 'Filter by departement',
                 ],
             ],
+            'enseignement' => [
+                'property' => 'enseignement',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by enseignement',
+                ],
+            ],
+            'enseignant' => [
+                'property' => 'enseignant',
+                'type' => Type::BUILTIN_TYPE_BOOL,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by enseignant',
+                ],]
         ];
     }
 }
