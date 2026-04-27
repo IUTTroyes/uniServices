@@ -92,7 +92,7 @@ const { data } = toRefs(state);
 
 
 const onRowClick = (rowData) => {
-  if (props.origin === 'previSemestreForm' && props.editingRowId !== rowData.id) {
+  if ((props.origin === 'previSemestreForm' || props.origin === 'previEnseignantForm') && props.editingRowId !== rowData.id) {
     emit('update:editingRowId', rowData.id);
   }
 };
@@ -145,7 +145,7 @@ const deleteHrs = async (id) => {
 
 <template>
   <DataTable scrollHeight="800px"
-             scrollable :value="data" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows :size="props.size" show-gridlines
+             scrollable :value="data" dataKey="id" :filters="props.filters" tableStyle="min-width: 50rem" striped-rows :size="props.size" show-gridlines
              @row-click="(event) => onRowClick(event.data)">
     <!-- Groupe de colonnes pour l'en-tête -->
     <ColumnGroup type="header">

@@ -8,9 +8,17 @@ import {
   getAnneeUnivPreviService,
   getPersonnelsService,
   getEnseignementsService,
-  getSemestresService, getPersonnelEnseignantHrsService, getPersonnelEnseignantTypesHrsService,
+  getSemestresService,
+  getPersonnelEnseignantHrsService,
+  getPersonnelEnseignantTypesHrsService,
+  createPreviService,
+  updatePreviService,
+  deletePreviService,
+  deletePersonnelEnseignantHrsService,
 } from "@requests";
 import PrevisionnelTable from "@/components/Previsionnel/PrevisionnelTable.vue";
+import api from '@helpers/axios';
+import apiCall from '@helpers/apiCall';
 
 const toast = useToast();
 const hasError = ref(false);
@@ -26,6 +34,7 @@ const isLoadingPrevisionnel = ref(true);
 const previPersonnels = ref([]);
 const previPersonnelsOriginal = ref([]);
 const previPersonnel = ref([]);
+const previPersonnelOriginal = ref([]);
 const personnels = ref([]);
 const selectedPersonnel = ref(null);
 const isLoadingPersonnels = ref(true);
@@ -40,6 +49,7 @@ const selectedDiplomeHrs = ref(null);
 const diplomes = ref([]);
 const selectedDiplome = ref(null);
 const editingRowId = ref(null);
+const selectedEnseignement = ref(null);
 
 
 const size = ref({ label: 'Petit', value: 'small' });
@@ -93,6 +103,7 @@ const getPreviPersonnel = async () => {
       personnel: selectedPersonnel.value ? selectedPersonnel.value.id : null,
     }
     previPersonnel.value = await getPersonnelPreviService(params);
+    previPersonnelOriginal.value = JSON.parse(JSON.stringify(previPersonnel.value));
     console.log(previPersonnel.value)
   } catch (error) {
     hasError.value = true;
@@ -106,14 +117,17 @@ const getPreviPersonnel = async () => {
 watch(isEditing, async () => {
   if (isEditing.value) {
     await getPersonnels();
-    // Charger les données du prévisionnel après avoir sélectionné le personnel
+    if (!selectedPersonnel.value?.id) return;
     await getPreviPersonnel();
     await getEnseignantHrs(selectedPersonnel.value.id);
     await getTypesHrs();
     await getSemestres();
     await getDiplomes();
     await getEnseignements();
-  }})
+  } else {
+    await getPreviPersonnels();
+  }
+})
 
 const getPersonnels = async () => {
   try {
@@ -162,6 +176,10 @@ const getTypesHrs = async () => {
 };
 
 const getEnseignements = async () => {
+  if (!selectedSemestre.value?.id) {
+    enseignements.value = [];
+    return;
+  }
   try {
     const params = {
       semestre: selectedSemestre.value.id,
@@ -302,10 +320,10 @@ const additionalRows = computed(() => [
   ],
   [
     { footer: 'Total', colspan: 3, class: 'font-bold' },
-    { footer: previPersonnels.value[1].TotalCM, colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h' },
-    { footer: previPersonnels.value[1].TotalTD, colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h' },
-    { footer: previPersonnels.value[1].TotalTP, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h' },
-    { footer: previPersonnels.value[1].TotalTotal, colspan: 1, class: '!text-nowrap', unit: ' h' },
+    { footer: previPersonnels.value?.[1]?.TotalCM, colspan: 1, class: '!bg-purple-400/20 !text-nowrap', unit: ' h' },
+    { footer: previPersonnels.value?.[1]?.TotalTD, colspan: 1, class: '!bg-green-400/20 !text-nowrap', unit: ' h' },
+    { footer: previPersonnels.value?.[1]?.TotalTP, colspan: 1, class: '!bg-amber-400/20 !text-nowrap', unit: ' h' },
+    { footer: previPersonnels.value?.[1]?.TotalTotal, colspan: 1, class: '!text-nowrap', unit: ' h' },
     { footer: '', colspan: 1 },
   ],
   [
@@ -319,9 +337,9 @@ const additionalRows = computed(() => [
   ],
   [
     { footer: 'Répartition du total d\'heures entre les catégories', colspan: 3 },
-    { footer: previPersonnels.value[2].Permanent, colspan: 2, unit: ' %' },
-    { footer: previPersonnels.value[2].Vacataire, colspan: 2, unit: ' %' },
-    { footer: previPersonnels.value[2].Autre, colspan: 2, unit: ' %' },
+    { footer: previPersonnels.value?.[2]?.Permanent, colspan: 2, unit: ' %' },
+    { footer: previPersonnels.value?.[2]?.Vacataire, colspan: 2, unit: ' %' },
+    { footer: previPersonnels.value?.[2]?.Autre, colspan: 2, unit: ' %' },
   ],
 ]);
 
@@ -427,7 +445,7 @@ const additionalRowsForm = computed(() => [
     { footer: diplomes.value, colspan: 1, form: true, formType: 'select', placeholder: 'Sélectionner un diplôme', formAction: (diplome) => {selectedDiplomeHrs.value = diplome}, tooltip: 'Sélectionner un diplôme', class: '!max-w-52 !truncate !overflow-hidden' },
 
     { footer: nbHeuresHrs.value, colspan: 1, form: true, formType: 'text', placeholder: 'Nombre d\'heures', formAction: (nbHrs) => {nbHeuresHrs.value = nbHrs} },
-    { footer: 'Ajouter', colspan: 2, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addHrs(selectedPersonnel.value.id) }, buttonClass: () => '!w-fit', buttonSeverity: () => 'success' },
+    { footer: 'Ajouter', colspan: 2, button: true, buttonIcon: 'pi pi-plus', buttonAction: () => { addHrs(selectedPersonnel.value?.id) }, buttonClass: () => '!w-fit', buttonSeverity: () => 'success' },
   ],
 
 
@@ -513,6 +531,272 @@ const additionalRowsForm = computed(() => [
 const footerColsForm = computed(() => [
 
 ]);
+
+const refreshTotals = () => {
+  if (!previPersonnel.value?.[0] || !previPersonnel.value?.[1]) return;
+
+  const types = ['CM', 'TD', 'TP'];
+  const prevs = previPersonnel.value[0];
+  const totals = previPersonnel.value[1];
+
+  types.forEach(type => {
+    const totalSaisi = prevs.reduce((acc, p) => {
+      const h = p.heures?.[type];
+      if (!h) return acc;
+      const nbHrGrp = parseFloat(h.NbHrGrp) || 0;
+      const nbGrp = parseInt(h.NbGrp) || 0;
+      return acc + (nbHrGrp * nbGrp);
+    }, 0);
+    totals[type] = Math.round(totalSaisi * 10) / 10;
+  });
+
+  totals.Total = Math.round(((totals.CM || 0) + (totals.TD || 0) + (totals.TP || 0)) * 10) / 10;
+};
+
+const updateHeuresPrevi = (previId, type, valeur) => {
+  const previ = previPersonnel.value?.[0]?.find((p) => p.id === previId);
+  if (!previ?.heures?.[type]) return;
+
+  const newValue = parseFloat(valeur);
+  if (isNaN(newValue)) return;
+
+  previ.heures[type].NbHrGrp = newValue;
+  refreshTotals();
+};
+
+const updateGroupesPrevi = (previId, type, valeur) => {
+  const previ = previPersonnel.value?.[0]?.find((p) => p.id === previId);
+  if (!previ?.heures?.[type]) return;
+
+  const newValue = parseInt(valeur);
+  if (isNaN(newValue)) return;
+
+  previ.groupes[type] = newValue;
+  previ.heures[type].NbGrp = newValue;
+  refreshTotals();
+};
+
+const updateEnseignementPrevi = (previId, enseignement) => {
+  const previ = previPersonnel.value?.[0]?.find((p) => p.id === previId);
+  if (!previ || !enseignement) return;
+
+  previ.idEnseignement = enseignement.id;
+  previ.libelleEnseignement = enseignement.label || enseignement.libelle;
+};
+
+const saveRow = async (previId) => {
+  try {
+    const previ = previPersonnel.value?.[0]?.find((p) => p.id === previId);
+    if (!previ) return;
+
+    const types = ['CM', 'TD', 'TP', 'Projet'];
+    const newHeures = {};
+    types.forEach(type => {
+      const h = previ.heures?.[type];
+      if (!h) {
+        newHeures[type] = 0;
+        return;
+      }
+
+      if (type === 'Projet') {
+        newHeures[type] = parseFloat(h.NbHrGrp) || 0;
+      } else {
+        newHeures[type] = (parseFloat(h.NbHrGrp) || 0) * (parseInt(h.NbGrp) || 0);
+      }
+    });
+
+    const newGroupes = {};
+    types.forEach(type => {
+      newGroupes[type] = parseInt(previ.heures?.[type]?.NbGrp || previ.groupes?.[type]) || 0;
+    });
+
+    const payload = {
+      groupes: newGroupes,
+      heures: newHeures,
+      personnel: `/api/personnels/${previ.idPersonnel}`
+    };
+
+    if (previ.idEnseignement) {
+      payload.enseignement = `/api/scol_enseignements/${previ.idEnseignement}`;
+    }
+
+    await updatePreviService(previId, payload);
+    editingRowId.value = null;
+    await getPreviPersonnel();
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de la sauvegarde de la ligne.' });
+  }
+};
+
+const cancelRow = (previId) => {
+  const originalRow = previPersonnelOriginal.value?.[0]?.find((p) => p.id === previId);
+  if (originalRow) {
+    const index = previPersonnel.value?.[0]?.findIndex((p) => p.id === previId);
+    if (index !== -1) {
+      previPersonnel.value[0][index] = JSON.parse(JSON.stringify(originalRow));
+    }
+  }
+  editingRowId.value = null;
+  refreshTotals();
+};
+
+const addPrevi = async (personnel, enseignement) => {
+  if (!personnel?.id || !enseignement?.id) {
+    toast.add({ severity: 'warn', summary: 'Attention', detail: 'Sélectionnez un enseignant et un enseignement.' });
+    return;
+  }
+
+  try {
+    await createPreviService({
+      personnel: `/api/personnels/${personnel.id}`,
+      anneeUniversitaire: `/api/structure_annee_universitaires/${anneeUniv.id}`,
+      referent: false,
+      heures: { CM: 0, TD: 0, TP: 0, Projet: 0 },
+      groupes: { CM: 0, TD: 0, TP: 0, Projet: 0 },
+      enseignement: `/api/scol_enseignements/${enseignement.id}`,
+    });
+
+    await getPreviPersonnel();
+    await getPreviPersonnels();
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de l\'ajout de la ligne.' });
+  }
+};
+
+const duplicatePrevi = async (previId) => {
+  try {
+    const previ = previPersonnel.value?.[0]?.find((p) => p.id === previId);
+    if (!previ) return;
+
+    const data = {
+      personnel: `/api/personnels/${previ.idPersonnel}`,
+      anneeUniversitaire: `/api/structure_annee_universitaires/${anneeUniv.id}`,
+      referent: false,
+      heures: Object.keys(previ.heures || {}).reduce((acc, key) => {
+        const h = previ.heures[key];
+        if (key === 'Projet') {
+          acc[key] = parseFloat(h?.NbHrGrp) || 0;
+        } else {
+          acc[key] = (parseFloat(h?.NbHrGrp) || 0) * (parseInt(h?.NbGrp) || 0);
+        }
+        return acc;
+      }, {}),
+      groupes: previ.groupes,
+      enseignement: `/api/scol_enseignements/${previ.idEnseignement}`,
+    };
+
+    await createPreviService(data);
+    await getPreviPersonnel();
+    await getPreviPersonnels();
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de la duplication.' });
+  }
+};
+
+const deletePrevi = async (previId) => {
+  try {
+    await deletePreviService(previId);
+    await getPreviPersonnel();
+    await getPreviPersonnels();
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de la suppression.' });
+  }
+};
+
+const addHrs = async (personnelId) => {
+  if (!personnelId || !selectedTypeHrs.value?.id) {
+    toast.add({ severity: 'warn', summary: 'Attention', detail: 'Sélectionnez au minimum un type de HRS.' });
+    return;
+  }
+
+  try {
+    await apiCall(
+        api.post,
+        ['/api/personnel_enseignant_hrs', {
+          personnel: `/api/personnels/${personnelId}`,
+          anneeUniversitaire: `/api/structure_annee_universitaires/${anneeUniv.id}`,
+          enseignantTypeHrs: `/api/personnel_enseignant_type_hrs/${selectedTypeHrs.value.id}`,
+          libelle: libelleHrs.value,
+          semestre: selectedSemestreHrs.value ? `/api/structure_semestres/${selectedSemestreHrs.value.id}` : null,
+          diplome: selectedDiplomeHrs.value ? `/api/structure_diplomes/${selectedDiplomeHrs.value.id}` : null,
+          nbHeuresTd: parseFloat(nbHeuresHrs.value) || 0,
+        }, { headers: { 'Content-Type': 'application/ld+json' } }],
+        'HRS ajoutée avec succès',
+        'Erreur lors de la création de la HRS',
+        true
+    );
+
+    selectedTypeHrs.value = null;
+    libelleHrs.value = null;
+    selectedSemestreHrs.value = null;
+    selectedDiplomeHrs.value = null;
+    nbHeuresHrs.value = 0;
+    await getEnseignantHrs(personnelId);
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de l\'ajout de la HRS.' });
+  }
+};
+
+const saveHrs = async (hrsId) => {
+  const hrs = personnelEnseignantHrs.value.find((h) => h.id === hrsId);
+  if (!hrs) return;
+
+  try {
+    await apiCall(
+        api.patch,
+        [`/api/personnel_enseignant_hrs/${hrsId}`, {
+          enseignantTypeHrs: hrs.enseignantTypeHrs?.id ? `/api/personnel_enseignant_type_hrs/${hrs.enseignantTypeHrs.id}` : null,
+          libelle: hrs.libelle,
+          semestre: hrs.semestre?.id ? `/api/structure_semestres/${hrs.semestre.id}` : null,
+          diplome: hrs.diplome?.id ? `/api/structure_diplomes/${hrs.diplome.id}` : null,
+          nbHeuresTd: parseFloat(hrs.nbHeuresTd) || 0,
+        }, { headers: { 'Content-Type': 'application/merge-patch+json' } }],
+        'HRS mise à jour',
+        'Erreur lors de la mise à jour de la HRS',
+        true
+    );
+
+    await getEnseignantHrs(selectedPersonnel.value?.id);
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de la sauvegarde de la HRS.' });
+  }
+};
+
+const duplicateHrs = async (hrsId) => {
+  const hrs = personnelEnseignantHrs.value.find((h) => h.id === hrsId);
+  if (!hrs || !selectedPersonnel.value?.id) return;
+
+  try {
+    await apiCall(
+        api.post,
+        ['/api/personnel_enseignant_hrs', {
+          personnel: `/api/personnels/${selectedPersonnel.value.id}`,
+          anneeUniversitaire: `/api/structure_annee_universitaires/${anneeUniv.id}`,
+          enseignantTypeHrs: hrs.enseignantTypeHrs?.id ? `/api/personnel_enseignant_type_hrs/${hrs.enseignantTypeHrs.id}` : null,
+          libelle: hrs.libelle,
+          semestre: hrs.semestre?.id ? `/api/structure_semestres/${hrs.semestre.id}` : null,
+          diplome: hrs.diplome?.id ? `/api/structure_diplomes/${hrs.diplome.id}` : null,
+          nbHeuresTd: parseFloat(hrs.nbHeuresTd) || 0,
+        }, { headers: { 'Content-Type': 'application/ld+json' } }],
+        'HRS dupliquée',
+        'Erreur lors de la duplication de la HRS',
+        true
+    );
+
+    await getEnseignantHrs(selectedPersonnel.value.id);
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de la duplication de la HRS.' });
+  }
+};
+
+const deleteHrs = async (hrsId) => {
+  try {
+    await deletePersonnelEnseignantHrsService(hrsId, true);
+    await getEnseignantHrs(selectedPersonnel.value?.id);
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors de la suppression de la HRS.' });
+  }
+};
 </script>
 
 <template>
@@ -524,7 +808,7 @@ const footerColsForm = computed(() => [
         <Button v-if="!isEditing" label="Saisir le prévisionnel" icon="pi pi-plus" @click="isEditing = !isEditing" />
         <Button v-else label="Afficher le prévisionnel" icon="pi pi-eye" @click="isEditing = !isEditing" />
       </div>
-      <div v-if="previPersonnels[0].length > 0">
+      <div v-if="previPersonnels?.[0]?.length > 0">
         <div class="flex w-full justify-between my-6">
           <SelectButton v-model="size" :options="sizeOptions" optionLabel="label" dataKey="label" />
           <div v-if="isEditing">
@@ -532,7 +816,7 @@ const footerColsForm = computed(() => [
             <Select
                 v-model="selectedPersonnel"
                 :options="personnels"
-                optionLabel="display"
+                option-label="display"
                 placeholder="Sélectionner un enseignant"
                 class="w-80"
             />
@@ -559,21 +843,23 @@ const footerColsForm = computed(() => [
               :headerTitle="`Prévisionnel de l'année`"
               :headerTitlecolspan="1"/>
         </div>
-         <div v-else>
-           <PrevisionnelTable
-               v-if="previPersonnel.length > 0 && previPersonnel[0]"
-               origin="previEnseignantForm"
-               :columns="columnsForm"
-               :topHeaderCols="topHeaderColsForm"
-               :additionalRows="additionalRowsForm"
-               :footerCols="footerColsForm"
-               :data="previPersonnel[0]"
-               :size="size.value"
-               v-model:editingRowId="editingRowId"
-               :headerTitle="`Prévisionnel de ${selectedPersonnel.display}`"
-               :headerTitlecolspan="1"/>
-           <SimpleSkeleton v-else width="100%" />
-         </div>
+        <div v-else>
+          <PrevisionnelTable
+              v-if="previPersonnel.length > 0 && previPersonnel[0]"
+              origin="previEnseignantForm"
+              @save-row="saveRow"
+              @cancel-row="cancelRow"
+              :columns="columnsForm"
+              :topHeaderCols="topHeaderColsForm"
+              :additionalRows="additionalRowsForm"
+              :footerCols="footerColsForm"
+              :data="previPersonnel[0]"
+              :size="size.value"
+              v-model:editingRowId="editingRowId"
+              :headerTitle="`Prévisionnel de ${selectedPersonnel?.display || ''}`"
+              :headerTitlecolspan="1"/>
+          <SimpleSkeleton v-else width="100%" />
+        </div>
       </div>
     </div>
   </div>
