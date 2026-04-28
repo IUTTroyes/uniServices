@@ -83,7 +83,6 @@ const getPreviPersonnels = async () => {
     hasError.value = true;
     toast.add({ severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors du chargement des données.' });
   } finally {
-    console.log(previPersonnels.value)
     isLoadingPrevisionnel.value = false;
   }
 }
@@ -118,7 +117,6 @@ watch(isEditing, async () => {
   if (isEditing.value) {
     await getPersonnels();
     if (!selectedPersonnel.value?.id) return;
-    await getPreviPersonnel();
     await getEnseignantHrs(selectedPersonnel.value.id);
     await getTypesHrs();
     await getSemestres();
@@ -142,7 +140,6 @@ const getPersonnels = async () => {
     hasError.value = true;
     toast.add({ severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors du chargement des données.' });
   } finally {
-    console.log(personnels.value)
     isLoadingPersonnels.value = false;
   }
 }
@@ -160,7 +157,6 @@ const getEnseignantHrs = async (enseignantId) => {
 const getTypesHrs = async () => {
   try {
     typeHrs.value = await getPersonnelEnseignantTypesHrsService(selectedPersonnel.value.id, anneeUniv.id);
-    console.log(typeHrs.value)
     // construire chaque élément de la liste des types d'heures avec le libelle en label et le type en value
     typeHrs.value = typeHrs.value.map((type) => ({
       id: type.id,
@@ -195,7 +191,6 @@ const getEnseignements = async () => {
     hasError.value = true;
     toast.add({ severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors du chargement des données.' });
   } finally {
-    console.log(enseignements.value)
   }
 }
 
@@ -217,7 +212,6 @@ const getSemestres = async () => {
     hasError.value = true;
     toast.add({ severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors du chargement des données.' });
   } finally {
-    console.log(semestres.value)
   }
 }
 
