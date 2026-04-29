@@ -14,6 +14,7 @@ node_modules
 back/var/
 back/.env.local
 back/.env.*.local
+back/vendor
 
 # Dev
 docker-compose.yml
@@ -26,3 +27,7 @@ ruleset.md
 # OS
 .DS_Store
 Thumbs.db
+
+# Sécurité
+.env.prod
+.env
