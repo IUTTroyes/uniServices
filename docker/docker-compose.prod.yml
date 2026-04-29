@@ -16,7 +16,7 @@ services:
       DATABASE_URL: ${DATABASE_URL}
     volumes:
       - symfony_logs:/var/www/html/back/var/log
-      - public_assets:/var/www/html/back/public
+      - public_assets:/var/www/html/public_shared
     networks:
       - uniservices_net
     depends_on:
