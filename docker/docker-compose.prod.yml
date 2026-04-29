@@ -1,0 +1,79 @@
+# docker-compose.prod.yml
+version: '3.9'
+
+services:
+
+  # ---- PHP-FPM (votre app) ----
+  php:
+    image: cyndel/uniservices:${APP_VERSION:-latest}
+    container_name: uniservices_php
+    restart: unless-stopped
+    environment:
+      APP_ENV: prod
+      APP_DEBUG: "0"
+      APP_SECRET: ${APP_SECRET}
+      DATABASE_URL: ${DATABASE_URL}
+      # Ajoutez vos autres variables d'env ici
+    volumes:
+      # Persistance des logs Symfony
+      - symfony_logs:/var/www/html/back/var/log
+      # Persistance du cache (optionnel, le warmup le regénère)
+      # - symfony_cache:/var/www/html/back/var/cache
+    networks:
+      - uniservices_net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # ---- Nginx (reverse proxy vers PHP-FPM) ----
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: uniservices_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Config Nginx
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      # Assets publics (partagés avec PHP)
+      - public_assets:/var/www/html/back/public:ro
+      # Certificats SSL (Let's Encrypt via Certbot ou manuel)
+      - ./nginx/certs:/etc/nginx/certs:ro
+      # Logs
+      - nginx_logs:/var/log/nginx
+    networks:
+      - uniservices_net
+    depends_on:
+      - php
+
+  # ---- Base de données (MariaDB / MySQL) ----
+  db:
+    image: mariadb:10.8
+    container_name: uniservice-db
+    hostname: uniservice-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - uniservices_net
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
+  symfony_logs:
+  nginx_logs:
+  public_assets:
+
+networks:
+  uniservices_net:
+    driver: bridge

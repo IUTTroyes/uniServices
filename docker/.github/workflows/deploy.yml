@@ -1,0 +1,134 @@
+# .github/workflows/deploy.yml
+name: Build, Push & Deploy
+
+on:
+  push:
+    branches:
+      - main          # Déploiement auto sur main
+  workflow_dispatch:  # Déclenchement manuel possible
+
+env:
+  DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/uniservices
+  DOCKER_TAG: ${{ github.sha }}
+
+jobs:
+  ##############################################
+  # JOB 1 : Build et push de l'image Docker
+  ##############################################
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Configuration de QEMU (multi-architecture, optionnel)
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # BuildKit pour les builds multi-stage optimisés
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Login sur Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Génération des tags et labels automatiques
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_IMAGE }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      # Build et push de l'image
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/php/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # Cache pour accélérer les builds suivants
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # Cible le stage de production
+          target: production
+
+  ##############################################
+  # JOB 2 : Déploiement sur la VM
+  ##############################################
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    # Seulement sur la branche main
+    if: github.ref == 'refs/heads/main'
+
+    # Environnement GitHub (protection manuelle possible)
+    environment:
+      name: production
+      url: http://${{ secrets.DEPLOY_HOST }}
+
+    steps:
+      - name: Checkout (pour récupérer docker-compose.prod.yml)
+        uses: actions/checkout@v4
+
+      # Copier les fichiers de config sur le serveur
+      - name: Copy compose files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: "docker-compose.prod.yml,docker/nginx/default.conf"
+          target: ${{ secrets.DEPLOY_PATH }}
+
+      # Déploiement via SSH
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            set -e
+            cd ${{ secrets.DEPLOY_PATH }}
+            
+            echo "=== Pulling new image ==="
+            docker pull ${{ env.DOCKER_IMAGE }}:latest
+            
+            echo "=== Stopping old containers ==="
+            docker compose -f docker-compose.prod.yml down --remove-orphans
+            
+            echo "=== Starting new containers ==="
+            docker compose -f docker-compose.prod.yml \
+              --env-file .env.prod \
+              up -d
+            
+            echo "=== Waiting for PHP to be ready ==="
+            sleep 5
+            
+            echo "=== Running migrations ==="
+            docker compose -f docker-compose.prod.yml \
+              exec -T php \
+              php back/bin/console doctrine:migrations:migrate \
+              --no-interaction --env=prod
+            
+            echo "=== Cleaning old images ==="
+            docker image prune -f
+            
+            echo "=== Deploy done! ==="

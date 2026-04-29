@@ -1,0 +1,28 @@
+# .dockerignore
+.git
+.github
+.gitignore
+.idea
+docs
+cypress
+
+# Node
+node_modules
+**/node_modules
+
+# Symfony
+back/var/
+back/.env.local
+back/.env.*.local
+
+# Dev
+docker-compose.yml
+*.md
+ruleset.md
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
