@@ -5,6 +5,11 @@ services:
 
   # ---- PHP-FPM (votre app) ----
   php:
+    healthcheck:
+      test: [ "CMD", "php-fpm", "-t" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     image: cyndel/uniservices:${APP_VERSION:-latest}
     container_name: uniservices_php
     restart: unless-stopped
@@ -45,7 +50,8 @@ services:
     networks:
       - uniservices_net
     depends_on:
-      - php
+      php:
+        condition: service_healthy
 
   # ---- Base de données (MariaDB / MySQL) ----
   db:

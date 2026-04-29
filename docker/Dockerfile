@@ -49,14 +49,13 @@ RUN composer install \
     --no-interaction \
     --optimize-autoloader \
     --prefer-dist \
-    --classmap-authoritative \
     --ignore-platform-req=ext-gd
 
 
 ###############################################
 # STAGE 3 : Image finale de production
 ###############################################
-FROM php:8.3-fpm-alpine AS production
+FROM php:8.4-fpm-alpine AS production
 
 # Métadonnées
 LABEL maintainer="IUTTroyes" \
@@ -64,8 +63,8 @@ LABEL maintainer="IUTTroyes" \
       version="1.0"
 
 # Installation des extensions PHP nécessaires pour Symfony
+# Dépendances système
 RUN apk add --no-cache \
-        # Dépendances système
         libpng-dev \
         libjpeg-turbo-dev \
         libwebp-dev \
@@ -94,7 +93,6 @@ RUN apk add --no-cache \
         libwebp-dev \
         freetype-dev \
         icu-dev \
-    # Nettoyer le cache apk
     && rm -rf /var/cache/apk/*
 
 # Copier la configuration PHP
