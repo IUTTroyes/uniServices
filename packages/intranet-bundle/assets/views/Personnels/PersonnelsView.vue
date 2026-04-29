@@ -9,9 +9,9 @@ import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
 import createApiService from '@requests/apiService'
 import apiCall from '@helpers/apiCall'
 
-import ViewPersonnelDialog from '@/dialogs/personnels/ViewPersonnelDialog.vue'
-import EditPersonnelDialog from '@/dialogs/personnels/EditPersonnelDialog.vue'
-import AccessPersonnelDialog from '@/dialogs/personnels/AccessPersonnelDialog.vue'
+import ViewPersonnelDialog from '@/dialogs/Personnels/ViewPersonnelDialog.vue'
+import EditPersonnelDialog from '@/dialogs/Personnels/EditPersonnelDialog.vue'
+import AccessPersonnelDialog from '@/dialogs/Personnels/AccessPersonnelDialog.vue'
 
 const personnelsService = createApiService('api/personnels')
 
