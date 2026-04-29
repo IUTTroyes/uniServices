@@ -19,7 +19,7 @@ export default defineConfig({
   root: path.resolve(__dirname, 'assets'),
   base: './',
   build: {
-    outDir: path.resolve(__dirname, 'back/public/build/intranet-bundle'),
+    outDir: path.resolve(__dirname, 'src/Resources/public'),
     emptyOutDir: true,
   },
   server: {
