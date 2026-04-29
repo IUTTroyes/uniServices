@@ -17,7 +17,7 @@ export default defineConfig({
     })
   ],
   root: path.resolve(__dirname, 'assets'),
-  base: './',
+  base: '/build/auth-bundle/',
   build: {
     outDir: path.resolve(__dirname, 'src/Resources/public'),
     emptyOutDir: true,
