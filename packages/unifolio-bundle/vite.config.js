@@ -17,9 +17,9 @@ export default defineConfig({
     })
   ],
   root: path.resolve(__dirname, 'assets'),
-  base: '/build/unifolio-bundle/',
+  base: '/unifolio/',
   build: {
-    outDir: path.resolve(__dirname, 'src/Resources/public'),
+    outDir: path.resolve(__dirname, '../../back/public/unifolio'),
     emptyOutDir: true,
   },
   resolve: {

@@ -111,10 +111,10 @@ COPY packages/ ./packages
 COPY --from=php-deps /build/back/vendor ./back/vendor
 
 # Assets buildés depuis le stage frontend
-COPY --from=frontend-builder /build/packages/auth-bundle/back/public/build/auth-bundle ./back/public/build/auth-bundle
-COPY --from=frontend-builder /build/packages/edt-bundle/back/public/build/edt-bundle ./back/public/build/edt-bundle
-COPY --from=frontend-builder /build/packages/intranet-bundle/back/public/build/intranet-bundle ./back/public/build/intranet-bundle
-COPY --from=frontend-builder /build/packages/unifolio-bundle/back/public/build/unifolio-bundle ./back/public/build/unifolio-bundle
+COPY --from=frontend-builder /build/packages/auth-bundle/src/Resources/public     ./back/public/build/auth-bundle
+COPY --from=frontend-builder /build/packages/edt-bundle/src/Resources/public      ./back/public/build/edt-bundle
+COPY --from=frontend-builder /build/packages/intranet-bundle/src/Resources/public ./back/public/build/intranet-bundle
+COPY --from=frontend-builder /build/packages/unifolio-bundle/src/Resources/public ./back/public/build/unifolio-bundle
 
 # ---- Copie des fichiers de config de l'app ----
 # (ce qui n'est pas dans back/ ou packages/)

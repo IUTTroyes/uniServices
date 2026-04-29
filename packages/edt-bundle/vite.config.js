@@ -17,9 +17,9 @@ export default defineConfig({
     })
   ],
   root: path.resolve(__dirname, 'assets'),
-  base: '/build/edt-bundle/',
+  base: '/edt/',
   build: {
-    outDir: path.resolve(__dirname, 'src/Resources/public'),
+    outDir: path.resolve(__dirname, '../../back/public/edt'),
     emptyOutDir: true,
   },
   server: {
