@@ -2,7 +2,7 @@ services:
   php:
     build:
       context: ..
-      dockerfile: docker/php/Dockerfile
+      dockerfile: Dockerfile
       target: production
     container_name: uniservices-php-dev
     hostname: uniservices-php-dev

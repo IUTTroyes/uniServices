@@ -49,7 +49,9 @@ RUN composer install \
     --no-interaction \
     --optimize-autoloader \
     --prefer-dist \
-    --classmap-authoritative
+    --classmap-authoritative \
+    --ignore-platform-req=ext-gd
+
 
 ###############################################
 # STAGE 3 : Image finale de production
