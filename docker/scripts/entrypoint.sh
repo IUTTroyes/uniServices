@@ -16,9 +16,9 @@ chown -R www-data:www-data /var/log/php
 echo ">>> Warming up Symfony cache..."
 php /var/www/html/back/bin/console cache:warmup --env=prod --no-debug
 
-# Migrations (optionnel - à activer selon votre workflow)
-# echo ">>> Running migrations..."
-# php /var/www/html/back/bin/console doctrine:migrations:migrate --no-interaction --env=prod
+# Migrations
+echo ">>> Running migrations..."
+php /var/www/html/back/bin/console doctrine:migrations:migrate --no-interaction --env=prod
 
 echo ">>> Starting PHP-FPM..."
 exec php-fpm
