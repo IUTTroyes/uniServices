@@ -81,7 +81,7 @@ class PrevisionnelAllPersonnelsProvider implements ProviderInterface
                     $departement = $departementMap[$personnelId] ?? null;
                     $departementAffectation = $departementAffectationMap[$personnelId] ?? null;
 
-                    if ($departementAffectation && $departement && $departement->getId() === $departementAffectation->getId()
+                    if (($departementAffectation && $departement && $departement->getId() === $departementAffectation->getId())
                         || $statutLibelle === 'Enseignant Vacataire') {
                         $nbHeuresService = $personnel->getNbHeuresService();
                         $affectation = true;
