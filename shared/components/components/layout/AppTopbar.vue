@@ -290,7 +290,7 @@ const selectAnneeUniversitaire = (annee) => {
 
       <div class="layout-topbar-menu lg:block">
         <div class="layout-topbar-menu-content">
-          <a href="http://localhost:3000/portail" v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text">
+          <a href="http://localhost:3000/auth/portail" v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text">
             <i class="pi pi-arrow-left"></i>
             <span>Portail</span>
           </a>

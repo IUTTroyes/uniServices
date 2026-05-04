@@ -99,60 +99,60 @@ uniServices/
 - Utiliser les Skeleton de PrimeVue comme loaders
 - Ajouter 'Service' à la fin du nom des méthodes qui font les requêtes API
 - **Pour les requêtes HTTP simples (GET, POST, PATCH, DELETE) qui ne nécessitent pas de manipulation spécifique, utiliser apiCall.js et apiService.js**:
-  - `apiService.js` fournit des méthodes génériques pour les opérations CRUD
-  - `apiCall.js` est un wrapper qui gère les messages de succès/erreur et le traitement des réponses
+    - `apiService.js` fournit des méthodes génériques pour les opérations CRUD
+    - `apiCall.js` est un wrapper qui gère les messages de succès/erreur et le traitement des réponses
 - Récupérer l'année universitaire sélectionnée par l'utilisateur dans le localStorage via : `const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));`
 
   #### Gestion des notifications toast
 
-  - Le paramètre `showToast` (par défaut à `true` pour les opérations de modification, `false` pour les récupérations de données) permet de contrôler l'affichage des notifications toast
-  - Conventions d'affichage des toasts:
-    - Pour les fonctions GET: `showToast = false` par défaut (pas de notification pour la simple récupération de données)
-    - Pour les fonctions UPDATE, CREATE, DELETE: `showToast = true` par défaut (notification pour confirmer les modifications)
-    - Les messages d'erreur dans les blocs try-catch affichent toujours des notifications
+    - Le paramètre `showToast` (par défaut à `true` pour les opérations de modification, `false` pour les récupérations de données) permet de contrôler l'affichage des notifications toast
+    - Conventions d'affichage des toasts:
+        - Pour les fonctions GET: `showToast = false` par défaut (pas de notification pour la simple récupération de données)
+        - Pour les fonctions UPDATE, CREATE, DELETE: `showToast = true` par défaut (notification pour confirmer les modifications)
+        - Les messages d'erreur dans les blocs try-catch affichent toujours des notifications
 
-  - Exemple d'utilisation:
-    ```javascript
-    import createApiService from '@requests/apiService';
-    import apiCall from '@helpers/apiCall';
-
-    // Créer un service API pour une ressource spécifique
-    const userService = createApiService('/api/users');
-
-    // Récupération de données (sans toast par défaut)
-    const getUsers = async (showToast = false) => {
-      try {
-        const response = await apiCall(
-          userService.getAll, 
-          [], 
-          'Utilisateurs récupérés avec succès', 
-          'Erreur lors de la récupération des utilisateurs',
-          showToast
-        );
-        return response;
-      } catch (error) {
-        console.error('Erreur dans getUsers:', error);
-        throw error;
-      }
-    };
-
-    // Modification de données (avec toast par défaut)
-    const createUser = async (userData, showToast = true) => {
-      try {
-        const response = await apiCall(
-          userService.create, 
-          [userData], 
-          'Utilisateur créé avec succès', 
-          'Erreur lors de la création de l\'utilisateur',
-          showToast
-        );
-        return response;
-      } catch (error) {
-        console.error('Erreur dans createUser:', error);
-        throw error;
-      }
-    };
-    ```
+    - Exemple d'utilisation:
+      ```javascript
+      import createApiService from '@requests/apiService';
+      import apiCall from '@helpers/apiCall';
+  
+      // Créer un service API pour une ressource spécifique
+      const userService = createApiService('/api/users');
+  
+      // Récupération de données (sans toast par défaut)
+      const getUsers = async (showToast = false) => {
+        try {
+          const response = await apiCall(
+            userService.getAll, 
+            [], 
+            'Utilisateurs récupérés avec succès', 
+            'Erreur lors de la récupération des utilisateurs',
+            showToast
+          );
+          return response;
+        } catch (error) {
+          console.error('Erreur dans getUsers:', error);
+          throw error;
+        }
+      };
+  
+      // Modification de données (avec toast par défaut)
+      const createUser = async (userData, showToast = true) => {
+        try {
+          const response = await apiCall(
+            userService.create, 
+            [userData], 
+            'Utilisateur créé avec succès', 
+            'Erreur lors de la création de l\'utilisateur',
+            showToast
+          );
+          return response;
+        } catch (error) {
+          console.error('Erreur dans createUser:', error);
+          throw error;
+        }
+      };
+      ```
 
 ### Alias Frontend
 
@@ -205,10 +205,10 @@ Chaque bundle doit être compilé indépendamment pour que ses assets soient dis
 
 ## Création d'un Nouveau Bundle
 
-Pour ajouter un nouveau bundle au projet (ex: `nom-bundle`), utilisez le script d'automatisation :
+Pour ajouter un nouveau bundle au projet (ex: `nom` ou `nom-bundle`), utilisez le script d'automatisation :
 
 ```bash
-php scripts/create-bundle.php nom-bundle
+php scripts/create-bundle.php nom
 ```
 
 Le script vous demandera interactivement :
@@ -220,7 +220,7 @@ Le script vous demandera interactivement :
 Vous pouvez également passer ces informations via des arguments pour éviter les questions :
 
 ```bash
-php scripts/create-bundle.php nom-bundle \
+php scripts/create-bundle.php nom \
   --display-name="Nom lisible" \
   --description="Description de l'outil" \
   --url-slug="slug" \
@@ -230,18 +230,34 @@ php scripts/create-bundle.php nom-bundle \
 Le logo est par défaut `LogoIut`.
 
 ### Ce que fait le script :
-1. Crée l'arborescence du bundle dans `packages/nom-bundle/`.
-2. Génère la classe PHP du Bundle (`NomBundle.php`).
-3. Génère les fichiers `composer.json`, `package.json` et `vite.config.js` pré-configurés.
-4. Crée un fichier `packages/nom-bundle/bundle.meta.json` (nom, description, urlSlug, url) utilisé pour le registre des outils.
-5. Met à jour le `composer.json` à la racine et dans `back/` pour l'autoloading.
-6. Enregistre le bundle dans `back/config/bundles.php`.
-7. Reconstruit automatiquement `shared/global-data/tools.generated.json` en scannant tous les bundles locaux et les outils externes (dans `shared/global-data/external-tools/`).
+1. Normalise automatiquement le nom de dossier avec le suffixe `-bundle` si nécessaire (ex: `nom` devient `nom-bundle`).
+2. Crée l'arborescence du bundle dans `packages/nom-bundle/`.
+3. Génère la classe PHP du Bundle (`NomBundle.php`).
+4. Génère les fichiers de configuration du bundle : `composer.json`, `package.json`, `vite.config.js`.
+5. Génère un front minimal prêt à démarrer :
+    - `assets/index.html`
+    - `assets/main.js`
+    - `assets/App.vue` (vue d'accueil par défaut)
+6. Crée `packages/nom-bundle/bundle.meta.json` (nom, description, `urlSlug`, `url`) utilisé pour le registre des outils.
+7. Met à jour automatiquement le `package.json` racine :
+    - ajout de `dev:<slug>`
+    - ajout de `build:<slug>`
+    - régénération de la commande `dev` globale (`concurrently ...`)
+8. Propose automatiquement un port de dev non utilisé (scripts existants + disponibilité locale) pour l'URL et le script `dev:<slug>`.
+9. Configure Vite avec une base cohérente `/<slug>/`, un proxy API vers `http://localhost:8000` et un `outDir` vers `back/public/<slug>`.
+10. Met à jour l'autoloading Composer dans `composer.json` (racine) et `back/composer.json`.
+11. Enregistre le bundle dans `back/config/bundles.php`.
+12. Reconstruit automatiquement `shared/global-data/tools.generated.json` en scannant les bundles locaux et les outils externes (`shared/global-data/external-tools/`).
+13. Lance les commandes post-création nécessaires :
+    - `composer dump-autoload` (racine)
+    - `composer dump-autoload` + `bin/console cache:clear` (dans `back/`)
+    - `pnpm install --prefer-offline --ignore-scripts` si `pnpm` est disponible
 
 ### Après l'exécution :
-1. Installez les nouvelles dépendances et liez le workspace : `pnpm install`
-2. Mettez à jour l'autoload PHP : `composer dump-autoload`
-3. (Optionnel) Ajoutez des commandes `dev` et `build` dans le `Makefile` racine pour faciliter la gestion de ce bundle.
+1. Démarrez le backend (`make start-back`) et le front (`make start-front`) ou tout (`make start-all`).
+2. Lancez le bundle seul si besoin avec `npm run dev:<slug>`.
+3. Ouvrez l'URL de dev du bundle (ex: `http://localhost:3005/<slug>/`) : vous devez voir la vue d'accueil générée par défaut.
+4. (Optionnel) Ajoutez des raccourcis supplémentaires dans le `Makefile` si vous voulez des commandes dédiées.
 
 ## Activation et Désactivation d'un Bundle
 
@@ -278,15 +294,22 @@ php scripts/remove-bundle.php nom-bundle
 ```
 
 ### Ce que fait le script :
-1. Supprime le répertoire du bundle dans `packages/`.
-2. Retire les configurations d'autoloading dans le `composer.json` racine et dans `back/`.
-3. Retire le bundle de `back/config/bundles.php`.
-4. Reconstruit automatiquement `shared/global-data/tools.generated.json` (mise à jour de la liste des outils côté front).
+1. Normalise automatiquement le nom avec le suffixe `-bundle` si nécessaire (ex: `nom` devient `nom-bundle`).
+2. Supprime le répertoire du bundle dans `packages/`.
+3. Supprime les assets compilés du bundle dans `back/public/<slug>`.
+4. Retire les scripts `dev:<slug>` et `build:<slug>` du `package.json` racine.
+5. Régénère automatiquement le script global `dev` (`concurrently ...`) en fonction des bundles restants.
+6. Retire les configurations d'autoloading dans `composer.json` (racine) et `back/composer.json`.
+7. Retire le bundle de `back/config/bundles.php`.
+8. Reconstruit automatiquement `shared/global-data/tools.generated.json` (mise à jour de la liste des outils côté front).
+9. Lance automatiquement les commandes de finalisation :
+    - `composer dump-autoload` (racine)
+    - `composer dump-autoload` + `bin/console cache:clear` (dans `back/`)
+    - `pnpm install --prefer-offline --ignore-scripts` si `pnpm` est disponible
 
 ### Après l'exécution :
-1. Mettez à jour les workspaces : `pnpm install`
-2. Mettez à jour l'autoload PHP : `composer dump-autoload` (à la racine et dans `back/`)
-3. Videz le cache Symfony : `cd back && bin/console cache:clear`
+1. Vérifiez que l'outil n'apparaît plus dans la navigation.
+2. Si nécessaire, redémarrez `make start-front` / `make start-all` pour recharger les scripts npm.
 
 ## Technologies Utilisées
 

@@ -1,13 +1,92 @@
 #!/usr/bin/env php
 <?php
 
+function runCommand(string $command, ?string $workingDir = null): int
+{
+    if ($workingDir) {
+        $command = 'cd ' . escapeshellarg($workingDir) . ' && ' . $command;
+    }
+
+    passthru($command, $exitCode);
+
+    return $exitCode;
+}
+
+function normalizeBundleKebab(string $rawName): string
+{
+    $normalized = strtolower(trim($rawName));
+    if (!str_ends_with($normalized, '-bundle')) {
+        $normalized .= '-bundle';
+    }
+
+    return $normalized;
+}
+
+function portIsAvailable(int $port): bool
+{
+    if ($port < 1 || $port > 65535) {
+        return false;
+    }
+
+    $socket = @stream_socket_server("tcp://127.0.0.1:$port", $errno, $errstr);
+    if ($socket === false) {
+        return false;
+    }
+
+    fclose($socket);
+    return true;
+}
+
+function findFirstAvailablePort(array $usedScriptPorts, int $startPort = 3000): int
+{
+    $port = $startPort;
+    while (in_array($port, $usedScriptPorts, true) || !portIsAvailable($port)) {
+        $port++;
+    }
+
+    return $port;
+}
+
+function readRootScripts(string $projectRoot): array
+{
+    $rootPackagePath = $projectRoot . '/package.json';
+    if (!file_exists($rootPackagePath)) {
+        return [];
+    }
+
+    $rootPackage = json_decode(file_get_contents($rootPackagePath), true);
+    if (!is_array($rootPackage)) {
+        return [];
+    }
+
+    return is_array($rootPackage['scripts'] ?? null) ? $rootPackage['scripts'] : [];
+}
+
+function extractUsedDevPorts(array $scripts): array
+{
+    $usedPorts = [];
+
+    foreach ($scripts as $scriptName => $scriptCommand) {
+        if (!str_starts_with((string) $scriptName, 'dev:')) {
+            continue;
+        }
+
+        if (preg_match('/--port\s+(\d+)/', (string) $scriptCommand, $matches)) {
+            $usedPorts[] = (int) $matches[1];
+        }
+    }
+
+    return array_values(array_unique($usedPorts));
+}
+
 if ($argc < 2) {
     echo "Usage: php scripts/create-bundle.php <bundle-name> [--display-name=Name] [--description=Text] [--url-slug=slug] [--url=http://...]\n";
     echo "Example: php scripts/create-bundle.php sample-bundle --display-name=Sample --description=\"Mon appli\" --url-slug=sample --url=http://localhost:3005/sample/\n";
     exit(1);
 }
 
-$bundleKebab = strtolower($argv[1]);
+$rawBundleName = $argv[1];
+$bundleKebab = normalizeBundleKebab($rawBundleName);
 if (!preg_match('/^[a-z0-9-]+$/', $bundleKebab)) {
     echo "Error: Bundle name must be in kebab-case (e.g., my-new-bundle).\n";
     exit(1);
@@ -36,6 +115,8 @@ if (!str_ends_with($bundlePascal, 'Bundle')) {
     $bundlePascal .= 'Bundle';
 }
 
+$bundleShortName = preg_replace('/-bundle$/', '', $bundleKebab);
+
 // Interactive prompt for missing info
 if (empty($displayName)) {
     $defaultName = $bundlePascal;
@@ -48,18 +129,42 @@ if (empty($description)) {
     $description = trim(fgets(STDIN)) ?: $defaultDesc;
 }
 if (empty($urlSlug)) {
-    $defaultSlug = strtolower(str_replace('bundle', '', $bundleKebab));
+    $defaultSlug = $bundleShortName;
     echo "URL Slug (ex: $defaultSlug): ";
     $urlSlug = trim(fgets(STDIN)) ?: $defaultSlug;
-}
-if (empty($fullUrl)) {
-    $defaultUrl = "/$urlSlug";
-    echo "URL complète (ex: $defaultUrl ou http://localhost:3000/$urlSlug/): ";
-    $fullUrl = trim(fgets(STDIN)) ?: $defaultUrl;
 }
 
 $projectRoot = dirname(__DIR__);
 require_once $projectRoot . '/scripts/utils/regenerate-tools-registry.php';
+
+$rootScripts = readRootScripts($projectRoot);
+$usedScriptPorts = extractUsedDevPorts($rootScripts);
+
+$preferredPort = null;
+if (!empty($fullUrl) && preg_match('#^https?://[^:/]+:(\d+)#', $fullUrl, $portMatches)) {
+    $preferredPort = (int) $portMatches[1];
+}
+
+$suggestedPort = findFirstAvailablePort($usedScriptPorts, $preferredPort ?? 3000);
+
+if (empty($fullUrl)) {
+    $defaultUrl = "http://localhost:$suggestedPort/$urlSlug/";
+    echo "URL complète (ex: /$urlSlug ou $defaultUrl): ";
+    $fullUrl = trim(fgets(STDIN)) ?: $defaultUrl;
+}
+
+$metaUrl = $fullUrl;
+if (!empty($fullUrl) && preg_match('#^https?://localhost:(\d+)(/.*)?$#', $fullUrl, $urlMatches)) {
+    $currentUrlPort = (int) $urlMatches[1];
+    $urlPath = $urlMatches[2] ?? '/';
+    $shouldAdjustPort = in_array($currentUrlPort, $usedScriptPorts, true) || !portIsAvailable($currentUrlPort);
+
+    if ($shouldAdjustPort) {
+        $metaUrl = "http://localhost:$suggestedPort$urlPath";
+        echo "- Port $currentUrlPort indisponible pour l'URL, proposition auto: $metaUrl\n";
+    }
+}
+
 $bundlePath = $projectRoot . '/packages/' . $bundleKebab;
 
 if (is_dir($bundlePath)) {
@@ -71,15 +176,30 @@ if (is_dir($bundlePath)) {
 $metaName = $displayName;
 $metaDescription = $description;
 $metaUrlSlug = $urlSlug;
-$metaUrl = $fullUrl;
 
 echo "Creating bundle $bundlePascal in $bundlePath...\n";
 
+if ($bundleKebab !== strtolower(trim($rawBundleName))) {
+    echo "- Nom normalisé automatiquement: $bundleKebab\n";
+}
+
 // 1. Create directory structure
-mkdir($bundlePath . '/src', 0755, true);
-mkdir($bundlePath . '/assets', 0755, true);
-mkdir($bundlePath . '/assets/views', 0755, true);
-mkdir($bundlePath . '/assets/router', 0755, true);
+if (!mkdir($bundlePath . '/src', 0755, true) && !is_dir($bundlePath . '/src')) {
+    echo "Error: Unable to create directory $bundlePath/src.\n";
+    exit(1);
+}
+if (!mkdir($bundlePath . '/assets', 0755, true) && !is_dir($bundlePath . '/assets')) {
+    echo "Error: Unable to create directory $bundlePath/assets.\n";
+    exit(1);
+}
+if (!mkdir($bundlePath . '/assets/views', 0755, true) && !is_dir($bundlePath . '/assets/views')) {
+    echo "Error: Unable to create directory $bundlePath/assets/views.\n";
+    exit(1);
+}
+if (!mkdir($bundlePath . '/assets/router', 0755, true) && !is_dir($bundlePath . '/assets/router')) {
+    echo "Error: Unable to create directory $bundlePath/assets/router.\n";
+    exit(1);
+}
 
 // 2. Create src/Bundle.php
 $bundleFileContent = <<<PHP
@@ -161,10 +281,19 @@ export default defineConfig({
     })
   ],
   root: path.resolve(__dirname, 'assets'),
-  base: './',
+  base: '/$metaUrlSlug/',
   build: {
-    outDir: path.resolve(__dirname, 'src/Resources/public'),
+    outDir: path.resolve(__dirname, '../../back/public/$metaUrlSlug'),
     emptyOutDir: true,
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   resolve: {
     alias: {
@@ -183,6 +312,92 @@ export default defineConfig({
 })
 JS;
 file_put_contents($bundlePath . '/vite.config.js', $viteConfigTemplate);
+
+// 5b. Create minimal front scaffold
+$indexHtmlContent = <<<HTML
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>$metaName</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
+HTML;
+file_put_contents($bundlePath . '/assets/index.html', $indexHtmlContent);
+
+$mainJsContent = <<<JS
+import { createApp } from 'vue';
+import App from './App.vue';
+
+const app = createApp(App);
+
+app.mount('#app');
+JS;
+file_put_contents($bundlePath . '/assets/main.js', $mainJsContent);
+
+$appVueContent = <<<VUE
+<template>
+  <main class="bundle-home">
+    <h1>$metaName</h1>
+    <p>$metaDescription</p>
+    <p>Bienvenue sur la vue d'accueil du bundle <strong>$bundlePascal</strong>.</p>
+  </main>
+</template>
+
+<style scoped>
+.bundle-home {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 0.75rem;
+  text-align: center;
+  padding: 2rem;
+}
+</style>
+VUE;
+file_put_contents($bundlePath . '/assets/App.vue', $appVueContent);
+
+// 5c. Ensure root package.json scripts contain dev/build entries for the new bundle
+$rootPackagePath = $projectRoot . '/package.json';
+if (file_exists($rootPackagePath)) {
+    $rootPackage = json_decode(file_get_contents($rootPackagePath), true);
+
+    if (is_array($rootPackage)) {
+        $scripts = $rootPackage['scripts'] ?? [];
+
+        if (!is_array($scripts)) {
+            $scripts = [];
+        }
+
+        $usedPorts = extractUsedDevPorts($scripts);
+
+        $devPort = findFirstAvailablePort($usedPorts, $suggestedPort);
+
+        $devScriptName = 'dev:' . $bundleShortName;
+        $buildScriptName = 'build:' . $bundleShortName;
+
+        $scripts[$devScriptName] = "cd packages/$bundleKebab && vite --port $devPort";
+        $scripts[$buildScriptName] = "cd packages/$bundleKebab && vite build";
+
+        $devCommands = [];
+        foreach ($scripts as $scriptName => $scriptCommand) {
+            if (str_starts_with($scriptName, 'dev:')) {
+                $devCommands[] = '"npm run ' . $scriptName . '"';
+            }
+        }
+
+        sort($devCommands);
+        $scripts['dev'] = 'concurrently ' . implode(' ', $devCommands);
+
+        $rootPackage['scripts'] = $scripts;
+        file_put_contents($rootPackagePath, json_encode($rootPackage, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    }
+}
 
 // 6. Update root composer.json
 $rootComposerPath = $projectRoot . '/composer.json';
@@ -215,13 +430,22 @@ if (!str_contains($bundlesConfigRaw, "$bundlePascal\\$bundlePascal::class")) {
 regenerate_tools_registry($projectRoot);
 
 echo "- Updating PHP autoloading...\n";
-passthru("composer dump-autoload");
+runCommand('composer dump-autoload', $projectRoot);
 if (is_dir($projectRoot . '/back')) {
-    passthru("cd back && composer dump-autoload && bin/console cache:clear");
+    runCommand('composer dump-autoload', $projectRoot . '/back');
+    runCommand('bin/console cache:clear', $projectRoot . '/back');
+}
+
+echo "- Updating Node workspaces...\n";
+$pnpmVersionExitCode = runCommand('pnpm --version', $projectRoot);
+if ($pnpmVersionExitCode === 0) {
+    runCommand('pnpm install --prefer-offline --ignore-scripts', $projectRoot);
+} else {
+    echo "Warning: pnpm is not available. Skipping workspace install.\n";
 }
 
 echo "\nBundle $bundlePascal created successfully!\n";
 echo "Next steps:\n";
-echo "1. Run 'pnpm install' to link the new workspace.\n";
-echo "2. Update 'Makefile' if you want to add dev/build commands for this bundle.\n";
-echo "3. Front: la liste des outils a été mise à jour (shared/global-data/tools.generated.json).\n";
+echo "1. Le script dev/build du bundle a été ajouté au package.json racine.\n";
+echo "2. Front: la liste des outils a été mise à jour (shared/global-data/tools.generated.json).\n";
+echo "3. Lancez 'npm run dev:$bundleShortName' puis ouvrez $metaUrl pour vérifier la vue d'accueil.\n";
