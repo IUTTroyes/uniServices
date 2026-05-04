@@ -1,0 +1,42 @@
+name: PR review control
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+
+jobs:
+  check-review:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Enforce review rules
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const restrictedUser = "CyndelHerolt"; 
+            const approver = "CyndelHerolt";       
+
+            const pr = context.payload.pull_request;
+
+            // Cas 1 : tes propres PR → aucune contrainte
+            if (pr.user.login === restrictedUser) {
+              core.info("Owner PR: no review required");
+              return;
+            }
+
+            // Cas 2 : PR des autres → on vérifie les reviews
+            const reviews = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number
+            });
+
+            const approvedByOwner = reviews.data.some(
+              r => r.state === "APPROVED" && r.user.login === approver
+            );
+
+            if (!approvedByOwner) {
+              core.setFailed(
+                "PR must be approved by the repository owner before merging."
+              );
+            }
