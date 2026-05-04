@@ -326,4 +326,3 @@ Le déploiement est géré via CI/CD (à compléter avec les détails spécifiqu
 2. Documenter les nouvelles fonctionnalités
 3. Écrire des tests pour les nouvelles fonctionnalités
 4. Mettre à jour la documentation si nécessaire
-test
