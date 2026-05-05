@@ -64,7 +64,7 @@ class LoginFormAuthenticator extends AbstractAuthenticator
 
     public function onAuthenticationFailure(Request $request, AuthenticationException $exception): ?Response
     {
-        // Message générique pour ne pas révéler d'informations sur l'existence des comptes
+        // HelpdeskMessage générique pour ne pas révéler d'informations sur l'existence des comptes
         return new JsonResponse(['error' => 'Identifiants invalides'], JsonResponse::HTTP_UNAUTHORIZED);
     }
 }

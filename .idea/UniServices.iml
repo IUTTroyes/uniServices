@@ -16,6 +16,8 @@
       <sourceFolder url="file://$MODULE_DIR$/back/../packages/auth-bundle/src" isTestSource="false" packagePrefix="AuthBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/back/../packages/edt-bundle/src" isTestSource="false" packagePrefix="EdtBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/back/../packages/intranet-bundle/src" isTestSource="false" packagePrefix="IntranetBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/back/../packages/helpdesk-bundle/src" isTestSource="false" packagePrefix="HelpdeskBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/helpdesk-bundle/src" isTestSource="false" packagePrefix="HelpdeskBundle\" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/cache" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/collections" />
