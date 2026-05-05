@@ -1,19 +1,19 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Structure;
 
-use App\Entity\Service;
+use App\Entity\Structure\StructureService;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Service>
+ * @extends ServiceEntityRepository<StructureService>
  */
 class StructureServiceRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Service::class);
+        parent::__construct($registry, StructureService::class);
     }
 
     //    /**

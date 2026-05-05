@@ -1,9 +1,12 @@
 <?php
 
-namespace App\Entity;
+namespace HelpdeskBundle\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\Users\Personnel;
 use App\Repository\HelpdeskTicketRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -42,6 +45,28 @@ class HelpdeskTicket
 
     #[ORM\Column(length: 255)]
     private ?string $LifeCycle = null;
+
+    #[ORM\ManyToOne(inversedBy: 'ticket')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?HelpdeskCategorie $helpdeskCategorie = null;
+
+    /**
+     * @var Collection<int, HelpdeskMessage>
+     */
+    #[ORM\OneToMany(targetEntity: HelpdeskMessage::class, mappedBy: 'ticket')]
+    private Collection $helpdeskMessages;
+
+    #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Personnel $auteur = null;
+
+    #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
+    private ?Personnel $assigne = null;
+
+    public function __construct()
+    {
+        $this->helpdeskMessages = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -152,6 +177,72 @@ class HelpdeskTicket
     public function setLifeCycle(string $LifeCycle): static
     {
         $this->LifeCycle = $LifeCycle;
+
+        return $this;
+    }
+
+    public function getHelpdeskCategorie(): ?HelpdeskCategorie
+    {
+        return $this->helpdeskCategorie;
+    }
+
+    public function setHelpdeskCategorie(?HelpdeskCategorie $helpdeskCategorie): static
+    {
+        $this->helpdeskCategorie = $helpdeskCategorie;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, HelpdeskMessage>
+     */
+    public function getHelpdeskMessages(): Collection
+    {
+        return $this->helpdeskMessages;
+    }
+
+    public function addHelpdeskMessage(HelpdeskMessage $helpdeskMessage): static
+    {
+        if (!$this->helpdeskMessages->contains($helpdeskMessage)) {
+            $this->helpdeskMessages->add($helpdeskMessage);
+            $helpdeskMessage->setTicket($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHelpdeskMessage(HelpdeskMessage $helpdeskMessage): static
+    {
+        if ($this->helpdeskMessages->removeElement($helpdeskMessage)) {
+            // set the owning side to null (unless already changed)
+            if ($helpdeskMessage->getTicket() === $this) {
+                $helpdeskMessage->setTicket(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getAuteur(): ?Personnel
+    {
+        return $this->auteur;
+    }
+
+    public function setAuteur(?Personnel $auteur): static
+    {
+        $this->auteur = $auteur;
+
+        return $this;
+    }
+
+    public function getAssigne(): ?Personnel
+    {
+        return $this->assigne;
+    }
+
+    public function setAssigne(?Personnel $assigne): static
+    {
+        $this->assigne = $assigne;
 
         return $this;
     }

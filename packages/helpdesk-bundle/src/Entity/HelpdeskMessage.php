@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Entity;
+namespace HelpdeskBundle\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\Users\Personnel;
 use App\Repository\HelpDeskMessageRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -22,8 +23,13 @@ class HelpdeskMessage
     #[ORM\Column(length: 255)]
     private ?string $content = null;
 
-    #[ORM\Column(type: Types::SMALLINT)]
-    private ?int $ticket = null;
+    #[ORM\ManyToOne(inversedBy: 'helpdeskMessages')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?HelpdeskTicket $ticket = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Personnel $auteur = null;
 
     public function getId(): ?int
     {
@@ -54,14 +60,26 @@ class HelpdeskMessage
         return $this;
     }
 
-    public function getTicket(): ?int
+    public function getTicket(): ?HelpdeskTicket
     {
         return $this->ticket;
     }
 
-    public function setTicket(int $ticket): static
+    public function setTicket(?HelpdeskTicket $ticket): static
     {
         $this->ticket = $ticket;
+
+        return $this;
+    }
+
+    public function getAuteur(): ?Personnel
+    {
+        return $this->auteur;
+    }
+
+    public function setAuteur(?Personnel $auteur): static
+    {
+        $this->auteur = $auteur;
 
         return $this;
     }
