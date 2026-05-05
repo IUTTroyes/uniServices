@@ -1,0 +1,6 @@
+{
+    "name": "HelpDesk",
+    "description": "Syst\u00e8me de tickets",
+    "urlSlug": "helpdesk",
+    "url": "http://localhost:3004/helpdesk/"
+}

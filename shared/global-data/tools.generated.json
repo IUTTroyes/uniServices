@@ -6,6 +6,12 @@
         "url": "http://localhost:3003/edt/"
     },
     {
+        "name": "HelpDesk",
+        "description": "Syst\u00e8me de tickets",
+        "urlSlug": "helpdesk",
+        "url": "http://localhost:3004/helpdesk/"
+    },
+    {
         "name": "UniTranet",
         "description": "Gestion de la structure des formations et des \u00e9tudiants.",
         "urlSlug": "intranet",

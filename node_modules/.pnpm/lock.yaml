@@ -197,6 +197,8 @@ importers:
 
   packages/edt-bundle: {}
 
+  packages/helpdesk-bundle: {}
+
   packages/intranet-bundle: {}
 
   packages/unifolio-bundle: {}

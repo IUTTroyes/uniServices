@@ -40,6 +40,7 @@ return array(
     'Nette\\' => array($vendorDir . '/nette/utils/src'),
     'IntranetBundle\\Tests\\' => array($baseDir . '/packages/intranet-bundle/tests'),
     'IntranetBundle\\' => array($baseDir . '/packages/intranet-bundle/src'),
+    'HelpdeskBundle\\' => array($baseDir . '/packages/helpdesk-bundle/src'),
     'EdtBundle\\Tests\\' => array($baseDir . '/packages/edt-bundle/tests'),
     'EdtBundle\\' => array($baseDir . '/packages/edt-bundle/src'),
     'AuthBundle\\Tests\\' => array($baseDir . '/packages/auth-bundle/tests'),

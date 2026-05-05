@@ -7,7 +7,7 @@
         "shared/*"
     ],
     "scripts": {
-        "dev": "concurrently \"npm run dev:auth\" \"npm run dev:edt\" \"npm run dev:intranet\" \"npm run dev:unifolio\"",
+        "dev": "concurrently \"npm run dev:auth\" \"npm run dev:edt\" \"npm run dev:helpdesk\" \"npm run dev:intranet\" \"npm run dev:unifolio\"",
         "dev:auth": "cd packages/auth-bundle && vite --port 3000 --open",
         "dev:intranet": "cd packages/intranet-bundle && vite --port 3001",
         "dev:edt": "cd packages/edt-bundle && vite --port 3003",
@@ -15,7 +15,9 @@
         "build:auth": "cd packages/auth-bundle && vite build",
         "build:edt": "cd packages/edt-bundle && vite build",
         "build:intranet": "cd packages/intranet-bundle && vite build",
-        "build:unifolio": "cd packages/unifolio-bundle && vite build"
+        "build:unifolio": "cd packages/unifolio-bundle && vite build",
+        "dev:helpdesk": "cd packages/helpdesk-bundle && vite --port 3004",
+        "build:helpdesk": "cd packages/helpdesk-bundle && vite build"
     },
     "devDependencies": {
         "@primevue/auto-import-resolver": "^4.5.4",

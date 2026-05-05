@@ -40,7 +40,7 @@ class SecurityController extends AbstractController
     {
         $user = $this->getUser();
         if (!$user) {
-            // Message générique pour ne pas révéler si l'utilisateur existe ou non
+            // HelpdeskMessage générique pour ne pas révéler si l'utilisateur existe ou non
             return new JsonResponse(['error' => 'Identifiants invalides'], JsonResponse::HTTP_UNAUTHORIZED);
         }
 

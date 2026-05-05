@@ -109,7 +109,7 @@
           </div>
         </div>
 
-        <!-- Message d'introduction -->
+        <!-- HelpdeskMessage d'introduction -->
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Message d'introduction/présentation</h3>
           <ValidatedInput
@@ -122,7 +122,7 @@
           />
         </div>
 
-        <!-- Thank You Message -->
+        <!-- Thank You HelpdeskMessage -->
         <div>
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Message de remerciement</h3>
           <ValidatedInput

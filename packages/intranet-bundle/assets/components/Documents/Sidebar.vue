@@ -44,7 +44,7 @@
         </span>
       </button>
 
-      <!-- Categories -->
+      <!-- HelpdeskCategorie -->
       <div class="mt-6">
         <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
           Catégories

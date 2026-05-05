@@ -57,7 +57,8 @@
             "AuthBundle\\": "../packages/auth-bundle/src/",
             "EdtBundle\\": "../packages/edt-bundle/src/",
             "IntranetBundle\\": "../packages/intranet-bundle/src/",
-            "UnifolioBundle\\": "../packages/unifolio-bundle/src/"
+            "UnifolioBundle\\": "../packages/unifolio-bundle/src/",
+            "HelpdeskBundle\\": "../packages/helpdesk-bundle/src/"
         }
     },
     "autoload-dev": {
