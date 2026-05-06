@@ -37,10 +37,16 @@
 # OS files
 Thumbs.db
 
-# Bundle files
+# FIchiers node_modules
 vendor/
 **/node_modules/
 
-# fichiers de build
 
+# fichiers de build
 /back/public/**
+
+# exclure les fichiers github workflow CI-back, CI-front, CI-cypress
+/.github/workflows/CI-back.yml
+/.github/workflows/CI-front.yml
+/.github/workflows/CI-cypress.yml
+
