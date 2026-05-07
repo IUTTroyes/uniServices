@@ -3,9 +3,8 @@
 </script>
 
 <template>
-  <div class="card">
-    <h1>Test</h1>
-    <p>test</p>
+  <div class="m-5 mb-10">
+
   </div>
 
 </template>

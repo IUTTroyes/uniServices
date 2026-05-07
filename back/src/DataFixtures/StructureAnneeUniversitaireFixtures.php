@@ -39,7 +39,8 @@ class StructureAnneeUniversitaireFixtures extends Fixture implements OrderedFixt
         $pn2 = $this->pnRepository->findOneBy(['libelle' => 'PN BUT MMI DWEB']);
 
         $anneeUniversitaire1 = new StructureAnneeUniversitaire();
-        $anneeUniversitaire1->setLibelle('2023/2024')
+        $anneeUniversitaire1
+            ->setLibelle('2023/2024')
             ->setAnnee(2023)
             ->addPn($pn1)
             ->addPn($pn2)
