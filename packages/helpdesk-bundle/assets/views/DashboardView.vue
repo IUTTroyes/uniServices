@@ -1,50 +1,32 @@
 <script setup>
 import { computed,ref } from "vue";
-import { ArticleSkeleton } from "@components";
 import { formatDateLong } from "@helpers/date.js";
 import { useUsersStore } from "@stores";
 import TicketCard from "@/assets/components/TicketCard.vue";
+import {PermissionGuard} from "@components";
+import { useRouter } from 'vue-router';
+import {tickets} from '@/mocks/messages.js';
 
+const router = useRouter();
 const userStore = useUsersStore();
 const date = new Date();
+const checked = ref(false);
+
+const goToTicket = (id) => {
+  router.push({ name: 'TicketView', params: { id: id } });
+};
+const goToNewTicket=()=>{
+  router.push({ name: 'NewTicketView' });
+}
+
+const shouldShowMessage = computed(() => {
+  return checked.value || isScolarite.value;
+});
 
 const initiales = computed(
   () => `${userStore.user?.prenom?.charAt(0) || ""}${userStore.user?.nom?.charAt(0) || ""}`
 );
-const tickets = ref([
-  {
-    id: 1,
-    subject: 'Problème de vidéoprojecteur - Salle B204',
-    category: 'Matériel informatique',
-    statut: 'Nouveau',
-    desc: 'Bonjour, le vidéoprojecteur ne s\'allume plus. Le voyant clignote en rouge. J\'ai déjà essayé de débrancher et rebrancher, mais rien ne change.',
-    attachment: 'photo_erreur.jpg'
-  },
-  {
-    id: 2,
-    subject: 'Demande de badges pour les nouveaux arrivants',
-    category: 'Scolarité',
-    statut: 'En cours',
-    desc: 'Nous avons besoin de 3 nouveaux badges pour les intervenants qui arrivent lundi prochain. Merci de nous indiquer quand ils seront prêts.',
-    attachment: null
-  },
-  {
-    id: 3,
-    subject: 'Fuite d\'eau signalée au 2ème étage',
-    category: 'Maintenance',
-    statut: 'Urgent',
-    desc: 'Une fuite importante a été détectée dans les sanitaires du personnel au deuxième étage du bâtiment principal.',
-    attachment: 'fuite.png'
-  },
-  {
-    id: 4,
-    subject: 'Accès Wi-Fi bloqué pour les tablettes',
-    category: 'Réseau',
-    statut: 'En attente',
-    desc: 'Les tablettes de la classe mobile n\'arrivent plus à se connecter au réseau Wi-Fi de l\'IUT depuis la mise à jour de sécurité.',
-    attachment: 'logs_connexion.txt'
-  }
-]);
+
 </script>
 
 <template>
@@ -88,17 +70,34 @@ const tickets = ref([
     </div>
   </div>
   <div class="flex justify-end px-10 mb-5">
-    <Button class="w-100" label="Créer un ticket"  icon="pi pi-plus" />
+    <Button class="w-100" label="Créer un ticket" @click="goToNewTicket()" icon="pi pi-plus" />
   </div>
+
   <div class="card">
-    <Message icon="pi pi-info-circle" class="mt-2 mb-10">Nous traitons actuellement un volume élevé de tickets. Merci de limiter vos ouvertures de tickets aux besoins essentiels afin de nous aider à réduire les délais de réponse.
+
+    <Message  icon="pi pi-info-circle" class="mt-2 mb-10">
+      <PermissionGuard permission="isScolarite">
+      <div class="flex items-center gap-2 mb-4 border-b border-blue-100 pb-2">
+        <Checkbox id="checkbox" v-model="checked" binary />
+        <label for="checkbox" class="font-bold text-sm">Diffuser ce message à tous les utilisateurs</label>
+      </div>
+      </PermissionGuard>
+      <div :class="{'text-gray-700': true, 'italic': !checked && isScolarite}">
+        <span v-if="!checked && isScolarite" class="block mb-1 text-xs font-bold text-orange-500 uppercase">Aperçu (Masqué pour les autres) :</span>
+        Nous traitons actuellement un volume élevé de tickets. Merci de limiter vos ouvertures de tickets aux besoins essentiels afin de nous aider à réduire les délais de réponse.
+      </div>
+
     </Message>
     <div >
-      <h2>Mes derniers tickets</h2>
+      <div class="font-semibold text-xl">Mes derniers Tickets</div>
     </div>
     <div class="p-6">
       <div v-for="ticket in tickets" :key="ticket.id">
-        <TicketCard :ticket="ticket" />
+        <TicketCard
+            :ticket="ticket"
+            @click="goToTicket(ticket.id)"
+            class="cursor-pointer hover:shadow-md transition-shadow"
+        />
       </div>
     </div>
   </div>

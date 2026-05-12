@@ -6,6 +6,7 @@ import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
 import NewTicketView from '@/views/Agent/NewTicketView.vue';
 import MyTicketView from '@/views/Agent/MyTicketView.vue';
 import TicketListAdminView from '@/views/Personnel/TicketListAdminView.vue';
+import TicketView from '@/views/TicketView.vue'
 import dashboardRoutes from './modules/dashboardRoutes';
 
 // Define the menu structure
@@ -15,7 +16,7 @@ const intranetMenu = [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
             { label: 'Nouveau Ticket', icon: 'pi pi-fw pi-receipt', to: '/nouveauticket' },
             { label: 'Mes Tickets', icon: 'pi pi-fw pi-ticket', to: '/mestickets' },
-            { label: 'Tous les Tickets', icon: 'pi pi-fw pi-list', to: '/ticketsliste', permission: 'isPersonnel'},
+            { label: 'Tous les Tickets', icon: 'pi pi-fw pi-list', to: '/ticketsliste', permission: 'isPersonnel'}
         ]
     }
 ];
@@ -70,7 +71,7 @@ const router = createRouter({
                 ...dashboardRoutes,
                 {
                     path: '/nouveauticket',
-                    name: 'nouveauticket',
+                    name: 'NewTicketView',
                     component: NewTicketView,
                     meta: {
                         breadcrumb: [{ label: 'Dashboard', route: '/' }, {
@@ -82,7 +83,7 @@ const router = createRouter({
                 },
                 {
                     path: '/mestickets',
-                    name: 'mestickets',
+                    name: 'MyTicketView',
                     component: MyTicketView,
                     meta: {
                         breadcrumb: [{ label: 'Dashboard', route: '/' }, {
@@ -94,7 +95,7 @@ const router = createRouter({
                 },
                 {
                     path: '/ticketsliste',
-                    name: 'ticketsliste',
+                    name: 'TicketListAdminView',
                     component: TicketListAdminView,
                     meta: {
                         permission: 'isPersonnel',
@@ -106,6 +107,32 @@ const router = createRouter({
                         }]
                     }
                 },
+                {
+                    path: '/ticket',
+                    name: 'TicketView',
+                    component: TicketView,
+                    meta: {
+                        title: 'Ticket',
+                        breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+                            label: 'Tickets',
+                            route: null,
+                            icon: 'pi pi-wrench'
+                        }]
+                    }
+                },
+                {
+                    path: '/ticket/:id',
+                    name: 'TicketView',
+                    component: () => import('@/views/TicketView.vue'),
+                    props: true,
+                    meta: {
+                        breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+                            label: 'Ticket',
+                            route: null,
+                            icon: 'pi pi-wrench'
+                        }]
+                    },
+                }
             ],
         },
         {

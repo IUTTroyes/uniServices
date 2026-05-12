@@ -13,9 +13,13 @@ declare module 'vue' {
   export interface GlobalComponents {
     Button: typeof import('primevue/button')['default']
     Checkbox: typeof import('primevue/checkbox')['default']
+    Column: typeof import('primevue/column')['default']
     ConfirmDialog: typeof import('primevue/confirmdialog')['default']
+    DataTable: typeof import('primevue/datatable')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
     Divider: typeof import('primevue/divider')['default']
+    Fieldset: typeof import('primevue/fieldset')['default']
+    FileUpload: typeof import('primevue/fileupload')['default']
     IconField: typeof import('primevue/iconfield')['default']
     IftaLabel: typeof import('primevue/iftalabel')['default']
     InputIcon: typeof import('primevue/inputicon')['default']
@@ -30,7 +34,9 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']
+    SelectButton: typeof import('primevue/selectbutton')['default']
     Skeleton: typeof import('primevue/skeleton')['default']
+    SplitButton: typeof import('primevue/splitbutton')['default']
     Tab: typeof import('primevue/tab')['default']
     TabList: typeof import('primevue/tablist')['default']
     TabPanel: typeof import('primevue/tabpanel')['default']
@@ -39,6 +45,7 @@ declare module 'vue' {
     Tag: typeof import('primevue/tag')['default']
     Textarea: typeof import('primevue/textarea')['default']
     Toast: typeof import('primevue/toast')['default']
+    Toolbar: typeof import('primevue/toolbar')['default']
   }
   export interface GlobalDirectives {
     Ripple: typeof import('primevue/ripple')['default']

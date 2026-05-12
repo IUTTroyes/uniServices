@@ -1,4 +1,5 @@
 <script setup>
+
 const props = defineProps({
   ticket: {
     type: Object,
@@ -21,9 +22,9 @@ const getStatusClasses = (status) => {
   <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-md hover:shadow-lg transition-shadow mb-4">
     <div class="flex items-start justify-between gap-4 mb-3">
       <div class="flex-1">
-        <h3 class="text-lg font-bold text-gray-900 leading-tight">
+        <div class="font-semibold text-xl">
           {{ ticket.subject }}
-        </h3>
+        </div>
       </div>
 
       <div class="flex items-center gap-6">
@@ -39,14 +40,17 @@ const getStatusClasses = (status) => {
         </span>
       </div>
     </div>
-
-    <div class="text-gray-700 text-sm leading-relaxed mb-4 line-clamp-2">
-      {{ ticket.desc }}
+    <div class="text-sm  mb-4 line-clamp-2">
+      <p class="text-muted-color">{{ ticket.desc }}</p>
     </div>
-
-    <div v-if="ticket.attachment" class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded text-sm text-blue-800">
-      <i class="pi pi-file text-xs"></i>
-      <span>{{ ticket.attachment }}</span>
+    <div class="flex justify-between items-center w-full">
+      <div v-if="ticket.attachment" class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded text-sm text-blue-800">
+        <i class="pi pi-file text-xs"></i>
+        <span>{{ ticket.attachment }}</span>
+      </div>
+      <div v-permission="isPersonnel" class="flex justify-end">
+        <Button severity="secondary" icon="pi pi-plus" label="Ajouter une priorité"/>
+      </div>
     </div>
   </div>
 </template>
