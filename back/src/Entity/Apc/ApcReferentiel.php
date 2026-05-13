@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
+use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructurePn;
 use App\Entity\Structure\StructureTypeDiplome;
 use App\Repository\Apc\ApcReferentielRepository;
@@ -72,12 +73,15 @@ class ApcReferentiel
     /**
      * @var Collection<int, StructurePn>
      */
-    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'referentiel')]
+    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'apcReferentiel')]
     private Collection $pn;
 
     #[ORM\ManyToOne(inversedBy: 'referentiels')]
     //todo: pas nécessaire ??
     private StructureTypeDiplome $typeDiplome;
+
+    #[ORM\ManyToOne(inversedBy: 'referentiels')]
+    private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     public function __construct()
     {
@@ -237,6 +241,18 @@ class ApcReferentiel
     public function setTypeDiplome(StructureTypeDiplome $typeDiplome): static
     {
         $this->typeDiplome = $typeDiplome;
+
+        return $this;
+    }
+
+    public function getAnneeUniversitaire(): ?StructureAnneeUniversitaire
+    {
+        return $this->anneeUniversitaire;
+    }
+
+    public function setAnneeUniversitaire(?StructureAnneeUniversitaire $anneeUniversitaire): static
+    {
+        $this->anneeUniversitaire = $anneeUniversitaire;
 
         return $this;
     }

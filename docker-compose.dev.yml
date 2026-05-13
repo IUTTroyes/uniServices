@@ -1,0 +1,109 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    environment:
+      APP_ENV: dev
+      APP_DEBUG: "1"
+      MAILER_DSN: "smtp://maildev:1025"
+    volumes:
+      - ./back:/var/www/html/back
+      - ./packages:/var/www/html/packages
+      - ./shared:/var/www/html/shared
+    depends_on:
+      db:
+        condition: service_healthy
+
+  nginx:
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    volumes:
+      - ./docker/nginx/dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./back:/var/www/html/back
+
+  db:
+    ports:
+      - "${DB_PORT:-3306}:3306"
+
+  phpmyadmin:
+    image: arm64v8/phpmyadmin
+    container_name: uniservices-phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "${PHPMYADMIN_PORT:-8081}:80"
+    environment:
+      PMA_HOST: db
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - uniservices_net
+
+  maildev:
+    image: maildev/maildev
+    container_name: uniservices-maildev
+    command: bin/maildev --web 1080 --smtp 1025 --hide-extensions STARTTLS
+    restart: unless-stopped
+    ports:
+      - "${MAILDEV_PORT:-8082}:1080"
+    networks:
+      - uniservices_net
+
+  front-auth:
+    image: node:22-alpine
+    container_name: uniservices-front-auth
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install && pnpm run dev:auth --host"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - uniservices_net
+
+  front-intranet:
+    image: node:22-alpine
+    container_name: uniservices-front-intranet
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install && pnpm run dev:intranet --host"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - uniservices_net
+
+  front-edt:
+    image: node:22-alpine
+    container_name: uniservices-front-edt
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install && pnpm run dev:edt --host"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - uniservices_net
+
+  front-unifolio:
+    image: node:22-alpine
+    container_name: uniservices-front-unifolio
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install && pnpm run dev:unifolio --host"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - uniservices_net
+
+  front-helpdesk:
+    image: node:22-alpine
+    container_name: uniservices-front-helpdesk
+    working_dir: /app
+    command: sh -c "corepack enable && pnpm install && pnpm run dev:helpdesk --host"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - uniservices_net
+

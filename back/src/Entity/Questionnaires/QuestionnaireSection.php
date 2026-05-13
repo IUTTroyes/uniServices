@@ -48,7 +48,7 @@ class QuestionnaireSection
     #[Groups(['questionnaire_section:read'])]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'questionnaireSections')]
+    #[ORM\ManyToOne(inversedBy: 'sections')]
     private ?Questionnaire $questionnaire = null;
 
     #[ORM\Column(length: 255, nullable: true)]

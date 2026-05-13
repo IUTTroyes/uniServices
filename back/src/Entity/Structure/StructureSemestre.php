@@ -165,7 +165,7 @@ class StructureSemestre
     /**
      * @var Collection<int, StagePeriode>
      */
-    #[ORM\OneToMany(targetEntity: StagePeriode::class, mappedBy: 'semestreProgramme', orphanRemoval: true, cascade: ['remove'])]
+    #[ORM\ManyToMany(targetEntity: StagePeriode::class, inversedBy: 'semestresSaisie')]
     #[Groups(['semestre:detail'])]
     private Collection $stagePeriodes;
 

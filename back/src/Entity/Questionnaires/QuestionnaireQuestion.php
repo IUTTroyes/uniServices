@@ -73,7 +73,7 @@ class QuestionnaireQuestion
     #[Groups(['questionnaire_section:read'])]
     private ?array $choices = null;
 
-    #[ORM\ManyToOne(inversedBy: 'questionnaireQuestions')]
+    #[ORM\ManyToOne(inversedBy: 'questions')]
     private ?QuestionnaireSection $section = null;
 
     #[ORM\Column(type: UuidType::NAME)]

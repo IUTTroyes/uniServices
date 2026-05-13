@@ -3,10 +3,12 @@ doctrine:
         connections:
             default:
                 url: '%env(resolve:DATABASE_URL)%'
+                server_version: 'mariadb-10.8.8'
                 profiling_collect_backtrace: '%kernel.debug%'
                 use_savepoints: true
             copy:
                 url: '%env(resolve:DATABASE_URL_ORIGINAL)%'
+                server_version: 'mariadb-10.8.8'
         default_connection: default
 
         # IMPORTANT: You MUST configure your server version,

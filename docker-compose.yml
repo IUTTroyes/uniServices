@@ -1,0 +1,41 @@
+services:
+  php:
+    container_name: uniservices-php
+    restart: unless-stopped
+    networks:
+      - uniservices_net
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: uniservices-nginx
+    restart: unless-stopped
+    networks:
+      - uniservices_net
+    depends_on:
+      - php
+
+  db:
+    image: mariadb:10.8
+    container_name: uniservices-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - uniservices_net
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
+
+networks:
+  uniservices_net:
+    driver: bridge

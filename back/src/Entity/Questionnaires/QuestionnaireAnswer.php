@@ -23,10 +23,10 @@ class QuestionnaireAnswer
     #[ORM\ManyToOne(inversedBy: 'questionnaireReponses')]
     private ?QuestionnaireInvitation $invitation = null;
 
-    #[ORM\ManyToOne(inversedBy: 'questionnaireReponses')]
+    #[ORM\ManyToOne(inversedBy: 'answers')]
     private ?QuestionnaireSectionInstance $section = null;
 
-    #[ORM\ManyToOne(inversedBy: 'questionnaireReponses')]
+    #[ORM\ManyToOne(inversedBy: 'answers')]
     private ?QuestionnaireQuestion $question = null;
 
     #[ORM\Column]

@@ -58,7 +58,7 @@ class EtudiantAbsence
     #[ORM\ManyToOne(inversedBy: 'absence')]
     private ?EtudiantAbsenceJustificatif $absenceJustificatif = null;
 
-    #[ORM\ManyToOne(inversedBy: 'absence')]
+    #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?EtudiantScolariteSemestre $scolariteSemestre = null;
 

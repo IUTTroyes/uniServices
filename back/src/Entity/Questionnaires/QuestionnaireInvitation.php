@@ -18,7 +18,7 @@ class QuestionnaireInvitation
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'questionnaireInvitations')]
+    #[ORM\ManyToOne(inversedBy: 'invitations')]
     private ?Questionnaire $questionnaire = null;
 
     #[ORM\Column(length: 64, unique: true)]

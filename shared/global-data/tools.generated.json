@@ -15,12 +15,12 @@
         "name": "UniFolio",
         "description": "Outil de cr\u00e9ation et de gestion de portfolios universitaires.",
         "urlSlug": "unifolio",
-        "url": "/unifolio"
+        "url": "http://localhost:3002/unifolio/"
     },
     {
         "name": "Correcto",
         "description": "Plateforme de correction des travaux et des examens.",
         "urlSlug": "correcto",
-        "url": "/correcto"
+        "url": "http://localhost:3005/correcto/"
     }
 ]

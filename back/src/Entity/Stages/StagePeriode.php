@@ -39,13 +39,13 @@ class StagePeriode
     #[ORM\ManyToOne(inversedBy: 'stagePeriodes')]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
-    #[ORM\ManyToOne(inversedBy: 'stagePeriodes')]
+    #[ORM\ManyToOne]
     private ?StructureSemestre $semestreProgramme = null;
 
     /**
      * @var Collection<int, StructureSemestre>
      */
-    #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'stagePeriodes')]
+    #[ORM\ManyToMany(targetEntity: StructureSemestre::class, mappedBy: 'stagePeriodes')]
     private Collection $semestresSaisie;
 
     #[ORM\Column]
