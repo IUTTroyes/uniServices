@@ -40,6 +40,8 @@ Thumbs.db
 # FIchiers node_modules
 vendor/
 **/node_modules/
+# Dossier node_modules à la racine du projet
+/node_modules/
 
 
 # fichiers de build
