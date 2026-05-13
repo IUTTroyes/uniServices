@@ -1,5 +1,29 @@
 <script setup>
+import {ValidatedInput, validationRules} from "@components";
+import {getServicesService} from "@requests";
+import {ref,onMounted} from "vue";
 
+const createTicket=async()=>{
+  console.log('test')
+}
+
+const services=ref([])
+
+const getServices= async()=>{
+  try{
+    services.value=await getServicesService()
+  }
+  catch(error){
+    console.error('Erreur dans getServices',error);
+  }
+  finally {
+    console.log(services.value)
+  }
+}
+
+onMounted(async()=>{
+  await getServices()
+})
 </script>
 
 <template>
@@ -9,6 +33,7 @@
     <div>
       <div class="font-semibold text-xl mb-6">Créer un ticket</div>
     </div>
+    <form @submit.prevent="createTicket()">
     <div class="flex flex-col gap-2 pb-6">
       <label for="service">Sélectionner un service</label>
       <Select id="service" v-model="selectedService" :options="a" optionLabel="name" placeholder="Selectionnez un service" class="w-full md:w-70" />
@@ -31,6 +56,7 @@
     <div class="flex justify-end">
       <Button class="w-60 !bg-blue-400" type="submit" severity="info" label="Envoyer" />
     </div>
+    </form>
   </div>
 
 </template>

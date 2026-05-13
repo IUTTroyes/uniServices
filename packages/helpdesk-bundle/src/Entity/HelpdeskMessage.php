@@ -3,6 +3,7 @@
 namespace HelpdeskBundle\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\HelpDeskMessageRepository;
 use Doctrine\DBAL\Types\Types;
@@ -12,13 +13,11 @@ use Doctrine\ORM\Mapping as ORM;
 #[ApiResource]
 class HelpdeskMessage
 {
+    use LifeCycleTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
-
-    #[ORM\Column(length: 20)]
-    private ?string $author = null;
 
     #[ORM\Column(length: 255)]
     private ?string $content = null;
@@ -34,18 +33,6 @@ class HelpdeskMessage
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getAuthor(): ?string
-    {
-        return $this->author;
-    }
-
-    public function setAuthor(string $author): static
-    {
-        $this->author = $author;
-
-        return $this;
     }
 
     public function getContent(): ?string

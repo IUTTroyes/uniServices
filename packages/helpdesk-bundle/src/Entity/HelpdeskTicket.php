@@ -3,6 +3,7 @@
 namespace HelpdeskBundle\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\HelpdeskTicketRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -14,6 +15,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ApiResource]
 class HelpdeskTicket
 {
+    use LifeCycleTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -31,20 +33,8 @@ class HelpdeskTicket
     #[ORM\Column(type: Types::SMALLINT, nullable: true)]
     private ?int $priority = null;
 
-    #[ORM\Column(length: 20)]
-    private ?string $category = null;
-
-    #[ORM\Column(length: 50)]
-    private ?string $creator = null;
-
-    #[ORM\Column(length: 20, nullable: true)]
-    private ?string $assigned = null;
-
     #[ORM\Column(length: 50, nullable: true)]
     private ?string $file = null;
-
-    #[ORM\Column(length: 255)]
-    private ?string $LifeCycle = null;
 
     #[ORM\ManyToOne(inversedBy: 'ticket')]
     #[ORM\JoinColumn(nullable: false)]
@@ -121,42 +111,6 @@ class HelpdeskTicket
         return $this;
     }
 
-    public function getCategory(): ?string
-    {
-        return $this->category;
-    }
-
-    public function setCategory(string $category): static
-    {
-        $this->category = $category;
-
-        return $this;
-    }
-
-    public function getCreator(): ?string
-    {
-        return $this->creator;
-    }
-
-    public function setCreator(string $creator): static
-    {
-        $this->creator = $creator;
-
-        return $this;
-    }
-
-    public function getAssigned(): ?string
-    {
-        return $this->assigned;
-    }
-
-    public function setAssigned(?string $assigned): static
-    {
-        $this->assigned = $assigned;
-
-        return $this;
-    }
-
     public function getFile(): ?string
     {
         return $this->file;
@@ -168,19 +122,6 @@ class HelpdeskTicket
 
         return $this;
     }
-
-    public function getLifeCycle(): ?string
-    {
-        return $this->LifeCycle;
-    }
-
-    public function setLifeCycle(string $LifeCycle): static
-    {
-        $this->LifeCycle = $LifeCycle;
-
-        return $this;
-    }
-
     public function getHelpdeskCategorie(): ?HelpdeskCategorie
     {
         return $this->helpdeskCategorie;

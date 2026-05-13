@@ -26,23 +26,30 @@ class StructureServiceHelpdeskFixtures extends Fixture implements OrderedFixture
     {
         $listePersonnel = $this->personnelRepository->findAll();
 
-        // On ajoute $index pour savoir si on est sur la ligne 0, 1, 2, 3...
-        foreach ($listePersonnel as $index => $personne) {
-
-            $identifiant = $personne->getUsername();
+        for ($i = 0; $i < 1; $i++) {
             $service = new StructureService();
 
-            // Si l'index est pair (0, 2, 4...), on met 'Scolarité'
-            // Si l'index est impair (1, 3, 5...), on met 'Audiovisuel'
-            if ($index % 2 === 0) {
+            if ($i=0) {
+                foreach ($listePersonnel as $index => $personne) {
+                    if ($index % 2 === 0) {
+                        $service->addPersonnel($personne);
+                    }
+                    $manager->persist($service);
+                }
                 $service->setLibelle('Scolarité');
             } else {
+                foreach ($listePersonnel as $index => $personne) {
+                    if ($index % 2 !== 0) {
+                        $service->addPersonnel($personne);
+                    }
+                    $manager->persist($service);
+                }
                 $service->setLibelle('Audiovisuel');
             }
-
-            $service->setPersonnel($identifiant);
-            $manager->persist($service);
         }
+
+        // On ajoute $index pour savoir si on est sur la ligne 0, 1, 2, 3...
+
 
         $manager->flush();
     }

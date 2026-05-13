@@ -114,13 +114,6 @@ onMounted(() => {
         </template>
       </Column>
 
-      <Column field="statut" header="Statut" sortable style="width: 15%">
-        <template #body="slotProps">
-          <Skeleton v-if="isLoading" width="50%" />
-          <span v-else>{{ slotProps.data.statut }}</span>
-        </template>
-      </Column>
-
       <Column field="subject" header="Sujet" sortable style="width: 25%">
         <template #body="slotProps">
           <Skeleton v-if="isLoading" width="90%" />

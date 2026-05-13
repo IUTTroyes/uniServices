@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Structure\StructureService;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: HelpdeskCategorieRepository::class)]
 #[ApiResource]
@@ -21,11 +22,11 @@ class HelpdeskCategorie
     #[ORM\Column(length: 20)]
     private ?string $libelle = null;
 
-    #[ORM\Column(length: 20)]
-    private ?string $parent = null;
+    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
+    private ?self $parent = null;
 
-    #[ORM\Column(length: 20)]
-    private ?string $enfant = null;
+    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    private ?Collection $enfants;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskCategories')]
     #[ORM\JoinColumn(nullable: false)]

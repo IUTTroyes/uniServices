@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
+use App\Entity\Structure\StructureService;
 use HelpdeskBundle\Entity\HelpdeskTicket;
 use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
@@ -217,6 +218,12 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: HelpdeskTicket::class, mappedBy: 'auteur', orphanRemoval: true)]
     private Collection $helpdeskTickets;
 
+    /**
+     * @var Collection<int, StructureService>
+     */
+    #[ORM\ManyToMany(targetEntity: StructureService::class, mappedBy: 'personnel')]
+    private Collection $structureServices;
+
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
@@ -228,6 +235,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         $this->previsionnels = new ArrayCollection();
         $this->enseignantHrs = new ArrayCollection();
         $this->helpdeskTickets = new ArrayCollection();
+        $this->structureServices = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -844,6 +852,33 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
             if ($helpdeskTicket->getAuteur() === $this) {
                 $helpdeskTicket->setAuteur(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureService>
+     */
+    public function getStructureServices(): Collection
+    {
+        return $this->structureServices;
+    }
+
+    public function addStructureService(StructureService $structureService): static
+    {
+        if (!$this->structureServices->contains($structureService)) {
+            $this->structureServices->add($structureService);
+            $structureService->addPersonnel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStructureService(StructureService $structureService): static
+    {
+        if ($this->structureServices->removeElement($structureService)) {
+            $structureService->removePersonnel($this);
         }
 
         return $this;
