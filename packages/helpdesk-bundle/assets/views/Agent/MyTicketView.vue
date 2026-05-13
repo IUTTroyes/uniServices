@@ -1,10 +1,11 @@
 <script setup>
 
-import TicketCard from "@/assets/components/TicketCard.vue";
+import TicketCard from "@/components/TicketCard.vue";
 import { useUsersStore } from "@stores";
 import {computed, ref} from "vue";
 import {tickets} from '@/mocks/messages.js';
 import { useRouter } from 'vue-router';
+import {PermissionGuard} from "@components";
 
 const router = useRouter();
 const userStore = useUsersStore();
@@ -25,8 +26,8 @@ const initiales = computed(
       header="Filtrer par:"
       :pt="{
         root: '!border !border-violet-400 overflow-hidden',
-        header: '!bg-violet-100 !border-none',
-        content: '!bg-violet-100'
+        header: '!bg-violet-100 dark:!bg-violet-500  !border-none',
+        content: 'bg-violet-100 dark:bg-violet-500'
     }"
   >
       <div class="flex justify-center w-full py-4">
@@ -45,10 +46,12 @@ const initiales = computed(
           <label for="statut" class="mb-1 text-sm font-medium">Statut</label>
           <Select id="statut" v-model="selectedStatut" :options="statut" optionLabel="name" class="w-48" />
         </div>
-        <div v-permission="isPersonnel" class="flex flex-col">
-          <label for="assigne" class="mb-1 text-sm font-medium">Assignés</label>
-          <Select id="assigne" v-model="selectedAssigne" :options="assigne" optionLabel="name" class="w-48" />
-        </div>
+        <PermsissionGuard permission="isPersonnel">
+          <div class="flex flex-col">
+            <label for="assigne" class="mb-1 text-sm font-medium">Assignés</label>
+            <Select id="assigne" v-model="selectedAssigne" :options="assigne" optionLabel="name" class="w-48" />
+          </div>
+        </PermsissionGuard>
       </div>
     </div>
   </Panel>
@@ -66,5 +69,9 @@ const initiales = computed(
 </template>
 
 <style scoped>
-
+.bg-primary-light {
+  background-color: var(--p-tag-primary-background);
+  border: 1px solid var(--p-tag-primary-background);
+  color: var(--primary-color);
+}
 </style>
