@@ -41,6 +41,7 @@ Thumbs.db
 vendor/
 **/node_modules/
 packages/**/node_modules/
+.pnpm-store/
 
 # fichiers de build
 
