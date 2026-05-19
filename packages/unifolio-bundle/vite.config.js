@@ -22,6 +22,15 @@ export default defineConfig({
     outDir: path.resolve(__dirname, '../../back/public/unifolio'),
     emptyOutDir: true,
   },
+  server: {
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_URL || 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'assets'),
