@@ -110,7 +110,7 @@ const router = createRouter({
                 {
                     path: '/ticket',
                     name: 'TicketView',
-                    component: TicketView,
+                    component: 'TicketView',
                     meta: {
                         title: 'Ticket',
                         breadcrumb: [{ label: 'Dashboard', route: '/' }, {
@@ -126,7 +126,7 @@ const router = createRouter({
                     component: () => import('@/views/TicketView.vue'),
                     props: true,
                     meta: {
-                        breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+                        breadcrumb: [{ label: 'Dashboard', route: '/' },{ label: 'Mes Tickets', route: '/mestickets' }, {
                             label: 'Ticket',
                             route: null,
                             icon: 'pi pi-wrench'

@@ -43,15 +43,24 @@ onMounted(async()=>{
       <Select id="category" v-model="selectedCategory" :options="a" optionLabel="name" placeholder="Selectionnez une catégorie" class="w-full md:w-70" />
     </div>
     <div class="flex flex-col gap-2 pb-6">
-      <label for="subject">Sujet</label>
-      <InputText type="text" v-model="value" />
+      <FloatLabel variant="in">
+        <Textarea id="in_label" v-model="value2" rows="1" cols="150" style="resize: none" />
+        <label for="in_label">Sujet</label>
+      </FloatLabel>
     </div>
     <div class="flex flex-col gap-2 pb-6">
-      <label for="message">Message</label>
-      <Textarea id="message" v-model="value" rows="5" cols="30" />
+      <FloatLabel variant="in">
+        <Textarea id="in_label" v-model="value2" rows="5" cols="150" style="resize: none" />
+        <label for="in_label">Message</label>
+      </FloatLabel>
     </div>
     <div class="pb-6">
-    <FileUpload ref="fileupload" mode="basic" name="demo[]" url="/api/upload" accept="image/*" :maxFileSize="1000000" @upload="onUpload" />
+
+    <FileUpload ref="fileupload"  name="demo[]" url="/api/upload" accept="image/*,video/*,text/plain,.txt,.odt,.pdf" :maxFileSize="1000000" @upload="onUpload" >
+      <template #empty>
+        Joindre un fichier
+      </template>
+    </FileUpload>
     </div>
     <div class="flex justify-end">
       <Button class="w-60 !bg-blue-400" type="submit" severity="info" label="Envoyer" />

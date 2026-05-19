@@ -2,6 +2,9 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { tickets as mockTickets } from '@/mocks/messages.js';
+import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
+import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
+
 
 const router = useRouter();
 const isLoading = ref(true);
@@ -82,6 +85,20 @@ onMounted(() => {
 
 <template>
   <div class="card">
+
+    <div>
+      <Toolbar style="border:none">
+        <template #end>
+          <IconField>
+            <InputIcon>
+              <i class="pi pi-search" />
+            </InputIcon>
+            <InputText placeholder="Search" />
+          </IconField>
+        </template>
+      </Toolbar>
+    </div>
+
     <DataTable :value="isLoading ? skeletonItems : tickets" paginator :rows="10"
                :rowsPerPageOptions="[10, 50, 100]" stripedRows showGridlines
                tableStyle="min-width: 50rem">
@@ -142,8 +159,8 @@ onMounted(() => {
             <Skeleton shape="circle" size="2rem" />
           </div>
           <div v-else class="flex gap-2">
-            <Button icon="pi pi-pencil" severity="secondary" rounded outlined @click="modifierTicket(slotProps.data)"/>
-            <Button icon="pi pi-trash" severity="danger" rounded outlined @click="supprimerTicket(slotProps.data.id)"/>
+            <ButtonEdit tooltip="Modifier" @click="modifierTicket(slotProps.data)"/>
+            <ButtonDelete tooltip="Supprimer" @click="supprimerTicket(slotProps.data.id)"/>
           </div>
         </template>
       </Column>

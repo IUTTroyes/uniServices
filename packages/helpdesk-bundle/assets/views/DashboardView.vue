@@ -1,4 +1,4 @@
-<script setup>
+<script setup xmlns="http://www.w3.org/1999/html">
 import { computed,ref } from "vue";
 import { formatDateLong } from "@helpers/date.js";
 import { useUsersStore } from "@stores";
@@ -6,11 +6,14 @@ import TicketCard from "@/components/TicketCard.vue";
 import {PermissionGuard} from "@components";
 import { useRouter } from 'vue-router';
 import {tickets} from '@/mocks/messages.js';
+import {TabGroup, TabPanels} from "@headlessui/vue";
 
 const router = useRouter();
 const userStore = useUsersStore();
 const date = new Date();
 const checked = ref(false);
+const first = ref(0);
+const rows = ref(5);
 
 const goToTicket = (id) => {
   router.push({ name: 'TicketView', params: { id: id } });
@@ -18,6 +21,14 @@ const goToTicket = (id) => {
 const goToNewTicket=()=>{
   router.push({ name: 'NewTicketView' });
 }
+
+const onPageChange = (event) => {
+  first.value = event.first;
+};
+
+const paginatedTickets = computed(() => {
+  return tickets.slice(first.value, first.value + rows.value);
+});
 
 const shouldShowMessage = computed(() => {
   return checked.value || isScolarite.value;
@@ -85,14 +96,91 @@ const initiales = computed(
         <span v-if="!checked && isScolarite" class="block mb-1 text-xs font-bold text-orange-500 uppercase">Aperçu (Masqué pour les autres) :</span>
         Nous traitons actuellement un volume élevé de tickets. Merci de limiter vos ouvertures de tickets aux besoins essentiels afin de nous aider à réduire les délais de réponse.
     </Message>
-    <div >
-      <div class="font-semibold text-xl">Mes derniers Tickets</div>
+    <Tabs value="0">
+      <TabList class="mb-10">
+        <Tab value="0">Mes derniers Tickets</Tab>
+        <Tab value="1">Tickets Postés</Tab>
+        <PermissionGuard permission="isPersonnel">
+        <Tab value="2">Tickets Reçus</Tab>
+        </PermissionGuard>
+      </TabList>
+      <TabGroup>
+      <TabPanels>
+        <TabPanel value="0">
+
+    <div>
+      <Toolbar style="border:none">
+        <template #start>
+        <div class="font-semibold text-xl">Mes derniers Tickets</div>
+        </template>
+        <template #end>
+          <IconField>
+            <InputIcon>
+              <i class="pi pi-search" />
+            </InputIcon>
+            <InputText placeholder="Search" />
+          </IconField>
+        </template>
+      </Toolbar>
     </div>
+
     <div class="p-6">
-      <div v-for="ticket in tickets" :key="ticket.id">
+      <div v-for="ticket in paginatedTickets" :key="ticket.id">
         <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
       </div>
+      <Paginator :first="first" :rows="rows" :totalRecords="tickets.length" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" class="mt-4 bg-transparent border-none"
+      />
     </div>
+        </TabPanel>
+        <TabPanel value="1">
+          <div>
+            <Toolbar style="border:none">
+              <template #start>
+                <div class="font-semibold text-xl">Tickets Postés</div>
+              </template>
+              <template #end>
+                <IconField>
+                  <InputIcon>
+                    <i class="pi pi-search" />
+                  </InputIcon>
+                  <InputText placeholder="Search" />
+                </IconField>
+              </template>
+            </Toolbar>
+          </div>
+        <div class="p-6">
+          <div v-for="ticket in tickets" :key="ticket.id">
+            <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
+          </div>
+        </div>
+      </TabPanel>
+        <TabPanel value="2">
+
+          <div>
+            <Toolbar style="border:none">
+              <template #start>
+                <div class="font-semibold text-xl">Tickets Reçus</div>
+              </template>
+              <template #end>
+                <IconField>
+                  <InputIcon>
+                    <i class="pi pi-search" />
+                  </InputIcon>
+                  <InputText placeholder="Search" />
+                </IconField>
+              </template>
+            </Toolbar>
+          </div>
+
+          <div class="p-6">
+            <div v-for="ticket in tickets" :key="ticket.id">
+              <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
+            </div>
+          </div>
+        </TabPanel>
+      </TabPanels>
+      </TabGroup>
+    </Tabs>
   </div>
   </div>
 </template>
