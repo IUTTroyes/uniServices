@@ -40,7 +40,7 @@ Thumbs.db
 # Bundle files
 vendor/
 **/node_modules/
-packages/edt-bundle/node_modules/
+packages/**/node_modules/
 
 # fichiers de build
 
