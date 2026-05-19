@@ -16,7 +16,7 @@ const intranetMenu = [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
             { label: 'Nouveau Ticket', icon: 'pi pi-fw pi-receipt', to: '/nouveauticket' },
             { label: 'Mes Tickets', icon: 'pi pi-fw pi-ticket', to: '/mestickets' },
-            { label: 'Tous les Tickets', icon: 'pi pi-fw pi-list', to: '/ticketsliste', permission: 'isPersonnel'}
+            { label: 'Tous les Tickets', icon: 'pi pi-fw pi-list', to: '/ticketsliste', permission: 'isPersonnelService'}
         ]
     }
 ];

@@ -3,6 +3,7 @@
 namespace HelpdeskBundle\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 use App\Repository\HelpdeskCategorieRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -11,25 +12,40 @@ use App\Entity\Structure\StructureService;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: HelpdeskCategorieRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            normalizationContext: ['groups' => ['category:read']],
+        ),
+        new GetCollection(
+            uriTemplate: '/mini/structure_services',
+            normalizationContext: ['groups' => ['category:light']],
+        )
+    ]
+)]
 class HelpdeskCategorie
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['category:light','category:read','service:read','service:form_ticket'])]
     private ?int $id = null;
 
-    #[ORM\Column(length: 20)]
+    #[ORM\Column(length: 255)]
+    #[Groups(['category:light','category:read','service:read','service:form_ticket'])]
     private ?string $libelle = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
+    #[Groups(['category:read','service:read','service:form_ticket'])]
     private ?self $parent = null;
 
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    #[Groups(['category:read','service:read','service:form_ticket'])]
     private ?Collection $enfants;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskCategories')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['category:read','service:read'])]
     private ?StructureService $service = null;
 
     /**
@@ -60,28 +76,24 @@ class HelpdeskCategorie
         return $this;
     }
 
-    public function getParent(): ?string
+    public function getParent(): ?HelpdeskCategorie
     {
         return $this->parent;
     }
 
-    public function setParent(string $parent): static
+    public function setParent(?HelpdeskCategorie $parent): void
     {
         $this->parent = $parent;
-
-        return $this;
     }
 
-    public function getEnfant(): ?string
+    public function getEnfants(): ?Collection
     {
-        return $this->enfant;
+        return $this->enfants;
     }
 
-    public function setEnfant(string $enfant): static
+    public function setEnfants(?Collection $enfants): void
     {
-        $this->enfant = $enfant;
-
-        return $this;
+        $this->enfants = $enfants;
     }
 
     public function getService(): ?StructureService

@@ -3,35 +3,56 @@
 namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureServiceRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use HelpdeskBundle\Entity\HelpdeskCategorie;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureServiceRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            normalizationContext: ['groups' => ['service:read']],
+        ),
+        new GetCollection(
+            uriTemplate: '/mini/structure_services',
+            normalizationContext: ['groups' => ['service:light']],
+        ),
+        new GetCollection(
+            uriTemplate: '/form_ticket/structure_services',
+            normalizationContext: ['groups' => ['service:form_ticket']],
+        )
+    ]
+)]
+
 class StructureService
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['service:read','service:light','service:form_ticket'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['service:read','service:light','service:form_ticket'])]
     private ?string $libelle = null;
 
     /**
      * @var Collection<int, HelpdeskCategorie>
      */
     #[ORM\OneToMany(targetEntity: HelpdeskCategorie::class, mappedBy: 'service', orphanRemoval: true)]
+    #[Groups(['service:read','service:form_ticket'])]
     private Collection $helpdeskCategories;
 
     /**
      * @var Collection<int, Personnel>
      */
     #[ORM\ManyToMany(targetEntity: Personnel::class, inversedBy: 'structureServices')]
+    #[Groups(['service:read'])]
     private Collection $personnel;
 
     public function __construct()

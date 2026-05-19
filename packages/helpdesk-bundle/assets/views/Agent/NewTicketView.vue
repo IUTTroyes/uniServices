@@ -8,10 +8,11 @@ const createTicket=async()=>{
 }
 
 const services=ref([])
+const selectedService=ref(null)
 
 const getServices= async()=>{
   try{
-    services.value=await getServicesService()
+    services.value=await getServicesService({},'/form_ticket')
   }
   catch(error){
     console.error('Erreur dans getServices',error);
@@ -35,8 +36,18 @@ onMounted(async()=>{
     </div>
     <form @submit.prevent="createTicket()">
     <div class="flex flex-col gap-2 pb-6">
-      <label for="service">Sélectionner un service</label>
-      <Select id="service" v-model="selectedService" :options="a" optionLabel="name" placeholder="Selectionnez un service" class="w-full md:w-70" />
+      <ValidatedInput
+        v-model="selectedService"
+        :options="(services.map(service=>({label:service.libelle,value:service.id})))"
+        name="services"
+        type="select"
+        label="Services"
+        :rules="[]"
+        class=""
+        :show-clear="false"
+        ></ValidatedInput>
+      <!--<label for="service">Sélectionner un service</label>
+      <Select id="service" v-model="selectedService" :options="a" optionLabel="name" placeholder="Selectionnez un service" class="w-full md:w-70" />-->
     </div>
     <div class="flex flex-col gap-2 pb-6">
       <label for="category">Sélectionner une catégorie</label>

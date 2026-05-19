@@ -26,10 +26,10 @@ class StructureServiceHelpdeskFixtures extends Fixture implements OrderedFixture
     {
         $listePersonnel = $this->personnelRepository->findAll();
 
-        for ($i = 0; $i < 1; $i++) {
+        for ($i = 0; $i < 2; $i++) {
             $service = new StructureService();
 
-            if ($i=0) {
+            if ($i===0) {
                 foreach ($listePersonnel as $index => $personne) {
                     if ($index % 2 === 0) {
                         $service->addPersonnel($personne);
@@ -47,8 +47,6 @@ class StructureServiceHelpdeskFixtures extends Fixture implements OrderedFixture
                 $service->setLibelle('Audiovisuel');
             }
         }
-
-        // On ajoute $index pour savoir si on est sur la ligne 0, 1, 2, 3...
 
 
         $manager->flush();

@@ -30,9 +30,9 @@ const paginatedTickets = computed(() => {
   return tickets.slice(first.value, first.value + rows.value);
 });
 
-const shouldShowMessage = computed(() => {
+/*const shouldShowMessage = computed(() => {
   return checked.value || isScolarite.value;
-});
+});*/
 
 const initiales = computed(
   () => `${userStore.user?.prenom?.charAt(0) || ""}${userStore.user?.nom?.charAt(0) || ""}`
@@ -93,14 +93,14 @@ const initiales = computed(
         <label for="checkbox" class="font-bold text-sm">Afficher ce message pour tous les utilisateurs</label>
       </div>
       </PermissionGuard>
-        <span v-if="!checked && isScolarite" class="block mb-1 text-xs font-bold text-orange-500 uppercase">Aperçu (Masqué pour les autres) :</span>
+       <!-- <span v-if="!checked && isScolarite" class="block mb-1 text-xs font-bold text-orange-500 uppercase">Aperçu (Masqué pour les autres) :</span> -->
         Nous traitons actuellement un volume élevé de tickets. Merci de limiter vos ouvertures de tickets aux besoins essentiels afin de nous aider à réduire les délais de réponse.
     </Message>
     <Tabs value="0">
       <TabList class="mb-10">
         <Tab value="0">Mes derniers Tickets</Tab>
         <Tab value="1">Tickets Postés</Tab>
-        <PermissionGuard permission="isPersonnel">
+        <PermissionGuard permission="isPersonnelService">
         <Tab value="2">Tickets Reçus</Tab>
         </PermissionGuard>
       </TabList>
