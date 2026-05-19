@@ -41,3 +41,5 @@ Thumbs.db
 vendor/
 **/node_modules/
 
+.pnpm-store/
+
