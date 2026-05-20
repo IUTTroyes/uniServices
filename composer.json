@@ -4,6 +4,8 @@
         "symplify/monorepo-builder": "^12.5"
     },
     "require": {
+        "doctrine/doctrine-bundle": "*",
+        "doctrine/orm": "*",
         "php": "^8.2",
         "symfony/framework-bundle": "^7.0",
         "symfony/http-kernel": "^7.0"
@@ -12,15 +14,16 @@
         "psr-4": {
             "AuthBundle\\": "packages/auth-bundle/src/",
             "EdtBundle\\": "packages/edt-bundle/src/",
+            "HelpdeskBundle\\": "packages/helpdesk-bundle/src/",
             "IntranetBundle\\": "packages/intranet-bundle/src/",
-            "UnifolioBundle\\": "packages/unifolio-bundle/src/",
-            "HelpdeskBundle\\": "packages/helpdesk-bundle/src/"
+            "UnifolioBundle\\": "packages/unifolio-bundle/src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
             "AuthBundle\\Tests\\": "packages/auth-bundle/tests/",
             "EdtBundle\\Tests\\": "packages/edt-bundle/tests/",
+            "HelpdeskBundle\\Tests\\": "packages/helpdesk-bundle/tests/",
             "IntranetBundle\\Tests\\": "packages/intranet-bundle/tests/"
         }
     },
@@ -33,8 +36,8 @@
     "replace": {
         "iuttroyes/auth-bundle": "self.version",
         "iuttroyes/edt-bundle": "self.version",
+        "iuttroyes/helpdesk-bundle": "self.version",
         "iuttroyes/intranet-bundle": "self.version",
-        "iuttroyes/unifolio-bundle": "self.version",
-        "iuttroyes/helpdesk-bundle": "self.version"
+        "iuttroyes/unifolio-bundle": "self.version"
     }
 }
