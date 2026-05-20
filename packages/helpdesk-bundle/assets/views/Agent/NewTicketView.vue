@@ -1,6 +1,7 @@
 <script setup>
 import {ValidatedInput, validationRules} from "@components";
 import {getServicesService} from "@requests";
+import {getCategoriesService} from "@requests";
 import {ref,onMounted} from "vue";
 
 const createTicket=async()=>{
@@ -9,6 +10,8 @@ const createTicket=async()=>{
 
 const services=ref([])
 const selectedService=ref(null)
+const categories=ref([])
+const selectedCategorie=ref(null)
 
 const getServices= async()=>{
   try{
@@ -22,8 +25,22 @@ const getServices= async()=>{
   }
 }
 
+const getCategories= async()=>{
+  try{
+    categories.value=await getCategoriesService({},'/form_ticket')
+  }
+  catch(error){
+    console.error('Erreur dans getCategories',error);
+  }
+  finally {
+    console.log(categories.value)
+  }
+}
+
+
 onMounted(async()=>{
   await getServices()
+  await getCategories()
 })
 </script>
 
@@ -46,12 +63,19 @@ onMounted(async()=>{
         class=""
         :show-clear="false"
         ></ValidatedInput>
-      <!--<label for="service">Sélectionner un service</label>
-      <Select id="service" v-model="selectedService" :options="a" optionLabel="name" placeholder="Selectionnez un service" class="w-full md:w-70" />-->
+
     </div>
     <div class="flex flex-col gap-2 pb-6">
-      <label for="category">Sélectionner une catégorie</label>
-      <Select id="category" v-model="selectedCategory" :options="a" optionLabel="name" placeholder="Selectionnez une catégorie" class="w-full md:w-70" />
+      <ValidatedInput
+          v-model="selectedCategorie"
+          :options="(categories.map(service=>({label:categorie.libelle,value:categorie.id})))"
+          name="categories"
+          type="select"
+          label="Categories"
+          :rules="[]"
+          class=""
+          :show-clear="false"
+      ></ValidatedInput>
     </div>
     <div class="flex flex-col gap-2 pb-6">
       <FloatLabel variant="in">

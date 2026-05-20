@@ -4,7 +4,7 @@ namespace HelpdeskBundle\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
-use App\Repository\HelpdeskCategorieRepository;
+use HelpdeskBundle\Repository\HelpdeskCategorieRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -20,6 +20,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(
             uriTemplate: '/mini/structure_services',
             normalizationContext: ['groups' => ['category:light']],
+        ),
+        new GetCollection(
+            uriTemplate: '/form_ticket/helpdesk_categories',
+            normalizationContext: ['groups' => ['category:form_ticket']],
         )
     ]
 )]
@@ -28,11 +32,11 @@ class HelpdeskCategorie
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['category:light','category:read','service:read','service:form_ticket'])]
+    #[Groups(['category:light','category:read','service:read','service:form_ticket','category:form_ticket'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['category:light','category:read','service:read','service:form_ticket'])]
+    #[Groups(['category:light','category:read','service:read','service:form_ticket','category:form_ticket'])]
     private ?string $libelle = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
