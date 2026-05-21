@@ -28,7 +28,6 @@ services:
       - front-intranet
       - front-edt
       - front-unifolio
-      - front-helpdesk
 
   db:
     ports:
@@ -59,66 +58,87 @@ services:
     networks:
       - uniservices_net
 
+  installer:
+    image: node:22-alpine
+    container_name: uniservices-installer
+    working_dir: /app
+    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && pnpm install"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    networks:
+      - uniservices_net
+
   front-auth:
     image: node:22-alpine
     container_name: uniservices-front-auth
     working_dir: /app
-    command: sh -c "corepack enable && pnpm install && pnpm run dev:auth --host"
+    command: sh -c "corepack enable && pnpm run dev:auth --host --no-open"
     volumes:
       - .:/app
-      - font_auth_modules:/app/node_modules
+      - node_modules:/app/node_modules
+    environment:
+      VITE_API_URL: http://nginx:80
+      VITE_HMR_CLIENT_PORT: ${WEB_PORT:-8080}
     networks:
       - uniservices_net
+    depends_on:
+      installer:
+        condition: service_completed_successfully
 
   front-intranet:
     image: node:22-alpine
     container_name: uniservices-front-intranet
     working_dir: /app
-    command: sh -c "corepack enable && pnpm install && pnpm run dev:intranet --host"
+    command: sh -c "corepack enable && pnpm run dev:intranet --host"
     volumes:
       - .:/app
-      - font_intranet_modules:/app/node_modules
+      - node_modules:/app/node_modules
+    environment:
+      VITE_API_URL: http://nginx:80
+      VITE_HMR_CLIENT_PORT: ${WEB_PORT:-8080}
     networks:
       - uniservices_net
+    depends_on:
+      installer:
+        condition: service_completed_successfully
 
   front-edt:
     image: node:22-alpine
     container_name: uniservices-front-edt
     working_dir: /app
-    command: sh -c "corepack enable && pnpm install && pnpm run dev:edt --host"
+    command: sh -c "corepack enable && pnpm run dev:edt --host"
     volumes:
       - .:/app
-      - front_edt_modules:/app/node_modules
+      - node_modules:/app/node_modules
+    environment:
+      VITE_API_URL: http://nginx:80
+      VITE_HMR_CLIENT_PORT: ${WEB_PORT:-8080}
     networks:
       - uniservices_net
+    depends_on:
+      installer:
+        condition: service_completed_successfully
 
   front-unifolio:
     image: node:22-alpine
     container_name: uniservices-front-unifolio
     working_dir: /app
-    command: sh -c "corepack enable && pnpm install && pnpm run dev:unifolio --host"
+    command: sh -c "corepack enable && pnpm run dev:unifolio --host"
     volumes:
       - .:/app
-      - front_unifolio_modules:/app/node_modules
+      - node_modules:/app/node_modules
+    environment:
+      VITE_API_URL: http://nginx:80
+      VITE_HMR_CLIENT_PORT: ${WEB_PORT:-8080}
     networks:
       - uniservices_net
-
-  front-helpdesk:
-    image: node:22-alpine
-    container_name: uniservices-front-helpdesk
-    working_dir: /app
-    command: sh -c "corepack enable && pnpm install && pnpm run dev:helpdesk --host"
-    volumes:
-      - .:/app
-      - front_helpdesk_modules:/app/node_modules
-    networks:
-      - uniservices_net
+    depends_on:
+      installer:
+        condition: service_completed_successfully
 
 volumes:
-  front_auth_modules:
-  front_intranet_modules:
-  front_edt_modules:
-  front_unifolio_modules:
-  front_helpdesk_modules:
+  node_modules:
 
-
+networks:
+  uniservices_net:

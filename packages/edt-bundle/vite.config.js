@@ -23,6 +23,11 @@ export default defineConfig({
     emptyOutDir: true,
   },
   server: {
+    host: '0.0.0.0',
+    port: 3003,
+    hmr: {
+      clientPort: parseInt(process.env.VITE_HMR_CLIENT_PORT || '8080'),
+    },
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://localhost:8000',
@@ -31,6 +36,7 @@ export default defineConfig({
       },
     },
   },
+
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'assets'),
