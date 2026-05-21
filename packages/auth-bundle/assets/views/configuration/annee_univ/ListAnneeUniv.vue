@@ -2,12 +2,8 @@
 import {ref, onMounted, computed} from "vue";
 import { useRouter } from "vue-router";
 import { useAnneeUnivStore } from "@stores";
-import {ErrorView} from "@components";
+import {ErrorView, ListSkeleton, ButtonInfo, ButtonEdit, ButtonDelete, ButtonSave} from "@components";
 import {deleteAnneeUniversitaireService} from "@requests";
-import ButtonInfo from "@components/components/Buttons/ButtonInfo.vue";
-import ButtonEdit from "@components/components/Buttons/ButtonEdit.vue";
-import ButtonDelete from "@components/components/Buttons/ButtonDelete.vue";
-import ButtonSave from "@components/components/Buttons/ButtonSave.vue";
 
 const router = useRouter();
 const hasError = ref(false);
@@ -85,12 +81,16 @@ const editAnneeUniv = (anneeUniv) => {
 
 <template>
   <div class="card">
-    <div class="card-title mb-8">
-      <h1 class="text-2xl! mb-0! font-bold">Années Universitaires</h1>
-      <p class="text-muted-color">Gérez les années universitaires.</p>
+    <div class="card-title mb-8 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl! mb-0! font-bold">Années Universitaires</h1>
+        <p class="text-muted-color">Gérez les années universitaires.</p>
+      </div>
+      <Button severity="primary" label="Créer une année universitaire" icon="pi pi-plus" @click="router.push({ name: 'annee-universitaire-new' })"/>
     </div>
 
     <ErrorView v-if="hasError"/>
+    <ListSkeleton v-else-if="isLoadingAnneesUniv" :count="5" />
     <template v-else>
       <Message v-if="!currentAnneeUniv" severity="error" class="mb-4 flex items-center justify-center">
         <i class="pi pi-exclamation-triangle text-red-500 text-3xl mb-2 mr-2"></i>
@@ -116,8 +116,12 @@ const editAnneeUniv = (anneeUniv) => {
         <Column field="commentaire" header="Commentaire"></Column>
         <Column header="Actions" :showFilterMenu="false">
           <template #body="slotProps">
-            <ButtonInfo tooltip="Voir les diplômes" icon="pi pi-book" @click="viewDiplomes(slotProps.data)" />
-            <ButtonEdit tooltip="Modifier l'année universitaire" icon="pi pi-pencil" @click="editAnneeUniv(slotProps.data)" />
+            <router-link :to="{ name: 'annee-universitaire-diplomes', params: { id: slotProps.data.id } }">
+              <ButtonInfo tooltip="Voir les diplômes" icon="pi pi-book"/>
+            </router-link>
+            <router-link :to="{ name: 'annee-universitaire-edit', params: { id: slotProps.data.id } }">
+              <ButtonEdit tooltip="Modifier l'année universitaire" icon="pi pi-pencil" />
+            </router-link>
             <ButtonSave tooltip="Activer l'année universitaire" icon="pi pi-check" @confirm-save="activateAnneeUniv(slotProps.data)" :disabled="slotProps.data.actif" />
             <ButtonDelete tooltip="Supprimer l'année universitaire" icon="pi pi-trash" @confirm-delete="deleteAnneeUniv(slotProps.data)" :disabled="slotProps.data.actif" />
           </template>

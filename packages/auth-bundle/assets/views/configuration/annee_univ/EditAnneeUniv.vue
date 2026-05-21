@@ -155,16 +155,25 @@ const updateAnneeUniv = async () => {
   }
 };
 
-const cancel = () => {
-  router.push('/super-administration/annees-universitaires');
+const goBack = () => {
+  router.push('/configuration/annees-universitaires');
 };
 </script>
 
 <template>
   <div class="card">
     <div class="card-title mb-8">
-      <h1 class="text-2xl! font-bold mb-0!">Modifier l'Année Universitaire</h1>
-      <p class="text-muted-color">Modifiez les informations de l'année universitaire.</p>
+      <div class="flex items-center gap-4 justify-between">
+        <div class="flex items-center gap-4">
+          <Button icon="pi pi-arrow-left" severity="secondary" text rounded @click="goBack" v-tooltip.top="'Retour'" />
+          <div>
+            <h1 class="text-2xl! mb-0! font-bold">Modifier l'Année Universitaire</h1>
+            <p class="text-muted-color" v-if="anneeUniv">
+              Année universitaire <strong>{{ anneeUniv.libelle }}</strong>
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <ErrorView v-if="hasError"/>
@@ -271,7 +280,7 @@ const cancel = () => {
 
           <div class="flex justify-center items-center gap-4 mt-4">
             <Button label="Enregistrer les modifications" type="submit" :disabled="!formValid" />
-            <Button label="Annuler" severity="secondary" @click="cancel" />
+            <Button label="Annuler" severity="secondary" @click="goBack()" />
           </div>
         </form>
         <template #fallback>

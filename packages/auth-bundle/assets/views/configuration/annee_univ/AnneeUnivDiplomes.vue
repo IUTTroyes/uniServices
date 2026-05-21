@@ -4,7 +4,7 @@ import {useRoute, useRouter} from "vue-router";
 import {Access, ErrorView, ListSkeleton, PermissionGuard} from "@components";
 import {getAnneeUniversitaireService, getPns, deletePnService, deleteDiplomeFromAnneeUnivService} from "@requests";
 import ButtonInfo from "@components/components/Buttons/ButtonInfo.vue";
-import ButtonDelete from "@components/components/Buttons/ButtonDelete.vue";
+import ButtonDelete from "../../../../../../shared/components/components/Buttons/ButtonDelete.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -83,7 +83,7 @@ const viewDiplome = (diplome) => {
 };
 
 const goBack = () => {
-  router.push('/super-administration/annees-universitaires');
+  router.push('/configuration/annees-universitaires');
 };
 
 const deletePn = async (pnId) => {

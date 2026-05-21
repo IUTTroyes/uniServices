@@ -12,16 +12,13 @@ const panelMenuUserItems = [
 ]
 
 const panelMenuItems = [
-  { label: 'Types de diplômes', icon: 'pi pi-list', route: '/configuration/type-diplome' },
-  { label: 'Années Universitaires', icon: 'pi pi-clock', route: '/configuration/annee-universitaire' },
+  { label: 'Années Universitaires', icon: 'pi pi-clock', route: '/configuration/annees-universitaires' },
 ]
 
 </script>
 
 <template>
-  <ErrorView v-if="hasError"/>
-  <div v-else class="h-full">
-
+  <div class="h-full">
     <div class="card">
       <div class="card-body flex flex-col gap-10">
         <Fieldset class="w-full">

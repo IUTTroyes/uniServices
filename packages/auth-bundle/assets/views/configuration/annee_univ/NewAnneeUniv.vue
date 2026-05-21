@@ -3,7 +3,7 @@ import {ref, onMounted, computed} from "vue";
 import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton, Access } from "@components";
 import {useAnneeUnivStore} from "@stores";
 import {createAnneeUniversitaireService, getDiplomesService} from "@requests";
-import router from "@/router/index.js";
+import router from "@/router";
 
 const hasError = ref(false);
 
@@ -135,13 +135,25 @@ const getDiplomes = async () => {
     isLoadingDiplomes.value = false;
   }
 };
+
+const goBack = () => {
+  router.push('/configuration/annees-universitaires');
+};
 </script>
 
 <template>
   <div class="card">
     <div class="card-title mb-8">
-      <h1 class="text-2xl! mb-0! font-bold">Nouvelle année universitaire</h1>
-      <p class="text-muted-color">Créez une nouvelle année universitaire.</p>
+      <div class="flex items-center gap-4 justify-between">
+        <div class="flex items-center gap-4">
+          <Button icon="pi pi-arrow-left" severity="secondary" text rounded @click="goBack" v-tooltip.top="'Retour'" />
+          <div>
+            <h1 class="text-2xl! mb-0! font-bold">Nouvelle année universitaire</h1>
+            <p class="text-muted-color">Créez une nouvelle année universitaire.</p>
+
+          </div>
+        </div>
+      </div>
     </div>
 
     <ErrorView v-if="hasError"/>
@@ -251,7 +263,7 @@ const getDiplomes = async () => {
 
           <div class="flex justify-center items-center gap-4">
             <Button label="Créer l'année universitaire" @click="createAnneeUniv" :disabled="!formValid" />
-            <Button label="Annuler" severity="secondary"/>
+            <Button label="Annuler" severity="secondary" @click="goBack"/>
           </div>
         </form>
 
