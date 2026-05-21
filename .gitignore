@@ -5,10 +5,10 @@
 /front/apps/edt/public/common-images/
 /front/apps/intranet/public/common-images/
 /.idea
+
+# macOS
 .DS_Store
-/back/.DS_Store
-/front/.DS_Store
-/front/apps/.DS_Store
+**/.DS_Store
 
 # Environment files (sensitive data)
 .env.local
@@ -33,6 +33,8 @@
 *.swo
 *~
 .vscode/
+.vite/
+.idea/
 
 # OS files
 Thumbs.db
