@@ -1,17 +1,19 @@
 <script setup>
 import {ValidatedInput, validationRules} from "@components";
 import {getServicesService} from "@requests";
-import {getCategoriesService} from "@requests";
+import {createTicketService} from '@requests'
 import {ref,onMounted} from "vue";
+import {useRouter} from "vue-router";
 
-const createTicket=async()=>{
-  console.log('test')
-}
+
+const router=useRouter()
 
 const services=ref([])
 const selectedService=ref(null)
-const categories=ref([])
 const selectedCategorie=ref(null)
+const fileName=ref(null)
+const selectedSujet=ref("")
+const selectedMessage=ref("")
 
 const getServices= async()=>{
   try{
@@ -25,22 +27,41 @@ const getServices= async()=>{
   }
 }
 
-const getCategories= async()=>{
-  try{
-    categories.value=await getCategoriesService({},'/form_ticket')
-  }
-  catch(error){
-    console.error('Erreur dans getCategories',error);
-  }
-  finally {
-    console.log(categories.value)
-  }
+const onUpload = (event) =>{
+  const response = JSON.parse(event.xhr.response)
+  fileName.value = response.filename
 }
 
+const createTicket = async () => {
+  let categoryId = null;
+  if (selectedCategorie.value) {
+    categoryId = typeof selectedCategorie.value === 'object'
+        ? selectedCategorie.value.value
+        : selectedCategorie.value;
+  }
+  const payload = {
+    subject: selectedSujet.value,
+    description: selectedMessage.value,
+    service: selectedService.value ? selectedService.value['@id'] : null,
+    category: categoryId ? `/api/helpdesk_categories/${categoryId}` : null,
+    helpdeskCategorie: categoryId ? `/api/helpdesk_categories/${categoryId}` : null,
+    file: fileName.value
+  };
+
+  console.log('Payload final envoyé:', payload);
+  console.log(payload.description)
+
+  try {
+    await createTicketService(payload, true);
+    router.push({ name: 'Dashboard' });
+  }
+  catch (error) {
+    console.error('Erreur lors de la création du ticket', error);
+  }
+};
 
 onMounted(async()=>{
   await getServices()
-  await getCategories()
 })
 </script>
 
@@ -55,43 +76,49 @@ onMounted(async()=>{
     <div class="flex flex-col gap-2 pb-6">
       <ValidatedInput
         v-model="selectedService"
-        :options="(services.map(service=>({label:service.libelle,value:service.id})))"
+        :options="(services.map(service=>({label:service.libelle,value:service})))"
         name="services"
         type="select"
         label="Services"
         :rules="[]"
         class=""
-        :show-clear="false"
+        :show-clear="true"
         ></ValidatedInput>
 
     </div>
     <div class="flex flex-col gap-2 pb-6">
       <ValidatedInput
           v-model="selectedCategorie"
-          :options="(categories.map(service=>({label:categorie.libelle,value:categorie.id})))"
+          :options="(selectedService?.helpdeskCategories.map(categorie=>({label:categorie.libelle,value:categorie.id})))"
           name="categories"
           type="select"
           label="Categories"
           :rules="[]"
           class=""
-          :show-clear="false"
+          :show-clear="true"
       ></ValidatedInput>
     </div>
     <div class="flex flex-col gap-2 pb-6">
-      <FloatLabel variant="in">
-        <Textarea id="in_label" v-model="value2" rows="1" cols="150" style="resize: none" />
-        <label for="in_label">Sujet</label>
-      </FloatLabel>
+        <ValidatedInput
+          v-model="selectedSujet"
+          name="sujet"
+          type="text"
+          :rules="[]"
+          label="Sujet"
+        ></ValidatedInput>
     </div>
     <div class="flex flex-col gap-2 pb-6">
-      <FloatLabel variant="in">
-        <Textarea id="in_label" v-model="value2" rows="5" cols="150" style="resize: none" />
-        <label for="in_label">Message</label>
-      </FloatLabel>
+        <ValidatedInput
+            v-model="selectedMessage"
+            name="message"
+            type="text"
+            :rules="[]"
+            label="Message"
+        ></ValidatedInput>
     </div>
     <div class="pb-6">
 
-    <FileUpload ref="fileupload"  name="demo[]" url="/api/upload" accept="image/*,video/*,text/plain,.txt,.odt,.pdf" :maxFileSize="1000000" @upload="onUpload" >
+    <FileUpload ref="fileupload"  name="demo[]" url="/api/upload" accept="image/*,video/*,text/plain,.txt,.pdf" :maxFileSize="1000000" @upload="onUpload" >
       <template #empty>
         Joindre un fichier
       </template>

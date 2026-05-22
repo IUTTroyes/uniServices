@@ -39,11 +39,11 @@ class HelpdeskCategorie
     #[Groups(['category:light','category:read','service:read','service:form_ticket','category:form_ticket'])]
     private ?string $libelle = null;
 
-    #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
+    #[ORM\ManyToOne(targetEntity: self::class,inversedBy: 'enfants')]
     #[Groups(['category:read','service:read','service:form_ticket'])]
     private ?self $parent = null;
 
-    #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent')]
+    #[ORM\OneToMany(targetEntity: self::class,mappedBy: 'parent')]
     #[Groups(['category:read','service:read','service:form_ticket'])]
     private ?Collection $enfants;
 

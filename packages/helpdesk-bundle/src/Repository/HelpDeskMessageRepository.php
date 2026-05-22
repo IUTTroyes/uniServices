@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace HelpdeskBundle\Repository;
 
-use App\Entity\HelpdeskMessage;
+use HelpdeskBundle\Entity\HelpdeskMessage;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

@@ -5,11 +5,12 @@ namespace HelpdeskBundle\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
-use App\Repository\HelpDeskMessageRepository;
+use HelpdeskBundle\Repository\HelpDeskMessageRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: HelpDeskMessageRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[ApiResource]
 class HelpdeskMessage
 {
@@ -27,7 +28,7 @@ class HelpdeskMessage
     private ?HelpdeskTicket $ticket = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Personnel $auteur = null;
 
     public function getId(): ?int

@@ -1,6 +1,12 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
+import { useRoute } from 'vue-router';
 import { tickets } from '@/mocks/messages.js';
+import { ValidatedInput, validationRules } from "@components";
+import { createMessageService } from '@requests/helpdesk_services/messageService.js';
+import {PermissionGuard} from '@components'
+
+const route = useRoute();
 
 const props = defineProps({
   id: String
@@ -10,8 +16,60 @@ const ticket = ref(null);
 const isReplying = ref(false);
 const replyText = ref("");
 
+const items = ref([
+  { label: 'Option 1', icon: 'pi pi-refresh' },
+  { label: 'Option 2', icon: 'pi pi-times' }
+]);
+
+const personnel = () => {
+  console.log("Action personnel cliquée");
+};
+
+const priority = () => {
+  console.log("Action priorité cliquée");
+};
+
+const cloturer = () => {
+  console.log("Action clôturer cliquée");
+};
+
+const onUpload = (event) => {
+  console.log("Fichier téléversé", event);
+};
+
+// Sécurisation de l'IRI : calculé dynamiquement pour éviter l'URL avec "undefined"
+const ticketIri = computed(() => {
+  const id = props.id || route.params?.id;
+  return id ? `/api/helpdesk_tickets/${id}` : null;
+});
+
+const sendMessage = async () => {
+  // Extraction propre du texte brut qu'il s'agisse d'un objet ou d'une string
+  const messageText = replyText.value && typeof replyText.value === 'object'
+      ? replyText.value.value
+      : replyText.value;
+
+  if (!messageText || !messageText.trim() || !ticketIri.value) return;
+
+  const payload = {
+    content: messageText.trim(), // On envoie la string nettoyée
+    ticket: ticketIri.value
+  };
+
+  try {
+    await createMessageService(payload, true);
+    replyText.value = "";
+    isReplying.value = false;
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi du message', error);
+  }
+};
+
 onMounted(() => {
-  ticket.value = tickets.find(t => t.id == props.id);
+  const id = props.id || route.params?.id;
+  if (id) {
+    ticket.value = tickets.find(t => t.id == id);
+  }
 });
 
 const toggleReply = () => {
@@ -63,7 +121,6 @@ const statuts = [
 ];
 
 const changerStatut = (nouveauStatut) => {
-
   console.log("Nouveau statut sélectionné :", nouveauStatut);
 };
 </script>
@@ -103,22 +160,32 @@ const changerStatut = (nouveauStatut) => {
           <Button label="Répondre" severity="info" @click="toggleReply" size="large"/>
         </div>
         <div v-if="isReplying" class="mt-4 p-4 rounded bg-gray-50">
-          <h4 class="font-bold mb-2">Votre réponse :</h4>
-          <Textarea v-model="replyText" class="w-full mb-3" rows="5" placeholder="Écrivez votre message ici..." />
-          <div class="pb-6">
-            <FileUpload ref="fileupload" mode="basic" name="demo[]" url="/api/upload" accept="image/*" :maxFileSize="1000000" @upload="onUpload" />
-          </div>
-          <div class="flex gap-2">
-            <Button label="Envoyer" severity="info" size="large" />
-            <Button label="Annuler" severity="secondary" variant="outlined" size="large" @click="isReplying = false" />
-          </div>
+          <form @submit.prevent="sendMessage()">
+            <h4 class="font-bold mb-2">Votre réponse :</h4>
+            <ValidatedInput
+                v-model="replyText"
+                name="message"
+                type="text"
+                :rules="[]"
+                label="Message"
+            ></ValidatedInput>
+            <div class="pb-6">
+              <FileUpload ref="fileupload" mode="basic" name="demo[]" url="/api/upload" accept="image/*" :maxFileSize="1000000" @upload="onUpload" />
+            </div>
+            <div class="flex gap-2">
+              <Button label="Envoyer" type="submit" severity="info" size="large" />
+              <Button label="Annuler" severity="secondary" variant="outlined" size="large" @click="isReplying = false" />
+            </div>
+          </form>
         </div>
-        <div v-permission="isPersonnel" class="flex justify-around pt-20">
+        <div class="flex justify-around pt-20">
+          <PermissionGuard permission="isPersonnel">
           <Button label="Clôturer" @click="cloturer" size="large"/>
           <div class="flex gap-4 items-center">
             <SplitButton label="Changer le statut" @click="changerStatut(ticket.statut)" :model="statuts" size="large"/>
           </div>
           <Button label="Refuser" severity="danger" variant="outlined" size="large"/>
+          </PermissionGuard>
         </div>
       </div>
     </div>

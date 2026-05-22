@@ -3,16 +3,26 @@
 namespace HelpdeskBundle\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
-use App\Repository\HelpdeskTicketRepository;
+use HelpdeskBundle\Repository\HelpdeskTicketRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: HelpdeskTicketRepository::class)]
-#[ApiResource]
+#[ORM\HasLifecycleCallbacks]
+#[ApiResource(
+    operations: [
+        new Post(
+            uriTemplate: '/helpdesk_tickets',
+            denormalizationContext: ['groups' => ['ticket:write']]
+        )
+    ]
+)]
 class HelpdeskTicket
 {
     use LifeCycleTrait;
@@ -22,22 +32,26 @@ class HelpdeskTicket
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['ticket:write'])]
     private ?string $subject = null;
 
     #[ORM\Column(length: 150)]
+    #[Groups(['ticket:write'])]
     private ?string $description = null;
 
     #[ORM\Column(length: 15)]
-    private ?string $statut = null;
+    private ?string $statut = 'Nouveau';
 
     #[ORM\Column(type: Types::SMALLINT, nullable: true)]
     private ?int $priority = null;
 
     #[ORM\Column(length: 50, nullable: true)]
+    #[Groups(['ticket:write'])]
     private ?string $file = null;
 
     #[ORM\ManyToOne(inversedBy: 'ticket')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['ticket:write'])]
     private ?HelpdeskCategorie $helpdeskCategorie = null;
 
     /**
@@ -47,7 +61,7 @@ class HelpdeskTicket
     private Collection $helpdeskMessages;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     private ?Personnel $auteur = null;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]

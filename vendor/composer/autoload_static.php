@@ -72,6 +72,7 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
         ),
         'H' =>
         array (
+            'HelpdeskBundle\\Tests\\' => 21,
             'HelpdeskBundle\\' => 15,
         ),
         'E' =>
@@ -223,6 +224,10 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
         'IntranetBundle\\' =>
         array (
             0 => __DIR__ . '/../..' . '/packages/intranet-bundle/src',
+        ),
+        'HelpdeskBundle\\Tests\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/packages/helpdesk-bundle/tests',
         ),
         'HelpdeskBundle\\' =>
         array (
