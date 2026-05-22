@@ -5,7 +5,10 @@ namespace App\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Repository\EtablissementRepository;
+use App\State\Processor\EtablissementProcessor;
 use App\State\Provider\EtablissementProvider;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -17,8 +20,32 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new GetCollection(
             normalizationContext: ['groups' => ['etablissement:read']],
-            provider: EtablissementProvider::class
+            provider: EtablissementProvider::class,
+            processor: EtablissementProcessor::class
         ),
+        new Patch(
+            inputFormats: [
+                'json' => ['application/merge-patch+json']
+            ],
+            denormalizationContext: ['groups' => ['etablissement:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_ETABLISSEMENT', object)",
+            processor: EtablissementProcessor::class
+        ),
+        new Post(
+            uriTemplate: '/etablissements/{id}/logo',
+            inputFormats: [
+                'multipart' => ['multipart/form-data']
+            ],
+            deserialize: false,
+            security: "is_granted('CAN_EDIT_ETABLISSEMENT', object)",
+            processor: EtablissementProcessor::class
+        ),
+        new Post(
+            denormalizationContext: ['groups' => ['etablissement:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_ETABLISSEMENT', object)",
+            processor: EtablissementProcessor::class
+        )
+
     ],
 )]
 class Etablissement
@@ -30,20 +57,23 @@ class Etablissement
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['etablissement:read'])]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etablissement:read'])]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
     private ?string $logo_name = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['etablissement:read'])]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
     private ?array $adresse = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etablissement:read'])]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
     private ?string $site_web = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?bool $isMain = null;
 
     public function getId(): ?int
     {
@@ -96,5 +126,15 @@ class Etablissement
         $this->site_web = $site_web;
 
         return $this;
+    }
+
+    public function getIsMain(): ?bool
+    {
+        return $this->isMain;
+    }
+
+    public function setIsMain(?bool $isMain): void
+    {
+        $this->isMain = $isMain;
     }
 }

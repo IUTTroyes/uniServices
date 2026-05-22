@@ -1,5 +1,4 @@
 <script setup>
-import SuperAdminBlocAnneeUniv from "@/components/SuperAdministration/blocs_super_admin/SuperAdminBlocAnneeUniv.vue";
 import SuperAdminBlocDepartement from "@/components/SuperAdministration/blocs_super_admin/SuperAdminBlocDepartement.vue";
 </script>
 
