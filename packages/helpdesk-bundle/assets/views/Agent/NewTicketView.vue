@@ -2,9 +2,9 @@
 import {ValidatedInput, validationRules} from "@components";
 import {getServicesService} from "@requests";
 import {createTicketService} from '@requests'
-import {ref,onMounted} from "vue";
+import {ref,onMounted,computed} from "vue";
 import {useRouter} from "vue-router";
-
+import CascadeSelect from 'primevue/cascadeselect';
 
 const router=useRouter()
 
@@ -31,6 +31,10 @@ const onUpload = (event) =>{
   const response = JSON.parse(event.xhr.response)
   fileName.value = response.filename
 }
+const rootCategories = computed(() => {
+  if (!selectedService.value?.helpdeskCategories) return [];
+  return selectedService.value.helpdeskCategories.filter(cat => !cat.parent);
+});
 
 const createTicket = async () => {
   let categoryId = null;
@@ -86,17 +90,19 @@ onMounted(async()=>{
         ></ValidatedInput>
 
     </div>
-    <div class="flex flex-col gap-2 pb-6">
-      <ValidatedInput
+    <div class="flex flex-col gap-2 pb-6 w-100">
+
+      <CascadeSelect
           v-model="selectedCategorie"
-          :options="(selectedService?.helpdeskCategories.map(categorie=>({label:categorie.libelle,value:categorie.id})))"
-          name="categories"
-          type="select"
-          label="Categories"
-          :rules="[]"
-          class=""
-          :show-clear="true"
-      ></ValidatedInput>
+          :options="rootCategories"
+          optionLabel="libelle"
+          optionGroupLabel="libelle"
+          :optionGroupChildren="['enfants']"
+          optionValue="id"
+          label="Catégorie"
+          class="w-full"
+          placeholder="Sélectionnez une catégorie"
+          disabled:!selectedService/>
     </div>
     <div class="flex flex-col gap-2 pb-6">
         <ValidatedInput

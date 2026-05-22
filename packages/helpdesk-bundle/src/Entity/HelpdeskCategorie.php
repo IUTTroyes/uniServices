@@ -32,11 +32,11 @@ class HelpdeskCategorie
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['category:light','category:read','service:read','service:form_ticket','category:form_ticket'])]
+    #[Groups(['category:light','category:read','service:read','service:form_ticket','category:form_ticket','ticket:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['category:light','category:read','service:read','service:form_ticket','category:form_ticket'])]
+    #[Groups(['category:light','category:read','service:read','service:form_ticket','category:form_ticket','ticket:read'])]
     private ?string $libelle = null;
 
     #[ORM\ManyToOne(targetEntity: self::class,inversedBy: 'enfants')]

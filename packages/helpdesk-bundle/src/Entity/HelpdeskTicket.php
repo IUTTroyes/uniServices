@@ -3,7 +3,9 @@
 namespace HelpdeskBundle\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Get;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
 use HelpdeskBundle\Repository\HelpdeskTicketRepository;
@@ -20,7 +22,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Post(
             uriTemplate: '/helpdesk_tickets',
             denormalizationContext: ['groups' => ['ticket:write']]
-        )
+        ),
+        new GetCollection(
+            normalizationContext: ['groups' => ['ticket:read']],
+        ),
+        new Get(
+            normalizationContext: ['groups' => ['ticket:read']],
+        ),
     ]
 )]
 class HelpdeskTicket
@@ -29,29 +37,31 @@ class HelpdeskTicket
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['ticket:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['ticket:write'])]
+    #[Groups(['ticket:write','ticket:read'])]
     private ?string $subject = null;
 
     #[ORM\Column(length: 150)]
-    #[Groups(['ticket:write'])]
+    #[Groups(['ticket:write','ticket:read'])]
     private ?string $description = null;
 
     #[ORM\Column(length: 15)]
+    #[Groups(['ticket:read'])]
     private ?string $statut = 'Nouveau';
 
     #[ORM\Column(type: Types::SMALLINT, nullable: true)]
     private ?int $priority = null;
 
     #[ORM\Column(length: 50, nullable: true)]
-    #[Groups(['ticket:write'])]
+    #[Groups(['ticket:write','ticket:read'])]
     private ?string $file = null;
 
     #[ORM\ManyToOne(inversedBy: 'ticket')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['ticket:write'])]
+    #[Groups(['ticket:write','ticket:read'])]
     private ?HelpdeskCategorie $helpdeskCategorie = null;
 
     /**
@@ -61,7 +71,7 @@ class HelpdeskTicket
     private Collection $helpdeskMessages;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
-    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Personnel $auteur = null;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]

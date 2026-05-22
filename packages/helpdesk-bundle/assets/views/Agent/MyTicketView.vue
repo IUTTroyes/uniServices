@@ -2,15 +2,23 @@
 
 import TicketCard from "@/components/TicketCard.vue";
 import { useUsersStore } from "@stores";
-import {computed, ref} from "vue";
+import {computed, ref,onMounted} from "vue";
 import {tickets} from '@/mocks/messages.js';
 import { useRouter } from 'vue-router';
-import {PermissionGuard} from "@components";
+import {PermissionGuard, ValidatedInput} from "@components";
 import {TabGroup, TabPanels} from "@headlessui/vue";
+import DatePicker from 'primevue/datepicker';
+import CascadeSelect from 'primevue/cascadeselect';
+import {getServicesService} from "@requests";
+import {createTicketService} from '@requests'
+
 
 const router = useRouter();
 const userStore = useUsersStore();
 const date = new Date();
+const services=ref([])
+const selectedService=ref(null)
+const selectedCategorie=ref(null)
 
 const goToTicket = (id) => {
   router.push({ name: 'TicketView', params: { id: id } });
@@ -19,6 +27,27 @@ const goToTicket = (id) => {
 const initiales = computed(
     () => `${userStore.user?.prenom?.charAt(0) || ""}${userStore.user?.nom?.charAt(0) || ""}`
 );
+
+const rootCategories = computed(() => {
+  if (!selectedService.value?.helpdeskCategories) return [];
+  // On ne garde que les catégories qui n'ont pas de parent
+  return selectedService.value.helpdeskCategories.filter(cat => !cat.parent);
+});
+
+const getServices= async()=>{
+  try{
+    services.value=await getServicesService({},'/form_ticket')
+  }
+  catch(error){
+    console.error('Erreur dans getServices',error);
+  }
+  finally {
+    console.log(services.value)
+  }
+}
+onMounted(async()=>{
+  await getServices()
+})
 </script>
 
 <template>
@@ -37,23 +66,39 @@ const initiales = computed(
 
         <div class="flex flex-col">
           <label for="creation" class="mb-1 text-sm font-medium">Date de création</label>
-          <Select id="creation" v-model="selectedCreated" :options="dates"  optionLabel="name" class="w-48" />
-        </div>
+          <DatePicker v-model="buttondisplay" showIcon fluid :showOnFocus="false" />        </div>
         <div class="flex flex-col">
-          <label for="Service" class="mb-1 text-sm font-medium">Service</label>
-          <Select id="Service" v-model="selectedService" :options="services" optionLabel="name" class="w-48" />
+          <ValidatedInput
+              v-model="selectedService"
+              :options="(services.map(service=>({label:service.libelle,value:service})))"
+              name="services"
+              type="select"
+              label="Services"
+              :rules="[]"
+              class=""
+              :show-clear="true"
+          ></ValidatedInput>
         </div>
 
         <PermissionGuard permission="isPersonnel">
           <div class="flex flex-col">
             <label for="category" class="mb-1 text-sm font-medium">Catégorie</label>
-            <Select id="category" v-model="selectedCategory" :options="categories" optionLabel="name" class="w-48" />
+            <CascadeSelect v-model="selectedCategorie"
+                           :options="rootCategories"
+                           optionLabel="libelle"
+                           optionGroupLabel="libelle"
+                           :optionGroupChildren="['enfants']"
+                           optionValue="id"
+                           class="w-full"
+                           placeholder="Sélectionnez une catégorie"
+                           disabled:!selectedService
+            />
           </div>
         </PermissionGuard>
 
         <div class="flex flex-col">
           <label for="statut" class="mb-1 text-sm font-medium">Statut</label>
-          <Select id="statut" v-model="selectedStatut" :options="statut" optionLabel="name" class="w-48" />
+          <Select v-model="selectedStatut" :options="cities" optionLabel="name" placeholder="Sélectionner un statut" class="w-full md:w-56" />
         </div>
         <PermsissionGuard permission="isPersonnel">
           <div class="flex flex-col">
