@@ -62,11 +62,11 @@ onMounted(async()=>{
   >
       <div class="flex justify-center w-full py-4">
 
-      <div class="flex flex-row gap-20 items-end">
-
+        <div class="flex flex-row gap-20 items-start">
         <div class="flex flex-col">
           <label for="creation" class="mb-1 text-sm font-medium">Date de création</label>
-          <DatePicker v-model="buttondisplay" showIcon fluid :showOnFocus="false" />        </div>
+          <DatePicker v-model="buttondisplay" showIcon fluid :showOnFocus="false" />
+        </div>
         <div class="flex flex-col">
           <ValidatedInput
               v-model="selectedService"
@@ -74,6 +74,7 @@ onMounted(async()=>{
               name="services"
               type="select"
               label="Services"
+              placeholder="Sélectionnez un service"
               :rules="[]"
               class=""
               :show-clear="true"
@@ -81,8 +82,8 @@ onMounted(async()=>{
         </div>
 
         <PermissionGuard permission="isPersonnel">
-          <div class="flex flex-col">
-            <label for="category" class="mb-1 text-sm font-medium">Catégorie</label>
+          <div class="flex flex-col gap-1 w-full">
+            <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Catégories</label>
             <CascadeSelect v-model="selectedCategorie"
                            :options="rootCategories"
                            optionLabel="libelle"
@@ -91,21 +92,39 @@ onMounted(async()=>{
                            optionValue="id"
                            class="w-full"
                            placeholder="Sélectionnez une catégorie"
-                           disabled:!selectedService
+                           :disabled="!selectedService"
             />
           </div>
         </PermissionGuard>
 
         <div class="flex flex-col">
-          <label for="statut" class="mb-1 text-sm font-medium">Statut</label>
-          <Select v-model="selectedStatut" :options="cities" optionLabel="name" placeholder="Sélectionner un statut" class="w-full md:w-56" />
+          <ValidatedInput
+              v-model="selectedStatut"
+              :options="(services.map(service=>({label:service.libelle,value:service})))"
+              name="Statut"
+              type="select"
+              label="Statut"
+              placeholder="Sélectionnez un statut"
+              :rules="[]"
+              class=""
+              :show-clear="true"
+          ></ValidatedInput>
         </div>
-        <PermsissionGuard permission="isPersonnel">
+        <PermissionGuard permission="isPersonnel">
           <div class="flex flex-col">
-            <label for="assigne" class="mb-1 text-sm font-medium">Assignés</label>
-            <Select id="assigne" v-model="selectedAssigne" :options="assigne" optionLabel="name" class="w-48" />
+            <ValidatedInput
+                v-model="selectedService"
+                :options="(services.map(service=>({label:service.libelle,value:service})))"
+                name="assignes"
+                type="select"
+                label="Assignés"
+                placeholder="Sélectionnez un personnel"
+                :rules="[]"
+                class=""
+                :show-clear="true"
+            ></ValidatedInput>
           </div>
-        </PermsissionGuard>
+        </PermissionGuard>
       </div>
     </div>
   </Panel>

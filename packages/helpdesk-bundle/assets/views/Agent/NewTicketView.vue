@@ -5,15 +5,19 @@ import {createTicketService} from '@requests'
 import {ref,onMounted,computed} from "vue";
 import {useRouter} from "vue-router";
 import CascadeSelect from 'primevue/cascadeselect';
+import {useUsersStore} from '@stores';
 
 const router=useRouter()
 
 const services=ref([])
 const selectedService=ref(null)
 const selectedCategorie=ref(null)
-const fileName=ref(null)
+const filesNames=ref([])
 const selectedSujet=ref("")
 const selectedMessage=ref("")
+const userStore=useUsersStore();
+const user=computed(()=>userStore.user)
+
 
 const getServices= async()=>{
   try{
@@ -26,6 +30,7 @@ const getServices= async()=>{
     console.log(services.value)
   }
 }
+
 
 const onUpload = (event) =>{
   const response = JSON.parse(event.xhr.response)
@@ -46,16 +51,13 @@ const createTicket = async () => {
   const payload = {
     subject: selectedSujet.value,
     description: selectedMessage.value,
-    service: selectedService.value ? selectedService.value['@id'] : null,
-    category: categoryId ? `/api/helpdesk_categories/${categoryId}` : null,
     helpdeskCategorie: categoryId ? `/api/helpdesk_categories/${categoryId}` : null,
-    file: fileName.value
+    files: filesNames.value,
+    auteur:user.value ? `/api/personnels/${user.value.id}` :null,
   };
 
-  console.log('Payload final envoyé:', payload);
-  console.log(payload.description)
-
   try {
+    console.log(filesNames.value)
     await createTicketService(payload, true);
     router.push({ name: 'Dashboard' });
   }
@@ -87,7 +89,7 @@ onMounted(async()=>{
         :rules="[]"
         class=""
         :show-clear="true"
-        ></ValidatedInput>
+        />
 
     </div>
     <div class="flex flex-col gap-2 pb-6 w-100">
@@ -102,7 +104,7 @@ onMounted(async()=>{
           label="Catégorie"
           class="w-full"
           placeholder="Sélectionnez une catégorie"
-          disabled:!selectedService/>
+          :disabled="!selectedService"/>
     </div>
     <div class="flex flex-col gap-2 pb-6">
         <ValidatedInput
@@ -111,24 +113,29 @@ onMounted(async()=>{
           type="text"
           :rules="[]"
           label="Sujet"
-        ></ValidatedInput>
+        />
     </div>
     <div class="flex flex-col gap-2 pb-6">
         <ValidatedInput
             v-model="selectedMessage"
             name="message"
-            type="text"
+            type="textarea"
             :rules="[]"
             label="Message"
-        ></ValidatedInput>
+        />
     </div>
     <div class="pb-6">
-
-    <FileUpload ref="fileupload"  name="demo[]" url="/api/upload" accept="image/*,video/*,text/plain,.txt,.pdf" :maxFileSize="1000000" @upload="onUpload" >
-      <template #empty>
-        Joindre un fichier
-      </template>
-    </FileUpload>
+      <ValidatedInput
+          v-model="filesNames"
+          name="files"
+          label="Fichier"
+          type="file"
+          :rules="[]"
+          help-text="Ajouter un fichier"
+          :multiple="true"
+          accept=".pdf,.doc,.docx,.jpd,.png,.jpeg,.txt"
+          class="w-full"
+      />
     </div>
     <div class="flex justify-end">
       <Button class="w-60 !bg-blue-400" type="submit" severity="info" label="Envoyer" />

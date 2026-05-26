@@ -13,6 +13,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use HelpdeskBundle\State\Processor\TicketProcessor;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: HelpdeskTicketRepository::class)]
@@ -21,7 +22,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Post(
             uriTemplate: '/helpdesk_tickets',
-            denormalizationContext: ['groups' => ['ticket:write']]
+            denormalizationContext: ['groups' => ['ticket:write']],
+            processor:TicketProcessor::class,
         ),
         new GetCollection(
             normalizationContext: ['groups' => ['ticket:read']],
@@ -55,9 +57,9 @@ class HelpdeskTicket
     #[ORM\Column(type: Types::SMALLINT, nullable: true)]
     private ?int $priority = null;
 
-    #[ORM\Column(length: 50, nullable: true)]
+    #[ORM\Column( nullable: true)]
     #[Groups(['ticket:write','ticket:read'])]
-    private ?string $file = null;
+        private ?array $files_names = null;
 
     #[ORM\ManyToOne(inversedBy: 'ticket')]
     #[ORM\JoinColumn(nullable: false)]
@@ -72,6 +74,7 @@ class HelpdeskTicket
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['ticket:write','ticket:read'])]
     private ?Personnel $auteur = null;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
@@ -135,17 +138,17 @@ class HelpdeskTicket
         return $this;
     }
 
-    public function getFile(): ?string
+    public function getFilesNames(): ?array
     {
-        return $this->file;
+        return $this->files_names;
     }
 
-    public function setFile(?string $file): static
+    public function setFilesNames(?array $files_names): void
     {
-        $this->file = $file;
-
-        return $this;
+        $this->files_names = $files_names;
     }
+
+
     public function getHelpdeskCategorie(): ?HelpdeskCategorie
     {
         return $this->helpdeskCategorie;
@@ -188,12 +191,12 @@ class HelpdeskTicket
         return $this;
     }
 
-    public function getAuteur(): ?Personnel
+    public function getAuteur(): Personnel
     {
         return $this->auteur;
     }
 
-    public function setAuteur(?Personnel $auteur): static
+    public function setAuteur(Personnel $auteur): static
     {
         $this->auteur = $auteur;
 

@@ -3,6 +3,7 @@ import { computed, nextTick } from 'vue';
 import FormValidator from './FormValidator.vue';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
+import FileUplaod from 'primevue/fileupload'
 import Dropdown from 'primevue/dropdown';
 import { validationRules } from '@components';
 
@@ -110,7 +111,36 @@ const props = defineProps({
   showClear: {
     type: Boolean,
     default: false
+  },
+  multiple: {
+    type: Boolean,
+    default: false
+  },
+  accept: {
+    type: String,
+    default: '*'
+  },
+  auto: {
+    type: Boolean,
+    default: false
+  },
+  maxFileSize: {
+    type: Number,
+    default: null
+  },
+  chooseLabel: {
+    type: String,
+    default: 'Choisir'
+  },
+  uploadLabel: {
+    type: String,
+    default: 'Uploader'
+  },
+  cancelLabel: {
+    type: String,
+    default: 'Annuler'
   }
+
 });
 
 const emit = defineEmits<{
@@ -276,17 +306,22 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
             @change="e => onBlurModelValue(e, handleBlur)"
         />
 
-        <input
+        <FileUpload
             v-else-if="type === 'file'"
             :id="name"
             :name="name"
-            type="file"
-            :class="[inputClass, 'p-inputtext', { 'p-invalid': showError }]"
-            @change="e => {
-              const file = e.target.files[0];
-              updateValue(file);
-              handleBlur(e);
+            :multiple="multiple"
+            :accept="accept"
+            :auto="false"
+            choose-label="Choisir"
+            upload-label="Uploader"
+            cancel-label="Annuler"
+            @select="e => {
+              const files = multiple ? e.files : e.files[0];
+              updateValue(files);
             }"
+            @clear="() => updateValue(null)"
+            :class="[inputClass,{'p-invalid':showError}]"
         />
 
         <small v-if="helpText && !showError" class="text-sm text-muted-color mt-1">{{ helpText }}</small>
