@@ -56,9 +56,28 @@ const createTicket = async () => {
     auteur:user.value ? `/api/personnels/${user.value.id}` :null,
   };
 
+  const formData = new FormData();
+
+  formData.append('subject', payload.subject);
+  formData.append('description', payload.description);
+
+  if (payload.helpdeskCategorie) {
+    formData.append('helpdeskCategorie', payload.helpdeskCategorie);
+  }
+  if (payload.auteur) {
+    formData.append('auteur', payload.auteur);
+  }
+
+  // 👇 Ajout des fichiers
+  if (payload.files && payload.files.length > 0) {
+    payload.files.forEach((file) => {
+      formData.append('files[]', file); // ou 'files' selon votre config
+    });
+  }
+
   try {
     console.log(filesNames.value)
-    await createTicketService(payload, true);
+    await createTicketService(formData, true);
     router.push({ name: 'Dashboard' });
   }
   catch (error) {

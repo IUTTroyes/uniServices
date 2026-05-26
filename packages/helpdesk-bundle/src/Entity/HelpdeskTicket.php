@@ -23,6 +23,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Post(
             uriTemplate: '/helpdesk_tickets',
             denormalizationContext: ['groups' => ['ticket:write']],
+            deserialize: false,
+            inputFormats: [
+                'jsonld' => ['application/ld+json'],
+                'multipart' => ['multipart/form-data'],
+            ],
             processor:TicketProcessor::class,
         ),
         new GetCollection(

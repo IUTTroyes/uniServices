@@ -29,7 +29,7 @@ const createTicketService =async (data, showToast=true)=>{
     try{
         return await apiCall(
             api.post,
-            [`/api/helpdesk_tickets`, data,{ headers:{'Content-Type': 'application/ld+json' }}],
+            [`/api/helpdesk_tickets`, data],
             'Ticket créé avec succès !',
             'Erreur lors de la création de votre ticket',
             showToast
