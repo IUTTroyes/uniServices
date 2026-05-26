@@ -22,13 +22,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Post(
             uriTemplate: '/helpdesk_tickets',
-            denormalizationContext: ['groups' => ['ticket:write']],
-            deserialize: false,
             inputFormats: [
                 'jsonld' => ['application/ld+json'],
                 'multipart' => ['multipart/form-data'],
             ],
-            processor:TicketProcessor::class,
+            denormalizationContext: ['groups' => ['ticket:write']],
+            security: "is_granted('CAN_CREATE_TICKET'),object",
+            deserialize: false,
+            processor: TicketProcessor::class,
         ),
         new GetCollection(
             normalizationContext: ['groups' => ['ticket:read']],

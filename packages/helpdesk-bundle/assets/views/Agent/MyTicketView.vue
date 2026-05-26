@@ -62,7 +62,7 @@ onMounted(async()=>{
   >
       <div class="flex justify-center w-full py-4">
 
-        <div class="flex flex-row gap-20 items-start">
+        <div class="flex flex-row gap-10 items-start">
         <div class="flex flex-col">
           <label for="creation" class="mb-1 text-sm font-medium">Date de création</label>
           <DatePicker v-model="buttondisplay" showIcon fluid :showOnFocus="false" />
@@ -82,7 +82,7 @@ onMounted(async()=>{
         </div>
 
         <PermissionGuard permission="isPersonnel">
-          <div class="flex flex-col gap-1 w-full">
+          <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Catégories</label>
             <CascadeSelect v-model="selectedCategorie"
                            :options="rootCategories"
