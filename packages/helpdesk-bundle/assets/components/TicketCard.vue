@@ -31,19 +31,23 @@ const getStatusClasses = (status) => {
 
       <div class="flex items-center gap-6">
         <span class="text-sm text-gray-600 italic dark:text-gray-400">
-          {{ ticket.category }}
-        </span>
+  {{ ticket.helpdeskCategorie?.libelle || ticket.category }}
+</span>
 
         <span class="px-3 py-1 rounded border text-sm font-medium" :class="getStatusClasses(ticket.statut)">{{ ticket.statut }}</span>
       </div>
     </div>
     <div class="text-sm  mb-4 line-clamp-2">
-      <p class="text-muted-color">{{ ticket.desc }}</p>
+      <p class="text-muted-color">{{ ticket.description }}</p>
     </div>
     <div class="flex justify-between items-center w-full">
-      <div v-if="ticket.attachment" class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded text-sm text-blue-800">
+
+      <div v-if="(ticket.files_names && ticket.files_names.length > 0) || ticket.attachment"
+           class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded text-sm text-blue-800">
         <i class="pi pi-file text-xs"></i>
-        <span>{{ ticket.attachment }}</span>
+        <span>
+    {{ Array.isArray(ticket.files_names) ? ticket.files_names.join(', ') : (ticket.files_names || ticket.attachment) }}
+  </span>
       </div>
 
       <div class="flex justify-end ml-auto">

@@ -28,7 +28,6 @@ const onPageChange = (event) => {
   first.value = event.first;
 };
 
-// Correction : Utilisation de ticketsList au lieu de tickets
 const paginatedTickets = computed(() => {
   return ticketsList.value.slice(first.value, first.value + rows.value);
 });
@@ -42,8 +41,8 @@ const fetchTickets = async () => {
     loading.value = true;
     const response = await getTicketsService();
 
-    if (response && response['hydra:member']) {
-      ticketsList.value = response['hydra:member'];
+    if (response && response['member']) {
+      ticketsList.value = response['member'];
     } else if (Array.isArray(response)) {
       ticketsList.value = response;
     } else {

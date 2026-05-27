@@ -3,22 +3,22 @@
 import TicketCard from "@/components/TicketCard.vue";
 import { useUsersStore } from "@stores";
 import {computed, ref,onMounted} from "vue";
-import {tickets} from '@/mocks/messages.js';
 import { useRouter } from 'vue-router';
 import {PermissionGuard, ValidatedInput} from "@components";
 import {TabGroup, TabPanels} from "@headlessui/vue";
 import DatePicker from 'primevue/datepicker';
 import CascadeSelect from 'primevue/cascadeselect';
-import {getServicesService} from "@requests";
-import {createTicketService} from '@requests'
+import {getServicesService, getTicketsService} from "@requests";
 
 
 const router = useRouter();
 const userStore = useUsersStore();
 const date = new Date();
-const services=ref([])
-const selectedService=ref(null)
-const selectedCategorie=ref(null)
+const services=ref([]);
+const selectedService=ref(null);
+const selectedCategorie=ref(null);
+const ticketsList=ref([]);
+const loading = ref(true);
 
 const goToTicket = (id) => {
   router.push({ name: 'TicketView', params: { id: id } });
@@ -34,6 +34,10 @@ const rootCategories = computed(() => {
   return selectedService.value.helpdeskCategories.filter(cat => !cat.parent);
 });
 
+const paginatedTickets = computed(() => {
+  return ticketsList.value.slice(first.value, first.value + rows.value);
+});
+
 const getServices= async()=>{
   try{
     services.value=await getServicesService({},'/form_ticket')
@@ -46,8 +50,29 @@ const getServices= async()=>{
   }
 }
 onMounted(async()=>{
-  await getServices()
+  await getServices();
+  await fetchTickets();
 })
+
+const fetchTickets = async () => {
+  try {
+    loading.value = true;
+    const response = await getTicketsService();
+
+    if (response && response['member']) {
+      ticketsList.value = response['member'];
+    } else if (Array.isArray(response)) {
+      ticketsList.value = response;
+    } else {
+      ticketsList.value = [];
+    }
+  } catch (error) {
+    console.error('Impossible de charger les tickets:', error);
+    ticketsList.value = [];
+  } finally {
+    loading.value = false;
+  }
+};
 </script>
 
 <template>
@@ -113,8 +138,8 @@ onMounted(async()=>{
         <PermissionGuard permission="isPersonnel">
           <div class="flex flex-col">
             <ValidatedInput
-                v-model="selectedService"
-                :options="(services.map(service=>({label:service.libelle,value:service})))"
+                v-model="selectedPersonnel"
+                :options="personnels"
                 name="assignes"
                 type="select"
                 label="Assignés"
@@ -128,68 +153,76 @@ onMounted(async()=>{
       </div>
     </div>
   </Panel>
-  <Tabs value="0" class="mt-10">
+  <Tabs value="0">
     <TabList class="mb-10">
       <Tab value="0">Tickets Postés</Tab>
-      <PermissionGuard permission="isPersonnel">
+      <PermissionGuard permission="isPersonnelService">
         <Tab value="1">Tickets Reçus</Tab>
       </PermissionGuard>
     </TabList>
-    <TabGroup>
-      <TabPanels>
+<TabGroup>
+    <TabPanels>
+      <TabPanel value="0">
+        <div>
+          <Toolbar style="border:none">
+            <template #start>
+              <div class="font-semibold text-xl">Tickets Postés</div>
+            </template>
+            <template #end>
+              <IconField>
+                <InputIcon>
+                  <i class="pi pi-search" />
+                </InputIcon>
+                <InputText placeholder="Search" />
+              </IconField>
+            </template>
+          </Toolbar>
+        </div>
 
-        <TabPanel value="0">
-
-          <div>
-            <Toolbar style="border:none">
-              <template #start>
-                <div class="font-semibold text-xl">Tickets Postés</div>
-              </template>
-              <template #end>
-                <IconField>
-                  <InputIcon>
-                    <i class="pi pi-search" />
-                  </InputIcon>
-                  <InputText placeholder="Search" />
-                </IconField>
-              </template>
-            </Toolbar>
+        <div v-if="loading" class="text-center p-10 text-xl">
+          Chargement des tickets...
+        </div>
+        <div v-else-if="ticketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
+          Aucun ticket trouvé.
+        </div>
+        <div v-else class="p-6">
+          <div v-for="ticket in ticketsList" :key="ticket.id">
+            <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
           </div>
+        </div>
+      </TabPanel>
 
-          <div class="p-6">
-            <div v-for="ticket in tickets" :key="ticket.id">
-              <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
-            </div>
-          </div>
-        </TabPanel>
-        <TabPanel value="1">
-          <div >
+      <TabPanel value="1">
+        <div>
+          <Toolbar style="border:none">
+            <template #start>
+              <div class="font-semibold text-xl">Tickets Reçus</div>
+            </template>
+            <template #end>
+              <IconField>
+                <InputIcon>
+                  <i class="pi pi-search" />
+                </InputIcon>
+                <InputText placeholder="Search" />
+              </IconField>
+            </template>
+          </Toolbar>
+        </div>
 
-            <div>
-              <Toolbar style="border:none">
-                <template #start>
-                  <div class="font-semibold text-xl">Tickets Reçus</div>
-                </template>
-                <template #end>
-                  <IconField>
-                    <InputIcon>
-                      <i class="pi pi-search" />
-                    </InputIcon>
-                    <InputText placeholder="Search" />
-                  </IconField>
-                </template>
-              </Toolbar>
-            </div>
-
+        <div v-if="loading" class="text-center p-10 text-xl">
+          Chargement des tickets...
+        </div>
+        <div v-else-if="ticketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
+          Aucun ticket trouvé.
+        </div>
+        <div v-else class="p-6">
+          <div v-for="ticket in ticketsList" :key="ticket.id">
+            <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
           </div>
-          <div class="p-6">
-            <div v-for="ticket in tickets" :key="ticket.id">
-              <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
-            </div>
-          </div>
-        </TabPanel>
-      </TabPanels>
-    </TabGroup>
+        </div>
+      </TabPanel>
+    </TabPanels>
+</TabGroup>
   </Tabs>
 </div>
 </template>

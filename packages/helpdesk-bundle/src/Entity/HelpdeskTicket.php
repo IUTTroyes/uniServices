@@ -27,7 +27,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
                 'multipart' => ['multipart/form-data'],
             ],
             denormalizationContext: ['groups' => ['ticket:write']],
-            security: "is_granted('CAN_CREATE_TICKET'),object",
+            security: "is_granted('CAN_CREATE_TICKET',object)",
             deserialize: false,
             processor: TicketProcessor::class,
         ),
