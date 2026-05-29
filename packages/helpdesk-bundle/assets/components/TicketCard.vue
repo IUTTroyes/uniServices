@@ -10,11 +10,10 @@ const props = defineProps({
 
 const getStatusClasses = (status) => {
   const map = {
-    'Nouveau': 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-100 text-blue-800 border-blue-300',
-    'En cours': 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-100 text-orange-800 border-orange-300',
-    'En attente': 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-100 text-yellow-800 border-yellow-300',
-    'Urgent': 'bg-red-50 text-red-700 border-red-200 dark:bg-red-100 text-red-800 border-red-300',
-    'Traité': 'bg-green-50 text-green-700 border-green-200 dark:bg-green-100 text-green-800 border-green-300',
+    'A traiter': 'bg-blue-50 text-blue-700 border-blue-200',
+    'En cours': 'bg-orange-50 text-orange-700 border-orange-200',
+    'En attente': 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    'Traité': 'bg-green-50 text-green-700 border-green-200',
   };
   return map[status] || 'bg-gray-50 text-gray-700 border-gray-200';
 };
@@ -45,8 +44,8 @@ const getStatusClasses = (status) => {
       <div v-if="(ticket.files_names && ticket.files_names.length > 0) || ticket.attachment"
            class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-100 rounded text-sm text-blue-800">
         <i class="pi pi-file text-xs"></i>
-        <span>
-    {{ Array.isArray(ticket.files_names) ? ticket.files_names.join(', ') : (ticket.files_names || ticket.attachment) }}
+       <span>
+       {{ticket.files_names.length}} fichier<span v-if="ticket.files_names.length > 1">s</span>
   </span>
       </div>
 

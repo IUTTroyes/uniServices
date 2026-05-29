@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { ValidatedInput } from "@components";
 import { createMessageService } from '@requests/helpdesk_services/messageService.js';
-import { getTicketsService } from '@requests'; // Importation du service de récupération
+import { getTicketsService } from '@requests';
 import { PermissionGuard } from '@components';
 
 const route = useRoute();
@@ -92,10 +92,9 @@ const toggleReply = () => {
 
 const getStatutClasses = (status) => {
   const map = {
-    'Nouveau': 'bg-blue-50 text-blue-700 border-blue-200',
+    'A traiter': 'bg-blue-50 text-blue-700 border-blue-200',
     'En cours': 'bg-orange-50 text-orange-700 border-orange-200',
     'En attente': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    'Urgent': 'bg-red-50 text-red-700 border-red-200',
     'Traité': 'bg-green-50 text-green-700 border-green-200',
   };
   return map[status] || 'bg-gray-50 text-gray-700 border-gray-200';
@@ -103,9 +102,9 @@ const getStatutClasses = (status) => {
 
 const statuts = [
   {
-    label: 'Nouveau',
+    label: 'A traiter',
     icon: 'pi pi-plus-circle',
-    command: () => changerStatut('Nouveau')
+    command: () => changerStatut('A traiter')
   },
   {
     label: 'En cours',
@@ -121,11 +120,6 @@ const statuts = [
     label: 'Traité',
     icon: 'pi pi-check-circle',
     command: () => changerStatut('Traité')
-  },
-  {
-    label: 'Urgent',
-    icon: 'pi pi-exclamation-triangle',
-    command: () => changerStatut('Urgent')
   }
 ];
 

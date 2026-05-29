@@ -42,6 +42,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 class HelpdeskTicket
 {
     use LifeCycleTrait;
+
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -85,6 +87,7 @@ class HelpdeskTicket
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
     private ?Personnel $assigne = null;
+
 
     public function __construct()
     {

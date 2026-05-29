@@ -4,10 +4,10 @@ import { formatDateLong } from "@helpers/date.js";
 import { useUsersStore } from "@stores";
 import TicketCard from "@/components/TicketCard.vue";
 import TicketMessageCard from "@/components/TicketMessageCard.vue";
+import AccordeonMessagesVue from "@/components/AccordeonMessagesVue.vue";
 import { PermissionGuard } from "@components";
 import { useRouter } from 'vue-router';
 import { getTicketsService } from '@requests';
-import AccordeonMessagesVue from "@/components/AccordeonMessagesVue.vue";
 
 const router = useRouter();
 const userStore = useUsersStore();
@@ -111,24 +111,61 @@ onMounted(() => {
       <Button class="w-100" label="Créer un ticket" @click="goToNewTicket()" icon="pi pi-plus" />
     </div>
 
+<div class="flex mb-8 justify-around">
+    <div class="border border-gray-200 rounded-xl self-center p-5">
+      <div class="flex items-center gap-8 px-6 py-2">
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">En cours :</span>
+          <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
+              {{ ticketsList.filter(t => t.statut === 'En cours').length }}
+            </span>
+        </div>
+        <div class="w-px h-6 bg-gray-200"></div>
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">Traités :</span>
+          <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
+              {{ ticketsList.filter(t => t.statut === 'Traité').length }}
+            </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="border border-gray-200 rounded-xl self-center p-5">
+      <div class="flex items-center gap-8 px-6 py-2">
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">En cours :</span>
+          <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
+              {{ ticketsList.filter(t => t.statut === 'En cours').length }}
+            </span>
+        </div>
+        <div class="w-px h-6 bg-gray-200"></div>
+        <div class="flex items-center gap-3">
+          <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">Traités :</span>
+          <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
+              {{ ticketsList.filter(t => t.statut === 'Traité').length }}
+            </span>
+        </div>
+      </div>
+    </div>
+</div>
+
     <div>
       <Message severity="info" icon="pi pi-info-circle" class="mt-2 mb-10">
+        <PermissionGuard permission="isScolarite">
+          <div class="flex items-center gap-2 mb-4 border-b border-blue-100 pb-2">
+            <Checkbox id="checkbox" v-model="checked" binary />
+            <label for="checkbox" class="font-bold text-sm">Afficher ce message pour tous les utilisateurs</label>
+          </div>
+        </PermissionGuard>
         Nous traitons actuellement un volume élevé de tickets. Merci de limiter vos ouvertures de tickets aux besoins essentiels afin de nous aider à réduire les délais de réponse.
       </Message>
     </div>
 
-    <div class="flex justify-around mb-8">
+    <div class="flex mb-8">
+
       <div class="card text-center">
-        <span class="text-violet-600 font-bold text-2xl">{{ticketsList.filter(t => t.statut === 'En attente').length}}</span>
-        <p class="text-1xl">Tickets en attente</p>
-      </div>
-      <div class="card text-center">
-        <span class="text-violet-600 font-bold text-2xl">{{ticketsList.filter(t => t.statut === 'En cours').length}}</span>
-        <p class="text-1xl">Tickets en cours</p>
-      </div>
-      <div class="card text-center">
-        <span class="text-violet-600 font-bold text-2xl">{{ticketsList.filter(t => t.statut === 'Refusé').length}}</span>
-        <p class="text-1xl">Tickets refusés</p>
+        <div class="font-bold text-violet-600 text-2xl">{{ticketsList.length}}</div>
+        <p class="text-2xl">Tickets non  assignés</p>
       </div>
     </div>
 
@@ -136,10 +173,11 @@ onMounted(() => {
       <AccordeonMessagesVue v-if="ticketsList" :tickets="ticketsList" />
     </div>
 
+
     <div class="card">
       <div class="font-semibold text-xl">
 
-        <div class="font-semibold mb-6 text-xl">Derniers tickets traités</div>
+        <div class="font-semibold mb-6 text-xl">Nouveaux tickets de votre service</div>
 
         <Carousel :value="ticketsList" :numVisible="3" :numScroll="1" :responsiveOptions="responsiveOptions">
 
@@ -154,14 +192,9 @@ onMounted(() => {
         </Carousel>
 
       </div>
-    </div>
-
-    <!--<div>
-      <TicketMessageCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
-    </div>-->
+     </div>
 
     <div class="card">
-
       <Tabs value="0">
         <TabList class="mb-10">
           <Tab value="0">Mes derniers Tickets</Tab>
