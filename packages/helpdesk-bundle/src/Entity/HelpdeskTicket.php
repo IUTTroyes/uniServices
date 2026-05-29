@@ -55,13 +55,19 @@ class HelpdeskTicket
     #[Groups(['ticket:write','ticket:read'])]
     private ?string $subject = null;
 
-    #[ORM\Column(length: 150)]
+    #[ORM\Column(type:Types::TEXT, nullable:true)]
     #[Groups(['ticket:write','ticket:read'])]
     private ?string $description = null;
 
     #[ORM\Column(length: 20, enumType: StatutTicketEnum::class )]
     #[Groups(['ticket:read'])]
     private StatutTicketEnum $statut=StatutTicketEnum::A_TRAITER;
+
+    #[Groups(['ticket:read'])]
+    public function getTransitionsAutorisees(): array
+    {
+        return $this->statut->getTransitionsAutorisees();
+    }
 
     #[ORM\Column(type: Types::SMALLINT, nullable: true)]
     private ?int $priority = null;
@@ -124,17 +130,17 @@ class HelpdeskTicket
         return $this;
     }
 
-    public function getStatut(): ?string
+    public function getStatut(): StatutTicketEnum
     {
         return $this->statut;
     }
 
-    public function setStatut(string $statut): static
+    public function setStatut(StatutTicketEnum $statut): void
     {
         $this->statut = $statut;
-
-        return $this;
     }
+
+
 
     public function getPriority(): ?int
     {

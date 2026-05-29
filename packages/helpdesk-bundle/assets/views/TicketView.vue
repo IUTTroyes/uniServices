@@ -201,6 +201,7 @@ const changerStatut = (nouveauStatut) => {
           </form>
         </div>
 
+
         <div class="flex justify-around pt-20">
           <PermissionGuard permission="isPersonnel">
             <Button label="Clôturer" @click="cloturer" size="large"/>
