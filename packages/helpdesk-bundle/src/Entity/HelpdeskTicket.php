@@ -8,6 +8,8 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Get;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
+use App\Enum\TypeGroupeEnum;
+use HelpdeskBundle\Enum\StatutTicketEnum;
 use HelpdeskBundle\Repository\HelpdeskTicketRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -43,7 +45,6 @@ class HelpdeskTicket
 {
     use LifeCycleTrait;
 
-
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -58,9 +59,9 @@ class HelpdeskTicket
     #[Groups(['ticket:write','ticket:read'])]
     private ?string $description = null;
 
-    #[ORM\Column(length: 15)]
+    #[ORM\Column(length: 20, enumType: StatutTicketEnum::class )]
     #[Groups(['ticket:read'])]
-    private ?string $statut = 'Nouveau';
+    private StatutTicketEnum $statut=StatutTicketEnum::A_TRAITER;
 
     #[ORM\Column(type: Types::SMALLINT, nullable: true)]
     private ?int $priority = null;

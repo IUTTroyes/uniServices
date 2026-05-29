@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { ValidatedInput } from "@components";
 import { createMessageService } from '@requests/helpdesk_services/messageService.js';
-import { getTicketsService } from '@requests';
+import { getTicketService } from '@requests';
 import { PermissionGuard } from '@components';
 
 const route = useRoute();
@@ -46,13 +46,12 @@ const ticketIri = computed(() => {
 const fetchTicketDetails = async () => {
   const id = props.id || route.params?.id;
   if (!id) return;
-
   try {
     loading.value = true;
-    // Appel de l'API pour récupérer le ticket spécifique
-    const response = await getTicketsService({}, `/${id}`);
-    ticket.value = response;
-  } catch (error) {
+    ticket.value=await getTicketService(id)
+    console.log(ticket.value)
+  }
+  catch (error) {
     console.error('Erreur lors de la récupération du ticket:', error);
   } finally {
     loading.value = false;

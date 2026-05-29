@@ -1,4 +1,6 @@
 <script setup>
+import {formatDateCourt, jourDate} from "@helpers/date.js";
+
 const props = defineProps({
   ticket: {
     type: Object,
@@ -20,6 +22,10 @@ const props = defineProps({
         <span class="text-sm text-gray-600 italic dark:text-gray-400">
   {{ ticket.helpdeskCategorie?.libelle || ticket.category }}
 </span>
+      </div>
+
+      <div class="flex items-center">
+        <span class="text-sm text-gray-600 italic dark:text-gray-400">{{formatDateCourt(ticket.created)}}</span>
       </div>
 
     </div>

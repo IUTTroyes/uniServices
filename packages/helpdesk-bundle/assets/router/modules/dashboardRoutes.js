@@ -3,7 +3,9 @@ export default [
         path: '',
         component: () => import('@/views/DashboardView.vue'),
         name: 'Dashboard',
-        meta: { breadcrumb: [{ label: 'Dashboard', route: '/'}] },
+        meta: {
+            permission: 'isPersonnel',
+            breadcrumb: [{ label: 'Dashboard', route: '/'}] },
     },
     {
         path: 'service',

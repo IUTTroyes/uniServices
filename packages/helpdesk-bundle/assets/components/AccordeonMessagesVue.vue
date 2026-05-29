@@ -23,7 +23,7 @@ const goToTicket = (id) => {
         <AccordionHeader
             :pt="{
           root: '!bg-violet-600 transition-colors',
-          toggleicon: '!text-violet-100'
+          toggleicon: '!text-violet-100',
         }"
         >
         <span class="font-bold text-white">

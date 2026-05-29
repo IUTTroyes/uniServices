@@ -4,15 +4,16 @@ import apiCall from '@helpers/apiCall';
 // ----------------------------------------------
 // ------------------- GET ----------------------
 // ----------------------------------------------
-const getTicketsService = async (params = {}, endpoint = '/api/helpdesk_tickets') => {
-    try {
-        return await apiCall(
+const getTicketsService = async (params = {},scope='',showToast=false) => {
+    try{
+        const response= await apiCall(
             api.get,
-            [endpoint, { params }],
-            null,
+            [`/api${scope}/helpdesk_tickets`,{params}],
+            'Tickets récupérés avec succès',
             'Erreur lors de la récupération des tickets',
-            false
-        );
+            showToast
+        )
+        return response.member;
     }
     catch (error) {
         console.error('Erreur dans getTicketsService', error);
@@ -20,7 +21,25 @@ const getTicketsService = async (params = {}, endpoint = '/api/helpdesk_tickets'
     }
 };
 
-export { getTicketsService };
+const getTicketService = async (id,params, scope='',showToast=false) => {
+    try{
+        return await apiCall(
+            api.get,
+            [`/api/helpdesk_tickets/${id}`,{params}],
+            'Ticket récupéré avec succès',
+            'Erreur lors de la récupération du ticket',
+            showToast
+        )
+    }
+    catch (error){
+        console.error('Erreur dans getTicketService',error)
+        throw error;
+    }
+}
+
+export { getTicketsService,getTicketService };
+
+
 
 // ----------------------------------------------
 // ------------------- CREATE -------------------

@@ -1,4 +1,4 @@
-<script setup xmlns="http://www.w3.org/1999/html">
+ <script setup xmlns="http://www.w3.org/1999/html">
 import { computed, ref, onMounted } from "vue";
 import { formatDateLong } from "@helpers/date.js";
 import { useUsersStore } from "@stores";
@@ -83,7 +83,7 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="border border-gray-200 rounded-xl self-center p-5">
+      <div class="card  rounded-xl self-center p-5">
         <div class="flex items-center gap-8 px-6 py-2">
           <div class="flex items-center gap-3">
             <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">Tickets Totaux :</span>
@@ -112,8 +112,9 @@ onMounted(() => {
     </div>
 
 <div class="flex mb-8 justify-around">
-    <div class="border border-gray-200 rounded-xl self-center p-5">
-      <div class="flex items-center gap-8 px-6 py-2">
+
+    <div class="card   rounded-xl self-center ">
+      <div class="flex items-center gap-8  ">
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">En cours :</span>
           <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
@@ -130,8 +131,8 @@ onMounted(() => {
       </div>
     </div>
 
-    <div class="border border-gray-200 rounded-xl self-center p-5">
-      <div class="flex items-center gap-8 px-6 py-2">
+    <div class="card border border-gray-200 rounded-xl self-center">
+      <div class=" flex items-center gap-8">
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">En cours :</span>
           <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
@@ -139,13 +140,19 @@ onMounted(() => {
             </span>
         </div>
         <div class="w-px h-6 bg-gray-200"></div>
-        <div class="flex items-center gap-3">
+        <div class=" flex items-center gap-3">
           <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">Traités :</span>
           <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
               {{ ticketsList.filter(t => t.statut === 'Traité').length }}
             </span>
         </div>
       </div>
+    </div>
+
+
+    <div class="card  text-center">
+      <span class=" text-gray-600 dark:text-gray-400 font-bold">Non  assignés : </span>
+      <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">{{ticketsList.length}}</span>
     </div>
 </div>
 
@@ -163,10 +170,6 @@ onMounted(() => {
 
     <div class="flex mb-8">
 
-      <div class="card text-center">
-        <div class="font-bold text-violet-600 text-2xl">{{ticketsList.length}}</div>
-        <p class="text-2xl">Tickets non  assignés</p>
-      </div>
     </div>
 
     <div>

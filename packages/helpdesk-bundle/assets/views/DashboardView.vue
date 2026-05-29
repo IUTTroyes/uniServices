@@ -83,13 +83,12 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="border border-gray-200 rounded-xl self-center p-5">
+      <div class="card rounded-xl self-center p-5">
         <div class="flex items-center gap-8 px-6 py-2">
           <div class="flex items-center gap-3">
             <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">Tickets Totaux :</span>
             <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">{{ ticketsList.length }}</span>
           </div>
-          <div class="w-px h-6 bg-gray-200"></div>
           <div class="flex items-center gap-3">
             <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">En cours :</span>
             <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
