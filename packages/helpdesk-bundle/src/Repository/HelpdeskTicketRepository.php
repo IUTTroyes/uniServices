@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Repository;
+namespace HelpdeskBundle\Repository;
 
-use App\Entity\HelpdeskTicket;
+use HelpdeskBundle\Entity\HelpdeskTicket;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 

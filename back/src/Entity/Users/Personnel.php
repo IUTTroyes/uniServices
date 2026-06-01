@@ -10,6 +10,8 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
+use App\Entity\Structure\StructureService;
+use HelpdeskBundle\Entity\HelpdeskTicket;
 use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
 use IntranetBundle\Entity\Previsionnel\Previsionnel;
@@ -210,6 +212,18 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:detail'])]
     private Collection $enseignantHrs;
 
+    /**
+     * @var Collection<int, HelpdeskTicket>
+     */
+    #[ORM\OneToMany(targetEntity: HelpdeskTicket::class, mappedBy: 'auteur', orphanRemoval: true)]
+    private Collection $helpdeskTickets;
+
+    /**
+     * @var Collection<int, StructureService>
+     */
+    #[ORM\ManyToMany(targetEntity: StructureService::class, mappedBy: 'personnel')]
+    private Collection $structureServices;
+
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
@@ -220,6 +234,8 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         $this->events = new ArrayCollection();
         $this->previsionnels = new ArrayCollection();
         $this->enseignantHrs = new ArrayCollection();
+        $this->helpdeskTickets = new ArrayCollection();
+        $this->structureServices = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -806,6 +822,63 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
             if ($enseignantHr->getPersonnel() === $this) {
                 $enseignantHr->setPersonnel(null);
             }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, HelpdeskTicket>
+     */
+    public function getHelpdeskTickets(): Collection
+    {
+        return $this->helpdeskTickets;
+    }
+
+    public function addHelpdeskTicket(HelpdeskTicket $helpdeskTicket): static
+    {
+        if (!$this->helpdeskTickets->contains($helpdeskTicket)) {
+            $this->helpdeskTickets->add($helpdeskTicket);
+            $helpdeskTicket->setAuteur($this);
+        }
+
+        return $this;
+    }
+
+    public function removeHelpdeskTicket(HelpdeskTicket $helpdeskTicket): static
+    {
+        if ($this->helpdeskTickets->removeElement($helpdeskTicket)) {
+            // set the owning side to null (unless already changed)
+            if ($helpdeskTicket->getAuteur() === $this) {
+                $helpdeskTicket->setAuteur(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StructureService>
+     */
+    public function getStructureServices(): Collection
+    {
+        return $this->structureServices;
+    }
+
+    public function addStructureService(StructureService $structureService): static
+    {
+        if (!$this->structureServices->contains($structureService)) {
+            $this->structureServices->add($structureService);
+            $structureService->addPersonnel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStructureService(StructureService $structureService): static
+    {
+        if ($this->structureServices->removeElement($structureService)) {
+            $structureService->removePersonnel($this);
         }
 
         return $this;

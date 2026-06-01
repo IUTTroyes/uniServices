@@ -37,3 +37,7 @@ export * from './questionnaire_services/questionnaireService.js'
 export * from './salleService.js';
 
 export * from './export/exportService.js';
+
+export * from './helpdesk_services/ticketService.js'
+export * from './helpdesk_services/categorieService.js'
+export * from './structure_services/serviceService.js'

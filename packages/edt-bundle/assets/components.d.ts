@@ -15,6 +15,7 @@ declare module 'vue' {
     Checkbox: typeof import('primevue/checkbox')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
     Divider: typeof import('primevue/divider')['default']
+    FileUpload: typeof import('primevue/fileupload')['default']
     IconField: typeof import('primevue/iconfield')['default']
     IftaLabel: typeof import('primevue/iftalabel')['default']
     InputIcon: typeof import('primevue/inputicon')['default']

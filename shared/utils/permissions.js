@@ -242,6 +242,25 @@ function checkSinglePermission(permission, userStore) {
     return compositePermissions[permission].some(role => userStore[role]);
   }
 
+  // Vérifier si l'utilisateur est un personnel avec un rattachement à un service
+  if (permission === 'isPersonnelService') {
+    if (!userStore.isPersonnel) {
+      return false;
+    }
+
+    const structureServices = userStore?.user?.structureServices;
+    if (Array.isArray(structureServices)) {
+      return structureServices.length > 0;
+    }
+
+    // Compatibilité avec d'autres formes de payload possibles
+    if (Array.isArray(userStore?.user?.services)) {
+      return userStore.user.services.length > 0;
+    }
+
+    return !!(userStore?.user?.service && typeof userStore.user.service === 'object');
+  }
+
   // si la permission n'est pas reconnue, on vérifie si c'est un test qui renvoie true ou false
   if (permission === true) {
     return true;

@@ -11,10 +11,6 @@
     margin-bottom: 2rem;
     border-radius: var(--content-border-radius);
     border: 1px solid var(--surface-border);
-
-    &:last-child {
-        margin-bottom: 0;
-    }
 }
 
 .p-toast {

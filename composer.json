@@ -23,6 +23,7 @@
         "psr-4": {
             "AuthBundle\\Tests\\": "packages/auth-bundle/tests/",
             "EdtBundle\\Tests\\": "packages/edt-bundle/tests/",
+            "HelpdeskBundle\\Tests\\": "packages/helpdesk-bundle/tests/",
             "IntranetBundle\\Tests\\": "packages/intranet-bundle/tests/"
         }
     },

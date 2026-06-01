@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue';
+import { computed, nextTick } from 'vue';
 import FormValidator from './FormValidator.vue';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
+import FileUplaod from 'primevue/fileupload'
 import Dropdown from 'primevue/dropdown';
-import AutoComplete from 'primevue/autocomplete';
 import { validationRules } from '@components';
 
 const props = defineProps({
@@ -112,10 +112,35 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  minQueryLength: {
+  multiple: {
+    type: Boolean,
+    default: false
+  },
+  accept: {
+    type: String,
+    default: '*'
+  },
+  auto: {
+    type: Boolean,
+    default: false
+  },
+  maxFileSize: {
     type: Number,
-    default: 3
+    default: null
+  },
+  chooseLabel: {
+    type: String,
+    default: 'Choisir'
+  },
+  uploadLabel: {
+    type: String,
+    default: 'Uploader'
+  },
+  cancelLabel: {
+    type: String,
+    default: 'Annuler'
   }
+
 });
 
 const emit = defineEmits<{
@@ -149,106 +174,6 @@ const onValidation = (result) => {
 const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
   await nextTick();
   handleBlurFn(event);
-};
-
-const addressSuggestions = ref([]);
-const addressQuery = ref('');
-
-const createEmptyAddress = () => ({
-  adresse: '',
-  complement1: '',
-  complement2: '',
-  ville: '',
-  codePostal: '',
-  pays: 'France'
-});
-
-const buildAddressObject = (feature: any) => {
-  const label = feature?.properties?.label ?? '';
-  const adresse = label.includes(',') ? label.split(',')[0] : (feature?.properties?.name ?? '');
-
-  return {
-    ...createEmptyAddress(),
-    adresse,
-    ville: feature?.properties?.city ?? '',
-    codePostal: feature?.properties?.postcode ?? ''
-  };
-};
-
-const mergeAddress = (adresse: string) => ({
-  ...createEmptyAddress(),
-  ...(typeof props.modelValue === 'object' && props.modelValue ? props.modelValue : {}),
-  adresse
-});
-
-const normalizeAddressValue = (value: any) => {
-  if (!value) {
-    return createEmptyAddress();
-  }
-
-  if (typeof value === 'string') {
-    return mergeAddress(value);
-  }
-
-  return {
-    ...createEmptyAddress(),
-    ...value
-  };
-};
-
-watch(() => props.modelValue, (newValue: any) => {
-  if (props.type !== 'address') return;
-
-  if (typeof newValue === 'string') {
-    addressQuery.value = newValue;
-    return;
-  }
-
-  if (newValue && typeof newValue === 'object') {
-    addressQuery.value = newValue.adresse ?? '';
-    return;
-  }
-
-  addressQuery.value = '';
-}, { immediate: true });
-
-const handleSearchAddress = async (event: any) => {
-  const query = (event.query || '').trim();
-
-  if (query.length < props.minQueryLength) {
-    addressSuggestions.value = [];
-    return;
-  }
-
-  try {
-    const response = await fetch(`https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=5`);
-    const data = await response.json();
-    addressSuggestions.value = (data.features || []).map((feature: any) => ({
-      label: feature.properties?.label,
-      value: buildAddressObject(feature)
-    }));
-  } catch (error) {
-    addressSuggestions.value = [];
-    console.error('Error searching address:', error);
-  }
-};
-
-const handleSelectAddress = (event: any) => {
-  const value = normalizeAddressValue(event.value?.value ?? event.value?.label ?? '');
-  addressQuery.value = value.adresse ?? '';
-  emit('update:modelValue', value);
-};
-
-const handleInputAddress = (value: any) => {
-  if (typeof value === 'string') {
-    addressQuery.value = value;
-    emit('update:modelValue', mergeAddress(value));
-    return;
-  }
-
-  const normalizedValue = normalizeAddressValue(value?.value ?? value?.label ?? value);
-  addressQuery.value = normalizedValue.adresse ?? '';
-  emit('update:modelValue', normalizedValue);
 };
 </script>
 
@@ -370,21 +295,6 @@ const handleInputAddress = (value: any) => {
           @blur="handleBlur"
         />
 
-        <AutoComplete
-            v-else-if="type === 'address'"
-            :id="name"
-            v-model="addressQuery"
-            :suggestions="addressSuggestions"
-            optionLabel="label"
-            :placeholder="placeholder"
-            :class="[inputClass, { 'p-invalid': showError }]"
-            fluid
-            @complete="handleSearchAddress"
-            @item-select="handleSelectAddress"
-            @update:modelValue="handleInputAddress"
-            @blur="event => onBlurModelValue(event, handleBlur)"
-        />
-
         <RadioButton
             v-else-if="type === 'radio'"
             :inputId="`${name}-${value}`"
@@ -396,17 +306,22 @@ const handleInputAddress = (value: any) => {
             @change="e => onBlurModelValue(e, handleBlur)"
         />
 
-        <input
+        <FileUpload
             v-else-if="type === 'file'"
             :id="name"
             :name="name"
-            type="file"
-            :class="[inputClass, 'p-inputtext', { 'p-invalid': showError }]"
-            @change="e => {
-              const file = e.target.files[0];
-              updateValue(file);
-              handleBlur(e);
+            :multiple="multiple"
+            :accept="accept"
+            :auto="false"
+            choose-label="Choisir"
+            upload-label="Uploader"
+            cancel-label="Annuler"
+            @select="e => {
+              const files = multiple ? e.files : e.files[0];
+              updateValue(files);
             }"
+            @clear="() => updateValue(null)"
+            :class="[inputClass,{'p-invalid':showError}]"
         />
 
         <small v-if="helpText && !showError" class="text-sm text-muted-color mt-1">{{ helpText }}</small>

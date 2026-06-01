@@ -40,11 +40,12 @@ watch(() => userStore.user, async () => {
 
 // Surveiller les changements du rôle temporaire pour mettre à jour l'interface utilisateur
 watch(() => userStore.temporaryRole, () => {
+  const hasTemporaryRole = typeof userStore.temporaryRole === 'string' && userStore.temporaryRole.length > 0 ;
   // Mettre à jour l'état actif des éléments de rôle lorsque le rôle temporaire change
   if (rolesItems.value.length > 0) {
     AVAILABLE_ROLES.forEach((role, index) => {
       if (rolesItems.value[index]) {
-        rolesItems.value[index].active = userStore.temporaryRole ?
+        rolesItems.value[index].active = hasTemporaryRole ?
             (userStore.temporaryRole === role.role) :
             userStore[role.property];
       }
@@ -102,7 +103,9 @@ const fetchData = async () => {
             userStore.setTemporaryRole(role.role);
           }
         },
-        active: userStore.temporaryRole ? (userStore.temporaryRole === role.role) : userStore[role.property]
+        active: (typeof userStore.temporaryRole === 'string' && userStore.temporaryRole.length > 0)
+            ? (userStore.temporaryRole === role.role)
+            : userStore[role.property]
       }));
 
       // Ajouter une option "Réinitialiser le rôle" à la fin
@@ -238,7 +241,8 @@ const isEnabled = (item) => {
 // Propriété calculée pour déterminer si le menu des rôles doit être affiché
 const showRolesMenu = computed(() => {
   // Afficher le menu si l'utilisateur est un superAdmin ou a un rôle temporaire défini
-  return userStore.isSuperAdmin || userStore.temporaryRole.length > 0;
+  const hasTemporaryRole = typeof userStore.temporaryRole === 'string' && userStore.temporaryRole.length > 0;
+  return userStore.isSuperAdmin || hasTemporaryRole;
 });
 
 const selectAnneeUniversitaire = (annee) => {

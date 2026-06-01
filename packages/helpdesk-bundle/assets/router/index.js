@@ -3,14 +3,21 @@ import { createRouter, createWebHistory } from 'vue-router';
 import {useUsersStore} from "@stores";
 import { hasPermission } from '@utils';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
-import TestView from '@/views/TestView.vue';
+import NewTicketView from '@/views/Agent/NewTicketView.vue';
+import MyTicketView from '@/views/Agent/MyTicketView.vue';
+import TicketListAdminView from '@/views/Personnel/TicketListAdminView.vue';
+import TicketView from '@/views/TicketView.vue'
+import dashboardRoutes from './modules/dashboardRoutes';
 
 // Define the menu structure
 const intranetMenu = [
     {
         items: [
             { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' },
-            { label: 'Test', icon: 'pi pi-fw pi-home', to: '/test' },
+            { label: 'DashboardService', icon: 'pi pi-fw pi-home', to: '/service' , permission:'isPersonnelService'},
+            { label: 'Nouveau Ticket', icon: 'pi pi-fw pi-receipt', to: '/nouveauticket' },
+            { label: 'Mes Tickets', icon: 'pi pi-fw pi-ticket', to: '/mestickets' },
+            { label: 'Tous les Tickets', icon: 'pi pi-fw pi-list', to: '/ticketsliste', permission: 'isPersonnelService'}
         ]
     }
 ];
@@ -62,12 +69,72 @@ const router = createRouter({
                 };
             },
             children: [
+                ...dashboardRoutes,
                 {
-                    path: '/test',
-                    name: 'test',
-                    component: TestView,
+                    path: '/nouveauticket',
+                    name: 'NewTicketView',
+                    component: NewTicketView,
+                    meta: {
+                        breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+                            label: 'Nouveau Ticket',
+                            route: null,
+                            icon: 'pi pi-wrench'
+                        }]
+                    },
+                },
+                {
+                    path: '/mestickets',
+                    name: 'MyTicketView',
+                    component: MyTicketView,
+                    meta: {
+                        breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+                            label: 'Mes tickets',
+                            route: null,
+                            icon: 'pi pi-wrench'
+                        }]
+                    },
+                },
+                {
+                    path: '/ticketsliste',
+                    name: 'TicketListAdminView',
+                    component: TicketListAdminView,
+                    meta: {
+                        permission: 'isPersonnel',
+                        title: 'Gestion Tickets',
+                        breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+                            label: 'Liste des Tickets',
+                            route: null,
+                            icon: 'pi pi-wrench'
+                        }]
+                    }
+                },
+                {
+                    path: '/ticket',
+                    name: 'TicketView',
+                    component: 'TicketView',
+                    meta: {
+                        title: 'Ticket',
+                        breadcrumb: [{ label: 'Dashboard', route: '/' }, {
+                            label: 'Tickets',
+                            route: null,
+                            icon: 'pi pi-wrench'
+                        }]
+                    }
+                },
+                {
+                    path: '/ticket/:id',
+                    name: 'TicketView',
+                    component: () => import('@/views/TicketView.vue'),
+                    props: true,
+                    meta: {
+                        breadcrumb: [{ label: 'Dashboard', route: '/' },{ label: 'Mes Tickets', route: '/mestickets' }, {
+                            label: 'Ticket',
+                            route: null,
+                            icon: 'pi pi-wrench'
+                        }]
+                    },
                 }
-            ]
+            ],
         },
         {
             path: '/access',

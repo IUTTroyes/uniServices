@@ -1,0 +1,10 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  HelpdeskBundle\:
+    resource: '../../'
+    exclude:
+      - '../../Entity/'
+      - '../../HelpdeskBundle.php'

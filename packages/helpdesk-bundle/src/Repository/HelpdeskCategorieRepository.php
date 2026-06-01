@@ -1,14 +1,12 @@
 <?php
 
-namespace App\Repository;
+namespace HelpdeskBundle\Repository;
 
-use App\Entity\HelpdeskCategorie;
+use HelpdeskBundle\Entity\HelpdeskCategorie;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-/**
- * @extends ServiceEntityRepository<HelpdeskCategorie>
- */
+
 class HelpdeskCategorieRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
