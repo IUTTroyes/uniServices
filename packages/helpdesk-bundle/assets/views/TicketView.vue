@@ -152,7 +152,7 @@ const changerStatut = (nouveauStatut) => {
         </div>
       </div>
 
-      <div class="text-xl text-gray-700 leading-relaxed mb-6 whitespace-pre-line">
+      <div class="text-xl text-gray-700 dark:text-white leading-relaxed mb-6 whitespace-pre-line">
         {{ ticket.description }}
       </div>
 
