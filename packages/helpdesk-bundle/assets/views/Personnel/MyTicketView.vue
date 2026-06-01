@@ -92,6 +92,7 @@ const fetchTickets = async () => {
           <label for="creation" class="mb-1 text-sm font-medium">Date de création</label>
           <DatePicker v-model="buttondisplay" showIcon fluid :showOnFocus="false" />
         </div>
+
         <div class="flex flex-col">
           <ValidatedInput
               v-model="selectedService"

@@ -2,6 +2,7 @@
 
 namespace HelpdeskBundle\Entity;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
@@ -10,6 +11,7 @@ use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
 use App\Enum\TypeGroupeEnum;
 use HelpdeskBundle\Enum\StatutTicketEnum;
+use HelpdeskBundle\Filter\TicketFilter;
 use HelpdeskBundle\Repository\HelpdeskTicketRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -20,6 +22,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: HelpdeskTicketRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ApiFilter(TicketFilter::class, MessageFilter::class)]
 #[ApiResource(
     operations: [
         new Post(
@@ -39,7 +42,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(
             normalizationContext: ['groups' => ['ticket:read']],
         ),
-    ]
+    ],
+    paginationEnabled: false
 )]
 class HelpdeskTicket
 {

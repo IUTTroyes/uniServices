@@ -34,6 +34,10 @@ const cloturer = () => {
   console.log("Action clôturer cliquée");
 };
 
+const changerStatut = () =>{
+  console.log("changement de statut")
+};
+
 const onUpload = (event) => {
   console.log("Fichier téléversé", event);
 };
@@ -99,7 +103,7 @@ const getStatutClasses = (status) => {
   return map[status] || 'bg-gray-50 text-gray-700 border-gray-200';
 };
 
-const statuts = [
+/*const statuts = [
   {
     label: 'A traiter',
     icon: 'pi pi-plus-circle',
@@ -120,11 +124,7 @@ const statuts = [
     icon: 'pi pi-check-circle',
     command: () => changerStatut('Traité')
   }
-];
-
-const changerStatut = (nouveauStatut) => {
-  console.log("Nouveau statut sélectionné :", nouveauStatut);
-};
+];*/
 </script>
 
 <template>
@@ -178,8 +178,6 @@ const changerStatut = (nouveauStatut) => {
         <div v-permission="isPersonnel" class="flex justify-around pt-20">
           <Select v-model="selectedPersonnel" :options="personnels" optionLabel="name" placeholder="Assigner un personnel" class="w-full md:w-70" />
           <Select v-model="selectedPriority" :options="priorities" optionLabel="name" placeholder="Ajouter une priorité" class="w-full md:w-70" />
-          <!--<SplitButton label="Assigner un personnel" severity="secondary" icon="pi pi-plus" @click="personnel" :model="items" />
-          <SplitButton label="Ajouter une priorité" severity="secondary" icon="pi pi-plus" @click="priority" :model="items" />-->
           <Button label="Répondre" severity="info" @click="toggleReply" size="large"/>
         </div>
 
@@ -208,7 +206,7 @@ const changerStatut = (nouveauStatut) => {
           <PermissionGuard permission="isPersonnel">
             <Button label="Clôturer" @click="cloturer" size="large"/>
             <div class="flex gap-4 items-center">
-              <SplitButton label="Changer le statut" @click="changerStatut(ticket.statut)" :model="statuts" size="large"/>
+              <Button label="Passer au statut suivant" @click="changerStatut"></Button>
             </div>
             <Button label="Refuser" severity="danger" variant="outlined" size="large"/>
           </PermissionGuard>

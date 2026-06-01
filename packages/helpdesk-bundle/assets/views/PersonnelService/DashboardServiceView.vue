@@ -185,7 +185,7 @@ onMounted(() => {
         <Carousel :value="ticketsList" :numVisible="3" :numScroll="1" :responsiveOptions="responsiveOptions">
 
           <template #item="{ data: ticket }">
-            <div class="border border-surface-200 dark:border-surface-700 rounded m-2 p-4">
+            <div class="rounded m-2 p-4">
               <div class="mb-4">
                 <TicketMessageCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer"/>
               </div>

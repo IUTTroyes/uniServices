@@ -8,7 +8,7 @@ enum StatutTicketEnum: string
 {
     case A_TRAITER= 'À Traiter';
     case EN_ATTENTE = 'En attente';
-    case EN_COURS = 'En cours de traitement';
+    case EN_COURS = 'En cours';
     case REFUSE='Refusé';
     case ACCEPTE='Accepté';
     case CLOTURE='Cloturé';
