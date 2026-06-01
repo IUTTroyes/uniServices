@@ -41,10 +41,9 @@ Thumbs.db
 
 # Fichiers de dépendances
 vendor/
-**/node_modules/
-/node_modules/
-/.pnpm-store/
-**/.pnpm-store/
+node_modules/
+.pnpm/
+.pnpm-store/
 .pnpm-debug.log*
 
 
