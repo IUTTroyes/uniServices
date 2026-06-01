@@ -176,8 +176,10 @@ const changerStatut = (nouveauStatut) => {
 
       <div>
         <div v-permission="isPersonnel" class="flex justify-around pt-20">
-          <SplitButton label="Assigner un personnel" severity="secondary" icon="pi pi-plus" @click="personnel" :model="items" />
-          <SplitButton label="Ajouter une priorité" severity="secondary" icon="pi pi-plus" @click="priority" :model="items" />
+          <Select v-model="selectedPersonnel" :options="personnels" optionLabel="name" placeholder="Assigner un personnel" class="w-full md:w-70" />
+          <Select v-model="selectedPriority" :options="priorities" optionLabel="name" placeholder="Ajouter une priorité" class="w-full md:w-70" />
+          <!--<SplitButton label="Assigner un personnel" severity="secondary" icon="pi pi-plus" @click="personnel" :model="items" />
+          <SplitButton label="Ajouter une priorité" severity="secondary" icon="pi pi-plus" @click="priority" :model="items" />-->
           <Button label="Répondre" severity="info" @click="toggleReply" size="large"/>
         </div>
 
