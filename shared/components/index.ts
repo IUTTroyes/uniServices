@@ -18,6 +18,9 @@ import MessageCard from "./components/Messages/MessageCard.vue";
 import GlobalLoader from "./loader/GlobalLoader.vue";
 import Access from "./pages/Access.vue";
 import ButtonDelete from "./components/Buttons/ButtonDelete.vue";
+import ButtonEdit from "./components/Buttons/ButtonEdit.vue";
+import ButtonInfo from "./components/Buttons/ButtonInfo.vue";
+import ButtonSave from "./components/Buttons/ButtonSave.vue";
 
 // Form validation components
 import FormValidator from './components/Forms/FormValidator.vue';
@@ -46,6 +49,10 @@ export {
   MessageCard,
   Access,
   ButtonDelete,
+  ButtonEdit,
+  ButtonSave,
+  ButtonInfo,
+
 
   // Form validation exports
   FormValidator,

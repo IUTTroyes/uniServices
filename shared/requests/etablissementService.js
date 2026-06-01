@@ -30,8 +30,8 @@ const getEtablissementService = async (showToast = false) => {
 const updateEtablissementService = async (etablissementId, data, showToast = false) => {
     try {
         return await apiCall(
-            api.put,
-            [`/api/etablissement/${etablissementId}`],
+            api.patch,
+            [`/api/etablissements/${etablissementId}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' } }],
             'Établissement mis à jour avec succès',
             'Erreur lors de la mise à jour de l\'établissement',
             showToast
@@ -42,8 +42,23 @@ const updateEtablissementService = async (etablissementId, data, showToast = fal
     }
 }
 
+const uploadEtablissementLogoService = async (etablissementId, formData, showToast = false) => {
+    try {
+        return await apiCall(
+            api.post,
+            [`/api/etablissements/${etablissementId}/logo`, formData],
+            'Logo mis à jour avec succès',
+            'Erreur lors de la mise à jour du logo',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans uploadEtablissementLogoService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getEtablissementService, updateEtablissementService };
+export { getEtablissementService, updateEtablissementService, uploadEtablissementLogoService };

@@ -48,11 +48,6 @@ services:
         arguments:
             $providers: !tagged_iterator app.repeat_items_provider
 
-    App\Infrastructure\Questionnaire\Repeat\Types\MatiereRepeatItemsProvider:
+    App\Infrastructure\Questionnaire\Repeat\MatiereRepeatItemsProvider:
         tags: [ 'app.repeat_items_provider' ]
 
-#    App\Infrastructure\Questionnaire\Repeat\RessourceRepeatItemsProvider:
-#        tags: [ 'app.repeat_items_provider' ]
-#
-#    App\Infrastructure\Questionnaire\Repeat\ServiceRepeatItemsProvider:
-#        tags: [ 'app.repeat_items_provider' ]
