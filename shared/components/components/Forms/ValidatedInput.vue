@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { computed, nextTick } from 'vue';
+import { nextTick } from 'vue';
 import FormValidator from './FormValidator.vue';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
-import FileUplaod from 'primevue/fileupload'
-import Dropdown from 'primevue/dropdown';
-import { validationRules } from '@components';
+import AddressAutocomplete from './AddressAutocomplete.vue';
+import { validationRules } from "@components";
 
 const props = defineProps({
   modelValue: {
@@ -139,7 +138,15 @@ const props = defineProps({
   cancelLabel: {
     type: String,
     default: 'Annuler'
-  }
+  },
+  mode: {
+    type: String,
+    default: 'basic'
+  },
+  country: {
+    type: String,
+    default: 'fr'
+  },
 
 });
 
@@ -306,12 +313,27 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
             @change="e => onBlurModelValue(e, handleBlur)"
         />
 
+        <AddressAutocomplete
+            v-else-if="type === 'address'"
+            :modelValue="modelValue"
+            :placeholder="placeholder"
+            :inputClass="[inputClass, { 'p-invalid': showError }].join(' ')"
+            :country="country"
+            :showError="showError"
+            :disabled="disabled"
+            @update:modelValue="updateModelValue"
+            @blur="handleBlur"
+            class="w-full"
+        />
+
         <FileUpload
             v-else-if="type === 'file'"
             :id="name"
             :name="name"
+            :mode="mode"
             :multiple="multiple"
             :accept="accept"
+            :maxFileSize="maxFileSize"
             :auto="false"
             choose-label="Choisir"
             upload-label="Uploader"

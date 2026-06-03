@@ -25,6 +25,7 @@ import ButtonSave from "./components/Buttons/ButtonSave.vue";
 // Form validation components
 import FormValidator from './components/Forms/FormValidator.vue';
 import ValidatedInput from './components/Forms/ValidatedInput.vue';
+import AddressAutocomplete from './components/Forms/AddressAutocomplete.vue';
 import ExampleValidatedForm from './components/Forms/ExampleValidatedForm.vue';
 import { validationRules, validateField } from './utils/formValidation';
 
@@ -53,10 +54,10 @@ export {
   ButtonSave,
   ButtonInfo,
 
-
   // Form validation exports
   FormValidator,
   ValidatedInput,
+  AddressAutocomplete,
   ExampleValidatedForm,
   validationRules,
   validateField,
