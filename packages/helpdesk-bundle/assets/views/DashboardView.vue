@@ -5,7 +5,7 @@ import { useUsersStore } from "@stores";
 import TicketMessageCard from "@/components/TicketMessageCard.vue";
 import { useRouter } from 'vue-router';
 import { getTicketsService } from '@requests';
-import AccordeonMessagesVue from "@/components/AccordeonMessagesVue.vue";
+import AccordeonMessages from "@/components/AccordeonMessages.vue";
 
 const router = useRouter();
 const userStore = useUsersStore();
@@ -14,7 +14,7 @@ const checked = ref(false);
 const first = ref(0);
 const rows = ref(5);
 const ticketsList = ref([]);
-const ticketsATraiterList= ref ([]);
+const ticketsNewMessageList= ref ([]);
 const loading = ref(true);
 
 const goToTicket = (id) => {
@@ -37,7 +37,7 @@ const initiales = computed(
     () => `${userStore.user?.prenom?.charAt(0) || ""}${userStore.user?.nom?.charAt(0) || ""}`
 );
 
-const fetchTickets = async () => {
+const getTickets = async () => {
   try {
     loading.value = true;
     const params= {
@@ -45,7 +45,7 @@ const fetchTickets = async () => {
       latest:6,
     }
     const paramsMessages= {
-      statut:'À Traiter'
+      hasRecentMessage:true,
     }
     const response = await getTicketsService(params);
 
@@ -57,15 +57,16 @@ const fetchTickets = async () => {
       ticketsList.value = [];
     }
 
-    const responseATraiter = await getTicketsService(paramsMessages);
+    const responseNewMessage = await getTicketsService(paramsMessages);
 
-    if (responseATraiter && responseATraiter['member']) {
-      ticketsATraiterList.value = responseATraiter['member'];
-    } else if (Array.isArray(responseATraiter)) {
-      ticketsATraiterList.value = responseATraiter;
+    if (responseNewMessage && responseNewMessage['member']) {
+      ticketsNewMessageList.value = responseNewMessage['member'];
+    } else if (Array.isArray(responseNewMessage)) {
+      ticketsNewMessageList.value = responseNewMessage;
     } else {
-      ticketsATraiterList.value = [];
+      ticketsNewMessageList.value = [];
     }
+
 
   } catch (error) {
     console.error('Impossible de charger les tickets:', error);
@@ -76,7 +77,8 @@ const fetchTickets = async () => {
 };
 
 onMounted(() => {
-  fetchTickets();
+  getTickets();
+
 });
 </script>
 
@@ -149,7 +151,7 @@ onMounted(() => {
     </div>
 
     <div>
-      <AccordeonMessagesVue v-if="ticketsATraiterList" :tickets="ticketsATraiterList" />
+      <AccordeonMessages v-if="ticketsNewMessageList" :tickets="ticketsNewMessageList" />
     </div>
 
     <div class="card">
@@ -157,7 +159,7 @@ onMounted(() => {
 
         <div class="font-semibold mb-6 text-xl">Derniers tickets postés</div>
 
-        <Carousel :value="ticketsList" :numVisible="3" :numScroll="1" :responsiveOptions="responsiveOptions">
+        <Carousel :value="ticketsList" :numVisible="3" :numScroll="1">
 
           <template #item="{ data: ticket }">
             <div class="rounded m-2 p-4">

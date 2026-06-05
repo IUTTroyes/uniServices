@@ -39,6 +39,14 @@ class TicketFilter extends AbstractFilter
                 ->andWhere(sprintf('%s.statut = :%s', $alias,$property))
                 ->setParameter($property, $value);
         }
+        if ('hasRecentMessage' === $property && $value) {
+            $dateLimite = new \DateTimeImmutable('-7 days');
+
+            $queryBuilder
+                ->leftJoin(sprintf('%s.helpdeskMessages', $alias), 'm')
+                ->andWhere('m.created >= :dateLimite')
+                ->setParameter('dateLimite', $dateLimite);
+        }
     }
 
     public function getDescription(string $resourceClass): array
@@ -66,6 +74,14 @@ class TicketFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by statut',
+                ]
+            ],
+            'hasRecentMessage' => [
+                'property' => 'hasRecentMessage',
+                'type' => Type::BUILTIN_TYPE_BOOL,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by new message',
                 ]
             ]
         ];

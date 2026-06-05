@@ -4,12 +4,13 @@ namespace HelpdeskBundle\Entity;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Patch;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
-use App\Enum\TypeGroupeEnum;
 use HelpdeskBundle\Enum\StatutTicketEnum;
 use HelpdeskBundle\Filter\TicketFilter;
 use HelpdeskBundle\Repository\HelpdeskTicketRepository;
@@ -42,6 +43,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(
             normalizationContext: ['groups' => ['ticket:read']],
         ),
+        new Patch(
+            normalizationContext: ['groups' => ['ticket:write']],
+        ),
+        new Delete(
+            normalizationContext: ['groups' => ['ticket:delete']],
+        )
     ],
     paginationEnabled: false
 )]
@@ -52,19 +59,19 @@ class HelpdeskTicket
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['ticket:read'])]
+    #[Groups(['ticket:read','ticket:delete'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['ticket:write','ticket:read'])]
+    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
     private ?string $subject = null;
 
     #[ORM\Column(type:Types::TEXT, nullable:true)]
-    #[Groups(['ticket:write','ticket:read'])]
+    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
     private ?string $description = null;
 
     #[ORM\Column(length: 20, enumType: StatutTicketEnum::class )]
-    #[Groups(['ticket:read'])]
+    #[Groups(['ticket:read','ticket:write','ticket:delete'])]
     private StatutTicketEnum $statut=StatutTicketEnum::A_TRAITER;
 
     #[Groups(['ticket:read'])]
@@ -73,16 +80,16 @@ class HelpdeskTicket
         return $this->statut->getTransitionsAutorisees();
     }
 
-    #[ORM\Column(type: Types::SMALLINT, nullable: true)]
-    private ?int $priority = null;
+    #[ORM\Column(type: Types::STRING, nullable: true)]
+    private ?string $priority = null;
 
     #[ORM\Column( nullable: true)]
-    #[Groups(['ticket:write','ticket:read'])]
+    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
         private ?array $files_names = null;
 
     #[ORM\ManyToOne(inversedBy: 'ticket')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['ticket:write','ticket:read'])]
+    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
     private ?HelpdeskCategorie $helpdeskCategorie = null;
 
     /**
@@ -93,7 +100,7 @@ class HelpdeskTicket
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['ticket:write','ticket:read'])]
+    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
     private ?Personnel $auteur = null;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
@@ -144,19 +151,17 @@ class HelpdeskTicket
         $this->statut = $statut;
     }
 
-
-
-    public function getPriority(): ?int
+    public function getPriority(): ?string
     {
         return $this->priority;
     }
 
-    public function setPriority(?int $priority): static
+    public function setPriority(?string $priority): void
     {
         $this->priority = $priority;
-
-        return $this;
     }
+
+
 
     public function getFilesNames(): ?array
     {

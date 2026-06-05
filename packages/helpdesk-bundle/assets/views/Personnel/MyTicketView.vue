@@ -18,6 +18,7 @@ const services=ref([]);
 const selectedService=ref(null);
 const selectedCategorie=ref(null);
 const ticketsList=ref([]);
+const postedTicketsList=ref([]);
 const loading = ref(true);
 
 const goToTicket = (id) => {
@@ -57,6 +58,9 @@ onMounted(async()=>{
 const fetchTickets = async () => {
   try {
     loading.value = true;
+    const postedTickets= {
+      auteur:userStore.user?.id,
+    }
     const response = await getTicketsService();
 
     if (response && response['member']) {
@@ -65,6 +69,16 @@ const fetchTickets = async () => {
       ticketsList.value = response;
     } else {
       ticketsList.value = [];
+    }
+
+    const responsePostedTickets = await getTicketsService(postedTickets);
+
+    if (responsePostedTickets && responsePostedTickets['member']) {
+      postedTicketsList.value = responsePostedTickets['member'];
+    } else if (Array.isArray(responsePostedTickets)) {
+      postedTicketsList.value = responsePostedTickets;
+    } else {
+      postedTicketsList.value = [];
     }
   } catch (error) {
     console.error('Impossible de charger les tickets:', error);
@@ -183,11 +197,11 @@ const fetchTickets = async () => {
         <div v-if="loading" class="text-center p-10 text-xl">
           Chargement des tickets...
         </div>
-        <div v-else-if="ticketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
+        <div v-else-if="postedTicketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
           Aucun ticket trouvé.
         </div>
         <div v-else class="p-6">
-          <div v-for="ticket in ticketsList" :key="ticket.id">
+          <div v-for="ticket in postedTicketsList" :key="ticket.id">
             <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
           </div>
         </div>
@@ -213,11 +227,11 @@ const fetchTickets = async () => {
         <div v-if="loading" class="text-center p-10 text-xl">
           Chargement des tickets...
         </div>
-        <div v-else-if="ticketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
+        <div v-else-if="receivedTicketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
           Aucun ticket trouvé.
         </div>
         <div v-else class="p-6">
-          <div v-for="ticket in ticketsList" :key="ticket.id">
+          <div v-for="ticket in receivedTicketsList" :key="ticket.id">
             <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
           </div>
         </div>

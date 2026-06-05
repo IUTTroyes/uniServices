@@ -53,7 +53,7 @@ const createTicket = async () => {
     description: selectedMessage.value,
     helpdeskCategorie: categoryId ? `/api/helpdesk_categories/${categoryId}` : null,
     files: filesNames.value,
-    auteur:user.value ? `/api/personnels/${user.value.id}` :null,
+    auteur: user.value ? `/api/personnels/${user.value.id}` : null,
   };
 
   const formData = new FormData();
@@ -65,8 +65,7 @@ const createTicket = async () => {
     formData.append('helpdeskCategorie', payload.helpdeskCategorie);
   }
   if (payload.auteur) {
-    formData.append('auteur', payload.auteur);
-  }
+    formData.append('author', payload.author);  }
 
   // 👇 Ajout des fichiers
   if (payload.files && payload.files.length > 0) {
@@ -78,7 +77,7 @@ const createTicket = async () => {
   try {
     console.log(filesNames.value)
     await createTicketService(formData, true);
-    router.push({ name: 'Dashboard' });
+    router.push({ name: 'Dashboard'});
   }
   catch (error) {
     console.error('Erreur lors de la création du ticket', error);

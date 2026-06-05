@@ -9,7 +9,7 @@ export default [
     },
     {
         path: 'service',
-        component: () => import('@/views/Personnel/DashboardServiceView.vue'),
+        component: () => import('@/views/PersonnelService/DashboardServiceView.vue'),
         name: 'DashboardService',
         meta: { breadcrumb: [{ label: 'DashboardService', route: null}] },
     },

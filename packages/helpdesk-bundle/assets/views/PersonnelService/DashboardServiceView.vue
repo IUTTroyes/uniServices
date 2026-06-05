@@ -4,7 +4,7 @@ import { formatDateLong } from "@helpers/date.js";
 import { useUsersStore } from "@stores";
 import TicketCard from "@/components/TicketCard.vue";
 import TicketMessageCard from "@/components/TicketMessageCard.vue";
-import AccordeonMessagesVue from "@/components/AccordeonMessagesVue.vue";
+import AccordeonMessages from "@/components/AccordeonMessages.vue";
 import { PermissionGuard } from "@components";
 import { useRouter } from 'vue-router';
 import { getTicketsService } from '@requests';
@@ -113,7 +113,9 @@ onMounted(() => {
 
 <div class="flex mb-8 justify-around">
 
+
     <div class="card   rounded-xl self-center ">
+      <div class="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 font-extrabold"> Statistiques personnelles</div>
       <div class="flex items-center gap-8  ">
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">En cours :</span>
@@ -132,6 +134,7 @@ onMounted(() => {
     </div>
 
     <div class="card border border-gray-200 rounded-xl self-center">
+      <div class="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 font-extrabold"> Statistiques du service </div>
       <div class=" flex items-center gap-8">
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">En cours :</span>
@@ -173,7 +176,7 @@ onMounted(() => {
     </div>
 
     <div>
-      <AccordeonMessagesVue v-if="ticketsList" :tickets="ticketsList" />
+      <AccordeonMessages v-if="ticketsList" :tickets="ticketsList" />
     </div>
 
 

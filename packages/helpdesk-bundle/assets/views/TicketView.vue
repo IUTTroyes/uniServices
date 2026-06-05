@@ -1,12 +1,14 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRouter } from 'vue-router';
 import { ValidatedInput } from "@components";
 import { createMessageService } from '@requests/helpdesk_services/messageService.js';
 import { getTicketService } from '@requests';
+import {updateTicketStatutService} from '@requests';
 import { PermissionGuard } from '@components';
+import {useConfirm} from 'primevue/useconfirm';
 
-const route = useRoute();
+const router = useRouter();
 
 const props = defineProps({
   id: String
@@ -16,26 +18,75 @@ const ticket = ref(null);
 const isReplying = ref(false);
 const replyText = ref("");
 const loading = ref(true);
+const confirm=useConfirm();
 
-const items = ref([
-  { label: 'Option 1', icon: 'pi pi-refresh' },
-  { label: 'Option 2', icon: 'pi pi-times' }
+const getStatutClasses = (statut) => {
+  switch (statut) {
+    case 'À traiter':   return 'bg-blue-100 text-blue-700 border-blue-200';
+    case 'En cours':  return 'bg-orange-100 text-orange-700 border-orange-200';
+    case 'En attente': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+    case 'Refusé':    return 'bg-red-100 text-red-700 border-red-200';
+    case 'Clôturé':    return 'bg-green-100 text-green-700 border-green-200';
+    case 'Accepté':    return 'bg-black-100 text-green-700 border-green-200';
+    default:          return 'bg-gray-100 text-gray-700 border-gray-200';
+  }
+};
+
+const getPriorityClasses = (priority) => {
+  switch (priority) {
+    case 'Critique': return 'bg-red-100 text-red-700 border-red-200';
+    case 'Haute':    return 'bg-orange-100 text-orange-700 border-orange-200';
+    case 'Moyenne':  return 'bg-blue-100 text-blue-700 border-blue-200';
+    case 'Basse':    return 'bg-green-100 text-green-700 border-green-200';
+    default:         return 'bg-gray-100 text-gray-700 border-gray-200';
+  }
+};
+
+const priorities = ref([
+  { label: 'Basse', value: 'BASSE' },
+  { label: 'Moyenne', value: 'MOYENNE' },
+  { label: 'Haute', value: 'HAUTE' },
+  { label: 'Critique', value: 'CRITIQUE' }
 ]);
 
-const personnel = () => {
-  console.log("Action personnel cliquée");
-};
+const updatePriority = async (id,newPriority) => {
+  try{
+    const data={priority:newPriority}
+    await updateTicketStatutService(id, data, true);
+  }
+  catch (error){
+    console.error('Erreur lors de la mise à jour de la priorité',error);
+    await getTickets();
+  }
+}
 
-const priority = () => {
-  console.log("Action priorité cliquée");
-};
+const changerStatut = (nouveauStatut) => {
+  const data = { statut: nouveauStatut };
 
-const cloturer = () => {
-  console.log("Action clôturer cliquée");
-};
-
-const changerStatut = () =>{
-  console.log("changement de statut")
+  confirm.require({
+    message: `Êtes-vous sûr de vouloir passer ce ticket au statut "${nouveauStatut}" ?`,
+    header: 'Changement de statut',
+    icon: 'pi pi-refresh',
+    rejectProps: {
+      label: 'Annuler',
+      severity: 'secondary',
+      outlined: true
+    },
+    acceptProps: {
+      label: 'Confirmer',
+      severity: 'primary'
+    },
+    accept: async () => {
+      try {
+        await updateTicketStatutService(ticket.value.id, data, true);
+        ticket.value.statut = nouveauStatut;
+        /*await router.push({ name: 'Dashboard' });*/
+      }
+      catch (error) {
+        console.error("Erreur lors du changement de statut :", error);
+      }
+    }
+  });
 };
 
 const onUpload = (event) => {
@@ -78,53 +129,20 @@ const sendMessage = async () => {
     await createMessageService(payload, true);
     replyText.value = "";
     isReplying.value = false;
-    // Recharger les données du ticket pour afficher le nouveau message si nécessaire
     await fetchTicketDetails();
   } catch (error) {
     console.error('Erreur lors de l\'envoi du message', error);
   }
 };
 
-onMounted(async () => {
-  await fetchTicketDetails();
-});
-
 const toggleReply = () => {
   isReplying.value = !isReplying.value;
 };
 
-const getStatutClasses = (status) => {
-  const map = {
-    'A traiter': 'bg-blue-50 text-blue-700 border-blue-200',
-    'En cours': 'bg-orange-50 text-orange-700 border-orange-200',
-    'En attente': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    'Traité': 'bg-green-50 text-green-700 border-green-200',
-  };
-  return map[status] || 'bg-gray-50 text-gray-700 border-gray-200';
-};
+onMounted(async () => {
+  await fetchTicketDetails();
+});
 
-/*const statuts = [
-  {
-    label: 'A traiter',
-    icon: 'pi pi-plus-circle',
-    command: () => changerStatut('A traiter')
-  },
-  {
-    label: 'En cours',
-    icon: 'pi pi-spinner',
-    command: () => changerStatut('En cours')
-  },
-  {
-    label: 'En attente',
-    icon: 'pi pi-clock',
-    command: () => changerStatut('En attente')
-  },
-  {
-    label: 'Traité',
-    icon: 'pi pi-check-circle',
-    command: () => changerStatut('Traité')
-  }
-];*/
 </script>
 
 <template>
@@ -177,7 +195,18 @@ const getStatutClasses = (status) => {
       <div>
         <div v-permission="isPersonnel" class="flex justify-around pt-20">
           <Select v-model="selectedPersonnel" :options="personnels" optionLabel="name" placeholder="Assigner un personnel" class="w-full md:w-70" />
-          <Select v-model="selectedPriority" :options="priorities" optionLabel="name" placeholder="Ajouter une priorité" class="w-full md:w-70" />
+
+          <Select
+              v-model="ticket.priority"
+              :options="priorities"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Ajouter une priorité"
+              class="w-full md:w-56 "
+              :class="getPriorityClasses(ticket.priority)"
+              @change="updatePriority(ticket.id, ticket.priority)"
+          />
+
           <Button label="Répondre" severity="info" @click="toggleReply" size="large"/>
         </div>
 
@@ -204,11 +233,17 @@ const getStatutClasses = (status) => {
 
         <div class="flex justify-around pt-20">
           <PermissionGuard permission="isPersonnel">
-            <Button label="Clôturer" @click="cloturer" size="large"/>
+
             <div class="flex gap-4 items-center">
-              <Button label="Passer au statut suivant" @click="changerStatut"></Button>
+              <Button
+                  v-for="statutCible in ticket.transitionsAutorisees"
+                  :key="statutCible"
+                  :label="`Passer à : ${statutCible}`"
+                  :severity="statutCible === 'Refusé' ? 'danger' : 'primary'"
+                  @click="changerStatut(statutCible)"
+              />
             </div>
-            <Button label="Refuser" severity="danger" variant="outlined" size="large"/>
+
           </PermissionGuard>
         </div>
       </div>
@@ -217,5 +252,6 @@ const getStatutClasses = (status) => {
     <div v-else class="p-20 text-center text-xl text-gray-500">
       Ticket introuvable.
     </div>
+
   </div>
 </template>
