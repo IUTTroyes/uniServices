@@ -81,6 +81,7 @@ class HelpdeskTicket
     }
 
     #[ORM\Column(type: Types::STRING, nullable: true)]
+    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
     private ?string $priority = null;
 
     #[ORM\Column( nullable: true)]
@@ -96,6 +97,7 @@ class HelpdeskTicket
      * @var Collection<int, HelpdeskMessage>
      */
     #[ORM\OneToMany(targetEntity: HelpdeskMessage::class, mappedBy: 'ticket')]
+    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
     private Collection $helpdeskMessages;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]

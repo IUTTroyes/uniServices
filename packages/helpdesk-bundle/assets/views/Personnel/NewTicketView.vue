@@ -43,6 +43,7 @@ const rootCategories = computed(() => {
 
 const createTicket = async () => {
   let categoryId = null;
+  let priorityId = null;
   if (selectedCategorie.value) {
     categoryId = typeof selectedCategorie.value === 'object'
         ? selectedCategorie.value.value
@@ -52,6 +53,7 @@ const createTicket = async () => {
     subject: selectedSujet.value,
     description: selectedMessage.value,
     helpdeskCategorie: categoryId ? `/api/helpdesk_categories/${categoryId}` : null,
+    helpdeskMessages: messageId? `/api/helpdesk_messages/${messagesId}` : null,
     files: filesNames.value,
     auteur: user.value ? `/api/personnels/${user.value.id}` : null,
   };

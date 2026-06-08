@@ -2,13 +2,11 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ValidatedInput } from "@components";
-import { createMessageService } from '@requests/helpdesk_services/messageService.js';
+import {getMessagesService,createMessageService} from '@requests/helpdesk_services/messageService.js';
 import { getTicketService } from '@requests';
 import {updateTicketStatutService} from '@requests';
 import { PermissionGuard } from '@components';
 import {useConfirm} from 'primevue/useconfirm';
-
-const router = useRouter();
 
 const props = defineProps({
   id: String
@@ -22,23 +20,24 @@ const confirm=useConfirm();
 
 const getStatutClasses = (statut) => {
   switch (statut) {
-    case 'À traiter':   return 'bg-blue-100 text-blue-700 border-blue-200';
-    case 'En cours':  return 'bg-orange-100 text-orange-700 border-orange-200';
+    case 'À traiter': return 'bg-blue-100 text-blue-700 border-blue-200';
+    case 'En cours': return 'bg-orange-100 text-orange-700 border-orange-200';
     case 'En attente': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-    case 'Refusé':    return 'bg-red-100 text-red-700 border-red-200';
-    case 'Clôturé':    return 'bg-green-100 text-green-700 border-green-200';
-    case 'Accepté':    return 'bg-black-100 text-green-700 border-green-200';
+    case 'Refusé': return 'bg-red-100 text-red-700 border-red-200';
+    case 'Clôturé': return 'bg-green-100 text-green-700 border-green-200';
+    case 'Accepté': return 'bg-blue-100 text-blue-700 border-blue-200';
     default:          return 'bg-gray-100 text-gray-700 border-gray-200';
   }
 };
 
+
 const getPriorityClasses = (priority) => {
   switch (priority) {
-    case 'Critique': return 'bg-red-100 text-red-700 border-red-200';
-    case 'Haute':    return 'bg-orange-100 text-orange-700 border-orange-200';
-    case 'Moyenne':  return 'bg-blue-100 text-blue-700 border-blue-200';
-    case 'Basse':    return 'bg-green-100 text-green-700 border-green-200';
-    default:         return 'bg-gray-100 text-gray-700 border-gray-200';
+    case 'CRITIQUE': return 'pi pi-exclamation-triangle text-red-600';
+    case 'HAUTE':    return 'pi pi-angle-double-up text-orange-500';
+    case 'MOYENNE':  return 'pi pi-angle-up text-blue-500';
+    case 'BASSE':    return 'pi pi-angle-down text-green-500';
+    default:         return 'pi pi-minus text-gray-400';
   }
 };
 
@@ -88,6 +87,7 @@ const changerStatut = (nouveauStatut) => {
     }
   });
 };
+
 
 const onUpload = (event) => {
   console.log("Fichier téléversé", event);
@@ -179,21 +179,17 @@ onMounted(async () => {
         <span>{{ ticket.pieceJointe }}</span>
       </div>
 
-      <div v-if="ticket.messages && ticket.messages.length > 0" class="mt-10 border-t pt-6">
-        <h4 class="text-lg font-bold mb-4">Historique des échanges</h4>
-        <div class="flex flex-col gap-4">
-          <div v-for="msg in ticket.messages" :key="msg.id" class="p-4 rounded-xl border bg-white dark:bg-zinc-800">
-            <div class="flex justify-between text-sm text-gray-400 mb-2">
-              <span class="font-semibold text-gray-600 dark:text-gray-300">{{ msg.auteur?.prenom }} {{ msg.auteur?.nom }}</span>
-              <span>{{ new Date(msg.createdAt).toLocaleString() }}</span>
-            </div>
-            <div class="text-base text-gray-700 dark:text-gray-200">{{ msg.content }}</div>
-          </div>
+      <p>{{ticket.helpdeskMessages?.content}}</p>
+
+      <div v-if="ticket.messages && ticket.messages.length >0">
+        <div v-for="message in ticket.messages" :key="message.id" class="mb-4 p-4 bg-gray-50 rounded">
+          <p>{{ticket.message}}</p>
         </div>
       </div>
 
       <div>
-        <div v-permission="isPersonnel" class="flex justify-around pt-20">
+        <PermissionGuard permission="isPersonnelService">
+        <div class="flex justify-around pt-20">
           <Select v-model="selectedPersonnel" :options="personnels" optionLabel="name" placeholder="Assigner un personnel" class="w-full md:w-70" />
 
           <Select
@@ -202,10 +198,28 @@ onMounted(async () => {
               optionLabel="label"
               optionValue="value"
               placeholder="Ajouter une priorité"
-              class="w-full md:w-56 "
-              :class="getPriorityClasses(ticket.priority)"
+              class="w-full md:w-56"
               @change="updatePriority(ticket.id, ticket.priority)"
-          />
+          >
+            <template #value="valueProps">
+              <div v-if="valueProps.value" class="flex items-center gap-2">
+                <i :class="getPriorityClasses(valueProps.value)"></i>
+                <span>
+        {{ priorities.find(p => p.value === valueProps.value)?.label }}
+      </span>
+              </div>
+              <span v-else>
+      {{ valueProps.placeholder }}
+    </span>
+            </template>
+
+            <template #option="optionProps">
+              <div class="flex items-center gap-2">
+                <i :class="getPriorityClasses(optionProps.option.value)"></i>
+                <span>{{ optionProps.option.label }}</span>
+              </div>
+            </template>
+          </Select>
 
           <Button label="Répondre" severity="info" @click="toggleReply" size="large"/>
         </div>
@@ -232,7 +246,6 @@ onMounted(async () => {
 
 
         <div class="flex justify-around pt-20">
-          <PermissionGuard permission="isPersonnel">
 
             <div class="flex gap-4 items-center">
               <Button
@@ -243,9 +256,8 @@ onMounted(async () => {
                   @click="changerStatut(statutCible)"
               />
             </div>
-
-          </PermissionGuard>
         </div>
+        </PermissionGuard>
       </div>
     </div>
 

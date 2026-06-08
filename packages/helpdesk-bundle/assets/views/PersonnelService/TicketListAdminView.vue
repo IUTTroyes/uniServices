@@ -10,16 +10,6 @@ const isLoading = ref(true);
 const skeletonItems = ref(new Array(5));
 const ticketsList = ref([]);
 
-const getPriorityClasses = (priority) => {
-  switch (priority) {
-    case 'Critique': return 'bg-red-100 text-red-700 border-red-200';
-    case 'Haute':    return 'bg-orange-100 text-orange-700 border-orange-200';
-    case 'Moyenne':  return 'bg-blue-100 text-blue-700 border-blue-200';
-    case 'Basse':    return 'bg-green-100 text-green-700 border-green-200';
-    default:         return 'bg-gray-100 text-gray-700 border-gray-200';
-  }
-};
-
 const priorities = ref([
   { label: 'Basse', value: 'BASSE' },
   { label: 'Moyenne', value: 'MOYENNE' },
@@ -34,7 +24,18 @@ const getStatutClasses = (statut) => {
     case 'En attente': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
     case 'Refusé': return 'bg-red-100 text-red-700 border-red-200';
     case 'Clôturé': return 'bg-green-100 text-green-700 border-green-200';
+    case 'Accepté': return 'bg-blue-100 text-blue-700 border-blue-200';
     default:          return 'bg-gray-100 text-gray-700 border-gray-200';
+  }
+};
+
+const getPriorityClasses = (priority) => {
+  switch (priority) {
+    case 'CRITIQUE': return 'pi pi-exclamation-triangle text-red-600';
+    case 'HAUTE':    return 'pi pi-angle-double-up text-orange-500';
+    case 'MOYENNE':  return 'pi pi-angle-up text-blue-500';
+    case 'BASSE':    return 'pi pi-angle-down text-green-500';
+    default:         return 'pi pi-minus text-gray-400';
   }
 };
 
@@ -159,9 +160,27 @@ onMounted(() => {
                 optionValue="value"
                 placeholder="Ajouter une priorité"
                 class="w-full md:w-56 font-bold"
-                :class="getPriorityClasses(slotProps.data.priority)"
                 @change="updatePriority(slotProps.data.id, slotProps.data.priority)"
-            />
+            >
+              <template #value="valueProps">
+                <div v-if="valueProps.value" class="flex items-center gap-2">
+                  <i :class="getPriorityClasses(valueProps.value)"></i>
+                  <span>
+        {{ priorities.find(p => p.value === valueProps.value)?.label }}
+      </span>
+                </div>
+                <span v-else>
+      {{ valueProps.placeholder }}
+    </span>
+              </template>
+
+              <template #option="optionProps">
+                <div class="flex items-center gap-2">
+                  <i :class="getPriorityClasses(optionProps.option.value)"></i>
+                  <span>{{ optionProps.option.label }}</span>
+                </div>
+              </template>
+            </Select>
           </template>
         </template>
       </Column>

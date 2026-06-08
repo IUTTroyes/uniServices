@@ -5,6 +5,23 @@ import apiCall from '@helpers/apiCall';
 // ------------------- GET ----------------------
 // ----------------------------------------------
 
+const getMessagesService = async (params = {},scope='',showToast=false) => {
+    try{
+        const response= await apiCall(
+            api.get,
+            [`/api${scope}/helpdesk_messages`,{params}],
+            'Messages récupérés avec succès',
+            'Erreur lors de la récupération des messages',
+            showToast
+        )
+        return response.member;
+    }
+    catch (error) {
+        console.error('Erreur dans getMessagesService', error);
+        throw error;
+    }
+};
+
 // ----------------------------------------------
 // ------------------- CREATE -------------------
 // ----------------------------------------------
@@ -47,4 +64,4 @@ const deleteMessageService = async (id, showToast = false) => {
     }
 }
 
-export {createMessageService, deleteMessageService}
+export {getMessagesService,createMessageService, deleteMessageService}
