@@ -126,7 +126,7 @@ onMounted(() => {
         <template #body="slotProps">
           <Skeleton v-if="isLoading" width="60%" />
           <span v-else>
-            {{ slotProps.data.auteur?.nom || slotProps.data.auteur?.nom || 'Auteur inconnu' }}
+            {{ slotProps.data.auteur.display || 'Auteur inconnu' }}
           </span>
         </template>
       </Column>
