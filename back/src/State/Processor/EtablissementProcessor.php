@@ -13,7 +13,7 @@ class EtablissementProcessor implements ProcessorInterface
 {
     public function __construct(
         private readonly EntityManagerInterface $em,
-        #[Autowire('%env(string:ETABLISSEMENT_LOGO_UPLOAD_DIR)%')]
+        #[Autowire('%etablissement_logo_upload_dir%')]  // ← paramètre Symfony, pas env()
         private readonly string $uploadsDirectory,
     ) {
     }
@@ -56,9 +56,16 @@ class EtablissementProcessor implements ProcessorInterface
             // renommer le fichier "logo_etablissement.extension"
             $fileName = sprintf('logo_etablissement_%s.%s', uniqid('', true), $file->guessExtension());
 
-            if (!is_dir($this->uploadsDirectory) && !@mkdir($this->uploadsDirectory, 0775, true) && !is_dir($this->uploadsDirectory)) {
-                throw new \RuntimeException('Impossible de créer le dossier d\'upload.');
+            if (!is_dir($this->uploadsDirectory)) {
+                $created = mkdir($this->uploadsDirectory, 0775, true);
+                if (!$created && !is_dir($this->uploadsDirectory)) {
+                    throw new \RuntimeException(sprintf(
+                        'Impossible de créer le dossier d\'upload : "%s". Vérifiez les permissions.',
+                        $this->uploadsDirectory
+                    ));
+                }
             }
+
 
             $fileName = sprintf('%s_%s.%s', pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), uniqid('', true), $file->guessExtension());
             $file->move($this->uploadsDirectory, $fileName);

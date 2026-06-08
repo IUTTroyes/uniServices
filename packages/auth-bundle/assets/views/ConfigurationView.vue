@@ -3,8 +3,6 @@ import {ErrorView} from "@components";
 
 const panelMenuEtablissementItems = [
   { label: 'Informations générales', icon: 'pi pi-info-circle', route: '/configuration/etablissement' },
-  { label: 'Coordonnées', icon: 'pi pi-map-marker', route: '/configuration/etablissement/coordonnees' },
-  { label: 'Contacts', icon: 'pi pi-phone', route: '/configuration/etablissement/contacts' },
 ]
 
 const panelMenuUserItems = [

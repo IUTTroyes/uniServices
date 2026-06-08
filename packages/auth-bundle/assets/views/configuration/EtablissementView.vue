@@ -65,12 +65,13 @@ const updateEtablissement = async () => {
       libelle: etablissement.value.libelle,
       adresse: etablissement.value.adresse,
       site_web: etablissement.value.site_web,
+      telephone: etablissement.value.telephone
     }, true);
 
     if (logoFile.value) {
       const formData = new FormData();
       formData.append('file', logoFile.value);
-      await uploadEtablissementLogoService(etablissement.value.id, formData, true);
+      await uploadEtablissementLogoService(etablissement.value.id, formData, false);
     }
 
   } catch (error) {
@@ -139,7 +140,6 @@ const handleValidation = (field, result) => {
               help-text="Entrez l'URL du site web de l'établissement"
               class="w-full"
           />
-          <div class="w-full">
             <ValidatedInput
                 v-model="etablissement.adresse"
                 name="adresse"
@@ -152,7 +152,16 @@ const handleValidation = (field, result) => {
                 class="w-full"
                 country="fr"
             />
-          </div>
+          <ValidatedInput
+            v-model="etablissement.telephone"
+            name="telephone"
+            label="Téléphone"
+            type="text"
+            :rules="[]"
+            @validation="result => handleValidation('telephone', result)"
+            help-text="Entrez le numéro de téléphone de l'établissement"
+            class="w-full"
+            />
           <Button label="Enregistrer" class="w-full" type="submit" :disabled="!formValid"/>
         </form>
       </div>

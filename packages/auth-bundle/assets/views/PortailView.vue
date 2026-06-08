@@ -3,10 +3,21 @@ import { TopbarComponent } from '@components';
 import {useUsersStore} from "@stores";
 import { tools } from '@config/uniServices.js';
 import Logo from '@components/components/Logo.vue';
-import { onMounted } from 'vue';
+import { onMounted, ref } from 'vue';
 import {PermissionGuard} from "@components";
+import {getEtablissementService} from "@requests";
 
 const userStore = useUsersStore();
+const etablissement = ref(null);
+
+onMounted(async () => {
+  try {
+    etablissement.value = await getEtablissementService();
+    console.log('Etablissement fetched:', etablissement.value);
+  } catch (error) {
+    console.error('Error fetching etablissement:', error);
+  }
+});
 
 const isEnabledUrl = (tool) => {
   if (userStore.applications.includes(tool.name)) {
@@ -39,9 +50,10 @@ const props = defineProps({
   <main>
     <TopbarComponent :app-name :logo-url/>
 
-    <div id="features" class="py-6 px-6 lg:px-20 mt-8 mx-0 lg:mx-20">
+    <div id="features" class="py-6 px-6 lg:px-20 mx-0 lg:mx-20">
       <div class="grid grid-cols-12 gap-4 justify-center">
         <div class="col-span-12 text-center mt-20 mb-6">
+          <Badge :value="etablissement?.libelle" icon="pi pi-building" size="large" class="mb-4"/>
           <div class="text-surface-900 dark:text-surface-0 font-normal mb-2 text-4xl">UniServices</div>
           <span class="text-muted-color text-2xl">À quelle plateforme souhaitez-vous accéder ?</span>
         </div>

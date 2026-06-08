@@ -10,10 +10,12 @@ import { capitalize } from './string.js'
 import { showInfo, showDanger, showWarn, showSuccess } from './toast.js'
 import { useVersion } from './useVersion.js'
 import { getAuthenticatedUser, isAuthenticated, logout, clearUserCache } from './authService.js'
+import { resolveLogoEtablissementUrl } from './logo.js'
 
 export { formatAdresse, apiCall, api,
     adjustColor, darkenColor, rgbToHsl, hslToRgb, colorNameToRgb, hexToRgb,
     formatDateCourt, formatDateLong, jourDate, heuresMinutesDate, getISOWeekNumber,
     debounce, exportCsv, capitalize, showInfo, showDanger, showWarn, showSuccess,
     useVersion, getAuthenticatedUser, isAuthenticated, logout, clearUserCache,
+    resolveLogoEtablissementUrl
 }
