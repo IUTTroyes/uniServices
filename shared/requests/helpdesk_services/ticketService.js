@@ -60,12 +60,46 @@ const createTicketService =async (data, showToast=true)=>{
     }
 }
 
+export {createTicketService}
+
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
+
+const updateTicketStatutService = async (id,data, showToast = false) => {
+    try {
+        return await apiCall(
+            api.patch,
+            [`/api/helpdesk_tickets/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
+            'Statut mise à jour avec succès',
+            'Erreur lors de la mise à jour du statut',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans updateTicketStatutService:', error);
+        throw error;
+    }
+}
+
+export {updateTicketStatutService}
 
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export {createTicketService}
+const deleteTicketService = async (id, showToast = false) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api/helpdesk_tickets/${id}`],
+            'Ticket supprimées avec succès',
+            'Erreur lors de la suppression du ticket',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deleteTicketService:', error);
+        throw error;
+    }
+}
+
+export {deleteTicketService}

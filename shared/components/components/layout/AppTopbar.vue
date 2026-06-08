@@ -267,7 +267,7 @@ const selectAnneeUniversitaire = (annee) => {
       </button>
 
       <router-link to="/" class="layout-topbar-logo">
-        <Logo :logo-url="logoUrl" alt="logo" class="rounded-xl"/> <span class="text-lg">{{appName}}</span>
+        <Logo :logo-url="logoUrl" alt="logo" class="rounded-xl p-2"/> <span class="text-lg">{{appName}}</span>
       </router-link>
     </div>
 
@@ -348,14 +348,14 @@ const selectAnneeUniversitaire = (annee) => {
               <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>
             </button>
           </div>
-          <button type="button" class="layout-topbar-action layout-topbar-action-highlight"  @click="toggleProfileMenu" aria-haspopup="true" aria-controls="profile_menu">
+          <Button severity="secondary" rounded @click="toggleProfileMenu" aria-haspopup="true" aria-controls="profile_menu" class="p-0!">
             <template v-if="userStore.userPhoto">
-              <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full">
+              <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full max-w-12 mx-auto">
             </template>
             <template v-else>
               <span class="text-gray-700 text-xl">{{ initiales }}</span>
             </template>
-          </button>
+          </Button>
           <Menu ref="profileMenu" id="profile_menu" :model="profileItems" :popup="true" />
         </div>
       </div>

@@ -1,8 +1,4 @@
-import NewAnneeUniv from "@/views/Super-Administration/annee_univ/NewAnneeUniv.vue";
-import ListAnneeUniv from "@/views/Super-Administration/annee_univ/ListAnneeUniv.vue";
-import ListDepartement from "@/views/Super-Administration/Departement/ListDepartement.vue";
-import EditAnneeUniv from "@/views/Super-Administration/annee_univ/EditAnneeUniv.vue";
-import AnneeUnivDiplomes from "@/views/Super-Administration/annee_univ/AnneeUnivDiplomes.vue";
+import ListDepartement from "@/views/Super-Administration/Departement/ListDepartement.vue"
 import SuperAdministrationView from "@/views/SuperAdministrationView.vue";
 import NewDepartement from "@/views/Super-Administration/Departement/NewDepartement.vue";
 
@@ -17,81 +13,6 @@ export default [
         route: null,
         icon: 'pi pi-cog'
       }]
-    },
-  },
-
-  {
-    path: 'super-administration/annee-universitaire',
-    component: NewAnneeUniv,
-    meta: {
-      permission: 'isSuperAdmin',
-      breadcrumb: [
-        { label: 'Dashboard', route: '/' },
-        { label: 'Super-Administration', route: '/super-administration' },
-        {
-          label: 'Nouvelle Année Universitaire',
-          route: null,
-          icon: 'pi pi-wrench'
-        }
-      ]
-    },
-  },
-  {
-    path: 'super-administration/annees-universitaires',
-    component: ListAnneeUniv,
-    meta: {
-      permission: 'isSuperAdmin',
-      breadcrumb: [
-        { label: 'Dashboard', route: '/' },
-        { label: 'Super-Administration', route: '/super-administration' },
-        {
-          label: 'Années Universitaires',
-          route: null,
-          icon: 'pi pi-wrench'
-        }
-      ]
-    },
-  },
-  {
-    path: 'super-administration/annee-universitaire/:id/edit',
-    component: EditAnneeUniv,
-    meta: {
-      permission: 'isSuperAdmin',
-      breadcrumb: [
-        { label: 'Dashboard', route: '/' },
-        { label: 'Super-Administration', route: '/super-administration' },
-        {
-          label: 'Années Universitaires',
-          route: '/super-administration/annees-universitaires',
-          icon: 'pi pi-wrench'
-        },
-        {
-          label: 'Modifier',
-          route: null,
-          icon: 'pi pi-pencil'
-        }
-      ]
-    },
-  },
-  {
-    path: 'super-administration/annee-universitaire/:id/diplomes',
-    component: AnneeUnivDiplomes,
-    meta: {
-      permission: 'isSuperAdmin',
-      breadcrumb: [
-        { label: 'Dashboard', route: '/' },
-        { label: 'Super-Administration', route: '/super-administration' },
-        {
-          label: 'Années Universitaires',
-          route: '/super-administration/annees-universitaires',
-          icon: 'pi pi-wrench'
-        },
-        {
-          label: 'Diplômes',
-          route: null,
-          icon: 'pi pi-book'
-        }
-      ]
     },
   },
   {

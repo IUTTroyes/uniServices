@@ -60,6 +60,11 @@ class PostVoter extends Voter
     public const CAN_VIEW_ANNEE_UNIV = 'CAN_VIEW_ANNEE_UNIV';
     public const CAN_EDIT_ANNEE_UNIV = 'CAN_EDIT_ANNEE_UNIV';
 
+    // Permissions Etablissement
+    public const CAN_VIEW_ETABLISSEMENT = 'CAN_VIEW_ETABLISSEMENT';
+    public const CAN_EDIT_ETABLISSEMENT = 'CAN_EDIT_ETABLISSEMENT';
+    public const CAN_DELETE_ETABLISSEMENT = 'CAN_DELETE_ETABLISSEMENT';
+
     private const SUPPORTED_ATTRIBUTES = [
         self::CAN_VIEW_ETUDIANT,
         self::CAN_EDIT_ETUDIANT,
@@ -84,6 +89,9 @@ class PostVoter extends Voter
         self::CAN_DELETE_JUSTIFICATIF,
         self::CAN_VIEW_ANNEE_UNIV,
         self::CAN_EDIT_ANNEE_UNIV,
+        self::CAN_VIEW_ETABLISSEMENT,
+        self::CAN_EDIT_ETABLISSEMENT,
+        self::CAN_DELETE_ETABLISSEMENT,
     ];
 
     /**

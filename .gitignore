@@ -5,10 +5,10 @@
 /front/apps/edt/public/common-images/
 /front/apps/intranet/public/common-images/
 /.idea
+
+# macOS
 .DS_Store
-/back/.DS_Store
-/front/.DS_Store
-/front/apps/.DS_Store
+**/.DS_Store
 
 # Environment files (sensitive data)
 .env.local
@@ -33,16 +33,25 @@
 *.swo
 *~
 .vscode/
+.vite/
+.idea/
 
 # OS files
 Thumbs.db
 
-# Bundle files
+# Fichiers de dépendances
 vendor/
-**/node_modules/
-packages/**/node_modules/
+node_modules/
+.pnpm/
 .pnpm-store/
+.pnpm-debug.log*
+
 
 # fichiers de build
-
 /back/public/**
+
+# exclure les fichiers github workflow CI-back, CI-front, CI-cypress
+/.github/workflows/CI-back.yml
+/.github/workflows/CI-front.yml
+/.github/workflows/CI-cypress.yml
+

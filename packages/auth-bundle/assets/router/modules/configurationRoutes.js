@@ -1,6 +1,8 @@
 import ConfigurationView from '@/views/ConfigurationView.vue'
-import TypeDiplomeView from '@/views/configuration/TypeDiplomeView.vue'
-import AnneeUniversitaireView from '@/views/configuration/AnneeUniversitaireView.vue'
+import ListAnneeUniv from '@/views/configuration/annee_univ/ListAnneeUniv.vue';
+import NewAnneeUniv from "@/views/configuration/annee_univ/NewAnneeUniv.vue";
+import AnneeUnivDiplomes from "@/views/configuration/annee_univ/AnneeUnivDiplomes.vue";
+import EditAnneeUniv from "@/views/configuration/annee_univ/EditAnneeUniv.vue";
 import GestionAccesView from '@/views/configuration/GestionAccesView.vue'
 import EtablissementView from "@/views/configuration/EtablissementView.vue";
 
@@ -33,23 +35,8 @@ export default [
     },
   },
   {
-    path: 'type-diplome',
-    component: TypeDiplomeView,
-    name: 'type-diplome',
-    meta: {
-      permission: 'isReferent',
-      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
-        label: 'Configuration',
-        route: '/configuration'
-      }, {
-        label: 'Type de diplôme',
-        route: null
-      }]
-    },
-  },
-  {
-    path: 'annee-universitaire',
-    component: AnneeUniversitaireView,
+    path: 'annees-universitaires',
+    component: ListAnneeUniv,
     name: 'annee-universitaire',
     meta: {
       permission: 'isReferent',
@@ -59,8 +46,53 @@ export default [
       }, {
         label: 'Année universitaire',
         route: null
+      }],
+    }
+  },
+  {
+    path: 'annee-universitaire/new',
+    component: NewAnneeUniv,
+    name: 'annee-universitaire-new',
+    meta: {
+      permission: 'isReferent',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Nouvelle année universitaire',
+        route: null
       }]
-    },
+    }
+  },
+  {
+    path: 'annee-universitaire/:id/diplomes',
+    component: AnneeUnivDiplomes,
+    name: 'annee-universitaire-diplomes',
+    meta: {
+      permission: 'isReferent',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Diplômes',
+        route: null
+      }]
+    }
+  },
+  {
+    path: 'annee-universitaire/:id/edit',
+    component: EditAnneeUniv,
+    name: 'annee-universitaire-edit',
+    meta: {
+      permission: 'isReferent',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Modifier l\'année universitaire',
+        route: null
+      }]
+    }
   },
   {
     path: 'gestion-acces',

@@ -3,9 +3,9 @@ import { createRouter, createWebHistory } from 'vue-router';
 import {useUsersStore} from "@stores";
 import { hasPermission } from '@utils';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
-import NewTicketView from '@/views/Agent/NewTicketView.vue';
-import MyTicketView from '@/views/Agent/MyTicketView.vue';
-import TicketListAdminView from '@/views/Personnel/TicketListAdminView.vue';
+import NewTicketView from '@/views/Personnel/NewTicketView.vue';
+import MyTicketView from '@/views/Personnel/MyTicketView.vue';
+import TicketListAdminView from '@/views/PersonnelService/TicketListAdminView.vue';
 import TicketView from '@/views/TicketView.vue'
 import dashboardRoutes from './modules/dashboardRoutes';
 
