@@ -44,7 +44,6 @@ class HelpdeskMessage
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
     #[Groups(['message:read'])]
-
     private ?Personnel $auteur = null;
 
     public function getId(): ?int
