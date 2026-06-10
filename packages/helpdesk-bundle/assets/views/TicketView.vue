@@ -7,55 +7,48 @@ import { getTicketService } from '@requests';
 import {updateTicketStatutService} from '@requests';
 import { PermissionGuard } from '@components';
 import {useConfirm} from 'primevue/useconfirm';
+import {getStatutsClasses,getPriorityClasses,priorities,updatePriority} from "@/utils";
+
 
 const props = defineProps({
   id: String
 });
 
 const ticket = ref(null);
+const personnelList= ref([]);
 const isReplying = ref(false);
 const replyText = ref("");
 const loading = ref(true);
 const confirm=useConfirm();
 
-const getStatutClasses = (statut) => {
-  switch (statut) {
-    case 'À traiter': return 'bg-blue-100 text-blue-700 border-blue-200';
-    case 'En cours': return 'bg-orange-100 text-orange-700 border-orange-200';
-    case 'En attente': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-    case 'Refusé': return 'bg-red-100 text-red-700 border-red-200';
-    case 'Clôturé': return 'bg-green-100 text-green-700 border-green-200';
-    case 'Accepté': return 'bg-blue-100 text-blue-700 border-blue-200';
-    default:          return 'bg-gray-100 text-gray-700 border-gray-200';
-  }
-};
+const assignesOptions = computed(() => {
+  return personnelList.value.map(p => ({
+    label: `${p.prenom} ${p.nom}`,
+    value: `/api/personnels/${p.id}`
+  }))
+})
 
-
-const getPriorityClasses = (priority) => {
-  switch (priority) {
-    case 'CRITIQUE': return 'pi pi-exclamation-triangle text-red-600';
-    case 'HAUTE':    return 'pi pi-angle-double-up text-orange-500';
-    case 'MOYENNE':  return 'pi pi-angle-up text-blue-500';
-    case 'BASSE':    return 'pi pi-angle-down text-green-500';
-    default:         return 'pi pi-minus text-gray-400';
-  }
-};
-
-const priorities = ref([
-  { label: 'Basse', value: 'BASSE' },
-  { label: 'Moyenne', value: 'MOYENNE' },
-  { label: 'Haute', value: 'HAUTE' },
-  { label: 'Critique', value: 'CRITIQUE' }
-]);
-
-const updatePriority = async (id,newPriority) => {
+const getPersonnelsDuService = async (serviceId) => {
+  if (!serviceId) return;
   try{
-    const data={priority:newPriority}
+    const response = await getPersonnelsService ({service: serviceId})
+
+    if (response && response['member']) {
+      personnelList.value = response['member'];
+    } else if (Array.isArray(response)) {
+      personnelList.value = response;
+    }
+  } catch (error) {
+    console.error ('Erreur lors du chargement des personnels')
+  }
+}
+const updateAssigne = async (id,personnelIri) => {
+  try{
+    const data={assigne:personnelIri}
     await updateTicketStatutService(id, data, true);
   }
   catch (error){
-    console.error('Erreur lors de la mise à jour de la priorité',error);
-    await getTickets();
+    console.error('Erreur lors de la mise à jour du personnel assigné',error);
   }
 }
 
@@ -88,7 +81,6 @@ const changerStatut = (nouveauStatut) => {
   });
 };
 
-
 const onUpload = (event) => {
   console.log("Fichier téléversé", event);
 };
@@ -98,13 +90,19 @@ const ticketIri = computed(() => {
   return id ? `/api/helpdesk_tickets/${id}` : null;
 });
 
-const fetchTicketDetails = async () => {
+const getTicketsService = async () => {
   const id = props.id || route.params?.id;
   if (!id) return;
   try {
     loading.value = true;
-    ticket.value=await getTicketService(id)
-    console.log(ticket.value)
+    const ticketData = ticket.value=await getTicketService(id)
+    ticket.value = ticketData
+
+    const serviceId = ticketData.service?.id || ticketData.helpdeskCategorie?.service?.id;
+    if (serviceId) {
+      await getPersonnelsDuService(serviceId);
+    }
+   /* await getMessages();*/
   }
   catch (error) {
     console.error('Erreur lors de la récupération du ticket:', error);
@@ -129,7 +127,7 @@ const sendMessage = async () => {
     await createMessageService(payload, true);
     replyText.value = "";
     isReplying.value = false;
-    await fetchTicketDetails();
+    await getTicketsService();
   } catch (error) {
     console.error('Erreur lors de l\'envoi du message', error);
   }
@@ -140,7 +138,7 @@ const toggleReply = () => {
 };
 
 onMounted(async () => {
-  await fetchTicketDetails();
+  await getTicketsService();
 });
 
 </script>
@@ -159,7 +157,7 @@ onMounted(async () => {
           </h3>
           <span
               class="px-4 py-1.5 rounded border text-lg font-medium whitespace-nowrap"
-              :class="getStatutClasses(ticket.statut)"
+              :class="getStatutsClasses(ticket.statut)"
           >
             {{ ticket.statut }}
           </span>
@@ -190,13 +188,48 @@ onMounted(async () => {
       <div>
         <PermissionGuard permission="isPersonnelService">
         <div class="flex justify-around pt-20">
-          <Select v-model="selectedPersonnel" :options="personnels" optionLabel="name" placeholder="Assigner un personnel" class="w-full md:w-70" />
+          <ValidatedInput
+              v-model="ticket.assigne"
+              :options="assignesOptions"
+              optionLabel="label"
+              optionValue="value"
+              name="assigne"
+              type="select"
+              label="Assigner un personnel"
+              :rules="[]"
+              placeholder="Sélectionnez un personnel"
+              class="w-full md:w-56"
+              @change="updateAssigne(ticket.id, ticket.assigne)"
+          >
+            <template #value="valueProps">
+              <div v-if="valueProps.value" class="flex items-center gap-2">
+                <i class="pi pi-user text-blue-500"></i>
+                <span>
+        {{ assignesOptions.find(p => p.value === valueProps.value)?.label || 'Personnel assigné' }}
+      </span>
+              </div>
+              <span v-else>
+      {{ valueProps.placeholder }}
+    </span>
+            </template>
 
-          <Select
+            <template #option="optionProps">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-user text-gray-400"></i>
+                <span>{{ optionProps.option.label }}</span>
+              </div>
+            </template>
+          </ValidatedInput>
+
+          <ValidatedInput
               v-model="ticket.priority"
               :options="priorities"
               optionLabel="label"
               optionValue="value"
+              name="priority"
+              type="select"
+              label="Priorité"
+              :rules="[]"
               placeholder="Ajouter une priorité"
               class="w-full md:w-56"
               @change="updatePriority(ticket.id, ticket.priority)"
@@ -219,7 +252,7 @@ onMounted(async () => {
                 <span>{{ optionProps.option.label }}</span>
               </div>
             </template>
-          </Select>
+          </ValidatedInput>
 
           <Button label="Répondre" severity="info" @click="toggleReply" size="large"/>
         </div>

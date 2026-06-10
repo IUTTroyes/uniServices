@@ -1,5 +1,9 @@
 <script setup>
-import {PermissionGuard} from "@components";
+import {ref} from "vue";
+import {PermissionGuard, ValidatedInput} from "@components";
+import {updateTicketStatutService} from '@requests';
+import {getStatutsClasses,getPriorityClasses,priorities} from "@/utils";
+
 
 const props = defineProps({
   ticket: {
@@ -8,15 +12,16 @@ const props = defineProps({
   }
 });
 
-const getStatusClasses = (status) => {
-  const map = {
-    'A traiter': 'bg-blue-50 text-blue-700 border-blue-200',
-    'En cours': 'bg-orange-50 text-orange-700 border-orange-200',
-    'En attente': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    'Traité': 'bg-green-50 text-green-700 border-green-200',
-  };
-  return map[status] || 'bg-gray-50 text-gray-700 border-gray-200';
-};
+const updatePriority = async (id,newPriority) => {
+  try{
+    const data={priority:newPriority}
+    await updateTicketStatutService(id, data, true);
+  }
+  catch (error){
+    console.error('Erreur lors de la mise à jour de la priorité',error);
+    await getTickets();
+  }
+}
 </script>
 
 <template>
@@ -33,7 +38,7 @@ const getStatusClasses = (status) => {
   {{ ticket.helpdeskCategorie?.libelle || ticket.category }}
 </span>
 
-        <span class="px-3 py-1 rounded border text-sm font-medium" :class="getStatusClasses(ticket.statut)">{{ ticket.statut }}</span>
+        <span class="px-3 py-1 rounded border text-sm font-medium" :class="getStatutsClasses(ticket.statut)">{{ ticket.statut }}</span>
       </div>
     </div>
     <div class="text-sm  mb-4 line-clamp-2">
@@ -52,8 +57,38 @@ const getStatusClasses = (status) => {
       <div class="flex justify-end ml-auto">
         <PermissionGuard permission="isPersonnel">
           <div @click.stop>
-            <SplitButton severity="secondary" icon="pi pi-plus" label="Ajouter une priorité" />
-          </div>
+            <ValidatedInput
+                v-model="ticket.priority"
+                :options="priorities"
+                optionLabel="label"
+                optionValue="value"
+                name="priority"
+                type="select"
+                label="Priorité"
+                :rules="[]"
+                placeholder="Ajouter une priorité"
+                class="w-full md:w-56"
+                @change="updatePriority(ticket.id, ticket.priority)"
+            >
+              <template #value="valueProps">
+                <div v-if="valueProps.value" class="flex items-center gap-2">
+                  <i :class="getPriorityClasses(valueProps.value)"></i>
+                  <span>
+        {{ priorities.find(p => p.value === valueProps.value)?.label }}
+      </span>
+                </div>
+                <span v-else>
+      {{ valueProps.placeholder }}
+    </span>
+              </template>
+
+              <template #option="optionProps">
+                <div class="flex items-center gap-2">
+                  <i :class="getPriorityClasses(optionProps.option.value)"></i>
+                  <span>{{ optionProps.option.label }}</span>
+                </div>
+              </template>
+            </ValidatedInput>          </div>
         </PermissionGuard>
       </div>
     </div>
