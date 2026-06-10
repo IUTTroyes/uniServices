@@ -140,12 +140,12 @@ const editAccessPersonnel = (personnel) => {
     </template>
     <template #empty> No customers found.</template>
     <template #isLoading> Loading customers data. Please wait.</template>
-    <Column field="photo" :showFilterMenu="false" header="Nom" style="min-width: 6rem">
+    <Column field="photo" :showFilterMenu="false" header="" style="min-width: 6rem">
       <template #body="{ data }">
         <PhotoUser :user-photo="data.photoName" class="rounded-full !w-14 h-auto border-4 border-gray-300 border-opacity-60 mx-auto"/>
       </template>
     </Column>
-    <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 6rem">
+    <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 6rem" sortable>
       <template #body="{ data }">
         {{ data.nom }}
       </template>
@@ -153,7 +153,7 @@ const editAccessPersonnel = (personnel) => {
         <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom"/>
       </template>
     </Column>
-    <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 6rem">
+    <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 6rem" sortable>
       <template #body="{ data }">
         {{ data.prenom }}
       </template>
@@ -161,7 +161,7 @@ const editAccessPersonnel = (personnel) => {
         <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
       </template>
     </Column>
-    <Column field="statut" header="Statut" :showFilterMenu="false" style="min-width: 6rem">
+    <Column field="statut" header="Statut" :showFilterMenu="false" style="min-width: 6rem" sortable>
       <template #body="{ data }">
         <Tag :value="data.statut" :severity="data.statutSeverity"/>
       </template>
@@ -186,7 +186,7 @@ const editAccessPersonnel = (personnel) => {
         </Select>
       </template>
     </Column>
-    <Column field="numeroHarpege" :showFilterMenu="false" header="N° Harpège." style="min-width: 12rem">
+    <Column field="numeroHarpege" :showFilterMenu="false" header="N° Harpège." style="min-width: 12rem" sortable>
       <template #body="{ data }">
         {{ data.numeroHarpege }}
       </template>
