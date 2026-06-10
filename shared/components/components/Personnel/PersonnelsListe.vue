@@ -1,6 +1,5 @@
 <script setup>
-import {ref, onMounted, computed, watch, onUnmounted} from 'vue'
-import { FilterMatchMode } from '@primevue/core/api'
+import {ref, onMounted, computed, onUnmounted} from 'vue'
 import { statuts } from '@config/uniServices.js'
 import {getPersonnelsService} from '@requests'
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue'
@@ -11,6 +10,7 @@ import ViewPersonnelDialog from '@/dialogs/Personnels/ViewPersonnelDialog.vue'
 import EditPersonnelDialog from '@/dialogs/Personnels/EditPersonnelDialog.vue'
 import AccessPersonnelDialog from '@/dialogs/Personnels/AccessPersonnelDialog.vue'
 import { usePersonnelFilters } from '@composables/filters/usersFilters/usePersonnelFilters.ts';
+import { PhotoUser } from "@components";
 
 const departementId = computed(() => usersStore.departementDefaut ? usersStore.departementDefaut.id : null);
 const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
@@ -116,6 +116,8 @@ const editAccessPersonnel = (personnel) => {
       :value="personnels"
       v-model:filters="filters"
       lazy
+      scrollHeight="800px"
+      scrollable
       stripedRows
       paginator
       :first="offset"
@@ -138,7 +140,12 @@ const editAccessPersonnel = (personnel) => {
     </template>
     <template #empty> No customers found.</template>
     <template #isLoading> Loading customers data. Please wait.</template>
-    <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 12rem">
+    <Column field="photo" :showFilterMenu="false" header="Nom" style="min-width: 6rem">
+      <template #body="{ data }">
+        <PhotoUser :user-photo="data.photoName" class="rounded-full !w-14 h-auto border-4 border-gray-300 border-opacity-60 mx-auto"/>
+      </template>
+    </Column>
+    <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 6rem">
       <template #body="{ data }">
         {{ data.nom }}
       </template>
@@ -146,7 +153,7 @@ const editAccessPersonnel = (personnel) => {
         <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom"/>
       </template>
     </Column>
-    <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 12rem">
+    <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 6rem">
       <template #body="{ data }">
         {{ data.prenom }}
       </template>
@@ -154,14 +161,14 @@ const editAccessPersonnel = (personnel) => {
         <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
       </template>
     </Column>
-    <Column field="statut" header="Statut" :showFilterMenu="false" style="min-width: 12rem">
+    <Column field="statut" header="Statut" :showFilterMenu="false" style="min-width: 6rem">
       <template #body="{ data }">
         <Tag :value="data.statut" :severity="data.statutSeverity"/>
       </template>
       <template #filter="{ filterModel, filterCallback }">
         <Select v-model="filterModel.value" @change="filterCallback()" :options="statuts"
                 placeholder="Filtrer"
-                style="min-width: 12rem"
+                style="min-width: 6rem"
                 :showClear="true">
           <template #value="slotProps">
             <div v-if="slotProps.value" class="flex items-center">
@@ -179,21 +186,13 @@ const editAccessPersonnel = (personnel) => {
         </Select>
       </template>
     </Column>
-    <Column field="numeroHarpege" :showFilterMenu="false" header="N° Admin." style="min-width: 12rem">
+    <Column field="numeroHarpege" :showFilterMenu="false" header="N° Harpège." style="min-width: 12rem">
       <template #body="{ data }">
         {{ data.numeroHarpege }}
       </template>
       <template #filter="{ filterModel, filterCallback }">
         <InputText v-model="filterModel.value" type="text" @input="filterCallback()"
-                   placeholder="Filtrer par N° Admin."/>
-      </template>
-    </Column>
-    <Column field="mailUniv" :showFilterMenu="false" header="Email" style="min-width: 12rem">
-      <template #body="{ data }">
-        {{ data.mailUniv }}
-      </template>
-      <template #filter="{ filterModel, filterCallback }">
-        <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par email"/>
+                   placeholder="Filtrer par N° Harpège."/>
       </template>
     </Column>
     <Column :showFilterMenu="false" style="min-width: 12rem">

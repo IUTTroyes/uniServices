@@ -72,7 +72,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['personnel:detail', 'personnel:liste'])]
+    #[Groups(['personnel:detail'])]
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -718,7 +718,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['personnel:detail', 'previsionnel_semestre:read'])]
+    #[Groups(['personnel:detail', 'previsionnel_semestre:read', 'personnel:liste'])]
     public function getDisplayStatut(): ?string
     {
         return $this->statut->getLibelle() ?? '-';
@@ -802,7 +802,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read'])]
+    #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'personnel:liste'])]
     public function getStatutSeverity(): string {
         return $this->statut->getBadge();
     }
