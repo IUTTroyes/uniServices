@@ -145,7 +145,6 @@ const getEtudiantsScolarite = async () => {
     page: page.value + 1,
     filters: filters.value,
   };
-  console.log(filters.value)
   const paramsCount = {
     departement: departementId.value,
     anneeUniversitaire: selectedAnneeUniversitaireId.value,
@@ -157,8 +156,6 @@ const getEtudiantsScolarite = async () => {
     nbEtudiants.value = await getEtudiantsScolariteService(paramsCount, '/count');
     // transformer le tableau en int
     nbEtudiants.value = Number.parseInt(String(nbEtudiants.value), 10);
-
-    console.log(etudiants.value)
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants :', error);
     hasError.value = true;

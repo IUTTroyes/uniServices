@@ -22,6 +22,8 @@ import ButtonEdit from "./components/Buttons/ButtonEdit.vue";
 import ButtonInfo from "./components/Buttons/ButtonInfo.vue";
 import ButtonSave from "./components/Buttons/ButtonSave.vue";
 
+import PersonnelsListe from "./components/Personnel/PersonnelsListe.vue";
+
 // Form validation components
 import FormValidator from './components/Forms/FormValidator.vue';
 import ValidatedInput from './components/Forms/ValidatedInput.vue';
@@ -30,29 +32,37 @@ import ExampleValidatedForm from './components/Forms/ExampleValidatedForm.vue';
 import { validationRules, validateField } from './utils/formValidation';
 
 export {
+  // Composants utilitaires
+  PermissionGuard,
+
+
+  // Composants mineurs
+  MessageCard,
+  Access,
   GlobalLoader,
-  LayoutComponent,
-  LoginComponent,
-  FooterComponent,
-  TopbarComponent,
-  SimpleSkeleton,
-  ArticleSkeleton,
-  ListSkeleton,
   CardSkeleton,
   ApcCompetenceBadge,
   ApcAcBadge,
   ErrorView,
   PhotoUser,
-  ProfilEtudiant,
-  ScolariteEtudiant,
-  ProfilPersonnel,
-  PermissionGuard,
-  MessageCard,
-  Access,
+  SimpleSkeleton,
+  ArticleSkeleton,
+  ListSkeleton,
   ButtonDelete,
   ButtonEdit,
   ButtonSave,
   ButtonInfo,
+
+
+  // Composants majeurs
+  LayoutComponent,
+  LoginComponent,
+  FooterComponent,
+  TopbarComponent,
+  PersonnelsListe,
+  ProfilEtudiant,
+  ScolariteEtudiant,
+  ProfilPersonnel,
 
   // Form validation exports
   FormValidator,

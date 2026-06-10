@@ -1,78 +1,89 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
+import {ref, onMounted, computed, watch, onUnmounted} from 'vue'
 import { FilterMatchMode } from '@primevue/core/api'
-import api from '@helpers/axios.js'
 import { statuts } from '@config/uniServices.js'
+import {getPersonnelsService} from '@requests'
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue'
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
-import createApiService from '@requests/apiService'
-import apiCall from '@helpers/apiCall'
-
+import { useUsersStore, useAnneeUnivStore } from '@stores';
 import ViewPersonnelDialog from '@/dialogs/Personnels/ViewPersonnelDialog.vue'
 import EditPersonnelDialog from '@/dialogs/Personnels/EditPersonnelDialog.vue'
 import AccessPersonnelDialog from '@/dialogs/Personnels/AccessPersonnelDialog.vue'
+import { usePersonnelFilters } from '@composables/filters/usersFilters/usePersonnelFilters.ts';
 
-const personnelsService = createApiService('api/personnels')
-
+const departementId = computed(() => usersStore.departementDefaut ? usersStore.departementDefaut.id : null);
+const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
+const usersStore = useUsersStore();
+const anneeUnivStore = useAnneeUnivStore();
 const personnels = ref()
 const nbPersonnels = ref()
-const loading = ref(true)
+const isLoading = ref(true)
 const page = ref(0)
 const rowOptions = [30, 60, 120]
 
 const limit = ref(rowOptions[0])
 const offset = computed(() => Number(limit.value * page.value))
 
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  nom: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  prenom: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  statut: { value: null, matchMode: FilterMatchMode.EQUALS },
-  numeroHarpege: { value: null, matchMode: FilterMatchMode.EQUALS },
-  mailUniv: { value: null, matchMode: FilterMatchMode.EQUALS },
-})
-
 const showViewDialog = ref(false)
 const showEditDialog = ref(false)
 const showAccessEditDialog = ref(false)
 const selectedPersonnel = ref(null)
 
+const FILTERS_DEBOUNCE_MS = 250;
+let filtersDebounceTimeout = null;
+
+//watch filters
+const {filters, watchChanges} = usePersonnelFilters();
+watchChanges(async() => {
+  page.value = 0;
+  if (filtersDebounceTimeout) {
+    clearTimeout(filtersDebounceTimeout);
+  }
+  filtersDebounceTimeout = setTimeout(() => {
+    getPersonnels();
+  }, FILTERS_DEBOUNCE_MS);
+});
+
 onMounted(async () => {
-  loading.value = true
+  isLoading.value = true
   try {
-    const data = await apiCall(
-      personnelsService.getAll,
-      [],
-      '', // Empty success message to not show toast
-      'Erreur lors de la récupération des personnels'
-    )
-    nbPersonnels.value = data['totalItems']
-    personnels.value = data['member']
+    await getPersonnels();
   } catch (error) {
     console.error('Erreur dans onMounted:', error)
   } finally {
-    loading.value = false
+    isLoading.value = false
   }
 })
 
-async function onPageChange (event) {
-  console.log(event)
-  loading.value = true
-  page.value = event.page
-  try {
-    const data = await apiCall(
-      api.get,
-      [`api/personnels?page=${parseInt(page.value) + 1}`, { params: { ...filters.value } }],
-      '', // Empty success message to not show toast
-      'Erreur lors de la récupération des personnels'
-    )
-    personnels.value = data['member']
-  } catch (error) {
-    console.error('Erreur dans onPageChange:', error)
-  } finally {
-    loading.value = false
+onUnmounted(() => {
+  if (filtersDebounceTimeout) {
+    clearTimeout(filtersDebounceTimeout);
   }
+});
+
+const getPersonnels = async () => {
+  try {
+    const params = {
+      departement: departementId.value,
+      anneeUniversitaire: selectedAnneeUniversitaireId.value,
+      itemsPerPage: limit.value,
+      page: page.value + 1,
+      filters: filters.value,
+    }
+    personnels.value = await getPersonnelsService(params)
+    console.log(personnels.value)
+  } catch(error) {
+    console.error('Erreur lors du chargement des personnels:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+async function onPageChange (event) {
+  limit.value = event.rows;
+  page.value = event.page;
+  await getPersonnels();
 }
 
 const viewPersonnel = (personnel) => {
@@ -93,42 +104,23 @@ const editAccessPersonnel = (personnel) => {
   selectedPersonnel.value = personnel
   showAccessEditDialog.value = true
 }
-
-//watch filters
-watch(filters, async () => {
-  loading.value = true
-  try {
-    const data = await apiCall(
-      api.get,
-      ['api/personnels', { params: { ...filters.value } }],
-      '', // Empty success message to not show toast
-      'Erreur lors de la récupération des personnels'
-    )
-    nbPersonnels.value = data['totalItems']
-    personnels.value = data['member']
-  } catch (error) {
-    console.error('Erreur dans watch filters:', error)
-  } finally {
-    loading.value = false
-  }
-})
-
-
 </script>
 
 <template>
-  <DataTable v-model:filters="filters" :value="personnels"
-             lazy
-             stripedRows
-             paginator
-             :first="offset"
-             :rows="limit"
-             :rowsPerPageOptions="rowOptions"
-             :totalRecords="nbPersonnels"
-             dataKey="id" filterDisplay="row" :loading="loading"
-             @page="onPageChange($event)"
-             @update:rows="limit = $event"
-             :globalFilterFields="['nom', 'prenom']">
+  <DataTable
+      :value="personnels"
+      v-model:filters="filters"
+      lazy
+      stripedRows
+      paginator
+      :first="offset"
+      :rows="limit"
+      :rowsPerPageOptions="rowOptions"
+      :totalRecords="nbPersonnels"
+      dataKey="id" filterDisplay="row" :loading="isLoading"
+      @page="onPageChange($event)"
+      @update:rows="limit = $event"
+      :globalFilterFields="['nom', 'prenom']">
     <template #header>
       <div class="flex justify-end">
         <IconField>
@@ -140,7 +132,7 @@ watch(filters, async () => {
       </div>
     </template>
     <template #empty> No customers found.</template>
-    <template #loading> Loading customers data. Please wait.</template>
+    <template #isLoading> Loading customers data. Please wait.</template>
     <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 12rem">
       <template #body="{ data }">
         {{ data.nom }}
