@@ -64,6 +64,7 @@ onUnmounted(() => {
 
 const getPersonnels = async () => {
   try {
+    isLoading.value = true
     const paramsListe = {
       departement: departementId.value,
       anneeUniversitaire: selectedAnneeUniversitaireId.value,
@@ -128,16 +129,6 @@ const editAccessPersonnel = (personnel) => {
       @page="onPageChange($event)"
       @update:rows="limit = $event"
       :globalFilterFields="['nom', 'prenom']">
-    <template #header>
-      <div class="flex justify-end">
-        <IconField>
-          <InputIcon>
-            <i class="pi pi-search"/>
-          </InputIcon>
-          <InputText v-model="filters['global'].value" placeholder="Keyword Search"/>
-        </IconField>
-      </div>
-    </template>
     <template #empty> No customers found.</template>
     <template #isLoading> Loading customers data. Please wait.</template>
     <Column field="photo" :showFilterMenu="false" header="" style="min-width: 6rem">
