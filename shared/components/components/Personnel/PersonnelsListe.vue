@@ -64,15 +64,21 @@ onUnmounted(() => {
 
 const getPersonnels = async () => {
   try {
-    const params = {
+    const paramsListe = {
       departement: departementId.value,
       anneeUniversitaire: selectedAnneeUniversitaireId.value,
       itemsPerPage: limit.value,
       page: page.value + 1,
       filters: filters.value,
     }
-    personnels.value = await getPersonnelsService(params)
-    console.log(personnels.value)
+    const paramsCount = {
+      departement: departementId.value,
+      anneeUniversitaire: selectedAnneeUniversitaireId,
+      filters: filters.value
+    }
+    personnels.value = await getPersonnelsService(paramsListe, '/liste')
+    nbPersonnels.value = await getPersonnelsService(paramsCount, '/count')
+    nbPersonnels.value = Number.parseInt(String(nbPersonnels.value), 10)
   } catch(error) {
     console.error('Erreur lors du chargement des personnels:', error)
   } finally {
@@ -97,7 +103,6 @@ const editPersonnel = (personnel) => {
 }
 
 const deletePersonnel = (personnel) => {
-  console.log(personnel)
 }
 
 const editAccessPersonnel = (personnel) => {

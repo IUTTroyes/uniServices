@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Structure\StructureService;
+use App\State\Provider\Personnel\PersonnelCountProvider;
 use HelpdeskBundle\Entity\HelpdeskTicket;
 use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
@@ -38,6 +39,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['personnel:detail']]),
+        new Get(
+            uriTemplate: '/count/personnels',
+            paginationEnabled: false,
+            provider: PersonnelCountProvider::class,
+        ),
         new GetCollection(normalizationContext: ['groups' => ['personnel:detail']]),
         new GetCollection(
             uriTemplate: '/liste/personnels',
