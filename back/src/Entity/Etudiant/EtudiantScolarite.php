@@ -15,6 +15,8 @@ use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Filter\EtudiantScolariteFilter;
 use App\Repository\EtudiantScolariteRepository;
+use App\State\Provider\Etudiant\EtudiantCountProvider;
+use App\State\Provider\Etudiant\EtudiantListeProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -26,6 +28,21 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light', 'annee-univ:light']]),
         new GetCollection(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light', 'annee-univ:light']]),
+        new GetCollection(
+            uriTemplate: '/mini/etudiant_scolarites',
+            normalizationContext: ['groups' => ['scolarite:light']],
+        ),
+        new GetCollection(
+            uriTemplate: '/liste/etudiant_scolarites',
+            normalizationContext: ['groups' => ['scolarite:liste']],
+            provider: EtudiantListeProvider::class
+        ),
+        new Get(
+            uriTemplate: '/count/etudiant_scolarites',
+            paginationEnabled: false,
+            provider: EtudiantCountProvider::class,
+        ),
+
     ],
 )]
 #[ApiFilter(BooleanFilter::class, properties: ['actif'])]
