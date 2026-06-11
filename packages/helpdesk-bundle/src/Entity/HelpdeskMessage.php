@@ -4,8 +4,10 @@ namespace HelpdeskBundle\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
+use App\State\Processor\EtablissementProcessor;
 use HelpdeskBundle\Repository\HelpDeskMessageRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -14,11 +16,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: HelpDeskMessageRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
-
     operations: [
-    new Get(
+        new Get(
         normalizationContext: ['groups' => ['message:read']],
-    ),]
+    ),
+        new Post(
+            denormalizationContext: ['groups' => ['message:write']],
+        )
+        ]
 )
 ]
 class HelpdeskMessage
@@ -27,17 +32,17 @@ class HelpdeskMessage
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['message:read'])]
+    #[Groups(['message:read','message:write'])]
 
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['message:read','ticket:read'])]
+    #[Groups(['message:read','message:write','ticket:read'])]
     private ?string $content = null;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskMessages')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['message:read'])]
+    #[Groups(['message:read','message:write'])]
 
     private ?HelpdeskTicket $ticket = null;
 
