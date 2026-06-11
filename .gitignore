@@ -45,6 +45,8 @@ node_modules/
 .pnpm/
 .pnpm-store/
 .pnpm-debug.log*
+**/node_modules/
+**/.vite/
 
 
 # fichiers de build
