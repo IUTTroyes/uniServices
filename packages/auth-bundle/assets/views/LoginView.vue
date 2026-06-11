@@ -5,8 +5,10 @@ import LogoIut from '@images/logo/logo_iut.png';
 import axios from 'axios';
 import { tools } from '@config/uniServices.js';
 import {ValidatedInput, validationRules} from "@components";
-import { getEtablissementService } from '@requests';
+import { useEtablissementStore } from '@stores';
+import {resolveLogoEtablissementUrl} from "@helpers";
 
+const etablissementStore = useEtablissementStore();
 const username = ref('');
 const password = ref('');
 const checked = ref(false);
@@ -14,28 +16,7 @@ const errorMessage = ref('');
 const isLoading = ref(false);
 const formErrors = ref({});
 const formValid = ref(true);
-const loginLogoUrl = ref(LogoIut);
-
-const resolveLogoUrl = (logoName) => {
-  if (!logoName) {
-    return LogoIut;
-  }
-
-  const apiBaseUrl = import.meta.env.VITE_BASE_URL;
-  let baseUrl = window.location.origin;
-
-  if (apiBaseUrl) {
-    baseUrl = apiBaseUrl;
-  } else if (window.location.port === '3000') {
-    baseUrl = `${window.location.protocol}//${window.location.hostname}:8000`;
-  }
-
-  try {
-    return new URL(`/uploads/${logoName}`, baseUrl).toString();
-  } catch (e) {
-    return `/uploads/${logoName}`;
-  }
-};
+const logoUrl = ref(LogoIut);
 
 // Pagination variables
 const currentPage = ref(0);
@@ -111,10 +92,10 @@ const handleValidation = (field, result) => {
 
 onMounted(async () => {
   try {
-    const etablissement = await getEtablissementService();
-    loginLogoUrl.value = resolveLogoUrl(etablissement?.logo_name);
+    const etablissement = await etablissementStore.etablissement;
+    logoUrl.value = resolveLogoEtablissementUrl(etablissement?.logo_name);
   } catch (e) {
-    loginLogoUrl.value = LogoIut;
+    logoUrl.value = LogoIut;
   }
 });
 </script>
@@ -126,7 +107,7 @@ onMounted(async () => {
     <div class="md:w-3/4 w-full h-full flex md:flex-row flex-col shadow-xl">
       <div class="bg-black bg-opacity-60 text-white backdrop-blur-sm p-12 md:rounded-tl-xl md:rounded-bl-xl rounded-tl-xl rounded-tr-xl w-full flex flex-col gap-4">
         <div class="flex items-center w-full gap-4">
-          <Logo :logo-url="loginLogoUrl" alt="logo de l'iut" class="w-1/4 rounded-md"/>
+          <Logo :logo-url="logoUrl" alt="logo de l'iut" class="w-1/4 rounded-md"/>
           <div>
             <div class="text-2xl font-bold">Bienvenue sur UniServices</div>
             <div>Plateforme de gestion centralisée des services universitaires</div>

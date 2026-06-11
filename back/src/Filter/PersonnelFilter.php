@@ -47,14 +47,43 @@ class PersonnelFilter extends AbstractFilter
                 ->andWhere(sprintf('%s.id = :enseignement', $enseignementAlias))
                 ->setParameter('enseignement', $value);
         }
-        if ('enseignant' === $property) {
+        if (('enseignant' === $property) && $value) {
             // si true : récupérer les personnels dont statut != "BIATSS"
-            if ($value) {
-                $queryBuilder
-                    ->andWhere(sprintf('%s.statut != :statut', $alias))
-                    ->setParameter('statut', 'BIATSS');
-            }
+            $queryBuilder
+                ->andWhere(sprintf('%s.statut != :statut', $alias))
+                ->setParameter('statut', 'BIATSS');
         }
+
+        if ('nom' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.nom LIKE :nom', $alias))
+                ->setParameter('nom', "$value%");
+        }
+
+        if ('prenom' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.prenom LIKE :prenom', $alias))
+                ->setParameter('prenom', "$value%");
+        }
+
+        if ('mailUniv' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.mailUniv LIKE :mailUniv', $alias))
+                ->setParameter('mailUniv', "$value%");
+        }
+
+        if ('numeroHarpege' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.numeroHarpege LIKE :numeroHarpege', $alias))
+                ->setParameter('numeroHarpege', "$value%");
+        }
+
+        if ('statut' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.statut LIKE :statut', $alias))
+                ->setParameter('statut', "$value%");
+        }
+
     }
 
     public function getDescription(string $resourceClass): array
