@@ -16,6 +16,7 @@ const checked = ref(false);
 const first = ref(0);
 const rows = ref(5);
 const ticketsList = ref([]);
+const ticketsNewMessageList= ref ([]);
 const loading = ref(true);
 
 const goToTicket = (id) => {
@@ -38,10 +39,17 @@ const initiales = computed(
     () => `${userStore.user?.prenom?.charAt(0) || ""}${userStore.user?.nom?.charAt(0) || ""}`
 );
 
-const fetchTickets = async () => {
+const getTickets = async () => {
   try {
     loading.value = true;
-    const response = await getTicketsService();
+    const params= {
+      auteur: userStore.user?.id,
+      latest:6,
+    }
+    const paramsMessages= {
+      hasRecentMessage:true,
+    }
+    const response = await getTicketsService(params);
 
     if (response && response['member']) {
       ticketsList.value = response['member'];
@@ -50,6 +58,18 @@ const fetchTickets = async () => {
     } else {
       ticketsList.value = [];
     }
+
+    const responseNewMessage = await getTicketsService(paramsMessages);
+
+    if (responseNewMessage && responseNewMessage['member']) {
+      ticketsNewMessageList.value = responseNewMessage['member'];
+    } else if (Array.isArray(responseNewMessage)) {
+      ticketsNewMessageList.value = responseNewMessage;
+    } else {
+      ticketsNewMessageList.value = [];
+    }
+
+
   } catch (error) {
     console.error('Impossible de charger les tickets:', error);
     ticketsList.value = [];
@@ -59,7 +79,7 @@ const fetchTickets = async () => {
 };
 
 onMounted(() => {
-  fetchTickets();
+  getTickets();
 });
 </script>
 
@@ -176,7 +196,7 @@ onMounted(() => {
     </div>
 
     <div>
-      <AccordeonMessages v-if="ticketsList" :tickets="ticketsList" />
+      <AccordeonMessages v-if="ticketsNewMessageList" :tickets="ticketsNewMessageList" />
     </div>
 
 
