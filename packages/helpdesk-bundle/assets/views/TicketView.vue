@@ -83,16 +83,14 @@ const onUpload = (event) => {
 };
 
 const ticketIri = computed(() => {
-  const id = props.id || route.params?.id;
-  return id ? `/api/helpdesk_tickets/${id}` : null;
+  return props.id ? `/api/helpdesk_tickets/${props.id}` : null;
 });
 
 const getTicketsService = async () => {
-  const id = props.id || route.params?.id;
-  if (!id) return;
+  if (!props.id) return;
   try {
     loading.value = true;
-    const ticketData = ticket.value=await getTicketService(id)
+    const ticketData = ticket.value=await getTicketService(props.id)
     ticket.value = ticketData
 
     const serviceId = ticketData.service?.id || ticketData.helpdeskCategorie?.service?.id;

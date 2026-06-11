@@ -5,6 +5,7 @@ import { useUsersStore } from "@stores";
 import TicketCard from "@/components/TicketCard.vue";
 import TicketMessageCard from "@/components/TicketMessageCard.vue";
 import AccordeonMessages from "@/components/AccordeonMessages.vue";
+import StatsDashboards from "@/components/StatsDashboards.vue";
 import { PermissionGuard } from "@components";
 import { useRouter } from 'vue-router';
 import { getTicketsService } from '@requests';
@@ -106,36 +107,12 @@ onMounted(() => {
           <small class="text-gray-500">{{ formatDateLong(date) }}</small>
         </div>
       </div>
+      <StatsDashboards :tickets="ticketsList"/>
 
-      <div class="card  rounded-xl self-center p-5">
-        <div class="flex items-center gap-8 px-6 py-2">
-          <div class="flex items-center gap-3">
-            <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">Tickets Totaux :</span>
-            <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">{{ ticketsList.length }}</span>
-          </div>
-          <div class="w-px h-6 bg-gray-200"></div>
-          <div class="flex items-center gap-3">
-            <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">En cours :</span>
-            <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
-              {{ ticketsList.filter(t => t.statut === 'En cours').length }}
-            </span>
-          </div>
-          <div class="w-px h-6 bg-gray-200"></div>
-          <div class="flex items-center gap-3">
-            <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">Traités :</span>
-            <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
-              {{ ticketsList.filter(t => t.statut === 'Traité').length }}
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <div class="flex justify-end px-10 mb-5">
-      <Button class="w-100" label="Créer un ticket" @click="goToNewTicket()" icon="pi pi-plus" />
-    </div>
 
-<div class="flex mb-8 justify-around">
+    <div class="flex mb-8 justify-around">
 
 
     <div class="card   rounded-xl self-center ">
@@ -151,7 +128,7 @@ onMounted(() => {
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">Traités :</span>
           <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
-              {{ ticketsList.filter(t => t.statut === 'Traité').length }}
+              {{ ticketsList.filter(t => t.statut === 'Clôturé').length }}
             </span>
         </div>
       </div>
@@ -170,7 +147,7 @@ onMounted(() => {
         <div class=" flex items-center gap-3">
           <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">Traités :</span>
           <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
-              {{ ticketsList.filter(t => t.statut === 'Traité').length }}
+              {{ ticketsList.filter(t => t.statut === 'Clôturé').length }}
             </span>
         </div>
       </div>
