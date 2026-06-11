@@ -26,18 +26,15 @@ const goToTicket = (id) => {
           toggleicon: '!text-violet-100',
         }"
         >
-        <span class="font-bold text-white">
-          {{ tickets.length }} Nouveaux messages
-        </span>
+
+          <span class="font-bold text-white">
+            {{ tickets.length }} Nouveaux messages
+          </span>
         </AccordionHeader>
 
         <AccordionContent :pt="{ content: '!bg-white dark:!bg-zinc-900 ' }">
           <div v-for="singleTicket in tickets" :key="singleTicket.id">
-            <TicketMessageCard
-                :ticket="singleTicket"
-                @click="goToTicket(singleTicket.id)"
-                class="cursor-pointer hover:shadow-md transition-shadow"
-            />
+            <TicketMessageCard :ticket="singleTicket" @click="goToTicket(singleTicket.id)" />
           </div>
         </AccordionContent>
       </AccordionPanel>

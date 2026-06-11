@@ -2,6 +2,7 @@
 
 namespace App\Entity\Users;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -35,7 +36,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PersonnelRepository::class)]
-#[ApiFilter(PersonnelFilter::class)]
+#[ApiFilter(PersonnelFilter::class,SearchFilter::class, properties: ['structureServices' => 'exact'])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['personnel:detail']]),
@@ -724,7 +725,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->statut->getLibelle() ?? '-';
     }
 
-    #[Groups(['diplome:detail', 'maquette:detail', 'personnel:detail', 'personnel:light', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda'])]
+    #[Groups(['diplome:detail', 'maquette:detail', 'personnel:detail', 'personnel:light', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda',"ticket:read"])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();

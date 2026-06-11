@@ -1,37 +1,81 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRoute } from 'vue-router';
-import { ValidatedInput } from "@components";
-import { createMessageService } from '@requests/helpdesk_services/messageService.js';
-import { getTicketService } from '@requests';
-import { PermissionGuard } from '@components';
+import { useRouter } from 'vue-router';
+import { ValidatedInput,PermissionGuard} from "@components";
+import {getMessagesService,createMessageService,getTicketService,updateTicketStatutService} from '@requests';
+import {useConfirm} from 'primevue/useconfirm';
+import {getStatutsClasses,getPriorityClasses,priorities,updatePriority} from "@/utils";
 
-const route = useRoute();
 
 const props = defineProps({
   id: String
 });
 
 const ticket = ref(null);
+const personnelList= ref([]);
 const isReplying = ref(false);
 const replyText = ref("");
 const loading = ref(true);
+const confirm=useConfirm();
 
-const items = ref([
-  { label: 'Option 1', icon: 'pi pi-refresh' },
-  { label: 'Option 2', icon: 'pi pi-times' }
-]);
+const assignesOptions = computed(() => {
+  return personnelList.value.map(p => ({
+    label: `${p.prenom} ${p.nom}`,
+    value: `/api/personnels/${p.id}`
+  }))
+})
 
-const personnel = () => {
-  console.log("Action personnel cliquée");
-};
+const getPersonnelsDuService = async (serviceId) => {
+  if (!serviceId) return;
+  try{
+    const response = await getPersonnelsService ({service: serviceId})
 
-const priority = () => {
-  console.log("Action priorité cliquée");
-};
+    if (response && response['member']) {
+      personnelList.value = response['member'];
+    } else if (Array.isArray(response)) {
+      personnelList.value = response;
+    }
+  } catch (error) {
+    console.error ('Erreur lors du chargement des personnels')
+  }
+}
+const updateAssigne = async (id,personnelIri) => {
+  try{
+    const data={assigne:personnelIri}
+    await updateTicketStatutService(id, data, true);
+  }
+  catch (error){
+    console.error('Erreur lors de la mise à jour du personnel assigné',error);
+  }
+}
 
-const cloturer = () => {
-  console.log("Action clôturer cliquée");
+const changerStatut = (nouveauStatut) => {
+  const data = { statut: nouveauStatut };
+
+  confirm.require({
+    message: `Êtes-vous sûr de vouloir passer ce ticket au statut "${nouveauStatut}" ?`,
+    header: 'Changement de statut',
+    icon: 'pi pi-refresh',
+    rejectProps: {
+      label: 'Annuler',
+      severity: 'secondary',
+      outlined: true
+    },
+    acceptProps: {
+      label: 'Confirmer',
+      severity: 'primary'
+    },
+    accept: async () => {
+      try {
+        await updateTicketStatutService(ticket.value.id, data, true);
+        ticket.value.statut = nouveauStatut;
+        /*await router.push({ name: 'Dashboard' });*/
+      }
+      catch (error) {
+        console.error("Erreur lors du changement de statut :", error);
+      }
+    }
+  });
 };
 
 const onUpload = (event) => {
@@ -43,13 +87,19 @@ const ticketIri = computed(() => {
   return id ? `/api/helpdesk_tickets/${id}` : null;
 });
 
-const fetchTicketDetails = async () => {
+const getTicketsService = async () => {
   const id = props.id || route.params?.id;
   if (!id) return;
   try {
     loading.value = true;
-    ticket.value=await getTicketService(id)
-    console.log(ticket.value)
+    const ticketData = ticket.value=await getTicketService(id)
+    ticket.value = ticketData
+
+    const serviceId = ticketData.service?.id || ticketData.helpdeskCategorie?.service?.id;
+    if (serviceId) {
+      await getPersonnelsDuService(serviceId);
+    }
+   /* await getMessages();*/
   }
   catch (error) {
     console.error('Erreur lors de la récupération du ticket:', error);
@@ -74,57 +124,20 @@ const sendMessage = async () => {
     await createMessageService(payload, true);
     replyText.value = "";
     isReplying.value = false;
-    // Recharger les données du ticket pour afficher le nouveau message si nécessaire
-    await fetchTicketDetails();
+    await getTicketsService();
   } catch (error) {
     console.error('Erreur lors de l\'envoi du message', error);
   }
 };
 
-onMounted(async () => {
-  await fetchTicketDetails();
-});
-
 const toggleReply = () => {
   isReplying.value = !isReplying.value;
 };
 
-const getStatutClasses = (status) => {
-  const map = {
-    'A traiter': 'bg-blue-50 text-blue-700 border-blue-200',
-    'En cours': 'bg-orange-50 text-orange-700 border-orange-200',
-    'En attente': 'bg-yellow-50 text-yellow-700 border-yellow-200',
-    'Traité': 'bg-green-50 text-green-700 border-green-200',
-  };
-  return map[status] || 'bg-gray-50 text-gray-700 border-gray-200';
-};
+onMounted(async () => {
+  await getTicketsService();
+});
 
-const statuts = [
-  {
-    label: 'A traiter',
-    icon: 'pi pi-plus-circle',
-    command: () => changerStatut('A traiter')
-  },
-  {
-    label: 'En cours',
-    icon: 'pi pi-spinner',
-    command: () => changerStatut('En cours')
-  },
-  {
-    label: 'En attente',
-    icon: 'pi pi-clock',
-    command: () => changerStatut('En attente')
-  },
-  {
-    label: 'Traité',
-    icon: 'pi pi-check-circle',
-    command: () => changerStatut('Traité')
-  }
-];
-
-const changerStatut = (nouveauStatut) => {
-  console.log("Nouveau statut sélectionné :", nouveauStatut);
-};
 </script>
 
 <template>
@@ -141,7 +154,7 @@ const changerStatut = (nouveauStatut) => {
           </h3>
           <span
               class="px-4 py-1.5 rounded border text-lg font-medium whitespace-nowrap"
-              :class="getStatutClasses(ticket.statut)"
+              :class="getStatutsClasses(ticket.statut)"
           >
             {{ ticket.statut }}
           </span>
@@ -152,7 +165,7 @@ const changerStatut = (nouveauStatut) => {
         </div>
       </div>
 
-      <div class="text-xl text-gray-700 leading-relaxed mb-6 whitespace-pre-line">
+      <div class="text-xl text-gray-700 dark:text-white leading-relaxed mb-6 whitespace-pre-line">
         {{ ticket.description }}
       </div>
 
@@ -161,25 +174,83 @@ const changerStatut = (nouveauStatut) => {
         <span>{{ ticket.pieceJointe }}</span>
       </div>
 
-      <div v-if="ticket.messages && ticket.messages.length > 0" class="mt-10 border-t pt-6">
-        <h4 class="text-lg font-bold mb-4">Historique des échanges</h4>
-        <div class="flex flex-col gap-4">
-          <div v-for="msg in ticket.messages" :key="msg.id" class="p-4 rounded-xl border bg-white dark:bg-zinc-800">
-            <div class="flex justify-between text-sm text-gray-400 mb-2">
-              <span class="font-semibold text-gray-600 dark:text-gray-300">{{ msg.auteur?.prenom }} {{ msg.auteur?.nom }}</span>
-              <span>{{ new Date(msg.createdAt).toLocaleString() }}</span>
-            </div>
-            <div class="text-base text-gray-700 dark:text-gray-200">{{ msg.content }}</div>
-          </div>
+      <p>{{ticket.helpdeskMessages?.content}}</p>
+
+      <div v-if="ticket.messages && ticket.messages.length >0">
+        <div v-for="message in ticket.messages" :key="message.id" class="mb-4 p-4 bg-gray-50 rounded">
+          <p>{{ticket.message}}</p>
         </div>
       </div>
 
       <div>
-        <div v-permission="isPersonnel" class="flex justify-around pt-20">
-          <Select v-model="selectedPersonnel" :options="personnels" optionLabel="name" placeholder="Assigner un personnel" class="w-full md:w-70" />
-          <Select v-model="selectedPriority" :options="priorities" optionLabel="name" placeholder="Ajouter une priorité" class="w-full md:w-70" />
-          <!--<SplitButton label="Assigner un personnel" severity="secondary" icon="pi pi-plus" @click="personnel" :model="items" />
-          <SplitButton label="Ajouter une priorité" severity="secondary" icon="pi pi-plus" @click="priority" :model="items" />-->
+        <PermissionGuard permission="isPersonnelService">
+        <div class="flex justify-around pt-20">
+          <ValidatedInput
+              v-model="ticket.assigne"
+              :options="assignesOptions"
+              optionLabel="label"
+              optionValue="value"
+              name="assigne"
+              type="select"
+              label="Assigner un personnel"
+              :rules="[]"
+              placeholder="Sélectionnez un personnel"
+              class="w-full md:w-56"
+              @change="updateAssigne(ticket.id, ticket.assigne)"
+          >
+            <template #value="valueProps">
+              <div v-if="valueProps.value" class="flex items-center gap-2">
+                <i class="pi pi-user text-blue-500"></i>
+                <span>
+        {{ assignesOptions.find(p => p.value === valueProps.value)?.label || 'Personnel assigné' }}
+      </span>
+              </div>
+              <span v-else>
+      {{ valueProps.placeholder }}
+    </span>
+            </template>
+
+            <template #option="optionProps">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-user text-gray-400"></i>
+                <span>{{ optionProps.option.label }}</span>
+              </div>
+            </template>
+          </ValidatedInput>
+
+          <ValidatedInput
+              v-model="ticket.priority"
+              :options="priorities"
+              optionLabel="label"
+              optionValue="value"
+              name="priority"
+              type="select"
+              label="Priorité"
+              :rules="[]"
+              placeholder="Ajouter une priorité"
+              class="w-full md:w-56"
+              @change="updatePriority(ticket.id, ticket.priority)"
+          >
+            <template #value="valueProps">
+              <div v-if="valueProps.value" class="flex items-center gap-2">
+                <i :class="getPriorityClasses(valueProps.value)"></i>
+                <span>
+        {{ priorities.find(p => p.value === valueProps.value)?.label }}
+      </span>
+              </div>
+              <span v-else>
+      {{ valueProps.placeholder }}
+    </span>
+            </template>
+
+            <template #option="optionProps">
+              <div class="flex items-center gap-2">
+                <i :class="getPriorityClasses(optionProps.option.value)"></i>
+                <span>{{ optionProps.option.label }}</span>
+              </div>
+            </template>
+          </ValidatedInput>
+
           <Button label="Répondre" severity="info" @click="toggleReply" size="large"/>
         </div>
 
@@ -205,19 +276,24 @@ const changerStatut = (nouveauStatut) => {
 
 
         <div class="flex justify-around pt-20">
-          <PermissionGuard permission="isPersonnel">
-            <Button label="Clôturer" @click="cloturer" size="large"/>
+
             <div class="flex gap-4 items-center">
-              <SplitButton label="Changer le statut" @click="changerStatut(ticket.statut)" :model="statuts" size="large"/>
+              <Button
+                  v-for="statutCible in ticket.transitionsAutorisees"
+                  :key="statutCible"
+                  :label="`Passer à : ${statutCible}`"
+                  :severity="statutCible === 'Refusé' ? 'danger' : 'primary'"
+                  @click="changerStatut(statutCible)"
+              />
             </div>
-            <Button label="Refuser" severity="danger" variant="outlined" size="large"/>
-          </PermissionGuard>
         </div>
+        </PermissionGuard>
       </div>
     </div>
 
     <div v-else class="p-20 text-center text-xl text-gray-500">
       Ticket introuvable.
     </div>
+
   </div>
 </template>

@@ -8,7 +8,7 @@ import {PermissionGuard, ValidatedInput} from "@components";
 import {TabGroup, TabPanels} from "@headlessui/vue";
 import DatePicker from 'primevue/datepicker';
 import CascadeSelect from 'primevue/cascadeselect';
-import {getServicesService, getTicketsService} from "@requests";
+import {getServicesService, getTicketsService, updateTicketStatutService} from "@requests";
 
 
 const router = useRouter();
@@ -18,6 +18,7 @@ const services=ref([]);
 const selectedService=ref(null);
 const selectedCategorie=ref(null);
 const ticketsList=ref([]);
+const postedTicketsList=ref([]);
 const loading = ref(true);
 
 const goToTicket = (id) => {
@@ -38,6 +39,7 @@ const paginatedTickets = computed(() => {
   return ticketsList.value.slice(first.value, first.value + rows.value);
 });
 
+
 const getServices= async()=>{
   try{
     services.value=await getServicesService({},'/form_ticket')
@@ -57,6 +59,9 @@ onMounted(async()=>{
 const fetchTickets = async () => {
   try {
     loading.value = true;
+    const postedTickets= {
+      auteur:userStore.user?.id,
+    }
     const response = await getTicketsService();
 
     if (response && response['member']) {
@@ -65,6 +70,16 @@ const fetchTickets = async () => {
       ticketsList.value = response;
     } else {
       ticketsList.value = [];
+    }
+
+    const responsePostedTickets = await getTicketsService(postedTickets);
+
+    if (responsePostedTickets && responsePostedTickets['member']) {
+      postedTicketsList.value = responsePostedTickets['member'];
+    } else if (Array.isArray(responsePostedTickets)) {
+      postedTicketsList.value = responsePostedTickets;
+    } else {
+      postedTicketsList.value = [];
     }
   } catch (error) {
     console.error('Impossible de charger les tickets:', error);
@@ -92,6 +107,7 @@ const fetchTickets = async () => {
           <label for="creation" class="mb-1 text-sm font-medium">Date de création</label>
           <DatePicker v-model="buttondisplay" showIcon fluid :showOnFocus="false" />
         </div>
+
         <div class="flex flex-col">
           <ValidatedInput
               v-model="selectedService"
@@ -182,11 +198,11 @@ const fetchTickets = async () => {
         <div v-if="loading" class="text-center p-10 text-xl">
           Chargement des tickets...
         </div>
-        <div v-else-if="ticketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
+        <div v-else-if="postedTicketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
           Aucun ticket trouvé.
         </div>
         <div v-else class="p-6">
-          <div v-for="ticket in ticketsList" :key="ticket.id">
+          <div v-for="ticket in postedTicketsList" :key="ticket.id">
             <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
           </div>
         </div>
@@ -212,11 +228,11 @@ const fetchTickets = async () => {
         <div v-if="loading" class="text-center p-10 text-xl">
           Chargement des tickets...
         </div>
-        <div v-else-if="ticketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
+        <div v-else-if="receivedTicketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
           Aucun ticket trouvé.
         </div>
         <div v-else class="p-6">
-          <div v-for="ticket in ticketsList" :key="ticket.id">
+          <div v-for="ticket in receivedTicketsList" :key="ticket.id">
             <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
           </div>
         </div>

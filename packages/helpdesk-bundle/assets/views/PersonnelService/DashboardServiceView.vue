@@ -4,7 +4,7 @@ import { formatDateLong } from "@helpers/date.js";
 import { useUsersStore } from "@stores";
 import TicketCard from "@/components/TicketCard.vue";
 import TicketMessageCard from "@/components/TicketMessageCard.vue";
-import AccordeonMessagesVue from "@/components/AccordeonMessagesVue.vue";
+import AccordeonMessages from "@/components/AccordeonMessages.vue";
 import { PermissionGuard } from "@components";
 import { useRouter } from 'vue-router';
 import { getTicketsService } from '@requests';
@@ -16,6 +16,7 @@ const checked = ref(false);
 const first = ref(0);
 const rows = ref(5);
 const ticketsList = ref([]);
+const ticketsNewMessageList= ref ([]);
 const loading = ref(true);
 
 const goToTicket = (id) => {
@@ -38,10 +39,17 @@ const initiales = computed(
     () => `${userStore.user?.prenom?.charAt(0) || ""}${userStore.user?.nom?.charAt(0) || ""}`
 );
 
-const fetchTickets = async () => {
+const getTickets = async () => {
   try {
     loading.value = true;
-    const response = await getTicketsService();
+    const params= {
+      auteur: userStore.user?.id,
+      latest:6,
+    }
+    const paramsMessages= {
+      hasRecentMessage:true,
+    }
+    const response = await getTicketsService(params);
 
     if (response && response['member']) {
       ticketsList.value = response['member'];
@@ -50,6 +58,18 @@ const fetchTickets = async () => {
     } else {
       ticketsList.value = [];
     }
+
+    const responseNewMessage = await getTicketsService(paramsMessages);
+
+    if (responseNewMessage && responseNewMessage['member']) {
+      ticketsNewMessageList.value = responseNewMessage['member'];
+    } else if (Array.isArray(responseNewMessage)) {
+      ticketsNewMessageList.value = responseNewMessage;
+    } else {
+      ticketsNewMessageList.value = [];
+    }
+
+
   } catch (error) {
     console.error('Impossible de charger les tickets:', error);
     ticketsList.value = [];
@@ -58,8 +78,12 @@ const fetchTickets = async () => {
   }
 };
 
+const showMessage = {
+
+}
+
 onMounted(() => {
-  fetchTickets();
+  getTickets();
 });
 </script>
 
@@ -113,7 +137,9 @@ onMounted(() => {
 
 <div class="flex mb-8 justify-around">
 
+
     <div class="card   rounded-xl self-center ">
+      <div class="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 font-extrabold"> Statistiques personnelles</div>
       <div class="flex items-center gap-8  ">
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">En cours :</span>
@@ -132,6 +158,7 @@ onMounted(() => {
     </div>
 
     <div class="card border border-gray-200 rounded-xl self-center">
+      <div class="text-xs uppercase tracking-wider text-gray-400 dark:text-gray-500 font-extrabold"> Statistiques du service </div>
       <div class=" flex items-center gap-8">
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">En cours :</span>
@@ -156,11 +183,12 @@ onMounted(() => {
     </div>
 </div>
 
+    <!-- todo:faire fonctionner l'affichage du message-->
     <div>
       <Message severity="info" icon="pi pi-info-circle" class="mt-2 mb-10">
-        <PermissionGuard permission="isScolarite">
+        <PermissionGuard permission="isPersonnelService">
           <div class="flex items-center gap-2 mb-4 border-b border-blue-100 pb-2">
-            <Checkbox id="checkbox" v-model="checked" binary />
+            <Checkbox id="checkbox" @click="showMessage" v-model="checked" binary />
             <label for="checkbox" class="font-bold text-sm">Afficher ce message pour tous les utilisateurs</label>
           </div>
         </PermissionGuard>
@@ -173,7 +201,7 @@ onMounted(() => {
     </div>
 
     <div>
-      <AccordeonMessagesVue v-if="ticketsList" :tickets="ticketsList" />
+      <AccordeonMessages v-if="ticketsNewMessageList" :tickets="ticketsNewMessageList" />
     </div>
 
 
@@ -185,7 +213,7 @@ onMounted(() => {
         <Carousel :value="ticketsList" :numVisible="3" :numScroll="1" :responsiveOptions="responsiveOptions">
 
           <template #item="{ data: ticket }">
-            <div class="border border-surface-200 dark:border-surface-700 rounded m-2 p-4">
+            <div class="rounded m-2 p-4">
               <div class="mb-4">
                 <TicketMessageCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer"/>
               </div>

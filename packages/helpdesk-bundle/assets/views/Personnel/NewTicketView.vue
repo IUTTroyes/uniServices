@@ -1,7 +1,6 @@
 <script setup>
 import {ValidatedInput, validationRules} from "@components";
-import {getServicesService} from "@requests";
-import {createTicketService} from '@requests'
+import {getServicesService,createTicketService} from "@requests";
 import {ref,onMounted,computed} from "vue";
 import {useRouter} from "vue-router";
 import CascadeSelect from 'primevue/cascadeselect';
@@ -52,8 +51,9 @@ const createTicket = async () => {
     subject: selectedSujet.value,
     description: selectedMessage.value,
     helpdeskCategorie: categoryId ? `/api/helpdesk_categories/${categoryId}` : null,
+    /*helpdeskMessages: messageId? `/api/helpdesk_messages/${messagesId}` : null,*/
     files: filesNames.value,
-    auteur:user.value ? `/api/personnels/${user.value.id}` :null,
+    auteur: user.value ? `/api/personnels/${user.value.id}` : null,
   };
 
   const formData = new FormData();
@@ -65,10 +65,8 @@ const createTicket = async () => {
     formData.append('helpdeskCategorie', payload.helpdeskCategorie);
   }
   if (payload.auteur) {
-    formData.append('auteur', payload.auteur);
-  }
+    formData.append('auteur', payload.auteur);  }
 
-  // 👇 Ajout des fichiers
   if (payload.files && payload.files.length > 0) {
     payload.files.forEach((file) => {
       formData.append('files[]', file); // ou 'files' selon votre config
@@ -78,7 +76,7 @@ const createTicket = async () => {
   try {
     console.log(filesNames.value)
     await createTicketService(formData, true);
-    router.push({ name: 'Dashboard' });
+    router.push({ name: 'Dashboard'});
   }
   catch (error) {
     console.error('Erreur lors de la création du ticket', error);
