@@ -78,6 +78,10 @@ const getTickets = async () => {
   }
 };
 
+const showMessage = {
+
+}
+
 onMounted(() => {
   getTickets();
 });
@@ -179,11 +183,12 @@ onMounted(() => {
     </div>
 </div>
 
+    <!-- todo:faire fonctionner l'affichage du message-->
     <div>
       <Message severity="info" icon="pi pi-info-circle" class="mt-2 mb-10">
-        <PermissionGuard permission="isScolarite">
+        <PermissionGuard permission="isPersonnelService">
           <div class="flex items-center gap-2 mb-4 border-b border-blue-100 pb-2">
-            <Checkbox id="checkbox" v-model="checked" binary />
+            <Checkbox id="checkbox" @click="showMessage" v-model="checked" binary />
             <label for="checkbox" class="font-bold text-sm">Afficher ce message pour tous les utilisateurs</label>
           </div>
         </PermissionGuard>

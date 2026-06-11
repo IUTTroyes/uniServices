@@ -32,7 +32,7 @@ class HelpdeskMessage
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['message:read'])]
+    #[Groups(['message:read','ticket:read'])]
     private ?string $content = null;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskMessages')]
@@ -43,7 +43,7 @@ class HelpdeskMessage
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['message:read'])]
+    #[Groups(['message:read','ticket:read'])]
     private ?Personnel $auteur = null;
 
     public function getId(): ?int
