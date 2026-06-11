@@ -1,11 +1,8 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { ValidatedInput } from "@components";
-import {getMessagesService,createMessageService} from '@requests/helpdesk_services/messageService.js';
-import { getTicketService } from '@requests';
-import {updateTicketStatutService} from '@requests';
-import { PermissionGuard } from '@components';
+import { ValidatedInput,PermissionGuard} from "@components";
+import {getMessagesService,createMessageService,getTicketService,updateTicketStatutService} from '@requests';
 import {useConfirm} from 'primevue/useconfirm';
 import {getStatutsClasses,getPriorityClasses,priorities,updatePriority} from "@/utils";
 

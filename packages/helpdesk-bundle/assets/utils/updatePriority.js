@@ -10,3 +10,5 @@ const updatePriority = async (id,newPriority) => {
         await getTickets();
     }
 }
+
+export { updatePriority};

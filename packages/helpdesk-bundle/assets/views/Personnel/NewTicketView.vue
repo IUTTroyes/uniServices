@@ -1,7 +1,6 @@
 <script setup>
 import {ValidatedInput, validationRules} from "@components";
-import {getServicesService} from "@requests";
-import {createTicketService} from '@requests'
+import {getServicesService,createTicketService} from "@requests";
 import {ref,onMounted,computed} from "vue";
 import {useRouter} from "vue-router";
 import CascadeSelect from 'primevue/cascadeselect';
@@ -66,7 +65,7 @@ const createTicket = async () => {
     formData.append('helpdeskCategorie', payload.helpdeskCategorie);
   }
   if (payload.auteur) {
-    formData.append('author', payload.author);  }
+    formData.append('auteur', payload.auteur);  }
 
   if (payload.files && payload.files.length > 0) {
     payload.files.forEach((file) => {
