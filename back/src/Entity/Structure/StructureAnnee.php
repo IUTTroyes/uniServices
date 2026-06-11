@@ -14,6 +14,7 @@ use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Filter\AnneeFilter;
 use App\Repository\Structure\StructureAnneeRepository;
+use App\State\Provider\Etudiant\EtudiantAnneesStatsProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -25,6 +26,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['annee:read']]),
         new GetCollection(normalizationContext: ['groups' => ['annee:read']]),
+        new GetCollection(
+            uriTemplate: '/liste/structure_annees',
+            normalizationContext: ['groups' => ['annee:read']],
+            provider: EtudiantAnneesStatsProvider::class,
+        ),
         new Delete(),
     ]
 )]

@@ -58,8 +58,8 @@ class EtudiantScolariteFilter extends AbstractFilter
         if ('mailUniv' === $property) {
             $queryBuilder
                 ->join("$alias.etudiant", 'etudiant')
-                ->andWhere('etudiant.prenom LIKE :prenom')
-                ->setParameter("prenom", "$value%");
+                ->andWhere('etudiant.mailUniv LIKE :mailUniv')
+                ->setParameter("mailUniv", "$value%");
         }
 
         if ('annee' === $property) {

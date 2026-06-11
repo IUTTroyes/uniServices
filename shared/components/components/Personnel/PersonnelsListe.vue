@@ -1,78 +1,96 @@
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
-import { FilterMatchMode } from '@primevue/core/api'
-import api from '@helpers/axios.js'
+import {ref, onMounted, computed, onUnmounted} from 'vue'
 import { statuts } from '@config/uniServices.js'
+import {getPersonnelsService} from '@requests'
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue'
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
-import createApiService from '@requests/apiService'
-import apiCall from '@helpers/apiCall'
-
+import { useUsersStore, useAnneeUnivStore } from '@stores';
 import ViewPersonnelDialog from '@/dialogs/Personnels/ViewPersonnelDialog.vue'
 import EditPersonnelDialog from '@/dialogs/Personnels/EditPersonnelDialog.vue'
 import AccessPersonnelDialog from '@/dialogs/Personnels/AccessPersonnelDialog.vue'
+import { usePersonnelFilters } from '@composables/filters/usersFilters/usePersonnelFilters.ts';
+import { PhotoUser } from "@components";
 
-const personnelsService = createApiService('api/personnels')
-
+const departementId = computed(() => usersStore.departementDefaut ? usersStore.departementDefaut.id : null);
+const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
+const usersStore = useUsersStore();
+const anneeUnivStore = useAnneeUnivStore();
 const personnels = ref()
 const nbPersonnels = ref()
-const loading = ref(true)
+const isLoading = ref(true)
 const page = ref(0)
 const rowOptions = [30, 60, 120]
 
 const limit = ref(rowOptions[0])
 const offset = computed(() => Number(limit.value * page.value))
 
-const filters = ref({
-  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  nom: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  prenom: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  statut: { value: null, matchMode: FilterMatchMode.EQUALS },
-  numeroHarpege: { value: null, matchMode: FilterMatchMode.EQUALS },
-  mailUniv: { value: null, matchMode: FilterMatchMode.EQUALS },
-})
-
 const showViewDialog = ref(false)
 const showEditDialog = ref(false)
 const showAccessEditDialog = ref(false)
 const selectedPersonnel = ref(null)
 
+const FILTERS_DEBOUNCE_MS = 250;
+let filtersDebounceTimeout = null;
+
+//watch filters
+const {filters, watchChanges} = usePersonnelFilters();
+watchChanges(async() => {
+  page.value = 0;
+  if (filtersDebounceTimeout) {
+    clearTimeout(filtersDebounceTimeout);
+  }
+  filtersDebounceTimeout = setTimeout(() => {
+    getPersonnels();
+  }, FILTERS_DEBOUNCE_MS);
+});
+
 onMounted(async () => {
-  loading.value = true
+  isLoading.value = true
   try {
-    const data = await apiCall(
-      personnelsService.getAll,
-      [],
-      '', // Empty success message to not show toast
-      'Erreur lors de la récupération des personnels'
-    )
-    nbPersonnels.value = data['totalItems']
-    personnels.value = data['member']
+    await getPersonnels();
   } catch (error) {
     console.error('Erreur dans onMounted:', error)
   } finally {
-    loading.value = false
+    isLoading.value = false
   }
 })
 
-async function onPageChange (event) {
-  console.log(event)
-  loading.value = true
-  page.value = event.page
-  try {
-    const data = await apiCall(
-      api.get,
-      [`api/personnels?page=${parseInt(page.value) + 1}`, { params: { ...filters.value } }],
-      '', // Empty success message to not show toast
-      'Erreur lors de la récupération des personnels'
-    )
-    personnels.value = data['member']
-  } catch (error) {
-    console.error('Erreur dans onPageChange:', error)
-  } finally {
-    loading.value = false
+onUnmounted(() => {
+  if (filtersDebounceTimeout) {
+    clearTimeout(filtersDebounceTimeout);
   }
+});
+
+const getPersonnels = async () => {
+  try {
+    isLoading.value = true
+    const paramsListe = {
+      departement: departementId.value,
+      anneeUniversitaire: selectedAnneeUniversitaireId.value,
+      itemsPerPage: limit.value,
+      page: page.value + 1,
+      filters: filters.value,
+    }
+    const paramsCount = {
+      departement: departementId.value,
+      anneeUniversitaire: selectedAnneeUniversitaireId,
+      filters: filters.value
+    }
+    personnels.value = await getPersonnelsService(paramsListe, '/liste')
+    nbPersonnels.value = await getPersonnelsService(paramsCount, '/count')
+    nbPersonnels.value = Number.parseInt(String(nbPersonnels.value), 10)
+  } catch(error) {
+    console.error('Erreur lors du chargement des personnels:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+async function onPageChange (event) {
+  limit.value = event.rows;
+  page.value = event.page;
+  await getPersonnels();
 }
 
 const viewPersonnel = (personnel) => {
@@ -86,62 +104,39 @@ const editPersonnel = (personnel) => {
 }
 
 const deletePersonnel = (personnel) => {
-  console.log(personnel)
 }
 
 const editAccessPersonnel = (personnel) => {
   selectedPersonnel.value = personnel
   showAccessEditDialog.value = true
 }
-
-//watch filters
-watch(filters, async () => {
-  loading.value = true
-  try {
-    const data = await apiCall(
-      api.get,
-      ['api/personnels', { params: { ...filters.value } }],
-      '', // Empty success message to not show toast
-      'Erreur lors de la récupération des personnels'
-    )
-    nbPersonnels.value = data['totalItems']
-    personnels.value = data['member']
-  } catch (error) {
-    console.error('Erreur dans watch filters:', error)
-  } finally {
-    loading.value = false
-  }
-})
-
-
 </script>
 
 <template>
-  <DataTable v-model:filters="filters" :value="personnels"
-             lazy
-             stripedRows
-             paginator
-             :first="offset"
-             :rows="limit"
-             :rowsPerPageOptions="rowOptions"
-             :totalRecords="nbPersonnels"
-             dataKey="id" filterDisplay="row" :loading="loading"
-             @page="onPageChange($event)"
-             @update:rows="limit = $event"
-             :globalFilterFields="['nom', 'prenom']">
-    <template #header>
-      <div class="flex justify-end">
-        <IconField>
-          <InputIcon>
-            <i class="pi pi-search"/>
-          </InputIcon>
-          <InputText v-model="filters['global'].value" placeholder="Keyword Search"/>
-        </IconField>
-      </div>
-    </template>
+  <DataTable
+      :value="personnels"
+      v-model:filters="filters"
+      lazy
+      scrollHeight="800px"
+      scrollable
+      stripedRows
+      paginator
+      :first="offset"
+      :rows="limit"
+      :rowsPerPageOptions="rowOptions"
+      :totalRecords="nbPersonnels"
+      dataKey="id" filterDisplay="row" :loading="isLoading"
+      @page="onPageChange($event)"
+      @update:rows="limit = $event"
+      :globalFilterFields="['nom', 'prenom']">
     <template #empty> No customers found.</template>
-    <template #loading> Loading customers data. Please wait.</template>
-    <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 12rem">
+    <template #isLoading> Loading customers data. Please wait.</template>
+    <Column field="photo" :showFilterMenu="false" header="" style="min-width: 6rem">
+      <template #body="{ data }">
+        <PhotoUser :user-photo="data.photoName" class="rounded-full !w-14 h-auto border-4 border-gray-300 border-opacity-60 mx-auto"/>
+      </template>
+    </Column>
+    <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 6rem" sortable>
       <template #body="{ data }">
         {{ data.nom }}
       </template>
@@ -149,7 +144,7 @@ watch(filters, async () => {
         <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom"/>
       </template>
     </Column>
-    <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 12rem">
+    <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 6rem" sortable>
       <template #body="{ data }">
         {{ data.prenom }}
       </template>
@@ -157,14 +152,14 @@ watch(filters, async () => {
         <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
       </template>
     </Column>
-    <Column field="statut" header="Statut" :showFilterMenu="false" style="min-width: 12rem">
+    <Column field="statut" header="Statut" :showFilterMenu="false" style="min-width: 6rem" sortable>
       <template #body="{ data }">
         <Tag :value="data.statut" :severity="data.statutSeverity"/>
       </template>
       <template #filter="{ filterModel, filterCallback }">
         <Select v-model="filterModel.value" @change="filterCallback()" :options="statuts"
                 placeholder="Filtrer"
-                style="min-width: 12rem"
+                style="min-width: 6rem"
                 :showClear="true">
           <template #value="slotProps">
             <div v-if="slotProps.value" class="flex items-center">
@@ -182,21 +177,13 @@ watch(filters, async () => {
         </Select>
       </template>
     </Column>
-    <Column field="numeroHarpege" :showFilterMenu="false" header="N° Admin." style="min-width: 12rem">
+    <Column field="numeroHarpege" :showFilterMenu="false" header="N° Harpège." style="min-width: 12rem" sortable>
       <template #body="{ data }">
         {{ data.numeroHarpege }}
       </template>
       <template #filter="{ filterModel, filterCallback }">
         <InputText v-model="filterModel.value" type="text" @input="filterCallback()"
-                   placeholder="Filtrer par N° Admin."/>
-      </template>
-    </Column>
-    <Column field="mailUniv" :showFilterMenu="false" header="Email" style="min-width: 12rem">
-      <template #body="{ data }">
-        {{ data.mailUniv }}
-      </template>
-      <template #filter="{ filterModel, filterCallback }">
-        <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par email"/>
+                   placeholder="Filtrer par N° Harpège."/>
       </template>
     </Column>
     <Column :showFilterMenu="false" style="min-width: 12rem">

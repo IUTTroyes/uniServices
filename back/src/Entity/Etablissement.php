@@ -36,8 +36,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
             inputFormats: [
                 'multipart' => ['multipart/form-data']
             ],
-            deserialize: false,
             security: "is_granted('CAN_EDIT_ETABLISSEMENT', object)",
+            deserialize: false,
             processor: EtablissementProcessor::class
         ),
         new Post(
@@ -74,6 +74,9 @@ class Etablissement
 
     #[ORM\Column(nullable: true)]
     private ?bool $isMain = null;
+
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $telephone = null;
 
     public function getId(): ?int
     {
@@ -136,5 +139,17 @@ class Etablissement
     public function setIsMain(?bool $isMain): void
     {
         $this->isMain = $isMain;
+    }
+
+    public function getTelephone(): ?string
+    {
+        return $this->telephone;
+    }
+
+    public function setTelephone(?string $telephone): static
+    {
+        $this->telephone = $telephone;
+
+        return $this;
     }
 }

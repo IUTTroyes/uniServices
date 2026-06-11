@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref} from "vue";
 import {useEtablissementStore} from "@stores";
-import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton, Access } from "@components";
+import { ValidatedInput, validationRules, ErrorView, ListSkeleton } from "@components";
 import {updateEtablissementService, uploadEtablissementLogoService} from "@requests"
 
 const etablissementStore = useEtablissementStore()
@@ -65,12 +65,13 @@ const updateEtablissement = async () => {
       libelle: etablissement.value.libelle,
       adresse: etablissement.value.adresse,
       site_web: etablissement.value.site_web,
+      telephone: etablissement.value.telephone
     }, true);
 
     if (logoFile.value) {
       const formData = new FormData();
       formData.append('file', logoFile.value);
-      await uploadEtablissementLogoService(etablissement.value.id, formData, true);
+      await uploadEtablissementLogoService(etablissement.value.id, formData, false);
     }
 
   } catch (error) {
@@ -101,7 +102,7 @@ const handleValidation = (field, result) => {
       <ListSkeleton v-if="isLoadingEtablissement"/>
       <div v-else>
         <form @submit.prevent="updateEtablissement()" class="flex flex-col">
-          <div class="flex flex-row gap-4 items-center">
+          <div class="flex flex-row gap-4 items-center w-full">
             <ValidatedInput
                 v-model="etablissement.libelle"
                 name="libelle"
@@ -110,15 +111,18 @@ const handleValidation = (field, result) => {
                 :rules="[validationRules.required]"
                 @validation="result => handleValidation('libelle', result)"
                 help-text="Entrez le nom de l'établissement"
-                class="w-full"
+                class="w-1/2"
             />
-            <div>
-
+            <div class="flex flex-col w-1/2">
               <ValidatedInput
                   v-model="logoFile"
                   name="logo"
+                  mode="basic"
                   label="Logo"
                   type="file"
+                  accept="image/*"
+                  auto="auto"
+                  :maxFileSize="2000000"
                   :rules="[]"
                   @validation="result => handleValidation('logo', result)"
                   help-text="Sélectionnez le logo de l'établissement"
@@ -136,17 +140,28 @@ const handleValidation = (field, result) => {
               help-text="Entrez l'URL du site web de l'établissement"
               class="w-full"
           />
+            <ValidatedInput
+                v-model="etablissement.adresse"
+                name="adresse"
+                label="Adresse"
+                type="address"
+                :rules="[]"
+                @validation="result => handleValidation('adresse', result)"
+                placeholder="Entrez une adresse (minimum 3 caractères)"
+                help-text="Recherchez et sélectionnez l'adresse de l'établissement"
+                class="w-full"
+                country="fr"
+            />
           <ValidatedInput
-              v-model="etablissement.adresse"
-              name="adresse"
-              label="Adresse"
-              type="address"
-              :rules="[]"
-              @validation="result => handleValidation('adresse', result)"
-              placeholder="Entrez l'adresse de l'établissement"
-              help-text="Commencez à saisir l'adresse pour obtenir des suggestions"
-              class="w-full"
-          />
+            v-model="etablissement.telephone"
+            name="telephone"
+            label="Téléphone"
+            type="text"
+            :rules="[]"
+            @validation="result => handleValidation('telephone', result)"
+            help-text="Entrez le numéro de téléphone de l'établissement"
+            class="w-full"
+            />
           <Button label="Enregistrer" class="w-full" type="submit" :disabled="!formValid"/>
         </form>
       </div>

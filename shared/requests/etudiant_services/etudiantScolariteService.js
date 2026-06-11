@@ -1,13 +1,35 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
+const buildEtudiantsScolariteQueryParams = (params = {}) => {
+    const queryParams = { ...params };
+    const filters = params.filters ?? {};
+
+    delete queryParams.filters;
+
+    const filterValues = {
+        nom: filters.nom?.value,
+        prenom: filters.prenom?.value,
+        mailUniv: filters.mailUniv?.value,
+        annee: filters.annee?.value,
+    };
+
+    Object.entries(filterValues).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+            queryParams[key] = value;
+        }
+    });
+
+    return queryParams;
+};
+
 // ----------------------------------------------
 // ------------------- GET ----------------------
 // ----------------------------------------------
 
 const getEtudiantsScolariteService = async (params, scope = '', showToast = false) => {
     try {
-
+        // formater les filters
         if (params.filters) {
             if (params.filters.nom) {
                 params['nom'] = params.filters.nom.value;
@@ -22,13 +44,14 @@ const getEtudiantsScolariteService = async (params, scope = '', showToast = fals
                 params['annee'] = params.filters.annee.value;
             }
         }
-        return await apiCall(
+        const response = await apiCall(
             api.get,
-            [`/api${scope}/etudiant_scolarites`, {params}],
-            'Scolarités des étudiants récupérées avec succès',
-            'Erreur lors de la récupération des scolarités des étudiants',
+            [`/api${scope}/etudiant_scolarites`, { params }],
+            'Étudiants récupérés avec succès',
+            'Erreur lors de la récupération des étudiants',
             showToast
         );
+        return response.member;
     } catch (error) {
         console.error('Erreur dans getEtudiantScolariteService:', error);
         throw error;
@@ -66,22 +89,6 @@ const getEtudiantScolaritesService = async (params, scope='', showToast = false)
         throw error;
     }
 }
-
-// const getEtudiantScolaritesService = async (etudiantId, actif, showToast = false) => {
-//     try {
-//         const response = await apiCall(
-//             api.get,
-//             [`/api/etudiant_scolarites?etudiant=${etudiantId}&actif=${actif}`],
-//             'Scolarités de l\'étudiant récupérées avec succès',
-//             'Erreur lors de la récupération des scolarités de l\'étudiant',
-//             showToast
-//         );
-//         return response.member;
-//     } catch (error) {
-//         console.error('Erreur dans getEtudiantScolaritesService:', error);
-//         throw error;
-//     }
-// }
 
 // ----------------------------------------------
 // ------------------- CREATE -------------------

@@ -9,10 +9,9 @@ import { useAnneeUnivStore, useUsersStore, useDiplomeStore, useAnneeStore, useEt
 export const initializeAppData = async () => {
   try {
     await initializeEtablissementData();
-    // Initialize academic year data
     await initializeAcademicYearData();
-    // Initialize user data
     await initializeUserData();
+    await initializeEtablissementData();
   } catch (error) {
     console.error('Error initializing application data:', error);
   }

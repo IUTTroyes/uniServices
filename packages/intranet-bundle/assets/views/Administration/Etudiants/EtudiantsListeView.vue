@@ -1,24 +1,23 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, onUnmounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue';
-import {ErrorView, ProfilEtudiant} from '@components';
-import { getEtudiantsScolariteService, demissionEtudiantScolariteService } from '@requests';
+import {ErrorView, ProfilEtudiant, SimpleSkeleton} from '@components';
+import { getEtudiantsScolariteService, demissionEtudiantScolariteService, getAnneesService } from '@requests';
 import { useToast } from 'primevue/usetoast';
-import { useUsersStore, useAnneeStore, useAnneeUnivStore } from '@stores';
-import { SimpleSkeleton } from '@components';
+import { useUsersStore, useAnneeUnivStore } from '@stores';
 import { useEtudiantFilters } from '@composables/filters/usersFilters/useEtudiantFilters.ts';
 
 const toast = useToast();
 const route = useRoute();
 const hasError = ref(false);
 const usersStore = useUsersStore();
-const anneeStore = useAnneeStore();
-const anneeUnivStore = useAnneeUnivStore()
+const anneeUnivStore = useAnneeUnivStore();
 
 const departementId = computed(() => usersStore.departementDefaut ? usersStore.departementDefaut.id : null);
+const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 
 const anneesList = ref([]);
 const isLoadingAnnees = ref(false);
@@ -28,17 +27,43 @@ const isInitialLoading = ref(true);
 
 const etudiants = ref([]);
 const nbEtudiants = ref(0);
-const loading = ref(true);
+const loading = ref(false);
 const page = ref(0);
 const rowOptions = [30, 60, 120];
 
 const limit = ref(rowOptions[0]);
 const offset = computed(() => limit.value * page.value);
+const FILTERS_DEBOUNCE_MS = 250;
+let filtersDebounceTimeout = null;
 
 const {filters, watchChanges} = useEtudiantFilters();
 watchChanges(async() => {
   if (isInitialLoading.value) return;
   page.value = 0;
+  if (filtersDebounceTimeout) {
+    clearTimeout(filtersDebounceTimeout);
+  }
+  filtersDebounceTimeout = setTimeout(() => {
+    getEtudiantsScolarite();
+  }, FILTERS_DEBOUNCE_MS);
+});
+
+watch([departementId, selectedAnneeUniversitaireId], async ([newDepartementId, newAnneeUniversitaireId], [oldDepartementId, oldAnneeUniversitaireId]) => {
+  if (isInitialLoading.value) return;
+
+  if (!newDepartementId || !newAnneeUniversitaireId) {
+    anneesList.value = [];
+    etudiants.value = [];
+    nbEtudiants.value = 0;
+    return;
+  }
+
+  if (newDepartementId === oldDepartementId && newAnneeUniversitaireId === oldAnneeUniversitaireId) {
+    return;
+  }
+
+  page.value = 0;
+  await getAnnees();
   await getEtudiantsScolarite();
 });
 
@@ -46,19 +71,21 @@ const showViewDialog = ref(false);
 const showEditDialog = ref(false);
 const selectedEtudiant = ref(null);
 
-const selectedAnneeUniversitaire = anneeUnivStore.selectedAnneeUniv;
-
 onMounted(async () => {
   isInitialLoading.value = true;
   try {
-    departementId.value = usersStore.departementDefaut.id;
     await getAnnees();
 
     // Initialiser le filtre d'année depuis le query parameter si présent
     const anneeFromQuery = route.query.annee;
     if (anneeFromQuery) {
-      filters.value.annee.value = parseInt(anneeFromQuery);
+      const parsedAnnee = Number.parseInt(String(anneeFromQuery), 10);
+      if (!Number.isNaN(parsedAnnee)) {
+        filters.value.annee.value = parsedAnnee;
+      }
     }
+
+    await getEtudiantsScolarite();
   } catch (error) {
     console.error("Erreur lors de l'initialisation :", error);
     hasError.value = true;
@@ -67,86 +94,68 @@ onMounted(async () => {
   }
 });
 
+onUnmounted(() => {
+  if (filtersDebounceTimeout) {
+    clearTimeout(filtersDebounceTimeout);
+  }
+});
+
 const getAnnees = async () => {
   isLoadingAnnees.value = true;
   isLoadingStats.value = true;
-  if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
-    anneesList.value = anneeStore.annees;
-    isLoadingAnnees.value = false;
-    fetchAnneesStats();
-  } else {
-    try {
-      const params = {
-        departement: departementId.value,
-        actif: true,
-      };
-      await anneeStore.getAnneesDepartement(params);
-      anneesList.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
-    } catch (error) {
-      console.error('Erreur lors du chargement des années :', error);
-      hasError.value = true;
-    } finally {
-      isLoadingAnnees.value = false;
-      // Charger les stats de manière asynchrone sans bloquer
-      fetchAnneesStats();
-    }
-  }
-};
 
-const fetchAnneesStats = async () => {
-  isLoadingStats.value = true;
+  if (!departementId.value || !selectedAnneeUniversitaireId.value) {
+    anneesList.value = [];
+    isLoadingAnnees.value = false;
+    isLoadingStats.value = false;
+    return;
+  }
+
   try {
-    const requests = anneesList.value.map(async (annee) => {
-      try {
-        const response = await getEtudiantsAnnee(annee.id);
-        annee.etudiantsCount = response.totalItems;
-      } catch (e) {
-        console.error(`Erreur stats pour l'année ${annee.id}:`, e);
-        annee.etudiantsCount = 0;
-      }
-    });
-    await Promise.all(requests);
+    const params = {
+      departement: departementId.value,
+      anneeUniversitaire: selectedAnneeUniversitaireId.value,
+      actif: true,
+    };
+
+    const response = await getAnneesService(params, '/liste', false);
+    anneesList.value = Array.isArray(response) ? response : [];
   } catch (error) {
-    console.error('Erreur lors du chargement des statistiques :', error);
+    console.error('Erreur lors du chargement des années :', error);
+    hasError.value = true;
   } finally {
+    isLoadingAnnees.value = false;
     isLoadingStats.value = false;
   }
 };
 
-const getEtudiantsAnnee = async (anneeId) => {
-  const params = {
-    departement: departementId.value,
-    anneeUniversitaire: selectedAnneeUniversitaire.id,
-    annee: anneeId,
-    actif: true,
-    limit: 1,
-    page: 1,
-    filters: {},
-  };
-  return await getEtudiantsScolariteService(params, '/mini', false);
-};
-
 const getEtudiantsScolarite = async () => {
+  if (!departementId.value || !selectedAnneeUniversitaireId.value) {
+    etudiants.value = [];
+    nbEtudiants.value = 0;
+    return;
+  }
+
   loading.value = true;
-  const params = {
+  const paramsListe = {
     departement: departementId.value,
-    anneeUniversitaire: selectedAnneeUniversitaire.id,
+    anneeUniversitaire: selectedAnneeUniversitaireId.value,
     actif: true,
     itemsPerPage: limit.value,
-    page: parseInt(page.value) + 1,
+    page: page.value + 1,
+    filters: filters.value,
+  };
+  const paramsCount = {
+    departement: departementId.value,
+    anneeUniversitaire: selectedAnneeUniversitaireId.value,
+    actif: true,
     filters: filters.value,
   };
   try {
-    const response = await getEtudiantsScolariteService(params, '/administration');
-    nbEtudiants.value = response.totalItems;
-    etudiants.value = response.member;
-    etudiants.value.forEach(etudiant => {
-      etudiant.annees = [
-        ...new Set(
-            etudiant.annee
-        ),
-      ];
-    });
+    etudiants.value = await getEtudiantsScolariteService(paramsListe, '/liste');
+    nbEtudiants.value = await getEtudiantsScolariteService(paramsCount, '/count');
+    // transformer le tableau en int
+    nbEtudiants.value = Number.parseInt(String(nbEtudiants.value), 10);
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants :', error);
     hasError.value = true;
@@ -171,18 +180,19 @@ const editEtudiant = etudiant => {
   showEditDialog.value = true;
 };
 
-const deleteEtudiant = etudiant => {
- try {
-   demissionEtudiantScolariteService(etudiant.id, true);
- } catch (error) {
-   console.error('Erreur lors de la démission de l\'étudiant :', error);
-   toast.add({
-     severity: 'error',
-     summary: 'Erreur',
-     detail: 'Impossible de marquer l\'étudiant comme démissionnaire. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
-     life: 5000,
-   });
- }
+const deleteEtudiant = async etudiant => {
+  try {
+    await demissionEtudiantScolariteService(etudiant.id, true);
+    await Promise.all([getEtudiantsScolarite(), getAnnees()]);
+  } catch (error) {
+    console.error('Erreur lors de la démission de l\'étudiant :', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de marquer l\'étudiant comme démissionnaire. Nous faisons notre possible pour résoudre cette erreur au plus vite.',
+      life: 5000,
+    });
+  }
 };
 </script>
 
@@ -226,7 +236,6 @@ const deleteEtudiant = etudiant => {
           @update:rows="limit = $event"
           :globalFilterFields="['nom', 'prenom']"
       >
-        <Column field="anneeUniversitaire"></Column>
         <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 12rem">
           <template #body="{ data }">
             {{ data.etudiant.nom }}
@@ -243,9 +252,9 @@ const deleteEtudiant = etudiant => {
             <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom" />
           </template>
         </Column>
-        <Column field="annees" :showFilterMenu="false" header="Année" style="min-width: 12rem">
+        <Column field="annee" :showFilterMenu="false" header="Année" style="min-width: 12rem">
           <template #body="{ data }">
-            <div v-for="annee in data.annees" :key="annee">
+            <div v-for="annee in data.annee" :key="annee.id">
               {{ annee.libelle }}
             </div>
           </template>

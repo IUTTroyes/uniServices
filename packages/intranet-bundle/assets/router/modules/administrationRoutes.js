@@ -2,7 +2,7 @@ import previsionnelRoutes from './previsionnelRoutes.js'
 import stageAdministrationRoutes from './stageAdministrationRoutes.js'
 import anneeAdministrationRoutes from './anneeAdministrationRoutes.js'
 import questionnaireAdministrationRoutes from './questionnaireAdministrationRoutes.js'
-import PersonnelsView from "@/views/Personnels/PersonnelsView.vue";
+import PersonnelsListeView from "@/views/Personnels/PersonnelsListeView.vue";
 import EtudiantsListeView from "@/views/Administration/Etudiants/EtudiantsListeView.vue";
 import EtudiantsAjoutView from "@/views/Administration/Etudiants/EtudiantsAjoutView.vue";
 import AdministrationView from '@/views/Administration/AdministrationView.vue';
@@ -28,7 +28,7 @@ export default [
   },
   {
     path: 'administration/personnels',
-    component: PersonnelsView,
+    component: PersonnelsListeView,
     meta: {
       permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
