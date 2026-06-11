@@ -44,6 +44,7 @@ export default defineConfig({
       '@stores': path.resolve(__dirname, '../../shared/stores'),
       '@utils': path.resolve(__dirname, '../../shared/utils'),
       '@common-images': path.resolve(__dirname, '../../shared/images'),
+      '@composables': path.resolve(__dirname, '../../shared/composables'),
     },
   },
 })

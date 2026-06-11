@@ -12,7 +12,7 @@ import {
 } from "@requests";
 import {useRoute} from "vue-router";
 import { useToast } from 'primevue/usetoast';
-import { useEtudiantFilters } from '@composables/filters/usersFilters/useEtudiantFilters';
+import { useEtudiantFilters } from '../../../../../shared/composables/filters/usersFilters/useEtudiantFilters';
 
 const toast = useToast();
 const route = useRoute();
