@@ -1,5 +1,4 @@
 <script setup>
-import {ref} from "vue";
 import {PermissionGuard, ValidatedInput} from "@components";
 import {updateTicketStatutService} from '@requests';
 import {getStatutsClasses,getPriorityClasses,priorities} from "@/utils";

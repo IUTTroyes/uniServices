@@ -15,3 +15,5 @@ const priorities = ref([
     { label: 'Haute', value: 'HAUTE' },
     { label: 'Critique', value: 'CRITIQUE' }
 ]);
+
+export {getPriorityClasses,priorities};
