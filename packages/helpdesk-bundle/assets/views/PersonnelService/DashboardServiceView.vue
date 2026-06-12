@@ -24,9 +24,6 @@ const goToTicket = (id) => {
   router.push({ name: 'TicketView', params: { id: id } });
 };
 
-const goToNewTicket = () => {
-  router.push({ name: 'NewTicketView' });
-};
 
 const onPageChange = (event) => {
   first.value = event.first;
@@ -192,7 +189,7 @@ onMounted(() => {
           <template #item="{ data: ticket }">
             <div class="rounded m-2 p-4">
               <div class="mb-4">
-                <TicketMessageCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer"/>
+                <TicketMessageCard :ticket="ticket" @checked="goToTicket(ticket.id)" class="cursor-pointer"/>
               </div>
             </div>
           </template>

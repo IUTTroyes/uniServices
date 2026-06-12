@@ -21,11 +21,6 @@ const loading = ref(true);
 const goToTicket = (id) => {
   router.push({ name: 'TicketView', params: { id: id } });
 };
-
-const goToNewTicket = () => {
-  router.push({ name: 'NewTicketView' });
-};
-
 const onPageChange = (event) => {
   first.value = event.first;
 };

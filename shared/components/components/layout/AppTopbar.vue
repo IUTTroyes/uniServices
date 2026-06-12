@@ -6,7 +6,6 @@ import Logo from '@components/components/Logo.vue';
 import {useAnneeUnivStore, useUsersStore} from "@stores";
 import {useRoute, useRouter} from 'vue-router';
 import {tools} from '@config/uniServices.js';
-import noImage from "@images/photos_etudiants/noimage.png";
 import {PermissionGuard} from "@components";
 
 const anneeUnivStore = useAnneeUnivStore();
@@ -279,13 +278,6 @@ const selectAnneeUniversitaire = (annee) => {
     </div>
 
     <div class="layout-topbar-actions">
-      <div v-if="route.path !== '/portail'" class="layout-topbar-search lg:hidden">
-        <IconField>
-          <InputIcon class="pi pi-search" />
-          <InputText v-model="search" placeholder="Recherche" />
-        </IconField>
-      </div>
-
       <button
           class="layout-topbar-menu-button layout-topbar-action"
           v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }">
@@ -294,6 +286,13 @@ const selectAnneeUniversitaire = (annee) => {
 
       <div class="layout-topbar-menu lg:block">
         <div class="layout-topbar-menu-content">
+          <div v-if="route.path !== '/portail'" class="layout-topbar-search block lg:hidden">
+            <IconField>
+              <InputIcon class="pi pi-search" />
+              <InputText v-model="search" placeholder="Recherche" />
+            </IconField>
+          </div>
+
           <a href="http://localhost:3000/auth/portail" v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text">
             <i class="pi pi-arrow-left"></i>
             <span>Portail</span>
@@ -348,7 +347,7 @@ const selectAnneeUniversitaire = (annee) => {
               <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>
             </button>
           </div>
-          <Button severity="secondary" rounded @click="toggleProfileMenu" aria-haspopup="true" aria-controls="profile_menu" class="p-0!">
+          <Button severity="secondary" rounded @click="toggleProfileMenu" aria-haspopup="true" aria-controls="profile_menu" class="layout-topbar-action p-0!">
             <template v-if="userStore.userPhoto">
               <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full max-w-12 mx-auto">
             </template>

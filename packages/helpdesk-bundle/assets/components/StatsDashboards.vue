@@ -1,12 +1,19 @@
 <script setup>
 import {useRouter} from "vue-router";
 
+const router = useRouter()
+
 const props = defineProps({
   tickets: {
     type: Array,
     required: true
   }
 });
+
+const goToNewTicket = () => {
+  router.push({ name: 'NewTicketView' });
+};
+
 </script>
 
 <template>

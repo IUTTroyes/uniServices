@@ -56,7 +56,7 @@ const updatePriority = async (id,newPriority) => {
       </div>
 
       <div v-if="ticket.helpdeskMessages || ticket.messages"
-           class="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded text-sm text-gray-600 dark:text-gray-300">
+           class="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 border border-blue-400 rounded text-sm text-blue-600 dark:text-gray-300">
         <i class="pi pi-comments text-xs"></i>
         <span>
           {{ ticket.helpdeskMessages?.length ?? ticket.messages?.length ?? 0 }} message<span v-if="(ticket.helpdeskMessages?.length ?? ticket.messages?.length ?? 0) > 1">s</span>
