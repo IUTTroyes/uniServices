@@ -2,8 +2,8 @@
 import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
-import {useDiplomeStore, useUsersStore} from '@stores';
-import {MessageCard, PhotoUser, SimpleSkeleton} from '@components';
+import {useUsersStore} from '@stores';
+import {PhotoUser, SimpleSkeleton, ErrorView} from '@components';
 import {getISOWeekNumber} from "@helpers/date";
 import EdtEvent from "./EdtEvent.vue";
 import {
@@ -12,13 +12,14 @@ import {
   getPersonnelsService,
   getSemaineUniversitaireService,
   getSallesService,
-  getEnseignementsService
+  getEnseignementsService,
+  getDiplomesService,
+  getAnneesService,
+  getSemestresService
 } from "@requests";
 import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
-import {useToast} from 'primevue/usetoast';
 import EdtListe from "./EdtListe.vue";
 import Loader from "@components/loader/GlobalLoader.vue";
-import {ErrorView} from "@components";
 
 // Référence vers le composant vue-cal
 const vuecalRef = ref(null)
@@ -27,15 +28,17 @@ const viewTranslations = {
   day: 'JOUR',
   week: 'SEMAINE',
 };
-const toast = useToast();
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const usersStore = useUsersStore();
-const diplomes = ref({});
-const diplomeStore = useDiplomeStore();
 const isLoadingDiplomes = ref(true);
-const selectedDiplome = ref({});
-const selectedAnnee = ref({});
-const selectedSemestre = ref({});
+const diplomes = ref([]);
+const selectedDiplome = ref(null);
+const isLoadingAnnees = ref(true)
+const selectedAnnee = ref(null);
+const annees = ref([]);
+const isLoadingSemestres = ref(true)
+const semestres = ref([])
+const selectedSemestre = ref(null);
 const isLoadingEnseignants = ref(false);
 const hasErrorEnseignants = ref(false);
 const enseignantsList = ref([]);
@@ -60,10 +63,6 @@ const isLoadingGroupes = ref(false);
 const liste = ref(false);
 
 onMounted(async () => {
-  isLoadingEnseignements.value = true;
-  isLoadingEnseignants.value = true;
-  isLoadingSalles.value = true;
-  isLoadingEvents.value = true;
   await getDiplomes();
   await getEnseignants();
   await getSalles();
@@ -72,14 +71,14 @@ onMounted(async () => {
   isLoadingEvents.value = false;
 });
 
-watch(selectedDiplome, () => {
-  selectedAnnee.value = selectedDiplome.value?.annees[0] ?? null;
+watch(selectedDiplome, async () => {
+  await getAnnees();
 });
-watch(selectedAnnee, () => {
-  selectedSemestre.value = selectedAnnee.value?.semestres[0] ?? null;
+watch(selectedAnnee, async () => {
+  await getSemestres();
 })
 watch(selectedSemestre, () => {
-  if (selectedSemestre) {
+  if (selectedSemestre.value) {
     getEnseignements();
   }
 })
@@ -87,19 +86,62 @@ watch(selectedSemestre, () => {
 const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
   try {
-    diplomes.value = diplomeStore.diplomes;
+    const params = {
+      departement: departement.id,
+      anneeUniversitaire: anneeUniv.id,
+    }
+    diplomes.value = await getDiplomesService(params, '/edt')
     console.log(diplomes.value)
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching diplomes:', error);
   } finally {
     selectedDiplome.value = diplomes.value[0] ?? null;
-    console.log(selectedDiplome.value)
-    selectedAnnee.value = selectedDiplome.value?.annees[0] ?? null;
-    selectedSemestre.value = selectedAnnee.value?.semestres[0] ?? null;
     isLoadingDiplomes.value = false;
+    await getAnnees();
   }
 };
+
+const getAnnees = async () => {
+  isLoadingAnnees.value = true;
+  try {
+    if (!selectedDiplome.value?.id) {
+      annees.value = [];
+      return;
+    }
+
+    const params = {
+      diplome: selectedDiplome.value.id
+    }
+    annees.value = await getAnneesService(params)
+  } catch (error) {
+    console.error('Error fetching annees:', error);
+  } finally {
+    selectedAnnee.value = annees.value[0] ?? null
+    isLoadingAnnees.value = false;
+    await getSemestres();
+  }
+}
+
+const getSemestres = async () => {
+  isLoadingSemestres.value = true;
+  try {
+    if (!selectedAnnee.value?.id) {
+      semestres.value = [];
+      return;
+    }
+
+    const params = {
+      annee: selectedAnnee.value.id
+    }
+    semestres.value = await getSemestresService(params)
+  } catch (error) {
+    console.error('Error fetching semestres', error)
+  } finally {
+    selectedSemestre.value = semestres.value[0] ?? null
+    isLoadingSemestres.value = false;
+  }
+}
 
 const getEnseignants = async () => {
   try {
@@ -501,9 +543,9 @@ const heuresParType = computed(() => {
       Filtres
     </div>
     <SimpleSkeleton v-if="isLoadingDiplomes" class="w-full"/>
-    <Tabs v-else :value="selectedDiplome?.id" scrollable>
+    <Tabs v-else :value="selectedDiplome?.id ?? null" :scrollable="diplomes.length > 1">
       <TabList>
-        <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="selectedDiplome = diplome">
+        <Tab v-for="diplome in diplomes" :key="diplome.id" :value="diplome.id" @click="selectedDiplome = diplome">
         <span>
           <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span>
         </span>
@@ -515,8 +557,8 @@ const heuresParType = computed(() => {
       <SimpleSkeleton class="w-1/2"/>
     </div>
     <div v-else class="mt-8 flex items-center gap-4 w-full">
-      <Select v-if="selectedDiplome" v-model="selectedAnnee" :options="selectedDiplome.annees" option-label="libelle" placeholder="Sélectionner une année" class="w-1/2"/>
-      <Select v-if="selectedAnnee" v-model="selectedSemestre" :options="selectedAnnee.semestres" option-label="libelle" placeholder="Sélectionner un semestre" class="w-1/2"/>
+      <Select v-if="selectedDiplome" v-model="selectedAnnee" :options="annees" option-label="libelle" placeholder="Sélectionner une année" class="w-1/2"/>
+      <Select v-if="selectedAnnee" v-model="selectedSemestre" :options="semestres" option-label="libelle" placeholder="Sélectionner un semestre" class="w-1/2"/>
     </div>
     <div class="flex justify-center items-center gap-4 mb-4">
       <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>
