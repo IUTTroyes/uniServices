@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ValidatedInput,PermissionGuard} from "@components";
-import {getMessagesService,createMessageService,getTicketService,updateTicketStatutService} from '@requests';
+import {getPersonnelsService,createMessageService,getTicketService,updateTicketStatutService} from '@requests';
 import {useConfirm} from 'primevue/useconfirm';
 import {getStatutsClasses,getPriorityClasses,priorities,updatePriority} from "@/utils";
 
@@ -28,20 +28,20 @@ const assignesOptions = computed(() => {
 const getPersonnelsDuService = async (serviceId) => {
   if (!serviceId) return;
   try{
-    const response = await getPersonnelsService ({service: serviceId})
-
-    if (response && response['member']) {
-      personnelList.value = response['member'];
-    } else if (Array.isArray(response)) {
-      personnelList.value = response;
+    const params = {
+      service: serviceId
     }
+    personnelList.value = await getPersonnelsService(params)
   } catch (error) {
     console.error ('Erreur lors du chargement des personnels')
   }
 }
+
 const updateAssigne = async (id,personnelIri) => {
   try{
-    const data={assigne:personnelIri}
+    const data = {
+      assigne:personnelIri
+    }
     await updateTicketStatutService(id, data, true);
   }
   catch (error){
@@ -90,10 +90,8 @@ const getTicketsService = async () => {
   if (!props.id) return;
   try {
     loading.value = true;
-    const ticketData = ticket.value=await getTicketService(props.id)
-    ticket.value = ticketData
-
-    const serviceId = ticketData.service?.id || ticketData.helpdeskCategorie?.service?.id;
+    ticket.value = await getTicketService(props.id)
+    const serviceId = ticket.value.helpdeskCategorie.service.id;
     if (serviceId) {
       await getPersonnelsDuService(serviceId);
     }

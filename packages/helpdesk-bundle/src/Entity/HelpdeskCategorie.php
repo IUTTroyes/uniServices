@@ -49,7 +49,7 @@ class HelpdeskCategorie
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskCategories')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['category:read','service:read'])]
+    #[Groups(['category:read','service:read', 'ticket:read'])]
     private ?StructureService $service = null;
 
     /**

@@ -19,6 +19,18 @@ const rows = ref(5);
 const ticketsList = ref([]);
 const ticketsNewMessageList= ref ([]);
 const loading = ref(true);
+const responsiveOptions = ref([
+  {
+    breakpoint: '1024px',
+    numVisible: 2,
+    numScroll: 1
+  },
+  {
+    breakpoint: '600px',
+    numVisible: 1,
+    numScroll: 1
+  }
+]);
 
 const goToTicket = (id) => {
   router.push({ name: 'TicketView', params: { id: id } });

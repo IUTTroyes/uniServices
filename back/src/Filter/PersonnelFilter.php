@@ -84,6 +84,13 @@ class PersonnelFilter extends AbstractFilter
                 ->setParameter('statut', "$value%");
         }
 
+        if ('service' === $property) {
+            $queryBuilder
+                ->join(sprintf('%s.structureServices', $alias), 's')
+                ->andWhere('s.id = :service')
+                ->setParameter('service', $value);
+        }
+
     }
 
     public function getDescription(string $resourceClass): array

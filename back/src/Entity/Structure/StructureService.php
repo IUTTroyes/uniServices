@@ -34,11 +34,11 @@ class StructureService
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['service:read','service:light','service:form_ticket'])]
+    #[Groups(['service:read','service:light','service:form_ticket', 'ticket:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['service:read','service:light','service:form_ticket'])]
+    #[Groups(['service:read','service:light','service:form_ticket', 'ticket:read'])]
     private ?string $libelle = null;
 
     /**
