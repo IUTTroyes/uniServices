@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
-import {getTicketsService,updateTicketStatutService,deleteTicketService, deleteMessageService} from '@requests';
+import {getTicketsService,deleteTicketService, deleteMessageService} from '@requests';
 import {getStatutsClasses,getPriorityClasses,priorities,updatePriority} from "@/utils";
 
 

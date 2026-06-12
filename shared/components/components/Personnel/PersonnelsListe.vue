@@ -6,9 +6,9 @@ import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue'
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
 import { useUsersStore, useAnneeUnivStore } from '@stores';
-import ViewPersonnelDialog from '@/dialogs/Personnels/ViewPersonnelDialog.vue'
-import EditPersonnelDialog from '@/dialogs/Personnels/EditPersonnelDialog.vue'
-import AccessPersonnelDialog from '@/dialogs/Personnels/AccessPersonnelDialog.vue'
+import ViewPersonnelDialog from '../../../dialogs/Personnels/ViewPersonnelDialog.vue'
+import EditPersonnelDialog from '../../../dialogs/Personnels/EditPersonnelDialog.vue'
+import AccessPersonnelDialog from '../../../dialogs/Personnels/AccessPersonnelDialog.vue'
 import { usePersonnelFilters } from '@composables/filters/usersFilters/usePersonnelFilters.ts';
 import { PhotoUser } from "@components";
 

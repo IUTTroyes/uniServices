@@ -6,6 +6,7 @@ import TicketMessageCard from "@/components/TicketMessageCard.vue";
 import { useRouter } from 'vue-router';
 import { getTicketsService } from '@requests';
 import AccordeonMessages from "@/components/AccordeonMessages.vue";
+import StatsDashboards from "@/components/StatsDashboards.vue";
 
 const router = useRouter();
 const userStore = useUsersStore();
@@ -20,11 +21,6 @@ const loading = ref(true);
 const goToTicket = (id) => {
   router.push({ name: 'TicketView', params: { id: id } });
 };
-
-const goToNewTicket = () => {
-  router.push({ name: 'NewTicketView' });
-};
-
 const onPageChange = (event) => {
   first.value = event.first;
 };
@@ -102,32 +98,10 @@ onMounted(() => {
         </div>
       </div>
 
-      <div class="card rounded-xl self-center p-5">
-        <div class="flex items-center gap-8 px-6 py-2">
-          <div class="flex items-center gap-3">
-            <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">Tickets Totaux :</span>
-            <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">{{ ticketsList.length }}</span>
-          </div>
-          <div class="flex items-center gap-3">
-            <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">En cours :</span>
-            <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
-              {{ ticketsList.filter(t => t.statut === 'En cours').length }}
-            </span>
-          </div>
-          <div class="w-px h-6 bg-gray-200"></div>
-          <div class="flex items-center gap-3">
-            <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">Traités :</span>
-            <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
-              {{ ticketsList.filter(t => t.statut === 'Traité').length }}
-            </span>
-          </div>
-        </div>
-      </div>
+      <StatsDashboards :tickets="ticketsList"/>
+
     </div>
 
-    <div class="flex justify-end px-10 mb-5">
-      <Button class="w-100" label="Créer un ticket" @click="goToNewTicket()" icon="pi pi-plus" />
-    </div>
 
     <div>
       <Message severity="info" icon="pi pi-info-circle" class="mt-2 mb-10">
