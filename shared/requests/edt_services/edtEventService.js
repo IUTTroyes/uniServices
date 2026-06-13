@@ -10,9 +10,6 @@ const getEdtEventsService = async (params, scope ='', showToast = false) => {
             'Erreur lors de la récupération des événements de l\'emploi du temps du personnel',
             showToast
         );
-        // Certains endpoints d'ApiPlatform retournent { member: [...] } (ou hydra:member),
-        // d'autres (notamment nos endpoints personnalisés retournant un DTO) retournent
-        // directement un objet. On gère les deux cas.
         if (!response) return null;
         if (Array.isArray(response)) return response; // déjà un tableau
         if (response.member) return response.member;

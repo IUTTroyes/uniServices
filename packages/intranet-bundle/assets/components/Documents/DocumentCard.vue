@@ -72,7 +72,7 @@
 
 <script setup lang="ts">
 import type { Document } from '@/types';
-import { getFileIcon, getFileIconColor, formatFileSize, formatDate, getFileExtension } from '@/service/fileUtils';
+import { getFileIcon, getFileIconColor, formatFileSize, formatDate, getFileExtension } from '@/service/utils/fileUtils';
 
 interface Props {
   document: Document;

@@ -17,9 +17,10 @@ import {
   getAnneesService,
   getSemestresService
 } from "@requests";
-import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
+import {adjustColor, darkenColor} from "@helpers/colors.js";
 import EdtListe from "./EdtListe.vue";
 import Loader from "@components/loader/GlobalLoader.vue";
+import {applyOverlapMetadata, mapDepartementEvents} from '@/service/utils/edtUtils';
 
 // Référence vers le composant vue-cal
 const vuecalRef = ref(null)
@@ -66,8 +67,6 @@ onMounted(async () => {
   await getDiplomes();
   await getEnseignants();
   await getSalles();
-  await getEnseignements();
-  await getEventsDepartementWeek();
   isLoadingEvents.value = false;
 });
 
@@ -76,11 +75,6 @@ watch(selectedDiplome, async () => {
 });
 watch(selectedAnnee, async () => {
   await getSemestres();
-})
-watch(selectedSemestre, () => {
-  if (selectedSemestre.value) {
-    getEnseignements();
-  }
 })
 
 const getDiplomes = async () => {
@@ -91,14 +85,12 @@ const getDiplomes = async () => {
       anneeUniversitaire: anneeUniv.id,
     }
     diplomes.value = await getDiplomesService(params, '/edt')
-    console.log(diplomes.value)
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching diplomes:', error);
   } finally {
     selectedDiplome.value = diplomes.value[0] ?? null;
     isLoadingDiplomes.value = false;
-    await getAnnees();
   }
 };
 
@@ -119,7 +111,6 @@ const getAnnees = async () => {
   } finally {
     selectedAnnee.value = annees.value[0] ?? null
     isLoadingAnnees.value = false;
-    await getSemestres();
   }
 }
 
@@ -217,13 +208,6 @@ const getSemestreGroupes = async (semestre) => {
   }
 }
 
-function detectOverlap(event, allEvents) {
-  return allEvents.some(e =>
-      (event.start < e.end && event.end > e.start) &&
-      event !== e
-  );
-}
-
 watch(() => vuecalRef.value?.view?.start, async (newValue) => {
   if (newValue) {
     const startDate = new Date(newValue);
@@ -234,13 +218,10 @@ watch(() => vuecalRef.value?.view?.start, async (newValue) => {
 
 watch(selectedSemestre, async (newValue) => {
   isLoadingEvents.value = true;
-  await getEnseignants();
-  await getSalles();
   await getEnseignements();
   if (newValue) {
     await getSemestreGroupes(newValue);
   }
-  await getEventsDepartementWeek()
   isLoadingEvents.value = false;
 });
 
@@ -263,122 +244,39 @@ watch(selectedEnseignement, async () => {
 });
 
 const getEventsDepartementWeek = async () => {
+  const hasAtLeastOneFilter = selectedSemestre.value || selectedEnseignant.value || selectedSalle.value || selectedEnseignement.value;
+
   try {
-    await getWeekUnivNumber(new Date(vuecalRef.value?.view?.start || new Date()));
-
-    if (!selectedSemestre.value && !selectedEnseignant.value && !selectedSalle.value && !selectedEnseignement.value) {
+    if (!hasAtLeastOneFilter) {
       events.value = [];
-    } else {
-      const params = {
-        semaineFormation: weekUnivNumber.value,
-        semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
-        anneeUniversitaire: anneeUniv.id,
-        departement: departement.id,
-        personnel: selectedEnseignant.value ? selectedEnseignant.value.id : null,
-        salle: selectedSalle.value ? selectedSalle.value.id : null,
-        enseignement: selectedEnseignement.value ? selectedEnseignement.value.id : null,
-      };
-      const response = await getEdtEventsService(params);
-
-      if (response && response.length > 0) {
-        let mappedEvents = [];
-
-        response.forEach(event => {
-          // Définir la couleur en fonction du type de groupe
-          let eventColor;
-          switch (event.groupe?.type) {
-              // couleurs comme dans Celcat
-            case 'CM':
-              eventColor = '#67cfff'; // Bleu pour CM
-              break;
-            case 'TD':
-              eventColor = '#ffee33'; // Jaune pour TD
-              break;
-            case 'TP':
-              eventColor = '#7aff85'; // Vert pour TP
-              break;
-            default:
-              eventColor = '#CCCCCC'; // Gris par défaut
-          }
-
-          const startDate = new Date(event.debut);
-          const endDate = new Date(event.fin);
-
-          const baseEvent = {
-            ...event,
-            ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
-            start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-            end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-            backgroundColor: adjustColor(colorNameToRgb(eventColor), 0.2, 0),
-            location: event.salle,
-            title: event.enseignement?.codeEnseignement + ' - ' + event.libModule,
-            type: event.type,
-            groupe: event.groupe || { libelle: '**' },
-            personnel: event.personnel,
-            intervenantPhoto: event.personnel.photoName ?? null,
-            overlap: false,
-            eval: event.evaluation,
-            intervenants: event.enseignement?.previsionnels
-                .filter(intervenant => intervenant.personnel?.id !== personnel.id)
-                .map(intervenant => ({
-                  id: intervenant.id,
-                  display: intervenant.personnel?.display || 'Inconnu',
-                  photoName: intervenant.personnel?.photoName || null,
-                }))
-          };
-
-          // If the event is a CM, it should span across all columns
-          if (event.type === 'CM') {
-            // For CM events, only define schedule and width when a semestre is selected
-            mappedEvents.push({
-              ...baseEvent,
-              ...(selectedSemestre.value ? {
-                schedule: schedules.value.length > 0 ? schedules.value[0].id : event.groupe.id,
-                // Flag this as a CM event for styling
-                isCmEvent: true,
-                width: `${schedules.value.length * 100}%`
-              } : {})
-            });
-          }
-              // If the event is for a TD group with TP children, use the first TP child's schedule
-          // Only set schedule when a semestre is selected
-          else if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
-            // Get all TP children
-            const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
-
-            if (tpChildren.length > 0) {
-              // Use only the first TP child's schedule when semestre selected
-              mappedEvents.push({
-                ...baseEvent,
-                ...(selectedSemestre.value ? { schedule: tpChildren[0].id, isTdEvent: true } : {})
-              });
-            } else {
-              // If no TP children, set schedule only when semestre selected
-              mappedEvents.push({
-                ...baseEvent,
-                ...(selectedSemestre.value ? { schedule: event.groupe.id } : {})
-              });
-            }
-          } else {
-            // For non-TD and non-CM events, set schedule only when semestre selected
-            mappedEvents.push({
-              ...baseEvent,
-              ...(selectedSemestre.value ? { schedule: event.groupe.id } : {})
-            });
-          }
-
-        });
-
-        events.value = mappedEvents.map(event => ({
-          ...event,
-          title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
-          overlap: !!detectOverlap(event, mappedEvents),
-          class: event.type === 'TD' && selectedSemestre?.value ? 'td-event-spanning' : (event.type === 'CM' ? 'cm-event-spanning' : ''),
-        }));
-      } else {
-        events.value = [];
-      }
+      return;
     }
+
+    const params = {
+      semaineFormation: weekUnivNumber.value,
+      semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
+      anneeUniversitaire: anneeUniv.id,
+      departement: departement.id,
+      personnel: selectedEnseignant.value ? selectedEnseignant.value.id : null,
+      salle: selectedSalle.value ? selectedSalle.value.id : null,
+      enseignement: selectedEnseignement.value ? selectedEnseignement.value.id : null,
+    };
+
+    const response = await getEdtEventsService(params);
+
+    if (!response?.length) {
+      events.value = [];
+      return;
+    }
+
+    const mappedEvents = mapDepartementEvents({
+      response,
+      selectedSemestre: !!selectedSemestre.value,
+      schedules: schedules.value,
+      personnelId: personnel.id,
+    });
+
+    events.value = applyOverlapMetadata(mappedEvents, !!selectedSemestre.value);
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching events:', error);
@@ -396,6 +294,7 @@ const getEventsDepartementWeek = async () => {
       }
     });
 
+    console.log(events.value)
   }
 };
 
