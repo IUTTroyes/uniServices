@@ -20,7 +20,14 @@ import {
 import {adjustColor, darkenColor} from "@helpers/colors.js";
 import EdtListe from "./EdtListe.vue";
 import Loader from "@components/loader/GlobalLoader.vue";
-import {applyOverlapMetadata, mapDepartementEvents} from '@/service/utils/edtUtils';
+import {
+  applyOverlapMetadata,
+  calculateHoursByType,
+  calculateTotalHours,
+  getBadgeSeverityByType,
+  mapDepartementEvents,
+  styleVueCalEvents,
+} from '@/service/utils/edtUtils';
 
 // Référence vers le composant vue-cal
 const vuecalRef = ref(null)
@@ -282,17 +289,7 @@ const getEventsDepartementWeek = async () => {
     console.error('Error fetching events:', error);
   } finally {
     await nextTick();
-    const eventsObjects = document.querySelectorAll('.vuecal__event');
-    eventsObjects.forEach(eventEl => {
-      if (eventEl.style.backgroundColor) {
-        eventEl.style.border = `2px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 50), 0, 0.2)}`;
-        eventEl.style.borderTop = `6px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 60), 0, 0.2)}`;
-        eventEl.style.overflow = 'auto';
-        eventEl.style.scrollbarWidth = 'none';
-        eventEl.style.cssText += '::-webkit-scrollbar { display: none; }';
-        eventEl.style.opacity = 0.9;
-      }
-    });
+    styleVueCalEvents();
 
     console.log(events.value)
   }
@@ -311,56 +308,14 @@ const openDialog = ({ event }) => {
   visible.value = true
 }
 
-function getBadgeSeverity(type) {
-  const badgeMapping = {
-    ressource: 'primary',
-    sae: 'warn',
-    matiere: 'success',
-  };
-
-  return badgeMapping[type] || 'info'; // Valeur par défaut si le type est inconnu
-}
-
 // calculer le nombre total d'heures pour l'ensemble des événements affichés
 const totalHeures = computed(() => {
-  return events.value.reduce((total, event) => {
-    const start = new Date(event.start);
-    const end = new Date(event.end);
-    const duration = (end - start) / (1000 * 60 * 60); // durée en heures
-    return total + duration;
-  }, 0);
+  return calculateTotalHours(events.value);
 });
 
 // calculer le nombre total d'heures par type "CM", "TD", "TP"
 const heuresParType = computed(() => {
-  // Initialiser les types de base pour qu'ils apparaissent même à 0
-  const totaux = { CM: 0, TD: 0, TP: 0 };
-
-  events.value.forEach(event => {
-    const start = new Date(event.start);
-    const end = new Date(event.end);
-    const duration = (end - start) / (1000 * 60 * 60); // durée en heures
-    totaux[event.type] = (totaux[event.type] || 0) + duration;
-  });
-
-  // Conserver l'ordre CM, TD, TP, puis ajouter les autres types trouvés
-  const result = [];
-  ['CM', 'TD', 'TP'].forEach(type => {
-    result.push({
-      type,
-      heures: Math.round((totaux[type] || 0) * 100) / 100
-    });
-    delete totaux[type];
-  });
-
-  Object.keys(totaux).forEach(type => {
-    result.push({
-      type,
-      heures: Math.round(totaux[type] * 100) / 100
-    });
-  });
-
-  return result;
+  return calculateHoursByType(events.value);
 });
 </script>
 
@@ -393,7 +348,7 @@ const heuresParType = computed(() => {
       </div>
       <div class="flex items-center gap-2">
         <Badge v-if="selectedEvent.eval" severity="danger" class="uppercase">Évaluation</Badge>
-        <Badge :severity="getBadgeSeverity(selectedEvent.enseignement.type)" class="uppercase">
+        <Badge :severity="getBadgeSeverityByType(selectedEvent.enseignement.type)" class="uppercase">
           {{ selectedEvent.enseignement.type }}
         </Badge>
       </div>

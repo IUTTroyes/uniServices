@@ -15,15 +15,7 @@ import {
   getSemestresService,
 } from "@requests";
 import Loader from "@components/loader/GlobalLoader.vue";
-
-// Aide: formater un objet Date en YYYY-MM-DD en heure locale (sans décalage de fuseau)
-const formaterDateLocale = (d) => {
-  if (!d) return null;
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${day}-${month}-${year}`;
-};
+import {clampDateInRange, deriveAcademicYearBounds, formatDateAsDayMonthYear} from "@/service/utils/edtUtils";
 
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const usersStore = useUsersStore();
@@ -78,38 +70,6 @@ onMounted( async() => {
   isLoadingEventsData.value = false;
 });
 
-const deriveBornesAnneeUniv = (au) => {
-  // Calcul les dates de début et de fin de l'année universitaire à partir du libellé ou de la date actuelle
-  const now = new Date();
-  const match = au?.libelle ? au.libelle.match(/(\d{4})\s*[-/]\s*(\d{4})/) : null;
-  let startYear;
-  let endYear;
-  if (match) {
-    startYear = Number.parseInt(match[1], 10);
-    endYear = Number.parseInt(match[2], 10);
-  } else {
-    const m = now.getMonth(); // 0=Jan, 8=Sep
-    if (m >= 8) { // Sep..Dec → academic year starts this year
-      startYear = now.getFullYear();
-      endYear = now.getFullYear() + 1;
-    } else { // Jan..Aug → academic year started last year
-      startYear = now.getFullYear() - 1;
-      endYear = now.getFullYear();
-    }
-  }
-  const start = new Date(startYear, 8, 1, 0, 0, 0, 0); // 1 Sep startYear
-  const end = new Date(endYear, 7, 31, 23, 59, 59, 999); // 31 Aug endYear
-  return { start, end };
-};
-
-const bornerDate = (d, min, max) => {
-  // Contraint une date entre min et max
-  if (!d) return d;
-  if (d < min) return new Date(min);
-  if (d > max) return new Date(max);
-  return d;
-};
-
 const setPeriodeFromAnneeUniversitaire = async () => {
   try {
     let anneeUniversitaire = anneeUniv;
@@ -123,7 +83,7 @@ const setPeriodeFromAnneeUniversitaire = async () => {
         anneeUniversitaire = anneeUniv;
       }
     }
-    const { start, end } = deriveBornesAnneeUniv(anneeUniversitaire);
+    const { start, end } = deriveAcademicYearBounds(anneeUniversitaire);
     minDate.value = start;
     maxDate.value = end;
 
@@ -140,8 +100,8 @@ const setPeriodeFromAnneeUniversitaire = async () => {
       const friday = new Date(monday);
       friday.setDate(monday.getDate() + 4);
       friday.setHours(23, 59, 59, 999);
-      const clampedStart = bornerDate(monday, start, end);
-      const clampedEnd = bornerDate(friday, start, end);
+      const clampedStart = clampDateInRange(monday, start, end);
+      const clampedEnd = clampDateInRange(friday, start, end);
       periode.value = [clampedStart, clampedEnd];
     } else {
       // Utiliser toute l'année universitaire
@@ -309,8 +269,8 @@ const getEventsData = async () => {
     let debutDate = Array.isArray(periode.value) ? periode.value[0] : null;
     let finDate = Array.isArray(periode.value) ? periode.value[1] : null;
     if (debutDate || finDate) {
-      debutDate = bornerDate(debutDate || minDate.value, minDate.value, maxDate.value);
-      finDate = bornerDate(finDate || maxDate.value, minDate.value, maxDate.value);
+      debutDate = clampDateInRange(debutDate || minDate.value, minDate.value, maxDate.value);
+      finDate = clampDateInRange(finDate || maxDate.value, minDate.value, maxDate.value);
     }
 
     const params = {
@@ -320,8 +280,8 @@ const getEventsData = async () => {
       enseignement: selectedEnseignementId.value,
       personnel: selectedEnseignantId.value,
       salle: selectedSalleId.value,
-      debut: debutDate ? formaterDateLocale(debutDate) : null,
-      fin: finDate ? formaterDateLocale(finDate) : null,
+      debut: debutDate ? formatDateAsDayMonthYear(debutDate) : null,
+      fin: finDate ? formatDateAsDayMonthYear(finDate) : null,
     }
     const resp = await getEdtEventsService(params, '/stats');
     eventsData.value = Array.isArray(resp) ? (resp[0] || null) : resp;
@@ -523,8 +483,8 @@ const exportDataPrevi = async () => {
     // Insérer période (format YYYY-MM-DD)
     if (Array.isArray(periode.value) && periode.value[0] && periode.value[1]) {
       payload.periode = {
-        debut: formaterDateLocale(periode.value[0]),
-        fin: formaterDateLocale(periode.value[1])
+        debut: formatDateAsDayMonthYear(periode.value[0]),
+        fin: formatDateAsDayMonthYear(periode.value[1])
       };
     } else {
       payload.periode = null;
@@ -546,8 +506,8 @@ const exportDataHeures = async () => {
     // Insérer période (format YYYY-MM-DD)
     if (Array.isArray(periode.value) && periode.value[0] && periode.value[1]) {
       payload.periode = {
-        debut: formaterDateLocale(periode.value[0]),
-        fin: formaterDateLocale(periode.value[1])
+        debut: formatDateAsDayMonthYear(periode.value[0]),
+        fin: formatDateAsDayMonthYear(periode.value[1])
       };
     } else {
       payload.periode = null;
