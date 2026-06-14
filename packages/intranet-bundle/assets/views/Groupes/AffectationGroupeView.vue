@@ -600,7 +600,7 @@ onUnmounted(() => {
         :rows="limit"
         :rowsPerPageOptions="rowOptions"
         :totalRecords="nbEtudiants"
-        :loading="isLoadingEtudiants"
+        :loading="isLoadingEtudiants || isRepartitionLoading || isSynchroLoading"
         @page="onPageChange($event)"
         @update:rows="limit = $event"
         >
