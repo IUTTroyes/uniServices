@@ -1,0 +1,6 @@
+{
+    "name": "QuestionnaireBundle",
+    "description": "Application QuestionnaireBundle",
+    "urlSlug": "questionnaire",
+    "url": "http://localhost:3005/questionnaire/"
+}

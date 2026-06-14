@@ -18,6 +18,12 @@
         "url": "http://localhost:3001/intranet/"
     },
     {
+        "name": "Questionnaire",
+        "description": "Application Questionnaire",
+        "urlSlug": "questionnaire",
+        "url": "http://localhost:3005/questionnaire/"
+    },
+    {
         "name": "UniFolio",
         "description": "Outil de cr\u00e9ation et de gestion de portfolios universitaires.",
         "urlSlug": "unifolio",
