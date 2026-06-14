@@ -7,7 +7,7 @@
         "shared/*"
     ],
     "scripts": {
-        "dev": "concurrently \"npm run dev:auth\" \"npm run dev:edt\" \"npm run dev:helpdesk\" \"npm run dev:intranet\" \"npm run dev:unifolio\"",
+        "dev": "concurrently \"npm run dev:auth\" \"npm run dev:edt\" \"npm run dev:helpdesk\" \"npm run dev:intranet\" \"npm run dev:questionnaire\" \"npm run dev:unifolio\"",
         "dev:auth": "cd packages/auth-bundle && vite --port 3000 --open",
         "dev:intranet": "cd packages/intranet-bundle && vite --port 3001",
         "dev:edt": "cd packages/edt-bundle && vite --port 3003",
@@ -17,7 +17,9 @@
         "build:intranet": "cd packages/intranet-bundle && vite build",
         "build:unifolio": "cd packages/unifolio-bundle && vite build",
         "dev:helpdesk": "cd packages/helpdesk-bundle && vite --port 3004",
-        "build:helpdesk": "cd packages/helpdesk-bundle && vite build"
+        "build:helpdesk": "cd packages/helpdesk-bundle && vite build",
+        "dev:questionnaire": "cd packages/questionnaire-bundle && vite --port 3005",
+        "build:questionnaire": "cd packages/questionnaire-bundle && vite build"
     },
     "devDependencies": {
         "@primeuix/themes": "^2.0.3",

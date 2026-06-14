@@ -1,0 +1,17 @@
+{
+    "name": "iuttroyes/questionnaire-bundle",
+    "type": "symfony-bundle",
+    "description": "QuestionnaireBundle for uniServices",
+    "require": {
+        "php": "^8.2",
+        "symfony/framework-bundle": "^7.0",
+        "symfony/http-kernel": "^7.0",
+        "doctrine/orm": "*",
+        "doctrine/doctrine-bundle": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "QuestionnaireBundle\\": "src/"
+        }
+    }
+}
