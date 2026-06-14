@@ -16,28 +16,19 @@ class EtudiantScolariteSemestreRepository extends ServiceEntityRepository
         parent::__construct($registry, EtudiantScolariteSemestre::class);
     }
 
-    //    /**
-    //     * @return EtudiantScolariteSemestre[] Returns an array of EtudiantScolariteSemestre objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('e')
-    //            ->andWhere('e.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('e.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?EtudiantScolariteSemestre
-    //    {
-    //        return $this->createQueryBuilder('e')
-    //            ->andWhere('e.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    /**
+     * @return EtudiantScolariteSemestre[]
+     */
+    public function findByGroupeAndSemestre(int $groupeId, int $semestreId): array
+    {
+        return $this->createQueryBuilder('e')
+            ->join('e.groupes', 'g')
+            ->andWhere('g.id = :groupeId')
+            ->andWhere('e.semestre = :semestreId')
+            ->setParameter('groupeId', $groupeId)
+            ->setParameter('semestreId', $semestreId)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
 }

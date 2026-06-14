@@ -111,7 +111,7 @@ const getSemestres = async () => {
     hasError.value = true;
     console.error("Erreur lors de la récupération des semestres :", error);
   } finally {
-
+    
     isLoadingSemestres.value = false;
   }
 };
@@ -124,7 +124,7 @@ const getGroupes = async () => {
       semestre: semestre.value.id,
     };
     const rawGroupes = await getGroupesService(params, '/structure');
-
+    
     // Trier les groupes par type dans des tableaux séparés
     const groupesParType = {};
     typesGroupes.forEach(type => {
@@ -149,7 +149,7 @@ const synchroApogee = async () => {
   isLoadingGroupes.value = true;
   hasError.value = false;
   try {
-
+    
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la synchronisation des groupes :", error);
@@ -170,6 +170,7 @@ const deleteGroupeFromSemestre = async (groupeId, semestre) => {
     console.error("Erreur lors de la modification du groupe :", error);
   } finally {
     isLoadingGroupes.value = false;
+    await getGroupes();
   }
 };
 </script>
@@ -193,9 +194,9 @@ const deleteGroupeFromSemestre = async (groupeId, semestre) => {
           </template>
         </Select>
         <Button
-            @click="synchroApogee()"
-            label="Synchronisation depuis Apogée"
-            icon="pi pi-refresh"/>
+        @click="synchroApogee()"
+        label="Synchronisation depuis Apogée"
+        icon="pi pi-refresh"/>
       </div>
     </div>
     <Divider />
@@ -208,35 +209,35 @@ const deleteGroupeFromSemestre = async (groupeId, semestre) => {
           <h4 class="text-lg! font-bold">Type de groupe {{ type }}</h4>
           <div class="flex flex-wrap gap-4">
             <DataTable
-                :value="groupesType"
-                :empty-message="'Aucun groupe de type ' + type + ' pour ce semestre.'"
-                striped-rows
-                class="w-full">
-              <Column field="ordre" header="Ordre">
-                <template #body="slotProps">
-                  <span class="text-muted-color">{{ slotProps.data.ordre !== null ? slotProps.data.ordre : '-' }}</span>
-                </template>
-              </Column>
-              <Column field="libelle" header="Libellé" class="font-black"/>
-              <Column field="codeApogee" header="Code Apogée" class="font-bold"/>
-              <Column field="parent.libelle" header="Parent" class="text-muted-color"/>
-              <Column header="Actions">
-                <template #body="slotProps">
-                  <ButtonInfo tooltip="Voir le groupe"/>
-                  <PermissionGuard permission="isSuperAdmin">
-                    <router-link :to="{ name: 'groupe-edit', params: { groupeId: slotProps.data.id } }">
+            :value="groupesType"
+            :empty-message="'Aucun groupe de type ' + type + ' pour ce semestre.'"
+            striped-rows
+            class="w-full">
+            <Column field="ordre" header="Ordre">
+              <template #body="slotProps">
+                <span class="text-muted-color">{{ slotProps.data.ordre !== null ? slotProps.data.ordre : '-' }}</span>
+              </template>
+            </Column>
+            <Column field="libelle" header="Libellé" class="font-black"/>
+            <Column field="codeApogee" header="Code Apogée" class="font-bold"/>
+            <Column field="parent.libelle" header="Parent" class="text-muted-color"/>
+            <Column header="Actions">
+              <template #body="slotProps">
+                <ButtonInfo tooltip="Voir le groupe"/>
+                <PermissionGuard permission="isSuperAdmin">
+                  <router-link :to="{ name: 'groupe-edit', params: { groupeId: slotProps.data.id } }">
                     <ButtonEdit tooltip="Éditer le groupe"/>
-                    </router-link>
-                    <ButtonDelete tooltip="Retirer le groupe du semestre" @confirm-delete="deleteGroupeFromSemestre(slotProps.data.id, semestre.id)"/>
-                  </PermissionGuard>
-                </template>
-              </Column>
-            </DataTable>
-          </div>
+                  </router-link>
+                  <ButtonDelete tooltip="Retirer le groupe du semestre" @confirm-delete="deleteGroupeFromSemestre(slotProps.data.id, semestre.id)"/>
+                </PermissionGuard>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <style scoped></style>
