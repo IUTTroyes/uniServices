@@ -17,3 +17,5 @@
 ###> phpstan/phpstan ###
 phpstan.dist.neon
 ###< phpstan/phpstan ###
+
+.idea/

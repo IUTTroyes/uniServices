@@ -1,5 +1,5 @@
 <script setup>
-import {computed, onMounted, ref, watch, nextTick} from 'vue'
+import {computed, onMounted, onUnmounted, ref, watch, nextTick} from 'vue'
 import {ErrorView, SimpleSkeleton} from "@components";
 import {typesGroupes} from '@config/uniServices.js';
 import {useSemestreStore, useUsersStore, useAnneeStore, useAnneeUnivStore} from "@stores";
@@ -7,6 +7,7 @@ import {
   getEtudiantScolariteSemestresService,
   getGroupesService,
   getSemestresService,
+  getAnneesService,
   getAnneeService,
   updateEtudiantScolariteSemestreService
 } from "@requests";
@@ -26,23 +27,17 @@ const semestres = ref([]);
 const isLoadingSemestres = ref(true);
 const typesList = computed(() => Object.keys(groupes.value));
 const usersStore = useUsersStore();
-const departementId = usersStore.departementDefaut.id;
 const etudiantsScolariteSemestre = ref([]);
 const isLoadingEtudiants = ref(true);
-const anneeUniv = useAnneeUnivStore().selectedAnneeUniv;
-const anneeStore = useAnneeStore();
+const isLoadingAnnees = ref(true);
 const annees = ref([]);
 const annee = ref({});
 const isLoadingAnnee = ref(true);
 const isInitialLoading = ref(true);
 
-const { filters, watchChanges } = useEtudiantFilters();
-// Déclenche un rechargement serveur quand les filtres changent
-watchChanges(async () => {
-  if (isInitialLoading.value) return;
-  page.value = 0;
-  await getEtudiants();
-});
+const anneeUnivStore = useAnneeUnivStore();
+const departementId = computed(() => usersStore.departementDefaut ? usersStore.departementDefaut.id : null);
+const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 
 const nbEtudiants = ref(0);
 const page = ref(0);
@@ -50,13 +45,25 @@ const rowOptions = [30, 60, 120];
 const limit = ref(rowOptions[0]);
 const offset = computed(() => limit.value * page.value);
 
+const FILTERS_DEBOUNCE_MS = 250;
+let filtersDebounceTimeout = null;
+
+const { filters, watchChanges } = useEtudiantFilters();
+// Déclenche un rechargement serveur quand les filtres changent (avec debounce)
+watchChanges(() => {
+  if (isInitialLoading.value) return;
+  page.value = 0;
+  if (filtersDebounceTimeout) clearTimeout(filtersDebounceTimeout);
+  filtersDebounceTimeout = setTimeout(() => {
+    getEtudiants();
+  }, FILTERS_DEBOUNCE_MS);
+});
 
 
 onMounted(async () => {
   isInitialLoading.value = true;
   try {
     await getAnnees();
-    await getAnnee();
     await getSemestres();
     // Sélectionner le premier semestre de l'année par défaut
     if (semestres.value.length > 0 && !semestre.value.id) {
@@ -95,7 +102,6 @@ watch(annee, async (newAnnee, oldAnnee) => {
     if (!semestres.value.some(s => s.id === semestre.value.id)) {
       semestre.value = semestres.value[0] || {};
     }
-    await anneeStore.setSelectedAnnee(newAnnee)
     await getGroupes();
     await getEtudiants();
     syncPreselectedRadios();
@@ -118,36 +124,28 @@ watch(selectedGroupe, () => {
 });
 
 const getAnnees = async () => {
-  if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
-    annees.value = anneeStore.annees;
-  } else {
-    try {
-      const params = {
-        departement: departementId,
-        actif: true,
-      };
-      await anneeStore.getAnneesDepartement(params);
-      annees.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
-    } catch (error) {
-      console.error("Erreur lors de la récupération des années :", error);
-      hasError.value = true;
-    }
-  }
-};
+  isLoadingAnnees.value = true;
 
-const getAnnee = async () => {
-  isLoadingAnnee.value = true;
-  hasError.value = false;
-  // Récupération de l'id de l'année via l'URL
+  if (!departementId.value || !selectedAnneeUniversitaireId.value) {
+    annees.value = [];
+    isLoadingAnnees.value = false;
+    return;
+  }
+
   try {
-    const anneeId = route.params.anneeId;
-    annee.value = await getAnneeService(anneeId);
-    await anneeStore.setSelectedAnnee(annee.value);
+    const params = {
+      departement: departementId.value,
+      anneeUniversitaire: selectedAnneeUniversitaireId.value,
+      actif: true,
+    };
+    const response = await getAnneesService(params, '/liste', false);
+    annees.value = Array.isArray(response) ? response : [];
   } catch (error) {
+    console.error("Erreur lors de la récupération des années :", error);
     hasError.value = true;
-    console.error("Erreur lors de la récupération de l'année :", error);
   } finally {
-    isLoadingAnnee.value = false;
+    isLoadingAnnees.value = false;
+    annee.value = annees.value[0]
   }
 };
 
@@ -163,7 +161,7 @@ const getSemestres = async () => {
     hasError.value = true;
     console.error("Erreur lors de la récupération des semestres :", error);
   } finally {
-
+    
     isLoadingSemestres.value = false;
   }
 };
@@ -176,7 +174,7 @@ const getGroupes = async () => {
       semestre: semestre.value.id,
     };
     const rawGroupes = await getGroupesService(params, '/mini');
-
+    
     // Trier les groupes par type dans des tableaux séparés
     const groupesParType = {};
     typesGroupes.forEach(type => {
@@ -189,13 +187,13 @@ const getGroupes = async () => {
       }
     }
     groupes.value = groupesParType;
-
+    
     // initialiser selectedGroupe si nécessaire
     const types = Object.keys(groupes.value);
     if (types.length > 0 && (!selectedGroupe.value || !types.includes(selectedGroupe.value))) {
       selectedGroupe.value = types[0];
     }
-
+    
     // synchroniser la présélection des radios dès que les groupes sont connus
     syncPreselectedRadios();
   } catch (error) {
@@ -207,15 +205,20 @@ const getGroupes = async () => {
 };
 
 const getEtudiants = async () => {
+  if (!selectedAnneeUniversitaireId.value || !semestre.value?.id) {
+    etudiantsScolariteSemestre.value = [];
+    nbEtudiants.value = 0;
+    return;
+  }
+
   isLoadingEtudiants.value = true;
   hasError.value = false;
   try {
     const params = {
-      anneeUniversitaire: anneeUniv.id,
+      anneeUniversitaire: selectedAnneeUniversitaireId.value,
       semestre: semestre.value.id,
       limit: limit.value,
       page: parseInt(page.value) + 1,
-      // filters: filters.value,
     };
 
     const responsePage = await getEtudiantScolariteSemestresService(params, '/manage-groupes');
@@ -226,11 +229,10 @@ const getEtudiants = async () => {
     } else {
       // Fallback si l'endpoint manage-groupes ne renvoie pas le totalItems
       const countParams = {
-        anneeUniversitaire: anneeUniv.id,
+        anneeUniversitaire: selectedAnneeUniversitaireId.value,
         semestre: semestre.value.id,
         limit: 1,
         page: 1,
-        filters: filters.value,
       };
       const responseCount = await getEtudiantScolariteSemestresService(countParams);
       nbEtudiants.value = responseCount.totalItems ?? (Array.isArray(responseCount.member) ? responseCount.member.length : 0);
@@ -250,16 +252,16 @@ const syncPreselectedRadios = () => {
   try {
     const type = selectedGroupe.value;
     if (!type) return;
-
+    
     const listeGroupesType = groupes.value?.[type] || [];
-
+    
     etudiantsScolariteSemestre.value.forEach((sco) => {
       const assigned = (sco.groupes || []).find((g) => g?.type === type);
       if (!assigned) {
         sco.groupeAffecte = null;
         return;
       }
-
+      
       // Normaliser l'ID si c'est une IRI
       let assignedId = assigned.id;
       if (typeof assignedId === 'string' && assignedId.startsWith('/')) {
@@ -268,7 +270,7 @@ const syncPreselectedRadios = () => {
         const parsed = parseInt(last, 10);
         if (!isNaN(parsed)) assignedId = parsed;
       }
-
+      
       const match = listeGroupesType.find((g) => g.id === assignedId);
       sco.groupeAffecte = match || null;
     });
@@ -282,20 +284,20 @@ const assignGroupe = async (etudiantScolariteSemestreId, groupeId) => {
     // Retrouver l'objet scolariteSemestre concerné
     const scolariteSemestre = etudiantsScolariteSemestre.value.find(e => e.id === etudiantScolariteSemestreId);
     if (!scolariteSemestre) return;
-
+    
     const groupType = selectedGroupe.value; // ex: 'CM', 'TD', 'TP'
-
+    
     // Copie de la liste actuelle des groupes affectés à l'étudiant pour ce semestre
     const currentGroupes = Array.isArray(scolariteSemestre.groupes) ? [...scolariteSemestre.groupes] : [];
-
+    
     // L'ensemble des groupes du semestre (tous types confondus) pour retrouver l'objet complet
     const semGroupes = Object.values(groupes.value).flat();
-
+    
     // Trouver l'objet groupe sélectionné (ou créer un placeholder avec id/type)
     const newGroup = groupeId != null
-        ? (semGroupes.find(g => g.id === groupeId) || { id: groupeId, type: groupType })
-        : null;
-
+    ? (semGroupes.find(g => g.id === groupeId) || { id: groupeId, type: groupType })
+    : null;
+    
     // Remplacer/supprimer le groupe du même type dans la liste actuelle
     const idx = currentGroupes.findIndex(g => g.type === groupType);
     if (idx !== -1) {
@@ -307,11 +309,11 @@ const assignGroupe = async (etudiantScolariteSemestreId, groupeId) => {
     } else if (newGroup) {
       currentGroupes.push(newGroup);
     }
-
+    
     // Mettre à jour le modèle local pour réactivité immédiate
     scolariteSemestre.groupes = currentGroupes;
     scolariteSemestre.groupeAffecte = newGroup;
-
+    
     // Construire le payload en IRI
     const payloadGroupes = currentGroupes.map(g => {
       if (typeof g.id === 'number') {
@@ -320,9 +322,9 @@ const assignGroupe = async (etudiantScolariteSemestreId, groupeId) => {
       // si g.id est un objet (Hydra/IRI déjà), le laisser tel quel
       return g.id;
     });
-
+    
     await updateEtudiantScolariteSemestreService(etudiantScolariteSemestreId, { groupes: payloadGroupes }, false);
-
+    
     // Afficher un toast de succès seulement s'il n'y en a pas déjà un (évite les spams en sélection multiple)
     const existingSuccessToast = Array.from(document.querySelectorAll('.p-toast-message-success')).length > 0;
     if (!existingSuccessToast) {
@@ -454,7 +456,7 @@ const synchroParents = async () => {
   try {
     // Récupérer tous les groupes du semestre pour avoir les relations parent
     const allGroupes = Object.values(groupes.value).flat();
-
+    
     // Construire un map pour accès rapide par ID
     const groupeMap = new Map();
     allGroupes.forEach(g => {
@@ -465,7 +467,7 @@ const synchroParents = async () => {
         if (!isNaN(numId)) groupeMap.set(numId, g);
       }
     });
-
+    
     // Fonction pour remonter la hiérarchie et récupérer tous les parents
     const getParentChain = (groupe) => {
       const parents = [];
@@ -487,24 +489,24 @@ const synchroParents = async () => {
       }
       return parents;
     };
-
+    
     // Ordre de priorité des types (du plus bas au plus haut niveau)
     const typePriority = { 'TP': 1, 'LV': 2, 'PROJET': 2, 'AUTRE': 2, 'TD': 3, 'CM': 4 };
-
+    
     // Compteur pour le feedback
     let updatedCount = 0;
     let errorCount = 0;
-
+    
     // Traiter chaque étudiant
     for (const sco of etudiantsScolariteSemestre.value) {
       try {
         // Récupérer les groupes actuels de l'étudiant
         const currentGroupes = Array.isArray(sco.groupes) ? [...sco.groupes] : [];
-
+        
         // Trouver le groupe de plus bas niveau dans la hiérarchie
         let lowestGroupe = null;
         let lowestPriority = Infinity;
-
+        
         for (const g of currentGroupes) {
           const groupeObj = groupeMap.get(normalizeId(g.id));
           if (groupeObj) {
@@ -515,30 +517,30 @@ const synchroParents = async () => {
             }
           }
         }
-
+        
         if (!lowestGroupe) {
           // Pas de groupe assigné, rien à synchroniser
           continue;
         }
-
+        
         // Récupérer tous les parents
         const parentChain = getParentChain(lowestGroupe);
-
+        
         if (parentChain.length === 0) {
           // Pas de parents à ajouter
           continue;
         }
-
+        
         // Construire la nouvelle liste de groupes
         // On garde le groupe de plus bas niveau et on ajoute les parents manquants
         const currentTypes = new Set(currentGroupes.map(g => {
           const obj = groupeMap.get(normalizeId(g.id));
           return obj?.type;
         }));
-
+        
         const newGroupes = [...currentGroupes];
         let hasChanges = false;
-
+        
         for (const parent of parentChain) {
           // Vérifier si ce type de groupe n'est pas déjà présent
           if (!currentTypes.has(parent.type)) {
@@ -560,11 +562,11 @@ const synchroParents = async () => {
             }
           }
         }
-
+        
         if (!hasChanges) {
           continue;
         }
-
+        
         // Mettre à jour l'étudiant via l'API
         const payloadGroupes = newGroupes.map(g => {
           const gid = normalizeId(g.id);
@@ -573,9 +575,9 @@ const synchroParents = async () => {
           }
           return g.id;
         });
-
+        
         await updateEtudiantScolariteSemestreService(sco.id, { groupes: payloadGroupes }, false);
-
+        
         // Mettre à jour le modèle local
         sco.groupes = newGroupes;
         updatedCount++;
@@ -584,11 +586,11 @@ const synchroParents = async () => {
         errorCount++;
       }
     }
-
+    
     // Rafraîchir les données
     await getEtudiants();
     syncPreselectedRadios();
-
+    
     // Afficher le résultat
     if (errorCount > 0) {
       toast.add({
@@ -624,6 +626,10 @@ const synchroParents = async () => {
     isSynchroLoading.value = false;
   }
 };
+
+onUnmounted(() => {
+  if (filtersDebounceTimeout) clearTimeout(filtersDebounceTimeout);
+});
 </script>
 
 <template>
@@ -646,14 +652,14 @@ const synchroParents = async () => {
           </template>
         </Select>
         <div class="flex items-center gap-1">
-            <Button
-                label="Synchroniser les parents"
-                icon="pi pi-sync"
-                @click="synchroParents()"
-                class="p-button"
-                :loading="isSynchroLoading"
-                :disabled="isLoadingEtudiants || isLoadingGroupes"
-            />
+          <Button
+          label="Synchroniser les parents"
+          icon="pi pi-sync"
+          @click="synchroParents()"
+          class="p-button"
+          :loading="isSynchroLoading"
+          :disabled="isLoadingEtudiants || isLoadingGroupes"
+          />
           <i class="pi pi-question-circle text-primary font-black" v-tooltip.top="`Permet de remplir automatiquement les groupes parents (CM, TD...) en fonction des affectations des groupes enfants (TP...).`"></i>
         </div>
       </div>
@@ -663,7 +669,7 @@ const synchroParents = async () => {
     <div v-else>
       <Message severity="info" class="mb-4" icon="pi pi-info-circle">
         Vous pouvez ne remplir que le groupe de plus bas niveau (TP) et synchroniser pour remplir automatiquement les groupes parents. Si les groupes sont saisis dans Apogée, vous pouvez aussi les synchroniser (il faut attendre 24h entre la saisie dans Apogée et la possibilité de synchroniser).
-
+        
       </Message>
       <div v-if="isLoadingGroupes" class="flex items-center justify-center my-12">
         <ProgressSpinner style="width: 50px; height: 50px" />
@@ -676,136 +682,136 @@ const synchroParents = async () => {
             </Tab>
           </TabList>
         </Tabs>
-
+        
         <DataTable
-            v-if="selectedGroupe && groupes[selectedGroupe]"
-            v-model:filters="filters"
-            :value="etudiantsScolariteSemestre"
-            responsiveLayout="scroll"
-            class="w-full"
-            scrollable
-            scroll-height="60vh"
-            lazy
-            striped-rows
-            paginator
-            filterDisplay="row"
-            dataKey="id"
-            :first="offset"
-            :rows="limit"
-            :rowsPerPageOptions="rowOptions"
-            :totalRecords="nbEtudiants"
-            :loading="isLoadingEtudiants"
-            @page="onPageChange($event)"
-            @update:rows="limit = $event"
+        v-if="selectedGroupe && groupes[selectedGroupe]"
+        v-model:filters="filters"
+        :value="etudiantsScolariteSemestre"
+        responsiveLayout="scroll"
+        class="w-full"
+        scrollable
+        scroll-height="60vh"
+        lazy
+        striped-rows
+        paginator
+        filterDisplay="row"
+        dataKey="id"
+        :first="offset"
+        :rows="limit"
+        :rowsPerPageOptions="rowOptions"
+        :totalRecords="nbEtudiants"
+        :loading="isLoadingEtudiants"
+        @page="onPageChange($event)"
+        @update:rows="limit = $event"
         >
-          <Column field="numEtudiant" header="N° étudiant">
-            <template #body="{ data }">
-              <div class="p-1">
-                {{ data.etudiant.numEtudiant }}
-              </div>
-            </template>
-            <template #filter="{ filterModel, filterCallback }">
-              <InputText
-                  v-model="filterModel.value"
-                  placeholder="Filtrer par n° étudiant"
-                  class="w-full"
-                  @input="filterCallback()"
+        <Column field="numEtudiant" header="N° étudiant">
+          <template #body="{ data }">
+            <div class="p-1">
+              {{ data.etudiant.numEtudiant }}
+            </div>
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <InputText
+            v-model="filterModel.value"
+            placeholder="Filtrer par n° étudiant"
+            class="w-full"
+            @input="filterCallback()"
+            />
+          </template>
+        </Column>
+        <Column field="nom" header="Nom" frozen>
+          <template #body="{ data }">
+            <div class="p-1">
+              {{ data.etudiant.nom }}
+            </div>
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <InputText
+            v-model="filterModel.value"
+            placeholder="Filtrer par nom"
+            class="w-full"
+            @input="filterCallback()"
+            />
+          </template>
+        </Column>
+        <Column field="prenom" header="Prénom" frozen>
+          <template #body="{ data }">
+            <div class="p-1">
+              {{ data.etudiant.prenom }}
+            </div>
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <InputText
+            v-model="filterModel.value"
+            placeholder="Filtrer par prénom"
+            class="w-full"
+            @input="filterCallback()"
+            />
+          </template>
+        </Column>
+        <Column field="etudiant.bac" header="Bac" />
+        <Column v-for="g in groupes[selectedGroupe]" :key="g.id">
+          <!-- Entête : checkbox pour cocher/décocher ce groupe pour toutes les lignes -->
+          <template #header>
+            <div class="flex items-center gap-2">
+              <input
+              type="checkbox"
+              :ref="el => registerHeaderCheckbox(el, g)"
+              @change="toggleSelectAllForGroup(g, $event)"
+              :aria-label="`Tout sélectionner ${g.libelle}`"
               />
-            </template>
-          </Column>
-          <Column field="nom" header="Nom" frozen>
-            <template #body="{ data }">
-              <div class="p-1">
-                {{ data.etudiant.nom }}
-              </div>
-            </template>
-            <template #filter="{ filterModel, filterCallback }">
-              <InputText
-                  v-model="filterModel.value"
-                  placeholder="Filtrer par nom"
-                  class="w-full"
-                  @input="filterCallback()"
+              <span>{{ g.libelle }}</span>
+            </div>
+          </template>
+          
+          <template #body="{ data }">
+            <div class="p-1">
+              <RadioButton
+              v-model="data.groupeAffecte"
+              :value="g"
+              :name="`groupe-${data.id}`"
+              :inputId="`groupe-${data.id}-${g.id}`"
+              @change="assignGroupe(data.id, g.id)"
               />
-            </template>
-          </Column>
-          <Column field="prenom" header="Prénom" frozen>
-            <template #body="{ data }">
-              <div class="p-1">
-                {{ data.etudiant.prenom }}
-              </div>
-            </template>
-            <template #filter="{ filterModel, filterCallback }">
-              <InputText
-                  v-model="filterModel.value"
-                  placeholder="Filtrer par prénom"
-                  class="w-full"
-                  @input="filterCallback()"
+            </div>
+          </template>
+        </Column>
+        <!--         colonne pour aucun groupe -->
+        <Column>
+          <template #header>
+            <div class="flex items-center gap-2">
+              <input
+              type="checkbox"
+              :ref="el => registerHeaderCheckbox(el, { id: 'none' })"
+              @change="toggleSelectAllNone($event)"
+              :aria-label="`Tout désélectionner`"
               />
-            </template>
-          </Column>
-          <Column field="etudiant.bac" header="Bac" />
-          <Column v-for="g in groupes[selectedGroupe]" :key="g.id">
-            <!-- Entête : checkbox pour cocher/décocher ce groupe pour toutes les lignes -->
-            <template #header>
-              <div class="flex items-center gap-2">
-                <input
-                    type="checkbox"
-                    :ref="el => registerHeaderCheckbox(el, g)"
-                    @change="toggleSelectAllForGroup(g, $event)"
-                    :aria-label="`Tout sélectionner ${g.libelle}`"
-                />
-                <span>{{ g.libelle }}</span>
-              </div>
-            </template>
-
-            <template #body="{ data }">
-              <div class="p-1">
-                <RadioButton
-                    v-model="data.groupeAffecte"
-                    :value="g"
-                    :name="`groupe-${data.id}`"
-                    :inputId="`groupe-${data.id}-${g.id}`"
-                    @change="assignGroupe(data.id, g.id)"
-                />
-              </div>
-            </template>
-          </Column>
-          <!--         colonne pour aucun groupe -->
-          <Column>
-            <template #header>
-              <div class="flex items-center gap-2">
-                <input
-                    type="checkbox"
-                    :ref="el => registerHeaderCheckbox(el, { id: 'none' })"
-                    @change="toggleSelectAllNone($event)"
-                    :aria-label="`Tout désélectionner`"
-                />
-                <span>Sans grp.</span>
-              </div>
-            </template>
-            <template #body="{ data }">
-              <div class="p-1">
-                <RadioButton
-                    v-model="data.groupeAffecte"
-                    :value="null"
-                    :name="`groupe-${data.id}`"
-                    :inputId="`groupe-${data.id}-none`"
-                    @change="assignGroupe(data.id, null)"
-                />
-              </div>
-            </template>
-          </Column>
-          <template #footer> {{ nbEtudiants }} résultat(s).</template>
-        </DataTable>
-
-        <div v-else-if="!isLoadingGroupes" class="flex items-center justify-center gap-2">
-          <Message severity="warn" class="w-fit" icon="pi pi-exclamation-triangle">
-            Aucun groupe pour le semestre ou le type sélectionné.
-          </Message>
-        </div>
+              <span>Sans grp.</span>
+            </div>
+          </template>
+          <template #body="{ data }">
+            <div class="p-1">
+              <RadioButton
+              v-model="data.groupeAffecte"
+              :value="null"
+              :name="`groupe-${data.id}`"
+              :inputId="`groupe-${data.id}-none`"
+              @change="assignGroupe(data.id, null)"
+              />
+            </div>
+          </template>
+        </Column>
+        <template #footer> {{ nbEtudiants }} résultat(s).</template>
+      </DataTable>
+      
+      <div v-else-if="!isLoadingGroupes" class="flex items-center justify-center gap-2">
+        <Message severity="warn" class="w-fit" icon="pi pi-exclamation-triangle">
+          Aucun groupe pour le semestre ou le type sélectionné.
+        </Message>
       </div>
     </div>
   </div>
+</div>
 </template>
 
 <style scoped>

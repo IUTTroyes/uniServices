@@ -17,8 +17,7 @@ class EtudiantAnneesStatsProvider implements ProviderInterface
         private CollectionProvider $collectionProvider,
         private ItemProvider $itemProvider,
         private EntityManagerInterface $entityManager,
-    ) {
-    }
+    ) {}
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {

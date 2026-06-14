@@ -67,6 +67,7 @@ class CopyTransfertBddScolariteCommand extends Command
         $this->tGroupes = $structureGroupeRepository->findAllByOldIdArray();
         $this->tMatieres = $scolEnseignementRepository->findAllByOldIdArray();
         $this->tUes = $structureUeRepository->findAllByOldIdArray();
+        // url intranet
         $this->base_url = $params->get('URL_INTRANET_V3');
         $this->httpClient = HttpClient::create([
             'verify_peer' => false,
