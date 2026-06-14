@@ -8,8 +8,8 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\Parameter;
-use App\Entity\Questionnaires\Questionnaire;
-use App\State\Questionnaire\Preview\PreviewIndexProvider;
+use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
+use QuestionnaireBundle\State\Questionnaire\Preview\PreviewIndexProvider;
 
 #[ApiResource(
     operations: [

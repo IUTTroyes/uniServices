@@ -6,9 +6,9 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\OpenApi\Model\Operation;
-use App\Entity\Questionnaires\Questionnaire;
-use App\Entity\Questionnaires\QuestionnaireSection;
-use App\State\Questionnaire\Preview\PreviewSectionProvider;
+use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
+use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSection;
+use QuestionnaireBundle\State\Questionnaire\Preview\PreviewSectionProvider;
 use QuestionnaireBundle\ApiDto\Questionnaire\Runtime\QuestionRuntimeDto;
 use QuestionnaireBundle\Enum\QuestTypeRepeatEnum;
 

@@ -7,7 +7,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\Parameter;
-use App\State\Questionnaire\Publish\PublishProcessor;
+use QuestionnaireBundle\State\Questionnaire\Publish\PublishProcessor;
 use QuestionnaireBundle\Enum\QuestStatutEnum;
 
 #[ApiResource(

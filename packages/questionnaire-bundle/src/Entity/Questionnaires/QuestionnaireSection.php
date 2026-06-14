@@ -2,51 +2,61 @@
 
 namespace QuestionnaireBundle\Entity\Questionnaires;
 
+use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\OptionTrait;
-use App\Entity\Traits\UuidTrait;
 use QuestionnaireBundle\Enum\QuestTypeRepeatEnum;
 use QuestionnaireBundle\Enum\QuestTypeSectionEnum;
 use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireSectionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Types\UuidType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: QuestionnaireSectionRepository::class)]
 #[ApiResource(
     uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections',
     operations: [
         new GetCollection(normalizationContext: ['groups' => ['questionnaire_section:read']],),
-        ],
+    ],
     uriVariables: [
-        'questionnaireId' => new Link(fromClass: Questionnaire::class, toProperty: 'questionnaire'),
+        'questionnaireId' => new Link(toProperty: 'questionnaire', fromClass: Questionnaire::class),
     ]
 )]
 #[ApiResource(
     operations: [
-        new Patch(),
+        new Patch(uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections/{uuid}',),
         new Delete(),
-        new Post()
+        new Post(
+            uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections',
+        )
     ]
 )]
 #[ORM\Index(name: 'idx_section_questionnaire_ordre', columns: ['questionnaire_id', 'sort_order'])]
 class QuestionnaireSection
 {
     use OptionTrait;
-    use UuidTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
     #[Groups(['questionnaire_section:read'])]
+    #[ApiProperty(identifier: false)]
     private ?int $id = null;
+
+    #[ORM\Column(type: UuidType::NAME)]
+    #[ApiProperty(identifier: true)]
+    #[Groups(['questionnaire:read'])]
+    private Uuid $uuid;
+
 
     #[ORM\ManyToOne(inversedBy: 'questionnaireSections')]
     private ?Questionnaire $questionnaire = null;
@@ -86,6 +96,21 @@ class QuestionnaireSection
         $this->setOpt([]);
         $this->questions = new ArrayCollection();
         $this->sectionInstances = new ArrayCollection();
+    }
+
+    public function getUuidString(): string
+    {
+        return (string)$this->getUuid();
+    }
+
+    public function getUuid(): ?Uuid
+    {
+        return $this->uuid;
+    }
+
+    public function setUuid(Uuid $uuid): void
+    {
+        $this->uuid = $uuid;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
