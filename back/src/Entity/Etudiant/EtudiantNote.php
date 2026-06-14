@@ -12,10 +12,12 @@ use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Filter\EtudiantNoteFilter;
+use App\State\Processor\Evaluation\EtudiantNotePersistProcessor;
 use App\Repository\EtudiantNoteRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+
 
 #[ORM\Entity(repositoryClass: EtudiantNoteRepository::class)]
 #[ApiFilter(EtudiantNoteFilter::class)]
@@ -23,8 +25,16 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['note:detail']]),
         new GetCollection(normalizationContext: ['groups' => ['note:detail']]),
-        new Post(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)", processor: 'App\\DataProvider\\Evaluation\\EtudiantNotePersistProcessor'),
-        new Patch(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)", processor: 'App\\DataProvider\\Evaluation\\EtudiantNotePersistProcessor'),
+        new Post(
+            normalizationContext: ['groups' => ['note:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)",
+            processor: EtudiantNotePersistProcessor::class
+        ),
+        new Patch(
+            normalizationContext: ['groups' => ['note:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)",
+            processor: EtudiantNotePersistProcessor::class
+        ),
     ],
 )]
 #[ORM\HasLifecycleCallbacks]
