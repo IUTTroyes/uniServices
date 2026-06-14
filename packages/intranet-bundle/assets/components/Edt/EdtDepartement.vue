@@ -290,8 +290,6 @@ const getEventsDepartementWeek = async () => {
   } finally {
     await nextTick();
     styleVueCalEvents();
-
-    console.log(events.value)
   }
 };
 

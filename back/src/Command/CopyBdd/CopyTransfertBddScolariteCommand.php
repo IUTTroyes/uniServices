@@ -57,8 +57,7 @@ class CopyTransfertBddScolariteCommand extends Command
         ScolEnseignementRepository $scolEnseignementRepository,
         StructureUeRepository $structureUeRepository,
         ParameterBagInterface                 $params
-    )
-    {
+    ) {
         parent::__construct();
         $this->em = $managerRegistry->getConnection('copy');
         $this->tAnneeUniversitaire = $structureAnneeUniversitaireRepository->findAllByOldIdArray();
@@ -73,12 +72,9 @@ class CopyTransfertBddScolariteCommand extends Command
             'verify_peer' => false,
             'verify_host' => false,
         ]);
-
     }
 
-    protected function configure(): void
-    {
-    }
+    protected function configure(): void {}
 
     private function effacerTables(): void
     {
@@ -224,9 +220,6 @@ FOREIGN_KEY_CHECKS=1');
                     foreach ($scol['semestres'] as $semestre) {
                         foreach ($this->tSemestres as $semestreDest) {
                             if ($semestreDest->getOldId() === $semestre['id']) {
-                                $annee = $semestreDest->getAnnee();
-                                $scolarite->addAnnee($annee);
-
                                 $etudiantScolSemestre = new EtudiantScolariteSemestre();
                                 $etudiantScolSemestre->setScolarite($scolarite);
                                 $etudiantScolSemestre->setSemestre($semestreDest);

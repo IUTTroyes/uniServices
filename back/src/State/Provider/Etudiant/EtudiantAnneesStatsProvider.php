@@ -69,7 +69,9 @@ class EtudiantAnneesStatsProvider implements ProviderInterface
         $qb
             ->select('annee.id AS anneeId, COUNT(DISTINCT scolarite.id) AS total')
             ->from(EtudiantScolarite::class, 'scolarite')
-            ->join('scolarite.annee', 'annee')
+            ->join('scolarite.scolariteSemestre', 'scolariteSemestre')
+            ->join('scolariteSemestre.semestre', 'semestre')
+            ->join('semestre.annee', 'annee')
             ->andWhere('annee.id IN (:anneeIds)')
             ->setParameter('anneeIds', $anneeIds)
             ->groupBy('annee.id');

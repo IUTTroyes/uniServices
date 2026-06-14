@@ -24,7 +24,6 @@ const emit = defineEmits<{
 
 onMounted(async () => {
   semesters.value = await getDepartementSemestresService(departementId, true);
-  console.log(semesters)
   loaded.value = true
   return semesters.value;
 });

@@ -215,14 +215,12 @@ const getEtudiants = async () => {
       semestre: semestre.value.id,
       limit: limit.value,
       page: parseInt(page.value) + 1,
-      filters: filters.value,
+      // filters: filters.value,
     };
 
-    // Récupération de la page courante via l'endpoint manage-groupes (DTO spécifique)
     const responsePage = await getEtudiantScolariteSemestresService(params, '/manage-groupes');
     etudiantsScolariteSemestre.value = responsePage.member ?? responsePage;
 
-    // Récupération du total directement depuis la réponse Hydra si disponible
     if (responsePage.totalItems !== undefined) {
       nbEtudiants.value = responsePage.totalItems;
     } else {

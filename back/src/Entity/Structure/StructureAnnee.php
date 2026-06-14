@@ -88,12 +88,6 @@ class StructureAnnee
     #[ORM\OneToMany(targetEntity: ApcNiveau::class, mappedBy: 'annee', orphanRemoval: true, cascade: ['remove'])]
     private Collection $niveaux;
 
-    /**
-     * @var Collection<int, EtudiantScolarite>
-     */
-    #[ORM\ManyToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'annee')]
-    private Collection $scolarites;
-
     #[ORM\ManyToOne(inversedBy: 'annees')]
     private ?StructurePn $pn = null;
 
@@ -107,7 +101,6 @@ class StructureAnnee
     {
         $this->semestres = new ArrayCollection();
         $this->setOpt([]);
-        $this->scolarites = new ArrayCollection();
         $this->etudiantScolaritesPropositions = new ArrayCollection();
         $this->niveaux = new ArrayCollection();
     }
@@ -273,29 +266,9 @@ class StructureAnnee
     /**
      * @return Collection<int, EtudiantScolarite>
      */
-    public function getScolarites(): Collection
-    {
-        return $this->scolarites;
-    }
 
-    public function addScolarite(EtudiantScolarite $scolarite): static
-    {
-        if (!$this->scolarites->contains($scolarite)) {
-            $this->scolarites->add($scolarite);
-            $scolarite->addAnnee($this);
-        }
 
-        return $this;
-    }
 
-    public function removeScolarite(EtudiantScolarite $scolarite): static
-    {
-        if ($this->scolarites->removeElement($scolarite)) {
-            $scolarite->removeAnnee($this);
-        }
-
-        return $this;
-    }
 
     public function getPn(): ?StructurePn
     {
@@ -322,11 +295,6 @@ class StructureAnnee
     public function setSemestres(Collection $semestres): void
     {
         $this->semestres = $semestres;
-    }
-
-    public function setScolarites(Collection $scolarites): void
-    {
-        $this->scolarites = $scolarites;
     }
 
     public function setEtudiantScolaritesPropositions(Collection $etudiantScolaritesPropositions): void
