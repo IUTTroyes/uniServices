@@ -4,7 +4,7 @@ namespace QuestionnaireBundle\ApiDto\Questionnaire\Runtime;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Patch;
-use App\State\Questionnaire\Runtime\SaveAnswersProcessor;
+use QuestionnaireBundle\State\Questionnaire\Runtime\SaveAnswersProcessor;
 
 #[ApiResource(
     operations: [

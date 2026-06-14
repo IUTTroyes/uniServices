@@ -6,70 +6,55 @@ import SurveyTakeView from '@/views/Questionnaire/SurveyTakeView.vue'
 
 export default [
   {
-    path: '/qualite',
-    name: 'qualite-enquetes',
+    path: '/qualite/enquetes',
+    name: 'questionnaire_qualite-enquetes',
     component: () => import('@/views/Questionnaire/IndexView.vue'),
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
-        {
-          label: 'Administration',
-          route: '/administration',
-          icon: 'pi pi-wrench'
-        },
         { label: 'Qualité', route: null },
         { label: 'Enquêtes', route: null }]
     },
   },
   {
-    path: '/qualite/liste',
-    name: 'enquetes-liste',
+    path: '/qualite/enquetes/liste',
+    name: 'questionnaire_enquetes-liste',
     component: SurveyListView,
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
-        {
-          label: 'Administration',
-          route: '/administration',
-          icon: 'pi pi-wrench'
-        },
         { label: 'Qualité', route: null },
-        { label: 'Enquêtes', route: '/administration/qualite/enquetes' },
+        { label: 'Enquêtes', route: '/qualite/enquetes' },
         { label: 'Liste des questionnaires', route: null }
       ]
     }
   },
   {
-    path: '/qualite/builder/:id?',
-    name: 'builder',
+    path: '/qualite/enquetes/builder/:id?',
+    name: 'questionnaire_builder',
     component: SurveyBuilderView,
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
-        {
-          label: 'Administration',
-          route: '/administration',
-          icon: 'pi pi-wrench'
-        },
         { label: 'Qualité', route: null },
-        { label: 'Enquêtes', route: '/administration/qualite/enquetes' },
+        { label: 'Enquêtes', route: '/qualite/enquetes' },
         { label: 'Créer/modifier un questionnaire', route: null }
       ]
     }
   },
   {
-    path: '/qualite/responses/:id',
-    name: 'responses',
+    path: '/qualite/enquetes/responses/:id',
+    name: 'questionnaire_responses',
     component: SurveyResponseView
   },
   {
-    path: '/qualite/analytics/:id',
-    name: 'analytics',
+    path: '/qualite/enquetes/analytics/:id',
+    name: 'questionnaire_analytics',
     component: AnalyticsView
   },
   {
-    path: '/qualite/take/:token',
-    name: 'take-survey',
+    path: '/qualite/enquetes/take/:token',
+    name: 'questionnaire_take-survey',
     component: SurveyTakeView
   }
 ]

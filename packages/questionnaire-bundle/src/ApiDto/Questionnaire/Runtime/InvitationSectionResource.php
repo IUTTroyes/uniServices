@@ -4,7 +4,7 @@ namespace QuestionnaireBundle\ApiDto\Questionnaire\Runtime;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
-use App\State\Questionnaire\Runtime\InvitationSectionProvider;
+use QuestionnaireBundle\State\Questionnaire\Runtime\InvitationSectionProvider;
 
 #[ApiResource(
     operations: [

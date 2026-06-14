@@ -4,7 +4,7 @@ namespace QuestionnaireBundle\ApiDto\Questionnaire\Runtime;
 
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Post;
-use App\State\Questionnaire\Runtime\SubmitProcessor;
+use QuestionnaireBundle\State\Questionnaire\Runtime\SubmitProcessor;
 
 #[ApiResource(
     operations: [

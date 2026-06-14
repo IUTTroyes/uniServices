@@ -11,7 +11,7 @@
         </p>
       </div>
       <Button asChild v-slot="slotProps" severity="primary">
-        <router-link to="/administration/qualite/enquetes/builder/new" :class="slotProps.class">
+        <router-link :to="{name: 'questionnaire_builder', id:'new'}" :class="slotProps.class">
           <PlusIcon class="w-5 h-5" />
           Nouveau questionnaire
         </router-link>
@@ -85,7 +85,7 @@
             </p>
           </div>
           <Button asChild v-slot="slotProps" severity="primary">
-            <router-link to="/administration/qualite/enquetes/builder/new" :class="slotProps.class">
+            <router-link :to="{name: 'questionnaire_builder', id:'new'}" :class="slotProps.class">
               Créer
             </router-link>
           </Button>
@@ -139,7 +139,7 @@
           <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
             Mes questionnaires
           </h2>
-          <router-link to="/administration/qualite/enquetes/liste" class="text-primary-600 dark:text-primary-400 hover:underline text-sm">
+          <router-link :to="{name: 'questionnaire_enquetes-liste'}" class="text-primary-600 dark:text-primary-400 hover:underline text-sm">
             Voir tout
           </router-link>
         </div>
@@ -175,7 +175,7 @@
               <!--                  v-if="!survey.published"-->
 
               <router-link
-                :to="`/administration/qualite/enquetes/builder/${survey.uuid}`"
+                :to="{ name: 'questionnaire_builder', id:survey.uuid}"
                 class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
                 title="Modifier"
               >
@@ -184,7 +184,7 @@
 
               <router-link
                 v-if="survey.status === 'published'"
-                :to="`/administration/qualite/enquetes/responses/${survey.uuid}`"
+                :to="{ name:'questionnaire_responses', id: survey.uuid}"
                 class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
                 title="Réponses"
               >
@@ -193,7 +193,7 @@
 
               <router-link
                 v-if="survey.status === 'published'"
-                :to="`/administration/qualite/enquetes/analytics/${survey.uuid}`"
+                :to="{name:'questionnaire_analytics', id:survey.uuid}"
                 class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
                 title="Statistiques"
               >
@@ -227,7 +227,7 @@
             <p class="text-gray-600 dark:text-gray-400">
               Aucun questionnaire créé pour le moment
             </p>
-            <router-link to="/administration/qualite/enquetes/builder/new" class="btn-primary mt-4">
+            <router-link :to="{name:'questionnaire_builder', id:'new'}" class="btn-primary mt-4">
               Créer votre premier questionnaire
             </router-link>
           </div>
