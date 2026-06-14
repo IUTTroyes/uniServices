@@ -125,13 +125,13 @@ watch(selectedGroupe, () => {
 
 const getAnnees = async () => {
   isLoadingAnnees.value = true;
-
+  
   if (!departementId.value || !selectedAnneeUniversitaireId.value) {
     annees.value = [];
     isLoadingAnnees.value = false;
     return;
   }
-
+  
   try {
     const params = {
       departement: departementId.value,
@@ -210,7 +210,7 @@ const getEtudiants = async () => {
     nbEtudiants.value = 0;
     return;
   }
-
+  
   isLoadingEtudiants.value = true;
   hasError.value = false;
   try {
@@ -220,10 +220,10 @@ const getEtudiants = async () => {
       limit: limit.value,
       page: parseInt(page.value) + 1,
     };
-
+    
     const responsePage = await getEtudiantScolariteSemestresService(params, '/manage-groupes');
     etudiantsScolariteSemestre.value = responsePage.member ?? responsePage;
-
+    
     if (responsePage.totalItems !== undefined) {
       nbEtudiants.value = responsePage.totalItems;
     } else {
@@ -237,7 +237,7 @@ const getEtudiants = async () => {
       const responseCount = await getEtudiantScolariteSemestresService(countParams);
       nbEtudiants.value = responseCount.totalItems ?? (Array.isArray(responseCount.member) ? responseCount.member.length : 0);
     }
-
+    
     // Après chargement des étudiants, synchroniser la présélection
     syncPreselectedRadios();
   } catch (error) {
@@ -634,43 +634,61 @@ onUnmounted(() => {
 
 <template>
   <div class="card min-h-full">
-    <div class="flex justify-between items-end w-full">
-      <div>
-        <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">Composition des groupes de <span>{{annee.libelle}}</span></h2>
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl! mb-0! font-bold">Composition des groupes de {{annee.libelle}}</h2>
         <em>Répartir les étudiants dans les groupes</em>
-      </div>
-      <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
-      <div v-else class="flex gap-4">
-        <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
-          <template #value>
-            {{ annee?.libelle || "Changer d'année" }}
-          </template>
-        </Select>
-        <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres">
-          <template #value>
-            {{ semestre?.libelle || "Changer de semestre" }}
-          </template>
-        </Select>
-        <div class="flex items-center gap-1">
-          <Button
-          label="Synchroniser les parents"
-          icon="pi pi-sync"
-          @click="synchroParents()"
-          class="p-button"
-          :loading="isSynchroLoading"
-          :disabled="isLoadingEtudiants || isLoadingGroupes"
-          />
-          <i class="pi pi-question-circle text-primary font-black" v-tooltip.top="`Permet de remplir automatiquement les groupes parents (CM, TD...) en fonction des affectations des groupes enfants (TP...).`"></i>
         </div>
+        <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
+        <div v-else class="flex gap-4">
+          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
+            <template #value>
+              {{ annee?.libelle || "Changer d'année" }}
+            </template>
+          </Select>
+          <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres">
+            <template #value>
+              {{ semestre?.libelle || "Changer de semestre" }}
+            </template>
+          </Select>
+        </div>
+      </div>
+      <Divider></Divider>
+      <div class="flex justify-end items-center gap-4">
+        <Button
+        label="Répartition automatique"
+        severity="secondary"
+        icon="pi pi-sync"
+        @click="synchroParents()"
+        class="p-button"
+        :loading="isSynchroLoading"
+        :disabled="isLoadingEtudiants || isLoadingGroupes"
+        v-tooltip.bottom="`Répartir équitablement de manière aléatoire`"
+        />
+        <Button
+        label="Synchroniser les parents"
+        icon="pi pi-sync"
+        @click="synchroParents()"
+        class="p-button"
+        :loading="isSynchroLoading"
+        :disabled="isLoadingEtudiants || isLoadingGroupes"
+        v-tooltip.bottom="`Remplir automatiquement les groupes parents (CM, TD...) en fonction des affectations des groupes enfants (TP...).`"
+        />
+        <Button
+        label="Synchroniser depuis Apogée"
+        icon="pi pi-sync"
+        @click="synchroParents()"
+        class="p-button"
+        :loading="isSynchroLoading"
+        :disabled="isLoadingEtudiants || isLoadingGroupes"
+        v-tooltip.bottom="`Synchroniser les groupes depuis Apogée il faut attendre 24h entre la saisie dans Apogée et la possibilité de synchroniser`"
+        />
       </div>
     </div>
     <Divider/>
     <ErrorView v-if="hasError"></ErrorView>
     <div v-else>
-      <Message severity="info" class="mb-4" icon="pi pi-info-circle">
-        Vous pouvez ne remplir que le groupe de plus bas niveau (TP) et synchroniser pour remplir automatiquement les groupes parents. Si les groupes sont saisis dans Apogée, vous pouvez aussi les synchroniser (il faut attendre 24h entre la saisie dans Apogée et la possibilité de synchroniser).
-        
-      </Message>
       <div v-if="isLoadingGroupes" class="flex items-center justify-center my-12">
         <ProgressSpinner style="width: 50px; height: 50px" />
       </div>

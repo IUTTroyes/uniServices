@@ -218,6 +218,8 @@ FOREIGN_KEY_CHECKS=1');
                     }
 
                     // Ajouter les semestres
+                    // Garder trace des semestres déjà créés pour cette scolarité (indexés par id de StructureSemestre)
+                    $semestresCrees = [];
                     foreach ($scol['semestres'] as $semestre) {
                         foreach ($this->tSemestres as $semestreDest) {
                             if ($semestreDest->getOldId() === $semestre['id']) {
@@ -301,6 +303,33 @@ FOREIGN_KEY_CHECKS=1');
                                 $etudiantScolSemestre->setMoyennesUe($moyennesUes);
 
                                 $this->entityManager->persist($etudiantScolSemestre);
+                                $semestresCrees[$semestreDest->getId()] = true;
+                            }
+                        }
+                    }
+
+                    // S'assurer que les 2 semestres de chaque année sont créés.
+                    // Si un semestre a été créé depuis les données, on vérifie que l'autre semestre
+                    // de la même StructureAnnee existe aussi. Sinon, on crée un EtudiantScolariteSemestre vide.
+                    foreach ($semestresCrees as $semestreCreéId => $_) {
+                        foreach ($this->tSemestres as $semestreSource) {
+                            if ($semestreSource->getId() !== $semestreCreéId) {
+                                continue;
+                            }
+                            $annee = $semestreSource->getAnnee();
+                            if ($annee === null) {
+                                continue;
+                            }
+                            // Parcourir tous les semestres de la même StructureAnnee
+                            foreach ($annee->getSemestres() as $semestreJumeau) {
+                                if (!isset($semestresCrees[$semestreJumeau->getId()])) {
+                                    // Ce semestre de l'année n'a pas encore été créé : on l'ajoute vide
+                                    $etudiantScolSemestreVide = new EtudiantScolariteSemestre();
+                                    $etudiantScolSemestreVide->setScolarite($scolarite);
+                                    $etudiantScolSemestreVide->setSemestre($semestreJumeau);
+                                    $this->entityManager->persist($etudiantScolSemestreVide);
+                                    $semestresCrees[$semestreJumeau->getId()] = true;
+                                }
                             }
                         }
                     }
