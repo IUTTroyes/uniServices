@@ -1,4 +1,3 @@
-// Removed top-level store call; breadcrumb that needs the store is created lazily
 import { useAnneeStore } from "@stores";
 
 export default [

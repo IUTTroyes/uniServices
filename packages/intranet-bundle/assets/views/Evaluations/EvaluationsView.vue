@@ -2,15 +2,15 @@
 import {computed, onMounted, ref, watch} from 'vue';
 import { useRoute } from 'vue-router';
 import {
-  getAnneeService,
   getEnseignementsService,
   getEtudiantsService,
   getEvaluationsService,
   getGroupesService,
   getSemestresService,
-  updateEvaluationService
+  updateEvaluationService,
+  getAnneesService
 } from '@requests';
-import {useUsersStore, useAnneeStore, useSemestreStore} from '@stores';
+import {useUsersStore, useAnneeStore, useAnneeUnivStore, useSemestreStore} from '@stores';
 import {ErrorView, PermissionGuard, SimpleSkeleton, ListSkeleton} from '@components';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
@@ -19,14 +19,13 @@ import {useToast} from "primevue/usetoast";
 import EvaluationStatistiques from "../../components/Evaluation/EvaluationStatistiques.vue";
 import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 
-const toast = useToast();
 const route = useRoute();
 const usersStore = useUsersStore();
 const anneeStore = useAnneeStore();
-const semestreStore = useSemestreStore();
 const hasError = ref(false);
-const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));
-const departementId = ref(null);
+const anneeUnivStore = useAnneeUnivStore();
+const departementId = computed(() => usersStore.departementDefaut ? usersStore.departementDefaut.id : null);
+const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 
 // Années et semestres
 const annees = ref([]);
@@ -51,7 +50,6 @@ const expectedTotalsByType = ref({});
 onMounted(async () => {
   departementId.value = usersStore.departementDefaut.id;
   await getAnnees();
-  await getAnnee();
   await getSemestres();
   // Sélectionner le premier semestre de l'année par défaut
   if (semestres.value.length > 0 && !semestre.value.id) {
@@ -80,41 +78,34 @@ watch(annee, async (newAnnee, oldAnnee) => {
 
 const getAnnees = async () => {
   isLoadingAnnees.value = true;
-  if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
-    annees.value = anneeStore.annees;
-  } else {
-    try {
-      const params = {
-        departement: departementId.value,
-        actif: true,
-      };
-      await anneeStore.getAnneesDepartement(params);
-      annees.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
-    } catch (error) {
-      console.error("Erreur lors de la récupération des années :", error);
-      hasError.value = true;
-    }
+  
+  if (!departementId.value || !selectedAnneeUniversitaireId.value) {
+    annees.value = [];
+    isLoadingAnnees.value = false;
+    return;
   }
-  isLoadingAnnees.value = false;
-};
 
-const getAnnee = async () => {
-  isLoadingAnnees.value = true;
-  hasError.value = false;
   try {
-    // Récupération de l'id de l'année via l'URL ou sélection de la première année disponible
-    const anneeId = route.params.anneeId;
-    if (anneeId) {
-      annee.value = await getAnneeService(anneeId);
-    } else if (annees.value.length > 0) {
-      annee.value = annees.value[0];
-    }
-    await anneeStore.setSelectedAnnee(annee.value);
+    const params = {
+      departement: departementId.value,
+      anneeUniversitaire: selectedAnneeUniversitaireId.value,
+      actif: true,
+    };
+    const response = await getAnneesService(params, '/liste', false);
+    annees.value = Array.isArray(response) ? response : [];
   } catch (error) {
+    console.error("Erreur lors de la récupération des années :", error);
     hasError.value = true;
-    console.error("Erreur lors de la récupération de l'année :", error);
   } finally {
     isLoadingAnnees.value = false;
+    // Initialiser l'année depuis le query parameter si présent sinon prendre la première année
+    const anneeFromQuery = route.params.anneeId;
+    if (anneeFromQuery) {
+      const anneeFound = annees.value.find(annee => annee.id === Number.parseInt(anneeFromQuery, 10));
+      annee.value = anneeFound ?? annees.value[0]
+    } else {
+      annee.value = annees.value[0]
+    }
   }
 };
 
@@ -168,7 +159,7 @@ const getEvaluations = async (enseignement) => {
   try {
     const params = {
       enseignement: enseignement,
-      anneeUniversitaire: selectedAnneeUniversitaire.id
+      anneeUniversitaire: selectedAnneeUniversitaireId.value
     };
     evaluations.value = await getEvaluationsService(params);
     // Calculer la progression pour chaque évaluation

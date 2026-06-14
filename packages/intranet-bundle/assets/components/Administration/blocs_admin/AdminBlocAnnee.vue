@@ -8,7 +8,7 @@ const semestreStore = useSemestreStore();
 const anneeStore = useAnneeStore();
 const anneeUnivStore = useAnneeUnivStore();
 
-const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
+const selectedAnneeUniversitaire = anneeUnivStore.selectedAnneeUniv;
 const selectedAnnee = ref(null);
 const isLoading = ref(true);
 const hasError = ref(false);
@@ -88,40 +88,43 @@ onMounted(async () => {
 });
 
 const getAnnees = async () => {
-  isLoading.value = true;
-  hasError.value = false;
-
-  const departementId = userStore.departementDefaut?.id ?? null;
-
-  if (!departementId || !selectedAnneeUniversitaireId.value) {
-    console.error("Département ou année universitaire manquant.");
-    hasError.value = true;
-    isLoading.value = false;
-    return;
-  }
-
   try {
-    const params = {
-      departement: departementId,
-      anneeUniversitaire: selectedAnneeUniversitaireId.value,
-      actif: true,
-    };
-    await anneeStore.getAnneesDepartement(params);
-    const annees = anneeStore.annees;
-    anneesGrouped.value = {
-      fi: annees.filter(a => a.opt.alternance === false),
-      fc: annees.filter(a => a.opt.alternance === true),
-    };
+    isLoading.value = true;
+    const departementId = userStore.departementDefaut.id;
+
+    if (!departementId) {
+      console.error("Aucun département par défaut trouvé pour l'utilisateur.");
+      hasError.value = true;
+      return;
+    }
+    try {
+      const params = {
+        departement: departementId,
+        anneeUniversitaire: selectedAnneeUniversitaire.id
+      };
+      await anneeStore.getAnneesDepartement(params);
+      const annees = anneeStore.annees;
+      // Créer un nouvel objet pour stocker les années de formation initiale et continue
+      anneesGrouped.value = {
+        fi: annees.filter(a => a.opt.alternance === false).map(a => a),
+        fc: annees.filter(a => a.opt.alternance === true).map(a => a),
+      };
+    } catch (error) {
+      console.error("Erreur lors de la récupération des années :", error);
+      hasError.value = true;
+    }
+
   } catch (error) {
     console.error("Erreur lors de la récupération des années :", error);
     hasError.value = true;
   } finally {
     isLoading.value = false;
-    // Sélectionner par défaut la première année disponible (FI puis FC)
+
+    // sélectionner par défaut la première année disponible (FI puis FC)
     selectedAnnee.value =
-      anneesGrouped.value.fi?.[0] ??
-      anneesGrouped.value.fc?.[0] ??
-      null;
+        anneesGrouped.value.fi?.[0] ??
+        anneesGrouped.value.fc?.[0] ??
+        null;
   }
 };
 
