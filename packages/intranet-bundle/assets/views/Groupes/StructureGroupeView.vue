@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
-import {getAnneeService, getGroupesService, getSemestresService} from "@requests";
-import { ErrorView, SimpleSkeleton, GlobalLoader } from "@components";
+import {getAnneeService, getGroupesService, getSemestresService, updateGroupeService } from "@requests";
+import { ErrorView, SimpleSkeleton, GlobalLoader, PermissionGuard, ButtonDelete, ButtonEdit, ButtonInfo } from "@components";
 import { useUsersStore, useSemestreStore, useAnneeStore } from "@stores";
 import {typesGroupes} from "@config/uniServices.js";
 import {useRoute} from "vue-router";
@@ -78,7 +78,7 @@ const getAnnees = async () => {
       console.error("Erreur lors de la récupération des années :", error);
       hasError.value = true;
     } finally {
-      console.log(annees.value)
+      isLoadingAnnee.value = false;
     }
   }
 };
@@ -142,7 +142,6 @@ const getGroupes = async () => {
     console.error("Erreur lors de la récupération des groupes :", error);
   } finally {
     isLoadingGroupes.value = false;
-    console.log(groupes.value)
   }
 };
 
@@ -154,6 +153,21 @@ const synchroApogee = async () => {
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la synchronisation des groupes :", error);
+  } finally {
+    isLoadingGroupes.value = false;
+  }
+};
+
+const deleteGroupeFromSemestre = async (groupeId, semestre) => {
+  try {
+    isLoadingGroupes.value = true;
+    const data = {
+      semestre: semestre
+    }
+    await updateGroupeService(groupeId, data, '/semestre');
+  } catch (error) {
+    hasError.value = true;
+    console.error("Erreur lors de la modification du groupe :", error);
   } finally {
     isLoadingGroupes.value = false;
   }
@@ -191,7 +205,7 @@ const synchroApogee = async () => {
       <div v-else v-for="semestre in semestres" :key="semestre.id" class="p-4 w-full card">
         <h3 class="text-xl! font-black mb-4">Semestre {{ semestre.libelle }}</h3>
         <div v-for="(groupesType, type) in groupes" :key="type" class="mb-4 bg-primary-300/20 rounded-md p-2">
-          <h4 class="text-lg! font-bold mb-2">Type de groupe {{ type }}</h4>
+          <h4 class="text-lg! font-bold">Type de groupe {{ type }}</h4>
           <div class="flex flex-wrap gap-4">
             <DataTable
                 :value="groupesType"
@@ -206,7 +220,17 @@ const synchroApogee = async () => {
               <Column field="libelle" header="Libellé" class="font-black"/>
               <Column field="codeApogee" header="Code Apogée" class="font-bold"/>
               <Column field="parent.libelle" header="Parent" class="text-muted-color"/>
-              <Column field="parcours.libelle" header="Parcours" />
+              <Column header="Actions">
+                <template #body="slotProps">
+                  <ButtonInfo tooltip="Voir le groupe"/>
+                  <PermissionGuard permission="isSuperAdmin">
+                    <router-link :to="{ name: 'groupe-edit', params: { groupeId: slotProps.data.id } }">
+                    <ButtonEdit tooltip="Éditer le groupe"/>
+                    </router-link>
+                    <ButtonDelete tooltip="Retirer le groupe du semestre" @confirm-delete="deleteGroupeFromSemestre(slotProps.data.id, semestre.id)"/>
+                  </PermissionGuard>
+                </template>
+              </Column>
             </DataTable>
           </div>
         </div>

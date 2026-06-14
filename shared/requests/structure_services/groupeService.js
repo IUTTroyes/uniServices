@@ -1,6 +1,10 @@
 import apiCall from '@helpers/apiCall.js'
 import api from '@helpers/axios.js'
 
+// ----------------------------------------------
+// ------------------- GET ----------------------
+// ----------------------------------------------
+
 const getGroupesSemestreService = async (semestre,showToast = false) => {
   try {
     return await apiCall(
@@ -32,20 +36,32 @@ const getGroupesService = async (params, scope = '', showToast = false) => {
   }
 }
 
+// ----------------------------------------------
+// ------------------- CREATE -------------------
+// ----------------------------------------------
 
-const getTypesGroupesService = async (showToast = false) => {
+// ----------------------------------------------
+// ------------------- UPDATE -------------------
+// ----------------------------------------------
+
+const updateGroupeService = async (id, data, scope = '', showToast = false) => {
   try {
     return await apiCall(
-        api.get,
-        ['/api/structure_groupes/types'],
-        'Types de groupes récupérés avec succès',
-        'Erreur lors de la récupération des types de groupes',
+        api.patch,
+        [`/api${scope}/structure_groupes/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
+        'Groupe mis à jour avec succès',
+        'Erreur lors de la mise à jour du groupe',
         showToast
     );
   } catch (error) {
-    console.error('Erreur dans getTypesGroupesService:', error);
+    console.error('Erreur dans updateGroupeService:', error);
     throw error;
   }
 }
 
-export { getGroupesSemestreService, getGroupesService };
+// ----------------------------------------------
+// ------------------- DELETE -------------------
+// ----------------------------------------------
+
+
+export { getGroupesSemestreService, getGroupesService, updateGroupeService };

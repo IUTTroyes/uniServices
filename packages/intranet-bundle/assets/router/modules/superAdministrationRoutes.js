@@ -1,6 +1,7 @@
 import ListDepartement from "@/views/Super-Administration/Departement/ListDepartement.vue"
 import SuperAdministrationView from "@/views/SuperAdministrationView.vue";
 import NewDepartement from "@/views/Super-Administration/Departement/NewDepartement.vue";
+import EditGroupeView from "@/views/Super-Administration/Groupe/EditGroupeView.vue";
 
 export default [
   {
@@ -41,6 +42,23 @@ export default [
         { label: 'Super-Administration', route: '/super-administration' },
         {
           label: 'Départements',
+          route: null,
+          icon: 'pi pi-wrench'
+        }
+      ]
+    },
+  },
+  {
+    path: 'super-administration/groupe/:groupeId',
+    name: 'groupe-edit',
+    component: EditGroupeView,
+    meta: {
+      permission: 'isSuperAdmin',
+      breadcrumb: [
+        { label: 'Dashboard', route: '/' },
+        { label: 'Super-Administration', route: '/super-administration' },
+        {
+          label: 'Édition du groupe',
           route: null,
           icon: 'pi pi-wrench'
         }
