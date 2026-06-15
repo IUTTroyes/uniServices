@@ -95,7 +95,7 @@ const getTicketsService = async () => {
     if (serviceId) {
       await getPersonnelsDuService(serviceId);
     }
-   /*await getMessages();*/
+   await getMessages();
   }
   catch (error) {
     console.error('Erreur lors de la récupération du ticket:', error);
@@ -192,7 +192,7 @@ onMounted(async () => {
               :rules="[]"
               placeholder="Sélectionnez un personnel"
               class="w-full md:w-56"
-              @change="updateAssigne(ticket.id, ticket.assigne)"
+              @update:model-value="updateAssigne(ticket.id, ticket.assigne)"
           >
             <template #value="valueProps">
               <div v-if="valueProps.value" class="flex items-center gap-2">
@@ -225,7 +225,7 @@ onMounted(async () => {
               :rules="[]"
               placeholder="Ajouter une priorité"
               class="w-full md:w-56"
-              @change="updatePriority(ticket.id, ticket.priority)"
+              @update:model-value="updatePriority(ticket.id, ticket.priority)"
           >
             <template #value="valueProps">
               <div v-if="valueProps.value" class="flex items-center gap-2">

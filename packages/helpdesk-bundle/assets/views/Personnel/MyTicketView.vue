@@ -8,7 +8,7 @@ import {PermissionGuard, ValidatedInput} from "@components";
 import {TabGroup, TabPanels} from "@headlessui/vue";
 import DatePicker from 'primevue/datepicker';
 import CascadeSelect from 'primevue/cascadeselect';
-import {getServicesService, getTicketsService, updateTicketStatutService} from "@requests";
+import {getMessagesService,getServicesService, getTicketsService, updateTicketStatutService} from "@requests";
 
 
 const router = useRouter();
@@ -39,6 +39,9 @@ const paginatedTickets = computed(() => {
   return ticketsList.value.slice(first.value, first.value + rows.value);
 });
 
+const getMessages = async () =>{
+
+}
 
 const getServices= async()=>{
   try{
@@ -88,6 +91,8 @@ const fetchTickets = async () => {
     loading.value = false;
   }
 };
+
+
 </script>
 
 <template>

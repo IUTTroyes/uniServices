@@ -1,8 +1,7 @@
 <script setup>
 import {ref} from 'vue';
 import {PermissionGuard, ValidatedInput} from "@components";
-import { updateTicketStatutService} from '@requests';
-import {getStatutsClasses,getPriorityClasses,priorities} from "@/utils";
+import {getStatutsClasses,getPriorityClasses,priorities,updatePriority} from "@/utils";
 
 const props = defineProps({
   ticket: {
@@ -11,16 +10,7 @@ const props = defineProps({
   }
 });
 
-const updatePriority = async (id,newPriority) => {
-  try{
-    const data={priority:newPriority}
-    await updateTicketStatutService(id, data, true);
-  }
-  catch (error){
-    console.error('Erreur lors de la mise à jour de la priorité',error);
-    await getTickets();
-  }
-}
+
 </script>
 
 <template>

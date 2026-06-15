@@ -143,14 +143,15 @@ onMounted(() => {
         <template #body="slotProps">
           <Skeleton v-if="isLoading" width="100%" height="1.5rem" />
           <template v-else>
-            <Select
+            <ValidatedInput
                 v-model="slotProps.data.priority"
                 :options="priorities"
                 optionLabel="label"
                 optionValue="value"
+                type="select"
                 placeholder="Ajouter une priorité"
                 class="w-full md:w-56 font-bold"
-                @change="updatePriority(slotProps.data.id, slotProps.data.priority)"
+                @update:model-value="updatePriority(slotProps.data.id, slotProps.data.priority)"
             >
               <template #value="valueProps">
                 <div v-if="valueProps.value" class="flex items-center gap-2">
@@ -170,7 +171,7 @@ onMounted(() => {
                   <span>{{ optionProps.option.label }}</span>
                 </div>
               </template>
-            </Select>
+            </ValidatedInput>
           </template>
         </template>
       </Column>
@@ -201,13 +202,13 @@ onMounted(() => {
                 type="select"
                 placeholder="Sélectionnez un personnel"
                 class="w-full md:w-56"
-                @change="updateAssigne(slotProps.data.id, slotProps.data.assigne)"
+                @update:model-value="updateAssigne(slotProps.data.id, slotProps.data.assigne)"
             >
               <template #value="valueProps">
                 <div v-if="valueProps.value" class="flex items-center gap-2">
                   <i class="pi pi-user text-blue-500"></i>
                   <span>
-                    {{ (personnelsParService[slotProps.data.helpdeskCategorie?.service?.id] || []).find(p => p.value === valueProps.value)?.label || 'Personnel assigné' }}
+                    {{ (personnelsParService[slotProps.data.helpdeskCategorie?.service?.id] || []).find(p => p.value === valueProps.value)?.label || valueProps.data.assigne .display }}
                   </span>
                 </div>
                 <span v-else>
