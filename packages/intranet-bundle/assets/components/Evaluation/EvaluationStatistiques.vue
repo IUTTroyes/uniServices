@@ -289,7 +289,7 @@ const onChildSaved = async () => {
             striped-rows
             responsive-layout="scroll"
             lazy
-            :paginator="selectedGroupe.type!=='TP'"
+            :paginator="selectedGroupe?.type!=='TP'"
             :first="offset"
             :rows="limit"
             :rowsPerPageOptions="rowOptions"

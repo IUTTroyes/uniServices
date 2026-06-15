@@ -409,8 +409,10 @@ const heuresParType = computed(() => {
       <SimpleSkeleton class="w-1/2"/>
     </div>
     <div v-else class="mt-8 flex items-center gap-4 w-full">
-      <Select v-if="selectedDiplome" v-model="selectedAnnee" :options="annees" option-label="libelle" placeholder="Sélectionner une année" class="w-1/2"/>
-      <Select v-if="selectedAnnee" v-model="selectedSemestre" :options="semestres" option-label="libelle" placeholder="Sélectionner un semestre" class="w-1/2"/>
+      <SimpleSkeleton v-if="isLoadingAnnees" class="w-1/2"/>
+      <Select v-else-if="selectedDiplome" v-model="selectedAnnee" :options="annees" option-label="libelle" placeholder="Sélectionner une année" class="w-1/2"/>
+      <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/2"/>
+      <Select v-else-if="selectedAnnee" v-model="selectedSemestre" :options="semestres" option-label="libelle" placeholder="Sélectionner un semestre" class="w-1/2"/>
     </div>
     <div class="flex justify-center items-center gap-4 mb-4">
       <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>

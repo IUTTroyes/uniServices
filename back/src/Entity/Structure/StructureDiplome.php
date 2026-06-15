@@ -7,7 +7,6 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcParcours;
@@ -114,7 +113,7 @@ class StructureDiplome
     private ?int $codeCelcatDepartement = null;
 
     #[ORM\Column(length: 40, nullable: true)]
-    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read','maquette:detail', 'pn:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'pn:light'])]
     private ?string $sigle = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
