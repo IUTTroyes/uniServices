@@ -4,7 +4,7 @@
 
 // String & Date utilities
 import { formatAdresse } from './adresse.js'
-import { formatDateCourt, formatDateLong, jourDate, heuresMinutesDate, getISOWeekNumber } from './date.js'
+import { formatDateCourt, formatDateLong, jourDate, heuresMinutesDate, getISOWeekNumber, parseApiDate } from './date.js'
 import { capitalize } from './string.js'
 
 // Color utilities
@@ -43,7 +43,8 @@ export {
     formatDateLong,
     jourDate,
     heuresMinutesDate,
-    getISOWeekNumber
+    getISOWeekNumber,
+    parseApiDate
 }
 
 // Color utilities

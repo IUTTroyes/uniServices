@@ -36,7 +36,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PersonnelRepository::class)]
-#[ApiFilter(PersonnelFilter::class,SearchFilter::class, properties: ['structureServices' => 'exact'])]
+#[ApiFilter(PersonnelFilter::class, SearchFilter::class, properties: ['structureServices' => 'exact'])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['personnel:detail']]),
@@ -65,7 +65,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['personnel:detail', 'personnel:light', 'departement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
+    #[Groups(['personnel:detail', 'personnel:light', 'departement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
@@ -264,9 +264,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->prenom . ' ' . $this->nom;
     }
 
-    public function eraseCredentials(): void
-    {
-    }
+    public function eraseCredentials(): void {}
 
     public function getUserIdentifier(): string
     {
@@ -725,7 +723,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->statut->getLibelle() ?? '-';
     }
 
-    #[Groups(['diplome:detail', 'maquette:detail', 'personnel:detail', 'personnel:light', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda',"ticket:read"])]
+    #[Groups(['diplome:detail', 'maquette:detail', 'personnel:detail', 'personnel:light', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda', "ticket:read, 'evaluation:init'"])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();
@@ -804,7 +802,8 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'personnel:liste'])]
-    public function getStatutSeverity(): string {
+    public function getStatutSeverity(): string
+    {
         return $this->statut->getBadge();
     }
 

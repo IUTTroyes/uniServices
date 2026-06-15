@@ -50,11 +50,11 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'evaluation:init'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
@@ -78,7 +78,7 @@ class ScolEnseignement
     private ?string $motsCles = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda', 'evaluation:init'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
@@ -90,7 +90,7 @@ class ScolEnseignement
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'edt_event:read:agenda'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'edt_event:read:agenda', 'evaluation:init'])]
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]
@@ -198,7 +198,7 @@ class ScolEnseignement
     #[Groups(['enseignement:detail', 'enseignement:light'])]
     public function getDisplay(): string
     {
-        return $this->codeEnseignement.' - '.$this->libelle;
+        return $this->codeEnseignement . ' - ' . $this->libelle;
     }
 
     public function getLibelleCourt(): ?string
@@ -302,10 +302,10 @@ class ScolEnseignement
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
-                'CM' => ['PN' => 0, 'IUT' => 0],
-                'TD' => ['PN' => 0, 'IUT' => 0],
-                'TP' => ['PN' => 0, 'IUT' => 0],
-                'Projet' => ['PN' => 0, 'IUT' => 0],
+            'CM' => ['PN' => 0, 'IUT' => 0],
+            'TD' => ['PN' => 0, 'IUT' => 0],
+            'TP' => ['PN' => 0, 'IUT' => 0],
+            'Projet' => ['PN' => 0, 'IUT' => 0],
         ]);
 
         $resolver->setAllowedTypes('CM', 'array');
@@ -611,5 +611,4 @@ class ScolEnseignement
     {
         $this->sae = $sae;
     }
-
 }

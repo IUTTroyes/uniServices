@@ -54,7 +54,8 @@ onMounted(async () => {
 const getEvaluation = async () => {
   try {
     isLoading.value = true;
-    const response = await getEvaluationService(props.evaluationId);
+    const response = await getEvaluationService(props.evaluationId, '/init');
+
     // convert API date string to Date object for PrimeVue DatePicker
     if (response && response.date) {
       response.date = parseApiDate(response.date);
@@ -82,6 +83,7 @@ const getEvaluation = async () => {
 
 const getPersonnelEnseignement = async () => {
   try {
+    console.log(evaluation.value.enseignement.id)
     isLoading.value = true;
     const params = {
       enseignement: evaluation.value.enseignement.id
@@ -150,8 +152,8 @@ const updateEvaluation = async () => {
         Enseignant(s) de la {{evaluation.enseignement?.type}} :
       </div>
       <div class="flex items-center justify-center gap-4">
-        <template v-if="evaluation.enseignement?.personnels?.length > 0">
-          <div v-for="personnel in evaluation.enseignement?.personnels" :key="personnel.id" class="text-center px-3 py-1 bg-primary-100 text-primary-800 rounded-full dark:bg-primary-900 dark:text-primary-300">
+        <template v-if="personnels.length > 0">
+          <div v-for="personnel in personnels" :key="personnel.id" class="text-center px-3 py-1 bg-primary-100 text-primary-800 rounded-full dark:bg-primary-900 dark:text-primary-300">
           {{ personnel.display }}
         </div>
         </template>

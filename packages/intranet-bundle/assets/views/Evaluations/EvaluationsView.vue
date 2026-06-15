@@ -48,7 +48,6 @@ const selectedEvaluation = ref(null);
 const expectedTotalsByType = ref({});
 
 onMounted(async () => {
-  departementId.value = usersStore.departementDefaut.id;
   await getAnnees();
   await getSemestres();
   // Sélectionner le premier semestre de l'année par défaut
