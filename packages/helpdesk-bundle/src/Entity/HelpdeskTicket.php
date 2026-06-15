@@ -106,6 +106,7 @@ class HelpdeskTicket
     private ?Personnel $auteur = null;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
+    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
     private ?Personnel $assigne = null;
 
 
@@ -241,4 +242,6 @@ class HelpdeskTicket
 
         return $this;
     }
+
+
 }

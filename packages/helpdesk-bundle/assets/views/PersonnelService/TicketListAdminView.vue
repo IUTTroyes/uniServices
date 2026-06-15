@@ -1,19 +1,41 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import {ref, onMounted, computed} from 'vue';
 import { useRouter } from 'vue-router';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
-import {getTicketsService,deleteTicketService, deleteMessageService} from '@requests';
-import {getStatutsClasses,getPriorityClasses,priorities,updatePriority} from "@/utils";
+import {getTicketsService, deleteTicketService, deleteMessageService, getPersonnelsService} from '@requests';
+import {getStatutsClasses,getPriorityClasses,priorities,updatePriority,updateAssigne} from "@/utils";
+import { ValidatedInput} from "@components";
 
+const props = defineProps({
+  id: String
+});
 
+const tickets=ref([]);
 const router = useRouter();
 const isLoading = ref(true);
 const skeletonItems = ref(new Array(5));
 const ticketsList = ref([]);
+const personnelsParService = ref({});
 
 const modifierTicket = (ticket) => {
   router.push({ name: 'TicketView', params: { id: ticket.id } });
+};
+
+const getPersonnelsDuService = async (serviceId) => {
+  if (!serviceId || personnelsParService.value[serviceId]) return;
+  try {
+    const params = { service: serviceId };
+    const response = await getPersonnelsService(params);
+    const members = response?.['member'] || (Array.isArray(response) ? response : []);
+
+    personnelsParService.value[serviceId] = members.map(p => ({
+      label: `${p.prenom} ${p.nom}`,
+      value: `/api/personnels/${p.id}`
+    }));
+  } catch (error) {
+    console.error(`Erreur lors du chargement des personnels du service ${serviceId}`);
+  }
 };
 
 const supprimerTicket = async (id) => {
@@ -38,6 +60,12 @@ const getTickets = async () => {
     } else {
       ticketsList.value = [];
     }
+    const serviceIds = [...new Set(
+        ticketsList.value
+            .map(t => t.helpdeskCategorie?.service?.id)
+            .filter(id => id !== undefined && id !== null)
+    )];
+    await Promise.all(serviceIds.map(id => getPersonnelsDuService(id)));
   } catch (error) {
     console.error('Impossible de charger les tickets:', error);
     ticketsList.value = [];
@@ -161,8 +189,40 @@ onMounted(() => {
       </Column>
 
       <Column header="Assigner un personnel" style="width: 10%">
-        <template #body="">
-          <Select placeholder="Selectionnez un personnel"></Select>
+        <template #body="slotProps">
+          <Skeleton v-if="isLoading" width="100%" height="2rem" />
+          <div v-else @click.stop>
+            <ValidatedInput
+                v-model="slotProps.data.assigne"
+                :options="personnelsParService[slotProps.data.helpdeskCategorie?.service?.id] || []"
+                optionLabel="label"
+                optionValue="value"
+                :name="'assigne_' + slotProps.data.id"
+                type="select"
+                placeholder="Sélectionnez un personnel"
+                class="w-full md:w-56"
+                @change="updateAssigne(slotProps.data.id, slotProps.data.assigne)"
+            >
+              <template #value="valueProps">
+                <div v-if="valueProps.value" class="flex items-center gap-2">
+                  <i class="pi pi-user text-blue-500"></i>
+                  <span>
+                    {{ (personnelsParService[slotProps.data.helpdeskCategorie?.service?.id] || []).find(p => p.value === valueProps.value)?.label || 'Personnel assigné' }}
+                  </span>
+                </div>
+                <span v-else>
+                  {{ valueProps.placeholder }}
+                </span>
+              </template>
+
+              <template #option="optionProps">
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-user text-gray-400"></i>
+                  <span>{{ optionProps.option.label }}</span>
+                </div>
+              </template>
+            </ValidatedInput>
+          </div>
         </template>
       </Column>
     </DataTable>

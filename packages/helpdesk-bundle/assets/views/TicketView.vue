@@ -95,7 +95,7 @@ const getTicketsService = async () => {
     if (serviceId) {
       await getPersonnelsDuService(serviceId);
     }
-   /* await getMessages();*/
+   /*await getMessages();*/
   }
   catch (error) {
     console.error('Erreur lors de la récupération du ticket:', error);
