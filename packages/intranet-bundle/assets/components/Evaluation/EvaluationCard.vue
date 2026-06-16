@@ -121,6 +121,7 @@ const onEvaluationSaved = async () => {
         </div>
 
         <div class="text-sm text-neutral-500">
+          Évaluation programée le : 
           {{ evaluation.date ? (new Date(evaluation.date).getDate() + '/' + (new Date(evaluation.date).getMonth() + 1) + '/' + new Date(evaluation.date).getFullYear()) : '' }}
         </div>
       </div>
