@@ -8,7 +8,7 @@ export default [
   {
     path: '/qualite/enquetes',
     name: 'questionnaire_qualite-enquetes',
-    component: () => import('@/views/Questionnaire/IndexView.vue'),
+    component: () => import('@/views/DashboardView.vue'),
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
