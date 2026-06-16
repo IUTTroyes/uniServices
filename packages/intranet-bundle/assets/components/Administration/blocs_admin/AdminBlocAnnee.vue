@@ -63,10 +63,9 @@ const panelMenuItems = computed(() => {
     {
       label: 'Notes et Évaluations', icon: 'pi pi-book', command: () => {}, items: [
         {
-          label: 'Liste des notes', icon: 'pi pi-list',
+          label: 'Gestion des évaluations et saisie des notes', icon: 'pi pi-list',
           route: aid ? '/administration/annee/' + aid + '/evaluations' : null
         },
-        { label: 'Gestion des évaluations', icon: 'pi pi-cog', command: () => {} },
         {
           label: 'Demandes de rattrapages', icon: 'pi pi-history',
           route: aid ? '/administration/annee/' + aid + '/rattrapages/liste' : null },

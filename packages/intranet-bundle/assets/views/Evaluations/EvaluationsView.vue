@@ -319,7 +319,6 @@ const onEvaluationSaved = async () => {
         </div>
       </div>
       <Divider />
-
       <ListSkeleton v-if="isLoadingEnseignements" class="w-1/2"/>
       <div v-else>
         <div class="flex justify-end gap-4">
@@ -327,7 +326,7 @@ const onEvaluationSaved = async () => {
         </div>
         <Accordion v-if="semestre && enseignements.length !== 0" value="0" class="mt-4">
           <AccordionPanel v-for="enseignement in enseignements" :value="enseignement.id" :key="enseignement.id">
-            <AccordionHeader>
+            <AccordionHeader class="hover:bg-primary-300/10!">
               <div class="flex flex-col gap-2 w-full">
                 <div class="flex justify-between items-center w-full">
                   <div class="flex justify-between items-center">
@@ -348,7 +347,7 @@ const onEvaluationSaved = async () => {
                 </div>
                 <SimpleSkeleton v-if="isLoadingEvaluations" class="w-full"/>
                 <div class="mr-4">
-                  <div class="p-2 w-full bg-neutral-50 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900 flex flex-col gap-2">
+                  <div class="p-2 w-full bg-neutral-100/20 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900 flex flex-col gap-2">
                     <div class="flex justify-between items-center gap-4">
                       <div class="flex items-center gap-1 font-bold"><i class="pi pi-check-circle text-primary"></i>Progression Globale</div>
                     </div>
