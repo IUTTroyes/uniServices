@@ -347,7 +347,8 @@ const onEvaluationSaved = async () => {
                 </div>
                 <SimpleSkeleton v-if="isLoadingEvaluations" class="w-full"/>
                 <div class="mr-4">
-                  <div class="p-2 w-full bg-neutral-100/20 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900 flex flex-col gap-2">
+                  <div class="p-2 w-full bg-neutral-100/20
+                   rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900 flex flex-col gap-2">
                     <div class="flex justify-between items-center gap-4">
                       <div class="flex items-center gap-1 font-bold"><i class="pi pi-check-circle text-primary"></i>Progression Globale</div>
                     </div>
