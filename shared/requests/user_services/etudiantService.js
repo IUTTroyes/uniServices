@@ -20,7 +20,7 @@ const getEtudiantService = async (etudiantId, showToast = false) => {
     }
 }
 
-const getEtudiantsService = async (params, scope = '', showToast = false, pagination = true) => {
+const getEtudiantsService = async (params, scope = '', showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
@@ -29,8 +29,8 @@ const getEtudiantsService = async (params, scope = '', showToast = false, pagina
             'Erreur lors de la récupération des étudiants',
             showToast
         );
+        response.member.totalItems = response.totalItems;
         return response.member;
-        // response.member.totalItems = response.totalItems;
     } catch (error) {
         console.error('Erreur dans getEtudiants:', error);
         throw error;
