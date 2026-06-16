@@ -102,7 +102,7 @@ class HelpdeskTicket
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
+    #[Groups(['ticket:write','ticket:read','ticket:delete','message:read','message:write'])]
     private ?Personnel $auteur = null;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]

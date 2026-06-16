@@ -39,9 +39,6 @@ const paginatedTickets = computed(() => {
   return ticketsList.value.slice(first.value, first.value + rows.value);
 });
 
-const getMessages = async () =>{
-
-}
 
 const getServices= async()=>{
   try{
@@ -54,12 +51,7 @@ const getServices= async()=>{
     console.log(services.value)
   }
 }
-onMounted(async()=>{
-  await getServices();
-  await fetchTickets();
-})
-
-const fetchTickets = async () => {
+const getTickets = async () => {
   try {
     loading.value = true;
     const postedTickets= {
@@ -92,6 +84,10 @@ const fetchTickets = async () => {
   }
 };
 
+onMounted(async()=>{
+  await getServices();
+  await getTickets();
+})
 
 </script>
 

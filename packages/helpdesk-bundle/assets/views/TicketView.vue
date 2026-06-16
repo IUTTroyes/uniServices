@@ -2,7 +2,8 @@
 import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { ValidatedInput,PermissionGuard} from "@components";
-import {getPersonnelsService,createMessageService,getTicketService,updateTicketStatutService} from '@requests';
+import {useUsersStore} from '@stores';
+import {getPersonnelsService,createMessageService,getTicketService,updateTicketStatutService,getMessagesService} from '@requests';
 import {useConfirm} from 'primevue/useconfirm';
 import {getStatutsClasses,getPriorityClasses,priorities,updatePriority} from "@/utils";
 
@@ -17,6 +18,8 @@ const isReplying = ref(false);
 const replyText = ref("");
 const loading = ref(true);
 const confirm=useConfirm();
+const userStore=useUsersStore();
+const user=computed(()=>userStore.user)
 
 const assignesOptions = computed(() => {
   return personnelList.value.map(p => ({
@@ -82,6 +85,25 @@ const onUpload = (event) => {
   console.log("Fichier téléversé", event);
 };
 
+const getMessages = async () =>{
+  try{
+    const params = {
+      ticket: ticketIri.value
+    }
+    const response = await getMessagesService(params);
+    if (response && response['member']) {
+      ticket.value.messages = response['member'];
+    } else if (Array.isArray(response)) {
+      ticket.value.messages = response;
+    } else {
+      ticket.value.messages = [];
+    }
+  }
+  catch (error){
+    console.error('Erreur lors de la récupération des messages',error);
+  }
+}
+
 const ticketIri = computed(() => {
   return props.id ? `/api/helpdesk_tickets/${props.id}` : null;
 });
@@ -113,9 +135,10 @@ const sendMessage = async () => {
 
   const payload = {
     content: messageText.trim(),
-    ticket: ticketIri.value
+    ticket: ticketIri.value,
+    auteur:user.value ? `/api/personnels/${user.value.id}` : null,
   };
-
+  console.log('Envoi du message avec le payload:', payload);
   try {
     await createMessageService(payload, true);
     replyText.value = "";
@@ -172,9 +195,17 @@ onMounted(async () => {
 
       <p>{{ticket.helpdeskMessages?.content}}</p>
 
-      <div v-if="ticket.messages && ticket.messages.length >0">
-        <div v-for="message in ticket.messages" :key="message.id" class="mb-4 p-4 bg-gray-50 rounded">
-          <p>{{ticket.message}}</p>
+      <div v-if="ticket.messages && ticket.messages.length > 0" class="mt-6">
+        <h4 class="text-lg font-bold mb-4">Historique des échanges</h4>
+
+        <div v-for="message in ticket.messages" :key="message.id" class="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded border border-gray-100 dark:border-gray-700">
+
+          <div class="flex justify-between items-center mb-2">
+      <span class="font-bold text-sm text-blue-600">
+        {{ message.auteur?.display || 'Auteur inconnu' }}
+      </span>
+          </div>
+          <p class="text-gray-700 dark:text-gray-200 whitespace-pre-line">{{ message.content }}</p>
         </div>
       </div>
 

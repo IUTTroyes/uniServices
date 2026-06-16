@@ -2,8 +2,11 @@
 
 namespace HelpdeskBundle\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
@@ -14,6 +17,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: HelpDeskMessageRepository::class)]
+#[ApiFilter(SearchFilter::class, properties: ['ticket' => 'exact'])]
 #[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
@@ -22,8 +26,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ),
         new Post(
             denormalizationContext: ['groups' => ['message:write']],
-        )
+        ),
+        new GetCollection(
+            normalizationContext: ['groups' => ['message:read']],
+        ),
         ]
+
 )
 ]
 class HelpdeskMessage
@@ -48,7 +56,7 @@ class HelpdeskMessage
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['message:read','ticket:read'])]
+    #[Groups(['message:read','ticket:read','message:write'])]
     private ?Personnel $auteur = null;
 
     public function getId(): ?int

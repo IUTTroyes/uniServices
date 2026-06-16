@@ -8,14 +8,14 @@ import {useUsersStore} from '@stores';
 
 const router=useRouter()
 
-const services=ref([])
-const selectedService=ref(null)
-const selectedCategorie=ref(null)
-const filesNames=ref([])
-const selectedSujet=ref("")
-const selectedMessage=ref("")
+const services=ref([]);
+const selectedService=ref(null);
+const selectedCategorie=ref(null);
+const filesNames=ref([]);
+const selectedSujet=ref("");
+const selectedMessage=ref("");
 const userStore=useUsersStore();
-const user=computed(()=>userStore.user)
+const user=computed(()=>userStore.user);
 
 
 const getServices= async()=>{
@@ -69,14 +69,14 @@ const createTicket = async () => {
 
   if (payload.files && payload.files.length > 0) {
     payload.files.forEach((file) => {
-      formData.append('files[]', file); // ou 'files' selon votre config
+      formData.append('files[]', file);
     });
   }
 
   try {
     console.log(filesNames.value)
     await createTicketService(formData, true);
-    router.push({ name: 'Dashboard'});
+    await router.push({ name: 'Dashboard'});
   }
   catch (error) {
     console.error('Erreur lors de la création du ticket', error);
