@@ -2,6 +2,7 @@
 
 namespace HelpdeskBundle\Entity;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -24,6 +25,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: HelpdeskTicketRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ApiFilter(TicketFilter::class, MessageFilter::class)]
+#[ApiFilter(SearchFilter::class, properties: [
+    'subject' => 'partial',
+    'description' => 'start',
+    'auteur.display' => 'partial',
+])]
 #[ApiResource(
     operations: [
         new Post(

@@ -9,6 +9,7 @@ import {TabGroup, TabPanels} from "@headlessui/vue";
 import DatePicker from 'primevue/datepicker';
 import CascadeSelect from 'primevue/cascadeselect';
 import {getMessagesService,getServicesService, getTicketsService, updateTicketStatutService} from "@requests";
+import {FilterMatchMode} from "@primevue/core/api";
 
 
 const router = useRouter();
@@ -20,6 +21,45 @@ const selectedCategorie=ref(null);
 const ticketsList=ref([]);
 const postedTicketsList=ref([]);
 const loading = ref(true);
+
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+});
+
+// 🎯 Propriété calculée pour filtrer les tickets postés
+const filteredPostedTickets = computed(() => {
+  const search = filters.value.global.value?.toLowerCase().trim();
+  if (!search) return postedTicketsList.value;
+
+  return postedTicketsList.value.filter(ticket => {
+    return (
+        ticket.sujet?.toLowerCase().includes(search) ||
+        ticket.subject?.toLowerCase().includes(search) ||
+        ticket.description?.toLowerCase().includes(search) ||
+        ticket.statut?.toLowerCase().includes(search) ||
+        ticket.helpdeskCategorie?.libelle?.toLowerCase().includes(search) ||
+        ticket.category?.toLowerCase().includes(search)
+    );
+  });
+});
+
+// 🎯 Propriété calculée pour filtrer les tickets reçus (ticketsList)
+const filteredReceivedTickets = computed(() => {
+  const search = filters.value.global.value?.toLowerCase().trim();
+  if (!search) return ticketsList.value; // Remplace receivedTicketsList par ticketsList qui contient les reçus
+
+  return ticketsList.value.filter(ticket => {
+    return (
+        ticket.sujet?.toLowerCase().includes(search) ||
+        ticket.subject?.toLowerCase().includes(search) ||
+        ticket.description?.toLowerCase().includes(search) ||
+        ticket.statut?.toLowerCase().includes(search) ||
+        ticket.helpdeskCategorie?.libelle?.toLowerCase().includes(search) ||
+        ticket.category?.toLowerCase().includes(search) ||
+        ticket.auteur?.display?.toLowerCase().includes(search)
+    );
+  });
+});
 
 const goToTicket = (id) => {
   router.push({ name: 'TicketView', params: { id: id } });
@@ -38,7 +78,6 @@ const rootCategories = computed(() => {
 const paginatedTickets = computed(() => {
   return ticketsList.value.slice(first.value, first.value + rows.value);
 });
-
 
 const getServices= async()=>{
   try{
@@ -190,7 +229,7 @@ onMounted(async()=>{
                 <InputIcon>
                   <i class="pi pi-search" />
                 </InputIcon>
-                <InputText placeholder="Search" />
+                <InputText v-model="filters.global.value" placeholder="Rechercher un ticket..." />
               </IconField>
             </template>
           </Toolbar>
@@ -199,11 +238,11 @@ onMounted(async()=>{
         <div v-if="loading" class="text-center p-10 text-xl">
           Chargement des tickets...
         </div>
-        <div v-else-if="postedTicketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
+        <div v-else-if="filteredPostedTickets.length === 0" class="text-center p-10 text-xl text-gray-500">
           Aucun ticket trouvé.
         </div>
         <div v-else class="p-6">
-          <div v-for="ticket in postedTicketsList" :key="ticket.id">
+          <div v-for="ticket in filteredPostedTickets" :key="ticket.id">
             <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
           </div>
         </div>
@@ -220,7 +259,7 @@ onMounted(async()=>{
                 <InputIcon>
                   <i class="pi pi-search" />
                 </InputIcon>
-                <InputText placeholder="Search" />
+                <InputText v-model="filters.global.value" placeholder="Rechercher un ticket..." />
               </IconField>
             </template>
           </Toolbar>
@@ -229,11 +268,11 @@ onMounted(async()=>{
         <div v-if="loading" class="text-center p-10 text-xl">
           Chargement des tickets...
         </div>
-        <div v-else-if="receivedTicketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
+        <div v-else-if="filteredReceivedTickets.length === 0" class="text-center p-10 text-xl text-gray-500">
           Aucun ticket trouvé.
         </div>
         <div v-else class="p-6">
-          <div v-for="ticket in receivedTicketsList" :key="ticket.id">
+          <div v-for="ticket in filteredReceivedTickets" :key="ticket.id">
             <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
           </div>
         </div>

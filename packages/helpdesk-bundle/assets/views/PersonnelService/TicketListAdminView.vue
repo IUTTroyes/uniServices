@@ -1,5 +1,6 @@
 <script setup>
 import {ref, onMounted, computed} from 'vue';
+import {FilterMatchMode} from '@primevue/core/api';
 import { useRouter } from 'vue-router';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
@@ -9,6 +10,10 @@ import { ValidatedInput} from "@components";
 
 const props = defineProps({
   id: String
+});
+
+const filters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS }
 });
 
 const tickets=ref([]);
@@ -88,15 +93,26 @@ onMounted(() => {
             <InputIcon>
               <i class="pi pi-search" />
             </InputIcon>
-            <InputText placeholder="Search" />
+            <InputText
+                v-model="filters['global'].value"
+                placeholder="Rechercher un ticket..."
+            />
           </IconField>
         </template>
       </Toolbar>
     </div>
 
-    <DataTable :value="isLoading ? skeletonItems : ticketsList" paginator :rows="10"
-               :rowsPerPageOptions="[10, 50, 100]" stripedRows showGridlines
-               tableStyle="min-width: 50rem">
+    <DataTable
+        :value="isLoading ? skeletonItems : ticketsList"
+        paginator
+        :rows="10"
+        :rowsPerPageOptions="[10, 50, 100]"
+        stripedRows
+        showGridlines
+        tableStyle="min-width: 50rem"
+        v-model:filters="filters"
+        :globalFilterFields="['sujet', 'subject', 'auteur.display', 'helpdeskCategorie.libelle', 'category', 'statut']"
+    >
 
       <Column field="statut" header="Statut" sortable style="width: 15%">
         <template #body="slotProps">
