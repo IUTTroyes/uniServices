@@ -1,6 +1,25 @@
 import { useAnneeStore } from "@stores";
 
 export default [
+
+  {
+    path: 'etudiants',
+    name: 'liste-etudiants',
+    component: () => import('@/views/Administration/Etudiants/EtudiantsListeView.vue'),
+    meta: {
+      breadcrumb: () => {
+        const anneeStore = useAnneeStore();
+        const selectedAnnee = anneeStore.annee;
+        return [{ label: 'Dashboard', route: '/' }, {
+          label: 'Administration',
+          route: '/administration',
+          icon: 'pi pi-wrench'
+        },
+          { label: selectedAnnee?.libelle ?? 'Année', route: null },
+          { label: 'Liste des étudiants', route: null }];
+      }
+    },
+  },
   {
     path: 'groupes/structure',
     name: 'structure-groupe',
@@ -91,7 +110,7 @@ export default [
     },
   },
   {
-    path: 'evaluations/liste',
+    path: 'evaluations',
     name: 'liste-evaluations',
     component: () => import('@/views/Evaluations/EvaluationsView.vue'),
     meta: {
