@@ -19,4 +19,5 @@ return [
     IntranetBundle\IntranetBundle::class => ['all' => true],
     UnifolioBundle\UnifolioBundle::class => ['all' => true],
     HelpdeskBundle\HelpdeskBundle::class => ['all' => true],
+    QuestionnaireBundle\QuestionnaireBundle::class => ['all' => true],
 ];

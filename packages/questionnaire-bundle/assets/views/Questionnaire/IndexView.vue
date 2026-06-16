@@ -175,27 +175,27 @@
               <!--                  v-if="!survey.published"-->
 
               <router-link
-                :to="{ name: 'questionnaire_builder', id:survey.uuid}"
-                class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
-                title="Modifier"
+                :to="{ name: 'questionnaire_builder', params: {id:survey.uuid}}"
+                class="p-2 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 dark:hover:bg-orange-900/50 border border-orange-200 dark:border-orange-900/50 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
+                v-tooltip="'Modifier le questionnaire'"
               >
                 <PencilIcon class="w-4 h-4" />
               </router-link>
 
               <router-link
                 v-if="survey.status === 'published'"
-                :to="{ name:'questionnaire_responses', id: survey.uuid}"
-                class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
-                title="Réponses"
+                :to="{ name:'questionnaire_responses', params:{id: survey.uuid}}"
+                class="p-2 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-900/50 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
+                v-tooltip="'Voir les réponses'"
               >
                 <ChatBubbleLeftRightIcon class="w-4 h-4" />
               </router-link>
 
               <router-link
                 v-if="survey.status === 'published'"
-                :to="{name:'questionnaire_analytics', id:survey.uuid}"
-                class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded"
-                title="Statistiques"
+                :to="{name:'questionnaire_analytics', params:{id:survey.uuid}}"
+                class="p-2 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-900/50 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm hover:shadow-md"
+                v-tooltip="'Statistiques & Analyses'"
               >
                 <ChartBarIcon class="w-4 h-4" />
               </router-link>
@@ -227,7 +227,7 @@
             <p class="text-gray-600 dark:text-gray-400">
               Aucun questionnaire créé pour le moment
             </p>
-            <router-link :to="{name:'questionnaire_builder', id:'new'}" class="btn-primary mt-4">
+            <router-link :to="{name:'questionnaire_builder', params: {id: 'new'}}" class="btn-primary mt-4">
               Créer votre premier questionnaire
             </router-link>
           </div>
@@ -350,8 +350,7 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 import { useSurveyStore } from '@/stores/survey';
 import { useResponseStore } from '@/stores/responses';
 import { useUIStore } from '@/stores/ui';
-import { format, formatRelative } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { formatDate, formatRelativeTime } from '@/utils/date';
 import type { Survey } from '@types';
 
 const surveyStore = useSurveyStore();
@@ -459,16 +458,6 @@ const templates = [
     icon: ChartBarIcon
   }
 ];
-
-// todo: déplacer en helper...
-function formatDate(date: Date): string {
-  return format(date, 'dd/MM/yyyy', { locale: fr });
-}
-
-function formatRelativeTime(date: Date): string {
-  return formatRelative(date, new Date(), { locale: fr });
-}
-// fin todo:
 
 function getActivityColor(type: string): string {
   const colors = {

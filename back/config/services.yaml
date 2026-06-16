@@ -4,51 +4,52 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
-    URL_INTRANET_V3: '%env(URL_INTRANET_V3)%'
-    etablissement_logo_upload_dir: '%kernel.project_dir%/public/uploads/etablissement'
+  URL_INTRANET_V3: "%env(URL_INTRANET_V3)%"
+  etablissement_logo_upload_dir: "%kernel.project_dir%/public/uploads/etablissement"
 
 services:
-    # default configuration for services in *this* file
-    _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+  # default configuration for services in *this* file
+  _defaults:
+    autowire: true # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
-    App\Enum\StatutEnum:
-        public: true
+  App\Enum\StatutEnum:
+    public: true
 
-    # makes classes in src/ available to be used as services
-    acme_api.event.jwt_created_listener:
-        class: App\EventListener\JWTCreatedListener
-        arguments: [ '@request_stack' ]
-        tags:
-            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_created, method: onJWTCreated }
+  # makes classes in src/ available to be used as services
+  acme_api.event.jwt_created_listener:
+    class: App\EventListener\JWTCreatedListener
+    arguments: ["@request_stack"]
+    tags:
+      - {
+          name: kernel.event_listener,
+          event: lexik_jwt_authentication.on_jwt_created,
+          method: onJWTCreated,
+        }
 
-    # Listener pour ajouter les cookies HTTP-only lors de l'authentification
-    App\EventListener\AuthenticationSuccessListener:
-        arguments:
-            $refreshTokenGenerator: '@gesdinet_jwt_refresh_token.refresh_token_generator'
-            $refreshTokenManager: '@gesdinet_jwt_refresh_token.refresh_token_manager'
-            $refreshTokenTtl: 1209600 # 14 jours
-        tags:
-            - { name: kernel.event_listener, event: lexik_jwt_authentication.on_authentication_success, method: onAuthenticationSuccess, priority: -10 }
+  # Listener pour ajouter les cookies HTTP-only lors de l'authentification
+  App\EventListener\AuthenticationSuccessListener:
+    arguments:
+      $refreshTokenGenerator: "@gesdinet_jwt_refresh_token.refresh_token_generator"
+      $refreshTokenManager: "@gesdinet_jwt_refresh_token.refresh_token_manager"
+      $refreshTokenTtl: 1209600 # 14 jours
+    tags:
+      - {
+          name: kernel.event_listener,
+          event: lexik_jwt_authentication.on_authentication_success,
+          method: onAuthenticationSuccess,
+          priority: -10,
+        }
 
-    # this creates a service per class whose id is the fully-qualified class name
-    App\:
-        resource: '../src/'
-        exclude:
-            - '../src/DependencyInjection/'
-            - '../src/Entity/'
-            - '../src/Kernel.php'
+  # this creates a service per class whose id is the fully-qualified class name
+  App\:
+    resource: "../src/"
+    exclude:
+      - "../src/DependencyInjection/"
+      - "../src/Entity/"
+      - "../src/Kernel.php"
 
-    App\DataProvider\SingleRecordDataProvider:
-        arguments:
-            $entityManager: '@doctrine.orm.entity_manager'
-        tags: [ 'api_platform.state_provider' ]
-
-    App\Domain\Questionnaire\Repeat\RepeatItemsProviderRegistry:
-        arguments:
-            $providers: !tagged_iterator app.repeat_items_provider
-
-    App\Infrastructure\Questionnaire\Repeat\MatiereRepeatItemsProvider:
-        tags: [ 'app.repeat_items_provider' ]
-
+  App\DataProvider\SingleRecordDataProvider:
+    arguments:
+      $entityManager: "@doctrine.orm.entity_manager"
+    tags: ["api_platform.state_provider"]

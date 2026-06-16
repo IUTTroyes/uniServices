@@ -25,19 +25,22 @@ use Symfony\Component\Uid\Uuid;
 #[ApiResource(
     uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections',
     operations: [
-        new GetCollection(normalizationContext: ['groups' => ['questionnaire_section:read']],),
+        new GetCollection(normalizationContext: ['groups' => ['questionnaire_section:read']]),
+        new Post(),
     ],
     uriVariables: [
         'questionnaireId' => new Link(toProperty: 'questionnaire', fromClass: Questionnaire::class),
     ]
 )]
 #[ApiResource(
+    uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections/{uuid}',
     operations: [
-        new Patch(uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections/{uuid}',),
+        new Patch(),
         new Delete(),
-        new Post(
-            uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections',
-        )
+    ],
+    uriVariables: [
+        'questionnaireId' => new Link(toProperty: 'questionnaire', fromClass: Questionnaire::class),
+        'uuid' => new Link(fromClass: QuestionnaireSection::class),
     ]
 )]
 #[ORM\Index(name: 'idx_section_questionnaire_ordre', columns: ['questionnaire_id', 'sort_order'])]
@@ -54,7 +57,7 @@ class QuestionnaireSection
 
     #[ORM\Column(type: UuidType::NAME)]
     #[ApiProperty(identifier: true)]
-    #[Groups(['questionnaire:read'])]
+    #[Groups(['questionnaire:read', 'questionnaire_section:read'])]
     private Uuid $uuid;
 
 

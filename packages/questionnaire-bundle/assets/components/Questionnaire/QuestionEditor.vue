@@ -32,25 +32,10 @@
               <span class="text-sm text-gray-600 dark:text-gray-400">Obligatoire</span>
             </div>
           </div>
-          <Menu as="div" class="relative">
-            <MenuButton class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
-              <EllipsisVerticalIcon class="w-4 h-4" />
-            </MenuButton>
-            <MenuItems class="question-menu">
-              <MenuItem>
-                <button @click="duplicateQuestion" class="menu-item w-full">
-                  <DocumentDuplicateIcon class="w-4 h-4" />
-                  Dupliquer
-                </button>
-              </MenuItem>
-              <MenuItem>
-                <button @click="$emit('delete', question.uuid)" class="menu-item w-full text-red-600 dark:text-red-400">
-                  <TrashIcon class="w-4 h-4" />
-                  Supprimer
-                </button>
-              </MenuItem>
-            </MenuItems>
-          </Menu>
+          <div class="relative">
+            <ButtonDuplicate tooltip="Dupliquer la question" @confirm-duplicate="duplicateQuestion" />
+            <ButtonDelete tooltip="Supprimer la question" @confirm-delete="$emit('delete', question.uuid)" />
+          </div>
         </div>
 
         <!-- Question Title -->
@@ -320,6 +305,8 @@ import { VueDraggableNext as draggable } from 'vue-draggable-next';
 import type { Question, QuestionOption } from '@types';
 import { v4 as uuidv4 } from 'uuid';
 import ConditionalLogicModal from './ConditionalLogicModal.vue';
+import ButtonDelete from "@components/components/Buttons/ButtonDelete.vue";
+import ButtonDuplicate from "@components/components/Buttons/ButtonDuplicate.vue";
 
 interface Props {
   question: Question;

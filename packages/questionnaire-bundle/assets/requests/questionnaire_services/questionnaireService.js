@@ -5,11 +5,11 @@ import apiCall from '@helpers/apiCall'
 // ------------------- GET ----------------------
 // ----------------------------------------------
 
-const getAllQuestionnaires = async ( showToast = false) => {
+const getAllQuestionnaires = async (page = 1, filters = {}, showToast = false) => {
     try {
         return await apiCall(
           api.get,
-          [`/api/questionnaires`],
+          [`/api/questionnaires`, { params: { page, ...filters } }],
           'Questionnaires récupérés avec succès',
           'Erreur lors de la récupération des questionnaires',
           showToast
@@ -142,7 +142,7 @@ const createSectionQuestionnaire = async (section, questionnaireUuid, showToast 
     try {
         const response = await apiCall(
             api.post,
-            [`/api/questionnaire_sections`,
+            [`/api/questionnaires/${questionnaireUuid}/questionnaire_sections`,
                 {...section, questionnaire: `/api/questionnaires/${questionnaireUuid}`},
                 {
                     headers: {
@@ -182,11 +182,11 @@ const updateQuestionnaire = async (uuid, questionnaire, showToast = false) => {
     }
 }
 
-const updateSectionQuestionnaire = async (id, section, showToast = false) => {
+const updateSectionQuestionnaire = async (id, section, questionnaireUuid, showToast = false) => {
     try {
         const response = await apiCall(
             api.patch,
-            [`/api/questionnaire_sections/${id}`,
+            [`/api/questionnaires/${questionnaireUuid}/questionnaire_sections/${id}`,
                 {...section},
                 {
                     headers: {
@@ -224,7 +224,7 @@ const createQuestionInSection = async (sectionUuid, question, showToast = false)
     try {
         return await apiCall(
           api.post,
-          [`/api/questionnaire_questions`,
+          [`/api/questionnaire_sections/${sectionUuid}/questionnaire_questions`,
               { ...question, section: `/api/questionnaire_sections/${sectionUuid}` },
               {
                   headers: {
@@ -278,10 +278,30 @@ const deleteQuestionInSection = async (id, showToast = false) => {
     }
 }
 
-
-
+const publishQuestionnaire = async (uuid, data, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.post,
+            [`/api/questionnaires/${uuid}/publish`,
+                data,
+                {
+                    headers: {
+                        'Content-Type': 'application/ld+json'
+                    }
+                }],
+            'Questionnaire publié avec succès',
+            'Erreur lors de la publication du questionnaire',
+            showToast
+        );
+        return response;
+    } catch (error) {
+        console.error('Erreur dans publishQuestionnaire:', error);
+        throw error;
+    }
+}
 
 export {
+    publishQuestionnaire,
     getPreviewQuestionnaire,
     getPreviewQuestionnaireSection,
 

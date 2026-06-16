@@ -1,13 +1,13 @@
 <script setup>
-import {useLayout} from './composables/layout.js';
-import {computed, onMounted, ref, watch} from 'vue';
+import { useLayout } from './composables/layout.js';
+import { computed, onMounted, ref, watch } from 'vue';
 import { AVAILABLE_ROLES } from "@utils/permissions";
 import Logo from '@components/components/Logo.vue';
-import {useAnneeUnivStore, useUsersStore} from "@stores";
-import {useRoute, useRouter} from 'vue-router';
-import {tools} from '@config/uniServices.js';
+import { useAnneeUnivStore, useUsersStore } from "@stores";
+import { useRoute, useRouter } from 'vue-router';
+import { tools } from '@config/uniServices.js';
 import noImage from "@images/photos_etudiants/noimage.png";
-import {PermissionGuard} from "@components";
+import { PermissionGuard } from "@components";
 
 const anneeUnivStore = useAnneeUnivStore();
 const userStore = useUsersStore();
@@ -40,14 +40,14 @@ watch(() => userStore.user, async () => {
 
 // Surveiller les changements du rôle temporaire pour mettre à jour l'interface utilisateur
 watch(() => userStore.temporaryRole, () => {
-  const hasTemporaryRole = typeof userStore.temporaryRole === 'string' && userStore.temporaryRole.length > 0 ;
+  const hasTemporaryRole = typeof userStore.temporaryRole === 'string' && userStore.temporaryRole.length > 0;
   // Mettre à jour l'état actif des éléments de rôle lorsque le rôle temporaire change
   if (rolesItems.value.length > 0) {
     AVAILABLE_ROLES.forEach((role, index) => {
       if (rolesItems.value[index]) {
         rolesItems.value[index].active = hasTemporaryRole ?
-            (userStore.temporaryRole === role.role) :
-            userStore[role.property];
+          (userStore.temporaryRole === role.role) :
+          userStore[role.property];
       }
     });
   }
@@ -104,8 +104,8 @@ const fetchData = async () => {
           }
         },
         active: (typeof userStore.temporaryRole === 'string' && userStore.temporaryRole.length > 0)
-            ? (userStore.temporaryRole === role.role)
-            : userStore[role.property]
+          ? (userStore.temporaryRole === role.role)
+          : userStore[role.property]
       }));
 
       // Ajouter une option "Réinitialiser le rôle" à la fin
@@ -121,12 +121,12 @@ const fetchData = async () => {
       if (userStore.userType === 'personnels') {
         // Mapper les départements pour le menu déroulant
         deptItems.value = Array.isArray(userStore.departementsNotDefaut)
-            ? userStore.departementsNotDefaut.map(departement => ({
-              label: departement.libelle,
-              id: departement.id,
-              command: () => changeDepartement(departement.id)
-            }))
-            : [];
+          ? userStore.departementsNotDefaut.map(departement => ({
+            label: departement.libelle,
+            id: departement.id,
+            command: () => changeDepartement(departement.id)
+          }))
+          : [];
 
         // Définir le libellé du département par défaut
         departementLabel.value = userStore.departementDefaut?.libelle || '';
@@ -267,7 +267,7 @@ const selectAnneeUniversitaire = (annee) => {
       </button>
 
       <router-link to="/" class="layout-topbar-logo">
-        <Logo :logo-url="logoUrl" alt="logo" class="rounded-xl p-2"/> <span class="text-lg">{{appName}}</span>
+        <Logo :logo-url="logoUrl" alt="logo" class="rounded-xl p-2" /> <span class="text-lg">{{ appName }}</span>
       </router-link>
     </div>
 
@@ -286,20 +286,21 @@ const selectAnneeUniversitaire = (annee) => {
         </IconField>
       </div>
 
-      <button
-          class="layout-topbar-menu-button layout-topbar-action"
-          v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }">
+      <button class="layout-topbar-menu-button layout-topbar-action"
+        v-styleclass="{ selector: '@next', enterFromClass: 'hidden', enterActiveClass: 'animate-scalein', leaveToClass: 'hidden', leaveActiveClass: 'animate-fadeout', hideOnOutsideClick: true }">
         <i class="pi pi-ellipsis-v"></i>
       </button>
 
       <div class="layout-topbar-menu lg:block">
         <div class="layout-topbar-menu-content">
-          <a href="http://localhost:3000/auth/portail" v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text">
+          <a href="http://localhost:3000/auth/portail" v-if="route.path !== '/portail'" type="button"
+            class="layout-topbar-action layout-topbar-action-text">
             <i class="pi pi-arrow-left"></i>
             <span>Portail</span>
           </a>
 
-          <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
+          <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text"
+            @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
             <i class="pi pi-microsoft text-primary"></i>
             <span>Applications</span>
           </button>
@@ -312,7 +313,9 @@ const selectAnneeUniversitaire = (annee) => {
             </template>
           </Menu>
 
-          <button v-if="userStore.userType === 'personnels'" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleDeptMenu" aria-haspopup="true" aria-controls="dept_menu">
+          <button v-if="userStore.userType === 'personnels'" type="button"
+            class="layout-topbar-action layout-topbar-action-text" @click="toggleDeptMenu" aria-haspopup="true"
+            aria-controls="dept_menu">
             <i class="pi pi-arrow-right-arrow-left"></i>
             <span>{{ departementLabel }}</span>
           </button>
@@ -321,16 +324,18 @@ const selectAnneeUniversitaire = (annee) => {
           </div>
           <Menu ref="deptMenu" id="dept_menu" :model="deptItems" :popup="true" />
 
-          <button v-if="showRolesMenu" type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleRolesMenu" aria-haspopup="true" aria-controls="roles_menu">
+          <button v-if="showRolesMenu" type="button" class="layout-topbar-action layout-topbar-action-text"
+            @click="toggleRolesMenu" aria-haspopup="true" aria-controls="roles_menu">
             <i class="pi pi-shield"></i>
             <span>Rôles</span>
           </button>
           <Menu ref="rolesMenu" id="roles_menu" :model="rolesItems" :popup="true" />
 
           <PermissionGuard permission="isPersonnel">
-            <button type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu" aria-haspopup="true" aria-controls="annee_menu">
+            <button type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu"
+              aria-haspopup="true" aria-controls="annee_menu">
               <i class="pi pi-calendar"></i>
-              <span>{{selectedAnneeUniversitaire?.label}}</span>
+              <span>{{ selectedAnneeUniversitaire?.label }}</span>
             </button>
             <Menu ref="anneeMenu" id="annee_menu" :model="anneeItems" :popup="true" />
           </PermissionGuard>
@@ -348,7 +353,8 @@ const selectAnneeUniversitaire = (annee) => {
               <i :class="['pi', { 'pi-moon': isDarkTheme, 'pi-sun': !isDarkTheme }]"></i>
             </button>
           </div>
-          <Button severity="secondary" rounded @click="toggleProfileMenu" aria-haspopup="true" aria-controls="profile_menu" class="p-0!">
+          <Button severity="secondary" rounded @click="toggleProfileMenu" aria-haspopup="true"
+            aria-controls="profile_menu" class="layout-topbar-action p-0!">
             <template v-if="userStore.userPhoto">
               <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full max-w-12 mx-auto">
             </template>

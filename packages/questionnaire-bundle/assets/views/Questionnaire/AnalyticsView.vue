@@ -17,17 +17,11 @@
           <option value="30d">30 derniers jours</option>
           <option value="90d">90 derniers jours</option>
         </select>
-        <router-link
-          :to="`/responses/${surveyId}`"
-          class="btn-secondary"
-        >
-          <UserGroupIcon class="w-4 h-4" />
-          Voir les réponses
-        </router-link>
-        <button @click="exportAnalytics" class="btn-secondary">
-          <ArrowDownTrayIcon class="w-4 h-4" />
-          Exporter
-        </button>
+
+        <ActionButtonVertical :to="{ name: 'questionnaire_responses', params: { id: surveyId } }"
+          :icon="ChatBubbleLeftRightIcon" label="Voir les réponses" severity="success" />
+        <ActionButtonVertical :icon="ArrowDownTrayIcon" label="Exporter" severity="secondary"
+          @click="exportAnalytics" />
       </div>
     </div>
 
@@ -89,10 +83,7 @@
           Évolution des réponses
         </h3>
         <div class="h-64">
-          <Line
-            :data="responseChartData"
-            :options="chartOptions"
-          />
+          <Line :data="responseChartData" :options="chartOptions" />
         </div>
       </div>
 
@@ -101,10 +92,7 @@
           Répartition par statut
         </h3>
         <div class="h-64 flex items-center justify-center">
-          <Doughnut
-            :data="statusChartData"
-            :options="doughnutOptions"
-          />
+          <Doughnut :data="statusChartData" :options="doughnutOptions" />
         </div>
       </div>
     </div>
@@ -117,11 +105,7 @@
         </h2>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div
-            v-for="question in section.questions"
-            :key="question.id"
-            class="card"
-          >
+          <div v-for="question in section.questions" :key="question.id" class="card">
             <h4 class="font-medium text-gray-900 dark:text-white mb-3">
               {{ question.title }}
             </h4>
@@ -129,10 +113,7 @@
             <!-- Single/Multiple Choice Charts -->
             <div v-if="['single_choice', 'multiple_choice'].includes(question.type)">
               <div class="h-48">
-                <Bar
-                  :data="getQuestionChartData(question)"
-                  :options="questionChartOptions"
-                />
+                <Bar :data="getQuestionChartData(question)" :options="questionChartOptions" />
               </div>
               <div class="mt-3 text-sm text-gray-600 dark:text-gray-400">
                 {{ getQuestionResponseCount(question.id) }} réponses
@@ -142,10 +123,7 @@
             <!-- Scale Visualization -->
             <div v-else-if="question.type === 'scale'">
               <div class="h-48">
-                <Bar
-                  :data="getScaleChartData(question)"
-                  :options="questionChartOptions"
-                />
+                <Bar :data="getScaleChartData(question)" :options="questionChartOptions" />
               </div>
               <div class="mt-3 flex items-center justify-between text-sm text-gray-600 dark:text-gray-400">
                 <span>{{ getQuestionResponseCount(question.id) }} réponses</span>
@@ -172,11 +150,8 @@
                     Exemples de réponses:
                   </h5>
                   <div class="space-y-1">
-                    <div
-                      v-for="sample in getTextSamples(question.id).slice(0, 3)"
-                      :key="sample"
-                      class="text-xs text-gray-600 dark:text-gray-400 p-2 bg-gray-50 dark:bg-gray-700 rounded truncate"
-                    >
+                    <div v-for="sample in getTextSamples(question.id).slice(0, 3)" :key="sample"
+                      class="text-xs text-gray-600 dark:text-gray-400 p-2 bg-gray-50 dark:bg-gray-700 rounded truncate">
                       "{{ sample }}"
                     </div>
                   </div>
@@ -196,10 +171,7 @@
             <!-- Ranking Analysis -->
             <div v-else-if="question.type === 'ranking'">
               <div class="h-48">
-                <Bar
-                  :data="getRankingChartData(question)"
-                  :options="questionChartOptions"
-                />
+                <Bar :data="getRankingChartData(question)" :options="questionChartOptions" />
               </div>
               <div class="mt-3 text-sm text-gray-600 dark:text-gray-400">
                 {{ getQuestionResponseCount(question.id) }} réponses • Classement moyen
@@ -219,6 +191,7 @@ import {
   ArrowDownTrayIcon,
   ChartBarIcon,
   CheckCircleIcon,
+  ChatBubbleLeftRightIcon,
   ClockIcon,
   UserGroupIcon,
   TableCellsIcon
@@ -238,9 +211,11 @@ import {
 import { Line, Bar, Doughnut } from 'vue-chartjs';
 import { useSurveyStore } from '@/stores/survey';
 import { useResponseStore } from '@/stores/responses';
+import ActionButtonVertical from '@components/components/ActionButtonVertical.vue';
 import type { Question } from '@/types/survey';
 import { format, subDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { formatDuration } from '@/utils/date';
 
 // Register Chart.js components
 ChartJS.register(
@@ -262,9 +237,8 @@ const responseStore = useResponseStore();
 const surveyId = route.params.id as string;
 const timeFilter = ref('all');
 
-const survey = computed(() =>
-  surveyStore.surveys.find(s => s.id === surveyId)
-);
+const survey = computed(() => surveyStore.currentSurvey);
+
 
 const analytics = computed(() => responseStore.getSurveyAnalytics(surveyId));
 
@@ -493,22 +467,12 @@ function getTextSamples(questionId: string): string[] {
     .slice(0, 5);
 }
 
-function formatDuration(milliseconds: number): string {
-  const minutes = Math.round(milliseconds / (1000 * 60));
-  if (minutes < 60) return `${minutes}min`;
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return `${hours}h${remainingMinutes > 0 ? ` ${remainingMinutes}min` : ''}`;
-}
-
 function exportAnalytics() {
   // Mock export functionality
   console.log('Exporting analytics for survey:', surveyId);
 }
 
-onMounted(() => {
-  if (!survey.value) {
-    surveyStore.selectSurvey(surveyId);
-  }
+onMounted(async () => {
+  await surveyStore.selectSurvey(surveyId);
 });
 </script>

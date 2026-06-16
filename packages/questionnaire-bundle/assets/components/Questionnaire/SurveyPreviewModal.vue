@@ -246,7 +246,7 @@ import {
   Cog6ToothIcon
 } from '@heroicons/vue/24/outline';
 import type {Section, Survey} from '@types';
-import {getPreviewQuestionnaire, getPreviewQuestionnaireSection} from '@requests'
+import {getPreviewQuestionnaire, getPreviewQuestionnaireSection} from '@/requests/questionnaire_services/questionnaireService.js'
 import {ListSkeleton } from "@components";
 
 interface Props {

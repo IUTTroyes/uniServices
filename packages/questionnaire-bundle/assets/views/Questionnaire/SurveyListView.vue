@@ -6,11 +6,9 @@ import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
 import { computed, onMounted, ref, watch } from 'vue'
 
 import { FilterMatchMode } from '@primevue/core/api'
-// import apiCall from '@helpers/apiCall'
-// import api from '@helpers/axios'
-// import createApiService from '@requests/apiService.js'
-import { getAllQuestionnaires } from '@requests'
-import SurveyPreviewModal from '@/componnents/Questionnaire/SurveyPreviewModal.vue'
+
+import { getAllQuestionnaires } from '@/requests/questionnaire_services/questionnaireService.js'
+import SurveyPreviewModal from '@/components/Questionnaire/SurveyPreviewModal.vue'
 
 const statuts = [
   { label: 'Publié', value: 'published', severity: 'success' },
@@ -34,56 +32,32 @@ const filters = ref({
   statut: { value: null, matchMode: FilterMatchMode.EQUALS }
 })
 
-onMounted(async () => {
+const fetchQuestionnaires = async () => {
   loading.value = true
   try {
-    const data = await getAllQuestionnaires()
+    const data = await getAllQuestionnaires(page.value + 1, filters.value)
     nbQuestionnaires.value = data['totalItems']
     questionnaires.value = data['member']
   } catch (error) {
-    console.error('Erreur dans onMounted:', error)
-  } finally {
-    loading.value = false
-  }
-})
-
-async function onPageChange (event) {
-  console.log(event)
-  loading.value = true
-  page.value = event.page
-  try {
-    const data = await apiCall(
-        api.get,
-        [`api/questionnaires?page=${parseInt(page.value) + 1}`, { params: { ...filters.value } }],
-        '', // Empty success message to not show toast
-        'Erreur lors de la récupération des questionnaires'
-    )
-    questionnaires.value = data['member']
-  } catch (error) {
-    console.error('Erreur dans onPageChange:', error)
+    console.error('Erreur lors du chargement des questionnaires:', error)
   } finally {
     loading.value = false
   }
 }
 
+onMounted(fetchQuestionnaires)
+
+async function onPageChange (event) {
+  console.log(event)
+  page.value = event.page
+  await fetchQuestionnaires()
+}
+
 //watch filters
 watch(filters, async () => {
-  loading.value = true
-  try {
-    const data = await apiCall(
-        api.get,
-        ['api/questionnaires', { params: { ...filters.value } }],
-        '', // Empty success message to not show toast
-        'Erreur lors de la récupération des questionnaires'
-    )
-    nbQuestionnaires.value = data['totalItems']
-    questionnaires.value = data['member']
-  } catch (error) {
-    console.error('Erreur dans watch filters:', error)
-  } finally {
-    loading.value = false
-  }
-})
+  page.value = 0
+  await fetchQuestionnaires()
+}, { deep: true })
 
 const viewQuestionnaire = (questionnaire) => {
   selectedQuestionnaire.value = questionnaire

@@ -32,9 +32,6 @@ export * from './etudiant_services/etudiantAbsenceService.js';
 export * from './personnel_services/personnelHrsService.js'
 
 export * from './apc_services/competenceService.js';
-
-export * from './questionnaire_services/questionnaireService.js'
-
 export * from './salleService.js';
 
 export * from './export/exportService.js';

@@ -319,6 +319,7 @@ import { VueDraggableNext as draggable } from 'vue-draggable-next';
 import { useSurveyStore } from '@/stores/survey';
 import { useResponseStore } from '@/stores/responses';
 import type { Survey, Question } from '@/types/survey';
+import { formatDuration } from '@/utils/date';
 
 const route = useRoute();
 const surveyStore = useSurveyStore();
@@ -659,14 +660,6 @@ function completeSurvey() {
   responseStore.submitResponse(response.id);
 
   isCompleted.value = true;
-}
-
-function formatDuration(milliseconds: number): string {
-  const minutes = Math.round(milliseconds / (1000 * 60));
-  if (minutes < 60) return `${minutes}min`;
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return `${hours}h${remainingMinutes > 0 ? ` ${remainingMinutes}min` : ''}`;
 }
 
 function initializeRankingItems() {
