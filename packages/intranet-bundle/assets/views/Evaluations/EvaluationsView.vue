@@ -412,6 +412,9 @@ const onEvaluationSaved = async () => {
                     @open-dialog="openEvaluationDialog"
                     @update-visibility="updateEvaluationVisibility"
                     @update-edit="updateEvaluationEdit"
+                    @saved="onEvaluationSaved"
+                    @cancel-eval="onEvaluationSaved"
+                    @reactiver-eval="onEvaluationSaved"
                   />
                 </div>
                 <div v-else class="flex justify-center">

@@ -77,6 +77,9 @@ class EtudiantNote
     #[ORM\Column(nullable: true)]
     private ?array $historique = null;
 
+    #[ORM\Column(nullable: false)]
+    private ?bool $publiee = false;
+
     #[ORM\ManyToOne(inversedBy: 'note')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['note:write', 'note:detail'])]
@@ -192,6 +195,18 @@ class EtudiantNote
     public function setScolariteSemestre(?EtudiantScolariteSemestre $scolariteSemestre): static
     {
         $this->scolariteSemestre = $scolariteSemestre;
+
+        return $this;
+    }
+
+    public function isPubliee(): ?bool
+    {
+        return $this->publiee;
+    }
+
+    public function setPubliee(?bool $publiee): static
+    {
+        $this->publiee = $publiee;
 
         return $this;
     }

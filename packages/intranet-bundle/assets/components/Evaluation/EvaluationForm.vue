@@ -119,12 +119,6 @@ const updateEvaluation = async (annule = false) => {
       payload.personnelAutorise = Array.isArray(payload.personnelAutorise)
       ? payload.personnelAutorise.map(personnel => typeof personnel === 'string' ? personnel : `/api/personnels/${personnel.id}`)
       : [];
-      
-      if (annule) {
-        payload.etat = 'annulee';
-      } else {
-        payload.etat = 'initialisee';
-      }
     }
     payload.notes = Array.isArray(payload.notes)
     ? payload.notes.map(note => `/api/etudiant_notes/${note.id}`)
@@ -253,11 +247,9 @@ const updateEvaluation = async (annule = false) => {
       help-text="Sélectionnez les enseignants autorisés à gérer cette évaluation"
       :filter="true"
       />
-
-      <Button v-if="evaluation.etat !== 'non_initialisee' && evaluation.etat !== 'annulee' && evaluation.etat !== 'publiee'" class="w-full my-4" label="Annuler l'évaluation" severity="danger" @click="updateEvaluation(true)"/>
       
       <div class="flex justify-center items-center gap-4">
-        <Button label="Mettre à jour l'évaluation" @click="updateEvaluation(false)" :disabled="!formValid" />
+        <Button label="Mettre à jour l'évaluation" @click="updateEvaluation()" :disabled="!formValid" />
         <Button label="Annuler" severity="secondary" @click="() => emit('close')" />
         </div>
       </form>

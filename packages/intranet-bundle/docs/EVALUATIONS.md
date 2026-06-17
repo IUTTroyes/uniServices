@@ -43,3 +43,11 @@ Un enseignant qui n'a pas de responsabilité particulière dispose d'une page o�
 ## L'étudiant
 
 Un étudiant dispose d'une page où sont listées uniquement les évaluations qui le concernent. Il peut alors consulter les évaluations passées et à venir, ses notes et les commentaires associés, et les statistiques qui le concernent.
+
+## Évaluation Annulée
+
+Lorsqu'une évaluation est annulée, on désactive la saisie des notes et la publication des résultats. Cependant, on garde un historique des notes qui avaient été saisies. Les étudiants ne voient plus les notes. On désactive aussi la possibilité de modifier l'évaluation. On permet juste de réactiver l'évaluation et donc on la re-initialise (elle passe à l'état initialisée).
+
+## Prise en compte des notes dans le calcul des moyennes
+
+Seules les notes publiées sont prises en compte dans le calcul des moyennes. Si une évaluation est annulée, ses notes ne sont plus prises en compte dans le calcul des moyennes. Si une évaluation est réactivée, ses notes sont de nouveau prises en compte dans le calcul des moyennes. Si les notes d'une évaluation ne sont pas publiées, elles ne seront pas prises en compte dans le calcul des moyennes. Dans ce cas, on met la mention "Absence" à la place.

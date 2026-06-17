@@ -79,7 +79,7 @@ enum EtatEvaluationEnum: string
             self::ETAT_INITIALISEE   => [self::ETAT_PLANIFIEE, self::ETAT_ANNULEE],
             self::ETAT_PLANIFIEE => [self::ETAT_COMPLETEE, self::ETAT_ANNULEE],
             self::ETAT_COMPLETEE => [self::ETAT_PUBLIEE, self::ETAT_ANNULEE],
-            self::ETAT_ANNULEE => [self::ETAT_NON_INITIALISEE, self::ETAT_INITIALISEE],
+            self::ETAT_ANNULEE => [self::ETAT_INITIALISEE, self::ETAT_COMPLETEE, self::ETAT_PLANIFIEE],
             self::ETAT_PUBLIEE => [],
         };
     }
