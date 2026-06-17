@@ -35,7 +35,7 @@ Cette hiérarchie est respectée même lors de l'utilisation des rôles temporai
 - `isScolarite` - Service scolarité
 - `isDirection` - Direction
 - `isChefDepartement` - Chefs de département
-- `isChefParcours` - Chefs de parcours
+- `isRespParcours` - Responsables de parcours
 - `isDirecteurEtudes` - Directeurs d'études
 - `isAbsence` - Gestionnaires des absences
 - `isNote` - Gestionnaires des notes
@@ -60,11 +60,13 @@ Cette approche simplifie la gestion des droits pour les administrateurs système
 
 En plus des rôles simples, le système définit des permissions composées qui combinent plusieurs rôles :
 
+- `canViewAdministration` - Peut accéder aux fonctionnalités d'administration
 - `canViewEtudiantDetails` - Peut voir les détails des étudiants
 - `canEditEtudiantDetails` - Peut modifier les détails des étudiants
 - `canViewPersonnelDetails` - Peut voir les détails du personnel
 - `canEditPersonnelDetails` - Peut modifier les détails du personnel
 - `canViewNotes` - Peut voir les notes
+- `canEditAbsences` - Peut modifier les absences
 
 ## Utilisation de la directive `v-permission`
 
@@ -115,6 +117,14 @@ Le composant `PermissionGuard` offre plus de flexibilité que la directive, nota
 <!-- Avec plusieurs permissions (OR logique) -->
 <PermissionGuard :permission="['isEtudiant', 'canViewEtudiantDetails']">
   <p>Contenu visible par l'étudiant lui-même ou par les utilisateurs autorisés</p>
+</PermissionGuard>
+
+<!-- Avec plusieurs permissions (AND logique) -->
+<PermissionGuard
+  :permission="['canViewAdministration', { permission: 'canManageEvaluation', context: { evaluation } }]"
+  :requireAll="true"
+>
+  <p>Contenu visible uniquement si les deux permissions sont validées</p>
 </PermissionGuard>
 ```
 
@@ -206,8 +216,17 @@ Exemples d’utilisation:
   <!-- contenu autorisé -->
 </PermissionGuard>
 
-<!-- Combiner avec d’autres permissions (OR) -->
-<PermissionGuard :permission="{ permissions: [ { permission: 'canManageEvaluation', context: { evaluation } }, 'isDirection' ], requireAll: false }"/>
+<!-- Combiner avec d’autres permissions (OR par défaut) -->
+<PermissionGuard :permission="[{ permission: 'canManageEvaluation', context: { evaluation } }, 'isDirection']"/>
+
+<!-- Combiner avec d’autres permissions (AND) -->
+<PermissionGuard
+  :permission="[
+    { permission: 'canManageEvaluation', context: { evaluation } },
+    'canViewAdministration'
+  ]"
+  :requireAll="true"
+/>
 ```
 
 ```js
@@ -215,6 +234,22 @@ Exemples d’utilisation:
 import { hasPermission } from '@utils/permissions';
 
 if (hasPermission({ permission: 'canManageEvaluation', context: { evaluation } })) {
+  // ...
+}
+
+// OR (par défaut)
+if (hasPermission([
+  { permission: 'canManageEvaluation', context: { evaluation } },
+  'canViewAdministration'
+])) {
+  // ...
+}
+
+// AND
+if (hasPermission([
+  { permission: 'canManageEvaluation', context: { evaluation } },
+  'canViewAdministration'
+], { requireAll: true })) {
   // ...
 }
 ```
@@ -239,3 +274,4 @@ Bonnes pratiques:
 - Gardez la logique serveur alignée (Voter/Policy) pour la sécurité.
 - Nommez les permissions contextuelles de manière explicite (`canManageX`, `canEditY`).
 - Réutilisez `hasPermission` pour composer simplement des règles plus riches.
+- Préférez `:requireAll="true"` sur `PermissionGuard` (ou `{ requireAll: true }` avec `hasPermission`) lorsque plusieurs règles doivent être satisfaites simultanément.

@@ -135,7 +135,7 @@ const onPublishResults = async () => {
       }
       await updateEtudiantNoteService(etudiantNote.id, dataNotes);
     })
-    emit('saved');  
+    emit('saved');
   } catch (error) {
     console.error('Erreur lors de la publication des résultats:', error);
     toast.add({severity: 'error', summary: 'Erreur', detail: 'Erreur lors de la publication des résultats', life: 3000});
@@ -210,7 +210,7 @@ const reactiverEval = async () => {
       etat = 'planifiee';
      } else {
       etat = 'initialisee';
-     } 
+     }
     }
     const dataEval = {
       etat: etat,
@@ -250,7 +250,7 @@ const reactiverEval = async () => {
         </Message>
       </div>
     </div>
-    
+
     <div>
       <div class="flex justify-between items-center gap-4">
         <div class="text-sm flex items-center gap-1"><i class="pi pi-users"></i>Notes saisies</div>
@@ -261,7 +261,7 @@ const reactiverEval = async () => {
       </div>
       <ProgressBar :value="evaluation.percent" class="!h-3"></ProgressBar>
     </div>
-    
+
     <div class="flex justify-between gap-2">
       <div class="flex items-center gap-2 flex-wrap">
         <div>Saisie autorisée :</div>
@@ -275,7 +275,7 @@ const reactiverEval = async () => {
         Aucun personnel autorisé
       </div>
     </div>
-    
+
     <div v-if="evaluation.date" class="text-sm text-neutral-500">
       Évaluation programée le :
       {{ evaluation.date ? (new Date(evaluation.date).getDate() + '/' + (new Date(evaluation.date).getMonth() + 1) + '/' + new Date(evaluation.date).getFullYear()) : '' }}
@@ -286,7 +286,13 @@ const reactiverEval = async () => {
   </div>
 </div>
 
-<PermissionGuard :permission="{ permission: 'canManageEvaluation', context: { evaluation } }">
+<PermissionGuard
+  :permission="[
+    { permission: 'canManageEvaluation', context: { evaluation } },
+    'canViewAdministration'
+  ]"
+  :requireAll="false"
+>
   <Divider />
   <div class="flex justify-between items-center gap-4">
     <div class="flex items-center justify-start gap-2">
@@ -311,7 +317,7 @@ const reactiverEval = async () => {
       </div>
     </div>
   </div>
-  
+
   <Dialog :header="dialogHeader" v-model:visible="showDialog" modal :style="{ width: '70vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
     <component v-if="showDialog" :is="dialogComponent" :evaluationId="evaluation.id" :semestreId="semestreId" @saved="onEvaluationSaved" @close="onEvaluationClosed"/>
   </Dialog>

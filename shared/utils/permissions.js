@@ -61,44 +61,67 @@ const compositePermissions = {
 
 // Handlers de permissions contextuelles nommées
 // Permet d'écrire: hasPermission({ permission: 'canManageEvaluation', context: { evaluation } })
+const getUserIdentifiers = (userStore) => ({
+  ids: [userStore?.personnel?.id, userStore?.user?.id, userStore?.id, userStore?.uid].filter(v => v !== null && v !== undefined),
+  emails: [userStore?.email, userStore?.user?.email, userStore?.personnel?.email]
+    .filter(v => typeof v === 'string' && v.trim() !== '')
+    .map(v => v.trim().toLowerCase()),
+  logins: [userStore?.username, userStore?.login, userStore?.user?.username]
+    .filter(v => typeof v === 'string' && v.trim() !== '')
+    .map(v => v.trim().toLowerCase()),
+});
+
+const isUserInList = (userStore, list) => {
+  if (!Array.isArray(list) || list.length === 0) {
+    return false;
+  }
+
+  const { ids, emails, logins } = getUserIdentifiers(userStore);
+
+  return list.some((person) => {
+    if (!person) {
+      return false;
+    }
+
+    // Support des payloads simplifiés (id/uid/email/login en string|number)
+    if (typeof person === 'string' || typeof person === 'number') {
+      const value = String(person).trim();
+      const loweredValue = value.toLowerCase();
+      return ids.includes(person)
+        || ids.includes(Number.isNaN(Number(value)) ? value : Number(value))
+        || emails.includes(loweredValue)
+        || logins.includes(loweredValue);
+    }
+
+    if (typeof person !== 'object') {
+      return false;
+    }
+
+    const personId = person.id ?? person.userId ?? person.uid;
+    const personEmail = typeof person.email === 'string' ? person.email.trim().toLowerCase() : null;
+    const personLogin = typeof (person.login ?? person.username) === 'string'
+      ? (person.login ?? person.username).trim().toLowerCase()
+      : null;
+
+    return ids.includes(personId)
+      || (personEmail ? emails.includes(personEmail) : false)
+      || (personLogin ? logins.includes(personLogin) : false);
+  });
+};
+
 const contextualHandlers = {
   canManageEvaluation: ({ userStore, context }) => {
-    const evaluation = context?.evaluation;
-    if (!evaluation) return false;
+    if (!context?.evaluation) return false;
+    if (userStore.isSuperAdmin || userStore.isNote) return true;
 
-    if (userStore.isSuperAdmin) return true;
-    if (userStore.isNote) return true;
+    const list = Array.isArray(context.evaluation.personnelAutorise)
+      ? context.evaluation.personnelAutorise
+      : [];
 
-    const currentIds = [
-      userStore?.personnel?.id,
-      userStore?.user?.id,
-      userStore?.id,
-      userStore?.uid,
-    ].filter(Boolean);
-
-    const currentEmails = [
-      userStore?.email,
-      userStore?.user?.email,
-      userStore?.personnel?.email,
-    ].filter(Boolean);
-
-    const currentLogins = [
-      userStore?.username,
-      userStore?.login,
-      userStore?.user?.username,
-    ].filter(Boolean);
-
-    const list = Array.isArray(evaluation.personnelAutorise) ? evaluation.personnelAutorise : [];
-    return list.some(p => p && typeof p === 'object' && (
-        (p.id && currentIds.includes(p.id)) ||
-        (p.userId && currentIds.includes(p.userId)) ||
-        (p.uid && currentIds.includes(p.uid)) ||
-        (p.email && currentEmails.includes(p.email)) ||
-        (p.login && currentLogins.includes(p.login)) ||
-        (p.username && currentLogins.includes(p.username))
-    ));
+    return isUserInList(userStore, list);
   },
 };
+
 
 /**
  * Vérifie si l'utilisateur actuel a la permission d'accéder à une fonctionnalité spécifique
@@ -109,7 +132,8 @@ const contextualHandlers = {
  */
 export function hasPermission(requiredPermission, options = {}) {
   const userStore = useUsersStore();
-  const { requireAll = false } = options;
+  const normalizedOptions = (options && typeof options === 'object') ? options : {};
+  const { requireAll = false } = normalizedOptions;
 
   // Si aucun utilisateur n'est encore chargé, refuser l'accès
   if (!userStore.isLoaded) {
@@ -120,8 +144,8 @@ export function hasPermission(requiredPermission, options = {}) {
   // Supporte les éléments de types variés: string, fonction, objet composite, objet contextuel
   if (Array.isArray(requiredPermission)) {
     return requireAll
-        ? requiredPermission.every(permission => hasPermission(permission))
-        : requiredPermission.some(permission => hasPermission(permission));
+        ? requiredPermission.every(permission => hasPermission(permission, { requireAll: false }))
+        : requiredPermission.some(permission => hasPermission(permission, { requireAll: false }));
   }
 
   // 2) Objet contextuel { permission: string, context?: any }
@@ -233,13 +257,13 @@ function checkSinglePermission(permission, userStore) {
 
   // Vérifier les permissions basées sur les rôles via la map
   if (permission in ROLE_MAP) {
-    return userStore[permission];
+    return !!userStore[permission];
   }
 
   // Vérifier les permissions composites
   if (permission in compositePermissions) {
     // Vérifier si l'utilisateur possède l'un des rôles qui accordent cette permission
-    return compositePermissions[permission].some(role => userStore[role]);
+    return compositePermissions[permission].some(role => typeof role === 'string' && !!userStore[role]);
   }
 
   // Vérifier si l'utilisateur est un personnel avec un rattachement à un service
