@@ -12,8 +12,7 @@ Une évaluation va passer par differents états :
 - non initialisée : l'évaluation n'a pas encore été initialisée. On ne peut rien faire d'autre que l'initialiser.
 - initialisée : l'évaluation a été initialisée. Un ou plusieurs enseignants lui ont été attribués. On peut modifier l'évaluation ou l'annuler
 - planifiee : l'évaluation est planifiée. On peut saisir les notes, modifier l'évaluation, l'annuler.
-- terminee : la date de l'évaluation est passée, mais les notes n'ont pas encore été saisies.
-- completee : les notes ont été saisies. On peut modifier les notes, modifier l'évaluation, l'annuler, voir les statistiques et planifier la publication des résultats aux étudiants.
+- completee : les notes ont été saisies. On peut modifier les notes, modifier l'évaluation, l'annuler, voir les statistiques et planifier la publication des résultats aux étudiants."
 - publiee : les résultats ont été publiés. On ne peut plus modifier les notes ni l'évaluation.
 - annulee : l'évaluation est annulée. On ne peut plus la modifier, ni saisir des notes, ni publier les résultats. On peut juste supprimer l'évaluation ou la réactiver.
 
