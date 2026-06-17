@@ -12,6 +12,7 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
+use App\Enum\EtatEvaluationEnum;
 use App\Enum\TypeEvaluationEnum;
 use App\Enum\TypeGroupeEnum;
 use App\Filter\EvaluationFilter;
@@ -118,13 +119,12 @@ class ScolEvaluation
     private Collection $notes;
 
     #[ORM\Column(length: 10, enumType: TypeGroupeEnum::class, nullable: true)]
-    #[\Symfony\Component\Serializer\Attribute\Groups(['evaluation:detail'])]
     #[Groups(['evaluation:detail', 'evaluation:write', 'evaluation:init'])]
     private ?TypeGroupeEnum $typeGroupe;
 
-    #[ORM\Column(length: 20, options: ['default' => 'non_initialisee'])]
-    #[Groups(['evaluation:detail'])]
-    private ?string $etat = 'non_initialisee';
+    #[ORM\Column(length: 20, enumType: EtatEvaluationEnum::class)]
+    #[Groups(['evaluation:detail', 'evaluation:write', 'evaluation:init'])]
+    private ?EtatEvaluationEnum $etat = EtatEvaluationEnum::ETAT_NON_INITIALISEE;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     #[Groups(['evaluation:detail'])]
@@ -372,22 +372,41 @@ class ScolEvaluation
         return $severityMap[$this->type->value] ?? null;
     }
 
-    #[Groups(['evaluation:detail'])]
-    public function getEtat(): string
+    public function getEtat(): ?EtatEvaluationEnum
     {
-        return $this->etat ?? 'non_initialisee';
+        return $this->etat;
     }
 
-    public function setEtat(string $etat): self
+    public function setEtat(?EtatEvaluationEnum $etat): static
     {
-        // allowed values: non_initialisee, initialisee, planifiee, complet
-        $allowed = ['non_initialisee', 'initialisee', 'planifiee', 'complet'];
-        if (!in_array($etat, $allowed, true)) {
-            throw new \InvalidArgumentException('Etat invalide');
-        }
         $this->etat = $etat;
         return $this;
     }
+
+    #[Groups(['evaluation:detail'])]
+    public function getEtatIcon(): ?string
+    {
+        if (null === $this->etat) {
+            return null;
+        }
+
+        $severityMap = EtatEvaluationEnum::getIcon();
+
+        return $severityMap[$this->etat->value] ?? null;
+    }
+
+    #[Groups(['evaluation:detail'])]
+    public function getEtatSeverity(): ?string
+    {
+        if (null === $this->etat) {
+            return null;
+        }
+
+        $severityMap = EtatEvaluationEnum::getSeverity();
+
+        return $severityMap[$this->etat->value] ?? null;
+    }
+
 
     public function getTypeGroupe(): ?TypeGroupeEnum
     {

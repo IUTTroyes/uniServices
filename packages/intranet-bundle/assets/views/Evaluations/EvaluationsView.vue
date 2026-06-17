@@ -77,7 +77,7 @@ watch(annee, async (newAnnee, oldAnnee) => {
 
 const getAnnees = async () => {
   isLoadingAnnees.value = true;
-  
+
   if (!departementId.value || !selectedAnneeUniversitaireId.value) {
     annees.value = [];
     isLoadingAnnees.value = false;
@@ -223,9 +223,6 @@ const calcEvaluationProgress = (evaluation) => {
   evaluation.total = notesExistantes.length;
   evaluation.entered = notesExistantes.filter(n => n.note !== null && n.note !== undefined).length;
   evaluation.percent = evaluation.total > 0 ? Math.round((evaluation.entered / evaluation.total) * 100) : 0;
-  if (evaluation.percent === 100) {
-    evaluation.etat = 'complet';
-  }
 };
 
 const calcEnseignementProgress = (enseignement) => {

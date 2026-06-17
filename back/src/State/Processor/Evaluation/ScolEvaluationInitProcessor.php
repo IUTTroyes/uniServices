@@ -8,6 +8,7 @@ use App\Entity\Etudiant\EtudiantNote;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Structure\StructureGroupe;
+use App\Enum\EtatEvaluationEnum;
 use App\Enum\TypeGroupeEnum;
 use App\Repository\EtudiantNoteRepository;
 use App\Repository\Structure\StructureGroupeRepository;
@@ -21,15 +22,19 @@ class ScolEvaluationInitProcessor implements ProcessorInterface
         private readonly EntityManagerInterface $em,
         private readonly StructureGroupeRepository $groupeRepository,
         private readonly EtudiantNoteRepository $noteRepository,
-    ) {
-    }
+    ) {}
 
     public function process(mixed $data, Operation $operation, array $uriVariables = [], array $context = []): mixed
     {
+        if (!$data instanceof ScolEvaluation) {
+            return $data;
+        }
+
         // Persist changes made to the evaluation first (Doctrine will track the entity)
         $this->em->flush();
 
-        if (!$data instanceof ScolEvaluation) {
+        $etatActuel = $data->getEtat();
+        if ($etatActuel?->isEtatManuel()) {
             return $data;
         }
 
@@ -41,17 +46,25 @@ class ScolEvaluationInitProcessor implements ProcessorInterface
         $dateOk = null !== $data->getDate();
         $semestre = $data->getSemestre();
 
-        // Si tous les champs attendus sont remplis, on passe l'état à "initialisee"
-        if ($coeffOk && $typeOk && $persoOk && $dateOk) {
-            if ($data->getEtat() !== 'initialisee') {
-                $data->setEtat('initialisee');
-                $this->em->flush();
-            }
-        } else {
+        // Si les champs de base ne sont pas remplis, l'évaluation reste non initialisée
+        if (!($coeffOk && $typeOk && $persoOk)) {
+            $data->setEtat(EtatEvaluationEnum::ETAT_NON_INITIALISEE);
+            $this->em->flush();
             return $data; // ne rien faire tant que les champs requis ne sont pas remplis
         }
 
-        // Si pas de semestre défini, on s'arrête après avoir marqué l'état à initialisee
+        // Évaluation initialisée avec ou sans date
+        if (!$dateOk) {
+            $data->setEtat(EtatEvaluationEnum::ETAT_INITIALISEE);
+            $this->em->flush();
+            return $data;
+        }
+
+        // Date fournie : l'évaluation est planifiée jusqu'à saisie complète
+        $data->setEtat(EtatEvaluationEnum::ETAT_PLANIFIEE);
+        $this->em->flush();
+
+        // Si pas de semestre défini, on s'arrête après la mise à jour de l'état
         if (null === $semestre) {
             return $data;
         }
@@ -72,7 +85,9 @@ class ScolEvaluationInitProcessor implements ProcessorInterface
         foreach ($groupes as $groupe) {
             /** @var EtudiantScolariteSemestre $ess */
             foreach ($groupe->getScolariteSemestres() as $ess) {
-                if (null === $ess->getId()) { continue; }
+                if (null === $ess->getId()) {
+                    continue;
+                }
                 $targets[$ess->getId()] = $ess;
             }
         }
@@ -113,10 +128,18 @@ class ScolEvaluationInitProcessor implements ProcessorInterface
 
         $this->em->flush();
 
-        // Mettre à jour l'état de l'évaluation
+        // Mettre à jour l'état de l'évaluation après génération/contrôle des notes
         $total = $this->noteRepository->countByEvaluation($data);
         $completed = $this->noteRepository->countCompletedByEvaluation($data);
-        $etat = ($total > 0 && $completed >= $total) ? 'complet' : 'planifiee';
+        if ($total > 0 && $completed >= $total) {
+            $etat = EtatEvaluationEnum::ETAT_COMPLETEE;
+        } else {
+            $today = new \DateTimeImmutable('today');
+            $evaluationDate = \DateTimeImmutable::createFromInterface($data->getDate());
+            $etat = $evaluationDate < $today
+                ? EtatEvaluationEnum::ETAT_TERMINEE
+                : EtatEvaluationEnum::ETAT_PLANIFIEE;
+        }
         $data->setEtat($etat);
         $this->em->flush();
 
