@@ -37,12 +37,14 @@ const isLoadingSemestres = ref(true);
 
 const enseignements = ref([]);
 const isLoadingEnseignements = ref(true);
-const evaluations = ref([]);
 const isLoadingEvaluations = ref(true);
 const showDialog = ref(false);
 const dialogMode = ref(''); // 'init' | 'edit' | 'saisie'
 const dialogHeader = ref('');
 const selectedEvaluation = ref(null);
+const allEvaluations = computed(() =>
+  (enseignements.value || []).flatMap(enseignement => enseignement?.evaluations || [])
+);
 
 // Cache: expected total notes per (semestreId, typeGroupe)
 const expectedTotalsByType = ref({});
@@ -136,8 +138,7 @@ const getEnseignements = async () => {
     };
     enseignements.value = await getEnseignementsService(params);
     for (const enseignement of enseignements.value) {
-      await getEvaluations(enseignement.id);
-      enseignement.evaluations = evaluations.value;
+      enseignement.evaluations = await getEvaluations(enseignement.id) || [];
     }
     // Preload expected totals per typeGroupe for the semestre based on loaded evaluations
     await preloadExpectedTotalsForSemestre(semestre.value.id, enseignements.value);
@@ -160,12 +161,12 @@ const getEvaluations = async (enseignement) => {
       enseignement: enseignement,
       anneeUniversitaire: selectedAnneeUniversitaireId.value
     };
-    evaluations.value = await getEvaluationsService(params);
+    const evaluations = await getEvaluationsService(params);
     // Calculer la progression pour chaque évaluation
-    for (const evaluation of evaluations.value) {
+    for (const evaluation of evaluations) {
       await calcEvaluationProgress(evaluation);
     }
-    return evaluations.value;
+    return evaluations;
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching evaluations:', error);
@@ -318,6 +319,37 @@ const onEvaluationSaved = async () => {
       <Divider />
       <ListSkeleton v-if="isLoadingEnseignements" class="w-1/2"/>
       <div v-else>
+        <div class="flex justify-around items-center">
+          <div class="card w-1/5 flex items-center justify-center flex-col">
+              <div class="font-bold text-lg">À initialiser</div>
+              <div class="flex items-center gap-2">
+                <i class="pi pi-exclamation-triangle text-red-500"></i>
+                <SimpleSkeleton v-if="isLoadingEvaluations" class="w-1/2"/>
+                <span v-else class="text-red-500">{{ allEvaluations.filter(e => e.etat === 'non_initialisee').length }}</span>
+              </div>
+          </div>
+          <div class="card w-1/5 flex items-center justify-center flex-col">
+            <div class="font-bold text-lg">À planifier</div>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-calendar text-blue-500"></i>
+              <span class="text-blue-500">{{ allEvaluations.filter(e => e.etat === 'initialisee').length }}</span>
+            </div>
+          </div>
+          <div class="card w-1/5 flex items-center justify-center flex-col">
+              <div class="font-bold text-lg">Notes à saisir</div>
+              <div class="flex items-center gap-2">
+                <i class="pi pi-check-circle text-yellow-500"></i>
+                <span class="text-yellow-500">{{ allEvaluations.filter(e => e.etat === 'planifiee').length }}</span>
+              </div>
+          </div>
+          <div class="card w-1/5 flex items-center justify-center flex-col">
+            <div class="font-bold text-lg">À publier</div>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-send text-green-500"></i>
+              <span class="text-green-500">{{ allEvaluations.filter(e => e.etat === 'completee').length }}</span>
+            </div>
+          </div>
+        </div>
         <div class="flex justify-end gap-4">
           <Button label="Initialiser toutes les évaluations" icon="pi pi-plus-circle" severity="primary" size="small" @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')"/>
         </div>

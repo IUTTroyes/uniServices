@@ -145,9 +145,12 @@ const publishResults = () => {
           </div>
         </div>
 
-        <div class="text-sm text-neutral-500">
+        <div v-if="evaluation.date" class="text-sm text-neutral-500">
           Évaluation programée le :
           {{ evaluation.date ? (new Date(evaluation.date).getDate() + '/' + (new Date(evaluation.date).getMonth() + 1) + '/' + new Date(evaluation.date).getFullYear()) : '' }}
+        </div>
+        <div v-else class="text-sm text-red-400">
+          Évaluation non programée
         </div>
       </div>
     </div>
