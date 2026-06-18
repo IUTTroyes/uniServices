@@ -2,6 +2,8 @@
 import {ref} from 'vue';
 import {PermissionGuard, ValidatedInput} from "@components";
 import {getStatutsClasses,getPriorityClasses,priorities,updatePriority} from "@/utils";
+import {formatDateCourt} from "@helpers/date.js";
+
 
 const props = defineProps({
   ticket: {
@@ -20,6 +22,10 @@ const props = defineProps({
         <div class="font-semibold text-xl">
           {{ ticket.sujet || ticket.subject }}
         </div>
+      </div>
+
+      <div class="flex items-center">
+        <span class="text-sm text-gray-600 italic dark:text-gray-400">{{formatDateCourt(ticket.created)}}</span>
       </div>
 
       <div class="flex items-center gap-6">

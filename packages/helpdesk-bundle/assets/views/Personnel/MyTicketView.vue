@@ -8,7 +8,13 @@ import {PermissionGuard, ValidatedInput} from "@components";
 import {TabGroup, TabPanels} from "@headlessui/vue";
 import DatePicker from 'primevue/datepicker';
 import CascadeSelect from 'primevue/cascadeselect';
-import {getMessagesService,getServicesService, getTicketsService, updateTicketStatutService} from "@requests";
+import {
+  getMessagesService,
+  getPersonnelsService,
+  getServicesService,
+  getTicketsService,
+  updateTicketStatutService,
+} from "@requests";
 import {FilterMatchMode} from "@primevue/core/api";
 
 
@@ -18,15 +24,39 @@ const date = new Date();
 const services=ref([]);
 const selectedService=ref(null);
 const selectedCategorie=ref(null);
+const selectedStatut=ref(null);
+const selectedPersonnel=ref(null);
 const ticketsList=ref([]);
 const postedTicketsList=ref([]);
 const loading = ref(true);
+const personnelList = ref([]);
+const statutsOptions = ref([]);
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS }
 });
 
-// 🎯 Propriété calculée pour filtrer les tickets postés
+const getPersonnelsDuService = async (serviceId) => {
+  if (!serviceId) return;
+  try{
+    const params = {
+      service: serviceId
+    }
+    personnelList.value = await getPersonnelsService(params)
+  } catch (error) {
+    console.error ('Erreur lors du chargement des personnels')
+  }
+}
+
+const assignesOptions = computed(() => {
+  return personnelList.value.map(p => ({
+    label: `${p.prenom} ${p.nom}`,
+    value: `/api/personnels/${p.id}`
+  }))
+})
+
+
+
 const filteredPostedTickets = computed(() => {
   const search = filters.value.global.value?.toLowerCase().trim();
   if (!search) return postedTicketsList.value;
@@ -43,10 +73,10 @@ const filteredPostedTickets = computed(() => {
   });
 });
 
-// 🎯 Propriété calculée pour filtrer les tickets reçus (ticketsList)
+
 const filteredReceivedTickets = computed(() => {
   const search = filters.value.global.value?.toLowerCase().trim();
-  if (!search) return ticketsList.value; // Remplace receivedTicketsList par ticketsList qui contient les reçus
+  if (!search) return ticketsList.value;
 
   return ticketsList.value.filter(ticket => {
     return (
@@ -86,18 +116,27 @@ const getServices= async()=>{
   catch(error){
     console.error('Erreur dans getServices',error);
   }
-  finally {
+  /*finally {
     console.log(services.value)
-  }
+  }*/
 }
 const getTickets = async () => {
   try {
     loading.value = true;
-    const postedTickets= {
-      auteur:userStore.user?.id,
-    }
-    const response = await getTicketsService();
 
+    // 1. Récupération des tickets postés
+    const postedParams = { auteur: userStore.user?.id };
+    const responsePostedTickets = await getTicketsService(postedParams);
+    if (responsePostedTickets && responsePostedTickets['member']) {
+      postedTicketsList.value = responsePostedTickets['member'];
+    } else if (Array.isArray(responsePostedTickets)) {
+      postedTicketsList.value = responsePostedTickets;
+    } else {
+      postedTicketsList.value = [];
+    }
+
+    // 2. Récupération de tous les tickets (Reçus)
+    const response = await getTicketsService();
     if (response && response['member']) {
       ticketsList.value = response['member'];
     } else if (Array.isArray(response)) {
@@ -106,27 +145,38 @@ const getTickets = async () => {
       ticketsList.value = [];
     }
 
-    const responsePostedTickets = await getTicketsService(postedTickets);
+    // 🎯 EXTRACTION DES STATUTS UNIQUES
+    const uniquesStatuts = [...new Set(
+        ticketsList.value
+            .map(t => t.statut)
+            .filter(statut => statut !== undefined && statut !== null && statut !== '')
+    )];
+    statutsOptions.value = uniquesStatuts.map(statut => ({
+      label: statut,
+      value: statut
+    }));
 
-    if (responsePostedTickets && responsePostedTickets['member']) {
-      postedTicketsList.value = responsePostedTickets['member'];
-    } else if (Array.isArray(responsePostedTickets)) {
-      postedTicketsList.value = responsePostedTickets;
-    } else {
-      postedTicketsList.value = [];
-    }
+    // 3. Extraction et chargement des personnels
+    const serviceIds = [...new Set(
+        ticketsList.value
+            .map(t => t.helpdeskCategorie?.service?.id)
+            .filter(id => id !== undefined && id !== null)
+    )];
+    await Promise.all(serviceIds.map(id => getPersonnelsDuService(id)));
+
   } catch (error) {
     console.error('Impossible de charger les tickets:', error);
     ticketsList.value = [];
+    postedTicketsList.value = [];
   } finally {
     loading.value = false;
   }
 };
 
-onMounted(async()=>{
+onMounted(async () => {
   await getServices();
   await getTickets();
-})
+});
 
 </script>
 
@@ -178,32 +228,53 @@ onMounted(async()=>{
           </div>
         </PermissionGuard>
 
-        <div class="flex flex-col">
-          <ValidatedInput
-              v-model="selectedStatut"
-              :options="(services.map(service=>({label:service.libelle,value:service})))"
-              name="Statut"
-              type="select"
-              label="Statut"
-              placeholder="Sélectionnez un statut"
-              :rules="[]"
-              class=""
-              :show-clear="true"
-          ></ValidatedInput>
-        </div>
-        <PermissionGuard permission="isPersonnel">
           <div class="flex flex-col">
             <ValidatedInput
-                v-model="selectedPersonnel"
-                :options="personnels"
-                name="assignes"
+                v-model="selectedStatut"
+                :options="statutsOptions"
+                name="Statut"
                 type="select"
-                label="Assignés"
-                placeholder="Sélectionnez un personnel"
+                label="Statut"
+                placeholder="Sélectionnez un statut"
                 :rules="[]"
                 class=""
                 :show-clear="true"
             ></ValidatedInput>
+          </div>
+        <PermissionGuard permission="isPersonnel">
+          <div class="flex flex-col">
+            <ValidatedInput
+                v-model="selectedPersonnel"
+                :options="assignesOptions"
+                optionLabel="label"
+                optionValue="value"
+                name="assigne"
+                type="select"
+                label="Assignés"
+                :rules="[]"
+                placeholder="Sélectionnez un personnel"
+                class="w-full md:w-56"
+                :show-clear="true"
+            >
+              <template #value="valueProps">
+                <div v-if="valueProps.value" class="flex items-center gap-2">
+                  <i class="pi pi-user text-blue-500"></i>
+                  <span>
+        {{ assignesOptions.find(p => p.value === valueProps.value)?.label }}
+      </span>
+                </div>
+                <span v-else>
+      {{ valueProps.placeholder }}
+    </span>
+              </template>
+
+              <template #option="optionProps">
+                <div class="flex items-center gap-2">
+                  <i class="pi pi-user text-gray-400"></i>
+                  <span>{{ optionProps.option.label }}</span>
+                </div>
+              </template>
+            </ValidatedInput>
           </div>
         </PermissionGuard>
       </div>

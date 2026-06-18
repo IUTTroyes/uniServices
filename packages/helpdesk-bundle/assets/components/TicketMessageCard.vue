@@ -1,5 +1,5 @@
 <script setup>
-import {formatDateCourt, jourDate} from "@helpers/date.js";
+import {formatDateCourt} from "@helpers/date.js";
 
 const props = defineProps({
   ticket: {
