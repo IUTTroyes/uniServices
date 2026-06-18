@@ -4,8 +4,16 @@ import path from 'path'
 import Components from 'unplugin-vue-components/vite'
 import { PrimeVueResolver } from '@primevue/auto-import-resolver'
 import tailwindcss from '@tailwindcss/vite'
+import { loadEnv } from 'vite'
 
-export default defineConfig({
+
+
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, path.resolve(__dirname, '../../'), '')
+
+  process.env.VITE_API_URL = env.VITE_API_URL
+
+  return {
   plugins: [
     vue(),
     tailwindcss(),
@@ -25,7 +33,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8000',
+        target: process.env.VITE_API_URL,
         changeOrigin: true,
         secure: false,
       },
@@ -48,4 +56,5 @@ export default defineConfig({
       '@common-images': path.resolve(__dirname, '../../shared/images'),
     },
   },
+}
 })
