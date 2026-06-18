@@ -40,7 +40,7 @@ const getPreviewQuestionnaire = async (id, showToast = false) => {
     try {
         return await apiCall(
           api.get,
-          [`/api/questionnaires/${id}/preview/index`],
+          [`/api/questionnaires/${id}/preview`],
           'Questionnaire récupéré avec succès',
           'Erreur lors de la récupération du questionnaire',
           showToast
