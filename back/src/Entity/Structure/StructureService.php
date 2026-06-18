@@ -2,6 +2,7 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Users\Personnel;
@@ -10,9 +11,11 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use HelpdeskBundle\Entity\HelpdeskCategorie;
+use HelpdeskBundle\Filter\ServiceFilter;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureServiceRepository::class)]
+#[ApiFilter(ServiceFilter::class)]
 #[ApiResource(
     operations: [
         new GetCollection(

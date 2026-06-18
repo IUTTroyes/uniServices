@@ -24,7 +24,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: HelpdeskTicketRepository::class)]
 #[ORM\HasLifecycleCallbacks]
-#[ApiFilter(TicketFilter::class, MessageFilter::class)]
+#[ApiFilter(TicketFilter::class)]
 #[ApiFilter(SearchFilter::class, properties: [
     'subject' => 'partial',
     'description' => 'start',
@@ -49,6 +49,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(
             normalizationContext: ['groups' => ['ticket:read']],
         ),
+        new Get(
+            uriTemplate: '/simple-ticket/helpdesk_tickets/{id}',
+            normalizationContext: ['groups' => ['simple-ticket:read']],
+        ),
         new Patch(
             normalizationContext: ['groups' => ['ticket:write']],
         ),
@@ -65,19 +69,19 @@ class HelpdeskTicket
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['ticket:read','ticket:delete'])]
+    #[Groups(['ticket:read','ticket:delete','simple-ticket:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 50)]
-    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
+    #[Groups(['ticket:write','ticket:read','ticket:delete','simple-ticket:read'])]
     private ?string $subject = null;
 
     #[ORM\Column(type:Types::TEXT, nullable:true)]
-    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
+    #[Groups(['ticket:write','ticket:read','ticket:delete','simple-ticket:read'])]
     private ?string $description = null;
 
     #[ORM\Column(length: 20, enumType: StatutTicketEnum::class )]
-    #[Groups(['ticket:read','ticket:write','ticket:delete'])]
+    #[Groups(['ticket:read','ticket:write','ticket:delete','simple-ticket:read'])]
     private StatutTicketEnum $statut=StatutTicketEnum::A_TRAITER;
 
     #[Groups(['ticket:read'])]
@@ -91,12 +95,12 @@ class HelpdeskTicket
     private ?string $priority = null;
 
     #[ORM\Column( nullable: true)]
-    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
+    #[Groups(['ticket:write','ticket:read','ticket:delete','simple-ticket:read'])]
         private ?array $files_names = null;
 
     #[ORM\ManyToOne(inversedBy: 'ticket')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['ticket:write','ticket:read','ticket:delete'])]
+    #[Groups(['ticket:write','ticket:read','ticket:delete','simple-ticket:read'])]
     private ?HelpdeskCategorie $helpdeskCategorie = null;
 
     /**
@@ -108,7 +112,7 @@ class HelpdeskTicket
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['ticket:write','ticket:read','ticket:delete','message:read','message:write'])]
+    #[Groups(['ticket:write','ticket:read','ticket:delete','message:read','message:write','simple-ticket:read'])]
     private ?Personnel $auteur = null;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]

@@ -18,10 +18,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['category:read']],
         ),
         new GetCollection(
-            uriTemplate: '/mini/structure_services',
-            normalizationContext: ['groups' => ['category:light']],
-        ),
-        new GetCollection(
             uriTemplate: '/form_ticket/helpdesk_categories',
             normalizationContext: ['groups' => ['category:form_ticket']],
         )
@@ -49,7 +45,7 @@ class HelpdeskCategorie
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskCategories')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['category:read','service:read', 'ticket:read'])]
+    #[Groups(['category:read','ticket:read'])]
     private ?StructureService $service = null;
 
     /**

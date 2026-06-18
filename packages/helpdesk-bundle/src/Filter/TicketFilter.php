@@ -47,6 +47,13 @@ class TicketFilter extends AbstractFilter
                 ->andWhere('m.created >= :dateLimite')
                 ->setParameter('dateLimite', $dateLimite);
         }
+        if ('service' === $property) {
+            $queryBuilder
+                ->leftJoin(sprintf('%s.helpdeskCategorie', $alias), 'c')
+                ->leftJoin(sprintf('c.service'), 's')
+                ->andWhere(sprintf('%s.id = :%s', 's',$property))
+                ->setParameter($property, $value);
+        }
     }
 
     public function getDescription(string $resourceClass): array

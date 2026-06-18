@@ -25,7 +25,7 @@ const getTicketService = async (id,params, scope='',showToast=false) => {
     try{
         return await apiCall(
             api.get,
-            [`/api/helpdesk_tickets/${id}`,{params}],
+            [`/api${scope}/helpdesk_tickets/${id}`,{params}],
             'Ticket récupéré avec succès',
             'Erreur lors de la récupération du ticket',
             showToast

@@ -23,7 +23,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(
         normalizationContext: ['groups' => ['message:read']],
-    ),
+        ),
+        new Get(
+            uriTemplate: '/simple-ticket-message/helpdesk_messages',
+            normalizationContext: ['groups' => ['simple-ticket-message:read']],
+        ),
         new Post(
             denormalizationContext: ['groups' => ['message:write']],
         ),
@@ -45,7 +49,7 @@ class HelpdeskMessage
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['message:read','message:write','ticket:read'])]
+    #[Groups(['message:read','message:write','ticket:read','simple-ticket-message:read'])]
     private ?string $content = null;
 
     #[ORM\ManyToOne(inversedBy: 'helpdeskMessages')]
@@ -56,7 +60,7 @@ class HelpdeskMessage
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true)]
-    #[Groups(['message:read','ticket:read','message:write'])]
+    #[Groups(['message:read','ticket:read','message:write','simple-ticket-message:read'])]
     private ?Personnel $auteur = null;
 
     public function getId(): ?int

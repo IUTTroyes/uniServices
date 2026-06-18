@@ -31,6 +31,10 @@ const postedTicketsList=ref([]);
 const loading = ref(true);
 const personnelList = ref([]);
 const statutsOptions = ref([]);
+const buttondisplay= ref(null);
+const userServices = ref ([]);
+const postedTickets= ref([]);
+const receivedTickets= ref([]);
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS }
@@ -124,50 +128,27 @@ const getTickets = async () => {
   try {
     loading.value = true;
 
-    // 1. Récupération des tickets postés
+    // 1. Récupération des tickets postés par l'utilisateur connecté
     const postedParams = { auteur: userStore.user?.id };
-    const responsePostedTickets = await getTicketsService(postedParams);
-    if (responsePostedTickets && responsePostedTickets['member']) {
-      postedTicketsList.value = responsePostedTickets['member'];
-    } else if (Array.isArray(responsePostedTickets)) {
-      postedTicketsList.value = responsePostedTickets;
-    } else {
-      postedTicketsList.value = [];
+    postedTickets.value = await getTicketsService(postedParams);
+
+    const params = {
+      personnel: userStore.user.id,
+  }
+    userServices.value = await getServicesService(params,'/mini')
+
+    receivedTickets.value = []
+
+    for (const service of userServices.value) {
+      const receivedParams = {
+        service: service.id
+      }
+      const tickets = await getTicketsService(receivedParams)
+      receivedTickets.value.push(...tickets)
     }
-
-    // 2. Récupération de tous les tickets (Reçus)
-    const response = await getTicketsService();
-    if (response && response['member']) {
-      ticketsList.value = response['member'];
-    } else if (Array.isArray(response)) {
-      ticketsList.value = response;
-    } else {
-      ticketsList.value = [];
-    }
-
-    // 🎯 EXTRACTION DES STATUTS UNIQUES
-    const uniquesStatuts = [...new Set(
-        ticketsList.value
-            .map(t => t.statut)
-            .filter(statut => statut !== undefined && statut !== null && statut !== '')
-    )];
-    statutsOptions.value = uniquesStatuts.map(statut => ({
-      label: statut,
-      value: statut
-    }));
-
-    // 3. Extraction et chargement des personnels
-    const serviceIds = [...new Set(
-        ticketsList.value
-            .map(t => t.helpdeskCategorie?.service?.id)
-            .filter(id => id !== undefined && id !== null)
-    )];
-    await Promise.all(serviceIds.map(id => getPersonnelsDuService(id)));
 
   } catch (error) {
     console.error('Impossible de charger les tickets:', error);
-    ticketsList.value = [];
-    postedTicketsList.value = [];
   } finally {
     loading.value = false;
   }
@@ -309,11 +290,11 @@ onMounted(async () => {
         <div v-if="loading" class="text-center p-10 text-xl">
           Chargement des tickets...
         </div>
-        <div v-else-if="filteredPostedTickets.length === 0" class="text-center p-10 text-xl text-gray-500">
+        <div v-else-if="postedTickets.length === 0" class="text-center p-10 text-xl text-gray-500">
           Aucun ticket trouvé.
         </div>
         <div v-else class="p-6">
-          <div v-for="ticket in filteredPostedTickets" :key="ticket.id">
+          <div v-for="ticket in postedTickets" :key="ticket.id">
             <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
           </div>
         </div>
@@ -339,11 +320,11 @@ onMounted(async () => {
         <div v-if="loading" class="text-center p-10 text-xl">
           Chargement des tickets...
         </div>
-        <div v-else-if="filteredReceivedTickets.length === 0" class="text-center p-10 text-xl text-gray-500">
+        <div v-else-if="receivedTickets.length === 0" class="text-center p-10 text-xl text-gray-500">
           Aucun ticket trouvé.
         </div>
         <div v-else class="p-6">
-          <div v-for="ticket in filteredReceivedTickets" :key="ticket.id">
+          <div v-for="ticket in receivedTickets" :key="ticket.id">
             <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
           </div>
         </div>

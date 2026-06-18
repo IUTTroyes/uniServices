@@ -85,12 +85,13 @@ const onUpload = (event) => {
   console.log("Fichier téléversé", event);
 };
 
+
 const getMessages = async () =>{
   try{
     const params = {
       ticket: ticketIri.value
     }
-    const response = await getMessagesService(params);
+    const response = await getMessagesService(params,'/simple-ticket-message');
     if (response && response['member']) {
       ticket.value.messages = response['member'];
     } else if (Array.isArray(response)) {
@@ -108,11 +109,11 @@ const ticketIri = computed(() => {
   return props.id ? `/api/helpdesk_tickets/${props.id}` : null;
 });
 
-const getTicketsService = async () => {
+const getTickets = async () => {
   if (!props.id) return;
   try {
     loading.value = true;
-    ticket.value = await getTicketService(props.id)
+    ticket.value = await getTicketService(props.id,{},'/simple-ticket')
     const serviceId = ticket.value.helpdeskCategorie.service.id;
     if (serviceId) {
       await getPersonnelsDuService(serviceId);
@@ -143,7 +144,7 @@ const sendMessage = async () => {
     await createMessageService(payload, true);
     replyText.value = "";
     isReplying.value = false;
-    await getTicketsService();
+    await getTickets();
   } catch (error) {
     console.error('Erreur lors de l\'envoi du message', error);
   }
@@ -154,7 +155,7 @@ const toggleReply = () => {
 };
 
 onMounted(async () => {
-  await getTicketsService();
+  await getTickets();
 });
 
 </script>
