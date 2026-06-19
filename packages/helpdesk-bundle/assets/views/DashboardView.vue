@@ -15,6 +15,7 @@ const checked = ref(false);
 const first = ref(0);
 const rows = ref(5);
 const ticketsList = ref([]);
+const postedTicketsList = ref([]);
 const ticketsNewMessageList= ref ([]);
 const loading = ref(true);
 
@@ -52,6 +53,9 @@ const getTickets = async () => {
     } else {
       ticketsList.value = [];
     }
+
+    const postedParams = { auteur: userStore.user?.id };
+    postedTicketsList.value = await getTicketsService(postedParams);
 
     const responseNewMessage = await getTicketsService(paramsMessages);
 
@@ -133,7 +137,7 @@ onMounted(() => {
 
         <div class="font-semibold mb-6 text-xl">Derniers tickets postés</div>
 
-        <Carousel :value="ticketsList" :numVisible="3" :numScroll="1">
+        <Carousel :value="postedTicketsList" :numVisible="3" :numScroll="1">
 
           <template #item="{ data: ticket }">
             <div class="rounded m-2 p-4">

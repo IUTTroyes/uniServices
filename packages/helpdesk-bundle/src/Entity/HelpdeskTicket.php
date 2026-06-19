@@ -84,7 +84,7 @@ class HelpdeskTicket
     #[Groups(['ticket:read','ticket:write','ticket:delete','simple-ticket:read'])]
     private StatutTicketEnum $statut=StatutTicketEnum::A_TRAITER;
 
-    #[Groups(['ticket:read'])]
+    #[Groups(['ticket:read','simple-ticket:read'])]
     public function getTransitionsAutorisees(): array
     {
         return $this->statut->getTransitionsAutorisees();

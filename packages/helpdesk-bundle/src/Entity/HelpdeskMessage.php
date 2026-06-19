@@ -24,7 +24,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(
         normalizationContext: ['groups' => ['message:read']],
         ),
-        new Get(
+        new GetCollection(
             uriTemplate: '/simple-ticket-message/helpdesk_messages',
             normalizationContext: ['groups' => ['simple-ticket-message:read']],
         ),

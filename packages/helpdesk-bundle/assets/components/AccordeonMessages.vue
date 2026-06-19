@@ -32,7 +32,7 @@ const goToTicket = (id) => {
           </span>
         </AccordionHeader>
 
-        <AccordionContent :pt="{ content: '!bg-white dark:!bg-zinc-900 ' }">
+        <AccordionContent :pt="{ content: '!bg-white dark:!bg-zinc-900 !p-10' }">
           <div v-for="singleTicket in tickets" :key="singleTicket.id">
             <TicketMessageCard :ticket="singleTicket" @click="goToTicket(singleTicket.id)" />
           </div>

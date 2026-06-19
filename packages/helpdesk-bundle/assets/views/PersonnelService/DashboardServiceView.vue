@@ -8,7 +8,7 @@ import AccordeonMessages from "@/components/AccordeonMessages.vue";
 import StatsDashboards from "@/components/StatsDashboards.vue";
 import { PermissionGuard } from "@components";
 import { useRouter } from 'vue-router';
-import { getTicketsService } from '@requests';
+import {getServicesService, getTicketsService} from '@requests';
 
 const router = useRouter();
 const userStore = useUsersStore();
@@ -17,8 +17,10 @@ const checked = ref(false);
 const first = ref(0);
 const rows = ref(5);
 const ticketsList = ref([]);
+const receivedTicketsList = ref([]);
 const ticketsNewMessageList= ref ([]);
 const loading = ref(true);
+const userServices=ref([]);
 const responsiveOptions = ref([
   {
     breakpoint: '1024px',
@@ -34,6 +36,10 @@ const responsiveOptions = ref([
 
 const goToTicket = (id) => {
   router.push({ name: 'TicketView', params: { id: id } });
+};
+
+const goToAllTickets = () => {
+  router.push({ name: 'MyTicketView' });
 };
 
 
@@ -67,6 +73,21 @@ const getTickets = async () => {
       ticketsList.value = response;
     } else {
       ticketsList.value = [];
+    }
+
+    const paramsUser = {
+      personnel: userStore.user.id,
+    }
+    userServices.value = await getServicesService(paramsUser,'/mini')
+
+    receivedTicketsList.value = []
+
+    for (const service of userServices.value) {
+      const receivedParams = {
+        service: service.id
+      }
+      const tickets = await getTicketsService(receivedParams)
+      receivedTicketsList.value.push(...tickets)
     }
 
     const responseNewMessage = await getTicketsService(paramsMessages);
@@ -130,14 +151,14 @@ onMounted(() => {
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">En cours :</span>
           <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
-              {{ ticketsList.filter(t => t.statut === 'En cours').length }}
+              {{ receivedTicketsList.filter(t => t.statut === 'En cours').length }}
             </span>
         </div>
         <div class="w-px h-6 bg-gray-200"></div>
         <div class="flex items-center gap-3">
           <span class="text-sm text-gray-600 dark:text-gray-400 font-bold">Traités :</span>
           <span class="text-2xl font-bold text-purple-600 dark:text-violet-400">
-              {{ ticketsList.filter(t => t.statut === 'Clôturé').length }}
+              {{ receivedTicketsList.filter(t => t.statut === 'Clôturé').length }}
             </span>
         </div>
       </div>
@@ -196,12 +217,12 @@ onMounted(() => {
 
         <div class="font-semibold mb-6 text-xl">Nouveaux tickets de votre service</div>
 
-        <Carousel :value="ticketsList" :numVisible="3" :numScroll="1" :responsiveOptions="responsiveOptions">
+        <Carousel :value="receivedTicketsList" :numVisible="3" :numScroll="1" :responsiveOptions="responsiveOptions">
 
           <template #item="{ data: ticket }">
             <div class="rounded m-2 p-4">
               <div class="mb-4">
-                <TicketMessageCard :ticket="ticket" @checked="goToTicket(ticket.id)" class="cursor-pointer"/>
+                <TicketMessageCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer"/>
               </div>
             </div>
           </template>
@@ -211,109 +232,113 @@ onMounted(() => {
       </div>
      </div>
 
-    <div class="card">
-      <Tabs value="0">
-        <TabList class="mb-10">
-          <Tab value="0">Mes derniers Tickets</Tab>
-          <Tab value="1">Tickets Postés</Tab>
-          <PermissionGuard permission="isPersonnelService">
-            <Tab value="2">Tickets Reçus</Tab>
-          </PermissionGuard>
-        </TabList>
-
-        <TabPanels>
-          <TabPanel value="0">
-            <div>
-              <Toolbar style="border:none">
-                <template #start>
-                  <div class="font-semibold text-xl">Mes derniers Tickets</div>
-                </template>
-                <template #end>
-                  <IconField>
-                    <InputIcon>
-                      <i class="pi pi-search" />
-                    </InputIcon>
-                    <InputText placeholder="Search" />
-                  </IconField>
-                </template>
-              </Toolbar>
-            </div>
-
-            <div v-if="loading" class="text-center p-10 text-xl">
-              Chargement des tickets...
-            </div>
-            <div v-else-if="ticketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
-              Aucun ticket trouvé.
-            </div>
-            <div v-else class="p-6">
-              <div v-for="ticket in paginatedTickets" :key="ticket.id">
-                <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
-              </div>
-              <Paginator :first="first" :rows="rows" :totalRecords="ticketsList.length" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" class="mt-4 bg-transparent border-none" />
-            </div>
-          </TabPanel>
-
-          <TabPanel value="1">
-            <div>
-              <Toolbar style="border:none">
-                <template #start>
-                  <div class="font-semibold text-xl">Tickets Postés</div>
-                </template>
-                <template #end>
-                  <IconField>
-                    <InputIcon>
-                      <i class="pi pi-search" />
-                    </InputIcon>
-                    <InputText placeholder="Search" />
-                  </IconField>
-                </template>
-              </Toolbar>
-            </div>
-
-            <div v-if="loading" class="text-center p-10 text-xl">
-              Chargement des tickets...
-            </div>
-            <div v-else-if="ticketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
-              Aucun ticket trouvé.
-            </div>
-            <div v-else class="p-6">
-              <div v-for="ticket in ticketsList" :key="ticket.id">
-                <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
-              </div>
-            </div>
-          </TabPanel>
-
-          <TabPanel value="2">
-            <div>
-              <Toolbar style="border:none">
-                <template #start>
-                  <div class="font-semibold text-xl">Tickets Reçus</div>
-                </template>
-                <template #end>
-                  <IconField>
-                    <InputIcon>
-                      <i class="pi pi-search" />
-                    </InputIcon>
-                    <InputText placeholder="Search" />
-                  </IconField>
-                </template>
-              </Toolbar>
-            </div>
-
-            <div v-if="loading" class="text-center p-10 text-xl">
-              Chargement des tickets...
-            </div>
-            <div v-else-if="ticketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
-              Aucun ticket trouvé.
-            </div>
-            <div v-else class="p-6">
-              <div v-for="ticket in ticketsList" :key="ticket.id">
-                <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
-              </div>
-            </div>
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
+    <div class="flex flex-col items-end gap-4 w-full">
+    <Button class="w-120 h-15" label="Voir tous mes tickets" @click="goToAllTickets" icon="pi pi-arrow-down-left" />
     </div>
+
+    <!-- <div class="card">
+       <Tabs value="0">
+         <TabList class="mb-10">
+           <Tab value="0">Mes derniers Tickets</Tab>
+           <Tab value="1">Tickets Postés</Tab>
+           <PermissionGuard permission="isPersonnelService">
+             <Tab value="2">Tickets Reçus</Tab>
+           </PermissionGuard>
+         </TabList>
+
+         <TabPanels>
+           <TabPanel value="0">
+             <div>
+               <Toolbar style="border:none">
+                 <template #start>
+                   <div class="font-semibold text-xl">Mes derniers Tickets</div>
+                 </template>
+                 <template #end>
+                   <IconField>
+                     <InputIcon>
+                       <i class="pi pi-search" />
+                     </InputIcon>
+                     <InputText placeholder="Search" />
+                   </IconField>
+                 </template>
+               </Toolbar>
+             </div>
+
+             <div v-if="loading" class="text-center p-10 text-xl">
+               Chargement des tickets...
+             </div>
+             <div v-else-if="ticketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
+               Aucun ticket trouvé.
+             </div>
+             <div v-else class="p-6">
+               <div v-for="ticket in paginatedTickets" :key="ticket.id">
+                 <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
+               </div>
+               <Paginator :first="first" :rows="rows" :totalRecords="ticketsList.length" @page="onPageChange" template="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink" class="mt-4 bg-transparent border-none" />
+             </div>
+           </TabPanel>
+
+           <TabPanel value="1">
+             <div>
+               <Toolbar style="border:none">
+                 <template #start>
+                   <div class="font-semibold text-xl">Tickets Postés</div>
+                 </template>
+                 <template #end>
+                   <IconField>
+                     <InputIcon>
+                       <i class="pi pi-search" />
+                     </InputIcon>
+                     <InputText placeholder="Search" />
+                   </IconField>
+                 </template>
+               </Toolbar>
+             </div>
+
+             <div v-if="loading" class="text-center p-10 text-xl">
+               Chargement des tickets...
+             </div>
+             <div v-else-if="ticketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
+               Aucun ticket trouvé.
+             </div>
+             <div v-else class="p-6">
+               <div v-for="ticket in ticketsList" :key="ticket.id">
+                 <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
+               </div>
+             </div>
+           </TabPanel>
+
+           <TabPanel value="2">
+             <div>
+               <Toolbar style="border:none">
+                 <template #start>
+                   <div class="font-semibold text-xl">Tickets Reçus</div>
+                 </template>
+                 <template #end>
+                   <IconField>
+                     <InputIcon>
+                       <i class="pi pi-search" />
+                     </InputIcon>
+                     <InputText placeholder="Search" />
+                   </IconField>
+                 </template>
+               </Toolbar>
+             </div>
+
+             <div v-if="loading" class="text-center p-10 text-xl">
+               Chargement des tickets...
+             </div>
+             <div v-else-if="ticketsList.length === 0" class="text-center p-10 text-xl text-gray-500">
+               Aucun ticket trouvé.
+             </div>
+             <div v-else class="p-6">
+               <div v-for="ticket in ticketsList" :key="ticket.id">
+                 <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
+               </div>
+             </div>
+           </TabPanel>
+         </TabPanels>
+       </Tabs>
+     </div>-->
   </div>
 </template>
