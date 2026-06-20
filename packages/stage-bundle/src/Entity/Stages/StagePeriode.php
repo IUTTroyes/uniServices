@@ -39,18 +39,18 @@ class StagePeriode
     #[Groups(['stage_periode:read'])]
     private ?string $libelle = null;
 
-    #[ORM\ManyToOne(inversedBy: 'stagePeriodes')]
+    #[ORM\ManyToOne]
     #[Groups(['stage_periode:read'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
-    #[ORM\ManyToOne(inversedBy: 'stagePeriodes')]
+    #[ORM\ManyToOne]
     #[Groups(['stage_periode:read'])]
     private ?StructureSemestre $semestreProgramme = null;
 
     /**
      * @var Collection<int, StructureSemestre>
      */
-    #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'stagePeriodes')]
+    #[ORM\ManyToMany(targetEntity: StructureSemestre::class)]
     #[Groups(['stage_periode:read'])]
     private Collection $semestresSaisie;
 
@@ -127,12 +127,19 @@ class StagePeriode
     #[Groups(['stage_periode:read'])]
     private Collection $periodesSoutenance;
 
+    /**
+     * @var Collection<int, StageEtudiant>
+     */
+    #[ORM\OneToMany(targetEntity: StageEtudiant::class, mappedBy: 'stagePeriode', orphanRemoval: true, cascade: ['remove'])]
+    private Collection $stageEtudiants;
+
     public function __construct()
     {
         $this->semestresSaisie = new ArrayCollection();
         $this->coResponsables = new ArrayCollection();
         $this->periodesInterruption = new ArrayCollection();
         $this->periodesSoutenance = new ArrayCollection();
+        $this->stageEtudiants = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -434,6 +441,35 @@ class StagePeriode
             // set the owning side to null (unless already changed)
             if ($periodeSoutenance->getStagePeriode() === $this) {
                 $periodeSoutenance->setStagePeriode(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StageEtudiant>
+     */
+    public function getStageEtudiants(): Collection
+    {
+        return $this->stageEtudiants;
+    }
+
+    public function addStageEtudiant(StageEtudiant $stageEtudiant): static
+    {
+        if (!$this->stageEtudiants->contains($stageEtudiant)) {
+            $this->stageEtudiants->add($stageEtudiant);
+            $stageEtudiant->setStagePeriode($this);
+        }
+
+        return $this;
+    }
+
+    public function removeStageEtudiant(StageEtudiant $stageEtudiant): static
+    {
+        if ($this->stageEtudiants->removeElement($stageEtudiant)) {
+            if ($stageEtudiant->getStagePeriode() === $this) {
+                $stageEtudiant->setStagePeriode(null);
             }
         }
 
