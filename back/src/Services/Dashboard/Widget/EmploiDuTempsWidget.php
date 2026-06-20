@@ -36,7 +36,8 @@ class EmploiDuTempsWidget implements DashboardWidgetInterface
             || in_array('ROLE_DIRECTION', $roles, true)
             || in_array('ROLE_SCOLARITE', $roles, true)
             || in_array('ROLE_CHEF_DEPARTEMENT', $roles, true)
-            || in_array('ROLE_SUPER_ADMIN', $roles, true);
+            || in_array('ROLE_SUPER_ADMIN', $roles, true)
+            || in_array('ROLE_PERSONNEL', $roles, true);
     }
 
     public function getDefaultConfig(): array

@@ -35,7 +35,8 @@ class DocumentsRecentsWidget implements DashboardWidgetInterface
         return in_array('ROLE_ASSISTANT', $roles, true)
             || in_array('ROLE_SCOLARITE', $roles, true)
             || in_array('ROLE_DIRECTION', $roles, true)
-            || in_array('ROLE_SUPER_ADMIN', $roles, true);
+            || in_array('ROLE_SUPER_ADMIN', $roles, true)
+            || in_array('ROLE_PERSONNEL', $roles, true);;
     }
 
     public function getDefaultConfig(): array

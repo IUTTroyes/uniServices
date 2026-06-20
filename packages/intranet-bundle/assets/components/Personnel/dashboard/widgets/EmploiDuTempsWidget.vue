@@ -1,5 +1,7 @@
 <script setup>
 import { useRouter } from 'vue-router';
+import {colorNameToRgb, adjustColor} from "@helpers";
+
 const router = useRouter();
 
 defineProps({
@@ -14,14 +16,10 @@ defineProps({
     <div class="flex flex-col gap-3">
         <p class="m-0 text-color-secondary text-sm">{{ data.todayLabel }}</p>
         <div v-for="item in data.items || []" :key="`${item.heure}-${item.cours}`" class="flex flex-wrap items-center gap-3 border-b border-surface-200 pb-3">
-            <div class="w-16 font-bold text-violet-600">{{ item.heure }}</div>
+            <div class="max-w-40 font-bold text-violet-600">{{ item.heure }}</div>
             <span class="rounded-lg px-2.5 py-1 text-xs font-semibold"
-                  :class="{
-                    'bg-blue-100 text-blue-700': item.color === 'blue',
-                    'bg-green-100 text-green-700': item.color === 'green',
-                    'bg-violet-100 text-violet-700': item.color === 'purple'
-                  }">
-                {{ item.type }}
+                  :style="{backgroundColor: adjustColor(colorNameToRgb(item.color), 0.6, 0.1)}">
+                {{ item.groupe }}
             </span>
             <div class="min-w-48 flex-1 font-bold">{{ item.cours }}</div>
             <div class="flex items-center gap-1.5 text-color-secondary">

@@ -19,7 +19,19 @@ class EdtWidgetProvider implements ProviderInterface
         $data = $this->collectionProvider->provide($operation, $uriVariables, $context);
 
         $dto = new EdtWidgetDto();
-        $dto->todayLabel = (new \DateTimeImmutable())->format('d/m/Y');
+
+        $now = new \DateTimeImmutable();
+
+        $formatter = new \IntlDateFormatter(
+            'fr_FR',                        // locale français
+            \IntlDateFormatter::FULL,       // format de date
+            \IntlDateFormatter::NONE,       // pas d'heure
+            null,                           // timezone (null = celle du système)
+            \IntlDateFormatter::GREGORIAN,  // calendrier
+            'EEEE d MMMM yyyy'             // pattern personnalisé
+        );
+
+        $dto->todayLabel = $formatter->format($now);
 
         if (!is_iterable($data)) {
             return $dto;
@@ -31,11 +43,12 @@ class EdtWidgetProvider implements ProviderInterface
             }
 
             $dto->items[] = [
-                'heure' => $event->getDebut()?->format('H:i') ?? '',
-                'type' => $event->isEvaluation() ? 'Évaluation' : 'Cours',
-                'cours' => $event->getLibModule() ?? 'Cours',
+                'heure' => $event->getDebut()?->format('H:i') . ' - ' . $event->getFin()?->format('H:i') ?? '',
+                'groupe' => $event->getLibGroupe(),
+                'eval' => $event->isEvaluation(),
+                'cours' => $event->getCodeModule() . ' - ' . $event->getLibModule() ?? 'Cours',
                 'salle' => $event->getSalle() ?? '-',
-                'color' => $event->isEvaluation() ? 'purple' : 'blue',
+                'color' => $event->getCouleur(),
             ];
         }
 

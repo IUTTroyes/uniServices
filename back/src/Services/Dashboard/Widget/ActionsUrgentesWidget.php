@@ -30,7 +30,13 @@ class ActionsUrgentesWidget implements DashboardWidgetInterface
 
     public function supports(Personnel $user, DashboardContext $context): bool
     {
-        return $context->hasDepartement();
+        $roles = $user->getRoles();
+
+        return in_array('ROLE_ASSISTANT', $roles, true)
+            || in_array('ROLE_SCOLARITE', $roles, true)
+            || in_array('ROLE_DIRECTION', $roles, true)
+            || in_array('ROLE_SUPER_ADMIN', $roles, true)
+            || in_array('ROLE_PERSONNEL', $roles, true);;
     }
 
     public function getDefaultConfig(): array
