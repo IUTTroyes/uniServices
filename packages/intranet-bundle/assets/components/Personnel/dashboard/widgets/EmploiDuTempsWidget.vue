@@ -26,6 +26,7 @@ defineProps({
                 <i class="pi pi-map-marker"></i>
                 {{ item.salle }}
             </div>
+            <Button icon="pi pi-user" size="small" severity="primary" text rounded v-tooltip.top="`Faire l'appel`" />
         </div>
         <div v-if="data.items?.length === 0" class="text-center py-4 text-muted-color">Aucun cours prévu aujourd'hui.</div>
         <Button label="Voir l'emploi du temps" class="w-full" severity="secondary" size="small" @click="router.push('/agenda')"/>
