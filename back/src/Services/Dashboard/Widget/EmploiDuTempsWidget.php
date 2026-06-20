@@ -13,6 +13,11 @@ class EmploiDuTempsWidget implements DashboardWidgetInterface
         return 'emploi_du_temps';
     }
 
+    public function getIcon(): string
+    {
+        return 'pi pi-calendar';
+    }
+
     public function getLabel(): string
     {
         return 'Aujourd\'hui';
@@ -51,7 +56,7 @@ class EmploiDuTempsWidget implements DashboardWidgetInterface
 
     public function getDataUrl(): string
     {
-        return '/api/dashboard/widgets/'.$this->getKey();
+        return '/api/dashboard/widgets/' . $this->getKey();
     }
 
     public function getData(Personnel $user, DashboardContext $context, array $config): array

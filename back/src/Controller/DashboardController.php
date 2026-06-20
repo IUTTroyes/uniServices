@@ -49,6 +49,7 @@ class DashboardController extends AbstractController
             $widgets[] = [
                 'key' => $widget->getKey(),
                 'label' => $widget->getLabel(),
+                'icon' => $widget->getIcon(),
                 'component' => $widget->getVueComponent(),
                 'enabled' => $preference?->isEnabled() ?? $widget->isDefaultEnabled(),
                 'collapsed' => $preference?->isCollapsed() ?? false,

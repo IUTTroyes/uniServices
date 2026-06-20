@@ -10,6 +10,8 @@ interface DashboardWidgetInterface
 
     public function getLabel(): string;
 
+    public function getIcon(): string;
+
     public function getVueComponent(): string;
 
     public function supports(Personnel $user, DashboardContext $context): bool;

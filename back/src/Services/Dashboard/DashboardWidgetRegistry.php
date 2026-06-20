@@ -6,6 +6,7 @@ use App\Domain\Dashboard\DashboardWidgetInterface;
 use App\Services\Dashboard\Widget\ActionsUrgentesWidget;
 use App\Services\Dashboard\Widget\DocumentsRecentsWidget;
 use App\Services\Dashboard\Widget\EmploiDuTempsWidget;
+use App\Services\Dashboard\Widget\NotesWidget;
 
 class DashboardWidgetRegistry
 {
@@ -18,8 +19,9 @@ class DashboardWidgetRegistry
         EmploiDuTempsWidget $emploiDuTempsWidget,
         ActionsUrgentesWidget $actionsUrgentesWidget,
         DocumentsRecentsWidget $documentsRecentsWidget,
+        NotesWidget $notesWidget,
     ) {
-        foreach ([$emploiDuTempsWidget, $actionsUrgentesWidget, $documentsRecentsWidget] as $widget) {
+        foreach ([$emploiDuTempsWidget, $actionsUrgentesWidget, $documentsRecentsWidget, $notesWidget] as $widget) {
             $this->widgets[$widget->getKey()] = $widget;
         }
     }

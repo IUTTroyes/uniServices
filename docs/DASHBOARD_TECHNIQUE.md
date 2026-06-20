@@ -13,7 +13,7 @@ Mettre en place un dashboard **dynamique et personnalisable** pour les personnel
 
 ## Architecture globale
 
-Le système repose sur 3 couches :
+Le système repose sur 3 coucπhes :
 
 1. **Définition des widgets** (backend)
 2. **Préférences utilisateur** (backend + base)

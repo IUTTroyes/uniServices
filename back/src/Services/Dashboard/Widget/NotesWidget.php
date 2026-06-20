@@ -6,46 +6,47 @@ use App\Domain\Dashboard\DashboardContext;
 use App\Domain\Dashboard\DashboardWidgetInterface;
 use App\Entity\Users\Personnel;
 
-class DocumentsRecentsWidget implements DashboardWidgetInterface
+class NotesWidget implements DashboardWidgetInterface
 {
     public function getKey(): string
     {
-        return 'documents_recents';
+        return 'notes';
     }
 
     public function getLabel(): string
     {
-        return 'Documents récents';
+        return 'Avancement des notes';
     }
 
     public function getIcon(): string
     {
-        return 'pi pi-file';
+        return 'pi pi-chart-bar';
     }
 
     public function getVueComponent(): string
     {
-        return 'DocumentsRecentsWidget';
+        return 'NotesWidget';
     }
 
     public function supports(Personnel $user, DashboardContext $context): bool
     {
         $roles = $user->getRoles();
 
-        return in_array('ROLE_ASSISTANT', $roles, true)
-            || in_array('ROLE_SCOLARITE', $roles, true)
+        return in_array('ROLE_EDT', $roles, true)
             || in_array('ROLE_DIRECTION', $roles, true)
+            || in_array('ROLE_SCOLARITE', $roles, true)
+            || in_array('ROLE_CHEF_DEPARTEMENT', $roles, true)
             || in_array('ROLE_SUPER_ADMIN', $roles, true);
     }
 
     public function getDefaultConfig(): array
     {
-        return ['limit' => 5];
+        return ['limit' => 10];
     }
 
     public function getDefaultSize(): string
     {
-        return 'medium';
+        return 'large';
     }
 
     public function isDefaultEnabled(): bool
@@ -62,11 +63,9 @@ class DocumentsRecentsWidget implements DashboardWidgetInterface
     {
         return [
             'items' => [
-                ['icon' => 'pi pi-file-pdf', 'titre' => 'Sujet TP Réseaux – VLAN', 'date' => '14/05/2025'],
-                ['icon' => 'pi pi-file-pdf', 'titre' => 'Correction DS Linux', 'date' => '13/05/2025'],
-                ['icon' => 'pi pi-file', 'titre' => 'Support de cours – TCP/IP', 'date' => '12/05/2025'],
-                ['icon' => 'pi pi-file', 'titre' => 'Énoncé Projet DevOps', 'date' => '10/05/2025'],
-                ['icon' => 'pi pi-file', 'titre' => 'Grille d\'évaluation BUT S2', 'date' => '08/05/2025'],
+                ['semestre' => 'S2', 'titre' => 'Initiation au Développement Web', 'completion' => '70', 'color' => 'blue', 'date' => '20/06/2026'],
+                ['semestre' => 'S4 DevWebDi', 'titre' => 'Développement Back Avancé', 'completion' => '50', 'color' => 'green', 'date' => '21/06/2026'],
+                ['semestre' => 'S6 Strat-UX FC', 'titre' => 'Stratégie et Management', 'completion' => '90', 'color' => 'purple', 'date' => '22/06/2026'],
             ],
         ];
     }

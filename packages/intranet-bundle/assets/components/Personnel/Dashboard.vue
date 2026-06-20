@@ -19,7 +19,7 @@ const dashboardParams = computed(() => {
     if (!structureDepartementPersonnelId.value) {
         return {};
     }
-
+    
     return {structureDepartementPersonnelId: structureDepartementPersonnelId.value};
 });
 
@@ -32,7 +32,7 @@ const gridClass = (size) => {
     if (size === 'large') {
         return 'col-span-12';
     }
-
+    
     return 'col-span-6';
 };
 
@@ -47,10 +47,10 @@ const loadWidgetData = async (widgetKey) => {
     if (!widget || !widget.enabled) {
         return;
     }
-
+    
     widgetLoading.value = {...widgetLoading.value, [widgetKey]: true};
     widgetError.value = {...widgetError.value, [widgetKey]: false};
-
+    
     try {
         const data = await getDashboardWidgetDataService(widgetKey, dashboardParams.value);
         widgetData.value = {...widgetData.value, [widgetKey]: data};
@@ -76,7 +76,7 @@ const updateWidget = async (key, patch) => {
     if (!target) {
         return;
     }
-
+    
     Object.assign(target, patch);
     await saveLayout(target);
     if (patch.enabled === true) {
@@ -90,7 +90,30 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="mb-4 flex items-center justify-between rounded-xl border border-surface-200 bg-surface-0 p-4">
+    <div class="flex flex-col gap-4">
+        <div class="grid grid-cols-12 gap-4">
+            <div v-for="widget in orderedWidgets" :key="widget.key" :class="gridClass(widget.size)">
+                <template v-if="widget.enabled">
+                    <DashboardWidgetShell
+                    :widget="widget"
+                    :loading="!!widgetLoading[widget.key]"
+                    :error="!!widgetError[widget.key]"
+                    @refresh="loadWidgetData(widget.key)"
+                    @toggle-enabled="updateWidget(widget.key, {enabled: !widget.enabled})"
+                    @toggle-collapsed="updateWidget(widget.key, {collapsed: !widget.collapsed})"
+                    @resize="size => updateWidget(widget.key, {size})"
+                    class="h-full"
+                    >
+                    <component
+                    :is="dashboardWidgetRegistry[widget.component]"
+                    :widget="widget"
+                    :data="widgetData[widget.key] || {}"
+                    />
+                </DashboardWidgetShell>
+            </template>
+        </div>
+    </div>
+    <div class="card flex justify-between items-center">
         <div>
             <div class="text-xl font-semibold">Mon dashboard</div>
             <div class="text-sm text-color-secondary">Personnalisez vos widgets en fonction de votre structure.</div>
@@ -99,27 +122,5 @@ onMounted(async () => {
             Configurer les widgets
         </button>
     </div>
-
-    <div class="grid grid-cols-12 gap-4">
-        <div v-for="widget in orderedWidgets" :key="widget.key" :class="gridClass(widget.size)">
-            <template v-if="widget.enabled">
-              <DashboardWidgetShell
-                  :widget="widget"
-                  :loading="!!widgetLoading[widget.key]"
-                  :error="!!widgetError[widget.key]"
-                  @refresh="loadWidgetData(widget.key)"
-                  @toggle-enabled="updateWidget(widget.key, {enabled: !widget.enabled})"
-                  @toggle-collapsed="updateWidget(widget.key, {collapsed: !widget.collapsed})"
-                  @resize="size => updateWidget(widget.key, {size})"
-                  class="h-full"
-              >
-                <component
-                    :is="dashboardWidgetRegistry[widget.component]"
-                    :widget="widget"
-                    :data="widgetData[widget.key] || {}"
-                />
-              </DashboardWidgetShell>
-            </template>
-        </div>
-    </div>
+</div>
 </template>

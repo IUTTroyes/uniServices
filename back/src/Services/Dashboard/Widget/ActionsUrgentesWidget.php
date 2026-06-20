@@ -18,6 +18,11 @@ class ActionsUrgentesWidget implements DashboardWidgetInterface
         return 'Actions urgentes';
     }
 
+    public function getIcon(): string
+    {
+        return 'pi pi-sparkles';
+    }
+
     public function getVueComponent(): string
     {
         return 'ActionsUrgentesWidget';
@@ -45,7 +50,7 @@ class ActionsUrgentesWidget implements DashboardWidgetInterface
 
     public function getDataUrl(): string
     {
-        return '/api/dashboard/widgets/'.$this->getKey();
+        return '/api/dashboard/widgets/' . $this->getKey();
     }
 
     public function getData(Personnel $user, DashboardContext $context, array $config): array

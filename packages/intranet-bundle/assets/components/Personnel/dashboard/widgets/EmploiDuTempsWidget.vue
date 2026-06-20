@@ -26,5 +26,7 @@ defineProps({
                 {{ item.salle }}
             </div>
         </div>
+        <div v-if="data.items?.length === 0" class="text-center py-4 text-muted-color">Aucun cours prévu aujourd'hui.</div>
+        <Button label="Voir l'emploi du temps" class="w-full" severity="secondary" size="small" />
     </div>
 </template>
