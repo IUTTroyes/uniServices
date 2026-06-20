@@ -16,5 +16,6 @@ defineProps({
             </div>
             <p class="m-0 text-sm text-color-secondary">{{ doc.date }}</p>
         </div>
+        <Button label="Voir tous les documents" class="w-full" severity="secondary" size="small" @click="router.push('/agenda')"/>
     </div>
 </template>

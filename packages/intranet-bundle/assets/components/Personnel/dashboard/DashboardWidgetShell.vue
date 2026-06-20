@@ -25,7 +25,6 @@ const emit = defineEmits(['toggle-enabled', 'toggle-collapsed', 'refresh', 'resi
 const sizes = ['small', 'medium', 'large'];
 const sizeIndex = computed(() => sizes.indexOf(props.widget.size || 'medium'));
 const canResize = computed(() => sizeIndex.value !== -1);
-const isConfigOpen = ref(false);
 
 const rotateSize = () => {
     if (!canResize.value) {
@@ -50,10 +49,6 @@ const toggleEnabled = () => {
                 <Button icon="pi pi-arrows-h" text rounded v-tooltip.top="`${widget.size === 'large' ? 'Réduire' : 'Agrandir'}`" @click="rotateSize"/>
                 <Button icon="pi pi-times" text rounded v-tooltip.top="`Retirer le widget`" @click="toggleEnabled"/>
             </div>
-        </div>
-        
-        <div v-if="isConfigOpen" class="mb-3 text-sm text-color-secondary">
-            Taille: <strong>{{ widget.size }}</strong>
         </div>
         
         <div v-if="loading" class="text-color-secondary">Chargement...</div>

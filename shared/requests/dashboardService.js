@@ -11,10 +11,10 @@ const getDashboardService = async (params = {}, showToast = false) => {
     );
 };
 
-const getDashboardWidgetDataService = async (widgetKey, params = {}, showToast = false) => {
+const getDashboardWidgetDataService = async (url, params = {}, showToast = false) => {
     return await apiCall(
         api.get,
-        [`/api/dashboard/widgets/${widgetKey}`, { params }],
+        [url, { params }],
         'Données du widget récupérées avec succès',
         'Erreur lors du chargement des données du widget',
         showToast,

@@ -19,9 +19,21 @@ const dashboardParams = computed(() => {
     if (!structureDepartementPersonnelId.value) {
         return {};
     }
-    
+
     return {structureDepartementPersonnelId: structureDepartementPersonnelId.value};
 });
+
+const getWidgetParams = (widget) => {
+    if (widget?.key !== 'emploi_du_temps') {
+        return dashboardParams.value;
+    }
+
+    return {
+        ...dashboardParams.value,
+        day: new Date().toISOString().split('T')[0],
+        personnel: userStore.userId,
+    };
+};
 
 const orderedWidgets = computed(() => [...widgets.value].sort((a, b) => a.position - b.position));
 
@@ -32,7 +44,7 @@ const gridClass = (size) => {
     if (size === 'large') {
         return 'col-span-12';
     }
-    
+
     return 'col-span-8';
 };
 
@@ -47,12 +59,12 @@ const loadWidgetData = async (widgetKey) => {
     if (!widget || !widget.enabled) {
         return;
     }
-    
+
     widgetLoading.value = {...widgetLoading.value, [widgetKey]: true};
     widgetError.value = {...widgetError.value, [widgetKey]: false};
-    
+
     try {
-        const data = await getDashboardWidgetDataService(widgetKey, dashboardParams.value);
+        const data = await getDashboardWidgetDataService(widget.dataUrl, getWidgetParams(widget));
         widgetData.value = {...widgetData.value, [widgetKey]: data};
     } catch {
         widgetError.value = {...widgetError.value, [widgetKey]: true};
@@ -76,7 +88,7 @@ const updateWidget = async (key, patch) => {
     if (!target) {
         return;
     }
-    
+
     Object.assign(target, patch);
     await saveLayout(target);
     if (patch.enabled === true) {
@@ -88,17 +100,17 @@ const moveWidget = async (key, direction) => {
     const sorted = [...widgets.value].sort((a, b) => a.position - b.position);
     const index = sorted.findIndex(w => w.key === key);
     if (index === -1) return;
-    
+
     let targetIndex = index + direction;
     while (targetIndex >= 0 && targetIndex < sorted.length && !sorted[targetIndex].enabled) {
         targetIndex += direction;
     }
-    
+
     if (targetIndex < 0 || targetIndex >= sorted.length) return;
-    
+
     const element = sorted.splice(index, 1)[0];
     sorted.splice(targetIndex, 0, element);
-    
+
     const promises = [];
     sorted.forEach((widget, i) => {
         if (widget.position !== i) {
@@ -106,7 +118,7 @@ const moveWidget = async (key, direction) => {
             promises.push(saveLayout(widget));
         }
     });
-    
+
     await Promise.all(promises);
 };
 

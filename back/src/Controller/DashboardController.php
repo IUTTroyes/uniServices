@@ -20,8 +20,7 @@ class DashboardController extends AbstractController
         private readonly DashboardWidgetRegistry $widgetRegistry,
         private readonly DashboardPreferenceRepository $preferenceRepository,
         private readonly StructureDepartementPersonnelRepository $structureDepartementPersonnelRepository,
-    ) {
-    }
+    ) {}
 
     #[Route('/api/dashboard', name: 'api_dashboard', methods: ['GET'])]
     public function getDashboard(Request $request): JsonResponse
@@ -57,7 +56,7 @@ class DashboardController extends AbstractController
             }
 
             $preference = $preferences[$widget->getKey()] ?? null;
-            
+
             if ($preference !== null && $preference->getPosition() !== null) {
                 $widgetPosition = $preference->getPosition();
             } else {
@@ -82,35 +81,11 @@ class DashboardController extends AbstractController
             ];
         }
 
-        usort($widgets, static fn (array $a, array $b): int => $a['position'] <=> $b['position']);
+        usort($widgets, static fn(array $a, array $b): int => $a['position'] <=> $b['position']);
 
         return new JsonResponse(['widgets' => $widgets]);
     }
 
-    #[Route('/api/dashboard/widgets/{key}', name: 'api_dashboard_widget_data', methods: ['GET'])]
-    public function getWidgetData(string $key, Request $request): JsonResponse
-    {
-        $user = $this->getCurrentPersonnel();
-        if (null === $user) {
-            return new JsonResponse(['message' => 'Utilisateur non autorisé'], JsonResponse::HTTP_FORBIDDEN);
-        }
-
-        $widget = $this->widgetRegistry->get($key);
-        if (null === $widget) {
-            return new JsonResponse(['message' => 'Widget introuvable'], JsonResponse::HTTP_NOT_FOUND);
-        }
-
-        $structureDepartementPersonnel = $this->resolveStructureDepartementPersonnel($user, $request);
-        $context = new DashboardContext($this->resolveDepartementId($user, $request, $structureDepartementPersonnel), $structureDepartementPersonnel);
-        if (!$widget->supports($user, $context)) {
-            return new JsonResponse(['message' => 'Accès refusé'], JsonResponse::HTTP_FORBIDDEN);
-        }
-
-        $preference = $this->preferenceRepository->findOneByPersonnelAndWidgetKey($user, $key, $structureDepartementPersonnel);
-        $config = array_merge($widget->getDefaultConfig(), $preference?->getConfig() ?? []);
-
-        return new JsonResponse($widget->getData($user, $context, $config));
-    }
 
     #[Route('/api/dashboard/widgets/{key}/layout', name: 'api_dashboard_widget_layout_patch', methods: ['PATCH'])]
     public function patchWidgetLayout(string $key, Request $request): JsonResponse

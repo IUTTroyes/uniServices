@@ -187,13 +187,43 @@ Exemple de `GET /api/dashboard` :
 
 ---
 
-## Extensibilité (ajout d’un nouveau widget)
+## Extensibilité (ajout d'un nouveau widget)
 
 1. Créer une classe backend implémentant `DashboardWidgetInterface`.
-2. L’enregistrer dans `DashboardWidgetRegistry`.
+2. L'enregistrer dans `DashboardWidgetRegistry`.
 3. Créer le composant Vue correspondant dans `assets/components/Personnel/dashboard/widgets`.
-4. L’ajouter dans `dashboardWidgetRegistry`.
+4. L'ajouter dans `dashboardWidgetRegistry`.
 5. (Optionnel) Ajouter une logique de config utilisateur spécifique via `config`.
+
+### Récupérer les données depuis l'API
+
+Les widgets doivent obligatoirement récupérer leurs données via une route API Platform dédiée qui respecte strictement cette nomenclature :
+
+1. **Côté Backend (Classe du Widget)** :
+   Surchargez la méthode `getDataUrl()` pour qu'elle retourne le chemin de votre endpoint API Platform, formaté ainsi :
+   ```php
+   public function getDataUrl(): string
+   {
+       return '/api/widget/[nomDeLEntite]';
+   }
+   ```
+
+2. **Côté Entité (API Platform)** :
+   Déclarez une opération `GetCollection` respectant ce pattern précis sur l'Entité correspondante :
+   ```php
+   new GetCollection(
+       uriTemplate: '/widget/[nomDeLEntite]',
+       normalizationContext: ['groups' => ['[nomDeLEntite]_widget:read']],
+       provider: [nomDeLEntite]WidgetProvider::class,
+       output: [nomDeLEntite]WidgetDto::class,
+   )
+   ```
+
+3. **Côté Provider et DTO** :
+   Créez le DTO qui structurera les données pour le composant Vue (avec le groupe `[nomDeLEntite]_widget:read`), et le Provider qui chargera ces données.
+
+4. **Côté Frontend (Vue)** :
+   Aucune action spécifique n'est requise. Le composant `Dashboard.vue` lira automatiquement la propriété `dataUrl` exposée par le backend lors du chargement de la configuration initiale et se chargera d'appeler cette URL pour passer la réponse en props `data` à votre composant.
 
 ---
 

@@ -56,17 +56,6 @@ class NotesWidget implements DashboardWidgetInterface
 
     public function getDataUrl(): string
     {
-        return '/api/dashboard/widgets/' . $this->getKey();
-    }
-
-    public function getData(Personnel $user, DashboardContext $context, array $config): array
-    {
-        return [
-            'items' => [
-                ['semestre' => 'S2', 'titre' => 'Initiation au Développement Web', 'completion' => '70', 'color' => 'blue', 'date' => '20/06/2026'],
-                ['semestre' => 'S4 DevWebDi', 'titre' => 'Développement Back Avancé', 'completion' => '50', 'color' => 'green', 'date' => '21/06/2026'],
-                ['semestre' => 'S6 Strat-UX FC', 'titre' => 'Stratégie et Management', 'completion' => '90', 'color' => 'purple', 'date' => '22/06/2026'],
-            ],
-        ];
+        return '/api/widget/EtudiantNote';
     }
 }

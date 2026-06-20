@@ -16,11 +16,10 @@ class EdtStatsProvider implements ProviderInterface
 
     public function __construct(
         private CollectionProvider $collectionProvider,
+
         private ItemProvider $itemProvider,
         private PrevisionnelRepository $previsionnelRepository,
-    )
-    {
-    }
+    ) {}
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
     {

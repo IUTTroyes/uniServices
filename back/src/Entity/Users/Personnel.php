@@ -50,6 +50,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/liste/personnels',
             normalizationContext: ['groups' => ['personnel:liste']]
         ),
+        new GetCollection(
+            uriTemplate: '/widget/Personnel',
+            normalizationContext: ['groups' => ['Personnel_widget:read']],
+            provider: \App\State\Provider\Users\ActionsUrgentesWidgetProvider::class,
+            output: \App\ApiDto\Users\ActionsUrgentesWidgetDto::class,
+        ),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_PERSONNEL', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_PERSONNEL', object)"),
         new Delete(security: "is_granted('CAN_DELETE_PERSONNEL', object)"),

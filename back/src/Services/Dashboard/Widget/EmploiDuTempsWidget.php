@@ -56,18 +56,6 @@ class EmploiDuTempsWidget implements DashboardWidgetInterface
 
     public function getDataUrl(): string
     {
-        return '/api/dashboard/widgets/' . $this->getKey();
-    }
-
-    public function getData(Personnel $user, DashboardContext $context, array $config): array
-    {
-        return [
-            'todayLabel' => (new \DateTimeImmutable())->format('d/m/Y'),
-            'items' => [
-                ['heure' => '08:00', 'type' => 'TD', 'cours' => 'Informatique S2', 'salle' => 'Salle B204', 'color' => 'blue'],
-                ['heure' => '10:00', 'type' => 'Cours', 'cours' => 'Réseaux', 'salle' => 'Amphi A', 'color' => 'green'],
-                ['heure' => '14:00', 'type' => 'TP', 'cours' => 'Linux', 'salle' => 'Salle Info 3', 'color' => 'purple'],
-            ],
-        ];
+        return '/api/widget/edt_events';
     }
 }

@@ -20,9 +20,7 @@ interface DashboardWidgetInterface
 
     public function getDefaultSize(): string;
 
-    public function isDefaultEnabled(): bool;
-
     public function getDataUrl(): string;
 
-    public function getData(Personnel $user, DashboardContext $context, array $config): array;
+    public function isDefaultEnabled(): bool;
 }
