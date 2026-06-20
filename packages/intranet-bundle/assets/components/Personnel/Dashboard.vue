@@ -27,13 +27,13 @@ const orderedWidgets = computed(() => [...widgets.value].sort((a, b) => a.positi
 
 const gridClass = (size) => {
     if (size === 'small') {
-        return 'col-span-3';
+        return 'col-span-4';
     }
     if (size === 'large') {
         return 'col-span-12';
     }
     
-    return 'col-span-6';
+    return 'col-span-8';
 };
 
 const loadDashboard = async () => {
@@ -84,6 +84,32 @@ const updateWidget = async (key, patch) => {
     }
 };
 
+const moveWidget = async (key, direction) => {
+    const sorted = [...widgets.value].sort((a, b) => a.position - b.position);
+    const index = sorted.findIndex(w => w.key === key);
+    if (index === -1) return;
+    
+    let targetIndex = index + direction;
+    while (targetIndex >= 0 && targetIndex < sorted.length && !sorted[targetIndex].enabled) {
+        targetIndex += direction;
+    }
+    
+    if (targetIndex < 0 || targetIndex >= sorted.length) return;
+    
+    const element = sorted.splice(index, 1)[0];
+    sorted.splice(targetIndex, 0, element);
+    
+    const promises = [];
+    sorted.forEach((widget, i) => {
+        if (widget.position !== i) {
+            widget.position = i;
+            promises.push(saveLayout(widget));
+        }
+    });
+    
+    await Promise.all(promises);
+};
+
 onMounted(async () => {
     await loadDashboard();
 });
@@ -96,12 +122,15 @@ onMounted(async () => {
                 <template v-if="widget.enabled">
                     <DashboardWidgetShell
                     :widget="widget"
+                    :widgetsLength="widgets.length"
                     :loading="!!widgetLoading[widget.key]"
                     :error="!!widgetError[widget.key]"
                     @refresh="loadWidgetData(widget.key)"
                     @toggle-enabled="updateWidget(widget.key, {enabled: !widget.enabled})"
                     @toggle-collapsed="updateWidget(widget.key, {collapsed: !widget.collapsed})"
                     @resize="size => updateWidget(widget.key, {size})"
+                    @move-backward="moveWidget(widget.key, -1)"
+                    @move-forward="moveWidget(widget.key, 1)"
                     class="h-full"
                     >
                     <component

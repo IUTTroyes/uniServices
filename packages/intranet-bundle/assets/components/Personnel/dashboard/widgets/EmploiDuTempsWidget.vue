@@ -1,4 +1,7 @@
 <script setup>
+import { useRouter } from 'vue-router';
+const router = useRouter();
+
 defineProps({
     data: {
         type: Object,
@@ -27,6 +30,6 @@ defineProps({
             </div>
         </div>
         <div v-if="data.items?.length === 0" class="text-center py-4 text-muted-color">Aucun cours prévu aujourd'hui.</div>
-        <Button label="Voir l'emploi du temps" class="w-full" severity="secondary" size="small" />
+        <Button label="Voir l'emploi du temps" class="w-full" severity="secondary" size="small" @click="router.push('/agenda')"/>
     </div>
 </template>

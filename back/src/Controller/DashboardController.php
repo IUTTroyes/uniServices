@@ -38,6 +38,17 @@ class DashboardController extends AbstractController
             $preferences[$preference->getWidgetKey()] = $preference;
         }
 
+        $usedPositions = [];
+        foreach ($this->widgetRegistry->all() as $widget) {
+            if (!$widget->supports($user, $context)) {
+                continue;
+            }
+            $preference = $preferences[$widget->getKey()] ?? null;
+            if ($preference !== null && $preference->getPosition() !== null) {
+                $usedPositions[] = $preference->getPosition();
+            }
+        }
+
         $widgets = [];
         $position = 0;
         foreach ($this->widgetRegistry->all() as $widget) {
@@ -46,6 +57,17 @@ class DashboardController extends AbstractController
             }
 
             $preference = $preferences[$widget->getKey()] ?? null;
+            
+            if ($preference !== null && $preference->getPosition() !== null) {
+                $widgetPosition = $preference->getPosition();
+            } else {
+                while (in_array($position, $usedPositions, true)) {
+                    $position++;
+                }
+                $widgetPosition = $position++;
+                $usedPositions[] = $widgetPosition;
+            }
+
             $widgets[] = [
                 'key' => $widget->getKey(),
                 'label' => $widget->getLabel(),
@@ -53,7 +75,7 @@ class DashboardController extends AbstractController
                 'component' => $widget->getVueComponent(),
                 'enabled' => $preference?->isEnabled() ?? $widget->isDefaultEnabled(),
                 'collapsed' => $preference?->isCollapsed() ?? false,
-                'position' => $preference?->getPosition() ?? $position++,
+                'position' => $widgetPosition,
                 'size' => $preference?->getSize() ?? $widget->getDefaultSize(),
                 'config' => array_merge($widget->getDefaultConfig(), $preference?->getConfig() ?? []),
                 'dataUrl' => $widget->getDataUrl(),
