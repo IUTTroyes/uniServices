@@ -19,7 +19,6 @@ use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
 use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
-use App\Entity\Stages\StagePeriode;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Users\Personnel;
@@ -143,12 +142,6 @@ class StructureAnneeUniversitaire
     private Collection $previsionnels;
 
     /**
-     * @var Collection<int, StagePeriode>
-     */
-    #[ORM\OneToMany(targetEntity: StagePeriode::class, mappedBy: 'anneeUniversitaire')]
-    private Collection $stagePeriodes;
-
-    /**
      * @var Collection<int, PersonnelEnseignantHrs>
      */
     #[ORM\OneToMany(targetEntity: PersonnelEnseignantHrs::class, mappedBy: 'annee_universitaire')]
@@ -175,7 +168,6 @@ class StructureAnneeUniversitaire
         $this->creneauxInterditsSemaines = new ArrayCollection();
         $this->contraintesSemestres = new ArrayCollection();
         $this->previsionnels = new ArrayCollection();
-        $this->stagePeriodes = new ArrayCollection();
         $this->enseignantHrs = new ArrayCollection();
         $this->diplomes = new ArrayCollection();
     }
@@ -503,35 +495,6 @@ class StructureAnneeUniversitaire
         return $this;
     }
 
-    /**
-     * @return Collection<int, StagePeriode>
-     */
-    public function getStagePeriodes(): Collection
-    {
-        return $this->stagePeriodes;
-    }
-
-    public function addStagePeriode(StagePeriode $stagePeriode): static
-    {
-        if (!$this->stagePeriodes->contains($stagePeriode)) {
-            $this->stagePeriodes->add($stagePeriode);
-            $stagePeriode->setAnneeUniversitaire($this);
-        }
-
-        return $this;
-    }
-
-    public function removeStagePeriode(StagePeriode $stagePeriode): static
-    {
-        if ($this->stagePeriodes->removeElement($stagePeriode)) {
-            // set the owning side to null (unless already changed)
-            if ($stagePeriode->getAnneeUniversitaire() === $this) {
-                $stagePeriode->setAnneeUniversitaire(null);
-            }
-        }
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, PersonnelEnseignantHrs>

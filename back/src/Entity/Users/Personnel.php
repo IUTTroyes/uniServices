@@ -65,7 +65,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['personnel:detail', 'personnel:light', 'departement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init'])]
+    #[Groups(['personnel:detail', 'personnel:light', 'departement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init', 'departement_personnel:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
@@ -73,22 +73,22 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['personnel:detail'])]
+    #[Groups(['personnel:detail', 'departement_personnel:read'])]
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['personnel:detail', 'personnel:liste'])]
+    #[Groups(['personnel:detail', 'personnel:liste', 'departement_personnel:read'])]
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste'])]
+    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste'])]
+    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -193,7 +193,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $posteInterne = null;
 
     #[ORM\Column(length: 15, nullable: true, enumType: StatutEnum::class)]
-    #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'personnel:liste'])]
+    #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'personnel:liste', 'departement_personnel:read'])]
     private ?StatutEnum $statut = null;
 
     #[ORM\Column(length: 3, nullable: true)]
@@ -205,7 +205,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?array $contraintesEdt = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['personnel:detail'])]
+    #[Groups(['personnel:detail', 'departement_personnel:read'])]
     private ?array $applications = null;
 
 
