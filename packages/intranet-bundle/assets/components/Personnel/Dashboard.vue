@@ -1,13 +1,15 @@
 <script setup>
 import {computed, onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
-import {useUsersStore} from '@stores';
+import {useUsersStore, useAnneeUnivStore} from '@stores';
 import {getDashboardService, getDashboardWidgetDataService, patchDashboardWidgetLayoutService} from '@requests';
 import {dashboardWidgetRegistry} from '@/components/Personnel/dashboard/dashboardWidgetRegistry';
 import DashboardWidgetShell from '@/components/Personnel/dashboard/DashboardWidgetShell.vue';
 
 const router = useRouter();
 const userStore = useUsersStore();
+const anneeUnivStore = useAnneeUnivStore();
+const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 const widgets = ref([]);
 const widgetData = ref({});
 const widgetLoading = ref({});
@@ -20,7 +22,7 @@ const dashboardParams = computed(() => {
     return {};
   }
 
-  return {structureDepartementPersonnelId: structureDepartementPersonnelId.value};
+  return {structureDepartementPersonnelId: structureDepartementPersonnelId.value, anneeUniversitaire: selectedAnneeUniversitaireId.value};
 });
 
 const getWidgetParams = (widget) => {
@@ -29,15 +31,27 @@ const getWidgetParams = (widget) => {
   switch (widget?.key) {
     case 'emploi_du_temps':
       return {
-        ...dashboardParams.value,
+        ...base,
         day: new Date().toISOString().split('T')[0],
         personnel: userStore.userId,
         departement: userStore.departementDefaut?.id ?? null,
       };
 
+    case 'actions_urgentes':
+      return {
+        ...base,
+      };
+
     case 'notes':
       return {
         ...base,
+      };
+
+    case 'documents_recents':
+      return {
+        ...base,
+        personnel: userStore.user.id,
+        departement: userStore.departementDefaut?.id ?? null,
       };
 
     default:

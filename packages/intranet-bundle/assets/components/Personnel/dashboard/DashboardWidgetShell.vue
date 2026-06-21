@@ -40,12 +40,12 @@ const toggleEnabled = () => {
 </script>
 
 <template>
-    <div class="rounded-xl border border-surface-200 bg-surface-0 p-5">
+    <div class="rounded-xl border border-surface-200 dark:border-surface-900 bg-surface-0 dark:bg-surface-800 p-5">
         <div class="mb-3 flex items-center justify-between gap-2">
             <div class="m-0 text-md! font-bold"><i :class="widget.icon" class="mr-2 text-primary-500"></i>{{ widget.label }}</div>
             <div class="flex items-center gap-2">
-                <Button v-if="widget.position != 0" icon="pi pi-arrow-left" text rounded v-tooltip.top="`Déplacer vers l'avant`" @click="emit('move-backward')"/>
-                <Button v-if="widget.position != widgetsLength - 1" icon="pi pi-arrow-right" text rounded v-tooltip.top="`Déplacer vers l'arrière`" @click="emit('move-forward')"/>
+                <Button v-if="widget.position != 0" icon="pi pi-arrow-left" text rounded v-tooltip.top="`Déplacer vers la gauche`" @click="emit('move-backward')"/>
+                <Button v-if="widget.position != widgetsLength - 1" icon="pi pi-arrow-right" text rounded v-tooltip.top="`Déplacer vers la droite`" @click="emit('move-forward')"/>
                 <Button icon="pi pi-arrows-h" text rounded v-tooltip.top="`${widget.size === 'large' ? 'Réduire' : 'Agrandir'}`" @click="rotateSize"/>
                 <Button icon="pi pi-times" text rounded v-tooltip.top="`Retirer le widget`" @click="toggleEnabled"/>
             </div>

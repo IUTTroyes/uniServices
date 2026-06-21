@@ -28,8 +28,8 @@ defineProps({
             </div>
             <Button icon="pi pi-user" size="small" severity="primary" text rounded v-tooltip.top="`Faire l'appel`" />
         </div>
-        <div v-if="data.items?.length === 0" class="flex justify-center text-center py-4 text-muted-color flex flex-col items-center min-h-58 max-h-58 overflow-y-hidden relative">
-            <img src="@/assets/illu/palm.svg" alt="" class="w-86 h-86 absolute -bottom-24 -right-8 rotate-3">
+        <div v-if="data.items?.length === 0" class="flex justify-center text-center py-4 text-muted-color flex flex-col items-center min-h-36 max-h-36 overflow-y-hidden relative">
+            <img src="@/assets/illu/palm.svg" alt="" class="w-64 h-64 absolute -bottom-24 right-4">
             <div class="z-10 bg-primary-100/80 px-4 py-2 rounded-xl font-semibold text-black">Aucun cours prévu aujourd'hui.</div>
         </div>
         <Button label="Voir l'emploi du temps" class="w-full" severity="secondary" size="small" @click="router.push('/agenda')"/>

@@ -56,6 +56,6 @@ class ActionsUrgentesWidget implements DashboardWidgetInterface
 
     public function getDataUrl(): string
     {
-        return '/api/widget/Personnel';
+        return '/api/widget/actions_urgentes/';
     }
 }

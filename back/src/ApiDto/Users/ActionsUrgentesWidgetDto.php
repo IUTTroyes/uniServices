@@ -9,6 +9,6 @@ class ActionsUrgentesWidgetDto
     /**
      * @var array<array{icon: string, titre: string, detail: string, cta: string, color: string}>
      */
-    #[Groups(['Personnel_widget:read'])]
+    #[Groups(['action_urgente_widget:read'])]
     public array $items = [];
 }
