@@ -1,13 +1,14 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 import { getStagePeriodesService } from '../../requests/stage_service';
 import { useUsersStore } from '@stores';
 import api from '@helpers/axios';
-import AddressAutocomplete from '@components/components/Forms/AddressAutocomplete.vue';
+import { ValidatedInput, validationRules } from '@components';
 
 const router = useRouter();
+const route = useRoute();
 const toast = useToast();
 const userStore = useUsersStore();
 
@@ -15,6 +16,30 @@ const currentStep = ref(1);
 const totalSteps = 4;
 const stagePeriodes = ref([]);
 const loading = ref(false);
+
+// Validation errors tracking
+const formErrors = ref({});
+const handleValidation = (fieldName, result) => {
+  formErrors.value[fieldName] = result.isValid ? null : result.errorMessage;
+};
+
+// Check if current step has active validation errors
+const stepHasErrors = computed(() => {
+  if (currentStep.value === 1) {
+    return !!formErrors.value.stagePeriodeIri || !!formErrors.value.phone || !!formErrors.value.emailPerso;
+  } else if (currentStep.value === 2) {
+    const companyErrors = !!formErrors.value.companyName || !!formErrors.value.companySiret || !!formErrors.value.companyPhone || !!formErrors.value.companyAddress;
+    const signatoryErrors = !!formErrors.value.signatoryPrenom || !!formErrors.value.signatoryNom || !!formErrors.value.signatoryTitle || !!formErrors.value.signatoryEmail || !!formErrors.value.signatoryPhone;
+    let tutorErrors = false;
+    if (!form.value.tuteurSameAsSignatory) {
+      tutorErrors = !!formErrors.value.supervisorPrenom || !!formErrors.value.supervisorNom || !!formErrors.value.supervisorFunction || !!formErrors.value.supervisorEmail || !!formErrors.value.supervisorPhone;
+    }
+    return companyErrors || signatoryErrors || tutorErrors;
+  } else if (currentStep.value === 3) {
+    return !!formErrors.value.startDate || !!formErrors.value.endDate || !!formErrors.value.weeklyHours || !!formErrors.value.salaryAmount || !!formErrors.value.subject || !!formErrors.value.activities;
+  }
+  return false;
+});
 
 // ─── Form state ─────────────────────────────────────────────────────────────
 const form = ref({
@@ -97,6 +122,12 @@ onMounted(async () => {
     }
     const response = await getStagePeriodesService();
     stagePeriodes.value = response || [];
+    if (route.query.periodId) {
+      const exists = stagePeriodes.value.find(p => p.id == route.query.periodId);
+      if (exists) {
+        form.value.stagePeriodeIri = `/api/stage_periodes/${exists.id}`;
+      }
+    }
   } catch (error) {
     console.error('Erreur de chargement:', error);
     toast.add({ severity: 'error', summary: 'Erreur', detail: 'Erreur lors du chargement des données initiales.', life: 3000 });
@@ -111,6 +142,13 @@ const selectedPeriodLabel = computed(() => {
   return selected ? `${selected.libelle} (${selected.nbSemaines} sem.)` : '';
 });
 
+const periodOptions = computed(() => {
+  return stagePeriodes.value.map(p => ({
+    label: `${p.libelle} (${p.nbSemaines} sem.)`,
+    value: `/api/stage_periodes/${p.id}`
+  }));
+});
+
 const supervisorDisplay = computed(() => {
   if (form.value.tuteurSameAsSignatory) {
     return `${form.value.signatoryCivilite} ${form.value.signatoryPrenom} ${form.value.signatoryNom}`.trim() || '-';
@@ -120,12 +158,42 @@ const supervisorDisplay = computed(() => {
 
 // ─── Navigation ──────────────────────────────────────────────────────────────
 const nextStep = () => {
-  if (currentStep.value === 1 && !form.value.stagePeriodeIri) {
-    toast.add({ severity: 'warn', summary: 'Champs requis', detail: 'Veuillez sélectionner une période de stage.', life: 3000 });
+  // Step 1 check
+  if (currentStep.value === 1) {
+    if (!form.value.stagePeriodeIri) {
+      toast.add({ severity: 'warn', summary: 'Champs requis', detail: 'Veuillez sélectionner une période de stage.', life: 3000 });
+      return;
+    }
+  }
+  
+  // Step 2 check
+  if (currentStep.value === 2) {
+    if (!form.value.companyName || !form.value.companyAddress || !form.value.signatoryPrenom || !form.value.signatoryNom || !form.value.signatoryTitle || !form.value.signatoryEmail || !form.value.signatoryPhone) {
+      toast.add({ severity: 'warn', summary: 'Champs requis', detail: 'Veuillez remplir toutes les informations de l\'entreprise et du représentant.', life: 3000 });
+      return;
+    }
+    if (!form.value.tuteurSameAsSignatory) {
+      if (!form.value.supervisorPrenom || !form.value.supervisorNom || !form.value.supervisorFunction || !form.value.supervisorEmail || !form.value.supervisorPhone) {
+        toast.add({ severity: 'warn', summary: 'Champs requis', detail: 'Veuillez remplir toutes les informations du maître de stage.', life: 3000 });
+        return;
+      }
+    }
+  }
+
+  // Step 3 check
+  if (currentStep.value === 3) {
+    if (!form.value.startDate || !form.value.endDate || !form.value.subject || !form.value.activities) {
+      toast.add({ severity: 'warn', summary: 'Champs requis', detail: 'Veuillez remplir les informations obligatoires de votre stage.', life: 3000 });
+      return;
+    }
+  }
+
+  if (stepHasErrors.value) {
+    toast.add({ severity: 'warn', summary: 'Champs invalides', detail: 'Veuillez corriger les erreurs de saisie avant de continuer.', life: 3000 });
     return;
   }
+
   if (currentStep.value < totalSteps) {
-    // Synchroniser le tuteur si nécessaire avant de passer à l'étape suivante
     if (currentStep.value === 2) syncTuteurFromSignatory();
     currentStep.value++;
   }
@@ -287,39 +355,55 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <!-- Période de stage -->
-          <div class="flex flex-col gap-2 md:col-span-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">
-              Période du parcours universitaire <span class="text-rose-500">*</span>
-            </label>
-            <select v-model="form.stagePeriodeIri" class="w-full p-3 border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-900 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-violet-500">
-              <option value="" disabled>Sélectionnez une période de stage</option>
-              <option v-for="period in stagePeriodes" :key="period.id" :value="`/api/stage_periodes/${period.id}`">
-                {{ period.libelle }} ({{ period.nbSemaines }} semaines)
-              </option>
-            </select>
-          </div>
+          <ValidatedInput
+            v-model="form.stagePeriodeIri"
+            name="stagePeriodeIri"
+            label="Période du parcours universitaire"
+            type="select"
+            placeholder="Sélectionnez une période de stage"
+            :options="periodOptions"
+            :rules="validationRules.required"
+            @validation="res => handleValidation('stagePeriodeIri', res)"
+            class="md:col-span-2"
+          />
 
           <!-- Téléphone -->
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Téléphone personnel</label>
-            <input type="text" v-model="form.phone" placeholder="Ex: 06 12 34 56 78" class="input-field" />
-          </div>
+          <ValidatedInput
+            v-model="form.phone"
+            name="phone"
+            label="Téléphone personnel"
+            placeholder="Ex: 06 12 34 56 78"
+            type="text"
+            :rules="[validationRules.phone, validationRules.required]"
+            @validation="res => handleValidation('phone', res)"
+          />
 
           <!-- Email perso -->
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">E-mail personnel (de secours)</label>
-            <input type="email" v-model="form.emailPerso" placeholder="Ex: etudiant@gmail.com" class="input-field" />
-          </div>
+          <ValidatedInput
+            v-model="form.emailPerso"
+            name="emailPerso"
+            label="E-mail personnel (de secours)"
+            placeholder="Ex: etudiant@gmail.com"
+            type="text"
+            :rules="[validationRules.email, validationRules.required]"
+            @validation="res => handleValidation('emailPerso', res)"
+          />
 
           <!-- Assurance -->
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Compagnie d'assurance RC</label>
-            <input type="text" v-model="form.insuranceCompany" placeholder="Ex: MAIF, MACIF, MAAF…" class="input-field" />
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Numéro de police d'assurance</label>
-            <input type="text" v-model="form.insurancePolicyNumber" placeholder="Ex: 9876543-A" class="input-field" />
-          </div>
+          <ValidatedInput
+            v-model="form.insuranceCompany"
+            name="insuranceCompany"
+            label="Compagnie d'assurance RC"
+            placeholder="Ex: MAIF, MACIF, MAAF…"
+            type="text"
+          />
+          <ValidatedInput
+            v-model="form.insurancePolicyNumber"
+            name="insurancePolicyNumber"
+            label="Numéro de police d'assurance"
+            placeholder="Ex: 9876543-A"
+            type="text"
+          />
         </div>
       </div>
 
@@ -337,28 +421,46 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
             <i class="pi pi-building text-violet-500"></i> Identification
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Raison sociale <span class="text-rose-500">*</span></label>
-              <input type="text" v-model="form.companyName" placeholder="Ex: Google France" class="input-field" />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Numéro SIRET</label>
-              <input type="text" v-model="form.companySiret" placeholder="Ex: 12345678900010" maxlength="14" class="input-field" />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Téléphone standard</label>
-              <input type="text" v-model="form.companyPhone" placeholder="Ex: 01 02 03 04 05" class="input-field" />
-            </div>
+            <ValidatedInput
+              v-model="form.companyName"
+              name="companyName"
+              label="Raison sociale"
+              placeholder="Ex: Google France"
+              type="text"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('companyName', res)"
+            />
+            <ValidatedInput
+              v-model="form.companySiret"
+              name="companySiret"
+              label="Numéro SIRET"
+              placeholder="Ex: 12345678900010"
+              type="text"
+              :rules="[validationRules.numeric, validationRules.minLength(14), validationRules.maxLength(14)]"
+              @validation="res => handleValidation('companySiret', res)"
+            />
+            <ValidatedInput
+              v-model="form.companyPhone"
+              name="companyPhone"
+              label="Téléphone standard"
+              placeholder="Ex: 01 02 03 04 05"
+              type="text"
+              :rules="[validationRules.phone]"
+              @validation="res => handleValidation('companyPhone', res)"
+              class="md:col-span-2"
+            />
           </div>
 
           <!-- Adresse avec autocomplete -->
           <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">
-              Adresse de l'entreprise <span class="text-rose-500">*</span>
-            </label>
-            <AddressAutocomplete
+            <ValidatedInput
               v-model="form.companyAddress"
+              name="companyAddress"
+              label="Adresse de l'entreprise"
+              type="address"
               placeholder="Cherchez l'adresse de l'entreprise…"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('companyAddress', res)"
             />
           </div>
         </div>
@@ -369,33 +471,60 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
             <i class="pi pi-id-card text-violet-500"></i> Représentant légal (signataire de la convention)
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Civilité</label>
-              <select v-model="form.signatoryCivilite" class="input-field">
-                <option value="M">Monsieur (M.)</option>
-                <option value="Mme">Madame (Mme)</option>
-              </select>
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Prénom</label>
-              <input type="text" v-model="form.signatoryPrenom" placeholder="Ex: Sylvie" class="input-field" />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Nom</label>
-              <input type="text" v-model="form.signatoryNom" placeholder="Ex: MARTIN" class="input-field" />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Fonction / Titre</label>
-              <input type="text" v-model="form.signatoryTitle" placeholder="Ex: Directrice RH" class="input-field" />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">E-mail</label>
-              <input type="email" v-model="form.signatoryEmail" placeholder="Ex: s.martin@entreprise.com" class="input-field" />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Téléphone direct</label>
-              <input type="text" v-model="form.signatoryPhone" placeholder="Ex: 01 02 03 04 05" class="input-field" />
-            </div>
+            <ValidatedInput
+              v-model="form.signatoryCivilite"
+              name="signatoryCivilite"
+              label="Civilité"
+              type="select"
+              :options="[{ label: 'Monsieur (M.)', value: 'M' }, { label: 'Madame (Mme)', value: 'Mme' }]"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('signatoryCivilite', res)"
+            />
+            <ValidatedInput
+              v-model="form.signatoryPrenom"
+              name="signatoryPrenom"
+              label="Prénom"
+              placeholder="Ex: Sylvie"
+              type="text"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('signatoryPrenom', res)"
+            />
+            <ValidatedInput
+              v-model="form.signatoryNom"
+              name="signatoryNom"
+              label="Nom"
+              placeholder="Ex: MARTIN"
+              type="text"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('signatoryNom', res)"
+            />
+            <ValidatedInput
+              v-model="form.signatoryTitle"
+              name="signatoryTitle"
+              label="Fonction / Titre"
+              placeholder="Ex: Directrice RH"
+              type="text"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('signatoryTitle', res)"
+            />
+            <ValidatedInput
+              v-model="form.signatoryEmail"
+              name="signatoryEmail"
+              label="E-mail"
+              placeholder="Ex: s.martin@entreprise.com"
+              type="text"
+              :rules="[validationRules.required, validationRules.email]"
+              @validation="res => handleValidation('signatoryEmail', res)"
+            />
+            <ValidatedInput
+              v-model="form.signatoryPhone"
+              name="signatoryPhone"
+              label="Téléphone direct"
+              placeholder="Ex: 01 02 03 04 05"
+              type="text"
+              :rules="[validationRules.required, validationRules.phone]"
+              @validation="res => handleValidation('signatoryPhone', res)"
+            />
           </div>
         </div>
 
@@ -419,33 +548,60 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
 
           <!-- Champs du tuteur (masqués si même personne) -->
           <div v-if="!form.tuteurSameAsSignatory" class="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Civilité</label>
-              <select v-model="form.supervisorCivilite" class="input-field">
-                <option value="M">Monsieur (M.)</option>
-                <option value="Mme">Madame (Mme)</option>
-              </select>
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Prénom</label>
-              <input type="text" v-model="form.supervisorPrenom" placeholder="Ex: Robert" class="input-field" />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Nom</label>
-              <input type="text" v-model="form.supervisorNom" placeholder="Ex: LEGRAND" class="input-field" />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Fonction</label>
-              <input type="text" v-model="form.supervisorFunction" placeholder="Ex: Chef de Projet" class="input-field" />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">E-mail</label>
-              <input type="email" v-model="form.supervisorEmail" placeholder="Ex: r.legrand@entreprise.com" class="input-field" />
-            </div>
-            <div class="flex flex-col gap-2">
-              <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Téléphone</label>
-              <input type="text" v-model="form.supervisorPhone" placeholder="Ex: 06 99 88 77 66" class="input-field" />
-            </div>
+            <ValidatedInput
+              v-model="form.supervisorCivilite"
+              name="supervisorCivilite"
+              label="Civilité"
+              type="select"
+              :options="[{ label: 'Monsieur (M.)', value: 'M' }, { label: 'Madame (Mme)', value: 'Mme' }]"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('supervisorCivilite', res)"
+            />
+            <ValidatedInput
+              v-model="form.supervisorPrenom"
+              name="supervisorPrenom"
+              label="Prénom"
+              placeholder="Ex: Robert"
+              type="text"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('supervisorPrenom', res)"
+            />
+            <ValidatedInput
+              v-model="form.supervisorNom"
+              name="supervisorNom"
+              label="Nom"
+              placeholder="Ex: LEGRAND"
+              type="text"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('supervisorNom', res)"
+            />
+            <ValidatedInput
+              v-model="form.supervisorFunction"
+              name="supervisorFunction"
+              label="Fonction"
+              placeholder="Ex: Chef de Projet"
+              type="text"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('supervisorFunction', res)"
+            />
+            <ValidatedInput
+              v-model="form.supervisorEmail"
+              name="supervisorEmail"
+              label="E-mail"
+              placeholder="Ex: r.legrand@entreprise.com"
+              type="text"
+              :rules="[validationRules.required, validationRules.email]"
+              @validation="res => handleValidation('supervisorEmail', res)"
+            />
+            <ValidatedInput
+              v-model="form.supervisorPhone"
+              name="supervisorPhone"
+              label="Téléphone"
+              placeholder="Ex: 06 99 88 77 66"
+              type="text"
+              :rules="[validationRules.required, validationRules.phone]"
+              @validation="res => handleValidation('supervisorPhone', res)"
+            />
           </div>
 
           <!-- Récap quand même personne -->
@@ -469,34 +625,68 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
         </h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Date de début <span class="text-rose-500">*</span></label>
-            <input type="date" v-model="form.startDate" class="input-field" />
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Date de fin <span class="text-rose-500">*</span></label>
-            <input type="date" v-model="form.endDate" class="input-field" />
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Volume horaire hebdomadaire</label>
-            <input type="number" v-model="form.weeklyHours" min="1" max="48" class="input-field" />
-          </div>
-          <div class="flex flex-col gap-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Gratification horaire nette (€/h)</label>
-            <input type="number" step="0.01" v-model="form.salaryAmount" class="input-field" />
-          </div>
-          <div class="flex flex-col gap-2 md:col-span-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Sujet de stage (mission principale) <span class="text-rose-500">*</span></label>
-            <input type="text" v-model="form.subject" placeholder="Ex: Développement d'une API de suivi…" class="input-field" />
-          </div>
-          <div class="flex flex-col gap-2 md:col-span-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Détail des activités confiées</label>
-            <textarea v-model="form.activities" rows="4" placeholder="Décrivez les tâches au quotidien…" class="input-field resize-none"></textarea>
-          </div>
-          <div class="flex flex-col gap-2 md:col-span-2">
-            <label class="text-xs font-bold text-slate-600 dark:text-slate-300">Aménagements éventuels</label>
-            <input type="text" v-model="form.amenagementStage" placeholder="Ex: Télétravail 2 jours/semaine" class="input-field" />
-          </div>
+          <ValidatedInput
+            v-model="form.startDate"
+            name="startDate"
+            label="Date de début"
+            type="date"
+            :rules="validationRules.required"
+            @validation="res => handleValidation('startDate', res)"
+          />
+          <ValidatedInput
+            v-model="form.endDate"
+            name="endDate"
+            label="Date de fin"
+            type="date"
+            :rules="validationRules.required"
+            @validation="res => handleValidation('endDate', res)"
+          />
+          <ValidatedInput
+            v-model="form.weeklyHours"
+            name="weeklyHours"
+            label="Volume horaire hebdomadaire"
+            type="number"
+            :min="1"
+            :max="48"
+            :rules="[validationRules.required, validationRules.numeric, validationRules.minValue(1), validationRules.maxValue(48)]"
+            @validation="res => handleValidation('weeklyHours', res)"
+          />
+          <ValidatedInput
+            v-model="form.salaryAmount"
+            name="salaryAmount"
+            label="Gratification horaire nette (€/h)"
+            type="number"
+            :rules="[validationRules.required, validationRules.minValue(0)]"
+            @validation="res => handleValidation('salaryAmount', res)"
+          />
+          <ValidatedInput
+            v-model="form.subject"
+            name="subject"
+            label="Sujet de stage (mission principale)"
+            placeholder="Ex: Développement d'une API de suivi…"
+            type="text"
+            :rules="validationRules.required"
+            @validation="res => handleValidation('subject', res)"
+            class="md:col-span-2"
+          />
+          <ValidatedInput
+            v-model="form.activities"
+            name="activities"
+            label="Détail des activités confiées"
+            placeholder="Décrivez les tâches au quotidien…"
+            type="textarea"
+            :rules="validationRules.required"
+            @validation="res => handleValidation('activities', res)"
+            class="md:col-span-2"
+          />
+          <ValidatedInput
+            v-model="form.amenagementStage"
+            name="amenagementStage"
+            label="Aménagements éventuels"
+            placeholder="Ex: Télétravail 2 jours/semaine"
+            type="text"
+            class="md:col-span-2"
+          />
         </div>
       </div>
 
@@ -601,7 +791,8 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
           <button
             v-if="currentStep < totalSteps"
             @click="nextStep"
-            class="text-xs font-bold px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 text-white transition-all flex items-center gap-2"
+            :disabled="stepHasErrors"
+            class="text-xs font-bold px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white transition-all flex items-center gap-2"
           >
             <span>Suivant</span>
             <i class="pi pi-arrow-right text-[10px]"></i>
@@ -609,8 +800,8 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
           <button
             v-else
             @click="submitRequest"
-            :disabled="isSubmitting"
-            class="text-xs font-bold px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white transition-all flex items-center gap-2"
+            :disabled="isSubmitting || stepHasErrors"
+            class="text-xs font-bold px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white transition-all flex items-center gap-2"
           >
             <i v-if="isSubmitting" class="pi pi-spin pi-spinner"></i>
             <i v-else class="pi pi-check"></i>
