@@ -49,7 +49,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
                 case 'ROLE_ASSISTANT':
                     $dto->items = array_merge($dto->items, $this->getDatasAssistant($personnelDept));
                     break;
-                case 'ROLE_CHEF_DE_DEPT':
+                case 'ROLE_CHEF_DEPARTEMENT':
                     $dto->items = array_merge($dto->items, $this->getDatasChefDeDept($personnelDept));
                     break;
                 case 'ROLE_DIRECTEUR_ETUDES':
@@ -58,7 +58,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
                 case 'ROLE_STAGE':
                     $dto->items = array_merge($dto->items, $this->getDatasStage($personnelDept));
                     break;
-                case 'ROLE_RP':
+                case 'ROLE_RESP_PARCOURS':
                     $dto->items = array_merge($dto->items, $this->getDatasRP($personnelDept));
                     break;
                 case 'ROLE_EDT':

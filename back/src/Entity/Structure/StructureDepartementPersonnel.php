@@ -55,6 +55,7 @@ class StructureDepartementPersonnel
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Groups(groups: ['departement_personnel:read', 'departement:read', 'personnel:read'])]
     private array $roles = []; //tableau associatif => 'application' => [droits]
 
     #[ORM\Column]
