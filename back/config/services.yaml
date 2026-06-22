@@ -40,15 +40,4 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    App\DataProvider\SingleRecordDataProvider:
-        arguments:
-            $entityManager: '@doctrine.orm.entity_manager'
-        tags: [ 'api_platform.state_provider' ]
-
-    App\Domain\Questionnaire\Repeat\RepeatItemsProviderRegistry:
-        arguments:
-            $providers: !tagged_iterator app.repeat_items_provider
-
-    App\Infrastructure\Questionnaire\Repeat\MatiereRepeatItemsProvider:
-        tags: [ 'app.repeat_items_provider' ]
 
