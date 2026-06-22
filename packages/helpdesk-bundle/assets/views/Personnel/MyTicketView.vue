@@ -9,25 +9,21 @@ import {TabGroup, TabPanels} from "@headlessui/vue";
 import DatePicker from 'primevue/datepicker';
 import CascadeSelect from 'primevue/cascadeselect';
 import {
-  getMessagesService,
   getPersonnelsService,
   getServicesService,
   getTicketsService,
-  updateTicketStatutService,
 } from "@requests";
 import {FilterMatchMode} from "@primevue/core/api";
 
 
 const router = useRouter();
 const userStore = useUsersStore();
-const date = new Date();
 const services=ref([]);
 const selectedService=ref(null);
 const selectedCategorie=ref(null);
 const selectedStatut=ref(null);
 const selectedPersonnel=ref(null);
 const ticketsList=ref([]);
-const postedTicketsList=ref([]);
 const loading = ref(true);
 const personnelList = ref([]);
 const statutsOptions = ref([]);
@@ -59,13 +55,11 @@ const assignesOptions = computed(() => {
   }))
 })
 
-
-
 const filteredPostedTickets = computed(() => {
   const search = filters.value.global.value?.toLowerCase().trim();
-  if (!search) return postedTicketsList.value;
+  if (!search) return postedTickets.value;
 
-  return postedTicketsList.value.filter(ticket => {
+  return postedTickets.value.filter(ticket => {
     return (
         ticket.sujet?.toLowerCase().includes(search) ||
         ticket.subject?.toLowerCase().includes(search) ||
@@ -77,12 +71,11 @@ const filteredPostedTickets = computed(() => {
   });
 });
 
-
 const filteredReceivedTickets = computed(() => {
   const search = filters.value.global.value?.toLowerCase().trim();
-  if (!search) return ticketsList.value;
+  if (!search) return receivedTickets.value;
 
-  return ticketsList.value.filter(ticket => {
+  return receivedTickets.value.filter(ticket => {
     return (
         ticket.sujet?.toLowerCase().includes(search) ||
         ticket.subject?.toLowerCase().includes(search) ||
@@ -105,7 +98,6 @@ const initiales = computed(
 
 const rootCategories = computed(() => {
   if (!selectedService.value?.helpdeskCategories) return [];
-  // On ne garde que les catégories qui n'ont pas de parent
   return selectedService.value.helpdeskCategories.filter(cat => !cat.parent);
 });
 
@@ -120,15 +112,11 @@ const getServices= async()=>{
   catch(error){
     console.error('Erreur dans getServices',error);
   }
-  /*finally {
-    console.log(services.value)
-  }*/
 }
 const getTickets = async () => {
   try {
     loading.value = true;
 
-    // 1. Récupération des tickets postés par l'utilisateur connecté
     const postedParams = { auteur: userStore.user?.id };
     postedTickets.value = await getTicketsService(postedParams);
 
@@ -193,7 +181,6 @@ onMounted(async () => {
           ></ValidatedInput>
         </div>
 
-        <PermissionGuard permission="isPersonnel">
           <div class="flex flex-col gap-1">
             <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Catégories</label>
             <CascadeSelect v-model="selectedCategorie"
@@ -207,7 +194,6 @@ onMounted(async () => {
                            :disabled="!selectedService"
             />
           </div>
-        </PermissionGuard>
 
           <div class="flex flex-col">
             <ValidatedInput
@@ -222,7 +208,7 @@ onMounted(async () => {
                 :show-clear="true"
             ></ValidatedInput>
           </div>
-        <PermissionGuard permission="isPersonnel">
+        <PermissionGuard permission="isPersonnelService">
           <div class="flex flex-col">
             <ValidatedInput
                 v-model="selectedPersonnel"
@@ -281,7 +267,7 @@ onMounted(async () => {
                 <InputIcon>
                   <i class="pi pi-search" />
                 </InputIcon>
-                <InputText v-model="filters.global.value" placeholder="Rechercher un ticket..." />
+                <InputText v-model="filters['global'].value" placeholder="Rechercher un ticket..." />
               </IconField>
             </template>
           </Toolbar>
@@ -290,11 +276,11 @@ onMounted(async () => {
         <div v-if="loading" class="text-center p-10 text-xl">
           Chargement des tickets...
         </div>
-        <div v-else-if="postedTickets.length === 0" class="text-center p-10 text-xl text-gray-500">
+        <div v-else-if="filteredPostedTickets.length === 0" class="text-center p-10 text-xl text-gray-500">
           Aucun ticket trouvé.
         </div>
         <div v-else class="p-6">
-          <div v-for="ticket in postedTickets" :key="ticket.id">
+          <div v-for="ticket in filteredPostedTickets" :key="ticket.id">
             <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
           </div>
         </div>
@@ -320,11 +306,11 @@ onMounted(async () => {
         <div v-if="loading" class="text-center p-10 text-xl">
           Chargement des tickets...
         </div>
-        <div v-else-if="receivedTickets.length === 0" class="text-center p-10 text-xl text-gray-500">
+        <div v-else-if="filteredReceivedTickets.length === 0" class="text-center p-10 text-xl text-gray-500">
           Aucun ticket trouvé.
         </div>
         <div v-else class="p-6">
-          <div v-for="ticket in receivedTickets" :key="ticket.id">
+          <div v-for="ticket in filteredReceivedTickets" :key="ticket.id">
             <TicketCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer hover:shadow-md transition-shadow"/>
           </div>
         </div>

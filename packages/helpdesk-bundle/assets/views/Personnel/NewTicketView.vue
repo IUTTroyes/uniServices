@@ -5,6 +5,8 @@ import {ref,onMounted,computed} from "vue";
 import {useRouter} from "vue-router";
 import CascadeSelect from 'primevue/cascadeselect';
 import {useUsersStore} from '@stores';
+import {showMessage} from '@/utils';
+
 
 const router=useRouter()
 
@@ -90,7 +92,7 @@ onMounted(async()=>{
 
 <template>
   <div class="card">
-    <Message severity="info" icon="pi pi-info-circle" class="mt-2 mb-10">Nous traitons actuellement un volume élevé de tickets. Merci de limiter vos ouvertures de tickets aux besoins essentiels afin de nous aider à réduire les délais de réponse.
+    <Message v-if="showMessage" severity="info" icon="pi pi-info-circle" class="mt-2 mb-10">Nous traitons actuellement un volume élevé de tickets. Merci de limiter vos ouvertures de tickets aux besoins essentiels afin de nous aider à réduire les délais de réponse.
     </Message>
     <div>
       <div class="font-semibold text-xl mb-6">Créer un ticket</div>

@@ -5,13 +5,13 @@ import { useUsersStore } from "@stores";
 import TicketMessageCard from "@/components/TicketMessageCard.vue";
 import { useRouter } from 'vue-router';
 import { getTicketsService } from '@requests';
+import {showMessage} from '@/utils';
 import AccordeonMessages from "@/components/AccordeonMessages.vue";
 import StatsDashboards from "@/components/StatsDashboards.vue";
 
 const router = useRouter();
 const userStore = useUsersStore();
 const date = new Date();
-const checked = ref(false);
 const first = ref(0);
 const rows = ref(5);
 const ticketsList = ref([]);
@@ -24,6 +24,10 @@ const goToTicket = (id) => {
 };
 const onPageChange = (event) => {
   first.value = event.first;
+};
+
+const goToAllTickets = () => {
+  router.push({ name: 'MyTicketView' });
 };
 
 const paginatedTickets = computed(() => {
@@ -108,7 +112,7 @@ onMounted(() => {
 
 
     <div>
-      <Message severity="info" icon="pi pi-info-circle" class="mt-2 mb-10">
+      <Message v-if="showMessage" severity="info" icon="pi pi-info-circle" class="mt-2 mb-10">
         Nous traitons actuellement un volume élevé de tickets. Merci de limiter vos ouvertures de tickets aux besoins essentiels afin de nous aider à réduire les délais de réponse.
       </Message>
     </div>
@@ -150,6 +154,9 @@ onMounted(() => {
         </Carousel>
 
       </div>
+    </div>
+    <div class="flex flex-col items-end gap-4 w-full">
+      <Button class="w-120 h-15" label="Voir tous mes tickets" @click="goToAllTickets" icon="pi pi-arrow-down-left" />
     </div>
   </div>
 </template>

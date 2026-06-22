@@ -99,7 +99,7 @@ const router = createRouter({
                     name: 'TicketListAdminView',
                     component: TicketListAdminView,
                     meta: {
-                        permission: 'isPersonnel',
+                        permission: 'isPersonnelService',
                         title: 'Gestion Tickets',
                         breadcrumb: [{ label: 'Dashboard', route: '/' }, {
                             label: 'Liste des Tickets',

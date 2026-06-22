@@ -8,13 +8,13 @@ import AccordeonMessages from "@/components/AccordeonMessages.vue";
 import StatsDashboards from "@/components/StatsDashboards.vue";
 import { PermissionGuard } from "@components";
 import { useRouter } from 'vue-router';
+import {showMessage,showMessageChecked} from '@/utils';
 import {getServicesService, getTicketsService} from '@requests';
 
 const router = useRouter();
 const userStore = useUsersStore();
 const date = new Date();
-const checked = ref(false);
-const first = ref(0);
+const checked = ref(showMessage.value);const first = ref(0);
 const rows = ref(5);
 const ticketsList = ref([]);
 const receivedTicketsList = ref([]);
@@ -109,10 +109,6 @@ const getTickets = async () => {
   }
 };
 
-const showMessage = {
-
-}
-
 onMounted(() => {
   getTickets();
 });
@@ -190,12 +186,11 @@ onMounted(() => {
     </div>
 </div>
 
-    <!-- todo:faire fonctionner l'affichage du message-->
     <div>
       <Message severity="info" icon="pi pi-info-circle" class="mt-2 mb-10">
         <PermissionGuard permission="isPersonnelService">
           <div class="flex items-center gap-2 mb-4 border-b border-blue-100 pb-2">
-            <Checkbox id="checkbox" @click="showMessage" v-model="checked" binary />
+            <Checkbox id="checkbox" @click="showMessageChecked" v-model="checked" binary />
             <label for="checkbox" class="font-bold text-sm">Afficher ce message pour tous les utilisateurs</label>
           </div>
         </PermissionGuard>
