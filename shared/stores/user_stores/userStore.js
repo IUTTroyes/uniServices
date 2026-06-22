@@ -220,10 +220,43 @@ export const useUsersStore = defineStore('users', () => {
         temporaryRole.value = null;
     };
 
-    // Vérifier si un rôle spécifique est actif
-    // Si temporaryRole est défini, vérifier ce rôle (mode exclusif)
-    // On gère une hiérarchie simple : presque tous les rôles impliquent ROLE_PERSONNEL
-    // Si temporaryRole n'est pas défini, vérifier les rôles originaux
+    // Clé applicative déduite depuis l'URL de base Vite (import.meta.env.BASE_URL)
+    // Ex: '/intranet/' => 'intranet', '/edt/' => 'edt', '/' => null
+    const currentAppKey = computed(() => {
+        const base = import.meta.env.BASE_URL || '/';
+        const key = base.replace(/^\//, '').replace(/\/$/, '').trim();
+        return key.length > 0 ? key : null;
+    });
+
+    // Rôles actifs pour l'application courante dans le département par défaut
+    // Format attendu de departementPersonnel.roles : { "intranet": ["ROLE_X", ...], "edt": [...] }
+    // Supporte aussi le format string unique : { "intranet": "ROLE_X" } (compatibilité BDD legacy)
+    // Si la clé applicative n'existe pas dans les rôles du département, on retombe sur user.roles
+    const rolesActifs = computed(() => {
+        const dp = departementDefaut.value?.departementPersonnel;
+        const appKey = currentAppKey.value;
+
+        if (appKey && dp?.roles && typeof dp.roles === 'object') {
+            const appRoles = dp.roles[appKey];
+            // Format tableau : { "intranet": ["ROLE_X", "ROLE_Y"] }
+            if (Array.isArray(appRoles)) {
+                return appRoles;
+            }
+            // Format string unique : { "intranet": "ROLE_X" }
+            if (typeof appRoles === 'string' && appRoles.trim().length > 0) {
+                return [appRoles.trim()];
+            }
+        }
+
+        // Fallback : rôles globaux du Personnel/Etudiant
+        return Array.isArray(user.value?.roles) ? user.value.roles : [];
+    });
+
+    // Vérifie si un rôle spécifique est actif.
+    // Priorité :
+    //   1. Mode impersonnalisation (temporaryRole) → comportement inchangé
+    //   2. Rôles structurels (ROLE_SUPER_ADMIN, ROLE_PERSONNEL) → toujours lus sur user.roles
+    //   3. Rôles métier → lus depuis rolesActifs (département actif pour l'app courante, sinon user.roles)
     const hasRole = (role) => {
         if (temporaryRole.value) {
             // Correspondance exacte
@@ -239,7 +272,14 @@ export const useUsersStore = defineStore('users', () => {
             // Hiérarchie inverse : Si on est en mode ROLE_PERSONNEL, on n'a pas les sous-rôles spécifiques (déjà géré par le premier if)
             return false;
         }
-        return user.value && user.value.roles && Array.isArray(user.value.roles) ? user.value.roles.includes(role) : false;
+
+        // Rôles structurels : toujours lus sur user.roles (indépendants du département)
+        if (role === 'ROLE_SUPER_ADMIN' || role === 'ROLE_PERSONNEL') {
+            return Array.isArray(user.value?.roles) ? user.value.roles.includes(role) : false;
+        }
+
+        // Rôles métier : lus depuis le département actif (ou fallback sur user.roles)
+        return rolesActifs.value.includes(role);
     };
 
     const isPersonnel = computed(() => hasRole('ROLE_PERSONNEL'));
@@ -315,5 +355,7 @@ export const useUsersStore = defineStore('users', () => {
         setTemporaryRole,
         clearTemporaryRole,
         temporaryRole,
+        currentAppKey,
+        rolesActifs,
     };
 });

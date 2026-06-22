@@ -2,6 +2,7 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
@@ -13,11 +14,13 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
+use App\Filter\DepartementPersonnelFilter;
+use App\State\Provider\Users\ActionsUrgentesWidgetProvider;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDepartementPersonnelRepository::class)]
-#[ApiFilter(SearchFilter::class, properties: [
+#[ApiFilter(DepartementPersonnelFilter::class, SearchFilter::class, properties: [
     'personnel.nom' => 'partial',
     'personnel.prenom' => 'partial',
     'departement.libelle' => 'partial'
@@ -34,7 +37,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
             paginationEnabled: false,
             normalizationContext: ['groups' => ['departement_personnel:read']]
         ),
-        new Post(uriTemplate: '/structure_departement_personnels/{id}/change_departement',
+        new GetCollection(
+            uriTemplate: '/widget/actions_urgentes/',
+            normalizationContext: ['groups' => ['action_urgente_widget:read']],
+            output: ActionsUrgentesWidgetDto::class,
+            provider: ActionsUrgentesWidgetProvider::class,
+        ),
+        new Post(
+            uriTemplate: '/structure_departement_personnels/{id}/change_departement',
             inputFormats: ['json' => ['application/ld+json']],
             outputFormats: ['json' => ['application/ld+json']],
             normalizationContext: ['groups' => ['departement_personnel:read']],

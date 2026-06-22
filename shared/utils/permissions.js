@@ -323,7 +323,7 @@ export const permissionDirective = {
     el._permissionWatch = watch(
       () => {
         const store = useUsersStore();
-        return [store.isLoaded, store.temporaryRole, store.user?.roles];
+        return [store.isLoaded, store.temporaryRole, store.user?.roles, store.rolesActifs];
       },
       () => {
         updatePermission(el, binding);
