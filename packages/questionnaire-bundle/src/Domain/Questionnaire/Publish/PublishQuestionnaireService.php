@@ -35,7 +35,7 @@ final class PublishQuestionnaireService
             $psi = new QuestionnaireSectionInstance(
                 q: $q,
                 st: $row['sectionTemplate'],
-                order: $row['order'],
+                order: $row['sortOrder'],
                 titleSnapshot: $row['title'],
                 repeatItemType: $row['repeatItemType'],
                 repeatItemId: $row['repeatItemId']

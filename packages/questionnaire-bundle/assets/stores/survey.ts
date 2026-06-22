@@ -8,12 +8,14 @@ import {
     createSectionQuestionnaire,
     deleteQuestionInSection,
     deleteQuestionnaire,
+    deleteSectionQuestionnaire,
     getAllQuestionnaires,
     getQuestionnaire,
     getQuestionnaireSections,
     updateQuestionInSection,
     updateQuestionnaire,
-    updateSectionQuestionnaire
+    updateSectionQuestionnaire,
+    publishQuestionnaire
 } from '@/requests/questionnaire_services/questionnaireService'
 
 
@@ -112,6 +114,15 @@ export const useSurveyStore = defineStore('survey', () => {
         }
     }
 
+    async function publishSurvey(surveyId: string, recipients: string[]): Promise<any> {
+        const result = await publishQuestionnaire(surveyId, { recipients }, true);
+        if (currentSurvey.value && currentSurvey.value.uuid === surveyId) {
+            currentSurvey.value.status = 'published';
+            currentSurvey.value.publishedAt = result.publishedAt;
+        }
+        return result;
+    }
+
     // function setSurveyStatut(surveyId: string, status: Survey['status']) {
     //     const survey = surveys.value.find(s => s.uuid === surveyId);
     //     if (survey) {
@@ -151,7 +162,7 @@ export const useSurveyStore = defineStore('survey', () => {
             if ('id' in updates) {
                 delete updates.id;
             }
-            await updateSectionQuestionnaire(section.uuid, updates, true)
+            await updateSectionQuestionnaire(section.uuid, updates, currentSurvey.value.uuid, true)
             // mettre à jour la section dans le store
             Object.assign(section, updates);
             if (currentSection.value?.uuid === sectionId) {
@@ -168,16 +179,18 @@ export const useSurveyStore = defineStore('survey', () => {
         }
     }
 
-    function deleteSection(sectionId: string) {
+    async function deleteSection(sectionId: string) {
         console.log('deleteSection', sectionId);
         if (!currentSurvey.value) return;
 
-        const index = currentSections.value.findIndex(s => s.id === sectionId);
+        const index = currentSections.value.findIndex(s => s.uuid === sectionId || s.id === sectionId);
         if (index !== -1) {
+            const sectionToDelete = currentSections.value[index];
             currentSections.value.splice(index, 1);
-            if (currentSection.value?.uuid === sectionId) {
+            if (currentSection.value?.uuid === sectionId || currentSection.value?.id === sectionId) {
                 currentSection.value = currentSections.value[0] || null;
             }
+            await deleteSectionQuestionnaire(sectionToDelete.uuid, true);
             updateSurvey({});
         }
     }
@@ -194,6 +207,7 @@ export const useSurveyStore = defineStore('survey', () => {
     // Question Management
     async function addQuestion(sectionId: string, typeQuestion: QuestionType, newQuestion: Question| null = null): Promise<Question> {
         if (!currentSection.value) throw new Error('Section not found');
+        if (!currentSurvey.value) throw new Error('Survey not found');
 
         let _newQuestion: Question;
 
@@ -213,9 +227,9 @@ export const useSurveyStore = defineStore('survey', () => {
                     : undefined
             };
             //todo: passer uuid ? gérer côté back
-            _newQuestion = await createQuestionInSection(currentSection.value.id, question, true)
+            _newQuestion = await createQuestionInSection(currentSection.value.uuid, question, true)
         } else {
-            _newQuestion = await createQuestionInSection(currentSection.value.id, newQuestion, true)
+            _newQuestion = await createQuestionInSection(currentSection.value.uuid, newQuestion, true)
         }
 
         currentSection.value.questions.push(_newQuestion);
@@ -225,6 +239,7 @@ export const useSurveyStore = defineStore('survey', () => {
 
     async function duplicateQuestion(sectionId: string, question: Question): Promise<Question> {
         if (!currentSection.value) throw new Error('Section not found');
+        if (!currentSurvey.value) throw new Error('Survey not found');
 
         const _newQuestion: Question = {
             id: null,
@@ -268,9 +283,10 @@ export const useSurveyStore = defineStore('survey', () => {
     function removeQuestion(sectionId: string, questionId: string) {
         const section = currentSections.value.find(s => s.uuid === sectionId);
         if (!section) return;
-
+console.log(questionId)
         const index = section.questions.findIndex(q => q.uuid === questionId);
         if (index !== -1) {
+            console.log('delete')
             section.questions.splice(index, 1);
             deleteQuestionInSection(questionId, true);
         }
@@ -288,6 +304,7 @@ export const useSurveyStore = defineStore('survey', () => {
 
     // Utility functions
     async function selectSurvey(surveyId: string) {
+        console.log('selectSurvey', surveyId)
         const survey = await getQuestionnaire(surveyId);
         if (survey) {
             currentSurvey.value = survey;
@@ -350,6 +367,7 @@ export const useSurveyStore = defineStore('survey', () => {
         duplicateSurvey,
         updateSurvey,
         deleteSurvey,
+        publishSurvey,
         // setSurveyStatut,
 
         // Section actions

@@ -9,12 +9,12 @@ use ApiPlatform\Metadata\Link;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\Parameter;
 use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
-use QuestionnaireBundle\State\Questionnaire\Preview\PreviewIndexProvider;
+use QuestionnaireBundle\State\Provider\Questionnaire\Preview\PreviewIndexProvider;
 
 #[ApiResource(
     operations: [
         new Get(
-            uriTemplate: '/questionnaires/{questionnaireUuid}/preview/index',
+            uriTemplate: '/questionnaires/{questionnaireUuid}/preview',
             uriVariables: [
                 'questionnaireUuid' => new Link(
                     fromClass: Questionnaire::class,

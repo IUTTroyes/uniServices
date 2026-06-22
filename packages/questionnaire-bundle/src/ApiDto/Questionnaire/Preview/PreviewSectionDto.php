@@ -8,7 +8,7 @@ use ApiPlatform\Metadata\Link;
 use ApiPlatform\OpenApi\Model\Operation;
 use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
 use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSection;
-use QuestionnaireBundle\State\Questionnaire\Preview\PreviewSectionProvider;
+use QuestionnaireBundle\State\Provider\Questionnaire\Preview\PreviewSectionProvider;
 use QuestionnaireBundle\ApiDto\Questionnaire\Runtime\QuestionRuntimeDto;
 use QuestionnaireBundle\Enum\QuestTypeRepeatEnum;
 

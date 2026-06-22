@@ -8,7 +8,7 @@ export default [
   {
     path: '/qualite/enquetes',
     name: 'questionnaire_qualite-enquetes',
-    component: () => import('@/views/Questionnaire/IndexView.vue'),
+    component: () => import('@/views/DashboardView.vue'),
     meta: {
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
@@ -45,12 +45,30 @@ export default [
   {
     path: '/qualite/enquetes/responses/:id',
     name: 'questionnaire_responses',
-    component: SurveyResponseView
+    component: SurveyResponseView,
+    meta: {
+      breadcrumb: [
+        { label: 'Dashboard', route: '/' },
+        { label: 'Qualité', route: null },
+        { label: 'Enquêtes', route: '/qualite/enquetes' },
+        { label: 'Questionnaire xxx', route: null },
+        { label: 'Réponses', route: null },
+      ]
+    }
   },
   {
     path: '/qualite/enquetes/analytics/:id',
     name: 'questionnaire_analytics',
-    component: AnalyticsView
+    component: AnalyticsView,
+    meta: {
+      breadcrumb: [
+        { label: 'Dashboard', route: '/' },
+        { label: 'Qualité', route: null },
+        { label: 'Enquêtes', route: '/qualite/enquetes' },
+        { label: 'Questionnaire xxx', route: null },
+        { label: 'Statistiques', route: null },
+      ]
+    }
   },
   {
     path: '/qualite/enquetes/take/:token',

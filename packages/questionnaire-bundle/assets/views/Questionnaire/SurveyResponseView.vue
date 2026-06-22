@@ -11,21 +11,12 @@
       </div>
 
       <div class="flex items-center space-x-3">
-        <router-link
-          :to="`/analytics/${surveyId}`"
-          class="btn-secondary"
-        >
-          <ChartBarIcon class="w-4 h-4" />
-          Voir les statistiques
-        </router-link>
-        <button @click="showInviteModal = true" class="btn-primary">
-          <UserPlusIcon class="w-4 h-4" />
-          Inviter des participants
-        </button>
-        <button @click="exportResponses" class="btn-secondary">
-          <ArrowDownTrayIcon class="w-4 h-4" />
-          Exporter
-        </button>
+        <ActionButtonVertical :to="{ name: 'questionnaire_analytics', params: { id: surveyId } }" :icon="ChartBarIcon"
+          label="Voir les statistiques" severity="help" />
+        <ActionButtonVertical :icon="UserPlusIcon" label="Inviter des participants" severity="primary"
+          @click="showInviteModal = true" />
+        <ActionButtonVertical :icon="ArrowDownTrayIcon" label="Exporter" severity="secondary"
+          @click="exportResponses" />
       </div>
     </div>
 
@@ -86,12 +77,8 @@
         <div class="flex items-center space-x-4">
           <div class="relative">
             <MagnifyingGlassIcon class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Rechercher par email ou nom..."
-              class="pl-10 input-field w-64"
-            />
+            <input v-model="searchQuery" type="text" placeholder="Rechercher par email ou nom..."
+              class="pl-10 input-field w-64" />
           </div>
 
           <select v-model="statusFilter" class="input-field w-40">
@@ -103,37 +90,27 @@
 
           <select v-model="groupFilter" class="input-field w-40">
             <option value="all">Tous les groupes</option>
-            <option
-              v-for="group in availableGroups"
-              :key="group"
-              :value="group"
-            >
+            <option v-for="group in availableGroups" :key="group" :value="group">
               {{ group }}
             </option>
           </select>
         </div>
 
         <div class="flex items-center space-x-2">
-          <button
-            @click="viewMode = 'table'"
-            :class="[
-              'p-2 rounded-lg',
-              viewMode === 'table'
-                ? 'bg-primary-100 text-primary-600 dark:bg-primary-900 dark:text-primary-400'
-                : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-            ]"
-          >
+          <button @click="viewMode = 'table'" :class="[
+            'p-2 rounded-lg',
+            viewMode === 'table'
+              ? 'bg-primary-100 text-primary-600 dark:bg-primary-900 dark:text-primary-400'
+              : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+          ]">
             <TableCellsIcon class="w-5 h-5" />
           </button>
-          <button
-            @click="viewMode = 'cards'"
-            :class="[
-              'p-2 rounded-lg',
-              viewMode === 'cards'
-                ? 'bg-primary-100 text-primary-600 dark:bg-primary-900 dark:text-primary-400'
-                : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-            ]"
-          >
+          <button @click="viewMode = 'cards'" :class="[
+            'p-2 rounded-lg',
+            viewMode === 'cards'
+              ? 'bg-primary-100 text-primary-600 dark:bg-primary-900 dark:text-primary-400'
+              : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+          ]">
             <Squares2X2Icon class="w-5 h-5" />
           </button>
         </div>
@@ -147,29 +124,31 @@
         <table class="w-full">
           <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Participant
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Statut
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Progression
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Dernière activité
               </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
           <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            <tr
-              v-for="response in filteredResponses"
-              :key="response.id"
-              class="hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
+            <tr v-for="response in filteredResponses" :key="response.id"
+              class="hover:bg-gray-50 dark:hover:bg-gray-700">
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
@@ -188,22 +167,17 @@
                 </div>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span
-                  :class="[
-                    'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                    getStatusColor(response)
-                  ]"
-                >
+                <span :class="[
+                  'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                  getStatusColor(response)
+                ]">
                   {{ getStatusLabel(response) }}
                 </span>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
                 <div class="flex items-center">
                   <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mr-2">
-                    <div
-                      class="bg-primary-600 h-2 rounded-full"
-                      :style="{ width: `${getProgress(response)}%` }"
-                    />
+                    <div class="bg-primary-600 h-2 rounded-full" :style="{ width: `${getProgress(response)}%` }" />
                   </div>
                   <span class="text-sm text-gray-600 dark:text-gray-400">
                     {{ getProgress(response) }}%
@@ -214,17 +188,12 @@
                 {{ formatRelativeTime(response.lastActivity) }}
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <button
-                  @click="viewResponse(response)"
-                  class="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300 mr-3"
-                >
+                <button @click="viewResponse(response)"
+                  class="text-primary-600 dark:text-primary-400 hover:text-primary-900 dark:hover:text-primary-300 mr-3">
                   Voir
                 </button>
-                <button
-                  v-if="!response.completed"
-                  @click="sendReminder(response)"
-                  class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300"
-                >
+                <button v-if="!response.completed" @click="sendReminder(response)"
+                  class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300">
                   Relancer
                 </button>
               </td>
@@ -235,11 +204,8 @@
 
       <!-- Cards View -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div
-          v-for="response in filteredResponses"
-          :key="response.id"
-          class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-500 transition-colors"
-        >
+        <div v-for="response in filteredResponses" :key="response.id"
+          class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-500 transition-colors">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center space-x-3">
               <div class="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center">
@@ -256,12 +222,10 @@
                 </div>
               </div>
             </div>
-            <span
-              :class="[
-                'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
-                getStatusColor(response)
-              ]"
-            >
+            <span :class="[
+              'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
+              getStatusColor(response)
+            ]">
               {{ getStatusLabel(response) }}
             </span>
           </div>
@@ -272,10 +236,7 @@
               <span class="text-gray-900 dark:text-white">{{ getProgress(response) }}%</span>
             </div>
             <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-              <div
-                class="bg-primary-600 h-2 rounded-full"
-                :style="{ width: `${getProgress(response)}%` }"
-              />
+              <div class="bg-primary-600 h-2 rounded-full" :style="{ width: `${getProgress(response)}%` }" />
             </div>
           </div>
 
@@ -284,17 +245,11 @@
               {{ formatRelativeTime(response.lastActivity) }}
             </span>
             <div class="flex items-center space-x-2">
-              <button
-                @click="viewResponse(response)"
-                class="btn-secondary text-xs"
-              >
+              <button @click="viewResponse(response)" class="btn-secondary text-xs">
                 Voir
               </button>
-              <button
-                v-if="!response.completed"
-                @click="sendReminder(response)"
-                class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 text-xs"
-              >
+              <button v-if="!response.completed" @click="sendReminder(response)"
+                class="text-yellow-600 dark:text-yellow-400 hover:text-yellow-900 dark:hover:text-yellow-300 text-xs">
                 Relancer
               </button>
             </div>
@@ -321,20 +276,12 @@
     </div>
 
     <!-- Invite Participants Modal -->
-    <InviteParticipantsModal
-      v-if="showInviteModal"
-      :survey-id="surveyId"
-      @close="showInviteModal = false"
-      @invited="handleParticipantsInvited"
-    />
+    <InviteParticipantsModal v-if="showInviteModal" :survey-id="surveyId" @close="showInviteModal = false"
+      @invited="handleParticipantsInvited" />
 
     <!-- Response Detail Modal -->
-    <ResponseDetailModal
-      v-if="showResponseDetail"
-      :response="selectedResponse"
-      :survey="survey"
-      @close="showResponseDetail = false"
-    />
+    <ResponseDetailModal v-if="showResponseDetail" :response="selectedResponse" :survey="survey"
+      @close="showResponseDetail = false" />
   </div>
 </template>
 
@@ -356,11 +303,11 @@ import {
 import { useSurveyStore } from '@/stores/survey';
 import { useResponseStore } from '@/stores/responses';
 import { useUIStore } from '@/stores/ui';
-import InviteParticipantsModal from '@/componnents/Questionnaire/InviteParticipantsModal.vue';
-import ResponseDetailModal from '@/componnents/Questionnaire/ResponseDetailModal.vue';
+import InviteParticipantsModal from '@/components/Questionnaire/InviteParticipantsModal.vue';
+import ResponseDetailModal from '@/components/Questionnaire/ResponseDetailModal.vue';
+import ActionButtonVertical from '@components/components/ActionButtonVertical.vue';
 import type { Response } from '@/types/survey';
-import { formatRelative } from 'date-fns';
-import { fr } from 'date-fns/locale';
+import { formatRelativeTime, formatDuration } from '@/utils/date';
 
 const route = useRoute();
 const surveyStore = useSurveyStore();
@@ -368,6 +315,7 @@ const responseStore = useResponseStore();
 const uiStore = useUIStore();
 
 const surveyId = route.params.id as string;
+const survey = computed(() => surveyStore.currentSurvey);
 const searchQuery = ref('');
 const statusFilter = ref('all');
 const groupFilter = ref('all');
@@ -375,10 +323,7 @@ const viewMode = ref<'table' | 'cards'>('table');
 const showInviteModal = ref(false);
 const showResponseDetail = ref(false);
 const selectedResponse = ref<Response | null>(null);
-
-const survey = computed(() =>
-  surveyStore.surveys.find(s => s.id === surveyId)
-);
+console.log(surveyId)
 
 const analytics = computed(() => responseStore.getSurveyAnalytics(surveyId));
 
@@ -485,18 +430,6 @@ function getProgress(response: Response): number {
   return totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0;
 }
 
-function formatRelativeTime(date: Date): string {
-  return formatRelative(date, new Date(), { locale: fr });
-}
-
-function formatDuration(milliseconds: number): string {
-  const minutes = Math.round(milliseconds / (1000 * 60));
-  if (minutes < 60) return `${minutes}min`;
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return `${hours}h${remainingMinutes > 0 ? ` ${remainingMinutes}min` : ''}`;
-}
-
 function viewResponse(response: Response) {
   selectedResponse.value = response;
   showResponseDetail.value = true;
@@ -529,11 +462,8 @@ function exportResponses() {
   );
 }
 
-onMounted(() => {
-  if (!survey.value) {
-    surveyStore.selectSurvey(surveyId);
-  }
-
+onMounted(async () => {
+  await surveyStore.selectSurvey(surveyId);
   // Generate demo data if no responses exist
   if (responses.value.length === 0) {
     responseStore.generateDemoData(surveyId, 15);

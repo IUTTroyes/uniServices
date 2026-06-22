@@ -1,38 +1,39 @@
-import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
-import path from "path";
-import Components from "unplugin-vue-components/vite";
-import { PrimeVueResolver } from "@primevue/auto-import-resolver";
-import tailwindcss from "@tailwindcss/vite";
-import { loadEnv } from "vite";
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import path from 'path'
+import Components from 'unplugin-vue-components/vite'
+import { PrimeVueResolver } from '@primevue/auto-import-resolver'
+import tailwindcss from '@tailwindcss/vite'
+import { loadEnv } from 'vite'
 
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, path.resolve(__dirname, "../../"), "");
-
-  process.env.VITE_API_URL = env.VITE_API_URL || env.VITE_BASE_URL || "https://localhost:8000";
-
-  return {
-    plugins: [
-      vue(),
-      tailwindcss(),
-      Components({
-        resolvers: [PrimeVueResolver()],
-        dts: path.resolve(__dirname, "assets/components.d.ts"),
-      }),
-    ],
-    root: path.resolve(__dirname, "assets"),
-    base: "/auth/",
-    build: {
-      outDir: path.resolve(__dirname, "../../back/public/auth"),
-      emptyOutDir: true,
-    },
-    server: {
-      proxy: {
-        "/api": {
-          target: process.env.VITE_API_URL,
-          changeOrigin: true,
-          secure: false,
-        },
+    const env = loadEnv(mode, path.resolve(__dirname, '../../'), '')
+  
+    process.env.VITE_API_URL = env.VITE_API_URL
+  
+    return {
+  plugins: [
+    vue(),
+    tailwindcss(),
+    Components({
+      resolvers: [
+        PrimeVueResolver()
+      ],
+      dts: path.resolve(__dirname, 'assets/components.d.ts'),
+    })
+  ],
+  root: path.resolve(__dirname, 'assets'),
+  base: '/auth/',
+  build: {
+    outDir: path.resolve(__dirname, '../../back/public/auth'),
+    emptyOutDir: true,
+  },
+  server: {
+    proxy: {
+      '/api': {
+        target: process.env.VITE_API_URL,
+        changeOrigin: true,
+        secure: false,
       },
     },
     resolve: {
@@ -51,5 +52,6 @@ export default defineConfig(({ mode }) => {
         "@composables": path.resolve(__dirname, "../../shared/composables"),
       },
     },
-  };
-});
+  },
+}
+})

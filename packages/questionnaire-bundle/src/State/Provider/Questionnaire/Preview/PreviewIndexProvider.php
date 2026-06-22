@@ -21,6 +21,7 @@ final readonly class PreviewIndexProvider implements ProviderInterface
     {
         $uuid = $uriVariables['questionnaireUuid'];
         $q = $this->em->getRepository(Questionnaire::class)->findOneBy(['uuid' => $uuid]);
+
         if (!$q) {
             throw new \RuntimeException('Questionnaire not found');
         }
