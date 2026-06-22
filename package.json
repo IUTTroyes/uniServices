@@ -7,7 +7,7 @@
         "shared/*"
     ],
     "scripts": {
-        "dev": "concurrently \"npm run dev:auth\" \"npm run dev:edt\" \"npm run dev:helpdesk\" \"npm run dev:intranet\" \"npm run dev:questionnaire\" \"npm run dev:unifolio\"",
+        "dev": "concurrently \"npm run dev:auth\" \"npm run dev:edt\" \"npm run dev:helpdesk\" \"npm run dev:intranet\" \"npm run dev:questionnaire\" \"npm run dev:stage\" \"npm run dev:unifolio\"",
         "dev:auth": "cd packages/auth-bundle && vite --port 3000 --open",
         "dev:intranet": "cd packages/intranet-bundle && vite --port 3001",
         "dev:edt": "cd packages/edt-bundle && vite --port 3003",
@@ -19,7 +19,9 @@
         "dev:helpdesk": "cd packages/helpdesk-bundle && vite --port 3004",
         "build:helpdesk": "cd packages/helpdesk-bundle && vite build",
         "dev:questionnaire": "cd packages/questionnaire-bundle && vite --port 3005",
-        "build:questionnaire": "cd packages/questionnaire-bundle && vite build"
+        "build:questionnaire": "cd packages/questionnaire-bundle && vite build",
+        "dev:stage": "cd packages/stage-bundle && vite --port 3006",
+        "build:stage": "cd packages/stage-bundle && vite build"
     },
     "devDependencies": {
         "@primeuix/themes": "^2.0.3",
@@ -68,5 +70,6 @@
         "vue-chartjs": "^5.3.3",
         "vue-draggable-next": "^2.3.0",
         "yup": "^1.7.1"
-    }
+    },
+    "packageManager": "pnpm@11.8.0+sha512.c1f5e7c4cb241c8f174b743851d82f42b802324afc8b0f116b96adb15aa06664948dde36960a3ba1079ba5b4b29dd0140135b94b5b5f5263592249d68e555f26"
 }
