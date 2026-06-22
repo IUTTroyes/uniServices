@@ -15,6 +15,7 @@ use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
 use App\Filter\DepartementPersonnelFilter;
 use App\State\Provider\Users\ActionsUrgentesWidgetProvider;
+use App\ApiDto\Users\ActionsUrgentesWidgetDto;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
