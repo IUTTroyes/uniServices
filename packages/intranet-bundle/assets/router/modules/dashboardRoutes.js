@@ -3,6 +3,10 @@ export default [
         path: '',
         component: () => import('@/views/DashboardView.vue'),
         name: 'Dashboard',
-        meta: { breadcrumb: [{ label: 'Dashboard', route: '/'}] },
+    },
+    {
+        path: 'widgets',
+        component: () => import('@/views/DashboardView.vue'),
+        name: 'DashboardWidgetsConfig',
     },
 ];

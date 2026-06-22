@@ -18,15 +18,12 @@ export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
         sortOrder: 'asc',
         viewMode: 'grid',
     });
-    console.log('useFilters')
 
     const filteredStudents = computed(() => {
         if (filters.value.mode !== 'students') return [];
 
         let result = [...students.value];
-        console.log('result', result)
 
-        console.log(filters.value)
         // Apply search filter
         if (filters.value.searchTerm && filters.value.searchTerm.trim() !== '') {
             const searchLower = filters.value.searchTerm.toLowerCase();
@@ -80,7 +77,7 @@ export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
             return 0;
         });
 
-        console.log('fin', result)
+
 
         return result;
     });

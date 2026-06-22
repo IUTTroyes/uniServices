@@ -1,26 +1,21 @@
 <script setup>
 import {computed, onMounted, ref, watch} from "vue";
 import {ErrorView, ListSkeleton, PermissionGuard, SimpleSkeleton, ValidatedInput} from "@components";
-import {useDiplomeStore, useUsersStore} from "@stores";
+import {useUsersStore} from "@stores";
 import {
   exportService,
   getAnneeUniversitaireService,
+  getAnneesService,
   getEdtEventsService,
   getEnseignementsService,
   getPersonnelsService,
   getPrevisService,
-  getSallesService
+  getSallesService,
+  getDiplomesService,
+  getSemestresService,
 } from "@requests";
 import Loader from "@components/loader/GlobalLoader.vue";
-
-// Aide: formater un objet Date en YYYY-MM-DD en heure locale (sans décalage de fuseau)
-const formaterDateLocale = (d) => {
-  if (!d) return null;
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${day}-${month}-${year}`;
-};
+import {clampDateInRange, deriveAcademicYearBounds, formatDateAsDayMonthYear} from "@/service/utils/edtUtils";
 
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const usersStore = useUsersStore();
@@ -30,11 +25,14 @@ const minDate = ref();
 const maxDate = ref();
 const periode = ref(null);
 const diplomes = ref([]);
-const diplomeStore = useDiplomeStore();
 const isLoadingDiplomes = ref(true);
 const selectedDiplome = ref(null);
 const selectedAnnee = ref(null);
 const selectedSemestre = ref(null);
+const annees = ref([]);
+const semestres = ref([]);
+const isLoadingAnnees = ref(false);
+const isLoadingSemestres = ref(false);
 const selectedAnneeId = ref(null);
 const selectedSemestreId = ref(null);
 const selectedEnseignantId = ref(null);
@@ -63,6 +61,7 @@ onMounted( async() => {
   isLoadingEventsData.value = true;
   await setPeriodeFromAnneeUniversitaire();
   await getDiplomes();
+  await getAnnees();
   await getEnseignements();
   await getEnseignants();
   await getSalles();
@@ -71,51 +70,20 @@ onMounted( async() => {
   isLoadingEventsData.value = false;
 });
 
-const deriveBornesAnneeUniv = (au) => {
-  // Calcul les dates de début et de fin de l'année universitaire à partir du libellé ou de la date actuelle
-  const now = new Date();
-  const match = au?.libelle ? au.libelle.match(/(\d{4})\s*[-/]\s*(\d{4})/) : null;
-  let startYear;
-  let endYear;
-  if (match) {
-    startYear = parseInt(match[1], 10);
-    endYear = parseInt(match[2], 10);
-  } else {
-    const m = now.getMonth(); // 0=Jan, 8=Sep
-    if (m >= 8) { // Sep..Dec → academic year starts this year
-      startYear = now.getFullYear();
-      endYear = now.getFullYear() + 1;
-    } else { // Jan..Aug → academic year started last year
-      startYear = now.getFullYear() - 1;
-      endYear = now.getFullYear();
-    }
-  }
-  const start = new Date(startYear, 8, 1, 0, 0, 0, 0); // 1 Sep startYear
-  const end = new Date(endYear, 7, 31, 23, 59, 59, 999); // 31 Aug endYear
-  return { start, end };
-};
-
-const bornerDate = (d, min, max) => {
-  // Contraint une date entre min et max
-  if (!d) return d;
-  if (d < min) return new Date(min);
-  if (d > max) return new Date(max);
-  return d;
-};
-
 const setPeriodeFromAnneeUniversitaire = async () => {
   try {
     let anneeUniversitaire = anneeUniv;
     if (anneeUniversitaire?.id) {
       try {
-        // Récupère l'AU complète au cas où d'autres infos seraient nécessaires plus tard ; pas indispensable pour les bornes
+        // Récupère l'AnnéeUniv complète au cas où d'autres infos seraient nécessaires plus tard ; pas indispensable pour les bornes
         anneeUniversitaire = await getAnneeUniversitaireService(anneeUniversitaire.id);
-      } catch (e) {
+      } catch (error) {
+        console.error('Erreur lors de la récupération de l\'Année Univ', error)
         // ignore, we will still use libelle from localStorage
         anneeUniversitaire = anneeUniv;
       }
     }
-    const { start, end } = deriveBornesAnneeUniv(anneeUniversitaire);
+    const { start, end } = deriveAcademicYearBounds(anneeUniversitaire);
     minDate.value = start;
     maxDate.value = end;
 
@@ -132,14 +100,15 @@ const setPeriodeFromAnneeUniversitaire = async () => {
       const friday = new Date(monday);
       friday.setDate(monday.getDate() + 4);
       friday.setHours(23, 59, 59, 999);
-      const clampedStart = bornerDate(monday, start, end);
-      const clampedEnd = bornerDate(friday, start, end);
+      const clampedStart = clampDateInRange(monday, start, end);
+      const clampedEnd = clampDateInRange(friday, start, end);
       periode.value = [clampedStart, clampedEnd];
     } else {
       // Utiliser toute l'année universitaire
       periode.value = [new Date(start), new Date(end)];
     }
-  } catch (e) {
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'année universitaire :', error);
     // En cas d'erreur, définir une période par défaut de 30 jours avant/après aujourd'hui
     const today = new Date();
     const priorDate = new Date();
@@ -155,20 +124,59 @@ const setPeriodeFromAnneeUniversitaire = async () => {
 const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
   try {
-    diplomes.value = diplomeStore.diplomes;
+    const params = {
+      departement: departement.id,
+      anneeUniversitaire: anneeUniv.id,
+    }
+    diplomes.value = await getDiplomesService(params, '/edt')
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching diplomes:', error);
   } finally {
-    // Par défaut, aucun diplôme/année/semestre sélectionné
-    selectedDiplome.value = null;
-    selectedAnnee.value = null;
-    selectedSemestre.value = null;
-    selectedAnneeId.value = null;
-    selectedSemestreId.value = null;
+    selectedDiplome.value = diplomes.value[0] ?? null;
     isLoadingDiplomes.value = false;
   }
 };
+
+const getAnnees = async () => {
+  isLoadingAnnees.value = true;
+  try {
+    if (!selectedDiplome.value?.id) {
+      annees.value = [];
+      return;
+    }
+
+    const params = {
+      diplome: selectedDiplome.value.id
+    }
+    annees.value = await getAnneesService(params)
+  } catch (error) {
+    console.error('Error fetching annees:', error);
+  } finally {
+    selectedAnnee.value = annees.value[0] ?? null
+    selectedAnneeId.value = selectedAnnee.value?.id ?? null
+    isLoadingAnnees.value = false;
+  }
+}
+
+const getSemestres = async () => {
+  isLoadingSemestres.value = true;
+  try {
+    if (!selectedAnnee.value?.id) {
+      semestres.value = [];
+      return;
+    }
+
+    const params = {
+      annee: selectedAnnee.value.id
+    }
+    semestres.value = await getSemestresService(params)
+  } catch (error) {
+    console.error('Error fetching semestres', error)
+  } finally {
+    isLoadingSemestres.value = false;
+  }
+}
 
 const getEnseignements = async () => {
   isLoadingEnseignements.value = true;
@@ -219,43 +227,24 @@ const getSalles = async () => {
 };
 
 watch(selectedAnneeId, async (newId) => {
-  if (selectedDiplome.value) {
-    selectedAnnee.value = (selectedDiplome.value.annees || []).find(a => a.id === newId) || null;
-  } else {
-    selectedAnnee.value = null;
-  }
+  selectedAnnee.value = (annees.value || []).find(a => a.id === newId) || null;
   selectedSemestre.value = null;
   selectedSemestreId.value = null;
-  if (selectedAnnee) {
-    await getEventsData();
-    await getStatsPreviData();
-    await getEnseignements();
-  }
+  await getSemestres();
+  await getEventsData();
+  await getStatsPreviData();
+  await getEnseignements();
 });
 
 watch(selectedSemestreId, async (newId) => {
-  if (selectedAnnee.value) {
-    selectedSemestre.value = (selectedAnnee.value.semestres || []).find(s => s.id === newId) || null;
-  }
-  if (selectedSemestre) {
-    await getEventsData();
-    await getStatsPreviData();
-    await getEnseignements();
-  }
+  selectedSemestre.value = (semestres.value || []).find(s => s.id === newId) || null;
+  await getEventsData();
+  await getStatsPreviData();
+  await getEnseignements();
 });
 const setDiplome = async (diplome) => {
   selectedDiplome.value = diplome;
-  if (!diplome) {
-    selectedAnnee.value = null;
-    selectedAnneeId.value = null;
-    selectedSemestre.value = null;
-    selectedSemestreId.value = null;
-    return;
-  }
-  selectedAnnee.value = diplome.annees?.[0] || null;
-  selectedAnneeId.value = selectedAnnee.value?.id ?? null;
-  selectedSemestre.value = null;
-  selectedSemestreId.value = null;
+  await getAnnees();
 };
 
 const reinitialiserFiltres = () => {
@@ -263,8 +252,10 @@ const reinitialiserFiltres = () => {
   selectedDiplome.value = null;
   selectedAnnee.value = null;
   selectedAnneeId.value = null;
+  annees.value = [];
   selectedSemestre.value = null;
   selectedSemestreId.value = null;
+  semestres.value = [];
   // reset period to full academic year bounds
   periode.value = [minDate.value, maxDate.value];
   selectedEnseignantId.value = null;
@@ -278,8 +269,8 @@ const getEventsData = async () => {
     let debutDate = Array.isArray(periode.value) ? periode.value[0] : null;
     let finDate = Array.isArray(periode.value) ? periode.value[1] : null;
     if (debutDate || finDate) {
-      debutDate = bornerDate(debutDate || minDate.value, minDate.value, maxDate.value);
-      finDate = bornerDate(finDate || maxDate.value, minDate.value, maxDate.value);
+      debutDate = clampDateInRange(debutDate || minDate.value, minDate.value, maxDate.value);
+      finDate = clampDateInRange(finDate || maxDate.value, minDate.value, maxDate.value);
     }
 
     const params = {
@@ -289,8 +280,8 @@ const getEventsData = async () => {
       enseignement: selectedEnseignementId.value,
       personnel: selectedEnseignantId.value,
       salle: selectedSalleId.value,
-      debut: debutDate ? formaterDateLocale(debutDate) : null,
-      fin: finDate ? formaterDateLocale(finDate) : null,
+      debut: debutDate ? formatDateAsDayMonthYear(debutDate) : null,
+      fin: finDate ? formatDateAsDayMonthYear(finDate) : null,
     }
     const resp = await getEdtEventsService(params, '/stats');
     eventsData.value = Array.isArray(resp) ? (resp[0] || null) : resp;
@@ -336,6 +327,7 @@ const chartDataTypes = computed(() => {
       }
     ]
   };
+
 });
 
 const chartDataSemestres = computed(() => {
@@ -466,7 +458,7 @@ const exportDataPrevi = async () => {
   try {
     // insérer l'année et le semestre et la période dans statsPreviData avant export
     // Préparer une copie pour ne pas muter l'original
-    const payload = JSON.parse(JSON.stringify(statsPreviData.value || {}));
+    const payload = structuredClone(statsPreviData.value || {});
 
     // Insérer année sélectionnée
     if (selectedAnnee.value) {
@@ -491,8 +483,8 @@ const exportDataPrevi = async () => {
     // Insérer période (format YYYY-MM-DD)
     if (Array.isArray(periode.value) && periode.value[0] && periode.value[1]) {
       payload.periode = {
-        debut: formaterDateLocale(periode.value[0]),
-        fin: formaterDateLocale(periode.value[1])
+        debut: formatDateAsDayMonthYear(periode.value[0]),
+        fin: formatDateAsDayMonthYear(periode.value[1])
       };
     } else {
       payload.periode = null;
@@ -514,8 +506,8 @@ const exportDataHeures = async () => {
     // Insérer période (format YYYY-MM-DD)
     if (Array.isArray(periode.value) && periode.value[0] && periode.value[1]) {
       payload.periode = {
-        debut: formaterDateLocale(periode.value[0]),
-        fin: formaterDateLocale(periode.value[1])
+        debut: formatDateAsDayMonthYear(periode.value[0]),
+        fin: formatDateAsDayMonthYear(periode.value[1])
       };
     } else {
       payload.periode = null;
@@ -575,25 +567,25 @@ const exportDataHeures = async () => {
       <div v-else class="mt-8 flex items-center gap-4 w-full">
         <ValidatedInput
             v-model="selectedAnneeId"
-            :options="(selectedDiplome?.annees || []).map(annee => ({...annee, label: annee.libelle, value: annee.id}))"
+            :options="annees.map(annee => ({...annee, label: annee.libelle, value: annee.id}))"
             name="annee"
             label="Années"
             type="select"
             :rules="[]"
             class="w-full"
             :show-clear="false"
-            :disabled="!selectedDiplome"
+            :disabled="!selectedDiplome || isLoadingAnnees"
         />
         <ValidatedInput
             v-model="selectedSemestreId"
-            :options="(selectedAnnee?.semestres || []).map(semestre => ({...semestre, label: semestre.libelle, value: semestre.id}))"
+            :options="semestres.map(semestre => ({...semestre, label: semestre.libelle, value: semestre.id}))"
             name="semestre"
             label="Semestres"
             type="select"
             :rules="[]"
             class="w-full"
             :show-clear="true"
-            :disabled="!selectedAnnee"
+            :disabled="!selectedAnnee || isLoadingSemestres"
         />
       </div>
     </div>
@@ -722,7 +714,7 @@ const exportDataHeures = async () => {
       <div class="border border-neutral-300 dark:border-neutral-700 rounded-lg p-6 w-full flex flex-col">
         <div class="text-lg font-bold">Répartition par types d'activités</div>
         <div class="text-sm text-neutral-600 mb-2">Pourcentage par types</div>
-        <div v-if="eventsData" class="flex flex-col justify-start gap-4 h-full">
+        <div v-if="eventsData && chartDataTypes" class="flex flex-col justify-start gap-4 h-full">
           <Chart v-if="chartDataTypes" type="pie" :data="chartDataTypes" :options="optionGraphTypes" />
           <DataTable :value="eventsData.repartitionTypes" >
             <Column field="type" header="Type d'activité" />
@@ -733,7 +725,11 @@ const exportDataHeures = async () => {
             </Column>
           </DataTable>
         </div>
-        <div v-else class="text-neutral-500">Aucune répartition disponible.</div>
+        <div v-else class="h-full flex items-center">
+          <Message severity="warn" class="mb-4 w-fit mx-auto" icon="pi pi-info-circle">
+            Aucune donnée disponible.
+          </Message>
+        </div>
       </div>
     </div>
     <div v-if="!selectedAnnee" class="border border-neutral-300 dark:border-neutral-700 rounded-lg p-6 w-full">

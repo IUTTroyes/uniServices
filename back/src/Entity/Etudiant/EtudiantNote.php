@@ -12,10 +12,12 @@ use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Filter\EtudiantNoteFilter;
+use App\State\Processor\Evaluation\EtudiantNotePersistProcessor;
 use App\Repository\EtudiantNoteRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+
 
 #[ORM\Entity(repositoryClass: EtudiantNoteRepository::class)]
 #[ApiFilter(EtudiantNoteFilter::class)]
@@ -23,8 +25,22 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['note:detail']]),
         new GetCollection(normalizationContext: ['groups' => ['note:detail']]),
-        new Post(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)", processor: 'App\\DataProvider\\Evaluation\\EtudiantNotePersistProcessor'),
-        new Patch(normalizationContext: ['groups' => ['note:write']], securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)", processor: 'App\\DataProvider\\Evaluation\\EtudiantNotePersistProcessor'),
+        new GetCollection(
+            uriTemplate: '/widget/EtudiantNote',
+            normalizationContext: ['groups' => ['EtudiantNote_widget:read']],
+            provider: \App\State\Provider\Etudiant\NotesWidgetProvider::class,
+            output: \App\ApiDto\Etudiant\NotesWidgetDto::class,
+        ),
+        new Post(
+            normalizationContext: ['groups' => ['note:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)",
+            processor: EtudiantNotePersistProcessor::class
+        ),
+        new Patch(
+            normalizationContext: ['groups' => ['note:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)",
+            processor: EtudiantNotePersistProcessor::class
+        ),
     ],
 )]
 #[ORM\HasLifecycleCallbacks]
@@ -66,6 +82,9 @@ class EtudiantNote
 
     #[ORM\Column(nullable: true)]
     private ?array $historique = null;
+
+    #[ORM\Column(nullable: false)]
+    private ?bool $publiee = false;
 
     #[ORM\ManyToOne(inversedBy: 'note')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
@@ -182,6 +201,18 @@ class EtudiantNote
     public function setScolariteSemestre(?EtudiantScolariteSemestre $scolariteSemestre): static
     {
         $this->scolariteSemestre = $scolariteSemestre;
+
+        return $this;
+    }
+
+    public function isPubliee(): ?bool
+    {
+        return $this->publiee;
+    }
+
+    public function setPubliee(?bool $publiee): static
+    {
+        $this->publiee = $publiee;
 
         return $this;
     }

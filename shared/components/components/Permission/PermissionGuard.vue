@@ -21,6 +21,15 @@ const props = defineProps({
   },
 
   /**
+   * Si vrai et que `permission` est un tableau,
+   * toutes les permissions doivent être satisfaites (AND)
+   */
+  requireAll: {
+    type: Boolean,
+    default: false
+  },
+
+  /**
    * If true, renders the fallback slot when permission is denied
    * If false, renders nothing when permission is denied
    */
@@ -51,7 +60,7 @@ const hasRequiredPermission = computed(() => {
   // - objet composite { permissions, requireAll }
   // - objet contextuel { permission, context }
   // - prédicat fonctionnel
-  return hasPermission(props.permission);
+  return hasPermission(props.permission, { requireAll: props.requireAll });
 });
 </script>
 

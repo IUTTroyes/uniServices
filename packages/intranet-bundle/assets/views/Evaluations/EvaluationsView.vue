@@ -2,15 +2,15 @@
 import {computed, onMounted, ref, watch} from 'vue';
 import { useRoute } from 'vue-router';
 import {
-  getAnneeService,
   getEnseignementsService,
   getEtudiantsService,
   getEvaluationsService,
   getGroupesService,
   getSemestresService,
-  updateEvaluationService
+  updateEvaluationService,
+  getAnneesService
 } from '@requests';
-import {useUsersStore, useAnneeStore, useSemestreStore} from '@stores';
+import {useUsersStore, useAnneeStore, useAnneeUnivStore, useSemestreStore} from '@stores';
 import {ErrorView, PermissionGuard, SimpleSkeleton, ListSkeleton} from '@components';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
@@ -19,14 +19,13 @@ import {useToast} from "primevue/usetoast";
 import EvaluationStatistiques from "../../components/Evaluation/EvaluationStatistiques.vue";
 import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 
-const toast = useToast();
 const route = useRoute();
 const usersStore = useUsersStore();
 const anneeStore = useAnneeStore();
-const semestreStore = useSemestreStore();
 const hasError = ref(false);
-const selectedAnneeUniversitaire = JSON.parse(localStorage.getItem('selectedAnneeUniv'));
-const departementId = ref(null);
+const anneeUnivStore = useAnneeUnivStore();
+const departementId = computed(() => usersStore.departementDefaut ? usersStore.departementDefaut.id : null);
+const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 
 // Années et semestres
 const annees = ref([]);
@@ -38,20 +37,20 @@ const isLoadingSemestres = ref(true);
 
 const enseignements = ref([]);
 const isLoadingEnseignements = ref(true);
-const evaluations = ref([]);
 const isLoadingEvaluations = ref(true);
 const showDialog = ref(false);
 const dialogMode = ref(''); // 'init' | 'edit' | 'saisie'
 const dialogHeader = ref('');
 const selectedEvaluation = ref(null);
+const allEvaluations = computed(() =>
+  (enseignements.value || []).flatMap(enseignement => enseignement?.evaluations || [])
+);
 
 // Cache: expected total notes per (semestreId, typeGroupe)
 const expectedTotalsByType = ref({});
 
 onMounted(async () => {
-  departementId.value = usersStore.departementDefaut.id;
   await getAnnees();
-  await getAnnee();
   await getSemestres();
   // Sélectionner le premier semestre de l'année par défaut
   if (semestres.value.length > 0 && !semestre.value.id) {
@@ -80,41 +79,34 @@ watch(annee, async (newAnnee, oldAnnee) => {
 
 const getAnnees = async () => {
   isLoadingAnnees.value = true;
-  if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
-    annees.value = anneeStore.annees;
-  } else {
-    try {
-      const params = {
-        departement: departementId.value,
-        actif: true,
-      };
-      await anneeStore.getAnneesDepartement(params);
-      annees.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
-    } catch (error) {
-      console.error("Erreur lors de la récupération des années :", error);
-      hasError.value = true;
-    }
-  }
-  isLoadingAnnees.value = false;
-};
 
-const getAnnee = async () => {
-  isLoadingAnnees.value = true;
-  hasError.value = false;
+  if (!departementId.value || !selectedAnneeUniversitaireId.value) {
+    annees.value = [];
+    isLoadingAnnees.value = false;
+    return;
+  }
+
   try {
-    // Récupération de l'id de l'année via l'URL ou sélection de la première année disponible
-    const anneeId = route.params.anneeId;
-    if (anneeId) {
-      annee.value = await getAnneeService(anneeId);
-    } else if (annees.value.length > 0) {
-      annee.value = annees.value[0];
-    }
-    await anneeStore.setSelectedAnnee(annee.value);
+    const params = {
+      departement: departementId.value,
+      anneeUniversitaire: selectedAnneeUniversitaireId.value,
+      actif: true,
+    };
+    const response = await getAnneesService(params, '/liste', false);
+    annees.value = Array.isArray(response) ? response : [];
   } catch (error) {
+    console.error("Erreur lors de la récupération des années :", error);
     hasError.value = true;
-    console.error("Erreur lors de la récupération de l'année :", error);
   } finally {
     isLoadingAnnees.value = false;
+    // Initialiser l'année depuis le query parameter si présent sinon prendre la première année
+    const anneeFromQuery = route.params.anneeId;
+    if (anneeFromQuery) {
+      const anneeFound = annees.value.find(annee => annee.id === Number.parseInt(anneeFromQuery, 10));
+      annee.value = anneeFound ?? annees.value[0]
+    } else {
+      annee.value = annees.value[0]
+    }
   }
 };
 
@@ -146,8 +138,7 @@ const getEnseignements = async () => {
     };
     enseignements.value = await getEnseignementsService(params);
     for (const enseignement of enseignements.value) {
-      await getEvaluations(enseignement.id);
-      enseignement.evaluations = evaluations.value;
+      enseignement.evaluations = await getEvaluations(enseignement.id) || [];
     }
     // Preload expected totals per typeGroupe for the semestre based on loaded evaluations
     await preloadExpectedTotalsForSemestre(semestre.value.id, enseignements.value);
@@ -168,14 +159,14 @@ const getEvaluations = async (enseignement) => {
   try {
     const params = {
       enseignement: enseignement,
-      anneeUniversitaire: selectedAnneeUniversitaire.id
+      anneeUniversitaire: selectedAnneeUniversitaireId.value
     };
-    evaluations.value = await getEvaluationsService(params);
+    const evaluations = await getEvaluationsService(params);
     // Calculer la progression pour chaque évaluation
-    for (const evaluation of evaluations.value) {
+    for (const evaluation of evaluations) {
       await calcEvaluationProgress(evaluation);
     }
-    return evaluations.value;
+    return evaluations;
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching evaluations:', error);
@@ -233,9 +224,6 @@ const calcEvaluationProgress = (evaluation) => {
   evaluation.total = notesExistantes.length;
   evaluation.entered = notesExistantes.filter(n => n.note !== null && n.note !== undefined).length;
   evaluation.percent = evaluation.total > 0 ? Math.round((evaluation.entered / evaluation.total) * 100) : 0;
-  if (evaluation.percent === 100) {
-    evaluation.etat = 'complet';
-  }
 };
 
 const calcEnseignementProgress = (enseignement) => {
@@ -329,15 +317,45 @@ const onEvaluationSaved = async () => {
         </div>
       </div>
       <Divider />
-
       <ListSkeleton v-if="isLoadingEnseignements" class="w-1/2"/>
       <div v-else>
+        <div class="flex justify-around items-center">
+          <div class="card w-1/5 flex items-center justify-center flex-col">
+              <div class="font-bold text-lg">À initialiser</div>
+              <div class="flex items-center gap-2">
+                <i class="pi pi-exclamation-triangle text-red-500"></i>
+                <SimpleSkeleton v-if="isLoadingEvaluations" class="w-1/2"/>
+                <span v-else class="text-red-500">{{ allEvaluations.filter(e => e.etat === 'non_initialisee').length }}</span>
+              </div>
+          </div>
+          <div class="card w-1/5 flex items-center justify-center flex-col">
+            <div class="font-bold text-lg">À planifier</div>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-calendar text-blue-500"></i>
+              <span class="text-blue-500">{{ allEvaluations.filter(e => e.etat === 'initialisee').length }}</span>
+            </div>
+          </div>
+          <div class="card w-1/5 flex items-center justify-center flex-col">
+              <div class="font-bold text-lg">Notes à saisir</div>
+              <div class="flex items-center gap-2">
+                <i class="pi pi-check-circle text-yellow-500"></i>
+                <span class="text-yellow-500">{{ allEvaluations.filter(e => e.etat === 'planifiee').length }}</span>
+              </div>
+          </div>
+          <div class="card w-1/5 flex items-center justify-center flex-col">
+            <div class="font-bold text-lg">À publier</div>
+            <div class="flex items-center gap-2">
+              <i class="pi pi-send text-green-500"></i>
+              <span class="text-green-500">{{ allEvaluations.filter(e => e.etat === 'completee').length }}</span>
+            </div>
+          </div>
+        </div>
         <div class="flex justify-end gap-4">
           <Button label="Initialiser toutes les évaluations" icon="pi pi-plus-circle" severity="primary" size="small" @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')"/>
         </div>
         <Accordion v-if="semestre && enseignements.length !== 0" value="0" class="mt-4">
           <AccordionPanel v-for="enseignement in enseignements" :value="enseignement.id" :key="enseignement.id">
-            <AccordionHeader>
+            <AccordionHeader class="hover:bg-primary-300/10!">
               <div class="flex flex-col gap-2 w-full">
                 <div class="flex justify-between items-center w-full">
                   <div class="flex justify-between items-center">
@@ -358,7 +376,8 @@ const onEvaluationSaved = async () => {
                 </div>
                 <SimpleSkeleton v-if="isLoadingEvaluations" class="w-full"/>
                 <div class="mr-4">
-                  <div class="p-2 w-full bg-neutral-50 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900 flex flex-col gap-2">
+                  <div class="p-2 w-full bg-neutral-100/20
+                   rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900 flex flex-col gap-2">
                     <div class="flex justify-between items-center gap-4">
                       <div class="flex items-center gap-1 font-bold"><i class="pi pi-check-circle text-primary"></i>Progression Globale</div>
                     </div>
@@ -393,6 +412,9 @@ const onEvaluationSaved = async () => {
                     @open-dialog="openEvaluationDialog"
                     @update-visibility="updateEvaluationVisibility"
                     @update-edit="updateEvaluationEdit"
+                    @saved="onEvaluationSaved"
+                    @cancel-eval="onEvaluationSaved"
+                    @reactiver-eval="onEvaluationSaved"
                   />
                 </div>
                 <div v-else class="flex justify-center">

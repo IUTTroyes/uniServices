@@ -7,7 +7,6 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcParcours;
@@ -69,6 +68,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/maquette/structure_diplomes',
             normalizationContext: ['groups' => ['maquette:detail']],
         ),
+        new GetCollection(
+            uriTemplate: '/edt/structure_diplomes',
+            normalizationContext: ['groups' => ['diplome:edt:read']],
+        ),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_DIPLOME', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_DIPLOME', object)"),
         new Delete(security: "is_granted('CAN_DELETE_DIPLOME', object)"),
@@ -86,11 +89,11 @@ class StructureDiplome
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'annee_universitaire:detail', 'pn:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:light'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'annee_universitaire:detail', 'pn:detail', 'pn:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:detail', 'pn:light'])]
     private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome', cascade: ['persist'])]
@@ -110,7 +113,7 @@ class StructureDiplome
     private ?int $codeCelcatDepartement = null;
 
     #[ORM\Column(length: 40, nullable: true)]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'pn:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'pn:light'])]
     private ?string $sigle = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
@@ -147,7 +150,7 @@ class StructureDiplome
     private ?string $apogeeCodeDepartement = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'pn:detail', 'pn:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'pn:detail', 'pn:light'])]
     private ?StructureTypeDiplome $typeDiplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'diplomes')]

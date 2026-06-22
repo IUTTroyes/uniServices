@@ -1,0 +1,31 @@
+{
+  "name": "iuttroyes/stage-bundle",
+  "type": "symfony-bundle",
+  "description": "StageBundle for uniServices",
+  "require": {
+    "php": "^8.2",
+    "symfony/framework-bundle": "^7.0",
+    "symfony/http-kernel": "^7.0",
+    "doctrine/orm": "*",
+    "doctrine/doctrine-bundle": "*"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^11.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "StageBundle\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "StageBundle\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "symfony": {
+      "allow-contrib": false,
+      "require": "7.0.*"
+    }
+  }
+}

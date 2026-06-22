@@ -14,7 +14,7 @@ class EtudiantScolariteFilter extends AbstractFilter
 {
     protected function filterProperty(
         string $property,
-               $value,
+        $value,
         QueryBuilder $queryBuilder,
         QueryNameGeneratorInterface $queryNameGenerator,
         string $resourceClass,
@@ -64,10 +64,14 @@ class EtudiantScolariteFilter extends AbstractFilter
 
         if ('annee' === $property) {
             $queryBuilder
-                ->join("$alias.annee", 'annee')
+                ->join("$alias.scolariteSemestre", 'scolariteSemestre')
+                ->join('scolariteSemestre.semestre', 'semestre')
+                ->join('semestre.annee', 'annee')
                 ->andWhere('annee.id = :annee')
                 ->setParameter("annee", $value);
         }
+
+
 
         if ('etudiant' === $property) {
             $queryBuilder

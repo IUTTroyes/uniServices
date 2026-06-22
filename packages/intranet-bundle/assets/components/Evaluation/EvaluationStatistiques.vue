@@ -91,6 +91,7 @@ const getEtudiants = async () => {
       page: parseInt(page.value) + 1,
     };
     etudiants.value = await getEtudiantsService(params);
+    console.log(etudiants.value)
 
     for (const etudiant of etudiants.value) {
       const notesList = await getEtudiantNotes(etudiant.id);
@@ -174,9 +175,6 @@ const calcEvaluationProgress = (evaluation) => {
   evaluation.total = notesExistantes.length;
   evaluation.entered = notesExistantes.filter(n => n.note !== null && n.note !== undefined).length;
   evaluation.percent = evaluation.total > 0 ? Math.round((evaluation.entered / evaluation.total) * 100) : 0;
-  if (evaluation.percent === 100) {
-    evaluation.etat = 'complet';
-  }
 };
 
 const updateEvaluationVisibility = async (evaluation) => {
@@ -238,11 +236,11 @@ const onChildSaved = async () => {
             <div class="flex items-center gap-2 h-full w-full">
               <div v-for="(entry, idx) in Object.entries(evaluation.stats || {}).slice(0,4)"
                    :key="'stat-first-'+entry[0]"
-                   class="bg-neutral-300 bg-opacity-20 p-4 rounded-lg w-1/4 min-w-48 flex flex-col items-center justify-center">
+                   class="bg-neutral-300/20 p-4 rounded-lg w-1/4 min-w-48 flex flex-col items-center justify-center">
                 <div class="first-letter:uppercase">
                   {{ entry[0] }}
                 </div>
-                <div class="text-lg font-bold">
+                <div class="text-lg font-bold" :class="entry[1] <= 8 ? 'text-red-500' : entry[1] <= 12 ? 'text-amber-500' : 'text-green-500'">
                   {{ entry[1] }}
                 </div>
               </div>
@@ -289,7 +287,7 @@ const onChildSaved = async () => {
             striped-rows
             responsive-layout="scroll"
             lazy
-            :paginator="selectedGroupe.type!=='TP'"
+            :paginator="selectedGroupe?.type!=='TP'"
             :first="offset"
             :rows="limit"
             :rowsPerPageOptions="rowOptions"

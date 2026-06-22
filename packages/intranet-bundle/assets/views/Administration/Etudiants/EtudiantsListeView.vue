@@ -77,7 +77,7 @@ onMounted(async () => {
     await getAnnees();
 
     // Initialiser le filtre d'année depuis le query parameter si présent
-    const anneeFromQuery = route.query.annee;
+    const anneeFromQuery = route.params.anneeId;
     if (anneeFromQuery) {
       const parsedAnnee = Number.parseInt(String(anneeFromQuery), 10);
       if (!Number.isNaN(parsedAnnee)) {

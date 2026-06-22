@@ -40,3 +40,14 @@ export function getISOWeekNumber(date) {
     const week1 = new Date(tempDate.getFullYear(), 0, 4);
     return 1 + Math.round(((tempDate - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
 }
+
+export function parseApiDate(dateStr) {
+    if (!dateStr) return null;
+    if (dateStr instanceof Date) return dateStr;
+    const parts = typeof dateStr === 'string' ? dateStr.split('-') : [];
+    if (parts.length !== 3) return new Date(dateStr);
+    const year = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    return new Date(year, month, day);
+};

@@ -2,8 +2,8 @@
 import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
-import {useDiplomeStore, useUsersStore} from '@stores';
-import {MessageCard, PhotoUser, SimpleSkeleton} from '@components';
+import {useUsersStore} from '@stores';
+import {PhotoUser, SimpleSkeleton, ErrorView} from '@components';
 import {getISOWeekNumber} from "@helpers/date";
 import EdtEvent from "./EdtEvent.vue";
 import {
@@ -12,13 +12,22 @@ import {
   getPersonnelsService,
   getSemaineUniversitaireService,
   getSallesService,
-  getEnseignementsService
+  getEnseignementsService,
+  getDiplomesService,
+  getAnneesService,
+  getSemestresService
 } from "@requests";
-import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
-import {useToast} from 'primevue/usetoast';
+import {adjustColor, darkenColor} from "@helpers/colors.js";
 import EdtListe from "./EdtListe.vue";
 import Loader from "@components/loader/GlobalLoader.vue";
-import {ErrorView} from "@components";
+import {
+  applyOverlapMetadata,
+  calculateHoursByType,
+  calculateTotalHours,
+  getBadgeSeverityByType,
+  mapDepartementEvents,
+  styleVueCalEvents,
+} from '@/service/utils/edtUtils';
 
 // Référence vers le composant vue-cal
 const vuecalRef = ref(null)
@@ -27,15 +36,17 @@ const viewTranslations = {
   day: 'JOUR',
   week: 'SEMAINE',
 };
-const toast = useToast();
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const usersStore = useUsersStore();
-const diplomes = ref({});
-const diplomeStore = useDiplomeStore();
 const isLoadingDiplomes = ref(true);
-const selectedDiplome = ref({});
-const selectedAnnee = ref({});
-const selectedSemestre = ref({});
+const diplomes = ref([]);
+const selectedDiplome = ref(null);
+const isLoadingAnnees = ref(true)
+const selectedAnnee = ref(null);
+const annees = ref([]);
+const isLoadingSemestres = ref(true)
+const semestres = ref([])
+const selectedSemestre = ref(null);
 const isLoadingEnseignants = ref(false);
 const hasErrorEnseignants = ref(false);
 const enseignantsList = ref([]);
@@ -60,46 +71,75 @@ const isLoadingGroupes = ref(false);
 const liste = ref(false);
 
 onMounted(async () => {
-  isLoadingEnseignements.value = true;
-  isLoadingEnseignants.value = true;
-  isLoadingSalles.value = true;
-  isLoadingEvents.value = true;
   await getDiplomes();
   await getEnseignants();
   await getSalles();
-  await getEnseignements();
-  await getEventsDepartementWeek();
   isLoadingEvents.value = false;
 });
 
-watch(selectedDiplome, () => {
-  selectedAnnee.value = selectedDiplome.value?.annees[0] ?? null;
+watch(selectedDiplome, async () => {
+  await getAnnees();
 });
-watch(selectedAnnee, () => {
-  selectedSemestre.value = selectedAnnee.value?.semestres[0] ?? null;
-})
-watch(selectedSemestre, () => {
-  if (selectedSemestre) {
-    getEnseignements();
-  }
+watch(selectedAnnee, async () => {
+  await getSemestres();
 })
 
 const getDiplomes = async () => {
   isLoadingDiplomes.value = true;
   try {
-    diplomes.value = diplomeStore.diplomes;
-    console.log(diplomes.value)
+    const params = {
+      departement: departement.id,
+      anneeUniversitaire: anneeUniv.id,
+    }
+    diplomes.value = await getDiplomesService(params, '/edt')
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching diplomes:', error);
   } finally {
     selectedDiplome.value = diplomes.value[0] ?? null;
-    console.log(selectedDiplome.value)
-    selectedAnnee.value = selectedDiplome.value?.annees[0] ?? null;
-    selectedSemestre.value = selectedAnnee.value?.semestres[0] ?? null;
     isLoadingDiplomes.value = false;
   }
 };
+
+const getAnnees = async () => {
+  isLoadingAnnees.value = true;
+  try {
+    if (!selectedDiplome.value?.id) {
+      annees.value = [];
+      return;
+    }
+
+    const params = {
+      diplome: selectedDiplome.value.id
+    }
+    annees.value = await getAnneesService(params)
+  } catch (error) {
+    console.error('Error fetching annees:', error);
+  } finally {
+    selectedAnnee.value = annees.value[0] ?? null
+    isLoadingAnnees.value = false;
+  }
+}
+
+const getSemestres = async () => {
+  isLoadingSemestres.value = true;
+  try {
+    if (!selectedAnnee.value?.id) {
+      semestres.value = [];
+      return;
+    }
+
+    const params = {
+      annee: selectedAnnee.value.id
+    }
+    semestres.value = await getSemestresService(params)
+  } catch (error) {
+    console.error('Error fetching semestres', error)
+  } finally {
+    selectedSemestre.value = semestres.value[0] ?? null
+    isLoadingSemestres.value = false;
+  }
+}
 
 const getEnseignants = async () => {
   try {
@@ -175,13 +215,6 @@ const getSemestreGroupes = async (semestre) => {
   }
 }
 
-function detectOverlap(event, allEvents) {
-  return allEvents.some(e =>
-      (event.start < e.end && event.end > e.start) &&
-      event !== e
-  );
-}
-
 watch(() => vuecalRef.value?.view?.start, async (newValue) => {
   if (newValue) {
     const startDate = new Date(newValue);
@@ -192,13 +225,10 @@ watch(() => vuecalRef.value?.view?.start, async (newValue) => {
 
 watch(selectedSemestre, async (newValue) => {
   isLoadingEvents.value = true;
-  await getEnseignants();
-  await getSalles();
   await getEnseignements();
   if (newValue) {
     await getSemestreGroupes(newValue);
   }
-  await getEventsDepartementWeek()
   isLoadingEvents.value = false;
 });
 
@@ -221,139 +251,45 @@ watch(selectedEnseignement, async () => {
 });
 
 const getEventsDepartementWeek = async () => {
+  const hasAtLeastOneFilter = selectedSemestre.value || selectedEnseignant.value || selectedSalle.value || selectedEnseignement.value;
+
   try {
-    await getWeekUnivNumber(new Date(vuecalRef.value?.view?.start || new Date()));
-
-    if (!selectedSemestre.value && !selectedEnseignant.value && !selectedSalle.value && !selectedEnseignement.value) {
+    if (!hasAtLeastOneFilter) {
       events.value = [];
-    } else {
-      const params = {
-        semaineFormation: weekUnivNumber.value,
-        semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
-        anneeUniversitaire: anneeUniv.id,
-        departement: departement.id,
-        personnel: selectedEnseignant.value ? selectedEnseignant.value.id : null,
-        salle: selectedSalle.value ? selectedSalle.value.id : null,
-        enseignement: selectedEnseignement.value ? selectedEnseignement.value.id : null,
-      };
-      const response = await getEdtEventsService(params);
-
-      if (response && response.length > 0) {
-        let mappedEvents = [];
-
-        response.forEach(event => {
-          // Définir la couleur en fonction du type de groupe
-          let eventColor;
-          switch (event.groupe?.type) {
-              // couleurs comme dans Celcat
-            case 'CM':
-              eventColor = '#67cfff'; // Bleu pour CM
-              break;
-            case 'TD':
-              eventColor = '#ffee33'; // Jaune pour TD
-              break;
-            case 'TP':
-              eventColor = '#7aff85'; // Vert pour TP
-              break;
-            default:
-              eventColor = '#CCCCCC'; // Gris par défaut
-          }
-
-          const startDate = new Date(event.debut);
-          const endDate = new Date(event.fin);
-
-          const baseEvent = {
-            ...event,
-            ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
-            start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-            end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000), // Ajustement du fuseau horaire
-            backgroundColor: adjustColor(colorNameToRgb(eventColor), 0.2, 0),
-            location: event.salle,
-            title: event.enseignement?.codeEnseignement + ' - ' + event.libModule,
-            type: event.type,
-            groupe: event.groupe || { libelle: '**' },
-            personnel: event.personnel,
-            intervenantPhoto: event.personnel.photoName ?? null,
-            overlap: false,
-            eval: event.evaluation,
-            intervenants: event.enseignement?.previsionnels
-                .filter(intervenant => intervenant.personnel?.id !== personnel.id)
-                .map(intervenant => ({
-                  id: intervenant.id,
-                  display: intervenant.personnel?.display || 'Inconnu',
-                  photoName: intervenant.personnel?.photoName || null,
-                }))
-          };
-
-          // If the event is a CM, it should span across all columns
-          if (event.type === 'CM') {
-            // For CM events, only define schedule and width when a semestre is selected
-            mappedEvents.push({
-              ...baseEvent,
-              ...(selectedSemestre.value ? {
-                schedule: schedules.value.length > 0 ? schedules.value[0].id : event.groupe.id,
-                // Flag this as a CM event for styling
-                isCmEvent: true,
-                width: `${schedules.value.length * 100}%`
-              } : {})
-            });
-          }
-              // If the event is for a TD group with TP children, use the first TP child's schedule
-          // Only set schedule when a semestre is selected
-          else if (event.type === 'TD' && event.groupe.enfants && event.groupe.enfants.length > 0) {
-            // Get all TP children
-            const tpChildren = event.groupe.enfants.filter(enfant => enfant.type === 'TP');
-
-            if (tpChildren.length > 0) {
-              // Use only the first TP child's schedule when semestre selected
-              mappedEvents.push({
-                ...baseEvent,
-                ...(selectedSemestre.value ? { schedule: tpChildren[0].id, isTdEvent: true } : {})
-              });
-            } else {
-              // If no TP children, set schedule only when semestre selected
-              mappedEvents.push({
-                ...baseEvent,
-                ...(selectedSemestre.value ? { schedule: event.groupe.id } : {})
-              });
-            }
-          } else {
-            // For non-TD and non-CM events, set schedule only when semestre selected
-            mappedEvents.push({
-              ...baseEvent,
-              ...(selectedSemestre.value ? { schedule: event.groupe.id } : {})
-            });
-          }
-
-        });
-
-        events.value = mappedEvents.map(event => ({
-          ...event,
-          title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
-          overlap: !!detectOverlap(event, mappedEvents),
-          class: event.type === 'TD' && selectedSemestre?.value ? 'td-event-spanning' : (event.type === 'CM' ? 'cm-event-spanning' : ''),
-        }));
-      } else {
-        events.value = [];
-      }
+      return;
     }
+
+    const params = {
+      semaineFormation: weekUnivNumber.value,
+      semestre: selectedSemestre.value ? selectedSemestre.value.id : null,
+      anneeUniversitaire: anneeUniv.id,
+      departement: departement.id,
+      personnel: selectedEnseignant.value ? selectedEnseignant.value.id : null,
+      salle: selectedSalle.value ? selectedSalle.value.id : null,
+      enseignement: selectedEnseignement.value ? selectedEnseignement.value.id : null,
+    };
+
+    const response = await getEdtEventsService(params);
+
+    if (!response?.length) {
+      events.value = [];
+      return;
+    }
+
+    const mappedEvents = mapDepartementEvents({
+      response,
+      selectedSemestre: !!selectedSemestre.value,
+      schedules: schedules.value,
+      personnelId: personnel.id,
+    });
+
+    events.value = applyOverlapMetadata(mappedEvents, !!selectedSemestre.value);
   } catch (error) {
     hasError.value = true;
     console.error('Error fetching events:', error);
   } finally {
     await nextTick();
-    const eventsObjects = document.querySelectorAll('.vuecal__event');
-    eventsObjects.forEach(eventEl => {
-      if (eventEl.style.backgroundColor) {
-        eventEl.style.border = `2px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 50), 0, 0.2)}`;
-        eventEl.style.borderTop = `6px solid ${adjustColor(darkenColor(eventEl.style.backgroundColor, 60), 0, 0.2)}`;
-        eventEl.style.overflow = 'auto';
-        eventEl.style.scrollbarWidth = 'none';
-        eventEl.style.cssText += '::-webkit-scrollbar { display: none; }';
-        eventEl.style.opacity = 0.9;
-      }
-    });
-
+    styleVueCalEvents();
   }
 };
 
@@ -370,56 +306,14 @@ const openDialog = ({ event }) => {
   visible.value = true
 }
 
-function getBadgeSeverity(type) {
-  const badgeMapping = {
-    ressource: 'primary',
-    sae: 'warn',
-    matiere: 'success',
-  };
-
-  return badgeMapping[type] || 'info'; // Valeur par défaut si le type est inconnu
-}
-
 // calculer le nombre total d'heures pour l'ensemble des événements affichés
 const totalHeures = computed(() => {
-  return events.value.reduce((total, event) => {
-    const start = new Date(event.start);
-    const end = new Date(event.end);
-    const duration = (end - start) / (1000 * 60 * 60); // durée en heures
-    return total + duration;
-  }, 0);
+  return calculateTotalHours(events.value);
 });
 
 // calculer le nombre total d'heures par type "CM", "TD", "TP"
 const heuresParType = computed(() => {
-  // Initialiser les types de base pour qu'ils apparaissent même à 0
-  const totaux = { CM: 0, TD: 0, TP: 0 };
-
-  events.value.forEach(event => {
-    const start = new Date(event.start);
-    const end = new Date(event.end);
-    const duration = (end - start) / (1000 * 60 * 60); // durée en heures
-    totaux[event.type] = (totaux[event.type] || 0) + duration;
-  });
-
-  // Conserver l'ordre CM, TD, TP, puis ajouter les autres types trouvés
-  const result = [];
-  ['CM', 'TD', 'TP'].forEach(type => {
-    result.push({
-      type,
-      heures: Math.round((totaux[type] || 0) * 100) / 100
-    });
-    delete totaux[type];
-  });
-
-  Object.keys(totaux).forEach(type => {
-    result.push({
-      type,
-      heures: Math.round(totaux[type] * 100) / 100
-    });
-  });
-
-  return result;
+  return calculateHoursByType(events.value);
 });
 </script>
 
@@ -452,7 +346,7 @@ const heuresParType = computed(() => {
       </div>
       <div class="flex items-center gap-2">
         <Badge v-if="selectedEvent.eval" severity="danger" class="uppercase">Évaluation</Badge>
-        <Badge :severity="getBadgeSeverity(selectedEvent.enseignement.type)" class="uppercase">
+        <Badge :severity="getBadgeSeverityByType(selectedEvent.enseignement.type)" class="uppercase">
           {{ selectedEvent.enseignement.type }}
         </Badge>
       </div>
@@ -501,9 +395,9 @@ const heuresParType = computed(() => {
       Filtres
     </div>
     <SimpleSkeleton v-if="isLoadingDiplomes" class="w-full"/>
-    <Tabs v-else :value="selectedDiplome?.id" scrollable>
+    <Tabs v-else :value="selectedDiplome?.id ?? null" :scrollable="diplomes.length > 1">
       <TabList>
-        <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="selectedDiplome = diplome">
+        <Tab v-for="diplome in diplomes" :key="diplome.id" :value="diplome.id" @click="selectedDiplome = diplome">
         <span>
           <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span>
         </span>
@@ -515,8 +409,10 @@ const heuresParType = computed(() => {
       <SimpleSkeleton class="w-1/2"/>
     </div>
     <div v-else class="mt-8 flex items-center gap-4 w-full">
-      <Select v-if="selectedDiplome" v-model="selectedAnnee" :options="selectedDiplome.annees" option-label="libelle" placeholder="Sélectionner une année" class="w-1/2"/>
-      <Select v-if="selectedAnnee" v-model="selectedSemestre" :options="selectedAnnee.semestres" option-label="libelle" placeholder="Sélectionner un semestre" class="w-1/2"/>
+      <SimpleSkeleton v-if="isLoadingAnnees" class="w-1/2"/>
+      <Select v-else-if="selectedDiplome" v-model="selectedAnnee" :options="annees" option-label="libelle" placeholder="Sélectionner une année" class="w-1/2"/>
+      <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/2"/>
+      <Select v-else-if="selectedAnnee" v-model="selectedSemestre" :options="semestres" option-label="libelle" placeholder="Sélectionner un semestre" class="w-1/2"/>
     </div>
     <div class="flex justify-center items-center gap-4 mb-4">
       <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>

@@ -30,8 +30,10 @@ const panelMenuItems = computed(() => {
   return [
     {
       label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
-        { label: 'Liste des étudiants', icon: 'pi pi-list', route: aid ? `/administration/etudiant?annee=${aid}` : '/administration/etudiant' },
-        // { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', command: () => {} },
+        {
+          label: 'Liste des étudiants', icon: 'pi pi-list',
+          route: aid ? '/administration/annee/' + aid + '/etudiants' : null
+        },
       ]
     },
     {
@@ -61,10 +63,9 @@ const panelMenuItems = computed(() => {
     {
       label: 'Notes et Évaluations', icon: 'pi pi-book', command: () => {}, items: [
         {
-          label: 'Liste des notes', icon: 'pi pi-list',
-          route: aid ? '/administration/annee/' + aid + '/evaluations/liste' : null
+          label: 'Gestion des évaluations et saisie des notes', icon: 'pi pi-list',
+          route: aid ? '/administration/annee/' + aid + '/evaluations' : null
         },
-        { label: 'Gestion des évaluations', icon: 'pi pi-cog', command: () => {} },
         {
           label: 'Demandes de rattrapages', icon: 'pi pi-history',
           route: aid ? '/administration/annee/' + aid + '/rattrapages/liste' : null },

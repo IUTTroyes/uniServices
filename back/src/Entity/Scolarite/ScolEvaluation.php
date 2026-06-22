@@ -12,6 +12,7 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
+use App\Enum\EtatEvaluationEnum;
 use App\Enum\TypeEvaluationEnum;
 use App\Enum\TypeGroupeEnum;
 use App\Filter\EvaluationFilter;
@@ -30,6 +31,14 @@ use Symfony\Component\Serializer\Annotation\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['evaluation:detail', 'personnel:light', 'enseignement:light']]),
         new GetCollection(normalizationContext: ['groups' => ['evaluation:detail', 'personnel:light', 'enseignement:light']]),
+        new GetCollection(
+            uriTemplate: '/init/scol_evaluations',
+            normalizationContext: ['groups' => ['evaluation:mini', 'evaluation:init']],
+        ),
+        new Get(
+            uriTemplate: '/init/scol_evaluations/{id}',
+            normalizationContext: ['groups' => ['evaluation:mini', 'evaluation:init']],
+        ),
         new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)", processor: ScolEvaluationInitProcessor::class),
     ]
 )]
@@ -40,23 +49,23 @@ class ScolEvaluation
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail', 'evaluation:mini'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['evaluation:detail', 'evaluation:write'])]
+    #[Groups(['evaluation:detail', 'evaluation:write', 'evaluation:init'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['evaluation:detail', 'evaluation:write'])]
+    #[Groups(['evaluation:detail', 'evaluation:write', 'evaluation:init'])]
     private ?string $commentaire = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['evaluation:detail', 'evaluation:write'])]
+    #[Groups(['evaluation:detail', 'evaluation:write', 'evaluation:init'])]
     private ?float $coeff = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
-    #[Groups(['evaluation:detail', 'evaluation:write'])]
+    #[Groups(['evaluation:detail', 'evaluation:write', 'evaluation:init'])]
     private ?\DateTimeInterface $date = null;
 
     #[ORM\Column]
@@ -65,17 +74,17 @@ class ScolEvaluation
 
     #[ORM\Column]
     #[Groups(['evaluation:detail', 'evaluation:write'])]
-    private ?bool $modifiable = false;
+    private ?bool $modifiable = true;
 
     #[ORM\Column(length: 25, enumType: TypeEvaluationEnum::class, nullable: true)]
-    #[Groups(['evaluation:detail', 'evaluation:write'])]
+    #[Groups(['evaluation:detail', 'evaluation:write', 'evaluation:init'])]
     private ?TypeEvaluationEnum $type = null;
 
     /**
      * @var Collection<int, Personnel>
      */
     #[ORM\ManyToMany(targetEntity: Personnel::class, inversedBy: 'evaluations')]
-    #[Groups(['evaluation:detail', 'evaluation:write'])]
+    #[Groups(['evaluation:detail', 'evaluation:write', 'evaluation:init'])]
     private Collection $personnelAutorise;
 
     #[ORM\ManyToOne(inversedBy: 'evaluations')]
@@ -87,7 +96,7 @@ class ScolEvaluation
     private ?StructureSemestre $semestre = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'evaluations')]
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail', 'evaluation:init'])]
     private ?self $parent = null;
 
     /**
@@ -99,7 +108,7 @@ class ScolEvaluation
 
     #[ORM\ManyToOne(inversedBy: 'evaluations')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:detail', 'evaluation:init'])]
     private ?ScolEnseignement $enseignement = null;
 
     /**
@@ -110,13 +119,12 @@ class ScolEvaluation
     private Collection $notes;
 
     #[ORM\Column(length: 10, enumType: TypeGroupeEnum::class, nullable: true)]
-    #[\Symfony\Component\Serializer\Attribute\Groups(['evaluation:detail'])]
-    #[Groups(['evaluation:detail', 'evaluation:write'])]
+    #[Groups(['evaluation:detail', 'evaluation:write', 'evaluation:init'])]
     private ?TypeGroupeEnum $typeGroupe;
 
-    #[ORM\Column(length: 20, options: ['default' => 'non_initialisee'])]
-    #[Groups(['evaluation:detail'])]
-    private ?string $etat = 'non_initialisee';
+    #[ORM\Column(length: 20, enumType: EtatEvaluationEnum::class)]
+    #[Groups(['evaluation:detail', 'evaluation:write', 'evaluation:init'])]
+    private ?EtatEvaluationEnum $etat = EtatEvaluationEnum::ETAT_NON_INITIALISEE;
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     #[Groups(['evaluation:detail'])]
@@ -364,22 +372,41 @@ class ScolEvaluation
         return $severityMap[$this->type->value] ?? null;
     }
 
-    #[Groups(['evaluation:detail'])]
-    public function getEtat(): string
+    public function getEtat(): ?EtatEvaluationEnum
     {
-        return $this->etat ?? 'non_initialisee';
+        return $this->etat;
     }
 
-    public function setEtat(string $etat): self
+    public function setEtat(?EtatEvaluationEnum $etat): static
     {
-        // allowed values: non_initialisee, initialisee, planifiee, complet
-        $allowed = ['non_initialisee', 'initialisee', 'planifiee', 'complet'];
-        if (!in_array($etat, $allowed, true)) {
-            throw new \InvalidArgumentException('Etat invalide');
-        }
         $this->etat = $etat;
         return $this;
     }
+
+    #[Groups(['evaluation:detail'])]
+    public function getEtatIcon(): ?string
+    {
+        if (null === $this->etat) {
+            return null;
+        }
+
+        $severityMap = EtatEvaluationEnum::getIcon();
+
+        return $severityMap[$this->etat->value] ?? null;
+    }
+
+    #[Groups(['evaluation:detail'])]
+    public function getEtatSeverity(): ?string
+    {
+        if (null === $this->etat) {
+            return null;
+        }
+
+        $severityMap = EtatEvaluationEnum::getSeverity();
+
+        return $severityMap[$this->etat->value] ?? null;
+    }
+
 
     public function getTypeGroupe(): ?TypeGroupeEnum
     {
@@ -393,7 +420,7 @@ class ScolEvaluation
         return $this;
     }
 
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:init', 'evaluation:detail'])]
     public function getTypeGroupeChoices(): array
     {
         return array_map(
@@ -402,7 +429,7 @@ class ScolEvaluation
         );
     }
 
-    #[Groups(['evaluation:detail'])]
+    #[Groups(['evaluation:init', 'evaluation:detail'])]
     public function getTypeChoices(): array
     {
         return array_map(
@@ -411,24 +438,24 @@ class ScolEvaluation
         );
     }
 
-   public function getStats(): ?array
-   {
-       $order = [
-           'moyenne' => 'Moyenne',
-           'mediane' => 'Médiane',
-           'min' => 'Min',
-           'max' => 'Max',
-           'dispenses' => 'Dispensés',
-           'absences_justifiees' => 'Absences justifiées',
-           'absences_injustifiees' => 'Absences injustifiées',
-       ];
-       $stats = $this->stats ?? [];
-       $result = [];
-       foreach ($order as $key => $label) {
-           $result[$label] = array_key_exists($key, $stats) ? $stats[$key] : 0;
-       }
-       return $result;
-   }
+    public function getStats(): ?array
+    {
+        $order = [
+            'moyenne' => 'Moyenne',
+            'mediane' => 'Médiane',
+            'min' => 'Min',
+            'max' => 'Max',
+            'dispenses' => 'Dispensés',
+            'absences_justifiees' => 'Absences justifiées',
+            'absences_injustifiees' => 'Absences injustifiées',
+        ];
+        $stats = $this->stats ?? [];
+        $result = [];
+        foreach ($order as $key => $label) {
+            $result[$label] = array_key_exists($key, $stats) ? $stats[$key] : 0;
+        }
+        return $result;
+    }
 
     public function setStats(?array $stats): static
     {

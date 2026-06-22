@@ -1,12 +1,13 @@
-// Removed top-level store call; breadcrumb that needs the store is created lazily
 import { useAnneeStore } from "@stores";
 
 export default [
+  
   {
-    path: 'groupes/structure',
-    name: 'structure-groupe',
-    component: () => import('@/views/Groupes/StructureGroupeView.vue'),
+    path: 'etudiants',
+    name: 'liste-etudiants',
+    component: () => import('@/views/Administration/Etudiants/EtudiantsListeView.vue'),
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: () => {
         const anneeStore = useAnneeStore();
         const selectedAnnee = anneeStore.annee;
@@ -15,8 +16,27 @@ export default [
           route: '/administration',
           icon: 'pi pi-wrench'
         },
-          { label: selectedAnnee?.libelle ?? 'Année', route: null },
-          { label: 'Structure des groupes', route: null }];
+        { label: selectedAnnee?.libelle ?? 'Année', route: null },
+        { label: 'Liste des étudiants', route: null }];
+      }
+    },
+  },
+  {
+    path: 'groupes/structure',
+    name: 'structure-groupe',
+    component: () => import('@/views/Groupes/StructureGroupeView.vue'),
+    meta: {
+      permission: 'canViewAdministration',
+      breadcrumb: () => {
+        const anneeStore = useAnneeStore();
+        const selectedAnnee = anneeStore.annee;
+        return [{ label: 'Dashboard', route: '/' }, {
+          label: 'Administration',
+          route: '/administration',
+          icon: 'pi pi-wrench'
+        },
+        { label: selectedAnnee?.libelle ?? 'Année', route: null },
+        { label: 'Structure des groupes', route: null }];
       }
     },
   },
@@ -44,7 +64,7 @@ export default [
     name: 'liste-absences',
     component: () => import('@/views/Absence/AbsenceListeView.vue'),
     meta: {
-      permission: 'isPersonnel',
+      permission: 'canViewAdministration',
       breadcrumb: () => {
         const anneeStore = useAnneeStore();
         const selectedAnnee = anneeStore.annee;
@@ -53,8 +73,8 @@ export default [
           route: '/administration',
           icon: 'pi pi-wrench'
         },
-          { label: selectedAnnee?.libelle ?? 'Année', route: null },
-          { label: 'Liste des absences', route: null }];
+        { label: selectedAnnee?.libelle ?? 'Année', route: null },
+        { label: 'Liste des absences', route: null }];
       }
     },
   },
@@ -72,8 +92,8 @@ export default [
           route: '/administration',
           icon: 'pi pi-wrench'
         },
-          { label: selectedAnnee?.libelle ?? 'Année', route: null },
-          { label: 'Saisir des absences', route: null }];
+        { label: selectedAnnee?.libelle ?? 'Année', route: null },
+        { label: 'Saisir des absences', route: null }];
       }
     },
   },
@@ -82,17 +102,18 @@ export default [
     name: 'liste-justificatifs-absences',
     component: () => import('@/views/Groupes/StructureGroupeView.vue'),
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
         route: '/administration',
         icon: 'pi pi-wrench'
       },
-        { label: 'Année', route: null },
-        { label: 'Liste des justificatifs d\'absences', route: null }]
+      { label: 'Année', route: null },
+      { label: 'Liste des justificatifs d\'absences', route: null }]
     },
   },
   {
-    path: 'evaluations/liste',
+    path: 'evaluations',
     name: 'liste-evaluations',
     component: () => import('@/views/Evaluations/EvaluationsView.vue'),
     meta: {
@@ -104,8 +125,8 @@ export default [
           route: '/administration',
           icon: 'pi pi-wrench'
         },
-          { label: selectedAnnee?.libelle ?? 'Année', route: null },
-          { label: 'Évaluations', route: null }];
+        { label: selectedAnnee?.libelle ?? 'Année', route: null },
+        { label: 'Évaluations', route: null }];
       }
     },
   },
@@ -114,13 +135,14 @@ export default [
     name: 'liste-rattrapages',
     component: () => import('@/views/Groupes/StructureGroupeView.vue'),
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
         route: '/administration',
         icon: 'pi pi-wrench'
       },
-        { label: 'Année', route: null },
-        { label: 'Rattrapages', route: null }]
+      { label: 'Année', route: null },
+      { label: 'Rattrapages', route: null }]
     },
   },
   {
@@ -128,13 +150,14 @@ export default [
     name: 'liste-mccc',
     component: () => import('@/views/Groupes/StructureGroupeView.vue'),
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
         route: '/administration',
         icon: 'pi pi-wrench'
       },
-        { label: 'Année', route: null },
-        { label: 'MCCC', route: null }]
+      { label: 'Année', route: null },
+      { label: 'MCCC', route: null }]
     },
   },
   {
@@ -142,13 +165,14 @@ export default [
     name: 'sous-commission',
     component: () => import('@/views/Groupes/StructureGroupeView.vue'),
     meta: {
+      permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
         route: '/administration',
         icon: 'pi pi-wrench'
       },
-        { label: 'Année', route: null },
-        { label: 'Sous commission', route: null }]
+      { label: 'Année', route: null },
+      { label: 'Sous commission', route: null }]
     },
   },
 ]

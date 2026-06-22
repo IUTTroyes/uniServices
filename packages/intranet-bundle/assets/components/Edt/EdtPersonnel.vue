@@ -6,10 +6,18 @@ import {ref, watch, nextTick, computed} from 'vue'
 import EdtEvent from './EdtEvent.vue'
 import EdtListe from "./EdtListe.vue";
 import {getEdtEventsService, getSemaineUniversitaireService} from "@requests";
-import {adjustColor, colorNameToRgb, darkenColor} from "@helpers/colors.js";
+import {adjustColor, darkenColor} from "@helpers/colors.js";
 import {getISOWeekNumber} from "@helpers/date";
 import {useUsersStore} from "@stores";
 import {PhotoUser, ErrorView} from "@components";
+import {
+  applyOverlapMetadata,
+  calculateHoursByType,
+  calculateTotalHours,
+  getBadgeSeverityByType,
+  mapPersonnelEvents,
+  styleVueCalEvents,
+} from "@/service/utils/edtUtils";
 
 const usersStore = useUsersStore();
 const personnel = usersStore.user;
@@ -43,13 +51,6 @@ const getWeekUnivNumber = async (date) => {
   }
 };
 
-function detectOverlap(event, allEvents) {
-  return allEvents.some(e =>
-      (event.start < e.end && event.end > e.start) &&
-      event !== e
-  );
-}
-
 const getEventsPersonnelWeek = async () => {
   try {
     const params = {
@@ -60,59 +61,11 @@ const getEventsPersonnelWeek = async () => {
     };
     const response = await getEdtEventsService(params);
     if (response && response.length > 0) {
-      const mappedEvents = response.map(event => {
-        // Définir la couleur en fonction du type de groupe
-        let eventColor;
-        if (event.groupe) {
-          switch (event.groupe.type) {
-              // couleurs comme dans Celcat
-            case 'CM':
-              eventColor = adjustColor(colorNameToRgb(event.couleur), 0.1, 0.2);
-              break;
-            case 'TD':
-              eventColor = adjustColor(colorNameToRgb(event.couleur), 0.3, 0.2);
-              break;
-            case 'TP':
-              eventColor = adjustColor(colorNameToRgb(event.couleur), 0, 0.2);
-              break;
-            default:
-              eventColor = adjustColor(colorNameToRgb(event.couleur), 0.8, 0.2);
-          }
-        }
-
-        const startDate = new Date(event.debut);
-        const endDate = new Date(event.fin);
-
-        return {
-          ...event,
-          ongoing: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000) <= new Date() && new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000) >= new Date(),
-          start: new Date(startDate.getTime() + startDate.getTimezoneOffset() * 60000),
-          end: new Date(endDate.getTime() + endDate.getTimezoneOffset() * 60000),
-          backgroundColor: adjustColor(colorNameToRgb(event.couleur), 1, 0.2),
-          typeColor: adjustColor(colorNameToRgb(eventColor), 0.2, 0),
-          location: event.salle,
-          title: event.codeModule + ' - ' + event.libModule,
-          type: event.type,
-          groupe: event.groupe || '**',
-          personnel: event.personnel,
-          intervenantPhoto: event.personnel.photoName ?? null,
-          overlap: false,
-          eval: event.evaluation,
-          intervenants: event.enseignement.previsionnels
-              .filter(intervenant => intervenant.personnel.id !== personnel.id)
-              .map(intervenant => ({
-                id: intervenant.id,
-                display: intervenant.personnel?.display || 'Inconnu',
-                photoName: intervenant.personnel?.photoName || null,
-              })),
-        };
+      const mappedEvents = mapPersonnelEvents({
+        response,
+        personnelId: personnel.id,
       });
-
-      events.value = mappedEvents.map(event => ({
-        ...event,
-        title: detectOverlap(event, mappedEvents) ? event.codeModule : event.title,
-        overlap: !!detectOverlap(event, mappedEvents),
-      }));
+      events.value = applyOverlapMetadata(mappedEvents, { includeSpanningClass: false });
     } else {
       events.value = [];
     }
@@ -121,17 +74,7 @@ const getEventsPersonnelWeek = async () => {
     console.error('Error fetching events:', error);
   } finally {
     await nextTick();
-    const eventsObjects = document.querySelectorAll('.vuecal__event');
-    eventsObjects.forEach(event => {
-      if (event.style.backgroundColor) {
-        event.style.border = `2px solid ${adjustColor(darkenColor(event.style.backgroundColor, 50), 0, 0.2)}`;
-        event.style.borderTop = `6px solid ${adjustColor(darkenColor(event.style.backgroundColor, 60), 0, 0.2)}`;
-        event.style.overflow = 'auto';
-        event.style.scrollbarWidth = 'none';
-        event.style.cssText += '::-webkit-scrollbar { display: none; }';
-        event.style.opacity = 0.9;
-      }
-    });
+    styleVueCalEvents();
   }
 };
 
@@ -143,56 +86,14 @@ const openDialog = ({ event }) => {
   visible.value = true
 }
 
-function getBadgeSeverity(type) {
-  const badgeMapping = {
-    ressource: 'primary',
-    sae: 'warn',
-    matiere: 'success',
-  };
-
-  return badgeMapping[type] || 'info'; // Valeur par défaut si le type est inconnu
-}
-
 // calculer le nombre total d'heures pour l'ensemble des événements affichés
 const totalHeures = computed(() => {
-  return events.value.reduce((total, event) => {
-    const start = new Date(event.start);
-    const end = new Date(event.end);
-    const duration = (end - start) / (1000 * 60 * 60); // durée en heures
-    return total + duration;
-  }, 0);
+  return calculateTotalHours(events.value);
 });
 
 // calculer le nombre total d'heures par type "CM", "TD", "TP"
 const heuresParType = computed(() => {
-  // Initialiser les types de base pour qu'ils apparaissent même à 0
-  const totaux = { CM: 0, TD: 0, TP: 0 };
-
-  events.value.forEach(event => {
-    const start = new Date(event.start);
-    const end = new Date(event.end);
-    const duration = (end - start) / (1000 * 60 * 60); // durée en heures
-    totaux[event.type] = (totaux[event.type] || 0) + duration;
-  });
-
-  // Conserver l'ordre CM, TD, TP, puis ajouter les autres types trouvés
-  const result = [];
-  ['CM', 'TD', 'TP'].forEach(type => {
-    result.push({
-      type,
-      heures: Math.round((totaux[type] || 0) * 100) / 100
-    });
-    delete totaux[type];
-  });
-
-  Object.keys(totaux).forEach(type => {
-    result.push({
-      type,
-      heures: Math.round(totaux[type] * 100) / 100
-    });
-  });
-
-  return result;
+  return calculateHoursByType(events.value);
 });
 </script>
 
@@ -226,7 +127,7 @@ const heuresParType = computed(() => {
       </div>
       <div class="flex items-center gap-2">
         <Badge v-if="selectedEvent.eval" severity="danger" class="uppercase">Évaluation</Badge>
-        <Badge :severity="getBadgeSeverity(selectedEvent.enseignement.type)" class="uppercase">
+        <Badge :severity="getBadgeSeverityByType(selectedEvent.enseignement.type)" class="uppercase">
           {{ selectedEvent.enseignement.type }}
         </Badge>
       </div>

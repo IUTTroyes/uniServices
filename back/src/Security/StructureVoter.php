@@ -2,16 +2,7 @@
 
 namespace App\Security;
 
-use App\Entity\Structure\StructureAnnee;
-use App\Entity\Structure\StructureCalendrier;
-use App\Entity\Structure\StructureDepartement;
-use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
-use App\Entity\Structure\StructureGroupe;
-use App\Entity\Structure\StructurePn;
-use App\Entity\Structure\StructureSemestre;
-use App\Entity\Structure\StructureTypeDiplome;
-use App\Entity\Structure\StructureUe;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -42,6 +33,7 @@ class StructureVoter extends Voter
     // Permissions Groupe
     public const CAN_VIEW_GROUPE = 'CAN_VIEW_GROUPE';
     public const CAN_EDIT_GROUPE = 'CAN_EDIT_GROUPE';
+    public const CAN_EDIT_GROUPE_STRUCTURE = 'CAN_EDIT_GROUPE_STRUCTURE';
     public const CAN_DELETE_GROUPE = 'CAN_DELETE_GROUPE';
 
     // Permissions UE
@@ -86,6 +78,7 @@ class StructureVoter extends Voter
         self::CAN_DELETE_SEMESTRE,
         self::CAN_VIEW_GROUPE,
         self::CAN_EDIT_GROUPE,
+        self::CAN_EDIT_GROUPE_STRUCTURE,
         self::CAN_DELETE_GROUPE,
         self::CAN_VIEW_UE,
         self::CAN_EDIT_UE,
@@ -133,7 +126,7 @@ class StructureVoter extends Voter
             return true;
         }
 
-        return match($attribute) {
+        return match ($attribute) {
             // Département
             self::CAN_VIEW_DEPARTEMENT => $this->canViewDepartement($user),
             self::CAN_EDIT_DEPARTEMENT => $this->canEditDepartement($user),
@@ -152,6 +145,7 @@ class StructureVoter extends Voter
             // Groupe
             self::CAN_VIEW_GROUPE => $this->canViewGroupe($user),
             self::CAN_EDIT_GROUPE => $this->canEditGroupe($user),
+            self::CAN_EDIT_GROUPE_STRUCTURE => $this->canEditGroupeStructure($user),
             self::CAN_DELETE_GROUPE => $this->canDeleteGroupe($user),
 
             // UE
@@ -256,7 +250,7 @@ class StructureVoter extends Voter
         // Le responsable du diplôme peut le modifier
         if ($subject instanceof StructureDiplome) {
             return $subject->getResponsableDiplome() === $user ||
-                   $subject->getAssistantDiplome() === $user;
+                $subject->getAssistantDiplome() === $user;
         }
 
         return false;
@@ -323,6 +317,13 @@ class StructureVoter extends Voter
             'ROLE_SCOLARITE',
             'ROLE_ASSISTANT',
             'ROLE_DIRECTEUR_ETUDES'
+        ]);
+    }
+
+    private function canEditGroupeStructure(Personnel|Etudiant $user): bool
+    {
+        return $user instanceof Personnel && $this->hasAnyRole($user, [
+            'ROLE_SUPER_ADMIN'
         ]);
     }
 

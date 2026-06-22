@@ -300,6 +300,7 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
           :class="[inputClass, { 'p-invalid': showError }]"
           @input="updateValue"
           @blur="handleBlur"
+          :disabled="disabled"
         />
 
         <RadioButton

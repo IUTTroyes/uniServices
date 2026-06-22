@@ -356,7 +356,7 @@ const onRowsChange = async rows => {
                 :rules="[]"
                 inputId="minmax" :min="-0.01" :max="20"
                 :minfractiondigits="2" :maxfractiondigits="2"
-                :disabled="slotProps.data.absenceStatus !== 'present'"
+                :disabled="slotProps.data.absenceStatus !== 'present' || evaluation.modifiable !== true"
                 @validation="result => handleValidation('note', result)"
             />
           </template>
@@ -379,6 +379,7 @@ const onRowsChange = async rows => {
                 :rules="[]"
                 @update:modelValue="val => onAbsenceChange(slotProps.data, val)"
                 @validation="result => handleValidation('absence', result)"
+                :disabled="evaluation.modifiable !== true"
             >
             </ValidatedInput>
           </template>
@@ -393,6 +394,7 @@ const onRowsChange = async rows => {
                 v-model="slotProps.data.commentaire"
                 :rules="[]"
                 @validation="result => handleValidation('commentaire', result)"
+                :disabled="evaluation.modifiable !== true"
             />
           </template>
         </Column>
@@ -400,7 +402,7 @@ const onRowsChange = async rows => {
       </DataTable>
     </div>
     <div class="flex justify-center items-center gap-4 mt-4">
-      <Button class="w-1/2" label="Enregistrer les notes" @click="submitNotes"/>
+      <Button class="w-1/2" label="Enregistrer les notes" @click="submitNotes" :disabled="evaluation.modifiable !== true"/>
       <Button class="w-1/2" label="Annuler" severity="secondary" @click="() => emit('close')" />
     </div>
   </div>

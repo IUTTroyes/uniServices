@@ -31,8 +31,7 @@ class CreateEtudiantController extends AbstractController
         private readonly StructureSemestreRepository $structureSemestreRepository,
         private readonly StructureAnneeUniversitaireRepository $structureAnneeUniversitaireRepository,
         private readonly UserPasswordHasherInterface $passwordHasher
-    ) {
-    }
+    ) {}
 
     #[Route('/api/etudiants/new', methods: ['POST'], name: 'create_etudiant')]
     public function create(Request $request): Response
@@ -248,7 +247,6 @@ class CreateEtudiantController extends AbstractController
         $etudiantSco->setAnneeUniversitaire($anneeUniv);
         $etudiantSco->setEtudiant($etudiant);
         $etudiantSco->setDepartement($annee->getDepartement());
-        $etudiantSco->addAnnee($annee);
         $etudiantSco->setUuid();
         if ($anneeUniv->isActif()) {
             $etudiantSco->setActif(true);

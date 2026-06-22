@@ -19,6 +19,7 @@ use App\Entity\Users\Etudiant;
 use App\Enum\TypeGroupeEnum;
 use App\Filter\GroupeFilter;
 use App\Repository\Structure\StructureGroupeRepository;
+use App\State\Processor\Groupe\GroupeDeletefromSemestreProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -52,6 +53,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_GROUPE', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_GROUPE', object)"),
+        new Patch(
+            uriTemplate: '/semestre/structure_groupes/{id}',
+            securityPostDenormalize: "is_granted('CAN_EDIT_GROUPE_STRUCTURE')",
+            normalizationContext: ['groups' => ['groupe:structure']],
+            denormalizationContext: ['groups' => ['groupe:structure']],
+            processor: GroupeDeletefromSemestreProcessor::class,
+        ),
         new Delete(security: "is_granted('CAN_DELETE_GROUPE', object)"),
     ]
 )]
@@ -64,20 +72,20 @@ class StructureGroupe
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'scolarite-semestre:manage-groupes', 'groupe:structure'])]
+    #[Groups(['groupe:detail', 'groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'scolarite-semestre:manage-groupes', 'groupe:structure', 'groupe:structure'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'scolarite-semestre:manage-groupes', 'groupe:structure'])]
+    #[Groups(['groupe:detail', 'groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'scolarite-semestre:manage-groupes', 'groupe:structure', 'groupe:structure'])]
     private string $libelle;
 
     #[ORM\Column(length: 10, enumType: TypeGroupeEnum::class)]
-    #[Groups(['groupe:detail','groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'groupe:structure'])]
+    #[Groups(['groupe:detail', 'groupe:light', 'scolarite:read', 'edt_event:read:agenda', 'groupe:structure', 'groupe:structure'])]
     private TypeGroupeEnum $type;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
     #[ORM\JoinColumn(onDelete: 'CASCADE')]
-    #[Groups(['groupe:detail','groupe:light', 'edt_event:read:agenda', 'groupe:structure'])]
+    #[Groups(['groupe:detail', 'groupe:light', 'edt_event:read:agenda', 'groupe:structure'])]
     private ?self $parent = null;
 
     #[ORM\Column(nullable: true)]
@@ -85,6 +93,7 @@ class StructureGroupe
     private ?int $ordre = null;
 
     #[ORM\ManyToMany(targetEntity: StructureSemestre::class, inversedBy: 'groupes')]
+    #[Groups(['groupe:structure'])]
     private Collection $semestres;
 
     #[ORM\OneToMany(targetEntity: self::class, mappedBy: 'parent', cascade: ['persist', 'remove'])]

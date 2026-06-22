@@ -40,3 +40,4 @@ export * from './helpdesk_services/ticketService.js'
 export * from './helpdesk_services/categorieService.js'
 export * from './helpdesk_services/messageService.js'
 export * from './structure_services/serviceService.js'
+export * from './dashboardService.js';

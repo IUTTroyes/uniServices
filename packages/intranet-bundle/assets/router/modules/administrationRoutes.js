@@ -3,7 +3,6 @@ import stageAdministrationRoutes from './stageAdministrationRoutes.js'
 import anneeAdministrationRoutes from './anneeAdministrationRoutes.js'
 import questionnaireAdministrationRoutes from './questionnaireAdministrationRoutes.js'
 import PersonnelsListeView from "@/views/Personnels/PersonnelsListeView.vue";
-import EtudiantsListeView from "@/views/Administration/Etudiants/EtudiantsListeView.vue";
 import EtudiantsAjoutView from "@/views/Administration/Etudiants/EtudiantsAjoutView.vue";
 import AdministrationView from '@/views/Administration/AdministrationView.vue';
 import EtudiantAddApogee from '@/components/Administration/etudiant/EtudiantAddApogee.vue';
@@ -47,16 +46,7 @@ export default [
       }]
     },
     children: [
-      {
-        path: '',
-        component: EtudiantsListeView,
-        meta: {
-          breadcrumb: [{ label: 'Dashboard', route: '/' }, {
-            label: 'Administration',
-            route: '/administration'
-          }, { label: 'Liste des Etudiants', route: null }]
-        },
-      },
+    
       {
         path: 'ajout',
         component: EtudiantsAjoutView,

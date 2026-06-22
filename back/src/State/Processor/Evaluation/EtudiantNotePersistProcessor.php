@@ -6,6 +6,7 @@ use ApiPlatform\Metadata\Operation;
 use ApiPlatform\State\ProcessorInterface;
 use App\Entity\Etudiant\EtudiantNote;
 use App\Entity\Scolarite\ScolEvaluation;
+use App\Enum\EtatEvaluationEnum;
 use App\Repository\EtudiantNoteRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -36,16 +37,35 @@ class EtudiantNotePersistProcessor implements ProcessorInterface
 
     private function refreshEvaluationEtat(ScolEvaluation $evaluation): void
     {
-        $total = $this->noteRepository->countByEvaluation($evaluation);
-        if ($total <= 0) {
-            // fallback when nothing to evaluate
-            $evaluation->setEtat('planifiee');
+        $etatActuel = $evaluation->getEtat();
+        if ($etatActuel?->isEtatManuel()) {
             $this->calcEvaluationStats($evaluation);
             $this->em->flush();
             return;
         }
+
+        $total = $this->noteRepository->countByEvaluation($evaluation);
         $completed = $this->noteRepository->countCompletedByEvaluation($evaluation);
-        $newEtat = ($completed >= $total) ? 'complet' : 'planifiee';
+
+        $isInitialisee = null !== $evaluation->getCoeff()
+            && null !== $evaluation->getTypeGroupe()
+            && null !== $evaluation->getType()
+            && !$evaluation->getPersonnelAutorise()->isEmpty();
+
+        if (!$isInitialisee) {
+            $newEtat = EtatEvaluationEnum::ETAT_NON_INITIALISEE;
+        } elseif ($total > 0 && $completed >= $total) {
+            $newEtat = EtatEvaluationEnum::ETAT_COMPLETEE;
+        } elseif (null !== $evaluation->getDate()) {
+            $today = new \DateTimeImmutable('today');
+            $evaluationDate = \DateTimeImmutable::createFromInterface($evaluation->getDate());
+            $newEtat = $evaluationDate < $today
+                ? EtatEvaluationEnum::ETAT_TERMINEE
+                : EtatEvaluationEnum::ETAT_PLANIFIEE;
+        } else {
+            $newEtat = EtatEvaluationEnum::ETAT_INITIALISEE;
+        }
+
         if ($evaluation->getEtat() !== $newEtat) {
             $evaluation->setEtat($newEtat);
         }

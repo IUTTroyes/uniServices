@@ -113,14 +113,6 @@ class EtudiantScolarite
     #[Groups(['scolarite:detail'])]
     private Collection $scolariteSemestre;
 
-    /**
-     * @var Collection<int, StructureAnnee>
-     * @deprecated
-     */
-    #[ORM\ManyToMany(targetEntity: StructureAnnee::class, inversedBy: 'scolarites')]
-    #[Groups(['scolarite:detail'])]
-    private Collection $annee;
-
     #[ORM\Column]
     #[Groups(['scolarite:detail', 'scolarite:light'])]
     private bool $actif = false;
@@ -136,7 +128,6 @@ class EtudiantScolarite
     public function __construct()
     {
         $this->scolariteSemestre = new ArrayCollection();
-        $this->annee = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -294,30 +285,6 @@ class EtudiantScolarite
         return $this;
     }
 
-    /**
-     * @return Collection<int, StructureAnnee>
-     */
-    public function getAnnee(): Collection
-    {
-        return $this->annee;
-    }
-
-    public function addAnnee(StructureAnnee $annee): static
-    {
-        if (!$this->annee->contains($annee)) {
-            $this->annee->add($annee);
-        }
-
-        return $this;
-    }
-
-    public function removeAnnee(StructureAnnee $annee): static
-    {
-        $this->annee->removeElement($annee);
-
-        return $this;
-    }
-
     public function isActif(): bool
     {
         return $this->actif;
@@ -348,5 +315,24 @@ class EtudiantScolarite
         $this->proposition = $proposition;
 
         return $this;
+    }
+
+    /**
+     * @return array<StructureAnnee>
+     */
+    #[Groups(['scolarite:detail'])]
+    public function getAnnee(): array
+    {
+        $annees = [];
+        foreach ($this->getScolariteSemestre() as $scolariteSemestre) {
+            $semestre = $scolariteSemestre->getSemestre();
+            if ($semestre !== null) {
+                $annee = $semestre->getAnnee();
+                if ($annee !== null && !in_array($annee, $annees, true)) {
+                    $annees[] = $annee;
+                }
+            }
+        }
+        return $annees;
     }
 }
