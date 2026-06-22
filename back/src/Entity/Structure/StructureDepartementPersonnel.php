@@ -2,17 +2,22 @@
 
 namespace App\Entity\Structure;
 
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
+use App\ApiDto\Users\ActionsUrgentesWidgetDto;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
+use App\Filter\DepartementPersonnelFilter;
+use App\State\Provider\Users\ActionsUrgentesWidgetProvider;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDepartementPersonnelRepository::class)]
+#[ApiFilter(DepartementPersonnelFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['departement_personnel:read']]),
@@ -25,11 +30,19 @@ use Symfony\Component\Serializer\Attribute\Groups;
             paginationEnabled: false,
             normalizationContext: ['groups' => ['departement_personnel:read']]
         ),
-        new Post(uriTemplate: '/structure_departement_personnels/{id}/change_departement',
+        new GetCollection(
+            uriTemplate: '/widget/actions_urgentes/',
+            normalizationContext: ['groups' => ['action_urgente_widget:read']],
+            output: ActionsUrgentesWidgetDto::class,
+            provider: ActionsUrgentesWidgetProvider::class,
+        ),
+        new Post(
+            uriTemplate: '/structure_departement_personnels/{id}/change_departement',
             inputFormats: ['json' => ['application/ld+json']],
             outputFormats: ['json' => ['application/ld+json']],
             normalizationContext: ['groups' => ['departement_personnel:read']],
-            processor: 'App\State\ChangeDepartementProcessor'),
+            processor: 'App\State\ChangeDepartementProcessor'
+        ),
     ],
     order: ['personnel.nom', 'departement.libelle']
 )]
@@ -42,6 +55,7 @@ class StructureDepartementPersonnel
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Groups(groups: ['departement_personnel:read', 'departement:read', 'personnel:read'])]
     private array $roles = []; //tableau associatif => 'application' => [droits]
 
     #[ORM\Column]

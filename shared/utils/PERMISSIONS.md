@@ -18,14 +18,42 @@ Le système distingue deux types principaux d'utilisateurs :
 - **Étudiants** (`isEtudiant`)
 - **Personnel** (`isPersonnel`)
 
-### Hiérarchie des rôles
+### Hiérarchie des rôles et source des permissions
 
-Il existe une hiérarchie entre les rôles. Un utilisateur est soit un Personnel, soit un Étudiant.
+Le système utilise deux sources de rôles, appliquées dans cet ordre de priorité :
 
-- Le rôle **Personnel** est le rôle de base pour la plupart des autres rôles (Scolarité, Direction, Chef de Département, etc.). Si un utilisateur possède l'un de ces rôles spécifiques, il possède également automatiquement le rôle `isPersonnel`.
-- Le rôle **Étudiant** est actuellement autonome, mais pourrait également avoir des sous-rôles à l'avenir.
+1. **Rôles contextuels du département actif** (`StructureDepartementPersonnel.roles`) : rôles métier spécifiques au département dans lequel l'utilisateur est actuellement positionné. Ces rôles sont indexés par clé applicative (`intranet`, `edt`, `helpdesk`, etc.). Seuls les rôles correspondant au bundle actif sont utilisés.
+2. **Fallback sur les rôles globaux du Personnel** (`user.roles`) : utilisé si aucune clé applicative n'est définie pour le bundle courant dans les rôles du département, ou si l'utilisateur n'a pas de département actif.
+3. **Rôles structurels** (`ROLE_SUPER_ADMIN`, `ROLE_PERSONNEL`) : toujours lus depuis `user.roles`, indépendamment du département.
 
-Cette hiérarchie est respectée même lors de l'utilisation des rôles temporaires (impersonnalisation). Par exemple, si vous sélectionnez le rôle temporaire "Scolarité", les vérifications pour `isPersonnel` renverront également `true`.
+### Détection du bundle actif
+
+La clé applicative est déduite automatiquement depuis `import.meta.env.BASE_URL` (configuré par Vite via `base:` dans `vite.config.js`) :
+
+| Bundle | `base:` Vite | Clé applicative |
+|---|---|---|
+| intranet-bundle | `/intranet/` | `intranet` |
+| edt-bundle | `/edt/` | `edt` |
+| helpdesk-bundle | `/helpdesk/` | `helpdesk` |
+| auth-bundle | `/auth/` | `auth` |
+| unifolio-bundle | `/unifolio/` | `unifolio` |
+
+Exemple de structure `roles` dans `StructureDepartementPersonnel` :
+
+```json
+{
+  "intranet": ["ROLE_CHEF_DEPARTEMENT", "ROLE_NOTE"],
+  "edt": ["ROLE_EDT"]
+}
+```
+
+Un personnel connecté sur le bundle intranet aura les rôles `ROLE_CHEF_DEPARTEMENT` et `ROLE_NOTE`. Sur le bundle edt, il n'aura que `ROLE_EDT`.
+
+### Changement de département
+
+Lorsque l'utilisateur change de département actif, les rôles sont automatiquement rechargés et tous les éléments protégés par `v-permission` ou `PermissionGuard` se réévaluent dynamiquement.
+
+ Cette hiérarchie est respectée même lors de l'utilisation des rôles temporaires (impersonnalisation). Par exemple, si vous sélectionnez le rôle temporaire "Scolarité", les vérifications pour `isPersonnel` renverront également `true`.
 
 ### Liste des rôles spécifiques au Personnel
 
