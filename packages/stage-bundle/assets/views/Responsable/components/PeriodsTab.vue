@@ -1,0 +1,109 @@
+<script setup>
+const props = defineProps({
+  periods: {
+    type: Array,
+    required: true
+  }
+});
+
+const emit = defineEmits(['create', 'edit', 'delete']);
+</script>
+
+<template>
+  <div class="space-y-6">
+    <div class="flex justify-between items-center">
+      <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">
+        Configuration des périodes universitaires
+      </h2>
+      <button @click="emit('create')"
+        class="text-xs font-bold px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-md transition-all flex items-center gap-2">
+        <i class="pi pi-plus text-[9px]"></i>
+        <span>Créer une période</span>
+      </button>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div v-for="p in periods" :key="p.id"
+        class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm flex flex-col justify-between space-y-4">
+        <div>
+          <div class="flex justify-between items-start gap-4">
+            <div class="flex gap-2">
+              <span
+                class="bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 px-2.5 py-0.5 rounded font-bold text-[9px] uppercase tracking-wider">
+                {{ p.type }}
+              </span>
+              <span
+                class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2.5 py-0.5 rounded font-bold text-[9px]">
+                {{ p.anneeUniv }}
+              </span>
+            </div>
+            <span
+              :class="['px-2 py-0.5 text-[9px] rounded font-bold uppercase', p.datesFlexibles ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600']">
+              {{ p.datesFlexibles ? 'Dates flexibles' : 'Dates strictes' }}
+            </span>
+          </div>
+
+          <h3 class="text-base font-bold text-slate-900 dark:text-white mt-4">{{ p.name }}</h3>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-[11px] text-slate-500 dark:text-slate-400">
+            <div class="space-y-2">
+              <div class="flex items-center gap-2">
+                <i class="pi pi-calendar text-[10px] text-slate-400"></i>
+                <span>{{ p.dates }} ({{ p.minWeeks }} sem. min)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i class="pi pi-users text-[10px] text-slate-400"></i>
+                <span>Responsable : <strong>{{ p.responsablePrincipal }}</strong></span>
+              </div>
+              <div class="flex items-start gap-2">
+                <i class="pi pi-user-plus text-[10px] text-slate-400 mt-0.5"></i>
+                <span>Co-responsables : <strong>{{ p.coResponsables?.join(', ') || 'Aucun' }}</strong></span>
+              </div>
+            </div>
+
+            <div
+              class="space-y-2 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700 md:pl-4 pt-2 md:pt-0">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ p.interruptions?.length || 0 }}</span>
+                <span>Interruption(s)</span>
+              </div>
+              <div class="flex items-center gap-2" v-for="s in p.soutenances" :key="s.dateDebut">
+                <i class="pi pi-clock text-[10px] text-slate-400"></i>
+                <span>Soutenances : {{ new Date(s.dateDebut).toLocaleDateString('fr') }} au {{ new
+                  Date(s.dateFin).toLocaleDateString('fr') }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <i class="pi pi-file text-[10px] text-slate-400"></i>
+                <span>Fichiers : {{ p.consignesFichiers?.length || 0 }} consignes</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Display convention parameters brief summary -->
+          <div
+            class="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-3 border border-slate-100 dark:border-slate-700/40 text-[10px] mt-4 space-y-1 text-slate-500">
+            <span class="font-bold text-slate-700 dark:text-slate-300 block mb-1">Paramètres Convention :</span>
+            <p class="truncate"><strong class="text-slate-600 dark:text-slate-400">Compétences :</strong> {{
+              p.competencesVisees || 'Non définies' }}</p>
+            <p class="truncate"><strong class="text-slate-600 dark:text-slate-400">Rendu :</strong> {{
+              p.documentsRendre || 'Non définies' }}</p>
+          </div>
+        </div>
+
+        <div class="flex gap-2 w-full">
+          <button
+            @click="emit('edit', p)"
+            class="flex-1 py-2 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600/60 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2">
+            <i class="pi pi-cog text-[10px]"></i>
+            <span>Paramétrer la période</span>
+          </button>
+          <button
+            @click="emit('delete', p)"
+            class="px-3 py-2 bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-400 font-bold rounded-xl text-xs transition-all flex items-center justify-center">
+            <i class="pi pi-trash"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
