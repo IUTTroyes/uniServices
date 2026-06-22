@@ -1,0 +1,6 @@
+{
+    "name": "StageBundle",
+    "description": "Gestion des stages et alternances",
+    "urlSlug": "stage",
+    "url": "http://localhost:3005/stage/"
+}

@@ -35,6 +35,11 @@ const props = defineProps({
     type: Number,
     required: false,
     default: 0
+  },
+  searchParameter: {
+    type: String,
+    required: false,
+    default: null
   }
 })
 
@@ -54,17 +59,25 @@ const filters = ref({
 
 const fetchData = async () => {
   loading.value = true
-  const response = await api.get(props.apiEndpoint, {
-    params: {
-      ...filters.value,
-      limit: limit.value,
-      offset: offset.value,
-      sortField: sortField.value,
-      sortOrder: sortOrder.value
-    }
-  })
-  totalRecords.value = response.data.totalItems
-  data.value = await response.data.member
+  const endpoint = props.apiEndpoint.startsWith('/') || props.apiEndpoint.startsWith('http')
+    ? props.apiEndpoint
+    : '/' + props.apiEndpoint
+  
+  const params = {
+    limit: limit.value,
+    offset: offset.value,
+    sortField: sortField.value,
+    sortOrder: sortOrder.value
+  }
+
+  if (props.searchParameter && filters.value.global.value) {
+    params[props.searchParameter] = filters.value.global.value
+  }
+  
+  const response = await api.get(endpoint, { params })
+  totalRecords.value = response.data.totalItems ?? response.data['hydra:totalItems'] ?? (Array.isArray(response.data) ? response.data.length : 0)
+  const rawMember = response.data.member ?? response.data['hydra:member'] ?? (Array.isArray(response.data) ? response.data : [])
+  data.value = await rawMember
   loading.value = false
 }
 
@@ -73,6 +86,15 @@ onMounted(fetchData)
 watch(() => props.refreshKey, async (newValue, oldValue) => {
   await fetchData()
 });
+
+let searchTimeout = null
+watch(() => filters.value.global.value, (newVal) => {
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(async () => {
+    page.value = 0
+    await fetchData()
+  }, 400)
+})
 
 
 const onPageChange = async (event) => {
@@ -92,38 +114,24 @@ function getNestedValue(obj, path) {
 </script>
 
 <template>
-  <DataTable :value="data"
-             lazy
-             stripedRows
-             paginator
-             :first="offset"
-             :rows="limit"
-             :rowsPerPageOptions="rowOptions"
-             :totalRecords="totalRecords"
-             dataKey="id"
-             :loading="loading"
-             v-model:filterModel="filters"
-             @page="onPageChange"
-             @sort="onSortChange"
-             @update:rows="limit = $event"
-             :globalFilterFields="columns.map(col => col.field)">
+  <DataTable :value="data" lazy stripedRows paginator :first="offset" :rows="limit" :rowsPerPageOptions="rowOptions"
+    :totalRecords="totalRecords" dataKey="id" :loading="loading" v-model:filterModel="filters" @page="onPageChange"
+    @sort="onSortChange" @update:rows="limit = $event" :globalFilterFields="columns.map(col => col.field)">
     <template #header>
       <div class="flex justify-end">
         <Button label="Ajouter" icon="pi pi-plus" class="mr-2" @click="actionAdd.handler()" v-if="actionAdd" />
         <IconField>
           <InputIcon>
-            <i class="pi pi-search"/>
+            <i class="pi pi-search" />
           </InputIcon>
-          <InputText v-model="filters.global.value" placeholder="Rechercher..."/>
+          <InputText v-model="filters.global.value" placeholder="Rechercher..." />
         </IconField>
       </div>
     </template>
     <template #empty> Aucun enregistrement trouvé.</template>
     <template #loading> Chargement des données. Patientez.</template>
-    <Column v-for="col in columns" :key="col.field" :field="col.field"
-            :header="col.header" :style="col.style"
-            :sortable="col.sortable"
-    >
+    <Column v-for="col in columns" :key="col.field" :field="col.field" :header="col.header" :style="col.style"
+      :sortable="col.sortable">
       <template #body="slotProps" v-if="col.type === undefined">
         {{ getNestedValue(slotProps.data, col.field) }}
       </template>
@@ -131,9 +139,7 @@ function getNestedValue(obj, path) {
         {{ new Date(getNestedValue(slotProps.data, col.field)).toLocaleDateString() }}
       </template>
       <template #body="slotProps" v-else-if="col.type === 'boolean'">
-        <ToggleSwitch
-            @change="col.handler(slotProps.data)"
-            v-model="slotProps.data[col.field]" />
+        <ToggleSwitch @change="col.handler(slotProps.data)" v-model="slotProps.data[col.field]" />
       </template>
       <!--      <template #filter="slotProps">-->
       <!--        <InputText v-model="slotProps.filterModel.value" type="text" @input="slotProps.filterCallback()" :placeholder="`Filter by ${col.header}`"/>-->
@@ -142,26 +148,17 @@ function getNestedValue(obj, path) {
     <Column v-if="actions.length" header="Actions" :style="{ minWidth: '10rem' }">
       <template #body="slotProps">
         <template v-for="action in actions">
-          <ButtonInfo
-              tooltip="Détails"
-              v-if="action.type === 'show'"
-              @click="action.handler(slotProps.data)"
-          />
-          <ButtonEdit v-if="action.type === 'edit'"
-                      tooltip="Modifier"
-                      @click="action.handler(slotProps.data)"
-          />
-          <ButtonDelete v-if="action.type === 'delete'"
-                        tooltip="Supprimer"
-                        @confirm-delete="action.handler(slotProps.data)"
-          />
+          <ButtonInfo tooltip="Détails" v-if="action.type === 'show'" @click="action.handler(slotProps.data)" />
+          <ButtonEdit v-if="action.type === 'edit'" tooltip="Modifier" @click="action.handler(slotProps.data)" />
+          <ButtonDelete v-if="action.type === 'delete'" tooltip="Supprimer"
+            @confirm-delete="action.handler(slotProps.data)" />
         </template>
       </template>
     </Column>
     <Column v-if="extraActions.length" header="Actions" :style="{ minWidth: '10rem' }">
       <template #body="slotProps">
         <Button v-for="action in actions" :key="action.label" :label="action.label" :icon="action.icon"
-                @click="action.handler(slotProps.data)"/>
+          @click="action.handler(slotProps.data)" />
       </template>
     </Column>
     <template #footer> {{ totalRecords }} résultat(s).</template>

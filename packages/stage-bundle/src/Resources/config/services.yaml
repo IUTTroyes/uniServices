@@ -1,0 +1,10 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  StageBundle\:
+    resource: '../../'
+    exclude:
+      - '../../Entity/'
+      - '../../StageBundle.php'

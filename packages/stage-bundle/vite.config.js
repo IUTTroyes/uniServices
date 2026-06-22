@@ -21,9 +21,9 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     root: path.resolve(__dirname, "assets"),
-    base: "/helpdesk/",
+    base: "/stage/",
     build: {
-      outDir: path.resolve(__dirname, "../../back/public/helpdesk"),
+      outDir: path.resolve(__dirname, "../../back/public/stage"),
       emptyOutDir: true,
     },
     server: {

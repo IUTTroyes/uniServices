@@ -8,7 +8,10 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Link;
 use ApiPlatform\Metadata\Post;
-use App\ApiDto\Users\ActionsUrgentesWidgetDto;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
 use App\Filter\DepartementPersonnelFilter;
@@ -17,7 +20,11 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDepartementPersonnelRepository::class)]
-#[ApiFilter(DepartementPersonnelFilter::class)]
+#[ApiFilter(DepartementPersonnelFilter::class, SearchFilter::class, properties: [
+    'personnel.nom' => 'partial',
+    'personnel.prenom' => 'partial',
+    'departement.libelle' => 'partial'
+])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['departement_personnel:read']]),
@@ -41,8 +48,16 @@ use Symfony\Component\Serializer\Attribute\Groups;
             inputFormats: ['json' => ['application/ld+json']],
             outputFormats: ['json' => ['application/ld+json']],
             normalizationContext: ['groups' => ['departement_personnel:read']],
-            processor: 'App\State\ChangeDepartementProcessor'
+            processor: 'App\State\ChangeDepartementProcessor'),
+        new Post(
+            normalizationContext: ['groups' => ['departement_personnel:read']],
+            denormalizationContext: ['groups' => ['departement_personnel:write']]
         ),
+        new Patch(
+            normalizationContext: ['groups' => ['departement_personnel:read']],
+            denormalizationContext: ['groups' => ['departement_personnel:write']]
+        ),
+        new Delete()
     ],
     order: ['personnel.nom', 'departement.libelle']
 )]
@@ -55,23 +70,24 @@ class StructureDepartementPersonnel
     private ?int $id = null;
 
     #[ORM\Column]
-    #[Groups(groups: ['departement_personnel:read', 'departement:read', 'personnel:read'])]
+    #[Groups(groups: ['departement_personnel:read', 'departement_personnel:write'])]
     private array $roles = []; //tableau associatif => 'application' => [droits]
 
     #[ORM\Column]
-    #[Groups(groups: ['personnel:read', 'departement_personnel:read', 'departement:read'])]
+    #[Groups(groups: ['personnel:read', 'departement_personnel:read', 'departement:read', 'departement_personnel:write'])]
     private ?bool $defaut = null;
 
     #[ORM\ManyToOne(inversedBy: 'departementPersonnels')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(groups: ['departement_personnel:read', 'departement:read'])]
+    #[Groups(groups: ['departement_personnel:read', 'departement:read', 'departement_personnel:write'])]
     private ?Personnel $personnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'departementPersonnels')]
-    #[Groups(groups: ['personnel:read', 'departement_personnel:read'])]
+    #[Groups(groups: ['personnel:read', 'departement_personnel:read', 'departement_personnel:write'])]
     private ?StructureDepartement $departement = null;
 
     #[ORM\Column]
+    #[Groups(groups: ['departement_personnel:read', 'departement_personnel:write'])]
     private bool $affectation = false;
 
     public function getId(): ?int
