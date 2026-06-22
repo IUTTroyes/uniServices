@@ -171,11 +171,50 @@ class StageFixtures extends Fixture implements OrderedFixtureInterface, FixtureG
                 ->setGratificationMontant(4.80)
                 ->setDureeHebdomadaire(35.0)
                 ->setDureeJoursStage(80)
-                ->setTuteurUniversitaire($personnels[3] ?? null)
+                ->setTuteurUniversitaire($personnels[$index % count($personnels)] ?? null)
                 ->setAssuranceCompagnie('MAIF')
                 ->setAssuranceNumero('9876543-A')
                 ->setDateDepotFormulaire(new \DateTime())
             ;
+
+            // Pre-populate mock follow-ups, reports and grades for testing
+            $followups = [];
+            if ($index % 2 === 0) {
+                $followups[] = [
+                    'id' => 1,
+                    'date' => '15/03/2026',
+                    'type' => 'Appel Téléphonique',
+                    'summary' => 'Premier contact, l\'étudiant s\'intègre bien. Missions validées.'
+                ];
+                if ($index % 3 === 2) {
+                    $followups[] = [
+                        'id' => 2,
+                        'date' => '20/04/2026',
+                        'type' => 'Visite Entreprise',
+                        'summary' => 'Rencontre avec le maître de stage. Le projet avance. L\'étudiant est autonome.'
+                    ];
+                }
+            } else {
+                $followups[] = [
+                    'id' => 1,
+                    'date' => '18/03/2026',
+                    'type' => 'Visioconférence',
+                    'summary' => 'Point sur l\'installation. Quelques soucis d\'accès au VPN résolus.'
+                ];
+            }
+            $stage->setSuiviRencontres($followups);
+
+            if ($index % 3 === 0) {
+                $stage->setReportUploaded(true);
+                $stage->setReportName('Rapport_Final_BUT3_' . $etudiant->getNom() . '.pdf');
+            } elseif ($index % 3 === 2) {
+                $stage->setReportUploaded(true);
+                $stage->setReportName('Rapport_Final_BUT3_' . $etudiant->getNom() . '.pdf');
+                $stage->setEvaluationNote(15.5);
+                $stage->setEvaluationCommentaire('Très bon portfolio et travail sérieux durant ce stage.');
+            } else {
+                $stage->setReportUploaded(false);
+            }
             
             $manager->persist($stage);
         }
