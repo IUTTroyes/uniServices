@@ -16,6 +16,7 @@ const activeUploadPeriodId = ref(null);
 // Interactive Simulation states
 const forceZeroPeriods = ref(false);
 const forceNoStages = ref(false);
+const allowOptionnelInput = ref(false);
 
 // Toggles for collapsible instructions (map: periodId -> boolean)
 const openedPeriodDetails = ref({});
@@ -41,6 +42,11 @@ const studentAcademicHistory = ref({
         duration: '4 semaines',
         responsible: 'M. Jean Dupont',
         instructions: 'Ce premier stage d\'observation vous permet de découvrir le monde de l\'entreprise et d\'observer le rôle d\'un informaticien au quotidien. L\'objectif est d\'appréhender les contraintes professionnelles et de s\'initier au travail en équipe.',
+        inputAuthorized: true,
+        documents: [
+          { name: 'Fiche de liaison - BUT 1 (Pré-formulaire)', format: 'PDF', size: '120 Ko' },
+          { name: 'Consignes de stage et guide BUT 1', format: 'PDF', size: '350 Ko' }
+        ],
         hasStage: true,
         stage: {
           company: 'WebDesign Agency',
@@ -67,6 +73,11 @@ const studentAcademicHistory = ref({
         duration: '8 semaines',
         responsible: 'Mme. Marie Lestrade',
         instructions: 'Ce stage technique vise à valider des compétences de développement logiciel, d\'intégration ou d\'administration systèmes dans un contexte professionnel. Il donne lieu à un rapport écrit technique approfondi.',
+        inputAuthorized: true,
+        documents: [
+          { name: 'Fiche de liaison - BUT 2 (Pré-formulaire)', format: 'PDF', size: '150 Ko' },
+          { name: 'Consignes administratives BUT 2', format: 'PDF', size: '480 Ko' }
+        ],
         hasStage: true,
         stage: {
           company: 'TechSolutions SAS',
@@ -93,6 +104,12 @@ const studentAcademicHistory = ref({
         duration: '16 semaines',
         responsible: 'Mme. Sophie Gomez',
         instructions: 'Stage de fin d\'études (BUT3). Ce stage doit vous permettre de mettre en œuvre l\'ensemble de vos compétences en situation professionnelle complexe et d\'assurer votre transition vers le marché de l\'emploi ou les études supérieures.',
+        inputAuthorized: true,
+        documents: [
+          { name: 'Fiche de liaison & Pré-formulaire - BUT 3', format: 'PDF', size: '185 Ko' },
+          { name: 'Consignes de stage & Calendrier BUT 3', format: 'PDF', size: '1.2 Mo' },
+          { name: 'Guide de rédaction du mémoire de stage', format: 'PDF', size: '920 Ko' }
+        ],
         hasStage: true,
         stage: {
           company: 'Avenir Digital',
@@ -121,6 +138,11 @@ const studentAcademicHistory = ref({
         duration: '4 à 8 semaines',
         responsible: 'Mme. Sophie Gomez',
         instructions: 'Période complémentaire optionnelle soumise à l\'approbation du responsable des stages. Permet d\'approfondir une thématique spécifique en entreprise.',
+        inputAuthorized: false,
+        documents: [
+          { name: 'Formulaire de demande de stage optionnel (été)', format: 'PDF', size: '140 Ko' },
+          { name: 'Note d\'information sur les stages complémentaires', format: 'PDF', size: '210 Ko' }
+        ],
         hasStage: false,
         stage: null
       }
@@ -154,14 +176,27 @@ const currentPeriods = computed(() => {
     return [];
   }
   const originalPeriods = currentYearData.value ? currentYearData.value.periods : [];
-  if (forceNoStages.value) {
-    return originalPeriods.map(p => ({
+  return originalPeriods.map(p => {
+    let hasStage = p.hasStage;
+    let stage = p.stage;
+    if (forceNoStages.value) {
+      hasStage = false;
+      stage = null;
+    }
+    
+    // Manage dynamic input authorization via simulator for BUT3 optionnel
+    let inputAuthorized = p.inputAuthorized;
+    if (p.id === 302) {
+      inputAuthorized = allowOptionnelInput.value;
+    }
+
+    return {
       ...p,
-      hasStage: false,
-      stage: null
-    }));
-  }
-  return originalPeriods;
+      hasStage,
+      stage,
+      inputAuthorized
+    };
+  });
 });
 
 // Functions
@@ -243,6 +278,15 @@ const deleteReport = (periodId) => {
 const navigateToRequest = (periodId) => {
   router.push({ name: 'ConventionRequest', query: { periodId } });
 };
+
+const downloadDoc = (docName) => {
+  toast.add({
+    severity: 'success',
+    summary: 'Téléchargement lancé',
+    detail: `Le document "${docName}" a été téléchargé avec succès.`,
+    life: 3000
+  });
+};
 </script>
 
 <template>
@@ -259,7 +303,7 @@ const navigateToRequest = (periodId) => {
         <span class="text-[9px] bg-violet-500/20 text-violet-300 px-2.5 py-0.5 rounded-full font-bold">MODE DEMO</span>
       </div>
       
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 text-xs">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 text-xs">
         <div class="flex flex-col gap-1.5">
           <label class="font-bold text-slate-400">Année en cours de l'étudiant :</label>
           <select 
@@ -283,6 +327,13 @@ const navigateToRequest = (periodId) => {
           <label class="flex items-center gap-3 cursor-pointer select-none group">
             <input type="checkbox" v-model="forceNoStages" class="w-4 h-4 rounded text-violet-600 focus:ring-violet-500 bg-slate-800 border-slate-700 cursor-pointer" />
             <span class="font-bold text-slate-300 group-hover:text-white transition-colors">Simuler recherche de stage (0 stage)</span>
+          </label>
+        </div>
+
+        <div class="flex items-center" v-if="currentStudentYear === 'BUT3'">
+          <label class="flex items-center gap-3 cursor-pointer select-none group">
+            <input type="checkbox" v-model="allowOptionnelInput" class="w-4 h-4 rounded text-violet-600 focus:ring-violet-500 bg-slate-800 border-slate-700 cursor-pointer" />
+            <span class="font-bold text-slate-300 group-hover:text-white transition-colors">Autoriser saisie Stage Optionnel</span>
           </label>
         </div>
       </div>
@@ -349,7 +400,7 @@ const navigateToRequest = (periodId) => {
         <!-- Period Header Card (Academic details) -->
         <div class="p-6 bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-700/40 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2">
               <span class="text-[9px] uppercase font-extrabold text-violet-600 dark:text-violet-400 tracking-wider">
                 Période de stage académique
               </span>
@@ -358,6 +409,14 @@ const navigateToRequest = (periodId) => {
               </span>
               <span v-else class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
                 Recherche de stage
+              </span>
+              <span v-if="!period.hasStage && period.inputAuthorized" class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 flex items-center gap-1">
+                <i class="pi pi-lock-open text-[9px]"></i>
+                <span>Saisie autorisée</span>
+              </span>
+              <span v-else-if="!period.hasStage && !period.inputAuthorized" class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300 flex items-center gap-1">
+                <i class="pi pi-lock text-[9px]"></i>
+                <span>Saisie non autorisée</span>
               </span>
             </div>
             <h2 class="text-base font-extrabold text-slate-900 dark:text-white mt-1">{{ period.periodName }}</h2>
@@ -395,6 +454,25 @@ const navigateToRequest = (periodId) => {
             <div class="md:col-span-3 pt-3 border-t border-slate-100 dark:border-slate-700/30">
               <span class="text-slate-400 block font-semibold">Consignes et objectifs :</span>
               <p class="mt-1 leading-relaxed whitespace-pre-line text-slate-500 dark:text-slate-400">{{ period.instructions }}</p>
+            </div>
+
+            <!-- Downloadable documents inside directives -->
+            <div v-if="period.documents && period.documents.length > 0" class="md:col-span-3 pt-3 border-t border-slate-100 dark:border-slate-700/30">
+              <span class="text-slate-400 block font-semibold mb-2">Documents et modèles téléchargeables :</span>
+              <div class="flex flex-wrap gap-3">
+                <a
+                  v-for="doc in period.documents"
+                  :key="doc.name"
+                  href="#"
+                  @click.prevent="downloadDoc(doc.name)"
+                  class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-violet-500 dark:hover:border-violet-500 hover:text-violet-650 dark:hover:text-violet-400 transition-all text-xs font-bold text-slate-700 dark:text-slate-350 cursor-pointer shadow-sm group"
+                >
+                  <i class="pi pi-file-pdf text-red-500 group-hover:scale-110 transition-transform"></i>
+                  <span>{{ doc.name }}</span>
+                  <span class="text-[10px] text-slate-400 font-normal">({{ doc.size }})</span>
+                  <i class="pi pi-download text-[9px] text-slate-400 ml-1"></i>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -564,17 +642,66 @@ const navigateToRequest = (periodId) => {
               <i class="pi pi-file-edit text-xl"></i>
             </div>
             <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100">Aucun stage déclaré pour cette période</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-              Pour initier la convention de stage, vous devez d'abord déclarer votre entreprise d'accueil et les modalités de votre mission. Veuillez compléter le formulaire de demande de convention de stage.
-            </p>
-            <div class="mt-5">
-              <button 
-                @click="navigateToRequest(period.id)"
-                class="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 mx-auto"
-              >
-                <i class="pi pi-file-edit"></i>
-                <span>Créer une demande de convention</span>
-              </button>
+            
+            <!-- Access to Documents before request -->
+            <div class="mt-4 text-left max-w-md mx-auto bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm space-y-3">
+              <h4 class="text-xs font-bold text-slate-700 dark:text-slate-350 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="pi pi-download text-violet-500"></i>
+                <span>Documents de préparation requis</span>
+              </h4>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-normal">
+                Veuillez télécharger et compléter ces documents avant de procéder à la saisie de votre convention :
+              </p>
+              <div class="space-y-2">
+                <a
+                  v-for="doc in period.documents"
+                  :key="doc.name"
+                  href="#"
+                  @click.prevent="downloadDoc(doc.name)"
+                  class="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-900 hover:bg-violet-50/20 dark:hover:bg-violet-950/20 border border-slate-100 dark:border-slate-800 transition-colors group cursor-pointer"
+                >
+                  <span class="text-xs font-medium text-slate-700 dark:text-slate-300 group-hover:text-violet-600 dark:group-hover:text-violet-400 truncate max-w-[280px]">
+                    {{ doc.name }}
+                  </span>
+                  <span class="text-[10px] text-slate-400 dark:text-slate-500 shrink-0 font-mono">
+                    {{ doc.size }} <i class="pi pi-download ml-1 text-[9px]"></i>
+                  </span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Authorization Status & Action -->
+            <div class="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800">
+              <div v-if="period.inputAuthorized">
+                <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 max-w-md mx-auto leading-relaxed">
+                  Votre responsable a autorisé la saisie. Vous pouvez maintenant déclarer votre entreprise d'accueil et générer votre demande de convention.
+                </p>
+                <button 
+                  @click="navigateToRequest(period.id)"
+                  class="px-5 py-2.5 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 mx-auto"
+                >
+                  <i class="pi pi-file-edit"></i>
+                  <span>Créer une demande de convention</span>
+                </button>
+              </div>
+              <div v-else class="space-y-4">
+                <div class="bg-rose-50/50 dark:bg-rose-950/10 border border-rose-200/60 dark:border-rose-900/40 rounded-xl p-4 max-w-md mx-auto flex items-start gap-3 text-left">
+                  <i class="pi pi-lock text-rose-500 mt-0.5 shrink-0"></i>
+                  <div>
+                    <h4 class="text-xs font-bold text-rose-800 dark:text-rose-400">Saisie non autorisée</h4>
+                    <p class="text-[11px] text-rose-600 dark:text-rose-450 mt-1 leading-relaxed">
+                      La saisie des informations de convention de stage n'a pas encore été autorisée par votre responsable pédagogique pour cette période.
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  disabled
+                  class="px-5 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500 font-bold text-xs rounded-xl cursor-not-allowed flex items-center justify-center gap-2 mx-auto"
+                >
+                  <i class="pi pi-lock"></i>
+                  <span>Saisie de convention verrouillée</span>
+                </button>
+              </div>
             </div>
           </div>
 

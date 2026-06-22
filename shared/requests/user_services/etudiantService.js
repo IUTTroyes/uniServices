@@ -89,7 +89,7 @@ const importEtudiantApogeeService = async (data, showToast = true) => {
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
-const updateEtudiantService = async (id, data, showToast = true) => {
+const updateEtudiantService = async (id, data, scope = '', showToast = true) => {
     try {
         return await apiCall(
             api.patch,

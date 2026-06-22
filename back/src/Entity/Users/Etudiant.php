@@ -144,11 +144,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeInterface $date_naissance = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:detail', 'etudiant:write'])]
+    #[Groups(['etudiant:detail', 'etudiant:write', 'etudiant:light'])]
     private ?string $tel1 = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:detail', 'etudiant:write'])]
+    #[Groups(['etudiant:detail', 'etudiant:write', 'etudiant:light'])]
     private ?string $tel2 = null;
 
     #[ORM\Column(length: 150, nullable: true)]

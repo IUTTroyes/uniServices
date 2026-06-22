@@ -20,18 +20,22 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
+
 #[ORM\Entity(repositoryClass: StageEtudiantRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ApiFilter(SearchFilter::class, properties: ['stagePeriode' => 'exact'])]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['stage_etudiant:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['stage_etudiant:read']]),
+        new Get(normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light']]),
+        new GetCollection(normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light']]),
         new Post(
-            normalizationContext: ['groups' => ['stage_etudiant:read']],
+            normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light']],
             denormalizationContext: ['groups' => ['stage_etudiant:write']]
         ),
         new Patch(
-            normalizationContext: ['groups' => ['stage_etudiant:read']],
+            normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light']],
             denormalizationContext: ['groups' => ['stage_etudiant:write']]
         ),
         new Delete()
@@ -52,7 +56,7 @@ class StageEtudiant
     #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
     private ?StagePeriode $stagePeriode = null;
 
-    #[ORM\ManyToOne(targetEntity: Etudiant::class, inversedBy: 'stageEtudiants')]
+    #[ORM\ManyToOne(targetEntity: Etudiant::class)]
     #[Groups(['stage_periode_gestion', 'stage_etudiant:read', 'stage_etudiant:write'])]
     private ?Etudiant $etudiant = null;
 
@@ -140,7 +144,7 @@ class StageEtudiant
     #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
     private int $dureeJoursStage = 0;
 
-    #[ORM\ManyToOne(targetEntity: Personnel::class, inversedBy: 'stageEtudiants')]
+    #[ORM\ManyToOne(targetEntity: Personnel::class)]
     #[Groups(['stage_periode_gestion', 'stage_etudiant:read', 'stage_etudiant:write'])]
     private ?Personnel $tuteurUniversitaire = null;
 

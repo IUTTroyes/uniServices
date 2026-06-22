@@ -1,15 +1,19 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import {
   getStagePeriodesService,
   createStagePeriodeService,
   updateStagePeriodeService,
-  deleteStagePeriodeService
+  deleteStagePeriodeService,
+  getStageEtudiantsService,
+  updateStageEtudiantService,
+  deleteStageEtudiantService
 } from '@/requests/stage_service';
 import { getPersonnelsService } from '@requests/user_services/personnelService';
 import { getAllAnneesUniversitairesService } from '@requests/structure_services/anneeUnivService';
 import { getSemestresService } from '@requests/structure_services/semestreService';
+import { updateEtudiantService } from '@requests/user_services/etudiantService';
 
 import StudentsTab from './components/StudentsTab.vue';
 import PeriodsTab from './components/PeriodsTab.vue';
@@ -19,213 +23,132 @@ import PeriodFormDialog from './components/PeriodFormDialog.vue';
 const toast = useToast();
 
 const activeTab = ref('students'); // 'students' | 'periods' | 'stats'
-const selectedPeriodId = ref(1); // Default to BUT3
+const selectedPeriodId = ref(null); // Default null, will set after load
 
 const periods = ref([]);
+const students = ref([]);
 
-// Mock database: students list across all periods (placed or searching)
-const students = ref([
-  // Period 1: BUT 3 Informatique
-  {
-    id: 1,
-    studentName: 'Sophie Bernard',
-    periodId: 1,
-    hasStage: true,
-    company: 'Capgemini France',
-    dates: '02/03/2026 au 26/06/2026',
-    subject: 'Développement Full-Stack Angular & NestJS pour le secteur bancaire.',
-    supervisor: 'M. Jean-Marc Lecerf',
-    salary: '4.80 €/h',
-    conventionStatus: 'En attente',
-    tutor: '',
-    reportUploaded: false,
-    reportName: ''
-  },
-  {
-    id: 2,
-    studentName: 'Julien Durand',
-    periodId: 1,
-    hasStage: true,
-    company: 'Sopra Steria',
-    dates: '02/03/2026 au 19/06/2026',
-    subject: 'Mise en place de pipelines CI/CD sous GitLab CI et administration Docker.',
-    supervisor: 'Mme. Claire Mercier',
-    salary: '5.20 €/h',
-    conventionStatus: 'Validée',
-    tutor: 'Mme. Sophie Gomez',
-    reportUploaded: true,
-    reportName: 'Rapport_Sopra_Durand.pdf'
-  },
-  {
-    id: 3,
-    studentName: 'Lucas Martin',
-    periodId: 1,
-    hasStage: true,
-    company: 'Avenir Digital',
-    dates: '02/03/2026 au 26/06/2026',
-    subject: 'Migration micro-frontend et mise en place d\'un dashboard analytique sous Vue.js 3.',
-    supervisor: 'M. Antoine Robert',
-    salary: '4.95 €/h',
-    conventionStatus: 'Validée',
-    tutor: 'Mme. Sophie Gomez',
-    reportUploaded: true,
-    reportName: 'Rapport_Final_BUT3_Martin.pdf'
-  },
-  {
-    id: 4,
-    studentName: 'Emma Bernard',
-    periodId: 1,
-    hasStage: true,
-    company: 'Innovatech Corp',
-    dates: '02/03/2026 au 26/06/2026',
-    subject: 'Intégration d\'API tiers et développement de modules back-end.',
-    supervisor: 'Mme. Julie Simon',
-    salary: '4.50 €/h',
-    conventionStatus: 'Validée',
-    tutor: 'M. Marc Vasseur',
-    reportUploaded: false,
-    reportName: ''
-  },
-  {
-    id: 5,
-    studentName: 'Thomas Petit',
-    periodId: 1,
-    hasStage: false,
-    company: '-',
-    dates: '-',
-    subject: '-',
-    supervisor: '-',
-    salary: '-',
-    conventionStatus: 'Aucune',
-    tutor: 'Non affecté',
-    reportUploaded: false,
-    reportName: ''
-  },
-  {
-    id: 6,
-    studentName: 'Nicolas Vincent',
-    periodId: 1,
-    hasStage: false,
-    company: '-',
-    dates: '-',
-    subject: '-',
-    supervisor: '-',
-    salary: '-',
-    conventionStatus: 'Aucune',
-    tutor: 'Non affecté',
-    reportUploaded: false,
-    reportName: ''
-  },
-
-  // Period 2: BUT 2 Informatique
-  {
-    id: 7,
-    studentName: 'David Lambert',
-    periodId: 2,
-    hasStage: true,
-    company: 'EDF France',
-    dates: '04/05/2026 au 26/06/2026',
-    subject: 'Création d\'un portail d\'administration de serveurs de fichiers.',
-    supervisor: 'M. Daniel Roux',
-    salary: '4.35 €/h',
-    conventionStatus: 'En attente',
-    tutor: '',
-    reportUploaded: false,
-    reportName: ''
-  },
-  {
-    id: 8,
-    studentName: 'Mélanie Leroy',
-    periodId: 2,
-    hasStage: true,
-    company: 'StartUp Web',
-    dates: '04/05/2026 au 26/06/2026',
-    subject: 'Création de maquettes et développement front-end React.',
-    supervisor: 'M. Arnaud Bertrand',
-    salary: '4.35 €/h',
-    conventionStatus: 'Validée',
-    tutor: 'M. Jean Dupont',
-    reportUploaded: false,
-    reportName: ''
-  },
-  {
-    id: 9,
-    studentName: 'Alice Roux',
-    periodId: 2,
-    hasStage: false,
-    company: '-',
-    dates: '-',
-    subject: '-',
-    supervisor: '-',
-    salary: '-',
-    conventionStatus: 'Aucune',
-    tutor: 'Non affecté',
-    reportUploaded: false,
-    reportName: ''
-  },
-  {
-    id: 10,
-    studentName: 'Sarah Morel',
-    periodId: 2,
-    hasStage: false,
-    company: '-',
-    dates: '-',
-    subject: '-',
-    supervisor: '-',
-    salary: '-',
-    conventionStatus: 'Aucune',
-    tutor: 'Non affecté',
-    reportUploaded: false,
-    reportName: ''
-  },
-
-  // Period 3: BUT 3 Alternance
-  {
-    id: 11,
-    studentName: 'Mathieu Fournier',
-    periodId: 3,
-    hasStage: true,
-    company: 'IBM France',
-    dates: '01/09/2025 au 31/08/2026',
-    subject: 'Ingénierie DevOps, conteneurisation Kubernetes et automatisation Ansible.',
-    supervisor: 'M. Frank Martin',
-    salary: '1150 €/mois',
-    conventionStatus: 'Validée',
-    tutor: 'Mme. Marie Lestrade',
-    reportUploaded: true,
-    reportName: 'Apprentissage_Fournier_IBM.pdf'
-  },
-  {
-    id: 12,
-    studentName: 'Julie Girard',
-    periodId: 3,
-    hasStage: true,
-    company: 'Michelin SAS',
-    dates: '01/09/2025 au 31/08/2026',
-    subject: 'Refonte d\'un intranet industriel et migration AngularJS vers Vue 3.',
-    supervisor: 'Mme. Carole Brunet',
-    salary: '1250 €/mois',
-    conventionStatus: 'Validée',
-    tutor: 'Mme. Sophie Gomez',
-    reportUploaded: true,
-    reportName: 'Apprentissage_Michelin_Girard.pdf'
-  },
-  {
-    id: 13,
-    studentName: 'Romain Bonnet',
-    periodId: 3,
-    hasStage: true,
-    company: 'Renault Group',
-    dates: '01/09/2025 au 31/08/2026',
-    subject: 'Modélisation de données et conception d\'applications de logistique.',
-    supervisor: 'M. Bruno Dupont',
-    salary: '1100 €/mois',
-    conventionStatus: 'Validée',
-    tutor: 'M. Eric Martin',
-    reportUploaded: false,
-    reportName: ''
+const mapVueStatusToBackend = (status, inputAuthorized) => {
+  switch (status) {
+    case 'En attente': return 'ETAT_STAGE_DEPOSE';
+    case 'Validée': return 'ETAT_STAGE_VALIDE';
+    case 'En cours de signature': return 'ETAT_STAGE_CONVENTION_ENVOYEE';
+    case 'Signée': return 'ETAT_STAGE_CONVENTION_RECUE';
+    case 'Rejetée': return 'ETAT_STAGE_REFUS';
+    case 'Aucune':
+    default:
+      return inputAuthorized ? 'ETAT_STAGE_AUTORISE' : 'ETAT_STAGE_INCOMPLET';
   }
-]);
+};
+
+const mapStageEtudiantToVue = (se) => {
+  const etu = se.etudiant || {};
+  const ent = se.entreprise || {};
+  const resp = ent.responsable || {};
+  const tut = se.tuteur || {};
+  const tutUniv = se.tuteurUniversitaire || {};
+
+  const hasStage = se.etatStage !== 'ETAT_STAGE_AUTORISE' && se.etatStage !== 'ETAT_STAGE_INCOMPLET';
+  let conventionStatus = 'Aucune';
+  if (se.etatStage === 'ETAT_STAGE_DEPOSE') {
+    conventionStatus = 'En attente';
+  } else if (se.etatStage === 'ETAT_STAGE_VALIDE') {
+    conventionStatus = 'Validée';
+  } else if (se.etatStage === 'ETAT_STAGE_CONVENTION_IMPRIMEE' || se.etatStage === 'ETAT_STAGE_CONVENTION_ENVOYEE') {
+    conventionStatus = 'En cours de signature';
+  } else if (se.etatStage === 'ETAT_STAGE_CONVENTION_RECUE') {
+    conventionStatus = 'Signée';
+  } else if (se.etatStage === 'ETAT_STAGE_REFUS') {
+    conventionStatus = 'Rejetée';
+  }
+
+  const formatDate = (isoStr) => {
+    if (!isoStr) return '';
+    const parts = isoStr.substring(0, 10).split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return isoStr;
+  };
+
+  const datesStr = (se.dateDebutStage && se.dateFinStage)
+    ? `${formatDate(se.dateDebutStage)} au ${formatDate(se.dateFinStage)}`
+    : '-';
+
+  const salaryStr = se.gratificationMontant ? `${se.gratificationMontant.toFixed(2)} €/h` : '-';
+  const supervisorName = tut.prenom ? `${tut.civilite || 'M.'} ${tut.prenom} ${tut.nom}` : '-';
+  const academicTutorName = tutUniv.prenom ? `${tutUniv.civilite || 'M.'} ${tutUniv.prenom} ${tutUniv.nom}` : 'Non affecté';
+  const isSame = !!(tut.nom && resp.nom && tut.nom === resp.nom && tut.prenom === resp.prenom);
+
+  return {
+    id: se.id,
+    studentId: etu.id || null,
+    studentName: `${etu.prenom || ''} ${etu.nom || ''}`.trim() || 'Étudiant inconnu',
+    periodId: typeof se.stagePeriode === 'object' && se.stagePeriode !== null
+      ? se.stagePeriode.id
+      : (typeof se.stagePeriode === 'string'
+        ? parseInt(se.stagePeriode.split('/').pop(), 10)
+        : null),
+    hasStage: hasStage,
+    company: ent.raisonSociale || '-',
+    siret: ent.siret || '',
+    dates: datesStr,
+    subject: se.sujetStage || '-',
+    activities: se.activites || '',
+    supervisor: supervisorName,
+    salary: salaryStr,
+    conventionStatus: conventionStatus,
+    tutor: academicTutorName,
+    tutorIri: tutUniv['@id'] || '',
+    inputAuthorized: se.etatStage !== 'ETAT_STAGE_INCOMPLET',
+    reportUploaded: false,
+    reportName: '',
+
+    studentPhone: etu.tel1 || '',
+    studentEmail: etu.mailPerso || etu.mailUniv || '',
+    insuranceCompany: se.assuranceCompagnie || '',
+    insurancePolicyNumber: se.assuranceNumero || '',
+    companyPhone: resp.telephone || '',
+    companyAddress: ent.adresse || { adresse: '', complement1: '', complement2: '', ville: '', codePostal: '', pays: 'France' },
+    signatoryCivilite: resp.civilite || 'M',
+    signatoryPrenom: resp.prenom || '',
+    signatoryNom: resp.nom || '',
+    signatoryTitle: resp.fonction || '',
+    signatoryEmail: resp.email || '',
+    signatoryPhone: resp.telephone || '',
+    tuteurSameAsSignatory: isSame,
+    supervisorCivilite: tut.civilite || 'M',
+    supervisorPrenom: tut.prenom || '',
+    supervisorNom: tut.nom || '',
+    supervisorFunction: tut.fonction || '',
+    supervisorEmail: tut.email || '',
+    supervisorPhone: tut.telephone || '',
+    startDate: se.dateDebutStage ? se.dateDebutStage.substring(0, 10) : '',
+    endDate: se.dateFinStage ? se.dateFinStage.substring(0, 10) : '',
+    weeklyHours: se.dureeHebdomadaire || 35,
+    salaryAmount: se.gratificationMontant || 0,
+    amenagementStage: se.amenagementStage || ''
+  };
+};
+
+const fetchPeriodStudents = async (periodId) => {
+  if (!periodId) return;
+  try {
+    const data = await getStageEtudiantsService({ stagePeriode: `/api/stage_periodes/${periodId}` });
+    console.log(data);
+    students.value = (data || []).map(mapStageEtudiantToVue);
+    console.log(students.value);
+  } catch (error) {
+    console.error('Erreur lors du chargement des étudiants:', error);
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger la liste des étudiants.', life: 4000 });
+  }
+};
+
+watch(selectedPeriodId, (newId) => {
+  if (newId) {
+    fetchPeriodStudents(newId);
+  }
+});
 
 // Reactive states from backend
 const dbPersonnels = ref([]);
@@ -258,7 +181,7 @@ const parseDates = (datesStr) => {
   const parts = datesStr.split(/\s+au\s+/i);
   let dateDebut = null;
   let dateFin = null;
-  
+
   if (parts.length === 2) {
     const parseFR = (str) => {
       const p = str.trim().split('/');
@@ -280,14 +203,14 @@ const mapPeriodToVue = (backendPeriod) => {
     const fin = new Date(backendPeriod.dateFin).toLocaleDateString('fr-FR');
     datesStr = `${debut} au ${fin}`;
   }
-  
+
   const mainResp = backendPeriod.responsablePrincipal;
   const mainRespName = mainResp ? `${mainResp.civilite || 'M.'} ${mainResp.prenom} ${mainResp.nom}` : 'Non renseigné';
-  
+
   const coResps = backendPeriod.coResponsables || [];
   const coRespsNames = coResps.map(c => `${c.civilite || 'M.'} ${c.prenom} ${c.nom}`);
   const coRespsIris = coResps.map(c => c['@id']);
-  
+
   return {
     id: backendPeriod.id,
     name: backendPeriod.libelle,
@@ -328,7 +251,7 @@ const mapPeriodToVue = (backendPeriod) => {
 
 const formatPeriodPayload = (formValue) => {
   const { dateDebut, dateFin } = parseDates(formValue.dates);
-  
+
   const payload = {
     libelle: formValue.name,
     nbSemaines: parseInt(formValue.minWeeks) || 16,
@@ -385,13 +308,13 @@ const loadAllData = async () => {
   try {
     const years = await getAllAnneesUniversitairesService();
     dbAnneeUnivs.value = years || [];
-    
+
     const personnels = await getPersonnelsService({ limit: 200 });
     dbPersonnels.value = personnels || [];
-    
+
     const semestres = await getSemestresService({ limit: 100 });
     dbSemestres.value = semestres || [];
-    
+
     const backendPeriods = await getStagePeriodesService();
     if (backendPeriods && backendPeriods.length > 0) {
       periods.value = backendPeriods.map(mapPeriodToVue);
@@ -464,13 +387,139 @@ const openEditPeriodDialog = (p) => {
   showCreatePeriodDialog.value = true;
 };
 
-const handleUpdateStudent = ({ id, changes }) => {
-  const studIndex = students.value.findIndex(s => s.id === id);
-  if (studIndex !== -1) {
-    students.value[studIndex] = {
-      ...students.value[studIndex],
-      ...changes
-    };
+const handleUpdateStudent = async ({ id, changes }) => {
+  const student = students.value.find(s => s.id === id);
+  if (!student) return;
+
+  try {
+    // 1. If student personal details are changed, update Etudiant entity first
+    if (student.studentId && (changes.studentPhone !== undefined || changes.studentEmail !== undefined)) {
+      await updateEtudiantService(student.studentId, {
+        tel1: changes.studentPhone,
+        mailPerso: changes.studentEmail
+      });
+    }
+
+    // 2. Prepare payload for StageEtudiant patch
+    const patchPayload = {};
+
+    // Map status change
+    if (changes.conventionStatus !== undefined) {
+      const isAuth = changes.inputAuthorized !== undefined ? changes.inputAuthorized : student.inputAuthorized;
+      const backendStatus = mapVueStatusToBackend(changes.conventionStatus, isAuth);
+      patchPayload.etatStage = backendStatus;
+
+      // Set timestamp dates based on status transit
+      if (backendStatus === 'ETAT_STAGE_VALIDE') {
+        patchPayload.dateValidation = new Date().toISOString();
+      } else if (backendStatus === 'ETAT_STAGE_CONVENTION_ENVOYEE') {
+        patchPayload.dateConventionEnvoyee = new Date().toISOString();
+        patchPayload.dateImprime = new Date().toISOString();
+      } else if (backendStatus === 'ETAT_STAGE_CONVENTION_RECUE') {
+        patchPayload.dateConventionRecu = new Date().toISOString();
+      }
+    }
+
+    // Map input authorization toggling
+    if (changes.inputAuthorized !== undefined && changes.conventionStatus === undefined) {
+      patchPayload.etatStage = changes.inputAuthorized ? 'ETAT_STAGE_AUTORISE' : 'ETAT_STAGE_INCOMPLET';
+    }
+
+    // Map academic tutor assignment
+    if (changes.tutor !== undefined) {
+      const teacher = dbPersonnels.value.map(p => {
+        const civ = p.civilite || 'M.';
+        return {
+          iri: p['@id'],
+          fullName: `${civ} ${p.prenom} ${p.nom}`
+        };
+      }).find(t => t.fullName === changes.tutor);
+
+      patchPayload.tuteurUniversitaire = teacher ? teacher.iri : null;
+    }
+
+    // Map reset or delete submission (clearing internship details)
+    if (changes.hasStage === false) {
+      patchPayload.sujetStage = null;
+      patchPayload.activites = null;
+      patchPayload.amenagementStage = null;
+      patchPayload.dateDebutStage = null;
+      patchPayload.dateFinStage = null;
+      patchPayload.entreprise = null;
+      patchPayload.tuteur = null;
+      patchPayload.tuteurUniversitaire = null;
+      patchPayload.assuranceCompagnie = null;
+      patchPayload.assuranceNumero = null;
+      patchPayload.etatStage = changes.inputAuthorized === false ? 'ETAT_STAGE_INCOMPLET' : 'ETAT_STAGE_AUTORISE';
+    } else {
+      // Standard edit form save
+      if (changes.subject !== undefined) patchPayload.sujetStage = changes.subject;
+      if (changes.activities !== undefined) patchPayload.activites = changes.activities;
+      if (changes.amenagementStage !== undefined) patchPayload.amenagementStage = changes.amenagementStage;
+
+      if (changes.startDate !== undefined) {
+        patchPayload.dateDebutStage = changes.startDate ? new Date(changes.startDate).toISOString() : null;
+      }
+      if (changes.endDate !== undefined) {
+        patchPayload.dateFinStage = changes.endDate ? new Date(changes.endDate).toISOString() : null;
+      }
+
+      if (changes.weeklyHours !== undefined) patchPayload.dureeHebdomadaire = parseFloat(changes.weeklyHours);
+      if (changes.salaryAmount !== undefined) {
+        patchPayload.gratification = parseFloat(changes.salaryAmount) > 0;
+        patchPayload.gratificationMontant = parseFloat(changes.salaryAmount);
+      }
+      if (changes.insuranceCompany !== undefined) patchPayload.assuranceCompagnie = changes.insuranceCompany;
+      if (changes.insurancePolicyNumber !== undefined) patchPayload.assuranceNumero = changes.insurancePolicyNumber;
+
+      // Nested Entreprise write
+      if (changes.companyName !== undefined || changes.companySiret !== undefined || changes.companyAddress !== undefined || changes.signatoryNom !== undefined) {
+        patchPayload.entreprise = {
+          raisonSociale: changes.companyName || '',
+          siret: changes.companySiret || '',
+          adresse: changes.companyAddress ? {
+            adresse: changes.companyAddress.adresse || '',
+            complement1: changes.companyAddress.complement1 || '',
+            complement2: changes.companyAddress.complement2 || '',
+            ville: changes.companyAddress.ville || '',
+            codePostal: changes.companyAddress.codePostal || '',
+            pays: changes.companyAddress.pays || 'France'
+          } : null,
+          responsable: changes.signatoryNom ? {
+            civilite: changes.signatoryCivilite || 'M',
+            prenom: changes.signatoryPrenom || '',
+            nom: changes.signatoryNom || '',
+            fonction: changes.signatoryTitle || '',
+            email: changes.signatoryEmail || '',
+            telephone: changes.signatoryPhone || ''
+          } : null
+        };
+      }
+
+      // Nested Contact (tuteur/supervisor) write
+      if (changes.supervisorNom !== undefined) {
+        patchPayload.tuteur = {
+          civilite: changes.supervisorCivilite || 'M',
+          prenom: changes.supervisorPrenom || '',
+          nom: changes.supervisorNom || '',
+          fonction: changes.supervisorFunction || '',
+          email: changes.supervisorEmail || '',
+          telephone: changes.supervisorPhone || ''
+        };
+      }
+    }
+
+    // 3. Make patch call to API Platform
+    if (Object.keys(patchPayload).length > 0) {
+      await updateStageEtudiantService(id, patchPayload);
+    }
+
+    // 4. Reload all students to get updated status and database structure
+    await fetchPeriodStudents(selectedPeriodId.value);
+
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de l\'étudiant:', error);
+    toast.add({ severity: 'error', summary: 'Erreur de sauvegarde', detail: 'Impossible de synchroniser les modifications avec le serveur.', life: 4000 });
   }
 };
 
@@ -570,46 +619,22 @@ const confirmDeletePeriod = async (p) => {
     <div v-if="isLoading" class="flex items-center justify-center py-12">
       <i class="pi pi-spin pi-spinner text-violet-600 text-2xl"></i>
     </div>
-    
+
     <div v-else>
-      <StudentsTab
-        v-if="activeTab === 'students'"
-        class="animate-fade-in"
-        :periods="periods"
-        v-model:selectedPeriodId="selectedPeriodId"
-        :period-students="periodStudents"
-        :kpis="kpis"
-        :teachers="teachers"
-        :active-period-name="activePeriodName"
-        @update-student="handleUpdateStudent"
-      />
+      <StudentsTab v-if="activeTab === 'students'" class="animate-fade-in" :periods="periods"
+        v-model:selectedPeriodId="selectedPeriodId" :period-students="periodStudents" :kpis="kpis" :teachers="teachers"
+        :active-period-name="activePeriodName" @update-student="handleUpdateStudent" />
 
-      <PeriodsTab
-        v-if="activeTab === 'periods'"
-        class="animate-fade-in"
-        :periods="periods"
-        @create="openCreatePeriodDialog"
-        @edit="openEditPeriodDialog"
-        @delete="confirmDeletePeriod"
-      />
+      <PeriodsTab v-if="activeTab === 'periods'" class="animate-fade-in" :periods="periods"
+        @create="openCreatePeriodDialog" @edit="openEditPeriodDialog" @delete="confirmDeletePeriod" />
 
-      <StatsTab
-        v-if="activeTab === 'stats'"
-        class="animate-fade-in"
-        :kpis="kpis"
-        :active-period-name="activePeriodName"
-      />
+      <StatsTab v-if="activeTab === 'stats'" class="animate-fade-in" :kpis="kpis"
+        :active-period-name="activePeriodName" />
     </div>
 
     <!-- Period Dialog -->
-    <PeriodFormDialog
-      v-model:visible="showCreatePeriodDialog"
-      :period="editingPeriod"
-      :db-annee-univs="dbAnneeUnivs"
-      :db-semestres="dbSemestres"
-      :teachers="teachers"
-      @save="savePeriod"
-    />
+    <PeriodFormDialog v-model:visible="showCreatePeriodDialog" :period="editingPeriod" :db-annee-univs="dbAnneeUnivs"
+      :db-semestres="dbSemestres" :teachers="teachers" @save="savePeriod" />
   </div>
 </template>
 

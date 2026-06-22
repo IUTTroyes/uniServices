@@ -13,7 +13,6 @@
           <span class="text-muted-color text-center">Vous n'avez pas les permissions d'accéder à ce contenu. <br> Si vous estimez que c'est une erreur, contactez les administrateurs du site.</span>
           <a href="mailto:intranet.iut-troyes@univ-reims.fr" class="underline">Contacter les administrateurs du site &nbsp; <i class="pi pi-external-link !text-xs underline"></i></a>
 
-          <img src="/demo/images/access/asset-access.svg" alt="Access denied" class="mb-8" width="80%" />
           <!--  un bouton pour revenir à la page précédente  -->
           <Button @click="$router.go(-1)" class="mt-4" severity="primary">
             <span class="p-button-label">Retour</span>
