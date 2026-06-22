@@ -1,9 +1,12 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { FilterMatchMode } from '@primevue/core/api';
+import { useUsersStore } from '@stores';
+import { getStageEtudiantsService, updateStageEtudiantService, getStagePeriodesService } from '@/requests/stage_service';
 
 const toast = useToast();
+const userStore = useUsersStore();
 
 // Filtering state
 const filters = ref({
@@ -14,66 +17,128 @@ const filters = ref({
   reportUploaded: { value: null, matchMode: FilterMatchMode.EQUALS }
 });
 
-const periodOptions = ref(['BUT3 Informatique', 'BUT3 MMI']);
+const periodOptions = ref([]);
 const statusOptions = ref([
   { label: 'Déposé', value: true },
   { label: 'En attente', value: false }
 ]);
 
-// Mock students supervised list
-const students = ref([
-  {
-    id: 1,
-    studentName: 'Lucas Martin',
-    period: 'BUT3 Informatique',
-    company: 'Avenir Digital',
-    dates: '02/03/2026 au 26/06/2026',
-    supervisor: 'M. Antoine Robert',
-    reportUploaded: true,
-    reportName: 'Rapport_Final_BUT3_Martin.pdf',
-    grade: '',
-    comments: '',
-    followups: [
-      { id: 1, date: '15/03/2026', type: 'Appel Téléphonique', summary: 'Premier contact, l\'étudiant s\'intègre bien. Missions validées.' },
-      { id: 2, date: '20/04/2026', type: 'Visite Entreprise', summary: 'Rencontre avec le maître de stage. Le projet avance. L\'étudiant est autonome.' }
-    ]
-  },
-  {
-    id: 2,
-    studentName: 'Emma Bernard',
-    period: 'BUT3 Informatique',
-    company: 'Innovatech Corp',
-    dates: '02/03/2026 au 26/06/2026',
-    supervisor: 'Mme. Julie Simon',
-    reportUploaded: false,
-    reportName: '',
-    grade: '',
-    comments: '',
-    followups: [
-      { id: 1, date: '18/03/2026', type: 'Visioconférence', summary: 'Point sur l\'installation. Quelques soucis d\'accès au VPN résolus.' }
-    ]
-  },
-  {
-    id: 3,
-    studentName: 'Thomas Petit',
-    period: 'BUT3 MMI',
-    company: 'Creative Studio',
-    dates: '09/03/2026 au 03/07/2026',
-    supervisor: 'M. Gabriel Dubois',
-    reportUploaded: true,
-    reportName: 'Portfolio_Thomas_MMI.pdf',
-    grade: '15.5',
-    comments: 'Très bon portfolio de créations graphiques. Travail sérieux.',
-    followups: [
-      { id: 1, date: '25/03/2026', type: 'Appel Téléphonique', summary: 'Bonne prise en main des outils Figma et Illustrator.' },
-      { id: 2, date: '12/05/2026', type: 'Visite Entreprise', summary: 'Le maître de stage est extrêmement satisfait de la créativité de Thomas.' }
-    ]
+const students = ref([]);
+const loading = ref(false);
+
+// Map backend StageEtudiant entity format to Vue template format
+const mapStageEtudiantToVue = (se) => {
+  const etu = se.etudiant || {};
+  const ent = se.entreprise || {};
+  const tut = se.tuteur || {};
+  const p = se.stagePeriode || {};
+
+  const formatDate = (isoStr) => {
+    if (!isoStr) return '';
+    const parts = isoStr.substring(0, 10).split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return isoStr;
+  };
+
+  const datesStr = (se.dateDebutStage && se.dateFinStage)
+    ? `${formatDate(se.dateDebutStage)} au ${formatDate(se.dateFinStage)}`
+    : '-';
+
+  const supervisorName = tut.prenom ? `${tut.civilite || 'M.'} ${tut.prenom} ${tut.nom}` : '-';
+
+  const dateDebutDiff = se.dateDebutStage && p.dateDebut && se.dateDebutStage.substring(0, 10) !== p.dateDebut.substring(0, 10);
+  const dateFinDiff = se.dateFinStage && p.dateFin && se.dateFinStage.substring(0, 10) !== p.dateFin.substring(0, 10);
+  const isDatesDiff = !!(dateDebutDiff || dateFinDiff);
+
+  const address = ent.adresse || {};
+  const formattedAddress = address.adresse 
+    ? `${address.adresse}${address.complement1 ? ', ' + address.complement1 : ''}${address.complement2 ? ', ' + address.complement2 : ''} - ${address.codePostal} ${address.ville} (${address.pays || 'France'})`
+    : '-';
+
+  const tuteurUniv = se.tuteurUniversitaire || {};
+  const academicTutorName = tuteurUniv.prenom ? `${tuteurUniv.civilite || 'M.'} ${tuteurUniv.prenom} ${tuteurUniv.nom}` : 'Non affecté';
+
+  // Signatory (Responsable de l'entreprise)
+  const resp = ent.responsable || {};
+  const signatoryName = resp.prenom ? `${resp.civilite || 'M.'} ${resp.prenom} ${resp.nom}` : '-';
+
+  return {
+    id: se.id,
+    studentName: `${etu.prenom || ''} ${etu.nom || ''}`.trim() || 'Étudiant inconnu',
+    studentPhone: etu.tel1 || etu.tel2 || '',
+    studentEmail: etu.mailPerso || etu.mailUniv || '',
+    period: p.libelle || 'Période inconnue',
+    company: ent.raisonSociale || '-',
+    siret: ent.siret || '-',
+    companyAddress: formattedAddress,
+    companyPhone: resp.telephone || '-',
+    signatoryName: signatoryName,
+    signatoryTitle: resp.fonction || '-',
+    signatoryEmail: resp.email || '-',
+    dates: datesStr,
+    startDateStr: formatDate(se.dateDebutStage),
+    endDateStr: formatDate(se.dateFinStage),
+    periodStartDateStr: formatDate(p.dateDebut),
+    periodEndDateStr: formatDate(p.dateFin),
+    dateDebutDiff,
+    dateFinDiff,
+    isDatesDiff,
+    supervisor: supervisorName,
+    supervisorTitle: tut.fonction || '-',
+    supervisorEmail: tut.email || '-',
+    supervisorPhone: tut.telephone || '-',
+    academicTutor: academicTutorName,
+    subject: se.sujetStage || 'Non renseigné',
+    activities: se.activites || 'Non renseignées',
+    weeklyHours: se.dureeHebdomadaire || 35,
+    reportUploaded: !!se.reportUploaded,
+    reportName: se.reportName || '',
+    grade: se.evaluationNote !== null && se.evaluationNote !== undefined ? String(se.evaluationNote) : '',
+    comments: se.evaluationCommentaire || '',
+    followups: se.suiviRencontres || []
+  };
+};
+
+const fetchSupervisedStudents = async () => {
+  if (!userStore.userId) return;
+  loading.value = true;
+  try {
+    const data = await getStageEtudiantsService({ tuteurUniversitaire: `/api/personnels/${userStore.userId}` });
+    students.value = (data || []).map(mapStageEtudiantToVue);
+  } catch (error) {
+    console.error('Erreur lors du chargement des étudiants suivis:', error);
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger vos étudiants.', life: 3000 });
+  } finally {
+    loading.value = false;
   }
-]);
+};
+
+const fetchPeriodOptions = async () => {
+  try {
+    const data = await getStagePeriodesService();
+    periodOptions.value = (data || []).map(p => p.libelle).filter((v, i, a) => a.indexOf(v) === i);
+  } catch (error) {
+    console.error('Erreur lors du chargement des périodes pour filtre:', error);
+  }
+};
+
+onMounted(async () => {
+  await userStore.getUser();
+  await fetchSupervisedStudents();
+  await fetchPeriodOptions();
+});
 
 // Selection state for detail dialog
 const selectedStudent = ref(null);
 const showDetailDialog = ref(false);
+const showInfoDialog = ref(false);
+
+const openStudentInfo = (student) => {
+  selectedStudent.value = student;
+  showInfoDialog.value = true;
+};
 
 // New follow-up form state
 const newFollowup = ref({
@@ -98,7 +163,7 @@ const openStudentDetails = (student) => {
   showDetailDialog.value = true;
 };
 
-const addFollowup = () => {
+const addFollowup = async () => {
   if (!newFollowup.value.summary.trim()) {
     toast.add({ severity: 'warn', summary: 'Erreur', detail: 'Le compte-rendu ne peut pas être vide.', life: 3000 });
     return;
@@ -111,12 +176,18 @@ const addFollowup = () => {
     summary: newFollowup.value.summary
   };
 
-  // Find index and push
-  const studentIndex = students.value.findIndex(s => s.id === selectedStudent.value.id);
-  if (studentIndex !== -1) {
-    students.value[studentIndex].followups.push(followupObj);
-    // Refresh selectedStudent panel
-    selectedStudent.value = { ...students.value[studentIndex] };
+  const updatedFollowups = [...(selectedStudent.value.followups || []), followupObj];
+
+  try {
+    await updateStageEtudiantService(selectedStudent.value.id, {
+      suiviRencontres: updatedFollowups
+    }, false);
+
+    selectedStudent.value.followups = updatedFollowups;
+    const studentIndex = students.value.findIndex(s => s.id === selectedStudent.value.id);
+    if (studentIndex !== -1) {
+      students.value[studentIndex].followups = updatedFollowups;
+    }
 
     // Clear input
     newFollowup.value.summary = '';
@@ -127,15 +198,33 @@ const addFollowup = () => {
       detail: 'Le compte-rendu de suivi a bien été ajouté.',
       life: 3000
     });
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde du suivi:', error);
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible d\'enregistrer le suivi.', life: 3000 });
   }
 };
 
-const saveGrading = () => {
-  const studentIndex = students.value.findIndex(s => s.id === selectedStudent.value.id);
-  if (studentIndex !== -1) {
-    students.value[studentIndex].grade = gradingInput.value;
-    students.value[studentIndex].comments = commentsInput.value;
-    selectedStudent.value = { ...students.value[studentIndex] };
+const saveGrading = async () => {
+  const note = gradingInput.value.trim() !== '' ? parseFloat(gradingInput.value) : null;
+  if (gradingInput.value.trim() !== '' && (isNaN(note) || note < 0 || note > 20)) {
+    toast.add({ severity: 'warn', summary: 'Erreur', detail: 'La note doit être un nombre compris entre 0 et 20.', life: 3000 });
+    return;
+  }
+
+  try {
+    await updateStageEtudiantService(selectedStudent.value.id, {
+      evaluationNote: note,
+      evaluationCommentaire: commentsInput.value
+    }, false);
+
+    selectedStudent.value.grade = gradingInput.value.trim() !== '' ? String(note) : '';
+    selectedStudent.value.comments = commentsInput.value;
+
+    const studentIndex = students.value.findIndex(s => s.id === selectedStudent.value.id);
+    if (studentIndex !== -1) {
+      students.value[studentIndex].grade = selectedStudent.value.grade;
+      students.value[studentIndex].comments = selectedStudent.value.comments;
+    }
 
     toast.add({
       severity: 'success',
@@ -143,6 +232,9 @@ const saveGrading = () => {
       detail: 'La note et les appréciations ont bien été mises à jour.',
       life: 3000
     });
+  } catch (error) {
+    console.error('Erreur lors de la sauvegarde de la note:', error);
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de sauvegarder l\'évaluation.', life: 3000 });
   }
 };
 
@@ -212,7 +304,7 @@ const getInitials = (name) => {
     <!-- Students DataTable -->
     <div
       class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl shadow-sm overflow-hidden">
-      <DataTable v-model:filters="filters" :value="students" responsiveLayout="scroll" class="text-xs text-slate-700 dark:text-slate-300"
+      <DataTable v-model:filters="filters" :value="students" :loading="loading" responsiveLayout="scroll" class="text-xs text-slate-700 dark:text-slate-300"
         stripedRows :globalFilterFields="['studentName', 'company', 'supervisor', 'period']">
         <template #header>
           <div class="flex flex-wrap gap-4 items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-900/20 border-b border-slate-100 dark:border-slate-800">
@@ -255,7 +347,14 @@ const getInitials = (name) => {
         </Column>
 
         <Column field="company" header="Entreprise" />
-        <Column field="dates" header="Dates" />
+        <Column header="Dates">
+          <template #body="slotProps">
+            <span :class="{'text-amber-600 dark:text-amber-400 font-black flex items-center gap-1 w-max': slotProps.data.isDatesDiff}" :title="slotProps.data.isDatesDiff ? 'Dates différentes de la période de stage (' + slotProps.data.periodStartDateStr + ' au ' + slotProps.data.periodEndDateStr + ')' : ''">
+              <span>{{ slotProps.data.dates }}</span>
+              <i v-if="slotProps.data.isDatesDiff" class="pi pi-exclamation-triangle text-[10px]"></i>
+            </span>
+          </template>
+        </Column>
         <Column field="supervisor" header="Maître de Stage" />
 
         <Column header="Rapport" class="text-center">
@@ -279,13 +378,20 @@ const getInitials = (name) => {
           </template>
         </Column>
 
-        <Column header="Actions" class="text-right">
+        <Column header="Actions" class="text-right py-1">
           <template #body="slotProps">
-            <button @click="openStudentDetails(slotProps.data)"
-              class="text-xs font-bold px-3 py-2 bg-slate-50 dark:bg-slate-700 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 rounded-xl transition-all flex items-center gap-2.5 ml-auto">
-              <i class="pi pi-pencil text-[9px]"></i>
-              <span>Suivre</span>
-            </button>
+            <div class="flex gap-2 justify-end">
+              <button @click="openStudentInfo(slotProps.data)"
+                class="text-xs font-bold px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-xl transition-all flex items-center gap-1.5">
+                <i class="pi pi-eye text-[9px]"></i>
+                <span>Détails</span>
+              </button>
+              <button @click="openStudentDetails(slotProps.data)"
+                class="text-xs font-bold px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 rounded-xl transition-all flex items-center gap-1.5">
+                <i class="pi pi-pencil text-[9px]"></i>
+                <span>Suivre</span>
+              </button>
+            </div>
           </template>
         </Column>
       </DataTable>
@@ -446,9 +552,137 @@ const getInitials = (name) => {
           </div>
 
         </div>
+      </div>
+    </Dialog>
+
+    <!-- Internship Details Modal -->
+    <Dialog v-model:visible="showInfoDialog" modal header="Informations détaillées du stage"
+      :style="{ width: '90vw', maxWidth: '650px' }" class="text-xs dark:bg-slate-800 dark:text-slate-200">
+      <div v-if="selectedStudent" class="space-y-6 py-2">
+        
+        <!-- Section: L'Étudiant & Le Stage -->
+        <div class="bg-violet-500/5 dark:bg-violet-500/10 p-4 rounded-2xl border border-violet-500/15">
+          <h3 class="text-sm font-bold text-violet-700 dark:text-violet-400 flex items-center gap-2 mb-3">
+            <i class="pi pi-user"></i>
+            <span>L'Étudiant & Le Stage</span>
+          </h3>
+          <div class="grid grid-cols-2 gap-4 text-[11px]">
+            <div>
+              <span class="text-slate-400 block">Nom de l'étudiant</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.studentName }}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block">Formation</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.period }}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block">Durée hebdomadaire</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.weeklyHours }} heures</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block">Dates de stage</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200" :class="{'text-amber-600 dark:text-amber-400': selectedStudent.isDatesDiff}">
+                {{ selectedStudent.dates }}
+                <i v-if="selectedStudent.isDatesDiff" class="pi pi-exclamation-triangle text-[10px] ml-1"></i>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: L'Entreprise -->
+        <div class="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+          <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-3">
+            <i class="pi pi-building"></i>
+            <span>L'Entreprise</span>
+          </h3>
+          <div class="grid grid-cols-2 gap-4 text-[11px] mb-3">
+            <div>
+              <span class="text-slate-400 block">Raison Sociale</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.company }}</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block">SIRET</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.siret }}</span>
+            </div>
+          </div>
+          <div class="text-[11px] mb-3">
+            <span class="text-slate-400 block">Adresse de stage</span>
+            <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.companyAddress }}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-4 text-[11px] pt-3 border-t border-slate-200/40">
+            <div>
+              <span class="text-slate-400 block">Signataire de la convention</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.signatoryName }} ({{ selectedStudent.signatoryTitle }})</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block">Contact Signataire</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.signatoryEmail }} / {{ selectedStudent.companyPhone }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Les Tuteurs -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-2">
+              <i class="pi pi-user-plus text-violet-600"></i>
+              <span>Maître de Stage (Entreprise)</span>
+            </h4>
+            <div class="space-y-2 text-[11px]">
+              <div>
+                <span class="text-slate-400">Nom :</span> <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.supervisor }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400">Fonction :</span> <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.supervisorTitle }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400">Email :</span> <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.supervisorEmail }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400">Téléphone :</span> <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.supervisorPhone }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+            <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-2">
+              <i class="pi pi-user text-violet-600"></i>
+              <span>Tuteur Universitaire</span>
+            </h4>
+            <div class="space-y-2 text-[11px]">
+              <div>
+                <span class="text-slate-400">Nom :</span> <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.academicTutor }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section: Sujet & Activités -->
+        <div class="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
+          <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-3">
+            <i class="pi pi-book"></i>
+            <span>Sujet & Activités</span>
+          </h3>
+          <div class="space-y-3 text-[11px]">
+            <div>
+              <span class="text-slate-400 block">Sujet du stage</span>
+              <p class="font-semibold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 mt-1 leading-relaxed">
+                {{ selectedStudent.subject }}
+              </p>
+            </div>
+            <div>
+              <span class="text-slate-400 block">Activités confiées</span>
+              <p class="font-semibold text-slate-800 dark:text-slate-200 bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 mt-1 leading-relaxed whitespace-pre-line">
+                {{ selectedStudent.activities }}
+              </p>
+            </div>
+          </div>
+        </div>
 
       </div>
     </Dialog>
 
   </div>
 </template>
+
+
