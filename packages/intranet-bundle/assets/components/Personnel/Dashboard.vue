@@ -11,6 +11,7 @@ const userStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
 const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 const widgets = ref([]);
+const widgetsEnabledCount = computed(() => widgets.value.filter(widget => widget.enabled).length);
 const widgetData = ref({});
 const widgetLoading = ref({});
 const widgetError = ref({});
@@ -158,7 +159,7 @@ onMounted(async () => {
         <template v-if="widget.enabled">
           <DashboardWidgetShell
               :widget="widget"
-              :widgetsLength="widgets.length"
+              :widgetsLength="widgetsEnabledCount"
               :loading="!!widgetLoading[widget.key]"
               :error="!!widgetError[widget.key]"
               @refresh="loadWidgetData(widget.key)"
