@@ -29,39 +29,246 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
                 continue;
             }
 
-            //todo:
-            // types d'éléments à récupérer :
-            // - plans de cours à saisir
-            // - notes à saisir
-            // - justificatifs d'absences à valider
-            // - ??
-
             // ----------------------
             // Notes à saisir :
             // ----------------------
             // 1. Récupérer les évaluations assignées au personnel
             // 2. Pour chaque éval :
-                // Calc le nombre de notes attendues->combien d'EtudiantNote.note !== null / all EtudiantNote liés à l'Evaluation
+            // Calc le nombre de notes attendues->combien d'EtudiantNote.note !== null / all EtudiantNote liés à l'Evaluation
             // 3. Nombre notes attendus - Nombre notes saisies = X notes à saisir
             // todo: ajouter une date limite informative de saisie des notes sur les évaluations
 
 
-//            $dto->items[] = [
-//                'icon' => 'pi pi-file',
-//                'titre' => '1 plan de cours à saisir',
-//                'detail' => 'Date limite : 22 mai 2025',
-//                'cta' => 'Saisir',
-//                'color' => 'red'
-//            ];
+            switch ($personnelDept->getRoles()['intranet']) {
+                case 'ROLE_PERMANENT':
+                    $dto->items = array_merge($dto->items, $this->getDatasPermanent($personnelDept));
+                    break;
+                case 'ROLE_VACATAIRE':
+                    $dto->items = array_merge($dto->items, $this->getDatasVacataire($personnelDept));
+                    break;
+                case 'ROLE_ASSISTANT':
+                    $dto->items = array_merge($dto->items, $this->getDatasAssistant($personnelDept));
+                    break;
+                case 'ROLE_CHEF_DE_DEPT':
+                    $dto->items = array_merge($dto->items, $this->getDatasChefDeDept($personnelDept));
+                    break;
+                case 'ROLE_DIRECTEUR_ETUDES':
+                    $dto->items = array_merge($dto->items, $this->getDatasDirecteurEtudes($personnelDept));
+                    break;
+                case 'ROLE_STAGE':
+                    $dto->items = array_merge($dto->items, $this->getDatasStage($personnelDept));
+                    break;
+                case 'ROLE_RP':
+                    $dto->items = array_merge($dto->items, $this->getDatasRP($personnelDept));
+                    break;
+                case 'ROLE_EDT':
+                    $dto->items = array_merge($dto->items, $this->getDatasEDT($personnelDept));
+                    break;
+                case 'ROLE_REFERENT':
+                    $dto->items = array_merge($dto->items, $this->getDatasReferent($personnelDept));
+                    break;
+                case 'ROLE_INFORMATIQUE':
+                    $dto->items = array_merge($dto->items, $this->getDatasInformatique($personnelDept));
+                    break;
+                case 'ROLE_SCOLARITE':
+                    $dto->items = array_merge($dto->items, $this->getDatasScolarite($personnelDept));
+                    break;
+
+                default:
+                    $dto->items = array_merge($dto->items, [
+                        ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
+                        ['icon' => 'pi pi-pencil', 'titre' => 'Notes à saisir', 'detail' => 'Avant jeudi 18h', 'cta' => 'Saisir les notes', 'color' => 'orange'],
+                    ]);
+                    break;
+            }
         }
 
 
-        $dto->items = [
+
+        return $dto;
+    }
+
+    private function getDatasPermanent($personnelDept): array
+    {
+        //TODO: 
+        // types d'éléments à récupérer :
+        // - plans de cours à saisir
+        // - notes à saisir
+        // - justificatifs d'absences à valider
+        // - demandes de rattrapage
+        $data = [
+            ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
+        ];
+
+        return $data;
+    }
+
+    private function getDatasVacataire($personnelDept): array
+    {
+        //TODO: 
+        // types d'éléments à récupérer :
+        // - plans de cours à saisir
+        // - notes à saisir
+        // - justificatifs d'absences à valider
+        // - demandes de rattrapage
+        $data = [
             ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
             ['icon' => 'pi pi-pencil', 'titre' => 'Notes à saisir', 'detail' => 'Avant jeudi 18h', 'cta' => 'Saisir les notes', 'color' => 'orange'],
             ['icon' => 'pi pi-user', 'titre' => '2 absences à justifier', 'detail' => 'En attente de justificatif', 'cta' => 'Voir les absences', 'color' => 'yellow'],
         ];
 
-        return $dto;
+        return $data;
+    }
+
+    private function getDatasAssistant($personnelDept): array
+    {
+        //TODO: 
+        // types d'éléments à récupérer :
+        // - plans de cours à saisir
+        // - notes à saisir
+        // - justificatifs d'absences à valider
+        // - demandes de rattrapage
+        $data = [
+            ['icon' => 'pi pi-user', 'titre' => '2 absences à justifier', 'detail' => 'En attente de justificatif', 'cta' => 'Voir les absences', 'color' => 'yellow'],
+
+        ];
+
+        return $data;
+    }
+
+    private function getDatasChefDeDept($personnelDept): array
+    {
+        //TODO: 
+        // types d'éléments à récupérer :
+        // - plans de cours à saisir
+        // - notes à saisir
+        // - justificatifs d'absences à valider
+        // - demandes de rattrapage
+        $data = [
+            ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
+            ['icon' => 'pi pi-pencil', 'titre' => 'Notes à saisir', 'detail' => 'Avant jeudi 18h', 'cta' => 'Saisir les notes', 'color' => 'orange'],
+            ['icon' => 'pi pi-user', 'titre' => '2 absences à justifier', 'detail' => 'En attente de justificatif', 'cta' => 'Voir les absences', 'color' => 'yellow'],
+        ];
+
+        return $data;
+    }
+
+    private function getDatasDirecteurEtudes($personnelDept): array
+    {
+        //TODO: 
+        // types d'éléments à récupérer :
+        // - plans de cours à saisir
+        // - notes à saisir
+        // - justificatifs d'absences à valider
+        // - demandes de rattrapage
+        $data = [
+            ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
+            ['icon' => 'pi pi-pencil', 'titre' => 'Notes à saisir', 'detail' => 'Avant jeudi 18h', 'cta' => 'Saisir les notes', 'color' => 'orange'],
+            ['icon' => 'pi pi-user', 'titre' => '2 absences à justifier', 'detail' => 'En attente de justificatif', 'cta' => 'Voir les absences', 'color' => 'yellow'],
+        ];
+
+        return $data;
+    }
+
+    private function getDatasStage($personnelDept): array
+    {
+        //TODO: 
+        // types d'éléments à récupérer :
+        // - plans de cours à saisir
+        // - notes à saisir
+        // - justificatifs d'absences à valider
+        // - demandes de rattrapage
+        $data = [
+            ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
+            ['icon' => 'pi pi-pencil', 'titre' => 'Notes à saisir', 'detail' => 'Avant jeudi 18h', 'cta' => 'Saisir les notes', 'color' => 'orange'],
+            ['icon' => 'pi pi-user', 'titre' => '2 absences à justifier', 'detail' => 'En attente de justificatif', 'cta' => 'Voir les absences', 'color' => 'yellow'],
+        ];
+
+        return $data;
+    }
+
+    private function getDatasRP($personnelDept): array
+    {
+        //TODO: 
+        // types d'éléments à récupérer :
+        // - plans de cours à saisir
+        // - notes à saisir
+        // - justificatifs d'absences à valider
+        // - demandes de rattrapage
+        $data = [
+            ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
+            ['icon' => 'pi pi-pencil', 'titre' => 'Notes à saisir', 'detail' => 'Avant jeudi 18h', 'cta' => 'Saisir les notes', 'color' => 'orange'],
+            ['icon' => 'pi pi-user', 'titre' => '2 absences à justifier', 'detail' => 'En attente de justificatif', 'cta' => 'Voir les absences', 'color' => 'yellow'],
+        ];
+
+        return $data;
+    }
+
+    private function getDatasEDT($personnelDept): array
+    {
+        //TODO: 
+        // types d'éléments à récupérer :
+        // - plans de cours à saisir
+        // - notes à saisir
+        // - justificatifs d'absences à valider
+        // - demandes de rattrapage
+        $data = [
+            ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
+            ['icon' => 'pi pi-pencil', 'titre' => 'Notes à saisir', 'detail' => 'Avant jeudi 18h', 'cta' => 'Saisir les notes', 'color' => 'orange'],
+            ['icon' => 'pi pi-user', 'titre' => '2 absences à justifier', 'detail' => 'En attente de justificatif', 'cta' => 'Voir les absences', 'color' => 'yellow'],
+        ];
+
+        return $data;
+    }
+
+    private function getDatasReferent($personnelDept): array
+    {
+        //TODO: 
+        // types d'éléments à récupérer :
+        // - plans de cours à saisir
+        // - notes à saisir
+        // - justificatifs d'absences à valider
+        // - demandes de rattrapage
+        $data = [
+            ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
+            ['icon' => 'pi pi-pencil', 'titre' => 'Notes à saisir', 'detail' => 'Avant jeudi 18h', 'cta' => 'Saisir les notes', 'color' => 'orange'],
+            ['icon' => 'pi pi-user', 'titre' => '2 absences à justifier', 'detail' => 'En attente de justificatif', 'cta' => 'Voir les absences', 'color' => 'yellow'],
+        ];
+
+        return $data;
+    }
+
+    private function getDatasInformatique($personnelDept): array
+    {
+        //TODO: 
+        // types d'éléments à récupérer :
+        // - plans de cours à saisir
+        // - notes à saisir
+        // - justificatifs d'absences à valider
+        // - demandes de rattrapage
+        $data = [
+            ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
+            ['icon' => 'pi pi-pencil', 'titre' => 'Notes à saisir', 'detail' => 'Avant jeudi 18h', 'cta' => 'Saisir les notes', 'color' => 'orange'],
+            ['icon' => 'pi pi-user', 'titre' => '2 absences à justifier', 'detail' => 'En attente de justificatif', 'cta' => 'Voir les absences', 'color' => 'yellow'],
+        ];
+
+        return $data;
+    }
+
+    private function getDatasScolarite($personnelDept): array
+    {
+        //TODO: 
+        // types d'éléments à récupérer :
+        // - plans de cours à saisir
+        // - notes à saisir
+        // - justificatifs d'absences à valider
+        // - demandes de rattrapage
+        $data = [
+            ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
+            ['icon' => 'pi pi-pencil', 'titre' => 'Notes à saisir', 'detail' => 'Avant jeudi 18h', 'cta' => 'Saisir les notes', 'color' => 'orange'],
+            ['icon' => 'pi pi-user', 'titre' => '2 absences à justifier', 'detail' => 'En attente de justificatif', 'cta' => 'Voir les absences', 'color' => 'yellow'],
+        ];
+
+        return $data;
     }
 }

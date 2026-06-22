@@ -91,6 +91,14 @@ const loadWidgetData = async (widgetKey) => {
   try {
     const data = await getDashboardWidgetDataService(widget.dataUrl, getWidgetParams(widget));
     widgetData.value = {...widgetData.value, [widgetKey]: data};
+
+    switch (widget?.key) {
+    case 'emploi_du_temps':
+      // trier les éléments par heure croissante
+      data.items.sort((a, b) => a.heure.localeCompare(b.heure));
+      break;
+    }
+
   } catch {
     widgetError.value = {...widgetError.value, [widgetKey]: true};
   } finally {
