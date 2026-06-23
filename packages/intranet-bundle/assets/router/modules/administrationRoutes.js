@@ -1,7 +1,6 @@
 import previsionnelRoutes from './previsionnelRoutes.js'
 import stageAdministrationRoutes from './stageAdministrationRoutes.js'
 import anneeAdministrationRoutes from './anneeAdministrationRoutes.js'
-import questionnaireAdministrationRoutes from './questionnaireAdministrationRoutes.js'
 import PersonnelsListeView from "@/views/Personnels/PersonnelsListeView.vue";
 import EtudiantsAjoutView from "@/views/Administration/Etudiants/EtudiantsAjoutView.vue";
 import AdministrationView from '@/views/Administration/AdministrationView.vue';
@@ -46,7 +45,7 @@ export default [
       }]
     },
     children: [
-    
+
       {
         path: 'ajout',
         component: EtudiantsAjoutView,
@@ -150,9 +149,6 @@ export default [
     meta: {
         permission: 'canViewAdministration',
     },
-    children: [
-      ...questionnaireAdministrationRoutes
-    ]
   },
 
 ];

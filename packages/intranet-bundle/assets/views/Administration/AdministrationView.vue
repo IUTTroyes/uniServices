@@ -5,7 +5,6 @@ import AdminBlocPersonnel from '@/components/Administration/blocs_admin/AdminBlo
 import AdminBlocPn from '@/components/Administration/blocs_admin/AdminBlocPn.vue'
 import AdminBlocEdt from '@/components/Administration/blocs_admin/AdminBlocEdt.vue'
 import AdminBlocStage from '../../components/Administration/blocs_admin/AdminBlocStage.vue'
-import AdminBlocQualite from "../../components/Administration/blocs_admin/AdminBlocQualite.vue";
 </script>
 
 <template>
@@ -31,15 +30,6 @@ import AdminBlocQualite from "../../components/Administration/blocs_admin/AdminB
     <div class="card-body flex flex-col gap-10">
       <div class="flex flex-row justify-between gap-10">
         <admin-bloc-stage class="w-full"/>
-      </div>
-    </div>
-  </div>
-
-
-  <div class="card">
-    <div class="card-body flex flex-col gap-10">
-      <div class="flex flex-row justify-between gap-10">
-        <admin-bloc-qualite class="w-full"/>
       </div>
     </div>
   </div>
