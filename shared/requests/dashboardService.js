@@ -21,6 +21,26 @@ const getDashboardWidgetDataService = async (url, params = {}, showToast = false
     );
 };
 
+const getWidgetsCatalogService = async (params = {}, showToast = false) => {
+    return await apiCall(
+        api.get,
+        ['/api/widgets/catalog', { params }],
+        'Catalogue des widgets récupéré avec succès',
+        'Erreur lors du chargement du catalogue des widgets',
+        showToast,
+    );
+};
+
+const getWidgetDataByCodeService = async (code, params = {}, showToast = false) => {
+    return await apiCall(
+        api.get,
+        [`/api/widgets/${code}/data`, { params }],
+        'Données du widget récupérées avec succès',
+        'Erreur lors du chargement des données du widget',
+        showToast,
+    );
+};
+
 const patchDashboardWidgetLayoutService = async (widgetKey, payload, params = {}, showToast = false) => {
     return await apiCall(
         api.patch,
@@ -34,4 +54,10 @@ const patchDashboardWidgetLayoutService = async (widgetKey, payload, params = {}
     );
 };
 
-export { getDashboardService, getDashboardWidgetDataService, patchDashboardWidgetLayoutService };
+export {
+    getDashboardService,
+    getDashboardWidgetDataService,
+    getWidgetsCatalogService,
+    getWidgetDataByCodeService,
+    patchDashboardWidgetLayoutService,
+};

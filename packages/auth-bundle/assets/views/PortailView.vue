@@ -1,111 +1,221 @@
 <script setup>
-import { TopbarComponent } from '@components';
-import {useUsersStore} from "@stores";
-import { tools } from '@config/uniServices.js';
-import Logo from '@components/components/Logo.vue';
-import { onMounted, ref } from 'vue';
-import {PermissionGuard} from "@components";
-import {getEtablissementService} from "@requests";
+import {computed, onMounted, ref} from 'vue';
+import {TopbarComponent} from '@components';
+import {tools} from '@config/uniServices.js';
+import {getWidgetDataByCodeService, getWidgetsCatalogService} from '@requests';
 
-const userStore = useUsersStore();
-const etablissement = ref(null);
+const STORAGE_KEY = 'portail.widgets.layout';
 
-onMounted(async () => {
-  try {
-    etablissement.value = await getEtablissementService();
-    console.log('Etablissement fetched:', etablissement.value);
-  } catch (error) {
-    console.error('Error fetching etablissement:', error);
-  }
-});
-
-const isEnabledUrl = (tool) => {
-  if (userStore.applications.includes(tool.name)) {
-    return tool.url;
-  }
-  return '#';
-};
-
-const isDisabled = (tool) => {
-  if (userStore.applications.includes(tool.name)) {
-    return '';
-  }
-  return 'disabled';
-};
-
-const props = defineProps({
+defineProps({
   appName: {
     type: String,
-    required: true
+    required: true,
   },
   logoUrl: {
     type: String,
-    required: false
-  }
+    required: false,
+    default: '',
+  },
 });
 
+const bundles = ref([]);
+const widgets = ref([]);
+const selectedBundle = ref('all');
+const widgetData = ref({});
+const loading = ref(true);
+
+const bundleAliases = {
+  portfolio: 'unifolio',
+};
+
+const getBundleUrl = (bundleCode) => {
+  const normalizedCode = bundleAliases[bundleCode] || bundleCode;
+  const tool = tools.find(({urlSlug, url}) => urlSlug === normalizedCode || url?.includes(`/${normalizedCode}/`));
+  return tool?.url || null;
+};
+
+const onBundleClick = (bundleCode) => {
+  if (bundleCode === 'all') {
+    selectedBundle.value = 'all';
+    return;
+  }
+
+  selectedBundle.value = bundleCode;
+  const bundleUrl = getBundleUrl(bundleCode);
+  if (bundleUrl) {
+    window.location.href = bundleUrl;
+  }
+};
+
+const visibleWidgets = computed(() => {
+  const filtered = selectedBundle.value === 'all'
+      ? widgets.value
+      : widgets.value.filter((widget) => widget.bundle === selectedBundle.value);
+
+  return [...filtered]
+      .filter((widget) => widget.enabled)
+      .sort((a, b) => a.position - b.position);
+});
+
+const gridClass = (size) => {
+  if (size === 'small') {
+    return 'col-span-12 lg:col-span-4';
+  }
+  if (size === 'large') {
+    return 'col-span-12';
+  }
+
+  return 'col-span-12 lg:col-span-6';
+};
+
+const saveLayout = () => {
+  const persisted = widgets.value.map((widget) => ({
+    code: widget.code,
+    enabled: widget.enabled,
+    size: widget.size,
+    position: widget.position,
+  }));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
+};
+
+const applyPersistedLayout = (catalogWidgets) => {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) {
+    return catalogWidgets.map((widget, index) => ({...widget, position: index}));
+  }
+
+  const saved = JSON.parse(raw);
+  const savedByCode = new Map(saved.map((item) => [item.code, item]));
+
+  return catalogWidgets.map((widget, index) => {
+    const savedWidget = savedByCode.get(widget.code);
+    if (!savedWidget) {
+      return {...widget, position: index};
+    }
+
+    return {
+      ...widget,
+      enabled: savedWidget.enabled ?? widget.enabled,
+      size: savedWidget.size ?? widget.size,
+      position: Number.isInteger(savedWidget.position) ? savedWidget.position : index,
+    };
+  });
+};
+
+const rotateSize = (widget) => {
+  const sizes = ['small', 'medium', 'large'];
+  const index = sizes.indexOf(widget.size || 'medium');
+  widget.size = sizes[(index + 1) % sizes.length];
+  saveLayout();
+};
+
+const toggleWidget = (widget) => {
+  widget.enabled = !widget.enabled;
+  saveLayout();
+};
+
+const moveWidget = (widget, direction) => {
+  const sorted = [...widgets.value].sort((a, b) => a.position - b.position);
+  const index = sorted.findIndex((item) => item.code === widget.code);
+  if (index === -1) {
+    return;
+  }
+
+  const targetIndex = index + direction;
+  if (targetIndex < 0 || targetIndex >= sorted.length) {
+    return;
+  }
+
+  const element = sorted.splice(index, 1)[0];
+  sorted.splice(targetIndex, 0, element);
+
+  sorted.forEach((item, position) => {
+    item.position = position;
+  });
+  widgets.value = sorted;
+  saveLayout();
+};
+
+const loadWidgetData = async (code) => {
+  try {
+    widgetData.value[code] = await getWidgetDataByCodeService(code);
+  } catch {
+    widgetData.value[code] = {message: 'Aucune donnée disponible'};
+  }
+};
+
+onMounted(async () => {
+  loading.value = true;
+  try {
+    const response = await getWidgetsCatalogService();
+    bundles.value = [{code: 'all', label: 'Tous les bundles'}, ...(response.bundles || [])];
+    widgets.value = applyPersistedLayout(response.widgets || []);
+    await Promise.all(widgets.value.filter((widget) => widget.enabled).map((widget) => loadWidgetData(widget.code)));
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <template>
   <main>
     <TopbarComponent :app-name :logo-url/>
 
-    <div id="features" class="py-6 px-6 lg:px-20 mx-0 lg:mx-20">
-      <div class="grid grid-cols-12 gap-4 justify-center">
-        <div class="col-span-12 text-center mt-20 mb-6">
-          <Badge :value="etablissement?.libelle" icon="pi pi-building" size="large" class="mb-4"/>
-          <div class="text-surface-900 dark:text-surface-0 font-normal mb-2 text-4xl">UniServices</div>
-          <span class="text-muted-color text-2xl">À quelle plateforme souhaitez-vous accéder ?</span>
-        </div>
-
-        <a
-            v-for="tool in tools"
-            :key="tool.name"
-            :href="isEnabledUrl(tool)"
-            :class="`app col-span-12 md:col-span-12 lg:col-span-4 p-0 lg:pr-8 lg:pb-8 mt-6 lg:mt-0 ${isDisabled(tool)} ${tool.name}`">
-          <div
-              style="height: 100%; padding: 2px; border-radius: 10px; background: linear-gradient(90deg, rgba(253, 228, 165, 0.2), rgba(192,187,205,0.2)), linear-gradient(180deg, rgba(253, 228, 165, 0.2), rgba(192,187,205,0.2))"
-          >
-            <div class="p-4 bg-surface-0 dark:bg-surface-900 h-full" style="border-radius: 8px">
-              <div class="flex items-center justify-center mb-4 bg-surface-100"
-                   style="width: 3.5rem; height: 3.5rem; border-radius: 10px">
-                <Logo :logo-url="tool.logo" :alt="`logo de ${tool.name}`"/>
-              </div>
-              <h5 class="mb-2 text-surface-900 dark:text-surface-0">{{ tool.name }}</h5>
-              <span class="text-surface-600 dark:text-surface-200">{{ tool.description }}</span>
-            </div>
+    <div class="px-4 py-6 lg:px-10">
+      <div class="mb-4 text-2xl font-semibold">Portail des widgets</div>
+      <div class="grid grid-cols-12 gap-4">
+        <aside class="col-span-12 lg:col-span-3 rounded-xl border border-surface-200 bg-surface-0 p-4">
+          <div class="mb-3 text-sm font-semibold text-color-secondary">Bundles disponibles</div>
+          <div class="flex flex-col gap-2">
+            <button
+                v-for="bundle in bundles"
+                :key="bundle.code"
+                type="button"
+                class="text-left rounded-lg px-3 py-2"
+                :class="bundle.code === selectedBundle ? 'bg-primary text-white' : 'bg-surface-100 text-surface-900'"
+                @click="onBundleClick(bundle.code)"
+            >
+              {{ bundle.label }}
+            </button>
           </div>
-        </a>
+        </aside>
+
+        <section class="col-span-12 lg:col-span-9">
+          <div v-if="loading" class="rounded-xl border border-surface-200 bg-surface-0 p-6 text-color-secondary">
+            Chargement des widgets...
+          </div>
+
+          <div v-else class="grid grid-cols-12 gap-4">
+            <article
+                v-for="widget in visibleWidgets"
+                :key="widget.code"
+                :class="`${gridClass(widget.size)} rounded-xl border border-surface-200 bg-surface-0 p-4`"
+            >
+              <div class="mb-3 flex items-center justify-between gap-2">
+                <div class="font-semibold"><i :class="`${widget.icon} mr-2 text-primary-500`"/>{{ widget.label }}</div>
+                <div class="flex items-center gap-1">
+                  <Button icon="pi pi-arrow-left" text rounded @click="moveWidget(widget, -1)"/>
+                  <Button icon="pi pi-arrow-right" text rounded @click="moveWidget(widget, 1)"/>
+                  <Button icon="pi pi-arrows-h" text rounded @click="rotateSize(widget)"/>
+                  <Button icon="pi pi-times" text rounded @click="toggleWidget(widget)"/>
+                </div>
+              </div>
+              <div class="text-sm text-color-secondary mb-2">{{ widget.code }}</div>
+              <pre class="widget-data">{{ widgetData[widget.code] || { message: 'Chargement...' } }}</pre>
+            </article>
+          </div>
+        </section>
       </div>
     </div>
-    <PermissionGuard permission="isReferent">
-    <div class="text-center absolute bottom-0 left-0 right-0 mb-4">
-      <router-link to="/configuration">
-        <Button type="button" severity="primary" icon="pi pi-wrench" label="Configuration" rounded>
-        </Button>
-      </router-link>
-    </div>
-    </PermissionGuard>
-
   </main>
 </template>
 
 <style scoped>
-.app {
-  cursor: pointer;
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: scale(1.02);
-  }
-
-  &.disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-
-    &:hover {
-      transform: none;
-    }
-  }
+.widget-data {
+  white-space: pre-wrap;
+  background: #f3f4f6;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.875rem;
 }
 </style>
