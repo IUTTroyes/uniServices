@@ -8,6 +8,8 @@ use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Users\Personnel;
 use App\Repository\Dashboard\DashboardPreferenceRepository;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
+use App\Services\Dashboard\Core\WidgetDataRegistry;
+use App\Services\Dashboard\Core\WidgetRegistry as CoreWidgetRegistry;
 use App\Services\Dashboard\DashboardWidgetRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,52 +18,10 @@ use Symfony\Component\Routing\Attribute\Route;
 
 class DashboardController extends AbstractController
 {
-    private const PORTAL_WIDGETS = [
-        'questionnaire.pending' => [
-            'label' => 'Questionnaires en attente',
-            'icon' => 'pi pi-inbox',
-            'component' => 'QuestionnairePendingWidget',
-            'size' => 'medium',
-            'enabled' => true,
-        ],
-        'questionnaire.stats' => [
-            'label' => 'Statistiques questionnaires',
-            'icon' => 'pi pi-chart-bar',
-            'component' => 'QuestionnaireStatsWidget',
-            'size' => 'small',
-            'enabled' => true,
-        ],
-        'questionnaire.last_answers' => [
-            'label' => 'Dernières réponses',
-            'icon' => 'pi pi-history',
-            'component' => 'QuestionnaireLastAnswersWidget',
-            'size' => 'large',
-            'enabled' => false,
-        ],
-        'portfolio.to_correct' => [
-            'label' => 'Éléments à corriger',
-            'icon' => 'pi pi-pencil',
-            'component' => 'PortfolioToCorrectWidget',
-            'size' => 'medium',
-            'enabled' => true,
-        ],
-        'portfolio.progress' => [
-            'label' => 'Progression portfolio',
-            'icon' => 'pi pi-chart-line',
-            'component' => 'PortfolioProgressWidget',
-            'size' => 'small',
-            'enabled' => true,
-        ],
-        'portfolio.alerts' => [
-            'label' => 'Alertes portfolio',
-            'icon' => 'pi pi-bell',
-            'component' => 'PortfolioAlertsWidget',
-            'size' => 'small',
-            'enabled' => false,
-        ],
-    ];
     public function __construct(
         private readonly DashboardWidgetRegistry $widgetRegistry,
+        private readonly CoreWidgetRegistry $coreWidgetRegistry,
+        private readonly WidgetDataRegistry $widgetDataRegistry,
         private readonly DashboardPreferenceRepository $preferenceRepository,
         private readonly StructureDepartementPersonnelRepository $structureDepartementPersonnelRepository,
     ) {}
@@ -73,11 +33,12 @@ class DashboardController extends AbstractController
         if (null === $user) {
             return new JsonResponse(['message' => 'Utilisateur non autorisé'], JsonResponse::HTTP_FORBIDDEN);
         }
+        $dashboardCode = $request->query->get('dashboardCode', 'intranet');
 
         $structureDepartementPersonnel = $this->resolveStructureDepartementPersonnel($user, $request);
         $context = new DashboardContext($this->resolveDepartementId($user, $request, $structureDepartementPersonnel), $structureDepartementPersonnel);
         $preferences = [];
-        foreach ($this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel) as $preference) {
+        foreach ($this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel, $dashboardCode) as $preference) {
             $preferences[$preference->getWidgetKey()] = $preference;
         }
 
@@ -143,6 +104,7 @@ class DashboardController extends AbstractController
         if (null === $widget) {
             return new JsonResponse(['message' => 'Widget introuvable'], JsonResponse::HTTP_NOT_FOUND);
         }
+        $dashboardCode = $request->query->get('dashboardCode', 'intranet');
 
         $structureDepartementPersonnel = $this->resolveStructureDepartementPersonnel($user, $request);
         $context = new DashboardContext($this->resolveDepartementId($user, $request, $structureDepartementPersonnel), $structureDepartementPersonnel);
@@ -155,9 +117,10 @@ class DashboardController extends AbstractController
             return new JsonResponse(['message' => 'Payload invalide'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $preference = $this->preferenceRepository->findOneByPersonnelAndWidgetKey($user, $key, $structureDepartementPersonnel) ?? (new DashboardPreference())
+        $preference = $this->preferenceRepository->findOneByPersonnelAndWidgetKey($user, $key, $structureDepartementPersonnel, $dashboardCode) ?? (new DashboardPreference())
             ->setPersonnel($user)
             ->setStructureDepartementPersonnel($structureDepartementPersonnel)
+            ->setDashboardCode($dashboardCode)
             ->setWidgetKey($key);
 
         if (array_key_exists('enabled', $payload)) {
@@ -185,45 +148,32 @@ class DashboardController extends AbstractController
     }
 
     #[Route('/api/widgets/catalog', name: 'api_widgets_catalog', methods: ['GET'])]
-    public function getWidgetsCatalog(): JsonResponse
+    public function getWidgetsCatalog(Request $request): JsonResponse
     {
         $user = $this->getCurrentPersonnel();
         if (null === $user) {
             return new JsonResponse(['message' => 'Utilisateur non autorisé'], JsonResponse::HTTP_FORBIDDEN);
         }
 
-        $widgets = [];
-        foreach ($this->widgetRegistry->all() as $widget) {
-            $widgets[] = [
-                'code' => 'intranet.'.$widget->getKey(),
-                'bundle' => 'intranet',
-                'label' => $widget->getLabel(),
-                'icon' => $widget->getIcon(),
-                'component' => $widget->getVueComponent(),
-                'size' => $widget->getDefaultSize(),
-                'enabled' => $widget->isDefaultEnabled(),
-            ];
+        $dashboardCode = $request->query->get('dashboardCode', 'portail');
+        $preferences = [];
+        foreach ($this->preferenceRepository->findByPersonnel($user, null, $dashboardCode) as $preference) {
+            $preferences[$preference->getWidgetKey()] = $preference;
         }
 
-        foreach (self::PORTAL_WIDGETS as $code => $definition) {
-            [$bundle] = explode('.', $code, 2);
-            $widgets[] = [
-                'code' => $code,
-                'bundle' => $bundle,
-                'label' => $definition['label'],
-                'icon' => $definition['icon'],
-                'component' => $definition['component'],
-                'size' => $definition['size'],
-                'enabled' => $definition['enabled'],
-            ];
+        $widgets = [];
+        foreach ($this->coreWidgetRegistry->all() as $widgetDefinition) {
+            $definition = $widgetDefinition->toArray();
+            $preference = $preferences[$definition['code']] ?? null;
+            if (null !== $preference) {
+                $definition['enabled'] = $preference->isEnabled();
+                $definition['size'] = $preference->getSize();
+            }
+            $widgets[] = $definition;
         }
 
         return new JsonResponse([
-            'bundles' => [
-                ['code' => 'intranet', 'label' => 'Intranet'],
-                ['code' => 'questionnaire', 'label' => 'Questionnaire'],
-                ['code' => 'portfolio', 'label' => 'Portfolio'],
-            ],
+            'bundles' => $this->coreWidgetRegistry->getBundles(),
             'widgets' => $widgets,
         ]);
     }
@@ -236,27 +186,16 @@ class DashboardController extends AbstractController
             return new JsonResponse(['message' => 'Utilisateur non autorisé'], JsonResponse::HTTP_FORBIDDEN);
         }
 
-        $samples = [
-            'questionnaire.pending' => ['items' => ['BUT1 S1', 'BUT2 S4', 'LP DEVOPS']],
-            'questionnaire.stats' => ['completionRate' => 76, 'responses' => 184],
-            'questionnaire.last_answers' => ['items' => ['Mathématiques - 08:15', 'Réseaux - 09:40', 'Communication - 11:05']],
-            'portfolio.to_correct' => ['items' => ['SAÉ 3.01 - 5 dossiers', 'PPP - 2 dossiers']],
-            'portfolio.progress' => ['validated' => 62, 'target' => 100],
-            'portfolio.alerts' => ['items' => ['1 échéance cette semaine', '2 évaluations en retard']],
-        ];
-
-        if (str_starts_with($code, 'intranet.')) {
-            return new JsonResponse([
-                'message' => 'Ce widget est alimenté depuis le dashboard intranet.',
-                'code' => $code,
-            ]);
-        }
-
-        if (!array_key_exists($code, $samples)) {
+        if (null === $this->coreWidgetRegistry->get($code)) {
             return new JsonResponse(['message' => 'Widget introuvable'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        return new JsonResponse($samples[$code]);
+        $data = $this->widgetDataRegistry->get($code, $user);
+        if (null === $data) {
+            return new JsonResponse(['message' => 'Aucune donnée disponible pour ce widget'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        return new JsonResponse($data);
     }
 
     private function getCurrentPersonnel(): ?Personnel

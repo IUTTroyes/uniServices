@@ -9,7 +9,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DashboardPreferenceRepository::class)]
-#[ORM\UniqueConstraint(name: 'uniq_dashboard_preference_user_widget_structure', columns: ['personnel_id', 'widget_key', 'structure_departement_personnel_id'])]
+#[ORM\UniqueConstraint(name: 'uniq_dashboard_preference_user_dashboard_widget_structure', columns: ['personnel_id', 'dashboard_code', 'widget_key', 'structure_departement_personnel_id'])]
 class DashboardPreference
 {
     #[ORM\Id]
@@ -27,6 +27,9 @@ class DashboardPreference
 
     #[ORM\Column(length: 120)]
     private string $widgetKey;
+
+    #[ORM\Column(length: 60, options: ['default' => 'intranet'])]
+    private string $dashboardCode = 'intranet';
 
     #[ORM\Column]
     private bool $enabled = true;
@@ -65,6 +68,11 @@ class DashboardPreference
         return $this->widgetKey;
     }
 
+    public function getDashboardCode(): string
+    {
+        return $this->dashboardCode;
+    }
+
     public function getStructureDepartementPersonnel(): ?StructureDepartementPersonnel
     {
         return $this->structureDepartementPersonnel;
@@ -80,6 +88,13 @@ class DashboardPreference
     public function setWidgetKey(string $widgetKey): static
     {
         $this->widgetKey = $widgetKey;
+
+        return $this;
+    }
+
+    public function setDashboardCode(string $dashboardCode): static
+    {
+        $this->dashboardCode = $dashboardCode;
 
         return $this;
     }

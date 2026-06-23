@@ -13,6 +13,12 @@ services:
     autowire: true # Automatically injects dependencies in your services.
     autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
+  _instanceof:
+    App\Domain\Dashboard\WidgetProviderInterface:
+      tags: ['app.dashboard.widget_provider']
+    App\Domain\Dashboard\WidgetDataProviderInterface:
+      tags: ['app.dashboard.widget_data_provider']
+
   App\Enum\StatutEnum:
     public: true
 

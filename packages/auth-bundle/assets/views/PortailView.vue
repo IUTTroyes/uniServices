@@ -34,17 +34,12 @@ const getBundleUrl = (bundleCode) => {
   return tool?.url || null;
 };
 
-const onBundleClick = (bundleCode) => {
-  if (bundleCode === 'all') {
+const onBundleClick = (bundleUrl) => {
+  if (bundleUrl === 'all') {
     selectedBundle.value = 'all';
     return;
   }
-
-  selectedBundle.value = bundleCode;
-  const bundleUrl = getBundleUrl(bundleCode);
-  if (bundleUrl) {
     window.location.href = bundleUrl;
-  }
 };
 
 const visibleWidgets = computed(() => {
@@ -147,8 +142,8 @@ const loadWidgetData = async (code) => {
 onMounted(async () => {
   loading.value = true;
   try {
+    bundles.value = [{code: 'all', label: 'Tous les bundles'}, ...(tools || [])];
     const response = await getWidgetsCatalogService();
-    bundles.value = [{code: 'all', label: 'Tous les bundles'}, ...(response.bundles || [])];
     widgets.value = applyPersistedLayout(response.widgets || []);
     await Promise.all(widgets.value.filter((widget) => widget.enabled).map((widget) => loadWidgetData(widget.code)));
   } finally {
@@ -169,13 +164,12 @@ onMounted(async () => {
           <div class="flex flex-col gap-2">
             <button
                 v-for="bundle in bundles"
-                :key="bundle.code"
+                :key="bundle.urlSlug"
                 type="button"
                 class="text-left rounded-lg px-3 py-2"
-                :class="bundle.code === selectedBundle ? 'bg-primary text-white' : 'bg-surface-100 text-surface-900'"
-                @click="onBundleClick(bundle.code)"
+                @click="onBundleClick(bundle.url)"
             >
-              {{ bundle.label }}
+              {{ bundle.name }}
             </button>
           </div>
         </aside>
