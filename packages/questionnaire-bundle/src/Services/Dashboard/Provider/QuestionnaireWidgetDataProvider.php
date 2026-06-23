@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Dashboard\Provider;
+namespace QuestionnaireBundle\Services\Dashboard\Provider;
 
 use App\Domain\Dashboard\WidgetDataProviderInterface;
 use App\Entity\Users\Personnel;

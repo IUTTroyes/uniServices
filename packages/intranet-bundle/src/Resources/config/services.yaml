@@ -3,6 +3,12 @@ services:
     autowire: true
     autoconfigure: true
 
+  _instanceof:
+    App\Domain\Dashboard\WidgetProviderInterface:
+      tags: [ 'app.dashboard.widget_provider' ]
+    App\Domain\Dashboard\WidgetDataProviderInterface:
+      tags: [ 'app.dashboard.widget_data_provider' ]
+
   IntranetBundle\:
     resource: '../../'
     exclude:
