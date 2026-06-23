@@ -150,6 +150,10 @@ importers:
 
   packages/intranet-bundle: {}
 
+  packages/questionnaire-bundle: {}
+
+  packages/stage-bundle: {}
+
   packages/unifolio-bundle: {}
 
   shared/components: {}

@@ -17,6 +17,7 @@
             "HelpdeskBundle\\": "packages/helpdesk-bundle/src/",
             "IntranetBundle\\": "packages/intranet-bundle/src/",
             "QuestionnaireBundle\\": "packages/questionnaire-bundle/src/",
+            "StageBundle\\": "packages/stage-bundle/src/",
             "UnifolioBundle\\": "packages/unifolio-bundle/src/"
         }
     },
@@ -25,7 +26,8 @@
             "AuthBundle\\Tests\\": "packages/auth-bundle/tests/",
             "EdtBundle\\Tests\\": "packages/edt-bundle/tests/",
             "HelpdeskBundle\\Tests\\": "packages/helpdesk-bundle/tests/",
-            "IntranetBundle\\Tests\\": "packages/intranet-bundle/tests/"
+            "IntranetBundle\\Tests\\": "packages/intranet-bundle/tests/",
+            "StageBundle\\Tests\\": "packages/stage-bundle/tests/"
         }
     },
     "extra": {
@@ -40,6 +42,7 @@
         "iuttroyes/helpdesk-bundle": "self.version",
         "iuttroyes/intranet-bundle": "self.version",
         "iuttroyes/questionnaire-bundle": "self.version",
+        "iuttroyes/stage-bundle": "self.version",
         "iuttroyes/unifolio-bundle": "self.version"
     }
 }

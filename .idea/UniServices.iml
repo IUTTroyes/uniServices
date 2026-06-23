@@ -19,6 +19,10 @@
       <sourceFolder url="file://$MODULE_DIR$/back/../packages/helpdesk-bundle/src" isTestSource="false" packagePrefix="HelpdeskBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/helpdesk-bundle/src" isTestSource="false" packagePrefix="HelpdeskBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/helpdesk-bundle/tests" isTestSource="true" packagePrefix="HelpdeskBundle\Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/back/../packages/questionnaire-bundle/src" isTestSource="false" packagePrefix="QuestionnaireBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/questionnaire-bundle/src" isTestSource="false" packagePrefix="QuestionnaireBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/stage-bundle/src" isTestSource="false" packagePrefix="StageBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/stage-bundle/tests" isTestSource="true" packagePrefix="StageBundle\Tests\" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/cache" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/collections" />

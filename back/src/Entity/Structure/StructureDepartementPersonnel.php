@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use App\ApiDto\Users\ActionsUrgentesWidgetDto;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
 use App\Filter\DepartementPersonnelFilter;
