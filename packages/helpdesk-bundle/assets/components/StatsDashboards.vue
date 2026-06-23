@@ -41,9 +41,7 @@ const goToNewTicket = () => {
       </div>
     </div>
 
-    <div class="mt-2">
-      <Button class="w-120" label="Créer un ticket" @click="goToNewTicket" icon="pi pi-plus" />
-    </div>
+
 
   </div>
 </template>

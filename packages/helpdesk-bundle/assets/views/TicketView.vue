@@ -211,7 +211,7 @@ onMounted(async () => {
       </div>
 
       <div>
-        <PermissionGuard permission="isPersonnelService">
+        <PermissionGuard permission="isScolarite">
         <div class="flex justify-around pt-20">
           <ValidatedInput
               v-model="ticket.assigne"

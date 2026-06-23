@@ -48,6 +48,7 @@ class TicketVoter extends Voter
 
         return match($attribute) {
             self::CAN_VIEW_TICKET => $this->canViewTicket($user),
+            self::CAN_CREATE_TICKET => $this->canCreateTicket($user),
             self::CAN_EDIT_TICKET => $this->canEditTicket($user,$subject),
             self::CAN_DELETE_TICKET => $this->canDeleteTicket($user,$subject),
             default => false,

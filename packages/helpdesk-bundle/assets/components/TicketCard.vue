@@ -73,7 +73,7 @@ const props = defineProps({
                 :rules="[]"
                 placeholder="Ajouter une priorité"
                 class="w-full md:w-56"
-                @change="updatePriority(ticket.id, ticket.priority)"
+                @update:model-value="updatePriority(ticket.id, ticket.priority)"
             >
               <template #value="valueProps">
                 <div v-if="valueProps.value" class="flex items-center gap-2">

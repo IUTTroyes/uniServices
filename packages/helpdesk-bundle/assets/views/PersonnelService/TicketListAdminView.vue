@@ -4,9 +4,10 @@ import {FilterMatchMode} from '@primevue/core/api';
 import { useRouter } from 'vue-router';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
-import {getTicketsService, deleteTicketService, deleteMessageService, getPersonnelsService} from '@requests';
+import {getTicketsService, deleteTicketService, deleteMessageService, getPersonnelsService, getServicesService} from '@requests';
 import {getStatutsClasses,getPriorityClasses,priorities,updatePriority,updateAssigne} from "@/utils";
 import { ValidatedInput} from "@components";
+import {useUsersStore} from "@stores";
 
 const props = defineProps({
   id: String
@@ -17,6 +18,7 @@ const filters = ref({
 });
 
 const tickets=ref([]);
+const userStore = useUsersStore();
 const router = useRouter();
 const isLoading = ref(true);
 const skeletonItems = ref(new Array(5));
@@ -57,22 +59,38 @@ const supprimerTicket = async (id) => {
 const getTickets = async () => {
   try {
     isLoading.value = true;
-    const response = await getTicketsService();
-    if (response && response['member']) {
-      ticketsList.value = response['member'];
-    } else if (Array.isArray(response)) {
-      ticketsList.value = response;
-    } else {
-      ticketsList.value = [];
-    }
+
+    const paramsUser = {
+      personnel: userStore.user.id,
+    };
+    const userServices = await getServicesService(paramsUser, '/mini');
+
+    ticketsList.value = [];
+
+    const serviceRequests = userServices.map(async (service) => {
+      const receivedParams = { service: service.id };
+      return await getTicketsService(receivedParams);
+    });
+
+    const results = await Promise.all(serviceRequests);
+
+    results.forEach(tickets => {
+      if (Array.isArray(tickets)) {
+        ticketsList.value.push(...tickets);
+      } else if (tickets && tickets['member']) {
+        ticketsList.value.push(...tickets['member']);
+      }
+    });
+
     const serviceIds = [...new Set(
         ticketsList.value
             .map(t => t.helpdeskCategorie?.service?.id)
             .filter(id => id !== undefined && id !== null)
     )];
     await Promise.all(serviceIds.map(id => getPersonnelsDuService(id)));
+
   } catch (error) {
-    console.error('Impossible de charger les tickets:', error);
+    console.error('Impossible de charger les tickets du service:', error);
     ticketsList.value = [];
   } finally {
     isLoading.value = false;
