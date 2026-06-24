@@ -47,7 +47,7 @@ class EmploiDuTempsWidget implements DashboardWidgetInterface
 
     public function getDefaultSize(): string
     {
-        return 'large';
+        return 'medium';
     }
 
     public function isDefaultEnabled(): bool

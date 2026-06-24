@@ -23,21 +23,12 @@ defineProps({
   },
 });
 
-const bundles = ref([]);
+const activatedBundles = ref([]);
+const unactivatedBundles = ref([]);
 const widgets = ref([]);
 const selectedBundle = ref('all');
 const widgetData = ref({});
 const loading = ref(true);
-
-const bundleAliases = {
-  portfolio: 'unifolio',
-};
-
-const getBundleUrl = (bundleCode) => {
-  const normalizedCode = bundleAliases[bundleCode] || bundleCode;
-  const tool = tools.find(({urlSlug, url}) => urlSlug === normalizedCode || url?.includes(`/${normalizedCode}/`));
-  return tool?.url || null;
-};
 
 const onBundleClick = (bundleUrl) => {
   if (bundleUrl === 'all') {
@@ -147,7 +138,9 @@ const loadWidgetData = async (code) => {
 onMounted(async () => {
   loading.value = true;
   try {
-    bundles.value = [{code: 'all', label: 'Tous les bundles'}, ...(tools || [])];
+    activatedBundles.value = tools.filter((bundle) => userStore.user.applications.includes(bundle.name));
+    unactivatedBundles.value = tools.filter((bundle) => !userStore.user.applications.includes(bundle.name));
+    console.log(unactivatedBundles.value);
     const response = await getWidgetsCatalogService();
     widgets.value = applyPersistedLayout(response.widgets || []);
     await Promise.all(widgets.value.filter((widget) => widget.enabled).map((widget) => loadWidgetData(widget.code)));
@@ -164,40 +157,72 @@ onMounted(async () => {
     <div class="px-4 lg:px-10">
       <div class="grid grid-cols-12 gap-4">
         <aside class="col-span-12 lg:col-span-2 pt-28 pb-14 h-screen">
-          <div class="card h-full overflow-y-auto">
-            <div class="text-sm font-semibold text-color-secondary uppercase">Applications</div>
-            <div class="flex flex-col gap-2">
+          <div class="card h-full overflow-y-auto flex flex-col gap-6">
+            <div class="flex flex-col gap-4">
+              <div class="text-md font-semibold text-color-secondary uppercase">Applications</div>
+              <div class="flex flex-col">
+                <Button
+                v-for="bundle in activatedBundles"
+                :key="bundle.urlSlug"
+                type="button"
+                text
+                rounded
+                size="large"
+                class="justify-start!"
+                @click="onBundleClick(bundle.url)"
+                >
+                {{ bundle.name }}
+              </Button>
+            </div>
+          </div>
+          <div v-if="unactivatedBundles.length > 0" class="flex flex-col gap-4">
+            <div class="text-ms font-semibold text-color-secondary uppercase">Non activé</div>
+            <div class="flex flex-col">
               <Button
-              v-for="bundle in bundles"
+              v-for="bundle in unactivatedBundles"
               :key="bundle.urlSlug"
               type="button"
               text
               rounded
+              severity="secondary"
+              disabled
+              size="large"
               class="justify-start!"
-              @click="onBundleClick(bundle.url)"
               >
               {{ bundle.name }}
-            </button>
+            </Button>
           </div>
         </div>
-      </aside>
-      
-      <section class="col-span-12 lg:col-span-10 pt-28 pb-14 h-screen">
-        <div class="h-full overflow-y-auto">
-          <div v-if="!userStore.isLoading" class="flex items-center mb-8">
-          <div class="w-20 h-20 bg-primary-400 rounded-full flex items-center justify-center shrink-0">
-            <template v-if="userStore.userPhoto">
-              <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full" />
-            </template>
-            <template v-else>
-              <span class="text-gray-700 text-xl">{{ initiales }}</span>
-            </template>
+      </div>
+    </aside>
+    
+    <section class="col-span-12 lg:col-span-10 pt-28 pb-14 h-screen">
+      <div class="h-full overflow-y-auto">
+        <div v-if="!userStore.isLoading" class="flex items-center justify-between mb-4">
+          <div class="flex items-center">
+            <div class="w-20 h-20 bg-primary-400 rounded-full flex items-center justify-center shrink-0">
+              <template v-if="userStore.userPhoto">
+                <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full" />
+              </template>
+              <template v-else>
+                <span class="text-gray-700 text-xl">{{ initiales }}</span>
+              </template>
+            </div>
+            <div class="ml-4">
+              <h2 class="text-2xl! mb-0! font-bold flex items-center gap-2">
+                <span class="font-light">Bonjour,</span> {{ userStore.user.prenom }}
+              </h2>
+              <small class="text-gray-500">{{ formatDateLong(date) }}</small>
+            </div>
           </div>
-          <div class="ml-4">
-            <h2 class="text-2xl! mb-0! font-bold flex items-center gap-2">
-              <span class="font-light">Bonjour,</span> {{ userStore.user.prenom }}
-            </h2>
-            <small class="text-gray-500">{{ formatDateLong(date) }}</small>
+          <div class="card flex justify-between items-center gap-6 m-0! p-4!">
+            <div>
+              <div class="text-xl font-semibold">Mon dashboard</div>
+              <div class="text-sm text-color-secondary">Personnalisez vos widgets.</div>
+            </div>
+            <Button >
+              Configurer les widgets
+            </button>
           </div>
         </div>
         <div v-if="loading" class="rounded-xl border border-surface-200 bg-surface-0 p-6 text-color-secondary h-full overflow-hidden">
@@ -207,9 +232,9 @@ onMounted(async () => {
           <article
           v-for="widget in visibleWidgets"
           :key="widget.code"
-          :class="`${gridClass(widget.size)} card m-0!`"
+          :class="`${gridClass(widget.size)} card m-0! lg:p-6! p-4!`"
           >
-          <div class="mb-3 flex items-center justify-between gap-2">
+          <div class="mb-3 flex items-start justify-between gap-2">
             <div class="font-semibold text-xl"><i :class="`${widget.icon} mr-2 text-primary-500`"/>{{ widget.label }}</div>
             <div class="flex items-center gap-1">
               <Button icon="pi pi-arrow-left" text rounded @click="moveWidget(widget, -1)"/>
@@ -219,12 +244,12 @@ onMounted(async () => {
             </div>
           </div>
           <div class="text-sm text-color-secondary mb-2">{{ widget.code }}</div>
-          <pre class="widget-data">{{ widgetData[widget.code] || { message: 'Chargement...' } }}</pre>
+          <div class="widget-data">{{ widgetData[widget.code] || { message: 'Chargement...' } }}</div>
         </article>
       </div>
-        </div>
-    </section>
-  </div>
+    </div>
+  </section>
+</div>
 </div>
 </main>
 </template>

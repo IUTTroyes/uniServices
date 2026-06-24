@@ -41,7 +41,7 @@ const getWidgetDataByCodeService = async (code, params = {}, showToast = false) 
     );
 };
 
-const patchDashboardWidgetLayoutService = async (widgetKey, payload, params = {}, showToast = false) => {
+const updateDashboardWidgetLayoutService = async (widgetKey, payload, params = {}, showToast = false) => {
     return await apiCall(
         api.patch,
         [`/api/dashboard/widgets/${widgetKey}/layout`, payload, {
@@ -59,5 +59,5 @@ export {
     getDashboardWidgetDataService,
     getWidgetsCatalogService,
     getWidgetDataByCodeService,
-    patchDashboardWidgetLayoutService,
+    updateDashboardWidgetLayoutService,
 };

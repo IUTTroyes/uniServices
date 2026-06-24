@@ -46,7 +46,7 @@ class ActionsUrgentesWidget implements DashboardWidgetInterface
 
     public function getDefaultSize(): string
     {
-        return 'medium';
+        return 'small';
     }
 
     public function isDefaultEnabled(): bool

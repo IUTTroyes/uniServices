@@ -2,7 +2,7 @@
 import {computed, onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {useUsersStore, useAnneeUnivStore} from '@stores';
-import {getDashboardService, getDashboardWidgetDataService, patchDashboardWidgetLayoutService} from '@requests';
+import {getDashboardService, getDashboardWidgetDataService, updateDashboardWidgetLayoutService} from '@requests';
 import {dashboardWidgetRegistry} from '@/components/Personnel/dashboard/dashboardWidgetRegistry';
 import DashboardWidgetShell from '@/components/Personnel/dashboard/DashboardWidgetShell.vue';
 
@@ -107,7 +107,7 @@ const loadWidgetData = async (widgetKey) => {
 };
 
 const saveLayout = async (widget) => {
-  await patchDashboardWidgetLayoutService(widget.key, {
+  await updateDashboardWidgetLayoutService(widget.key, {
     enabled: widget.enabled,
     collapsed: widget.collapsed,
     position: widget.position,
