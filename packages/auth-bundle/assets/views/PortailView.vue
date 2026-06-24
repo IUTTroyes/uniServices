@@ -156,11 +156,11 @@ onMounted(async () => {
   <main>
     <TopbarComponent :app-name :logo-url/>
 
-    <div class="px-4 py-6 lg:px-10">
-      <div class="mb-4 text-2xl font-semibold">Portail des widgets</div>
+    <div class="px-4 lg:px-10">
       <div class="grid grid-cols-12 gap-4">
-        <aside class="col-span-12 lg:col-span-3 rounded-xl border border-surface-200 bg-surface-0 p-4">
-          <div class="mb-3 text-sm font-semibold text-color-secondary">Bundles disponibles</div>
+        <aside class="col-span-12 lg:col-span-3 pt-28 pb-14 h-screen">
+          <div class="card h-full overflow-y-auto">
+            <div class="mb-3 text-sm font-semibold text-color-secondary">Bundles disponibles</div>
           <div class="flex flex-col gap-2">
             <button
                 v-for="bundle in bundles"
@@ -172,14 +172,15 @@ onMounted(async () => {
               {{ bundle.name }}
             </button>
           </div>
+          </div>
         </aside>
 
-        <section class="col-span-12 lg:col-span-9">
-          <div v-if="loading" class="rounded-xl border border-surface-200 bg-surface-0 p-6 text-color-secondary">
+        <section class="col-span-12 lg:col-span-9 pt-28 pb-14 h-screen">
+          <div v-if="loading" class="rounded-xl border border-surface-200 bg-surface-0 p-6 text-color-secondary h-full overflow-hidden">
             Chargement des widgets...
           </div>
 
-          <div v-else class="grid grid-cols-12 gap-4">
+          <div v-else class="grid grid-cols-12 gap-4 h-full overflow-y-auto">
             <article
                 v-for="widget in visibleWidgets"
                 :key="widget.code"
