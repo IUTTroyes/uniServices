@@ -3,6 +3,11 @@ import {computed, onMounted, ref} from 'vue';
 import {TopbarComponent} from '@components';
 import {tools} from '@config/uniServices.js';
 import {getWidgetDataByCodeService, getWidgetsCatalogService} from '@requests';
+import { useUsersStore } from "@stores";
+import { formatDateLong } from "@helpers/date";
+
+const userStore = useUsersStore();
+const date = new Date();
 
 const STORAGE_KEY = 'portail.widgets.layout';
 
@@ -39,17 +44,17 @@ const onBundleClick = (bundleUrl) => {
     selectedBundle.value = 'all';
     return;
   }
-    window.location.href = bundleUrl;
+  window.location.href = bundleUrl;
 };
 
 const visibleWidgets = computed(() => {
   const filtered = selectedBundle.value === 'all'
-      ? widgets.value
-      : widgets.value.filter((widget) => widget.bundle === selectedBundle.value);
-
+  ? widgets.value
+  : widgets.value.filter((widget) => widget.bundle === selectedBundle.value);
+  
   return [...filtered]
-      .filter((widget) => widget.enabled)
-      .sort((a, b) => a.position - b.position);
+  .filter((widget) => widget.enabled)
+  .sort((a, b) => a.position - b.position);
 });
 
 const gridClass = (size) => {
@@ -59,8 +64,8 @@ const gridClass = (size) => {
   if (size === 'large') {
     return 'col-span-12';
   }
-
-  return 'col-span-12 lg:col-span-6';
+  
+  return 'col-span-12 lg:col-span-8';
 };
 
 const saveLayout = () => {
@@ -78,16 +83,16 @@ const applyPersistedLayout = (catalogWidgets) => {
   if (!raw) {
     return catalogWidgets.map((widget, index) => ({...widget, position: index}));
   }
-
+  
   const saved = JSON.parse(raw);
   const savedByCode = new Map(saved.map((item) => [item.code, item]));
-
+  
   return catalogWidgets.map((widget, index) => {
     const savedWidget = savedByCode.get(widget.code);
     if (!savedWidget) {
       return {...widget, position: index};
     }
-
+    
     return {
       ...widget,
       enabled: savedWidget.enabled ?? widget.enabled,
@@ -115,15 +120,15 @@ const moveWidget = (widget, direction) => {
   if (index === -1) {
     return;
   }
-
+  
   const targetIndex = index + direction;
   if (targetIndex < 0 || targetIndex >= sorted.length) {
     return;
   }
-
+  
   const element = sorted.splice(index, 1)[0];
   sorted.splice(targetIndex, 0, element);
-
+  
   sorted.forEach((item, position) => {
     item.position = position;
   });
@@ -155,62 +160,74 @@ onMounted(async () => {
 <template>
   <main>
     <TopbarComponent :app-name :logo-url/>
-
+    
     <div class="px-4 lg:px-10">
       <div class="grid grid-cols-12 gap-4">
-        <aside class="col-span-12 lg:col-span-3 pt-28 pb-14 h-screen">
+        <aside class="col-span-12 lg:col-span-2 pt-28 pb-14 h-screen">
           <div class="card h-full overflow-y-auto">
-            <div class="mb-3 text-sm font-semibold text-color-secondary">Bundles disponibles</div>
-          <div class="flex flex-col gap-2">
-            <button
-                v-for="bundle in bundles"
-                :key="bundle.urlSlug"
-                type="button"
-                class="text-left rounded-lg px-3 py-2"
-                @click="onBundleClick(bundle.url)"
-            >
+            <div class="text-sm font-semibold text-color-secondary uppercase">Applications</div>
+            <div class="flex flex-col gap-2">
+              <Button
+              v-for="bundle in bundles"
+              :key="bundle.urlSlug"
+              type="button"
+              text
+              rounded
+              class="justify-start!"
+              @click="onBundleClick(bundle.url)"
+              >
               {{ bundle.name }}
             </button>
           </div>
+        </div>
+      </aside>
+      
+      <section class="col-span-12 lg:col-span-10 pt-28 pb-14 h-screen">
+        <div class="h-full overflow-y-auto">
+          <div v-if="!userStore.isLoading" class="flex items-center mb-8">
+          <div class="w-20 h-20 bg-primary-400 rounded-full flex items-center justify-center shrink-0">
+            <template v-if="userStore.userPhoto">
+              <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full" />
+            </template>
+            <template v-else>
+              <span class="text-gray-700 text-xl">{{ initiales }}</span>
+            </template>
           </div>
-        </aside>
-
-        <section class="col-span-12 lg:col-span-9 pt-28 pb-14 h-screen">
-          <div v-if="loading" class="rounded-xl border border-surface-200 bg-surface-0 p-6 text-color-secondary h-full overflow-hidden">
-            Chargement des widgets...
+          <div class="ml-4">
+            <h2 class="text-2xl! mb-0! font-bold flex items-center gap-2">
+              <span class="font-light">Bonjour,</span> {{ userStore.user.prenom }}
+            </h2>
+            <small class="text-gray-500">{{ formatDateLong(date) }}</small>
           </div>
-
-          <div v-else class="grid grid-cols-12 gap-4 h-full overflow-y-auto">
-            <article
-                v-for="widget in visibleWidgets"
-                :key="widget.code"
-                :class="`${gridClass(widget.size)} rounded-xl border border-surface-200 bg-surface-0 p-4`"
-            >
-              <div class="mb-3 flex items-center justify-between gap-2">
-                <div class="font-semibold"><i :class="`${widget.icon} mr-2 text-primary-500`"/>{{ widget.label }}</div>
-                <div class="flex items-center gap-1">
-                  <Button icon="pi pi-arrow-left" text rounded @click="moveWidget(widget, -1)"/>
-                  <Button icon="pi pi-arrow-right" text rounded @click="moveWidget(widget, 1)"/>
-                  <Button icon="pi pi-arrows-h" text rounded @click="rotateSize(widget)"/>
-                  <Button icon="pi pi-times" text rounded @click="toggleWidget(widget)"/>
-                </div>
-              </div>
-              <div class="text-sm text-color-secondary mb-2">{{ widget.code }}</div>
-              <pre class="widget-data">{{ widgetData[widget.code] || { message: 'Chargement...' } }}</pre>
-            </article>
+        </div>
+        <div v-if="loading" class="rounded-xl border border-surface-200 bg-surface-0 p-6 text-color-secondary h-full overflow-hidden">
+          Chargement des widgets...
+        </div>
+        <div v-else class="grid grid-cols-12 gap-4 overflow-y-auto">
+          <article
+          v-for="widget in visibleWidgets"
+          :key="widget.code"
+          :class="`${gridClass(widget.size)} card m-0!`"
+          >
+          <div class="mb-3 flex items-center justify-between gap-2">
+            <div class="font-semibold text-xl"><i :class="`${widget.icon} mr-2 text-primary-500`"/>{{ widget.label }}</div>
+            <div class="flex items-center gap-1">
+              <Button icon="pi pi-arrow-left" text rounded @click="moveWidget(widget, -1)"/>
+              <Button icon="pi pi-arrow-right" text rounded @click="moveWidget(widget, 1)"/>
+              <Button icon="pi pi-arrows-h" text rounded @click="rotateSize(widget)"/>
+              <Button icon="pi pi-times" text rounded @click="toggleWidget(widget)"/>
+            </div>
           </div>
-        </section>
+          <div class="text-sm text-color-secondary mb-2">{{ widget.code }}</div>
+          <pre class="widget-data">{{ widgetData[widget.code] || { message: 'Chargement...' } }}</pre>
+        </article>
       </div>
-    </div>
-  </main>
+        </div>
+    </section>
+  </div>
+</div>
+</main>
 </template>
 
 <style scoped>
-.widget-data {
-  white-space: pre-wrap;
-  background: #f3f4f6;
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  font-size: 0.875rem;
-}
 </style>
