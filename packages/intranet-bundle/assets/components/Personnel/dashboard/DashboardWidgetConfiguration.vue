@@ -2,7 +2,7 @@
 import {computed, onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {useUsersStore} from '@stores';
-import {getDashboardService, patchDashboardWidgetLayoutService} from '@requests';
+import {getDashboardService, updateDashboardWidgetLayoutService} from '@requests';
 
 const router = useRouter();
 const userStore = useUsersStore();
@@ -37,7 +37,7 @@ const toggleWidget = async (widget) => {
 
     try {
         const enabled = !widget.enabled;
-        await patchDashboardWidgetLayoutService(widget.key, {
+        await updateDashboardWidgetLayoutService(widget.key, {
             enabled,
             collapsed: widget.collapsed,
             position: widget.position,

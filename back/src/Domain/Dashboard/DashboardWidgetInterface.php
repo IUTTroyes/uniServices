@@ -4,6 +4,7 @@ namespace App\Domain\Dashboard;
 
 use App\Entity\Users\Personnel;
 
+
 interface DashboardWidgetInterface
 {
     public function getKey(): string;

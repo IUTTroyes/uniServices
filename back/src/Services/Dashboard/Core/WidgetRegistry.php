@@ -22,19 +22,23 @@ class WidgetRegistry
         #[TaggedIterator('app.dashboard.widget_provider')]
         iterable $providers,
     ) {
+        //ici on recupere tout les providers taggés avec app.dashboard.widget_provider
         /** @var WidgetProviderInterface $provider */
+        //ici on parcoure les providers
         foreach ($providers as $provider) {
             $this->bundles[] = [
                 'code' => $provider->getBundleCode(),
                 'label' => $provider->getBundleLabel(),
             ];
 
+            //ici on recupere tout les widgets du provider
             foreach ($provider->getWidgets() as $widget) {
                 $this->widgets[$widget->getCode()] = $widget;
             }
         }
     }
 
+    //ici on retourne tout les widgets
     /**
      * @return WidgetDefinition[]
      */
@@ -43,11 +47,13 @@ class WidgetRegistry
         return array_values($this->widgets);
     }
 
+    //ici on retourne un widget par son code
     public function get(string $code): ?WidgetDefinition
     {
         return $this->widgets[$code] ?? null;
     }
 
+    //ici on retourne tout les bundles
     /**
      * @return array<int, array{code: string, label: string}>
      */
