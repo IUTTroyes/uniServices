@@ -19,18 +19,24 @@ class PortalDashboardDefinition implements DashboardDefinitionInterface
             new DashboardWidgetLayout(
                 'intranet.emploi_du_temps',
                 0,
-                'large'
-            ),
-
-            new DashboardWidgetLayout(
-                'portfolio.progress',
-                1,
                 'medium'
             ),
 
             new DashboardWidgetLayout(
-                'questionnaire.pending',
+                'intranet.actions_urgentes',
+                1,
+                'small'
+            ),
+
+            new DashboardWidgetLayout(
+                'portfolio.progress',
                 2,
+                'small'
+            ),
+
+            new DashboardWidgetLayout(
+                'questionnaire.pending',
+                3,
                 'medium'
             ),
         ];

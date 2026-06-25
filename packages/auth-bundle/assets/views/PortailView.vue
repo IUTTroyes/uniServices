@@ -1,6 +1,6 @@
 <script setup>
 import {computed, onMounted, ref} from 'vue';
-import {TopbarComponent} from '@components';
+import {TopbarComponent, WidgetCard} from '@components';
 import {tools} from '@config/uniServices.js';
 import {getWidgetDataByCodeService, getWidgetsCatalogService} from '@requests';
 import { useUsersStore } from "@stores";
@@ -8,8 +8,6 @@ import { formatDateLong } from "@helpers/date";
 
 const userStore = useUsersStore();
 const date = new Date();
-
-const STORAGE_KEY = 'portail.widgets.layout';
 
 defineProps({
   appName: {
@@ -26,83 +24,21 @@ defineProps({
 const activatedBundles = ref([]);
 const unactivatedBundles = ref([]);
 const widgets = ref([]);
-const selectedBundle = ref('all');
 const widgetData = ref({});
 const loading = ref(true);
 
 const onBundleClick = (bundleUrl) => {
-  if (bundleUrl === 'all') {
-    selectedBundle.value = 'all';
-    return;
-  }
   window.location.href = bundleUrl;
-};
-
-const visibleWidgets = computed(() => {
-  const filtered = selectedBundle.value === 'all'
-  ? widgets.value
-  : widgets.value.filter((widget) => widget.bundle === selectedBundle.value);
-  
-  return [...filtered]
-  .filter((widget) => widget.enabled)
-  .sort((a, b) => a.position - b.position);
-});
-
-const gridClass = (size) => {
-  if (size === 'small') {
-    return 'col-span-12 lg:col-span-4';
-  }
-  if (size === 'large') {
-    return 'col-span-12';
-  }
-  
-  return 'col-span-12 lg:col-span-8';
-};
-
-const saveLayout = () => {
-  const persisted = widgets.value.map((widget) => ({
-    code: widget.code,
-    enabled: widget.enabled,
-    size: widget.size,
-    position: widget.position,
-  }));
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted));
-};
-
-const applyPersistedLayout = (catalogWidgets) => {
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    return catalogWidgets.map((widget, index) => ({...widget, position: index}));
-  }
-  
-  const saved = JSON.parse(raw);
-  const savedByCode = new Map(saved.map((item) => [item.code, item]));
-  
-  return catalogWidgets.map((widget, index) => {
-    const savedWidget = savedByCode.get(widget.code);
-    if (!savedWidget) {
-      return {...widget, position: index};
-    }
-    
-    return {
-      ...widget,
-      enabled: savedWidget.enabled ?? widget.enabled,
-      size: savedWidget.size ?? widget.size,
-      position: Number.isInteger(savedWidget.position) ? savedWidget.position : index,
-    };
-  });
 };
 
 const rotateSize = (widget) => {
   const sizes = ['small', 'medium', 'large'];
   const index = sizes.indexOf(widget.size || 'medium');
   widget.size = sizes[(index + 1) % sizes.length];
-  saveLayout();
 };
 
 const toggleWidget = (widget) => {
   widget.enabled = !widget.enabled;
-  saveLayout();
 };
 
 const moveWidget = (widget, direction) => {
@@ -124,7 +60,6 @@ const moveWidget = (widget, direction) => {
     item.position = position;
   });
   widgets.value = sorted;
-  saveLayout();
 };
 
 const loadWidgetData = async (code) => {
@@ -141,12 +76,15 @@ onMounted(async () => {
     activatedBundles.value = tools.filter((bundle) => userStore.user.applications.includes(bundle.name));
     unactivatedBundles.value = tools.filter((bundle) => !userStore.user.applications.includes(bundle.name));
     const response = await getWidgetsCatalogService();
-    widgets.value = applyPersistedLayout(response.widgets || []);
-    await Promise.all(widgets.value.filter((widget) => widget.enabled).map((widget) => loadWidgetData(widget.code)));
-  } finally {
-    loading.value = false;
-  }
-});
+    widgets.value = response.widgets || [];
+    await Promise.all(
+    widgets.value.map(({ code }) =>
+    loadWidgetData(code)
+    )
+    );  } finally {
+      loading.value = false;
+    }
+  });
 </script>
 
 <template>
@@ -228,27 +166,21 @@ onMounted(async () => {
           Chargement des widgets...
         </div>
         <div v-else class="grid grid-cols-12 gap-4 overflow-y-auto">
-          <article
-          v-for="widget in visibleWidgets"
+          <WidgetCard
+          v-for="widget in widgets"
           :key="widget.code"
-          :class="`${gridClass(widget.size)} card m-0! lg:p-6! p-4!`"
-          >
-          <div class="mb-3 flex items-start justify-between gap-2">
-            <div class="font-semibold text-xl"><i :class="`${widget.icon} mr-2 text-primary-500`"/>{{ widget.label }}</div>
-            <div class="flex items-center gap-1">
-              <Button icon="pi pi-arrow-left" text rounded @click="moveWidget(widget, -1)"/>
-              <Button icon="pi pi-arrow-right" text rounded @click="moveWidget(widget, 1)"/>
-              <Button icon="pi pi-arrows-h" text rounded @click="rotateSize(widget)"/>
-              <Button icon="pi pi-times" text rounded @click="toggleWidget(widget)"/>
-            </div>
-          </div>
-          <div class="text-sm text-color-secondary mb-2">{{ widget.code }}</div>
-          <div class="widget-data">{{ widgetData[widget.code] || { message: 'Chargement...' } }}</div>
-        </article>
+          :widget="widget"
+          :data="widgetData[widget.code]"
+          :first="widget.position == 0 ? true : false"
+          :last="widget.position == widgets.length - 1 ? true : false"
+          @move="moveWidget($event)"
+          @rotate="rotateSize($event)"
+          @toggle="toggleWidget($event)"
+          />
+        </div>
       </div>
-    </div>
-  </section>
-</div>
+    </section>
+  </div>
 </div>
 </main>
 </template>
