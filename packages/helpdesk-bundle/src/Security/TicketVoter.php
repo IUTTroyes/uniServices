@@ -30,7 +30,13 @@ class TicketVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return in_array($attribute, self::SUPPORTED_ATTRIBUTES);
+        if (!in_array($attribute, self::SUPPORTED_ATTRIBUTES)) {
+            return false;
+        }
+        if (in_array($attribute, [self::CAN_EDIT_TICKET, self::CAN_DELETE_TICKET])) {
+            return $subject instanceof HelpdeskTicket;
+        }
+        return true;
     }
 
     protected function voteOnAttribute(string $attribute, mixed $subject, TokenInterface $token, ?Vote $vote = null): bool
@@ -47,7 +53,7 @@ class TicketVoter extends Voter
         }
 
         return match($attribute) {
-            self::CAN_VIEW_TICKET => $this->canViewTicket($user),
+            self::CAN_VIEW_TICKET => $this->canViewTicket($user,$subject),
             self::CAN_CREATE_TICKET => $this->canCreateTicket($user),
             self::CAN_EDIT_TICKET => $this->canEditTicket($user,$subject),
             self::CAN_DELETE_TICKET => $this->canDeleteTicket($user,$subject),
@@ -70,9 +76,23 @@ class TicketVoter extends Voter
         return false;
     }
 
-    private function canViewTicket(Personnel|Etudiant $user): bool
+    private function canViewTicket(Personnel|Etudiant $user, mixed $subject): bool
     {
-        return  (!$user instanceof Etudiant);
+        if (!$subject instanceof HelpdeskTicket) {
+            return $user instanceof Personnel;
+        }
+        if ($subject->getAuteur() && $user->getId() === $subject->getAuteur()->getId()) {
+            return true;
+        }
+        if ($user instanceof Personnel) {
+            $serviceTicket = $subject->getHelpdeskCategorie()?->getService();
+
+            if ($serviceTicket && $user->getServices()->contains($serviceTicket)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function canCreateTicket(Personnel|Etudiant $user):bool
@@ -91,6 +111,9 @@ class TicketVoter extends Voter
 
     private function canDeleteTicket(Personnel|Etudiant $user,HelpdeskTicket $subject): bool
     {
+        if ($subject->getAuteur() && $user->getId() === $subject->getAuteur()->getId()) {
+            return true;
+        }
         if($user instanceof Etudiant){
             return false;
         }

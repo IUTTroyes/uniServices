@@ -42,47 +42,6 @@ const initiales = computed(
     () => `${userStore.user?.prenom?.charAt(0) || ""}${userStore.user?.nom?.charAt(0) || ""}`
 );
 
-/*const getTickets = async () => {
-  try {
-    loading.value = true;
-    const params= {
-      auteur: userStore.user?.id,
-      latest:6,
-    }
-    const paramsMessages= {
-      hasRecentMessage:true,
-    }
-    const response = await getTicketsService(params);
-
-    if (response && response['member']) {
-      ticketsList.value = response['member'];
-    } else if (Array.isArray(response)) {
-      ticketsList.value = response;
-    } else {
-      ticketsList.value = [];
-    }
-
-    const postedParams = { auteur: userStore.user?.id };
-    postedTicketsList.value = await getTicketsService(postedParams);
-
-    const responseNewMessage = await getTicketsService(paramsMessages);
-
-    if (responseNewMessage && responseNewMessage['member']) {
-      ticketsNewMessageList.value = responseNewMessage['member'];
-    } else if (Array.isArray(responseNewMessage)) {
-      ticketsNewMessageList.value = responseNewMessage;
-    } else {
-      ticketsNewMessageList.value = [];
-    }
-
-
-  } catch (error) {
-    console.error('Impossible de charger les tickets:', error);
-    ticketsList.value = [];
-  } finally {
-    loading.value = false;
-  }
-};*/
 const getTickets = async () => {
   try {
     loading.value = true;

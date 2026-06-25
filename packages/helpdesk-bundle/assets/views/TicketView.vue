@@ -278,9 +278,12 @@ onMounted(async () => {
               </div>
             </template>
           </ValidatedInput>
-
+        </div>
+        </PermissionGuard>
+<div>
           <Button label="Répondre" severity="info" @click="toggleReply" size="large"/>
         </div>
+
 
         <div v-if="isReplying" class="mt-4 p-4 rounded bg-gray-50">
           <form @submit.prevent="sendMessage()">
@@ -302,7 +305,7 @@ onMounted(async () => {
           </form>
         </div>
 
-
+<PermissionGuard permission="isScolarite">
         <div class="flex justify-around pt-20">
 
             <div class="flex gap-4 items-center">

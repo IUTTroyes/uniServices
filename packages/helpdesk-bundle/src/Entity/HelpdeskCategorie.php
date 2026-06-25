@@ -16,10 +16,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new GetCollection(
             normalizationContext: ['groups' => ['category:read']],
+            security: "is_granted('CAN_VIEW_CATEGORIE',object)",
+
         ),
         new GetCollection(
             uriTemplate: '/form_ticket/helpdesk_categories',
             normalizationContext: ['groups' => ['category:form_ticket']],
+            security: "is_granted('CAN_VIEW_CATEGORIE',object)",
+
         )
     ]
 )]

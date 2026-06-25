@@ -47,7 +47,6 @@ const getPersonnelsDuService = async (serviceId) => {
 
 const supprimerTicket = async (id) => {
   try {
-    await deleteMessageService(id,true)
     await deleteTicketService(id, true);
     ticketsList.value = ticketsList.value.filter(t => t.id !== id);
   }

@@ -33,7 +33,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     operations: [
         new Post(
-            uriTemplate: '/helpdesk_tickets',
             inputFormats: [
                 'jsonld' => ['application/ld+json'],
                 'multipart' => ['multipart/form-data'],
@@ -45,19 +44,29 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
         new GetCollection(
             normalizationContext: ['groups' => ['ticket:read']],
+            security: "is_granted('CAN_VIEW_TICKET',object)",
+
         ),
         new Get(
             normalizationContext: ['groups' => ['ticket:read']],
+            security: "is_granted('CAN_VIEW_TICKET',object)",
+
         ),
         new Get(
             uriTemplate: '/simple-ticket/helpdesk_tickets/{id}',
             normalizationContext: ['groups' => ['simple-ticket:read']],
+            security: "is_granted('CAN_VIEW_TICKET',object)",
+
         ),
         new Patch(
             normalizationContext: ['groups' => ['ticket:write']],
+            security: "is_granted('CAN_CREATE_TICKET',object)",
+
         ),
         new Delete(
             normalizationContext: ['groups' => ['ticket:delete']],
+            security: "is_granted('CAN_DELETE_TICKET',object)",
+
         )
     ],
     paginationEnabled: false
@@ -106,7 +115,7 @@ class HelpdeskTicket
     /**
      * @var Collection<int, HelpdeskMessage>
      */
-    #[ORM\OneToMany(targetEntity: HelpdeskMessage::class, mappedBy: 'ticket')]
+    #[ORM\OneToMany(targetEntity: HelpdeskMessage::class, mappedBy: 'ticket', cascade: ['remove'])]
     #[Groups(['ticket:write','ticket:read','ticket:delete'])]
     private Collection $helpdeskMessages;
 
