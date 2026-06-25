@@ -10,7 +10,7 @@ class PortalDashboardDefinition implements DashboardDefinitionInterface
 {
     public function getCode(): string
     {
-        return 'portal';
+        return 'portail';
     }
 
     public function getWidgets(): array

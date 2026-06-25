@@ -54,3 +54,8 @@ services:
     arguments:
       $entityManager: "@doctrine.orm.entity_manager"
     tags: ["api_platform.state_provider"]
+
+  _instanceof:
+    App\Domain\Dashboard\DashboardDefinitionInterface:
+      tags:
+        - app.dashboard.definition

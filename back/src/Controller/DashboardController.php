@@ -52,6 +52,8 @@ class DashboardController extends AbstractController
             $definition['position'] = $layout->position;
             $definition['size'] = $layout->size;
             $definition['enabled'] = $layout->enabled;
+
+            $widgets[] = $definition;
         }
 
         return new JsonResponse([

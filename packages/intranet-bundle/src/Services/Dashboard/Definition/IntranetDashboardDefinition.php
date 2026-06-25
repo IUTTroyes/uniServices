@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Packages\IntranetBundle\Services\Dashboard\Definition;
+namespace IntranetBundle\Services\Dashboard\Definition;
 
 use App\Domain\Dashboard\DashboardDefinitionInterface;
 use App\Domain\Dashboard\DashboardWidgetLayout;
