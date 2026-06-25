@@ -49,6 +49,11 @@ services:
       - "../src/Entity/"
       - "../src/Kernel.php"
 
+
+  _instanceof:
+    App\Security\Permission\PermissionProviderInterface:
+      tags: ['app.permission_provider']
+      
   App\DataProvider\SingleRecordDataProvider:
     arguments:
       $entityManager: "@doctrine.orm.entity_manager"

@@ -18,6 +18,7 @@ use App\Filter\DepartementPersonnelFilter;
 use App\State\Provider\Users\ActionsUrgentesWidgetProvider;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
+use Doctrine\DBAL\Types\Types;
 
 #[ORM\Entity(repositoryClass: StructureDepartementPersonnelRepository::class)]
 #[ApiFilter(DepartementPersonnelFilter::class, SearchFilter::class, properties: [
@@ -48,7 +49,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
             inputFormats: ['json' => ['application/ld+json']],
             outputFormats: ['json' => ['application/ld+json']],
             normalizationContext: ['groups' => ['departement_personnel:read']],
-            processor: 'App\State\ChangeDepartementProcessor'),
+            processor: 'App\State\ChangeDepartementProcessor'
+        ),
         new Post(
             normalizationContext: ['groups' => ['departement_personnel:read']],
             denormalizationContext: ['groups' => ['departement_personnel:write']]
@@ -89,6 +91,12 @@ class StructureDepartementPersonnel
     #[ORM\Column]
     #[Groups(groups: ['departement_personnel:read', 'departement_personnel:write'])]
     private bool $affectation = false;
+
+    #[ORM\Column(type: Types::JSON)]
+    private array $packages = [];
+
+    #[ORM\Column(type: Types::JSON)]
+    private array $permissions = [];
 
     public function getId(): ?int
     {
@@ -153,5 +161,39 @@ class StructureDepartementPersonnel
         $this->affectation = $affectation;
 
         return $this;
+    }
+
+    public function getPackages(): array
+    {
+        return $this->packages ?? [];
+    }
+
+    public function setPackages(array $packages): static
+    {
+        $this->packages = $packages;
+
+        return $this;
+    }
+
+    public function getPermissions(): array
+    {
+        return $this->permissions ?? [];
+    }
+
+    public function setPermissions(array $permissions): static
+    {
+        $this->permissions = $permissions;
+
+        return $this;
+    }
+
+    public function hasPackage(string $package): bool
+    {
+        return in_array($package, $this->packages, true);
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return in_array($permission, $this->permissions, true);
     }
 }

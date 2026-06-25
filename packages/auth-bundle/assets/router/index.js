@@ -9,6 +9,8 @@ import ConfigurationRoutes from '@/router/modules/configurationRoutes.js'
 import ResetPasswordView from "@/views/ResetPasswordView.vue";
 import ResetPasswordConfirmView from "@/views/ResetPasswordConfirmView.vue";
 import LogoIut from "@common-images/logo/logo_iut.png"
+import { registerSecurityGuard } from '@helpers/guards'
+
 
 const intranetMenu = [
   {
@@ -119,12 +121,6 @@ router.beforeEach(async (to, from) => {
       await userStore.getUser()
     }
 
-    // Vérification des permissions
-    const requiredPermission = to.meta.permission || to.matched.find(record => record.meta.permission)?.meta.permission;
-    if (requiredPermission && !hasPermission(requiredPermission)) {
-      return '/access'; // Rediriger vers la page d'accès refusé
-    }
-
     return true
   } catch (error) {
     console.error('Auth error:', error)
@@ -132,5 +128,8 @@ router.beforeEach(async (to, from) => {
     return false
   }
 })
+
+//gestion des roles
+registerSecurityGuard(router)
 
 export default router

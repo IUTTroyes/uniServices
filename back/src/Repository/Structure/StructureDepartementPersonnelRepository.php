@@ -3,6 +3,7 @@
 namespace App\Repository\Structure;
 
 use App\Entity\Structure\StructureDepartementPersonnel;
+use App\Entity\Structure\StructureDepartement;
 use App\Entity\Users\Personnel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -27,28 +28,16 @@ class StructureDepartementPersonnelRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
-    //    /**
-    //     * @return StructureDepartementPersonnel[] Returns an array of StructureDepartementPersonnel objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('s.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
-
-    //    public function findOneBySomeField($value): ?StructureDepartementPersonnel
-    //    {
-    //        return $this->createQueryBuilder('s')
-    //            ->andWhere('s.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function findOneForPersonnelAndDepartement(
+        Personnel $personnel,
+        StructureDepartement $departement,
+    ): ?StructureDepartementPersonnel {
+        return $this->createQueryBuilder('pd')
+            ->andWhere('pd.personnel = :personnel')
+            ->andWhere('pd.departement = :departement')
+            ->setParameter('personnel', $personnel)
+            ->setParameter('departement', $departement)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
 }
