@@ -1,5 +1,12 @@
 <?php
-final class PortalDashboardDefinition
+
+namespace App\Domain\Dashboard;
+
+use App\Domain\Dashboard\DashboardDefinitionInterface;
+use App\Domain\Dashboard\DashboardWidgetLayout;
+
+
+class PortalDashboardDefinition implements DashboardDefinitionInterface
 {
     public function getCode(): string
     {

@@ -1,6 +1,8 @@
 <?php
 
-final class DashboardWidgetLayout
+namespace App\Domain\Dashboard;
+
+class DashboardWidgetLayout
 {
     public function __construct(
         public readonly string $widgetCode,

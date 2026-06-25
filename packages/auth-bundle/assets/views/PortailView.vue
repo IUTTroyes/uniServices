@@ -140,7 +140,6 @@ onMounted(async () => {
   try {
     activatedBundles.value = tools.filter((bundle) => userStore.user.applications.includes(bundle.name));
     unactivatedBundles.value = tools.filter((bundle) => !userStore.user.applications.includes(bundle.name));
-    console.log(unactivatedBundles.value);
     const response = await getWidgetsCatalogService();
     widgets.value = applyPersistedLayout(response.widgets || []);
     await Promise.all(widgets.value.filter((widget) => widget.enabled).map((widget) => loadWidgetData(widget.code)));

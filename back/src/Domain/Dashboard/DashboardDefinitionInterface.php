@@ -1,10 +1,10 @@
 <?php
 
+namespace App\Domain\Dashboard;
+
 interface DashboardDefinitionInterface
 {
     public function getCode(): string;
-
-    public function getLabel(): string;
 
     /**
      * @return DashboardWidgetLayout[]

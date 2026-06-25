@@ -1,9 +1,21 @@
 <?php
-final class IntranetDashboardDefintion
+
+namespace App\Packages\IntranetBundle\Services\Dashboard\Definition;
+
+use App\Domain\Dashboard\DashboardDefinitionInterface;
+use App\Domain\Dashboard\DashboardWidgetLayout;
+
+
+class IntranetDashboardDefinition implements DashboardDefinitionInterface
 {
     public function getCode(): string
     {
         return 'intranet';
+    }
+
+    public function getLabel(): string
+    {
+        return 'Intranet';
     }
 
     public function getWidgets(): array

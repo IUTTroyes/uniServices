@@ -2,12 +2,11 @@
 
 namespace App\Controller;
 
-use App\Domain\Dashboard\DashboardContext;
-use App\Entity\Dashboard\DashboardPreference;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Users\Personnel;
 use App\Repository\Dashboard\DashboardPreferenceRepository;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
+use App\Services\Dashboard\Core\DashboardRegistry;
 use App\Services\Dashboard\Core\WidgetDataRegistry;
 use App\Services\Dashboard\Core\WidgetRegistry as CoreWidgetRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,6 +21,7 @@ class DashboardController extends AbstractController
         private readonly WidgetDataRegistry $widgetDataRegistry,
         private readonly DashboardPreferenceRepository $preferenceRepository,
         private readonly StructureDepartementPersonnelRepository $structureDepartementPersonnelRepository,
+        private readonly DashboardRegistry $dashboardRegistry,
     ) {}
 
 
@@ -41,16 +41,17 @@ class DashboardController extends AbstractController
         }
 
         $widgets = [];
-        // ici on recupere tout les widgets
-        foreach ($this->coreWidgetRegistry->all() as $widgetDefinition) {
+        $dashboard = $this->dashboardRegistry->get($dashboardCode);
+        foreach ($dashboard->getWidgets() as $layout) {
+            $widgetDefinition =
+                $this->coreWidgetRegistry->get(
+                    $layout->widgetCode
+                );
             $definition = $widgetDefinition->toArray();
-            $preference = $preferences[$definition['code']] ?? null;
-            //ici on ajoute les preferences de l'utilisateur si elles existent
-            if (null !== $preference) {
-                $definition['enabled'] = $preference->isEnabled();
-                $definition['size'] = $preference->getSize();
-            }
-            $widgets[] = $definition;
+
+            $definition['position'] = $layout->position;
+            $definition['size'] = $layout->size;
+            $definition['enabled'] = $layout->enabled;
         }
 
         return new JsonResponse([
