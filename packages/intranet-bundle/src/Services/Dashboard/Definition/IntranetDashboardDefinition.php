@@ -19,19 +19,19 @@ class IntranetDashboardDefinition implements DashboardDefinitionInterface
             new DashboardWidgetLayout(
                 'intranet.emploi_du_temps',
                 0,
-                'large'
+                'medium'
             ),
 
             new DashboardWidgetLayout(
                 'intranet.actions_urgentes',
                 1,
-                'medium'
+                'small'
             ),
 
             new DashboardWidgetLayout(
                 'intranet.documents_recents',
                 2,
-                'medium'
+                'small'
             ),
 
             new DashboardWidgetLayout(
