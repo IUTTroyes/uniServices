@@ -12,6 +12,7 @@ class WidgetDefinition
         private readonly string $component,
         private readonly string $size = 'medium',
         private readonly bool $enabled = true,
+        private readonly array $defaultConfig = [],
     ) {}
 
     public function getCode(): string
@@ -34,6 +35,7 @@ class WidgetDefinition
             'component' => $this->component,
             'size' => $this->size,
             'enabled' => $this->enabled,
+            'defaultConfig' => $this->defaultConfig,
         ];
     }
 }
