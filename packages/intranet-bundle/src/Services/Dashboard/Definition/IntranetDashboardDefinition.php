@@ -13,11 +13,6 @@ class IntranetDashboardDefinition implements DashboardDefinitionInterface
         return 'intranet';
     }
 
-    public function getLabel(): string
-    {
-        return 'Intranet';
-    }
-
     public function getWidgets(): array
     {
         return [
@@ -38,6 +33,7 @@ class IntranetDashboardDefinition implements DashboardDefinitionInterface
                 2,
                 'medium'
             ),
+
             new DashboardWidgetLayout(
                 'intranet.notes',
                 3,

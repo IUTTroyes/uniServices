@@ -33,8 +33,10 @@ class DashboardController extends AbstractController
             return new JsonResponse(['message' => 'Utilisateur non autorisé'], JsonResponse::HTTP_FORBIDDEN);
         }
 
-        // on recupere les preferences de l'utilisateur si elles existent
+        // on recupere le code du dashboard depuis la requete, par defaut 'portail'
         $dashboardCode = $request->query->get('dashboardCode', 'portail');
+
+        // on recupere les preferences de l'utilisateur si elles existent
         $preferences = [];
         foreach ($this->preferenceRepository->findByPersonnel($user, null, $dashboardCode) as $preference) {
             $preferences[$preference->getWidgetKey()] = $preference;

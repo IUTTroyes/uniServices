@@ -5,12 +5,15 @@ services:
 
   _instanceof:
     App\Domain\Dashboard\WidgetProviderInterface:
-      tags: [ 'app.dashboard.widget_provider' ]
+      tags: ["app.dashboard.widget_provider"]
     App\Domain\Dashboard\WidgetDataProviderInterface:
-      tags: [ 'app.dashboard.widget_data_provider' ]
+      tags: ["app.dashboard.widget_data_provider"]
+    App\Domain\Dashboard\DashboardDefinitionInterface:
+      tags:
+        - app.dashboard.definition
 
   IntranetBundle\:
-    resource: '../../'
+    resource: "../../"
     exclude:
-      - '../../Entity/'
-      - '../../IntranetBundle.php'
+      - "../../Entity/"
+      - "../../IntranetBundle.php"
