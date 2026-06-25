@@ -42,23 +42,34 @@ const toggleWidget = (widget) => {
 };
 
 const moveWidget = (widget, direction) => {
+  // tableau trier par position
   const sorted = [...widgets.value].sort((a, b) => a.position - b.position);
+  // trouver l'index du widget dans le tableau
   const index = sorted.findIndex((item) => item.code === widget.code);
+  
+  // si le widget n'est pas trouvé, on arrête
   if (index === -1) {
     return;
   }
   
+  // index cible
   const targetIndex = index + direction;
+
+  // si l'index cible est en dehors du tableau, on arrête
   if (targetIndex < 0 || targetIndex >= sorted.length) {
     return;
   }
   
-  const element = sorted.splice(index, 1)[0];
-  sorted.splice(targetIndex, 0, element);
+  // on retire le widget de son index et on l'insère à l'index cible
+  const movedWidget = sorted.splice(index, 1)[0];
+  sorted.splice(targetIndex, 0, movedWidget);
   
+  // on met à jour les positions des widgets
   sorted.forEach((item, position) => {
     item.position = position;
   });
+  
+  // on met à jour le tableau des widgets
   widgets.value = sorted;
 };
 
@@ -173,9 +184,9 @@ onMounted(async () => {
           :data="widgetData[widget.code]"
           :first="widget.position == 0 ? true : false"
           :last="widget.position == widgets.length - 1 ? true : false"
-          @move="moveWidget($event)"
-          @rotate="rotateSize($event)"
-          @toggle="toggleWidget($event)"
+          @move="moveWidget"
+          @rotate="rotateSize"
+          @toggle="toggleWidget"
           />
         </div>
       </div>
