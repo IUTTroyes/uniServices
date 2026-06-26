@@ -13,32 +13,23 @@ class IntranetDashboardDefinition implements DashboardDefinitionInterface
         return 'intranet';
     }
 
-    public function getWidgets(): array
+    public function getAvailableWidgets(): array
     {
         return [
-            new DashboardWidgetLayout(
-                'intranet.emploi_du_temps',
-                0,
-                'medium'
-            ),
+            'intranet.emploi_du_temps',
+            'intranet.documents_recents',
+            'users.actions_urgentes',
+            'etudiant.notes',
+        ];
+    }
 
-            new DashboardWidgetLayout(
-                'intranet.actions_urgentes',
-                1,
-                'small'
-            ),
-
-            new DashboardWidgetLayout(
-                'intranet.documents_recents',
-                2,
-                'small'
-            ),
-
-            new DashboardWidgetLayout(
-                'intranet.notes',
-                3,
-                'medium'
-            ),
+    public function getDefaultLayout(): array
+    {
+        return [
+            new DashboardWidgetLayout('intranet.emploi_du_temps', 0, 'medium'),
+            new DashboardWidgetLayout('users.actions_urgentes', 1, 'small'),
+            new DashboardWidgetLayout('intranet.documents_recents', 2, 'small'),
+            new DashboardWidgetLayout('etudiant.notes', 3, 'medium'),
         ];
     }
 }

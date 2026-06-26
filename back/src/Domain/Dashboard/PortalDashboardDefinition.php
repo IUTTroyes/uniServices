@@ -13,7 +13,7 @@ class PortalDashboardDefinition implements DashboardDefinitionInterface
         return 'portail';
     }
 
-    public function getWidgets(): array
+    public function getAvailableWidgets(): array
     {
         return [
             new DashboardWidgetLayout(
@@ -26,6 +26,29 @@ class PortalDashboardDefinition implements DashboardDefinitionInterface
                 'intranet.actions_urgentes',
                 1,
                 'small'
+            ),
+
+            new DashboardWidgetLayout(
+                'portfolio.progress',
+                2,
+                'small'
+            ),
+
+            new DashboardWidgetLayout(
+                'questionnaire.pending',
+                3,
+                'medium'
+            ),
+        ];
+    }
+
+    public function getDefaultLayout(): array
+    {
+        return [
+            new DashboardWidgetLayout(
+                'intranet.emploi_du_temps',
+                0,
+                'medium',
             ),
 
             new DashboardWidgetLayout(

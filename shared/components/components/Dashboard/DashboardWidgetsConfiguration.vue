@@ -2,7 +2,7 @@
 import {computed, onMounted, ref } from 'vue';
 import {useRouter} from 'vue-router';
 import {useUsersStore} from '@stores';
-import {getWidgetsCatalogService} from '@requests';
+import {getWidgetsAvailableService} from '@requests';
 
 const router = useRouter();
 const userStore = useUsersStore();
@@ -19,10 +19,8 @@ onMounted(async () => {
 
 const getBundleWidgets = async () => {
   loading.value = true;
-  const params = {
-    bundle: bundle.value,
-  };
-  const response = await getWidgetsCatalogService(params);
+  
+  const response = await getWidgetsAvailableService(bundle.value);
   widgets.value = response.widgets || [];
   loading.value = false;
 }

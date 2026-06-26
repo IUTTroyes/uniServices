@@ -7,7 +7,16 @@ interface DashboardDefinitionInterface
     public function getCode(): string;
 
     /**
+     * Widgets affichés au premier affichage.
+     *
      * @return DashboardWidgetLayout[]
      */
-    public function getWidgets(): array;
+    public function getDefaultLayout(): array;
+
+    /**
+     * Widgets configurables pour ce dashboard.
+     *
+     * @return DashboardWidgetLayout[]
+     */
+    public function getAvailableWidgets(): array;
 }

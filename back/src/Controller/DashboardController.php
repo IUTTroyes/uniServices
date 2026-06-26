@@ -44,7 +44,7 @@ class DashboardController extends AbstractController
 
         $widgets = [];
         $dashboard = $this->dashboardRegistry->get($dashboardCode);
-        foreach ($dashboard->getWidgets() as $layout) {
+        foreach ($dashboard->getDefaultLayout() as $layout) {
             $widgetDefinition =
                 $this->coreWidgetRegistry->get(
                     $layout->widgetCode
@@ -60,6 +60,27 @@ class DashboardController extends AbstractController
 
         return new JsonResponse([
             'bundles' => $this->coreWidgetRegistry->getBundles(),
+            'widgets' => $widgets,
+        ]);
+    }
+
+    #[Route('/api/widgets/available/{dashboardCode}', name: 'api_widgets_available', methods: ['GET'])]
+    public function getWidgetsAvailable(string $dashboardCode): JsonResponse
+    {
+        $dashboard = $this->dashboardRegistry->get($dashboardCode);
+
+        $widgets = [];
+        foreach ($dashboard->getAvailableWidgets() as $layout) {
+            $widgetDefinition =
+                $this->coreWidgetRegistry->get(
+                    $layout->widgetCode
+                );
+            $definition = $widgetDefinition->toArray();
+
+            $widgets[] = $definition;
+        }
+
+        return new JsonResponse([
             'widgets' => $widgets,
         ]);
     }

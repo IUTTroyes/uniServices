@@ -31,6 +31,16 @@ const getWidgetsCatalogService = async (params = {}, showToast = false) => {
     );
 };
 
+const getWidgetsAvailableService = async (dashboardCode, params = {}, showToast = false) => {
+    return await apiCall(
+        api.get,
+        [`/api/widgets/available/${dashboardCode}`, { params }],
+        'Widgets disponibles récupérés avec succès',
+        'Erreur lors du chargement des widgets disponibles',
+        showToast,
+    );
+};
+
 const getWidgetDataByCodeService = async (code, params = {}, showToast = false) => {
     return await apiCall(
         api.get,
@@ -58,6 +68,7 @@ export {
     getDashboardService,
     getDashboardWidgetDataService,
     getWidgetsCatalogService,
+    getWidgetsAvailableService,
     getWidgetDataByCodeService,
     updateDashboardWidgetLayoutService,
 };
