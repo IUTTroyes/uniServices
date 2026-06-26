@@ -3,12 +3,12 @@ import LoginView from '@/views/LoginView.vue'
 import AppPortail from '@/views/PortailView.vue'
 import AppProfil from '@/views/ProfilView.vue'
 import { useUsersStore } from '@stores/user_stores/userStore.js'
-import { LayoutComponent, Access } from '@components'
+import { LayoutComponent, Access, DashboardWidgetsConfiguration } from '@components'
 import { hasPermission } from '@utils'
 import ConfigurationRoutes from '@/router/modules/configurationRoutes.js'
 import ResetPasswordView from "@/views/ResetPasswordView.vue";
 import ResetPasswordConfirmView from "@/views/ResetPasswordConfirmView.vue";
-import LogoIut from "@common-images/logo/logo_iut.png"
+import LogoIut from "@images/logo/logo_iut.png"
 
 const intranetMenu = [
   {
@@ -50,6 +50,13 @@ const router = createRouter({
         logoUrl: LogoIut,
         appName: 'Uniservices',
       }),
+      children: [
+        {
+          path: 'widgets/:bundle',
+          component: () => import('@components/components/Dashboard/DashboardWidgetsConfiguration.vue'),
+          name: 'PortailDashboardWidgetsConfig',
+        }
+      ]
     },
     {
       path: '/configuration/',

@@ -22,6 +22,7 @@ import ButtonEdit from "./components/Buttons/ButtonEdit.vue";
 import ButtonInfo from "./components/Buttons/ButtonInfo.vue";
 import ButtonSave from "./components/Buttons/ButtonSave.vue";
 import WidgetCard from './components/Dashboard/WidgetCard.vue';
+import DashboardWidgetsConfiguration from './components/Dashboard/DashboardWidgetsConfiguration.vue';
 
 import PersonnelsListe from "./components/Personnel/PersonnelsListe.vue";
 
@@ -65,6 +66,7 @@ export {
   ScolariteEtudiant,
   ProfilPersonnel,
   WidgetCard,
+  DashboardWidgetsConfiguration,
 
   // Form validation exports
   FormValidator,

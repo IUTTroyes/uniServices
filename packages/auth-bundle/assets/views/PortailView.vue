@@ -1,11 +1,14 @@
 <script setup>
-import {computed, onMounted, ref} from 'vue';
-import {TopbarComponent, WidgetCard} from '@components';
-import {tools} from '@config/uniServices.js';
-import {getWidgetDataByCodeService, getWidgetsCatalogService} from '@requests';
+import { onMounted, ref } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { TopbarComponent, WidgetCard } from '@components';
+import { tools } from '@config/uniServices.js';
+import { getWidgetDataByCodeService, getWidgetsCatalogService } from '@requests';
 import { useUsersStore } from "@stores";
 import { formatDateLong } from "@helpers/date";
 
+const router = useRouter();
+const route = useRoute();
 const userStore = useUsersStore();
 const date = new Date();
 
@@ -54,7 +57,7 @@ const moveWidget = (widget, direction) => {
   
   // index cible
   const targetIndex = index + direction;
-
+  
   // si l'index cible est en dehors du tableau, on arrête
   if (targetIndex < 0 || targetIndex >= sorted.length) {
     return;
@@ -102,7 +105,8 @@ onMounted(async () => {
   <main>
     <TopbarComponent :app-name :logo-url/>
     
-    <div class="px-4 lg:px-10">
+    <RouterView class="mt-28 mx-10"/>
+    <div v-if="!route.path.includes('/portail/widgets')" class="px-4 lg:px-10">
       <div class="grid grid-cols-12 gap-4">
         <aside class="col-span-12 lg:col-span-2 pt-28 pb-14 h-screen">
           <div class="card h-full overflow-y-auto flex flex-col gap-6">
@@ -168,7 +172,7 @@ onMounted(async () => {
               <div class="text-xl font-semibold">Mon dashboard</div>
               <div class="text-sm text-color-secondary">Personnalisez vos widgets.</div>
             </div>
-            <Button icon="pi pi-cog" label="Configurer" size="small"/>
+            <Button icon="pi pi-cog" label="Configurer" size="small" @click="router.push({name: 'PortailDashboardWidgetsConfig', params: {bundle: 'portail'}})"/>
           </div>
         </div>
         <div v-if="loading" class="rounded-xl border border-surface-200 bg-surface-0 p-6 text-color-secondary h-full overflow-hidden">

@@ -2,7 +2,6 @@
 import {PermissionGuard} from "@components";
 import { useUsersStore } from "@stores";
 import DashboardPersonnel from "@/components/Personnel/Dashboard.vue";
-import DashboardWidgetConfiguration from '@/components/Personnel/dashboard/DashboardWidgetConfiguration.vue';
 import DashboardEtudiant from "@/components/Etudiant/Dashboard.vue";
 import {useRoute} from 'vue-router';
 
@@ -13,8 +12,7 @@ const route = useRoute();
 <template>
   <div>
   <PermissionGuard permission="isPersonnel">
-    <DashboardWidgetConfiguration v-if="userStore.isPersonnel && route.name === 'DashboardWidgetsConfig'"/>
-    <DashboardPersonnel v-else-if="userStore.isPersonnel"/>
+    <DashboardPersonnel v-if="userStore.isPersonnel"/>
   </PermissionGuard>
   <PermissionGuard permission="isEtudiant">
     <DashboardEtudiant v-if="userStore.isEtudiant" />

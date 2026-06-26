@@ -6,7 +6,7 @@ export default [
     },
     {
         path: 'widgets',
-        component: () => import('@/views/DashboardView.vue'),
-        name: 'DashboardWidgetsConfig',
+        component: () => import('@components/components/Dashboard/DashboardWidgetsConfiguration.vue'),
+        name: 'IntranetDashboardWidgetsConfig',
     },
 ];

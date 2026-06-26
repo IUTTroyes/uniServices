@@ -113,7 +113,7 @@ const moveWidget = (widget, direction) => {
             <div class="text-xl font-semibold">Mon dashboard</div>
             <div class="text-sm text-color-secondary">Personnalisez vos widgets.</div>
           </div>
-          <Button @click="router.push({name: 'DashboardWidgetsConfig'})" icon="pi pi-cog" label="Configurer" size="small"/>
+          <Button @click="router.push({name: 'IntranetDashboardWidgetsConfig'})" icon="pi pi-cog" label="Configurer" size="small"/>
         </div>
       </div>
       <div v-if="loading" class="rounded-xl border border-surface-200 bg-surface-0 p-6 text-color-secondary h-full overflow-hidden">
