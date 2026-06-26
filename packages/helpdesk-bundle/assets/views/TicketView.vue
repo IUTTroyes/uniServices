@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { useRouter } from 'vue-router';
 import { ValidatedInput,PermissionGuard} from "@components";
 import {useUsersStore} from '@stores';
 import {getPersonnelsService,createMessageService,getTicketService,updateTicketStatutService,getMessagesService} from '@requests';

@@ -1,5 +1,5 @@
 <script setup>
-import {ref, onMounted, computed} from 'vue';
+import {ref, onMounted} from 'vue';
 import {FilterMatchMode} from '@primevue/core/api';
 import { useRouter } from 'vue-router';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
@@ -17,7 +17,6 @@ const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS }
 });
 
-const tickets=ref([]);
 const userStore = useUsersStore();
 const router = useRouter();
 const isLoading = ref(true);
@@ -191,7 +190,7 @@ onMounted(() => {
                   <i :class="getPriorityClasses(valueProps.value)"></i>
                   <span>
         {{ priorities.find(p => p.value === valueProps.value)?.label }}
-      </span>
+                  </span>
                 </div>
                 <span v-else>
       {{ valueProps.placeholder }}

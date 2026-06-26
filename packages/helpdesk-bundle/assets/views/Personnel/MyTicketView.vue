@@ -8,7 +8,6 @@ import { TabGroup, TabPanels } from "@headlessui/vue";
 import DatePicker from 'primevue/datepicker';
 import CascadeSelect from 'primevue/cascadeselect';
 import {
-  getPersonnelsService,
   getServicesService,
   getTicketsService,
 } from "@requests";
@@ -22,11 +21,9 @@ const selectedService = ref(null);
 const selectedCategorie = ref(null);
 const selectedStatut = ref(null);
 const selectedPersonnel = ref(null);
-const ticketsList = ref([]);
 const loading = ref(true);
 const personnelList = ref([]);
 const statutsOptions = ref([]);
-const buttondisplay = ref(null);
 const userServices = ref([]);
 const postedTickets = ref([]);
 const receivedTickets = ref([]);
@@ -139,6 +136,7 @@ onMounted(async () => {
   await getServices();
   await getTickets();
 });
+
 </script>
 
 <template>
@@ -297,7 +295,6 @@ onMounted(async () => {
             </div>
           </TabPanel>
 
-          <!-- Tickets Reçus -->
           <TabPanel value="1">
             <Toolbar style="border:none">
               <template #start>

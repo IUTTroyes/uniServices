@@ -1,5 +1,4 @@
 <script setup>
-import {ref} from 'vue';
 import {PermissionGuard, ValidatedInput} from "@components";
 import {getStatutsClasses,getPriorityClasses,priorities,updatePriority} from "@/utils";
 import {formatDateCourt} from "@helpers/date.js";
@@ -11,7 +10,6 @@ const props = defineProps({
     required: true
   }
 });
-
 
 </script>
 

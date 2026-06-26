@@ -11,9 +11,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Users\Personnel;
-use App\State\Processor\EtablissementProcessor;
 use HelpdeskBundle\Repository\HelpDeskMessageRepository;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
