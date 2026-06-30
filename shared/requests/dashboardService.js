@@ -1,6 +1,10 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
+// ----------------------------------------------
+// ------------------- GET ----------------------
+// ----------------------------------------------
+
 const getDashboardService = async (params = {}, showToast = false) => {
     return await apiCall(
         api.get,
@@ -51,6 +55,14 @@ const getWidgetDataByCodeService = async (code, params = {}, showToast = false) 
     );
 };
 
+// ----------------------------------------------
+// ------------------- CREATE -------------------
+// ----------------------------------------------
+
+// ----------------------------------------------
+// ------------------- UPDATE -------------------
+// ----------------------------------------------
+
 const updateDashboardWidgetLayoutService = async (widgetKey, payload, params = {}, showToast = false) => {
     return await apiCall(
         api.patch,
@@ -63,6 +75,10 @@ const updateDashboardWidgetLayoutService = async (widgetKey, payload, params = {
         showToast,
     );
 };
+
+// ----------------------------------------------
+// ------------------- DELETE -------------------
+// ----------------------------------------------
 
 export {
     getDashboardService,

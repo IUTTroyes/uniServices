@@ -2,7 +2,7 @@
 import {computed, onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {useUsersStore, useAnneeUnivStore} from '@stores';
-import {getWidgetsCatalogService} from '@requests';
+import {getWidgetsCatalogService, getWidgetDataByCodeService, updateDashboardWidgetLayoutService} from '@requests';
 import {WidgetCard} from '@components';
 import { formatDateLong } from "@helpers/date";
 
@@ -45,17 +45,36 @@ const loadWidgetData = async (code) => {
   }
 };
 
-const rotateSize = (widget) => {
+const rotateSize = async (widget) => {
   const sizes = ['small', 'medium', 'large'];
   const index = sizes.indexOf(widget.size || 'medium');
-  widget.size = sizes[(index + 1) % sizes.length];
+  const newSize = sizes[(index + 1) % sizes.length];
+  widget.size = newSize;
+
+  await updateDashboardWidgetLayoutService(
+    widget.code,
+    { size: newSize },
+    {
+      dashboardCode: 'intranet',
+      structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+    }
+  );
 };
 
-const toggleWidget = (widget) => {
+const toggleWidget = async (widget) => {
   widget.enabled = !widget.enabled;
+  await updateDashboardWidgetLayoutService(
+    widget.code,
+    { enabled: widget.enabled },
+    {
+      dashboardCode: 'intranet',
+      structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+    }
+  );
+  await getDashboardWidgets();
 };
 
-const moveWidget = (widget, direction) => {
+const moveWidget = async (widget, direction) => {
   // tableau trier par position
   const sorted = [...widgets.value].sort((a, b) => a.position - b.position);
   // trouver l'index du widget dans le tableau
@@ -85,6 +104,20 @@ const moveWidget = (widget, direction) => {
   
   // on met à jour le tableau des widgets
   widgets.value = sorted;
+
+  // Sauvegarder les nouvelles positions de tous les widgets
+  const promises = sorted.map((item) => {
+    return updateDashboardWidgetLayoutService(
+      item.code,
+      { position: item.position },
+      {
+        dashboardCode: 'intranet',
+        structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+      }
+    );
+  });
+
+  await Promise.all(promises);
 };
 </script>
 
