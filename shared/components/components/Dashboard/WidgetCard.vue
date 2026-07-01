@@ -74,7 +74,7 @@ const toggleWidget = () => {
                 <Button v-if="!last" icon="pi pi-arrow-right" size="small" title="Déplacer sur la droite" text rounded severity="secondary" @click="moveWidget(1)"/>
                 <Button icon="pi pi-trash" size="small" title="Retirer le widget" text rounded severity="danger" @click="toggleWidget()"/>
             </div>
-            <Button icon="pi pi-times" size="small" text rounded title="Configurer le widget" @click="isEditing = !isEditing"/>
+            <Button icon="pi pi-times" size="small" text rounded title="Fermer le panneau de configuration" @click="isEditing = !isEditing"/>
         </div>
         <Divider/>
     </div>
