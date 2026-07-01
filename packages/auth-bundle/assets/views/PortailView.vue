@@ -1,111 +1,260 @@
 <script setup>
-import { TopbarComponent } from '@components';
-import {useUsersStore} from "@stores";
+import { computed, onMounted, ref, watch } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { TopbarComponent, WidgetCard, GlobalLoader } from '@components';
 import { tools } from '@config/uniServices.js';
-import Logo from '@components/components/Logo.vue';
-import { onMounted, ref } from 'vue';
-import {PermissionGuard} from "@components";
-import {getEtablissementService} from "@requests";
+import { getWidgetDataByCodeService, getWidgetsCatalogService, updateDashboardWidgetLayoutService } from '@requests';
+import { useUsersStore, useAnneeUnivStore } from "@stores";
+import { formatDateLong } from "@helpers/date";
 
+const router = useRouter();
+const route = useRoute();
 const userStore = useUsersStore();
-const etablissement = ref(null);
+const anneeUnivStore = useAnneeUnivStore();
+const date = new Date();
 
-onMounted(async () => {
-  try {
-    etablissement.value = await getEtablissementService();
-    console.log('Etablissement fetched:', etablissement.value);
-  } catch (error) {
-    console.error('Error fetching etablissement:', error);
-  }
-});
-
-const isEnabledUrl = (tool) => {
-  if (userStore.applications.includes(tool.name)) {
-    return tool.url;
-  }
-  return '#';
-};
-
-const isDisabled = (tool) => {
-  if (userStore.applications.includes(tool.name)) {
-    return '';
-  }
-  return 'disabled';
-};
-
-const props = defineProps({
+defineProps({
   appName: {
     type: String,
-    required: true
+    required: true,
   },
   logoUrl: {
     type: String,
-    required: false
+    required: false,
+    default: '',
+  },
+});
+
+const activatedBundles = ref([]);
+const unactivatedBundles = ref([]);
+const isLoadingBundles = ref(false);
+const widgets = ref([]);
+const isLoadingWidgets = ref(false);
+const widgetData = ref({});
+const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
+
+const onBundleClick = (bundleUrl) => {
+  window.location.href = bundleUrl;
+};
+
+const structureDepartementPersonnelId = computed(() => userStore.departementDefaut?.departementPersonnel?.id || null);
+
+const rotateSize = async (widget) => {
+  const sizes = ['small', 'medium', 'large'];
+  const index = sizes.indexOf(widget.size || 'medium');
+  const newSize = sizes[(index + 1) % sizes.length];
+  widget.size = newSize;
+  
+  await updateDashboardWidgetLayoutService(
+  widget.code,
+  { size: newSize },
+  {
+    dashboardCode: 'portail',
+    structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+  }
+  );
+};
+
+const toggleWidget = async (widget) => {
+  widget.enabled = !widget.enabled;
+  await updateDashboardWidgetLayoutService(
+  widget.code,
+  { enabled: widget.enabled },
+  {
+    dashboardCode: 'portail',
+    structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+  }
+  );
+  await getWidgets();
+};
+
+const moveWidget = async (widget, direction) => {
+  // tableau trier par position
+  const sorted = [...widgets.value].sort((a, b) => a.position - b.position);
+  // trouver l'index du widget dans le tableau
+  const index = sorted.findIndex((item) => item.code === widget.code);
+  
+  // si le widget n'est pas trouvé, on arrête
+  if (index === -1) {
+    return;
+  }
+  
+  // index cible
+  const targetIndex = index + direction;
+  
+  // si l'index cible est en dehors du tableau, on arrête
+  if (targetIndex < 0 || targetIndex >= sorted.length) {
+    return;
+  }
+  
+  // on retire le widget de son index et on l'insère à l'index cible
+  const movedWidget = sorted.splice(index, 1)[0];
+  sorted.splice(targetIndex, 0, movedWidget);
+  
+  // on met à jour les positions des widgets
+  sorted.forEach((item, position) => {
+    item.position = position;
+  });
+  
+  // on met à jour le tableau des widgets
+  widgets.value = sorted;
+  
+  const promises = sorted.map((item) => {
+    return updateDashboardWidgetLayoutService(
+    item.code,
+    { position: item.position },
+    {
+      dashboardCode: 'portail',
+      structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+    }
+    );
+  });
+  
+  await Promise.all(promises);
+};
+
+const loadWidgetData = async (code) => {
+  try {
+    widgetData.value[code] = await getWidgetDataByCodeService(code);
+  } catch {
+    widgetData.value[code] = {message: 'Aucune donnée disponible'};
+  }
+};
+
+const getWidgets = async () => {
+  isLoadingWidgets.value = true;
+  const params = {
+    dashboardCode: 'portail',
+    structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+  };
+  const response = await getWidgetsCatalogService(params);
+  widgets.value = response.widgets || [];
+  await Promise.all(
+  widgets.value.map(({ code }) => loadWidgetData(code))
+  );
+  isLoadingWidgets.value = false;
+};
+
+onMounted(async () => {
+  isLoadingBundles.value = true;
+  try {
+    activatedBundles.value = tools.filter((bundle) => userStore.user.applications.includes(bundle.name));
+    unactivatedBundles.value = tools.filter((bundle) => !userStore.user.applications.includes(bundle.name));
+    await getWidgets();
+  } finally {
+    isLoadingBundles.value = false;
   }
 });
 
+// Recharger les widgets quand on revient de la page de configuration
+watch(() => route.path, async (newPath, oldPath) => {
+  if (oldPath?.includes('/portail/widgets') && !newPath.includes('/portail/widgets')) {
+    isLoadingWidgets.value = true;
+    try {
+      await getWidgets();
+    } finally {
+      isLoadingWidgets.value = false;
+    }
+  }
+});
 </script>
 
 <template>
   <main>
     <TopbarComponent :app-name :logo-url/>
-
-    <div id="features" class="py-6 px-6 lg:px-20 mx-0 lg:mx-20">
-      <div class="grid grid-cols-12 gap-4 justify-center">
-        <div class="col-span-12 text-center mt-20 mb-6">
-          <Badge :value="etablissement?.libelle" icon="pi pi-building" size="large" class="mb-4"/>
-          <div class="text-surface-900 dark:text-surface-0 font-normal mb-2 text-4xl">UniServices</div>
-          <span class="text-muted-color text-2xl">À quelle plateforme souhaitez-vous accéder ?</span>
-        </div>
-
-        <a
-            v-for="tool in tools"
-            :key="tool.name"
-            :href="isEnabledUrl(tool)"
-            :class="`app col-span-12 md:col-span-12 lg:col-span-4 p-0 lg:pr-8 lg:pb-8 mt-6 lg:mt-0 ${isDisabled(tool)} ${tool.name}`">
-          <div
-              style="height: 100%; padding: 2px; border-radius: 10px; background: linear-gradient(90deg, rgba(253, 228, 165, 0.2), rgba(192,187,205,0.2)), linear-gradient(180deg, rgba(253, 228, 165, 0.2), rgba(192,187,205,0.2))"
-          >
-            <div class="p-4 bg-surface-0 dark:bg-surface-900 h-full" style="border-radius: 8px">
-              <div class="flex items-center justify-center mb-4 bg-surface-100"
-                   style="width: 3.5rem; height: 3.5rem; border-radius: 10px">
-                <Logo :logo-url="tool.logo" :alt="`logo de ${tool.name}`"/>
-              </div>
-              <h5 class="mb-2 text-surface-900 dark:text-surface-0">{{ tool.name }}</h5>
-              <span class="text-surface-600 dark:text-surface-200">{{ tool.description }}</span>
+    
+    <RouterView class="mt-28 mx-10"/>
+    <div v-if="!route.path.includes('/portail/widgets')" class="px-4 lg:px-10">
+      <div class="grid grid-cols-12 gap-4">
+        <aside class="col-span-12 lg:col-span-2 pt-28 pb-14 h-screen">
+          <div class="card h-full overflow-y-auto flex flex-col gap-6">
+            <div class="flex flex-col gap-4">
+              <div class="text-md font-semibold text-color-secondary uppercase">Applications</div>
+              <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
+              <div v-else class="flex flex-col">
+                <Button
+                v-for="bundle in activatedBundles"
+                :key="bundle.urlSlug"
+                type="button"
+                text
+                rounded
+                size="large"
+                class="justify-start!"
+                @click="onBundleClick(bundle.url)"
+                >
+                {{ bundle.name }}
+              </Button>
             </div>
           </div>
-        </a>
+          <div v-if="unactivatedBundles.length > 0" class="flex flex-col gap-4">
+            <div class="text-ms font-semibold text-color-secondary uppercase">Non activé</div>
+            <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
+            <div v-else class="flex flex-col">
+              <Button
+              v-for="bundle in unactivatedBundles"
+              :key="bundle.urlSlug"
+              type="button"
+              text
+              rounded
+              severity="secondary"
+              disabled
+              size="large"
+              class="justify-start!"
+              >
+              {{ bundle.name }}
+            </Button>
+          </div>
+        </div>
       </div>
-    </div>
-    <PermissionGuard permission="isReferent">
-    <div class="text-center absolute bottom-0 left-0 right-0 mb-4">
-      <router-link to="/configuration">
-        <Button type="button" severity="primary" icon="pi pi-wrench" label="Configuration" rounded>
-        </Button>
-      </router-link>
-    </div>
-    </PermissionGuard>
-
-  </main>
+    </aside>
+    
+    <section class="col-span-12 lg:col-span-10 pt-28 pb-14 h-screen">
+      <div class="h-full overflow-y-auto">
+        <div v-if="!userStore.isLoading" class="flex items-center justify-between mb-4">
+          <div class="flex items-center">
+            <div class="w-20 h-20 bg-primary-400 rounded-full flex items-center justify-center shrink-0">
+              <template v-if="userStore.userPhoto">
+                <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full" />
+              </template>
+              <template v-else>
+                <span class="text-gray-700 text-xl">{{ initiales }}</span>
+              </template>
+            </div>
+            <div class="ml-4">
+              <h2 class="text-2xl! mb-0! font-bold flex items-center gap-2">
+                <span class="font-light">Bonjour,</span> {{ userStore.user.prenom }}
+              </h2>
+              <small class="text-gray-500">{{ formatDateLong(date) }}</small>
+            </div>
+          </div>
+          <div class="card flex justify-between items-center gap-6 m-0! p-4!">
+            <div>
+              <div class="text-xl font-semibold">Mon dashboard</div>
+              <div class="text-sm text-color-secondary">Personnalisez vos widgets.</div>
+            </div>
+            <Button icon="pi pi-cog" label="Configurer" size="small" @click="router.push({name: 'PortailDashboardWidgetsConfig', params: {bundle: 'portail'}})"/>
+          </div>
+        </div>
+        <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>
+        <div v-else class="grid grid-cols-12 gap-4 overflow-y-auto">
+          <WidgetCard
+          v-for="widget in widgets"
+          :key="widget.code"
+          :widget="widget"
+          :data="widgetData[widget.code]"
+          :first="widget.position == 0 ? true : false"
+          :last="widget.position == widgets.length - 1 ? true : false"
+          @move="moveWidget"
+          @rotate="rotateSize"
+          @toggle="toggleWidget"
+          />
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+</main>
 </template>
 
 <style scoped>
-.app {
-  cursor: pointer;
-  transition: transform 0.2s;
-
-  &:hover {
-    transform: scale(1.02);
-  }
-
-  &.disabled {
-    cursor: not-allowed;
-    opacity: 0.5;
-
-    &:hover {
-      transform: none;
-    }
-  }
-}
 </style>

@@ -2,199 +2,167 @@
 import {computed, onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {useUsersStore, useAnneeUnivStore} from '@stores';
-import {getDashboardService, getDashboardWidgetDataService, patchDashboardWidgetLayoutService} from '@requests';
-import {dashboardWidgetRegistry} from '@/components/Personnel/dashboard/dashboardWidgetRegistry';
-import DashboardWidgetShell from '@/components/Personnel/dashboard/DashboardWidgetShell.vue';
+import {getWidgetsCatalogService, getWidgetDataByCodeService, updateDashboardWidgetLayoutService} from '@requests';
+import {WidgetCard, GlobalLoader} from '@components';
+import { formatDateLong } from "@helpers/date";
 
 const router = useRouter();
 const userStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
 const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 const widgets = ref([]);
-const widgetsEnabledCount = computed(() => widgets.value.filter(widget => widget.enabled).length);
+const isLoadingWidgets = ref(false);
 const widgetData = ref({});
-const widgetLoading = ref({});
-const widgetError = ref({});
+const date = new Date();
 
 const structureDepartementPersonnelId = computed(() => userStore.departementDefaut?.departementPersonnel?.id || null);
 
-const dashboardParams = computed(() => {
-  if (!structureDepartementPersonnelId.value) {
-    return {};
-  }
-
-  return {structureDepartementPersonnelId: structureDepartementPersonnelId.value, anneeUniversitaire: selectedAnneeUniversitaireId.value};
+onMounted(() => {
+  getDashboardWidgets();
 });
 
-const getWidgetParams = (widget) => {
-  const base = dashboardParams.value;
-
-  switch (widget?.key) {
-    case 'emploi_du_temps':
-      return {
-        ...base,
-        day: new Date().toISOString().split('T')[0],
-        personnel: userStore.userId,
-        departement: userStore.departementDefaut?.id ?? null,
-      };
-
-    case 'actions_urgentes':
-      return {
-        ...base,
-      };
-
-    case 'notes':
-      return {
-        ...base,
-      };
-
-    case 'documents_recents':
-      return {
-        ...base,
-        personnel: userStore.user.id,
-        departement: userStore.departementDefaut?.id ?? null,
-      };
-
-    default:
-      return base;
-  }
-};
-
-const orderedWidgets = computed(() => [...widgets.value].sort((a, b) => a.position - b.position));
-
-const gridClass = (size) => {
-  if (size === 'small') {
-    return 'col-span-4';
-  }
-  if (size === 'large') {
-    return 'col-span-12';
-  }
-
-  return 'col-span-8';
-};
-
-const loadDashboard = async () => {
-  const response = await getDashboardService(dashboardParams.value);
+const getDashboardWidgets = async () => {
+  isLoadingWidgets.value = true;
+  const params = {
+    dashboardCode: 'intranet',
+    structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+  };
+  const response = await getWidgetsCatalogService(params);
   widgets.value = response.widgets || [];
-  await Promise.all(widgets.value.filter(widget => widget.enabled).map(widget => loadWidgetData(widget.key)));
-};
+  await Promise.all(
+  widgets.value.map(({ code }) =>
+  loadWidgetData(code)
+  )
+  );
+  isLoadingWidgets.value = false;
+}
 
-const loadWidgetData = async (widgetKey) => {
-  const widget = widgets.value.find(item => item.key === widgetKey);
-  if (!widget || !widget.enabled) {
-    return;
-  }
-
-  widgetLoading.value = {...widgetLoading.value, [widgetKey]: true};
-  widgetError.value = {...widgetError.value, [widgetKey]: false};
-
+const loadWidgetData = async (code) => {
   try {
-    const data = await getDashboardWidgetDataService(widget.dataUrl, getWidgetParams(widget));
-    widgetData.value = {...widgetData.value, [widgetKey]: data};
-
-    switch (widget?.key) {
-    case 'emploi_du_temps':
-      // trier les éléments par heure croissante
-      data.items.sort((a, b) => a.heure.localeCompare(b.heure));
-      break;
-    }
-
+    widgetData.value[code] = await getWidgetDataByCodeService(code);
   } catch {
-    widgetError.value = {...widgetError.value, [widgetKey]: true};
-  } finally {
-    widgetLoading.value = {...widgetLoading.value, [widgetKey]: false};
+    widgetData.value[code] = {message: 'Aucune donnée disponible'};
   }
 };
 
-const saveLayout = async (widget) => {
-  await patchDashboardWidgetLayoutService(widget.key, {
-    enabled: widget.enabled,
-    collapsed: widget.collapsed,
-    position: widget.position,
-    size: widget.size,
-    config: widget.config || {},
-  }, dashboardParams.value);
+const rotateSize = async (widget) => {
+  const sizes = ['small', 'medium', 'large'];
+  const index = sizes.indexOf(widget.size || 'medium');
+  const newSize = sizes[(index + 1) % sizes.length];
+  widget.size = newSize;
+
+  await updateDashboardWidgetLayoutService(
+    widget.code,
+    { size: newSize },
+    {
+      dashboardCode: 'intranet',
+      structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+    }
+  );
 };
 
-const updateWidget = async (key, patch) => {
-  const target = widgets.value.find(widget => widget.key === key);
-  if (!target) {
+const toggleWidget = async (widget) => {
+  widget.enabled = !widget.enabled;
+  await updateDashboardWidgetLayoutService(
+    widget.code,
+    { enabled: widget.enabled },
+    {
+      dashboardCode: 'intranet',
+      structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+    }
+  );
+  await getDashboardWidgets();
+};
+
+const moveWidget = async (widget, direction) => {
+  // tableau trier par position
+  const sorted = [...widgets.value].sort((a, b) => a.position - b.position);
+  // trouver l'index du widget dans le tableau
+  const index = sorted.findIndex((item) => item.code === widget.code);
+  
+  // si le widget n'est pas trouvé, on arrête
+  if (index === -1) {
     return;
   }
+  
+  // index cible
+  const targetIndex = index + direction;
 
-  Object.assign(target, patch);
-  await saveLayout(target);
-  if (patch.enabled === true) {
-    await loadWidgetData(key);
+  // si l'index cible est en dehors du tableau, on arrête
+  if (targetIndex < 0 || targetIndex >= sorted.length) {
+    return;
   }
-};
+  
+  // on retire le widget de son index et on l'insère à l'index cible
+  const movedWidget = sorted.splice(index, 1)[0];
+  sorted.splice(targetIndex, 0, movedWidget);
+  
+  // on met à jour les positions des widgets
+  sorted.forEach((item, position) => {
+    item.position = position;
+  });
+  
+  // on met à jour le tableau des widgets
+  widgets.value = sorted;
 
-const moveWidget = async (key, direction) => {
-  const sorted = [...widgets.value].sort((a, b) => a.position - b.position);
-  const index = sorted.findIndex(w => w.key === key);
-  if (index === -1) return;
-
-  let targetIndex = index + direction;
-  while (targetIndex >= 0 && targetIndex < sorted.length && !sorted[targetIndex].enabled) {
-    targetIndex += direction;
-  }
-
-  if (targetIndex < 0 || targetIndex >= sorted.length) return;
-
-  const element = sorted.splice(index, 1)[0];
-  sorted.splice(targetIndex, 0, element);
-
-  const promises = [];
-  sorted.forEach((widget, i) => {
-    if (widget.position !== i) {
-      widget.position = i;
-      promises.push(saveLayout(widget));
-    }
+  // Sauvegarder les nouvelles positions de tous les widgets
+  const promises = sorted.map((item) => {
+    return updateDashboardWidgetLayoutService(
+      item.code,
+      { position: item.position },
+      {
+        dashboardCode: 'intranet',
+        structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+      }
+    );
   });
 
   await Promise.all(promises);
 };
-
-onMounted(async () => {
-  await loadDashboard();
-});
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <div class="grid grid-cols-12 gap-4">
-      <div v-for="widget in orderedWidgets" :key="widget.key" :class="gridClass(widget.size)">
-        <template v-if="widget.enabled">
-          <DashboardWidgetShell
-              :widget="widget"
-              :widgetsLength="widgetsEnabledCount"
-              :loading="!!widgetLoading[widget.key]"
-              :error="!!widgetError[widget.key]"
-              @refresh="loadWidgetData(widget.key)"
-              @toggle-enabled="updateWidget(widget.key, {enabled: !widget.enabled})"
-              @toggle-collapsed="updateWidget(widget.key, {collapsed: !widget.collapsed})"
-              @resize="size => updateWidget(widget.key, {size})"
-              @move-backward="moveWidget(widget.key, -1)"
-              @move-forward="moveWidget(widget.key, 1)"
-              class="h-full"
-          >
-            <component
-                :is="dashboardWidgetRegistry[widget.component]"
-                :widget="widget"
-                :data="widgetData[widget.key] || {}"
-            />
-          </DashboardWidgetShell>
-        </template>
+  <section class="col-span-12 lg:col-span-10 pb-14">
+    <div class="h-screen overflow-y-auto">
+      <div v-if="!userStore.isLoading" class="flex items-center justify-between mb-4">
+        <div class="flex items-center">
+          <div class="w-20 h-20 bg-primary-400 rounded-full flex items-center justify-center shrink-0">
+            <template v-if="userStore.userPhoto">
+              <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full" />
+            </template>
+            <template v-else>
+              <span class="text-gray-700 text-xl">{{ initiales }}</span>
+            </template>
+          </div>
+          <div class="ml-4">
+            <h2 class="text-2xl! mb-0! font-bold flex items-center gap-2">
+              <span class="font-light">Bonjour,</span> {{ userStore.user.prenom }}
+            </h2>
+            <small class="text-gray-500">{{ formatDateLong(date) }}</small>
+          </div>
+        </div>
+        <div class="card flex justify-between items-center gap-6 m-0! p-4!">
+          <div>
+            <div class="text-xl font-semibold">Mon dashboard</div>
+            <div class="text-sm text-color-secondary">Personnalisez vos widgets.</div>
+          </div>
+          <Button @click="router.push({name: 'IntranetDashboardWidgetsConfig'})" icon="pi pi-cog" label="Configurer" size="small"/>
+        </div>
+      </div>
+      <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>  
+      <div v-else class="grid grid-cols-12 gap-4 overflow-y-auto">
+        <WidgetCard
+        v-for="widget in widgets"
+        :key="widget.code"
+        :widget="widget"
+        :data="widgetData[widget.code]"
+        :first="widget.position == 0 ? true : false"
+        :last="widget.position == widgets.length - 1 ? true : false"
+        @move="moveWidget"
+        @rotate="rotateSize"
+        @toggle="toggleWidget"
+        />
       </div>
     </div>
-    <div class="card flex justify-between items-center">
-      <div>
-        <div class="text-xl font-semibold">Mon dashboard</div>
-        <div class="text-sm text-color-secondary">Personnalisez vos widgets en fonction de votre structure.</div>
-      </div>
-      <button class="border-none rounded-lg bg-primary px-4 py-2 text-white" type="button" @click="router.push({name: 'DashboardWidgetsConfig'})">
-        Configurer les widgets
-      </button>
-    </div>
-  </div>
+  </section>
 </template>

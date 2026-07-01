@@ -48,8 +48,14 @@ services:
       - "../src/DependencyInjection/"
       - "../src/Entity/"
       - "../src/Kernel.php"
+      - "../src/Services/Dashboard/Provider/"
 
   App\DataProvider\SingleRecordDataProvider:
     arguments:
       $entityManager: "@doctrine.orm.entity_manager"
     tags: ["api_platform.state_provider"]
+
+  _instanceof:
+    App\Domain\Dashboard\DashboardDefinitionInterface:
+      tags:
+        - app.dashboard.definition

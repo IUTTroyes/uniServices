@@ -2,13 +2,14 @@
 
 namespace App\Controller;
 
-use App\Domain\Dashboard\DashboardContext;
 use App\Entity\Dashboard\DashboardPreference;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Users\Personnel;
 use App\Repository\Dashboard\DashboardPreferenceRepository;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
-use App\Services\Dashboard\DashboardWidgetRegistry;
+use App\Services\Dashboard\Core\DashboardRegistry;
+use App\Services\Dashboard\Core\WidgetDataRegistry;
+use App\Services\Dashboard\Core\WidgetRegistry as CoreWidgetRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,127 +18,340 @@ use Symfony\Component\Routing\Attribute\Route;
 class DashboardController extends AbstractController
 {
     public function __construct(
-        private readonly DashboardWidgetRegistry $widgetRegistry,
+        private readonly CoreWidgetRegistry $coreWidgetRegistry,
+        private readonly WidgetDataRegistry $widgetDataRegistry,
         private readonly DashboardPreferenceRepository $preferenceRepository,
         private readonly StructureDepartementPersonnelRepository $structureDepartementPersonnelRepository,
+        private readonly DashboardRegistry $dashboardRegistry,
     ) {}
 
-    #[Route('/api/dashboard', name: 'api_dashboard', methods: ['GET'])]
-    public function getDashboard(Request $request): JsonResponse
+
+    #[Route('/api/widgets/catalog', name: 'api_widgets_catalog', methods: ['GET'])]
+    public function getWidgetsCatalog(Request $request): JsonResponse
     {
         $user = $this->getCurrentPersonnel();
         if (null === $user) {
             return new JsonResponse(['message' => 'Utilisateur non autorisé'], JsonResponse::HTTP_FORBIDDEN);
         }
 
-        $structureDepartementPersonnel = $this->resolveStructureDepartementPersonnel($user, $request);
-        $context = new DashboardContext($this->resolveDepartementId($user, $request, $structureDepartementPersonnel), $structureDepartementPersonnel);
+        // on recupere le code du dashboard depuis la requete, par defaut 'portail'
+        $dashboardCode = $request->query->get('dashboardCode', 'portail');
+        $structureDepartementPersonnelId = $request->query->get('structureDepartementPersonnelId');
+
+        $structureDepartementPersonnel = null;
+        if ($structureDepartementPersonnelId) {
+            $structureDepartementPersonnel = $this->structureDepartementPersonnelRepository->find($structureDepartementPersonnelId);
+        }
+
+        // on recupere les preferences de l'utilisateur si elles existent
+        $preferences = $this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel, $dashboardCode);
+
+        $widgets = [];
+        $dashboard = $this->dashboardRegistry->get($dashboardCode);
+
+        if (empty($preferences)) {
+            // Si aucune préférence n'existe, on charge le layout par défaut
+            foreach ($dashboard->getDefaultLayout() as $layout) {
+                $widgetDefinition = $this->coreWidgetRegistry->get($layout->widgetCode);
+                if (null === $widgetDefinition) {
+                    continue;
+                }
+                $definition = $widgetDefinition->toArray();
+
+                $definition['position'] = $layout->position;
+                $definition['size'] = $layout->size;
+                $definition['enabled'] = $layout->enabled;
+                $definition['key'] = $layout->widgetCode;
+
+                $widgets[] = $definition;
+            }
+        } else {
+            // Si des préférences existent, on utilise le layout sauvegardé
+            foreach ($preferences as $preference) {
+                if (!$preference->isEnabled()) {
+                    continue;
+                }
+                $widgetDefinition = $this->coreWidgetRegistry->get($preference->getWidgetKey());
+                if (null === $widgetDefinition) {
+                    continue;
+                }
+                $definition = $widgetDefinition->toArray();
+
+                $definition['position'] = $preference->getPosition();
+                $definition['size'] = $preference->getSize();
+                $definition['enabled'] = $preference->isEnabled();
+                $definition['key'] = $preference->getWidgetKey();
+
+                $widgets[] = $definition;
+            }
+        }
+
+        return new JsonResponse([
+            'bundles' => $this->coreWidgetRegistry->getBundles(),
+            'widgets' => $widgets,
+        ]);
+    }
+
+    #[Route('/api/widgets/available/{dashboardCode}', name: 'api_widgets_available', methods: ['GET'])]
+    public function getWidgetsAvailable(Request $request, string $dashboardCode): JsonResponse
+    {
+        $user = $this->getCurrentPersonnel();
+        if (null === $user) {
+            return new JsonResponse(['message' => 'Utilisateur non autorisé'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        $structureDepartementPersonnelId = $request->query->get('structureDepartementPersonnelId');
+        $structureDepartementPersonnel = null;
+        if ($structureDepartementPersonnelId) {
+            $structureDepartementPersonnel = $this->structureDepartementPersonnelRepository->find($structureDepartementPersonnelId);
+        }
+
+        $dashboard = $this->dashboardRegistry->get($dashboardCode);
+
+        // Récupération des préférences
         $preferences = [];
-        foreach ($this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel) as $preference) {
+        foreach ($this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel, $dashboardCode) as $preference) {
             $preferences[$preference->getWidgetKey()] = $preference;
         }
 
-        $usedPositions = [];
-        foreach ($this->widgetRegistry->all() as $widget) {
-            if (!$widget->supports($user, $context)) {
-                continue;
-            }
-            $preference = $preferences[$widget->getKey()] ?? null;
-            if ($preference !== null && $preference->getPosition() !== null) {
-                $usedPositions[] = $preference->getPosition();
-            }
-        }
-
+        // Construire la liste des widgets dispo
         $widgets = [];
-        $position = 0;
-        foreach ($this->widgetRegistry->all() as $widget) {
-            if (!$widget->supports($user, $context)) {
-                continue;
+        foreach ($dashboard->getAvailableWidgets() as $layout) {
+            $widgetDefinition = $this->coreWidgetRegistry->get($layout->widgetCode);
+            if ($widgetDefinition) {
+                $widgets[] = $widgetDefinition->toArray();
             }
-
-            $preference = $preferences[$widget->getKey()] ?? null;
-
-            if ($preference !== null && $preference->getPosition() !== null) {
-                $widgetPosition = $preference->getPosition();
-            } else {
-                while (in_array($position, $usedPositions, true)) {
-                    $position++;
-                }
-                $widgetPosition = $position++;
-                $usedPositions[] = $widgetPosition;
-            }
-
-            $widgets[] = [
-                'key' => $widget->getKey(),
-                'label' => $widget->getLabel(),
-                'icon' => $widget->getIcon(),
-                'component' => $widget->getVueComponent(),
-                'enabled' => $preference?->isEnabled() ?? $widget->isDefaultEnabled(),
-                'collapsed' => $preference?->isCollapsed() ?? false,
-                'position' => $widgetPosition,
-                'size' => $preference?->getSize() ?? $widget->getDefaultSize(),
-                'config' => array_merge($widget->getDefaultConfig(), $preference?->getConfig() ?? []),
-                'dataUrl' => $widget->getDataUrl(),
-            ];
         }
 
-        usort($widgets, static fn(array $a, array $b): int => $a['position'] <=> $b['position']);
+        $responseWidgets = [];
+        if (empty($preferences)) {
+            // On commence par les widgets du layout par défaut
+            foreach ($dashboard->getDefaultLayout() as $layout) {
+                $widgetDefinition = $this->coreWidgetRegistry->get($layout->widgetCode);
+                if (null === $widgetDefinition) {
+                    continue;
+                }
 
-        return new JsonResponse(['widgets' => $widgets]);
+                $config = $widgetDefinition->toArray();
+                $config['position'] = $layout->position;
+                $config['size'] = $layout->size;
+                $config['enabled'] = $layout->enabled;
+                $config['key'] = $layout->widgetCode;
+
+                $responseWidgets[] = $config;
+            }
+
+            // On ajoute les widgets disponibles qui ne sont pas dans le layout par défaut
+            foreach ($widgets as $widget) {
+                // Si le widget existe déjà (il était dans le layout par défaut), on ne le rajoute pas
+                if (in_array($widget['code'], array_column($responseWidgets, 'code'))) {
+                    continue;
+                }
+
+                // On définit des valeurs par défaut pour ces widgets additionnels
+                $config = $widget;
+                $config['position'] = null;  // pas encore positionné
+                $config['size'] = 'small';   // taille par défaut
+                $config['enabled'] = false;  // inactif par défaut
+                $config['key'] = $widget['code'];
+
+                $responseWidgets[] = $config;
+            }
+        } else {
+            // Utiliser les préférences de l'utilisateur
+            foreach ($widgets as $widget) {
+                $config = $widget;
+                $config['key'] = $widget['code'];
+
+                if (isset($preferences[$widget['code']])) {
+                    $pref = $preferences[$widget['code']];
+                    $config['position'] = $pref->getPosition();
+                    $config['size'] = $pref->getSize();
+                    $config['enabled'] = $pref->isEnabled();
+                } else {
+                    $config['position'] = null;
+                    $config['size'] = 'small';
+                    $config['enabled'] = false;
+                }
+                $responseWidgets[] = $config;
+            }
+
+            // Trier responseWidgets par position asc (les widgets non positionnés à la fin)
+            usort($responseWidgets, function ($a, $b) {
+                if ($a['position'] === null && $b['position'] === null) {
+                    return 0;
+                }
+                if ($a['position'] === null) {
+                    return 1;
+                }
+                if ($b['position'] === null) {
+                    return -1;
+                }
+                return $a['position'] <=> $b['position'];
+            });
+        }
+
+        return new JsonResponse([
+            'widgets' => $responseWidgets,
+        ]);
     }
 
-
-    #[Route('/api/dashboard/widgets/{key}/layout', name: 'api_dashboard_widget_layout_patch', methods: ['PATCH'])]
-    public function patchWidgetLayout(string $key, Request $request): JsonResponse
+    #[Route('/api/dashboard/widgets/{widgetKey}/layout', name: 'api_dashboard_widgets_layout_update', methods: ['PATCH'])]
+    public function updateDashboardWidgetLayout(Request $request, string $widgetKey): JsonResponse
     {
         $user = $this->getCurrentPersonnel();
         if (null === $user) {
             return new JsonResponse(['message' => 'Utilisateur non autorisé'], JsonResponse::HTTP_FORBIDDEN);
         }
 
-        $widget = $this->widgetRegistry->get($key);
-        if (null === $widget) {
+        $dashboardCode = $request->query->get('dashboardCode', 'intranet');
+        $structureDepartementPersonnelId = $request->query->get('structureDepartementPersonnelId');
+
+        $structureDepartementPersonnel = null;
+        if ($structureDepartementPersonnelId) {
+            $structureDepartementPersonnel = $this->structureDepartementPersonnelRepository->find($structureDepartementPersonnelId);
+        }
+
+        $data = json_decode($request->getContent(), true) ?? [];
+
+        $dashboard = $this->dashboardRegistry->get($dashboardCode);
+
+        // Construire un index d'ordre du layout par défaut pour le tri
+        $defaultOrder = [];
+        foreach ($dashboard->getDefaultLayout() as $index => $layout) {
+            $defaultOrder[$layout->widgetCode] = $index;
+        }
+
+        $preferences = $this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel, $dashboardCode);
+
+        if (empty($preferences)) {
+            // Initialiser les préférences à partir des widgets disponibles du dashboard
+            $availableWidgets = $dashboard->getAvailableWidgets();
+            $defaultLayouts = [];
+            foreach ($dashboard->getDefaultLayout() as $layout) {
+                $defaultLayouts[$layout->widgetCode] = $layout;
+            }
+
+            foreach ($availableWidgets as $availableWidget) {
+                $code = $availableWidget->widgetCode;
+                $pref = new DashboardPreference();
+                $pref->setPersonnel($user);
+                $pref->setStructureDepartementPersonnel($structureDepartementPersonnel);
+                $pref->setDashboardCode($dashboardCode);
+                $pref->setWidgetKey($code);
+
+                if (isset($defaultLayouts[$code])) {
+                    $layout = $defaultLayouts[$code];
+                    $pref->setSize($layout->size);
+                    $pref->setEnabled($layout->enabled);
+                } else {
+                    $pref->setSize('small');
+                    $pref->setEnabled(false);
+                }
+
+                // Appliquer les changements du widget cliqué
+                if ($code === $widgetKey) {
+                    if (isset($data['enabled'])) {
+                        $pref->setEnabled($data['enabled']);
+                    }
+                    if (isset($data['size'])) {
+                        $pref->setSize($data['size']);
+                    }
+                }
+
+                // Position temporaire, sera recalculée ci-dessous
+                $pref->setPosition(null);
+                $this->preferenceRepository->save($pref, true);
+            }
+        } else {
+            // Les préférences existent déjà : mise à jour du widget ciblé
+            $pref = $this->preferenceRepository->findOneByPersonnelAndWidgetKey($user, $widgetKey, $structureDepartementPersonnel, $dashboardCode);
+
+            if (null === $pref) {
+                $pref = new DashboardPreference();
+                $pref->setPersonnel($user);
+                $pref->setStructureDepartementPersonnel($structureDepartementPersonnel);
+                $pref->setDashboardCode($dashboardCode);
+                $pref->setWidgetKey($widgetKey);
+                $pref->setSize($data['size'] ?? 'small');
+                $pref->setEnabled($data['enabled'] ?? true);
+                $pref->setPosition(null);
+                $this->preferenceRepository->save($pref, true);
+            } else {
+                if (isset($data['enabled'])) {
+                    $pref->setEnabled($data['enabled']);
+                }
+                if (isset($data['size'])) {
+                    $pref->setSize($data['size']);
+                }
+                $this->preferenceRepository->save($pref, true);
+            }
+        }
+
+        // Recalculer les positions de tous les widgets de ce dashboard
+        // pour garantir un enchaînement contigu (0, 1, 2, ...) uniquement sur les widgets enabled
+        $allPreferences = $this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel, $dashboardCode);
+
+        // Séparer enabled et disabled
+        $enabledPrefs = [];
+        $disabledPrefs = [];
+        foreach ($allPreferences as $p) {
+            if ($p->isEnabled()) {
+                $enabledPrefs[] = $p;
+            } else {
+                $disabledPrefs[] = $p;
+            }
+        }
+
+        // Trier les widgets enabled en respectant l'ordre du layout par défaut,
+        // puis par leur position actuelle pour ceux qui ne sont pas dans le layout par défaut
+        usort($enabledPrefs, function (DashboardPreference $a, DashboardPreference $b) use ($defaultOrder) {
+            $orderA = $defaultOrder[$a->getWidgetKey()] ?? PHP_INT_MAX;
+            $orderB = $defaultOrder[$b->getWidgetKey()] ?? PHP_INT_MAX;
+
+            if ($orderA !== $orderB) {
+                return $orderA <=> $orderB;
+            }
+
+            // Pour les widgets hors du layout par défaut, conserver l'ordre de position existant
+            return ($a->getPosition() ?? PHP_INT_MAX) <=> ($b->getPosition() ?? PHP_INT_MAX);
+        });
+
+        // Attribuer les positions contiguës aux widgets enabled
+        $position = 0;
+        foreach ($enabledPrefs as $p) {
+            $p->setPosition($position);
+            $this->preferenceRepository->save($p, true);
+            $position++;
+        }
+
+        // Les widgets disabled n'ont pas de position
+        foreach ($disabledPrefs as $p) {
+            $p->setPosition(null);
+            $this->preferenceRepository->save($p, true);
+        }
+
+        return new JsonResponse(['message' => 'Préférences du widget sauvegardées']);
+    }
+
+    #[Route('/api/widgets/{code}/data', name: 'api_widgets_data', methods: ['GET'])]
+    public function getWidgetData(string $code): JsonResponse
+    {
+        $user = $this->getCurrentPersonnel();
+        if (null === $user) {
+            return new JsonResponse(['message' => 'Utilisateur non autorisé'], JsonResponse::HTTP_FORBIDDEN);
+        }
+
+        if (null === $this->coreWidgetRegistry->get($code)) {
             return new JsonResponse(['message' => 'Widget introuvable'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $structureDepartementPersonnel = $this->resolveStructureDepartementPersonnel($user, $request);
-        $context = new DashboardContext($this->resolveDepartementId($user, $request, $structureDepartementPersonnel), $structureDepartementPersonnel);
-        if (!$widget->supports($user, $context)) {
-            return new JsonResponse(['message' => 'Accès refusé'], JsonResponse::HTTP_FORBIDDEN);
+        $data = $this->widgetDataRegistry->get($code, $user);
+        if (null === $data) {
+            return new JsonResponse(['message' => 'Aucune donnée disponible pour ce widget'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $payload = json_decode($request->getContent(), true);
-        if (!is_array($payload)) {
-            return new JsonResponse(['message' => 'Payload invalide'], JsonResponse::HTTP_BAD_REQUEST);
-        }
-
-        $preference = $this->preferenceRepository->findOneByPersonnelAndWidgetKey($user, $key, $structureDepartementPersonnel) ?? (new DashboardPreference())
-            ->setPersonnel($user)
-            ->setStructureDepartementPersonnel($structureDepartementPersonnel)
-            ->setWidgetKey($key);
-
-        if (array_key_exists('enabled', $payload)) {
-            $preference->setEnabled((bool) $payload['enabled']);
-        }
-        if (array_key_exists('collapsed', $payload)) {
-            $preference->setCollapsed((bool) $payload['collapsed']);
-        }
-        if (array_key_exists('position', $payload)) {
-            $preference->setPosition(max(0, (int) $payload['position']));
-        }
-        if (array_key_exists('size', $payload)) {
-            $size = (string) $payload['size'];
-            if (in_array($size, ['small', 'medium', 'large'], true)) {
-                $preference->setSize($size);
-            }
-        }
-        if (array_key_exists('config', $payload) && is_array($payload['config'])) {
-            $preference->setConfig($payload['config']);
-        }
-
-        $this->preferenceRepository->save($preference, true);
-
-        return new JsonResponse(['status' => 'ok']);
+        return new JsonResponse($data);
     }
 
     private function getCurrentPersonnel(): ?Personnel
@@ -145,49 +359,5 @@ class DashboardController extends AbstractController
         $user = $this->getUser();
 
         return $user instanceof Personnel ? $user : null;
-    }
-
-    private function resolveDepartementId(Personnel $user, Request $request, ?StructureDepartementPersonnel $structureDepartementPersonnel = null): ?int
-    {
-        if (null !== $structureDepartementPersonnel && null !== $structureDepartementPersonnel->getDepartement()) {
-            return $structureDepartementPersonnel->getDepartement()->getId();
-        }
-
-        $fromRequest = $request->query->getInt('departementId');
-        if ($fromRequest > 0) {
-            return $fromRequest;
-        }
-
-        foreach ($user->getDepartementPersonnels() as $departementPersonnel) {
-            if ($departementPersonnel->isDefaut() && null !== $departementPersonnel->getDepartement()) {
-                return $departementPersonnel->getDepartement()->getId();
-            }
-        }
-
-        return null;
-    }
-
-    private function resolveStructureDepartementPersonnel(Personnel $user, Request $request): ?StructureDepartementPersonnel
-    {
-        $structureDepartementPersonnelId = $request->query->getInt('structureDepartementPersonnelId');
-        if ($structureDepartementPersonnelId > 0) {
-            $structureDepartementPersonnel = $this->structureDepartementPersonnelRepository->find($structureDepartementPersonnelId);
-            if (null !== $structureDepartementPersonnel && $structureDepartementPersonnel->getPersonnel()?->getId() === $user->getId()) {
-                return $structureDepartementPersonnel;
-            }
-        }
-
-        foreach ($user->getDepartementPersonnels() as $departementPersonnel) {
-            if ($departementPersonnel->isDefaut()) {
-                return $departementPersonnel;
-            }
-        }
-
-        $departementPersonnels = $user->getDepartementPersonnels();
-        if (!$departementPersonnels->isEmpty()) {
-            return $departementPersonnels->first();
-        }
-
-        return null;
     }
 }

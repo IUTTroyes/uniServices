@@ -21,25 +21,28 @@ class DashboardPreferenceRepository extends ServiceEntityRepository
     /**
      * @return DashboardPreference[]
      */
-    public function findByPersonnel(Personnel $personnel, ?StructureDepartementPersonnel $structureDepartementPersonnel = null): array
+    public function findByPersonnel(Personnel $personnel, ?StructureDepartementPersonnel $structureDepartementPersonnel = null, string $dashboardCode = 'intranet'): array
     {
         return $this->createQueryBuilder('p')
             ->andWhere('p.personnel = :personnel')
             ->andWhere('p.structureDepartementPersonnel = :structureDepartementPersonnel')
+            ->andWhere('p.dashboardCode = :dashboardCode')
             ->setParameter('personnel', $personnel)
             ->setParameter('structureDepartementPersonnel', $structureDepartementPersonnel)
+            ->setParameter('dashboardCode', $dashboardCode)
             ->orderBy('p.position', 'ASC')
             ->addOrderBy('p.id', 'ASC')
             ->getQuery()
             ->getResult();
     }
 
-    public function findOneByPersonnelAndWidgetKey(Personnel $personnel, string $widgetKey, ?StructureDepartementPersonnel $structureDepartementPersonnel = null): ?DashboardPreference
+    public function findOneByPersonnelAndWidgetKey(Personnel $personnel, string $widgetKey, ?StructureDepartementPersonnel $structureDepartementPersonnel = null, string $dashboardCode = 'intranet'): ?DashboardPreference
     {
         return $this->findOneBy([
             'personnel' => $personnel,
             'widgetKey' => $widgetKey,
             'structureDepartementPersonnel' => $structureDepartementPersonnel,
+            'dashboardCode' => $dashboardCode,
         ]);
     }
 

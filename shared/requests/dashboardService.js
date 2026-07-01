@@ -1,6 +1,10 @@
 import api from '@helpers/axios';
 import apiCall from '@helpers/apiCall';
 
+// ----------------------------------------------
+// ------------------- GET ----------------------
+// ----------------------------------------------
+
 const getDashboardService = async (params = {}, showToast = false) => {
     return await apiCall(
         api.get,
@@ -21,7 +25,45 @@ const getDashboardWidgetDataService = async (url, params = {}, showToast = false
     );
 };
 
-const patchDashboardWidgetLayoutService = async (widgetKey, payload, params = {}, showToast = false) => {
+const getWidgetsCatalogService = async (params = {}, showToast = false) => {
+    return await apiCall(
+        api.get,
+        ['/api/widgets/catalog', { params }],
+        'Catalogue des widgets récupéré avec succès',
+        'Erreur lors du chargement du catalogue des widgets',
+        showToast,
+    );
+};
+
+const getWidgetsAvailableService = async (dashboardCode, params = {}, showToast = false) => {
+    return await apiCall(
+        api.get,
+        [`/api/widgets/available/${dashboardCode}`, { params }],
+        'Widgets disponibles récupérés avec succès',
+        'Erreur lors du chargement des widgets disponibles',
+        showToast,
+    );
+};
+
+const getWidgetDataByCodeService = async (code, params = {}, showToast = false) => {
+    return await apiCall(
+        api.get,
+        [`/api/widgets/${code}/data`, { params }],
+        'Données du widget récupérées avec succès',
+        'Erreur lors du chargement des données du widget',
+        showToast,
+    );
+};
+
+// ----------------------------------------------
+// ------------------- CREATE -------------------
+// ----------------------------------------------
+
+// ----------------------------------------------
+// ------------------- UPDATE -------------------
+// ----------------------------------------------
+
+const updateDashboardWidgetLayoutService = async (widgetKey, payload, params = {}, showToast = false) => {
     return await apiCall(
         api.patch,
         [`/api/dashboard/widgets/${widgetKey}/layout`, payload, {
@@ -34,4 +76,15 @@ const patchDashboardWidgetLayoutService = async (widgetKey, payload, params = {}
     );
 };
 
-export { getDashboardService, getDashboardWidgetDataService, patchDashboardWidgetLayoutService };
+// ----------------------------------------------
+// ------------------- DELETE -------------------
+// ----------------------------------------------
+
+export {
+    getDashboardService,
+    getDashboardWidgetDataService,
+    getWidgetsCatalogService,
+    getWidgetsAvailableService,
+    getWidgetDataByCodeService,
+    updateDashboardWidgetLayoutService,
+};
