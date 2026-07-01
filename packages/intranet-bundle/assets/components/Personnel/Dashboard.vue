@@ -3,7 +3,7 @@ import {computed, onMounted, ref} from 'vue';
 import {useRouter} from 'vue-router';
 import {useUsersStore, useAnneeUnivStore} from '@stores';
 import {getWidgetsCatalogService, getWidgetDataByCodeService, updateDashboardWidgetLayoutService} from '@requests';
-import {WidgetCard} from '@components';
+import {WidgetCard, GlobalLoader} from '@components';
 import { formatDateLong } from "@helpers/date";
 
 const router = useRouter();
@@ -11,10 +11,9 @@ const userStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
 const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 const widgets = ref([]);
+const isLoadingWidgets = ref(false);
 const widgetData = ref({});
-const loading = ref(true);
 const date = new Date();
-const enabledWidgets = computed(() => widgets.value.filter(w => w.enabled));
 
 const structureDepartementPersonnelId = computed(() => userStore.departementDefaut?.departementPersonnel?.id || null);
 
@@ -23,7 +22,7 @@ onMounted(() => {
 });
 
 const getDashboardWidgets = async () => {
-  loading.value = true;
+  isLoadingWidgets.value = true;
   const params = {
     dashboardCode: 'intranet',
     structureDepartementPersonnelId: structureDepartementPersonnelId.value,
@@ -35,7 +34,7 @@ const getDashboardWidgets = async () => {
   loadWidgetData(code)
   )
   );
-  loading.value = false;
+  isLoadingWidgets.value = false;
 }
 
 const loadWidgetData = async (code) => {
@@ -150,9 +149,7 @@ const moveWidget = async (widget, direction) => {
           <Button @click="router.push({name: 'IntranetDashboardWidgetsConfig'})" icon="pi pi-cog" label="Configurer" size="small"/>
         </div>
       </div>
-      <div v-if="loading" class="rounded-xl border border-surface-200 bg-surface-0 p-6 text-color-secondary h-full overflow-hidden">
-        Chargement des widgets...
-      </div>
+      <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>  
       <div v-else class="grid grid-cols-12 gap-4 overflow-y-auto">
         <WidgetCard
         v-for="widget in widgets"

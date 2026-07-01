@@ -4,12 +4,13 @@ import { useRouter, useRoute } from 'vue-router';
 import { TopbarComponent, WidgetCard, GlobalLoader } from '@components';
 import { tools } from '@config/uniServices.js';
 import { getWidgetDataByCodeService, getWidgetsCatalogService, updateDashboardWidgetLayoutService } from '@requests';
-import { useUsersStore } from "@stores";
+import { useUsersStore, useAnneeUnivStore } from "@stores";
 import { formatDateLong } from "@helpers/date";
 
 const router = useRouter();
 const route = useRoute();
 const userStore = useUsersStore();
+const anneeUnivStore = useAnneeUnivStore();
 const date = new Date();
 
 defineProps({
@@ -30,6 +31,7 @@ const isLoadingBundles = ref(false);
 const widgets = ref([]);
 const isLoadingWidgets = ref(false);
 const widgetData = ref({});
+const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 
 const onBundleClick = (bundleUrl) => {
   window.location.href = bundleUrl;
