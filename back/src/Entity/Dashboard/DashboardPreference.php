@@ -145,7 +145,8 @@ class DashboardPreference
 
     public function setColSpan(int $colSpan): static
     {
-        $this->colSpan = $colSpan;
+        // Valider: colSpan doit être entre 1 et 4 (grille à 4 colonnes)
+        $this->colSpan = max(1, min(4, $colSpan));
 
         return $this;
     }
@@ -157,7 +158,8 @@ class DashboardPreference
 
     public function setRowSpan(int $rowSpan): static
     {
-        $this->rowSpan = $rowSpan;
+        // rowSpan doit être au minimum 1
+        $this->rowSpan = max(1, $rowSpan);
 
         return $this;
     }

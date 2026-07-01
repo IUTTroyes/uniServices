@@ -263,10 +263,14 @@ class DashboardController extends AbstractController
                         $pref->setEnabled($data['enabled']);
                     }
                     if (isset($data['colSpan'])) {
-                        $pref->setColSpan($data['colSpan']);
+                        // Valider colSpan: min 1, max 4
+                        $colSpan = (int)$data['colSpan'];
+                        $colSpan = max(1, min(4, $colSpan));
+                        $pref->setColSpan($colSpan);
                     }
                     if (isset($data['rowSpan'])) {
-                        $pref->setRowSpan($data['rowSpan']);
+                        $rowSpan = max(1, (int)$data['rowSpan']);
+                        $pref->setRowSpan($rowSpan);
                     }
                 }
 
@@ -284,8 +288,11 @@ class DashboardController extends AbstractController
                 $pref->setStructureDepartementPersonnel($structureDepartementPersonnel);
                 $pref->setDashboardCode($dashboardCode);
                 $pref->setWidgetKey($widgetKey);
-                $pref->setColSpan($data['colSpan'] ?? 1);
-                $pref->setRowSpan($data['rowSpan'] ?? 1);
+                // Valider colSpan: min 1, max 4
+                $colSpan = isset($data['colSpan']) ? (int)$data['colSpan'] : 1;
+                $colSpan = max(1, min(4, $colSpan));
+                $pref->setColSpan($colSpan);
+                $pref->setRowSpan(max(1, (int)($data['rowSpan'] ?? 1)));
                 $pref->setEnabled($data['enabled'] ?? true);
                 $pref->setPosition(null);
                 $this->preferenceRepository->save($pref, true);
@@ -294,10 +301,14 @@ class DashboardController extends AbstractController
                     $pref->setEnabled($data['enabled']);
                 }
                 if (isset($data['colSpan'])) {
-                    $pref->setColSpan($data['colSpan']);
+                    // Valider colSpan: min 1, max 4
+                    $colSpan = (int)$data['colSpan'];
+                    $colSpan = max(1, min(4, $colSpan));
+                    $pref->setColSpan($colSpan);
                 }
                 if (isset($data['rowSpan'])) {
-                    $pref->setRowSpan($data['rowSpan']);
+                    $rowSpan = max(1, (int)$data['rowSpan']);
+                    $pref->setRowSpan($rowSpan);
                 }
                 $this->preferenceRepository->save($pref, true);
             }

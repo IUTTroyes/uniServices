@@ -46,8 +46,17 @@ const loadWidgetData = async (code) => {
 };
 
 const updateWidgetSpan = async (widget, spanType, newValue) => {
+  // Limiter colSpan à max 4 (largeur de la grille)
+  if (spanType === 'colSpan') {
+    newValue = Math.min(4, Math.max(1, newValue));
+  }
+  // rowSpan n'a pas de limite
+  if (spanType === 'rowSpan') {
+    newValue = Math.max(1, newValue);
+  }
+
   const updateData = { [spanType]: newValue };
-  
+
   if (spanType === 'colSpan') {
     widget.colSpan = newValue;
   } else if (spanType === 'rowSpan') {
@@ -82,12 +91,12 @@ const moveWidget = async (widget, direction) => {
   const sorted = [...widgets.value].sort((a, b) => a.position - b.position);
   // trouver l'index du widget dans le tableau
   const index = sorted.findIndex((item) => item.code === widget.code);
-  
+
   // si le widget n'est pas trouvé, on arrête
   if (index === -1) {
     return;
   }
-  
+
   // index cible
   const targetIndex = index + direction;
 
@@ -95,16 +104,16 @@ const moveWidget = async (widget, direction) => {
   if (targetIndex < 0 || targetIndex >= sorted.length) {
     return;
   }
-  
+
   // on retire le widget de son index et on l'insère à l'index cible
   const movedWidget = sorted.splice(index, 1)[0];
   sorted.splice(targetIndex, 0, movedWidget);
-  
+
   // on met à jour les positions des widgets
   sorted.forEach((item, position) => {
     item.position = position;
   });
-  
+
   // on met à jour le tableau des widgets
   widgets.value = sorted;
 
@@ -152,7 +161,7 @@ const moveWidget = async (widget, direction) => {
           <Button @click="router.push({name: 'IntranetDashboardWidgetsConfig'})" icon="pi pi-cog" label="Configurer" size="small"/>
         </div>
       </div>
-      <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>  
+      <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>
       <div v-else class="dashboard-grid">
         <WidgetCard
         v-for="widget in widgets"
@@ -175,7 +184,6 @@ const moveWidget = async (widget, direction) => {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-auto-rows: 1fr;
-  min-height: calc(3 * 200px);
   gap: 1rem;
   overflow-y: auto;
 }
