@@ -19,25 +19,29 @@ class PortalDashboardDefinition implements DashboardDefinitionInterface
             new DashboardWidgetLayout(
                 'intranet.emploi_du_temps',
                 0,
-                'medium',
+                colSpan: 2,
+                rowSpan: 1,
             ),
 
             new DashboardWidgetLayout(
                 'intranet.actions_urgentes',
                 1,
-                'small'
+                colSpan: 1,
+                rowSpan: 2,
             ),
 
             new DashboardWidgetLayout(
                 'portfolio.progress',
                 2,
-                'small'
+                colSpan: 1,
+                rowSpan: 1,
             ),
 
             new DashboardWidgetLayout(
                 'questionnaire.pending',
                 3,
-                'medium'
+                colSpan: 2,
+                rowSpan: 1,
             ),
         ];
     }
@@ -48,19 +52,22 @@ class PortalDashboardDefinition implements DashboardDefinitionInterface
             new DashboardWidgetLayout(
                 'intranet.emploi_du_temps',
                 0,
-                'medium',
+                colSpan: 2,
+                rowSpan: 1,
             ),
 
             new DashboardWidgetLayout(
                 'portfolio.progress',
                 2,
-                'small'
+                colSpan: 1,
+                rowSpan: 1,
             ),
 
             new DashboardWidgetLayout(
                 'questionnaire.pending',
                 3,
-                'medium'
+                colSpan: 2,
+                rowSpan: 1,
             ),
         ];
     }

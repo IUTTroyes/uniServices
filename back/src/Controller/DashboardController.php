@@ -59,7 +59,8 @@ class DashboardController extends AbstractController
                 $definition = $widgetDefinition->toArray();
 
                 $definition['position'] = $layout->position;
-                $definition['size'] = $layout->size;
+                $definition['colSpan'] = $layout->colSpan;
+                $definition['rowSpan'] = $layout->rowSpan;
                 $definition['enabled'] = $layout->enabled;
                 $definition['key'] = $layout->widgetCode;
 
@@ -78,7 +79,8 @@ class DashboardController extends AbstractController
                 $definition = $widgetDefinition->toArray();
 
                 $definition['position'] = $preference->getPosition();
-                $definition['size'] = $preference->getSize();
+                $definition['colSpan'] = $preference->getColSpan();
+                $definition['rowSpan'] = $preference->getRowSpan();
                 $definition['enabled'] = $preference->isEnabled();
                 $definition['key'] = $preference->getWidgetKey();
 
@@ -134,7 +136,8 @@ class DashboardController extends AbstractController
 
                 $config = $widgetDefinition->toArray();
                 $config['position'] = $layout->position;
-                $config['size'] = $layout->size;
+                $config['colSpan'] = $layout->colSpan;
+                $config['rowSpan'] = $layout->rowSpan;
                 $config['enabled'] = $layout->enabled;
                 $config['key'] = $layout->widgetCode;
 
@@ -151,7 +154,8 @@ class DashboardController extends AbstractController
                 // On définit des valeurs par défaut pour ces widgets additionnels
                 $config = $widget;
                 $config['position'] = null;  // pas encore positionné
-                $config['size'] = 'small';   // taille par défaut
+                $config['colSpan'] = 1;      // taille par défaut: 1 colonne
+                $config['rowSpan'] = 1;      // taille par défaut: 1 ligne
                 $config['enabled'] = false;  // inactif par défaut
                 $config['key'] = $widget['code'];
 
@@ -166,11 +170,13 @@ class DashboardController extends AbstractController
                 if (isset($preferences[$widget['code']])) {
                     $pref = $preferences[$widget['code']];
                     $config['position'] = $pref->getPosition();
-                    $config['size'] = $pref->getSize();
+                    $config['colSpan'] = $pref->getColSpan();
+                    $config['rowSpan'] = $pref->getRowSpan();
                     $config['enabled'] = $pref->isEnabled();
                 } else {
                     $config['position'] = null;
-                    $config['size'] = 'small';
+                    $config['colSpan'] = 1;      // taille par défaut: 1 colonne
+                    $config['rowSpan'] = 1;      // taille par défaut: 1 ligne
                     $config['enabled'] = false;
                 }
                 $responseWidgets[] = $config;
@@ -242,10 +248,12 @@ class DashboardController extends AbstractController
 
                 if (isset($defaultLayouts[$code])) {
                     $layout = $defaultLayouts[$code];
-                    $pref->setSize($layout->size);
+                    $pref->setColSpan($layout->colSpan);
+                    $pref->setRowSpan($layout->rowSpan);
                     $pref->setEnabled($layout->enabled);
                 } else {
-                    $pref->setSize('small');
+                    $pref->setColSpan(1);
+                    $pref->setRowSpan(1);
                     $pref->setEnabled(false);
                 }
 
@@ -254,8 +262,11 @@ class DashboardController extends AbstractController
                     if (isset($data['enabled'])) {
                         $pref->setEnabled($data['enabled']);
                     }
-                    if (isset($data['size'])) {
-                        $pref->setSize($data['size']);
+                    if (isset($data['colSpan'])) {
+                        $pref->setColSpan($data['colSpan']);
+                    }
+                    if (isset($data['rowSpan'])) {
+                        $pref->setRowSpan($data['rowSpan']);
                     }
                 }
 
@@ -273,7 +284,8 @@ class DashboardController extends AbstractController
                 $pref->setStructureDepartementPersonnel($structureDepartementPersonnel);
                 $pref->setDashboardCode($dashboardCode);
                 $pref->setWidgetKey($widgetKey);
-                $pref->setSize($data['size'] ?? 'small');
+                $pref->setColSpan($data['colSpan'] ?? 1);
+                $pref->setRowSpan($data['rowSpan'] ?? 1);
                 $pref->setEnabled($data['enabled'] ?? true);
                 $pref->setPosition(null);
                 $this->preferenceRepository->save($pref, true);
@@ -281,8 +293,11 @@ class DashboardController extends AbstractController
                 if (isset($data['enabled'])) {
                     $pref->setEnabled($data['enabled']);
                 }
-                if (isset($data['size'])) {
-                    $pref->setSize($data['size']);
+                if (isset($data['colSpan'])) {
+                    $pref->setColSpan($data['colSpan']);
+                }
+                if (isset($data['rowSpan'])) {
+                    $pref->setRowSpan($data['rowSpan']);
                 }
                 $this->preferenceRepository->save($pref, true);
             }

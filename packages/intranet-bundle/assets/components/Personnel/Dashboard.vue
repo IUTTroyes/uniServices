@@ -45,15 +45,18 @@ const loadWidgetData = async (code) => {
   }
 };
 
-const rotateSize = async (widget) => {
-  const sizes = ['small', 'medium', 'large'];
-  const index = sizes.indexOf(widget.size || 'medium');
-  const newSize = sizes[(index + 1) % sizes.length];
-  widget.size = newSize;
+const updateWidgetSpan = async (widget, spanType, newValue) => {
+  const updateData = { [spanType]: newValue };
+  
+  if (spanType === 'colSpan') {
+    widget.colSpan = newValue;
+  } else if (spanType === 'rowSpan') {
+    widget.rowSpan = newValue;
+  }
 
   await updateDashboardWidgetLayoutService(
     widget.code,
-    { size: newSize },
+    updateData,
     {
       dashboardCode: 'intranet',
       structureDepartementPersonnelId: structureDepartementPersonnelId.value,
@@ -150,7 +153,7 @@ const moveWidget = async (widget, direction) => {
         </div>
       </div>
       <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>  
-      <div v-else class="grid grid-cols-12 gap-4 overflow-y-auto">
+      <div v-else class="dashboard-grid">
         <WidgetCard
         v-for="widget in widgets"
         :key="widget.code"
@@ -159,10 +162,21 @@ const moveWidget = async (widget, direction) => {
         :first="widget.position == 0 ? true : false"
         :last="widget.position == widgets.length - 1 ? true : false"
         @move="moveWidget"
-        @rotate="rotateSize"
+        @updateSpan="updateWidgetSpan"
         @toggle="toggleWidget"
         />
       </div>
     </div>
   </section>
 </template>
+
+<style scoped>
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  min-height: calc(3 * 200px);
+  gap: 1rem;
+  overflow-y: auto;
+}
+</style>

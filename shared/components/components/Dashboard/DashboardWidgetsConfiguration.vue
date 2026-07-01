@@ -84,7 +84,7 @@ const updateWidget = async (widget) => {
                 </div>
 
                 <div class="mb-4 text-sm text-color-secondary">
-                    Taille par défaut: <strong>{{ widget.size }}</strong>
+                    Taille par défaut: <strong>{{ widget.colSpan }} × {{ widget.rowSpan }}</strong> (colonnes × lignes)
                 </div>
 
                 <Button
