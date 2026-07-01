@@ -40,8 +40,11 @@ class DashboardPreference
     #[ORM\Column(nullable: true)]
     private ?int $position = null;
 
-    #[ORM\Column(length: 20)]
-    private string $size = 'medium';
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
+    private int $colSpan = 1;
+
+    #[ORM\Column(type: 'integer', options: ['default' => 1])]
+    private int $rowSpan = 1;
 
     #[ORM\Column(type: Types::JSON)]
     private array $config = [];
@@ -135,14 +138,28 @@ class DashboardPreference
         return $this;
     }
 
-    public function getSize(): string
+    public function getColSpan(): int
     {
-        return $this->size;
+        return $this->colSpan;
     }
 
-    public function setSize(string $size): static
+    public function setColSpan(int $colSpan): static
     {
-        $this->size = $size;
+        // Valider: colSpan doit être entre 1 et 4 (grille à 4 colonnes)
+        $this->colSpan = max(1, min(4, $colSpan));
+
+        return $this;
+    }
+
+    public function getRowSpan(): int
+    {
+        return $this->rowSpan;
+    }
+
+    public function setRowSpan(int $rowSpan): static
+    {
+        // rowSpan doit être au minimum 1
+        $this->rowSpan = max(1, $rowSpan);
 
         return $this;
     }

@@ -39,19 +39,31 @@ const onBundleClick = (bundleUrl) => {
 
 const structureDepartementPersonnelId = computed(() => userStore.departementDefaut?.departementPersonnel?.id || null);
 
-const rotateSize = async (widget) => {
-  const sizes = ['small', 'medium', 'large'];
-  const index = sizes.indexOf(widget.size || 'medium');
-  const newSize = sizes[(index + 1) % sizes.length];
-  widget.size = newSize;
-  
-  await updateDashboardWidgetLayoutService(
-  widget.code,
-  { size: newSize },
-  {
-    dashboardCode: 'portail',
-    structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+const updateWidgetSpan = async (widget, spanType, newValue) => {
+  // Limiter colSpan à max 4 (largeur de la grille)
+  if (spanType === 'colSpan') {
+    newValue = Math.min(4, Math.max(1, newValue));
   }
+  // rowSpan n'a pas de limite
+  if (spanType === 'rowSpan') {
+    newValue = Math.max(1, newValue);
+  }
+
+  const updateData = { [spanType]: newValue };
+
+  if (spanType === 'colSpan') {
+    widget.colSpan = newValue;
+  } else if (spanType === 'rowSpan') {
+    widget.rowSpan = newValue;
+  }
+
+  await updateDashboardWidgetLayoutService(
+    widget.code,
+    updateData,
+    {
+      dashboardCode: 'portail',
+      structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+    }
   );
 };
 
@@ -73,32 +85,32 @@ const moveWidget = async (widget, direction) => {
   const sorted = [...widgets.value].sort((a, b) => a.position - b.position);
   // trouver l'index du widget dans le tableau
   const index = sorted.findIndex((item) => item.code === widget.code);
-  
+
   // si le widget n'est pas trouvé, on arrête
   if (index === -1) {
     return;
   }
-  
+
   // index cible
   const targetIndex = index + direction;
-  
+
   // si l'index cible est en dehors du tableau, on arrête
   if (targetIndex < 0 || targetIndex >= sorted.length) {
     return;
   }
-  
+
   // on retire le widget de son index et on l'insère à l'index cible
   const movedWidget = sorted.splice(index, 1)[0];
   sorted.splice(targetIndex, 0, movedWidget);
-  
+
   // on met à jour les positions des widgets
   sorted.forEach((item, position) => {
     item.position = position;
   });
-  
+
   // on met à jour le tableau des widgets
   widgets.value = sorted;
-  
+
   const promises = sorted.map((item) => {
     return updateDashboardWidgetLayoutService(
     item.code,
@@ -109,7 +121,7 @@ const moveWidget = async (widget, direction) => {
     }
     );
   });
-  
+
   await Promise.all(promises);
 };
 
@@ -162,7 +174,7 @@ watch(() => route.path, async (newPath, oldPath) => {
 <template>
   <main>
     <TopbarComponent :app-name :logo-url/>
-    
+
     <RouterView class="mt-28 mx-10"/>
     <div v-if="!route.path.includes('/portail/widgets')" class="px-4 lg:px-10">
       <div class="grid grid-cols-12 gap-4">
@@ -207,7 +219,7 @@ watch(() => route.path, async (newPath, oldPath) => {
         </div>
       </div>
     </aside>
-    
+
     <section class="col-span-12 lg:col-span-10 pt-28 pb-14 h-screen">
       <div class="h-full overflow-y-auto">
         <div v-if="!userStore.isLoading" class="flex items-center justify-between mb-4">
@@ -236,7 +248,7 @@ watch(() => route.path, async (newPath, oldPath) => {
           </div>
         </div>
         <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>
-        <div v-else class="grid grid-cols-12 gap-4 overflow-y-auto">
+        <div v-else class="dashboard-grid">
           <WidgetCard
           v-for="widget in widgets"
           :key="widget.code"
@@ -245,7 +257,7 @@ watch(() => route.path, async (newPath, oldPath) => {
           :first="widget.position == 0 ? true : false"
           :last="widget.position == widgets.length - 1 ? true : false"
           @move="moveWidget"
-          @rotate="rotateSize"
+          @updateSpan="updateWidgetSpan"
           @toggle="toggleWidget"
           />
         </div>
@@ -257,4 +269,11 @@ watch(() => route.path, async (newPath, oldPath) => {
 </template>
 
 <style scoped>
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 1fr;
+  gap: 1rem;
+  overflow-y: auto;
+}
 </style>
