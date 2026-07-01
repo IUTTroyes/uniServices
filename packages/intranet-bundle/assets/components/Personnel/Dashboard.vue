@@ -14,6 +14,7 @@ const widgets = ref([]);
 const widgetData = ref({});
 const loading = ref(true);
 const date = new Date();
+const enabledWidgets = computed(() => widgets.value.filter(w => w.enabled));
 
 const structureDepartementPersonnelId = computed(() => userStore.departementDefaut?.departementPersonnel?.id || null);
 

@@ -214,11 +214,18 @@ class DashboardController extends AbstractController
 
         $data = json_decode($request->getContent(), true) ?? [];
 
+        $dashboard = $this->dashboardRegistry->get($dashboardCode);
+
+        // Construire un index d'ordre du layout par défaut pour le tri
+        $defaultOrder = [];
+        foreach ($dashboard->getDefaultLayout() as $index => $layout) {
+            $defaultOrder[$layout->widgetCode] = $index;
+        }
+
         $preferences = $this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel, $dashboardCode);
 
         if (empty($preferences)) {
-            // on initialise les préférences à partir du layout par défaut du dashboard
-            $dashboard = $this->dashboardRegistry->get($dashboardCode);
+            // Initialiser les préférences à partir des widgets disponibles du dashboard
             $availableWidgets = $dashboard->getAvailableWidgets();
             $defaultLayouts = [];
             foreach ($dashboard->getDefaultLayout() as $layout) {
@@ -235,11 +242,9 @@ class DashboardController extends AbstractController
 
                 if (isset($defaultLayouts[$code])) {
                     $layout = $defaultLayouts[$code];
-                    $pref->setPosition($layout->position);
                     $pref->setSize($layout->size);
                     $pref->setEnabled($layout->enabled);
                 } else {
-                    $pref->setPosition(99);
                     $pref->setSize('small');
                     $pref->setEnabled(false);
                 }
@@ -252,15 +257,14 @@ class DashboardController extends AbstractController
                     if (isset($data['size'])) {
                         $pref->setSize($data['size']);
                     }
-                    if (isset($data['position'])) {
-                        $pref->setPosition($data['position']);
-                    }
                 }
 
+                // Position temporaire, sera recalculée ci-dessous
+                $pref->setPosition(null);
                 $this->preferenceRepository->save($pref, true);
             }
         } else {
-            // Les préférences existent déjà : mise à jour
+            // Les préférences existent déjà : mise à jour du widget ciblé
             $pref = $this->preferenceRepository->findOneByPersonnelAndWidgetKey($user, $widgetKey, $structureDepartementPersonnel, $dashboardCode);
 
             if (null === $pref) {
@@ -269,9 +273,10 @@ class DashboardController extends AbstractController
                 $pref->setStructureDepartementPersonnel($structureDepartementPersonnel);
                 $pref->setDashboardCode($dashboardCode);
                 $pref->setWidgetKey($widgetKey);
-                $pref->setPosition($data['position'] ?? 99);
                 $pref->setSize($data['size'] ?? 'small');
                 $pref->setEnabled($data['enabled'] ?? true);
+                $pref->setPosition(null);
+                $this->preferenceRepository->save($pref, true);
             } else {
                 if (isset($data['enabled'])) {
                     $pref->setEnabled($data['enabled']);
@@ -279,12 +284,51 @@ class DashboardController extends AbstractController
                 if (isset($data['size'])) {
                     $pref->setSize($data['size']);
                 }
-                if (isset($data['position'])) {
-                    $pref->setPosition($data['position']);
-                }
+                $this->preferenceRepository->save($pref, true);
+            }
+        }
+
+        // Recalculer les positions de tous les widgets de ce dashboard
+        // pour garantir un enchaînement contigu (0, 1, 2, ...) uniquement sur les widgets enabled
+        $allPreferences = $this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel, $dashboardCode);
+
+        // Séparer enabled et disabled
+        $enabledPrefs = [];
+        $disabledPrefs = [];
+        foreach ($allPreferences as $p) {
+            if ($p->isEnabled()) {
+                $enabledPrefs[] = $p;
+            } else {
+                $disabledPrefs[] = $p;
+            }
+        }
+
+        // Trier les widgets enabled en respectant l'ordre du layout par défaut,
+        // puis par leur position actuelle pour ceux qui ne sont pas dans le layout par défaut
+        usort($enabledPrefs, function (DashboardPreference $a, DashboardPreference $b) use ($defaultOrder) {
+            $orderA = $defaultOrder[$a->getWidgetKey()] ?? PHP_INT_MAX;
+            $orderB = $defaultOrder[$b->getWidgetKey()] ?? PHP_INT_MAX;
+
+            if ($orderA !== $orderB) {
+                return $orderA <=> $orderB;
             }
 
-            $this->preferenceRepository->save($pref, true);
+            // Pour les widgets hors du layout par défaut, conserver l'ordre de position existant
+            return ($a->getPosition() ?? PHP_INT_MAX) <=> ($b->getPosition() ?? PHP_INT_MAX);
+        });
+
+        // Attribuer les positions contiguës aux widgets enabled
+        $position = 0;
+        foreach ($enabledPrefs as $p) {
+            $p->setPosition($position);
+            $this->preferenceRepository->save($p, true);
+            $position++;
+        }
+
+        // Les widgets disabled n'ont pas de position
+        foreach ($disabledPrefs as $p) {
+            $p->setPosition(null);
+            $this->preferenceRepository->save($p, true);
         }
 
         return new JsonResponse(['message' => 'Préférences du widget sauvegardées']);

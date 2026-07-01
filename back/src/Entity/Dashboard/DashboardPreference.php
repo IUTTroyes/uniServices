@@ -37,8 +37,8 @@ class DashboardPreference
     #[ORM\Column]
     private bool $collapsed = false;
 
-    #[ORM\Column]
-    private int $position = 0;
+    #[ORM\Column(nullable: true)]
+    private ?int $position = null;
 
     #[ORM\Column(length: 20)]
     private string $size = 'medium';
@@ -123,12 +123,12 @@ class DashboardPreference
         return $this;
     }
 
-    public function getPosition(): int
+    public function getPosition(): ?int
     {
         return $this->position;
     }
 
-    public function setPosition(int $position): static
+    public function setPosition(?int $position): static
     {
         $this->position = $position;
 

@@ -1,7 +1,7 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { TopbarComponent, WidgetCard } from '@components';
+import { TopbarComponent, WidgetCard, GlobalLoader } from '@components';
 import { tools } from '@config/uniServices.js';
 import { getWidgetDataByCodeService, getWidgetsCatalogService, updateDashboardWidgetLayoutService } from '@requests';
 import { useUsersStore } from "@stores";
@@ -26,9 +26,10 @@ defineProps({
 
 const activatedBundles = ref([]);
 const unactivatedBundles = ref([]);
+const isLoadingBundles = ref(false);
 const widgets = ref([]);
+const isLoadingWidgets = ref(false);
 const widgetData = ref({});
-const loading = ref(true);
 
 const onBundleClick = (bundleUrl) => {
   window.location.href = bundleUrl;
@@ -41,26 +42,26 @@ const rotateSize = async (widget) => {
   const index = sizes.indexOf(widget.size || 'medium');
   const newSize = sizes[(index + 1) % sizes.length];
   widget.size = newSize;
-
+  
   await updateDashboardWidgetLayoutService(
-    widget.code,
-    { size: newSize },
-    {
-      dashboardCode: 'portail',
-      structureDepartementPersonnelId: structureDepartementPersonnelId.value,
-    }
+  widget.code,
+  { size: newSize },
+  {
+    dashboardCode: 'portail',
+    structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+  }
   );
 };
 
 const toggleWidget = async (widget) => {
   widget.enabled = !widget.enabled;
   await updateDashboardWidgetLayoutService(
-    widget.code,
-    { enabled: widget.enabled },
-    {
-      dashboardCode: 'portail',
-      structureDepartementPersonnelId: structureDepartementPersonnelId.value,
-    }
+  widget.code,
+  { enabled: widget.enabled },
+  {
+    dashboardCode: 'portail',
+    structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+  }
   );
   await getWidgets();
 };
@@ -95,18 +96,18 @@ const moveWidget = async (widget, direction) => {
   
   // on met à jour le tableau des widgets
   widgets.value = sorted;
-
+  
   const promises = sorted.map((item) => {
     return updateDashboardWidgetLayoutService(
-      item.code,
-      { position: item.position },
-      {
-        dashboardCode: 'portail',
-        structureDepartementPersonnelId: structureDepartementPersonnelId.value,
-      }
+    item.code,
+    { position: item.position },
+    {
+      dashboardCode: 'portail',
+      structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+    }
     );
   });
-
+  
   await Promise.all(promises);
 };
 
@@ -119,6 +120,7 @@ const loadWidgetData = async (code) => {
 };
 
 const getWidgets = async () => {
+  isLoadingWidgets.value = true;
   const params = {
     dashboardCode: 'portail',
     structureDepartementPersonnelId: structureDepartementPersonnelId.value,
@@ -126,18 +128,31 @@ const getWidgets = async () => {
   const response = await getWidgetsCatalogService(params);
   widgets.value = response.widgets || [];
   await Promise.all(
-    widgets.value.map(({ code }) => loadWidgetData(code))
+  widgets.value.map(({ code }) => loadWidgetData(code))
   );
+  isLoadingWidgets.value = false;
 };
 
 onMounted(async () => {
-  loading.value = true;
+  isLoadingBundles.value = true;
   try {
     activatedBundles.value = tools.filter((bundle) => userStore.user.applications.includes(bundle.name));
     unactivatedBundles.value = tools.filter((bundle) => !userStore.user.applications.includes(bundle.name));
     await getWidgets();
   } finally {
-    loading.value = false;
+    isLoadingBundles.value = false;
+  }
+});
+
+// Recharger les widgets quand on revient de la page de configuration
+watch(() => route.path, async (newPath, oldPath) => {
+  if (oldPath?.includes('/portail/widgets') && !newPath.includes('/portail/widgets')) {
+    isLoadingWidgets.value = true;
+    try {
+      await getWidgets();
+    } finally {
+      isLoadingWidgets.value = false;
+    }
   }
 });
 </script>
@@ -153,7 +168,8 @@ onMounted(async () => {
           <div class="card h-full overflow-y-auto flex flex-col gap-6">
             <div class="flex flex-col gap-4">
               <div class="text-md font-semibold text-color-secondary uppercase">Applications</div>
-              <div class="flex flex-col">
+              <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
+              <div v-else class="flex flex-col">
                 <Button
                 v-for="bundle in activatedBundles"
                 :key="bundle.urlSlug"
@@ -170,7 +186,8 @@ onMounted(async () => {
           </div>
           <div v-if="unactivatedBundles.length > 0" class="flex flex-col gap-4">
             <div class="text-ms font-semibold text-color-secondary uppercase">Non activé</div>
-            <div class="flex flex-col">
+            <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
+            <div v-else class="flex flex-col">
               <Button
               v-for="bundle in unactivatedBundles"
               :key="bundle.urlSlug"
@@ -216,9 +233,7 @@ onMounted(async () => {
             <Button icon="pi pi-cog" label="Configurer" size="small" @click="router.push({name: 'PortailDashboardWidgetsConfig', params: {bundle: 'portail'}})"/>
           </div>
         </div>
-        <div v-if="loading" class="rounded-xl border border-surface-200 bg-surface-0 p-6 text-color-secondary h-full overflow-hidden">
-          Chargement des widgets...
-        </div>
+        <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>
         <div v-else class="grid grid-cols-12 gap-4 overflow-y-auto">
           <WidgetCard
           v-for="widget in widgets"
