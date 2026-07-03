@@ -118,6 +118,7 @@ class Questionnaire
 
     public function __construct()
     {
+        $this->uuid = Uuid::v4();
         $this->setOpt([]);
         $this->sections = new ArrayCollection();
         $this->sectionInstances = new ArrayCollection();

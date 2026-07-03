@@ -32,13 +32,23 @@ final class QuestionnaireStructureService
                 continue;
             }
 
-            $items = $this->repeatRegistry->getItems($q, $st);
-            foreach ($items as $item) {
+            // Section configurable : on boucle sur les éléments sauvegardés dans le JSON opt
+            $opts = $st->getOpt();
+            $elements = $opts['elements'] ?? [];
+            foreach ($elements as $el) {
+                $elementName = $el['name'] ?? '';
+                $elementId = $el['id'] ?? '';
+                $sourceType = $opts['sourceType'] ?? 'matiere';
+
+                // Génération du titre avec le patron
+                $titleTemplate = $opts['titleTemplate'] ?? 'Évaluation de {element}';
+                $title = str_replace('{element}', $elementName, $titleTemplate);
+
                 $plan[] = [
                     'sectionTemplate' => $st,
-                    'title' => sprintf('%s – %s', $st->getTitle(), $item->label),
-                    'repeatItemType' => $item->type,
-                    'repeatItemId' => $item->id,
+                    'title' => $title,
+                    'repeatItemType' => $sourceType,
+                    'repeatItemId' => $elementId,
                     'sortOrder' => $order++,
                 ];
             }
