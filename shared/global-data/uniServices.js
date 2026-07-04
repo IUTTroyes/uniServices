@@ -5,12 +5,18 @@ import toolsMeta from "./tools.generated.json";
 // via le fichier tools.generated.json (créé/maintenu par les scripts PHP).
 // Par défaut, tous les logos utilisent LogoIut. La valeur 'url' provient du registre
 // ou est construite par défaut comme un chemin relatif "/<slug>".
-export const tools = (toolsMeta || []).map(item => ({
-  name: item.name,
-  description: item.description,
-  url: item.url || `/${item.urlSlug}`,
-  logo: LogoIut || item.logo,
-}));
+export const tools = (toolsMeta || []).map(item => {
+  let targetUrl = item.url || `/${item.urlSlug}`;
+  if (targetUrl.startsWith('http://localhost') || targetUrl.startsWith('https://localhost')) {
+    targetUrl = `/${item.urlSlug}`;
+  }
+  return {
+    name: item.name,
+    description: item.description,
+    url: targetUrl,
+    logo: LogoIut || item.logo,
+  };
+});
 
 export const statuts = [
   { label: 'Maître de conférences', value: 'MCF', severity: 'info' },

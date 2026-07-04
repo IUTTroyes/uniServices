@@ -76,7 +76,7 @@ const createTicket = async () => {
   try {
     console.log(filesNames.value)
     await createTicketService(formData, true);
-    router.push({ name: 'Dashboard'});
+    router.push({ name: 'HelpdeskDashboard'});
   }
   catch (error) {
     console.error('Erreur lors de la création du ticket', error);

@@ -34,7 +34,11 @@ const widgetData = ref({});
 const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 
 const onBundleClick = (bundleUrl) => {
-  window.location.href = bundleUrl;
+  if (bundleUrl.startsWith('/')) {
+    router.push(bundleUrl);
+  } else {
+    window.location.href = bundleUrl;
+  }
 };
 
 const structureDepartementPersonnelId = computed(() => userStore.departementDefaut?.departementPersonnel?.id || null);

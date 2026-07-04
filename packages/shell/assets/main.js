@@ -6,6 +6,7 @@ import router from './router';
 import { initializeAppData } from '@requests/initializeData';
 import { registerPermissionDirective } from '@utils';
 import { setupInactivityTimer } from '@helpers/authService';
+
 import Aura from '@primeuix/themes/aura';
 import PrimeVue from 'primevue/config';
 import ConfirmationService from 'primevue/confirmationservice';
@@ -14,11 +15,10 @@ import Ripple from 'primevue/ripple';
 import StyleClass from 'primevue/styleclass';
 import Tooltip from 'primevue/tooltip';
 import { definePreset } from '@primeuix/themes';
-import '@/assets/styles.scss';
-import '@/assets/tailwind.css';
-import fr from '@config/fr.json'
+import fr from '@config/fr.json';
 
-const app = createApp(App);
+import './assets/styles.scss';
+import './assets/tailwind.css';
 
 const MyPreset = definePreset(Aura, {
     semantic: {
@@ -39,6 +39,7 @@ const MyPreset = definePreset(Aura, {
 });
 
 const pinia = createPinia();
+const app = createApp(App);
 
 app.use(router);
 
@@ -60,10 +61,9 @@ app.use(ConfirmationService);
 
 app.use(pinia);
 
-// Register the permission directive
 registerPermissionDirective(app);
 
-// Add temporary loader during initialization
+// Ajouter un contenu temporaire avant le montage
 import GlobalLoader from '@components/loader/GlobalLoader.vue';
 const loadingElement = document.createElement('div');
 loadingElement.id = 'loading';
@@ -72,7 +72,7 @@ document.body.appendChild(loadingElement);
 const loaderApp = createApp(GlobalLoader);
 loaderApp.mount(loadingElement);
 
-// Initialize data and mount the app
+// Initialiser les données et monter l'application
 (async () => {
     try {
         await initializeAppData();
@@ -80,7 +80,9 @@ loaderApp.mount(loadingElement);
     } catch (error) {
         console.error('Erreur lors de l\'initialisation de l\'application:', error);
     } finally {
+        // Supprimer le contenu temporaire après l'initialisation
         document.body.removeChild(loadingElement);
+        // Monter l'application
         app.mount('#app');
     }
 })();

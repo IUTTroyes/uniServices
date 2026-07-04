@@ -5,8 +5,10 @@ import { ApcCompetenceBadge, ApcAcBadge } from '@components';
 import {ErrorView} from "@components";
 import {getEnseignementService} from "@requests";
 import {useUsersStore} from "@stores";
-import router from "../../router/index.js";
+import { useRouter } from "vue-router";
 import Loader from "@components/loader/GlobalLoader.vue";
+
+const router = useRouter();
 
 const props = defineProps({
   enseignement: {

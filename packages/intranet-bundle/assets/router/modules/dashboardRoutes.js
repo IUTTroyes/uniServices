@@ -1,8 +1,9 @@
 export default [
     {
         path: '',
-        component: () => import('@/views/DashboardView.vue'),
-        name: 'Dashboard',
+        alias: '/',
+        component: () => import('@/views/IntranetDashboardView.vue'),
+        name: 'IntranetDashboard',
     },
     {
         path: 'widgets',

@@ -1,5 +1,6 @@
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
+import { useRouter } from 'vue-router';
 import {
     changeDepartementActifService,
     getAllStatutsService,
@@ -220,12 +221,31 @@ export const useUsersStore = defineStore('users', () => {
         temporaryRole.value = null;
     };
 
-    // Clé applicative déduite depuis l'URL de base Vite (import.meta.env.BASE_URL)
-    // Ex: '/intranet/' => 'intranet', '/edt/' => 'edt', '/' => null
+    // Clé applicative déduite dynamiquement depuis la route active de la SPA
     const currentAppKey = computed(() => {
-        const base = import.meta.env.BASE_URL || '/';
-        const key = base.replace(/^\//, '').replace(/\/$/, '').trim();
-        return key.length > 0 ? key : null;
+        try {
+            const router = useRouter();
+            if (router && router.currentRoute.value) {
+                const path = router.currentRoute.value.path;
+                const segments = path.split('/').filter(Boolean);
+                if (segments.length > 0) {
+                    return segments[0];
+                }
+            }
+        } catch (e) {
+            // Fallback en dehors du contexte du routeur (ex: chargement initial)
+        }
+        
+        const pathname = window.location.pathname || '/';
+        const segments = pathname.split('/').filter(Boolean);
+        if (segments.length > 0) {
+            const first = segments[0];
+            if (first === 'app') {
+                return segments[1] || null;
+            }
+            return first;
+        }
+        return null;
     });
 
     // Rôles actifs pour l'application courante dans le département par défaut

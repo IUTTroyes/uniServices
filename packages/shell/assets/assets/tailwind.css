@@ -1,0 +1,7 @@
+@import "tailwindcss";
+@import "tailwindcss-primeui";
+
+@variant dark (&:where(.app-dark, .app-dark *));
+
+@source "../../../../packages/*/assets/**/*.vue";
+@source "../../../../shared/**/*.vue";

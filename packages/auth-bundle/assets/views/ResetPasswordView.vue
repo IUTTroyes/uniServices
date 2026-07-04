@@ -91,7 +91,7 @@ const handleSubmit = async () => {
 
 <style scoped>
 .bg {
-  background-image: url("@/assets/iut.jpg");
+  background-image: url("../assets/iut.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

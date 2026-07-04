@@ -262,7 +262,7 @@ const selectAnneeUniversitaire = (annee) => {
 
   <div class="layout-topbar">
     <div class="layout-topbar-logo-container">
-      <button v-if="route.path !== '/portail'" class="layout-menu-button layout-topbar-action" @click="onMenuToggle">
+      <button v-if="route.name !== 'portail'" class="layout-menu-button layout-topbar-action" @click="onMenuToggle">
         <i class="pi pi-bars"></i>
       </button>
 
@@ -271,7 +271,7 @@ const selectAnneeUniversitaire = (annee) => {
       </router-link>
     </div>
 
-    <div v-if="route.path !== '/portail'" class="layout-topbar-search hidden lg:block">
+    <div v-if="route.name !== 'portail'" class="layout-topbar-search hidden lg:block">
       <IconField>
         <InputIcon class="pi pi-search" />
         <InputText v-model="search" placeholder="Recherche" />
@@ -279,7 +279,7 @@ const selectAnneeUniversitaire = (annee) => {
     </div>
 
     <div class="layout-topbar-actions">
-      <div v-if="route.path !== '/portail'" class="layout-topbar-search lg:hidden">
+      <div v-if="route.name !== 'portail'" class="layout-topbar-search lg:hidden">
         <IconField>
           <InputIcon class="pi pi-search" />
           <InputText v-model="search" placeholder="Recherche" />
@@ -293,13 +293,13 @@ const selectAnneeUniversitaire = (annee) => {
 
       <div class="layout-topbar-menu lg:block">
         <div class="layout-topbar-menu-content">
-          <a href="http://localhost:3000/auth/portail" v-if="route.path !== '/portail'" type="button"
+          <router-link :to="{ name: 'portail' }" v-if="route.name !== 'portail'"
             class="layout-topbar-action layout-topbar-action-text">
             <i class="pi pi-arrow-left"></i>
             <span>Portail</span>
-          </a>
+          </router-link>
 
-          <button v-if="route.path !== '/portail'" type="button" class="layout-topbar-action layout-topbar-action-text"
+          <button v-if="route.name !== 'portail'" type="button" class="layout-topbar-action layout-topbar-action-text"
             @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
             <i class="pi pi-microsoft text-primary"></i>
             <span>Applications</span>
