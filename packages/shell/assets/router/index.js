@@ -75,7 +75,7 @@ router.beforeEach(async (to, from) => {
     const authInfo = await userStore.initAuth();
     if (!authInfo) {
       // Redirect to login page inside the Shell
-      return '/auth/login';
+      return '/app/auth/login';
     }
 
     if (!userStore.isLoaded && !userStore.isLoading) {
@@ -102,7 +102,7 @@ router.beforeEach(async (to, from) => {
     return true;
   } catch (error) {
     console.error('Auth error in router guard:', error);
-    return '/auth/login';
+    return '/app/auth/login';
   }
 });
 

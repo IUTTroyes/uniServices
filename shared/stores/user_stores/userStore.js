@@ -314,6 +314,8 @@ export const useUsersStore = defineStore('users', () => {
         }
         return userType.value === 'etudiants';
     });
+
+    //todo: sand doute à revoir ? Les rôles ne devrait pas être en dur ici
     const isAssistant = computed(() => hasRole('ROLE_ASSISTANT'));
     const isQualite = computed(() => hasRole('ROLE_QUALITE'));
     const isCompta = computed(() => hasRole('ROLE_COMPTA'));

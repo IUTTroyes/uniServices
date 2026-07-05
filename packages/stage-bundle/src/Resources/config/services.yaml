@@ -3,6 +3,10 @@ services:
     autowire: true
     autoconfigure: true
 
+  _instanceof:
+    App\Security\PermissionProviderInterface:
+      tags: [ 'app.permission_provider' ]
+
   StageBundle\:
     resource: '../../'
     exclude:

@@ -88,7 +88,25 @@ const toggleAuthorizedApp = (appSlug, checked) => {
     }
   } else {
     selectedPersonnel.value.applications = selectedPersonnel.value.applications.filter(s => s !== appSlug)
+    
+    // Auto-cleanup from all affectations if unchecked
+    const pkgName = appSlug === 'stage' ? 'stages' : appSlug
+    personnelAffectations.value.forEach(aff => {
+      if (aff.packages) {
+        aff.packages = aff.packages.filter(p => p !== pkgName)
+      }
+      if (aff.permissions && availablePermissionsByPackage.value[pkgName]) {
+        const packageRoleList = availablePermissionsByPackage.value[pkgName].map(p => p.role)
+        aff.permissions = aff.permissions.filter(role => !packageRoleList.includes(role))
+      }
+    })
   }
+}
+
+const isPackageAllowed = (pkgName) => {
+  if (pkgName === 'core') return true
+  const appSlug = pkgName === 'stages' ? 'stage' : pkgName
+  return selectedPersonnel.value?.applications?.includes(appSlug) ?? false
 }
 
 const savePersonnelInfo = async () => {
@@ -731,39 +749,41 @@ const saveAppRights = async () => {
               </div>
 
               <!-- Loop over each package to show toggles and permissions -->
-              <div v-for="(perms, pkgName) in availablePermissionsByPackage" :key="pkgName" class="space-y-2 bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80 rounded-xl p-3">
-                <div class="flex items-center justify-between border-b border-slate-50 dark:border-slate-800 pb-1.5">
-                  <span class="font-bold text-slate-700 dark:text-slate-300 text-[11px] capitalize flex items-center gap-1.5">
-                    <i class="pi pi-box text-violet-500"></i>
-                    <span>{{ pkgName }}</span>
-                  </span>
-                  <div class="flex items-center gap-1.5">
-                    <label class="text-[9px] text-slate-400">Activer le package</label>
-                    <ToggleSwitch 
-                      :modelValue="hasPackage(selectedAffectationForRights, pkgName)"
-                      @update:modelValue="togglePackage(selectedAffectationForRights, pkgName)"
-                    />
+              <template v-for="(perms, pkgName) in availablePermissionsByPackage" :key="pkgName">
+                <div v-if="isPackageAllowed(pkgName)" class="space-y-2 bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80 rounded-xl p-3">
+                  <div class="flex items-center justify-between border-b border-slate-50 dark:border-slate-800 pb-1.5">
+                    <span class="font-bold text-slate-700 dark:text-slate-300 text-[11px] capitalize flex items-center gap-1.5">
+                      <i class="pi pi-box text-violet-500"></i>
+                      <span>{{ pkgName }}</span>
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                      <label class="text-[9px] text-slate-400">Activer le package</label>
+                      <ToggleSwitch 
+                        :modelValue="hasPackage(selectedAffectationForRights, pkgName)"
+                        @update:modelValue="togglePackage(selectedAffectationForRights, pkgName)"
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <!-- Display checkable permissions if package is active -->
-                <div v-if="hasPackage(selectedAffectationForRights, pkgName)" class="grid grid-cols-2 gap-2 pt-1">
-                  <div v-for="perm in perms" :key="perm.role" class="flex items-center gap-1.5">
-                    <Checkbox 
-                      :binary="true"
-                      :modelValue="hasPermission(selectedAffectationForRights, perm.role)"
-                      @update:modelValue="togglePermission(selectedAffectationForRights, perm.role)" 
-                      :inputId="`${pkgName}-${perm.role}`"
-                    />
-                    <label :for="`${pkgName}-${perm.role}`" class="cursor-pointer text-[10px] text-slate-600 dark:text-slate-400">
-                      {{ perm.label }} <span class="text-[8px] text-slate-400 font-mono">({{ perm.role }})</span>
-                    </label>
+                  <!-- Display checkable permissions if package is active -->
+                  <div v-if="hasPackage(selectedAffectationForRights, pkgName)" class="grid grid-cols-2 gap-2 pt-1">
+                    <div v-for="perm in perms" :key="perm.role" class="flex items-center gap-1.5">
+                      <Checkbox 
+                        :binary="true"
+                        :modelValue="hasPermission(selectedAffectationForRights, perm.role)"
+                        @update:modelValue="togglePermission(selectedAffectationForRights, perm.role)" 
+                        :inputId="`${pkgName}-${perm.role}`"
+                      />
+                      <label :for="`${pkgName}-${perm.role}`" class="cursor-pointer text-[10px] text-slate-600 dark:text-slate-400">
+                        {{ perm.label }} <span class="text-[8px] text-slate-400 font-mono">({{ perm.role }})</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div v-else class="text-[10px] text-slate-400 italic py-1">
+                    Activez ce package pour configurer ses permissions.
                   </div>
                 </div>
-                <div v-else class="text-[10px] text-slate-400 italic py-1">
-                  Activez ce package pour configurer ses permissions.
-                </div>
-              </div>
+              </template>
             </div>
           </div>
         </div>
