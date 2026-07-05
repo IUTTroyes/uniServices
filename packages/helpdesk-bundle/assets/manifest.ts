@@ -4,22 +4,18 @@ import TicketListAdminView from './views/PersonnelService/TicketListAdminView.vu
 import dashboardRoutes from './router/modules/dashboardRoutes.js';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
 import { LayoutComponent } from '@components';
-import { hasPermission } from '@utils';
 
-// Define the menu structure
-const intranetMenu = [
-    {
-        items: [
-            { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/helpdesk/' },
-            { label: 'DashboardService', icon: 'pi pi-fw pi-home', to: '/helpdesk/service' , permission:'isPersonnelService'},
-            { label: 'Nouveau Ticket', icon: 'pi pi-fw pi-receipt', to: '/helpdesk/nouveauticket' },
-            { label: 'Mes Tickets', icon: 'pi pi-fw pi-ticket', to: '/helpdesk/mestickets' },
-            { label: 'Tous les Tickets', icon: 'pi pi-fw pi-list', to: '/helpdesk/ticketsliste', permission: 'isPersonnelService'}
-        ]
-    }
-];
-
-const appName = 'Helpdesk';
+const helpdeskMenu = {
+  label: 'Assistance',
+  icon: 'pi pi-fw pi-question-circle',
+  items: [
+    { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/helpdesk/' },
+    { label: 'Dashboard Service', icon: 'pi pi-fw pi-building', to: '/helpdesk/service', permission: 'isPersonnelService' },
+    { label: 'Nouveau Ticket', icon: 'pi pi-fw pi-plus', to: '/helpdesk/nouveauticket' },
+    { label: 'Mes Tickets', icon: 'pi pi-fw pi-ticket', to: '/helpdesk/mestickets' },
+    { label: 'Tous les Tickets', icon: 'pi pi-fw pi-list', to: '/helpdesk/ticketsliste', permission: 'isPersonnelService' }
+  ]
+};
 
 export default {
   name: 'helpdesk',
@@ -27,42 +23,11 @@ export default {
     {
       path: '/helpdesk',
       component: LayoutComponent,
-      props: route => {
-        // Process menu items and check permissions every time the component is rendered
-        const processedMenu = intranetMenu.map(category => {
-          const processedItems = category.items.map(item => {
-            if (item.permission) {
-              return {
-                ...item,
-                visible: hasPermission(item.permission)
-              };
-            }
-            return item;
-          });
-
-          return {
-            ...category,
-            items: processedItems
-          };
-        });
-
-        let breadcrumbItems = route.meta.breadcrumb || [];
-        if (typeof route.meta.breadcrumb === 'function') {
-          try {
-            breadcrumbItems = route.meta.breadcrumb(route) || [];
-          } catch (e) {
-            console.error('Error while evaluating breadcrumb function for route', route.name, e);
-            breadcrumbItems = [];
-          }
-        }
-
-        return {
-          menuItems: processedMenu,
-          logoUrl: Logo,
-          appName: appName,
-          breadcrumbItems
-        };
-      },
+      props: route => ({
+        logoUrl: Logo,
+        appName: 'Helpdesk',
+        breadcrumbItems: route.meta.breadcrumb || []
+      }),
       children: [
         ...dashboardRoutes,
         {
@@ -118,5 +83,6 @@ export default {
         }
       ]
     }
-  ]
+  ],
+  menu: helpdeskMenu
 };

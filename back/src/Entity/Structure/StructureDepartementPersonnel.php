@@ -16,7 +16,6 @@ use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
 use App\Filter\DepartementPersonnelFilter;
 use App\State\Provider\Users\ActionsUrgentesWidgetProvider;
-use App\ApiDto\Users\ActionsUrgentesWidgetDto;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -72,7 +71,11 @@ class StructureDepartementPersonnel
 
     #[ORM\Column]
     #[Groups(groups: ['departement_personnel:read', 'departement_personnel:write'])]
-    private array $roles = []; //tableau associatif => 'application' => [droits]
+    private array $packages = [];
+
+    #[ORM\Column]
+    #[Groups(groups: ['departement_personnel:read', 'departement_personnel:write'])]
+    private array $permissions = [];
 
     #[ORM\Column]
     #[Groups(groups: ['personnel:read', 'departement_personnel:read', 'departement:read', 'departement_personnel:write'])]
@@ -96,14 +99,26 @@ class StructureDepartementPersonnel
         return $this->id;
     }
 
-    public function getRoles(): array
+    public function getPackages(): array
     {
-        return $this->roles;
+        return $this->packages;
     }
 
-    public function setRoles(array $roles): static
+    public function setPackages(array $packages): static
     {
-        $this->roles = $roles;
+        $this->packages = $packages;
+
+        return $this;
+    }
+
+    public function getPermissions(): array
+    {
+        return $this->permissions;
+    }
+
+    public function setPermissions(array $permissions): static
+    {
+        $this->permissions = $permissions;
 
         return $this;
     }

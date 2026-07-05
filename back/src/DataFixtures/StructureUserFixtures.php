@@ -39,9 +39,23 @@ class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
             ->setNom('DOE')
             ->setApplications(['UniTranet'])
             ->setPhotoName('noimage.png')
-            ->setApplications(["UniTranet"])
-        ;
+            ->setApplications(["UniTranet"]);
         $manager->persist($personnel);
+
+        // ----------- SUPERADMIN
+        $superadmin = new Personnel();
+        $password = $this->encoder->hashPassword($superadmin, 'test');
+        $superadmin->setUsername('superadmin')
+            ->setMailUniv('superadmin@univ-reims.fr')
+            ->setPassword($password)
+            ->setStatut(StatutEnum::MCF)
+            ->setRoles(["ROLE_SUPER_ADMIN"])
+            ->setPrenom('Super')
+            ->setNom('ADMIN')
+            ->setApplications(['UniTranet'])
+            ->setPhotoName('noimage.png')
+        ;
+        $manager->persist($superadmin);
 
         // ----------- ETUDIANT
         $etudiant = new Etudiant();

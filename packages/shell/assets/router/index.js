@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { bundles } from '../bundles-registry';
-import { useUsersStore } from '@stores';
+import { useUsersStore, useSecurity } from '@stores';
 import { hasPermission } from '@utils';
 
 // Gather routes from all registered bundles
@@ -80,6 +80,17 @@ router.beforeEach(async (to, from) => {
 
     if (!userStore.isLoaded && !userStore.isLoading) {
       await userStore.getUser();
+    }
+
+    const security = useSecurity();
+    if (!security.isLoaded && !security.isLoading) {
+      await security.loadSecurityContext();
+    }
+
+    // Check package access
+    const requiredPackage = to.meta.package || to.matched.find(record => record.meta.package)?.meta.package;
+    if (requiredPackage && !security.hasPackage(requiredPackage)) {
+      return '/access';
     }
 
     // Permission checks

@@ -1,4 +1,4 @@
-import { useUsersStore } from '@stores';
+import { useUsersStore, useSecurity } from '@stores';
 import { watch } from 'vue';
 
 /**
@@ -238,51 +238,51 @@ export const AVAILABLE_ROLES = [
  * @returns {boolean} - Vrai si l'utilisateur possède la permission
  */
 function checkSinglePermission(permission, userStore) {
+  const security = useSecurity();
+
   // Si un rôle temporaire est défini, on ignore le statut SuperAdmin pour permettre une impersonnalisation réelle
   // Sauf si le rôle temporaire lui-même est ROLE_SUPER_ADMIN
   const isImpersonating = !!userStore.temporaryRole && userStore.temporaryRole !== 'ROLE_SUPER_ADMIN';
 
   // SuperAdmin a accès à tout (sauf en mode impersonnalisation)
-  if (userStore.isSuperAdmin && !isImpersonating) {
+  if (security.user?.roles?.includes('ROLE_SUPER_ADMIN') && !isImpersonating) {
     return true;
   }
 
   // Vérifier les types d'utilisateurs
   if (permission === 'isPersonnel') {
-    return userStore.isPersonnel;
+    return security.user?.type === 'personnels';
   }
   if (permission === 'isEtudiant') {
-    return userStore.isEtudiant;
+    return security.user?.type === 'etudiants';
   }
 
   // Vérifier les permissions basées sur les rôles via la map
   if (permission in ROLE_MAP) {
-    return !!userStore[permission];
+    return security.hasPermission(ROLE_MAP[permission]);
   }
 
   // Vérifier les permissions composites
   if (permission in compositePermissions) {
     // Vérifier si l'utilisateur possède l'un des rôles qui accordent cette permission
-    return compositePermissions[permission].some(role => typeof role === 'string' && !!userStore[role]);
+    return compositePermissions[permission].some(roleKey => {
+      const mappedRole = ROLE_MAP[roleKey];
+      return mappedRole ? security.hasPermission(mappedRole) : false;
+    });
   }
 
   // Vérifier si l'utilisateur est un personnel avec un rattachement à un service
   if (permission === 'isPersonnelService') {
-    if (!userStore.isPersonnel) {
+    if (security.user?.type !== 'personnels') {
       return false;
     }
 
-    const structureServices = userStore?.user?.structureServices;
+    const structureServices = security.user?.structureServices;
     if (Array.isArray(structureServices)) {
       return structureServices.length > 0;
     }
 
-    // Compatibilité avec d'autres formes de payload possibles
-    if (Array.isArray(userStore?.user?.services)) {
-      return userStore.user.services.length > 0;
-    }
-
-    return !!(userStore?.user?.service && typeof userStore.user.service === 'object');
+    return false;
   }
 
   // si la permission n'est pas reconnue, on vérifie si c'est un test qui renvoie true ou false
@@ -293,7 +293,6 @@ function checkSinglePermission(permission, userStore) {
   }
 
   // Support d'un prédicat fonctionnel pour des contrôles contextuels
-  // La fonction peut recevoir le userStore en argument (optionnel)
   if (typeof permission === 'function') {
     try {
       const result = permission(userStore);
@@ -304,9 +303,8 @@ function checkSinglePermission(permission, userStore) {
     }
   }
 
-  // Permission inconnue, refuser l'accès
-  console.warn(`Unknown permission: ${permission}`);
-  return false;
+  // Vérification directe si c'est un rôle de permission brut
+  return security.hasPermission(permission);
 }
 
 /**
@@ -322,8 +320,8 @@ export const permissionDirective = {
     // On garde une trace du watch pour pouvoir le nettoyer
     el._permissionWatch = watch(
       () => {
-        const store = useUsersStore();
-        return [store.isLoaded, store.temporaryRole, store.user?.roles, store.rolesActifs];
+        const security = useSecurity();
+        return [security.isLoaded, security.resolvedPermissions, security.activePackages];
       },
       () => {
         updatePermission(el, binding);

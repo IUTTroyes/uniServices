@@ -199,6 +199,31 @@ watch(() => route.path, async (newPath, oldPath) => {
                 @click="onBundleClick(bundle.url)"
                 >
                 {{ bundle.name }}
+                </Button>
+            </div>
+          </div>
+          <div v-if="userStore.isSuperAdmin" class="flex flex-col gap-4">
+            <div class="text-md font-semibold text-color-secondary uppercase">Administration</div>
+            <div class="flex flex-col">
+              <Button
+                type="button"
+                text
+                rounded
+                size="large"
+                class="justify-start!"
+                @click="router.push('/configuration')"
+              >
+                <i class="pi pi-cog mr-2"></i> Configuration
+              </Button>
+              <Button
+                type="button"
+                text
+                rounded
+                size="large"
+                class="justify-start!"
+                @click="router.push('/configuration/gestion-acces')"
+              >
+                <i class="pi pi-key mr-2"></i> Gestion des accès
               </Button>
             </div>
           </div>

@@ -7,13 +7,13 @@ import ResetPasswordConfirmView from "./views/ResetPasswordConfirmView.vue";
 import LogoIut from "@images/logo/logo_iut.png";
 import { LayoutComponent } from '@components';
 
-const authMenu = [
-  {
-    items: [
-      { label: 'Portail', icon: 'pi pi-fw pi-home', to: '/auth/portail' },
-    ]
-  }
-];
+const authMenu = {
+  label: 'Mon Espace',
+  icon: 'pi pi-fw pi-user',
+  items: [
+    { label: 'Portail', icon: 'pi pi-fw pi-th-large', to: '/auth/portail' }
+  ]
+};
 
 export default {
   name: 'auth',
@@ -62,7 +62,6 @@ export default {
       props: route => ({
         logoUrl: LogoIut,
         appName: 'Uniservices',
-        menuItems: authMenu,
         breadcrumbItems: route.meta.breadcrumb || []
       }),
       children: [
@@ -77,5 +76,6 @@ export default {
         appName: 'Profil',
       }),
     }
-  ]
+  ],
+  menu: authMenu
 };

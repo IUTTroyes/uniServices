@@ -302,7 +302,12 @@ export const useUsersStore = defineStore('users', () => {
         return rolesActifs.value.includes(role);
     };
 
-    const isPersonnel = computed(() => hasRole('ROLE_PERSONNEL'));
+    const isPersonnel = computed(() => {
+        if (temporaryRole.value) {
+            return temporaryRole.value !== 'ROLE_ETUDIANT';
+        }
+        return userType.value === 'personnels';
+    });
     const isEtudiant = computed(() => {
         if (temporaryRole.value) {
             return temporaryRole.value === 'ROLE_ETUDIANT';
