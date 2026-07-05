@@ -139,7 +139,7 @@ const getDiplomes = async () => {
 };
 
 const goBack = () => {
-  router.push('/configuration/annees-universitaires');
+  router.push('/auth/configuration/annees-universitaires');
 };
 </script>
 

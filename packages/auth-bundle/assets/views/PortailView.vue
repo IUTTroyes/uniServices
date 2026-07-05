@@ -215,16 +215,6 @@ watch(() => route.path, async (newPath, oldPath) => {
               >
                 <i class="pi pi-cog mr-2"></i> Configuration
               </Button>
-              <Button
-                type="button"
-                text
-                rounded
-                size="large"
-                class="justify-start!"
-                @click="router.push('/configuration/gestion-acces')"
-              >
-                <i class="pi pi-key mr-2"></i> Gestion des accès
-              </Button>
             </div>
           </div>
           <div v-if="unactivatedBundles.length > 0" class="flex flex-col gap-4">
