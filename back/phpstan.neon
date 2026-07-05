@@ -10,3 +10,10 @@ parameters:
 
     paths:
         - src
+        - ../packages/auth-bundle/src
+        - ../packages/edt-bundle/src
+        - ../packages/intranet-bundle/src
+        - ../packages/unifolio-bundle/src
+        - ../packages/helpdesk-bundle/src
+        - ../packages/questionnaire-bundle/src
+        - ../packages/stage-bundle/src
