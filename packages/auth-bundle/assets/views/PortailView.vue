@@ -154,8 +154,8 @@ const getWidgets = async () => {
 onMounted(async () => {
   isLoadingBundles.value = true;
   try {
-    activatedBundles.value = tools.filter((bundle) => userStore.user.applications.includes(bundle.name));
-    unactivatedBundles.value = tools.filter((bundle) => !userStore.user.applications.includes(bundle.name));
+    activatedBundles.value = tools.filter((bundle) => bundle.urlSlug === 'intranet' || userStore.user.applications.includes(bundle.urlSlug));
+    unactivatedBundles.value = tools.filter((bundle) => bundle.urlSlug !== 'intranet' && !userStore.user.applications.includes(bundle.urlSlug));
     await getWidgets();
   } finally {
     isLoadingBundles.value = false;

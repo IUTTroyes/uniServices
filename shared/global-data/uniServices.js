@@ -15,6 +15,7 @@ export const tools = (toolsMeta || []).map(item => {
     description: item.description,
     url: targetUrl,
     logo: LogoIut || item.logo,
+    urlSlug: item.urlSlug,
   };
 });
 

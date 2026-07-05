@@ -235,7 +235,7 @@ const initiales = computed(() => {
 });
 
 const isEnabled = (item) => {
-  return userStore.applications.includes(item.name);
+  return item.urlSlug === 'intranet' || userStore.applications.includes(item.urlSlug);
 };
 
 // Propriété calculée pour déterminer si le menu des rôles doit être affiché

@@ -648,7 +648,8 @@ const saveAppRights = async () => {
                 <div v-for="app in appsList" :key="app.urlSlug" class="flex items-start gap-2.5 p-2.5 bg-white dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80 rounded-xl">
                   <Checkbox 
                     :binary="true"
-                    :modelValue="selectedPersonnel.applications?.includes(app.urlSlug) ?? false" 
+                    :modelValue="app.urlSlug === 'intranet' || (selectedPersonnel.applications?.includes(app.urlSlug) ?? false)" 
+                    :disabled="app.urlSlug === 'intranet'"
                     @update:modelValue="(checked) => toggleAuthorizedApp(app.urlSlug, checked)"
                     :inputId="`app-${app.urlSlug}`"
                     class="mt-0.5"
