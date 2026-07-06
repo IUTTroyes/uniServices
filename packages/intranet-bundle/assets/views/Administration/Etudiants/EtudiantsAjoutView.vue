@@ -1,7 +1,8 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
+import { useRouter } from 'vue-router';
 
-import router from "@/router/index.js";
+const router = useRouter();
 
 const items = [
   { label: 'Import Apogée', icon: 'pi pi-upload', route: '/administration/etudiant/ajout/apogee' },

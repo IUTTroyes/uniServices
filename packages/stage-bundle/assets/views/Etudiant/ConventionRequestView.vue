@@ -364,6 +364,8 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
             :options="periodOptions"
             :rules="validationRules.required"
             @validation="res => handleValidation('stagePeriodeIri', res)"
+            :disabled="!!route.query.periodId"
+            :help-text="route.query.periodId ? 'La période est pré-remplie à partir de votre tableau de bord et n\'est pas modifiable.' : ''"
             class="md:col-span-2"
           />
 

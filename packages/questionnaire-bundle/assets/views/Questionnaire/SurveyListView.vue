@@ -134,7 +134,7 @@ const exportSurvey = (survey: any) => {
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
       <div>
         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-1.5">
-          <router-link :to="{ name: 'Dashboard' }" class="hover:text-primary-600 transition-colors flex items-center gap-1">
+          <router-link :to="{ name: 'QuestionnaireDashboard' }" class="hover:text-primary-600 transition-colors flex items-center gap-1">
             <ArrowLeftIcon class="w-3.5 h-3.5" />
             Retour au Dashboard
           </router-link>

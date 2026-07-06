@@ -93,8 +93,23 @@ const resetPasswordService = async (token, password, showToast = true) => {
     }
 }
 
+const getSecurityContextService = async (showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            ['/api/me/security-context'],
+            'Contexte de sécurité récupéré avec succès',
+            'Erreur lors de la récupération du contexte de sécurité',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getSecurityContextService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getUserService, updateUserService, getAllStatutsService, updateUserPasswordService, resetPasswordService };
+export { getUserService, updateUserService, getAllStatutsService, updateUserPasswordService, resetPasswordService, getSecurityContextService };

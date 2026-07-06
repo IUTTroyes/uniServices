@@ -26,7 +26,10 @@ use Symfony\Component\Uid\Uuid;
     uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections',
     operations: [
         new GetCollection(normalizationContext: ['groups' => ['questionnaire_section:read']]),
-        new Post(),
+        new Post(
+            read: false,
+            normalizationContext: ['groups' => ['questionnaire_section:read']]
+        ),
     ],
     uriVariables: [
         'questionnaireId' => new Link(toProperty: 'questionnaire', fromClass: Questionnaire::class),
@@ -35,7 +38,7 @@ use Symfony\Component\Uid\Uuid;
 #[ApiResource(
     uriTemplate: '/questionnaires/{questionnaireId}/questionnaire_sections/{uuid}',
     operations: [
-        new Patch(),
+        new Patch(normalizationContext: ['groups' => ['questionnaire_section:read']]),
         new Delete(),
     ],
     uriVariables: [
@@ -96,6 +99,7 @@ class QuestionnaireSection
 
     public function __construct()
     {
+        $this->uuid = Uuid::v4();
         $this->setOpt([]);
         $this->questions = new ArrayCollection();
         $this->sectionInstances = new ArrayCollection();
@@ -118,17 +122,21 @@ class QuestionnaireSection
 
     public function configureOptions(OptionsResolver $resolver): void
     {
-//        $resolver->setDefaults([
-//            'materiel' => false,
-//            'edt' => false,
-//            'stage' => false,
-//            'resp_ri' => '',
-//        ]);
-//
-//        $resolver->setAllowedTypes('materiel', 'bool');
-//        $resolver->setAllowedTypes('edt', 'bool');
-//        $resolver->setAllowedTypes('stage', 'bool');
-//        $resolver->setAllowedTypes('resp_ri', 'string'); //todo: sauvegarder l'IRI de la personne ? pour faire le lien en front ?
+        $resolver->setDefaults([
+            'elements' => [],
+            'selectedSemesters' => [],
+            'sourceLabel' => '',
+            'sourceType' => '',
+            'titleTemplate' => '',
+            'repeat_source' => null,
+        ]);
+
+        $resolver->setAllowedTypes('elements', 'array');
+        $resolver->setAllowedTypes('selectedSemesters', 'array');
+        $resolver->setAllowedTypes('sourceLabel', 'string');
+        $resolver->setAllowedTypes('sourceType', 'string');
+        $resolver->setAllowedTypes('titleTemplate', 'string');
+        $resolver->setAllowedTypes('repeat_source', ['string', 'null']);
     }
 
     public function getId(): ?int

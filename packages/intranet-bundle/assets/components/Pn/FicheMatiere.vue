@@ -5,7 +5,9 @@ import {getEnseignementService} from "@requests";
 import Loader from '@components/loader/GlobalLoader.vue';
 import {ErrorView} from "@components";
 import { useUsersStore } from "@stores";
-import router from "../../router/index.js";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const props = defineProps({
   enseignement: {

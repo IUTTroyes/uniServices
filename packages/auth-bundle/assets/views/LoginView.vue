@@ -65,7 +65,7 @@ const handleSubmit = async () => {
 
     // Plus besoin de stocker le token dans localStorage
     // Le cookie HTTP-only est géré automatiquement par le navigateur
-    location.href = '/auth/portail';
+    location.href = '/app/auth/portail';
   } catch (error) {
     errorMessage.value = error.response && error.response.status === 401
         ? 'Login ou mot de passe incorrect'
@@ -206,7 +206,7 @@ onMounted(async () => {
 
 <style scoped>
 .bg {
-  background-image: url("@/assets/iut.jpg");
+  background-image: url("../assets/iut.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

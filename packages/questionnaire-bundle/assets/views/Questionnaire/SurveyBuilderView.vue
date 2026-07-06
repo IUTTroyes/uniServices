@@ -60,10 +60,10 @@
               </div>
 
               <!-- Section Type Indicator -->
-              <div v-if="section.typeSection === 'configurable'" class="mt-2 flex items-center space-x-1">
+              <div v-if="section.typeSection === 'configurable' && section.opt" class="mt-2 flex items-center space-x-1">
                 <Cog6ToothIcon class="w-3 h-3 text-blue-500" />
                 <span class="text-xs text-blue-600 dark:text-blue-400">
-                  {{ section.configurable?.elements.length || 0 }} {{ section.configurable?.sourceLabel.toLowerCase() }}
+                  {{ section.opt.elements?.length || 0 }} {{ section.opt.sourceLabel?.toLowerCase() }}
                 </span>
               </div>
             </div>
@@ -279,28 +279,8 @@ async function saveSection(section: Section) {
     // Update existing section
     await surveyStore.updateSection(section.uuid, section);
   } else {
-    // Add new section
-    if (section.typeSection === 'configurable' && section.opt) {
-      // Create multiple sections for configurable type
-      for (const element of section.opt.elements) {
-        const index = section.opt.elements.indexOf(element);
-        const sectionTitle = section.opt!.titleTemplate.replace('{element}', element.name);
-        const newSection = await surveyStore.addSection(sectionTitle, section.description);
-
-        // Store reference to original configurable section and element
-        await surveyStore.updateSection(newSection.uuid, {
-          typeSection: 'configurable',
-          opt: {
-            ...section.opt!,
-            elements: [element] // Each generated section has only one element
-          }
-        });
-      }
-    } else {
-      // Normal section
-      const newSection = await surveyStore.addSection(section.title, section.description);
-      await surveyStore.updateSection(newSection.uuid, { typeSection: 'normal' });
-    }
+    // Add new section directly with all options
+    await surveyStore.addSection(section.title, section.description, section.typeSection, section.opt);
   }
 
   closeSectionModal();
@@ -401,15 +381,18 @@ async function confirmPublish(recipients: string[]) {
 }
 
 // Initialize
-onMounted(() => {
+onMounted(async () => {
   const surveyId = route.params.id as string;
 
   if (surveyId && surveyId !== 'new') {
     surveyStore.selectSurvey(surveyId);
-  } else if (!currentSurvey.value) {
+  } else {
     // Create new survey
     console.log('Creating new survey');
-    surveyStore.createSurvey('Nouveau questionnaire');
+    const newSurvey = await surveyStore.createSurvey('Nouveau questionnaire');
+    if (newSurvey && newSurvey.uuid) {
+      router.replace({ name: 'questionnaire_builder', params: { id: newSurvey.uuid } });
+    }
   }
 });
 </script>

@@ -148,7 +148,7 @@ const updateAnneeUniv = async () => {
       await anneeUnivStore.getCurrentAnneeUniv();
     }
 
-    await router.push('/super-administration/annees-universitaires');
+    await router.push('/auth/configuration/annees-universitaires');
   } catch (error) {
     console.error("Erreur lors de la mise à jour de l'année universitaire:", error);
     hasError.value = true;
@@ -156,7 +156,7 @@ const updateAnneeUniv = async () => {
 };
 
 const goBack = () => {
-  router.push('/configuration/annees-universitaires');
+  router.push('/auth/configuration/annees-universitaires');
 };
 </script>
 

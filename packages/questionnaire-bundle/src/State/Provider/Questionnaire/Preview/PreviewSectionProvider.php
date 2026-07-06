@@ -9,6 +9,7 @@ use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
 use Doctrine\ORM\EntityManagerInterface;
 use QuestionnaireBundle\ApiDto\Questionnaire\Preview\PreviewSectionDto;
 use QuestionnaireBundle\Enum\QuestTypeRepeatEnum;
+use QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSection;
 
 final readonly class PreviewSectionProvider implements ProviderInterface
 {
@@ -43,7 +44,7 @@ final readonly class PreviewSectionProvider implements ProviderInterface
             $questions[] = $this->mapper->map($qt, null); // pas de sauvegarde en preview
         }
 
-        $title = $this->buildTitleSnapshot($sectionTemplate->getTitle(), $repeatType, $repeatId);
+        $title = $this->buildTitleSnapshot($sectionTemplate, $repeatType, $repeatId);
 
         return new PreviewSectionDto(
             questionnaireUuid: $q->getUuidString(),
@@ -67,12 +68,19 @@ final readonly class PreviewSectionProvider implements ProviderInterface
         return [$tpl, QuestTypeRepeatEnum::tryFrom($t), $id];
     }
 
-    private function buildTitleSnapshot(string $baseTitle, ?QuestTypeRepeatEnum $repeatType, string $repeatId): string
+    private function buildTitleSnapshot(QuestionnaireSection $section, ?QuestTypeRepeatEnum $repeatType, string $repeatId): string
     {
         if ($repeatType === null) {
-            return $baseTitle;
+            return $section->getTitle();
         }
-        // En preview, si tu veux afficher un label humain, tu peux le calculer dans PreviewIndex
-        return sprintf('%s – %s %s', $baseTitle, $repeatType->value, $repeatId);
+        $opts = $section->getOpt();
+        $elements = $opts['elements'] ?? [];
+        foreach ($elements as $el) {
+            if (($el['id'] ?? '') === $repeatId) {
+                $titleTemplate = $opts['titleTemplate'] ?? 'Évaluation de {element}';
+                return str_replace('{element}', $el['name'] ?? '', $titleTemplate);
+            }
+        }
+        return sprintf('%s – %s %s', $section->getTitle(), $repeatType->value, $repeatId);
     }
 }

@@ -53,16 +53,29 @@ class StructureDeptFixtures extends Fixture implements OrderedFixtureInterface
         $personnelDepartement1 = new StructureDepartementPersonnel();
         $personnelDepartement1->setPersonnel($personnel)
             ->setDepartement($departement1)
-            ->setRoles(['intranet' => ['ROLE_RESPONSABLE_DEPARTEMENT']])
+            ->setPackages(['core', 'stages', 'edt', 'helpdesk', 'questionnaire', 'unifolio'])
+            ->setPermissions(['ROLE_TEACHER', 'ROLE_CHEF_DEPARTEMENT', 'ROLE_STAGE_MANAGER'])
             ->setDefaut(true);
         $manager->persist($personnelDepartement1);
 
         $personnelDepartement2 = new StructureDepartementPersonnel();
         $personnelDepartement2->setPersonnel($personnel)
             ->setDepartement($departement2)
-            ->setRoles(['intranet' => ['ROLE_PERMANENT']])
+            ->setPackages(['core'])
+            ->setPermissions(['ROLE_TEACHER'])
             ->setDefaut(false);
         $manager->persist($personnelDepartement2);
+
+        $superadmin = $this->personnelRepository->findOneBy(['username' => 'superadmin']);
+        if ($superadmin) {
+            $superadminDept = new StructureDepartementPersonnel();
+            $superadminDept->setPersonnel($superadmin)
+                ->setDepartement($departement1)
+                ->setPackages(['core', 'stages', 'edt', 'helpdesk', 'questionnaire', 'unifolio'])
+                ->setPermissions(['ROLE_SUPER_ADMIN'])
+                ->setDefaut(true);
+            $manager->persist($superadminDept);
+        }
 
         $manager->flush();
     }

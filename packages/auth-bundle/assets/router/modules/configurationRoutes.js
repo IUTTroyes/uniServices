@@ -1,10 +1,10 @@
-import ConfigurationView from '@/views/ConfigurationView.vue'
-import ListAnneeUniv from '@/views/configuration/annee_univ/ListAnneeUniv.vue';
-import NewAnneeUniv from "@/views/configuration/annee_univ/NewAnneeUniv.vue";
-import AnneeUnivDiplomes from "@/views/configuration/annee_univ/AnneeUnivDiplomes.vue";
-import EditAnneeUniv from "@/views/configuration/annee_univ/EditAnneeUniv.vue";
-import GestionAccesView from '@/views/configuration/GestionAccesView.vue'
-import EtablissementView from "@/views/configuration/EtablissementView.vue";
+import ConfigurationView from '../../views/ConfigurationView.vue'
+import ListAnneeUniv from '../../views/configuration/annee_univ/ListAnneeUniv.vue';
+import NewAnneeUniv from "../../views/configuration/annee_univ/NewAnneeUniv.vue";
+import AnneeUnivDiplomes from "../../views/configuration/annee_univ/AnneeUnivDiplomes.vue";
+import EditAnneeUniv from "../../views/configuration/annee_univ/EditAnneeUniv.vue";
+import GestionAccesView from '../../views/configuration/GestionAccesView.vue'
+import EtablissementView from "../../views/configuration/EtablissementView.vue";
 
 export default [
   {

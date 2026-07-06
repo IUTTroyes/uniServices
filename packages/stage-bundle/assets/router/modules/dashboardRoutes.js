@@ -1,6 +1,7 @@
 export default [
     {
         path: '',
+        alias: '/',
         component: () => import('@/views/DashboardView.vue'),
         name: 'StageDashboard',
         meta: {

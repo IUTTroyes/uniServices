@@ -1,0 +1,15 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  _instanceof:
+    App\Security\PermissionProviderInterface:
+      tags: [ 'app.permission_provider' ]
+
+  EdtBundle\:
+    resource: '../../'
+    exclude:
+      - '../../Entity/'
+      - '../../DependencyInjection/'
+      - '../../EdtBundle.php'

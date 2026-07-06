@@ -7,11 +7,13 @@ use ApiPlatform\State\ProviderInterface;
 use App\ApiDto\Users\ActionsUrgentesWidgetDto;
 use ApiPlatform\Doctrine\Orm\State\CollectionProvider;
 use App\Entity\Structure\StructureDepartementPersonnel;
+use App\Security\DepartmentPermissionChecker;
 
 class ActionsUrgentesWidgetProvider implements ProviderInterface
 {
     public function __construct(
         private CollectionProvider $collectionProvider,
+        private DepartmentPermissionChecker $checker,
     ) {}
 
     public function provide(Operation $operation, array $uriVariables = [], array $context = []): object|array|null
@@ -39,47 +41,62 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
             // todo: ajouter une date limite informative de saisie des notes sur les évaluations
 
 
-            switch ($personnelDept->getRoles()['intranet']) {
-                case 'ROLE_PERMANENT':
-                    $dto->items = array_merge($dto->items, $this->getDatasPermanent($personnelDept));
-                    break;
-                case 'ROLE_VACATAIRE':
-                    $dto->items = array_merge($dto->items, $this->getDatasVacataire($personnelDept));
-                    break;
-                case 'ROLE_ASSISTANT':
-                    $dto->items = array_merge($dto->items, $this->getDatasAssistant($personnelDept));
-                    break;
-                case 'ROLE_CHEF_DEPARTEMENT':
-                    $dto->items = array_merge($dto->items, $this->getDatasChefDeDept($personnelDept));
-                    break;
-                case 'ROLE_DIRECTEUR_ETUDES':
-                    $dto->items = array_merge($dto->items, $this->getDatasDirecteurEtudes($personnelDept));
-                    break;
-                case 'ROLE_STAGE':
-                    $dto->items = array_merge($dto->items, $this->getDatasStage($personnelDept));
-                    break;
-                case 'ROLE_RESP_PARCOURS':
-                    $dto->items = array_merge($dto->items, $this->getDatasRP($personnelDept));
-                    break;
-                case 'ROLE_EDT':
-                    $dto->items = array_merge($dto->items, $this->getDatasEDT($personnelDept));
-                    break;
-                case 'ROLE_REFERENT':
-                    $dto->items = array_merge($dto->items, $this->getDatasReferent($personnelDept));
-                    break;
-                case 'ROLE_INFORMATIQUE':
-                    $dto->items = array_merge($dto->items, $this->getDatasInformatique($personnelDept));
-                    break;
-                case 'ROLE_SCOLARITE':
-                    $dto->items = array_merge($dto->items, $this->getDatasScolarite($personnelDept));
-                    break;
+            $hasPermission = function(string $role) use ($personnelDept): bool {
+                return $this->checker->checkPermission(
+                    $personnelDept->getPersonnel(),
+                    $personnelDept->getDepartement(),
+                    $role
+                );
+            };
 
-                default:
-                    $dto->items = array_merge($dto->items, [
-                        ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
-                        ['icon' => 'pi pi-pencil', 'titre' => 'Notes à saisir', 'detail' => 'Avant jeudi 18h', 'cta' => 'Saisir les notes', 'color' => 'orange'],
-                    ]);
-                    break;
+            $matched = false;
+
+            if ($hasPermission('ROLE_CHEF_DEPARTEMENT')) {
+                $dto->items = array_merge($dto->items, $this->getDatasChefDeDept($personnelDept));
+                $matched = true;
+            }
+            if ($hasPermission('ROLE_DIRECTEUR_ETUDES')) {
+                $dto->items = array_merge($dto->items, $this->getDatasDirecteurEtudes($personnelDept));
+                $matched = true;
+            }
+            if ($hasPermission('ROLE_ASSISTANT')) {
+                $dto->items = array_merge($dto->items, $this->getDatasAssistant($personnelDept));
+                $matched = true;
+            }
+            if ($hasPermission('ROLE_STAGE_MANAGER') || $hasPermission('ROLE_STAGE_VIEW')) {
+                $dto->items = array_merge($dto->items, $this->getDatasStage($personnelDept));
+                $matched = true;
+            }
+            if ($hasPermission('ROLE_RESP_PARCOURS')) {
+                $dto->items = array_merge($dto->items, $this->getDatasRP($personnelDept));
+                $matched = true;
+            }
+            if ($hasPermission('ROLE_EDT')) {
+                $dto->items = array_merge($dto->items, $this->getDatasEDT($personnelDept));
+                $matched = true;
+            }
+            if ($hasPermission('ROLE_REFERENT')) {
+                $dto->items = array_merge($dto->items, $this->getDatasReferent($personnelDept));
+                $matched = true;
+            }
+            if ($hasPermission('ROLE_SCOLARITE')) {
+                $dto->items = array_merge($dto->items, $this->getDatasScolarite($personnelDept));
+                $matched = true;
+            }
+            if ($hasPermission('ROLE_TEACHER')) {
+                if ($personnelDept->getPersonnel() && $personnelDept->getPersonnel()->getStatut() === 'vacataire') {
+                    $dto->items = array_merge($dto->items, $this->getDatasVacataire($personnelDept));
+                } else {
+                    $dto->items = array_merge($dto->items, $this->getDatasPermanent($personnelDept));
+                }
+                $matched = true;
+            }
+
+            if (!$matched) {
+                $dto->items = array_merge($dto->items, [
+                    ['icon' => 'pi pi-file', 'titre' => '1 plan de cours à saisir', 'detail' => 'Date limite : 22 mai 2025', 'cta' => 'Saisir', 'color' => 'red'],
+                    ['icon' => 'pi pi-pencil', 'titre' => 'Notes à saisir', 'detail' => 'Avant jeudi 18h', 'cta' => 'Saisir les notes', 'color' => 'orange'],
+                ]);
             }
         }
 
@@ -90,7 +107,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
 
     private function getDatasPermanent($personnelDept): array
     {
-        //TODO: 
+        //TODO:
         // types d'éléments à récupérer :
         // - plans de cours à saisir
         // - notes à saisir
@@ -105,7 +122,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
 
     private function getDatasVacataire($personnelDept): array
     {
-        //TODO: 
+        //TODO:
         // types d'éléments à récupérer :
         // - plans de cours à saisir
         // - notes à saisir
@@ -122,7 +139,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
 
     private function getDatasAssistant($personnelDept): array
     {
-        //TODO: 
+        //TODO:
         // types d'éléments à récupérer :
         // - plans de cours à saisir
         // - notes à saisir
@@ -138,7 +155,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
 
     private function getDatasChefDeDept($personnelDept): array
     {
-        //TODO: 
+        //TODO:
         // types d'éléments à récupérer :
         // - plans de cours à saisir
         // - notes à saisir
@@ -155,7 +172,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
 
     private function getDatasDirecteurEtudes($personnelDept): array
     {
-        //TODO: 
+        //TODO:
         // types d'éléments à récupérer :
         // - plans de cours à saisir
         // - notes à saisir
@@ -172,7 +189,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
 
     private function getDatasStage($personnelDept): array
     {
-        //TODO: 
+        //TODO:
         // types d'éléments à récupérer :
         // - plans de cours à saisir
         // - notes à saisir
@@ -189,7 +206,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
 
     private function getDatasRP($personnelDept): array
     {
-        //TODO: 
+        //TODO:
         // types d'éléments à récupérer :
         // - plans de cours à saisir
         // - notes à saisir
@@ -206,7 +223,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
 
     private function getDatasEDT($personnelDept): array
     {
-        //TODO: 
+        //TODO:
         // types d'éléments à récupérer :
         // - plans de cours à saisir
         // - notes à saisir
@@ -223,7 +240,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
 
     private function getDatasReferent($personnelDept): array
     {
-        //TODO: 
+        //TODO:
         // types d'éléments à récupérer :
         // - plans de cours à saisir
         // - notes à saisir
@@ -240,7 +257,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
 
     private function getDatasInformatique($personnelDept): array
     {
-        //TODO: 
+        //TODO:
         // types d'éléments à récupérer :
         // - plans de cours à saisir
         // - notes à saisir
@@ -257,7 +274,7 @@ class ActionsUrgentesWidgetProvider implements ProviderInterface
 
     private function getDatasScolarite($personnelDept): array
     {
-        //TODO: 
+        //TODO:
         // types d'éléments à récupérer :
         // - plans de cours à saisir
         // - notes à saisir

@@ -135,7 +135,7 @@ export const useSurveyStore = defineStore('survey', () => {
     // }
 
     // Section Management
-    async function addSection(title: string, description?: string): Promise<Section> {
+    async function addSection(title: string, description?: string, typeSection: 'normal' | 'configurable' = 'normal', opt?: any): Promise<Section> {
         if (!currentSurvey.value) throw new Error('No current survey');
 
         const section: Section = {
@@ -143,8 +143,9 @@ export const useSurveyStore = defineStore('survey', () => {
             sortOrder: currentSections.value.length + 1,
             title,
             description,
-            typeSection: 'normal',
-            questions: []
+            typeSection,
+            questions: [],
+            opt
         };
 
         const newSection = await createSectionQuestionnaire(section, currentSurvey.value.uuid)

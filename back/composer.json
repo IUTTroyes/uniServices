@@ -57,7 +57,8 @@
             "IntranetBundle\\": "../packages/intranet-bundle/src/",
             "UnifolioBundle\\": "../packages/unifolio-bundle/src/",
             "HelpdeskBundle\\": "../packages/helpdesk-bundle/src/",
-            "QuestionnaireBundle\\": "../packages/questionnaire-bundle/src/"
+            "QuestionnaireBundle\\": "../packages/questionnaire-bundle/src/",
+            "StageBundle\\": "../packages/stage-bundle/src/"
         }
     },
     "autoload-dev": {

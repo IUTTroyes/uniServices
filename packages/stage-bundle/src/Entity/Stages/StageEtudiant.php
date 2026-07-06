@@ -20,18 +20,22 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
+
 #[ORM\Entity(repositoryClass: StageEtudiantRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ApiFilter(SearchFilter::class, properties: ['stagePeriode' => 'exact', 'tuteurUniversitaire' => 'exact'])]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['stage_etudiant:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['stage_etudiant:read']]),
+        new Get(normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']]),
         new Post(
-            normalizationContext: ['groups' => ['stage_etudiant:read']],
+            normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
             denormalizationContext: ['groups' => ['stage_etudiant:write']]
         ),
         new Patch(
-            normalizationContext: ['groups' => ['stage_etudiant:read']],
+            normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']],
             denormalizationContext: ['groups' => ['stage_etudiant:write']]
         ),
         new Delete()
@@ -52,7 +56,7 @@ class StageEtudiant
     #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
     private ?StagePeriode $stagePeriode = null;
 
-    #[ORM\ManyToOne(targetEntity: Etudiant::class, inversedBy: 'stageEtudiants')]
+    #[ORM\ManyToOne(targetEntity: Etudiant::class)]
     #[Groups(['stage_periode_gestion', 'stage_etudiant:read', 'stage_etudiant:write'])]
     private ?Etudiant $etudiant = null;
 
@@ -140,7 +144,7 @@ class StageEtudiant
     #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
     private int $dureeJoursStage = 0;
 
-    #[ORM\ManyToOne(targetEntity: Personnel::class, inversedBy: 'stageEtudiants')]
+    #[ORM\ManyToOne(targetEntity: Personnel::class)]
     #[Groups(['stage_periode_gestion', 'stage_etudiant:read', 'stage_etudiant:write'])]
     private ?Personnel $tuteurUniversitaire = null;
 
@@ -175,6 +179,26 @@ class StageEtudiant
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
     private ?string $commentaireDureeHebdomadaire = null;
+
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    private ?float $evaluationNote = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    private ?string $evaluationCommentaire = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    private ?array $suiviRencontres = [];
+
+    #[ORM\Column(type: Types::BOOLEAN)]
+    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    private bool $reportUploaded = false;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
+    private ?string $reportName = null;
 
     public function __construct(?float $gratificationMontant = null)
     {
@@ -544,6 +568,66 @@ class StageEtudiant
     public function setAssuranceNumero(?string $assuranceNumero): self
     {
         $this->assuranceNumero = $assuranceNumero;
+
+        return $this;
+    }
+
+    public function getEvaluationNote(): ?float
+    {
+        return $this->evaluationNote;
+    }
+
+    public function setEvaluationNote(?float $evaluationNote): self
+    {
+        $this->evaluationNote = $evaluationNote;
+
+        return $this;
+    }
+
+    public function getEvaluationCommentaire(): ?string
+    {
+        return $this->evaluationCommentaire;
+    }
+
+    public function setEvaluationCommentaire(?string $evaluationCommentaire): self
+    {
+        $this->evaluationCommentaire = $evaluationCommentaire;
+
+        return $this;
+    }
+
+    public function getSuiviRencontres(): ?array
+    {
+        return $this->suiviRencontres;
+    }
+
+    public function setSuiviRencontres(?array $suiviRencontres): self
+    {
+        $this->suiviRencontres = $suiviRencontres;
+
+        return $this;
+    }
+
+    public function getReportUploaded(): bool
+    {
+        return $this->reportUploaded;
+    }
+
+    public function setReportUploaded(bool $reportUploaded): self
+    {
+        $this->reportUploaded = $reportUploaded;
+
+        return $this;
+    }
+
+    public function getReportName(): ?string
+    {
+        return $this->reportName;
+    }
+
+    public function setReportName(?string $reportName): self
+    {
+        $this->reportName = $reportName;
 
         return $this;
     }

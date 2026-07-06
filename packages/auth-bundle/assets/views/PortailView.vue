@@ -34,7 +34,11 @@ const widgetData = ref({});
 const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 
 const onBundleClick = (bundleUrl) => {
-  window.location.href = bundleUrl;
+  if (bundleUrl.startsWith('/')) {
+    router.push(bundleUrl);
+  } else {
+    window.location.href = bundleUrl;
+  }
 };
 
 const structureDepartementPersonnelId = computed(() => userStore.departementDefaut?.departementPersonnel?.id || null);
@@ -150,8 +154,8 @@ const getWidgets = async () => {
 onMounted(async () => {
   isLoadingBundles.value = true;
   try {
-    activatedBundles.value = tools.filter((bundle) => userStore.user.applications.includes(bundle.name));
-    unactivatedBundles.value = tools.filter((bundle) => !userStore.user.applications.includes(bundle.name));
+    activatedBundles.value = tools.filter((bundle) => bundle.urlSlug === 'intranet' || userStore.user.applications.includes(bundle.urlSlug));
+    unactivatedBundles.value = tools.filter((bundle) => bundle.urlSlug !== 'intranet' && !userStore.user.applications.includes(bundle.urlSlug));
     await getWidgets();
   } finally {
     isLoadingBundles.value = false;
@@ -195,6 +199,21 @@ watch(() => route.path, async (newPath, oldPath) => {
                 @click="onBundleClick(bundle.url)"
                 >
                 {{ bundle.name }}
+                </Button>
+            </div>
+          </div>
+          <div v-if="userStore.isSuperAdmin" class="flex flex-col gap-4">
+            <div class="text-md font-semibold text-color-secondary uppercase">Administration</div>
+            <div class="flex flex-col">
+              <Button
+                type="button"
+                text
+                rounded
+                size="large"
+                class="justify-start!"
+                @click="router.push('/configuration')"
+              >
+                <i class="pi pi-cog mr-2"></i> Configuration
               </Button>
             </div>
           </div>

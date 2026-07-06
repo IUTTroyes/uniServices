@@ -1,6 +1,8 @@
 <script setup>
 import { onMounted } from "vue";
-import router from "@/router";
+import { useRouter } from "vue-router";
+
+const router = useRouter();
 
 const items = [
   { label: 'Par semestre', icon: 'pi pi-list', route: '/administration/previsionnel/semestre' },

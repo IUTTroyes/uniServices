@@ -7,6 +7,12 @@ use App\Entity\ResetToken;
 use App\Repository\EtudiantRepository;
 use App\Repository\PersonnelRepository;
 use App\Repository\ResetTokenRepository;
+use App\Security\DepartmentPermissionChecker;
+use App\Security\PermissionRegistry;
+use App\Security\PermissionResolver;
+use App\Entity\Users\Personnel;
+use App\Entity\Users\Etudiant;
+use App\Repository\Structure\StructureDepartementPersonnelRepository;
 use Lexik\Bundle\JWTAuthenticationBundle\Event\JWTCreatedEvent;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
@@ -220,6 +226,104 @@ class SecurityController extends AbstractController
         $entityManager->flush();
 
         return new JsonResponse(['message' => 'Mot de passe réinitialisé avec succès'], JsonResponse::HTTP_OK);
+    }
+
+    #[Route(path: '/api/me/security-context', name: 'api_me_security_context', methods: ['GET'])]
+    public function getSecurityContext(
+        DepartmentPermissionChecker $checker,
+        StructureDepartementPersonnelRepository $sdpRepo,
+        PermissionResolver $resolver
+    ): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user) {
+            return new JsonResponse(['message' => 'Non authentifié'], JsonResponse::HTTP_UNAUTHORIZED);
+        }
+
+        $departmentsData = [];
+        $currentDepartment = null;
+        $activePackages = [];
+        $resolvedPermissions = [];
+
+        if ($user instanceof Personnel) {
+            $dps = $sdpRepo->findBy(['personnel' => $user]);
+            foreach ($dps as $dp) {
+                $dept = $dp->getDepartement();
+                if (!$dept) {
+                    continue;
+                }
+                
+                $departmentsData[] = [
+                    'id' => $dept->getId(),
+                    'libelle' => $dept->getLibelle(),
+                    'couleur' => $dept->getCouleur(),
+                    'defaut' => $dp->isDefaut(),
+                ];
+
+                if ($dp->isDefaut()) {
+                    $currentDepartment = [
+                        'id' => $dept->getId(),
+                        'libelle' => $dept->getLibelle(),
+                        'couleur' => $dept->getCouleur(),
+                    ];
+                    $activePackages = $dp->getPackages();
+                    $resolvedPermissions = $resolver->resolve($dp->getPermissions(), $activePackages);
+                }
+            }
+
+            if (null === $currentDepartment && !empty($dps)) {
+                $dp = $dps[0];
+                $dept = $dp->getDepartement();
+                if ($dept) {
+                    $currentDepartment = [
+                        'id' => $dept->getId(),
+                        'libelle' => $dept->getLibelle(),
+                        'couleur' => $dept->getCouleur(),
+                    ];
+                    $activePackages = $dp->getPackages();
+                    $resolvedPermissions = $resolver->resolve($dp->getPermissions(), $activePackages);
+                }
+            }
+        } elseif ($user instanceof Etudiant) {
+            $studentDept = $checker->getStudentDepartment($user);
+            if ($studentDept) {
+                $currentDepartment = [
+                    'id' => $studentDept->getId(),
+                    'libelle' => $studentDept->getLibelle(),
+                    'couleur' => $studentDept->getCouleur(),
+                ];
+                $departmentsData[] = $currentDepartment;
+            }
+
+            $activePackages = ['core'];
+            $resolvedPermissions = ['ROLE_ETUDIANT'];
+        }
+
+        return new JsonResponse([
+            'user' => [
+                'id' => $user->getId(),
+                'username' => $user->getUsername(),
+                'prenom' => $user->getPrenom(),
+                'nom' => $user->getNom(),
+                'email' => $user->getMailUniv() ?? $user->getMailPerso(),
+                'type' => $user instanceof Personnel ? 'personnels' : 'etudiants',
+                'roles' => $user->getRoles(),
+            ],
+            'currentDepartment' => $currentDepartment,
+            'departments' => $departmentsData,
+            'packages' => $activePackages,
+            'permissions' => $resolvedPermissions,
+        ]);
+    }
+
+    #[Route(path: '/api/security/permissions', name: 'api_security_permissions', methods: ['GET'])]
+    public function getPermissions(PermissionRegistry $registry): JsonResponse
+    {
+        $grouped = [];
+        foreach ($registry->getPermissions() as $definition) {
+            $grouped[$definition->getPackage()][] = $definition->toArray();
+        }
+        return new JsonResponse($grouped);
     }
 
     #[Route(path: '/logout', name: 'app_logout')]

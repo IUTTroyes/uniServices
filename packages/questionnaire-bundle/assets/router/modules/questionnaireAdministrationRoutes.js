@@ -6,7 +6,7 @@ import SurveyTakeView from '@/views/Questionnaire/SurveyTakeView.vue'
 
 export default [
   {
-    path: '/qualite/enquetes',
+    path: 'qualite/enquetes',
     name: 'questionnaire_qualite-enquetes',
     component: () => import('@/views/DashboardView.vue'),
     meta: {
@@ -17,7 +17,7 @@ export default [
     },
   },
   {
-    path: '/qualite/enquetes/liste',
+    path: 'qualite/enquetes/liste',
     name: 'questionnaire_enquetes-liste',
     component: SurveyListView,
     meta: {
@@ -30,7 +30,7 @@ export default [
     }
   },
   {
-    path: '/qualite/enquetes/builder/:id?',
+    path: 'qualite/enquetes/builder/:id?',
     name: 'questionnaire_builder',
     component: SurveyBuilderView,
     meta: {
@@ -43,7 +43,7 @@ export default [
     }
   },
   {
-    path: '/qualite/enquetes/responses/:id',
+    path: 'qualite/enquetes/responses/:id',
     name: 'questionnaire_responses',
     component: SurveyResponseView,
     meta: {
@@ -57,7 +57,7 @@ export default [
     }
   },
   {
-    path: '/qualite/enquetes/analytics/:id',
+    path: 'qualite/enquetes/analytics/:id',
     name: 'questionnaire_analytics',
     component: AnalyticsView,
     meta: {
@@ -71,7 +71,7 @@ export default [
     }
   },
   {
-    path: '/qualite/enquetes/take/:token',
+    path: 'qualite/enquetes/take/:token',
     name: 'questionnaire_take-survey',
     component: SurveyTakeView
   }

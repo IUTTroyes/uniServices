@@ -1,8 +1,9 @@
 export default [
     {
         path: '',
+        alias: '/',
         component: () => import('@/views/DashboardView.vue'),
-        name: 'Dashboard',
+        name: 'QuestionnaireDashboard',
         meta: { breadcrumb: [{ label: 'Dashboard', route: '/'}] },
     },
 ];

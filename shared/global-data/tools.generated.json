@@ -24,6 +24,12 @@
         "url": "http://localhost:3005/questionnaire/"
     },
     {
+        "name": "Stages & Alternances",
+        "description": "Application de gestion des stages et alternances",
+        "urlSlug": "stage",
+        "url": "http://localhost:3006/stage/"
+    },
+    {
         "name": "UniFolio",
         "description": "Outil de cr\u00e9ation et de gestion de portfolios universitaires.",
         "urlSlug": "unifolio",

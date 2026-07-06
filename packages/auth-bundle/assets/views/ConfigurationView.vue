@@ -2,15 +2,15 @@
 import {ErrorView} from "@components";
 
 const panelMenuEtablissementItems = [
-  { label: 'Informations générales', icon: 'pi pi-info-circle', route: '/configuration/etablissement' },
+  { label: 'Informations générales', icon: 'pi pi-info-circle', route: '/auth/configuration/etablissement' },
 ]
 
 const panelMenuUserItems = [
-  { label: 'Gestion des accès', icon: 'pi pi-users', route: '/configuration/gestion-acces' },
+  { label: 'Gestion des accès', icon: 'pi pi-users', route: '/auth/configuration/gestion-acces' },
 ]
 
 const panelMenuItems = [
-  { label: 'Années Universitaires', icon: 'pi pi-clock', route: '/configuration/annees-universitaires' },
+  { label: 'Années Universitaires', icon: 'pi pi-clock', route: '/auth/configuration/annees-universitaires' },
 ]
 
 </script>

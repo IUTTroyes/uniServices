@@ -8,6 +8,8 @@ services:
       tags: [ 'app.dashboard.widget_provider' ]
     App\Domain\Dashboard\WidgetDataProviderInterface:
       tags: [ 'app.dashboard.widget_data_provider' ]
+    App\Security\PermissionProviderInterface:
+      tags: [ 'app.permission_provider' ]
 
   QuestionnaireBundle\:
     resource: '../../'

@@ -17,38 +17,7 @@ const loading = ref(false)
 // Select options
 const departmentsList = ref([])
 
-const appRolesList = {
-  intranet: [
-    { value: 'ROLE_CDD', label: 'Chef de Département (CDD)' },
-    { value: 'ROLE_RP', label: 'Responsable Parcours (RP)' },
-    { value: 'ROLE_ASS', label: 'Assistant (ASS)' },
-    { value: 'ROLE_DDE', label: 'Directeur des Études (DDE)' },
-    { value: 'ROLE_STA', label: 'Responsable Stage (STA)' },
-    { value: 'ROLE_EDT', label: 'Responsable EDT' },
-    { value: 'ROLE_PERMANENT', label: 'Enseignant Permanent' }
-  ],
-  stage: [
-    { value: 'ROLE_STAGE', label: 'Responsable de Stage' },
-    { value: 'ROLE_RP', label: 'Responsable de Parcours' },
-    { value: 'ROLE_CDD', label: 'Chef de Département' }
-  ],
-  edt: [
-    { value: 'ROLE_EDT', label: 'Planificateur d\'EDT' },
-    { value: 'ROLE_RP', label: 'Responsable de Parcours' }
-  ],
-  helpdesk: [
-    { value: 'ROLE_HELPDESK_ADMIN', label: 'Administrateur Helpdesk' },
-    { value: 'ROLE_HELPDESK_AGENT', label: 'Agent de support' }
-  ],
-  unifolio: [
-    { value: 'ROLE_UNIFOLIO_ADMIN', label: 'Administrateur Portfolios' },
-    { value: 'ROLE_UNIFOLIO_USER', label: 'Utilisateur Portfolios' }
-  ],
-  correcto: [
-    { value: 'ROLE_CORRECTO_ADMIN', label: 'Administrateur Correcto' },
-    { value: 'ROLE_CORRECTO_USER', label: 'Correcteur Correcto' }
-  ]
-}
+const availablePermissionsByPackage = ref({})
 
 // Current edited Personnel
 const selectedPersonnel = ref(null)
@@ -119,7 +88,25 @@ const toggleAuthorizedApp = (appSlug, checked) => {
     }
   } else {
     selectedPersonnel.value.applications = selectedPersonnel.value.applications.filter(s => s !== appSlug)
+    
+    // Auto-cleanup from all affectations if unchecked
+    const pkgName = appSlug === 'stage' ? 'stages' : appSlug
+    personnelAffectations.value.forEach(aff => {
+      if (aff.packages) {
+        aff.packages = aff.packages.filter(p => p !== pkgName)
+      }
+      if (aff.permissions && availablePermissionsByPackage.value[pkgName]) {
+        const packageRoleList = availablePermissionsByPackage.value[pkgName].map(p => p.role)
+        aff.permissions = aff.permissions.filter(role => !packageRoleList.includes(role))
+      }
+    })
   }
+}
+
+const isPackageAllowed = (pkgName) => {
+  if (pkgName === 'core') return true
+  const appSlug = pkgName === 'stages' ? 'stage' : pkgName
+  return selectedPersonnel.value?.applications?.includes(appSlug) ?? false
 }
 
 const savePersonnelInfo = async () => {
@@ -168,8 +155,11 @@ onMounted(async () => {
   try {
     const res = await api.get('/api/structure_departements')
     departmentsList.value = res.data['hydra:member'] ?? res.data.member ?? res.data ?? []
+
+    const resPerm = await api.get('/api/security/permissions')
+    availablePermissionsByPackage.value = resPerm.data ?? {}
   } catch (err) {
-    console.error('Error loading departments:', err)
+    console.error('Error loading departments or permissions:', err)
   }
 })
 
@@ -214,7 +204,8 @@ const createAffectation = async () => {
       departement: `/api/structure_departements/${selectedDeptToAdd.value.id}`,
       defaut: false,
       affectation: true,
-      roles: {}
+      packages: ['core'],
+      permissions: ['ROLE_TEACHER']
     }
     await api.post('/api/structure_departement_personnels', payload, {
       headers: {
@@ -271,11 +262,6 @@ const activePersonnelAffectations = computed(() => {
   return personnelAffectations.value.filter(aff => aff.affectation)
 })
 
-const filteredAppsForRights = computed(() => {
-  if (!selectedPersonnel.value || !selectedPersonnel.value.applications) return []
-  return appsList.filter(app => selectedPersonnel.value.applications.includes(app.urlSlug))
-})
-
 watch(activePersonnelAffectations, (newActive) => {
   if (!selectedAffectationForRights.value || !newActive.some(a => a.id === selectedAffectationForRights.value.id)) {
     const defaultAff = newActive.find(aff => aff.defaut)
@@ -298,7 +284,8 @@ const addAffectationToPersonnel = async () => {
       departement: `/api/structure_departements/${selectedDeptForNewAffectation.value.id}`,
       defaut: false,
       affectation: true,
-      roles: {}
+      packages: ['core'],
+      permissions: ['ROLE_TEACHER']
     }
     await api.post('/api/structure_departement_personnels', payload, {
       headers: {
@@ -395,43 +382,65 @@ const toggleAffectationActive = async (aff) => {
 }
 
 // Helper to check if role exists for app inside affectation
-const hasAppRole = (aff, appSlug, roleValue) => {
-  if (!aff || !aff.roles) return false
-  if (Array.isArray(aff.roles)) return false
-  if (!aff.roles[appSlug]) return false
-  return aff.roles[appSlug].includes(roleValue)
+const hasPackage = (aff, packageName) => {
+  if (!aff) return false
+  if (!aff.packages) {
+    aff.packages = []
+  }
+  return aff.packages.includes(packageName)
 }
 
-// Helper to toggle app role inside affectation
-const toggleAppRole = (aff, appSlug, roleValue) => {
-  if (!aff.roles || Array.isArray(aff.roles)) {
-    aff.roles = {}
+const togglePackage = (aff, packageName) => {
+  if (!aff) return
+  if (!aff.packages) {
+    aff.packages = []
   }
-  if (!aff.roles[appSlug]) {
-    aff.roles[appSlug] = []
-  }
-  
-  const index = aff.roles[appSlug].indexOf(roleValue)
+  const index = aff.packages.indexOf(packageName)
   if (index === -1) {
-    aff.roles[appSlug].push(roleValue)
+    aff.packages.push(packageName)
   } else {
-    aff.roles[appSlug].splice(index, 1)
+    aff.packages.splice(index, 1)
+    if (availablePermissionsByPackage.value[packageName]) {
+      const packageRoleList = availablePermissionsByPackage.value[packageName].map(p => p.role)
+      aff.permissions = (aff.permissions || []).filter(role => !packageRoleList.includes(role))
+    }
   }
 }
 
-// Save application rights for department
+const hasPermission = (aff, permissionRole) => {
+  if (!aff) return false
+  if (!aff.permissions) {
+    aff.permissions = []
+  }
+  return aff.permissions.includes(permissionRole)
+}
+
+const togglePermission = (aff, permissionRole) => {
+  if (!aff) return
+  if (!aff.permissions) {
+    aff.permissions = []
+  }
+  const index = aff.permissions.indexOf(permissionRole)
+  if (index === -1) {
+    aff.permissions.push(permissionRole)
+  } else {
+    aff.permissions.splice(index, 1)
+  }
+}
+
 const saveAppRights = async () => {
   if (!selectedAffectationForRights.value) return
   loading.value = true
   try {
     await api.patch(`/api/structure_departement_personnels/${selectedAffectationForRights.value.id}`, {
-      roles: selectedAffectationForRights.value.roles
+      packages: selectedAffectationForRights.value.packages || [],
+      permissions: selectedAffectationForRights.value.permissions || []
     }, {
       headers: {
         'Content-Type': 'application/merge-patch+json'
       }
     })
-    toast.add({ severity: 'success', summary: 'Sauvegardé', detail: 'Droits par département mis à jour.', life: 3000 })
+    toast.add({ severity: 'success', summary: 'Sauvegardé', detail: 'Packages et permissions par département mis à jour.', life: 3000 })
     await loadPersonnelAffectations()
     refreshKey.value++
   } catch (err) {
@@ -639,7 +648,8 @@ const saveAppRights = async () => {
                 <div v-for="app in appsList" :key="app.urlSlug" class="flex items-start gap-2.5 p-2.5 bg-white dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800/80 rounded-xl">
                   <Checkbox 
                     :binary="true"
-                    :modelValue="selectedPersonnel.applications?.includes(app.urlSlug) ?? false" 
+                    :modelValue="app.urlSlug === 'intranet' || (selectedPersonnel.applications?.includes(app.urlSlug) ?? false)" 
+                    :disabled="app.urlSlug === 'intranet'"
                     @update:modelValue="(checked) => toggleAuthorizedApp(app.urlSlug, checked)"
                     :inputId="`app-${app.urlSlug}`"
                     class="mt-0.5"
@@ -734,43 +744,47 @@ const saveAppRights = async () => {
             <div v-if="selectedAffectationForRights" class="col-span-2 space-y-4 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 bg-slate-50/50 dark:bg-slate-900/30 max-h-[350px] overflow-y-auto">
               <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
                 <span class="font-bold text-slate-800 dark:text-slate-200">
-                  2. Droits sur {{ selectedAffectationForRights.departement?.libelle }}
+                  2. Packages et Droits sur {{ selectedAffectationForRights.departement?.libelle }}
                 </span>
                 <Button label="Sauvegarder ces Droits" icon="pi pi-save" class="bg-violet-600 border-none rounded-lg p-button-sm text-[10px] text-white" :loading="loading" @click="saveAppRights" />
               </div>
 
-              <!-- Loop over each application to show roles -->
-              <div v-for="app in filteredAppsForRights" :key="app.urlSlug" class="space-y-2 bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80 rounded-xl p-3">
-                <span class="font-bold text-slate-700 dark:text-slate-300 text-[11px] block border-b border-slate-50 dark:border-slate-800 pb-1">
-                  {{ app.name }}
-                </span>
+              <!-- Loop over each package to show toggles and permissions -->
+              <template v-for="(perms, pkgName) in availablePermissionsByPackage" :key="pkgName">
+                <div v-if="isPackageAllowed(pkgName)" class="space-y-2 bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80 rounded-xl p-3">
+                  <div class="flex items-center justify-between border-b border-slate-50 dark:border-slate-800 pb-1.5">
+                    <span class="font-bold text-slate-700 dark:text-slate-300 text-[11px] capitalize flex items-center gap-1.5">
+                      <i class="pi pi-box text-violet-500"></i>
+                      <span>{{ pkgName }}</span>
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                      <label class="text-[9px] text-slate-400">Activer le package</label>
+                      <ToggleSwitch 
+                        :modelValue="hasPackage(selectedAffectationForRights, pkgName)"
+                        @update:modelValue="togglePackage(selectedAffectationForRights, pkgName)"
+                      />
+                    </div>
+                  </div>
 
-                <!-- Display checkable standard roles -->
-                <div v-if="appRolesList[app.urlSlug]" class="grid grid-cols-2 gap-2 pt-1">
-                  <div v-for="role in appRolesList[app.urlSlug]" :key="role.value" class="flex items-center gap-1.5">
-                    <Checkbox 
-                      :binary="true"
-                      :modelValue="hasAppRole(selectedAffectationForRights, app.urlSlug, role.value)"
-                      @update:modelValue="toggleAppRole(selectedAffectationForRights, app.urlSlug, role.value)" 
-                      :inputId="`${app.urlSlug}-${role.value}`"
-                    />
-                    <label :for="`${app.urlSlug}-${role.value}`" class="cursor-pointer text-[10px] text-slate-600 dark:text-slate-400">
-                      {{ role.label }}
-                    </label>
+                  <!-- Display checkable permissions if package is active -->
+                  <div v-if="hasPackage(selectedAffectationForRights, pkgName)" class="grid grid-cols-2 gap-2 pt-1">
+                    <div v-for="perm in perms" :key="perm.role" class="flex items-center gap-1.5">
+                      <Checkbox 
+                        :binary="true"
+                        :modelValue="hasPermission(selectedAffectationForRights, perm.role)"
+                        @update:modelValue="togglePermission(selectedAffectationForRights, perm.role)" 
+                        :inputId="`${pkgName}-${perm.role}`"
+                      />
+                      <label :for="`${pkgName}-${perm.role}`" class="cursor-pointer text-[10px] text-slate-600 dark:text-slate-400">
+                        {{ perm.label }} <span class="text-[8px] text-slate-400 font-mono">({{ perm.role }})</span>
+                      </label>
+                    </div>
+                  </div>
+                  <div v-else class="text-[10px] text-slate-400 italic py-1">
+                    Activez ce package pour configurer ses permissions.
                   </div>
                 </div>
-
-                <!-- Custom text roles configuration -->
-                <div class="flex flex-col gap-1 pt-1.5">
-                  <label class="text-[9px] text-slate-400">Rôles bruts (séparés par des virgules pour des configurations avancées)</label>
-                  <InputText 
-                    :modelValue="getRawRolesString(selectedAffectationForRights, app.urlSlug)"
-                    @change="(e) => setRawRolesString(selectedAffectationForRights, app.urlSlug, e.target.value)"
-                    placeholder="Ex: ROLE_STA, ROLE_CUSTOM"
-                    class="p-1 text-[10px] border border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-md w-full"
-                  />
-                </div>
-              </div>
+              </template>
             </div>
           </div>
         </div>

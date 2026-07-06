@@ -1,9 +1,11 @@
 <script setup>
 import {ref, onMounted, computed} from "vue";
+import { useRouter } from "vue-router";
 import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton, Access } from "@components";
 import {useAnneeUnivStore} from "@stores";
 import {createAnneeUniversitaireService, getDiplomesService} from "@requests";
-import router from "@/router";
+
+const router = useRouter();
 
 const hasError = ref(false);
 
@@ -137,7 +139,7 @@ const getDiplomes = async () => {
 };
 
 const goBack = () => {
-  router.push('/configuration/annees-universitaires');
+  router.push('/auth/configuration/annees-universitaires');
 };
 </script>
 

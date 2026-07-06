@@ -70,12 +70,12 @@ const activateAnneeUniv = async (anneeUniv) => {
 
 const viewDiplomes = (anneeUniv) => {
   // Redirection vers la page des diplômes de l'année universitaire
-  router.push({ path: `/super-administration/annee-universitaire/${anneeUniv.id}/diplomes` });
+  router.push({ path: `/auth/configuration/annee-universitaire/${anneeUniv.id}/diplomes` });
 }
 
 const editAnneeUniv = (anneeUniv) => {
   // Redirection vers la page d'édition de l'année universitaire
-  router.push({ path: `/super-administration/annee-universitaire/${anneeUniv.id}/edit` });
+  router.push({ path: `/auth/configuration/annee-universitaire/${anneeUniv.id}/edit` });
 }
 </script>
 
