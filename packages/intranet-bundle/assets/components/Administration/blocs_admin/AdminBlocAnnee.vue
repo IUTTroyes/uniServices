@@ -32,7 +32,7 @@ const panelMenuItems = computed(() => {
       label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
         {
           label: 'Liste des étudiants', icon: 'pi pi-list',
-          route: aid ? '/administration/annee/' + aid + '/etudiants' : null
+          route: aid ? '/intranet/administration/annee/' + aid + '/etudiants' : null
         },
       ]
     },
@@ -40,10 +40,10 @@ const panelMenuItems = computed(() => {
       label: 'Groupes', icon: 'pi pi-users', command: () => {}, items: [
         {
           label: 'Composition des groupes', icon: 'pi pi-list',
-          route: aid ? '/administration/annee/' + aid + '/groupes/affectation' : null,
+          route: aid ? '/intranet/administration/annee/' + aid + '/groupes/affectation' : null,
         },
         {
-          label: 'Structure des groupes', icon: 'pi pi-cog', route: aid ? '/administration/annee/' + aid + '/groupes/structure' : null,
+          label: 'Structure des groupes', icon: 'pi pi-cog', route: aid ? '/intranet/administration/annee/' + aid + '/groupes/structure' : null,
         }
       ]
     },
@@ -51,11 +51,11 @@ const panelMenuItems = computed(() => {
       label: 'Absences', icon: 'pi pi-calendar', command: () => {}, items: [
         {
           label: 'Liste des absences', icon: 'pi pi-list',
-          route: aid ? '/administration/annee/' + aid + '/absences/liste' : null,
+          route: aid ? '/intranet/administration/annee/' + aid + '/absences/liste' : null,
         },
         {
           label: 'Liste des justificatifs', icon: 'pi pi-folder-open',
-          route: aid ? '/administration/annee/' + aid + '/justificatifs-absences/liste' : null,
+          route: aid ? '/intranet/administration/annee/' + aid + '/justificatifs-absences/liste' : null,
         },
         { label: 'Suivi des pointages de présence', icon: 'pi pi-eye', command: () => {} },
       ]
@@ -64,20 +64,20 @@ const panelMenuItems = computed(() => {
       label: 'Notes et Évaluations', icon: 'pi pi-book', command: () => {}, items: [
         {
           label: 'Gestion des évaluations et saisie des notes', icon: 'pi pi-list',
-          route: aid ? '/administration/annee/' + aid + '/evaluations' : null
+          route: aid ? '/intranet/administration/annee/' + aid + '/evaluations' : null
         },
         {
           label: 'Demandes de rattrapages', icon: 'pi pi-history',
-          route: aid ? '/administration/annee/' + aid + '/rattrapages/liste' : null },
+          route: aid ? '/intranet/administration/annee/' + aid + '/rattrapages/liste' : null },
         { label: 'Modalités du contrôle continu', icon: 'pi pi-map',
-          route: aid ? '/administration/annee/' + aid + '/mccc/liste' : null
+          route: aid ? '/intranet/administration/annee/' + aid + '/mccc/liste' : null
         },
       ]
     },
     {
       label: 'Fin de semestre', icon: 'pi pi-check', command: () => {}, items: [
         { label: 'Préparation de la sous-commission', icon: 'pi pi-calculator',
-          route: aid ? '/administration/annee/' + aid + '/sous-commission' : null},
+          route: aid ? '/intranet/administration/annee/' + aid + '/sous-commission' : null},
         { label: 'Changement de semestre des étudiants', icon: 'pi pi-forward', command: () => {} },
       ]
     },

@@ -1,4 +1,4 @@
-import {LayoutComponent} from "@components";
+import LayoutComponent from '@components/components/layout/AppLayout.vue';
 
 export default [
     {

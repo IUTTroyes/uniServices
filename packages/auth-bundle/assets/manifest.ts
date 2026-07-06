@@ -5,7 +5,7 @@ import ConfigurationRoutes from './router/modules/configurationRoutes.js';
 import ResetPasswordView from "./views/ResetPasswordView.vue";
 import ResetPasswordConfirmView from "./views/ResetPasswordConfirmView.vue";
 import LogoIut from "@images/logo/logo_iut.png";
-import { LayoutComponent } from '@components';
+import LayoutComponent from '@components/components/layout/AppLayout.vue';
 
 const authMenu = {
   label: 'Mon Espace',
@@ -62,7 +62,9 @@ export default {
       props: route => ({
         logoUrl: LogoIut,
         appName: 'Uniservices',
-        breadcrumbItems: route.meta.breadcrumb || []
+        breadcrumbItems: typeof route.meta.breadcrumb === 'function'
+          ? route.meta.breadcrumb(route)
+          : (route.meta.breadcrumb || [])
       }),
       children: [
         ...ConfigurationRoutes

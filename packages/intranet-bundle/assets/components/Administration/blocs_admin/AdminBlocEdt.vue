@@ -5,7 +5,7 @@ const router = useRouter();
 
 const panelMenuItems = [
   { label: 'Gestion de l\'emploi du temps', icon: 'pi pi-calendar', command: () => {} },
-  { label: 'Gestion des événements et actualités', icon: 'pi pi-megaphone', command: () => {router.push('/administration/pn');} },
+  { label: 'Gestion des événements et actualités', icon: 'pi pi-megaphone', command: () => {router.push('/intranet/administration/pn');} },
   { label: 'Passerelle EduSign', icon: 'pi pi-qrcode', command: () => {} },
 ];
 </script>

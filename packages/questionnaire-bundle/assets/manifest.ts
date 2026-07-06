@@ -1,7 +1,7 @@
 import dashboardRoutes from './router/modules/dashboardRoutes.js';
 import qualiteRoutes from './router/modules/questionnaireAdministrationRoutes.js';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
-import { LayoutComponent } from '@components';
+import LayoutComponent from '@components/components/layout/AppLayout.vue';
 
 const questionnaireMenu = {
   label: 'Questionnaires',
@@ -21,7 +21,9 @@ export default {
       props: route => ({
         logoUrl: Logo,
         appName: 'Questionnaires',
-        breadcrumbItems: route.meta.breadcrumb || []
+        breadcrumbItems: typeof route.meta.breadcrumb === 'function'
+          ? route.meta.breadcrumb(route)
+          : (route.meta.breadcrumb || [])
       }),
       children: [
         ...dashboardRoutes,

@@ -5,11 +5,16 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const items = [
-  { label: 'Import Apogée', icon: 'pi pi-upload', route: '/administration/etudiant/ajout/apogee' },
-  { label: 'Import manuel', icon: 'pi pi-pencil', route: '/administration/etudiant/ajout/manuel' },
+  { label: 'Import Apogée', icon: 'pi pi-upload', route: '/intranet/administration/etudiant/ajout/apogee' },
+  { label: 'Import manuel', icon: 'pi pi-pencil', route: '/intranet/administration/etudiant/ajout/manuel' },
 ];
 
 const activeTab = ref(localStorage.getItem('activeTab') || items[0].route);
+
+// If the stored tab is from a previous session and lacks /intranet/, patch it
+if (activeTab.value && !activeTab.value.startsWith('/intranet/')) {
+  activeTab.value = items[0].route;
+}
 
 const navigateTo = (route) => {
   activeTab.value = route;

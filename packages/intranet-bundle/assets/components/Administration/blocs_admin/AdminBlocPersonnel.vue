@@ -1,7 +1,7 @@
 <script setup>
 const panelMenuItems = [
-  { label: 'Liste des personnels du département', icon: 'pi pi-list', route: '/administration/personnels/' },
-  { label: 'Prévisionnels', icon: 'pi pi-clock', route: '/administration/previsionnel/' },
+  { label: 'Liste des personnels du département', icon: 'pi pi-list', route: '/intranet/administration/personnels/' },
+  { label: 'Prévisionnels', icon: 'pi pi-clock', route: '/intranet/administration/previsionnel/' },
 ];
 </script>
 

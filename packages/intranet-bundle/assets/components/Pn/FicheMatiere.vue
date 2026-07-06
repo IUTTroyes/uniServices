@@ -297,7 +297,7 @@ onMounted(async () => {
         <Message severity="error" icon="pi pi-exclamation-triangle">
           Attention, le volume horaire saisi ne correspond pas au volume horaire attendu dans la maquette.
         </Message>
-        <Button label="Corriger le prévisionnel" severity="danger" @click="router.push('/administration/previsionnel/semestre')"> </Button>
+        <Button label="Corriger le prévisionnel" severity="danger" @click="router.push('/intranet/administration/previsionnel/semestre')"> </Button>
       </div>
       <div>
         <div class="font-bold text-lg">Objectif(s) de la matière :</div>

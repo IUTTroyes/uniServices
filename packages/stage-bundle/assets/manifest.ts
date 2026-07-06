@@ -1,6 +1,6 @@
 import dashboardRoutes from './router/modules/dashboardRoutes.js';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
-import { LayoutComponent } from '@components';
+import LayoutComponent from '@components/components/layout/AppLayout.vue';
 
 const stageMenu = {
   label: 'Stages',
@@ -24,7 +24,9 @@ export default {
       props: route => ({
         logoUrl: Logo,
         appName: 'Stage',
-        breadcrumbItems: route.meta.breadcrumb || []
+        breadcrumbItems: typeof route.meta.breadcrumb === 'function'
+          ? route.meta.breadcrumb(route)
+          : (route.meta.breadcrumb || [])
       }),
       children: [
         ...dashboardRoutes

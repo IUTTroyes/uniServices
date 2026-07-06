@@ -31,7 +31,7 @@ export default [
       permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
-        route: '/administration'
+        route: '/intranet/administration'
       }, { label: 'Gestion des Personnels', route: null }]
     },
   },
@@ -41,7 +41,7 @@ export default [
       permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
-        route: '/administration'
+        route: '/intranet/administration'
       }]
     },
     children: [
@@ -52,7 +52,7 @@ export default [
         meta: {
           breadcrumb: [{ label: 'Dashboard', route: '/' }, {
             label: 'Administration',
-            route: '/administration'
+            route: '/intranet/administration'
           }, { label: 'Ajouter des Etudiants', route: null }]
         },
         children: [
@@ -71,7 +71,7 @@ export default [
         meta: {
           breadcrumb: [{ label: 'Dashboard', route: '/' }, {
             label: 'Administration',
-            route: '/administration'
+            route: '/intranet/administration'
           }, { label: 'Résultat de l\'import', route: null }]
         },
         props: true
@@ -85,7 +85,7 @@ export default [
       permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
-        route: '/administration'
+        route: '/intranet/administration'
       }, { label: 'PPN', route: null }]
     },
   },
@@ -96,7 +96,7 @@ export default [
       permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
-        route: '/administration'
+        route: '/intranet/administration'
       }, { label: 'Référentiels de compétences', route: null }]
     },
   },
@@ -107,7 +107,7 @@ export default [
       permission: 'canViewAdministration',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
-        { label: 'Administration', route: '/administration', icon: 'pi pi-wrench' },
+        { label: 'Administration', route: '/intranet/administration', icon: 'pi pi-wrench' },
         { label: 'Prévisionnel', route: null, icon: 'pi pi-clock' }]
     },
     children: [
@@ -123,7 +123,7 @@ export default [
     // meta: {
     //   breadcrumb: [
     //     { label: 'Dashboard', route: '/' },
-    //     { label: 'Administration', route: '/administration', icon: 'pi pi-wrench' },
+    //     { label: 'Administration', route: '/intranet/administration', icon: 'pi pi-wrench' },
     //     { label: 'Stages', route: null, icon: 'pi pi-clock' }]
     // },
     children: [
@@ -136,7 +136,7 @@ export default [
       permission: 'canViewAdministration',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
-        { label: 'Administration', route: '/administration', icon: 'pi pi-wrench' },
+        { label: 'Administration', route: '/intranet/administration', icon: 'pi pi-wrench' },
         { label: 'Année', route: null }
       ]
     },

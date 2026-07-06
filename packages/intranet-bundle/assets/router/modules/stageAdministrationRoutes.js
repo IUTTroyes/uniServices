@@ -5,7 +5,7 @@ export default [
     meta: {
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
-        route: '/administration',
+        route: '/intranet/administration',
         icon: 'pi pi-wrench'
       },
       { label: 'Stages', route: null },

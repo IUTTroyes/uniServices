@@ -5,7 +5,7 @@ import profilRoutes from './router/modules/profilRoutes.js';
 import administrationRoutes from './router/modules/administrationRoutes.js';
 import superAdministrationRoutes from './router/modules/superAdministrationRoutes.js';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
-import { LayoutComponent } from '@components';
+import LayoutComponent from '@components/components/layout/AppLayout.vue';
 
 const intranetMenu = {
   label: 'Intranet',
@@ -38,7 +38,9 @@ export default {
       props: route => ({
         logoUrl: Logo,
         appName: 'Intranet',
-        breadcrumbItems: route.meta.breadcrumb || []
+        breadcrumbItems: typeof route.meta.breadcrumb === 'function'
+          ? route.meta.breadcrumb(route)
+          : (route.meta.breadcrumb || [])
       }),
       children: [
         ...dashboardRoutes,

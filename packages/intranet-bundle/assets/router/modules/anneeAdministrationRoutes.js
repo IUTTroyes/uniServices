@@ -13,7 +13,7 @@ export default [
         const selectedAnnee = anneeStore.annee;
         return [{ label: 'Dashboard', route: '/' }, {
           label: 'Administration',
-          route: '/administration',
+          route: '/intranet/administration',
           icon: 'pi pi-wrench'
         },
         { label: selectedAnnee?.libelle ?? 'Année', route: null },
@@ -32,7 +32,7 @@ export default [
         const selectedAnnee = anneeStore.annee;
         return [{ label: 'Dashboard', route: '/' }, {
           label: 'Administration',
-          route: '/administration',
+          route: '/intranet/administration',
           icon: 'pi pi-wrench'
         },
         { label: selectedAnnee?.libelle ?? 'Année', route: null },
@@ -51,7 +51,7 @@ export default [
         const selectedAnnee = anneeStore.annee;
         return [{ label: 'Dashboard', route: '/' }, {
           label: 'Administration',
-          route: '/administration',
+          route: '/intranet/administration',
           icon: 'pi pi-wrench'
         },
         { label: selectedAnnee?.libelle ?? 'Année', route: null },
@@ -70,7 +70,7 @@ export default [
         const selectedAnnee = anneeStore.annee;
         return [{ label: 'Dashboard', route: '/' }, {
           label: 'Administration',
-          route: '/administration',
+          route: '/intranet/administration',
           icon: 'pi pi-wrench'
         },
         { label: selectedAnnee?.libelle ?? 'Année', route: null },
@@ -89,7 +89,7 @@ export default [
         const selectedAnnee = anneeStore.annee;
         return [{ label: 'Dashboard', route: '/' }, {
           label: 'Administration',
-          route: '/administration',
+          route: '/intranet/administration',
           icon: 'pi pi-wrench'
         },
         { label: selectedAnnee?.libelle ?? 'Année', route: null },
@@ -105,7 +105,7 @@ export default [
       permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
-        route: '/administration',
+        route: '/intranet/administration',
         icon: 'pi pi-wrench'
       },
       { label: 'Année', route: null },
@@ -122,7 +122,7 @@ export default [
         const selectedAnnee = anneeStore.annee;
         return [{ label: 'Dashboard', route: '/' }, {
           label: 'Administration',
-          route: '/administration',
+          route: '/intranet/administration',
           icon: 'pi pi-wrench'
         },
         { label: selectedAnnee?.libelle ?? 'Année', route: null },
@@ -138,7 +138,7 @@ export default [
       permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
-        route: '/administration',
+        route: '/intranet/administration',
         icon: 'pi pi-wrench'
       },
       { label: 'Année', route: null },
@@ -153,7 +153,7 @@ export default [
       permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
-        route: '/administration',
+        route: '/intranet/administration',
         icon: 'pi pi-wrench'
       },
       { label: 'Année', route: null },
@@ -168,7 +168,7 @@ export default [
       permission: 'canViewAdministration',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Administration',
-        route: '/administration',
+        route: '/intranet/administration',
         icon: 'pi pi-wrench'
       },
       { label: 'Année', route: null },

@@ -52,7 +52,7 @@ class PortalDashboardDefinition implements DashboardDefinitionInterface
             new DashboardWidgetLayout(
                 'intranet.emploi_du_temps',
                 0,
-                colSpan: 2,
+                colSpan: 3,
                 rowSpan: 1,
             ),
 

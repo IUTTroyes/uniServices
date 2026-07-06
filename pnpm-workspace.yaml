@@ -2,6 +2,6 @@ packages:
   - 'packages/*'
   - 'shared/*'
 allowBuilds:
-  '@parcel/watcher': set this to true or false
-  cypress: set this to true or false
-  esbuild: set this to true or false
+  '@parcel/watcher': true
+  cypress: true
+  esbuild: true

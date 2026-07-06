@@ -147,7 +147,7 @@ const createEtudiant = async () => {
 
         // Redirect to the result page with the response data
         router.push({
-          path: '/administration/etudiant/ajout/result',
+          path: '/intranet/administration/etudiant/ajout/result',
           query: {
             importResult: JSON.stringify(response)
           }

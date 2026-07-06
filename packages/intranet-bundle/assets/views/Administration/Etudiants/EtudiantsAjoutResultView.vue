@@ -180,7 +180,7 @@ const viewEtudiantProfile = async (etudiantId) => {
 
     <div class="actions mt-6">
       <Button label="Retour à l'ajout d'étudiants" icon="pi pi-arrow-left"
-              @click="$router.push('/administration/etudiant/ajout/manuel')" />
+              @click="$router.push('/intranet/administration/etudiant/ajout/manuel')" />
     </div>
   </div>
 </template>

@@ -3,7 +3,7 @@ import edtRoutes from './router/modules/edtRoutes.js';
 import progressionRoutes from './router/modules/progressionRoutes.js';
 import contraintesRoutes from './router/modules/contraintesRoutes.js';
 import calendrierRoutes from './router/modules/calendrierRoutes.js';
-import { LayoutComponent } from '@components';
+import LayoutComponent from '@components/components/layout/AppLayout.vue';
 
 const edtMenu = {
   label: 'Emploi du Temps',
@@ -25,7 +25,9 @@ export default {
       component: LayoutComponent,
       props: route => ({
         appName: 'Edt',
-        breadcrumbItems: route.meta.breadcrumb || []
+        breadcrumbItems: typeof route.meta.breadcrumb === 'function'
+          ? route.meta.breadcrumb(route)
+          : (route.meta.breadcrumb || [])
       }),
       children: [
         ...dashboardRoutes,

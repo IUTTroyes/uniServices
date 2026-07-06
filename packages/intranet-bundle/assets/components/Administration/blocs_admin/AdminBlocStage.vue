@@ -4,8 +4,8 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const panelMenuItems = [
-  { label: 'Gestion des périodes', icon: 'pi pi-list', command: () => {router.push('/administration/stages/gestion-periodes')} },
-  { label: 'Gestion des programmes pédagogiques nationaux', icon: 'pi pi-briefcase', command: () => {router.push('/administration/pn');} },
+  { label: 'Gestion des périodes', icon: 'pi pi-list', command: () => {router.push('/intranet/administration/stages/gestion-periodes')} },
+  { label: 'Gestion des programmes pédagogiques nationaux', icon: 'pi pi-briefcase', command: () => {router.push('/intranet/administration/pn');} },
   { label: 'Gestion des plan de cours', icon: 'pi pi-file', command: () => {} },
 ];
 </script>

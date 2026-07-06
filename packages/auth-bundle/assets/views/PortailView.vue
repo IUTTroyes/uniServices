@@ -154,8 +154,13 @@ const getWidgets = async () => {
 onMounted(async () => {
   isLoadingBundles.value = true;
   try {
-    activatedBundles.value = tools.filter((bundle) => bundle.urlSlug === 'intranet' || userStore.user.applications.includes(bundle.urlSlug));
-    unactivatedBundles.value = tools.filter((bundle) => bundle.urlSlug !== 'intranet' && !userStore.user.applications.includes(bundle.urlSlug));
+    activatedBundles.value = tools.filter((bundle) => userStore.user.applications.includes(bundle.urlSlug));
+    unactivatedBundles.value = tools.filter((bundle) => !userStore.user.applications.includes(bundle.urlSlug));
+    // si on a le bundle "intranet" on le place en premier dans le tableau
+    if (activatedBundles.value.some((bundle) => bundle.urlSlug === 'intranet')) {
+      const intranetBundle = activatedBundles.value.find((bundle) => bundle.urlSlug === 'intranet');
+      activatedBundles.value = [intranetBundle, ...activatedBundles.value.filter((bundle) => bundle.urlSlug !== 'intranet')];
+    }
     await getWidgets();
   } finally {
     isLoadingBundles.value = false;

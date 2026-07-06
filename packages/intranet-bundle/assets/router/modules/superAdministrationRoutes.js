@@ -23,7 +23,7 @@ export default [
       permission: 'isSuperAdmin',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
-        { label: 'Super-Administration', route: '/super-administration' },
+        { label: 'Super-Administration', route: '/intranet/super-administration' },
         {
           label: 'Nouveau département',
           route: null,
@@ -39,7 +39,7 @@ export default [
       permission: 'isSuperAdmin',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
-        { label: 'Super-Administration', route: '/super-administration' },
+        { label: 'Super-Administration', route: '/intranet/super-administration' },
         {
           label: 'Départements',
           route: null,
@@ -56,7 +56,7 @@ export default [
       permission: 'isSuperAdmin',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
-        { label: 'Super-Administration', route: '/super-administration' },
+        { label: 'Super-Administration', route: '/intranet/super-administration' },
         {
           label: 'Édition du groupe',
           route: null,

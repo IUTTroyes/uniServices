@@ -11,6 +11,8 @@ bundles.forEach(bundle => {
   }
 });
 
+console.log(bundles)
+
 const router = createRouter({
   history: createWebHistory('/app/'),
   routes: [
@@ -41,10 +43,15 @@ const router = createRouter({
       component: () => import('@components/pages/Access.vue'),
       meta: { title: 'Accès Refusé', public: true }
     },
+    {
+      path: '/404',
+      component: () => import('@components/pages/NotFound.vue'),
+      meta: { title: 'Page Introuvable', public: true }
+    },
     // Catch-all route for 404
     {
       path: '/:pathMatch(.*)*',
-      redirect: '/auth/portail'
+      redirect: '/404'
     }
   ]
 });

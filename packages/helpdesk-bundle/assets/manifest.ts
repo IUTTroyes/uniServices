@@ -3,7 +3,7 @@ import MyTicketView from './views/Personnel/MyTicketView.vue';
 import TicketListAdminView from './views/PersonnelService/TicketListAdminView.vue';
 import dashboardRoutes from './router/modules/dashboardRoutes.js';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
-import { LayoutComponent } from '@components';
+import LayoutComponent from '@components/components/layout/AppLayout.vue';
 
 const helpdeskMenu = {
   label: 'Assistance',
@@ -26,7 +26,9 @@ export default {
       props: route => ({
         logoUrl: Logo,
         appName: 'Helpdesk',
-        breadcrumbItems: route.meta.breadcrumb || []
+        breadcrumbItems: typeof route.meta.breadcrumb === 'function'
+          ? route.meta.breadcrumb(route)
+          : (route.meta.breadcrumb || [])
       }),
       children: [
         ...dashboardRoutes,

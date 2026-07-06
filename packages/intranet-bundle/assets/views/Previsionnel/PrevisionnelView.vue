@@ -5,12 +5,12 @@ import { useRouter } from "vue-router";
 const router = useRouter();
 
 const items = [
-  { label: 'Par semestre', icon: 'pi pi-list', route: '/administration/previsionnel/semestre' },
-  { label: 'Par enseignant', icon: 'pi pi-user', route: '/administration/previsionnel/personnel' },
-  { label: 'Par matière', icon: 'pi pi-book', route: '/administration/previsionnel/matiere' },
-  { label: 'Vue d\'ensemble', icon: 'pi pi-eye', route: '/administration/previsionnel/semestre_test' },
-  { label: 'HRS/primes', icon: 'pi pi-money-bill', route: '/administration/previsionnel/primes' },
-  { label: 'Actions', icon: 'pi pi-cog', route: '/administration/previsionnel/actions' },
+  { label: 'Par semestre', icon: 'pi pi-list', route: '/intranet/administration/previsionnel/semestre' },
+  { label: 'Par enseignant', icon: 'pi pi-user', route: '/intranet/administration/previsionnel/personnel' },
+  { label: 'Par matière', icon: 'pi pi-book', route: '/intranet/administration/previsionnel/matiere' },
+  { label: 'Vue d\'ensemble', icon: 'pi pi-eye', route: '/intranet/administration/previsionnel/semestre_test' },
+  { label: 'HRS/primes', icon: 'pi pi-money-bill', route: '/intranet/administration/previsionnel/primes' },
+  { label: 'Actions', icon: 'pi pi-cog', route: '/intranet/administration/previsionnel/actions' },
 ];
 
 const navigateTo = (route) => {
@@ -28,7 +28,7 @@ onMounted(() => {
   <div class="card">
     <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">Gestion des prévisionnels</h2>
     <Divider/>
-    <Tabs value="/administration/previsionnel/semestre" scrollable>
+    <Tabs value="/intranet/administration/previsionnel/semestre" scrollable>
       <TabList>
         <router-link
           v-for="tab in items"

@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 const router = useRouter();
 
 const panelMenuItems = [
-  { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', route: '/administration/etudiant/ajout/' },
+  { label: 'Ajouter des étudiants', icon: 'pi pi-plus-circle', route: '/intranet/administration/etudiant/ajout/' },
   { label: 'Gestion des cohortes', icon: 'pi pi-users', command: () => {} },
   { label: 'Gestion des absences', icon: 'pi pi-calendar', command: () => {} },
 ];
