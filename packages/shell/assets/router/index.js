@@ -65,7 +65,7 @@ router.beforeEach(async (to, from) => {
   // Public routes
   if (to.meta.public) {
     if (to.path === '/auth/login' && userStore.isAuthInitialized && userStore.userId) {
-      return '/auth/portail';
+      return '/app/auth/portail';
     }
     return true;
   }
@@ -90,13 +90,13 @@ router.beforeEach(async (to, from) => {
     // Check package access
     const requiredPackage = to.meta.package || to.matched.find(record => record.meta.package)?.meta.package;
     if (requiredPackage && !security.hasPackage(requiredPackage)) {
-      return '/access';
+      return '/app/access';
     }
 
     // Permission checks
     const requiredPermission = to.meta.permission || to.matched.find(record => record.meta.permission)?.meta.permission;
     if (requiredPermission && !hasPermission(requiredPermission)) {
-      return '/access';
+      return '/app/access';
     }
 
     return true;

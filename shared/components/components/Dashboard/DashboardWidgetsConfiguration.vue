@@ -79,7 +79,14 @@ const updateWidget = async (widget) => {
         <div v-else class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
             <div v-for="widget in widgets" :key="widget.key" class="card p-4">
                 <div class="mb-2 flex items-center justify-between gap-2">
-                    <div class="font-semibold">{{ widget.label }}</div>
+                    <div class="flex flex-col">
+                        <div class="font-semibold">{{ widget.label }}</div>
+                        <div v-if="widget.bundle" class="mt-1">
+                            <span class="inline-flex items-center rounded bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-900/50 uppercase tracking-wider">
+                                {{ widget.bundle }}
+                            </span>
+                        </div>
+                    </div>
                     <Badge :value="widget.enabled ? 'Actif' : 'Inactif'" :severity="widget.enabled ? 'success' : 'danger'" />
                 </div>
 
