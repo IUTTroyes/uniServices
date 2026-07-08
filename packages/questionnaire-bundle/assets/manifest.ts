@@ -14,6 +14,7 @@ const questionnaireMenu = {
 
 export default {
   name: 'questionnaire',
+  primaryColor: 'blue',
   routes: [
     {
       path: '/questionnaire',

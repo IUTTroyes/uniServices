@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import { bundles } from '../bundles-registry';
 import { useUsersStore, useSecurity } from '@stores';
 import { hasPermission } from '@utils';
+import { applyBundleTheme } from '../composables/useBundleTheme';
 
 // Gather routes from all registered bundles
 const bundleRoutes = [];
@@ -111,6 +112,10 @@ router.beforeEach(async (to, from) => {
     console.error('Auth error in router guard:', error);
     return '/app/auth/login';
   }
+});
+
+router.afterEach((to) => {
+  applyBundleTheme(to.path);
 });
 
 export default router;

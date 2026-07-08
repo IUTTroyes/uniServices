@@ -17,6 +17,7 @@ const stageMenu = {
 
 export default {
   name: 'stages',
+  primaryColor: 'teal',
   routes: [
     {
       path: '/stage',

@@ -17,6 +17,7 @@ const authMenu = {
 
 export default {
   name: 'auth',
+  primaryColor: 'yellow',
   routes: [
     {
       path: '/auth',

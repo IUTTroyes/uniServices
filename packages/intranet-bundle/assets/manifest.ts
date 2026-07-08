@@ -31,6 +31,7 @@ const intranetMenu = {
 
 export default {
   name: 'intranet',
+  primaryColor: 'violet',
   routes: [
     {
       path: '/intranet',

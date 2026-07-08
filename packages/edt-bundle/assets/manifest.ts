@@ -19,6 +19,7 @@ const edtMenu = {
 
 export default {
   name: 'edt',
+  primaryColor: 'pink',
   routes: [
     {
       path: '/edt',

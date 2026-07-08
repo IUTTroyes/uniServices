@@ -199,8 +199,7 @@ watch(() => route.path, async (newPath, oldPath) => {
                 type="button"
                 text
                 rounded
-                size="large"
-                class="justify-start!"
+                class="justify-start! text-left font-semibold"
                 @click="onBundleClick(bundle.url)"
                 >
                 {{ bundle.name }}
@@ -214,11 +213,10 @@ watch(() => route.path, async (newPath, oldPath) => {
                 type="button"
                 text
                 rounded
-                size="large"
-                class="justify-start!"
+                class="justify-start! text-left font-semibold"
                 @click="router.push('/configuration')"
               >
-                <i class="pi pi-cog mr-2"></i> Configuration
+              Configuration
               </Button>
             </div>
           </div>
@@ -234,8 +232,7 @@ watch(() => route.path, async (newPath, oldPath) => {
               rounded
               severity="secondary"
               disabled
-              size="large"
-              class="justify-start!"
+              class="justify-start! text-left font-semibold"
               >
               {{ bundle.name }}
             </Button>
@@ -283,6 +280,7 @@ watch(() => route.path, async (newPath, oldPath) => {
           @move="moveWidget"
           @updateSpan="updateWidgetSpan"
           @toggle="toggleWidget"
+          :is-portail = true
           />
         </div>
       </div>
