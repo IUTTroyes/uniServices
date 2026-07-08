@@ -79,7 +79,17 @@ const toggleWidget = () => {
         <Divider/>
     </div>
     <div class="mb-3 flex items-start justify-between gap-2">
-        <div class="font-semibold text-xl"><i :class="`${widget.icon} mr-2 text-primary-500`"/>{{ widget.label }}</div>
+        <div class="flex flex-col">
+            <div class="font-semibold text-xl flex items-center gap-2">
+                <i :class="`${widget.icon} text-primary-500`"/>
+                <span>{{ widget.label }}</span>
+            </div>
+            <div v-if="widget.bundle" class="mt-1">
+                <span class="inline-flex items-center rounded bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-900/50 uppercase tracking-wider">
+                    {{ widget.bundle }}
+                </span>
+            </div>
+        </div>
         <Button v-if="!isEditing" icon="pi pi-cog" size="small" text rounded title="Configurer le widget" @click="isEditing = !isEditing"/>
     </div>
     <div class="text-sm text-color-secondary mb-2">{{ widget }}</div>

@@ -202,8 +202,6 @@ export const ROLE_MAP = {
   isDirecteurEtudes: 'ROLE_DIRECTEUR_ETUDES',
   isAbsence: 'ROLE_ABSENCE',
   isNote: 'ROLE_NOTE',
-  isEdt: 'ROLE_EDT',
-  isStage: 'ROLE_STAGE',
   isRelaiComm: 'ROLE_RELAI_COMM',
   isEdusign: 'ROLE_EDUSIGN',
   isReferent: 'ROLE_REFERENT',
@@ -223,8 +221,6 @@ export const AVAILABLE_ROLES = [
   { property: 'isDirecteurEtudes', label: 'Directeur Etudes', role: 'ROLE_DIRECTEUR_ETUDES' },
   { property: 'isAbsence', label: 'Absence', role: 'ROLE_ABSENCE' },
   { property: 'isNote', label: 'Note', role: 'ROLE_NOTE' },
-  { property: 'isEdt', label: 'EDT', role: 'ROLE_EDT' },
-  { property: 'isStage', label: 'Stage', role: 'ROLE_STAGE' },
   { property: 'isRelaiComm', label: 'Relai Communication', role: 'ROLE_RELAI_COMM' },
   { property: 'isEdusign', label: 'Edusign', role: 'ROLE_EDUSIGN' },
   { property: 'isReferent', label: 'Referent', role: 'ROLE_REFERENT' },
@@ -239,6 +235,12 @@ export const AVAILABLE_ROLES = [
  */
 function checkSinglePermission(permission, userStore) {
   const security = useSecurity();
+
+  // Vérification de l'activation d'un package (ex: 'package:stages' ou 'package:questionnaire')
+  if (typeof permission === 'string' && permission.startsWith('package:')) {
+    const packageName = permission.slice(8);
+    return security.hasPackage(packageName);
+  }
 
   // Si un rôle temporaire est défini, on ignore le statut SuperAdmin pour permettre une impersonnalisation réelle
   // Sauf si le rôle temporaire lui-même est ROLE_SUPER_ADMIN

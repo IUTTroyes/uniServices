@@ -11,6 +11,27 @@ Le système de gestion des droits d'accès est basé sur deux approches complém
 
 Ces deux approches utilisent la même logique sous-jacente définie dans le fichier `permissions.js`.
 
+## Architecture Modulaire des Droits (Symfony + Vue 3)
+
+Depuis la refactorisation de la gestion des accès, les droits sont structurés de manière modulaire :
+
+1. **Activation globale des Applications (Core)** : Chaque personnel dispose d'une liste d'applications autorisées (`applications` dans le profil). L'application principale **UniTranet** (`intranet`) est toujours activée d'office.
+2. **Droits par Département (Local)** : Dans chaque département d'affectation, l'utilisateur possède :
+   - Une liste de **packages actifs** (ex: `core`, `stages`, `questionnaire`).
+   - Une liste de **permissions/rôles spécifiques** (ex: `ROLE_CHEF_DEPARTEMENT`, `ROLE_STAGE_MANAGER`).
+
+### Résolution dynamique et unifiée (`securityStore`)
+Le serveur résout à chaque chargement de contexte de sécurité (`/api/security/context`) les droits de l'utilisateur pour le département actif.
+- `resolvedPermissions` contient la liste à plat des rôles autorisés.
+- `activePackages` contient la liste des packages actifs.
+
+### Vérification de l'activation d'un Package (`package:<nom>`)
+Dans le frontend, vous pouvez désormais vérifier si un package est activé pour l'utilisateur dans son département actuel en utilisant le préfixe `package:` dans `v-permission` ou `PermissionGuard`.
+
+**Exemples** :
+- `v-permission="'package:stages'"` : L'élément ne s'affiche que si le package de gestion des stages est actif.
+- `v-permission="'package:questionnaire'"` : L'élément ne s'affiche que si le questionnaire est activé.
+
 ## Types d'utilisateurs et rôles
 
 Le système distingue deux types principaux d'utilisateurs :

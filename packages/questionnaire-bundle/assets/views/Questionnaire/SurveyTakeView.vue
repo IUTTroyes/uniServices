@@ -10,6 +10,12 @@
           {{ survey.description }}
         </p>
 
+        <!-- Estimated Response Time -->
+        <div v-if="survey.estimatedTime" class="flex items-center justify-center space-x-2 text-sm text-gray-500 dark:text-gray-400 mb-6">
+          <ClockIcon class="w-4 h-4 text-gray-400" />
+          <span>Temps de réponse estimé : {{ formatEstimatedTime(survey.estimatedTime) }}</span>
+        </div>
+
         <!-- Progress Bar -->
         <div v-if="survey.settings.showProgress && !isCompleted" class="mb-8">
           <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
@@ -674,6 +680,18 @@ function initializeRankingItems() {
         }
       });
   });
+}
+
+function formatEstimatedTime(seconds: number): string {
+  if (seconds < 60) {
+    return "moins d'une minute";
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  if (remainingSeconds === 0) {
+    return `${minutes} min`;
+  }
+  return `${minutes} min ${remainingSeconds} s`;
 }
 
 onMounted(async () => {

@@ -3,22 +3,21 @@
     <!-- Left Panel - Survey Structure -->
     <div class="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col me-3">
       <!-- Survey Info -->
-      <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center">
-        <div class="flex-1">
-          <input v-model="surveyTitle" @blur="updateSurveyTitle"
-            class="text-lg font-semibold w-full bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1"
-            placeholder="Titre du questionnaire" />
-          <textarea v-model="surveyDescription" @blur="updateSurveyDescription"
-            class="text-sm text-gray-600 dark:text-gray-400 w-full bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 mt-2 resize-none"
-            placeholder="Description (optionnelle)" rows="2" />
+      <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col">
+        <div class="flex items-center">
+          <div class="flex-1">
+            <input v-model="surveyTitle" @blur="updateSurveyTitle"
+              class="text-lg font-semibold w-full bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1"
+              placeholder="Titre du questionnaire" />
+            <textarea v-model="surveyDescription" @blur="updateSurveyDescription"
+              class="text-sm text-gray-600 dark:text-gray-400 w-full bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 mt-2 resize-none"
+              placeholder="Description (optionnelle)" rows="2" />
+          </div>
         </div>
-        <!--          <Button-->
-        <!--              severity="primary"-->
-        <!--              class="ml-2"-->
-        <!--              @click="showSettings = true"-->
-        <!--          >-->
-        <!--            <Cog6ToothIcon class="w-4 h-4" />-->
-        <!--          </Button>-->
+        <div class="mt-2 px-2 flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+          <ClockIcon class="w-4 h-4 text-gray-400" />
+          <span>Temps de réponse estimé : {{ formatEstimatedTime(estimatedTime) }}</span>
+        </div>
       </div>
 
 
@@ -182,7 +181,8 @@ import {
   EyeIcon,
   DocumentTextIcon,
   QuestionMarkCircleIcon,
-  RocketLaunchIcon
+  RocketLaunchIcon,
+  ClockIcon
 } from '@heroicons/vue/24/outline';
 import ActionDropdown from '@components/components/ActionDropdown.vue';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
@@ -228,6 +228,70 @@ const actionsSection = [
 const currentSurvey = computed(() => surveyStore.currentSurvey);
 const currentSection = computed(() => surveyStore.currentSection);
 const sections = computed(() => surveyStore.currentSections);
+
+const estimatedTime = computed(() => {
+  if (!sections.value) return 0;
+
+  let totalSeconds = 0;
+  for (const section of sections.value) {
+    let sectionSeconds = 0;
+
+    // Check if section is configurable and get elements count
+    const numElements = section.typeSection === 'configurable' && section.opt?.elements
+      ? section.opt.elements.length
+      : 1;
+
+    for (const question of section.questions) {
+      switch (question.typeQuestion) {
+        case 'single_choice':
+          sectionSeconds += 15;
+          break;
+        case 'multiple_choice':
+          sectionSeconds += 25;
+          break;
+        case 'text_short':
+          sectionSeconds += 30;
+          break;
+        case 'text_long':
+          sectionSeconds += 60;
+          break;
+        case 'scale':
+          sectionSeconds += 15;
+          break;
+        case 'matrix':
+          sectionSeconds += 30;
+          break;
+        case 'ranking':
+          sectionSeconds += 30;
+          break;
+        default:
+          sectionSeconds += 15;
+          break;
+      }
+    }
+    totalSeconds += sectionSeconds * numElements;
+  }
+  return totalSeconds;
+});
+
+function formatEstimatedTime(seconds: number): string {
+  if (seconds < 60) {
+    return "moins d'une minute";
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  if (remainingSeconds === 0) {
+    return `${minutes} min`;
+  }
+  return `${minutes} min ${remainingSeconds} s`;
+}
+
+// Watch for changes in estimatedTime and save it to the database
+watch(estimatedTime, (newValue) => {
+  if (currentSurvey.value && currentSurvey.value.estimatedTime !== newValue) {
+    surveyStore.updateSurvey({ estimatedTime: newValue });
+  }
+});
 
 const surveyTitle = ref('');
 const surveyDescription = ref('');

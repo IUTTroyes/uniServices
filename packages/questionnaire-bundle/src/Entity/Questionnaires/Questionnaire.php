@@ -116,6 +116,10 @@ class Questionnaire
     #[Groups(['questionnaire:read'])]
     private ?\DateTimeImmutable $publishedAt = null;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['questionnaire:read'])]
+    private ?int $estimatedTime = null;
+
     public function __construct()
     {
         $this->uuid = Uuid::v4();
@@ -347,6 +351,17 @@ class Questionnaire
         $this->publishedAt = $publishedAt;
 
         return $this;
+    }
 
+    public function getEstimatedTime(): ?int
+    {
+        return $this->estimatedTime;
+    }
+
+    public function setEstimatedTime(?int $estimatedTime): static
+    {
+        $this->estimatedTime = $estimatedTime;
+
+        return $this;
     }
 }

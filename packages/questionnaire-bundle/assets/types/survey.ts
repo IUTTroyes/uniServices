@@ -79,6 +79,7 @@ export interface Survey {
     description?: string;
     startText?: string;
     endText?: string;
+    estimatedTime?: number;
     sections: Section[];
     opt: SurveySettings;
     status: 'draft' | 'published' | 'closed';
