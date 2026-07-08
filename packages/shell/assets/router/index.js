@@ -12,8 +12,6 @@ bundles.forEach(bundle => {
   }
 });
 
-console.log(bundles)
-
 const router = createRouter({
   history: createWebHistory('/app/'),
   routes: [

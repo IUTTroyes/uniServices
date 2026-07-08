@@ -71,4 +71,19 @@ class EdtEventRepository extends ServiceEntityRepository
 
         return $qb->getQuery()->getResult();
     }
+
+    public function findByPersonnelAndRange(int $personnelId, \DateTimeInterface $startDate, \DateTimeInterface $endDate): array
+    {
+        $qb = $this->createQueryBuilder('e')
+            ->leftJoin('e.personnel', 'p')
+            ->andWhere('p.id = :personnel')
+            ->andWhere('e.debut >= :start')
+            ->andWhere('e.debut < :end')
+            ->setParameter('personnel', $personnelId)
+            ->setParameter('start', $startDate)
+            ->setParameter('end', $endDate)
+            ->orderBy('e.debut', 'ASC');
+
+        return $qb->getQuery()->getResult();
+    }
 }

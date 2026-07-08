@@ -6,6 +6,7 @@ import administrationRoutes from './router/modules/administrationRoutes.js';
 import superAdministrationRoutes from './router/modules/superAdministrationRoutes.js';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
 import LayoutComponent from '@components/components/layout/AppLayout.vue';
+import { registerWidgets } from './components/Personnel/dashboard/registerWidgets';
 
 const intranetMenu = {
   label: 'Intranet',
@@ -32,6 +33,7 @@ const intranetMenu = {
 export default {
   name: 'intranet',
   primaryColor: 'violet',
+  registerWidgets,
   routes: [
     {
       path: '/intranet',

@@ -373,6 +373,7 @@ class DashboardController extends AbstractController
         }
 
         $data = $this->widgetDataRegistry->get($code, $user);
+
         if (null === $data) {
             return new JsonResponse(['message' => 'Aucune donnée disponible pour ce widget'], JsonResponse::HTTP_NOT_FOUND);
         }

@@ -6,6 +6,7 @@ import router from './router';
 import { initializeAppData } from '@requests/initializeData';
 import { registerPermissionDirective } from '@utils';
 import { setupInactivityTimer } from '@helpers/authService';
+import { registerAllBundleWidgets } from './widgets/registerBundleWidgets';
 
 import Aura from '@primeuix/themes/aura';
 import PrimeVue from 'primevue/config';
@@ -40,6 +41,8 @@ const MyPreset = definePreset(Aura, {
 
 const pinia = createPinia();
 const app = createApp(App);
+
+registerAllBundleWidgets();
 
 app.use(router);
 

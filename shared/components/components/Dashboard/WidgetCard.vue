@@ -1,5 +1,6 @@
 <script setup>
 import { computed, defineProps, ref } from 'vue';
+import { resolveWidgetComponent } from './widgets/widgetRegistry';
 
 const isEditing = ref(false);
 
@@ -32,6 +33,8 @@ const gridStyle = computed(() => ({
     gridColumn: `span ${props.widget.colSpan || 1}`,
     gridRow: `span ${props.widget.rowSpan || 1}`,
 }));
+
+const resolvedComponent = computed(() => resolveWidgetComponent(props.widget?.component));
 
 const moveWidget = (direction) => {
     emit('move', props.widget, direction);
@@ -84,7 +87,7 @@ const toggleWidget = () => {
     </div>
     <div class="mb-3 flex items-start justify-between gap-2">
         <div class="flex flex-col">
-            <div class="font-semibold text-xl flex items-center gap-2">
+            <div class="font-semibold flex items-start gap-2">
                 <i :class="`${widget.icon} text-primary-500`"/>
                 <span>{{ widget.label }}</span>
             </div>
@@ -96,7 +99,6 @@ const toggleWidget = () => {
         </div>
         <Button v-if="!isEditing" icon="pi pi-cog" size="small" text rounded title="Configurer le widget" @click="isEditing = !isEditing"/>
     </div>
-    <div class="text-sm text-color-secondary mb-2">{{ widget }}</div>
-    <div class="widget-data"></div>
+    <component :is="resolvedComponent" :data="data" :widget="widget" />
 </article>
 </template>

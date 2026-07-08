@@ -132,8 +132,8 @@ const moveWidget = async (widget, direction) => {
 const loadWidgetData = async (code) => {
   try {
     widgetData.value[code] = await getWidgetDataByCodeService(code);
-  } catch {
-    widgetData.value[code] = {message: 'Aucune donnée disponible'};
+  } catch(error) {
+    console.error(error)
   }
 };
 

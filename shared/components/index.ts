@@ -23,6 +23,7 @@ import ButtonInfo from "./components/Buttons/ButtonInfo.vue";
 import ButtonSave from "./components/Buttons/ButtonSave.vue";
 import WidgetCard from './components/Dashboard/WidgetCard.vue';
 import DashboardWidgetsConfiguration from './components/Dashboard/DashboardWidgetsConfiguration.vue';
+import { registerWidgetComponent, resolveWidgetComponent, widgetRegistry } from './components/Dashboard/widgets/widgetRegistry';
 
 import PersonnelsListe from "./components/Personnel/PersonnelsListe.vue";
 
@@ -67,6 +68,9 @@ export {
   ProfilPersonnel,
   WidgetCard,
   DashboardWidgetsConfiguration,
+  registerWidgetComponent,
+  resolveWidgetComponent,
+  widgetRegistry,
 
   // Form validation exports
   FormValidator,

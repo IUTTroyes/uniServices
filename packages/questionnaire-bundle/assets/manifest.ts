@@ -2,6 +2,7 @@ import dashboardRoutes from './router/modules/dashboardRoutes.js';
 import qualiteRoutes from './router/modules/questionnaireAdministrationRoutes.js';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";
 import LayoutComponent from '@components/components/layout/AppLayout.vue';
+import { registerWidgets } from './widgets/registerWidgets';
 
 const questionnaireMenu = {
   label: 'Questionnaires',
@@ -15,6 +16,7 @@ const questionnaireMenu = {
 export default {
   name: 'questionnaire',
   primaryColor: 'blue',
+  registerWidgets,
   routes: [
     {
       path: '/questionnaire',

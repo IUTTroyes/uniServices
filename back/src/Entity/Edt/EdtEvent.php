@@ -11,7 +11,6 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\ApiDto\Edt\EdtStatsDto;
-use App\ApiDto\Edt\EdtWidgetDto;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureGroupe;
@@ -23,7 +22,6 @@ use App\Entity\Users\Personnel;
 use App\Filter\EdtFilter;
 use App\Repository\Edt\EdtEventRepository;
 use App\State\Provider\Edt\EdtStatsProvider;
-use App\State\Provider\Edt\EdtWidgetProvider;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -41,12 +39,6 @@ use Symfony\Component\Uid\UuidV4;
             normalizationContext: ['groups' => ['edt_stats:read']],
             provider: EdtStatsProvider::class,
             output: EdtStatsDto::class,
-        ),
-        new GetCollection(
-            uriTemplate: '/widget/edt_events',
-            normalizationContext: ['groups' => ['edt_widget:read']],
-            provider: EdtWidgetProvider::class,
-            output: EdtWidgetDto::class,
         ),
         new Get(normalizationContext: ['groups' => ['edt_event:read:agenda']]),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_EDT', object)"),
@@ -78,15 +70,15 @@ class EdtEvent
     private ?\DateTimeInterface $date = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'edt_widget:read'])]
+    #[Groups(['edt_event:read:agenda'])]
     private ?\DateTimeInterface $debut = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'edt_widget:read'])]
+    #[Groups(['edt_event:read:agenda'])]
     private ?\DateTimeInterface $fin = null;
 
     #[ORM\Column(length: 25)]
-    #[Groups(['edt_event:read:agenda', 'edt_widget:read'])]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $salle = '-';
 
     #[ORM\Column(length: 25, nullable: true)]
@@ -108,11 +100,11 @@ class EdtEvent
     private ?ScolEnseignement $enseignement = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'edt_widget:read'])]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $codeModule = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'edt_widget:read'])]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $libModule = null;
 
     #[ORM\ManyToOne(inversedBy: 'edtEvents')]
@@ -124,11 +116,11 @@ class EdtEvent
     private ?string $codeGroupe = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'edt_widget:read'])]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $libGroupe = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'edt_widget:read'])]
+    #[Groups(['edt_event:read:agenda'])]
     private ?string $couleur = null;
 
     #[ORM\Column(nullable: true)]
@@ -153,7 +145,7 @@ class EdtEvent
     private ?\DateTimeInterface $updatedEvent = null;
 
     #[ORM\Column]
-    #[Groups(['edt_event:read:agenda', 'edt_widget:read'])]
+    #[Groups(['edt_event:read:agenda'])]
     private bool $evaluation = false;
 
     #[ORM\Column]
