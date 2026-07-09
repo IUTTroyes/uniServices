@@ -45,8 +45,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
-import { 
-  AcademicCapIcon, 
+import {
+  AcademicCapIcon,
   UserGroupIcon,
   HomeIcon
 } from '@heroicons/vue/24/outline';
@@ -75,7 +75,7 @@ onMounted(async () => {
   if (route.path.includes('qualite') || route.name === 'questionnaire_qualite-enquetes') {
     activeRole.value = 'admin';
   }
-  
+
   // Load data from state stores for child components
   await surveyStore.loadQuestionnaires();
   responseStore.loadFromLocalStorage();

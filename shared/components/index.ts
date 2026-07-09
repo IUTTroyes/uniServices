@@ -24,6 +24,7 @@ import ButtonSave from "./components/Buttons/ButtonSave.vue";
 import WidgetCard from './components/Dashboard/WidgetCard.vue';
 import DashboardWidgetsConfiguration from './components/Dashboard/DashboardWidgetsConfiguration.vue';
 import { registerWidgetComponent, resolveWidgetComponent, widgetRegistry } from './components/Dashboard/widgets/widgetRegistry';
+import HeaderComponent from './Header.vue'
 
 import PersonnelsListe from "./components/Personnel/PersonnelsListe.vue";
 
@@ -56,9 +57,9 @@ export {
   ButtonSave,
   ButtonInfo,
 
-
   // Composants majeurs
   LayoutComponent,
+  HeaderComponent,
   LoginComponent,
   FooterComponent,
   TopbarComponent,

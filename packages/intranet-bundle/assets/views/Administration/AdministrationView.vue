@@ -5,9 +5,11 @@ import AdminBlocPersonnel from '@/components/Administration/blocs_admin/AdminBlo
 import AdminBlocPn from '@/components/Administration/blocs_admin/AdminBlocPn.vue'
 import AdminBlocEdt from '@/components/Administration/blocs_admin/AdminBlocEdt.vue'
 import AdminBlocStage from '../../components/Administration/blocs_admin/AdminBlocStage.vue'
+import {HeaderComponent} from '@components'
 </script>
 
 <template>
+  <HeaderComponent icon="pi pi-cog" titre="Administration" description="Gestion des paramètres d'administration" />
   <div class="card">
     <div class="card-body flex flex-col gap-10">
       <admin-bloc-annee class="w-full"/>
