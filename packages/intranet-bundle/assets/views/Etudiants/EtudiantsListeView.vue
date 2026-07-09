@@ -8,7 +8,7 @@ import {ErrorView, ProfilEtudiant, SimpleSkeleton} from '@components';
 import { getEtudiantsScolariteService, demissionEtudiantScolariteService, getAnneesService } from '@requests';
 import { useToast } from 'primevue/usetoast';
 import { useUsersStore, useAnneeUnivStore } from '@stores';
-import { useEtudiantFilters } from '../../../../../../shared/composables/filters/usersFilters/useEtudiantFilters.ts';
+import { useEtudiantFilters } from '../../../../../shared/composables/filters/usersFilters/useEtudiantFilters.ts';
 
 const toast = useToast();
 const route = useRoute();

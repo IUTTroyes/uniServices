@@ -130,6 +130,13 @@ class ScolEvaluation
     #[Groups(['evaluation:detail'])]
     private ?array $stats = ['moyenne' => 0, 'mediane' => 0, 'min' => 0, 'max' => 0];
 
+    /**
+     * @var Collection<int, ScolEvaluationRattrapage>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEvaluationRattrapage::class, mappedBy: 'evaluation', orphanRemoval: true)]
+    #[Groups(['evaluation:detail'])]
+    private Collection $scolEvaluationRattrapages;
+
     public function __construct()
     {
         $this->personnelAutorise = new ArrayCollection();
@@ -139,6 +146,7 @@ class ScolEvaluation
         if (null === $this->stats) {
             $this->stats = ['moyenne' => 0, 'mediane' => 0, 'min' => 0, 'max' => 0];
         }
+        $this->scolEvaluationRattrapages = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -460,6 +468,36 @@ class ScolEvaluation
     public function setStats(?array $stats): static
     {
         $this->stats = $stats;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEvaluationRattrapage>
+     */
+    public function getScolEvaluationRattrapages(): Collection
+    {
+        return $this->scolEvaluationRattrapages;
+    }
+
+    public function addScolEvaluationRattrapage(ScolEvaluationRattrapage $scolEvaluationRattrapage): static
+    {
+        if (!$this->scolEvaluationRattrapages->contains($scolEvaluationRattrapage)) {
+            $this->scolEvaluationRattrapages->add($scolEvaluationRattrapage);
+            $scolEvaluationRattrapage->setEvaluation($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEvaluationRattrapage(ScolEvaluationRattrapage $scolEvaluationRattrapage): static
+    {
+        if ($this->scolEvaluationRattrapages->removeElement($scolEvaluationRattrapage)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEvaluationRattrapage->getEvaluation() === $this) {
+                $scolEvaluationRattrapage->setEvaluation(null);
+            }
+        }
 
         return $this;
     }

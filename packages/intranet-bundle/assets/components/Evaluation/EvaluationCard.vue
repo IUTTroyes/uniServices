@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, nextTick, watch } from 'vue';
+import { ref, computed, nextTick } from 'vue';
 import {PermissionGuard} from '@components';
 import EvaluationSaisieNotesForm from "./EvaluationSaisieNotesForm.vue";
 import EvaluationForm from "./EvaluationForm.vue";
@@ -227,6 +227,7 @@ const reactiverEval = async () => {
 </script>
 
 <template>
+  {{ evaluation.id }}
   <div class="card m-0 py-2 px-4">
     <div class="flex flex-col gap-4">
       <div class="flex justify-between items-center gap-4">
@@ -241,7 +242,10 @@ const reactiverEval = async () => {
             {{ evaluation.typeGroupe }}
           </Message>
         </div>
-        <div>
+        <div class="flex items-center justify-end gap-4">
+          <div class="text-sm text-muted-color">
+            {{ evaluation.scolEvaluationRattrapages?.length || 0 }} demandes de rattrapages
+          </div>
           <Message
           :severity="evaluation.etatSeverity || 'error'"
           :icon="evaluation.etatIcon || 'pi pi-exclamation-triangle'"

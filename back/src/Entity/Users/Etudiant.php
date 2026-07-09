@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\Patch;
 use App\ApiDto\Etudiant\EtudiantTrombinoscopeDto;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Scolarite\ScolBac;
+use App\Entity\Scolarite\ScolEvaluationRattrapage;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
@@ -170,10 +171,17 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:manage-groupes'])]
     private ?ScolBac $bac = null;
 
+    /**
+     * @var Collection<int, ScolEvaluationRattrapage>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEvaluationRattrapage::class, mappedBy: 'etudiant', orphanRemoval: true)]
+    private Collection $scolEvaluationRattrapages;
+
     public function __construct()
     {
         $this->scolarites = new ArrayCollection();
         $this->groupes = new ArrayCollection();
+        $this->scolEvaluationRattrapages = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -583,5 +591,35 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();
+    }
+
+    /**
+     * @return Collection<int, ScolEvaluationRattrapage>
+     */
+    public function getScolEvaluationRattrapages(): Collection
+    {
+        return $this->scolEvaluationRattrapages;
+    }
+
+    public function addScolEvaluationRattrapage(ScolEvaluationRattrapage $scolEvaluationRattrapage): static
+    {
+        if (!$this->scolEvaluationRattrapages->contains($scolEvaluationRattrapage)) {
+            $this->scolEvaluationRattrapages->add($scolEvaluationRattrapage);
+            $scolEvaluationRattrapage->setEtudiant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEvaluationRattrapage(ScolEvaluationRattrapage $scolEvaluationRattrapage): static
+    {
+        if ($this->scolEvaluationRattrapages->removeElement($scolEvaluationRattrapage)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEvaluationRattrapage->getEtudiant() === $this) {
+                $scolEvaluationRattrapage->setEtudiant(null);
+            }
+        }
+
+        return $this;
     }
 }

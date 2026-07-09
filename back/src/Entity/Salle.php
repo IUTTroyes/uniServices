@@ -8,7 +8,10 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Entity\Scolarite\ScolEvaluationRattrapage;
 use App\Repository\SalleRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -43,6 +46,17 @@ class Salle
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['salle:detail'])]
     private ?string $type = null;
+
+    /**
+     * @var Collection<int, ScolEvaluationRattrapage>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEvaluationRattrapage::class, mappedBy: 'salle')]
+    private Collection $scolEvaluationRattrapages;
+
+    public function __construct()
+    {
+        $this->scolEvaluationRattrapages = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -81,6 +95,36 @@ class Salle
     public function setType(?string $type): static
     {
         $this->type = $type;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEvaluationRattrapage>
+     */
+    public function getScolEvaluationRattrapages(): Collection
+    {
+        return $this->scolEvaluationRattrapages;
+    }
+
+    public function addScolEvaluationRattrapage(ScolEvaluationRattrapage $scolEvaluationRattrapage): static
+    {
+        if (!$this->scolEvaluationRattrapages->contains($scolEvaluationRattrapage)) {
+            $this->scolEvaluationRattrapages->add($scolEvaluationRattrapage);
+            $scolEvaluationRattrapage->setSalle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEvaluationRattrapage(ScolEvaluationRattrapage $scolEvaluationRattrapage): static
+    {
+        if ($this->scolEvaluationRattrapages->removeElement($scolEvaluationRattrapage)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEvaluationRattrapage->getSalle() === $this) {
+                $scolEvaluationRattrapage->setSalle(null);
+            }
+        }
 
         return $this;
     }

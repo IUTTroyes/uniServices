@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
+use App\Entity\Scolarite\ScolEvaluationRattrapage;
 use App\Entity\Structure\StructureService;
 use App\State\Provider\Personnel\PersonnelCountProvider;
 use HelpdeskBundle\Entity\HelpdeskTicket;
@@ -235,6 +236,12 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToMany(targetEntity: StructureService::class, mappedBy: 'personnel')]
     private Collection $structureServices;
 
+    /**
+     * @var Collection<int, ScolEvaluationRattrapage>
+     */
+    #[ORM\OneToMany(targetEntity: ScolEvaluationRattrapage::class, mappedBy: 'personnel')]
+    private Collection $scolEvaluationRattrapages;
+
     public function __construct()
     {
         $this->responsableDiplome = new ArrayCollection();
@@ -247,6 +254,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         $this->enseignantHrs = new ArrayCollection();
         $this->helpdeskTickets = new ArrayCollection();
         $this->structureServices = new ArrayCollection();
+        $this->scolEvaluationRattrapages = new ArrayCollection();
     }
 
     public function getMails(): array
@@ -889,6 +897,36 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     {
         if ($this->structureServices->removeElement($structureService)) {
             $structureService->removePersonnel($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, ScolEvaluationRattrapage>
+     */
+    public function getScolEvaluationRattrapages(): Collection
+    {
+        return $this->scolEvaluationRattrapages;
+    }
+
+    public function addScolEvaluationRattrapage(ScolEvaluationRattrapage $scolEvaluationRattrapage): static
+    {
+        if (!$this->scolEvaluationRattrapages->contains($scolEvaluationRattrapage)) {
+            $this->scolEvaluationRattrapages->add($scolEvaluationRattrapage);
+            $scolEvaluationRattrapage->setPersonnel($this);
+        }
+
+        return $this;
+    }
+
+    public function removeScolEvaluationRattrapage(ScolEvaluationRattrapage $scolEvaluationRattrapage): static
+    {
+        if ($this->scolEvaluationRattrapages->removeElement($scolEvaluationRattrapage)) {
+            // set the owning side to null (unless already changed)
+            if ($scolEvaluationRattrapage->getPersonnel() === $this) {
+                $scolEvaluationRattrapage->setPersonnel(null);
+            }
         }
 
         return $this;

@@ -1,11 +1,11 @@
 import { useAnneeStore } from "@stores";
 
 export default [
-  
+
   {
     path: 'etudiants',
     name: 'liste-etudiants',
-    component: () => import('@/views/Administration/Etudiants/EtudiantsListeView.vue'),
+    component: () => import('@/views/Etudiants/EtudiantsListeView.vue'),
     meta: {
       permission: 'canViewAdministration',
       breadcrumb: () => {

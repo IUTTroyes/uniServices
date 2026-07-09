@@ -10,12 +10,11 @@ import {
   updateEvaluationService,
   getAnneesService
 } from '@requests';
-import {useUsersStore, useAnneeStore, useAnneeUnivStore, useSemestreStore} from '@stores';
+import {useUsersStore, useAnneeStore, useAnneeUnivStore} from '@stores';
 import {ErrorView, PermissionGuard, SimpleSkeleton, ListSkeleton} from '@components';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
 import EvaluationListeInitForm from "../../components/Evaluation/EvaluationListeInitForm.vue";
-import {useToast} from "primevue/usetoast";
 import EvaluationStatistiques from "../../components/Evaluation/EvaluationStatistiques.vue";
 import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 
