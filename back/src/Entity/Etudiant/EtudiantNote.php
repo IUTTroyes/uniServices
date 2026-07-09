@@ -25,12 +25,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['note:detail']]),
         new GetCollection(normalizationContext: ['groups' => ['note:detail']]),
-        new GetCollection(
-            uriTemplate: '/widget/EtudiantNote',
-            normalizationContext: ['groups' => ['EtudiantNote_widget:read']],
-            provider: \App\State\Provider\Etudiant\NotesWidgetProvider::class,
-            output: \App\ApiDto\Etudiant\NotesWidgetDto::class,
-        ),
         new Post(
             normalizationContext: ['groups' => ['note:write']],
             securityPostDenormalize: "is_granted('CAN_EDIT_NOTES', object)",

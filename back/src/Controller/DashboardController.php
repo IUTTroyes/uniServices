@@ -294,7 +294,11 @@ class DashboardController extends AbstractController
                 $pref->setColSpan($colSpan);
                 $pref->setRowSpan(max(1, (int)($data['rowSpan'] ?? 1)));
                 $pref->setEnabled($data['enabled'] ?? true);
-                $pref->setPosition(null);
+                if (isset($data['position'])) {
+                    $pref->setPosition(max(0, (int)$data['position']));
+                } else {
+                    $pref->setPosition(null);
+                }
                 $this->preferenceRepository->save($pref, true);
             } else {
                 if (isset($data['enabled'])) {
@@ -310,9 +314,14 @@ class DashboardController extends AbstractController
                     $rowSpan = max(1, (int)$data['rowSpan']);
                     $pref->setRowSpan($rowSpan);
                 }
+                if (isset($data['position'])) {
+                    $pref->setPosition(max(0, (int)$data['position']));
+                }
                 $this->preferenceRepository->save($pref, true);
             }
         }
+
+        $requestedPosition = isset($data['position']) ? max(0, (int)$data['position']) : null;
 
         // Recalculer les positions de tous les widgets de ce dashboard
         // pour garantir un enchaînement contigu (0, 1, 2, ...) uniquement sur les widgets enabled
@@ -331,7 +340,39 @@ class DashboardController extends AbstractController
 
         // Trier les widgets enabled en respectant l'ordre du layout par défaut,
         // puis par leur position actuelle pour ceux qui ne sont pas dans le layout par défaut
-        usort($enabledPrefs, function (DashboardPreference $a, DashboardPreference $b) use ($defaultOrder) {
+        usort($enabledPrefs, function (DashboardPreference $a, DashboardPreference $b) use ($defaultOrder, $widgetKey, $requestedPosition) {
+            $positionA = $a->getPosition();
+            $positionB = $b->getPosition();
+
+            if (null !== $positionA && null !== $positionB && $positionA !== $positionB) {
+                return $positionA <=> $positionB;
+            }
+
+            // En cas d'égalité de position, garder le widget déplacé devant
+            // pour éviter un décalage de +1 quand deux widgets partagent la même cible.
+            if (null !== $requestedPosition
+                && null !== $positionA
+                && null !== $positionB
+                && $positionA === $positionB
+                && ($positionA === $requestedPosition || $positionB === $requestedPosition)
+            ) {
+                if ($a->getWidgetKey() === $widgetKey && $b->getWidgetKey() !== $widgetKey) {
+                    return -1;
+                }
+
+                if ($b->getWidgetKey() === $widgetKey && $a->getWidgetKey() !== $widgetKey) {
+                    return 1;
+                }
+            }
+
+            if (null !== $positionA && null === $positionB) {
+                return -1;
+            }
+
+            if (null === $positionA && null !== $positionB) {
+                return 1;
+            }
+
             $orderA = $defaultOrder[$a->getWidgetKey()] ?? PHP_INT_MAX;
             $orderB = $defaultOrder[$b->getWidgetKey()] ?? PHP_INT_MAX;
 
@@ -357,7 +398,7 @@ class DashboardController extends AbstractController
             $this->preferenceRepository->save($p, true);
         }
 
-        return new JsonResponse(['message' => 'Préférences du widget sauvegardées']);
+        return new JsonResponse(['message' => 'Préférences du widget sauvegardées'], JsonResponse::HTTP_OK);
     }
 
     #[Route('/api/widgets/{code}/data', name: 'api_widgets_data', methods: ['GET'])]

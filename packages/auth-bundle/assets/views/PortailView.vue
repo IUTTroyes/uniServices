@@ -115,18 +115,19 @@ const moveWidget = async (widget, direction) => {
   // on met à jour le tableau des widgets
   widgets.value = sorted;
 
-  const promises = sorted.map((item) => {
-    return updateDashboardWidgetLayoutService(
-    item.code,
-    { position: item.position },
-    {
-      dashboardCode: 'portail',
-      structureDepartementPersonnelId: structureDepartementPersonnelId.value,
-    }
+  // pour chaque widget
+  widgets.value.map(async widget => {
+    // on met à jour la position dans la base de données
+    await updateDashboardWidgetLayoutService(
+        widget.code,
+        {position: widget.position},
+        {
+          dashboardCode: 'portail',
+          structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+        }
     );
   });
 
-  await Promise.all(promises);
 };
 
 const loadWidgetData = async (code) => {

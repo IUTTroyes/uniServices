@@ -33,12 +33,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/administration/structure_departements',
             normalizationContext: ['groups' => ['departement:administration']],
         ),
-        new GetCollection(
-            uriTemplate: '/widget/StructureDepartement',
-            normalizationContext: ['groups' => ['StructureDepartement_widget:read']],
-            provider: \App\State\Provider\Structure\DocumentsRecentsWidgetProvider::class,
-            output: \App\ApiDto\Structure\DocumentsRecentsWidgetDto::class,
-        ),
         new Get(normalizationContext: ['groups' => ['departement:read']]),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)"),
         new Patch(

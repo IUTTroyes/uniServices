@@ -4,7 +4,6 @@ namespace IntranetBundle\Services\Dashboard\Provider;
 
 use App\Domain\Dashboard\WidgetDataProviderInterface;
 use App\Entity\Users\Personnel;
-use ApiPlatform\Metadata\GetCollection;
 use App\Repository\Edt\EdtEventRepository;
 
 class IntranetWidgetDataProvider implements WidgetDataProviderInterface
