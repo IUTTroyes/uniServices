@@ -6,6 +6,8 @@
 parameters:
   URL_INTRANET_V3: "%env(URL_INTRANET_V3)%"
   etablissement_logo_upload_dir: "%kernel.project_dir%/public/uploads/etablissement"
+  email_from_address: "%env(EMAIL_FROM_ADDRESS)%"
+  email_from_name: "%env(string:EMAIL_FROM_NAME)%"
 
 services:
   # default configuration for services in *this* file
@@ -62,3 +64,19 @@ services:
     App\Security\PermissionProviderInterface:
       tags:
         - app.permission_provider
+    # Toutes les classes qui étendent AbstractEmailDefinition sont automatiquement
+    # taggées et injectées dans l'EmailRegistry
+    App\Services\Email\AbstractEmailDefinition:
+      tags:
+        - app.email_definition
+
+  # Registre des emails : reçoit toutes les définitions taggées
+  App\Services\Email\EmailRegistry:
+    arguments:
+      $definitions: !tagged_iterator app.email_definition
+
+  # Service d'envoi central
+  App\Services\Email\EmailService:
+    arguments:
+      $defaultFromEmail: '%email_from_address%'
+      $defaultFromName: '%email_from_name%'

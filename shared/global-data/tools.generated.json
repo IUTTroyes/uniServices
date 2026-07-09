@@ -3,35 +3,35 @@
         "name": "UniEdt",
         "description": "Plateforme de conception des emplois du temps et gestion des contraintes.",
         "urlSlug": "edt",
-        "url": "http://localhost:3003/edt/"
+        "url": "http://localhost:3000/app/edt/"
     },
     {
         "name": "HelpDesk",
-        "description": "Syst\u00e8me de tickets",
+        "description": "Système de tickets",
         "urlSlug": "helpdesk",
-        "url": "http://localhost:3004/helpdesk/"
+        "url": "http://localhost:3000/app/helpdesk/"
     },
     {
         "name": "UniTranet",
-        "description": "Gestion de la structure des formations et des \u00e9tudiants.",
+        "description": "Gestion de la structure des formations et des étudiants.",
         "urlSlug": "intranet",
-        "url": "http://localhost:3001/intranet/"
+        "url": "http://localhost:3000/app/intranet/"
     },
     {
         "name": "Questionnaire",
         "description": "Application Questionnaire",
         "urlSlug": "questionnaire",
-        "url": "http://localhost:3005/questionnaire/"
+        "url": "http://localhost:3000/app/questionnaire/"
     },
     {
         "name": "Stages & Alternances",
         "description": "Application de gestion des stages et alternances",
         "urlSlug": "stage",
-        "url": "http://localhost:3006/stage/"
+        "url": "http://localhost:3000/app/stage/"
     },
     {
         "name": "UniFolio",
-        "description": "Outil de cr\u00e9ation et de gestion de portfolios universitaires.",
+        "description": "Outil de création et de gestion de portfolios universitaires.",
         "urlSlug": "unifolio",
         "url": "/unifolio"
     },

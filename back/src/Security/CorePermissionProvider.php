@@ -16,6 +16,7 @@ class CorePermissionProvider implements PermissionProviderInterface
             new PermissionDefinition('core.resp_parcours', 'ROLE_RESP_PARCOURS', 'Responsable Parcours', 'core', []),
             new PermissionDefinition('core.referent', 'ROLE_REFERENT', 'Référent', 'core', []),
             new PermissionDefinition('core.notes_manager', 'ROLE_NOTES_MANAGER', 'Responsable des notes', 'core', []),
+            new PermissionDefinition('core.email_admin', 'ROLE_EMAIL_ADMIN', 'Gestionnaire des emails', 'core', []),
         ];
     }
 }

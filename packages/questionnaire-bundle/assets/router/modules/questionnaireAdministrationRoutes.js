@@ -13,7 +13,8 @@ export default [
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Qualité', route: null },
-        { label: 'Enquêtes', route: null }]
+        { label: 'Enquêtes', route: null }
+      ]
     },
   },
   {
@@ -24,7 +25,7 @@ export default [
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Qualité', route: null },
-        { label: 'Enquêtes', route: '/qualite/enquetes' },
+        { label: 'Enquêtes', route: '/questionnaire/qualite/enquetes' },
         { label: 'Liste des questionnaires', route: null }
       ]
     }
@@ -37,7 +38,8 @@ export default [
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Qualité', route: null },
-        { label: 'Enquêtes', route: '/qualite/enquetes' },
+        { label: 'Enquêtes', route: '/questionnaire/qualite/enquetes' },
+        { label: 'Liste des questionnaires', route: '/questionnaire/qualite/enquetes/liste' },
         { label: 'Créer/modifier un questionnaire', route: null }
       ]
     }
@@ -50,9 +52,9 @@ export default [
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Qualité', route: null },
-        { label: 'Enquêtes', route: '/qualite/enquetes' },
-        { label: 'Questionnaire xxx', route: null },
-        { label: 'Réponses', route: null },
+        { label: 'Enquêtes', route: '/questionnaire/qualite/enquetes' },
+        { label: 'Liste des questionnaires', route: '/questionnaire/qualite/enquetes/liste' },
+        { label: 'Réponses', route: null }
       ]
     }
   },
@@ -64,15 +66,21 @@ export default [
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Qualité', route: null },
-        { label: 'Enquêtes', route: '/qualite/enquetes' },
-        { label: 'Questionnaire xxx', route: null },
-        { label: 'Statistiques', route: null },
+        { label: 'Enquêtes', route: '/questionnaire/qualite/enquetes' },
+        { label: 'Liste des questionnaires', route: '/questionnaire/qualite/enquetes/liste' },
+        { label: 'Statistiques', route: null }
       ]
     }
   },
   {
     path: 'qualite/enquetes/take/:token',
     name: 'questionnaire_take-survey',
-    component: SurveyTakeView
+    component: SurveyTakeView,
+    meta: {
+      breadcrumb: [
+        { label: 'Dashboard', route: '/' },
+        { label: 'Répondre au questionnaire', route: null }
+      ]
+    }
   }
 ]

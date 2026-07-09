@@ -1,0 +1,189 @@
+{# Layout commun pour tous les emails de l'application.
+   Blocs disponibles :
+   - preheader    : texte court visible dans la prévisualisation de la boîte mail
+   - subject      : sujet du mail (non rendu, utilisé uniquement comme référence)
+   - body         : corps principal du message
+   - footer_extra : informations supplémentaires avant le pied de page standard
+#}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>{% block subject %}UniServices{% endblock %}</title>
+    <style>
+        /* Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f6f9;
+            color: #333333;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Wrapper */
+        .email-wrapper {
+            width: 100%;
+            background-color: #f4f6f9;
+            padding: 32px 16px;
+        }
+        .email-container {
+            max-width: 620px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        /* Header */
+        .email-header {
+            background-color: {{ departement_couleur|default('#1a3a5c') }};
+            padding: 28px 40px;
+            text-align: left;
+        }
+        .email-header img {
+            height: 40px;
+            display: block;
+        }
+        .email-header .app-name {
+            color: #ffffff;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            text-decoration: none;
+        }
+        .email-header .dept-name {
+            color: rgba(255,255,255,0.75);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        /* Body */
+        .email-body {
+            padding: 40px;
+        }
+        .email-body h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+            line-height: 1.3;
+        }
+        .email-body h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 12px;
+        }
+        .email-body p {
+            font-size: 15px;
+            color: #4a5568;
+            margin-bottom: 16px;
+        }
+        .email-body a {
+            color: {{ departement_couleur|default('#1a3a5c') }};
+        }
+
+        /* Button */
+        .btn {
+            display: inline-block;
+            background-color: {{ departement_couleur|default('#1a3a5c') }};
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 12px 28px;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            margin: 20px 0;
+            letter-spacing: 0.2px;
+        }
+        .btn:hover { opacity: 0.9; }
+
+        /* Alert box */
+        .alert {
+            background-color: #fff8e1;
+            border-left: 4px solid #f59e0b;
+            padding: 14px 18px;
+            border-radius: 0 6px 6px 0;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #78350f;
+        }
+        .alert.info {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+            color: #1e40af;
+        }
+
+        /* Divider */
+        .divider {
+            border: none;
+            border-top: 1px solid #e8ecf0;
+            margin: 28px 0;
+        }
+
+        /* Footer */
+        .email-footer {
+            background-color: #f8fafc;
+            border-top: 1px solid #e8ecf0;
+            padding: 24px 40px;
+            text-align: center;
+        }
+        .email-footer p {
+            font-size: 12px;
+            color: #9aa5b4;
+            margin-bottom: 4px;
+        }
+        .email-footer a {
+            color: #9aa5b4;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    {# Préheader invisible (aperçu boîte mail) #}
+    {% block preheader '' %}
+    {% if block('preheader') is not empty %}
+    <span style="display:none;font-size:1px;color:#f4f6f9;max-height:0;overflow:hidden;opacity:0;">
+        {{- block('preheader') -}}
+    </span>
+    {% endif %}
+
+    <div class="email-wrapper">
+        <div class="email-container">
+
+            {# ── Header ── #}
+            <div class="email-header">
+                {% if departement_logo is defined and departement_logo %}
+                    <img src="{{ departement_logo }}" alt="{{ departement_libelle|default('UniServices') }}">
+                {% else %}
+                    <span class="app-name">UniServices</span>
+                    {% if departement_libelle is defined and departement_libelle %}
+                        <div class="dept-name">{{ departement_libelle }}</div>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            {# ── Corps principal ── #}
+            <div class="email-body">
+                {% block body %}{% endblock %}
+            </div>
+
+            {# ── Footer ── #}
+            <div class="email-footer">
+                {% block footer_extra %}{% endblock %}
+                <p>Cet email a été envoyé automatiquement, merci de ne pas y répondre directement.</p>
+                <p>&copy; {{ "now"|date("Y") }} UniServices
+                    {% if departement_libelle is defined and departement_libelle %}
+                        – {{ departement_libelle }}
+                    {% endif %}
+                </p>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

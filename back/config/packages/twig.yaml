@@ -1,5 +1,16 @@
 twig:
     file_name_pattern: '*.twig'
+    paths:
+        # Templates des packages – fusionnés dans le pool global Twig
+        # Un package peut ainsi hériter de 'emails/layout.html.twig' sans namespace
+        '%kernel.project_dir%/../packages/auth-bundle/templates': ~
+        '%kernel.project_dir%/../packages/edt-bundle/templates': ~
+        '%kernel.project_dir%/../packages/helpdesk-bundle/templates': ~
+        '%kernel.project_dir%/../packages/intranet-bundle/templates': ~
+        '%kernel.project_dir%/../packages/questionnaire-bundle/templates': ~
+        '%kernel.project_dir%/../packages/shell/templates': ~
+        '%kernel.project_dir%/../packages/stage-bundle/templates': ~
+        '%kernel.project_dir%/../packages/unifolio-bundle/templates': ~
 
 when@test:
     twig:

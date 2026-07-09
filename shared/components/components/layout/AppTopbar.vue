@@ -259,7 +259,6 @@ const selectAnneeUniversitaire = (annee) => {
 </script>
 
 <template>
-
   <div class="layout-topbar">
     <div class="layout-topbar-logo-container">
       <button v-if="route.name !== 'portail'" class="layout-menu-button layout-topbar-action" @click="onMenuToggle">

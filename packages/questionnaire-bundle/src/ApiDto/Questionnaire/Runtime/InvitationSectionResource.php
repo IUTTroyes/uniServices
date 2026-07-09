@@ -10,7 +10,6 @@ use QuestionnaireBundle\State\Provider\Questionnaire\Runtime\InvitationSectionPr
     operations: [
         new Get(
             uriTemplate: '/invitations/{token}/sections/{id}',
-            read: false,
             provider: InvitationSectionProvider::class
         ),
     ],

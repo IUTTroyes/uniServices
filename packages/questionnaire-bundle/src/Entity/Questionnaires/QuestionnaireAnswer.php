@@ -7,6 +7,8 @@ use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireReponseRepository
 use Carbon\CarbonImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
+use Symfony\Component\Serializer\Attribute\Groups;
+
 #[ORM\Entity(repositoryClass: QuestionnaireReponseRepository::class)]
 #[Orm\HasLifecycleCallbacks]
 #[ORM\UniqueConstraint(name: 'uniq_answer', columns: ['invitation_id', 'section_id', 'question_id'])]
@@ -18,6 +20,7 @@ class QuestionnaireAnswer
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['invitation:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'questionnaireReponses')]
@@ -27,10 +30,12 @@ class QuestionnaireAnswer
     private ?QuestionnaireSectionInstance $section = null;
 
     #[ORM\ManyToOne(inversedBy: 'questionnaireReponses')]
+    #[Groups(['invitation:read'])]
     private ?QuestionnaireQuestion $question = null;
 
-    #[ORM\Column]
-    private array $value = [];
+    #[ORM\Column(type: 'json', nullable: true)]
+    #[Groups(['invitation:read'])]
+    private mixed $value = null;
 
     public function __construct(QuestionnaireInvitation $inv, QuestionnaireSectionInstance $psi, QuestionnaireQuestion $qt, mixed $value)
     {
@@ -82,12 +87,12 @@ class QuestionnaireAnswer
         return $this;
     }
 
-    public function getValue(): array
+    public function getValue(): mixed
     {
         return $this->value;
     }
 
-    public function setValue(array $value): static
+    public function setValue(mixed $value): static
     {
         $this->value = $value;
         $this->updated = CarbonImmutable::now();

@@ -228,14 +228,3 @@ function deleteSurvey(survey: Survey) {
 }
 </script>
 
-<style scoped>
-@reference "../../assets/tailwind.css";
-
-.survey-menu {
-  @apply absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50;
-}
-
-.menu-item {
-  @apply flex items-center space-x-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors;
-}
-</style>

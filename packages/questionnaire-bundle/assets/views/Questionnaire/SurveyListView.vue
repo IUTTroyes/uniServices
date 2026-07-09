@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { FilterMatchMode } from '@primevue/core/api';
-import { 
+import {
   PlusIcon,
   ListBulletIcon,
   DocumentTextIcon,
@@ -102,7 +102,7 @@ const getStatusSeverity = (status: string) => {
 
 const countByStatus = (status: string) => {
   if (!questionnaires.value) return 0;
-  return questionnaires.value.filter((q: any) => q.statut === status).length;
+  return questionnaires.value.filter((q: any) => q.status === status).length;
 };
 
 const getSurveyStats = (surveyUuid: string) => {
@@ -111,11 +111,12 @@ const getSurveyStats = (surveyUuid: string) => {
   // Realistic mock defaults if no response is recorded yet
   const invited = analytics.totalInvited || 120;
   const responded = analytics.totalResponses || (surveyUuid.length > 10 ? Math.floor(Math.random() * 40) + 60 : 0);
-  const rate = Math.round(analytics.completionRate) || (invited > 0 ? Math.round((responded / invited) * 100) : 0);
-  return { 
-    responded: Math.min(invited, responded), 
-    invited, 
-    rate: Math.min(100, rate) 
+  const rate = (invited > 0 ? Math.round((responded / invited) * 100) : 0);
+  console.log(responded, invited, rate, 'test')
+  return {
+    responded: Math.min(invited, responded),
+    invited,
+    rate: Math.min(100, rate)
   };
 };
 
@@ -134,7 +135,8 @@ const exportSurvey = (survey: any) => {
     <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
       <div>
         <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-1.5">
-          <router-link :to="{ name: 'QuestionnaireDashboard' }" class="hover:text-primary-600 transition-colors flex items-center gap-1">
+          <router-link :to="{ name: 'QuestionnaireDashboard' }"
+            class="hover:text-primary-600 transition-colors flex items-center gap-1">
             <ArrowLeftIcon class="w-3.5 h-3.5" />
             Retour au Dashboard
           </router-link>
@@ -142,7 +144,8 @@ const exportSurvey = (survey: any) => {
         <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
           <ListBulletIcon class="w-8 h-8 text-primary-500" />
           Liste des questionnaires
-          <span class="text-sm bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold px-2.5 py-1 rounded-full border border-gray-300/30">
+          <span
+            class="text-sm bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold px-2.5 py-1 rounded-full border border-gray-300/30">
             {{ nbQuestionnaires || 0 }} total
           </span>
         </h1>
@@ -151,10 +154,8 @@ const exportSurvey = (survey: any) => {
         </p>
       </div>
 
-      <router-link 
-        :to="{ name: 'questionnaire_builder', params: { id: 'new' } }" 
-        class="btn-primary flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold shadow-md shrink-0 self-start md:self-auto"
-      >
+      <router-link :to="{ name: 'questionnaire_builder', params: { id: 'new' } }"
+        class="btn-primary flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold shadow-md shrink-0 self-start md:self-auto">
         <PlusIcon class="w-5 h-5" />
         Créer un questionnaire
       </router-link>
@@ -205,43 +206,30 @@ const exportSurvey = (survey: any) => {
 
     <!-- Main List Card -->
     <div class="card p-6 border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-      <DataTable 
-        v-model:filters="filters" 
-        :value="questionnaires"
-        lazy
-        stripedRows
-        paginator
-        :first="offset"
-        :rows="limit"
-        :rowsPerPageOptions="rowOptions"
-        :totalRecords="nbQuestionnaires"
-        dataKey="id" 
-        filterDisplay="row" 
-        :loading="loading"
-        @page="onPageChange($event)"
-        @update:rows="limit = $event"
-        :globalFilterFields="['titre']"
-        class="p-datatable-responsive p-datatable-sm"
-      >
+      <DataTable v-model:filters="filters" :value="questionnaires" lazy stripedRows paginator :first="offset"
+        :rows="limit" :rowsPerPageOptions="rowOptions" :totalRecords="nbQuestionnaires" dataKey="id" filterDisplay="row"
+        :loading="loading" @page="onPageChange($event)" @update:rows="limit = $event" :globalFilterFields="['titre']"
+        class="p-datatable-responsive p-datatable-sm">
         <template #header>
           <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
             <h4 class="text-lg font-bold text-gray-800 dark:text-white">Registre des Enquêtes</h4>
             <IconField>
               <InputIcon>
-                <i class="pi pi-search"/>
+                <i class="pi pi-search" />
               </InputIcon>
-              <InputText v-model="filters['global'].value" placeholder="Rechercher un titre..." class="py-2 px-3 rounded-lg shadow-sm border border-gray-300 dark:border-gray-700" />
+              <InputText v-model="filters['global'].value" placeholder="Rechercher un titre..."
+                class="py-2 px-3 rounded-lg shadow-sm border border-gray-300 dark:border-gray-700" />
             </IconField>
           </div>
         </template>
-        
+
         <template #empty>
           <div class="text-center py-8">
             <DocumentTextIcon class="w-12 h-12 text-gray-400 mx-auto mb-2" />
             <p class="text-gray-655 dark:text-gray-400">Aucun questionnaire trouvé.</p>
           </div>
         </template>
-        
+
         <template #loading>
           <div class="text-center py-8 text-gray-655 dark:text-gray-400">
             Chargement des données... Veuillez patienter.
@@ -251,37 +239,33 @@ const exportSurvey = (survey: any) => {
         <!-- Titre -->
         <Column field="titre" :showFilterMenu="false" header="Titre" style="min-width: 15rem">
           <template #body="{ data }">
-            <span class="font-bold text-gray-900 dark:text-white block">{{ data.titre }}</span>
-            <span v-if="data.description" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1 max-w-xs">{{ data.description }}</span>
+            <span class="font-bold text-gray-900 dark:text-white block">{{ data.title }}</span>
+            <span v-if="data.description"
+              class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1 max-w-xs">{{ data.description
+              }}</span>
           </template>
           <template #filter="{ filterModel, filterCallback }">
-            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par titre" class="w-full text-sm border border-gray-300 dark:border-gray-700 rounded p-1 px-2 focus:ring-1 focus:ring-primary-500" />
+            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par titre"
+              class="w-full text-sm border border-gray-300 dark:border-gray-700 rounded p-1 px-2 focus:ring-1 focus:ring-primary-500" />
           </template>
         </Column>
 
         <!-- Statut -->
         <Column field="statut" header="Statut" :showFilterMenu="false" style="min-width: 10rem">
           <template #body="{ data }">
-            <Tag :value="getStatusLabel(data.statut)" :severity="getStatusSeverity(data.statut)"/>
+            <Tag :value="getStatusLabel(data.status)" :severity="getStatusSeverity(data.status)" />
           </template>
           <template #filter="{ filterModel, filterCallback }">
-            <Select 
-              v-model="filterModel.value" 
-              @change="filterCallback()" 
-              :options="statuts"
-              placeholder="Filtrer"
-              style="min-width: 10rem"
-              :showClear="true"
-              class="border border-gray-300 dark:border-gray-700"
-            >
+            <Select v-model="filterModel.value" @change="filterCallback()" :options="statuts" placeholder="Filtrer"
+              style="min-width: 10rem" :showClear="true" class="border border-gray-300 dark:border-gray-700">
               <template #value="slotProps">
                 <div v-if="slotProps.value" class="flex items-center">
-                  <Tag :value="slotProps.value.label" :severity="slotProps.value.severity"/>
+                  <Tag :value="slotProps.value.label" :severity="slotProps.value.severity" />
                 </div>
                 <span v-else class="text-gray-500 text-sm">Choisir</span>
               </template>
               <template #option="slotProps">
-                <Tag :value="slotProps.option.label" :severity="slotProps.option.severity"/>
+                <Tag :value="slotProps.option.label" :severity="slotProps.option.severity" />
               </template>
             </Select>
           </template>
@@ -300,7 +284,7 @@ const exportSurvey = (survey: any) => {
         <!-- Participation -->
         <Column header="Participation" style="min-width: 14rem">
           <template #body="{ data }">
-            <div v-if="data.statut === 'published' || data.published" class="space-y-1">
+            <div v-if="data.status === 'published' || data.published" class="space-y-1">
               <div class="flex justify-between text-xs font-semibold">
                 <span class="text-gray-500 dark:text-gray-400">
                   {{ getSurveyStats(data.uuid).responded }} / {{ getSurveyStats(data.uuid).invited }}
@@ -308,10 +292,9 @@ const exportSurvey = (survey: any) => {
                 <span class="text-gray-900 dark:text-white">{{ getSurveyStats(data.uuid).rate }}%</span>
               </div>
               <div class="w-full bg-gray-200 dark:bg-gray-750 rounded-full h-1.5">
-                <div 
+                <div
                   class="bg-gradient-to-r from-primary-500 to-primary-600 h-1.5 rounded-full transition-all duration-500"
-                  :style="{ width: `${getSurveyStats(data.uuid).rate}%` }"
-                ></div>
+                  :style="{ width: `${getSurveyStats(data.uuid).rate}%` }"></div>
               </div>
             </div>
             <span v-else class="text-xs text-gray-500 dark:text-gray-400 italic">
@@ -321,65 +304,47 @@ const exportSurvey = (survey: any) => {
         </Column>
 
         <!-- Actions -->
-        <Column :showFilterMenu="false" header="Actions" style="min-width: 15rem" headerClass="text-right" bodyClass="text-right">
+        <Column :showFilterMenu="false" header="Actions" style="min-width: 15rem" headerClass="text-right"
+          bodyClass="text-right">
           <template #body="{ data }">
             <div class="flex items-center justify-end space-x-2">
               <!-- Aperçu -->
-              <Button 
-                v-tooltip="'Aperçu rapide'"
-                @click="viewQuestionnaire(data)"
-                severity="secondary" 
-                outlined 
-                rounded 
-                class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shrink-0"
-              >
+              <Button v-tooltip="'Aperçu rapide'" @click="viewQuestionnaire(data)" severity="secondary" outlined rounded
+                class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shrink-0">
                 <EyeIcon class="w-4 h-4 text-gray-600 dark:text-gray-300" />
               </Button>
 
               <!-- Modifier -->
-              <router-link
-                :to="{ name: 'questionnaire_builder', params: { id: data.uuid } }"
-                v-tooltip="'Modifier'"
-                class="p-2 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 dark:hover:bg-orange-900/50 border border-orange-200 dark:border-orange-900/50 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm"
-              >
+              <router-link :to="{ name: 'questionnaire_builder', params: { id: data.uuid } }" v-tooltip="'Modifier'"
+                class="p-2 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 dark:hover:bg-orange-900/50 border border-orange-200 dark:border-orange-900/50 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm">
                 <PencilIcon class="w-4 h-4" />
               </router-link>
 
-              <template v-if="data.statut === 'published' || data.published">
+              <template v-if="data.status === 'published' || data.published">
                 <!-- Réponses -->
-                <router-link
-                  :to="{ name: 'questionnaire_responses', params: { id: data.uuid } }"
+                <router-link :to="{ name: 'questionnaire_responses', params: { id: data.uuid } }"
                   v-tooltip="'Voir les réponses'"
-                  class="p-2 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-900/50 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm"
-                >
+                  class="p-2 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 border border-emerald-200 dark:border-emerald-900/50 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm">
                   <ChatBubbleLeftRightIcon class="w-4 h-4" />
                 </router-link>
 
                 <!-- Statistiques -->
-                <router-link
-                  :to="{ name: 'questionnaire_analytics', params: { id: data.uuid } }"
+                <router-link :to="{ name: 'questionnaire_analytics', params: { id: data.uuid } }"
                   v-tooltip="'Statistiques & Analyses'"
-                  class="p-2 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-900/50 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm"
-                >
+                  class="p-2 text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 border border-purple-200 dark:border-purple-900/50 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm">
                   <ChartBarIcon class="w-4 h-4" />
                 </router-link>
 
                 <!-- Exporter -->
-                <Button 
-                  @click="exportSurvey(data)"
-                  v-tooltip="'Exporter'"
-                  severity="success" 
-                  outlined 
-                  rounded 
-                  class="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-colors shrink-0"
-                >
+                <Button @click="exportSurvey(data)" v-tooltip="'Exporter'" severity="success" outlined rounded
+                  class="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-colors shrink-0">
                   <ArrowDownTrayIcon class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                 </Button>
               </template>
             </div>
           </template>
         </Column>
-        
+
         <template #footer>
           <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">
             {{ nbQuestionnaires }} résultat(s).
@@ -389,30 +354,6 @@ const exportSurvey = (survey: any) => {
     </div>
 
     <!-- Preview Modal -->
-    <SurveyPreviewModal
-      v-if="showPreviewDialog"
-      :survey="selectedQuestionnaire"
-      @close="showPreviewDialog = false"
-    />
+    <SurveyPreviewModal v-if="showPreviewDialog" :survey="selectedQuestionnaire" @close="showPreviewDialog = false" />
   </div>
 </template>
-
-<style scoped>
-@reference "../../assets/tailwind.css";
-
-.card {
-  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200;
-}
-
-.btn-primary {
-  @apply bg-primary-600 hover:bg-primary-700 text-white font-semibold transition-all duration-200 cursor-pointer shadow-md hover:shadow-lg active:scale-98;
-}
-
-.btn-secondary {
-  @apply transition-all duration-200 cursor-pointer active:scale-98;
-}
-
-.input-field {
-  @apply focus:outline-none focus:ring-2 focus:ring-primary-500 rounded;
-}
-</style>

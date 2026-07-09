@@ -45,12 +45,12 @@ class QuestionnaireQuestion
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['questionnaire_section:read'])]
+    #[Groups(['questionnaire_section:read', 'invitation:read'])]
     #[ApiProperty(identifier: false)]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['questionnaire_section:read'])]
+    #[Groups(['questionnaire_section:read', 'invitation:read'])]
     private ?string $label = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -58,7 +58,7 @@ class QuestionnaireQuestion
     private ?string $help = null;
 
     #[ORM\Column(nullable: true, enumType: QuestTypeQuestionEnum::class)]
-    #[Groups(['questionnaire_section:read'])]
+    #[Groups(['questionnaire_section:read', 'invitation:read'])]
     private ?QuestTypeQuestionEnum $typeQuestion = null;
 
     #[ORM\Column]

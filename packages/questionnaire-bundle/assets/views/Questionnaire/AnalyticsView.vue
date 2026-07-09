@@ -11,13 +11,6 @@
       </div>
 
       <div class="flex items-center space-x-3">
-        <select v-model="timeFilter" class="input-field w-48">
-          <option value="all">Toute la période</option>
-          <option value="7d">7 derniers jours</option>
-          <option value="30d">30 derniers jours</option>
-          <option value="90d">90 derniers jours</option>
-        </select>
-
         <ActionButtonVertical :to="{ name: 'questionnaire_responses', params: { id: surveyId } }"
           :icon="ChatBubbleLeftRightIcon" label="Voir les réponses" severity="success" />
         <ActionButtonVertical :icon="ArrowDownTrayIcon" label="Exporter" severity="secondary"
@@ -303,20 +296,36 @@ const doughnutOptions = {
 };
 
 const responseChartData = computed(() => {
-  const dates = Array.from({ length: 14 }, (_, i) => {
-    const date = subDays(new Date(), 13 - i);
-    return format(date, 'dd/MM');
+  // Determine start date: survey openingDate, or publishedAt, or 7 days ago
+  const startDate = survey.value?.openingDate
+    ? new Date(survey.value.openingDate)
+    : survey.value?.publishedAt
+      ? new Date(survey.value.publishedAt)
+      : subDays(new Date(), 7);
+
+  const endDate = new Date();
+
+  // Apply timeFilter to shrink the window if needed
+  const filterDays = timeFilter.value === '7d' ? 7 : timeFilter.value === '30d' ? 30 : timeFilter.value === '90d' ? 90 : null;
+  const filteredStart = filterDays ? subDays(endDate, filterDays - 1) : startDate;
+  const effectiveStart = filteredStart > startDate ? filteredStart : startDate;
+
+  const dayCount = Math.max(1, Math.round((endDate.getTime() - effectiveStart.getTime()) / (1000 * 60 * 60 * 24)) + 1);
+
+  const dates = Array.from({ length: dayCount }, (_, i) => {
+    return subDays(endDate, dayCount - 1 - i);
   });
 
-  // Generate more realistic data based on actual responses
-  const data = dates.map((dateStr, index) => {
-    const baseCount = Math.max(0, 5 - Math.abs(index - 7)); // Peak in the middle
-    const variation = Math.floor(Math.random() * 3);
-    return Math.max(0, baseCount + variation);
+  const responsesByDate = analytics.value.responsesByDate || {};
+
+  const labels = dates.map(date => format(date, 'dd/MM', { locale: fr }));
+  const data = dates.map(date => {
+    const key = format(date, 'yyyy-MM-dd');
+    return responsesByDate[key] || 0;
   });
 
   return {
-    labels: dates,
+    labels,
     datasets: [
       {
         label: 'Réponses',
@@ -474,5 +483,6 @@ function exportAnalytics() {
 
 onMounted(async () => {
   await surveyStore.selectSurvey(surveyId);
+  await responseStore.fetchSurveyResponses(surveyId);
 });
 </script>

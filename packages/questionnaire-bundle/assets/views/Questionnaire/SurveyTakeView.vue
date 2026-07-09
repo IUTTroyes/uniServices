@@ -283,25 +283,28 @@
 
           <!-- Navigation -->
           <div class="flex items-center justify-between pt-8 mt-8 border-t border-gray-200 dark:border-gray-700">
-            <button
+            <Button
               v-if="survey.settings.allowBack && currentSectionIndex > 0"
               type="button"
               @click="goToPrevious"
-              class="btn-secondary"
+              severity="secondary"
+              outlined
+              class="flex items-center gap-2"
             >
               <ChevronLeftIcon class="w-4 h-4" />
-              Précédent
-            </button>
+              <span>Précédent</span>
+            </Button>
             <div v-else></div>
 
-            <button
+            <Button
               type="submit"
-              class="btn-primary"
+              :severity="isLastSection ? 'success' : 'primary'"
+              class="flex items-center gap-2"
             >
-              {{ isLastSection ? 'Terminer' : 'Suivant' }}
+              <span>{{ isLastSection ? 'Terminer' : 'Suivant' }}</span>
               <ChevronRightIcon v-if="!isLastSection" class="w-4 h-4" />
               <CheckIcon v-else class="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -326,6 +329,12 @@ import { useSurveyStore } from '@/stores/survey';
 import { useResponseStore } from '@/stores/responses';
 import type { Survey, Question } from '@/types/survey';
 import { formatDuration } from '@/utils/date';
+import { 
+  getInvitationByToken, 
+  getInvitationSection, 
+  saveInvitationAnswers, 
+  submitInvitation 
+} from '@/requests/questionnaire_services/questionnaireService';
 
 const route = useRoute();
 const surveyStore = useSurveyStore();
@@ -343,15 +352,15 @@ const isCompleted = ref(false);
 const survey = ref<Survey | null>(null);
 
 const currentSection = computed(() =>
-  survey.value?.sections[currentSectionIndex.value] || null
+  survey.value?.sections?.[currentSectionIndex.value] || null
 );
 
 const isLastSection = computed(() =>
-  survey.value ? currentSectionIndex.value === survey.value.sections.length - 1 : false
+  survey.value && survey.value.sections ? currentSectionIndex.value === survey.value.sections.length - 1 : false
 );
 
 const progress = computed(() => {
-  if (!survey.value) return 0;
+  if (!survey.value || !survey.value.sections || survey.value.sections.length === 0) return 0;
   return Math.round(((currentSectionIndex.value + 1) / survey.value.sections.length) * 100);
 });
 
@@ -479,7 +488,7 @@ const jumpTargetSection = computed(() => {
       }
 
       if (conditionMet && rule.targetSectionId) {
-        const targetIndex = survey.value?.sections.findIndex(s => s.id === rule.targetSectionId);
+        const targetIndex = survey.value?.sections?.findIndex(s => s.id === rule.targetSectionId);
         return targetIndex !== undefined && targetIndex !== -1 ? targetIndex : null;
       }
     }
@@ -494,11 +503,14 @@ const timeSpent = computed(() => {
 });
 
 function getSectionQuestionNumber(questionIndex: number): number {
-  if (!survey.value) return questionIndex + 1;
+  if (!survey.value || !survey.value.sections) return questionIndex + 1;
 
   let totalQuestions = 0;
   for (let i = 0; i < currentSectionIndex.value; i++) {
-    totalQuestions += survey.value.sections[i].questions.length;
+    const section = survey.value.sections[i];
+    if (section && section.questions) {
+      totalQuestions += section.questions.length;
+    }
   }
 
   return totalQuestions + questionIndex + 1;
@@ -510,7 +522,7 @@ function setAnswer(questionId: string, value: any) {
 
   // Auto-save if enabled
   if (survey.value?.settings.autoSave) {
-    saveProgress();
+    saveCurrentSectionProgress();
   }
 }
 
@@ -528,7 +540,7 @@ function toggleMultipleChoice(questionId: string, option: string) {
   delete errors.value[questionId];
 
   if (survey.value?.settings.autoSave) {
-    saveProgress();
+    saveCurrentSectionProgress();
   }
 }
 
@@ -539,7 +551,7 @@ function setMatrixAnswer(questionId: string, row: string, value: string) {
   answers.value[questionId][row] = value;
 
   if (survey.value?.settings.autoSave) {
-    saveProgress();
+    saveCurrentSectionProgress();
   }
 }
 
@@ -547,7 +559,7 @@ function updateRanking(questionId: string) {
   answers.value[questionId] = [...(rankingItems.value[questionId] || [])];
 
   if (survey.value?.settings.autoSave) {
-    saveProgress();
+    saveCurrentSectionProgress();
   }
 }
 
@@ -614,14 +626,48 @@ function validateCurrentSection(): boolean {
   return isValid;
 }
 
-function handleNext() {
+async function loadSectionQuestions(index: number) {
+  if (!survey.value || !survey.value.sections || !survey.value.sections[index]) return;
+  const sec = survey.value.sections[index];
+  
+  loading.value = true;
+  try {
+    const secDetails = await getInvitationSection(token, sec.id);
+    const questionsList = Array.isArray(secDetails.questions) ? secDetails.questions : (secDetails.questions?.member || secDetails.questions || []);
+    sec.questions = questionsList.map((q: any) => ({
+      id: q.questionId,
+      type: q.typeQuestion?.value || q.typeQuestion || 'text_short',
+      title: q.label,
+      description: '',
+      required: q.required,
+      options: q.choices ? q.choices.map((c: any) => ({ id: c.id, text: c.text || c.label })) : [],
+      validation: q.scale ? { min: q.scale.min, max: q.scale.max } : {}
+    }));
+    
+    questionsList.forEach((q: any) => {
+      if (q.answer !== null && q.answer !== undefined) {
+        answers.value[q.questionId] = q.answer;
+      }
+    });
+
+    initializeRankingItems();
+  } catch (error) {
+    console.error('Failed to load section questions:', error);
+  } finally {
+    loading.value = false;
+  }
+}
+
+async function handleNext() {
   if (!validateCurrentSection()) {
     return;
   }
 
+  await saveCurrentSectionProgress();
+
   // Check for early survey termination
   if (shouldEndSurvey.value) {
-    completeSurvey();
+    await completeSurvey();
     return;
   }
 
@@ -629,56 +675,68 @@ function handleNext() {
   const jumpTarget = jumpTargetSection.value;
   if (jumpTarget !== null) {
     currentSectionIndex.value = jumpTarget;
-    saveProgress();
+    await loadSectionQuestions(jumpTarget);
     return;
   }
 
   if (isLastSection.value) {
-    completeSurvey();
+    await completeSurvey();
   } else {
     currentSectionIndex.value++;
-    saveProgress();
+    await loadSectionQuestions(currentSectionIndex.value);
   }
 }
 
-function goToPrevious() {
+async function goToPrevious() {
   if (currentSectionIndex.value > 0) {
     currentSectionIndex.value--;
+    await loadSectionQuestions(currentSectionIndex.value);
   }
 }
 
-function saveProgress() {
-  // In a real app, this would save to the backend
-  if (survey.value) {
-    const response = responseStore.createResponse(survey.value.id);
-    responseStore.updateResponse(response.id, { answers: answers.value });
+async function saveCurrentSectionProgress() {
+  const sec = currentSection.value;
+  if (!sec || !survey.value) return;
+
+  const answersList = (visibleQuestions.value || []).map(q => ({
+    questionId: q.id,
+    value: answers.value[q.id] !== undefined ? answers.value[q.id] : null
+  }));
+
+  try {
+    await saveInvitationAnswers(token, {
+      publishedSectionInstanceId: sec.id,
+      answers: answersList
+    });
+  } catch (e) {
+    console.error('Failed to save answers:', e);
   }
 }
 
-function completeSurvey() {
+async function completeSurvey() {
   if (!survey.value) return;
 
-  const response = responseStore.createResponse(survey.value.id);
-  responseStore.updateResponse(response.id, {
-    answers: answers.value,
-    completed: true
-  });
-  responseStore.submitResponse(response.id);
-
-  isCompleted.value = true;
+  try {
+    await submitInvitation(token);
+    isCompleted.value = true;
+  } catch (e) {
+    console.error('Failed to submit survey:', e);
+  }
 }
 
 function initializeRankingItems() {
-  if (!survey.value) return;
+  if (!survey.value || !survey.value.sections) return;
 
   survey.value.sections.forEach(section => {
-    section.questions
-      .filter(q => q.type === 'ranking')
-      .forEach(question => {
-        if (question.options) {
-          rankingItems.value[question.id] = question.options.map(o => o.text);
-        }
-      });
+    if (section.questions) {
+      section.questions
+        .filter(q => q.type === 'ranking')
+        .forEach(question => {
+          if (question.options) {
+            rankingItems.value[question.id] = question.options.map(o => o.text);
+          }
+        });
+    }
   });
 }
 
@@ -695,25 +753,52 @@ function formatEstimatedTime(seconds: number): string {
 }
 
 onMounted(async () => {
-  // Simulate loading survey data
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  loading.value = true;
+  try {
+    const inv = await getInvitationByToken(token);
+    console.log(token)
+    console.log(inv)
+    if (inv) {
+      if (inv.invitationStatus === 'submitted') {
+        isCompleted.value = true;
+        loading.value = false;
+        return;
+      }
+      
+      survey.value = {
+        id: token,
+        title: inv.questionnaireTitle,
+        description: '',
+        estimatedTime: 300,
+        settings: {
+          showProgress: true,
+          allowBack: true,
+          autoSave: true,
+          thankYouMessage: 'Merci pour votre participation !'
+        },
+        sections: (inv.sections || []).map((s: any) => ({
+          id: s.publishedSectionInstanceId,
+          title: s.title,
+          description: '',
+          questions: []
+        }))
+      };
 
-  // In a real app, you would fetch the survey based on the token
-  // For demo purposes, we'll use the first published survey
-  const publishedSurveys = surveyStore.publishedSurveys;
-  if (publishedSurveys.length > 0) {
-    survey.value = publishedSurveys[0];
-    initializeRankingItems();
+      currentSectionIndex.value = 0;
+      await loadSectionQuestions(0);
+    }
+  } catch (error) {
+    console.error('Failed to load survey invitation:', error);
+    survey.value = null;
+  } finally {
+    loading.value = false;
+    startTime.value = new Date();
   }
-
-  startTime.value = new Date();
-  loading.value = false;
 });
 
-// Auto-save on page unload
-onUnmounted(() => {
+onUnmounted(async () => {
   if (survey.value?.settings.autoSave && Object.keys(answers.value).length > 0) {
-    saveProgress();
+    await saveCurrentSectionProgress();
   }
 });
 </script>

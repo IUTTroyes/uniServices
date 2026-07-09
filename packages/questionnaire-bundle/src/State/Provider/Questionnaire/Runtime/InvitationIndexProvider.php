@@ -33,20 +33,20 @@ final class InvitationIndexProvider implements ProviderInterface
 
         $out = [];
         foreach ($sections as $s) {
-            $qtCount = $s->getSectionTemplate()->getQuestions()->count();
+            $qtCount = $s->getSection()->getQuestions()->count();
             $out[] = new SectionIndexDto(
                 publishedSectionInstanceId: (int) $s->getId(),
                 title: $s->getTitleSnapshot(),
                 questionCount: $qtCount,
                 order: $s->getSortOrder(),
-                repeatItemType: $s->getRepeatItemType(),
-                repeatItemId: $s->getRepeatItemId()
+                repeatItemType: $s->getRepeatSectionItemType(),
+                repeatItemId: $s->getRepeatSectionItemId()
             );
         }
 
         return new InvitationIndexDto(
             questionnaireTitle: $q->getTitle(),
-            invitationStatus: $inv->getStatus(),
+            invitationStatus: $inv->getStatus()->value,
             startedAt: $inv->getStartedAt(),
             submittedAt: $inv->getSubmittedAt(),
             sections: $out

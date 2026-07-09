@@ -5,6 +5,8 @@ import AnneeUnivDiplomes from "../../views/configuration/annee_univ/AnneeUnivDip
 import EditAnneeUniv from "../../views/configuration/annee_univ/EditAnneeUniv.vue";
 import GestionAccesView from '../../views/configuration/GestionAccesView.vue'
 import EtablissementView from "../../views/configuration/EtablissementView.vue";
+import EmailsView from "../../views/configuration/emails/EmailsView.vue";
+import EmailEditView from "../../views/configuration/emails/EmailEditView.vue";
 
 export default [
   {
@@ -108,5 +110,38 @@ export default [
         route: null
       }]
     },
-  }
+  },
+  {
+    path: 'emails',
+    component: EmailsView,
+    name: 'emails-configuration',
+    meta: {
+      permission: 'isSuperAdmin',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Modèles de mails',
+        route: null
+      }]
+    },
+  },
+  {
+    path: 'emails/:key/edit',
+    component: EmailEditView,
+    name: 'email-edit',
+    meta: {
+      permission: 'isSuperAdmin',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Modèles de mails',
+        route: '/auth/configuration/emails'
+      }, {
+        label: 'Édition',
+        route: null
+      }]
+    },
+  },
 ]
