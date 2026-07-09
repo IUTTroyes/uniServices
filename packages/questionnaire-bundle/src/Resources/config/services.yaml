@@ -10,6 +10,8 @@ services:
       tags: [ 'app.dashboard.widget_data_provider' ]
     App\Security\PermissionProviderInterface:
       tags: [ 'app.permission_provider' ]
+    App\Services\Email\AbstractEmailDefinition:
+      tags: [ 'app.email_definition' ]
 
   QuestionnaireBundle\:
     resource: '../../'

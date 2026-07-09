@@ -30,28 +30,35 @@ final class SaveAnswersProcessor implements ProcessorInterface
             throw new \RuntimeException('Invalid section');
         }
 
-        $questionIds = array_map(fn($a) => (int) $a->questionId, $data->answers);
+        $questionIds = array_map(fn($a) => (int) ((array) $a)['questionId'], $data->answers);
         $questions = $this->em->getRepository(QuestionnaireQuestion::class)->findBy(['id' => $questionIds]);
         $qById = [];
         foreach ($questions as $q) { $qById[$q->getId()] = $q; }
 
         $existing = $this->em->getRepository(QuestionnaireAnswer::class)->findBy([
             'invitation' => $inv,
-            'publishedSectionInstance' => $psi,
+            'section' => $psi,
         ]);
         $aByQid = [];
-        foreach ($existing as $a) { $aByQid[$a->getQuestionTemplate()->getId()] = $a; }
+        foreach ($existing as $a) { $aByQid[$a->getQuestion()->getId()] = $a; }
 
         foreach ($data->answers as $incoming) {
-            $qid = (int) $incoming->questionId;
+            $incomingArr = (array) $incoming;
+            $qid = (int) ($incomingArr['questionId'] ?? 0);
             if (!isset($qById[$qid])) { continue; }
 
+            $incomingVal = $incomingArr['value'] ?? null;
             if (isset($aByQid[$qid])) {
-                $aByQid[$qid]->setValue($incoming->value);
+                $aByQid[$qid]->setValue($incomingVal);
             } else {
-                $ans = new QuestionnaireAnswer($inv, $psi, $qById[$qid], $incoming->value);
+                $ans = new QuestionnaireAnswer($inv, $psi, $qById[$qid], $incomingVal);
                 $this->em->persist($ans);
             }
+        }
+
+        // Mark startedAt on first answer save
+        if ($inv->getStartedAt() === null) {
+            $inv->setStartedAt(new \DateTimeImmutable());
         }
 
         $this->em->flush();

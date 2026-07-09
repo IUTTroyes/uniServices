@@ -75,10 +75,14 @@ const getEtudiantScolariteService = async (id, params, scope='', showToast = fal
 }
 
 const getEtudiantScolaritesService = async (params, scope='', showToast = false) => {
+    let queryParams = params;
+    if (typeof params === 'number' || typeof params === 'string') {
+        queryParams = { etudiant: params };
+    }
     try {
         const response = await apiCall(
             api.get,
-            [`/api${scope}/etudiant_scolarites`, { params }],
+            [`/api${scope}/etudiant_scolarites`, { params: queryParams }],
             'Scolarités de l\'étudiant récupérées avec succès',
             'Erreur lors de la récupération des scolarités de l\'étudiant',
             showToast

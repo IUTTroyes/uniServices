@@ -34,16 +34,16 @@ final class InvitationSectionProvider implements ProviderInterface
         // Charger answers existantes pour cette section
         $answers = $this->em->getRepository(QuestionnaireAnswer::class)->findBy([
             'invitation' => $inv,
-            'publishedSectionInstance' => $psi,
+            'section' => $psi,
         ]);
 
         $answersByQid = [];
         foreach ($answers as $a) {
-            $answersByQid[$a->getQuestionTemplate()->getId()] = $a->getValue();
+            $answersByQid[$a->getQuestion()->getId()] = $a->getValue();
         }
 
         $questions = [];
-        foreach ($psi->getSectionTemplate()->getQuestions() as $qt) {
+        foreach ($psi->getSection()->getQuestions() as $qt) {
             $questions[] = $this->mapper->map($qt, $answersByQid[$qt->getId()] ?? null);
         }
 
@@ -51,8 +51,8 @@ final class InvitationSectionProvider implements ProviderInterface
             questionnaireTitle: $inv->getQuestionnaire()->getTitle(),
             publishedSectionInstanceId: $psi->getId(),
             title: $psi->getTitleSnapshot(),
-            repeatItemType: $psi->getRepeatItemType(),
-            repeatItemId: $psi->getRepeatItemId(),
+            repeatItemType: $psi->getRepeatSectionItemType(),
+            repeatItemId: $psi->getRepeatSectionItemId(),
             questions: $questions
         );
     }

@@ -71,9 +71,13 @@ api.interceptors.response.use(
     async error => {
         const originalRequest = error.config;
 
+        if (!originalRequest) {
+            return Promise.reject(error);
+        }
+
         // Skip refresh pour les endpoints publics
         const publicEndpoints = ['/api/login', '/api/change_password', '/api/token/refresh', '/api/logout'];
-        if (publicEndpoints.some(endpoint => originalRequest.url.includes(endpoint))) {
+        if (originalRequest.url && publicEndpoints.some(endpoint => originalRequest.url.includes(endpoint))) {
             return Promise.reject(error);
         }
 

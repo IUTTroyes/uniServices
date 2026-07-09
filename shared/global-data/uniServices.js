@@ -8,7 +8,7 @@ import toolsMeta from "./tools.generated.json";
 export const tools = (toolsMeta || []).map(item => {
   let targetUrl = item.url || `/${item.urlSlug}`;
   if (targetUrl.startsWith('http://localhost') || targetUrl.startsWith('https://localhost')) {
-    targetUrl = `/${item.urlSlug}`;
+    targetUrl = `/app/${item.urlSlug}`;
   }
   return {
     name: item.name,

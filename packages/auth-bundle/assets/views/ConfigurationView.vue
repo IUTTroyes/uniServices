@@ -13,6 +13,10 @@ const panelMenuItems = [
   { label: 'Années Universitaires', icon: 'pi pi-clock', route: '/auth/configuration/annees-universitaires' },
 ]
 
+const panelMenuCommunicationItems = [
+  { label: 'Modèles de mails', icon: 'pi pi-envelope', route: '/auth/configuration/emails' },
+]
+
 </script>
 
 <template>
@@ -120,6 +124,34 @@ const panelMenuItems = [
             </div>
           </Fieldset>
         </div>
+
+        <!-- Section Communication -->
+        <Fieldset class="w-full">
+          <template #legend>
+            <div class="flex items-center pl-2">
+              <i class="pi pi-envelope bg-teal-400/20 rounded-full p-4 text-teal-500"/>
+              <div class="flex flex-col">
+                <span class="font-bold px-2 capitalize">Communication</span>
+                <em class="text-muted-color px-2">Personnaliser les emails envoyés par l'application</em>
+              </div>
+            </div>
+          </template>
+          <div class="mt-4">
+            <PanelMenu :model="panelMenuCommunicationItems" multiple>
+              <template #item="{ item }">
+                <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" custom>
+                  <a v-ripple
+                     class="flex items-center cursor-pointer text-surface-700 dark:text-surface-0 px-4 py-2"
+                     :href="href" @click="navigate">
+                    <span :class="item.icon"/>
+                    <span class="ml-2">{{ item.label }}</span>
+                  </a>
+                </router-link>
+              </template>
+            </PanelMenu>
+          </div>
+        </Fieldset>
+
       </div>
     </div>
   </div>

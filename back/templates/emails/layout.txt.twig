@@ -1,0 +1,14 @@
+{# Layout commun texte brut pour tous les emails de l'application.
+   Blocs disponibles : subject, body, footer_extra
+#}
+=====================================
+UniServices{% if departement_libelle is defined and departement_libelle %} – {{ departement_libelle }}{% endif %}
+
+=====================================
+
+{% block body %}{% endblock %}
+
+-------------------------------------
+{% block footer_extra %}{% endblock %}
+Cet email a été envoyé automatiquement, merci de ne pas y répondre directement.
+© {{ "now"|date("Y") }} UniServices{% if departement_libelle is defined and departement_libelle %} – {{ departement_libelle }}{% endif %}

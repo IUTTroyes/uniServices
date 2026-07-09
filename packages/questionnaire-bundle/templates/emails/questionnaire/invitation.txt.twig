@@ -1,0 +1,22 @@
+{% extends 'emails/layout.txt.twig' %}
+
+{% block body %}
+Invitation au questionnaire : {{ questionnaire.titre }}
+---------------------------------------------------------
+
+Bonjour,
+
+Vous avez été invité(e) à répondre au questionnaire suivant :
+
+  {{ questionnaire.titre }}
+  {% if questionnaire.description %}{{ questionnaire.description }}{% endif %}
+
+Pour répondre, cliquez sur le lien ci-dessous :
+{{ surveyUrl }}
+
+{% if expiresAt is defined and expiresAt %}
+Cette invitation est valide jusqu'au {{ expiresAt|date('d/m/Y') }}.
+{% endif %}
+
+Si vous pensez avoir reçu cet email par erreur, vous pouvez l'ignorer.
+{% endblock %}

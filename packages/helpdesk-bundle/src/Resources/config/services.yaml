@@ -6,6 +6,8 @@ services:
   _instanceof:
     App\Security\PermissionProviderInterface:
       tags: [ 'app.permission_provider' ]
+    App\Services\Email\AbstractEmailDefinition:
+      tags: [ 'app.email_definition' ]
 
   HelpdeskBundle\:
     resource: '../../'

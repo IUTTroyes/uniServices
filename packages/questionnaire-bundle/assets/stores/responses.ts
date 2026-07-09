@@ -3,6 +3,7 @@ import { ref, computed } from 'vue';
 import type { Response, Participant, SurveyInvitation, SurveyAnalytics } from '@/types/survey';
 import { v4 as uuidv4 } from 'uuid';
 import { faker } from '@faker-js/faker';
+import { getQuestionnaireInvitations } from '@/requests/questionnaire_services/questionnaireService';
 
 export const useResponseStore = defineStore('responses', () => {
   const responses = ref<Response[]>([]);
@@ -133,25 +134,28 @@ export const useResponseStore = defineStore('responses', () => {
 
     const responsesByDate: Record<string, number> = {};
     surveyResponses.forEach(response => {
-      if (response.submittedAt) {
-        const date = response.submittedAt.toISOString().split('T')[0];
+      // Prioritize submittedAt, fallback to startedAt for in-progress responses
+      const dateSource = response.submittedAt || response.startedAt;
+      if (dateSource) {
+        const date = dateSource.toISOString().split('T')[0];
         responsesByDate[date] = (responsesByDate[date] || 0) + 1;
       }
     });
 
-    const totalTimeSpent = surveyResponses
-      .filter(r => r.completed && r.submittedAt)
-      .reduce((sum, r) => {
-        const duration = r.submittedAt!.getTime() - r.startedAt.getTime();
-        return sum + duration;
-      }, 0);
+    // Compute real average time from startedAt/submittedAt
+    const timedResponses = surveyResponses.filter(r => r.completed && r.submittedAt && r.startedAt);
+    const totalTimeSpent = timedResponses.reduce((sum, r) => {
+      const duration = r.submittedAt!.getTime() - r.startedAt.getTime();
+      return duration > 0 ? sum + duration : sum;
+    }, 0);
+    const realAvg = timedResponses.length > 0 ? totalTimeSpent / timedResponses.length : 0;
 
     return {
       surveyId,
       totalInvited: surveyParticipants.length,
-      totalResponses: surveyResponses.length,
+      totalResponses: completedCount,
       completionRate: completionRate.value(surveyId),
-      averageTimeSpent: completedCount > 0 ? totalTimeSpent / completedCount : 0,
+      averageTimeSpent: realAvg,
       responsesByDate,
       questionAnalytics: {}
     };
@@ -289,6 +293,67 @@ export const useResponseStore = defineStore('responses', () => {
     }
   }
 
+  async function fetchSurveyResponses(surveyUuid: string) {
+    try {
+      const data = await getQuestionnaireInvitations(surveyUuid);
+      const members = data.member || data['hydra:member'] || [];
+      
+      const mappedResponses: Response[] = [];
+      const mappedParticipants: Participant[] = [];
+      
+      members.forEach((invitation: any) => {
+        const pId = invitation.id.toString();
+        
+        const answersMap: Record<string, any> = {};
+        if (Array.isArray(invitation.questionnaireReponses)) {
+          invitation.questionnaireReponses.forEach((ans: any) => {
+            if (ans.question && ans.question.id !== undefined) {
+              answersMap[ans.question.id] = ans.value;
+            }
+          });
+        }
+        
+        const createdDate = invitation.createdAt ? new Date(invitation.createdAt) : new Date();
+        const startedDate = invitation.startedAt ? new Date(invitation.startedAt) : undefined;
+        const submittedDate = invitation.submittedAt ? new Date(invitation.submittedAt) : undefined;
+        const lastActivityDate = submittedDate || startedDate || createdDate;
+        
+        mappedResponses.push({
+          id: invitation.token,
+          surveyId: surveyUuid,
+          participantId: pId,
+          completed: invitation.status === 'submitted',
+          submittedAt: submittedDate,
+          startedAt: startedDate ?? createdDate,
+          lastActivity: lastActivityDate,
+          answers: answersMap
+        });
+        
+        mappedParticipants.push({
+          id: pId,
+          email: invitation.email || 'Participant anonyme',
+          name: invitation.email ? invitation.email.split('@')[0].split('.').map((s: string) => s.charAt(0).toUpperCase() + s.slice(1)).join(' ') : 'Participant anonyme',
+          group: 'Tous',
+          inviteToken: invitation.token,
+          invitedAt: createdDate,
+          respondedAt: submittedDate
+        });
+      });
+      
+      responses.value = [
+        ...responses.value.filter(r => r.surveyId !== surveyUuid),
+        ...mappedResponses
+      ];
+      
+      participants.value = [
+        ...participants.value.filter(p => !mappedParticipants.some(mp => mp.id === p.id)),
+        ...mappedParticipants
+      ];
+    } catch (e) {
+      console.error('Failed to fetch survey responses:', e);
+    }
+  }
+
   return {
     // State
     responses,
@@ -311,6 +376,7 @@ export const useResponseStore = defineStore('responses', () => {
     importParticipants,
     getSurveyAnalytics,
     generateDemoData,
+    fetchSurveyResponses,
     saveToLocalStorage,
     loadFromLocalStorage
   };

@@ -300,7 +300,170 @@ const publishQuestionnaire = async (uuid, data, showToast = false) => {
     }
 }
 
+const getStudentInvitations = async (showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api/student/invitations`],
+            'Invitations de l\'étudiant récupérées avec succès',
+            'Erreur lors de la récupération des invitations',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getStudentInvitations:', error);
+        throw error;
+    }
+}
+
+const getMiniSemestres = async (showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api/mini/structure_semestres`],
+            'Semestres récupérés avec succès',
+            'Erreur lors de la récupération des semestres',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getMiniSemestres:', error);
+        throw error;
+    }
+}
+
+const getAllStatuses = async (showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api/statuts`],
+            'Statuts récupérés avec succès',
+            'Erreur lors de la récupération des statuts',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getAllStatuses:', error);
+        throw error;
+    }
+}
+
+const getAllPersonnels = async (showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api/personnels`, { params: { pagination: false } }],
+            'Personnels récupérés avec succès',
+            'Erreur lors de la récupération des personnels',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getAllPersonnels:', error);
+        throw error;
+    }
+}
+
+const getStudentSemestres = async (semestreId, showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api/manage-groupes/etudiant_scolarite_semestres`, { params: { semestre: semestreId, pagination: false } }],
+            'Étudiants du semestre récupérés avec succès',
+            'Erreur lors de la récupération des étudiants',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getStudentSemestres:', error);
+        throw error;
+    }
+}
+
+const getInvitationByToken = async (token, showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api/invitations/${token}`],
+            'Invitation récupérée avec succès',
+            'Erreur lors de la récupération de l\'invitation',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getInvitationByToken:', error);
+        throw error;
+    }
+}
+
+const getInvitationSection = async (token, sectionId, showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api/invitations/${token}/sections/${sectionId}`],
+            'Section récupérée avec succès',
+            'Erreur lors de la récupération de la section',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getInvitationSection:', error);
+        throw error;
+    }
+}
+
+const saveInvitationAnswers = async (token, data, showToast = false) => {
+    try {
+        return await apiCall(
+            api.patch,
+            [`/api/invitations/${token}/answers`, data, {
+                headers: {
+                    'Content-Type': 'application/merge-patch+json'
+                }
+            }],
+            'Réponses sauvegardées avec succès',
+            'Erreur lors de la sauvegarde des réponses',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans saveInvitationAnswers:', error);
+        throw error;
+    }
+}
+
+const submitInvitation = async (token, showToast = false) => {
+    try {
+        return await apiCall(
+            api.post,
+            [`/api/invitations/${token}/submit`, {}, {
+                headers: {
+                    'Content-Type': 'application/ld+json'
+                }
+            }],
+            'Questionnaire soumis avec succès',
+            'Erreur lors de la soumission du questionnaire',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans submitInvitation:', error);
+        throw error;
+    }
+}
+
+const getQuestionnaireInvitations = async (surveyUuid, showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api/questionnaire_invitations?questionnaire=/api/questionnaires/${surveyUuid}`],
+            'Invitations récupérées avec succès',
+            'Erreur lors de la récupération des invitations',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getQuestionnaireInvitations:', error);
+        throw error;
+    }
+}
+
 export {
+    getMiniSemestres,
+    getAllStatuses,
+    getAllPersonnels,
+    getStudentSemestres,
+    getStudentInvitations,
     publishQuestionnaire,
     getPreviewQuestionnaire,
     getPreviewQuestionnaireSection,
@@ -321,5 +484,11 @@ export {
 
     createQuestionInSection,
     updateQuestionInSection,
-    deleteQuestionInSection
+    deleteQuestionInSection,
+
+    getInvitationByToken,
+    getInvitationSection,
+    saveInvitationAnswers,
+    submitInvitation,
+    getQuestionnaireInvitations
 };

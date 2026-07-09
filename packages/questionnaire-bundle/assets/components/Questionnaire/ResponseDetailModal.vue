@@ -215,6 +215,7 @@ function getParticipantName(): string {
 
 function getProgress(): number {
   if (!props.response || !props.survey) return 0;
+  if (props.response.completed) return 100;
 
   const totalQuestions = props.survey.sections.reduce((sum, section) =>
     sum + section.questions.length, 0

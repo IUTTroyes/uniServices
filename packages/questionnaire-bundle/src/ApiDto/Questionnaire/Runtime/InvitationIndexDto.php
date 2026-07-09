@@ -10,7 +10,6 @@ use QuestionnaireBundle\State\Provider\Questionnaire\Runtime\InvitationIndexProv
     operations: [
         new Get(
             uriTemplate: '/invitations/{token}',
-            read: false,
             provider: InvitationIndexProvider::class
         ),
     ],

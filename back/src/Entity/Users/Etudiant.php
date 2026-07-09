@@ -237,7 +237,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getMailPerso(): string
+    public function getMailPerso(): ?string
     {
         return $this->mailPerso;
     }

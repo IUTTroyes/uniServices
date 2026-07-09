@@ -37,6 +37,7 @@ class EtudiantScolariteSemestreProvider implements ProviderInterface
                             'prenom' => $etudiant->getPrenom(),
                             'nom' => $etudiant->getNom(),
                             'numEtudiant' => $etudiant->getNumEtudiant(),
+                            'mailUniv' => $etudiant->getMailUniv(),
                             'bac' => $etudiant->getBac()?->getLibelle(),
                         ]);
                     } else {
@@ -94,6 +95,7 @@ class EtudiantScolariteSemestreProvider implements ProviderInterface
                         'prenom' => $etudiant->getPrenom(),
                         'nom' => $etudiant->getNom(),
                         'numEtudiant' => $etudiant->getNumEtudiant(),
+                        'mailUniv' => $etudiant->getMailUniv(),
                         'bac' => $etudiant->getBac()?->getLibelle(),
                     ]);
                 } else {

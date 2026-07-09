@@ -155,3 +155,5 @@ export interface QuestionAnalytics {
     averageRating?: number;
     textResponses?: string[];
 }
+
+export type Response = Answer;
