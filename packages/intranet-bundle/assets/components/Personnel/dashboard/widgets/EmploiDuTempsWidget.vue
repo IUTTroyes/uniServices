@@ -14,7 +14,6 @@ defineProps({
 
 <template>
   <div class="flex flex-col gap-3">
-    <p class="m-0 text-color-secondary text-sm">{{ data.todayLabel }}</p>
     <template v-if="data.items && data.items.length > 0">
       <div v-for="item in data.items || []" :key="`${item.heure}-${item.cours}`" class="flex flex-wrap items-center gap-3 border-b border-surface-200 pb-3">
         <div class="max-w-40 font-bold text-primary-600">{{ item.heure }}</div>
