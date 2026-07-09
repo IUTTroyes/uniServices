@@ -34,11 +34,7 @@ const widgetData = ref({});
 const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 
 const onBundleClick = (bundleUrl) => {
-  if (bundleUrl.startsWith('/')) {
-    router.push(bundleUrl);
-  } else {
-    window.location.href = bundleUrl;
-  }
+  window.location.href = bundleUrl;
 };
 
 const structureDepartementPersonnelId = computed(() => userStore.departementDefaut?.departementPersonnel?.id || null);
@@ -62,24 +58,24 @@ const updateWidgetSpan = async (widget, spanType, newValue) => {
   }
 
   await updateDashboardWidgetLayoutService(
-    widget.code,
-    updateData,
-    {
-      dashboardCode: 'portail',
-      structureDepartementPersonnelId: structureDepartementPersonnelId.value,
-    }
+      widget.code,
+      updateData,
+      {
+        dashboardCode: 'portail',
+        structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+      }
   );
 };
 
 const toggleWidget = async (widget) => {
   widget.enabled = !widget.enabled;
   await updateDashboardWidgetLayoutService(
-  widget.code,
-  { enabled: widget.enabled },
-  {
-    dashboardCode: 'portail',
-    structureDepartementPersonnelId: structureDepartementPersonnelId.value,
-  }
+      widget.code,
+      { enabled: widget.enabled },
+      {
+        dashboardCode: 'portail',
+        structureDepartementPersonnelId: structureDepartementPersonnelId.value,
+      }
   );
   await getWidgets();
 };
@@ -147,7 +143,7 @@ const getWidgets = async () => {
   const response = await getWidgetsCatalogService(params);
   widgets.value = response.widgets || [];
   await Promise.all(
-  widgets.value.map(({ code }) => loadWidgetData(code))
+      widgets.value.map(({ code }) => loadWidgetData(code))
   );
   isLoadingWidgets.value = false;
 };
@@ -195,100 +191,100 @@ watch(() => route.path, async (newPath, oldPath) => {
               <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
               <div v-else class="flex flex-col">
                 <Button
-                v-for="bundle in activatedBundles"
-                :key="bundle.urlSlug"
-                type="button"
-                text
-                rounded
-                class="justify-start! text-left font-semibold"
-                @click="onBundleClick(bundle.url)"
+                    v-for="bundle in activatedBundles"
+                    :key="bundle.urlSlug"
+                    type="button"
+                    text
+                    rounded
+                    class="justify-start! text-left font-semibold"
+                    @click="onBundleClick(bundle.url)"
                 >
-                {{ bundle.name }}
+                  {{ bundle.name }}
                 </Button>
+              </div>
+            </div>
+            <div v-if="userStore.isSuperAdmin" class="flex flex-col gap-4">
+              <div class="text-md font-semibold text-color-secondary uppercase">Administration</div>
+              <div class="flex flex-col">
+                <Button
+                    type="button"
+                    text
+                    rounded
+                    class="justify-start! text-left font-semibold"
+                    @click="router.push('/configuration')"
+                >
+                  Configuration
+                </Button>
+              </div>
+            </div>
+            <div v-if="unactivatedBundles.length > 0" class="flex flex-col gap-4">
+              <div class="text-ms font-semibold text-color-secondary uppercase">Non activé</div>
+              <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
+              <div v-else class="flex flex-col">
+                <Button
+                    v-for="bundle in unactivatedBundles"
+                    :key="bundle.urlSlug"
+                    type="button"
+                    text
+                    rounded
+                    severity="secondary"
+                    disabled
+                    class="justify-start! text-left font-semibold"
+                >
+                  {{ bundle.name }}
+                </Button>
+              </div>
             </div>
           </div>
-          <div v-if="userStore.isSuperAdmin" class="flex flex-col gap-4">
-            <div class="text-md font-semibold text-color-secondary uppercase">Administration</div>
-            <div class="flex flex-col">
-              <Button
-                type="button"
-                text
-                rounded
-                class="justify-start! text-left font-semibold"
-                @click="router.push('/configuration')"
-              >
-              Configuration
-              </Button>
-            </div>
-          </div>
-          <div v-if="unactivatedBundles.length > 0" class="flex flex-col gap-4">
-            <div class="text-ms font-semibold text-color-secondary uppercase">Non activé</div>
-            <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
-            <div v-else class="flex flex-col">
-              <Button
-              v-for="bundle in unactivatedBundles"
-              :key="bundle.urlSlug"
-              type="button"
-              text
-              rounded
-              severity="secondary"
-              disabled
-              class="justify-start! text-left font-semibold"
-              >
-              {{ bundle.name }}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </aside>
+        </aside>
 
-    <section class="col-span-12 lg:col-span-10 pt-28 pb-14 h-screen">
-      <div class="h-full overflow-y-auto">
-        <div v-if="!userStore.isLoading" class="flex items-center justify-between mb-4">
-          <div class="flex items-center">
-            <div class="w-20 h-20 bg-primary-400 rounded-full flex items-center justify-center shrink-0">
-              <template v-if="userStore.userPhoto">
-                <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full" />
-              </template>
-              <template v-else>
-                <span class="text-gray-700 text-xl">{{ initiales }}</span>
-              </template>
+        <section class="col-span-12 lg:col-span-10 pt-28 pb-14 h-screen">
+          <div class="h-full overflow-y-auto">
+            <div v-if="!userStore.isLoading" class="flex items-center justify-between mb-4">
+              <div class="flex items-center">
+                <div class="w-20 h-20 bg-primary-400 rounded-full flex items-center justify-center shrink-0">
+                  <template v-if="userStore.userPhoto">
+                    <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full" />
+                  </template>
+                  <template v-else>
+                    <span class="text-gray-700 text-xl">{{ initiales }}</span>
+                  </template>
+                </div>
+                <div class="ml-4">
+                  <h2 class="text-2xl! mb-0! font-bold flex items-center gap-2">
+                    <span class="font-light">Bonjour,</span> {{ userStore.user.prenom }}
+                  </h2>
+                  <small class="text-gray-500">{{ formatDateLong(date) }}</small>
+                </div>
+              </div>
+              <div class="card flex justify-between items-center gap-6 m-0! p-4!">
+                <div>
+                  <div class="text-xl font-semibold">Mon dashboard</div>
+                  <div class="text-sm text-color-secondary">Personnalisez vos widgets.</div>
+                </div>
+                <Button icon="pi pi-cog" label="Configurer" size="small" @click="router.push({name: 'PortailDashboardWidgetsConfig', params: {bundle: 'portail'}})"/>
+              </div>
             </div>
-            <div class="ml-4">
-              <h2 class="text-2xl! mb-0! font-bold flex items-center gap-2">
-                <span class="font-light">Bonjour,</span> {{ userStore.user.prenom }}
-              </h2>
-              <small class="text-gray-500">{{ formatDateLong(date) }}</small>
+            <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>
+            <div v-else class="dashboard-grid">
+              <WidgetCard
+                  v-for="widget in widgets"
+                  :key="widget.code"
+                  :widget="widget"
+                  :data="widgetData[widget.code]"
+                  :first="widget.position == 0 ? true : false"
+                  :last="widget.position == widgets.length - 1 ? true : false"
+                  @move="moveWidget"
+                  @updateSpan="updateWidgetSpan"
+                  @toggle="toggleWidget"
+                  :is-portail = true
+              />
             </div>
           </div>
-          <div class="card flex justify-between items-center gap-6 m-0! p-4!">
-            <div>
-              <div class="text-xl font-semibold">Mon dashboard</div>
-              <div class="text-sm text-color-secondary">Personnalisez vos widgets.</div>
-            </div>
-            <Button icon="pi pi-cog" label="Configurer" size="small" @click="router.push({name: 'PortailDashboardWidgetsConfig', params: {bundle: 'portail'}})"/>
-          </div>
-        </div>
-        <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>
-        <div v-else class="dashboard-grid">
-          <WidgetCard
-          v-for="widget in widgets"
-          :key="widget.code"
-          :widget="widget"
-          :data="widgetData[widget.code]"
-          :first="widget.position == 0 ? true : false"
-          :last="widget.position == widgets.length - 1 ? true : false"
-          @move="moveWidget"
-          @updateSpan="updateWidgetSpan"
-          @toggle="toggleWidget"
-          :is-portail = true
-          />
-        </div>
+        </section>
       </div>
-    </section>
-  </div>
-</div>
-</main>
+    </div>
+  </main>
 </template>
 
 <style scoped>
