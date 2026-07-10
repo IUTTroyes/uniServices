@@ -1,12 +1,15 @@
 <script setup>
-import {PersonnelsListe} from '@components'
+import {PersonnelsListe, HeaderComponent} from '@components'
 
 </script>
 
 <template>
+  <HeaderComponent
+      icon="pi pi-users"
+      titre="Liste des personnels"
+      description="Consultez la liste de tous les personnels du département"
+  />
   <div class="card">
-    <h2 class="text-2xl! font-bold mb-4">Tous les personnels du département</h2>
-
     <PersonnelsListe></PersonnelsListe>
   </div>
 </template>

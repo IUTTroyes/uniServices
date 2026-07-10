@@ -4,12 +4,10 @@ import { useRouter } from 'vue-router';
 import { FilterMatchMode } from '@primevue/core/api';
 import {
   PlusIcon,
-  ListBulletIcon,
   DocumentTextIcon,
   RocketLaunchIcon,
   PencilIcon,
   ExclamationCircleIcon,
-  ArrowLeftIcon,
   ChatBubbleLeftRightIcon,
   ChartBarIcon,
   ArrowDownTrayIcon,
@@ -21,6 +19,7 @@ import { useResponseStore } from '@/stores/responses';
 import { useUIStore } from '@/stores/ui';
 import SurveyPreviewModal from '@/components/Questionnaire/SurveyPreviewModal.vue';
 import { formatDate } from '@/utils/date';
+import { HeaderComponent } from '@components';
 
 const router = useRouter();
 const responseStore = useResponseStore();
@@ -131,29 +130,15 @@ const exportSurvey = (survey: any) => {
 
 <template>
   <div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
-    <!-- Header Block -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-      <div>
-        <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-1.5">
-          <router-link :to="{ name: 'QuestionnaireDashboard' }"
-            class="hover:text-primary-600 transition-colors flex items-center gap-1">
-            <ArrowLeftIcon class="w-3.5 h-3.5" />
-            Retour au Dashboard
-          </router-link>
-        </div>
-        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-          <ListBulletIcon class="w-8 h-8 text-primary-500" />
-          Liste des questionnaires
-          <span
-            class="text-sm bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold px-2.5 py-1 rounded-full border border-gray-300/30">
-            {{ nbQuestionnaires || 0 }} total
-          </span>
-        </h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">
-          Gérez l'ensemble des enquêtes, consultez les taux de réponse et exportez les rapports.
-        </p>
+    <div class="flex flex-col gap-2 mb-8">
+      <HeaderComponent
+        icon="pi pi-list"
+        titre="Liste des questionnaires"
+        description="Gérez l'ensemble des enquêtes, consultez les taux de réponse et exportez les rapports"
+      />
+      <div class="text-sm text-gray-500 dark:text-gray-400">
+        {{ nbQuestionnaires || 0 }} total
       </div>
-
       <router-link :to="{ name: 'questionnaire_builder', params: { id: 'new' } }"
         class="btn-primary flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold shadow-md shrink-0 self-start md:self-auto">
         <PlusIcon class="w-5 h-5" />

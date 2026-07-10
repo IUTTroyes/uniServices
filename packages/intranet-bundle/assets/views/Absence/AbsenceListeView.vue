@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
-import {SimpleSkeleton, ErrorView} from "@components";
+import {SimpleSkeleton, ErrorView, HeaderComponent} from "@components";
 import {useAnneeStore, useAnneeUnivStore, useSemestreStore, useUsersStore} from "@stores";
 import {getAnneeService, getSemestresService, getEtudiantAbsencesService} from "@requests";
 import {useRoute} from "vue-router";
@@ -126,14 +126,14 @@ const getAbsences = async () => {
 </script>
 
 <template>
+  <HeaderComponent
+      icon="pi pi-list"
+      titre="Liste des absences"
+      description="Consultez les absences des étudiants"
+  />
   <div class="card min-h-full">
     <div class="mb-6">
       <div class="flex justify-between items-center w-full mb-6">
-        <div>
-          <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">
-            Liste des absences
-          </h2>
-        </div>
         <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
         <div v-else class="flex gap-4">
           <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">

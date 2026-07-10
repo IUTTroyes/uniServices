@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { TopbarComponent, WidgetCard, GlobalLoader } from '@components';
+import { TopbarComponent, WidgetCard, GlobalLoader, HeaderComponent } from '@components';
 import { tools } from '@config/uniServices.js';
 import { getWidgetDataByCodeService, getWidgetsCatalogService, updateDashboardWidgetLayoutService } from '@requests';
 import { useUsersStore, useAnneeUnivStore } from "@stores";
@@ -240,6 +240,11 @@ watch(() => route.path, async (newPath, oldPath) => {
 
         <section class="col-span-12 lg:col-span-10 pt-28 pb-14 h-screen">
           <div class="h-full overflow-y-auto">
+            <HeaderComponent
+                icon="pi pi-home"
+                titre="Portail"
+                description="Accédez à vos applications et personnalisez votre tableau de bord"
+            />
             <div v-if="!userStore.isLoading" class="flex items-center justify-between mb-4">
               <div class="flex items-center">
                 <div class="w-20 h-20 bg-primary-400 rounded-full flex items-center justify-center shrink-0">

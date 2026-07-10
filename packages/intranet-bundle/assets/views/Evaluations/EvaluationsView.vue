@@ -11,7 +11,7 @@ import {
   getAnneesService
 } from '@requests';
 import {useUsersStore, useAnneeStore, useAnneeUnivStore} from '@stores';
-import {ErrorView, PermissionGuard, SimpleSkeleton, ListSkeleton} from '@components';
+import {ErrorView, PermissionGuard, SimpleSkeleton, ListSkeleton, HeaderComponent} from '@components';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
 import EvaluationListeInitForm from "../../components/Evaluation/EvaluationListeInitForm.vue";
@@ -42,7 +42,7 @@ const dialogMode = ref(''); // 'init' | 'edit' | 'saisie'
 const dialogHeader = ref('');
 const selectedEvaluation = ref(null);
 const allEvaluations = computed(() =>
-  (enseignements.value || []).flatMap(enseignement => enseignement?.evaluations || [])
+    (enseignements.value || []).flatMap(enseignement => enseignement?.evaluations || [])
 );
 
 // Cache: expected total notes per (semestreId, typeGroupe)
@@ -297,71 +297,77 @@ const onEvaluationSaved = async () => {
 </script>
 
 <template>
+  <HeaderComponent
+      icon="pi pi-chart-line"
+      titre="Évaluations"
+      description="Gérez les évaluations, la planification et la saisie des notes"
+  />
+
+  <div class="flex justify-around items-center mb-12">
+    <div class="card w-1/5 flex items-center justify-center flex-col">
+      <div class="font-bold text-lg card-header text-center">À initialiser</div>
+      <div class="flex items-center gap-2 card-body">
+        <i class="pi pi-exclamation-triangle text-red-500"></i>
+        <SimpleSkeleton v-if="isLoadingEvaluations" class="w-1/2"/>
+        <span v-else class="text-red-500">{{ allEvaluations.filter(e => e.etat === 'non_initialisee').length }}</span>
+      </div>
+    </div>
+    <div class="card w-1/5 flex items-center justify-center flex-col">
+      <div class="font-bold text-lg card-header text-center">À planifier</div>
+      <div class="flex items-center gap-2 card-body">
+        <i class="pi pi-calendar text-blue-500"></i>
+        <span class="text-blue-500">{{ allEvaluations.filter(e => e.etat === 'initialisee').length }}</span>
+      </div>
+    </div>
+    <div class="card w-1/5 flex items-center justify-center flex-col">
+      <div class="font-bold text-lg card-header text-center">Notes à saisir</div>
+      <div class="flex items-center gap-2 card-body">
+        <i class="pi pi-check-circle text-yellow-500"></i>
+        <span class="text-yellow-500">{{ allEvaluations.filter(e => e.etat === 'planifiee').length }}</span>
+      </div>
+    </div>
+    <div class="card w-1/5 flex items-center justify-center flex-col">
+      <div class="font-bold text-lg card-header text-center">À publier</div>
+      <div class="flex items-center gap-2 card-body">
+        <i class="pi pi-send text-green-500"></i>
+        <span class="text-green-500">{{ allEvaluations.filter(e => e.etat === 'completee').length }}</span>
+      </div>
+    </div>
+  </div>
+
   <div class="card">
     <ErrorView v-if="hasError"></ErrorView>
     <div v-else>
-      <div class="flex justify-between items-end w-full">
+      <div class="flex justify-between items-end w-full card-header">
         <div>
-          <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">
-            Évaluations du
+          <p class="top-card-header">
+            Liste des évaluations
+          </p>
+          <h2 class="text-sm text-color-secondary">
+            Semestre :
             <SimpleSkeleton v-if="isLoadingSemestres" class="!w-32"></SimpleSkeleton>
             <span v-else>{{ semestre.libelle }}</span>
           </h2>
-          <em>Gérer les évaluations et la saisie des notes</em>
         </div>
         <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
-        <div v-else class="flex gap-4">
-          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
-          <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
-        </div>
-      </div>
-      <Divider />
-      <ListSkeleton v-if="isLoadingEnseignements" class="w-1/2"/>
-      <div v-else>
-        <div class="flex justify-around items-center">
-          <div class="card w-1/5 flex items-center justify-center flex-col">
-              <div class="font-bold text-lg">À initialiser</div>
-              <div class="flex items-center gap-2">
-                <i class="pi pi-exclamation-triangle text-red-500"></i>
-                <SimpleSkeleton v-if="isLoadingEvaluations" class="w-1/2"/>
-                <span v-else class="text-red-500">{{ allEvaluations.filter(e => e.etat === 'non_initialisee').length }}</span>
-              </div>
+        <div v-else class="flex flex-col gap-2">
+          <div class="flex gap-4">
+            <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
+            <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
           </div>
-          <div class="card w-1/5 flex items-center justify-center flex-col">
-            <div class="font-bold text-lg">À planifier</div>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-calendar text-blue-500"></i>
-              <span class="text-blue-500">{{ allEvaluations.filter(e => e.etat === 'initialisee').length }}</span>
-            </div>
-          </div>
-          <div class="card w-1/5 flex items-center justify-center flex-col">
-              <div class="font-bold text-lg">Notes à saisir</div>
-              <div class="flex items-center gap-2">
-                <i class="pi pi-check-circle text-yellow-500"></i>
-                <span class="text-yellow-500">{{ allEvaluations.filter(e => e.etat === 'planifiee').length }}</span>
-              </div>
-          </div>
-          <div class="card w-1/5 flex items-center justify-center flex-col">
-            <div class="font-bold text-lg">À publier</div>
-            <div class="flex items-center gap-2">
-              <i class="pi pi-send text-green-500"></i>
-              <span class="text-green-500">{{ allEvaluations.filter(e => e.etat === 'completee').length }}</span>
-            </div>
-          </div>
-        </div>
-        <div class="flex justify-end gap-4">
           <Button label="Initialiser toutes les évaluations" icon="pi pi-plus-circle" severity="primary" size="small" @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')"/>
         </div>
+      </div>
+      <ListSkeleton v-if="isLoadingEnseignements" class="w-1/2"/>
+      <div v-else class="card-body">
         <Accordion v-if="semestre && enseignements.length !== 0" value="0" class="mt-4">
           <AccordionPanel v-for="enseignement in enseignements" :value="enseignement.id" :key="enseignement.id">
             <AccordionHeader class="hover:bg-primary-300/10!">
               <div class="flex flex-col gap-2 w-full">
                 <div class="flex justify-between items-center w-full">
                   <div class="flex justify-between items-center">
-                    <div class="flex items-center justify-start gap-4">
-                      <div class="bg-primary-700 p-3 rounded-md">
-                        <i class="pi pi-book text-white w-5 h-5 text-center"></i>
-                      </div>
+                    <div class="flex items-center justify-start gap-2">
+                      <i class="pi pi-book text-primary w-5 h-5 text-center"></i>
                       <div class="text-xl font-bold">{{enseignement.codeEnseignement}} - {{enseignement.libelle}}</div>
                       <div class="flex items-center gap-2">
                         <Button label="" icon="pi pi-eye" outlined severity="info" size="small" @click="" v-tooltip.top="`Voir les détails de l'enseignement`"/>
@@ -404,16 +410,16 @@ const onEvaluationSaved = async () => {
               <div v-else>
                 <div v-if="enseignement.evaluations && enseignement.evaluations.length !== 0" class="flex flex-col gap-2">
                   <EvaluationCard
-                    v-for="evaluation in enseignement.evaluations"
-                    :key="evaluation.id"
-                    :evaluation="evaluation"
-                    :semestreId="semestre.id"
-                    @open-dialog="openEvaluationDialog"
-                    @update-visibility="updateEvaluationVisibility"
-                    @update-edit="updateEvaluationEdit"
-                    @saved="onEvaluationSaved"
-                    @cancel-eval="onEvaluationSaved"
-                    @reactiver-eval="onEvaluationSaved"
+                      v-for="evaluation in enseignement.evaluations"
+                      :key="evaluation.id"
+                      :evaluation="evaluation"
+                      :semestreId="semestre.id"
+                      @open-dialog="openEvaluationDialog"
+                      @update-visibility="updateEvaluationVisibility"
+                      @update-edit="updateEvaluationEdit"
+                      @saved="onEvaluationSaved"
+                      @cancel-eval="onEvaluationSaved"
+                      @reactiver-eval="onEvaluationSaved"
                   />
                 </div>
                 <div v-else class="flex justify-center">

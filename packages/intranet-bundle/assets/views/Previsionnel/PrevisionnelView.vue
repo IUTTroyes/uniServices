@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { HeaderComponent } from '@components';
 
 const router = useRouter();
 
@@ -25,9 +26,12 @@ onMounted(() => {
 </script>
 
 <template>
+    <HeaderComponent
+        icon="pi pi-calendar"
+        titre="Prévisionnels"
+        description="Consultez et gérez les prévisionnels de votre département"
+    />
   <div class="card">
-    <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">Gestion des prévisionnels</h2>
-    <Divider/>
     <Tabs value="/intranet/administration/previsionnel/semestre" scrollable>
       <TabList>
         <router-link

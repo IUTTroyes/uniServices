@@ -5,6 +5,7 @@ import EdtDepartement from "@/components/Edt/EdtDepartement.vue";
 import EdtEtudiant from "../components/Edt/EdtEtudiant.vue";
 import EdtStatistiques from "../components/Edt/EdtStatistiques.vue";
 import {useUsersStore} from "@stores";
+import {HeaderComponent} from '@components';
 
 const store = useUsersStore();
 
@@ -28,12 +29,12 @@ onMounted( () => {
 </script>
 
 <template>
+  <HeaderComponent
+      icon="pi pi-calendar"
+      titre="Emploi du temps"
+      description="Consultez votre emploi du temps, celui du département et les statistiques"
+  />
   <div class="card">
-    <div class="card-title mb-4">
-      <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">Emploi du temps</h2>
-      <p class="text-muted-color">Consultez votre emploi du temps personnel ou celui de votre département.</p>
-    </div>
-
     <Tabs value="0">
       <TabList>
         <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">

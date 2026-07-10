@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ErrorView, ListSkeleton, SimpleSkeleton, ValidatedInput, validationRules} from "@components";
+import {ErrorView, ListSkeleton, SimpleSkeleton, ValidatedInput, HeaderComponent} from "@components";
 import {onMounted, ref} from "vue";
 import {useUsersStore} from '@stores'
 import {getReferentiels} from '@requests'
@@ -103,12 +103,15 @@ const synchronisationOreof = async () => {
 </script>
 
 <template>
+  <HeaderComponent
+      icon="pi pi-book"
+      titre="Référentiels de compétences"
+      description="Gestion des référentiels de compétences"
+  />
   <ErrorView v-if="hasError"/>
   <div v-else class="card">
     <SimpleSkeleton v-if="isLoadingDiplomes" class="w-1/2"/>
     <div v-else>
-      <h2 class="text-2xl font-bold">Référentiels de compétences</h2>
-      <Divider/>
       <Tabs :value="selectedReferentiel?.id || referentiels[0]?.id" scrollable>
         <TabList>
           <Tab v-for="referentiel in referentiels" :key="referentiel.libelle" :value="referentiel.id"

@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useAnneeUnivStore, useUsersStore } from '@stores'
-import { ErrorView, SimpleSkeleton } from '@components'
+import { ErrorView, SimpleSkeleton, PermissionGuard, HeaderComponent } from '@components'
 import { getDiplomesService, deleteAnneeService, deletePnService, deleteDiplomeService, deleteSemestreService, deleteUeService, deleteEnseignementUeService } from '@requests'
 import { synchronisationProgrameOreofService } from '@/service/oreofService.ts'
 import Loader from '@components/loader/GlobalLoader.vue'
@@ -9,7 +9,6 @@ import FicheRessource from '../../components/Pn/FicheRessource.vue'
 import FicheSae from '../../components/Pn/FicheSae.vue'
 import FicheMatiere from '../../components/Pn/FicheMatiere.vue'
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
-import {PermissionGuard} from "@components";
 
 const usersStore = useUsersStore()
 const anneeUnivStore = useAnneeUnivStore()
@@ -179,6 +178,11 @@ const deleteObject = async (objectType, id) => {
 </script>
 
 <template>
+  <HeaderComponent
+      icon="pi pi-book"
+      titre="Programmes pédagogiques Nationaux"
+      description="Gestion de la maquette pédagogique"
+  />
   <ErrorView v-if="hasError"/>
   <div v-else class="card h-full">
     <div v-if="isLoadingDiplomes">
@@ -189,9 +193,6 @@ const deleteObject = async (objectType, id) => {
       </div>
     </div>
     <div v-else>
-      <h2 class="text-2xl! mb-0! font-bold">Programmes pédagogiques nationaux</h2>
-      <em>Gestion de la maquette pédagogique</em>
-      <Divider/>
       <Tabs :value="selectedDiplome?.id || diplomes[0]?.id" scrollable>
         <TabList>
           <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="changeDiplome(diplome)">

@@ -1,5 +1,5 @@
 <script setup>
-import { ProfilPersonnel, ProfilEtudiant } from '@components';
+import { ProfilPersonnel, ProfilEtudiant, HeaderComponent } from '@components';
 import {useUsersStore} from "@stores";
 import {computed, onMounted} from "vue";
 
@@ -16,6 +16,11 @@ onMounted(async () => {
 </script>
 
 <template>
+  <HeaderComponent
+      icon="pi pi-id-card"
+      titre="Profil"
+      description="Consultez votre profil et les informations associées"
+  />
   <div class="card">
     <ProfilPersonnel v-if="isPersonnel" />
     <ProfilEtudiant v-if="isEtudiant" :etudiant-sco="store.scolariteActif" :etudiant-photo="store.userPhoto" />

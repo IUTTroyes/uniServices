@@ -7,6 +7,7 @@ import StatisticsPanel from '@/components/Trombinoscope/StatisticsPanel.vue';
 import PersonCard from '@/components/Trombinoscope/PersonCard.vue';
 import {useUsersStore} from '@stores';
 import type {Etudiant, Personnel} from "@types";
+import {HeaderComponent} from '@components'
 
 const students = ref<Etudiant[]>([]);
 const staff = ref<Personnel[]>([]);      // tableau de personnels réel
@@ -130,6 +131,11 @@ async function fetchData() {
 </script>
 
 <template>
+  <HeaderComponent
+      icon="pi pi-users"
+      titre="Trombinoscope"
+      description="Consultez les profils des étudiants et du personnel"
+  />
   <div class="min-h-screen flex">
     <!-- Sidebar -->
     <FilterSidebar

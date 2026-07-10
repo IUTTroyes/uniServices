@@ -1,16 +1,10 @@
 <template>
   <div class="min-h-screen">
-    <!-- Header Block -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-      <div>
-        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-          <AcademicCapIcon class="w-8 h-8 text-primary-500" />
-          Portail Évaluation & Qualité
-        </h1>
-        <p class="text-gray-600 dark:text-gray-400 mt-1">
-          Pilotez, répondez et analysez les enquêtes d'enseignement
-        </p>
-      </div>
+    <HeaderComponent
+      icon="pi pi-chart-bar"
+      titre="Portail Évaluation & Qualité"
+      description="Pilotez, répondez et analysez les enquêtes d'enseignement"
+    />
 
       <!-- Role Selector Tabs -->
       <div class="bg-gray-200/80 dark:bg-gray-800/80 backdrop-blur-md p-1 rounded-xl flex gap-1 self-start shadow-inner border border-gray-300/30 dark:border-gray-700/30">
@@ -29,7 +23,6 @@
           {{ role.label }}
         </button>
       </div>
-    </div>
 
     <!-- Active View Area -->
     <Transition name="fade" mode="out-in">
@@ -55,6 +48,7 @@ import DashboardTeacher from '../components/Dashboard/DashboardTeacher.vue';
 import DashboardAdmin from '../components/Dashboard/DashboardAdmin.vue';
 import { useSurveyStore } from '@/stores/survey';
 import { useResponseStore } from '@/stores/responses';
+import { HeaderComponent } from '@components';
 
 const route = useRoute();
 const surveyStore = useSurveyStore();

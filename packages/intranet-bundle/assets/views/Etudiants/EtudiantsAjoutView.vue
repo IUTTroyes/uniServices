@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { HeaderComponent } from '@components';
 
 const router = useRouter();
 
@@ -31,9 +32,12 @@ onMounted(async () => {
 </script>
 
 <template>
+  <HeaderComponent
+      icon="pi pi-user-plus"
+      titre="Ajout d'étudiants"
+      description="Ajoutez de nouveaux étudiants à votre département"
+  />
   <div class="card">
-    <h2 class="text-2xl! font-bold mb-4">Ajouter des étudiants</h2>
-    <Divider/>
     <Tabs :value="activeTab" scrollable>
       <TabList>
         <router-link

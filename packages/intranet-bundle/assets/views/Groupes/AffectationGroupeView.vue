@@ -1,14 +1,13 @@
 <script setup>
 import {computed, onMounted, onUnmounted, ref, watch, nextTick} from 'vue'
-import {ErrorView, SimpleSkeleton} from "@components";
+import {ErrorView, SimpleSkeleton, HeaderComponent} from "@components";
 import {typesGroupes} from '@config/uniServices.js';
-import {useSemestreStore, useUsersStore, useAnneeStore, useAnneeUnivStore} from "@stores";
+import {useSemestreStore, useUsersStore, useAnneeUnivStore} from "@stores";
 import {
   getEtudiantScolariteSemestresService,
   getGroupesService,
   getSemestresService,
   getAnneesService,
-  getAnneeService,
   updateEtudiantScolariteSemestreService
 } from "@requests";
 import {useRoute} from "vue-router";
@@ -126,13 +125,13 @@ watch(selectedGroupe, () => {
 
 const getAnnees = async () => {
   isLoadingAnnees.value = true;
-  
+
   if (!departementId.value || !selectedAnneeUniversitaireId.value) {
     annees.value = [];
     isLoadingAnnees.value = false;
     return;
   }
-  
+
   try {
     const params = {
       departement: departementId.value,
@@ -162,7 +161,7 @@ const getSemestres = async () => {
     hasError.value = true;
     console.error("Erreur lors de la récupération des semestres :", error);
   } finally {
-    
+
     isLoadingSemestres.value = false;
   }
 };
@@ -175,7 +174,7 @@ const getGroupes = async () => {
       semestre: semestre.value.id,
     };
     const rawGroupes = await getGroupesService(params, '/mini');
-    
+
     // Trier les groupes par type dans des tableaux séparés
     const groupesParType = {};
     typesGroupes.forEach(type => {
@@ -188,13 +187,13 @@ const getGroupes = async () => {
       }
     }
     groupes.value = groupesParType;
-    
+
     // initialiser selectedGroupe si nécessaire
     const types = Object.keys(groupes.value);
     if (types.length > 0 && (!selectedGroupe.value || !types.includes(selectedGroupe.value))) {
       selectedGroupe.value = types[0];
     }
-    
+
     // synchroniser la présélection des radios dès que les groupes sont connus
     syncPreselectedRadios();
   } catch (error) {
@@ -211,7 +210,7 @@ const getEtudiants = async () => {
     nbEtudiants.value = 0;
     return;
   }
-  
+
   isLoadingEtudiants.value = true;
   hasError.value = false;
   try {
@@ -221,10 +220,10 @@ const getEtudiants = async () => {
       limit: limit.value,
       page: parseInt(page.value) + 1,
     };
-    
+
     const responsePage = await getEtudiantScolariteSemestresService(params, '/manage-groupes');
     etudiantsScolariteSemestre.value = responsePage.member ?? responsePage;
-    
+
     if (responsePage.totalItems !== undefined) {
       nbEtudiants.value = responsePage.totalItems;
     } else {
@@ -238,7 +237,7 @@ const getEtudiants = async () => {
       const responseCount = await getEtudiantScolariteSemestresService(countParams);
       nbEtudiants.value = responseCount.totalItems ?? (Array.isArray(responseCount.member) ? responseCount.member.length : 0);
     }
-    
+
     // Après chargement des étudiants, synchroniser la présélection
     syncPreselectedRadios();
   } catch (error) {
@@ -253,16 +252,16 @@ const syncPreselectedRadios = () => {
   try {
     const type = selectedGroupe.value;
     if (!type) return;
-    
+
     const listeGroupesType = groupes.value?.[type] || [];
-    
+
     etudiantsScolariteSemestre.value.forEach((sco) => {
       const assigned = (sco.groupes || []).find((g) => g?.type === type);
       if (!assigned) {
         sco.groupeAffecte = null;
         return;
       }
-      
+
       // Normaliser l'ID si c'est une IRI
       let assignedId = assigned.id;
       if (typeof assignedId === 'string' && assignedId.startsWith('/')) {
@@ -271,7 +270,7 @@ const syncPreselectedRadios = () => {
         const parsed = parseInt(last, 10);
         if (!isNaN(parsed)) assignedId = parsed;
       }
-      
+
       const match = listeGroupesType.find((g) => g.id === assignedId);
       sco.groupeAffecte = match || null;
     });
@@ -285,20 +284,20 @@ const assignGroupe = async (etudiantScolariteSemestreId, groupeId) => {
     // Retrouver l'objet scolariteSemestre concerné
     const scolariteSemestre = etudiantsScolariteSemestre.value.find(e => e.id === etudiantScolariteSemestreId);
     if (!scolariteSemestre) return;
-    
+
     const groupType = selectedGroupe.value; // ex: 'CM', 'TD', 'TP'
-    
+
     // Copie de la liste actuelle des groupes affectés à l'étudiant pour ce semestre
     const currentGroupes = Array.isArray(scolariteSemestre.groupes) ? [...scolariteSemestre.groupes] : [];
-    
+
     // L'ensemble des groupes du semestre (tous types confondus) pour retrouver l'objet complet
     const semGroupes = Object.values(groupes.value).flat();
-    
+
     // Trouver l'objet groupe sélectionné (ou créer un placeholder avec id/type)
     const newGroup = groupeId != null
     ? (semGroupes.find(g => g.id === groupeId) || { id: groupeId, type: groupType })
     : null;
-    
+
     // Remplacer/supprimer le groupe du même type dans la liste actuelle
     const idx = currentGroupes.findIndex(g => g.type === groupType);
     if (idx !== -1) {
@@ -310,11 +309,11 @@ const assignGroupe = async (etudiantScolariteSemestreId, groupeId) => {
     } else if (newGroup) {
       currentGroupes.push(newGroup);
     }
-    
+
     // Mettre à jour le modèle local pour réactivité immédiate
     scolariteSemestre.groupes = currentGroupes;
     scolariteSemestre.groupeAffecte = newGroup;
-    
+
     // Construire le payload en IRI
     const payloadGroupes = currentGroupes.map(g => {
       if (typeof g.id === 'number') {
@@ -323,9 +322,9 @@ const assignGroupe = async (etudiantScolariteSemestreId, groupeId) => {
       // si g.id est un objet (Hydra/IRI déjà), le laisser tel quel
       return g.id;
     });
-    
+
     await updateEtudiantScolariteSemestreService(etudiantScolariteSemestreId, { groupes: payloadGroupes }, false);
-    
+
     // Afficher un toast de succès seulement s'il n'y en a pas déjà un (évite les spams en sélection multiple)
     const existingSuccessToast = Array.from(document.querySelectorAll('.p-toast-message-success')).length > 0;
     if (!existingSuccessToast) {
@@ -515,13 +514,14 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <HeaderComponent
+      icon="pi pi-address-book"
+      :titre="`Composition des groupes de ${annee?.libelle}`"
+      description="Répartir les étudiants dans les groupes"
+  />
   <div class="card min-h-full">
     <div class="flex flex-col gap-2">
       <div class="flex items-center justify-between">
-        <div>
-          <h2 class="text-2xl! mb-0! font-bold">Composition des groupes de {{annee.libelle}}</h2>
-        <em>Répartir les étudiants dans les groupes</em>
-        </div>
         <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
         <div v-else class="flex gap-4">
           <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
@@ -582,7 +582,7 @@ onUnmounted(() => {
             </Tab>
           </TabList>
         </Tabs>
-        
+
         <DataTable
         v-if="selectedGroupe && groupes[selectedGroupe]"
         v-model:filters="filters"
@@ -663,7 +663,7 @@ onUnmounted(() => {
               <span>{{ g.libelle }}</span>
             </div>
           </template>
-          
+
           <template #body="{ data }">
             <div class="p-1">
               <RadioButton
@@ -703,7 +703,7 @@ onUnmounted(() => {
         </Column>
         <template #footer> {{ nbEtudiants }} résultat(s).</template>
       </DataTable>
-      
+
       <div v-else-if="!isLoadingGroupes" class="flex items-center justify-center gap-2">
         <Message severity="warn" class="w-fit" icon="pi pi-exclamation-triangle">
           Aucun groupe pour le semestre ou le type sélectionné.

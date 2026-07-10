@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
 import {getAnneeService, getGroupesService, getSemestresService, updateGroupeService } from "@requests";
-import { ErrorView, SimpleSkeleton, GlobalLoader, PermissionGuard, ButtonDelete, ButtonEdit, ButtonInfo } from "@components";
+import { ErrorView, SimpleSkeleton, GlobalLoader, PermissionGuard, ButtonDelete, ButtonEdit, ButtonInfo, HeaderComponent } from "@components";
 import { useUsersStore, useSemestreStore, useAnneeStore } from "@stores";
 import {typesGroupes} from "@config/uniServices.js";
 import {useRoute} from "vue-router";
@@ -134,7 +134,7 @@ const synchroApogee = async () => {
   isLoadingGroupes.value = true;
   hasError.value = false;
   try {
-    
+
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la synchronisation des groupes :", error);
@@ -161,16 +161,13 @@ const deleteGroupeFromSemestre = async (groupeId, semestre) => {
 </script>
 
 <template>
+  <HeaderComponent
+      icon="pi pi-sitemap"
+      titre="Structure des groupes"
+      description="Gérer la structure des groupes"
+  />
   <div class="card min-h-full">
     <div class="flex justify-between items-end w-full">
-      <div>
-        <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">
-          Structure des groupes du
-          <SimpleSkeleton v-if="isLoadingSemestres" class="!w-32"></SimpleSkeleton>
-          <span v-else>{{ annee.libelle }}</span>
-        </h2>
-        <em>Configurer la structure des groupes</em>
-      </div>
       <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
       <div v-else class="flex gap-4">
         <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">

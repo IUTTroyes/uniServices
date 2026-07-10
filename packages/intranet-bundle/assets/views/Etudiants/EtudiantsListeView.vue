@@ -4,7 +4,7 @@ import { useRoute } from 'vue-router';
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue';
-import {ErrorView, ProfilEtudiant, SimpleSkeleton} from '@components';
+import {ErrorView, ProfilEtudiant, SimpleSkeleton, HeaderComponent} from '@components';
 import { getEtudiantsScolariteService, demissionEtudiantScolariteService, getAnneesService } from '@requests';
 import { useToast } from 'primevue/usetoast';
 import { useUsersStore, useAnneeUnivStore } from '@stores';
@@ -197,9 +197,12 @@ const deleteEtudiant = async etudiant => {
 </script>
 
 <template>
+  <HeaderComponent
+      icon="pi pi-users"
+      titre="Liste des étudiants"
+      description="Consultez la liste des étudiants inscrits dans le département"
+  />
   <div class="card">
-    <h2 class="text-2xl! font-bold mb-4">Tous les étudiants inscrits dans le département</h2>
-
     <ErrorView v-if="hasError" />
     <div v-else>
       <div class="flex gap-4 w-full pb-6 overflow-x-auto">
