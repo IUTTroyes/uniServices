@@ -26,6 +26,7 @@ import { useSurveyStore } from '@/stores/survey';
 import { useResponseStore } from '@/stores/responses';
 import { useUIStore } from '@/stores/ui';
 import { formatDate, formatRelativeTime } from '@/utils/date';
+import { Kpi, QuickActionCard } from '@components';
 
 const router = useRouter();
 const surveyStore = useSurveyStore();
@@ -199,87 +200,40 @@ function getSurveyStats(surveyUuid: string) {
   <div class="space-y-8">
     <!-- Quick Stats Banner -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="card p-5 flex items-center justify-between border border-gray-200 dark:border-gray-700">
-        <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Questionnaires</p>
-          <p class="text-3xl font-extrabold text-gray-900 dark:text-white mt-1">{{ surveyStore.surveyCount }}</p>
-        </div>
-        <div class="p-3 rounded-xl bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">
-          <DocumentTextIcon class="w-6 h-6" />
-        </div>
-      </div>
-
-      <div class="card p-5 flex items-center justify-between border border-gray-200 dark:border-gray-700">
-        <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Publiés</p>
-          <p class="text-3xl font-extrabold text-gray-900 dark:text-white mt-1">{{ surveyStore.publishedSurveys.length }}</p>
-        </div>
-        <div class="p-3 rounded-xl bg-purple-100 dark:bg-purple-900/40 text-purple-600 dark:text-purple-400">
-          <RocketLaunchIcon class="w-6 h-6" />
-        </div>
-      </div>
-
-      <div class="card p-5 flex items-center justify-between border border-gray-200 dark:border-gray-700">
-        <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Réponses totales</p>
-          <p class="text-3xl font-extrabold text-gray-900 dark:text-white mt-1">{{ responseStore.totalResponses }}</p>
-        </div>
-        <div class="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400">
-          <ChatBubbleLeftRightIcon class="w-6 h-6" />
-        </div>
-      </div>
-
-      <div class="card p-5 flex items-center justify-between border border-gray-200 dark:border-gray-700">
-        <div>
-          <p class="text-sm text-gray-500 dark:text-gray-400 font-medium">Taux moyen</p>
-          <p class="text-3xl font-extrabold text-gray-900 dark:text-white mt-1">{{ averageCompletionRate }}%</p>
-        </div>
-        <div class="p-3 rounded-xl bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400">
-          <ArrowTrendingUpIcon class="w-6 h-6" />
-        </div>
-      </div>
+      <Kpi label="Questionnaires" :value="surveyStore.surveyCount" :icon="DocumentTextIcon" color="blue" />
+      <Kpi label="Publiés" :value="surveyStore.publishedSurveys.length" :icon="RocketLaunchIcon" color="green" />
+      <Kpi label="Réponses totales" :value="responseStore.totalResponses" :icon="ChatBubbleLeftRightIcon" color="teal" />
+      <Kpi label="Taux moyen" :value="averageCompletionRate" :icon="ArrowTrendingUpIcon" color="orange" />
     </div>
 
     <!-- Quick Actions Row -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="card flex items-center space-x-4">
-        <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/40 rounded-lg flex items-center justify-center">
-          <PlusIcon class="w-6 h-6 text-blue-600 dark:text-blue-400" />
-        </div>
-        <div class="flex-1">
-          <h3 class="font-bold text-gray-900 dark:text-white">Créer un questionnaire</h3>
-          <p class="text-xs text-gray-500">Commencer par en créer un nouveau de zéro</p>
-        </div>
-        <router-link :to="{name: 'questionnaire_builder', params: {id:'new'}}" class="btn-primary px-3 py-1.5 rounded-lg text-sm">
-          Créer
-        </router-link>
-      </div>
+      <QuickActionCard
+        title="Créer un questionnaire"
+        description="Commencer par en créer un nouveau de zéro"
+        :icon="PlusIcon"
+        color="blue"
+        button-label="Créer"
+        :to="{ name: 'questionnaire_builder', params: { id: 'new' } }"
+      />
 
-      <div class="card flex items-center space-x-4">
-        <div class="w-12 h-12 bg-green-100 dark:bg-green-900/40 rounded-lg flex items-center justify-center">
-          <DocumentDuplicateIcon class="w-6 h-6 text-green-600 dark:text-green-400" />
-        </div>
-        <div class="flex-1">
-          <h3 class="font-bold text-gray-900 dark:text-white">Modèles pré-définis</h3>
-          <p class="text-xs text-gray-500">Créer depuis des modèles existants</p>
-        </div>
-        <button @click="showTemplates = true" class="btn-secondary bg-green-100 hover:bg-green-200 dark:bg-green-950 text-green-700 dark:text-green-300 px-3 py-1.5 rounded-lg text-sm font-semibold">
-          Parcourir
-        </button>
-      </div>
+      <QuickActionCard
+        title="Modèles pré-définis"
+        description="Créer depuis des modèles existants"
+        :icon="DocumentDuplicateIcon"
+        color="green"
+        button-label="Parcourir"
+        @action="showTemplates = true"
+      />
 
-      <div class="card flex items-center space-x-4">
-        <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900/40 rounded-lg flex items-center justify-center">
-          <ListBulletIcon class="w-6 h-6 text-purple-600 dark:text-purple-400" />
-        </div>
-        <div class="flex-1">
-          <h3 class="font-bold text-gray-900 dark:text-white">Gestion Détaillée</h3>
-          <p class="text-xs text-gray-500">Consulter et filtrer la liste complète</p>
-        </div>
-        <router-link :to="{name: 'questionnaire_enquetes-liste'}" class="btn-secondary bg-purple-100 hover:bg-purple-200 dark:bg-purple-950 text-purple-700 dark:text-purple-300 px-3 py-1.5 rounded-lg text-sm font-semibold">
-          Voir
-        </router-link>
-      </div>
+      <QuickActionCard
+        title="Gestion Détaillée"
+        description="Consulter et filtrer la liste complète"
+        :icon="ListBulletIcon"
+        color="purple"
+        button-label="Voir"
+        :to="{ name: 'questionnaire_enquetes-liste' }"
+      />
     </div>
 
     <!-- Dynamic Content Section -->
