@@ -3,22 +3,23 @@ import { ref, computed } from 'vue';
 import type { Response, Participant, SurveyInvitation, SurveyAnalytics } from '@/types/survey';
 import { v4 as uuidv4 } from 'uuid';
 import { faker } from '@faker-js/faker';
-import { getQuestionnaireInvitations } from '@/requests/questionnaire_services/questionnaireService';
+import { getQuestionnaireInvitations, getQuestionnaireAnalytics, exportQuestionnaireExcel } from '@/requests/questionnaire_services/questionnaireService';
 
 export const useResponseStore = defineStore('responses', () => {
   const responses = ref<Response[]>([]);
   const participants = ref<Participant[]>([]);
   const invitations = ref<SurveyInvitation[]>([]);
   const currentResponse = ref<Response | null>(null);
+  const detailedAnalytics = ref<any>(null);
 
   // Getters
   const totalResponses = computed(() => responses.value.length);
-  
-  const responsesBySurvey = computed(() => (surveyId: string) => 
+
+  const responsesBySurvey = computed(() => (surveyId: string) =>
     responses.value.filter(r => r.surveyId === surveyId)
   );
 
-  const completedResponses = computed(() => (surveyId: string) => 
+  const completedResponses = computed(() => (surveyId: string) =>
     responses.value.filter(r => r.surveyId === surveyId && r.completed)
   );
 
@@ -42,7 +43,7 @@ export const useResponseStore = defineStore('responses', () => {
 
     responses.value.push(response);
     currentResponse.value = response;
-    
+
     return response;
   }
 
@@ -128,7 +129,7 @@ export const useResponseStore = defineStore('responses', () => {
   function getSurveyAnalytics(surveyId: string): SurveyAnalytics {
     const surveyResponses = responsesBySurvey.value(surveyId);
     const completedCount = completedResponses.value(surveyId).length;
-    const surveyParticipants = participants.value.filter(p => 
+    const surveyParticipants = participants.value.filter(p =>
       surveyResponses.some(r => r.participantId === p.id)
     );
 
@@ -165,9 +166,9 @@ export const useResponseStore = defineStore('responses', () => {
   function generateDemoData(surveyId: string, count: number = 50) {
     const demoParticipants: Participant[] = [];
     const demoResponses: Response[] = [];
-    
+
     // Clear existing demo data for this survey
-    participants.value = participants.value.filter(p => 
+    participants.value = participants.value.filter(p =>
       !responses.value.some(r => r.surveyId === surveyId && r.participantId === p.id)
     );
     responses.value = responses.value.filter(r => r.surveyId !== surveyId);
@@ -213,15 +214,15 @@ export const useResponseStore = defineStore('responses', () => {
       'satisfaction_generale': faker.helpers.arrayElement([
         'Très satisfait', 'Satisfait', 'Neutre', 'Insatisfait', 'Très insatisfait'
       ]),
-      
+
       // Services utilisés (choix multiples)
       'services_utilises': faker.helpers.arrayElements([
         'Support client', 'Documentation', 'Formation', 'Consultation', 'Maintenance'
       ], { min: 1, max: 3 }),
-      
+
       // Note sur 10
       'note_service': faker.number.int({ min: 1, max: 10 }),
-      
+
       // Commentaires
       'commentaires': faker.helpers.arrayElement([
         'Service excellent, très professionnel',
@@ -234,18 +235,18 @@ export const useResponseStore = defineStore('responses', () => {
         'Équipe à l\'écoute de nos besoins',
         ''
       ]),
-      
+
       // Recommandation
       'recommandation': faker.helpers.arrayElement(['Oui', 'Non', 'Peut-être']),
-      
+
       // Fréquence d'utilisation
       'frequence': faker.helpers.arrayElement([
         'Quotidienne', 'Hebdomadaire', 'Mensuelle', 'Occasionnelle'
       ]),
-      
+
       // Âge
       'age': faker.number.int({ min: 18, max: 75 }),
-      
+
       // Secteur d'activité
       'secteur': faker.helpers.arrayElement([
         'Technologie', 'Santé', 'Éducation', 'Finance', 'Commerce', 'Industrie', 'Services'
@@ -297,13 +298,13 @@ export const useResponseStore = defineStore('responses', () => {
     try {
       const data = await getQuestionnaireInvitations(surveyUuid);
       const members = data.member || data['hydra:member'] || [];
-      
+
       const mappedResponses: Response[] = [];
       const mappedParticipants: Participant[] = [];
-      
+
       members.forEach((invitation: any) => {
         const pId = invitation.id.toString();
-        
+
         const answersMap: Record<string, any> = {};
         if (Array.isArray(invitation.questionnaireReponses)) {
           invitation.questionnaireReponses.forEach((ans: any) => {
@@ -312,12 +313,12 @@ export const useResponseStore = defineStore('responses', () => {
             }
           });
         }
-        
+
         const createdDate = invitation.createdAt ? new Date(invitation.createdAt) : new Date();
         const startedDate = invitation.startedAt ? new Date(invitation.startedAt) : undefined;
         const submittedDate = invitation.submittedAt ? new Date(invitation.submittedAt) : undefined;
         const lastActivityDate = submittedDate || startedDate || createdDate;
-        
+
         mappedResponses.push({
           id: invitation.token,
           surveyId: surveyUuid,
@@ -328,7 +329,7 @@ export const useResponseStore = defineStore('responses', () => {
           lastActivity: lastActivityDate,
           answers: answersMap
         });
-        
+
         mappedParticipants.push({
           id: pId,
           email: invitation.email || 'Participant anonyme',
@@ -339,12 +340,12 @@ export const useResponseStore = defineStore('responses', () => {
           respondedAt: submittedDate
         });
       });
-      
+
       responses.value = [
         ...responses.value.filter(r => r.surveyId !== surveyUuid),
         ...mappedResponses
       ];
-      
+
       participants.value = [
         ...participants.value.filter(p => !mappedParticipants.some(mp => mp.id === p.id)),
         ...mappedParticipants
@@ -354,12 +355,31 @@ export const useResponseStore = defineStore('responses', () => {
     }
   }
 
+  async function fetchDetailedAnalytics(surveyUuid: string) {
+    try {
+      const data = await getQuestionnaireAnalytics(surveyUuid);
+      detailedAnalytics.value = data;
+      return data;
+    } catch (e) {
+      console.error('Failed to fetch detailed analytics:', e);
+    }
+  }
+
+  async function triggerExcelExport(surveyUuid: string) {
+    try {
+      await exportQuestionnaireExcel(surveyUuid);
+    } catch (e) {
+      console.error('Failed to export to Excel:', e);
+    }
+  }
+
   return {
     // State
     responses,
     participants,
     invitations,
     currentResponse,
+    detailedAnalytics,
 
     // Getters
     totalResponses,
@@ -377,6 +397,8 @@ export const useResponseStore = defineStore('responses', () => {
     getSurveyAnalytics,
     generateDemoData,
     fetchSurveyResponses,
+    fetchDetailedAnalytics,
+    triggerExcelExport,
     saveToLocalStorage,
     loadFromLocalStorage
   };

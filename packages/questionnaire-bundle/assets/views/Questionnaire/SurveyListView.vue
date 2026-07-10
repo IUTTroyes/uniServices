@@ -19,7 +19,8 @@ import { useResponseStore } from '@/stores/responses';
 import { useUIStore } from '@/stores/ui';
 import SurveyPreviewModal from '@/components/Questionnaire/SurveyPreviewModal.vue';
 import { formatDate } from '@/utils/date';
-import { HeaderComponent } from '@components';
+import { HeaderComponent, Kpi, Card } from '@components';
+import ActionButtonVertical from '@components/components/ActionButtonVertical.vue';
 
 const router = useRouter();
 const responseStore = useResponseStore();
@@ -129,75 +130,32 @@ const exportSurvey = (survey: any) => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 transition-colors duration-300">
-    <div class="flex flex-col gap-2 mb-8">
-      <HeaderComponent
-        icon="pi pi-list"
-        titre="Liste des questionnaires"
-        description="Gérez l'ensemble des enquêtes, consultez les taux de réponse et exportez les rapports"
-      />
-      <div class="text-sm text-gray-500 dark:text-gray-400">
-        {{ nbQuestionnaires || 0 }} total
-      </div>
-      <router-link :to="{ name: 'questionnaire_builder', params: { id: 'new' } }"
-        class="btn-primary flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl font-semibold shadow-md shrink-0 self-start md:self-auto">
-        <PlusIcon class="w-5 h-5" />
-        Créer un questionnaire
-      </router-link>
-    </div>
+  <div class="min-h-screen">
+    <HeaderComponent icon="pi pi-list" titre="Liste des questionnaires"
+      description="Gérez l'ensemble des enquêtes, consultez les taux de réponse et exportez les rapports">
+      <template #actions>
+        <ActionButtonVertical :to="{ name: 'questionnaire_builder', params: { id: 'new' } }" :icon="PlusIcon"
+          label="Créer un questionnaire" severity="success" />
+      </template>
+    </HeaderComponent>
 
     <!-- Summary KPI cards -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-      <div class="card p-4 flex items-center justify-between border border-gray-200 dark:border-gray-700">
-        <div>
-          <p class="text-xs text-gray-500 uppercase font-semibold tracking-wider">Total</p>
-          <p class="text-2xl font-extrabold text-gray-900 dark:text-white mt-1">{{ nbQuestionnaires || 0 }}</p>
-        </div>
-        <div class="p-2.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-          <DocumentTextIcon class="w-5 h-5" />
-        </div>
-      </div>
-
-      <div class="card p-4 flex items-center justify-between border border-gray-200 dark:border-gray-700">
-        <div>
-          <p class="text-xs text-gray-500 uppercase font-semibold tracking-wider">Publiés</p>
-          <p class="text-2xl font-extrabold text-gray-900 dark:text-white mt-1">{{ countByStatus('published') }}</p>
-        </div>
-        <div class="p-2.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
-          <RocketLaunchIcon class="w-5 h-5" />
-        </div>
-      </div>
-
-      <div class="card p-4 flex items-center justify-between border border-gray-200 dark:border-gray-700">
-        <div>
-          <p class="text-xs text-gray-500 uppercase font-semibold tracking-wider">Brouillons</p>
-          <p class="text-2xl font-extrabold text-gray-900 dark:text-white mt-1">{{ countByStatus('draft') }}</p>
-        </div>
-        <div class="p-2.5 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400">
-          <PencilIcon class="w-5 h-5" />
-        </div>
-      </div>
-
-      <div class="card p-4 flex items-center justify-between border border-gray-200 dark:border-gray-700">
-        <div>
-          <p class="text-xs text-gray-500 uppercase font-semibold tracking-wider">Fermés</p>
-          <p class="text-2xl font-extrabold text-gray-900 dark:text-white mt-1">{{ countByStatus('closed') }}</p>
-        </div>
-        <div class="p-2.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-650 dark:text-red-400">
-          <ExclamationCircleIcon class="w-5 h-5" />
-        </div>
-      </div>
+      <Kpi label="Total" :value="nbQuestionnaires || 0" :icon="DocumentTextIcon" color="blue" />
+      <Kpi label="Publiés" :value="countByStatus('published')" :icon="RocketLaunchIcon" color="green" />
+      <Kpi label="Brouillons" :value="countByStatus('draft')" :icon="PencilIcon" color="yellow" />
+      <Kpi label="Fermés" :value="countByStatus('closed')" :icon="ExclamationCircleIcon" color="red" />
     </div>
 
     <!-- Main List Card -->
-    <div class="card p-6 border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <Card body-class="overflow-hidden">
       <DataTable v-model:filters="filters" :value="questionnaires" lazy stripedRows paginator :first="offset"
         :rows="limit" :rowsPerPageOptions="rowOptions" :totalRecords="nbQuestionnaires" dataKey="id" filterDisplay="row"
         :loading="loading" @page="onPageChange($event)" @update:rows="limit = $event" :globalFilterFields="['titre']"
         class="p-datatable-responsive p-datatable-sm">
         <template #header>
           <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-4">
-            <h4 class="text-lg font-bold text-gray-800 dark:text-white">Registre des Enquêtes</h4>
+            <h3 class="text-lg font-bold text-gray-800 dark:text-white">Registre des Enquêtes</h3>
             <IconField>
               <InputIcon>
                 <i class="pi pi-search" />
@@ -336,7 +294,7 @@ const exportSurvey = (survey: any) => {
           </div>
         </template>
       </DataTable>
-    </div>
+    </Card>
 
     <!-- Preview Modal -->
     <SurveyPreviewModal v-if="showPreviewDialog" :survey="selectedQuestionnaire" @close="showPreviewDialog = false" />

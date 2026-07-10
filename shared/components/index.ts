@@ -21,10 +21,14 @@ import ButtonDelete from "./components/Buttons/ButtonDelete.vue";
 import ButtonEdit from "./components/Buttons/ButtonEdit.vue";
 import ButtonInfo from "./components/Buttons/ButtonInfo.vue";
 import ButtonSave from "./components/Buttons/ButtonSave.vue";
+import ButtonDuplicate from "./components/Buttons/ButtonDuplicate.vue";
 import WidgetCard from './components/Dashboard/WidgetCard.vue';
 import DashboardWidgetsConfiguration from './components/Dashboard/DashboardWidgetsConfiguration.vue';
 import { registerWidgetComponent, resolveWidgetComponent, widgetRegistry } from './components/Dashboard/widgets/widgetRegistry';
 import HeaderComponent from './Header.vue'
+import Kpi from './Kpi.vue'
+import Card from './components/Card.vue'
+import QuickActionCard from './components/QuickActionCard.vue'
 
 import PersonnelsListe from "./components/Personnel/PersonnelsListe.vue";
 
@@ -56,6 +60,7 @@ export {
   ButtonEdit,
   ButtonSave,
   ButtonInfo,
+  ButtonDuplicate,
 
   // Composants majeurs
   LayoutComponent,
@@ -80,4 +85,8 @@ export {
   ExampleValidatedForm,
   validationRules,
   validateField,
+
+  Kpi,
+  Card,
+  QuickActionCard
 };

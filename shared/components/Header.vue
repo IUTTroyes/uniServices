@@ -13,6 +13,14 @@ const props = defineProps({
   description: {
     type: String,
     required: true
+  },
+  backUrl: {
+    type: [String, Object],
+    default: null
+  },
+  showBack: {
+    type: Boolean,
+    default: true
   }
 });
 </script>
@@ -28,7 +36,10 @@ const props = defineProps({
         {{ props.description }}
       </p>
     </div>
-    <Button severity="primary" label="Retour" icon="pi pi-arrow-left" @click="$router.go(-1)" />
+    <div class="flex items-center gap-3 shrink-0">
+      <Button v-if="props.showBack" severity="primary" label="Retour" icon="pi pi-arrow-left" @click="props.backUrl ? $router.push(props.backUrl) : $router.go(-1)" />
+      <slot name="actions" />
+    </div>
   </div>
 </template>
 
