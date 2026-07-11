@@ -242,6 +242,14 @@ function checkSinglePermission(permission, userStore) {
     return security.hasPackage(packageName);
   }
 
+  // Vérifier les types d'utilisateurs
+  if (permission === 'isPersonnel') {
+    return security.user?.type === 'personnels';
+  }
+  if (permission === 'isEtudiant') {
+    return security.user?.type === 'etudiants';
+  }
+
   // Si un rôle temporaire est défini, on ignore le statut SuperAdmin pour permettre une impersonnalisation réelle
   // Sauf si le rôle temporaire lui-même est ROLE_SUPER_ADMIN
   const isImpersonating = !!userStore.temporaryRole && userStore.temporaryRole !== 'ROLE_SUPER_ADMIN';
@@ -251,12 +259,8 @@ function checkSinglePermission(permission, userStore) {
     return true;
   }
 
-  // Vérifier les types d'utilisateurs
-  if (permission === 'isPersonnel') {
-    return security.user?.type === 'personnels';
-  }
-  if (permission === 'isEtudiant') {
-    return security.user?.type === 'etudiants';
+  if (permission === 'isQualite') {
+    return security.hasPermission('ROLE_QUALITE') || security.hasPermission('ROLE_SUPER_ADMIN');
   }
 
   // Vérifier les permissions basées sur les rôles via la map
