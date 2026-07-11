@@ -3,6 +3,12 @@ import { ref, computed } from 'vue';
 import { 
   ChatBubbleLeftRightIcon 
 } from '@heroicons/vue/24/outline';
+import Kpi from '@components/Kpi.vue';
+import Card from '@components/components/Card.vue';
+import Select from 'primevue/select';
+import Tag from 'primevue/tag';
+import Rating from 'primevue/rating';
+import ScrollPanel from 'primevue/scrollpanel';
 
 const selectedFormation = ref('all');
 
@@ -86,6 +92,11 @@ const averageTeacherParticipation = computed(() => {
   if (stats.length === 0) return 0;
   return Math.round(stats.reduce((sum, s) => sum + s.responseRate, 0) / stats.length);
 });
+
+const formationOptions = computed(() => [
+  { label: 'Toutes les formations', value: 'all' },
+  ...teacherFormations.value.map(f => ({ label: f, value: f }))
+]);
 </script>
 
 <template>
@@ -98,62 +109,71 @@ const averageTeacherParticipation = computed(() => {
       </div>
       <div class="flex items-center gap-3">
         <span class="text-sm font-semibold text-gray-600 dark:text-gray-300">Formation :</span>
-        <select v-model="selectedFormation" class="input-field py-2 px-3 rounded-lg max-w-xs shadow-sm bg-gray-50 dark:bg-gray-900 border border-gray-300 dark:border-gray-700">
-          <option value="all">Toutes les formations</option>
-          <option v-for="f in teacherFormations" :key="f" :value="f">{{ f }}</option>
-        </select>
+        <Select 
+          v-model="selectedFormation" 
+          :options="formationOptions" 
+          optionLabel="label" 
+          optionValue="value" 
+          class="w-64 text-sm" 
+        />
       </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="card p-5 bg-gradient-to-br from-indigo-50 to-indigo-100/30 dark:from-indigo-950/20 dark:to-transparent border border-indigo-200/50 dark:border-indigo-900/50">
-        <p class="text-sm font-semibold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider">Matières concernées</p>
-        <p class="text-4xl font-extrabold mt-1 text-gray-900 dark:text-white">{{ filteredTeacherStats.length }}</p>
-        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Modules avec évaluations actives</p>
-      </div>
-      <div class="card p-5 bg-gradient-to-br from-emerald-50 to-emerald-100/30 dark:from-emerald-950/20 dark:to-transparent border border-emerald-200/50 dark:border-emerald-900/50">
-        <p class="text-sm font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">Moyenne de satisfaction</p>
-        <p class="text-4xl font-extrabold mt-1 text-gray-900 dark:text-white">{{ averageTeacherSatisfaction }}%</p>
-        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Moyenne globale pondérée</p>
-      </div>
-      <div class="card p-5 bg-gradient-to-br from-purple-50 to-purple-100/30 dark:from-purple-950/20 dark:to-transparent border border-purple-200/50 dark:border-purple-900/50">
-        <p class="text-sm font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wider">Taux de participation</p>
-        <p class="text-4xl font-extrabold mt-1 text-gray-900 dark:text-white">{{ averageTeacherParticipation }}%</p>
-        <p class="text-xs text-gray-600 dark:text-gray-400 mt-1">Taux moyen de remplissage</p>
-      </div>
+      <Kpi
+        label="Matières concernées"
+        :value="filteredTeacherStats.length"
+        description="Modules avec évaluations actives"
+        color="indigo"
+        :icon="ChatBubbleLeftRightIcon"
+      />
+      <Kpi
+        label="Moyenne de satisfaction"
+        :value="averageTeacherSatisfaction + '%'"
+        description="Moyenne globale pondérée"
+        color="emerald"
+        :icon="ChatBubbleLeftRightIcon"
+      />
+      <Kpi
+        label="Taux de participation"
+        :value="averageTeacherParticipation + '%'"
+        description="Taux moyen de remplissage"
+        color="purple"
+        :icon="ChatBubbleLeftRightIcon"
+      />
     </div>
 
     <!-- Course Evaluation Blocks -->
     <div class="space-y-6">
-      <div 
+      <Card 
         v-for="stat in filteredTeacherStats" 
         :key="stat.courseCode"
-        class="card p-6 border border-gray-250 dark:border-gray-700 hover:shadow-md transition-shadow duration-200"
+        class="border border-gray-250 dark:border-gray-700 hover:shadow-md transition-shadow duration-200"
       >
         <!-- Course Header -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-150 dark:border-gray-700 pb-4 mb-5">
-          <div>
-            <div class="flex items-center gap-2.5">
-              <span class="bg-primary-100 dark:bg-primary-950 text-primary-700 dark:text-primary-300 text-xs font-bold px-2 py-0.5 rounded">
-                {{ stat.formation }}
-              </span>
-              <span class="text-xs text-gray-500 font-mono">{{ stat.courseCode }}</span>
+        <template #header>
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 w-full">
+            <div>
+              <div class="flex items-center gap-2.5">
+                <Tag :value="stat.formation" severity="info" class="text-xs font-bold" />
+                <span class="text-xs text-gray-500 font-mono">{{ stat.courseCode }}</span>
+              </div>
+              <h3 class="text-xl font-bold mt-1 text-gray-900 dark:text-white">{{ stat.courseName }}</h3>
             </div>
-            <h3 class="text-xl font-bold mt-1 text-gray-900 dark:text-white">{{ stat.courseName }}</h3>
-          </div>
 
-          <!-- Stats Pill -->
-          <div class="flex gap-4">
-            <div class="text-right">
-              <p class="text-xs text-gray-500 dark:text-gray-400">Taux de réponse</p>
-              <p class="font-bold text-gray-800 dark:text-gray-200">{{ stat.responseRate }}%</p>
-            </div>
-            <div class="text-right border-l border-gray-200 dark:border-gray-700 pl-4">
-              <p class="text-xs text-gray-550 dark:text-gray-400">Satisfaction</p>
-              <p class="font-extrabold text-emerald-600 dark:text-emerald-400">{{ stat.satisfaction }}%</p>
+            <!-- Stats Pill -->
+            <div class="flex gap-4">
+              <div class="text-right">
+                <p class="text-xs text-gray-550 dark:text-gray-400">Taux de réponse</p>
+                <p class="font-bold text-gray-800 dark:text-gray-200">{{ stat.responseRate }}%</p>
+              </div>
+              <div class="text-right border-l border-gray-200 dark:border-gray-700 pl-4">
+                <p class="text-xs text-gray-550 dark:text-gray-400">Satisfaction</p>
+                <p class="font-extrabold text-emerald-600 dark:text-emerald-400">{{ stat.satisfaction }}%</p>
+              </div>
             </div>
           </div>
-        </div>
+        </template>
 
         <!-- Stats & Comments Breakdown -->
         <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -162,13 +182,16 @@ const averageTeacherParticipation = computed(() => {
             <h4 class="text-sm font-bold text-gray-750 dark:text-gray-300 uppercase tracking-wider">Indicateurs clés :</h4>
             
             <div v-for="indicator in stat.indicators" :key="indicator.name" class="space-y-1">
-              <div class="flex justify-between text-sm">
+              <div class="flex justify-between items-center text-sm">
                 <span class="text-gray-600 dark:text-gray-400 font-medium">{{ indicator.name }}</span>
-                <span class="font-semibold text-gray-900 dark:text-white">{{ indicator.score }}/5</span>
+                <div class="flex items-center gap-2">
+                  <Rating :modelValue="Math.round(indicator.score)" readonly :stars="5" :cancel="false" class="text-xs" />
+                  <span class="font-semibold text-gray-900 dark:text-white text-xs">{{ indicator.score }}/5</span>
+                </div>
               </div>
-              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
                 <div 
-                  class="h-2 rounded-full transition-all duration-500"
+                  class="h-1.5 rounded-full transition-all duration-500"
                   :class="[
                     indicator.score >= 4 ? 'bg-emerald-500' :
                     indicator.score >= 3 ? 'bg-yellow-500' : 'bg-red-500'
@@ -186,23 +209,25 @@ const averageTeacherParticipation = computed(() => {
               Commentaires représentatifs :
             </h4>
 
-            <div class="space-y-2.5 max-h-48 overflow-y-auto pr-2">
-              <div 
-                v-for="(comment, cIdx) in stat.comments" 
-                :key="cIdx"
-                :class="[
-                  'p-3 rounded-lg text-sm italic relative border-l-2',
-                  comment.sentiment === 'positive' 
-                    ? 'bg-green-50/50 dark:bg-green-950/10 border-green-400 text-gray-700 dark:text-gray-300' 
-                    : 'bg-yellow-50/50 dark:bg-yellow-950/10 border-yellow-400 text-gray-700 dark:text-gray-300'
-                ]"
-              >
-                "{{ comment.text }}"
+            <ScrollPanel style="width: 100%; height: 180px">
+              <div class="space-y-2.5 pr-3">
+                <div 
+                  v-for="(comment, cIdx) in stat.comments" 
+                  :key="cIdx"
+                  :class="[
+                    'p-3 rounded-lg text-sm italic relative border-l-2',
+                    comment.sentiment === 'positive' 
+                      ? 'bg-green-50/50 dark:bg-green-950/10 border-green-400 text-gray-700 dark:text-gray-300' 
+                      : 'bg-yellow-50/50 dark:bg-yellow-950/10 border-yellow-400 text-gray-700 dark:text-gray-300'
+                  ]"
+                >
+                  "{{ comment.text }}"
+                </div>
               </div>
-            </div>
+            </ScrollPanel>
           </div>
         </div>
-      </div>
+      </Card>
     </div>
   </div>
 </template>

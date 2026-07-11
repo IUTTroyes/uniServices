@@ -1,9 +1,8 @@
 <template>
-  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" @click="$emit('close')">
-    <div
-      class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden flex flex-col"
-      @click.stop
-    >
+  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]"
+    @click="$emit('close')">
+    <div class="bg-white dark:bg-gray-800 rounded-xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-hidden flex flex-col"
+      @click.stop>
       <!-- Header -->
       <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
         <div>
@@ -14,10 +13,7 @@
             {{ getParticipantName() }} • {{ formatDate(response?.lastActivity) }}
           </p>
         </div>
-        <button
-          @click="$emit('close')"
-          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-        >
+        <button @click="$emit('close')" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
           <XMarkIcon class="w-5 h-5" />
         </button>
       </div>
@@ -27,53 +23,25 @@
         <div v-if="response && survey" class="space-y-6">
           <!-- Response Info -->
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div class="card">
-              <div class="text-center">
-                <p class="text-sm text-gray-600 dark:text-gray-400">Statut</p>
-                <span
-                  :class="[
-                    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-1',
-                    response.completed
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                  ]"
-                >
-                  {{ response.completed ? 'Terminé' : 'En cours' }}
-                </span>
-              </div>
-            </div>
+            <Kpi label="Statut" :value="response.completed ? 'Terminé' : 'En cours'"
+              :icon="response.completed ? CheckCircleIcon : ClockIcon"
+              :color="response.completed ? 'green' : 'yellow'" />
 
-            <div class="card">
-              <div class="text-center">
-                <p class="text-sm text-gray-600 dark:text-gray-400">Progression</p>
-                <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {{ getProgress() }}%
-                </p>
-              </div>
-            </div>
+            <Kpi label="Progression" :value="`${getProgress()}%`" :icon="ChartBarIcon"
+              :color="getProgress() === 100 ? 'green' : 'blue'" />
 
-            <div class="card">
-              <div class="text-center">
-                <p class="text-sm text-gray-600 dark:text-gray-400">Temps passé</p>
-                <p class="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-                  {{ getTimeSpent() }}
-                </p>
-              </div>
-            </div>
+            <Kpi label="Temps passé" :value="getTimeSpent()" :icon="ClockIcon" color="purple" />
           </div>
 
           <!-- Responses by Section -->
           <div v-for="section in survey.sections" :key="section.id" class="space-y-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+            <h3
+              class="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
               {{ section.title }}
             </h3>
 
             <div class="space-y-4">
-              <div
-                v-for="(question, questionIndex) in section.questions"
-                :key="question.id"
-                class="card"
-              >
+              <div v-for="(question, questionIndex) in section.questions" :key="question.id" class="card">
                 <div class="mb-3">
                   <h4 class="font-medium text-gray-900 dark:text-white">
                     {{ questionIndex + 1 }}. {{ question.title }}
@@ -94,17 +62,15 @@
                   <div v-else-if="['single_choice', 'multiple_choice'].includes(question.type)">
                     <div v-if="Array.isArray(response.answers[question.id])">
                       <div class="flex flex-wrap gap-2">
-                        <span
-                          v-for="answer in response.answers[question.id]"
-                          :key="answer"
-                          class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200"
-                        >
+                        <span v-for="answer in response.answers[question.id]" :key="answer"
+                          class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200">
                           {{ answer }}
                         </span>
                       </div>
                     </div>
                     <div v-else>
-                      <span class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200">
+                      <span
+                        class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-primary-100 text-primary-800 dark:bg-primary-900 dark:text-primary-200">
                         {{ response.answers[question.id] }}
                       </span>
                     </div>
@@ -134,11 +100,8 @@
                   <!-- Matrix -->
                   <div v-else-if="question.type === 'matrix'">
                     <div class="space-y-2">
-                      <div
-                        v-for="(value, key) in response.answers[question.id]"
-                        :key="key"
-                        class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded"
-                      >
+                      <div v-for="(value, key) in response.answers[question.id]" :key="key"
+                        class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded">
                         <span class="font-medium text-gray-900 dark:text-white">{{ key }}</span>
                         <span class="text-primary-600 dark:text-primary-400">{{ value }}</span>
                       </div>
@@ -148,12 +111,10 @@
                   <!-- Ranking -->
                   <div v-else-if="question.type === 'ranking'">
                     <div class="space-y-2">
-                      <div
-                        v-for="(item, index) in response.answers[question.id]"
-                        :key="index"
-                        class="flex items-center space-x-3 p-2 bg-gray-50 dark:bg-gray-700 rounded"
-                      >
-                        <div class="flex items-center justify-center w-6 h-6 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 rounded-full text-sm font-medium">
+                      <div v-for="(item, index) in response.answers[question.id]" :key="index"
+                        class="flex items-center space-x-3 p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                        <div
+                          class="flex items-center justify-center w-6 h-6 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 rounded-full text-sm font-medium">
                           {{ index + 1 }}
                         </div>
                         <span class="text-gray-900 dark:text-white">{{ item }}</span>
@@ -182,8 +143,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import { XMarkIcon } from '@heroicons/vue/24/outline';
+import { XMarkIcon, CheckCircleIcon, ClockIcon, ChartBarIcon } from '@heroicons/vue/24/outline';
 import type { Answer, Survey, Participant } from '@types';
+import { Kpi } from '@components';
 import { useResponseStore } from '@/stores/responses';
 import { useUIStore } from '@/stores/ui';
 import { format } from 'date-fns';

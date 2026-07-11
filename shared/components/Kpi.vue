@@ -65,6 +65,11 @@ const colorMap: Record<string, { bg: string; text: string; card: string }> = {
     text: 'text-pink-600 dark:text-pink-400',
     card: 'bg-gradient-to-br from-pink-50 to-pink-100/30 dark:from-pink-950/20 dark:to-transparent border-pink-200/50 dark:border-pink-900/50'
   },
+  indigo: {
+    bg: 'bg-indigo-100 dark:bg-indigo-900/30',
+    text: 'text-indigo-600 dark:text-indigo-400',
+    card: 'bg-gradient-to-br from-indigo-50 to-indigo-100/30 dark:from-indigo-950/20 dark:to-transparent border-indigo-200/50 dark:border-indigo-900/50'
+  }
 };
 
 const colorClasses = computed(() => {
@@ -81,7 +86,7 @@ const textColor = computed(() => {
     <div class="flex items-center justify-between">
       <div>
         <p class="text-sm font-semibold uppercase tracking-wider" :class="colorClasses.text">{{ props.label }}</p>
-        <p class="text-2xl font-bold" :class="textColor">
+        <p class="text-4xl font-bold" :class="textColor">
           {{ props.value }}
         </p>
         <p v-if="props.description" class="text-xs text-gray-600 dark:text-gray-400 mt-1">
