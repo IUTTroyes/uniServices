@@ -29,6 +29,7 @@ import HeaderComponent from './Header.vue'
 import Kpi from './Kpi.vue'
 import Card from './components/Card.vue'
 import QuickActionCard from './components/QuickActionCard.vue'
+import ActionButtonVertical from './components/ActionButtonVertical.vue'
 
 import PersonnelsListe from "./components/Personnel/PersonnelsListe.vue";
 
@@ -88,5 +89,6 @@ export {
 
   Kpi,
   Card,
-  QuickActionCard
+  QuickActionCard,
+  ActionButtonVertical
 };

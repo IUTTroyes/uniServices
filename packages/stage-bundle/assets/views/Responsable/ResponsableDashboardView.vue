@@ -20,6 +20,27 @@ import PeriodsTab from './components/PeriodsTab.vue';
 import StatsTab from './components/StatsTab.vue';
 import PeriodFormDialog from './components/PeriodFormDialog.vue';
 
+
+import {
+  ChartBarIcon,
+  UserPlusIcon,
+  ArrowDownTrayIcon,
+  UserGroupIcon,
+  CalendarIcon,
+  ChatBubbleLeftRightIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  MagnifyingGlassIcon,
+  TableCellsIcon,
+  Squares2X2Icon,
+  BellIcon,
+  XMarkIcon,
+  EnvelopeIcon,
+  UsersIcon,
+} from '@heroicons/vue/24/outline';
+
+import { HeaderComponent, ActionButtonVertical, Kpi, SimpleSkeleton } from '@components';
+
 const toast = useToast();
 
 const activeTab = ref('students'); // 'students' | 'periods' | 'stats'
@@ -582,44 +603,20 @@ const confirmDeletePeriod = async (p) => {
   <div class="space-y-6">
     <Toast />
 
-    <!-- Top Navigation Header -->
-    <div
-      class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
-      <div>
-        <h1 class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-          <i class="pi pi-shield text-violet-600"></i>
-          <span>Espace Responsable des Stages</span>
-        </h1>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-          Gérez les conventions de stage, supervisez le parcours des étudiants et paramétrez les périodes.
-        </p>
-      </div>
-
-      <!-- General View Tabs -->
-      <div class="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl flex gap-1 w-full md:w-auto">
-        <button @click="activeTab = 'students'"
-          :class="['px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 flex-1 md:flex-initial', activeTab === 'students' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200']">
-          <i class="pi pi-users text-[10px]"></i>
-          <span>Étudiants & Suivis</span>
-        </button>
-        <button @click="activeTab = 'periods'"
-          :class="['px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 flex-1 md:flex-initial', activeTab === 'periods' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200']">
-          <i class="pi pi-calendar text-[10px]"></i>
-          <span>Périodes</span>
-        </button>
-        <button @click="activeTab = 'stats'"
-          :class="['px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 flex-1 md:flex-initial', activeTab === 'stats' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200']">
-          <i class="pi pi-chart-bar text-[10px]"></i>
-          <span>Analyses</span>
-        </button>
-      </div>
-    </div>
+    <HeaderComponent icon="pi pi-chart-bar" titre="Espace Responsable des Stages"
+      description="Gérez les conventions de stage, supervisez le parcours des étudiants et paramétrez les périodes.">
+      <template #actions>
+        <ActionButtonVertical :severity="activeTab === 'students' ? 'info' : 'secondary'" :icon="UserGroupIcon" label="Étudiants & Suivis"
+          @click="activeTab = 'students'" />
+        <ActionButtonVertical :severity="activeTab === 'periods' ? 'success' : 'secondary'" :icon="CalendarIcon" label="Périodes"
+          @click="activeTab = 'periods'" />
+        <ActionButtonVertical :severity="activeTab === 'stats' ? 'warning' : 'secondary'" :icon="ChartBarIcon" label="Analyses"
+          @click="activeTab = 'stats'" />
+      </template>
+    </HeaderComponent>
 
     <!-- Active Tab rendering -->
-    <div v-if="isLoading" class="flex items-center justify-center py-12">
-      <i class="pi pi-spin pi-spinner text-violet-600 text-2xl"></i>
-    </div>
-
+    <SimpleSkeleton v-if="isLoading" class="!w-full !h-96"></SimpleSkeleton>
     <div v-else>
       <StudentsTab v-if="activeTab === 'students'" class="animate-fade-in" :periods="periods"
         v-model:selectedPeriodId="selectedPeriodId" :period-students="periodStudents" :kpis="kpis" :teachers="teachers"
@@ -637,21 +634,3 @@ const confirmDeletePeriod = async (p) => {
       :db-semestres="dbSemestres" :teachers="teachers" @save="savePeriod" />
   </div>
 </template>
-
-<style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>

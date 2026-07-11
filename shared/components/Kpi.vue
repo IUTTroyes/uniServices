@@ -64,11 +64,6 @@ const colorMap: Record<string, { bg: string; text: string; card: string }> = {
     bg: 'bg-pink-100 dark:bg-pink-900/30',
     text: 'text-pink-600 dark:text-pink-400',
     card: 'bg-gradient-to-br from-pink-50 to-pink-100/30 dark:from-pink-950/20 dark:to-transparent border-pink-200/50 dark:border-pink-900/50'
-  },
-  indigo: {
-    bg: 'bg-indigo-100 dark:bg-indigo-900/30',
-    text: 'text-indigo-600 dark:text-indigo-400',
-    card: 'bg-gradient-to-br from-indigo-50 to-indigo-100/30 dark:from-indigo-950/20 dark:to-transparent border-indigo-200/50 dark:border-indigo-900/50'
   }
 };
 
