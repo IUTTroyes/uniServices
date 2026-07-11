@@ -8,7 +8,26 @@ import {
   ChatBubbleLeftRightIcon,
   DocumentIcon,
   ClockIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  FunnelIcon,
+  ArrowPathIcon,
+  EyeIcon,
+  PrinterIcon,
+  PencilIcon,
+  CheckCircleIcon,
+  CheckIcon,
+  UsersIcon,
+  MagnifyingGlassIcon,
+  PlusIcon,
+  TrashIcon,
+  XMarkIcon,
+  PencilSquareIcon,
+  UserIcon,
+  BriefcaseIcon,
+  IdentificationIcon,
+  InformationCircleIcon,
+  EnvelopeIcon,
+  XCircleIcon,
 } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
@@ -555,7 +574,7 @@ const finalizeSignature = (student) => {
       <div class="flex items-center gap-3 w-full sm:w-auto">
         <div
           class="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-950 flex items-center justify-center text-violet-600 shrink-0">
-          <i class="pi pi-filter text-xs"></i>
+          <FunnelIcon class="w-4 h-4" />
         </div>
         <div class="flex-1 sm:flex-initial">
           <label class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Filtrer par Période Académique</label>
@@ -618,7 +637,7 @@ const finalizeSignature = (student) => {
     <Card
       title="Suivi du flux des conventions"
       subtitle="Cycle de vie de la validation à la signature finale. Traitez les dossiers en un clic."
-      icon="pi pi-directions"
+      :icon="ArrowPathIcon"
       iconClass="text-violet-600 dark:text-violet-400"
       iconBgClass="bg-violet-50 dark:bg-violet-950/20 border-violet-100 dark:border-violet-900/30"
       bodyClass="space-y-4"
@@ -629,7 +648,7 @@ const finalizeSignature = (student) => {
         <div class="bg-slate-50/50 dark:bg-slate-900/40 p-4 rounded-2xl border-t-4 border-t-amber-500 border-x border-b border-slate-100 dark:border-slate-800 flex flex-col h-full min-h-[160px]">
           <div class="flex items-center justify-between pb-3 border-b border-slate-200/50 dark:border-slate-700/50">
             <span class="font-bold text-[11px] text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <i class="pi pi-clock text-amber-500"></i>
+              <ClockIcon class="w-3.5 h-3.5 text-amber-500 shrink-0" />
               <span>1. À Valider</span>
             </span>
             <span class="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 text-[10px] px-2 py-0.5 rounded-full font-bold">
@@ -643,7 +662,7 @@ const finalizeSignature = (student) => {
                 <span class="text-[9px] text-slate-450 truncate">{{ s.company }}</span>
               </div>
               <button @click="openReviewRequest(s)" class="p-1.5 bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 hover:text-amber-700 rounded-lg transition-all cursor-pointer" v-tooltip.left="'Ouvrir la relecture'">
-                <i class="pi pi-eye text-[10px]"></i>
+                <EyeIcon class="w-3.5 h-3.5" />
               </button>
             </div>
             <div v-if="studentsToValidate.length === 0" class="text-center py-6 text-[10px] text-slate-450 italic">
@@ -656,7 +675,7 @@ const finalizeSignature = (student) => {
         <div class="bg-slate-50/50 dark:bg-slate-900/40 p-4 rounded-2xl border-t-4 border-t-blue-500 border-x border-b border-slate-100 dark:border-slate-800 flex flex-col h-full min-h-[160px]">
           <div class="flex items-center justify-between pb-3 border-b border-slate-200/50 dark:border-slate-700/50">
             <span class="font-bold text-[11px] text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <i class="pi pi-print text-blue-500"></i>
+              <PrinterIcon class="w-3.5 h-3.5 text-blue-500 shrink-0" />
               <span>2. À Imprimer</span>
             </span>
             <span class="bg-blue-100 dark:bg-blue-950/40 text-blue-800 dark:text-blue-400 text-[10px] px-2 py-0.5 rounded-full font-bold">
@@ -667,10 +686,10 @@ const finalizeSignature = (student) => {
             <div v-for="s in studentsToPrint" :key="s.id" class="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-150 dark:border-slate-750 shadow-sm transition-all hover:border-violet-300">
               <div class="flex flex-col min-w-0">
                 <span class="font-bold text-xs truncate">{{ s.studentName }}</span>
-                <span class="text-[9px] text-slate-450 truncate">{{ s.company }}</span>
+                <span class="text-[9px] text-slate-455 truncate">{{ s.company }}</span>
               </div>
               <button @click="printConvention(s)" class="p-1.5 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 hover:bg-blue-100 hover:text-blue-700 rounded-lg transition-all cursor-pointer" v-tooltip.left="'Générer PDF &amp; envoyer en signature'">
-                <i class="pi pi-print text-[10px]"></i>
+                <PrinterIcon class="w-3.5 h-3.5" />
               </button>
             </div>
             <div v-if="studentsToPrint.length === 0" class="text-center py-6 text-[10px] text-slate-455 italic">
@@ -683,7 +702,7 @@ const finalizeSignature = (student) => {
         <div class="bg-slate-50/50 dark:bg-slate-900/40 p-4 rounded-2xl border-t-4 border-t-indigo-500 border-x border-b border-slate-100 dark:border-slate-800 flex flex-col h-full min-h-[160px]">
           <div class="flex items-center justify-between pb-3 border-b border-slate-200/50 dark:border-slate-700/50">
             <span class="font-bold text-[11px] text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <i class="pi pi-pencil text-indigo-550"></i>
+              <PencilIcon class="w-3.5 h-3.5 text-indigo-500 shrink-0" />
               <span>3. En Signature</span>
             </span>
             <span class="bg-indigo-100 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-400 text-[10px] px-2 py-0.5 rounded-full font-bold">
@@ -697,7 +716,7 @@ const finalizeSignature = (student) => {
                 <span class="text-[9px] text-slate-455 truncate">{{ s.company }}</span>
               </div>
               <button @click="finalizeSignature(s)" class="p-1.5 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-all cursor-pointer" v-tooltip.left="'Marquer comme signée/récupérée'">
-                <i class="pi pi-check-square text-[10px]"></i>
+                <CheckCircleIcon class="w-3.5 h-3.5" />
               </button>
             </div>
             <div v-if="studentsSigning.length === 0" class="text-center py-6 text-[10px] text-slate-450 italic">
@@ -710,7 +729,7 @@ const finalizeSignature = (student) => {
         <div class="bg-slate-50/50 dark:bg-slate-900/40 p-4 rounded-2xl border-t-4 border-t-emerald-500 border-x border-b border-slate-100 dark:border-slate-800 flex flex-col h-full min-h-[160px]">
           <div class="flex items-center justify-between pb-3 border-b border-slate-200/50 dark:border-slate-700/50">
             <span class="font-bold text-[11px] text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-              <i class="pi pi-check-circle text-emerald-555"></i>
+              <CheckCircleIcon class="w-3.5 h-3.5 text-emerald-555 shrink-0" />
               <span>4. Signée / Terminé</span>
             </span>
             <span class="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 text-[10px] px-2 py-0.5 rounded-full font-bold">
@@ -724,7 +743,7 @@ const finalizeSignature = (student) => {
                 <span class="text-[9px] text-slate-455 truncate">{{ s.company }}</span>
               </div>
               <div class="p-1 text-emerald-600 dark:text-emerald-400">
-                <i class="pi pi-check text-[10px]"></i>
+                <CheckIcon class="w-3.5 h-3.5 text-emerald-500" />
               </div>
             </div>
             <div v-if="studentsSigned.length === 0" class="text-center py-6 text-[10px] text-slate-450 italic">
@@ -739,7 +758,7 @@ const finalizeSignature = (student) => {
     <Card
       title="Liste des étudiants de la période"
       subtitle="Suivi de placement, tuteur universitaire et livrables."
-      icon="pi pi-users"
+      :icon="UsersIcon"
       iconClass="text-indigo-600 dark:text-indigo-400"
       iconBgClass="bg-indigo-50 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/30"
       :badge="'Période : ' + activePeriodName"
@@ -765,7 +784,7 @@ const finalizeSignature = (student) => {
           <div class="flex justify-end p-2 bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-700/40">
             <IconField>
               <InputIcon>
-                <i class="pi pi-search" />
+                <MagnifyingGlassIcon class="w-4 h-4 text-slate-400" />
               </InputIcon>
               <InputText v-model="filters['global'].value" placeholder="Rechercher un étudiant, une entreprise..."
                 class="py-1.5 px-3 text-xs rounded-lg shadow-sm border border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-1 focus:ring-primary-500 w-64" />

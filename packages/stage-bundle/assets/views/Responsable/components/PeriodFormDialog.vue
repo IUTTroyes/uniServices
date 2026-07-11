@@ -2,6 +2,7 @@
 import { ref, watch, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { ValidatedInput, validationRules } from '@components';
+import { PlusIcon, TrashIcon, ArrowUpTrayIcon, DocumentIcon, CheckIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
   visible: {
@@ -301,8 +302,8 @@ const closeDialog = () => {
             <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">Périodes
               d'interruptions ({{ localForm.interruptions?.length || 0 }})</h4>
             <button type="button" @click="addInterruptionRow"
-              class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg flex items-center gap-1 transition-all">
-              <i class="pi pi-plus text-[8px]"></i>
+              class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg flex items-center gap-1 transition-all cursor-pointer">
+              <PlusIcon class="w-3 h-3" />
               <span>Ajouter interruption</span>
             </button>
           </div>
@@ -326,8 +327,8 @@ const closeDialog = () => {
                   class="p-1.5 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-900 text-[10px]" />
               </div>
               <button type="button" @click="removeInterruptionRow(idx)"
-                class="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 p-2 rounded-lg mt-4 self-end">
-                <i class="pi pi-trash text-[10px]"></i>
+                class="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 p-2 rounded-lg mt-4 self-end cursor-pointer">
+                <TrashIcon class="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -343,8 +344,8 @@ const closeDialog = () => {
             <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wider">Périodes de
               Soutenances ({{ localForm.soutenances?.length || 0 }})</h4>
             <button type="button" @click="addSoutenanceRow"
-              class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg flex items-center gap-1 transition-all">
-              <i class="pi pi-plus text-[8px]"></i>
+              class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-[10px] font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 rounded-lg flex items-center gap-1 transition-all cursor-pointer">
+              <PlusIcon class="w-3 h-3" />
               <span>Ajouter soutenance</span>
             </button>
           </div>
@@ -373,8 +374,8 @@ const closeDialog = () => {
                   class="p-2 border border-slate-200 dark:border-slate-700 rounded bg-white dark:bg-slate-900 text-[10px]"></textarea>
               </div>
               <button type="button" @click="removeSoutenanceRow(idx)"
-                class="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 p-2 rounded-lg justify-self-end mt-2 md:col-span-4">
-                <i class="pi pi-trash text-[10px]"></i>
+                class="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 p-2 rounded-lg justify-self-end mt-2 md:col-span-4 cursor-pointer">
+                <TrashIcon class="w-4 h-4 text-rose-600 inline" />
                 <span class="text-[10px] font-bold ml-1">Supprimer cette soutenance</span>
               </button>
             </div>
@@ -449,7 +450,7 @@ const closeDialog = () => {
           @click="triggerConsigneUpload">
           <div
             class="w-10 h-10 bg-violet-50 dark:bg-violet-500/10 rounded-full flex items-center justify-center text-violet-600 mx-auto">
-            <i class="pi pi-upload text-xl"></i>
+            <ArrowUpTrayIcon class="w-5 h-5" />
           </div>
           <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 mt-2">Cliquez pour ajouter une consigne</h4>
           <p class="text-[10px] text-slate-400 mt-0.5">Documents pdf d'aide, guides, chartes de stage...</p>
@@ -462,7 +463,7 @@ const closeDialog = () => {
           <div v-for="(f, idx) in localForm.consignesFichiers" :key="idx"
             class="flex items-center justify-between p-3 border border-slate-100 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-900/20">
             <span class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-              <i class="pi pi-file-pdf text-rose-500"></i>
+              <DocumentIcon class="w-4 h-4 text-rose-500" />
               {{ f.name }} <span class="text-[9px] text-slate-400">({{ f.size }})</span>
             </span>
             <button type="button" @click="removeConsigneFile(idx)"
@@ -479,8 +480,9 @@ const closeDialog = () => {
     <div class="flex items-center justify-between border-t border-slate-100 dark:border-slate-700 pt-4 mt-6">
       <div></div> <!-- Spacer -->
       <button @click="handleSave"
-        class="py-3 px-6 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2">
-        <i :class="period ? 'pi pi-check' : 'pi pi-plus'"></i>
+        class="py-3 px-6 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 border-0 cursor-pointer">
+        <CheckIcon v-if="period" class="w-3.5 h-3.5" />
+        <PlusIcon v-else class="w-3.5 h-3.5" />
         <span>{{ period ? 'Enregistrer les modifications' : 'Créer la période' }}</span>
       </button>
     </div>

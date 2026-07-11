@@ -4,6 +4,29 @@ import { useToast } from 'primevue/usetoast';
 import { FilterMatchMode } from '@primevue/core/api';
 import { useUsersStore } from '@stores';
 import { getStageEtudiantsService, updateStageEtudiantService, getStagePeriodesService } from '@/requests/stage_service';
+import { HeaderComponent, Card, Kpi } from '@components';
+import {
+  UserIcon,
+  UsersIcon,
+  DocumentTextIcon,
+  StarIcon,
+  MagnifyingGlassIcon,
+  PencilSquareIcon,
+  EyeIcon,
+  ArrowUpTrayIcon,
+  ExclamationTriangleIcon,
+  CheckIcon,
+  XMarkIcon,
+  InformationCircleIcon,
+  BuildingOfficeIcon,
+  UserPlusIcon,
+  BookOpenIcon,
+  PlusIcon,
+  CalendarDaysIcon,
+  ChatBubbleLeftRightIcon,
+  ClockIcon,
+  EnvelopeIcon
+} from '@heroicons/vue/24/outline';
 
 const toast = useToast();
 const userStore = useUsersStore();
@@ -244,94 +267,84 @@ const getInitials = (name) => {
 </script>
 
 <template>
-  <div class="mx-auto space-y-6">
+  <div class="space-y-6">
     <Toast />
 
+
     <!-- Top Header -->
-    <div class="border-b border-slate-100 dark:border-slate-800 pb-5">
-      <h1 class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-        <i class="pi pi-users text-violet-600"></i>
-        <span>Mes Étudiants en Stage</span>
-      </h1>
-      <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-        Suivez l'avancement des stages dont vous êtes le tuteur universitaire désigné.
-      </p>
-    </div>
+    <HeaderComponent
+      :icon="UsersIcon"
+      color="violet"
+      titre="Mes Étudiants en Stage"
+      description="Suivez l'avancement des stages dont vous êtes le tuteur universitaire désigné."
+    />
 
     <!-- Quick Stats Metrics -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-      <div
-        class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm flex items-center gap-4">
-        <div
-          class="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 shrink-0">
-          <i class="pi pi-user text-xl"></i>
-        </div>
-        <div>
-          <span class="text-xs text-slate-400 block font-medium">Étudiants suivis</span>
-          <span class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ totalSupervised }}</span>
-        </div>
-      </div>
-
-      <div
-        class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm flex items-center gap-4">
-        <div
-          class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
-          <i class="pi pi-file-import text-xl"></i>
-        </div>
-        <div>
-          <span class="text-xs text-slate-400 block font-medium">Rapports déposés</span>
-          <span class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ reportsDeposited }} / {{
-            totalSupervised }}</span>
-        </div>
-      </div>
-
-      <div
-        class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm flex items-center gap-4">
-        <div
-          class="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0">
-          <i class="pi pi-star text-xl"></i>
-        </div>
-        <div>
-          <span class="text-xs text-slate-400 block font-medium">Évaluations saisies</span>
-          <span class="text-2xl font-black text-slate-900 dark:text-white mt-1">{{ gradedCount }} / {{ totalSupervised
-            }}</span>
-        </div>
-      </div>
-
+      <Kpi
+        :value="totalSupervised"
+        label="Étudiants suivis"
+        :icon="UserIcon"
+        color="indigo"
+      />
+      <Kpi
+        :value="reportsDeposited + ' / ' + totalSupervised"
+        label="Rapports déposés"
+        :icon="DocumentTextIcon"
+        color="emerald"
+      />
+      <Kpi
+        :value="gradedCount + ' / ' + totalSupervised"
+        label="Évaluations saisies"
+        :icon="StarIcon"
+        color="amber"
+      />
     </div>
 
-    <!-- Students DataTable -->
-    <div
-      class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl shadow-sm overflow-hidden">
-      <DataTable v-model:filters="filters" :value="students" :loading="loading" responsiveLayout="scroll" class="text-xs text-slate-700 dark:text-slate-300"
-        stripedRows :globalFilterFields="['studentName', 'company', 'supervisor', 'period']">
+    <!-- Students DataTable wrapped in Card -->
+    <Card
+      title="Liste des étudiants"
+      subtitle="Suivi individuel, documents rendus et évaluation finale."
+      :icon="UsersIcon"
+      color="violet"
+    >
+      <DataTable
+        v-model:filters="filters"
+        :value="students"
+        :loading="loading"
+        dataKey="id"
+        paginator
+        :rows="10"
+        :rowsPerPageOptions="[10, 25, 50]"
+        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+        currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} étudiants"
+        responsiveLayout="scroll"
+        class="text-xs text-slate-700 dark:text-slate-300"
+        stripedRows
+        :globalFilterFields="['studentName', 'company', 'supervisor', 'period']"
+      >
         <template #header>
-          <div class="flex flex-wrap gap-4 items-center justify-between p-4 bg-slate-50/50 dark:bg-slate-900/20 border-b border-slate-100 dark:border-slate-800">
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-slate-800 dark:text-slate-200">Liste des étudiants</span>
-              <span class="bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 px-2 py-0.5 rounded-full text-[10px] font-black">
-                {{ totalSupervised }} étudiants
-              </span>
-            </div>
-            <div class="flex flex-wrap gap-3 items-center">
+          <div class="flex flex-wrap gap-4 items-center justify-between p-2 bg-slate-50/50 dark:bg-slate-900/20 border-b border-slate-100 dark:border-slate-800">
+            <div></div> <!-- Spacer -->
+            <div class="flex flex-wrap gap-3 items-center ml-auto">
               <!-- Global Search -->
               <IconField>
                 <InputIcon>
-                  <i class="pi pi-search text-slate-400" />
+                  <MagnifyingGlassIcon class="w-4 h-4 text-slate-400" />
                 </InputIcon>
-                <InputText v-model="filters.global.value" placeholder="Rechercher..." class="p-inputtext-sm text-xs w-[180px] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl" />
+                <InputText v-model="filters.global.value" placeholder="Rechercher..." class="py-1.5 px-3 text-xs w-[180px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none" />
               </IconField>
               
               <!-- Filter by Period -->
-              <Select v-model="filters.period.value" :options="periodOptions" showClear placeholder="Formation" class="p-select-sm text-xs min-w-[150px] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl" />
+              <Select v-model="filters.period.value" :options="periodOptions" showClear placeholder="Formation" class="text-xs min-w-[150px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
 
               <!-- Filter by Report Status -->
-              <Select v-model="filters.reportUploaded.value" :options="statusOptions" optionLabel="label" optionValue="value" showClear placeholder="État du rapport" class="p-select-sm text-xs min-w-[150px] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-xl" />
+              <Select v-model="filters.reportUploaded.value" :options="statusOptions" optionLabel="label" optionValue="value" showClear placeholder="État du rapport" class="text-xs min-w-[150px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
             </div>
           </div>
         </template>
-        <Column header="Étudiant" class="font-semibold text-slate-900 dark:text-white">
+        
+        <Column header="Étudiant" field="studentName" sortable class="font-semibold text-slate-900 dark:text-white">
           <template #body="slotProps">
             <div class="flex items-center gap-3 py-1">
               <div
@@ -346,33 +359,35 @@ const getInitials = (name) => {
           </template>
         </Column>
 
-        <Column field="company" header="Entreprise" />
+        <Column field="company" header="Entreprise" sortable />
+        
         <Column header="Dates">
           <template #body="slotProps">
             <span :class="{'text-amber-600 dark:text-amber-400 font-black flex items-center gap-1 w-max': slotProps.data.isDatesDiff}" :title="slotProps.data.isDatesDiff ? 'Dates différentes de la période de stage (' + slotProps.data.periodStartDateStr + ' au ' + slotProps.data.periodEndDateStr + ')' : ''">
               <span>{{ slotProps.data.dates }}</span>
-              <i v-if="slotProps.data.isDatesDiff" class="pi pi-exclamation-triangle text-[10px]"></i>
+              <ExclamationTriangleIcon v-if="slotProps.data.isDatesDiff" class="w-3.5 h-3.5 text-amber-500" />
             </span>
           </template>
         </Column>
-        <Column field="supervisor" header="Maître de Stage" />
+        
+        <Column field="supervisor" header="Maître de Stage" sortable />
 
         <Column header="Rapport" class="text-center">
           <template #body="slotProps">
             <span v-if="slotProps.data.reportUploaded"
               class="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1 w-max">
-              <i class="pi pi-check text-[8px]"></i>
+              <CheckIcon class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
               <span>Déposé</span>
             </span>
             <span v-else
               class="bg-rose-100 dark:bg-rose-950/30 text-rose-800 dark:text-rose-400 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1 w-max">
-              <i class="pi pi-times text-[8px]"></i>
+              <XMarkIcon class="w-3 h-3 text-rose-600 dark:text-rose-400" />
               <span>En attente</span>
             </span>
           </template>
         </Column>
 
-        <Column header="Note" class="text-center font-bold">
+        <Column field="grade" header="Note" sortable class="text-center font-bold">
           <template #body="slotProps">
             <span>{{ slotProps.data.grade ? slotProps.data.grade + ' / 20' : '-' }}</span>
           </template>
@@ -382,20 +397,20 @@ const getInitials = (name) => {
           <template #body="slotProps">
             <div class="flex gap-2 justify-end">
               <button @click="openStudentInfo(slotProps.data)"
-                class="text-xs font-bold px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-xl transition-all flex items-center gap-1.5">
-                <i class="pi pi-eye text-[9px]"></i>
+                class="text-xs font-bold px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-650 text-slate-800 dark:text-slate-200 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border-0 shadow-sm">
+                <EyeIcon class="w-3.5 h-3.5 text-slate-600 dark:text-slate-350" />
                 <span>Détails</span>
               </button>
               <button @click="openStudentDetails(slotProps.data)"
-                class="text-xs font-bold px-2.5 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-violet-600 hover:text-white dark:hover:bg-violet-600 rounded-xl transition-all flex items-center gap-1.5">
-                <i class="pi pi-pencil text-[9px]"></i>
+                class="text-xs font-bold px-2.5 py-1.5 bg-slate-50 dark:bg-slate-700 hover:bg-violet-650 hover:text-white dark:hover:bg-violet-650 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border-0 shadow-sm">
+                <ChatBubbleLeftRightIcon class="w-3.5 h-3.5" />
                 <span>Suivre</span>
               </button>
             </div>
           </template>
         </Column>
       </DataTable>
-    </div>
+    </Card>
 
     <!-- Student Detail & Follow-up Slideout Dialog -->
     <Dialog v-model:visible="showDetailDialog" modal header="Suivi individualisé de l'étudiant"
@@ -408,7 +423,7 @@ const getInitials = (name) => {
           <!-- Summary Info Box -->
           <div class="bg-slate-50 dark:bg-slate-900/40 rounded-2xl p-5 border border-slate-100 dark:border-slate-800">
             <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <i class="pi pi-info-circle text-violet-600"></i>
+              <InformationCircleIcon class="w-4 h-4 text-violet-600" />
               <span>Détails du stage</span>
             </h4>
             <div class="grid grid-cols-2 gap-4 mt-4 text-[11px]">
@@ -434,13 +449,13 @@ const getInitials = (name) => {
             <div v-if="selectedStudent.reportUploaded"
               class="mt-4 pt-3 border-t border-slate-200/40 flex items-center justify-between bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-slate-100 dark:border-slate-700/60">
               <span class="font-bold text-slate-700 dark:text-slate-300 truncate max-w-[200px] flex items-center gap-2">
-                <i class="pi pi-file-pdf text-red-500"></i>
+                <DocumentTextIcon class="w-4 h-4 text-rose-500" />
                 {{ selectedStudent.reportName }}
               </span>
               <a href="#"
                 @click.prevent="toast.add({ severity: 'success', summary: 'Téléchargement', detail: 'Le rapport de stage a été téléchargé.', life: 2000 })"
                 class="text-[10px] font-bold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-1">
-                <i class="pi pi-download"></i>
+                <ArrowUpTrayIcon class="w-3.5 h-3.5" />
                 <span>Télécharger</span>
               </a>
             </div>
@@ -449,7 +464,7 @@ const getInitials = (name) => {
           <!-- Logged Follow-ups List -->
           <div>
             <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center gap-2">
-              <i class="pi pi-calendar-plus text-violet-600"></i>
+              <CalendarDaysIcon class="w-4 h-4 text-violet-600" />
               <span>Historique des Suivis ({{ selectedStudent.followups.length }})</span>
             </h4>
 
@@ -482,7 +497,7 @@ const getInitials = (name) => {
           <!-- Add Follow-up Form -->
           <div class="space-y-4">
             <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <i class="pi pi-plus text-violet-600"></i>
+              <PlusIcon class="w-4 h-4 text-violet-600" />
               <span>Ajouter un suivi</span>
             </h4>
 
@@ -511,8 +526,8 @@ const getInitials = (name) => {
             </div>
 
             <button @click="addFollowup"
-              class="w-full py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-2">
-              <i class="pi pi-check text-[10px]"></i>
+              class="w-full py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-2 border-0 cursor-pointer">
+              <CheckIcon class="w-3.5 h-3.5" />
               <span>Enregistrer le suivi</span>
             </button>
           </div>
@@ -520,7 +535,7 @@ const getInitials = (name) => {
           <!-- Grading Evaluation Panel -->
           <div class="pt-4 border-t border-slate-100 dark:border-slate-700/50 space-y-4">
             <h4 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <i class="pi pi-star text-violet-600"></i>
+              <StarIcon class="w-4 h-4 text-violet-600" />
               <span>Notation & Appréciation</span>
             </h4>
 
@@ -545,8 +560,8 @@ const getInitials = (name) => {
             </div>
 
             <button @click="saveGrading"
-              class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-2">
-              <i class="pi pi-save text-[10px]"></i>
+              class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg text-xs transition-all flex items-center justify-center gap-2 border-0 cursor-pointer">
+              <ArrowUpTrayIcon class="w-3.5 h-3.5" />
               <span>Sauvegarder l'évaluation</span>
             </button>
           </div>
@@ -563,7 +578,7 @@ const getInitials = (name) => {
         <!-- Section: L'Étudiant & Le Stage -->
         <div class="bg-violet-500/5 dark:bg-violet-500/10 p-4 rounded-2xl border border-violet-500/15">
           <h3 class="text-sm font-bold text-violet-700 dark:text-violet-400 flex items-center gap-2 mb-3">
-            <i class="pi pi-user"></i>
+            <UserIcon class="w-4 h-4 text-violet-600 dark:text-violet-400" />
             <span>L'Étudiant & Le Stage</span>
           </h3>
           <div class="grid grid-cols-2 gap-4 text-[11px]">
@@ -583,7 +598,7 @@ const getInitials = (name) => {
               <span class="text-slate-400 block">Dates de stage</span>
               <span class="font-bold text-slate-800 dark:text-slate-200" :class="{'text-amber-600 dark:text-amber-400': selectedStudent.isDatesDiff}">
                 {{ selectedStudent.dates }}
-                <i v-if="selectedStudent.isDatesDiff" class="pi pi-exclamation-triangle text-[10px] ml-1"></i>
+                <ExclamationTriangleIcon v-if="selectedStudent.isDatesDiff" class="w-3.5 h-3.5 text-amber-500 inline ml-1" />
               </span>
             </div>
           </div>
@@ -592,7 +607,7 @@ const getInitials = (name) => {
         <!-- Section: L'Entreprise -->
         <div class="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
           <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-3">
-            <i class="pi pi-building"></i>
+            <BuildingOfficeIcon class="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span>L'Entreprise</span>
           </h3>
           <div class="grid grid-cols-2 gap-4 text-[11px] mb-3">
@@ -625,7 +640,7 @@ const getInitials = (name) => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
             <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-2">
-              <i class="pi pi-user-plus text-violet-600"></i>
+              <UserPlusIcon class="w-4 h-4 text-violet-600 dark:text-violet-400" />
               <span>Maître de Stage (Entreprise)</span>
             </h4>
             <div class="space-y-2 text-[11px]">
@@ -646,7 +661,7 @@ const getInitials = (name) => {
 
           <div class="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
             <h4 class="text-xs font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-2">
-              <i class="pi pi-user text-violet-600"></i>
+              <UserIcon class="w-4 h-4 text-violet-600 dark:text-violet-400" />
               <span>Tuteur Universitaire</span>
             </h4>
             <div class="space-y-2 text-[11px]">
@@ -660,7 +675,7 @@ const getInitials = (name) => {
         <!-- Section: Sujet & Activités -->
         <div class="bg-slate-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
           <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-3">
-            <i class="pi pi-book"></i>
+            <BookOpenIcon class="w-4 h-4 text-slate-500 dark:text-slate-400" />
             <span>Sujet & Activités</span>
           </h3>
           <div class="space-y-3 text-[11px]">

@@ -1,4 +1,7 @@
 <script setup>
+import { Card } from '@components';
+import { ChartPieIcon, CurrencyEuroIcon } from '@heroicons/vue/24/outline';
+
 const props = defineProps({
   kpis: {
     type: Object,
@@ -15,14 +18,15 @@ const props = defineProps({
   <div class="space-y-6">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-      <!-- Placement rates SVG Chart -->
-      <div class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm">
-        <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-2">
-          Taux d'insertion des étudiants ({{ activePeriodName }})
-        </h3>
-        <p class="text-xs text-slate-400 mb-6">Proportion d'étudiants ayant validé leur convention à ce jour.</p>
-
-        <div class="flex flex-col sm:flex-row items-center justify-around gap-6">
+      <!-- Placement rates Card -->
+      <Card
+        title="Taux d'insertion des étudiants"
+        :subtitle="'Proportion d\'étudiants ayant validé leur convention à ce jour. Période : ' + activePeriodName"
+        :icon="ChartPieIcon"
+        iconClass="text-violet-600 dark:text-violet-400"
+        iconBgClass="bg-violet-50 dark:bg-violet-950/20 border-violet-100 dark:border-violet-900/30"
+      >
+        <div class="flex flex-col sm:flex-row items-center justify-around gap-6 py-2">
           <!-- SVG Donut Chart dynamically calculated -->
           <div class="relative w-44 h-44 shrink-0">
             <svg viewBox="0 0 36 36" class="w-full h-full transform -rotate-90">
@@ -56,51 +60,51 @@ const props = defineProps({
             </div>
           </div>
         </div>
-      </div>
+      </Card>
 
       <!-- Average compensation salary stats -->
-      <div class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm flex flex-col justify-between">
-        <div>
-          <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-2">
-            Statistiques financières de la période
-          </h3>
-          <p class="text-xs text-slate-400 mb-6">Moyennes de gratification horaire négociées par les étudiants.</p>
-
-          <div class="space-y-4">
-            <div>
-              <div class="flex justify-between text-xs mb-1 font-bold">
-                <span class="text-slate-600 dark:text-slate-300">Gratification maximale enregistrée</span>
-                <span class="text-violet-600">6.80 €/h</span>
-              </div>
-              <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                <div class="bg-violet-600 h-full rounded-full" style="width: 100%"></div>
-              </div>
+      <Card
+        title="Statistiques financières de la période"
+        subtitle="Moyennes de gratification horaire négociées par les étudiants."
+        :icon="CurrencyEuroIcon"
+        iconClass="text-amber-600 dark:text-amber-400"
+        iconBgClass="bg-amber-50 dark:bg-amber-950/20 border-amber-100 dark:border-amber-900/30"
+        bodyClass="flex flex-col justify-between h-full"
+      >
+        <div class="space-y-4 py-2">
+          <div>
+            <div class="flex justify-between text-xs mb-1 font-bold">
+              <span class="text-slate-600 dark:text-slate-300">Gratification maximale enregistrée</span>
+              <span class="text-violet-600">6.80 €/h</span>
             </div>
-            <div>
-              <div class="flex justify-between text-xs mb-1 font-bold">
-                <span class="text-slate-600 dark:text-slate-300">Gratification moyenne</span>
-                <span class="text-violet-500">4.95 €/h</span>
-              </div>
-              <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                <div class="bg-violet-500 h-full rounded-full" style="width: 72.8%"></div>
-              </div>
+            <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+              <div class="bg-violet-600 h-full rounded-full" style="width: 100%"></div>
             </div>
-            <div>
-              <div class="flex justify-between text-xs mb-1 font-bold">
-                <span class="text-slate-600 dark:text-slate-300">Minimum légal obligatoire</span>
-                <span class="text-slate-400">4.35 €/h</span>
-              </div>
-              <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                <div class="bg-slate-400 h-full rounded-full" style="width: 63.9%"></div>
-              </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1 font-bold">
+              <span class="text-slate-600 dark:text-slate-300">Gratification moyenne</span>
+              <span class="text-violet-500">4.95 €/h</span>
+            </div>
+            <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+              <div class="bg-violet-500 h-full rounded-full" style="width: 72.8%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1 font-bold">
+              <span class="text-slate-600 dark:text-slate-300">Minimum légal obligatoire</span>
+              <span class="text-slate-400">4.35 €/h</span>
+            </div>
+            <div class="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+              <div class="bg-slate-400 h-full rounded-full" style="width: 63.9%"></div>
             </div>
           </div>
         </div>
 
-        <div class="text-[10px] text-slate-400 dark:text-slate-500 pt-4 border-t border-slate-100 dark:border-slate-700/50 mt-4">
+        <div class="text-[10px] text-slate-400 dark:text-slate-500 pt-4 border-t border-slate-100 dark:border-slate-700/50 mt-6">
           * Indicateurs de gratification calculés sur la base des contrats saisis.
         </div>
-      </div>
+      </Card>
 
     </div>
   </div>
