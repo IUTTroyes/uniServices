@@ -185,7 +185,7 @@ watch(() => route.path, async (newPath, oldPath) => {
     <div v-if="!route.path.includes('/portail/widgets')" class="px-4 lg:px-10">
       <div class="grid grid-cols-12 gap-4">
         <aside class="col-span-12 lg:col-span-2 pt-28 pb-14 h-screen">
-          <div class="card h-full overflow-y-auto flex flex-col gap-6">
+          <div class="card card-body h-full overflow-y-auto flex flex-col gap-6">
             <div class="flex flex-col gap-4">
               <div class="text-md font-semibold text-color-secondary uppercase">Applications</div>
               <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>

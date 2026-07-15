@@ -33,7 +33,7 @@ onMounted(async () => {
 
 const getBundleWidgets = async () => {
   loading.value = true;
-  
+
   const params = {
     structureDepartementPersonnelId: structureDepartementPersonnelId.value
   };
@@ -46,62 +46,63 @@ const getBundleWidgets = async () => {
 }
 
 const updateWidget = async (widget) => {
-    saving.value[widget.key] = true;
-    
-    const payload = { enabled: !widget.enabled };
-    const params = {
-        dashboardCode: bundle.value,
-        structureDepartementPersonnelId: structureDepartementPersonnelId.value
-    };
-    
-    const response = await updateDashboardWidgetLayoutService(widget.key, payload, params);
-    console.log(response);
-    
-    await getBundleWidgets();
-    saving.value[widget.key] = false;
+  saving.value[widget.key] = true;
+
+  const payload = { enabled: !widget.enabled };
+  const params = {
+    dashboardCode: bundle.value,
+    structureDepartementPersonnelId: structureDepartementPersonnelId.value
+  };
+
+  const response = await updateDashboardWidgetLayoutService(widget.key, payload, params);
+  console.log(response);
+
+  await getBundleWidgets();
+  saving.value[widget.key] = false;
 }
 </script>
 
 <template>
-    <div class="space-y-4">
-        <div class="flex items-center justify-between card">
-            <div>
-                <div class="text-xl font-semibold">Configuration du dashboard</div>
-                <div class="text-sm text-color-secondary">Choisissez les widgets à afficher pour votre structure active.</div>
-            </div>
-            <Button icon="pi pi-chevron-left" label="Retour au dashboard" severity="secondary" size="small" @click="router.back()"/>
-        </div>
+  <div class="space-y-4">
+    <div class="flex items-center justify-between card card-body">
+      <div>
+        <div class="text-xl font-semibold">Configuration du dashboard</div>
+        <div class="text-sm text-color-secondary">Choisissez les widgets à afficher pour votre structure active.</div>
+      </div>
+      <Button icon="pi pi-chevron-left" label="Retour au dashboard" severity="secondary" size="small" @click="router.back()"/>
+    </div>
 
-        <div v-if="loading" class="card">
-            Chargement des widgets...
-        </div>
+    <div v-if="loading" class="card">
+      Chargement des widgets...
+    </div>
 
-        <div v-else class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            <div v-for="widget in widgets" :key="widget.key" class="card p-4">
-                <div class="mb-2 flex items-center justify-between gap-2">
-                    <div class="flex flex-col">
-                        <div class="font-semibold">{{ widget.label }}</div>
-                        <div v-if="widget.bundle" class="mt-1">
+    <div v-else class="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div v-for="widget in widgets" :key="widget.key" class="card">
+        <div class="mb-2 flex items-center justify-between gap-2 card-header">
+          <div class="flex flex-col">
+            <div class="font-semibold">{{ widget.label }}</div>
+            <div v-if="widget.bundle" class="mt-1">
                             <span class="inline-flex items-center rounded bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-900/50 uppercase tracking-wider">
                                 {{ widget.bundle }}
                             </span>
-                        </div>
-                    </div>
-                    <Badge :value="widget.enabled ? 'Actif' : 'Inactif'" :severity="widget.enabled ? 'success' : 'danger'" />
-                </div>
-
-                <div class="mb-4 text-sm text-color-secondary">
-                    Taille par défaut: <strong>{{ widget.colSpan }} × {{ widget.rowSpan }}</strong> (colonnes × lignes)
-                </div>
-
-                <Button
-                    :severity="widget.enabled ? 'danger' : 'primary'"
-                    :disabled="saving[widget.key]"
-                    @click="updateWidget(widget)"
-                >
-                    {{ saving[widget.key] ? 'Sauvegarde...' : (widget.enabled ? 'Masquer' : 'Afficher') }}
-                </Button>
             </div>
+          </div>
+          <Badge :value="widget.enabled ? 'Actif' : 'Inactif'" :severity="widget.enabled ? 'success' : 'danger'" />
         </div>
+        <div class="card-body">
+          <div class="mb-4 text-sm text-color-secondary">
+            Taille par défaut: <strong>{{ widget.colSpan }} × {{ widget.rowSpan }}</strong> (colonnes × lignes)
+          </div>
+
+          <Button
+              :severity="widget.enabled ? 'danger' : 'primary'"
+              :disabled="saving[widget.key]"
+              @click="updateWidget(widget)"
+          >
+            {{ saving[widget.key] ? 'Sauvegarde...' : (widget.enabled ? 'Masquer' : 'Afficher') }}
+          </Button>
+        </div>
+      </div>
     </div>
+  </div>
 </template>
