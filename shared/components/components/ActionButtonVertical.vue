@@ -3,7 +3,7 @@
     :is="to ? 'router-link' : 'button'"
     :to="to"
     :disabled="disabled"
-    class="flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 group text-center min-w-[120px] h-[80px]"
+    class="flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 group text-center min-w-[120px]"
     :class="[
       severityClasses,
       disabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95 cursor-pointer shadow-sm hover:shadow-md'

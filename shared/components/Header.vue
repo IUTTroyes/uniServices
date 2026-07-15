@@ -111,9 +111,10 @@ const colorClasses = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
-    <div>
-      <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center gap-3 mb-0!">
+  <div class="mb-8">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center gap-3 mb-0!">
         <span v-if="icon" :class="[
           colorClasses ? 'w-10 h-10 rounded-xl flex items-center justify-center border transition-all shrink-0' : '',
           colorClasses ? `${colorClasses.bg} ${colorClasses.text} ${colorClasses.border}` : '',
@@ -123,16 +124,19 @@ const colorClasses = computed(() => {
           <i v-if="typeof icon === 'string'" :class="[icon, colorClasses ? 'text-lg' : 'text-primary-500 text-2xl!', colorClasses ? '' : iconClass]" />
           <component v-else :is="icon" :class="[colorClasses ? 'w-5 h-5' : 'w-7 h-7 text-primary-500', colorClasses ? '' : iconClass]" />
         </span>
-        <span>{{ props.titre }}</span>
-      </h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-1" :class="[icon && colorClasses ? 'pl-[52px]' : '']">
-        {{ props.description }}
-      </p>
+          <span>{{ props.titre }}</span>
+        </h1>
+        <p class="text-gray-600 dark:text-gray-400 mt-1" :class="[icon && colorClasses ? 'pl-[52px]' : '']">
+          {{ props.description }}
+        </p>
+      </div>
+      <div class="flex items-center gap-3 shrink-0">
+        <Button v-if="props.showBack" severity="primary" label="Retour" icon="pi pi-arrow-left" @click="props.backUrl ? $router.push(props.backUrl) : $router.go(-1)" />
+      </div>
     </div>
-    <div class="flex items-center gap-3 shrink-0">
-      <Button v-if="props.showBack" severity="primary" label="Retour" icon="pi pi-arrow-left" @click="props.backUrl ? $router.push(props.backUrl) : $router.go(-1)" />
-      <slot name="actions" />
-    </div>
+    <template class="w-full flex justify-end items-center gap-2">
+      <slot name="actions"/>
+    </template>
   </div>
 </template>
 
