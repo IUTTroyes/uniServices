@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, computed, onUnmounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue';
@@ -12,6 +12,7 @@ import { useEtudiantFilters } from '../../../../../shared/composables/filters/us
 
 const toast = useToast();
 const route = useRoute();
+const router = useRouter();
 const hasError = ref(false);
 const usersStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
@@ -46,6 +47,31 @@ watchChanges(async() => {
   filtersDebounceTimeout = setTimeout(() => {
     getEtudiantsScolarite();
   }, FILTERS_DEBOUNCE_MS);
+});
+
+watch(() => filters.value.annee.value, async (newAnneeId, oldAnneeId) => {
+  if (isInitialLoading.value) return;
+  if (newAnneeId === oldAnneeId) return;
+
+  const normalized = newAnneeId ? String(newAnneeId) : undefined;
+  const current = route.params.anneeId ? String(route.params.anneeId) : undefined;
+  if (normalized === current) return;
+
+  const nextParams = {
+    ...route.params,
+  };
+
+  if (normalized) {
+    nextParams.anneeId = normalized;
+  } else {
+    delete nextParams.anneeId;
+  }
+
+  await router.replace({
+    name: route.name,
+    params: nextParams,
+    query: route.query,
+  });
 });
 
 watch([departementId, selectedAnneeUniversitaireId], async ([newDepartementId, newAnneeUniversitaireId], [oldDepartementId, oldAnneeUniversitaireId]) => {

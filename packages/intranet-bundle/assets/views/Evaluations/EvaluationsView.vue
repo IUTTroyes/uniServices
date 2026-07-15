@@ -1,6 +1,6 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import {
   getEnseignementsService,
   getEtudiantsService,
@@ -19,6 +19,7 @@ import EvaluationStatistiques from "../../components/Evaluation/EvaluationStatis
 import EvaluationCard from "@/components/Evaluation/EvaluationCard.vue";
 
 const route = useRoute();
+const router = useRouter();
 const usersStore = useUsersStore();
 const anneeStore = useAnneeStore();
 const hasError = ref(false);
@@ -67,6 +68,16 @@ watch(semestre, async (newSemestre, oldSemestre) => {
 // watcher pour relancer getSemestres quand annee change
 watch(annee, async (newAnnee, oldAnnee) => {
   if (newAnnee?.id && newAnnee.id !== oldAnnee?.id) {
+    if (String(route.params.anneeId) !== String(newAnnee.id)) {
+      await router.replace({
+        name: route.name,
+        params: {
+          ...route.params,
+          anneeId: String(newAnnee.id),
+        },
+        query: route.query,
+      });
+    }
     await getSemestres();
     // si le semestre sélectionné n'est pas dans la nouvelle liste, on sélectionne le premier de la liste
     if (!semestres.value.some(s => s.id === semestre.value.id)) {
@@ -99,9 +110,9 @@ const getAnnees = async () => {
   } finally {
     isLoadingAnnees.value = false;
     // Initialiser l'année depuis le query parameter si présent sinon prendre la première année
-    const anneeFromQuery = route.params.anneeId;
-    if (anneeFromQuery) {
-      const anneeFound = annees.value.find(annee => annee.id === Number.parseInt(anneeFromQuery, 10));
+    const anneeFromParams = Number.parseInt(String(route.params.anneeId), 10);
+    if (!Number.isNaN(anneeFromParams)) {
+      const anneeFound = annees.value.find(annee => annee.id === anneeFromParams);
       annee.value = anneeFound ?? annees.value[0]
     } else {
       annee.value = annees.value[0]

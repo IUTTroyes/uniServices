@@ -4,9 +4,10 @@ import {getAnneeService, getGroupesService, getSemestresService, updateGroupeSer
 import { ErrorView, SimpleSkeleton, GlobalLoader, PermissionGuard, ButtonDelete, ButtonEdit, ButtonInfo, HeaderComponent } from "@components";
 import { useUsersStore, useSemestreStore, useAnneeStore } from "@stores";
 import {typesGroupes} from "@config/uniServices.js";
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 
 const route = useRoute();
+const router = useRouter();
 const userStore = useUsersStore();
 const semestreStore = useSemestreStore();
 const anneeStore = useAnneeStore();
@@ -30,6 +31,16 @@ onMounted(async () => {
 // watcher pour relancer getSemestres quand annee change
 watch(annee, async (newAnnee, oldAnnee) => {
   if (newAnnee.id !== oldAnnee.id) {
+    if (newAnnee?.id && String(route.params.anneeId) !== String(newAnnee.id)) {
+      await router.replace({
+        name: route.name,
+        params: {
+          ...route.params,
+          anneeId: String(newAnnee.id),
+        },
+        query: route.query,
+      });
+    }
     await getSemestres();
     await anneeStore.setSelectedAnnee(newAnnee)
   }
@@ -68,8 +79,12 @@ const getAnnee = async () => {
   hasError.value = false;
   // Récupération de l'id de l'année via l'URL
   try {
-    const anneeId = route.params.anneeId;
-    annee.value = await getAnneeService(anneeId);
+    const anneeId = Number.parseInt(String(route.params.anneeId), 10);
+    if (!Number.isNaN(anneeId)) {
+      annee.value = await getAnneeService(anneeId);
+    } else {
+      annee.value = annees.value[0] || {};
+    }
     await anneeStore.setSelectedAnnee(annee.value);
   } catch (error) {
     hasError.value = true;
@@ -166,24 +181,51 @@ const deleteGroupeFromSemestre = async (groupeId, semestre) => {
       titre="Structure des groupes"
       description="Gérer la structure des groupes"
   />
-  <div class="card min-h-full">
-    <div class="flex justify-between items-end w-full">
-      <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
-      <div v-else class="flex gap-4">
-        <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
-          <template #value>
-            {{ annee.libelle || "Changer d'année'" }}
-          </template>
-        </Select>
-        <Button
-        @click="synchroApogee()"
-        label="Synchronisation depuis Apogée"
-        icon="pi pi-refresh"/>
+  <div class="card">
+    <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
+      <div>
+        <p class="top-card-header">
+          Affectation des étudiants
+        </p>
+        <h2 class="text-sm text-color-secondary">
+          Année :
+          <SimpleSkeleton v-if="isLoadingAnnees" class="!w-32"></SimpleSkeleton>
+          <span v-else>{{ annee.libelle }}</span>
+        </h2>
+      </div>
+      <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
+      <div v-else class="flex flex-col gap-2">
+        <div class="flex gap-4 justify-end">
+          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
+          <Button
+              @click="synchroApogee()"
+              label="Synchronisation depuis Apogée"
+              icon="pi pi-refresh"/>
+        </div>
       </div>
     </div>
-    <Divider />
+
+
+<!--    <div class="flex justify-between items-end w-full">-->
+<!--      <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>-->
+<!--      <div v-else class="flex gap-4">-->
+<!--        <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">-->
+<!--          <template #value>-->
+<!--            {{ annee.libelle || "Changer d'année'" }}-->
+<!--          </template>-->
+<!--        </Select>-->
+<!--        <Button-->
+<!--            @click="synchroApogee()"-->
+<!--            label="Synchronisation depuis Apogée"-->
+<!--            icon="pi pi-refresh"/>-->
+<!--      </div>-->
+<!--    </div>-->
+
+
+
+
     <ErrorView v-if="hasError" />
-    <div v-else class="flex items-start justify-center gap-2">
+    <div v-else class="card-body flex items-start justify-center gap-2">
       <GlobalLoader v-if="isLoadingGroupes" class="w-full h-64" />
       <div v-else v-for="semestre in semestres" :key="semestre.id" class="p-4 w-full card">
         <h3 class="text-xl! font-black mb-4">Semestre {{ semestre.libelle }}</h3>
@@ -191,35 +233,35 @@ const deleteGroupeFromSemestre = async (groupeId, semestre) => {
           <h4 class="text-lg! font-bold">Type de groupe {{ type }}</h4>
           <div class="flex flex-wrap gap-4">
             <DataTable
-            :value="groupesType"
-            :empty-message="'Aucun groupe de type ' + type + ' pour ce semestre.'"
-            striped-rows
-            class="w-full">
-            <Column field="ordre" header="Ordre">
-              <template #body="slotProps">
-                <span class="text-muted-color">{{ slotProps.data.ordre !== null ? slotProps.data.ordre : '-' }}</span>
-              </template>
-            </Column>
-            <Column field="libelle" header="Libellé" class="font-black"/>
-            <Column field="codeApogee" header="Code Apogée" class="font-bold"/>
-            <Column field="parent.libelle" header="Parent" class="text-muted-color"/>
-            <Column header="Actions">
-              <template #body="slotProps">
-                <ButtonInfo tooltip="Voir le groupe"/>
-                <PermissionGuard permission="isSuperAdmin">
-                  <router-link :to="{ name: 'groupe-edit', params: { groupeId: slotProps.data.id } }">
-                    <ButtonEdit tooltip="Éditer le groupe"/>
-                  </router-link>
-                  <ButtonDelete tooltip="Retirer le groupe du semestre" @confirm-delete="deleteGroupeFromSemestre(slotProps.data.id, semestre.id)"/>
-                </PermissionGuard>
-              </template>
-            </Column>
-          </DataTable>
+                :value="groupesType"
+                :empty-message="'Aucun groupe de type ' + type + ' pour ce semestre.'"
+                striped-rows
+                class="w-full">
+              <Column field="ordre" header="Ordre">
+                <template #body="slotProps">
+                  <span class="text-muted-color">{{ slotProps.data.ordre !== null ? slotProps.data.ordre : '-' }}</span>
+                </template>
+              </Column>
+              <Column field="libelle" header="Libellé" class="font-black"/>
+              <Column field="codeApogee" header="Code Apogée" class="font-bold"/>
+              <Column field="parent.libelle" header="Parent" class="text-muted-color"/>
+              <Column header="Actions">
+                <template #body="slotProps">
+                  <ButtonInfo tooltip="Voir le groupe"/>
+                  <PermissionGuard permission="isSuperAdmin">
+                    <router-link :to="{ name: 'groupe-edit', params: { groupeId: slotProps.data.id } }">
+                      <ButtonEdit tooltip="Éditer le groupe"/>
+                    </router-link>
+                    <ButtonDelete tooltip="Retirer le groupe du semestre" @confirm-delete="deleteGroupeFromSemestre(slotProps.data.id, semestre.id)"/>
+                  </PermissionGuard>
+                </template>
+              </Column>
+            </DataTable>
+          </div>
         </div>
       </div>
     </div>
   </div>
-</div>
 </template>
 
 <style scoped></style>

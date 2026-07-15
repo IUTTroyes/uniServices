@@ -3,10 +3,11 @@ import { onMounted, ref, watch } from "vue";
 import {SimpleSkeleton, ErrorView, HeaderComponent} from "@components";
 import {useAnneeStore, useAnneeUnivStore, useSemestreStore, useUsersStore} from "@stores";
 import {getAnneeService, getSemestresService, getEtudiantAbsencesService} from "@requests";
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {Button} from "primevue";
 
 const route = useRoute();
+const router = useRouter();
 const hasError = ref(false);
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const usersStore = useUsersStore();
@@ -58,8 +59,12 @@ const getAnnee = async () => {
   hasError.value = false;
   // Récupération de l'id de l'année via l'URL
   try {
-    const anneeId = route.params.anneeId;
-    annee.value = await getAnneeService(anneeId);
+    const anneeId = Number.parseInt(String(route.params.anneeId), 10);
+    if (!Number.isNaN(anneeId)) {
+      annee.value = await getAnneeService(anneeId);
+    } else {
+      annee.value = annees.value[0] || {};
+    }
     await anneeStore.setSelectedAnnee(annee.value);
   } catch (error) {
     hasError.value = true;
@@ -100,6 +105,16 @@ watch(semestre, async (newSemestre, oldSemestre) => {
 // watcher pour relancer getSemestres quand annee change
 watch(annee, async (newAnnee, oldAnnee) => {
   if (newAnnee.id !== oldAnnee.id) {
+    if (newAnnee?.id && String(route.params.anneeId) !== String(newAnnee.id)) {
+      await router.replace({
+        name: route.name,
+        params: {
+          ...route.params,
+          anneeId: String(newAnnee.id),
+        },
+        query: route.query,
+      });
+    }
     await getSemestres();
     // si le semestre sélectionné n'est pas dans la nouvelle liste, on sélectionne celui actif
     if (!semestres.value.some(s => s.id === semestre.value.id)) {

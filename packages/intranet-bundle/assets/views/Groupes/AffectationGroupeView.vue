@@ -10,13 +10,14 @@ import {
   getAnneesService,
   updateEtudiantScolariteSemestreService
 } from "@requests";
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import { useToast } from 'primevue/usetoast';
 import { useEtudiantFilters } from '../../../../../shared/composables/filters/usersFilters/useEtudiantFilters';
 import { repartitionAutoGroupe, synchroParentsGroupe } from '../../service/groupeService';
 
 const toast = useToast();
 const route = useRoute();
+const router = useRouter();
 const hasError = ref(false);
 const semestre = ref({});
 const groupes = ref({});
@@ -97,6 +98,16 @@ watch(semestre, async (newSemestre, oldSemestre) => {
 watch(annee, async (newAnnee, oldAnnee) => {
   if (isInitialLoading.value) return;
   if (newAnnee.id !== oldAnnee.id) {
+    if (newAnnee?.id && String(route.params.anneeId) !== String(newAnnee.id)) {
+      await router.replace({
+        name: route.name,
+        params: {
+          ...route.params,
+          anneeId: String(newAnnee.id),
+        },
+        query: route.query,
+      });
+    }
     await getSemestres();
     // si le semestre sélectionné n'est pas dans la nouvelle liste, on sélectionne le premier de la liste
     if (!semestres.value.some(s => s.id === semestre.value.id)) {
@@ -145,7 +156,14 @@ const getAnnees = async () => {
     hasError.value = true;
   } finally {
     isLoadingAnnees.value = false;
-    annee.value = annees.value[0]
+    const anneeFromParams = Number.parseInt(String(route.params.anneeId), 10);
+    const hasAnneeFromParams = !Number.isNaN(anneeFromParams);
+    if (hasAnneeFromParams) {
+      const selectedFromUrl = annees.value.find((item) => item.id === anneeFromParams);
+      annee.value = selectedFromUrl ?? annees.value[0];
+    } else {
+      annee.value = annees.value[0];
+    }
   }
 };
 
@@ -521,7 +539,7 @@ onUnmounted(() => {
       description="Répartir les étudiants dans les groupes"
   />
   <div class="card">
-    <div class="flex justify-between items-start w-full card-header">
+    <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
       <div>
         <p class="top-card-header">
           Affectation des étudiants
