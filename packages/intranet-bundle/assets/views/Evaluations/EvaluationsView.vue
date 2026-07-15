@@ -307,31 +307,35 @@ const onEvaluationSaved = async () => {
     <div class="card w-1/5 flex items-center justify-center flex-col">
       <div class="font-bold text-lg card-header text-center">À initialiser</div>
       <div class="flex items-center gap-2 card-body">
-        <i class="pi pi-exclamation-triangle text-red-500"></i>
+        <i class="pi pi-exclamation-triangle text-red-500 text-3xl!"></i>
         <SimpleSkeleton v-if="isLoadingEvaluations" class="w-1/2"/>
-        <span v-else class="text-red-500">{{ allEvaluations.filter(e => e.etat === 'non_initialisee').length }}</span>
+        <span v-else class="text-red-500 text-4xl font-extrabold">{{ allEvaluations.filter(e => e.etat === 'non_initialisee').length }}</span>
       </div>
+      <span class="text-sm text-muted-color mb-4">Évaluations non initialisées</span>
     </div>
     <div class="card w-1/5 flex items-center justify-center flex-col">
       <div class="font-bold text-lg card-header text-center">À planifier</div>
       <div class="flex items-center gap-2 card-body">
-        <i class="pi pi-calendar text-blue-500"></i>
-        <span class="text-blue-500">{{ allEvaluations.filter(e => e.etat === 'initialisee').length }}</span>
+        <i class="pi pi-calendar text-blue-500 text-3xl!"></i>
+        <span class="text-blue-500 text-4xl font-extrabold">{{ allEvaluations.filter(e => e.etat === 'initialisee').length }}</span>
       </div>
+      <span class="text-sm text-muted-color mb-4">Évaluations initialisées</span>
     </div>
     <div class="card w-1/5 flex items-center justify-center flex-col">
       <div class="font-bold text-lg card-header text-center">Notes à saisir</div>
       <div class="flex items-center gap-2 card-body">
-        <i class="pi pi-check-circle text-yellow-500"></i>
-        <span class="text-yellow-500">{{ allEvaluations.filter(e => e.etat === 'planifiee').length }}</span>
+        <i class="pi pi-check-circle text-yellow-500 text-3xl!"></i>
+        <span class="text-yellow-500 text-4xl font-extrabold">{{ allEvaluations.filter(e => e.etat === 'planifiee').length }}</span>
       </div>
+      <span class="text-sm text-muted-color mb-4">Évaluations planifiées</span>
     </div>
     <div class="card w-1/5 flex items-center justify-center flex-col">
       <div class="font-bold text-lg card-header text-center">À publier</div>
       <div class="flex items-center gap-2 card-body">
-        <i class="pi pi-send text-green-500"></i>
-        <span class="text-green-500">{{ allEvaluations.filter(e => e.etat === 'completee').length }}</span>
+        <i class="pi pi-send text-green-500 text-3xl!"></i>
+        <span class="text-green-500 text-4xl font-extrabold">{{ allEvaluations.filter(e => e.etat === 'completee').length }}</span>
       </div>
+      <span class="text-sm text-muted-color mb-4">Évaluations terminées</span>
     </div>
   </div>
 
@@ -358,11 +362,11 @@ const onEvaluationSaved = async () => {
           <Button label="Initialiser toutes les évaluations" icon="pi pi-plus-circle" severity="primary" size="small" @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')"/>
         </div>
       </div>
-      <ListSkeleton v-if="isLoadingEnseignements" class="w-1/2"/>
+      <ListSkeleton v-if="isLoadingEnseignements" class="card-body"/>
       <div v-else class="card-body">
         <Accordion v-if="semestre && enseignements.length !== 0" value="0" class="mt-4">
           <AccordionPanel v-for="enseignement in enseignements" :value="enseignement.id" :key="enseignement.id">
-            <AccordionHeader class="hover:bg-primary-300/10!">
+            <AccordionHeader class="hover:bg-surface-300/10! bg-surface-0! dark:bg-slate-900!">
               <div class="flex flex-col gap-2 w-full">
                 <div class="flex justify-between items-center w-full">
                   <div class="flex justify-between items-center">
@@ -381,8 +385,8 @@ const onEvaluationSaved = async () => {
                 </div>
                 <SimpleSkeleton v-if="isLoadingEvaluations" class="w-full"/>
                 <div class="mr-4">
-                  <div class="p-2 w-full bg-neutral-100/20
-                   rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900 flex flex-col gap-2">
+                  <div class="p-2 w-full bg-slate-100/20
+                   rounded-md border border-slate-300 dark:border-neutral-600 dark:bg-slate-900 flex flex-col gap-2">
                     <div class="flex justify-between items-center gap-4">
                       <div class="flex items-center gap-1 font-bold"><i class="pi pi-check-circle text-primary"></i>Progression Globale</div>
                     </div>
@@ -452,7 +456,7 @@ const onEvaluationSaved = async () => {
   @apply border border-neutral-300 dark:border-neutral-600 rounded-md mb-4;
 }
 :deep(.p-accordioncontent-content) {
-  @apply bg-neutral-200/20 p-4;
+  @apply bg-surface-200/10 p-8;
 }
 
 </style>

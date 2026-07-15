@@ -227,7 +227,6 @@ const reactiverEval = async () => {
 </script>
 
 <template>
-  {{ evaluation.id }}
   <div class="card m-0 py-2 px-4">
     <div class="flex flex-col gap-4">
       <div class="flex justify-between items-center gap-4">

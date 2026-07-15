@@ -2,7 +2,7 @@
 import {onMounted, ref} from 'vue';
 import { getEvaluationService, getPersonnelsService, updateEvaluationService } from '@requests';
 import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ListSkeleton } from "@components";
-import { useUsersStore } from "@stores/user_stores/userStore.js";
+import { useUsersStore } from "@stores";
 
 const emit = defineEmits(['saved', 'close']);
 
@@ -55,7 +55,7 @@ const getEvaluation = async () => {
   try {
     isLoading.value = true;
     const response = await getEvaluationService(props.evaluationId, '/init');
-    
+
     // convert API date string to Date object for PrimeVue DatePicker
     if (response && response.date) {
       response.date = parseApiDate(response.date);
@@ -141,10 +141,10 @@ const updateEvaluation = async (annule = false) => {
 </script>
 
 <template>
-  
+
   <ListSkeleton v-if="isLoading" />
   <div v-else>
-    <div class="card bg-neutral-50 rounded-md border border-neutral-300 dark:border-neutral-600 dark:bg-neutral-900">
+    <div class="card-header mb-6">
       <div class="text-lg font-bold text-center">
         {{ evaluation.enseignement?.codeEnseignement }} - {{ evaluation.enseignement?.libelle }}
       </div>
@@ -162,7 +162,7 @@ const updateEvaluation = async (annule = false) => {
         </div>
       </div>
     </div>
-    
+
     <form @submit.prevent="updateEvaluation()" class="flex flex-col">
       <ValidatedInput
       v-model="evaluation.libelle"
@@ -173,7 +173,7 @@ const updateEvaluation = async (annule = false) => {
       @validation="result => handleValidation('libelle', result)"
       help-text="Entrez le libellé de l'évaluation"
       />
-      
+
       <div>
         <div class="">Type d'évaluation</div>
         <div class="flex w-full justify-between px-8">
@@ -189,7 +189,7 @@ const updateEvaluation = async (annule = false) => {
           />
         </div>
       </div>
-      
+
       <ValidatedInput
       class="w-full"
       v-model="evaluation.date"
@@ -200,7 +200,7 @@ const updateEvaluation = async (annule = false) => {
       @validation="result => handleValidation('dateEvaluation', result)"
       help-text="Sélectionnez la date de l'évaluation"
       />
-      
+
       <ValidatedInput
       class="w-full"
       v-model="evaluation.coeff"
@@ -212,7 +212,7 @@ const updateEvaluation = async (annule = false) => {
       help-text="Entrez le coefficient de l'évaluation"
       inputId="minmax" :min="0" :max="100"
       />
-      
+
       <ValidatedInput
       class="w-full"
       v-model="evaluation.commentaire"
@@ -223,7 +223,7 @@ const updateEvaluation = async (annule = false) => {
       @validation="result => handleValidation('commentaire', result)"
       help-text="Ajoutez un commentaire (optionnel)"
       />
-      
+
       <ValidatedInput
       class="w-full"
       v-model="evaluation.typeGroupe"
@@ -234,7 +234,7 @@ const updateEvaluation = async (annule = false) => {
       :rules="[validationRules.required]"
       @validation="result => handleValidation('typeGroupe', result)"
       />
-      
+
       <ValidatedInput
       class="w-full"
       v-model="evaluation.personnelAutorise"
@@ -247,7 +247,7 @@ const updateEvaluation = async (annule = false) => {
       help-text="Sélectionnez les enseignants autorisés à gérer cette évaluation"
       :filter="true"
       />
-      
+
       <div class="flex justify-center items-center gap-4">
         <Button label="Mettre à jour l'évaluation" @click="updateEvaluation()" :disabled="!formValid" />
         <Button label="Annuler" severity="secondary" @click="() => emit('close')" />
@@ -255,10 +255,10 @@ const updateEvaluation = async (annule = false) => {
       </form>
     </div>
   </template>
-  
+
   <style scoped>
   @reference "../../assets/tailwind.css";
-  
+
   :deep(.p-component) {
     @apply w-full;
   }
