@@ -53,6 +53,18 @@ export default [
         },
     },
     {
+        path: 'responsable/periode/:id',
+        component: () => import('@/views/Responsable/ResponsableDashboardView.vue'),
+        name: 'ResponsablePeriodDashboard',
+        meta: {
+            breadcrumb: (route) => [
+                { label: 'Dashboard', route: '/' },
+                { label: 'Espace Responsable', route: '/stage/responsable', icon: 'pi pi-shield' },
+                { label: 'Détails Période', route: null, icon: 'pi pi-calendar' }
+            ]
+        },
+    },
+    {
         path: 'admin/templates',
         component: () => import('@/views/SuperAdmin/TemplateEditorView.vue'),
         name: 'TemplateEditor',

@@ -13,9 +13,9 @@ const questionnaireMenu = {
   ]
 };
 
-export default {
+export default { 
   name: 'questionnaire',
-  primaryColor: 'blue',
+  primaryColor: 'green',
   registerWidgets,
   routes: [
     {

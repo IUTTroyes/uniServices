@@ -144,4 +144,19 @@ export default [
       }]
     },
   },
+  {
+    path: 'styleguide',
+    component: () => import('../../views/configuration/StyleguideView.vue'),
+    name: 'styleguide',
+    meta: {
+      permission: 'isReferent',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Documentation Composants',
+        route: null
+      }]
+    }
+  }
 ]

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./assets/*"],
+      "@components": ["../../shared/components"],
+      "@components/*": ["../../shared/components/*"],
+      "@stores": ["../../shared/stores"],
+      "@stores/*": ["../../shared/stores/*"],
+      "@utils": ["../../shared/utils"],
+      "@utils/*": ["../../shared/utils/*"],
+      "@composables": ["../../shared/composables"],
+      "@composables/*": ["../../shared/composables/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}

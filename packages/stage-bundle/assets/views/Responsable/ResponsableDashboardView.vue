@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
 import {
   getStagePeriodesService,
@@ -19,11 +20,43 @@ import StudentsTab from './components/StudentsTab.vue';
 import PeriodsTab from './components/PeriodsTab.vue';
 import StatsTab from './components/StatsTab.vue';
 import PeriodFormDialog from './components/PeriodFormDialog.vue';
+import PeriodInfoTab from './components/PeriodInfoTab.vue';
+import Select from 'primevue/select';
+import Button from 'primevue/button';
+
+
+import {
+  ChartBarIcon,
+  UserPlusIcon,
+  ArrowDownTrayIcon,
+  UserGroupIcon,
+  CalendarIcon,
+  ChatBubbleLeftRightIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  MagnifyingGlassIcon,
+  TableCellsIcon,
+  Squares2X2Icon,
+  BellIcon,
+  XMarkIcon,
+  EnvelopeIcon,
+  UsersIcon,
+  PlusIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  DocumentIcon,
+  Cog6ToothIcon,
+} from '@heroicons/vue/24/outline';
+
+import { HeaderComponent, ActionButtonVertical, Kpi, SimpleSkeleton, Card } from '@components';
 
 const toast = useToast();
+const route = useRoute();
+const router = useRouter();
 
-const activeTab = ref('students'); // 'students' | 'periods' | 'stats'
+const activeTab = ref('students'); // 'students' | 'info' | 'stats'
 const selectedPeriodId = ref(null); // Default null, will set after load
+const viewMode = ref('dashboard'); // 'dashboard' | 'period'
 
 const periods = ref([]);
 const students = ref([]);
@@ -131,24 +164,40 @@ const mapStageEtudiantToVue = (se) => {
   };
 };
 
-const fetchPeriodStudents = async (periodId) => {
-  if (!periodId) return;
+const fetchAllStudents = async () => {
   try {
-    const data = await getStageEtudiantsService({ stagePeriode: `/api/stage_periodes/${periodId}` });
-    console.log(data);
+    const data = await getStageEtudiantsService();
     students.value = (data || []).map(mapStageEtudiantToVue);
-    console.log(students.value);
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants:', error);
     toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger la liste des étudiants.', life: 4000 });
   }
 };
 
+const syncRouteState = () => {
+  const periodIdParam = route.params.id;
+  if (periodIdParam) {
+    selectedPeriodId.value = parseInt(periodIdParam, 10);
+    viewMode.value = 'period';
+  } else {
+    viewMode.value = 'dashboard';
+    selectedPeriodId.value = null;
+  }
+};
+
+watch(() => route.params.id, () => {
+  syncRouteState();
+});
+
 watch(selectedPeriodId, (newId) => {
-  if (newId) {
-    fetchPeriodStudents(newId);
+  if (newId && viewMode.value === 'period' && parseInt(route.params.id, 10) !== newId) {
+    router.push({ name: 'ResponsablePeriodDashboard', params: { id: newId } });
   }
 });
+
+const enterPeriod = (period) => {
+  router.push({ name: 'ResponsablePeriodDashboard', params: { id: period.id } });
+};
 
 // Reactive states from backend
 const dbPersonnels = ref([]);
@@ -324,6 +373,9 @@ const loadAllData = async () => {
     } else {
       periods.value = [];
     }
+
+    await fetchAllStudents();
+    syncRouteState();
   } catch (error) {
     console.error('Erreur au chargement des données:', error);
     toast.add({ severity: 'error', summary: 'Erreur de chargement', detail: 'Erreur de communication avec le serveur.', life: 4000 });
@@ -363,6 +415,33 @@ const kpis = computed(() => {
     reports,
     rate
   };
+});
+
+const globalKpis = computed(() => {
+  const list = students.value;
+  const total = list.length;
+  const placed = list.filter(s => s.hasStage).length;
+  const pending = list.filter(s => s.conventionStatus === 'En attente').length;
+  const reports = list.filter(s => s.reportUploaded).length;
+  const rate = total > 0 ? Math.round((placed / total) * 100) : 0;
+
+  return {
+    total,
+    placed,
+    pending,
+    reports,
+    rate
+  };
+});
+
+const pendingConventions = computed(() => {
+  return students.value.filter(s => s.conventionStatus === 'En attente');
+});
+
+const activePeriodDatesAndInfo = computed(() => {
+  const p = periods.value.find(p => p.id === selectedPeriodId.value);
+  if (!p) return '';
+  return `${p.dates} — Niveau : ${p.level} — Responsable : ${p.responsablePrincipal}`;
 });
 
 // Dialog state: create/edit period
@@ -582,76 +661,201 @@ const confirmDeletePeriod = async (p) => {
   <div class="space-y-6">
     <Toast />
 
-    <!-- Top Navigation Header -->
-    <div
-      class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
-      <div>
-        <h1 class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-          <i class="pi pi-shield text-violet-600"></i>
-          <span>Espace Responsable des Stages</span>
-        </h1>
-        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-          Gérez les conventions de stage, supervisez le parcours des étudiants et paramétrez les périodes.
-        </p>
-      </div>
+    <!-- 1. Header component for General Dashboard -->
+    <HeaderComponent
+      v-if="viewMode === 'dashboard'"
+      :icon="ChartBarIcon"
+      color="indigo"
+      titre="Espace Responsable des Stages"
+      description="Gérez les conventions de stage, supervisez le parcours des étudiants et paramétrez les périodes."
+    >
+      <template #actions>
+        <button
+          class="text-xs font-bold px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer border-0"
+          @click="openCreatePeriodDialog"
+        >
+          <PlusIcon class="w-3.5 h-3.5" />
+          <span>Nouvelle Période</span>
+        </button>
+      </template>
+    </HeaderComponent>
 
-      <!-- General View Tabs -->
-      <div class="bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl flex gap-1 w-full md:w-auto">
-        <button @click="activeTab = 'students'"
-          :class="['px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 flex-1 md:flex-initial', activeTab === 'students' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200']">
-          <i class="pi pi-users text-[10px]"></i>
-          <span>Étudiants & Suivis</span>
-        </button>
-        <button @click="activeTab = 'periods'"
-          :class="['px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 flex-1 md:flex-initial', activeTab === 'periods' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200']">
-          <i class="pi pi-calendar text-[10px]"></i>
-          <span>Périodes</span>
-        </button>
-        <button @click="activeTab = 'stats'"
-          :class="['px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 flex-1 md:flex-initial', activeTab === 'stats' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200']">
-          <i class="pi pi-chart-bar text-[10px]"></i>
-          <span>Analyses</span>
-        </button>
-      </div>
-    </div>
+    <!-- 2. Header component for Specific Period View -->
+    <HeaderComponent
+      v-else
+      :icon="CalendarIcon"
+      color="violet"
+      :titre="activePeriodName"
+      :description="activePeriodDatesAndInfo"
+    >
+      <template #actions>
+        <div class="flex items-center gap-3">
+          <!-- Quick switch dropdown -->
+          <Select
+            v-slot:default
+            v-model="selectedPeriodId"
+            :options="periods"
+            optionLabel="name"
+            optionValue="id"
+            placeholder="Changer de période"
+            class="w-64 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
+          />
+        </div>
+      </template>
+    </HeaderComponent>
 
-    <!-- Active Tab rendering -->
-    <div v-if="isLoading" class="flex items-center justify-center py-12">
-      <i class="pi pi-spin pi-spinner text-violet-600 text-2xl"></i>
-    </div>
+    <!-- Content loading state -->
+    <SimpleSkeleton v-if="isLoading" class="!w-full !h-96" />
 
     <div v-else>
-      <StudentsTab v-if="activeTab === 'students'" class="animate-fade-in" :periods="periods"
-        v-model:selectedPeriodId="selectedPeriodId" :period-students="periodStudents" :kpis="kpis" :teachers="teachers"
-        :active-period-name="activePeriodName" @update-student="handleUpdateStudent" />
+      <!-- TABLEAU DE BORD GÉNÉRAL (viewMode === 'dashboard') -->
+      <div v-if="viewMode === 'dashboard'" class="space-y-6 animate-fade-in">
+        <!-- KPIs Globaux -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Kpi
+            :value="globalKpis.total"
+            label="Total Étudiants"
+            :icon="UsersIcon"
+            color="indigo"
+          />
+          <Kpi
+            :value="globalKpis.placed"
+            label="Étudiants Placés"
+            :icon="CheckCircleIcon"
+            color="green"
+          />
+          <Kpi
+            :value="globalKpis.rate + '%'"
+            label="Taux de Placement"
+            :icon="ChartBarIcon"
+            color="purple"
+          />
+          <Kpi
+            :value="globalKpis.pending"
+            label="Conventions à Valider"
+            :icon="ClockIcon"
+            color="yellow"
+          />
+        </div>
 
-      <PeriodsTab v-if="activeTab === 'periods'" class="animate-fade-in" :periods="periods"
-        @create="openCreatePeriodDialog" @edit="openEditPeriodDialog" @delete="confirmDeletePeriod" />
+        <!-- Section: Dernières actualités sur les conventions -->
+        <Card
+          title="Demandes de conventions en attente de traitement"
+          subtitle="Dossiers récemment déposés nécessitant votre approbation ou relecture."
+          :icon="BellIcon"
+          color="amber"
+        >
+          <div class="space-y-3">
+            <div v-if="pendingConventions.length > 0" class="divide-y divide-slate-100 dark:divide-slate-700/50">
+              <div
+                v-for="c in pendingConventions"
+                :key="c.id"
+                class="flex flex-wrap justify-between items-center py-3 gap-3 first:pt-0 last:pb-0"
+              >
+                <div class="flex items-start gap-3 min-w-0">
+                  <div class="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                    <DocumentIcon class="w-4 h-4" />
+                  </div>
+                  <div class="min-w-0">
+                    <span class="font-bold text-slate-800 dark:text-slate-200 text-xs block">
+                      {{ c.studentName }}
+                    </span>
+                    <span class="text-[10px] text-slate-400 block mt-0.5">
+                      {{ c.company }} — Période : <strong class="text-slate-600 dark:text-slate-300">{{ periods.find(p => p.id === c.periodId)?.name || 'Inconnue' }}</strong>
+                    </span>
+                  </div>
+                </div>
+                <button
+                  @click="enterPeriod({ id: c.periodId })"
+                  class="py-1.5 px-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-[10px] transition-all flex items-center gap-1 cursor-pointer border-0 shadow-sm"
+                >
+                  <span>Instruire la demande</span>
+                  <ArrowRightIcon class="w-2.5 h-2.5" />
+                </button>
+              </div>
+            </div>
+            <div v-else class="text-center py-8 text-xs text-slate-400 italic">
+              Aucune demande de convention en attente d'instruction. Tout est à jour !
+            </div>
+          </div>
+        </Card>
 
-      <StatsTab v-if="activeTab === 'stats'" class="animate-fade-in" :kpis="kpis"
-        :active-period-name="activePeriodName" />
+        <!-- Liste des Périodes -->
+        <PeriodsTab
+          :periods="periods"
+          @create="openCreatePeriodDialog"
+          @edit="openEditPeriodDialog"
+          @delete="confirmDeletePeriod"
+          @select="enterPeriod"
+        />
+      </div>
+
+      <!-- VUE DÉTAILLÉE PAR PÉRIODE (viewMode === 'period') -->
+      <div v-else class="space-y-6">
+        <!-- Tabs for Period Features -->
+        <div class="bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex gap-1 w-full md:w-auto self-start border border-slate-200/20 dark:border-slate-700/50">
+          <button
+            @click="activeTab = 'students'"
+            :class="['px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer flex-1 md:flex-initial', activeTab === 'students' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 bg-transparent']"
+          >
+            <UsersIcon class="w-3.5 h-3.5" />
+            <span>Étudiants & Suivis</span>
+          </button>
+          <button
+            @click="activeTab = 'info'"
+            :class="['px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer flex-1 md:flex-initial', activeTab === 'info' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 bg-transparent']"
+          >
+            <Cog6ToothIcon class="w-3.5 h-3.5" />
+            <span>Informations & Config</span>
+          </button>
+          <button
+            @click="activeTab = 'stats'"
+            :class="['px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer flex-1 md:flex-initial', activeTab === 'stats' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 bg-transparent']"
+          >
+            <ChartBarIcon class="w-3.5 h-3.5" />
+            <span>Analyses & Stats</span>
+          </button>
+        </div>
+
+        <!-- Content rendering based on Active Tab -->
+        <div>
+          <StudentsTab
+            v-if="activeTab === 'students'"
+            class="animate-fade-in"
+            :periods="periods"
+            v-model:selectedPeriodId="selectedPeriodId"
+            :period-students="periodStudents"
+            :kpis="kpis"
+            :teachers="teachers"
+            :active-period-name="activePeriodName"
+            @update-student="handleUpdateStudent"
+          />
+
+          <PeriodInfoTab
+            v-if="activeTab === 'info'"
+            class="animate-fade-in"
+            :period="periods.find(p => p.id === selectedPeriodId) || {}"
+            @edit="openEditPeriodDialog"
+          />
+
+          <StatsTab
+            v-if="activeTab === 'stats'"
+            class="animate-fade-in"
+            :kpis="kpis"
+            :active-period-name="activePeriodName"
+          />
+        </div>
+      </div>
     </div>
 
-    <!-- Period Dialog -->
-    <PeriodFormDialog v-model:visible="showCreatePeriodDialog" :period="editingPeriod" :db-annee-univs="dbAnneeUnivs"
-      :db-semestres="dbSemestres" :teachers="teachers" @save="savePeriod" />
+    <!-- Period Form Dialog -->
+    <PeriodFormDialog
+      v-model:visible="showCreatePeriodDialog"
+      :period="editingPeriod"
+      :db-annee-univs="dbAnneeUnivs"
+      :db-semestres="dbSemestres"
+      :teachers="teachers"
+      @save="savePeriod"
+    />
   </div>
 </template>
-
-<style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>

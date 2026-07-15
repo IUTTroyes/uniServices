@@ -458,6 +458,40 @@ const getQuestionnaireInvitations = async (surveyUuid, showToast = false) => {
     }
 }
 
+const getQuestionnaireAnalytics = async (surveyUuid, showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api/questionnaires/${surveyUuid}/analytics`],
+            'Statistiques du questionnaire récupérées avec succès',
+            'Erreur lors de la récupération des statistiques du questionnaire',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getQuestionnaireAnalytics:', error);
+        throw error;
+    }
+}
+
+const exportQuestionnaireExcel = async (surveyUuid) => {
+    try {
+        const response = await api.get(`/api/questionnaires/${surveyUuid}/export-excel`, {
+            responseType: 'blob'
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Statistiques_${surveyUuid}.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Erreur lors de l\'export Excel:', error);
+        throw error;
+    }
+}
+
 export {
     getMiniSemestres,
     getAllStatuses,
@@ -490,5 +524,7 @@ export {
     getInvitationSection,
     saveInvitationAnswers,
     submitInvitation,
-    getQuestionnaireInvitations
+    getQuestionnaireInvitations,
+    getQuestionnaireAnalytics,
+    exportQuestionnaireExcel
 };

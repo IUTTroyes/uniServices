@@ -94,7 +94,7 @@ class StructureDepartementPersonnel
 
     public function getPackages(): array
     {
-        return $this->packages;
+        return $this->packages ?? [];
     }
 
     public function setPackages(array $packages): static
@@ -106,7 +106,7 @@ class StructureDepartementPersonnel
 
     public function getPermissions(): array
     {
-        return $this->permissions;
+        return $this->permissions ?? [];
     }
 
     public function setPermissions(array $permissions): static
