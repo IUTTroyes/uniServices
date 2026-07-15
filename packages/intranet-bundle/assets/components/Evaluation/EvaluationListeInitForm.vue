@@ -194,7 +194,7 @@ const submitEval = async () => {
       </Message>
 
       <div v-for="enseignement in rows" :key="enseignement.id" class="p-mb-4 p-p-4 p-border-1 p-border-round p-shadow-2">
-        <div class="p-2 font-bold bg-primary-100 dark:bg-primary-800 text-lg">{{ enseignement.codeEnseignement }} - {{ enseignement.libelle }}</div>
+        <div class="p-2 font-bold bg-primary-300/20 text-lg">{{ enseignement.codeEnseignement }} - {{ enseignement.libelle }}</div>
 
         <Message v-if="!enseignement.evaluations || enseignement.evaluations.length === 0" severity="error" icon="pi pi-exclamation-triangle" class="my-6">
           Aucune évaluation.
