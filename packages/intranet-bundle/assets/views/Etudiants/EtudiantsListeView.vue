@@ -203,39 +203,23 @@ const deleteEtudiant = async etudiant => {
       description="Consultez la liste des étudiants inscrits dans le département"
   />
 
-  <div class="flex justify-around items-stretch mb-12">
-    <!-- Use a dynamic inline width instead of an invalid Tailwind class that contains a Vue expression -->
-    <div v-for="annee in anneesList" :key="annee.id" class="card h-full" :style="{ width: anneesList.length ? (100 / anneesList.length) + '%' : 'auto' }">
+  <div class="flex justify-around mb-12 gap-2">
+    <div v-for="annee in anneesList" :key="annee.id" class="card flex flex-col items-stretch" :style="{ width: anneesList.length ? (100 / anneesList.length) + '%' : 'auto' }">
       <SimpleSkeleton v-if="isLoadingStats" />
-      <div v-else>
+      <template v-else>
         <div class="font-bold text-lg card-header text-center">
           {{ annee.libelle }}
         </div>
-        <div class="text-lg font-bold card-body">
-          {{annee.etudiantsCount}} étudiant(s)
+        <div class="card-body h-full flex flex-col justify-end items-center">
+          <span class="text-2xl font-bold">{{annee.etudiantsCount}}</span> <span class="text-sm text-muted-color">étudiant(s)</span>
         </div>
-      </div>
+      </template>
     </div>
   </div>
 
   <div class="card">
     <ErrorView v-if="hasError" />
-    <div v-else>
-      <div class="flex gap-4 w-full pb-6 overflow-x-auto card-header">
-        <SimpleSkeleton v-if="isLoadingAnnees" class="w-full" />
-        <div v-for="annee in anneesList" :key="annee.id" class="bg-neutral-100 dark:bg-neutral-800 p-4 rounded-lg w-full min-w-48 flex items-center justify-center">
-          <SimpleSkeleton v-if="isLoadingStats" />
-          <div v-else>
-            <div>
-              {{ annee.libelle }}
-            </div>
-            <div class="text-lg font-bold">
-              {{annee.etudiantsCount}} étudiant(s)
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <div v-else class="card-body">
       <DataTable
           scrollHeight="800px"
           scrollable
