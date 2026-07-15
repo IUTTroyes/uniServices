@@ -519,58 +519,113 @@ onUnmounted(() => {
       :titre="`Composition des groupes de ${annee?.libelle}`"
       description="Répartir les étudiants dans les groupes"
   />
-  <div class="card min-h-full">
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center justify-between">
-        <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
-        <div v-else class="flex gap-4">
-          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
-            <template #value>
-              {{ annee?.libelle || "Changer d'année" }}
-            </template>
-          </Select>
-          <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres">
-            <template #value>
-              {{ semestre?.libelle || "Changer de semestre" }}
-            </template>
-          </Select>
-        </div>
+  <div class="card">
+    <div class="flex justify-between items-start w-full card-header">
+      <div>
+        <p class="top-card-header">
+          Affectation des étudiants
+        </p>
+        <h2 class="text-sm text-color-secondary">
+          Semestre :
+          <SimpleSkeleton v-if="isLoadingSemestres" class="!w-32"></SimpleSkeleton>
+          <span v-else>{{ semestre.libelle }}</span>
+        </h2>
       </div>
-      <Divider></Divider>
-      <div class="flex justify-end items-center gap-4">
-        <Button
-        label="Répartition automatique"
-        severity="secondary"
-        icon="pi pi-arrow-right-arrow-left"
-        @click="handleRepartitionAutoGroupe()"
-        class="p-button"
-        :loading="isRepartitionLoading"
-        :disabled="isLoadingEtudiants || isLoadingGroupes || isRepartitionLoading"
-        v-tooltip.bottom="`Répartir équitablement et aléatoirement les étudiants dans les groupes du semestre`"
-        />
-        <Button
-        label="Synchroniser les parents"
-        icon="pi pi-sync"
-        @click="synchroParents()"
-        class="p-button"
-        :loading="isSynchroLoading"
-        :disabled="isLoadingEtudiants || isLoadingGroupes"
-        v-tooltip.bottom="`Remplir automatiquement les groupes parents (CM, TD...) en fonction des affectations des groupes enfants (TP...).`"
-        />
-        <Button
-        label="Synchroniser depuis Apogée"
-        icon="pi pi-sync"
-        @click="synchroParents()"
-        class="p-button"
-        :loading="isSynchroLoading"
-        :disabled="isLoadingEtudiants || isLoadingGroupes"
-        v-tooltip.bottom="`Synchroniser les groupes depuis Apogée il faut attendre 24h entre la saisie dans Apogée et la possibilité de synchroniser`"
-        />
+      <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
+      <div v-else class="flex flex-col gap-2">
+        <div class="flex gap-4 justify-end">
+          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
+          <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
+        </div>
+        <div class="flex justify-end items-center gap-4">
+          <Button
+              label="Répartition automatique"
+              severity="secondary"
+              icon="pi pi-arrow-right-arrow-left"
+              @click="handleRepartitionAutoGroupe()"
+              class="p-button"
+              :loading="isRepartitionLoading"
+              :disabled="isLoadingEtudiants || isLoadingGroupes || isRepartitionLoading"
+              v-tooltip.bottom="`Répartir équitablement et aléatoirement les étudiants dans les groupes du semestre`"
+          />
+          <Button
+              label="Synchroniser les parents"
+              icon="pi pi-sync"
+              @click="synchroParents()"
+              class="p-button"
+              :loading="isSynchroLoading"
+              :disabled="isLoadingEtudiants || isLoadingGroupes"
+              v-tooltip.bottom="`Remplir automatiquement les groupes parents (CM, TD...) en fonction des affectations des groupes enfants (TP...).`"
+          />
+          <Button
+              label="Synchroniser depuis Apogée"
+              icon="pi pi-sync"
+              @click="synchroParents()"
+              class="p-button"
+              :loading="isSynchroLoading"
+              :disabled="isLoadingEtudiants || isLoadingGroupes"
+              v-tooltip.bottom="`Synchroniser les groupes depuis Apogée il faut attendre 24h entre la saisie dans Apogée et la possibilité de synchroniser`"
+          />
+        </div>
+        <Button label="Initialiser toutes les évaluations" icon="pi pi-plus-circle" severity="primary" size="small" @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')" :disabled="isLoadingEtudiants || isLoadingGroupes || isRepartitionLoading"/>
       </div>
     </div>
-    <Divider/>
+
+<!--    <div class="flex flex-col gap-2">-->
+<!--      <div class="flex items-center justify-between">-->
+<!--        <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>-->
+<!--        <div v-else class="flex gap-4">-->
+<!--          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">-->
+<!--            <template #value>-->
+<!--              {{ annee?.libelle || "Changer d'année" }}-->
+<!--            </template>-->
+<!--          </Select>-->
+<!--          <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres">-->
+<!--            <template #value>-->
+<!--              {{ semestre?.libelle || "Changer de semestre" }}-->
+<!--            </template>-->
+<!--          </Select>-->
+<!--        </div>-->
+<!--      </div>-->
+<!--      <Divider></Divider>-->
+<!--      <div class="flex justify-end items-center gap-4">-->
+<!--        <Button-->
+<!--        label="Répartition automatique"-->
+<!--        severity="secondary"-->
+<!--        icon="pi pi-arrow-right-arrow-left"-->
+<!--        @click="handleRepartitionAutoGroupe()"-->
+<!--        class="p-button"-->
+<!--        :loading="isRepartitionLoading"-->
+<!--        :disabled="isLoadingEtudiants || isLoadingGroupes || isRepartitionLoading"-->
+<!--        v-tooltip.bottom="`Répartir équitablement et aléatoirement les étudiants dans les groupes du semestre`"-->
+<!--        />-->
+<!--        <Button-->
+<!--        label="Synchroniser les parents"-->
+<!--        icon="pi pi-sync"-->
+<!--        @click="synchroParents()"-->
+<!--        class="p-button"-->
+<!--        :loading="isSynchroLoading"-->
+<!--        :disabled="isLoadingEtudiants || isLoadingGroupes"-->
+<!--        v-tooltip.bottom="`Remplir automatiquement les groupes parents (CM, TD...) en fonction des affectations des groupes enfants (TP...).`"-->
+<!--        />-->
+<!--        <Button-->
+<!--        label="Synchroniser depuis Apogée"-->
+<!--        icon="pi pi-sync"-->
+<!--        @click="synchroParents()"-->
+<!--        class="p-button"-->
+<!--        :loading="isSynchroLoading"-->
+<!--        :disabled="isLoadingEtudiants || isLoadingGroupes"-->
+<!--        v-tooltip.bottom="`Synchroniser les groupes depuis Apogée il faut attendre 24h entre la saisie dans Apogée et la possibilité de synchroniser`"-->
+<!--        />-->
+<!--      </div>-->
+<!--    </div>-->
+
+
+
+
+
     <ErrorView v-if="hasError"></ErrorView>
-    <div v-else>
+    <div class="card-body" v-else>
       <div v-if="isLoadingGroupes" class="flex items-center justify-center my-12">
         <ProgressSpinner style="width: 50px; height: 50px" />
       </div>
