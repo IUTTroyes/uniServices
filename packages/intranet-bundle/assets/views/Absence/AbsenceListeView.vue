@@ -15,11 +15,12 @@ const departementId = usersStore.departementDefaut.id;
 const semestreStore = useSemestreStore();
 const anneeStore = useAnneeStore();
 const semestres = ref([]);
-const isLoadingSemestres = ref(true);
+const isLoadingSemestres = ref(false);
 const semestre = ref({});
 const annees = ref([]);
 const annee = ref({});
-const isLoadingAnnee = ref(true);
+const isLoadingAnnee = ref(false);
+const isLoadingAnnees = ref(false);
 
 const absences = ref([]);
 const isLoadingAbsences = ref(true);
@@ -39,6 +40,7 @@ const getAnnees = async () => {
     annees.value = anneeStore.annees;
   } else {
     try {
+      isLoadingAnnees.value = true;
       const params = {
         departement: departementId,
         actif: true,
@@ -49,7 +51,7 @@ const getAnnees = async () => {
       console.error("Erreur lors de la récupération des années :", error);
       hasError.value = true;
     } finally {
-      console.log(annees.value)
+      isLoadingAnnees.value = false;
     }
   }
 };
@@ -142,45 +144,53 @@ const getAbsences = async () => {
 
 <template>
   <HeaderComponent
-      icon="pi pi-list"
-      titre="Liste des absences"
-      description="Consultez les absences des étudiants"
+      icon="pi pi-calendar"
+      titre="Absences"
+      description="Gérez les absences et les justificatifs"
   />
-  <div class="card min-h-full">
-    <div class="mb-6">
-      <div class="flex justify-between items-center w-full mb-6">
-        <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
-        <div v-else class="flex gap-4">
-          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
-            <template #value>
-              {{ annee?.libelle || "Changer d'année" }}
-            </template>
-          </Select>
-          <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres">
-            <template #value>
-              {{ semestre?.libelle || "Changer de semestre" }}
-            </template>
-          </Select>
+  <div class="card">
+
+    <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
+      <div>
+        <p class="top-card-header">
+          Contrôle des présences
+        </p>
+        <div class="flex flex-col items-start">
+          <p class="uppercase text-xs font-bold mb-0! text-muted-color">
+            semestre
+          </p>
+          <h2 class="mt-0!">
+            {{semestre.libelle}}
+          </h2>
         </div>
       </div>
-      <div class="w-full flex justify-end items-center">
-        <router-link :to="{ name: 'new-absence', params: { anneeId: annee?.id } }">
-          <Button label="Créer une absence" icon="pi pi-plus" @click="getAbsences()" severity="primary"/>
-        </router-link>
+      <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
+      <div v-else class="flex flex-col gap-2">
+        <div class="flex gap-4 justify-end">
+          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
+          <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
+        </div>
+        <div class="flex justify-end items-center">
+          <router-link :to="{ name: 'new-absence', params: { anneeId: annee?.id } }">
+            <Button label="Créer une absence" icon="pi pi-plus" @click="getAbsences()" severity="primary"/>
+          </router-link>
+        </div>
       </div>
     </div>
 
-    <Message severity="info" icon="pi pi-info-circle" class="w-full flex justify-center" v-if="!isLoadingAbsences && (!absences || absences.length === 0)">
-      Aucune absence trouvée pour ce semestre.
-    </Message>
-    <DataTable
-        v-else
-        :value="absences"
-        striped-rows
-        class="w-full"
-    >
-      <Column field="id" header="id" />
-    </DataTable>
+    <div class="card-body">
+      <Message severity="info" icon="pi pi-info-circle" class="w-full flex justify-center" v-if="!isLoadingAbsences && (!absences || absences.length === 0)">
+        Aucune absence trouvée pour ce semestre.
+      </Message>
+      <DataTable
+          v-else
+          :value="absences"
+          striped-rows
+          class="w-full"
+      >
+        <Column field="id" header="id" />
+      </DataTable>
+    </div>
   </div>
 </template>
 

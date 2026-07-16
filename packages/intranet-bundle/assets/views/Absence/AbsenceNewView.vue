@@ -1,12 +1,13 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
-import {SimpleSkeleton, ErrorView, validationRules, ValidatedInput, ListSkeleton} from "@components";
+import {SimpleSkeleton, ErrorView, ValidatedInput, ListSkeleton, HeaderComponent} from "@components";
 import {useAnneeStore, useSemestreStore, useUsersStore} from "@stores";
 import {getAnneeService, getSemestresService, getGroupesService, getEnseignementsService, getEtudiantScolariteSemestresService} from "@requests";
-import {useRoute} from "vue-router";
+import {useRoute, useRouter} from "vue-router";
 import {Button} from "primevue";
 
 const route = useRoute();
+const router = useRouter();
 const hasError = ref(false);
 const usersStore = useUsersStore();
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
@@ -126,6 +127,16 @@ watch(semestre, async (newSemestre, oldSemestre) => {
 // watcher pour relancer getSemestres quand annee change
 watch(annee, async (newAnnee, oldAnnee) => {
   if (newAnnee.id !== oldAnnee.id) {
+    if (newAnnee?.id && String(route.params.anneeId) !== String(newAnnee.id)) {
+      await router.replace({
+        name: route.name,
+        params: {
+          ...route.params,
+          anneeId: String(newAnnee.id),
+        },
+        query: route.query,
+      });
+    }
     await getSemestres();
     // si le semestre sélectionné n'est pas dans la nouvelle liste, on sélectionne le premier de la liste
     if (!semestres.value.some(s => s.id === semestre.value.id)) {
@@ -212,12 +223,26 @@ const getEtudiantsScolSemestre = async () => {
 </script>
 
 <template>
-  <div class="card min-h-full">
-    <div class="flex justify-between items-center w-full mb-6">
+  <HeaderComponent
+      icon="pi pi-calendar"
+      titre="Absences"
+      description="Saisir des absences"
+  />
+
+  <div class="card">
+    <div class="card-header flex justify-between items-center w-full mb-6">
       <div>
-        <h2 class="text-2xl! mb-0! font-bold flex items-end gap-2">
-          Saisir des absences
-        </h2>
+        <p class="top-card-header">
+          Contrôle des présences
+        </p>
+        <div class="flex flex-col items-start">
+          <p class="uppercase text-xs font-bold mb-0! text-muted-color">
+            semestre
+          </p>
+          <h2 class="mt-0!">
+            {{semestre.libelle}}
+          </h2>
+        </div>
       </div>
       <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
       <div v-else class="flex gap-4">
@@ -234,10 +259,10 @@ const getEtudiantsScolSemestre = async () => {
       </div>
     </div>
 
-    <div>
+    <div class="card-body">
       <ErrorView v-if="hasError"/>
       <div v-else>
-        <div class="card">
+        <div>
           <div class="flex flex-row gap-4">
             <ValidatedInput
                 name="libelle"

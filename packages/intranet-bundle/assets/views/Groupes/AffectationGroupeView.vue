@@ -535,7 +535,7 @@ onUnmounted(() => {
 <template>
   <HeaderComponent
       icon="pi pi-address-book"
-      :titre="`Composition des groupes de ${annee?.libelle}`"
+      titre="Composition des groupes"
       description="Répartir les étudiants dans les groupes"
   />
   <div class="card">
@@ -544,11 +544,14 @@ onUnmounted(() => {
         <p class="top-card-header">
           Affectation des étudiants
         </p>
-        <h2 class="text-sm text-color-secondary">
-          Semestre :
-          <SimpleSkeleton v-if="isLoadingSemestres" class="!w-32"></SimpleSkeleton>
-          <span v-else>{{ semestre.libelle }}</span>
-        </h2>
+        <div class="flex flex-col items-start">
+          <p class="uppercase text-xs font-bold mb-0! text-muted-color">
+            semestre
+          </p>
+          <h2 class="mt-0!">
+            {{semestre.libelle}}
+          </h2>
+        </div>
       </div>
       <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
       <div v-else class="flex flex-col gap-2">

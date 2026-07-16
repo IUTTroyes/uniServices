@@ -185,13 +185,16 @@ const deleteGroupeFromSemestre = async (groupeId, semestre) => {
     <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
       <div>
         <p class="top-card-header">
-          Affectation des étudiants
+          Organisation des groupes
         </p>
-        <h2 class="text-sm text-color-secondary">
-          Année :
-          <SimpleSkeleton v-if="isLoadingAnnees" class="!w-32"></SimpleSkeleton>
-          <span v-else>{{ annee.libelle }}</span>
-        </h2>
+        <div class="flex flex-col items-start">
+          <p class="uppercase text-xs font-bold mb-0! text-muted-color">
+            année
+          </p>
+          <h2 class="mt-0!">
+            {{annee.libelle}}
+          </h2>
+        </div>
       </div>
       <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
       <div v-else class="flex flex-col gap-2">
@@ -204,26 +207,6 @@ const deleteGroupeFromSemestre = async (groupeId, semestre) => {
         </div>
       </div>
     </div>
-
-
-<!--    <div class="flex justify-between items-end w-full">-->
-<!--      <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>-->
-<!--      <div v-else class="flex gap-4">-->
-<!--        <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">-->
-<!--          <template #value>-->
-<!--            {{ annee.libelle || "Changer d'année'" }}-->
-<!--          </template>-->
-<!--        </Select>-->
-<!--        <Button-->
-<!--            @click="synchroApogee()"-->
-<!--            label="Synchronisation depuis Apogée"-->
-<!--            icon="pi pi-refresh"/>-->
-<!--      </div>-->
-<!--    </div>-->
-
-
-
-
     <ErrorView v-if="hasError" />
     <div v-else class="card-body flex items-start justify-center gap-2">
       <GlobalLoader v-if="isLoadingGroupes" class="w-full h-64" />
