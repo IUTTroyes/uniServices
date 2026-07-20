@@ -149,6 +149,26 @@ const getAbsences = async () => {
     isLoadingAbsences.value = false;
   }
 }
+
+const optionChart = {
+  responsive: true,
+  maintainAspectRatio: true,
+  plugins: {
+    legend: {
+      position: 'bottom'
+    }
+  }
+};
+
+const chartData = {
+  labels: ['Justifiées', 'Non justifiées'],
+  datasets: [
+    {
+      data: [5, 10],
+      backgroundColor: ['#4dc9f6', '#f67019'],
+    },
+  ],
+}
 </script>
 
 <template>
@@ -157,52 +177,104 @@ const getAbsences = async () => {
       titre="Absences"
       description="Gérez les absences et les justificatifs"
   />
-  <div class="card">
 
-    <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
-      <div>
-        <p class="top-card-header">
-          Contrôle des présences
-        </p>
-        <div class="flex flex-col items-start">
-          <p class="uppercase text-xs font-bold mb-0! text-muted-color">
-            semestre
-          </p>
-          <h2 class="mt-0!">
-            {{semestre.libelle}}
-          </h2>
-        </div>
+  <div class="flex justify-around items-center mb-12">
+    <div class="card w-1/5 flex items-center justify-center flex-col">
+      <div class="font-bold text-lg card-header text-center">Total d'absences</div>
+      <div class="flex items-center gap-2 card-body">
+        <i class="pi pi-list text-yellow-500 text-3xl!"></i>
+        <SimpleSkeleton v-if="isLoadingAbsences" class="w-1/2"/>
+        <span v-else class="text-yellow-500 text-4xl font-extrabold">12</span>
       </div>
-      <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
-      <div v-else class="flex flex-col gap-2">
-        <div class="flex gap-4 justify-end">
-          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
-            <template #value>
-              {{ annee?.libelle || "Changer d'année" }}
-            </template>
-          </Select>
-          <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
+    </div>
+    <div class="card w-1/5 flex items-center justify-center flex-col">
+      <div class="font-bold text-lg card-header text-center">Justifiées</div>
+      <div class="flex items-center gap-2 card-body">
+        <i class="pi pi-check-circle text-green-500 text-3xl!"></i>
+        <span class="text-green-500 text-4xl font-extrabold">5</span>
+      </div>
+    </div>
+    <div class="card w-1/5 flex items-center justify-center flex-col">
+      <div class="font-bold text-lg card-header text-center">Non justifiées</div>
+      <div class="flex items-center gap-2 card-body">
+        <i class="pi pi-times-circle text-red-500 text-3xl!"></i>
+        <span class="text-red-500 text-4xl font-extrabold">10</span>
+      </div>
+    </div>
+    <div class="card w-1/5 flex items-center justify-center flex-col">
+      <div class="font-bold text-lg card-header text-center">Étudiants concernés</div>
+      <div class="flex items-center gap-2 card-body">
+        <i class="pi pi-users text-blue-500 text-3xl!"></i>
+        <span class="text-blue-500 text-4xl font-extrabold">6</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-6">
+    <div class="card">
+      <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
+        <div>
+          <p class="top-card-header">
+            Contrôle des présences
+          </p>
+          <div class="flex flex-col items-start">
+            <p class="uppercase text-xs font-bold mb-0! text-muted-color">
+              semestre
+            </p>
+            <h2 class="mt-0!">
+              {{semestre.libelle}}
+            </h2>
+          </div>
         </div>
-        <div class="flex justify-end items-center">
-          <router-link :to="{ name: 'new-absence', params: { anneeId: annee?.id }, query: { semestreId: semestre?.id } }">
-            <Button label="Créer une absence" icon="pi pi-plus" @click="getAbsences()" severity="primary"/>
-          </router-link>
+        <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
+        <div v-else class="flex flex-col gap-2">
+          <div class="flex gap-4 justify-end">
+            <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
+              <template #value>
+                {{ annee?.libelle || "Changer d'année" }}
+              </template>
+            </Select>
+            <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
+          </div>
+          <div class="flex justify-end items-center">
+            <router-link :to="{ name: 'new-absence', params: { anneeId: annee?.id }, query: { semestreId: semestre?.id } }">
+              <Button label="Créer une absence" icon="pi pi-plus" @click="getAbsences()" severity="primary"/>
+            </router-link>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="card-body">
-      <Message severity="info" icon="pi pi-info-circle" class="w-full flex justify-center" v-if="!isLoadingAbsences && (!absences || absences.length === 0)">
-        Aucune absence trouvée pour ce semestre.
-      </Message>
-      <DataTable
-          v-else
-          :value="absences"
-          striped-rows
-          class="w-full"
-      >
-        <Column field="scolariteSemestre.scolarite.etudiant.display" header="étudiant" />
-      </DataTable>
+    <div class="card">
+      <div class="card-body">
+        <section class="w-full grid grid-cols-1 xl:grid-cols-2 gap-6 mt-4">
+          <div class="flex flex-col justify-between xl:col-span-1">
+            <div>
+              <h3 class="m-0 mb-3">Dernière absences saisies</h3>
+              <Message severity="info" icon="pi pi-info-circle" class="w-full flex justify-center" v-if="!isLoadingAbsences && (!absences || absences.length === 0)">
+                Aucune absence trouvée pour ce semestre.
+              </Message>
+              <DataTable
+                  v-else
+                  :value="absences"
+                  striped-rows
+                  class="w-full"
+              >
+                <Column field="scolariteSemestre.scolarite.etudiant.display" header="étudiant" />
+              </DataTable>
+            </div>
+          </div>
+
+          <div class="flex flex-col justify-between xl:col-span-1">
+            <div>
+              <h3 class="m-0 mb-3">Répartition par ressource</h3>
+            </div>
+            <div class="flex flex-col justify-center items-center h-full">
+              <Chart type="pie" :data="chartData" :options="optionChart"/>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
   </div>
 </template>
