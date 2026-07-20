@@ -48,9 +48,37 @@ const logout = () => {
         });
 };
 
-const redirectToServerErrorPage = () => {
+const getErrorDebugMessage = (error) => {
+    const response = error?.response;
+    const data = response?.data;
+
+    const apiMessage = data?.['hydra:description']
+        || data?.detail
+        || data?.message
+        || data?.error
+        || null;
+
+    const statusPart = response?.status ? `HTTP ${response.status}` : 'HTTP inconnu';
+    const methodPart = error?.config?.method ? String(error.config.method).toUpperCase() : 'METHOD inconnue';
+    const urlPart = error?.config?.url || 'URL inconnue';
+    const requestPart = `[${methodPart}] ${urlPart}`;
+
+    return apiMessage
+        ? `${statusPart} - ${requestPart}\n${apiMessage}`
+        : `${statusPart} - ${requestPart}\n${error?.message || 'Erreur serveur sans détail fourni.'}`;
+};
+
+const redirectToServerErrorPage = (error) => {
     const currentPath = window.location.pathname;
     if (currentPath === '/app/500' || currentPath === '/app/500/') return;
+
+    const debugMessage = getErrorDebugMessage(error);
+    try {
+        window.sessionStorage.setItem('lastServerErrorDebugMessage', debugMessage);
+    } catch (_) {
+        // Ne pas bloquer la redirection si le stockage est indisponible
+    }
+
     window.location.href = window.location.origin + '/app/500';
 };
 
@@ -131,7 +159,7 @@ api.interceptors.response.use(
         }
 
         if (error.response && error.response.status >= 500) {
-            redirectToServerErrorPage();
+            redirectToServerErrorPage(error);
         }
 
         return Promise.reject(error);

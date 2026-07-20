@@ -27,4 +27,12 @@ trait UuidTrait
     {
         $this->uuid = $uuid ?? Uuid::v4();
     }
+
+    #[ORM\PrePersist]
+    public function initializeUuid(): void
+    {
+        if (!isset($this->uuid)) {
+            $this->uuid = Uuid::v4();
+        }
+    }
 }

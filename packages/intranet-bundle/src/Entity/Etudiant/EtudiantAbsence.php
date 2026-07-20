@@ -3,10 +3,12 @@
 namespace IntranetBundle\Entity\Etudiant;
 
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Scolarite\ScolEnseignement;
@@ -19,13 +21,16 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: EtudiantAbsenceRepository::class)]
+#[ORM\HasLifecycleCallbacks]
 #[ApiFilter(BooleanFilter::class, properties: ['justifiee'])]
+#[ApiFilter(SearchFilter::class, properties: ['scolariteSemestre' => 'exact', 'event' => 'exact'])]
 #[ApiResource(
     operations: [
         new GetCollection(
             uriTemplate: '/administration/etudiant_absences',
             normalizationContext: ['groups' => ['absence:administration']],
-        )
+        ),
+        new Post()
     ]
 )]
 class EtudiantAbsence
@@ -39,7 +44,7 @@ class EtudiantAbsence
     private ?int $id = null;
 
     #[ORM\Column]
-    private ?bool $justifiee = null;
+    private bool $justifiee = false;
 
     #[ORM\ManyToOne(inversedBy: 'absences')]
     private ?Personnel $personnel = null;

@@ -1,4 +1,30 @@
 <script setup>
+import { ref } from 'vue';
+
+const props = defineProps({
+  debugMessage: {
+    type: String,
+    default: '',
+  },
+});
+
+const copied = ref(false);
+
+const copyDebugMessage = async () => {
+  if (!props.debugMessage) {
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(props.debugMessage);
+    copied.value = true;
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  } catch (error) {
+    copied.value = false;
+  }
+};
 </script>
 
 <template>
@@ -12,6 +38,21 @@
           <h1 class="text-surface-900 dark:text-surface-0 font-bold text-4xl lg:text-5xl mb-2">Erreur</h1>
           <span class="text-muted-color text-center">Une erreur est survenue. <br> Veuillez réessayer plus tard ou contacter les administrateurs du site.</span>
           <a href="mailto:intranet.iut-troyes@univ-reims.fr" class="underline">Contacter les administrateurs du site &nbsp; <i class="pi pi-external-link !text-xs underline"></i></a>
+
+          <div v-if="debugMessage" class="w-full max-w-2xl rounded-xl border border-surface-300 dark:border-surface-700 bg-surface-0 dark:bg-surface-900 p-4 mt-2">
+            <div class="flex items-center justify-between gap-3 mb-2">
+              <p class="m-0 text-sm font-semibold text-color">Détail technique (debug)</p>
+              <Button
+                  size="small"
+                  severity="secondary"
+                  outlined
+                  icon="pi pi-copy"
+                  :label="copied ? 'Copié' : 'Copier'"
+                  @click="copyDebugMessage"
+              />
+            </div>
+            <pre class="m-0 text-xs whitespace-pre-wrap break-words max-h-48 overflow-auto">{{ debugMessage }}</pre>
+          </div>
 
           <img src="@common-images/illu/maintenance.svg" alt="Maintenance" class="w-3/4 mb-8"/>
           <!--  un bouton pour revenir à la page précédente  -->

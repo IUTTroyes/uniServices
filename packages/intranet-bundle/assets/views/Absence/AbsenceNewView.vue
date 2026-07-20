@@ -2,12 +2,14 @@
 import { onMounted, ref, watch, computed } from "vue";
 import {SimpleSkeleton, ValidatedInput, ListSkeleton, HeaderComponent, UserCard, EdtEventRow} from "@components";
 import {useAnneeStore, useSemestreStore, useUsersStore} from "@stores";
-import {getAnneeService, getSemestresService, getGroupesService, getEtudiantScolariteSemestresService, getEdtEventsService} from "@requests";
+import {getAnneeService, getSemestresService, getGroupesService, getEtudiantScolariteSemestresService, getEdtEventsService, createEtudiantAbsenceService, getEtudiantAbsencesService} from "@requests";
 import {useRoute, useRouter} from "vue-router";
 import {Button} from "primevue";
+import { useToast } from "primevue/usetoast";
 
 const route = useRoute();
 const router = useRouter();
+const toast = useToast();
 const hasError = ref(false);
 const usersStore = useUsersStore();
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
@@ -30,6 +32,7 @@ const etudiantsScolSemestre = ref([]);
 const isLoadingEtudiants = ref(false);
 const selectedEtudiants = ref([]);
 const searchEtudiant = ref("");
+
 const getLocalDateString = (inputDate = new Date()) => {
   const currentDate = inputDate instanceof Date ? inputDate : new Date(inputDate);
   const year = currentDate.getFullYear();
@@ -59,6 +62,14 @@ const firstEtudiants = ref(0);
 const rowsEtudiants = ref(12);
 const firstEvents = ref(0);
 const rowsEvents = ref(10);
+const showSummaryModal = ref(false);
+const showEditModal = ref(false);
+const isSavingAbsences = ref(false);
+const isCheckingAbsences = ref(false);
+const absencesSummary = ref([]);
+const editingAbsenceIndex = ref(null);
+const editedEtudiantId = ref(null);
+const editedEventId = ref(null);
 
 onMounted(async () => {
   await getAnnees();
@@ -253,6 +264,135 @@ const isFormValid = computed(() => {
   return selectedEtudiants.value.length > 0 && selectedEvents.value.length > 0;
 });
 
+const etudiantOptions = computed(() => {
+  return etudiantsScolSemestre.value.map(etudiantScolSemestre => ({
+    label: `${etudiantScolSemestre?.scolarite?.etudiant?.prenom || ''} ${etudiantScolSemestre?.scolarite?.etudiant?.nom || ''}`.trim(),
+    value: etudiantScolSemestre.id,
+  }));
+});
+
+const eventOptions = computed(() => {
+  return edtEvents.value.map(event => {
+    const debutEvent = event?.debut ? new Date(event.debut).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+    const finEvent = event?.fin ? new Date(event.fin).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+    const moduleLabel = event?.codeModule ? `${event.codeModule} - ${event?.libModule || ''}` : (event?.libModule || 'Cours');
+
+    return {
+      label: `${debutEvent} - ${finEvent} • ${moduleLabel}`,
+      value: event.id,
+    };
+  });
+});
+
+const formatEventLabel = (event) => {
+  const debutEvent = event?.debut ? new Date(event.debut).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+  const finEvent = event?.fin ? new Date(event.fin).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+  const moduleLabel = event?.codeModule ? `${event.codeModule} - ${event?.libModule || ''}` : (event?.libModule || 'Cours');
+
+  return `${debutEvent} - ${finEvent} • ${moduleLabel}`;
+};
+
+const buildAbsenceItem = (etudiantScolSemestre, event) => {
+  return {
+    etudiantScolariteSemestreId: etudiantScolSemestre.id,
+    eventId: event.id,
+    etudiantLabel: etudiantScolSemestre?.scolarite?.etudiant?.display,
+    eventLabel: formatEventLabel(event),
+    personnelLabel: usersStore.user.display,
+    payload: {
+      scolariteSemestre: `/api/etudiant_scolarite_semestres/${etudiantScolSemestre.id}`,
+      event: `/api/edt_events/${event.id}`,
+      personnel: `/api/personnels/${usersStore.user.id}`,
+    },
+    alreadyExists: false,
+    statusLabel: 'À créer',
+  };
+};
+
+const updateAbsenceStatus = async (absenceItem) => {
+  const params = {
+    scolariteSemestre: absenceItem.payload.scolariteSemestre,
+    event: absenceItem.payload.event,
+  };
+
+  const existingAbsences = await getEtudiantAbsencesService(params, '/administration');
+  const alreadyExists = Array.isArray(existingAbsences) && existingAbsences.length > 0;
+
+  return {
+    ...absenceItem,
+    alreadyExists,
+    statusLabel: alreadyExists ? 'Existe déjà' : 'À créer',
+  };
+};
+
+const refreshAbsencesStatuses = async () => {
+  if (absencesSummary.value.length === 0) {
+    return;
+  }
+
+  isCheckingAbsences.value = true;
+
+  try {
+    const updatedSummary = await Promise.all(
+        absencesSummary.value.map(absenceSummaryItem => updateAbsenceStatus(absenceSummaryItem))
+    );
+    absencesSummary.value = updatedSummary;
+  } catch (error) {
+    console.error('Erreur lors de la vérification des absences existantes :', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'Impossible de vérifier les absences existantes.',
+      life: 4000,
+    });
+  } finally {
+    isCheckingAbsences.value = false;
+  }
+};
+
+const prepareAbsencesSummary = () => {
+  absencesSummary.value = selectedEtudiants.value.flatMap(etudiantScolSemestre =>
+      selectedEvents.value.map(event => buildAbsenceItem(etudiantScolSemestre, event))
+  );
+};
+
+const removeAbsenceSummaryItem = (index) => {
+  absencesSummary.value = absencesSummary.value.filter((_, currentIndex) => currentIndex !== index);
+};
+
+const openEditAbsenceModal = (index) => {
+  const selectedAbsence = absencesSummary.value[index];
+  if (!selectedAbsence) {
+    return;
+  }
+
+  editingAbsenceIndex.value = index;
+  editedEtudiantId.value = selectedAbsence.etudiantScolariteSemestreId;
+  editedEventId.value = selectedAbsence.eventId;
+  showEditModal.value = true;
+};
+
+const saveEditedAbsence = () => {
+  if (editingAbsenceIndex.value === null || !editedEtudiantId.value || !editedEventId.value) {
+    return;
+  }
+
+  const etudiant = etudiantsScolSemestre.value.find(etudiantScolSemestre => etudiantScolSemestre.id === editedEtudiantId.value);
+  const event = edtEvents.value.find(edtEvent => edtEvent.id === editedEventId.value);
+
+  if (!etudiant || !event) {
+    return;
+  }
+
+  absencesSummary.value[editingAbsenceIndex.value] = buildAbsenceItem(etudiant, event);
+  showEditModal.value = false;
+  editingAbsenceIndex.value = null;
+  editedEtudiantId.value = null;
+  editedEventId.value = null;
+
+  refreshAbsencesStatuses();
+};
+
 const isEtudiantSelected = (etudiantScolSemestre) => {
   return selectedEtudiants.value.some(selectedEtudiant => selectedEtudiant.id === etudiantScolSemestre.id);
 };
@@ -344,21 +484,53 @@ watch(edtEvents, () => {
   firstEvents.value = 0;
 });
 
-const saveAbsences = () => {
+const saveAbsences = async () => {
   if (!isFormValid.value) {
     return;
   }
 
-  const absencesToSave = selectedEtudiants.value.flatMap(etudiant =>
-      selectedEvents.value.map(event => ({
-        etudiantScolariteSemestreId: etudiant.id,
-        eventId: event.id,
-        absence: true,
-      }))
-  );
+  prepareAbsencesSummary();
+  await refreshAbsencesStatuses();
+  showSummaryModal.value = absencesSummary.value.length > 0;
+};
 
-  // Ici, vous pouvez appeler un service pour enregistrer les absences
-  console.log('Absences à enregistrer :', absencesToSave);
+const confirmAbsencesCreation = async () => {
+  try {
+    if (absencesSummary.value.length === 0) {
+      return;
+    }
+
+    isSavingAbsences.value = true;
+
+    const absencesToCreate = absencesSummary.value.filter(absenceSummaryItem => !absenceSummaryItem.alreadyExists);
+    const skippedAbsencesCount = absencesSummary.value.length - absencesToCreate.length;
+
+    for (const absenceSummaryItem of absencesToCreate) {
+      await createEtudiantAbsenceService(absenceSummaryItem.payload);
+    }
+
+    toast.add({
+      severity: 'success',
+      summary: 'Succès',
+      detail: `${absencesToCreate.length} absence(s) créée(s)${skippedAbsencesCount > 0 ? `, ${skippedAbsencesCount} déjà existante(s)` : ''}.`,
+      life: 3000,
+    });
+
+    showSummaryModal.value = false;
+    selectedEtudiants.value = [];
+    selectedEvents.value = [];
+    absencesSummary.value = [];
+  } catch (error) {
+    console.error('Erreur lors de la création des absences :', error);
+    toast.add({
+      severity: 'error',
+      summary: 'Erreur',
+      detail: 'La création des absences a échoué.',
+      life: 4000,
+    });
+  } finally {
+    isSavingAbsences.value = false;
+  }
 };
 </script>
 
@@ -538,6 +710,110 @@ const saveAbsences = () => {
       <Message v-if="!isFormValid" severity="info" class="mt-3 w-fit mx-auto" icon="pi pi-info-circle">
         Sélectionnez au moins un étudiant et au moins un cours pour créer une absence.
       </Message>
+
+      <Dialog
+          v-model:visible="showSummaryModal"
+          modal
+          header="Récapitulatif des absences à créer"
+          :style="{ width: '75vw' }"
+          :breakpoints="{ '1199px': '90vw', '575px': '95vw' }"
+      >
+        <DataTable :value="absencesSummary" striped-rows>
+          <Column field="etudiantLabel" header="Étudiant" />
+          <Column field="eventLabel" header="Cours" />
+          <Column field="personnelLabel" header="Personnel" />
+          <Column field="statusLabel" header="Statut" />
+          <Column header="Actions" style="width: 10rem">
+            <template #body="slotProps">
+              <div class="flex gap-2">
+                <Button
+                    icon="pi pi-pencil"
+                    size="small"
+                    severity="secondary"
+                    outlined
+                    @click="openEditAbsenceModal(slotProps.index)"
+                />
+                <Button
+                    icon="pi pi-trash"
+                    size="small"
+                    severity="danger"
+                    outlined
+                    @click="removeAbsenceSummaryItem(slotProps.index)"
+                />
+              </div>
+            </template>
+          </Column>
+        </DataTable>
+
+        <Message v-if="isCheckingAbsences" severity="info" class="mt-4" icon="pi pi-spin pi-spinner">
+          Vérification des absences existantes en cours...
+        </Message>
+
+        <Message v-if="absencesSummary.length === 0" severity="warn" class="mt-4" icon="pi pi-info-circle">
+          Aucune absence à créer. Ajoutez des lignes ou fermez la fenêtre.
+        </Message>
+
+        <template #footer>
+          <div class="flex justify-end gap-2 w-full">
+            <Button
+                label="Annuler"
+                severity="secondary"
+                outlined
+                @click="showSummaryModal = false"
+            />
+            <Button
+                label="Confirmer la création"
+                severity="primary"
+                :disabled="absencesSummary.length === 0 || isCheckingAbsences"
+                :loading="isSavingAbsences"
+                @click="confirmAbsencesCreation"
+            />
+          </div>
+        </template>
+      </Dialog>
+
+      <Dialog
+          v-model:visible="showEditModal"
+          modal
+          header="Modifier une absence"
+          :style="{ width: '40rem' }"
+      >
+        <div class="flex flex-col gap-4">
+          <Select
+              v-model="editedEtudiantId"
+              :options="etudiantOptions"
+              option-label="label"
+              option-value="value"
+              placeholder="Sélectionner un étudiant"
+              class="w-full"
+          />
+          <Select
+              v-model="editedEventId"
+              :options="eventOptions"
+              option-label="label"
+              option-value="value"
+              placeholder="Sélectionner un cours"
+              class="w-full"
+          />
+        </div>
+
+        <template #footer>
+          <div class="flex justify-end gap-2 w-full">
+            <Button
+                label="Annuler"
+                severity="secondary"
+                outlined
+                @click="showEditModal = false"
+            />
+            <Button
+                label="Enregistrer"
+                severity="primary"
+                :disabled="!editedEtudiantId || !editedEventId"
+                @click="saveEditedAbsence"
+            />
+          </div>
+        </template>
+      </Dialog>
     </div>
   </section>
 </template>

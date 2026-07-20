@@ -25,6 +25,22 @@ const getEtudiantAbsencesService = async (params = {}, scope = '', showToast = f
 // ------------------- CREATE -------------------
 // ----------------------------------------------
 
+const createEtudiantAbsenceService = async (data, scope = '', showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.post,
+            [`/api${scope}/etudiant_absences`, data, { headers: {'Content-Type': 'application/ld+json'}}],
+            'Absence créée avec succès',
+            'Erreur lors de la création de l\'absence',
+            showToast
+        );
+        return response.member;
+    } catch (error) {
+        console.error('Erreur dans createEtudiantAbsenceService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
@@ -33,4 +49,4 @@ const getEtudiantAbsencesService = async (params = {}, scope = '', showToast = f
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getEtudiantAbsencesService };
+export { getEtudiantAbsencesService, createEtudiantAbsenceService };
