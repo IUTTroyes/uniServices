@@ -30,6 +30,8 @@ import Kpi from './Kpi.vue'
 import Card from './components/Card.vue'
 import QuickActionCard from './components/QuickActionCard.vue'
 import ActionButtonVertical from './components/ActionButtonVertical.vue'
+import UserCard from "./components/User/UserCard.vue";
+import EdtEventRow from "./components/Edt/EdtEventRow.vue";
 
 import PersonnelsListe from "./components/Personnel/PersonnelsListe.vue";
 
@@ -78,6 +80,8 @@ export {
   registerWidgetComponent,
   resolveWidgetComponent,
   widgetRegistry,
+  UserCard,
+  EdtEventRow,
 
   // Form validation exports
   FormValidator,

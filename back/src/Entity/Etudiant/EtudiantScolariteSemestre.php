@@ -29,6 +29,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
             provider: EtudiantScolariteSemestreProvider::class,
             output: EtudiantScolariteSemestreDto::class
         ),
+        new GetCollection(
+            uriTemplate: '/absence/etudiant_scolarite_semestres',
+            normalizationContext: ['groups' => ['scolarite-semestre:absence']],
+        ),
         new GetCollection(normalizationContext: ['groups' => ['scolarite-semestre:detail', 'semestre:light', 'annee:light', 'groupe:light']]),
         new Patch(normalizationContext: ['groups' => ['scolarite-semestre:write']], securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),
     ]
@@ -38,18 +42,19 @@ class EtudiantScolariteSemestre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite-semestre:manage-groupes'])]
+    #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite-semestre:manage-groupes', 'scolarite-semestre:absence'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
     #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
-    #[Groups(['scolarite-semestre:detail', 'etudiant:read'])]
+    #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite-semestre:absence'])]
     private ?StructureSemestre $semestre = null;
 
     /**
      * @var Collection<int, \IntranetBundle\Entity\Etudiant\EtudiantAbsence>
      */
     #[ORM\OneToMany(targetEntity: \IntranetBundle\Entity\Etudiant\EtudiantAbsence::class, mappedBy: 'scolariteSemestre')]
+    #[Groups(['scolarite-semestre:absence'])]
     private Collection $absence;
 
     /**
@@ -59,14 +64,14 @@ class EtudiantScolariteSemestre
     private Collection $note;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
-    #[Groups(['scolarite-semestre:manage-groupes'])]
+    #[Groups(['scolarite-semestre:manage-groupes', 'scolarite-semestre:absence'])]
     private ?EtudiantScolarite $scolarite = null;
 
     /**
      * @var Collection<int, StructureGroupe>
      */
     #[ORM\ManyToMany(targetEntity: StructureGroupe::class, inversedBy: 'scolariteSemestres')]
-    #[Groups(['scolarite-semestre:detail', 'scolarite-semestre:manage-groupes', 'scolarite-semestre:write'])]
+    #[Groups(['scolarite-semestre:detail', 'scolarite-semestre:manage-groupes', 'scolarite-semestre:write', 'scolarite-semestre:absence'])]
     private Collection $groupes;
 
     #[ORM\Column(nullable: true)]

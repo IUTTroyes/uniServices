@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
-import {SimpleSkeleton, ErrorView, HeaderComponent} from "@components";
+import {SimpleSkeleton, HeaderComponent} from "@components";
 import {useAnneeStore, useAnneeUnivStore, useSemestreStore, useUsersStore} from "@stores";
 import {getAnneeService, getSemestresService, getEtudiantAbsencesService} from "@requests";
 import {useRoute, useRouter} from "vue-router";
@@ -99,14 +99,14 @@ watch(() => semestreStore.semestre, (newSemestre) => {
 
 // watcher pour relancer getGroupes quand semestre change
 watch(semestre, async (newSemestre, oldSemestre) => {
-  if (newSemestre.id !== oldSemestre.id) {
+  if (newSemestre?.id !== oldSemestre?.id) {
     await getAbsences();
   }
 });
 
 // watcher pour relancer getSemestres quand annee change
 watch(annee, async (newAnnee, oldAnnee) => {
-  if (newAnnee.id !== oldAnnee.id) {
+  if (newAnnee?.id !== oldAnnee?.id) {
     if (newAnnee?.id && String(route.params.anneeId) !== String(newAnnee.id)) {
       await router.replace({
         name: route.name,
@@ -118,10 +118,9 @@ watch(annee, async (newAnnee, oldAnnee) => {
       });
     }
     await getSemestres();
-    // si le semestre sélectionné n'est pas dans la nouvelle liste, on sélectionne celui actif
-    if (!semestres.value.some(s => s.id === semestre.value.id)) {
-      semestre.value = semestres.value.find(s => s.actif) || semestres.value[0];
-    }
+    // Changer automatiquement de semestre lors d'un changement d'année
+    semestre.value = semestres.value.find(s => s.actif) || semestres.value[0] || {};
+    semestreStore.setSelectedSemestre(semestre.value);
     await anneeStore.setSelectedAnnee(newAnnee)
   }
 });

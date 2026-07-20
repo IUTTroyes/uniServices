@@ -587,7 +587,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['etudiant:detail', 'etudiant:light'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:absence'])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();

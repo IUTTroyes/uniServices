@@ -59,7 +59,7 @@ class EtudiantScolarite
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['scolarite:detail', 'scolarite-semestre:manage-groupes'])]
+    #[Groups(['scolarite:detail', 'scolarite-semestre:manage-groupes', 'scolarite-semestre:absence'])]
     private ?Etudiant $etudiant = null;
 
     #[ORM\Column]
@@ -74,7 +74,7 @@ class EtudiantScolarite
     private ?float $moyenne = null;
 
     #[ORM\Column]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'scolarite-semestre:absence'])]
     private int $nbAbsences = 0;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]

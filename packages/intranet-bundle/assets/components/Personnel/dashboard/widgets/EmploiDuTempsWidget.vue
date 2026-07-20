@@ -1,6 +1,6 @@
 <script setup>
 import { useRouter } from 'vue-router';
-import {colorNameToRgb, adjustColor} from "@helpers";
+import { EdtEventRow } from '@components';
 
 const router = useRouter();
 
@@ -15,19 +15,13 @@ defineProps({
 <template>
   <div class="flex flex-col gap-3">
     <template v-if="data.items && data.items.length > 0">
-      <div v-for="item in data.items || []" :key="`${item.heure}-${item.cours}`" class="flex flex-wrap items-center gap-3 border-b border-surface-200 pb-3">
-        <div class="max-w-40 font-bold text-primary-600">{{ item.heure }}</div>
-        <span class="rounded-lg px-2.5 py-1 text-xs font-semibold"
-              :style="{backgroundColor: adjustColor(colorNameToRgb(item.color), 0.6, 0.1)}">
-                {{ item.groupe }}
-            </span>
-        <div class="min-w-48 flex-1 font-bold">{{ item.cours }}</div>
-        <div class="flex items-center gap-1.5 text-color-secondary">
-          <i class="pi pi-map-marker"></i>
-          {{ item.salle }}
-        </div>
-        <Button icon="pi pi-user" size="small" severity="primary" text rounded v-tooltip.top="`Faire l'appel`" />
-      </div>
+      <EdtEventRow
+          v-for="item in data.items || []"
+          :key="`${item.heure}-${item.cours}`"
+          :item="item"
+          show-action-button
+          action-tooltip="Faire l'appel"
+      />
       <div v-if="data.items?.length === 0" class="flex justify-center text-center py-4 text-muted-color flex flex-col items-center min-h-36 max-h-36 overflow-y-hidden relative">
         <img src="@/assets/illu/palm.svg" alt="" class="w-64 h-64 absolute -bottom-24 right-4">
         <div class="z-10 bg-primary-100/80 px-4 py-2 rounded-xl font-semibold text-black">Aucun cours prévu aujourd'hui.</div>

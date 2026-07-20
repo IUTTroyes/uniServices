@@ -48,6 +48,12 @@ const logout = () => {
         });
 };
 
+const redirectToServerErrorPage = () => {
+    const currentPath = window.location.pathname;
+    if (currentPath === '/app/500' || currentPath === '/app/500/') return;
+    window.location.href = window.location.origin + '/app/500';
+};
+
 api.interceptors.request.use(
     config => {
         // Réinitialiser le minuteur d'inactivité à chaque requête API sortante
@@ -122,6 +128,10 @@ api.interceptors.response.use(
         // Si l'erreur est un 401 et que c'est déjà un retry, ou si le refresh a échoué
         if (error.response && error.response.status === 401 && (originalRequest._retry || originalRequest.url.includes('/api/token/refresh'))) {
             logout();
+        }
+
+        if (error.response && error.response.status >= 500) {
+            redirectToServerErrorPage();
         }
 
         return Promise.reject(error);

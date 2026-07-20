@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Traits\EduSignTrait;
@@ -37,20 +38,11 @@ class EtudiantAbsence
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $dateHeure = null;
-
-    #[ORM\Column(type: Types::TIME_MUTABLE)]
-    private ?\DateTimeInterface $duree = null;
-
     #[ORM\Column]
     private ?bool $justifiee = null;
 
     #[ORM\ManyToOne(inversedBy: 'absences')]
     private ?Personnel $personnel = null;
-
-    #[ORM\ManyToOne(inversedBy: 'absences')]
-    private ?ScolEnseignement $enseignement = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTimeInterface $dateJustification = null;
@@ -62,33 +54,13 @@ class EtudiantAbsence
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     private ?EtudiantScolariteSemestre $scolariteSemestre = null;
 
+    #[ORM\ManyToOne(inversedBy: 'absences')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?EdtEvent $event = null;
+
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getDateHeure(): ?\DateTimeInterface
-    {
-        return $this->dateHeure;
-    }
-
-    public function setDateHeure(\DateTimeInterface $dateHeure): static
-    {
-        $this->dateHeure = $dateHeure;
-
-        return $this;
-    }
-
-    public function getDuree(): ?\DateTimeInterface
-    {
-        return $this->duree;
-    }
-
-    public function setDuree(\DateTimeInterface $duree): static
-    {
-        $this->duree = $duree;
-
-        return $this;
     }
 
     public function isJustifiee(): ?bool
@@ -111,30 +83,6 @@ class EtudiantAbsence
     public function setPersonnel(?Personnel $personnel): static
     {
         $this->personnel = $personnel;
-
-        return $this;
-    }
-
-    public function getEtudiant(): ?Etudiant
-    {
-        return $this->etudiant;
-    }
-
-    public function setEtudiant(?Etudiant $etudiant): static
-    {
-        $this->etudiant = $etudiant;
-
-        return $this;
-    }
-
-    public function getEnseignement(): ?ScolEnseignement
-    {
-        return $this->enseignement;
-    }
-
-    public function setEnseignement(?ScolEnseignement $enseignement): static
-    {
-        $this->enseignement = $enseignement;
 
         return $this;
     }
@@ -171,6 +119,18 @@ class EtudiantAbsence
     public function setScolariteSemestre(?EtudiantScolariteSemestre $scolariteSemestre): static
     {
         $this->scolariteSemestre = $scolariteSemestre;
+
+        return $this;
+    }
+
+    public function getEvent(): ?EdtEvent
+    {
+        return $this->event;
+    }
+
+    public function setEvent(?EdtEvent $event): static
+    {
+        $this->event = $event;
 
         return $this;
     }

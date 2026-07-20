@@ -47,6 +47,11 @@ const router = createRouter({
       component: () => import('@components/pages/NotFound.vue'),
       meta: { title: 'Page Introuvable', public: true }
     },
+    {
+      path: '/500',
+      component: () => import('@components/pages/ServerError.vue'),
+      meta: { title: 'Erreur Serveur', public: true }
+    },
     // Catch-all route for 404
     {
       path: '/:pathMatch(.*)*',

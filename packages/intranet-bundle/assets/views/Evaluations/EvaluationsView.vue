@@ -11,7 +11,7 @@ import {
   getAnneesService
 } from '@requests';
 import {useUsersStore, useAnneeStore, useAnneeUnivStore} from '@stores';
-import {ErrorView, PermissionGuard, SimpleSkeleton, ListSkeleton, HeaderComponent} from '@components';
+import {PermissionGuard, SimpleSkeleton, ListSkeleton, HeaderComponent} from '@components';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
 import EvaluationListeInitForm from "../../components/Evaluation/EvaluationListeInitForm.vue";
@@ -351,8 +351,7 @@ const onEvaluationSaved = async () => {
   </div>
 
   <div class="card">
-    <ErrorView v-if="hasError"></ErrorView>
-    <div v-else>
+    <div>
       <div class="flex justify-between items-end w-full card-header">
         <div>
           <p class="top-card-header">

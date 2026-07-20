@@ -1,6 +1,6 @@
 <script setup>
 import {computed, onMounted, onUnmounted, ref, watch, nextTick} from 'vue'
-import {ErrorView, SimpleSkeleton, HeaderComponent} from "@components";
+import {SimpleSkeleton, HeaderComponent} from "@components";
 import {typesGroupes} from '@config/uniServices.js';
 import {useSemestreStore, useUsersStore, useAnneeUnivStore} from "@stores";
 import {
@@ -592,8 +592,7 @@ onUnmounted(() => {
         <Button label="Initialiser toutes les évaluations" icon="pi pi-plus-circle" severity="primary" size="small" @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')" :disabled="isLoadingEtudiants || isLoadingGroupes || isRepartitionLoading"/>
       </div>
     </div>
-    <ErrorView v-if="hasError"></ErrorView>
-    <div class="card-body" v-else>
+    <div class="card-body">
       <div v-if="isLoadingGroupes" class="flex items-center justify-center my-12">
         <ProgressSpinner style="width: 50px; height: 50px" />
       </div>

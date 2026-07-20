@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue';
-import {ErrorView, ProfilEtudiant, SimpleSkeleton, HeaderComponent} from '@components';
+import {ProfilEtudiant, SimpleSkeleton, HeaderComponent} from '@components';
 import { getEtudiantsScolariteService, demissionEtudiantScolariteService, getAnneesService } from '@requests';
 import { useToast } from 'primevue/usetoast';
 import { useUsersStore, useAnneeUnivStore } from '@stores';
@@ -244,8 +244,7 @@ const deleteEtudiant = async etudiant => {
   </div>
 
   <div class="card">
-    <ErrorView v-if="hasError" />
-    <div v-else class="card-body">
+    <div class="card-body">
       <DataTable
           scrollHeight="800px"
           scrollable

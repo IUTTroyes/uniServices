@@ -22,8 +22,11 @@ use App\Entity\Users\Personnel;
 use App\Filter\EdtFilter;
 use App\Repository\Edt\EdtEventRepository;
 use App\State\Provider\Edt\EdtStatsProvider;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\UuidV4;
 
@@ -154,9 +157,18 @@ class EdtEvent
     #[ORM\Column(nullable: true)]
     private ?int $ordreSeance = null;
 
+    /**
+     * @var Collection<int, EtudiantAbsence>
+     */
+    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'event')]
+    private Collection $absences;
+
+
+
     public function __construct()
     {
         $this->uuid = new UuidV4();
+        $this->absences = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -482,6 +494,35 @@ class EdtEvent
     public function setOrdreSeance(?int $ordreSeance): static
     {
         $this->ordreSeance = $ordreSeance;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, EtudiantAbsence>
+     */
+    public function getAbsences(): Collection
+    {
+        return $this->absences;
+    }
+
+    public function addAbsence(EtudiantAbsence $absence): static
+    {
+        if (!$this->absences->contains($absence)) {
+            $this->absences->add($absence);
+            $absence->setEvent($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAbsence(EtudiantAbsence $absence): static
+    {
+        if ($this->absences->removeElement($absence)) {
+            if ($absence->getEvent() === $this) {
+                $absence->setEvent(null);
+            }
+        }
 
         return $this;
     }

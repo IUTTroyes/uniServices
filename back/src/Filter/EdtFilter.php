@@ -67,16 +67,10 @@ class EdtFilter extends AbstractFilter
                 ->setParameter('semestre', $value);
         }
 
-        if ('groupes' === $property && is_array($value)) {
+        if ('groupe' === $property) {
             $queryBuilder
-                ->join(sprintf('%s.groupes', $alias), 'groupes')
-                ->andWhere('groupes.id IN (:groupes)')
-                ->setParameter('groupes', $value);
-        }
-
-        if ('groupe' === $property && is_array($value)) {
-            $queryBuilder
-                ->andWhere(sprintf('%s.groupe IN (:groupe)', $alias))
+                ->join(sprintf('%s.groupe', $alias), 'groupe')
+                ->andWhere('groupe.id = :groupe')
                 ->setParameter('groupe', $value);
         }
 
@@ -176,22 +170,6 @@ class EdtFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by semester',
-                ],
-            ],
-            'groupes' => [
-                'property' => 'groupes',
-                'type' => Type::BUILTIN_TYPE_ARRAY,
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by groupes',
-                ],
-            ],
-            'groupe' => [
-                'property' => 'groupe',
-                'type' => Type::BUILTIN_TYPE_ARRAY,
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by groupe',
                 ],
             ],
             'day' => [
