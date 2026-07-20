@@ -64,7 +64,7 @@ class EtudiantScolariteSemestre
     private Collection $note;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
-    #[Groups(['scolarite-semestre:manage-groupes', 'scolarite-semestre:absence'])]
+    #[Groups(['scolarite-semestre:manage-groupes', 'scolarite-semestre:absence', 'absence:administration'])]
     private ?EtudiantScolarite $scolarite = null;
 
     /**

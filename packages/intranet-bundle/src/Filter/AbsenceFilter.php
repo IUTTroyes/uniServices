@@ -17,127 +17,131 @@ class AbsenceFilter extends AbstractFilter
         if (null === $value) {
             return;
         }
+
         $alias = $queryBuilder->getRootAliases()[0];
 
-        // Use the query name generator and reuse existing joins when possible
-        if ('departement' === $property) {
-            $pnAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'pn');
-            $dAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $pnAlias, 'diplome');
-            $depAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $dAlias, 'departement');
-            $param = $queryNameGenerator->generateParameterName('departement');
-
-            $queryBuilder
-                ->andWhere("$depAlias.id = :$param")
-                ->setParameter($param, $value);
-        }
-
-        if ('pn' === $property) {
-            $pnAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'pn');
-            $param = $queryNameGenerator->generateParameterName('pn');
-
-            $queryBuilder
-                ->andWhere("$pnAlias.id = :$param")
-                ->setParameter($param, $value);
-        }
-
-        // anneeUniversitaire is not a direct property of Annee but of the related PN entity
         if ('anneeUniversitaire' === $property) {
-            $pnAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'pn');
-            $anneeAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $pnAlias, 'anneeUniversitaire');
+            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolariteSemestre');
+            $scolariteAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteSemestreAlias, 'scolarite');
+            $anneeUniversitaireAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteAlias, 'anneeUniversitaire');
             $param = $queryNameGenerator->generateParameterName('anneeUniversitaire');
 
-            // Accept either the anneeUniversitaire id or the numeric year value (annee)
             $queryBuilder
-                ->andWhere("($anneeAlias.id = :$param OR $anneeAlias.annee = :$param)")
+                ->andWhere(sprintf('%s.id = :%s', $anneeUniversitaireAlias, $param))
                 ->setParameter($param, $value);
         }
 
-        if ('diplome' === $property) {
-            $pnAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'pn');
-            $dAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $pnAlias, 'diplome');
-            $param = $queryNameGenerator->generateParameterName('diplome');
+        if ('semestre' === $property) {
+            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolariteSemestre');
+            $semestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteSemestreAlias, 'semestre');
+            $param = $queryNameGenerator->generateParameterName('semestre');
 
             $queryBuilder
-                ->andWhere("$dAlias.id = :$param")
+                ->andWhere(sprintf('%s.id = :%s', $semestreAlias, $param))
                 ->setParameter($param, $value);
         }
-        if ('actif' === $property) {
-            // Normaliser la valeur en booléen (gère "true", "false", "1", "0", 1, 0, true, false)
-            $bool = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
-            if ($bool === null) {
-                // valeur non convertible -> ne pas appliquer le filtre
-                return;
+
+        if ('justifiee' === $property) {
+            $param = $queryNameGenerator->generateParameterName('justifiee');
+
+            $queryBuilder
+                ->andWhere(sprintf('%s.justifiee = :%s', $alias, $param))
+                ->setParameter($param, $value);
+        }
+
+        if ('event' === $property) {
+            $eventAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'event');
+            $param = $queryNameGenerator->generateParameterName('event');
+
+            $queryBuilder
+                ->andWhere(sprintf('%s.id = :%s', $eventAlias, $param))
+                ->setParameter($param, $value);
+        }
+
+        if ('personnel' === $property) {
+            $personnelAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'personnel');
+            $param = $queryNameGenerator->generateParameterName('personnel');
+
+            $queryBuilder
+                ->andWhere(sprintf('%s.id = :%s', $personnelAlias, $param))
+                ->setParameter($param, $value);
+        }
+
+        if ('scolariteSemestre' === $property) {
+            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolariteSemestre');
+            $param = $queryNameGenerator->generateParameterName('scolariteSemestre');
+
+            $queryBuilder
+                ->andWhere(sprintf('%s.id = :%s', $scolariteSemestreAlias, $param))
+                ->setParameter($param, $value);
+        }
+    }
+
+    private function getOrCreateJoin(QueryBuilder $qb, QueryNameGeneratorInterface $queryNameGenerator, string $fromAlias, string $association): string
+    {
+        foreach ($qb->getDQLPart('join')[$fromAlias] ?? [] as $join) {
+            if ($join->getJoin() === sprintf('%s.%s', $fromAlias, $association)) {
+                return $join->getAlias();
             }
-            $queryBuilder
-                ->andWhere("$alias.actif = :actif")
-                ->setParameter("actif", $bool);
         }
+
+        $newAlias = $queryNameGenerator->generateJoinAlias($association);
+        $qb->leftJoin(sprintf('%s.%s', $fromAlias, $association), $newAlias);
+
+        return $newAlias;
     }
 
     public function getDescription(string $resourceClass): array
     {
         return [
-            'departement' => [
-                'property' => 'departement',
-                'type' => Type::BUILTIN_TYPE_INT,
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by departement',
-                ],
-            ],
-            'pn' => [
-                'property' => 'pn',
-                'type' => Type::BUILTIN_TYPE_INT,
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by pn',
-                ],
-            ],
             'anneeUniversitaire' => [
                 'property' => 'anneeUniversitaire',
                 'type' => Type::BUILTIN_TYPE_INT,
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by anneeUniversitaire',
-                ]
+                ],
             ],
-            'diplome' => [
-                'property' => 'diplome',
+            'semestre' => [
+                'property' => 'semestre',
                 'type' => Type::BUILTIN_TYPE_INT,
                 'required' => false,
                 'openapi' => [
-                    'description' => 'Filter by diploma',
+                    'description' => 'Filter by semestre',
                 ],
             ],
-            'actif' => [
-                'property' => 'actif',
+            'justifiee' => [
+                'property' => 'justifiee',
                 'type' => Type::BUILTIN_TYPE_BOOL,
                 'required' => false,
                 'openapi' => [
-                    'description' => 'Filter by actif status',
+                    'description' => 'Filter by justifiee',
                 ],
-            ]
+            ],
+            'event' => [
+                'property' => 'event',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by event',
+                ],
+            ],
+            'personnel' => [
+                'property' => 'personnel',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by personnel',
+                ],
+            ],
+            'scolariteSemestre' => [
+                'property' => 'scolariteSemestre',
+                'type' => Type::BUILTIN_TYPE_INT,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by scolariteSemestre',
+                ],
+            ],
         ];
-    }
-
-    /**
-     * Reuse an existing join alias if present, otherwise create a new join and return its alias.
-     * This prevents multiple joins to the same association with different aliases.
-     */
-    private function getOrCreateJoin(QueryBuilder $qb, QueryNameGeneratorInterface $queryNameGenerator, string $fromAlias, string $association): string
-    {
-        // Try to find an existing join for the association
-        foreach ($qb->getDQLPart('join') as $alias => $joins) {
-            foreach ($joins as $join) {
-                if ($join->getJoin() === "$fromAlias.$association") {
-                    return $join->getAlias();
-                }
-            }
-        }
-
-        // If not found, generate a new alias and add the join
-        $newAlias = $queryNameGenerator->generateJoinAlias($association);
-        $qb->join("$fromAlias.$association", $newAlias);
-        return $newAlias;
     }
 }

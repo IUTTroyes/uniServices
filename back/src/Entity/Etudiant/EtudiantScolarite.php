@@ -60,7 +60,7 @@ class EtudiantScolarite
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['scolarite:detail', 'scolarite-semestre:manage-groupes', 'scolarite-semestre:absence'])]
+    #[Groups(['scolarite:detail', 'scolarite-semestre:manage-groupes', 'scolarite-semestre:absence', 'absence:administration'])]
     private ?Etudiant $etudiant = null;
 
     #[ORM\Column]

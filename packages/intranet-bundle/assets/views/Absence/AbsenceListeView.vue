@@ -15,58 +15,66 @@ const departementId = usersStore.departementDefaut.id;
 const semestreStore = useSemestreStore();
 const anneeStore = useAnneeStore();
 const semestres = ref([]);
-const isLoadingSemestres = ref(false);
+const isLoadingSemestres = ref(true);
 const semestre = ref({});
 const annees = ref([]);
 const annee = ref({});
-const isLoadingAnnee = ref(false);
+const isLoadingAnnee = ref(true);
 const isLoadingAnnees = ref(false);
 
 const absences = ref([]);
 const isLoadingAbsences = ref(true);
 
+const resolveSemestreSelection = () => {
+  const semestreIdFromQuery = route.query.semestreId;
+  const semestreFromQuery = semestres.value.find(s => String(s.id) === String(semestreIdFromQuery));
+  if (semestreFromQuery) {
+    return semestreFromQuery;
+  }
+
+  const semestreFromStore = semestres.value.find(s => String(s.id) === String(semestreStore.semestre?.id));
+  if (semestreFromStore) {
+    return semestreFromStore;
+  }
+
+  return semestres.value.find(s => s.actif) || semestres.value[0] || {};
+};
+
 onMounted(async () => {
   await getAnnees();
   await getAnnee();
   await getSemestres();
-  // Sélectionner le semestre actif par défaut
-  if (semestres.value.length > 0 && !semestre.value.id) {
-    semestre.value = semestres.value.find(s => s.actif) || semestres.value[0];
-  }
+  semestre.value = resolveSemestreSelection();
+  semestreStore.setSelectedSemestre(semestre.value);
 });
 
 const getAnnees = async () => {
   if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
     annees.value = anneeStore.annees;
-  } else {
-    try {
-      isLoadingAnnees.value = true;
-      const params = {
-        departement: departementId,
-        actif: true,
-      };
-      await anneeStore.getAnneesDepartement(params);
-      annees.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
-    } catch (error) {
-      console.error("Erreur lors de la récupération des années :", error);
-      hasError.value = true;
-    } finally {
-      isLoadingAnnees.value = false;
-    }
+    return;
+  }
+  try {
+    isLoadingAnnees.value = true;
+    const params = {
+      departement: departementId,
+      actif: true,
+    };
+    await anneeStore.getAnneesDepartement(params);
+    annees.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
+  } catch (error) {
+    console.error("Erreur lors de la récupération des années :", error);
+    hasError.value = true;
+  } finally {
+    isLoadingAnnees.value = false;
   }
 };
 
 const getAnnee = async () => {
   isLoadingAnnee.value = true;
   hasError.value = false;
-  // Récupération de l'id de l'année via l'URL
   try {
-    const anneeId = Number.parseInt(String(route.params.anneeId), 10);
-    if (!Number.isNaN(anneeId)) {
-      annee.value = await getAnneeService(anneeId);
-    } else {
-      annee.value = annees.value[0] || {};
-    }
+    const anneeId = route.params.anneeId;
+    annee.value = await getAnneeService(anneeId);
     await anneeStore.setSelectedAnnee(annee.value);
   } catch (error) {
     hasError.value = true;
@@ -106,23 +114,25 @@ watch(semestre, async (newSemestre, oldSemestre) => {
 
 // watcher pour relancer getSemestres quand annee change
 watch(annee, async (newAnnee, oldAnnee) => {
-  if (newAnnee?.id !== oldAnnee?.id) {
-    if (newAnnee?.id && String(route.params.anneeId) !== String(newAnnee.id)) {
-      await router.replace({
-        name: route.name,
-        params: {
-          ...route.params,
-          anneeId: String(newAnnee.id),
-        },
-        query: route.query,
-      });
-    }
-    await getSemestres();
-    // Changer automatiquement de semestre lors d'un changement d'année
-    semestre.value = semestres.value.find(s => s.actif) || semestres.value[0] || {};
-    semestreStore.setSelectedSemestre(semestre.value);
-    await anneeStore.setSelectedAnnee(newAnnee)
+  if (newAnnee?.id === oldAnnee?.id) return;
+
+  if (newAnnee?.id && String(route.params.anneeId) !== String(newAnnee.id)) {
+    await router.replace({
+      name: route.name,
+      params: {
+        ...route.params,
+        anneeId: String(newAnnee.id),
+      },
+      query: route.query,
+    });
   }
+
+  await getSemestres();
+  // Changer automatiquement de semestre lors d'un changement d'année
+  semestre.value = resolveSemestreSelection();
+  semestreStore.setSelectedSemestre(semestre.value);
+
+  await anneeStore.setSelectedAnnee(newAnnee)
 });
 
 const getAbsences = async () => {
@@ -131,7 +141,7 @@ const getAbsences = async () => {
       semestre: semestre.value.id,
       anneeUniversitaire: anneeUniv.id,
     }
-    await getEtudiantAbsencesService(params, '/administration');
+    absences.value = await getEtudiantAbsencesService(params, '/administration');
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la récupération des absences :", error);
@@ -166,11 +176,15 @@ const getAbsences = async () => {
       <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
       <div v-else class="flex flex-col gap-2">
         <div class="flex gap-4 justify-end">
-          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
+          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
+            <template #value>
+              {{ annee?.libelle || "Changer d'année" }}
+            </template>
+          </Select>
           <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
         </div>
         <div class="flex justify-end items-center">
-          <router-link :to="{ name: 'new-absence', params: { anneeId: annee?.id } }">
+          <router-link :to="{ name: 'new-absence', params: { anneeId: annee?.id }, query: { semestreId: semestre?.id } }">
             <Button label="Créer une absence" icon="pi pi-plus" @click="getAbsences()" severity="primary"/>
           </router-link>
         </div>
@@ -187,7 +201,7 @@ const getAbsences = async () => {
           striped-rows
           class="w-full"
       >
-        <Column field="id" header="id" />
+        <Column field="scolariteSemestre.scolarite.etudiant.display" header="étudiant" />
       </DataTable>
     </div>
   </div>

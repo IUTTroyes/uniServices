@@ -71,14 +71,27 @@ const editingAbsenceIndex = ref(null);
 const editedEtudiantId = ref(null);
 const editedEventId = ref(null);
 
+const resolveSemestreSelection = () => {
+  const semestreIdFromQuery = route.query.semestreId;
+  const semestreFromQuery = semestres.value.find(s => String(s.id) === String(semestreIdFromQuery));
+  if (semestreFromQuery) {
+    return semestreFromQuery;
+  }
+
+  const semestreFromStore = semestres.value.find(s => String(s.id) === String(semestreStore.semestre?.id));
+  if (semestreFromStore) {
+    return semestreFromStore;
+  }
+
+  return semestres.value.find(s => s.actif) || semestres.value[0] || {};
+};
+
 onMounted(async () => {
   await getAnnees();
   await getAnnee();
   await getSemestres();
-  // Sélectionner le semestre actif par défaut
-  if (semestres.value.length > 0 && !semestre.value.id) {
-    semestre.value = semestres.value.find(s => s.actif) || semestres.value[0];
-  }
+  semestre.value = resolveSemestreSelection();
+  semestreStore.setSelectedSemestre(semestre.value);
 });
 
 const getAnnees = async () => {
@@ -451,7 +464,7 @@ watch(annee, async (newAnnee, oldAnnee) => {
   await getSemestres();
 
   // Changer automatiquement de semestre lors d'un changement d'année
-  semestre.value = semestres.value.find(s => s.actif) || semestres.value[0] || {};
+  semestre.value = resolveSemestreSelection();
   semestreStore.setSelectedSemestre(semestre.value);
 
   await anneeStore.setSelectedAnnee(newAnnee);

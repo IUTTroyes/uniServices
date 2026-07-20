@@ -2,28 +2,25 @@
 
 namespace IntranetBundle\Entity\Etudiant;
 
-use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
-use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
-use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
-use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\UuidTrait;
-use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use IntranetBundle\Filter\AbsenceFilter;
 use IntranetBundle\Repository\Etudiant\EtudiantAbsenceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantAbsenceRepository::class)]
 #[ORM\HasLifecycleCallbacks]
-#[ApiFilter(BooleanFilter::class, properties: ['justifiee'])]
-#[ApiFilter(SearchFilter::class, properties: ['scolariteSemestre' => 'exact', 'event' => 'exact'])]
+#[ApiFilter(AbsenceFilter::class)]
 #[ApiResource(
     operations: [
         new GetCollection(
@@ -41,26 +38,33 @@ class EtudiantAbsence
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['absence:administration'])]
     private ?int $id = null;
 
     #[ORM\Column]
+    #[Groups(['absence:administration'])]
     private bool $justifiee = false;
 
     #[ORM\ManyToOne(inversedBy: 'absences')]
+    #[Groups(['absence:administration'])]
     private ?Personnel $personnel = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[Groups(['absence:administration'])]
     private ?\DateTimeInterface $dateJustification = null;
 
     #[ORM\ManyToOne(inversedBy: 'absence')]
+    #[Groups(['absence:administration'])]
     private ?EtudiantAbsenceJustificatif $absenceJustificatif = null;
 
     #[ORM\ManyToOne(inversedBy: 'absence')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[Groups(['absence:administration'])]
     private ?EtudiantScolariteSemestre $scolariteSemestre = null;
 
     #[ORM\ManyToOne(inversedBy: 'absences')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['absence:administration'])]
     private ?EdtEvent $event = null;
 
     public function getId(): ?int
