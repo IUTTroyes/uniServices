@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
-import {SimpleSkeleton, HeaderComponent} from "@components";
-import {useAnneeStore, useAnneeUnivStore, useSemestreStore, useUsersStore} from "@stores";
+import {SimpleSkeleton, HeaderComponent, EdtEventRow} from "@components";
+import {useAnneeStore, useSemestreStore, useUsersStore} from "@stores";
 import {getAnneeService, getSemestresService, getEtudiantAbsencesService} from "@requests";
 import {useRoute, useRouter} from "vue-router";
 import {Button} from "primevue";
@@ -24,6 +24,8 @@ const isLoadingAnnees = ref(false);
 
 const absences = ref([]);
 const isLoadingAbsences = ref(true);
+const absencesStats = ref([]);
+const isLoadingAbsencesStats = ref(true);
 
 const resolveSemestreSelection = () => {
   const semestreIdFromQuery = route.query.semestreId;
@@ -109,6 +111,7 @@ watch(() => semestreStore.semestre, (newSemestre) => {
 watch(semestre, async (newSemestre, oldSemestre) => {
   if (newSemestre?.id !== oldSemestre?.id) {
     await getAbsences();
+    await getAbsencesStats();
   }
 });
 
@@ -140,6 +143,7 @@ const getAbsences = async () => {
     const params = {
       semestre: semestre.value.id,
       anneeUniversitaire: anneeUniv.id,
+      itemsPerPage: 8,
     }
     absences.value = await getEtudiantAbsencesService(params, '/administration');
   } catch (error) {
@@ -147,8 +151,43 @@ const getAbsences = async () => {
     console.error("Erreur lors de la récupération des absences :", error);
   } finally {
     isLoadingAbsences.value = false;
+    console.log(absences.value)
   }
 }
+
+const getAbsencesStats = async () => {
+  try {
+    const params = {
+      semestre: semestre.value.id,
+      anneeUniversitaire: anneeUniv.id,
+    }
+    absencesStats.value = await getEtudiantAbsencesService(params, '/administration/stats');
+  } catch (error) {
+    hasError.value = true;
+    console.error("Erreur lors de la récupération des statistiques des absences :", error);
+  } finally {
+    isLoadingAbsencesStats.value = false;
+  }
+}
+
+const formatEventForRow = (event) => {
+  const debutEvent = event?.debut
+      ? new Date(event.debut).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      : '--:--';
+  const finEvent = event?.fin
+      ? new Date(event.fin).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      : '--:--';
+
+  return {
+    id: event?.id,
+    heure: `${debutEvent} - ${finEvent}`,
+    groupe: event?.libGroupe || event?.codeGroupe || '-',
+    cours: event?.codeModule ? `${event.codeModule} - ${event?.libModule || ''}` : (event?.libModule || event),
+    salle: event?.salle || '-',
+    color: event?.couleur,
+    intervenant: event?.personnel?.display || '-',
+  };
+};
 
 const optionChart = {
   responsive: true,
@@ -179,33 +218,12 @@ const chartData = {
   />
 
   <div class="flex justify-around items-center mb-12">
-    <div class="card w-1/5 flex items-center justify-center flex-col">
-      <div class="font-bold text-lg card-header text-center">Total d'absences</div>
+    <div v-for="stat in absencesStats" :key="stat.title" class="card w-1/5 flex items-center justify-center flex-col">
+      <div class="font-bold text-lg card-header text-center">{{ stat.title }}</div>
       <div class="flex items-center gap-2 card-body">
-        <i class="pi pi-list text-yellow-500 text-3xl!"></i>
-        <SimpleSkeleton v-if="isLoadingAbsences" class="w-1/2"/>
-        <span v-else class="text-yellow-500 text-4xl font-extrabold">12</span>
-      </div>
-    </div>
-    <div class="card w-1/5 flex items-center justify-center flex-col">
-      <div class="font-bold text-lg card-header text-center">Justifiées</div>
-      <div class="flex items-center gap-2 card-body">
-        <i class="pi pi-check-circle text-green-500 text-3xl!"></i>
-        <span class="text-green-500 text-4xl font-extrabold">5</span>
-      </div>
-    </div>
-    <div class="card w-1/5 flex items-center justify-center flex-col">
-      <div class="font-bold text-lg card-header text-center">Non justifiées</div>
-      <div class="flex items-center gap-2 card-body">
-        <i class="pi pi-times-circle text-red-500 text-3xl!"></i>
-        <span class="text-red-500 text-4xl font-extrabold">10</span>
-      </div>
-    </div>
-    <div class="card w-1/5 flex items-center justify-center flex-col">
-      <div class="font-bold text-lg card-header text-center">Étudiants concernés</div>
-      <div class="flex items-center gap-2 card-body">
-        <i class="pi pi-users text-blue-500 text-3xl!"></i>
-        <span class="text-blue-500 text-4xl font-extrabold">6</span>
+        <i :class="[stat.icon, `text-${stat.color}`]" class="text-3xl!"></i>
+        <SimpleSkeleton v-if="isLoadingAbsencesStats" class="w-1/2"/>
+        <span v-else :class="`text-${stat.color}`" class="text-4xl font-extrabold">{{ stat.value }}</span>
       </div>
     </div>
   </div>
@@ -261,6 +279,14 @@ const chartData = {
                   class="w-full"
               >
                 <Column field="scolariteSemestre.scolarite.etudiant.display" header="étudiant" />
+                <Column>
+                  <template #body="slotProps">
+                    <EdtEventRow
+                        :key="slotProps.data.event.id"
+                        :item="formatEventForRow(slotProps.data.event)"
+                    />
+                  </template>
+                </Column>
               </DataTable>
             </div>
           </div>

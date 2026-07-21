@@ -59,7 +59,7 @@ class EdtEvent
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
     private ?int $id = null;
 
     #[ORM\Column(nullable: true)]
@@ -69,26 +69,26 @@ class EdtEvent
     private ?int $jour = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
     private ?\DateTimeInterface $date = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
     private ?\DateTimeInterface $debut = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
     private ?\DateTimeInterface $fin = null;
 
     #[ORM\Column(length: 25)]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
     private ?string $salle = '-';
 
     #[ORM\Column(length: 25, nullable: true)]
     private ?string $codeSalle = null;
 
     #[ORM\ManyToOne(inversedBy: 'events')]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
     private ?Personnel $personnel = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -103,11 +103,11 @@ class EdtEvent
     private ?ScolEnseignement $enseignement = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
     private ?string $codeModule = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
     private ?string $libModule = null;
 
     #[ORM\ManyToOne(inversedBy: 'edtEvents')]
@@ -115,15 +115,15 @@ class EdtEvent
     private ?StructureGroupe $groupe = null;
 
     #[ORM\Column(length: 30, nullable: true)]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
     private ?string $codeGroupe = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
     private ?string $libGroupe = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
     private ?string $couleur = null;
 
     #[ORM\Column(nullable: true)]

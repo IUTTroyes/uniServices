@@ -10,12 +10,14 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Traits\EduSignTrait;
+use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
 use IntranetBundle\Filter\AbsenceFilter;
 use IntranetBundle\Repository\Etudiant\EtudiantAbsenceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use IntranetBundle\State\Provider\Absence\AbsenceStatsProvider;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantAbsenceRepository::class)]
@@ -27,13 +29,29 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/administration/etudiant_absences',
             normalizationContext: ['groups' => ['absence:administration']],
         ),
+        new GetCollection(
+            uriTemplate: '/administration/last/etudiant_absences',
+            normalizationContext: ['groups' => ['absence:administration']],
+        ),
+        new GetCollection(
+            uriTemplate: '/administration/stats/etudiant_absences',
+            paginationEnabled: false,
+            normalizationContext: ['groups' => ['absence:administration']],
+            provider: AbsenceStatsProvider::class
+        ),
+        new GetCollection(
+            uriTemplate: '/administration/repartition/etudiant_absences',
+            normalizationContext: ['groups' => ['absence:administration']],
+        ),
         new Post()
-    ]
+    ],
+    order: ['created' => 'ASC']
 )]
 class EtudiantAbsence
 {
     use UuidTrait;
     use EduSignTrait;
+    use LifeCycleTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

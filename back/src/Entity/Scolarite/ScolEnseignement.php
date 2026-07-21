@@ -50,7 +50,7 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init', 'absence:administration'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
