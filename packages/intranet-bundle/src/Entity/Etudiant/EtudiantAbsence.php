@@ -5,6 +5,7 @@ namespace IntranetBundle\Entity\Etudiant;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
@@ -17,6 +18,7 @@ use IntranetBundle\Filter\AbsenceFilter;
 use IntranetBundle\Repository\Etudiant\EtudiantAbsenceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use IntranetBundle\State\Provider\Absence\AbsenceEpisodeProvider;
 use IntranetBundle\State\Provider\Absence\AbsenceStatsProvider;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -28,6 +30,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(
             uriTemplate: '/administration/etudiant_absences',
             normalizationContext: ['groups' => ['absence:administration']],
+            provider: AbsenceEpisodeProvider::class,
         ),
         new GetCollection(
             uriTemplate: '/administration/last/etudiant_absences',
@@ -43,7 +46,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/administration/repartition/etudiant_absences',
             normalizationContext: ['groups' => ['absence:administration']],
         ),
-        new Post()
+        new Post(),
+        new Delete(
+            uriTemplate: '/administration/etudiant_absences/{id}',
+        )
     ],
     order: ['created' => 'ASC']
 )]

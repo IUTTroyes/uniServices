@@ -12,11 +12,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
 trait LifeCycleTrait
 {
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    #[Groups(['questionnaire:read','ticket:read'])]
+    #[Groups(['questionnaire:read','ticket:read', 'absence:administration'])]
     private ?CarbonImmutable $created = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['questionnaire:read'])]
+    #[Groups(['questionnaire:read', 'absence:administration'])]
     private ?CarbonInterface $updated = null;
 
     public function getCreated(): ?CarbonImmutable

@@ -324,8 +324,8 @@ const buildAbsenceItem = (etudiantScolSemestre, event) => {
 
 const updateAbsenceStatus = async (absenceItem) => {
   const params = {
-    scolariteSemestre: absenceItem.payload.scolariteSemestre,
-    event: absenceItem.payload.event,
+    scolariteSemestre: absenceItem.etudiantScolariteSemestreId,
+    event: absenceItem.eventId,
   };
 
   const existingAbsences = await getEtudiantAbsencesService(params, '/administration');

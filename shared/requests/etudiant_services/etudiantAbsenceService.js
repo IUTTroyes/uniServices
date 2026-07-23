@@ -49,4 +49,19 @@ const createEtudiantAbsenceService = async (data, scope = '', showToast = false)
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getEtudiantAbsencesService, createEtudiantAbsenceService };
+const deleteEtudiantAbsenceService = async (id, scope = '', showToast = false) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api${scope}/etudiant_absences/${id}`],
+            'Absence supprimée avec succès',
+            'Erreur lors de la suppression de l\'absence',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deleteEtudiantAbsenceService:', error);
+        throw error;
+    }
+}
+
+export { getEtudiantAbsencesService, createEtudiantAbsenceService, deleteEtudiantAbsenceService };
