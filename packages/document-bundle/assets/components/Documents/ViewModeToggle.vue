@@ -33,7 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ViewMode } from '@/types';
+import type { ViewMode } from '@types';
 
 interface Props {
   viewMode: ViewMode;

@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { PaginationInfo } from '@/types';
+import type { PaginationInfo } from '@types';
 
 interface Props {
   paginationInfo: PaginationInfo;
@@ -66,7 +66,7 @@ const endItem = computed(() => {
 });
 
 const visiblePages = computed(() => {
-  const pages = [];
+  const pages: (number | string)[] = [];
   const totalPages = props.paginationInfo.totalPages;
   const currentPage = props.paginationInfo.currentPage;
   

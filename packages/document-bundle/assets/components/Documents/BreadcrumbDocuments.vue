@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import type { Category } from '@/types';
+import type { Category } from '@types';
 
 interface Props {
   categories: Category[];

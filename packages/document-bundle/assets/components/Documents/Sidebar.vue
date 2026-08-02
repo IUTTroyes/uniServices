@@ -1,7 +1,15 @@
 <template>
   <div class="h-full bg-white border-r border-gray-200 flex flex-col w-64">
-    <!-- Header -->
-    <div class="p-4 border-b border-gray-200">
+    <!-- Action Header -->
+    <div class="p-4 border-b border-gray-200 space-y-3">
+      <button
+        @click="$emit('openUploadModal')"
+        class="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center space-x-2 text-sm"
+      >
+        <span class="text-lg">+</span>
+        <span>Nouveau document</span>
+      </button>
+
       <SearchBar
           v-model="searchQuery"
           @search="handleSearch"
@@ -9,7 +17,7 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 px-4 py-4 space-y-2">
+    <nav class="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
       <!-- All Documents -->
       <button
         @click="$emit('selectCategory', null)"
@@ -44,7 +52,7 @@
         </span>
       </button>
 
-      <!-- HelpdeskCategorie -->
+      <!-- Categories -->
       <div class="mt-6">
         <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
           Catégories
@@ -64,10 +72,10 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue';
 import CategoryItem from './CategoryItem.vue';
-import SearchBar from '@/components/Documents/SearchBar.vue';
-
-import type { Category } from '@/types';
+import SearchBar from './SearchBar.vue';
+import type { Category } from '@types';
 
 interface Props {
   categories: Category[];
@@ -83,9 +91,12 @@ const emit = defineEmits<{
   selectCategory: [categoryId: string | null];
   selectFavorites: [];
   search: [query: string];
+  openUploadModal: [];
 }>();
+
+const searchQuery = ref('');
 
 const handleSearch = (query: string) => {
   emit('search', query);
-}
+};
 </script>

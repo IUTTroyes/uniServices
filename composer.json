@@ -13,6 +13,7 @@
     "autoload": {
         "psr-4": {
             "AuthBundle\\": "packages/auth-bundle/src/",
+            "DocumentBundle\\": "packages/document-bundle/src/",
             "EdtBundle\\": "packages/edt-bundle/src/",
             "HelpdeskBundle\\": "packages/helpdesk-bundle/src/",
             "IntranetBundle\\": "packages/intranet-bundle/src/",
@@ -38,6 +39,7 @@
     },
     "replace": {
         "iuttroyes/auth-bundle": "self.version",
+        "iuttroyes/document-bundle": "self.version",
         "iuttroyes/edt-bundle": "self.version",
         "iuttroyes/helpdesk-bundle": "self.version",
         "iuttroyes/intranet-bundle": "self.version",

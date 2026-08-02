@@ -32,12 +32,15 @@
 
     <!-- Documents -->
     <div v-if="paginatedDocuments.length > 0">
-      <div class="space-y-2">
-        <DocumentListItem
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <DocumentCard
           v-for="document in paginatedDocuments"
           :key="document.id"
           :document="document"
-          @toggleFavorite="$emit('toggleFavorite', document.id)"
+          @selectDocument="$emit('selectDocument', $event)"
+          @downloadDocument="$emit('downloadDocument', $event)"
+          @deleteDocument="$emit('deleteDocument', $event)"
+          @toggleFavorite="$emit('toggleFavorite', $event)"
         />
       </div>
       
@@ -49,24 +52,25 @@
       />
     </div>
     
-    <!-- Empty State -->
-    <div v-else class="text-center py-12">
-      <div class="text-6xl mb-4">📭</div>
-      <h3 class="text-lg font-medium text-gray-900 mb-2">Aucun document trouvé</h3>
-      <p class="text-gray-500">
-        {{ emptyMessage }}
-      </p>
-    </div>
+    <!-- Shared Empty State -->
+    <EmptyState
+      v-else
+      icon="pi pi-folder-open"
+      color="blue"
+      title="Aucun document trouvé"
+      :description="emptyMessage"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import DocumentListItem from './DocumentListItem.vue';
+import DocumentCard from './DocumentCard.vue';
 import SortDropdown from './SortDropdown.vue';
 import Pagination from './Pagination.vue';
 import ViewModeToggle from './ViewModeToggle.vue';
-import type { Document, SortField, SortOrder, PaginationInfo, ViewMode } from '@/types';
+import { EmptyState } from '@components';
+import type { Document, SortField, SortOrder, PaginationInfo, ViewMode } from '@types';
 
 interface Props {
   documents: Document[];
@@ -81,6 +85,9 @@ interface Props {
 const props = defineProps<Props>();
 
 defineEmits<{
+  selectDocument: [document: Document];
+  downloadDocument: [document: Document];
+  deleteDocument: [document: Document];
   toggleFavorite: [documentId: string];
   sort: [{ field: SortField; order: SortOrder }];
   pageChange: [page: number];

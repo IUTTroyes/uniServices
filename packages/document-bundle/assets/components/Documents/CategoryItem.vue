@@ -60,7 +60,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { Category } from '@/types';
+import type { Category } from '@types';
 
 interface Props {
   category: Category;

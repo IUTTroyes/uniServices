@@ -1,12 +1,15 @@
 api_platform:
     title: UniService API
     version: 0.0.1
+    formats:
+        jsonld: ['application/ld+json']
+        json: ['application/json']
+        html: ['text/html']
     mapping:
         paths:
             - '%kernel.project_dir%/src/ApiDto'
             - '%kernel.project_dir%/src/Entity'
-#    eager_loading:
-#        max_joins: 100
+            - '%kernel.project_dir%/../packages/document-bundle/src/Entity'
     defaults:
         stateless: true
         cache_headers:

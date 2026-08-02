@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
-import type { SortField, SortOrder } from '@/types';
+import type { SortField, SortOrder } from '@types';
 
 interface Props {
   sortField: SortField;

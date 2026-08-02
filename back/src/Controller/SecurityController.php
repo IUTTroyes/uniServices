@@ -295,7 +295,7 @@ class SecurityController extends AbstractController
                 $departmentsData[] = $currentDepartment;
             }
 
-            $activePackages = ['core'];
+            $activePackages = ['core', 'documents'];
             $resolvedPermissions = ['ROLE_ETUDIANT'];
         }
 
