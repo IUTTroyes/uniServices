@@ -1,15 +1,12 @@
 <script setup>
 import {
-  PlusIcon,
   CalendarIcon,
   UsersIcon,
   UserPlusIcon,
   ClockIcon,
-  DocumentTextIcon,
-  MagnifyingGlassIcon,
-  Cog6ToothIcon,
-  TrashIcon
+  DocumentTextIcon
 } from '@heroicons/vue/24/outline';
+import { Card, ButtonDelete } from '@components';
 
 const props = defineProps({
   periods: {
@@ -27,37 +24,43 @@ const emit = defineEmits(['create', 'edit', 'delete', 'select']);
       <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">
         Configuration des périodes universitaires
       </h2>
-      <button @click="emit('create')"
-        class="text-xs font-bold px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer border-0">
-        <PlusIcon class="w-3.5 h-3.5" />
-        <span>Créer une période</span>
-      </button>
+      <Button
+        label="Créer une période"
+        icon="pi pi-plus"
+        @click="emit('create')"
+        size="small"
+        class="bg-violet-600 hover:bg-violet-750 text-white border-0 font-bold rounded-xl shadow-md cursor-pointer"
+      />
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div v-for="p in periods" :key="p.id"
-        class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm flex flex-col justify-between space-y-4">
+      <Card
+        v-for="p in periods"
+        :key="p.id"
+        :title="p.name"
+        icon="pi pi-calendar"
+        :color="p.type === 'Alternance' ? 'purple' : 'blue'"
+        :badge="p.anneeUniv"
+        badge-severity="secondary"
+        class="flex flex-col justify-between h-full shadow-sm hover:shadow-md transition-all duration-300"
+        body-class="flex-1 flex flex-col justify-between pt-4"
+      >
         <div>
-          <div class="flex justify-between items-start gap-4">
-            <div class="flex gap-2">
-              <span
-                class="bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 px-2.5 py-0.5 rounded font-bold text-[9px] uppercase tracking-wider font-extrabold">
-                {{ p.type }}
-              </span>
-              <span
-                class="bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2.5 py-0.5 rounded font-bold text-[9px] font-extrabold">
-                {{ p.anneeUniv }}
-              </span>
-            </div>
-            <span
-              :class="['px-2 py-0.5 text-[9px] rounded font-bold uppercase', p.datesFlexibles ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400']">
-              {{ p.datesFlexibles ? 'Dates flexibles' : 'Dates strictes' }}
-            </span>
+          <!-- Type and Date tags -->
+          <div class="flex flex-wrap gap-2 mb-4">
+            <Tag
+              :value="p.type"
+              severity="info"
+              class="text-[9px] font-extrabold uppercase font-sans px-2.5 py-0.5 rounded"
+            />
+            <Tag
+              :value="p.datesFlexibles ? 'Dates flexibles' : 'Dates strictes'"
+              :severity="p.datesFlexibles ? 'info' : 'secondary'"
+              class="text-[9px] font-bold uppercase font-sans px-2 py-0.5 rounded"
+            />
           </div>
 
-          <h3 class="text-base font-bold text-slate-900 dark:text-white mt-4">{{ p.name }}</h3>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
             <div class="space-y-2">
               <div class="flex items-center gap-2">
                 <CalendarIcon class="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -93,7 +96,7 @@ const emit = defineEmits(['create', 'edit', 'delete', 'select']);
 
           <!-- Display convention parameters brief summary -->
           <div
-            class="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-3 border border-slate-100 dark:border-slate-700/40 text-[10px] mt-4 space-y-1 text-slate-500">
+            class="bg-slate-50 dark:bg-slate-900/40 rounded-xl p-3 border border-slate-100 dark:border-slate-700/40 text-[10px] mt-4 space-y-1 text-slate-500 font-sans">
             <span class="font-bold text-slate-700 dark:text-slate-350 block mb-1">Paramètres Convention :</span>
             <p class="truncate"><strong class="text-slate-650 dark:text-slate-400">Compétences :</strong> {{
               p.competencesVisees || 'Non définies' }}</p>
@@ -102,27 +105,27 @@ const emit = defineEmits(['create', 'edit', 'delete', 'select']);
           </div>
         </div>
 
-        <div class="flex gap-2 w-full pt-2">
-          <button
+        <div class="flex gap-2 w-full pt-4 border-t border-slate-100 dark:border-slate-700/60 mt-4">
+          <Button
+            label="Accéder au suivi"
+            icon="pi pi-search"
             @click="emit('select', p)"
-            class="flex-1 py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-2 border-0 cursor-pointer">
-            <MagnifyingGlassIcon class="w-3.5 h-3.5" />
-            <span>Accéder au suivi</span>
-          </button>
-          <button
+            class="flex-1 bg-violet-600 hover:bg-violet-750 text-white font-bold border-0 rounded-xl text-xs transition-all cursor-pointer"
+          />
+          <Button
+            icon="pi pi-cog"
+            severity="secondary"
             @click="emit('edit', p)"
-            class="px-3 py-2 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600/60 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition-all flex items-center justify-center border-0 cursor-pointer"
-            v-tooltip="'Paramètres de la période'">
-            <Cog6ToothIcon class="w-4 h-4" />
-          </button>
-          <button
-            @click="emit('delete', p)"
-            class="px-3 py-2 bg-rose-50 dark:bg-rose-950/20 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-455 font-bold rounded-xl text-xs transition-all flex items-center justify-center border-0 cursor-pointer"
-            v-tooltip="'Supprimer la période'">
-            <TrashIcon class="w-4 h-4" />
-          </button>
+            v-tooltip="'Paramètres de la période'"
+            class="px-3 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600/60 text-slate-700 dark:text-slate-300 border-0 rounded-xl transition-all cursor-pointer"
+          />
+          <ButtonDelete
+            tooltip="Supprimer la période"
+            @confirm-delete="emit('delete', p)"
+            class="px-3 border-0 rounded-xl transition-all cursor-pointer !mr-0"
+          />
         </div>
-      </div>
+      </Card>
     </div>
   </div>
 </template>

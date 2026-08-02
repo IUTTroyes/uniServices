@@ -19,6 +19,7 @@ import {
   HeaderComponent,
   Kpi,
   Card,
+  EmptyState,
   QuickActionCard,
   ButtonDelete,
   ButtonEdit,
@@ -34,7 +35,7 @@ import ActionButtonVertical from '@components/components/ActionButtonVertical.vu
 import Alert from '@components/components/Alert.vue';
 
 // Active tab sidebar selection
-const activeComponent = ref<'header' | 'card' | 'kpi' | 'quick-action' | 'action-btn' | 'alert' | 'buttons' | 'forms'>('header');
+const activeComponent = ref<'header' | 'card' | 'kpi' | 'quick-action' | 'action-btn' | 'alert' | 'empty-state' | 'buttons' | 'forms'>('header');
 const copiedText = ref(false);
 
 function triggerCopiedNotification() {
@@ -75,13 +76,47 @@ const headerCode = computed(() => {
 // 2. Card
 const cardProps = ref({
   title: 'Statistiques Hebdomadaires',
+  subtitle: 'Données mises à jour en temps réel',
+  icon: 'pi pi-chart-bar',
+  color: 'blue',
+  badge: 'Actif',
+  badgeSeverity: 'success',
   bodyClass: 'p-6',
-  content: 'Contenu principal de la carte. Vous pouvez insérer n\'importe quel élément ici.'
+  content: 'Contenu principal de la carte. Vous pouvez insérer n\'importe quel élément ici.',
+  useHeaderSlot: false
 });
 
 const cardCode = computed(() => {
   const bodyClassStr = cardProps.value.bodyClass ? ` body-class="${cardProps.value.bodyClass}"` : '';
-  return `<Card title="${cardProps.value.title}"${bodyClassStr}>
+  if (cardProps.value.useHeaderSlot) {
+    return `<Card${bodyClassStr}>
+  <template #header>
+    <div class="flex items-center justify-between w-full">
+      <div class="flex items-center gap-3">
+        <i class="${cardProps.value.icon} text-primary-500 text-lg" />
+        <div>
+          <h3 class="text-sm font-bold text-slate-900 dark:text-white leading-snug">${cardProps.value.title}</h3>
+          <p class="text-[11px] text-slate-400 mt-0.5">${cardProps.value.subtitle}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <Button icon="pi pi-refresh" severity="secondary" rounded text size="small" />
+        <Button icon="pi pi-ellipsis-v" severity="secondary" rounded text size="small" />
+      </div>
+    </div>
+  </template>
+  <p>${cardProps.value.content}</p>
+</Card>`;
+  }
+
+  const subStr = cardProps.value.subtitle ? `\n  subtitle="${cardProps.value.subtitle}"` : '';
+  const iconStr = cardProps.value.icon ? `\n  icon="${cardProps.value.icon}"` : '';
+  const colorStr = cardProps.value.color ? `\n  color="${cardProps.value.color}"` : '';
+  const badgeStr = cardProps.value.badge ? `\n  badge="${cardProps.value.badge}"\n  badge-severity="${cardProps.value.badgeSeverity}"` : '';
+
+  return `<Card
+  title="${cardProps.value.title}"${subStr}${iconStr}${colorStr}${badgeStr}${bodyClassStr}
+>
   <p>${cardProps.value.content}</p>
 </Card>`;
 });
@@ -152,6 +187,31 @@ const alertCode = computed(() => {
   return `<Alert
   severity="${alertProps.value.severity}"
   message="${alertProps.value.message}"${closableStr}
+/>`;
+});
+
+// 6b. EmptyState
+const emptyStateProps = ref({
+  title: 'Pas de données disponibles',
+  description: 'Aucun élément n\'a été trouvé pour le moment dans cette section.',
+  icon: 'pi pi-inbox',
+  color: 'gray',
+  compact: false,
+  actionLabel: 'Créer un élément',
+  actionIcon: 'pi pi-plus'
+});
+
+const emptyStateCode = computed(() => {
+  const compactStr = emptyStateProps.value.compact ? '\n  compact' : '';
+  const colorStr = emptyStateProps.value.color !== 'gray' ? `\n  color="${emptyStateProps.value.color}"` : '';
+  const actionLabelStr = emptyStateProps.value.actionLabel ? `\n  action-label="${emptyStateProps.value.actionLabel}"` : '';
+  const actionIconStr = emptyStateProps.value.actionIcon ? `\n  action-icon="${emptyStateProps.value.actionIcon}"` : '';
+
+  return `<EmptyState
+  title="${emptyStateProps.value.title}"
+  description="${emptyStateProps.value.description}"
+  icon="${emptyStateProps.value.icon}"${colorStr}${compactStr}${actionLabelStr}${actionIconStr}
+  @action="onActionClick"
 />`;
 });
 
@@ -272,6 +332,14 @@ const formsCode = computed(() => {
             <i class="pi pi-info-circle text-sm" />
             Alert
           </button>
+          <button
+            @click="activeComponent = 'empty-state'"
+            :class="['w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+                     activeComponent === 'empty-state' ? 'bg-primary-500 text-white shadow-md' : 'text-gray-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-700/50']"
+          >
+            <i class="pi pi-inbox text-sm" />
+            EmptyState
+          </button>
           <div class="h-[1px] bg-slate-100 dark:bg-slate-700 my-2"></div>
           <button
             @click="activeComponent = 'buttons'"
@@ -343,6 +411,87 @@ const formsCode = computed(() => {
           </div>
         </Card>
 
+        <!-- Properties Table -->
+        <Card title="Propriétés & Configuration">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white">Description & Valeurs</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">titre</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Le titre principal affiché dans l'en-tête de la page.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">description</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Le texte explicatif ou descriptif situé sous le titre.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">icon</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String | Object | Function</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">null</td>
+                  <td class="py-3 px-4 text-slate-500">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Icône décorative. Peut être une chaîne (ex: classe PrimeIcons <code class="font-mono text-xs">pi pi-user</code>) ou un composant d'icône (ex: Heroicons).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">backUrl</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String | Object</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">null</td>
+                  <td class="py-3 px-4 text-slate-500">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">L'URL ou l'objet route pour le bouton de retour. Si non spécifié, utilise l'historique du navigateur (<code class="font-mono text-xs">router.go(-1)</code>).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">showBack</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">Boolean</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">true</td>
+                  <td class="py-3 px-4 text-slate-500">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Indique si le bouton "Retour" doit être affiché.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">color</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">''</td>
+                  <td class="py-3 px-4 text-slate-500">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Clé de couleur thématique pour styliser le fond et le texte de l'icône (ex: <code class="font-mono text-xs">'blue'</code>, <code class="font-mono text-xs">'green'</code>, <code class="font-mono text-xs">'emerald'</code>, etc.).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">iconClass</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">''</td>
+                  <td class="py-3 px-4 text-slate-500">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Classes CSS additionnelles appliquées directement à l'icône.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">iconBgClass</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">''</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Classes CSS additionnelles appliquées au conteneur de l'icône.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+            <span class="font-semibold text-slate-800 dark:text-slate-200">Slots disponibles :</span>
+            <ul class="list-disc list-inside mt-2 space-y-1 text-slate-600 dark:text-slate-400">
+              <li><code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">actions</code> : Permet d'insérer des boutons ou actions personnalisés à l'extrême droite du header.</li>
+            </ul>
+          </div>
+        </Card>
+
         <!-- Code Snippet -->
         <Card title="Code d'intégration">
           <div class="relative">
@@ -371,25 +520,189 @@ const formsCode = computed(() => {
         <!-- Live Demo -->
         <Card title="Aperçu Interactif">
           <div class="bg-slate-50 dark:bg-slate-900/40 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/80 mb-6">
-            <Card :title="cardProps.title" :body-class="cardProps.bodyClass">
+            <Card
+              v-if="!cardProps.useHeaderSlot"
+              :title="cardProps.title"
+              :subtitle="cardProps.subtitle"
+              :icon="cardProps.icon"
+              :color="cardProps.color"
+              :badge="cardProps.badge"
+              :badge-severity="cardProps.badgeSeverity"
+              :body-class="cardProps.bodyClass"
+            >
+              <p class="text-sm text-gray-700 dark:text-gray-300">{{ cardProps.content }}</p>
+            </Card>
+
+            <Card
+              v-else
+              :body-class="cardProps.bodyClass"
+            >
+              <template #header>
+                <div class="flex items-center justify-between w-full">
+                  <div class="flex items-center gap-3">
+                    <span v-if="cardProps.icon" class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center border bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border-blue-100 dark:border-blue-900/30">
+                      <i :class="[cardProps.icon, 'text-sm']" />
+                    </span>
+                    <div>
+                      <h3 class="text-sm font-bold text-slate-900 dark:text-white leading-snug">{{ cardProps.title }}</h3>
+                      <p v-if="cardProps.subtitle" class="text-[11px] text-slate-400 mt-0.5">{{ cardProps.subtitle }}</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <Button icon="pi pi-refresh" severity="secondary" rounded text size="small" />
+                    <Button icon="pi pi-ellipsis-v" severity="secondary" rounded text size="small" />
+                  </div>
+                </div>
+              </template>
               <p class="text-sm text-gray-700 dark:text-gray-300">{{ cardProps.content }}</p>
             </Card>
           </div>
 
           <!-- Controls -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 dark:bg-slate-800/20 p-5 rounded-2xl border border-slate-100 dark:border-slate-800/40">
+            <div class="col-span-1 md:col-span-2 flex items-center gap-4">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">
+                <input v-model="cardProps.useHeaderSlot" type="checkbox" class="w-4 h-4 rounded text-primary-500 focus:ring-primary-500" />
+                Utiliser le slot #header (démonstration avec boutons d'actions)
+              </label>
+            </div>
             <div>
               <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Titre de la carte</label>
               <input v-model="cardProps.title" type="text" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
             </div>
             <div>
-              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Classes additionnelles de corps</label>
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Sous-titre de la carte</label>
+              <input v-model="cardProps.subtitle" type="text" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Icône (PrimeIcons)</label>
+              <input v-model="cardProps.icon" type="text" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+            </div>
+            <div v-if="!cardProps.useHeaderSlot">
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Thème de Couleur de l'icône</label>
+              <select v-model="cardProps.color" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm">
+                <option value="">Aucun</option>
+                <option value="blue">Blue</option>
+                <option value="green">Green</option>
+                <option value="emerald">Emerald</option>
+                <option value="yellow">Yellow</option>
+                <option value="purple">Purple</option>
+                <option value="red">Red</option>
+                <option value="orange">Orange</option>
+              </select>
+            </div>
+            <div v-if="!cardProps.useHeaderSlot">
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Badge de statut</label>
+              <input v-model="cardProps.badge" type="text" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+            </div>
+            <div v-if="!cardProps.useHeaderSlot && cardProps.badge">
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Sévérité du badge</label>
+              <select v-model="cardProps.badgeSeverity" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm">
+                <option value="secondary">Secondary (Gris)</option>
+                <option value="primary">Primary (Orange)</option>
+                <option value="success">Success (Vert)</option>
+                <option value="info">Info (Bleu)</option>
+                <option value="warning">Warning (Jaune)</option>
+                <option value="danger">Danger (Rouge)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Classes de corps (bodyClass)</label>
               <input v-model="cardProps.bodyClass" type="text" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
             </div>
             <div class="col-span-1 md:col-span-2">
               <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Contenu intérieur</label>
               <textarea v-model="cardProps.content" rows="2" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm"></textarea>
             </div>
+          </div>
+        </Card>
+
+        <!-- Properties Table -->
+        <Card title="Propriétés & Configuration">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white">Description & Valeurs</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">title</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">''</td>
+                  <td class="py-3 px-4 text-slate-500">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Le titre principal affiché dans l'en-tête de la carte.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">subtitle</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">''</td>
+                  <td class="py-3 px-4 text-slate-500">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Sous-titre affiché sous le titre.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">icon</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String | Object | Function</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">null</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Icône de titre (PrimeIcons string ou composant Heroicons).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">color</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">''</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Clé de couleur thématique pour l'icône (ex: <code class="font-mono text-xs">'blue'</code>, <code class="font-mono text-xs">'green'</code>, etc.).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">iconClass</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">''</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Classes CSS additionnelles appliquées à l'icône.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">iconBgClass</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">''</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Classes CSS additionnelles appliquées au badge conteneur de l'icône.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">badge</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">''</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Texte d'un badge à afficher à l'extrémité droite de l'en-tête.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">badgeSeverity</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">'secondary'</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Sévérité visuelle du badge (<code class="font-mono text-xs">'success'</code>, <code class="font-mono text-xs">'info'</code>, <code class="font-mono text-xs">'warning'</code>, <code class="font-mono text-xs">'danger'</code>, <code class="font-mono text-xs">'primary'</code>, <code class="font-mono text-xs">'secondary'</code>).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">bodyClass</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">''</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Classes CSS additionnelles appliquées au corps intérieur de la carte.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+            <span class="font-semibold text-slate-800 dark:text-slate-200">Slots disponibles :</span>
+            <ul class="list-disc list-inside mt-2 space-y-1 text-slate-600 dark:text-slate-400">
+              <li><code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">header</code> : Permet de remplacer entièrement l'en-tête de la carte.</li>
+              <li><code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">default</code> : Slot principal pour y déposer le contenu interne de la carte.</li>
+            </ul>
           </div>
         </Card>
 
@@ -466,6 +779,60 @@ const formsCode = computed(() => {
           </div>
         </Card>
 
+        <!-- Properties Table -->
+        <Card title="Propriétés & Configuration">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white">Description & Valeurs</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">label</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">string</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Le titre de la statistique (affiché en haut, en capitales).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">value</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">string | number</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">La valeur quantitative ou texte principale de la statistique.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">icon</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">any</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Le composant d'icône Heroicons à afficher à droite.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">color</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">string</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Identifiant de couleur thématique (ex: <code class="font-mono text-xs">blue, green, yellow, purple, red, indigo, gray, emerald, orange, teal, pink</code>).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">description</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">string</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">undefined</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Libellé informatif ou tendance affiché en dessous de la valeur.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </Card>
+
         <!-- Code Snippet -->
         <Card title="Code d'intégration">
           <div class="relative">
@@ -531,6 +898,73 @@ const formsCode = computed(() => {
                 </select>
               </div>
             </div>
+          </div>
+        </Card>
+
+        <!-- Properties Table -->
+        <Card title="Propriétés & Configuration">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white">Description & Valeurs</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">title</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">string</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Le titre principal de la carte d'action.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">description</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">string</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Courte description décrivant l'action.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">icon</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">any</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Composant d'icône Heroicons affiché dans le badge de gauche.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">color</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">'blue' | 'green' | 'purple' | string</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Choix de la couleur pour l'icône et le style du bouton (<code class="font-mono text-xs">'blue'</code>, <code class="font-mono text-xs">'green'</code>, <code class="font-mono text-xs">'purple'</code>).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">buttonLabel</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">string</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Le libellé affiché sur le bouton à droite.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">to</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">string | object</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">undefined</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Route ou URL de redirection. Si présent, le composant utilise un <code class="font-mono text-xs">&lt;router-link&gt;</code>. Sinon, c'est une div cliquable émettant l'événement <code class="font-mono text-xs">action</code>.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+            <span class="font-semibold text-slate-800 dark:text-slate-200">Événements émis :</span>
+            <ul class="list-disc list-inside mt-2 space-y-1 text-slate-600 dark:text-slate-400">
+              <li><code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">@action</code> : Déclenché lors du clic sur la carte, uniquement si la propriété <code class="font-mono text-xs">to</code> n'est pas fournie.</li>
+            </ul>
           </div>
         </Card>
 
@@ -600,6 +1034,66 @@ const formsCode = computed(() => {
           </div>
         </Card>
 
+        <!-- Properties Table -->
+        <Card title="Propriétés & Configuration">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white">Description & Valeurs</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">label</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">string</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Le libellé de texte affiché sous l'icône.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">icon</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">any</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">—</td>
+                  <td class="py-3 px-4 text-red-500 font-semibold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Le composant d'icône Heroicons affiché en haut.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">to</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">string | object</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">undefined</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Route ou URL de redirection. Si présent, le composant utilise un <code class="font-mono text-xs">&lt;router-link&gt;</code>, sinon un bouton standard.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">severity</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">'primary' | 'secondary' | 'success' | 'info' | 'warning' | 'help' | 'danger'</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">'secondary'</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Style visuel et palette de couleur du bouton.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">disabled</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">boolean</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">false</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Indique si le bouton doit être désactivé (bloque le clic et applique une transparence).</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+            <span class="font-semibold text-slate-800 dark:text-slate-200">Événements émis :</span>
+            <ul class="list-disc list-inside mt-2 space-y-1 text-slate-600 dark:text-slate-400">
+              <li><code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">@click</code> : Déclenché lors du clic sur le bouton, uniquement s'il n'est pas désactivé.</li>
+            </ul>
+          </div>
+        </Card>
+
         <!-- Code Snippet -->
         <Card title="Code d'intégration">
           <div class="relative">
@@ -661,12 +1155,212 @@ const formsCode = computed(() => {
           </div>
         </Card>
 
+        <!-- Properties Table -->
+        <Card title="Propriétés & Configuration">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white">Description & Valeurs</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">severity</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">'info'</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Sévérité du message. Valeurs possibles: <code class="font-mono text-xs">'info'</code>, <code class="font-mono text-xs">'success'</code>, <code class="font-mono text-xs">'warning'</code>, <code class="font-mono text-xs">'error'</code>.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">icon</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">null</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Classe PrimeIcons personnalisée (ex: <code class="font-mono text-xs">'pi pi-exclamation-circle'</code>) permettant d'écraser l'icône automatiquement calculée selon la sévérité.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">message</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">null</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Le texte du message à afficher (ignoré si le slot par défaut est fourni).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">closable</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">Boolean</td>
+                  <td class="py-3 px-4 font-mono text-slate-505">true</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Indique si le message peut être fermé à l'aide d'un bouton de fermeture.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+            <span class="font-semibold text-slate-800 dark:text-slate-200">Slots disponibles :</span>
+            <ul class="list-disc list-inside mt-2 space-y-1 text-slate-600 dark:text-slate-400">
+              <li><code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">default</code> : Permet de définir un contenu HTML complexe à l'intérieur du message à la place de la prop <code class="font-mono text-xs">message</code>.</li>
+            </ul>
+          </div>
+        </Card>
+
         <!-- Code Snippet -->
         <Card title="Code d'intégration">
           <div class="relative">
             <pre class="bg-slate-950 text-slate-200 p-5 rounded-2xl overflow-x-auto text-xs leading-relaxed font-mono"><code>{{ alertCode }}</code></pre>
             <button
               @click="copyCode(alertCode)"
+              class="absolute top-3 right-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white p-2 rounded-xl text-xs flex items-center gap-1.5 transition-all duration-200 border border-slate-700/50"
+            >
+              <CheckIcon v-if="copiedText" class="w-4 h-4 text-green-400" />
+              <ClipboardIcon v-else class="w-4 h-4" />
+              {{ copiedText ? 'Copié !' : 'Copier' }}
+            </button>
+          </div>
+        </Card>
+      </div>
+
+      <!-- 6b. EMPTYSTATE DOCUMENTATION -->
+      <div v-if="activeComponent === 'empty-state'" class="space-y-6">
+        <div class="card p-6 bg-gradient-to-br from-primary-500/5 to-transparent border border-primary-500/10 rounded-2xl">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">EmptyState</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Composant harmonisé pour signaler l'absence de données (périodes, offres, documents, résultats) avec icône centrée, typographie soignée et bouton d'action optionnel.
+          </p>
+        </div>
+
+        <!-- Live Demo -->
+        <Card title="Aperçu Interactif">
+          <div class="bg-slate-50 dark:bg-slate-900/40 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/80 mb-6">
+            <EmptyState
+              :title="emptyStateProps.title"
+              :description="emptyStateProps.description"
+              :icon="emptyStateProps.icon"
+              :color="emptyStateProps.color"
+              :compact="emptyStateProps.compact"
+              :action-label="emptyStateProps.actionLabel"
+              :action-icon="emptyStateProps.actionIcon"
+              @action="logButtonAction('Clic sur le bouton d\'action EmptyState')"
+            />
+          </div>
+
+          <!-- Controls -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/50 dark:bg-slate-800/20 p-5 rounded-2xl border border-slate-100 dark:border-slate-800/40 text-xs">
+            <div class="space-y-4">
+              <div>
+                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Titre (title)</label>
+                <input v-model="emptyStateProps.title" type="text" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Description</label>
+                <input v-model="emptyStateProps.description" type="text" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Icône (PrimeIcons)</label>
+                <input v-model="emptyStateProps.icon" type="text" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-mono" />
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Thème Couleur (color)</label>
+                <select v-model="emptyStateProps.color" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm">
+                  <option value="gray">Gray / Slate (Défaut)</option>
+                  <option value="violet">Violet</option>
+                  <option value="emerald">Emerald</option>
+                  <option value="amber">Amber</option>
+                  <option value="blue">Blue</option>
+                  <option value="indigo">Indigo</option>
+                  <option value="rose">Rose</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Texte du bouton d'action (actionLabel)</label>
+                <input v-model="emptyStateProps.actionLabel" type="text" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+              </div>
+
+              <div class="flex items-center gap-4 pt-2">
+                <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">
+                  <input v-model="emptyStateProps.compact" type="checkbox" class="w-4 h-4 rounded text-primary-500 focus:ring-primary-500" />
+                  Mode Compact (compact)
+                </label>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        <!-- Properties Table -->
+        <Card title="Propriétés & Configuration">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white">Description & Valeurs</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">title</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">'Aucune donnée disponible'</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Titre principal indiquant l'état vide.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">description</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">''</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Explication complémentaire. Peut aussi être passée via le slot par défaut.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">icon</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">String | Component</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">'pi pi-inbox'</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Icône PrimeVue (ex: <code class="font-mono text-xs">'pi pi-calendar-times'</code>) ou composant Heroicon.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">color</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">'gray'</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Variante de couleur (<code class="font-mono text-xs">'gray'</code>, <code class="font-mono text-xs">'violet'</code>, <code class="font-mono text-xs">'emerald'</code>, <code class="font-mono text-xs">'amber'</code>, <code class="font-mono text-xs">'blue'</code>, <code class="font-mono text-xs">'indigo'</code>, <code class="font-mono text-xs">'rose'</code>).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">compact</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">Boolean</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">false</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Réduit le padding interne et les dimensions de l'icône pour s'intégrer dans des sous-cartes.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">actionLabel</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">String</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">''</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Libellé du bouton d'action affiché. Émet un événement <code class="font-mono text-xs">@action</code>.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </Card>
+
+        <!-- Code Snippet -->
+        <Card title="Code d'intégration">
+          <div class="relative">
+            <pre class="bg-slate-950 text-slate-200 p-5 rounded-2xl overflow-x-auto text-xs leading-relaxed font-mono"><code>{{ emptyStateCode }}</code></pre>
+            <button
+              @click="copyCode(emptyStateCode)"
               class="absolute top-3 right-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white p-2 rounded-xl text-xs flex items-center gap-1.5 transition-all duration-200 border border-slate-700/50"
             >
               <CheckIcon v-if="copiedText" class="w-4 h-4 text-green-400" />
@@ -725,6 +1419,148 @@ const formsCode = computed(() => {
             <div>
               <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Libellé (Label) du bouton Delete</label>
               <input v-model="buttonLabel" type="text" class="w-full p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm" />
+            </div>
+          </div>
+        </Card>
+
+        <!-- Properties Table -->
+        <Card title="Propriétés des Boutons CRUD">
+          <div class="space-y-6">
+            <div>
+              <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-2 font-mono text-xs">&lt;ButtonDelete&gt;</h3>
+              <table class="w-full text-left border-collapse text-xs mb-2">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white">Description</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">tooltip</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                    <td class="py-2 px-3 font-mono text-slate-500">—</td>
+                    <td class="py-2 px-3 text-red-500 font-semibold">Oui</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Texte de l'infobulle affiché au survol.</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">label</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                    <td class="py-2 px-3 font-mono text-slate-500">''</td>
+                    <td class="py-2 px-3 text-slate-505">Non</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Libellé textuel optionnel affiché à côté de l'icône de corbeille.</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="text-[10px] text-slate-500"><span class="font-semibold text-slate-700 dark:text-slate-350">Événement émis :</span> <code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">@confirm-delete</code> déclenché après confirmation de la boîte de dialogue.</p>
+            </div>
+
+            <div class="border-t border-slate-100 dark:border-slate-800/60 pt-4">
+              <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-2 font-mono text-xs">&lt;ButtonEdit&gt;</h3>
+              <table class="w-full text-left border-collapse text-xs mb-2">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white">Description</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">tooltip</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                    <td class="py-2 px-3 font-mono text-slate-500">—</td>
+                    <td class="py-2 px-3 text-red-500 font-semibold">Oui</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Texte de l'infobulle affiché au survol.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="border-t border-slate-100 dark:border-slate-800/60 pt-4">
+              <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-2 font-mono text-xs">&lt;ButtonSave&gt;</h3>
+              <table class="w-full text-left border-collapse text-xs mb-2">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white">Description</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">tooltip</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                    <td class="py-2 px-3 font-mono text-slate-500">—</td>
+                    <td class="py-2 px-3 text-red-500 font-semibold">Oui</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Texte de l'infobulle affiché au survol.</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="text-[10px] text-slate-500"><span class="font-semibold text-slate-700 dark:text-slate-350">Événement émis :</span> <code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">@confirm-save</code> déclenché après confirmation de la boîte de dialogue.</p>
+            </div>
+
+            <div class="border-t border-slate-100 dark:border-slate-800/60 pt-4">
+              <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-2 font-mono text-xs">&lt;ButtonInfo&gt;</h3>
+              <table class="w-full text-left border-collapse text-xs mb-2">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white">Description</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">tooltip</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                    <td class="py-2 px-3 font-mono text-slate-500">—</td>
+                    <td class="py-2 px-3 text-red-500 font-semibold">Oui</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Texte de l'infobulle affiché au survol.</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">icon</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                    <td class="py-2 px-3 font-mono text-slate-500">'pi pi-info'</td>
+                    <td class="py-2 px-3 text-slate-550">Non</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Icône PrimeIcons à afficher dans le bouton.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="border-t border-slate-100 dark:border-slate-800/60 pt-4">
+              <h3 class="font-semibold text-slate-800 dark:text-slate-200 mb-2 font-mono text-xs">&lt;ButtonDuplicate&gt;</h3>
+              <table class="w-full text-left border-collapse text-xs mb-2">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white">Description</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">tooltip</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                    <td class="py-2 px-3 font-mono text-slate-505">—</td>
+                    <td class="py-2 px-3 text-red-500 font-semibold">Oui</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Texte de l'infobulle affiché au survol.</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p class="text-[10px] text-slate-500"><span class="font-semibold text-slate-700 dark:text-slate-350">Événement émis :</span> <code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">@confirm-duplicate</code> déclenché après confirmation de la boîte de dialogue.</p>
             </div>
           </div>
         </Card>
@@ -804,6 +1640,247 @@ const formsCode = computed(() => {
             </div>
           </div>
         </Card>
+
+        <!-- Properties Table ValidatedInput -->
+        <Card title="Propriétés de ValidatedInput">
+          <div class="overflow-x-auto max-h-[350px] overflow-y-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="sticky top-0 bg-white dark:bg-slate-800 z-10 shadow-[0_1px_0_0_rgba(0,0,0,0.1)] dark:shadow-[0_1px_0_0_rgba(255,255,255,0.05)]">
+                <tr>
+                  <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900 w-1/4">Propriété</th>
+                  <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900 w-1/5">Type</th>
+                  <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900 w-1/6">Défaut</th>
+                  <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900 w-1/12">Requis</th>
+                  <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-900">Description</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">modelValue / v-model</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">any</td>
+                  <td class="py-2 px-3 font-mono text-slate-500">null</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Liaison bidirectionnelle pour la valeur du champ.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">type</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                  <td class="py-2 px-3 font-mono text-slate-505">'text'</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Type de saisie. Valeurs gérées : <code class="font-mono text-[10px]">'text', 'number', 'password', 'select', 'multiselect', 'date', 'textarea', 'radio', 'address', 'file'</code>.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">rules</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">Array | Object | String</td>
+                  <td class="py-2 px-3 font-mono text-slate-500">null</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Règles de validation (ex: <code class="font-mono text-[10px]">'required'</code>, <code class="font-mono text-[10px]">'required|email'</code>, etc.).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">name</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                  <td class="py-2 px-3 font-mono text-slate-505">''</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Identifiant et attribut <code class="font-mono text-xs">name</code> du champ.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">label</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                  <td class="py-2 px-3 font-mono text-slate-505">''</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Libellé textuel. Affiche une astérisque rouge si la règle <code class="font-mono text-[10px]">required</code> est présente.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">placeholder</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                  <td class="py-2 px-3 font-mono text-slate-505">''</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Texte d'aide interne.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">helpText</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                  <td class="py-2 px-3 font-mono text-slate-505">''</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Texte informatif sous le champ (masqué si erreur).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">disabled</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">Boolean</td>
+                  <td class="py-2 px-3 font-mono text-slate-505">false</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Désactive le composant de saisie.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">options</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">Array</td>
+                  <td class="py-2 px-3 font-mono text-slate-500">() => []</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Tableau d'options pour <code class="font-mono text-xs">select</code> / <code class="font-mono text-xs">multiselect</code> sous le format <code class="font-mono text-[10px]">{ label: string, value: any }</code>.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">filter / showClear</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">Boolean</td>
+                  <td class="py-2 px-3 font-mono text-slate-505">false</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Recherche active / croix de vidage sur le select/multiselect.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">min / max</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">Number | String</td>
+                  <td class="py-2 px-3 font-mono text-slate-500">null</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Bornes minimales/maximales pour le type <code class="font-mono text-xs">number</code>.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">minfractiondigits / maxfractiondigits</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">Number</td>
+                  <td class="py-2 px-3 font-mono text-slate-500">null</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Chiffres après la virgule pour le type <code class="font-mono text-xs">number</code>.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">feedback / toggleMask</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">Boolean</td>
+                  <td class="py-2 px-3 font-mono text-slate-500">false / true</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Options pour le type <code class="font-mono text-xs">password</code> (force du MDP / œil de masquage).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">selectionMode</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                  <td class="py-2 px-3 font-mono text-slate-505">'single'</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Mode de sélection de date (<code class="font-mono text-xs">'single' | 'range' | 'multiple'</code>).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">minDate / maxDate</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">Date</td>
+                  <td class="py-2 px-3 font-mono text-slate-500">null</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Bornes de dates sélectionnables pour le type <code class="font-mono text-xs">date</code>.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">multiple / accept / maxFileSize</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">Boolean / String / Number</td>
+                  <td class="py-2 px-3 font-mono text-slate-500">false / '*' / null</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Options de chargement de fichiers pour le type <code class="font-mono text-xs">file</code>.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">country</td>
+                  <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                  <td class="py-2 px-3 font-mono text-slate-505">'fr'</td>
+                  <td class="py-2 px-3 text-slate-505">Non</td>
+                  <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Code pays pour l'autocomplétion géographique (type <code class="font-mono text-xs">address</code>).</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+            <span class="font-semibold text-slate-800 dark:text-slate-200">Événements émis :</span>
+            <ul class="list-disc list-inside mt-2 space-y-1 text-slate-600 dark:text-slate-400">
+              <li><code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">@update:modelValue</code> : Déclenché lors de la modification de la valeur du champ.</li>
+              <li><code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">@blur</code> : Déclenché à la perte de focus.</li>
+              <li><code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">@validation</code> : Déclenché après chaque validation avec le statut <code class="font-mono text-xs">{ isValid: boolean, errorMessage: string }</code>.</li>
+            </ul>
+          </div>
+        </Card>
+
+        <!-- Properties Table FormValidator & AddressAutocomplete -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card title="Propriétés de AddressAutocomplete">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white">Propriété</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white">Type</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white">Défaut</th>
+                    <th class="py-2 px-3 text-slate-900 dark:text-white">Description</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">modelValue</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">Object</td>
+                    <td class="py-2 px-3 font-mono text-slate-500">Structuré*</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Objet : `{ adresse, complement1, complement2, ville, codePostal, pays: 'France' }`.</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">placeholder</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                    <td class="py-2 px-3 font-mono text-slate-505">'Entrez une adresse...'</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Texte d'aide interne.</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">label</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">String</td>
+                    <td class="py-2 px-3 font-mono text-slate-505">'Adresse'</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Texte du libellé au-dessus.</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">required / disabled</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">Boolean</td>
+                    <td class="py-2 px-3 font-mono text-slate-500">false</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Champs obligatoires ou désactivés.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </Card>
+
+          <Card title="Propriétés de FormValidator">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white">Propriété</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white">Type</th>
+                    <th class="py-2 px-3 font-semibold text-slate-900 dark:text-white">Défaut</th>
+                    <th class="py-2 px-3 text-slate-900 dark:text-white">Description</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">modelValue</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">any</td>
+                    <td class="py-2 px-3 font-mono text-slate-500">null</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Valeur à observer et valider.</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">rules</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">Array | Object | String</td>
+                    <td class="py-2 px-3 font-mono text-slate-505">null</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Liste ou objet de règles à appliquer.</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">validateOnInput</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">Boolean</td>
+                    <td class="py-2 px-3 font-mono text-slate-505">false</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Valide en temps réel pendant la saisie.</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                    <td class="py-2 px-3 font-mono text-primary-600 dark:text-primary-400 font-semibold">validateOnBlur</td>
+                    <td class="py-2 px-3 font-mono text-slate-655">Boolean</td>
+                    <td class="py-2 px-3 font-mono text-slate-505">true</td>
+                    <td class="py-2 px-3 text-slate-600 dark:text-slate-400">Valide lors de la perte de focus.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+              <span class="font-semibold text-slate-800 dark:text-slate-200">Slot Props exposés :</span>
+              <div class="font-mono text-[10px] text-slate-600 mt-1 space-y-0.5">
+                <div>- <code class="text-primary-600 font-semibold">validate()</code> : Fonction de validation manuelle.</div>
+                <div>- <code class="text-primary-600 font-semibold">isValid</code> : Boolean de validité.</div>
+                <div>- <code class="text-primary-600 font-semibold">errorMessage</code> : Message d'erreur calculé.</div>
+                <div>- <code class="text-primary-600 font-semibold">handleBlur</code> : Callback blur interne.</div>
+                <div>- <code class="text-primary-600 font-semibold">showError</code> : Affichage de l'erreur.</div>
+              </div>
+            </div>
+          </Card>
+        </div>
 
         <!-- Code Snippet -->
         <Card title="Code d'intégration">

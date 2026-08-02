@@ -2,6 +2,9 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useToast } from 'primevue/usetoast';
+import { useUsersStore } from '@stores';
+
+const userStore = useUsersStore();
 import {
   getStagePeriodesService,
   createStagePeriodeService,
@@ -361,12 +364,21 @@ const loadAllData = async () => {
     const personnels = await getPersonnelsService({ limit: 200 });
     dbPersonnels.value = personnels || [];
 
-    const semestres = await getSemestresService({ limit: 100 });
+    const semestresParams = { limit: 100 };
+    if (!userStore.isSuperAdmin && userStore.departementDefaut?.id) {
+      semestresParams.departement = userStore.departementDefaut.id;
+    }
+    const semestres = await getSemestresService(semestresParams);
     dbSemestres.value = semestres || [];
 
     const backendPeriods = await getStagePeriodesService();
     if (backendPeriods && backendPeriods.length > 0) {
-      periods.value = backendPeriods.map(mapPeriodToVue);
+      let mapped = backendPeriods.map(mapPeriodToVue);
+      if (!userStore.isSuperAdmin) {
+        const semesterIris = dbSemestres.value.map(s => s['@id']);
+        mapped = mapped.filter(p => semesterIris.includes(p.semestreProgrammeIri));
+      }
+      periods.value = mapped;
       if (periods.value.length > 0) {
         selectedPeriodId.value = periods.value[0].id;
       }
@@ -398,6 +410,11 @@ const activePeriodName = computed(() => {
 const periodStudents = computed(() => {
   return students.value.filter(s => s.periodId === selectedPeriodId.value);
 });
+
+const getPeriodName = (periodId) => {
+  const p = periods.value.find(p => p.id === periodId);
+  return p ? p.name : 'Inconnue';
+};
 
 // Dynamic KPI computations for the selected Period
 const kpis = computed(() => {
@@ -662,46 +679,14 @@ const confirmDeletePeriod = async (p) => {
     <Toast />
 
     <!-- 1. Header component for General Dashboard -->
-    <HeaderComponent
-      v-if="viewMode === 'dashboard'"
-      :icon="ChartBarIcon"
-      color="indigo"
+    <HeaderComponent v-if="viewMode === 'dashboard'" :icon="ChartBarIcon" color="indigo"
       titre="Espace Responsable des Stages"
-      description="Gérez les conventions de stage, supervisez le parcours des étudiants et paramétrez les périodes."
-    >
-      <template #actions>
-        <button
-          class="text-xs font-bold px-4 py-2.5 bg-violet-600 hover:bg-violet-700 text-white rounded-xl shadow-md transition-all flex items-center gap-2 cursor-pointer border-0"
-          @click="openCreatePeriodDialog"
-        >
-          <PlusIcon class="w-3.5 h-3.5" />
-          <span>Nouvelle Période</span>
-        </button>
-      </template>
+      description="Gérez les conventions de stage, supervisez le parcours des étudiants et paramétrez les périodes.">
     </HeaderComponent>
 
     <!-- 2. Header component for Specific Period View -->
-    <HeaderComponent
-      v-else
-      :icon="CalendarIcon"
-      color="violet"
-      :titre="activePeriodName"
-      :description="activePeriodDatesAndInfo"
-    >
-      <template #actions>
-        <div class="flex items-center gap-3">
-          <!-- Quick switch dropdown -->
-          <Select
-            v-slot:default
-            v-model="selectedPeriodId"
-            :options="periods"
-            optionLabel="name"
-            optionValue="id"
-            placeholder="Changer de période"
-            class="w-64 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
-          />
-        </div>
-      </template>
+    <HeaderComponent v-else :icon="CalendarIcon" color="violet" :titre="activePeriodName"
+      :description="activePeriodDatesAndInfo">
     </HeaderComponent>
 
     <!-- Content loading state -->
@@ -712,48 +697,23 @@ const confirmDeletePeriod = async (p) => {
       <div v-if="viewMode === 'dashboard'" class="space-y-6 animate-fade-in">
         <!-- KPIs Globaux -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Kpi
-            :value="globalKpis.total"
-            label="Total Étudiants"
-            :icon="UsersIcon"
-            color="indigo"
-          />
-          <Kpi
-            :value="globalKpis.placed"
-            label="Étudiants Placés"
-            :icon="CheckCircleIcon"
-            color="green"
-          />
-          <Kpi
-            :value="globalKpis.rate + '%'"
-            label="Taux de Placement"
-            :icon="ChartBarIcon"
-            color="purple"
-          />
-          <Kpi
-            :value="globalKpis.pending"
-            label="Conventions à Valider"
-            :icon="ClockIcon"
-            color="yellow"
-          />
+          <Kpi :value="globalKpis.total" label="Total Étudiants" :icon="UsersIcon" color="indigo" />
+          <Kpi :value="globalKpis.placed" label="Étudiants Placés" :icon="CheckCircleIcon" color="green" />
+          <Kpi :value="globalKpis.rate + '%'" label="Taux de Placement" :icon="ChartBarIcon" color="purple" />
+          <Kpi :value="globalKpis.pending" label="Conventions à Valider" :icon="ClockIcon" color="yellow" />
         </div>
 
         <!-- Section: Dernières actualités sur les conventions -->
-        <Card
-          title="Demandes de conventions en attente de traitement"
-          subtitle="Dossiers récemment déposés nécessitant votre approbation ou relecture."
-          :icon="BellIcon"
-          color="amber"
-        >
+        <Card title="Demandes de conventions en attente de traitement"
+          subtitle="Dossiers récemment déposés nécessitant votre approbation ou relecture." :icon="BellIcon"
+          color="amber">
           <div class="space-y-3">
             <div v-if="pendingConventions.length > 0" class="divide-y divide-slate-100 dark:divide-slate-700/50">
-              <div
-                v-for="c in pendingConventions"
-                :key="c.id"
-                class="flex flex-wrap justify-between items-center py-3 gap-3 first:pt-0 last:pb-0"
-              >
+              <div v-for="c in pendingConventions" :key="c.id"
+                class="flex flex-wrap justify-between items-center py-3 gap-3 first:pt-0 last:pb-0">
                 <div class="flex items-start gap-3 min-w-0">
-                  <div class="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <div
+                    class="w-8 h-8 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
                     <DocumentIcon class="w-4 h-4" />
                   </div>
                   <div class="min-w-0">
@@ -761,14 +721,12 @@ const confirmDeletePeriod = async (p) => {
                       {{ c.studentName }}
                     </span>
                     <span class="text-[10px] text-slate-400 block mt-0.5">
-                      {{ c.company }} — Période : <strong class="text-slate-600 dark:text-slate-300">{{ periods.find(p => p.id === c.periodId)?.name || 'Inconnue' }}</strong>
+                      {{ c.company }} — Période : <strong class="text-slate-600 dark:text-slate-300">{{ getPeriodName(c.periodId) }}</strong>
                     </span>
                   </div>
                 </div>
-                <button
-                  @click="enterPeriod({ id: c.periodId })"
-                  class="py-1.5 px-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-[10px] transition-all flex items-center gap-1 cursor-pointer border-0 shadow-sm"
-                >
+                <button @click="enterPeriod({ id: c.periodId })"
+                  class="py-1.5 px-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl text-[10px] transition-all flex items-center gap-1 cursor-pointer border-0 shadow-sm">
                   <span>Instruire la demande</span>
                   <ArrowRightIcon class="w-2.5 h-2.5" />
                 </button>
@@ -781,37 +739,53 @@ const confirmDeletePeriod = async (p) => {
         </Card>
 
         <!-- Liste des Périodes -->
-        <PeriodsTab
-          :periods="periods"
-          @create="openCreatePeriodDialog"
-          @edit="openEditPeriodDialog"
-          @delete="confirmDeletePeriod"
-          @select="enterPeriod"
-        />
+        <PeriodsTab :periods="periods" @create="openCreatePeriodDialog" @edit="openEditPeriodDialog"
+          @delete="confirmDeletePeriod" @select="enterPeriod" />
       </div>
 
       <!-- VUE DÉTAILLÉE PAR PÉRIODE (viewMode === 'period') -->
       <div v-else class="space-y-6">
+
+        <!-- Active Period Dropdown Switcher (Always Visible for quick context switcher) -->
+        <div
+          class="bg-white dark:bg-slate-800 p-4 border border-slate-100 dark:border-slate-700/60 rounded-3xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div
+              class="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-950 flex items-center justify-center text-violet-600 shrink-0">
+              <FunnelIcon class="w-4 h-4" />
+            </div>
+            <div class="flex-1 sm:flex-initial">
+              <label class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Filtrer par Période
+                Académique</label>
+              <div class="flex items-center gap-3">
+                <!-- Quick switch dropdown -->
+                <Select v-slot:default v-model="selectedPeriodId" :options="periods" optionLabel="name" optionValue="id"
+                  placeholder="Changer de période"
+                  class="w-64 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl" />
+              </div>
+            </div>
+          </div>
+
+          <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono italic">
+            Sujets & indicateurs synchronisés sur la période sélectionnée.
+          </div>
+        </div>
+
         <!-- Tabs for Period Features -->
-        <div class="bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex gap-1 w-full md:w-auto self-start border border-slate-200/20 dark:border-slate-700/50">
-          <button
-            @click="activeTab = 'students'"
-            :class="['px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer flex-1 md:flex-initial', activeTab === 'students' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 bg-transparent']"
-          >
+        <div
+          class="bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex gap-1 w-full md:w-auto self-start border border-slate-200/20 dark:border-slate-700/50">
+          <button @click="activeTab = 'students'"
+            :class="['px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer flex-1 md:flex-initial', activeTab === 'students' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 bg-transparent']">
             <UsersIcon class="w-3.5 h-3.5" />
             <span>Étudiants & Suivis</span>
           </button>
-          <button
-            @click="activeTab = 'info'"
-            :class="['px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer flex-1 md:flex-initial', activeTab === 'info' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 bg-transparent']"
-          >
+          <button @click="activeTab = 'info'"
+            :class="['px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer flex-1 md:flex-initial', activeTab === 'info' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 bg-transparent']">
             <Cog6ToothIcon class="w-3.5 h-3.5" />
             <span>Informations & Config</span>
           </button>
-          <button
-            @click="activeTab = 'stats'"
-            :class="['px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer flex-1 md:flex-initial', activeTab === 'stats' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 bg-transparent']"
-          >
+          <button @click="activeTab = 'stats'"
+            :class="['px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center gap-2 border-0 cursor-pointer flex-1 md:flex-initial', activeTab === 'stats' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 bg-transparent']">
             <ChartBarIcon class="w-3.5 h-3.5" />
             <span>Analyses & Stats</span>
           </button>
@@ -819,43 +793,21 @@ const confirmDeletePeriod = async (p) => {
 
         <!-- Content rendering based on Active Tab -->
         <div>
-          <StudentsTab
-            v-if="activeTab === 'students'"
-            class="animate-fade-in"
-            :periods="periods"
-            v-model:selectedPeriodId="selectedPeriodId"
-            :period-students="periodStudents"
-            :kpis="kpis"
-            :teachers="teachers"
-            :active-period-name="activePeriodName"
-            @update-student="handleUpdateStudent"
-          />
+          <StudentsTab v-if="activeTab === 'students'" class="animate-fade-in" :periods="periods"
+            v-model:selectedPeriodId="selectedPeriodId" :period-students="periodStudents" :kpis="kpis"
+            :teachers="teachers" :active-period-name="activePeriodName" @update-student="handleUpdateStudent" />
 
-          <PeriodInfoTab
-            v-if="activeTab === 'info'"
-            class="animate-fade-in"
-            :period="periods.find(p => p.id === selectedPeriodId) || {}"
-            @edit="openEditPeriodDialog"
-          />
+          <PeriodInfoTab v-if="activeTab === 'info'" class="animate-fade-in"
+            :period="periods.find(p => p.id === selectedPeriodId) || {}" @edit="openEditPeriodDialog" />
 
-          <StatsTab
-            v-if="activeTab === 'stats'"
-            class="animate-fade-in"
-            :kpis="kpis"
-            :active-period-name="activePeriodName"
-          />
+          <StatsTab v-if="activeTab === 'stats'" class="animate-fade-in" :kpis="kpis"
+            :active-period-name="activePeriodName" />
         </div>
       </div>
     </div>
 
     <!-- Period Form Dialog -->
-    <PeriodFormDialog
-      v-model:visible="showCreatePeriodDialog"
-      :period="editingPeriod"
-      :db-annee-univs="dbAnneeUnivs"
-      :db-semestres="dbSemestres"
-      :teachers="teachers"
-      @save="savePeriod"
-    />
+    <PeriodFormDialog v-model:visible="showCreatePeriodDialog" :period="editingPeriod" :db-annee-univs="dbAnneeUnivs"
+      :db-semestres="dbSemestres" :teachers="teachers" @save="savePeriod" />
   </div>
 </template>

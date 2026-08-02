@@ -28,6 +28,7 @@ import { registerWidgetComponent, resolveWidgetComponent, widgetRegistry } from 
 import HeaderComponent from './Header.vue'
 import Kpi from './Kpi.vue'
 import Card from './components/Card.vue'
+import EmptyState from './components/EmptyState.vue'
 import QuickActionCard from './components/QuickActionCard.vue'
 import ActionButtonVertical from './components/ActionButtonVertical.vue'
 import UserCard from "./components/User/UserCard.vue";
@@ -93,6 +94,7 @@ export {
 
   Kpi,
   Card,
+  EmptyState,
   QuickActionCard,
   ActionButtonVertical
 };

@@ -185,7 +185,7 @@ const profileItems = ref([
           localStorage.removeItem('token');
           localStorage.removeItem('selectedAnneeUniv');
           document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-          window.location.replace('http://localhost:3000/?logout=true');
+          window.location.replace(`${window.location.origin}/?logout=true`);
         }
       }
     ]

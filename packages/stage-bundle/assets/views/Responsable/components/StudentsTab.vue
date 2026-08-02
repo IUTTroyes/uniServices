@@ -568,32 +568,10 @@ const finalizeSignature = (student) => {
 
 <template>
   <div class="space-y-4">
-    <!-- Active Period Dropdown Switcher (Always Visible for quick context switcher) -->
-    <div
-      class="bg-white dark:bg-slate-800 p-4 border border-slate-100 dark:border-slate-700/60 rounded-3xl shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div class="flex items-center gap-3 w-full sm:w-auto">
-        <div
-          class="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-950 flex items-center justify-center text-violet-600 shrink-0">
-          <FunnelIcon class="w-4 h-4" />
-        </div>
-        <div class="flex-1 sm:flex-initial">
-          <label class="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">Filtrer par Période Académique</label>
-          <select v-model="localSelectedPeriodId"
-            class="p-1.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-950 text-xs font-bold text-slate-800 dark:text-slate-200 min-w-[240px] max-w-full focus:outline-none">
-            <option v-for="p in periods" :key="p.id" :value="p.id">{{ p.name }}</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="text-[10px] text-slate-400 dark:text-slate-500 font-mono italic">
-        Sujets & indicateurs synchronisés sur la période sélectionnée.
-      </div>
-    </div>
-
     <!-- Dynamic KPIs for the selected Period -->
     <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
       <!-- KPI 1: Effectif Total -->
-       <Kpi 
+       <Kpi
         :value="kpis.total"
         label="Effectif Total"
         :icon="UserGroupIcon"
@@ -609,13 +587,13 @@ const finalizeSignature = (student) => {
         />
 
       <!-- KPI 3: Placement Rate -->
-       <Kpi 
+       <Kpi
        :value="kpis.placed"
        label="Etudiant placés"
        :icon="UserGroupIcon"
        color="orange"
        />
-     
+
       <!-- KPI 4: Pending Conventions -->
       <Kpi
         :value="kpis.pending"
@@ -868,12 +846,12 @@ const finalizeSignature = (student) => {
             </span>
             <div v-else>
               <!-- Toggle input authorization for student without stage -->
-              <button 
+              <button
                 @click="toggleInputAuthorization(slotProps.data)"
                 :class="[
                   'px-2 py-0.5 rounded text-[9px] font-bold transition-all duration-200 flex items-center gap-1 cursor-pointer select-none border shadow-sm',
-                  slotProps.data.inputAuthorized 
-                    ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-250 dark:border-emerald-900/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/20' 
+                  slotProps.data.inputAuthorized
+                    ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-250 dark:border-emerald-900/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/20'
                     : 'bg-slate-50 dark:bg-slate-900/40 text-slate-550 dark:text-slate-450 border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800'
                 ]"
               >
@@ -980,7 +958,7 @@ const finalizeSignature = (student) => {
               <i class="pi pi-file-edit"></i>
               <span>Relecture et modification des données (Responsable)</span>
             </h4>
-            <span :class="['px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider', 
+            <span :class="['px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider',
               selectedRequest.conventionStatus === 'Validée' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' :
               selectedRequest.conventionStatus === 'Rejetée' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' :
               'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
@@ -1041,7 +1019,7 @@ const finalizeSignature = (student) => {
                   <label class="font-bold text-slate-500 dark:text-slate-400">Téléphone standard entreprise</label>
                   <input v-model="editForm.companyPhone" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
                 </div>
-                
+
                 <!-- Adresse de l'entreprise -->
                 <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3 bg-white dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
                   <div class="flex flex-col gap-1 md:col-span-3">
@@ -1107,7 +1085,7 @@ const finalizeSignature = (student) => {
                 <i class="pi pi-user-edit text-xs"></i>
                 <span>4. Maître de Stage (Tuteur entreprise)</span>
               </h5>
-              
+
               <!-- Checkbox tuteurSameAsSignatory -->
               <label class="flex items-center gap-3 cursor-pointer select-none group w-fit">
                 <div class="relative">
@@ -1219,16 +1197,16 @@ const finalizeSignature = (student) => {
             <p class="text-xs text-slate-500 dark:text-slate-400 mt-2 max-w-md mx-auto leading-relaxed">
               Cet étudiant ({{ selectedRequest.studentName }}) n'a pas encore déclaré d'entreprise ni saisi ses informations de convention.
             </p>
-            
+
             <div class="mt-6 flex flex-col sm:flex-row justify-center items-center gap-4">
               <div class="flex items-center gap-3">
                 <span class="text-xs font-bold text-slate-600 dark:text-slate-400">Droit de saisie étudiant :</span>
-                <button 
+                <button
                   @click="toggleInputAuthorization(selectedRequest)"
                   :class="[
                     'px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border shadow-sm cursor-pointer',
-                    selectedRequest.inputAuthorized 
-                      ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/40 hover:bg-emerald-100' 
+                    selectedRequest.inputAuthorized
+                      ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/40 hover:bg-emerald-100'
                       : 'bg-slate-100 text-slate-650 dark:bg-slate-700/50 dark:text-slate-400 border-slate-200 dark:border-slate-600 hover:bg-slate-200'
                   ]"
                 >
@@ -1274,7 +1252,7 @@ const finalizeSignature = (student) => {
               <button @click="showReviewDialog = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition-all cursor-pointer">
                 Annuler
               </button>
-              
+
               <!-- Rejection input context -->
               <div class="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-3">
                 <input v-model="rejectReason" type="text" placeholder="Motif de rejet..." class="p-2 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none w-[140px]" />

@@ -40,5 +40,11 @@
         "description": "Plateforme de correction des travaux et des examens.",
         "urlSlug": "correcto",
         "url": "/correcto"
+    },
+    {
+        "name": "Documents",
+        "description": "Plateforme de gestion des documents.",
+        "urlSlug": "documents",
+        "url": "/documents"
     }
 ]

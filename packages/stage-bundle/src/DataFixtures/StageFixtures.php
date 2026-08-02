@@ -32,192 +32,169 @@ class StageFixtures extends Fixture implements OrderedFixtureInterface, FixtureG
 
     public function load(ObjectManager $manager): void
     {
-        // 1. Get AnneeUniversitaire and Semestre
-        $anneeUniv = $manager->getRepository(StructureAnneeUniversitaire::class)->findOneBy(['libelle' => '2025-2026']);
-        if (!$anneeUniv) {
-            $anneeUniv = $manager->getRepository(StructureAnneeUniversitaire::class)->findOneBy([]);
-        }
+        // 1. Get or create StructureAnneeUniversitaire records
+        $anneeUnivRepo = $manager->getRepository(StructureAnneeUniversitaire::class);
         
-        $semestre = $manager->getRepository(StructureSemestre::class)->findOneBy(['libelle' => 'S5']);
-        if (!$semestre) {
-            $semestre = $manager->getRepository(StructureSemestre::class)->findOneBy([]);
+        $anneeUniv2324 = $anneeUnivRepo->findOneBy(['libelle' => '2023-2024']);
+        if (!$anneeUniv2324) {
+            $anneeUniv2324 = new StructureAnneeUniversitaire();
+            $anneeUniv2324->setLibelle('2023-2024')->setAnnee(2023);
+            $manager->persist($anneeUniv2324);
         }
 
-        // 2. Get some Personnel (teachers/tutors/responsibles)
-        $personnels = $manager->getRepository(Personnel::class)->findBy([], null, 10);
-        $resp = $personnels[0] ?? null;
+        $anneeUniv2425 = $anneeUnivRepo->findOneBy(['libelle' => '2024-2025']);
+        if (!$anneeUniv2425) {
+            $anneeUniv2425 = new StructureAnneeUniversitaire();
+            $anneeUniv2425->setLibelle('2024-2025')->setAnnee(2024);
+            $manager->persist($anneeUniv2425);
+        }
 
-        // 3. Create StagePeriode
-        $periode = new StagePeriode();
-        $periode->setLibelle('BUT 3 Informatique')
-            ->setAnneeUniversitaire($anneeUniv)
-            ->setSemestreProgramme($semestre)
+        $anneeUniv2526 = $anneeUnivRepo->findOneBy(['libelle' => '2025-2026']);
+        if (!$anneeUniv2526) {
+            $anneeUniv2526 = new StructureAnneeUniversitaire();
+            $anneeUniv2526->setLibelle('2025-2026')->setAnnee(2025);
+            $manager->persist($anneeUniv2526);
+        }
+
+        // 2. Get or create StructureSemestre records (S1..S6)
+        $semestreRepo = $manager->getRepository(StructureSemestre::class);
+        $s1 = $semestreRepo->findOneBy(['libelle' => 'S1']);
+        $s2 = $semestreRepo->findOneBy(['libelle' => 'S2']);
+        $s3 = $semestreRepo->findOneBy(['libelle' => 'S3']);
+        $s4 = $semestreRepo->findOneBy(['libelle' => 'S4']);
+        $s5 = $semestreRepo->findOneBy(['libelle' => 'S5']);
+        $s6 = $semestreRepo->findOneBy(['libelle' => 'S6']);
+
+        // 3. Get Personnel (responsibles)
+        $personnels = $manager->getRepository(Personnel::class)->findBy([], null, 10);
+        $resp1 = $personnels[0] ?? null;
+        $resp2 = $personnels[1] ?? $resp1;
+
+        // 4. Get Etudiant records & assign test student to S5 (BUT 3)
+        $students = $manager->getRepository(Etudiant::class)->findBy([], null, 10);
+        $mainStudent = $students[0] ?? null;
+        if ($mainStudent && $s5) {
+            $mainStudent->setSemestreActuel($s5);
+            $manager->persist($mainStudent);
+        }
+
+        // --- BUT 1 : PAS DE PÉRIODE DE STAGE (0 période) ---
+        // (On n'instancie aucune StagePeriode rattachée à 2023-2024 ou S1/S2)
+
+        // --- BUT 2 : 1 PÉRIODE TERMINÉE AVEC UN STAGE VALIDÉ ---
+        $periodeBUT2 = new StagePeriode();
+        $periodeBUT2->setLibelle('BUT 2 - Stage technique & applicatif (8 semaines)')
+            ->setAnneeUniversitaire($anneeUniv2425)
+            ->setSemestreProgramme($s4)
+            ->setNbSemaines(8)
+            ->setNbJours(40)
+            ->setDateDebut(new \DateTime('2025-05-02'))
+            ->setDateFin(new \DateTime('2025-06-27'))
+            ->setResponsablePrincipal($resp2)
+            ->setDescription('Ce stage technique vise à valider des compétences de développement logiciel, d\'intégration ou d\'administration systèmes.')
+            ->setCommentaireLibre('Ce stage technique vise à valider des compétences de développement logiciel, d\'intégration ou d\'administration systèmes dans un contexte professionnel. Il donne lieu à un rapport écrit technique approfondi.')
+            ->setCompetencesVisees('Développement d\'applications Web/Mobile, modélisation de base de données, rédaction de tests unitaires et d\'APIs.')
+            ->setModalitesEvaluationPedagogique('Mémoire écrit approfondi (15-25 pages) et soutenance orale de 20 min devant jury.')
+            ->setModalitesEvaluationEntreprise('Évaluation détaillée du niveau technique, de l\'autonomie et des livrables produits.')
+            ->setModalitesEncadrement('Visite sur site ou visioconférence de suivi technique avec le tuteur académique.')
+            ->setDocumentsRendre('Rapport technique (PDF), attestation de fin de stage et fiche d\'évaluation.')
+            ->setConsignesFichiers([
+                ['name' => 'Fiche de liaison - BUT 2 (Document Type)', 'format' => 'PDF', 'size' => '150 Ko', 'date' => '15/03/2025'],
+                ['name' => 'Consignes administratives BUT 2', 'format' => 'PDF', 'size' => '480 Ko', 'date' => '01/03/2025']
+            ])
+        ;
+        if (isset($personnels[2])) {
+            $periodeBUT2->getCoResponsables()->add($personnels[2]);
+        }
+        $manager->persist($periodeBUT2);
+
+        // Stage terminé pour l'étudiant principal en BUT2
+        if ($mainStudent) {
+            $tuteur2 = new Contact();
+            $tuteur2->setCivilite('M')
+                ->setPrenom('Marc')
+                ->setNom('Vasseur')
+                ->setEmail('m.vasseur@techsolutions.fr')
+                ->setTelephone('03 25 88 99 00')
+                ->setFonction('Chef de projet Backend')
+            ;
+            $manager->persist($tuteur2);
+
+            $entreprise2 = new Entreprise();
+            $entreprise2->setRaisonSociale('TechSolutions SAS')
+                ->setSiret('98765432100023')
+                ->setResponsable($tuteur2)
+            ;
+            $entreprise2->setAdresse(Adresse::fromArray([
+                'adresse' => '45 Avenue de la Gare',
+                'complement1' => '',
+                'complement2' => '',
+                'ville' => 'Nogent-sur-Seine',
+                'codePostal' => '10400',
+                'pays' => 'France'
+            ]));
+            $manager->persist($entreprise2);
+
+            $stageBUT2 = new StageEtudiant();
+            $stageBUT2->setStagePeriode($periodeBUT2)
+                ->setEtudiant($mainStudent)
+                ->setEtatStage(EtatStageEnum::VALIDE)
+                ->setEntreprise($entreprise2)
+                ->setTuteur($tuteur2)
+                ->setSujetStage('Développement d\'une API REST sous Symfony et refonte du panel administrateur.')
+                ->setActivites('Création d\'endpoints API Platform, migration d\'interfaces et rédaction des tests unitaires.')
+                ->setDateDebutStage(new \DateTime('2025-05-02'))
+                ->setDateFinStage(new \DateTime('2025-06-27'))
+                ->setGratification(true)
+                ->setGratificationMontant(4.35)
+                ->setDureeHebdomadaire(35.0)
+                ->setDureeJoursStage(40)
+                ->setTuteurUniversitaire($resp2)
+                ->setReportUploaded(true)
+                ->setReportName('Rapport_BUT2_Symfony_Martin.pdf')
+                ->setEvaluationNote(17.0)
+                ->setEvaluationCommentaire('Excellent travail d\'intégration et très bon rapport technique.')
+            ;
+            $manager->persist($stageBUT2);
+        }
+
+        // --- BUT 3 : 1 PÉRIODE EN ATTENTE (SAISIE AUTORISÉE, DEMANDE NON ENCORE COMPLÉTÉE) ---
+        $periodeBUT3 = new StagePeriode();
+        $periodeBUT3->setLibelle('BUT 3 - Stage de fin d\'études principal (16 semaines)')
+            ->setAnneeUniversitaire($anneeUniv2526)
+            ->setSemestreProgramme($s6)
             ->setNbSemaines(16)
             ->setNbJours(80)
             ->setDateDebut(new \DateTime('2026-03-02'))
             ->setDateFin(new \DateTime('2026-06-26'))
-            ->setResponsablePrincipal($resp)
-            ->setCommentaireLibre('Période de stage principale pour les BUT3 Informatique.')
+            ->setResponsablePrincipal($resp1)
+            ->setDescription('Stage de fin d\'études (BUT3) visant à mettre en œuvre l\'ensemble de vos compétences en situation professionnelle complexe et d\'assurer votre transition vers le marché du travail.')
+            ->setCommentaireLibre('Stage de fin d\'études (BUT3). Ce stage doit vous permettre de mettre en œuvre l\'ensemble de vos compétences en situation professionnelle complexe et d\'assurer votre transition vers le marché de l\'emploi ou les études supérieures.')
+            ->setCompetencesVisees('Architecture logicielle avancée, gestion globale de projets IT, démarche qualité et méthodologies Agiles.')
+            ->setModalitesEvaluationPedagogique('Mémoire de fin d\'études professionnel (30-40 pages) et soutenance orale finale devant jury d\'experts.')
+            ->setModalitesEvaluationEntreprise('Bilan complet des réalisations professionnelles et de l\'intégration dans les équipes.')
+            ->setModalitesEncadrement('Suivi régulier mensuel et visite physique du tuteur IUT dans l\'entreprise.')
+            ->setDocumentsRendre('Mémoire de fin d\'études (PDF), poster de synthèse et fiche d\'évaluation finale.')
+            ->setConsignesFichiers([
+                ['name' => 'Fiche de liaison & Pré-formulaire - BUT 3 (Document Type)', 'format' => 'PDF', 'size' => '185 Ko', 'date' => '05/01/2026'],
+                ['name' => 'Consignes de stage & Calendrier BUT 3', 'format' => 'PDF', 'size' => '1.2 Mo', 'date' => '05/01/2026'],
+                ['name' => 'Guide de rédaction du mémoire de stage', 'format' => 'PDF', 'size' => '920 Ko', 'date' => '10/01/2026']
+            ])
         ;
-        
-        // Add co-responsables if available
+        // Saisie autorisée pour S5 et S6 !
+        if ($s5) {
+            $periodeBUT3->addSemestresSaisie($s5);
+        }
+        if ($s6) {
+            $periodeBUT3->addSemestresSaisie($s6);
+        }
         if (isset($personnels[1])) {
-            $periode->getCoResponsables()->add($personnels[1]);
+            $periodeBUT3->getCoResponsables()->add($personnels[1]);
         }
-        if (isset($personnels[2])) {
-            $periode->getCoResponsables()->add($personnels[2]);
-        }
+        $manager->persist($periodeBUT3);
 
-        $manager->persist($periode);
-
-        // 4. Create some StageEtudiant records with different convention statuses
-        $students = $manager->getRepository(Etudiant::class)->findBy([], null, 12);
-        
-        $states = [
-            EtatStageEnum::DEPOSE,
-            EtatStageEnum::CONVENTION_RECUE,
-            EtatStageEnum::CONVENTION_ENVOYEE,
-            EtatStageEnum::VALIDE,
-            EtatStageEnum::DEPOSE,
-            EtatStageEnum::VALIDE,
-            EtatStageEnum::CONVENTION_RECUE,
-            EtatStageEnum::CONVENTION_RECUE,
-            EtatStageEnum::CONVENTION_ENVOYEE
-        ];
-
-        $companies = [
-            'Capgemini France',
-            'Sopra Steria',
-            'Avenir Digital',
-            'Innovatech Corp',
-            'EDF France',
-            'StartUp Web',
-            'IBM France',
-            'Michelin SAS',
-            'Renault Group'
-        ];
-
-        $sirets = [
-            '12345678900012',
-            '98765432100023',
-            '55220011332244',
-            '88877766600055',
-            '77766655500099',
-            '44433322200088',
-            '11122233300044',
-            '99988877700066',
-            '33344455500077'
-        ];
-
-        $subjects = [
-            'Développement Full-Stack Angular & NestJS pour le secteur bancaire.',
-            'Mise en place de pipelines CI/CD sous GitLab CI et administration Docker.',
-            'Migration micro-frontend et mise en place d\'un dashboard analytique sous Vue.js 3.',
-            'Intégration d\'API tiers et développement de modules back-end.',
-            'Création d\'un portail d\'administration de serveurs de fichiers.',
-            'Création de maquettes et développement front-end React.',
-            'Ingénierie DevOps, conteneurisation Kubernetes et automatisation Ansible.',
-            'Refonte d\'un intranet industriel et migration AngularJS vers Vue 3.',
-            'Modélisation de données et conception d\'applications de logistique.'
-        ];
-
-        foreach ($students as $index => $etudiant) {
-            if ($index >= count($states)) {
-                break;
-            }
-
-            // Create Contact / Tuteur in company
-            $tuteur = new Contact();
-            $tuteur->setCivilite('M')
-                ->setPrenom('Jean-Marc')
-                ->setNom('Lecerf')
-                ->setEmail('jm.lecerf@company.com')
-                ->setTelephone('06 99 88 77 66')
-                ->setFonction('Chef de projet')
-            ;
-            $manager->persist($tuteur);
-
-            // Create Entreprise
-            $entreprise = new Entreprise();
-            $entreprise->setRaisonSociale($companies[$index])
-                ->setSiret($sirets[$index])
-                ->setResponsable($tuteur)
-            ;
-            
-            // Set Address using Adresse ValueObject
-            $adresse = Adresse::fromArray([
-                'adresse' => '15 Rue de la Paix',
-                'complement1' => '',
-                'complement2' => '',
-                'ville' => 'Paris',
-                'codePostal' => '75002',
-                'pays' => 'France'
-            ]);
-            $entreprise->setAdresse($adresse);
-            $manager->persist($entreprise);
-
-            // Create StageEtudiant
-            $stage = new StageEtudiant();
-            $stage->setStagePeriode($periode)
-                ->setEtudiant($etudiant)
-                ->setEtatStage($states[$index])
-                ->setEntreprise($entreprise)
-                ->setTuteur($tuteur)
-                ->setSujetStage($subjects[$index])
-                ->setActivites('Conception de la base de données, développement d\'API REST, écriture des tests unitaires.')
-                ->setDateDebutStage(new \DateTime('2026-03-02'))
-                ->setDateFinStage(new \DateTime('2026-06-26'))
-                ->setGratification(true)
-                ->setGratificationMontant(4.80)
-                ->setDureeHebdomadaire(35.0)
-                ->setDureeJoursStage(80)
-                ->setTuteurUniversitaire($personnels[$index % count($personnels)] ?? null)
-                ->setAssuranceCompagnie('MAIF')
-                ->setAssuranceNumero('9876543-A')
-                ->setDateDepotFormulaire(new \DateTime())
-            ;
-
-            // Pre-populate mock follow-ups, reports and grades for testing
-            $followups = [];
-            if ($index % 2 === 0) {
-                $followups[] = [
-                    'id' => 1,
-                    'date' => '15/03/2026',
-                    'type' => 'Appel Téléphonique',
-                    'summary' => 'Premier contact, l\'étudiant s\'intègre bien. Missions validées.'
-                ];
-                if ($index % 3 === 2) {
-                    $followups[] = [
-                        'id' => 2,
-                        'date' => '20/04/2026',
-                        'type' => 'Visite Entreprise',
-                        'summary' => 'Rencontre avec le maître de stage. Le projet avance. L\'étudiant est autonome.'
-                    ];
-                }
-            } else {
-                $followups[] = [
-                    'id' => 1,
-                    'date' => '18/03/2026',
-                    'type' => 'Visioconférence',
-                    'summary' => 'Point sur l\'installation. Quelques soucis d\'accès au VPN résolus.'
-                ];
-            }
-            $stage->setSuiviRencontres($followups);
-
-            if ($index % 3 === 0) {
-                $stage->setReportUploaded(true);
-                $stage->setReportName('Rapport_Final_BUT3_' . $etudiant->getNom() . '.pdf');
-            } elseif ($index % 3 === 2) {
-                $stage->setReportUploaded(true);
-                $stage->setReportName('Rapport_Final_BUT3_' . $etudiant->getNom() . '.pdf');
-                $stage->setEvaluationNote(15.5);
-                $stage->setEvaluationCommentaire('Très bon portfolio et travail sérieux durant ce stage.');
-            } else {
-                $stage->setReportUploaded(false);
-            }
-            
-            $manager->persist($stage);
-        }
+        // L'étudiant principal n'a PAS ENCORE créé sa demande de convention pour BUT3 (ou demande en attente),
+        // ce qui produira l'état "Demande non complétée - Saisie autorisée".
 
         $manager->flush();
     }

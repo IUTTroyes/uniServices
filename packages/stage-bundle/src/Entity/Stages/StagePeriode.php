@@ -87,6 +87,10 @@ class StagePeriode
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     #[Groups(['stage_periode:read'])]
+    private ?string $description = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['stage_periode:read'])]
     private ?string $commentaireLibre = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -299,6 +303,18 @@ class StagePeriode
     public function setDatesFlexibles(bool $datesFlexibles): static
     {
         $this->datesFlexibles = $datesFlexibles;
+
+        return $this;
+    }
+
+    public function getDescription(): ?string
+    {
+        return $this->description;
+    }
+
+    public function setDescription(?string $description): static
+    {
+        $this->description = $description;
 
         return $this;
     }

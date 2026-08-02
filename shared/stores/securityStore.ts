@@ -52,7 +52,7 @@ export const useSecurity = defineStore('security', () => {
 
     const normalizedName = packageName === 'intranet' ? 'core' : packageName;
 
-    if (normalizedName === 'core' || normalizedName === 'auth') {
+    if (normalizedName === 'core' || normalizedName === 'auth' || normalizedName === 'documents' || normalizedName === 'document') {
       return true;
     }
     if (!isLoaded.value) return false;

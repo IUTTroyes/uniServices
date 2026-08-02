@@ -1,10 +1,11 @@
 <script setup>
-import { computed, onMounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed } from 'vue';
 import { useUsersStore } from '@stores';
+import ResponsableDashboardView from './Responsable/ResponsableDashboardView.vue';
+import EnseignantDashboardView from './Enseignant/EnseignantDashboardView.vue';
+import EtudiantDashboardView from './Etudiant/EtudiantDashboardView.vue';
 
 const userStore = useUsersStore();
-const router = useRouter();
 
 // Retrieve computed properties from store
 const isEtudiant = computed(() => userStore.isEtudiant);
@@ -46,52 +47,55 @@ const selectRole = (roleKey) => {
   window.location.reload();
 };
 
-const navigateTo = (routeName) => {
-  router.push({ name: routeName });
-};
+const showSimulator = ref(false);
 </script>
 
 <template>
-  <div class="space-y-6">
-
-    <!-- Welcome Header -->
-    <div
-      class="bg-gradient-to-r from-violet-600 to-indigo-700 rounded-3xl p-8 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-      <div>
-        <span class="bg-white/20 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
-          Portail Stages & Alternances
-        </span>
-        <h1 class="text-3xl font-extrabold mt-3 tracking-tight">
-          Bonjour, {{ userStore.user?.prenom || 'Utilisateur' }} !
-        </h1>
-        <p class="text-indigo-100 mt-2 text-sm max-w-xl">
-          Bienvenue sur l'application de gestion des stages et de l'alternance de l'IUT de Troyes. Accédez à vos outils
-          selon votre profil.
-        </p>
+  <div class="relative min-h-screen">
+    <!-- Render the active dashboard based on rights -->
+    <ResponsableDashboardView v-if="isCoordinator || isSuperAdmin" />
+    <EnseignantDashboardView v-else-if="isPersonnel" />
+    <EtudiantDashboardView v-else-if="isEtudiant" />
+    <div v-else class="p-8 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-150 dark:border-slate-800">
+      <div class="w-16 h-16 bg-red-50 dark:bg-red-950/20 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="pi pi-exclamation-triangle text-2xl"></i>
       </div>
+      <h3 class="text-lg font-bold text-slate-850 dark:text-white">Accès non autorisé</h3>
+      <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
+        Votre profil ne dispose pas des droits nécessaires pour accéder à l'application de gestion des stages.
+      </p>
+    </div>
 
-      <!-- Quick Role Selector Box (for demonstration/testing) -->
-      <div class="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 w-full md:w-auto min-w-[280px]">
-        <div class="flex items-center justify-between gap-4 mb-2">
-          <span class="text-xs font-medium text-indigo-200">Simulation de rôle (Démo)</span>
-          <span class="bg-violet-400/30 text-white text-[10px] px-2 py-0.5 rounded font-mono font-bold">{{
-            currentSimulatedRoleLabel }}</span>
+    <!-- Floating Role Simulator Widget (for demonstration/testing) -->
+    <div class="fixed bottom-6 right-6 z-[9999]">
+      <button
+        @click="showSimulator = !showSimulator"
+        class="w-12 h-12 rounded-full bg-violet-600 hover:bg-violet-700 text-white shadow-xl hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center border-0 cursor-pointer"
+        title="Simulateur de Rôle (Démo)"
+      >
+        <i class="pi pi-cog text-xl"></i>
+      </button>
+
+      <div v-if="showSimulator" class="absolute bottom-16 right-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-2xl w-72 space-y-3 animate-fade-in">
+        <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-2">
+          <span class="text-xs font-bold text-slate-850 dark:text-slate-200">Simulation de rôle</span>
+          <span class="bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 text-[10px] px-2 py-0.5 rounded font-mono font-bold">{{ currentSimulatedRoleLabel }}</span>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="grid grid-cols-1 gap-2">
           <button v-for="r in roles" :key="r.role" @click="selectRole(r.role)" :class="[
-            'p-2 rounded-lg flex items-center gap-2 border text-left transition-all duration-200',
+            'p-2.5 rounded-xl flex items-center gap-3 border text-left text-xs transition-all duration-200 cursor-pointer',
             userStore.temporaryRole === r.role
-              ? 'bg-white text-slate-900 border-white font-semibold shadow-md'
-              : 'bg-white/5 border-white/10 hover:bg-white/10 text-white'
+              ? 'bg-violet-50 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 border-violet-250 dark:border-violet-850 font-semibold shadow-sm'
+              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/55 text-slate-700 dark:text-slate-350'
           ]">
-            <i :class="[r.icon, userStore.temporaryRole === r.role ? 'text-violet-600' : 'text-white/70']"></i>
-            <span class="truncate">{{ r.label.split(' ')[0] }}</span>
+            <span :class="['w-2.5 h-2.5 rounded-full', r.color]"></span>
+            <span class="flex-1 truncate">{{ r.label }}</span>
           </button>
           <button @click="selectRole('REAL')" :class="[
-            'p-2 col-span-2 rounded-lg flex items-center justify-center gap-2 border transition-all duration-200',
+            'p-2.5 rounded-xl flex items-center justify-center gap-2 border text-xs font-semibold transition-all duration-200 cursor-pointer mt-1',
             !userStore.temporaryRole
-              ? 'bg-white text-slate-900 border-white font-semibold'
-              : 'bg-white/5 border-white/10 hover:bg-white/10 text-white'
+              ? 'bg-slate-50 dark:bg-slate-700 text-slate-400 border-slate-200 dark:border-slate-600'
+              : 'bg-rose-50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30 hover:bg-rose-100 text-rose-600 dark:text-rose-455'
           ]">
             <i class="pi pi-refresh"></i>
             <span>Rétablir mon rôle réel</span>
@@ -99,134 +103,6 @@ const navigateTo = (routeName) => {
         </div>
       </div>
     </div>
-
-    <!-- Active Portals Selection Cards -->
-    <div class="space-y-4">
-      <h2 class="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-        <i class="pi pi-compass text-violet-600"></i>
-        <span>Accéder à vos espaces</span>
-      </h2>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-        <!-- Student Card -->
-        <div v-if="isEtudiant"
-          class="group bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm hover:shadow-lg hover:border-violet-300 dark:hover:border-violet-500/30 transition-all duration-300 flex flex-col justify-between">
-          <div>
-            <div
-              class="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-300">
-              <i class="pi pi-user text-xl"></i>
-            </div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mt-4">Espace Étudiant</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              Déposez vos demandes de convention de stage, suivez les validations et déposez vos rapports.
-            </p>
-          </div>
-          <button @click="navigateTo('ConventionRequest')"
-            class="mt-6 w-full py-2.5 px-4 rounded-xl bg-slate-50 dark:bg-slate-700/40 hover:bg-violet-600 dark:hover:bg-violet-600 hover:text-white text-slate-700 dark:text-slate-300 font-semibold text-xs transition-all flex items-center justify-center gap-2">
-            <span>Ouvrir mon espace</span>
-            <i class="pi pi-arrow-right text-[10px]"></i>
-          </button>
-        </div>
-
-        <!-- Teacher/Tutor Card -->
-        <div v-if="isPersonnel"
-          class="group bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm hover:shadow-lg hover:border-violet-300 dark:hover:border-violet-500/30 transition-all duration-300 flex flex-col justify-between">
-          <div>
-            <div
-              class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-300">
-              <i class="pi pi-users text-xl"></i>
-            </div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mt-4">Espace Tuteur / Enseignant</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              Consultez vos étudiants en stage, complétez vos fiches de suivi et téléchargez les rapports.
-            </p>
-          </div>
-          <button @click="navigateTo('EnseignantDashboard')"
-            class="mt-6 w-full py-2.5 px-4 rounded-xl bg-slate-50 dark:bg-slate-700/40 hover:bg-violet-600 dark:hover:bg-violet-600 hover:text-white text-slate-700 dark:text-slate-300 font-semibold text-xs transition-all flex items-center justify-center gap-2">
-            <span>Ouvrir mon espace</span>
-            <i class="pi pi-arrow-right text-[10px]"></i>
-          </button>
-        </div>
-
-        <!-- Coordinator Card -->
-        <div v-if="isPersonnel"
-          class="group bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm hover:shadow-lg hover:border-violet-300 dark:hover:border-violet-500/30 transition-all duration-300 flex flex-col justify-between">
-          <div>
-            <div
-              class="w-12 h-12 rounded-2xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center text-violet-600 dark:text-violet-400 group-hover:scale-110 transition-transform duration-300">
-              <i class="pi pi-shield text-xl"></i>
-            </div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mt-4">Espace Responsable</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              Créez les périodes universitaires, pilotez le workflow des conventions et suivez l'avancement général.
-            </p>
-          </div>
-          <button @click="navigateTo('ResponsableDashboard')"
-            class="mt-6 w-full py-2.5 px-4 rounded-xl bg-slate-50 dark:bg-slate-700/40 hover:bg-violet-600 dark:hover:bg-violet-600 hover:text-white text-slate-700 dark:text-slate-300 font-semibold text-xs transition-all flex items-center justify-center gap-2">
-            <span>Ouvrir mon espace</span>
-            <i class="pi pi-arrow-right text-[10px]"></i>
-          </button>
-        </div>
-
-        <!-- Super Admin Card -->
-        <div v-if="isSuperAdmin"
-          class="group bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm hover:shadow-lg hover:border-violet-300 dark:hover:border-violet-500/30 transition-all duration-300 flex flex-col justify-between">
-          <div>
-            <div
-              class="w-12 h-12 rounded-2xl bg-rose-50 dark:bg-rose-500/10 flex items-center justify-center text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform duration-300">
-              <i class="pi pi-cog text-xl"></i>
-            </div>
-            <h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 mt-4">Modèles de Convention</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400 mt-2">
-              Éditez le modèle de convention de stage dynamique utilisé pour générer les documents PDF.
-            </p>
-          </div>
-          <button @click="navigateTo('TemplateEditor')"
-            class="mt-6 w-full py-2.5 px-4 rounded-xl bg-slate-50 dark:bg-slate-700/40 hover:bg-violet-600 dark:hover:bg-violet-600 hover:text-white text-slate-700 dark:text-slate-300 font-semibold text-xs transition-all flex items-center justify-center gap-2">
-            <span>Ouvrir mon espace</span>
-            <i class="pi pi-arrow-right text-[10px]"></i>
-          </button>
-        </div>
-
-      </div>
-    </div>
-
-    <!-- Quick Info Section / Helpdesk integration suggestion -->
-    <div class="bg-slate-50 dark:bg-slate-800/40 rounded-3xl p-6 border border-slate-100 dark:border-slate-700/30">
-      <div class="flex items-start gap-4">
-        <div
-          class="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center text-violet-600 shrink-0">
-          <i class="pi pi-info-circle text-lg"></i>
-        </div>
-        <div>
-          <h4 class="text-sm font-bold text-slate-900 dark:text-slate-100">Besoin d'aide ?</h4>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-            Pour toute question concernant le processus de validation de votre convention de stage ou alternance,
-            veuillez contacter le secrétariat de votre département. Pour les soucis techniques, créez un ticket sur
-            l'application <a href="/helpdesk" class="text-violet-600 hover:underline font-semibold">Helpdesk</a>.
-          </p>
-        </div>
-      </div>
-    </div>
-
   </div>
 </template>
 
-<style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.4s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>
