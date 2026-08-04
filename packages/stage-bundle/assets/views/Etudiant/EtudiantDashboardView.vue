@@ -9,6 +9,7 @@ import BlocHelp from '@components/components/BlocHelp.vue';
 
 // Import Services for real API platform requests
 import { getStagePeriodesService, getStageEtudiantsService } from '@/requests/stage_service';
+import { fetchStageOfferDocuments } from '@/requests/stage_documents';
 import { useUsersStore } from '@stores';
 
 // Import Heroicons for KPIs and UI icons
@@ -90,6 +91,7 @@ const fetchDashboardData = async () => {
   try {
     const apiPeriods = await getStagePeriodesService({}, false);
     const apiStages = await getStageEtudiantsService({}, false);
+    const gedOffers = await fetchStageOfferDocuments();
 
     const history = {
       BUT1: { yearLabel: 'BUT 1 - Année Universitaire 2023-2024', periods: [] },
@@ -147,7 +149,7 @@ const fetchDashboardData = async () => {
           documentsRendre: p.documentsRendre,
           inputAuthorized: inputAuth,
           documents: p.consignesFichiers || [],
-          offers: [], // L'entité API Offres de stage n'est pas encore créée en backend
+          offers: gedOffers || [],
           hasStage: !!matchedStage,
           stage: matchedStage ? {
             company: matchedStage.entreprise?.raisonSociale || matchedStage.entrepriseNom || 'Entreprise d\'accueil',
@@ -911,14 +913,27 @@ const openOfferModal = (offer) => {
                     </div>
 
                     <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                      <span class="text-[10px] text-slate-400 font-semibold">Gratification: {{ offer.gratification }}</span>
-                      <button
-                        @click="openOfferModal(offer)"
-                        class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] rounded-lg shadow transition-all flex items-center gap-1"
-                      >
-                        <EyeIcon class="w-3.5 h-3.5" />
-                        <span>Détails</span>
-                      </button>
+                      <span class="text-[10px] text-slate-400 font-semibold flex items-center gap-1">
+                        <i class="pi pi-file-pdf text-red-500"></i>
+                        <span>{{ offer.size || 'PDF' }}</span>
+                      </span>
+                      <div class="flex items-center gap-2">
+                        <button
+                          @click="downloadDoc(offer.title)"
+                          class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[11px] rounded-lg transition-all flex items-center gap-1 border border-slate-200 dark:border-slate-700"
+                          title="Télécharger l'offre"
+                        >
+                          <i class="pi pi-download text-[10px]"></i>
+                          <span>Télécharger</span>
+                        </button>
+                        <button
+                          @click="openOfferModal(offer)"
+                          class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] rounded-lg shadow transition-all flex items-center gap-1"
+                        >
+                          <EyeIcon class="w-3.5 h-3.5" />
+                          <span>Détails</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

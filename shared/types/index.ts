@@ -6,6 +6,9 @@ export interface Category {
   documentCount: number;
   icon: string;
   color: string;
+  packageKey?: string;
+  isSystem?: boolean;
+  departementId?: string;
 }
 
 export interface Document {
@@ -20,6 +23,7 @@ export interface Document {
   author: string;
   version: string;
   tags: string[];
+  departementId?: string;
 }
 
 export type DocumentType = 'pdf' | 'excel' | 'word' | 'powerpoint' | 'image' | 'video' | 'audio' | 'text' | 'archive';
