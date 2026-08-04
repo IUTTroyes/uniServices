@@ -28,36 +28,44 @@ class DocumentFixtures extends Fixture implements OrderedFixtureInterface, Fixtu
                 'libelle' => 'Ressources Humaines',
                 'icon' => '👥',
                 'color' => 'bg-blue-500',
+                'packageKey' => 'intranet',
+                'isSystem' => true,
                 'children' => [
-                    ['libelle' => 'Contrats', 'icon' => '📋', 'color' => 'bg-blue-400'],
-                    ['libelle' => 'Formations', 'icon' => '🎓', 'color' => 'bg-blue-400'],
+                    ['libelle' => 'Contrats', 'icon' => '📋', 'color' => 'bg-blue-400', 'packageKey' => 'intranet', 'isSystem' => true],
+                    ['libelle' => 'Formations', 'icon' => '🎓', 'color' => 'bg-blue-400', 'packageKey' => 'intranet', 'isSystem' => true],
                 ],
             ],
             [
                 'libelle' => 'Finance & Comptabilité',
                 'icon' => '💰',
                 'color' => 'bg-green-500',
+                'packageKey' => 'intranet',
+                'isSystem' => true,
                 'children' => [
-                    ['libelle' => 'Budgets Prévisionnels', 'icon' => '📈', 'color' => 'bg-green-400'],
-                    ['libelle' => 'Factures & Remboursements', 'icon' => '📊', 'color' => 'bg-green-400'],
+                    ['libelle' => 'Budgets Prévisionnels', 'icon' => '📈', 'color' => 'bg-green-400', 'packageKey' => 'intranet', 'isSystem' => true],
+                    ['libelle' => 'Factures & Remboursements', 'icon' => '📊', 'color' => 'bg-green-400', 'packageKey' => 'intranet', 'isSystem' => true],
                 ],
             ],
             [
                 'libelle' => 'Technique & Documentation',
                 'icon' => '⚙️',
                 'color' => 'bg-purple-500',
+                'packageKey' => null,
+                'isSystem' => false,
                 'children' => [
-                    ['libelle' => 'Documentation API', 'icon' => '🔧', 'color' => 'bg-purple-400'],
-                    ['libelle' => 'Guides Utilisateur', 'icon' => '📖', 'color' => 'bg-purple-400'],
+                    ['libelle' => 'Documentation API', 'icon' => '🔧', 'color' => 'bg-purple-400', 'packageKey' => null, 'isSystem' => false],
+                    ['libelle' => 'Guides Utilisateur', 'icon' => '📖', 'color' => 'bg-purple-400', 'packageKey' => null, 'isSystem' => false],
                 ],
             ],
             [
                 'libelle' => 'Stages & Alternances',
                 'icon' => '💼',
                 'color' => 'bg-teal-500',
+                'packageKey' => 'stage',
+                'isSystem' => true,
                 'children' => [
-                    ['libelle' => 'Modèles de Convention', 'icon' => '📝', 'color' => 'bg-teal-400'],
-                    ['libelle' => 'Fiches d\'Offres de Stage', 'icon' => '📄', 'color' => 'bg-teal-400'],
+                    ['libelle' => 'Modèles de Convention', 'icon' => '📝', 'color' => 'bg-teal-400', 'packageKey' => 'stage', 'isSystem' => true],
+                    ['libelle' => 'Fiches d\'Offres de Stage', 'icon' => '📄', 'color' => 'bg-teal-400', 'packageKey' => 'stage', 'isSystem' => true],
                 ],
             ],
         ];
@@ -79,7 +87,9 @@ class DocumentFixtures extends Fixture implements OrderedFixtureInterface, Fixtu
             $parentCat = new DocumentCategory();
             $parentCat->setLibelle($catData['libelle'])
                 ->setIcon($catData['icon'])
-                ->setColor($catData['color']);
+                ->setColor($catData['color'])
+                ->setPackageKey($catData['packageKey'])
+                ->setIsSystem($catData['isSystem']);
 
             $manager->persist($parentCat);
             $createdCategories[] = $parentCat;
@@ -90,6 +100,8 @@ class DocumentFixtures extends Fixture implements OrderedFixtureInterface, Fixtu
                     $childCat->setLibelle($childData['libelle'])
                         ->setIcon($childData['icon'])
                         ->setColor($childData['color'])
+                        ->setPackageKey($childData['packageKey'])
+                        ->setIsSystem($childData['isSystem'])
                         ->setParent($parentCat);
 
                     $manager->persist($childCat);

@@ -6,7 +6,7 @@ const defaultHeaders = {
 };
 
 export const documentService = {
-  async fetchCategories(): Promise<Category[]> {
+  async fetchCategories(options?: { activePackages?: string[]; currentDepartmentId?: string }): Promise<Category[]> {
     try {
       const response = await api.get('/api/document_categories', { headers: defaultHeaders });
       const data = response.data;
@@ -16,9 +16,12 @@ export const documentService = {
 
       if (!Array.isArray(rawItems)) return [];
 
+      const activePackages = options?.activePackages || [];
+      const currentDeptId = options?.currentDepartmentId ? options.currentDepartmentId.toString() : undefined;
+
       const categoryMap = new Map<string, Category>();
 
-      // Step 1: Create Category objects for all items
+      // Step 1: Create Category objects for matching items
       for (const item of rawItems) {
         const id = item.id
           ? item.id.toString()
@@ -27,6 +30,27 @@ export const documentService = {
             : '';
 
         if (!id) continue;
+
+        const packageKey = item.packageKey || undefined;
+        const isSystem = !!item.isSystem;
+        let departementId: string | undefined = undefined;
+        if (item.departement) {
+          if (typeof item.departement === 'object' && item.departement.id) {
+            departementId = item.departement.id.toString();
+          } else if (typeof item.departement === 'string') {
+            departementId = item.departement.split('/').pop();
+          }
+        }
+
+        // Package filtering: If category has packageKey, package must be active
+        if (packageKey && activePackages.length > 0 && !activePackages.includes(packageKey) && !activePackages.includes('core')) {
+          continue;
+        }
+
+        // Department filtering: If category has departementId, it must match current department
+        if (departementId && currentDeptId && departementId !== currentDeptId) {
+          continue;
+        }
 
         let parentId: string | undefined = undefined;
         if (item.parent) {
@@ -43,6 +67,9 @@ export const documentService = {
           parentId,
           icon: item.icon || '📁',
           color: item.color || 'bg-blue-500',
+          packageKey,
+          isSystem,
+          departementId,
           documentCount: item.documentCount || 0,
           children: []
         });
@@ -92,6 +119,15 @@ export const documentService = {
           }
         }
 
+        let departementId: string | undefined = undefined;
+        if (item.departement) {
+          if (typeof item.departement === 'object' && item.departement.id) {
+            departementId = item.departement.id.toString();
+          } else if (typeof item.departement === 'string') {
+            departementId = item.departement.split('/').pop();
+          }
+        }
+
         return {
           id,
           title: item.titre || item.title || 'Document sans titre',
@@ -100,6 +136,7 @@ export const documentService = {
           lastModified: new Date(item.updatedAt || item.createdAt || Date.now()),
           description: item.description,
           categoryId,
+          departementId,
           isFavorite: !!item.isFavorite,
           author: item.author || 'Inconnu',
           version: item.version || 'v1.0',
@@ -143,6 +180,7 @@ export const documentService = {
     description?: string;
     type: string;
     categoryId?: string;
+    departementId?: string;
     tags?: string[];
     author?: string;
   }): Promise<Document> {
@@ -158,7 +196,8 @@ export const documentService = {
       tags: newDoc.tags || [],
       isFavorite: false,
       visibility: 'PUBLIC',
-      category: newDoc.categoryId ? `/api/document_categories/${newDoc.categoryId}` : null
+      category: newDoc.categoryId ? `/api/document_categories/${newDoc.categoryId}` : null,
+      departement: newDoc.departementId ? `/api/structure_departements/${newDoc.departementId}` : null
     }, {
       headers: { ...defaultHeaders, 'Content-Type': 'application/ld+json' }
     });
@@ -181,6 +220,7 @@ export const documentService = {
       lastModified: new Date(item.createdAt || Date.now()),
       description: item.description,
       categoryId,
+      departementId: newDoc.departementId,
       isFavorite: item.isFavorite,
       author: item.author,
       version: item.version,
@@ -190,5 +230,33 @@ export const documentService = {
 
   async deleteDocument(documentId: string): Promise<void> {
     await api.delete(`/api/documents/${documentId}`, { headers: defaultHeaders });
+  },
+
+  updateCategoryCounts(categories: Category[], documents: Document[]): void {
+    const computeCount = (cat: Category): number => {
+      const categoryIds = new Set<string>([cat.id]);
+      const collectSubIds = (subs?: Category[]) => {
+        if (!subs) return;
+        for (const sub of subs) {
+          categoryIds.add(sub.id);
+          collectSubIds(sub.children);
+        }
+      };
+      collectSubIds(cat.children);
+
+      const total = documents.filter(d => categoryIds.has(d.categoryId)).length;
+      cat.documentCount = total;
+
+      if (cat.children) {
+        for (const child of cat.children) {
+          computeCount(child);
+        }
+      }
+      return total;
+    };
+
+    for (const category of categories) {
+      computeCount(category);
+    }
   }
 };

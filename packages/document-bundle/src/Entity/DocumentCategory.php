@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Entity\Structure\StructureDepartement;
 use DocumentBundle\Repository\DocumentCategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -19,9 +20,17 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['document_category:read']]),
         new GetCollection(normalizationContext: ['groups' => ['document_category:read']]),
-        new Post(denormalizationContext: ['groups' => ['document_category:write']]),
-        new Patch(denormalizationContext: ['groups' => ['document_category:write']]),
-        new Delete(),
+        new Post(
+            denormalizationContext: ['groups' => ['document_category:write']],
+            security: "is_granted('ROLE_PERSONNEL')"
+        ),
+        new Patch(
+            denormalizationContext: ['groups' => ['document_category:write']],
+            security: "is_granted('ROLE_PERSONNEL')"
+        ),
+        new Delete(
+            security: "is_granted('ROLE_PERSONNEL')"
+        ),
     ],
     normalizationContext: ['groups' => ['document_category:read']],
     denormalizationContext: ['groups' => ['document_category:write']]
@@ -63,6 +72,19 @@ class DocumentCategory
      */
     #[ORM\OneToMany(targetEntity: Document::class, mappedBy: 'category')]
     private Collection $documents;
+
+    #[ORM\ManyToOne(targetEntity: StructureDepartement::class)]
+    #[ORM\JoinColumn(onDelete: 'CASCADE', nullable: true)]
+    #[Groups(['document_category:read', 'document_category:write'])]
+    private ?StructureDepartement $departement = null;
+
+    #[ORM\Column(length: 100, nullable: true)]
+    #[Groups(['document_category:read', 'document_category:write'])]
+    private ?string $packageKey = null;
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    #[Groups(['document_category:read', 'document_category:write'])]
+    private bool $isSystem = false;
 
     #[ORM\Column]
     #[Groups(['document_category:read'])]
@@ -164,7 +186,44 @@ class DocumentCategory
     #[Groups(['document_category:read'])]
     public function getDocumentCount(): int
     {
-        return $this->documents->count();
+        $count = $this->documents->count();
+        foreach ($this->children as $child) {
+            $count += $child->getDocumentCount();
+        }
+        return $count;
+    }
+
+    public function getDepartement(): ?StructureDepartement
+    {
+        return $this->departement;
+    }
+
+    public function setDepartement(?StructureDepartement $departement): static
+    {
+        $this->departement = $departement;
+        return $this;
+    }
+
+    public function getPackageKey(): ?string
+    {
+        return $this->packageKey;
+    }
+
+    public function setPackageKey(?string $packageKey): static
+    {
+        $this->packageKey = $packageKey;
+        return $this;
+    }
+
+    public function isSystem(): bool
+    {
+        return $this->isSystem;
+    }
+
+    public function setIsSystem(bool $isSystem): static
+    {
+        $this->isSystem = $isSystem;
+        return $this;
     }
 
     public function getCreatedAt(): \DateTimeImmutable

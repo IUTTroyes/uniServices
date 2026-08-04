@@ -106,6 +106,7 @@ import DocumentUploadModal from '@/components/Documents/DocumentUploadModal.vue'
 import DocumentDetailDrawer from '@/components/Documents/DocumentDetailDrawer.vue';
 import { documentService } from '@/service/documentService';
 import { CardSkeleton, ListSkeleton } from '@components';
+import { useSecurity } from '@stores';
 import type { Category, Document, SortField, SortOrder, PaginationInfo, ViewMode } from '@types';
 
 const toast = useToast();
@@ -246,12 +247,17 @@ const paginationInfo = computed((): PaginationInfo => {
 const loadData = async () => {
   loading.value = true;
   try {
+    const security = useSecurity();
+    const activePackages = security.activePackages || [];
+    const currentDepartmentId = security.currentDepartment?.id ? String(security.currentDepartment.id) : undefined;
+
     const [fetchedCategories, fetchedDocs] = await Promise.all([
-      documentService.fetchCategories(),
+      documentService.fetchCategories({ activePackages, currentDepartmentId }),
       documentService.fetchDocuments()
     ]);
     categories.value = fetchedCategories;
     documentsList.value = fetchedDocs;
+    documentService.updateCategoryCounts(categories.value, documentsList.value);
   } catch (e) {
     console.error('Error loading documents:', e);
     toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger les documents depuis l\'API', life: 4000 });
@@ -335,6 +341,7 @@ const confirmDeleteDocument = (doc: Document) => {
       try {
         await documentService.deleteDocument(doc.id);
         documentsList.value = documentsList.value.filter(d => d.id !== doc.id);
+        documentService.updateCategoryCounts(categories.value, documentsList.value);
         if (selectedDocument.value?.id === doc.id) {
           showDetailDrawer.value = false;
           selectedDocument.value = null;
@@ -349,8 +356,14 @@ const confirmDeleteDocument = (doc: Document) => {
 
 const handleCreateDocument = async (docData: { titre: string; description?: string; type: string; categoryId?: string; tags?: string[] }) => {
   try {
-    const created = await documentService.createDocument(docData);
+    const security = useSecurity();
+    const currentDepartmentId = security.currentDepartment?.id ? String(security.currentDepartment.id) : undefined;
+    const created = await documentService.createDocument({
+      ...docData,
+      departementId: currentDepartmentId
+    });
     documentsList.value.unshift(created);
+    documentService.updateCategoryCounts(categories.value, documentsList.value);
     toast.add({ severity: 'success', summary: 'Document créé', detail: `"${created.title}" a été ajouté`, life: 3000 });
   } catch (e) {
     toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de créer le document sur l\'API', life: 3000 });

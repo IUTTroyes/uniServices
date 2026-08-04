@@ -49,6 +49,7 @@
         </button>
 
         <ButtonDelete
+          v-permission="'isPersonnel'"
           @confirm="$emit('delete', document)"
         />
       </div>

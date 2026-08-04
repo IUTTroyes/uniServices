@@ -3,6 +3,7 @@
     <!-- Action Header -->
     <div class="p-4 border-b border-gray-200 space-y-3">
       <button
+        v-permission="'isPersonnel'"
         @click="$emit('openUploadModal')"
         class="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center space-x-2 text-sm"
       >

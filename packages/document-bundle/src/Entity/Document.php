@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Entity\Structure\StructureDepartement;
 use DocumentBundle\Repository\DocumentRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -19,9 +20,17 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['document:read']]),
         new GetCollection(normalizationContext: ['groups' => ['document:read']]),
-        new Post(denormalizationContext: ['groups' => ['document:write']]),
-        new Patch(denormalizationContext: ['groups' => ['document:write']]),
-        new Delete(),
+        new Post(
+            denormalizationContext: ['groups' => ['document:write']],
+            security: "is_granted('ROLE_PERSONNEL')"
+        ),
+        new Patch(
+            denormalizationContext: ['groups' => ['document:write']],
+            security: "is_granted('ROLE_PERSONNEL')"
+        ),
+        new Delete(
+            security: "is_granted('ROLE_PERSONNEL')"
+        ),
     ],
     normalizationContext: ['groups' => ['document:read']],
     denormalizationContext: ['groups' => ['document:write']]
@@ -82,6 +91,11 @@ class Document
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['document:read', 'document:write'])]
     private ?DocumentCategory $category = null;
+
+    #[ORM\ManyToOne(targetEntity: StructureDepartement::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    #[Groups(['document:read', 'document:write'])]
+    private ?StructureDepartement $departement = null;
 
     #[ORM\Column]
     #[Groups(['document:read'])]
@@ -237,6 +251,17 @@ class Document
     public function setCategory(?DocumentCategory $category): static
     {
         $this->category = $category;
+        return $this;
+    }
+
+    public function getDepartement(): ?StructureDepartement
+    {
+        return $this->departement;
+    }
+
+    public function setDepartement(?StructureDepartement $departement): static
+    {
+        $this->departement = $departement;
         return $this;
     }
 

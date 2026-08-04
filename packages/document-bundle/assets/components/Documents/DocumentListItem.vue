@@ -22,6 +22,7 @@
               📥
             </button>
             <button
+              v-permission="'isPersonnel'"
               @click.stop="$emit('deleteDocument', document)"
               class="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-500 hover:text-red-600 hover:bg-gray-100 rounded"
               title="Supprimer"
