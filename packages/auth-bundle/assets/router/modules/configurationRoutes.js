@@ -158,5 +158,56 @@ export default [
         route: null
       }]
     }
+  },
+  {
+    path: 'scheduler',
+    component: () => import('../../views/configuration/scheduler/ListSchedulerTasks.vue'),
+    name: 'scheduler-list',
+    meta: {
+      permission: 'isSuperAdmin',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Planificateur',
+        route: null
+      }]
+    },
+  },
+  {
+    path: 'scheduler/new',
+    component: () => import('../../views/configuration/scheduler/EditSchedulerTask.vue'),
+    name: 'scheduler-new',
+    meta: {
+      permission: 'isSuperAdmin',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Planificateur',
+        route: '/auth/configuration/scheduler'
+      }, {
+        label: 'Nouveau',
+        route: null
+      }]
+    },
+  },
+  {
+    path: 'scheduler/:id/edit',
+    component: () => import('../../views/configuration/scheduler/EditSchedulerTask.vue'),
+    name: 'scheduler-edit',
+    meta: {
+      permission: 'isSuperAdmin',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Planificateur',
+        route: '/auth/configuration/scheduler'
+      }, {
+        label: 'Édition',
+        route: null
+      }]
+    },
   }
 ]

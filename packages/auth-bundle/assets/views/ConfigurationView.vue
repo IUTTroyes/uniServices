@@ -1,5 +1,10 @@
 <script setup>
+import { computed } from 'vue';
 import {ErrorView} from "@components";
+import { useSecurity } from "@stores";
+
+const security = useSecurity();
+const isSuperAdmin = computed(() => security.user?.roles?.includes('ROLE_SUPER_ADMIN'));
 
 const panelMenuEtablissementItems = [
   { label: 'Informations générales', icon: 'pi pi-info-circle', route: '/auth/configuration/etablissement' },
@@ -14,9 +19,15 @@ const panelMenuItems = [
   { label: 'Documentation des Composants', icon: 'pi pi-palette', route: '/auth/configuration/styleguide' }
 ]
 
-const panelMenuCommunicationItems = [
-  { label: 'Modèles de mails', icon: 'pi pi-envelope', route: '/auth/configuration/emails' },
-]
+const panelMenuCommunicationItems = computed(() => {
+  const items = [
+    { label: 'Modèles de mails', icon: 'pi pi-envelope', route: '/auth/configuration/emails' },
+  ];
+  if (isSuperAdmin.value) {
+    items.push({ label: 'Planificateur de tâches', icon: 'pi pi-calendar', route: '/auth/configuration/scheduler' });
+  }
+  return items;
+});
 
 </script>
 
