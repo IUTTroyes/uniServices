@@ -25,6 +25,8 @@ import SurveySettingsModal from '@/components/Questionnaire/SurveySettingsModal.
 import SurveyPreviewModal from '@/components/Questionnaire/SurveyPreviewModal.vue';
 import SectionConfigModal from '@/components/Questionnaire/SectionConfigModal.vue';
 import SurveyPublishModal from '@/components/Questionnaire/SurveyPublishModal.vue';
+import DuplicateSectionModal from '@/components/Questionnaire/DuplicateSectionModal.vue';
+import DuplicateQuestionModal from '@/components/Questionnaire/DuplicateQuestionModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -35,7 +37,11 @@ const showSettings = ref(false);
 const showPreview = ref(false);
 const showSectionModal = ref(false);
 const showPublishModal = ref(false);
+const showDuplicateSectionModal = ref(false);
+const showDuplicateQuestionModal = ref(false);
 const editingSection = ref<Section | null>(null);
+const duplicatingSection = ref<Section | null>(null);
+const duplicatingQuestion = ref<Question | null>(null);
 
 const questionTypes = [
   { value: 'single_choice', label: 'Choix unique', icon: 'pi pi-comment', command: () => addQuestion('single_choice') },
@@ -49,7 +55,7 @@ const questionTypes = [
 
 const actionsSection = [
   { label: 'Modifier', icon: 'pi pi-pencil', command: (section: Section) => editSection(section) },
-  { label: 'Dupliquer', icon: 'pi pi-clone', command: (section: Section) => duplicateSection(section) },
+  { label: 'Dupliquer', icon: 'pi pi-clone', command: (section: Section) => openDuplicateSectionModal(section) },
   { label: 'Supprimer', icon: 'pi pi-trash', command: (section: Section) => deleteSection(section), severity: 'danger' }
 ];
 
@@ -193,15 +199,23 @@ function editSection(section: Section) {
   showSectionModal.value = true;
 }
 
-async function duplicateSection(section: Section) {
-  // Implementation for duplicating section
-  const newSection = await surveyStore.addSection(`${section.title} (copie)`);
-  // Copy questions
-  for (const question of section.questions) {
-    const newQuestion = { ...question, uuid: undefined }; // Reset UUID for new question
-    await surveyStore.addQuestion(newSection.uuid, question.typeQuestion, newQuestion);
+function openDuplicateSectionModal(section: Section) {
+  duplicatingSection.value = section;
+  showDuplicateSectionModal.value = true;
+}
+
+async function confirmDuplicateSection(payload: { newTitle: string; duplicateQuestions: boolean; adaptConditionalRules: boolean }) {
+  if (!duplicatingSection.value) return;
+
+  try {
+    await surveyStore.duplicateSection(duplicatingSection.value.uuid, payload);
+    showDuplicateSectionModal.value = false;
+    duplicatingSection.value = null;
+    uiStore.addNotification('success', 'Section dupliquée', 'La section et sa logique conditionnelle ont été dupliquées avec succès.');
+  } catch (error) {
+    console.error('Failed to duplicate section:', error);
+    uiStore.addNotification('danger', 'Erreur de duplication', 'Une erreur est survenue lors de la duplication.');
   }
-  uiStore.addNotification('success', 'Section dupliquée', 'La section a été dupliquée avec succès.');
 }
 
 function deleteSection(section: Section) {
@@ -235,9 +249,23 @@ function deleteQuestion(question: Question) {
   surveyStore.removeQuestion(currentSection.value.uuid, question);
 }
 
-function duplicateQuestion(question: Question) {
-  if (!currentSection.value) return;
-  surveyStore.duplicateQuestion(currentSection.value.uuid, question);
+function openDuplicateQuestionModal(question: Question) {
+  duplicatingQuestion.value = question;
+  showDuplicateQuestionModal.value = true;
+}
+
+async function confirmDuplicateQuestion(payload: { newLabel: string; copyRulesMode: 'copy_adapt' | 'none' }) {
+  if (!duplicatingQuestion.value || !currentSection.value) return;
+
+  try {
+    await surveyStore.duplicateQuestion(currentSection.value.uuid, duplicatingQuestion.value, payload);
+    showDuplicateQuestionModal.value = false;
+    duplicatingQuestion.value = null;
+    uiStore.addNotification('success', 'Question dupliquée', 'La question a été dupliquée avec succès.');
+  } catch (error) {
+    console.error('Failed to duplicate question:', error);
+    uiStore.addNotification('danger', 'Erreur de duplication', 'Une erreur est survenue lors de la duplication.');
+  }
 }
 
 function onQuestionReorder(event: any) {
@@ -449,7 +477,7 @@ onMounted(async () => {
             <QuestionEditor v-for="(question, index) in currentSectionQuestions" :key="question.uuid"
               :question="question" :section-id="currentSection.uuid" :index="index" :all-questions="allQuestions"
               :all-sections="sections" @update="updateQuestion" @delete="deleteQuestion"
-              @duplicate="duplicateQuestion" />
+              @duplicate="openDuplicateQuestionModal" />
           </draggable>
         </div>
       </div>
@@ -470,7 +498,7 @@ onMounted(async () => {
     @update="updateSurveySettings" />
 
   <!-- Preview Modal -->
-  <SurveyPreviewModal v-if="showPreview" :uuid="currentSurvey.uuid" @close="showPreview = false" />
+  <SurveyPreviewModal v-if="showPreview" :uuid="currentSurvey.uuid" :sections="sections" @close="showPreview = false" />
 
   <!-- Section Configuration Modal -->
   <SectionConfigModal v-if="showSectionModal" :section="editingSection" @close="closeSectionModal"
@@ -479,4 +507,20 @@ onMounted(async () => {
   <!-- Publish Confirmation Modal -->
   <SurveyPublishModal v-if="showPublishModal" :survey="currentSurvey" @close="showPublishModal = false"
     @confirm="confirmPublish" />
+
+  <!-- Duplicate Section Modal -->
+  <DuplicateSectionModal
+    v-if="showDuplicateSectionModal && duplicatingSection"
+    :section="duplicatingSection"
+    @close="showDuplicateSectionModal = false; duplicatingSection = null"
+    @confirm="confirmDuplicateSection"
+  />
+
+  <!-- Duplicate Question Modal -->
+  <DuplicateQuestionModal
+    v-if="showDuplicateQuestionModal && duplicatingQuestion"
+    :question="duplicatingQuestion"
+    @close="showDuplicateQuestionModal = false; duplicatingQuestion = null"
+    @confirm="confirmDuplicateQuestion"
+  />
 </template>

@@ -1,16 +1,16 @@
 {% extends 'emails/layout.html.twig' %}
 
-{% block subject %}Invitation au questionnaire : {{ questionnaire.title }}{% endblock %}
+{% block subject %}Rappel : Répondre au questionnaire : {{ questionnaire.title }}{% endblock %}
 
-{% block preheader %}{{ questionnaire.title }} – Cliquez pour répondre au questionnaire.{% endblock %}
+{% block preheader %}Rappel – Plus que quelques jours pour répondre au questionnaire {{ questionnaire.title }}{% endblock %}
 
 {% block body %}
-    <h1>Vous avez reçu une invitation</h1>
+    <h1>Rappel : Votre avis nous intéresse</h1>
 
     <p>Bonjour,</p>
 
     <p>
-        Vous avez été invité(e) à répondre au questionnaire suivant :
+        Ceci est un rappel amical concernant l'enquête suivante :
     </p>
 
     <h2 style="color:#1a3a5c;">{{ questionnaire.title }}</h2>
@@ -20,12 +20,16 @@
     {% endif %}
 
     <p>
+        Vous n'avez pas encore validé votre réponse. Votre participation est importante pour nous aider à améliorer la qualité de nos formations.
+    </p>
+
+    <p>
         <a href="{{ surveyUrl }}" class="btn">Répondre au questionnaire</a>
     </p>
 
     {% if expiresAt is defined and expiresAt %}
     <div class="alert">
-        Cette invitation est valide jusqu'au <strong>{{ expiresAt|date('d/m/Y') }}</strong>.
+        Ce questionnaire ferme le <strong>{{ expiresAt|date('d/m/Y') }}</strong>.
     </div>
     {% endif %}
 

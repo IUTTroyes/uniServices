@@ -364,59 +364,95 @@ const progress = computed(() => {
   return Math.round(((currentSectionIndex.value + 1) / survey.value.sections.length) * 100);
 });
 
+function evaluateConditionValue(operator: string, value: any, dependentAnswer: any): boolean {
+  switch (operator) {
+    case 'equals':
+      return String(dependentAnswer ?? '') === String(value ?? '');
+    case 'not_equals':
+      return String(dependentAnswer ?? '') !== String(value ?? '');
+    case 'contains':
+      if (Array.isArray(dependentAnswer)) {
+        return dependentAnswer.includes(value);
+      }
+      return String(dependentAnswer || '').includes(String(value));
+    case 'not_contains':
+      if (Array.isArray(dependentAnswer)) {
+        return !dependentAnswer.includes(value);
+      }
+      return !String(dependentAnswer || '').includes(String(value));
+    case 'greater_than':
+      return Number(dependentAnswer) > Number(value);
+    case 'less_than':
+      return Number(dependentAnswer) < Number(value);
+    case 'greater_equal':
+      return Number(dependentAnswer) >= Number(value);
+    case 'less_equal':
+      return Number(dependentAnswer) <= Number(value);
+    case 'starts_with':
+      return String(dependentAnswer || '').startsWith(String(value));
+    case 'ends_with':
+      return String(dependentAnswer || '').endsWith(String(value));
+    case 'is_empty':
+      return dependentAnswer === undefined || dependentAnswer === null || dependentAnswer === '';
+    case 'is_not_empty':
+      return dependentAnswer !== undefined && dependentAnswer !== null && dependentAnswer !== '';
+    default:
+      return String(dependentAnswer ?? '') === String(value ?? '');
+  }
+}
+
+function evaluateRule(rule: any): boolean {
+  const conditions = rule.conditions && rule.conditions.length > 0
+    ? rule.conditions
+    : [{ dependsOn: rule.dependsOn, operator: rule.operator, value: rule.value }];
+
+  const op = rule.logicalOperator || 'AND';
+
+  if (op === 'OR') {
+    return conditions.some((c: any) => {
+      const dependentAnswer = answers.value[c.dependsOn];
+      return evaluateConditionValue(c.operator, c.value, dependentAnswer);
+    });
+  } else {
+    return conditions.every((c: any) => {
+      const dependentAnswer = answers.value[c.dependsOn];
+      return evaluateConditionValue(c.operator, c.value, dependentAnswer);
+    });
+  }
+}
+
 const visibleQuestions = computed(() => {
   if (!currentSection.value) return [];
 
+  // Gather all questions across all sections in the survey
+  const allSurveyQuestions = (survey.value?.sections || []).flatMap(s => s.questions || []);
+
   return currentSection.value.questions.filter(question => {
-    if (!question.conditionalRules || question.conditionalRules.length === 0) return true;
+    const qId = question.id;
 
-    // Check all conditional rules - question is visible if ANY rule passes
-    return question.conditionalRules.some(rule => {
-      const dependentAnswer = answers.value[rule.dependsOn];
-      const { operator, value, action, type } = rule;
+    // Find all rules across the survey targeting this question
+    const applicableRules: any[] = [];
 
-      let conditionMet = false;
+    allSurveyQuestions.forEach((sq: any) => {
+      if (sq.conditionalRules && Array.isArray(sq.conditionalRules)) {
+        sq.conditionalRules.forEach((r: any) => {
+          const isTargeted = (r.targetQuestionIds && Array.isArray(r.targetQuestionIds) && r.targetQuestionIds.length > 0)
+            ? r.targetQuestionIds.some((tid: any) => String(tid) === String(qId) || (question.uuid && String(tid) === String(question.uuid)))
+            : (String(r.dependsOn) !== String(qId) && (question.uuid ? String(r.dependsOn) !== String(question.uuid) : true));
 
-      switch (operator) {
-        case 'equals':
-          conditionMet = dependentAnswer === value;
-          break;
-        case 'not_equals':
-          conditionMet = dependentAnswer !== value;
-          break;
-        case 'contains':
-          conditionMet = Array.isArray(dependentAnswer) && dependentAnswer.includes(value);
-          break;
-        case 'not_contains':
-          conditionMet = Array.isArray(dependentAnswer) && !dependentAnswer.includes(value);
-          break;
-        case 'greater_than':
-          conditionMet = Number(dependentAnswer) > Number(value);
-          break;
-        case 'less_than':
-          conditionMet = Number(dependentAnswer) < Number(value);
-          break;
-        case 'greater_equal':
-          conditionMet = Number(dependentAnswer) >= Number(value);
-          break;
-        case 'less_equal':
-          conditionMet = Number(dependentAnswer) <= Number(value);
-          break;
-        case 'starts_with':
-          conditionMet = String(dependentAnswer).startsWith(String(value));
-          break;
-        case 'ends_with':
-          conditionMet = String(dependentAnswer).endsWith(String(value));
-          break;
-        case 'is_empty':
-          conditionMet = !dependentAnswer || dependentAnswer === '';
-          break;
-        case 'is_not_empty':
-          conditionMet = dependentAnswer && dependentAnswer !== '';
-          break;
-        default:
-          conditionMet = dependentAnswer === value;
+          if (isTargeted) {
+            applicableRules.push(r);
+          }
+        });
       }
+    });
+
+    if (applicableRules.length === 0) return true;
+
+    // Check applicable rules - question is visible if ANY rule passes
+    return applicableRules.some(rule => {
+      const conditionMet = evaluateRule(rule);
+      const { action, type } = rule;
 
       // Apply the action based on rule type
       if (type === 'show_hide') {
@@ -443,20 +479,7 @@ const shouldEndSurvey = computed(() => {
 
     return question.conditionalRules.some(rule => {
       if (rule.type !== 'end_survey') return false;
-
-      const dependentAnswer = answers.value[rule.dependsOn];
-      const { operator, value } = rule;
-
-      switch (operator) {
-        case 'equals':
-          return dependentAnswer === value;
-        case 'not_equals':
-          return dependentAnswer !== value;
-        case 'contains':
-          return Array.isArray(dependentAnswer) && dependentAnswer.includes(value);
-        default:
-          return false;
-      }
+      return evaluateRule(rule);
     });
   });
 });
@@ -471,21 +494,7 @@ const jumpTargetSection = computed(() => {
     for (const rule of question.conditionalRules) {
       if (rule.type !== 'jump_section') continue;
 
-      const dependentAnswer = answers.value[rule.dependsOn];
-      const { operator, value } = rule;
-
-      let conditionMet = false;
-      switch (operator) {
-        case 'equals':
-          conditionMet = dependentAnswer === value;
-          break;
-        case 'not_equals':
-          conditionMet = dependentAnswer !== value;
-          break;
-        case 'contains':
-          conditionMet = Array.isArray(dependentAnswer) && dependentAnswer.includes(value);
-          break;
-      }
+      const conditionMet = evaluateRule(rule);
 
       if (conditionMet && rule.targetSectionId) {
         const targetIndex = survey.value?.sections?.findIndex(s => s.id === rule.targetSectionId);
@@ -574,21 +583,7 @@ function validateCurrentSection(): boolean {
     if (question.conditionalRules) {
       question.conditionalRules.forEach(rule => {
         if (rule.type === 'set_required') {
-          const dependentAnswer = answers.value[rule.dependsOn];
-          let conditionMet = false;
-
-          switch (rule.operator) {
-            case 'equals':
-              conditionMet = dependentAnswer === rule.value;
-              break;
-            case 'not_equals':
-              conditionMet = dependentAnswer !== rule.value;
-              break;
-            case 'contains':
-              conditionMet = Array.isArray(dependentAnswer) && dependentAnswer.includes(rule.value);
-              break;
-          }
-
+          const conditionMet = evaluateRule(rule);
           if (conditionMet) {
             isRequired = rule.action === 'require';
           }

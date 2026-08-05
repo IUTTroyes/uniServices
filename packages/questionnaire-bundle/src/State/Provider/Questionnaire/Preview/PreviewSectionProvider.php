@@ -39,9 +39,10 @@ final readonly class PreviewSectionProvider implements ProviderInterface
             throw new \RuntimeException('Section template not found');
         }
 
+        $allQuestions = iterator_to_array($sectionTemplate->getQuestions());
         $questions = [];
         foreach ($sectionTemplate->getQuestions() as $qt) {
-            $questions[] = $this->mapper->map($qt, null); // pas de sauvegarde en preview
+            $questions[] = $this->mapper->map($qt, null, $allQuestions);
         }
 
         $title = $this->buildTitleSnapshot($sectionTemplate, $repeatType, $repeatId);

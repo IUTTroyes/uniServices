@@ -20,6 +20,21 @@ const getAllQuestionnaires = async (page = 1, filters = {}, showToast = false) =
     }
 }
 
+const duplicateQuestionnaire = async (id, newTitle = null, showToast = false) => {
+    try {
+        return await apiCall(
+          api.post,
+          [`/api/questionnaires/${id}/duplicate`, { newTitle }],
+          'Questionnaire dupliqué avec succès',
+          'Erreur lors de la duplication du questionnaire',
+          showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans duplicateQuestionnaire:', error);
+        throw error;
+    }
+}
+
 const getQuestionnaire = async (id, showToast = false) => {
     try {
         const response = await apiCall(
@@ -509,6 +524,7 @@ export {
     getQuestionnaireSections,
 
     createQuestionnaire,
+    duplicateQuestionnaire,
     deleteQuestionnaire,
     updateQuestionnaire,
 

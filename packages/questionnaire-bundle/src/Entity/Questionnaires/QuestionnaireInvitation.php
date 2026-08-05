@@ -61,6 +61,14 @@ class QuestionnaireInvitation
     #[Groups(['invitation:read'])]
     private ?\DateTimeImmutable $submittedAt = null;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['invitation:read'])]
+    private ?\DateTimeImmutable $remindedAt = null;
+
+    #[ORM\Column(options: ['default' => 0])]
+    #[Groups(['invitation:read'])]
+    private int $remindersCount = 0;
+
     /**
      * @var Collection<int, QuestionnaireAnswer>
      */
@@ -213,4 +221,32 @@ class QuestionnaireInvitation
 
     public function isSubmitted(): bool { return $this->status === QuestInvitationStatusEnum::SUBMITTED; }
 
+    public function getRemindedAt(): ?\DateTimeImmutable
+    {
+        return $this->remindedAt;
+    }
+
+    public function setRemindedAt(?\DateTimeImmutable $remindedAt): static
+    {
+        $this->remindedAt = $remindedAt;
+        return $this;
+    }
+
+    public function getRemindersCount(): int
+    {
+        return $this->remindersCount;
+    }
+
+    public function setRemindersCount(int $remindersCount): static
+    {
+        $this->remindersCount = $remindersCount;
+        return $this;
+    }
+
+    public function incrementRemindersCount(): static
+    {
+        $this->remindersCount++;
+        $this->remindedAt = new \DateTimeImmutable();
+        return $this;
+    }
 }

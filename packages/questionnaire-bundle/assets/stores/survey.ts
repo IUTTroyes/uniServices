@@ -5,6 +5,7 @@ import {v4 as uuidv4} from 'uuid';
 import {
     createQuestionInSection,
     createQuestionnaire,
+    duplicateQuestionnaire,
     createSectionQuestionnaire,
     deleteQuestionInSection,
     deleteQuestionnaire,
@@ -65,37 +66,16 @@ export const useSurveyStore = defineStore('survey', () => {
         return await createQuestionnaire(survey, true)
     }
 
-    function duplicateSurvey(surveyId: string): Survey | null {
-        const original = surveys.value.find(s => s.uuid === surveyId);
-        if (!original) return null;
+    async function duplicateSurvey(surveyId: string, newTitle?: string): Promise<Survey | null> {
+        const original = surveys.value.find(s => s.uuid === surveyId || s.id === surveyId);
+        const targetUuid = original ? (original.uuid || original.id) : surveyId;
 
-        const duplicate: Survey = {
-            ...structuredClone(original),
-            uuid: uuidv4(),
-            title: `${original.title} (Copy)`,
-            status: 'draft',
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            publishedAt: null,
-        };
-
-
-        // Generate new IDs for sections and questions
-        duplicate.sections = duplicate.sections.map(section => ({
-            ...section,
-            id: uuidv4(),
-            questions: section.questions.map(question => ({
-                ...question,
-                id: uuidv4(),
-                reponses: question.choices?.map(option => ({
-                    ...option,
-                    id: uuidv4()
-                }))
-            }))
-        }));
-        createQuestionnaire(duplicate, true) //todo: gérer les sections et questions
-        surveys.value.push(duplicate);
-        return duplicate;
+        const res = await duplicateQuestionnaire(targetUuid, newTitle, true);
+        if (res && res.uuid) {
+            await loadQuestionnaires();
+            return surveys.value.find(s => s.uuid === res.uuid) || null;
+        }
+        return null;
     }
 
     async function updateSurvey(updates: Partial<Survey>) {
@@ -151,6 +131,87 @@ export const useSurveyStore = defineStore('survey', () => {
         const newSection = await createSectionQuestionnaire(section, currentSurvey.value.uuid)
         currentSections.value.push(newSection);
         currentSection.value = newSection;
+
+        return newSection;
+    }
+
+    async function duplicateSection(
+        sectionId: string,
+        options: {
+            newTitle?: string;
+            duplicateQuestions?: boolean;
+            adaptConditionalRules?: boolean;
+        } = {}
+    ): Promise<Section> {
+        if (!currentSurvey.value) throw new Error('No current survey');
+
+        const sourceSection = currentSections.value.find(s => s.uuid === sectionId || s.id === sectionId);
+        if (!sourceSection) throw new Error('Section to duplicate not found');
+
+        const title = options.newTitle || `${sourceSection.title} (copie)`;
+        const shouldDuplicateQuestions = options.duplicateQuestions !== false;
+        const shouldAdaptRules = options.adaptConditionalRules !== false;
+
+        // 1. Create new section
+        const newSection = await addSection(
+            title,
+            sourceSection.description,
+            sourceSection.typeSection,
+            sourceSection.opt
+        );
+
+        if (!shouldDuplicateQuestions || !sourceSection.questions || sourceSection.questions.length === 0) {
+            return newSection;
+        }
+
+        // 2. Build Old UUID/ID -> New UUID map
+        const uuidMap = new Map<string, string>();
+        const preparedQuestions: { oldQ: Question; newUuid: string }[] = [];
+
+        for (const q of sourceSection.questions) {
+            const newUuid = uuidv4();
+            if (q.uuid) uuidMap.set(q.uuid, newUuid);
+            if (q.id !== null && q.id !== undefined) uuidMap.set(String(q.id), newUuid);
+            preparedQuestions.push({ oldQ: q, newUuid });
+        }
+
+        // 3. Clone questions & re-map conditional rules
+        for (const { oldQ, newUuid } of preparedQuestions) {
+            let remappedRules = oldQ.conditionalRules ? JSON.parse(JSON.stringify(oldQ.conditionalRules)) : undefined;
+
+            if (shouldAdaptRules && remappedRules && Array.isArray(remappedRules)) {
+                remappedRules = remappedRules.map((r: any) => {
+                    const newDependsOn = uuidMap.has(String(r.dependsOn))
+                        ? uuidMap.get(String(r.dependsOn))
+                        : r.dependsOn;
+
+                    const newTargetIds = r.targetQuestionIds && Array.isArray(r.targetQuestionIds)
+                        ? r.targetQuestionIds.map((tid: any) => uuidMap.has(String(tid)) ? uuidMap.get(String(tid)) : tid)
+                        : r.targetQuestionIds;
+
+                    return {
+                        ...r,
+                        dependsOn: newDependsOn,
+                        targetQuestionIds: newTargetIds
+                    };
+                });
+            }
+
+            const newQPayload: Question = {
+                id: null,
+                uuid: newUuid,
+                typeQuestion: oldQ.typeQuestion,
+                label: oldQ.label,
+                help: oldQ.help,
+                sortOrder: newSection.questions.length + 1,
+                required: oldQ.required,
+                choices: oldQ.choices ? JSON.parse(JSON.stringify(oldQ.choices)) : undefined,
+                conditionalRules: remappedRules,
+                opt: oldQ.opt ? JSON.parse(JSON.stringify(oldQ.opt)) : undefined
+            };
+
+            await addQuestion(newSection.uuid, oldQ.typeQuestion, newQPayload);
+        }
 
         return newSection;
     }
@@ -238,24 +299,43 @@ export const useSurveyStore = defineStore('survey', () => {
         return _newQuestion;
     }
 
-    async function duplicateQuestion(sectionId: string, question: Question): Promise<Question> {
+    async function duplicateQuestion(
+        sectionId: string,
+        question: Question,
+        options: {
+            newLabel?: string;
+            copyRulesMode?: 'copy_adapt' | 'none';
+        } = {}
+    ): Promise<Question> {
         if (!currentSection.value) throw new Error('Section not found');
         if (!currentSurvey.value) throw new Error('Survey not found');
 
+        const newUuid = uuidv4();
+        const copyMode = options.copyRulesMode || 'copy_adapt';
+
+        let remappedRules: any[] | undefined = undefined;
+        if (copyMode === 'copy_adapt' && question.conditionalRules && Array.isArray(question.conditionalRules)) {
+            const oldId = String(question.uuid || question.id);
+            remappedRules = JSON.parse(JSON.stringify(question.conditionalRules)).map((r: any) => ({
+                ...r,
+                dependsOn: String(r.dependsOn) === oldId ? newUuid : r.dependsOn
+            }));
+        }
+
         const _newQuestion: Question = {
             id: null,
-            uuid: uuidv4(),
+            uuid: newUuid,
             typeQuestion: question.typeQuestion,
-            label: question.label + ' (Copie)',
+            label: options.newLabel || `${question.label} (Copie)`,
             help: question.help,
             sortOrder: currentSection.value.questions.length + 1,
             required: question.required,
-            choices: question.choices,
-            conditionalRules: question.conditionalRules,
-            //opt: question.opt
+            choices: question.choices ? JSON.parse(JSON.stringify(question.choices)) : undefined,
+            conditionalRules: remappedRules,
+            opt: question.opt ? JSON.parse(JSON.stringify(question.opt)) : undefined
         };
 
-        const newQuestion = await createQuestionInSection(sectionId, _newQuestion, true)
+        const newQuestion = await createQuestionInSection(sectionId, _newQuestion, true);
         currentSection.value.questions.push(newQuestion);
 
         return newQuestion;
@@ -373,6 +453,7 @@ console.log(questionId)
 
         // Section actions
         addSection,
+        duplicateSection,
         updateSection,
         deleteSection,
         reorderSections,

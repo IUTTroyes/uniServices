@@ -10,21 +10,55 @@ import {
   ExclamationCircleIcon,
   ChatBubbleLeftRightIcon,
   ChartBarIcon,
+  DocumentDuplicateIcon,
   ArrowDownTrayIcon,
   EyeIcon,
   CalendarIcon
 } from '@heroicons/vue/24/outline';
 import { getAllQuestionnaires } from '@/requests/questionnaire_services/questionnaireService.js';
+import { useSurveyStore } from '@/stores/survey';
 import { useResponseStore } from '@/stores/responses';
 import { useUIStore } from '@/stores/ui';
 import SurveyPreviewModal from '@/components/Questionnaire/SurveyPreviewModal.vue';
+import DuplicateSurveyModal from '@/components/Questionnaire/DuplicateSurveyModal.vue';
 import { formatDate } from '@/utils/date';
 import { HeaderComponent, Kpi, Card } from '@components';
 import ActionButtonVertical from '@components/components/ActionButtonVertical.vue';
 
 const router = useRouter();
+const surveyStore = useSurveyStore();
 const responseStore = useResponseStore();
 const uiStore = useUIStore();
+
+const showDuplicateModal = ref(false);
+const selectedSurveyToDuplicate = ref<any>(null);
+
+function openDuplicateModal(survey: any) {
+  selectedSurveyToDuplicate.value = survey;
+  showDuplicateModal.value = true;
+}
+
+async function confirmDuplicateSurvey(payload: { newTitle: string }) {
+  if (!selectedSurveyToDuplicate.value) return;
+
+  try {
+    const duplicate = await surveyStore.duplicateSurvey(
+      selectedSurveyToDuplicate.value.uuid || selectedSurveyToDuplicate.value.id,
+      payload.newTitle
+    );
+    showDuplicateModal.value = false;
+    selectedSurveyToDuplicate.value = null;
+    uiStore.addNotification(
+      'success',
+      'Questionnaire dupliqué',
+      `"${duplicate?.title || payload.newTitle}" et l'ensemble de ses règles ont été dupliqués avec succès.`
+    );
+    await fetchQuestionnaires();
+  } catch (error) {
+    console.error('Failed to duplicate survey:', error);
+    uiStore.addNotification('danger', 'Erreur', 'Une erreur est survenue lors de la duplication.');
+  }
+}
 
 const statuts = [
   { label: 'Publié', value: 'published', severity: 'success' },
@@ -257,6 +291,12 @@ const exportSurvey = (survey: any) => {
                 <EyeIcon class="w-4 h-4 text-gray-600 dark:text-gray-300" />
               </Button>
 
+              <!-- Dupliquer -->
+              <Button v-tooltip="'Dupliquer le questionnaire'" @click="openDuplicateModal(data)" severity="secondary" outlined rounded
+                class="p-2 hover:bg-blue-50 dark:hover:bg-blue-950/20 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/50 rounded-lg transition-colors shrink-0">
+                <DocumentDuplicateIcon class="w-4 h-4" />
+              </Button>
+
               <!-- Modifier -->
               <router-link :to="{ name: 'questionnaire_builder', params: { id: data.uuid } }" v-tooltip="'Modifier'"
                 class="p-2 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/30 hover:bg-orange-100 dark:hover:bg-orange-900/50 border border-orange-200 dark:border-orange-900/50 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm">
@@ -298,5 +338,13 @@ const exportSurvey = (survey: any) => {
 
     <!-- Preview Modal -->
     <SurveyPreviewModal v-if="showPreviewDialog" :survey="selectedQuestionnaire" @close="showPreviewDialog = false" />
+
+    <!-- Duplicate Survey Modal -->
+    <DuplicateSurveyModal
+      v-if="showDuplicateModal && selectedSurveyToDuplicate"
+      :survey="selectedSurveyToDuplicate"
+      @close="showDuplicateModal = false; selectedSurveyToDuplicate = null"
+      @confirm="confirmDuplicateSurvey"
+    />
   </div>
 </template>

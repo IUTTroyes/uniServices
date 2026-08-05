@@ -5,33 +5,33 @@ namespace QuestionnaireBundle\Email;
 use App\Services\Email\AbstractEmailDefinition;
 
 /**
- * Définition de l'email d'invitation à répondre à un questionnaire.
+ * Définition de l'email de rappel pour répondre à un questionnaire.
  */
-final class QuestionnaireInvitationEmail extends AbstractEmailDefinition
+final class QuestionnaireReminderEmail extends AbstractEmailDefinition
 {
     public function getKey(): string
     {
-        return 'questionnaire.invitation';
+        return 'questionnaire.reminder';
     }
 
     public function getLabel(): string
     {
-        return 'Invitation à répondre à un questionnaire';
+        return 'Rappel de questionnaire en attente';
     }
 
     public function getDefaultSubject(): string
     {
-        return 'Vous avez été invité(e) à répondre au questionnaire : {{ questionnaire.title }}';
+        return 'Rappel : Répondre au questionnaire : {{ questionnaire.title }}';
     }
 
     public function getHtmlTemplatePath(): string
     {
-        return '@Questionnaire/emails/questionnaire/invitation.html.twig';
+        return '@Questionnaire/emails/questionnaire/reminder.html.twig';
     }
 
     public function getTxtTemplatePath(): ?string
     {
-        return '@Questionnaire/emails/questionnaire/invitation.txt.twig';
+        return '@Questionnaire/emails/questionnaire/reminder.txt.twig';
     }
 
     public function getAvailableVariables(): array
@@ -40,12 +40,12 @@ final class QuestionnaireInvitationEmail extends AbstractEmailDefinition
             'invitation'    => 'Objet QuestionnaireInvitation (token, email)',
             'questionnaire' => 'Objet Questionnaire (titre, description)',
             'surveyUrl'     => 'URL directe pour accéder au questionnaire',
-            'expiresAt'     => 'Date d\'expiration de l\'invitation (si définie)',
+            'expiresAt'     => 'Date de fermeture du questionnaire (si définie)',
         ];
     }
 
     public function getDescription(): string
     {
-        return 'Envoyé lorsqu\'un utilisateur est invité à répondre à un questionnaire.';
+        return 'Envoyé pour rappeler aux participants de répondre à un questionnaire.';
     }
 }

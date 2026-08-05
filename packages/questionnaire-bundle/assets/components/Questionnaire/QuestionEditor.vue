@@ -1,5 +1,5 @@
 <template>
-  <div class="card">
+  <div class="card p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all mb-4">
     <div class="flex items-start space-x-4">
       <!-- Drag Handle -->
       <div class="question-handle drag-handle mt-3">
@@ -31,6 +31,16 @@
               />
               <span class="text-sm text-gray-600 dark:text-gray-400">Obligatoire</span>
             </div>
+            <!-- Badges for Conditional Logic -->
+            <span v-if="hasConditionalRules" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
+              ⚡ Déclenche {{ conditionalRules.length }} règle(s)
+            </span>
+            <span v-if="incomingRules.length > 0" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200 border border-blue-300 dark:border-blue-700">
+              🔗 Conditionnée par {{ incomingRules.length }} question(s)
+            </span>
+            <span v-if="defaultVisibilityState" :class="['inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border', defaultVisibilityState.color]">
+              {{ defaultVisibilityState.label }}
+            </span>
           </div>
           <div class="relative">
             <ButtonDuplicate tooltip="Dupliquer la question" @confirm-duplicate="duplicateQuestion" />
@@ -251,26 +261,47 @@
 
         <!-- Conditional Logic -->
         <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div class="flex items-center justify-between">
-            <h4 class="text-sm font-medium text-gray-900 dark:text-white">Logique conditionnelle</h4>
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center space-x-2">
+              <h4 class="text-sm font-medium text-gray-900 dark:text-white">Logique conditionnelle</h4>
+            </div>
             <Button
               @click="showConditionalModal = true"
               :severity="hasConditionalRules ? 'warn' : 'secondary'"
-              :class="[
-                'text-sm'
-              ]"
+              class="text-sm"
             >
-              {{ hasConditionalRules ? 'Modifier' : 'Ajouter' }}
+              {{ hasConditionalRules ? 'Gérer les règles' : 'Ajouter une règle' }}
             </Button>
           </div>
-          <div v-if="hasConditionalRules" class="mt-3 space-y-2">
+
+          <!-- Outgoing rules (this question triggers rules) -->
+          <div v-if="hasConditionalRules" class="space-y-2 mb-3">
+            <h5 class="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+              ⚡ Règles déclenchées par cette question ({{ conditionalRules.length }})
+            </h5>
             <div
               v-for="(rule, index) in conditionalRules"
               :key="index"
-              class="p-3 bg-blue-50 dark:bg-blue-900 rounded-lg"
+              class="p-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/50 rounded-lg text-sm"
             >
-              <p class="text-sm text-blue-800 dark:text-blue-200">
+              <p class="text-amber-900 dark:text-amber-200">
                 {{ getConditionalRuleDescription(rule) }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Incoming rules (this question is controlled by another question) -->
+          <div v-if="incomingRules.length > 0" class="space-y-2">
+            <h5 class="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">
+              🔗 Conditionnée par d'autres questions ({{ incomingRules.length }})
+            </h5>
+            <div
+              v-for="(inc, index) in incomingRules"
+              :key="index"
+              class="p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/50 rounded-lg text-sm"
+            >
+              <p class="text-blue-900 dark:text-blue-200">
+                Si <span class="font-semibold">"{{ inc.sourceQuestion.label }}"</span> {{ getOperatorLabel(inc.rule.operator) }} <span class="font-semibold">"{{ inc.rule.value }}"</span>, alors {{ inc.rule.action === 'show' ? 'afficher' : 'masquer' }} cette question.
               </p>
             </div>
           </div>
@@ -282,8 +313,8 @@
     <ConditionalLogicModal
       v-if="showConditionalModal"
       :question="question"
-      :all-questions="allQuestions"
-      :all-sections="allSections"
+      :all-questions="allQuestions || []"
+      :all-sections="allSections || []"
       @close="showConditionalModal = false"
       @update="updateConditionalRules"
     />
@@ -338,6 +369,46 @@ const questionOptions = computed({
 
 const conditionalRules = computed(() => props.question.conditionalRules || []);
 const hasConditionalRules = computed(() => conditionalRules.value.length > 0);
+
+const incomingRules = computed(() => {
+  if (!props.allQuestions) return [];
+  const currentId = props.question.uuid || props.question.id;
+  const result: { sourceQuestion: Question; rule: any }[] = [];
+
+  props.allQuestions.forEach(q => {
+    if (q.conditionalRules && (q.uuid || q.id) !== currentId) {
+      q.conditionalRules.forEach(r => {
+        if (r.targetQuestionIds?.includes(currentId as string)) {
+          result.push({ sourceQuestion: q, rule: r });
+        }
+      });
+    }
+  });
+
+  return result;
+});
+
+const defaultVisibilityState = computed(() => {
+  if (incomingRules.value.length === 0) return null;
+  const hasShowRule = incomingRules.value.some(inc => inc.rule.action === 'show');
+  const hasHideRule = incomingRules.value.some(inc => inc.rule.action === 'hide');
+
+  if (hasShowRule) {
+    return {
+      type: 'show',
+      label: '👁️ Masquée au démarrage',
+      color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/60 dark:text-purple-200 border-purple-300 dark:border-purple-700'
+    };
+  }
+  if (hasHideRule) {
+    return {
+      type: 'hide',
+      label: '👁️ Visible au démarrage',
+      color: 'bg-teal-100 text-teal-800 dark:bg-teal-900/60 dark:text-teal-200 border-teal-300 dark:border-teal-700'
+    };
+  }
+  return null;
+});
 
 function updateQuestion(updates: Partial<Question>) {
   emit('update', props.question.uuid, updates);
@@ -428,8 +499,6 @@ function updateMatrixColumn(index: number, value: string) {
 
 // Other actions
 function duplicateQuestion() {
-
-  // This would be handled by the parent component
   emit('duplicate', props.question);
 }
 
@@ -438,33 +507,66 @@ function updateConditionalRules(rules: any[]) {
   showConditionalModal.value = false;
 }
 
-function getConditionalRuleDescription(rule: any): string {
-  const sourceQuestion = props.allQuestions?.find(q => q.id === rule.dependsOn);
-  if (!sourceQuestion) return 'Règle invalide';
-
+function getOperatorLabel(op: string): string {
   const operatorLabels: Record<string, string> = {
     equals: 'est égal à',
     not_equals: 'n\'est pas égal à',
     contains: 'contient',
     not_contains: 'ne contient pas',
     greater_than: 'est supérieur à',
-    less_than: 'est inférieur à'
+    less_than: 'est inférieur à',
+    greater_equal: 'est supérieur ou égal à',
+    less_equal: 'est inférieur ou égal à',
+    starts_with: 'commence par',
+    ends_with: 'se termine par',
+    is_empty: 'est vide',
+    is_not_empty: 'n\'est pas vide'
   };
+  return operatorLabels[op] || op;
+}
 
-  const operatorLabel = operatorLabels[rule.operator] || rule.operator;
-  const baseDescription = `Si "${sourceQuestion.label}" ${operatorLabel} "${rule.value}"`;
+function getTargetQuestionsNames(targetIds: string[] = []): string {
+  if (!targetIds || targetIds.length === 0) return 'les questions cibles';
+
+  const names = targetIds
+    .map(id => {
+      const q = props.allQuestions?.find(item => String(item.uuid || item.id) === String(id));
+      return q ? `"${q.label}"` : null;
+    })
+    .filter(Boolean);
+
+  if (names.length === 0) return `${targetIds.length} question(s) cible(s)`;
+  if (names.length === 1) return `la question ${names[0]}`;
+  return `les questions (${names.join(', ')})`;
+}
+
+function getConditionalRuleDescription(rule: any): string {
+  const sourceQuestion = props.allQuestions?.find(q =>
+    (q.uuid && q.uuid === rule.dependsOn) ||
+    (q.id && (q.id === rule.dependsOn || String(q.id) === String(rule.dependsOn)))
+  ) || props.question;
+
+  const operatorLabel = getOperatorLabel(rule.operator);
+  const isNoValueOp = ['is_empty', 'is_not_empty'].includes(rule.operator);
+  const baseDescription = isNoValueOp
+    ? `Si "${sourceQuestion.label}" ${operatorLabel}`
+    : `Si "${sourceQuestion.label}" ${operatorLabel} "${rule.value}"`;
 
   switch (rule.type) {
-    case 'show_hide':
+    case 'show_hide': {
       const actionLabel = rule.action === 'show' ? 'afficher' : 'masquer';
-      return `${baseDescription}, alors ${actionLabel} cette question`;
+      const targetsText = getTargetQuestionsNames(rule.targetQuestionIds);
+      return `${baseDescription}, alors ${actionLabel} ${targetsText}`;
+    }
     case 'jump_section':
       return `${baseDescription}, alors aller à une autre section`;
     case 'end_survey':
       return `${baseDescription}, alors terminer le questionnaire`;
-    case 'set_required':
+    case 'set_required': {
       const requiredAction = rule.action === 'require' ? 'rendre obligatoire' : 'rendre optionnelle';
-      return `${baseDescription}, alors ${requiredAction} cette question`;
+      const targetsText = getTargetQuestionsNames(rule.targetQuestionIds);
+      return `${baseDescription}, alors ${requiredAction} ${targetsText}`;
+    }
     default:
       return baseDescription;
   }

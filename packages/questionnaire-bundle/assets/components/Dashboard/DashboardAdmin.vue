@@ -27,6 +27,7 @@ import { useResponseStore } from '@/stores/responses';
 import { useUIStore } from '@/stores/ui';
 import { formatDate, formatRelativeTime } from '@/utils/date';
 import { Kpi, QuickActionCard } from '@components';
+import DuplicateSurveyModal from '@/components/Questionnaire/DuplicateSurveyModal.vue';
 
 const router = useRouter();
 const surveyStore = useSurveyStore();
@@ -34,6 +35,8 @@ const responseStore = useResponseStore();
 const uiStore = useUIStore();
 
 const showTemplates = ref(false);
+const showDuplicateModal = ref(false);
+const selectedSurveyToDuplicate = ref<any>(null);
 
 const templates = [
   {
@@ -156,11 +159,27 @@ function getActivityIcon(type: string) {
   return icons[type as keyof typeof icons] || DocumentTextIcon;
 }
 
-function duplicateSurvey(survey: any) {
-  const duplicate = surveyStore.duplicateSurvey(survey.uuid);
-  if (duplicate) {
-    uiStore.addNotification('success', 'Questionnaire dupliqué', 'Copie créée avec succès.');
-    router.push({ name: 'questionnaire_builder', params: { id: duplicate.uuid } });
+function openDuplicateModal(survey: any) {
+  selectedSurveyToDuplicate.value = survey;
+  showDuplicateModal.value = true;
+}
+
+async function confirmDuplicateSurvey(payload: { newTitle: string }) {
+  if (!selectedSurveyToDuplicate.value) return;
+
+  try {
+    const duplicate = await surveyStore.duplicateSurvey(
+      selectedSurveyToDuplicate.value.uuid,
+      payload.newTitle
+    );
+    showDuplicateModal.value = false;
+    selectedSurveyToDuplicate.value = null;
+    if (duplicate) {
+      uiStore.addNotification('success', 'Questionnaire dupliqué', `"${duplicate.title}" et l'ensemble de ses règles ont été dupliqués.`);
+    }
+  } catch (error) {
+    console.error('Failed to duplicate survey:', error);
+    uiStore.addNotification('danger', 'Erreur', 'Une erreur est survenue lors de la duplication.');
   }
 }
 
@@ -310,7 +329,7 @@ function getSurveyStats(surveyUuid: string) {
                   <MenuItems class="survey-menu">
                     <MenuItem v-slot="{ active }">
                       <button 
-                        @click="duplicateSurvey(survey)"
+                        @click="openDuplicateModal(survey)"
                         :class="[active ? 'bg-gray-100 dark:bg-gray-700' : '', 'menu-item w-full']"
                       >
                         <DocumentDuplicateIcon class="w-4 h-4" />
@@ -462,6 +481,14 @@ function getSurveyStats(surveyUuid: string) {
         </div>
       </div>
     </div>
+
+    <!-- Duplicate Survey Modal -->
+    <DuplicateSurveyModal
+      v-if="showDuplicateModal && selectedSurveyToDuplicate"
+      :survey="selectedSurveyToDuplicate"
+      @close="showDuplicateModal = false; selectedSurveyToDuplicate = null"
+      @confirm="confirmDuplicateSurvey"
+    />
   </div>
 </template>
 

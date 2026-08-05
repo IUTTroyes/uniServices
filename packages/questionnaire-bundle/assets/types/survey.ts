@@ -27,10 +27,20 @@ export interface QuestionValidation {
     pattern?: string;
 }
 
-export interface ConditionalRule {
-    dependsOn: string; // question ID
-    operator: 'equals' | 'not_equals' | 'contains' | 'greater_than' | 'less_than';
+export interface RuleCondition {
+    dependsOn: string;
+    operator: string;
     value: any;
+}
+
+export interface ConditionalRule {
+    dependsOn?: string; // fallback single condition
+    operator?: string;  // fallback single condition
+    value?: any;        // fallback single condition
+
+    logicalOperator?: 'AND' | 'OR';
+    conditions?: RuleCondition[];
+
     action?: string;
     targetQuestionIds?: string[];
     targetSectionId?: string;

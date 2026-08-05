@@ -125,7 +125,7 @@
                   </MenuItem>
                   <MenuItem>
                     <button
-                      @click="duplicateSurvey(survey)"
+                      @click="openDuplicateModal(survey)"
                       class="menu-item w-full"
                     >
                       <DocumentDuplicateIcon class="w-4 h-4" />
@@ -172,12 +172,19 @@
         </button>
       </div>
     </div>
-
   </div>
+
+  <!-- DuplicateSurveyModal has its own Teleport to body -->
+  <DuplicateSurveyModal
+    v-if="showDuplicateModal && selectedSurveyToDuplicate"
+    :survey="selectedSurveyToDuplicate"
+    @close="showDuplicateModal = false; selectedSurveyToDuplicate = null"
+    @confirm="confirmDuplicateSurvey"
+  />
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import {
   XMarkIcon,
   HomeIcon,
@@ -195,24 +202,45 @@ import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 import { useSurveyStore } from '@/stores/survey';
 import { useUIStore } from '@/stores/ui';
 import type { Survey } from '@/types/survey';
+import DuplicateSurveyModal from '@/components/Questionnaire/DuplicateSurveyModal.vue';
 
 const surveyStore = useSurveyStore();
 const uiStore = useUIStore();
 
+const showDuplicateModal = ref(false);
+const selectedSurveyToDuplicate = ref<Survey | null>(null);
+
 const recentSurveys = computed(() =>
   surveyStore.surveys
-    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 8)
 );
 
-function duplicateSurvey(survey: Survey) {
-  const duplicate = surveyStore.duplicateSurvey(survey.id);
-  if (duplicate) {
-    uiStore.addNotification(
-      'success',
-      'Questionnaire dupliqué',
-      `"${duplicate.title}" a été créé avec succès.`
+function openDuplicateModal(survey: Survey) {
+  selectedSurveyToDuplicate.value = survey;
+  showDuplicateModal.value = true;
+}
+
+async function confirmDuplicateSurvey(payload: { newTitle: string }) {
+  if (!selectedSurveyToDuplicate.value) return;
+
+  try {
+    const duplicate = await surveyStore.duplicateSurvey(
+      selectedSurveyToDuplicate.value.uuid || selectedSurveyToDuplicate.value.id,
+      payload.newTitle
     );
+    showDuplicateModal.value = false;
+    selectedSurveyToDuplicate.value = null;
+    if (duplicate) {
+      uiStore.addNotification(
+        'success',
+        'Questionnaire dupliqué',
+        `"${duplicate.title}" et l'ensemble de ses règles conditionnelles ont été créés.`
+      );
+    }
+  } catch (error) {
+    console.error('Failed to duplicate survey:', error);
+    uiStore.addNotification('danger', 'Erreur', 'Une erreur est survenue lors de la duplication.');
   }
 }
 
