@@ -45,6 +45,6 @@
         "name": "Documents",
         "description": "Plateforme de gestion des documents.",
         "urlSlug": "documents",
-        "url": "/documents"
+        "url": "http://localhost:3000/app/documents/"
     }
 ]
