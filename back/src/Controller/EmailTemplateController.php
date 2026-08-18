@@ -39,7 +39,7 @@ class EmailTemplateController extends AbstractController
      * GET /api/email/definitions[?departement={id}]
      */
     #[Route('/definitions', name: 'definitions', methods: ['GET'])]
-    #[IsGranted('ROLE_SUPER_ADMIN')]
+    #[IsGranted('SUPER_ADMIN')]
     public function definitions(Request $request): JsonResponse
     {
         $departementId = $request->query->getInt('departement', 0);
@@ -81,7 +81,7 @@ class EmailTemplateController extends AbstractController
      * GET /api/email/templates/{key}[?departement={id}]
      */
     #[Route('/templates/{key}', name: 'template_get', methods: ['GET'], requirements: ['key' => '.+'])]
-    #[IsGranted('ROLE_SUPER_ADMIN')]
+    #[IsGranted('SUPER_ADMIN')]
     public function getTemplate(string $key, Request $request): JsonResponse
     {
         $definition = $this->registry->get($key);
@@ -130,7 +130,7 @@ class EmailTemplateController extends AbstractController
      * Body JSON : { emailKey, departement (id|null), subject, bodyHtml }
      */
     #[Route('/templates', name: 'template_save', methods: ['POST'])]
-    #[IsGranted('ROLE_SUPER_ADMIN')]
+    #[IsGranted('SUPER_ADMIN')]
     public function saveTemplate(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -185,7 +185,7 @@ class EmailTemplateController extends AbstractController
      * DELETE /api/email/templates/{id}
      */
     #[Route('/templates/{id}', name: 'template_delete', methods: ['DELETE'])]
-    #[IsGranted('ROLE_SUPER_ADMIN')]
+    #[IsGranted('SUPER_ADMIN')]
     public function deleteTemplate(int $id): JsonResponse
     {
         $template = $this->templateRepository->find($id);
@@ -205,7 +205,7 @@ class EmailTemplateController extends AbstractController
      * GET /api/email/departements
      */
     #[Route('/departements', name: 'departements', methods: ['GET'])]
-    #[IsGranted('ROLE_SUPER_ADMIN')]
+    #[IsGranted('SUPER_ADMIN')]
     public function departements(): JsonResponse
     {
         $departements = $this->departementRepository->findBy(['actif' => true], ['libelle' => 'ASC']);

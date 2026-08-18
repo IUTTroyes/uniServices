@@ -11,7 +11,7 @@ const stageMenu = {
     { label: 'Demande de Convention', icon: 'pi pi-fw pi-file-edit', to: '/stage/demande', permission: 'isEtudiant' },
     { label: 'Espace Tuteur', icon: 'pi pi-fw pi-users', to: '/stage/enseignant', permission: 'isPersonnel' },
     { label: 'Espace Responsable', icon: 'pi pi-fw pi-shield', to: '/stage/responsable', permission: 'ROLE_STAGE_MANAGER' },
-    { label: 'Modèles de Convention', icon: 'pi pi-fw pi-cog', to: '/stage/admin/templates', permission: 'ROLE_SUPER_ADMIN' },
+    { label: 'Modèles de Convention', icon: 'pi pi-fw pi-cog', to: '/stage/admin/templates', permission: 'SUPER_ADMIN' },
   ]
 };
 

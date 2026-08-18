@@ -53,6 +53,10 @@ class EdtVoter extends Voter
         self::CAN_DELETE_EDT_PROGRESSION,
     ];
 
+    public function __construct(
+        private readonly UserEffectivePermissionService $effectivePermissionService
+    ) {}
+
     /**
      * @inheritDoc
      */
@@ -74,7 +78,7 @@ class EdtVoter extends Voter
             return false;
         }
 
-        // ROLE_SUPER_ADMIN a accès à tout
+        // SUPER_ADMIN a accès à tout
         if ($this->isSuperAdmin($user)) {
             return true;
         }
@@ -108,17 +112,12 @@ class EdtVoter extends Voter
 
     private function isSuperAdmin(Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && in_array('ROLE_SUPER_ADMIN', $user->getRoles());
+        return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
     private function hasAnyRole(Personnel $user, array $roles): bool
     {
-        foreach ($roles as $role) {
-            if (in_array($role, $user->getRoles())) {
-                return true;
-            }
-        }
-        return false;
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
     }
 
     // ========== EdtEvent ==========
@@ -137,7 +136,7 @@ class EdtVoter extends Voter
 
         // Rôles avec accès complet à l'EDT
         if ($this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_EDT',
@@ -157,7 +156,7 @@ class EdtVoter extends Voter
     private function canDeleteEdt(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_EDT'
@@ -175,7 +174,7 @@ class EdtVoter extends Voter
     private function canEditContraintes(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_EDT',
@@ -186,7 +185,7 @@ class EdtVoter extends Voter
     private function canDeleteContraintes(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_EDT'
         ]);
@@ -202,7 +201,7 @@ class EdtVoter extends Voter
     private function canEditCreneaux(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_EDT'
@@ -212,7 +211,7 @@ class EdtVoter extends Voter
     private function canDeleteCreneaux(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_EDT'
         ]);
@@ -225,7 +224,7 @@ class EdtVoter extends Voter
         if ($user instanceof Personnel) {
             // Rôles avec accès complet
             if ($this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_CHEF_DEPT',
                 'ROLE_DIRECTEUR_ETUDES',
@@ -246,7 +245,7 @@ class EdtVoter extends Voter
 
         // Rôles avec accès complet
         if ($this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_DIRECTEUR_ETUDES',
@@ -261,7 +260,7 @@ class EdtVoter extends Voter
     private function canDeleteProgression(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
         ]);

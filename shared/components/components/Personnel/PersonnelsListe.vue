@@ -113,96 +113,98 @@ const editAccessPersonnel = (personnel) => {
 </script>
 
 <template>
-  <DataTable
-      :value="personnels"
-      v-model:filters="filters"
-      lazy
-      scrollHeight="800px"
-      scrollable
-      stripedRows
-      paginator
-      :first="offset"
-      :rows="limit"
-      :rowsPerPageOptions="rowOptions"
-      :totalRecords="nbPersonnels"
-      dataKey="id" filterDisplay="row" :loading="isLoading"
-      @page="onPageChange($event)"
-      @update:rows="limit = $event"
-      :globalFilterFields="['nom', 'prenom']">
-    <template #empty> No customers found.</template>
-    <template #isLoading> Loading customers data. Please wait.</template>
-    <Column field="photo" :showFilterMenu="false" header="" style="min-width: 6rem">
-      <template #body="{ data }">
-        <PhotoUser :user-photo="data.photoName" class="rounded-full !w-14 h-auto border-4 border-gray-300 border-opacity-60 mx-auto"/>
-      </template>
-    </Column>
-    <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 6rem" sortable>
-      <template #body="{ data }">
-        {{ data.nom }}
-      </template>
-      <template #filter="{ filterModel, filterCallback }">
-        <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom"/>
-      </template>
-    </Column>
-    <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 6rem" sortable>
-      <template #body="{ data }">
-        {{ data.prenom }}
-      </template>
-      <template #filter="{ filterModel, filterCallback }">
-        <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
-      </template>
-    </Column>
-    <Column field="statut" header="Statut" :showFilterMenu="false" style="min-width: 6rem" sortable>
-      <template #body="{ data }">
-        <Tag :value="data.statut" :severity="data.statutSeverity"/>
-      </template>
-      <template #filter="{ filterModel, filterCallback }">
-        <Select v-model="filterModel.value" @change="filterCallback()" :options="statuts"
-                placeholder="Filtrer"
-                style="min-width: 6rem"
-                :showClear="true">
-          <template #value="slotProps">
-            <div v-if="slotProps.value" class="flex items-center">
-              <Tag :value="slotProps.value.label" :severity="slotProps.value.severity"/>
-            </div>
-            <span v-else>
+  <div class="card card-body">
+    <DataTable
+        :value="personnels"
+        v-model:filters="filters"
+        lazy
+        scrollHeight="800px"
+        scrollable
+        stripedRows
+        paginator
+        :first="offset"
+        :rows="limit"
+        :rowsPerPageOptions="rowOptions"
+        :totalRecords="nbPersonnels"
+        dataKey="id" filterDisplay="row" :loading="isLoading"
+        @page="onPageChange($event)"
+        @update:rows="limit = $event"
+        :globalFilterFields="['nom', 'prenom']">
+      <template #empty> No customers found.</template>
+      <template #isLoading> Loading customers data. Please wait.</template>
+      <Column field="photo" :showFilterMenu="false" header="" style="min-width: 6rem">
+        <template #body="{ data }">
+          <PhotoUser :user-photo="data.photoName" class="rounded-full !w-14 h-auto border-4 border-gray-300 border-opacity-60 mx-auto"/>
+        </template>
+      </Column>
+      <Column field="nom" :showFilterMenu="false" header="Nom" style="min-width: 6rem" sortable>
+        <template #body="{ data }">
+          {{ data.nom }}
+        </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom"/>
+        </template>
+      </Column>
+      <Column field="prenom" :showFilterMenu="false" header="Prénom" style="min-width: 6rem" sortable>
+        <template #body="{ data }">
+          {{ data.prenom }}
+        </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
+        </template>
+      </Column>
+      <Column field="statut" header="Statut" :showFilterMenu="false" style="min-width: 6rem" sortable>
+        <template #body="{ data }">
+          <Tag :value="data.statut" :severity="data.statutSeverity"/>
+        </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <Select v-model="filterModel.value" @change="filterCallback()" :options="statuts"
+                  placeholder="Filtrer"
+                  style="min-width: 6rem"
+                  :showClear="true">
+            <template #value="slotProps">
+              <div v-if="slotProps.value" class="flex items-center">
+                <Tag :value="slotProps.value.label" :severity="slotProps.value.severity"/>
+              </div>
+              <span v-else>
                     {{ slotProps.placeholder }}
                 </span>
-          </template>
-          <template #option="slotProps">
-            <Tag
-                :value="slotProps.option.value"
-                :severity="slotProps.option.severity"/>
-          </template>
-        </Select>
-      </template>
-    </Column>
-    <Column field="numeroHarpege" :showFilterMenu="false" header="N° Harpège." style="min-width: 12rem" sortable>
-      <template #body="{ data }">
-        {{ data.numeroHarpege }}
-      </template>
-      <template #filter="{ filterModel, filterCallback }">
-        <InputText v-model="filterModel.value" type="text" @input="filterCallback()"
-                   placeholder="Filtrer par N° Harpège."/>
-      </template>
-    </Column>
-    <Column :showFilterMenu="false" style="min-width: 12rem">
-      <template #body="slotProps">
-        <ButtonInfo tooltip="Voir les détails" @click="viewPersonnel(slotProps.data)"/>
-        <Button icon="pi pi-key"
-                v-tooltip.bottom="'Gérer les droits'"
-                outlined severity="warn" rounded class="mr-2" @click="editAccessPersonnel(slotProps.data)"/>
-        <ButtonEdit
-            tooltip="Modifier le personnel"
-            @click="editPersonnel(slotProps.data)"/>
-        <ButtonDelete
-            tooltip="Supprimer le personnel du département"
-            @confirm-delete="deletePersonnel(slotProps.data)"/>
-      </template>
-    </Column>
-    <template #footer> {{ nbPersonnels }} résultat(s).</template>
+            </template>
+            <template #option="slotProps">
+              <Tag
+                  :value="slotProps.option.value"
+                  :severity="slotProps.option.severity"/>
+            </template>
+          </Select>
+        </template>
+      </Column>
+      <Column field="numeroHarpege" :showFilterMenu="false" header="N° Harpège." style="min-width: 12rem" sortable>
+        <template #body="{ data }">
+          {{ data.numeroHarpege }}
+        </template>
+        <template #filter="{ filterModel, filterCallback }">
+          <InputText v-model="filterModel.value" type="text" @input="filterCallback()"
+                     placeholder="Filtrer par N° Harpège."/>
+        </template>
+      </Column>
+      <Column :showFilterMenu="false" style="min-width: 12rem">
+        <template #body="slotProps">
+          <ButtonInfo tooltip="Voir les détails" @click="viewPersonnel(slotProps.data)"/>
+          <Button icon="pi pi-key"
+                  v-tooltip.bottom="'Gérer les droits'"
+                  outlined severity="warn" rounded class="mr-2" @click="editAccessPersonnel(slotProps.data)"/>
+          <ButtonEdit
+              tooltip="Modifier le personnel"
+              @click="editPersonnel(slotProps.data)"/>
+          <ButtonDelete
+              tooltip="Supprimer le personnel du département"
+              @confirm-delete="deletePersonnel(slotProps.data)"/>
+        </template>
+      </Column>
+      <template #footer> {{ nbPersonnels }} résultat(s).</template>
 
-  </DataTable>
+    </DataTable>
+  </div>
 
   <ViewPersonnelDialog
       :isVisible="showViewDialog"

@@ -294,13 +294,13 @@ const selectAnneeUniversitaire = (annee) => {
         <div class="layout-topbar-menu-content">
           <router-link :to="{ name: 'portail' }" v-if="route.name !== 'portail'"
             class="layout-topbar-action layout-topbar-action-text">
-            <i class="pi pi-arrow-left"></i>
+            <i class="pi pi-arrow-left text-primary"></i>
             <span>Portail</span>
           </router-link>
 
           <button v-if="route.name !== 'portail'" type="button" class="layout-topbar-action layout-topbar-action-text"
             @click="toggleToolsMenu" aria-haspopup="true" aria-controls="tools_menu">
-            <i class="pi pi-microsoft text-primary"></i>
+            <i class="pi pi-box text-primary"></i>
             <span>Applications</span>
           </button>
           <Menu ref="toolsMenu" id="tools_menu" :model="tools" :popup="true">
@@ -315,7 +315,7 @@ const selectAnneeUniversitaire = (annee) => {
           <button v-if="userStore.userType === 'personnels'" type="button"
             class="layout-topbar-action layout-topbar-action-text" @click="toggleDeptMenu" aria-haspopup="true"
             aria-controls="dept_menu">
-            <i class="pi pi-arrow-right-arrow-left"></i>
+            <i class="pi pi-arrow-right-arrow-left text-primary"></i>
             <span>{{ departementLabel }}</span>
           </button>
           <div v-else-if="userStore.userType === 'etudiants'" class="hidden lg:inline-flex">
@@ -325,7 +325,7 @@ const selectAnneeUniversitaire = (annee) => {
 
           <button v-if="showRolesMenu" type="button" class="layout-topbar-action layout-topbar-action-text"
             @click="toggleRolesMenu" aria-haspopup="true" aria-controls="roles_menu">
-            <i class="pi pi-shield"></i>
+            <i class="pi pi-shield text-primary"></i>
             <span>Rôles</span>
           </button>
           <Menu ref="rolesMenu" id="roles_menu" :model="rolesItems" :popup="true" />
@@ -333,7 +333,7 @@ const selectAnneeUniversitaire = (annee) => {
           <PermissionGuard permission="isPersonnel">
             <button type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu"
               aria-haspopup="true" aria-controls="annee_menu">
-              <i class="pi pi-calendar"></i>
+              <i class="pi pi-calendar text-primary"></i>
               <span>{{ selectedAnneeUniversitaire?.label }}</span>
             </button>
             <Menu ref="anneeMenu" id="annee_menu" :model="anneeItems" :popup="true" />

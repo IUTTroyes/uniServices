@@ -1,10 +1,9 @@
 <script setup>
 import { computed } from 'vue';
 import {ErrorView} from "@components";
-import { useSecurity } from "@stores";
+import { hasPermission } from "@utils/permissions";
 
-const security = useSecurity();
-const isSuperAdmin = computed(() => security.user?.roles?.includes('ROLE_SUPER_ADMIN'));
+const isSuperAdmin = computed(() => hasPermission('SUPER_ADMIN'));
 
 const panelMenuEtablissementItems = [
   { label: 'Informations générales', icon: 'pi pi-info-circle', route: '/auth/configuration/etablissement' },

@@ -18,24 +18,24 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new GetCollection(
             normalizationContext: ['groups' => ['scheduler_task:read']],
-            security: "is_granted('ROLE_SUPER_ADMIN')"
+            security: "is_granted('SUPER_ADMIN')"
         ),
         new Get(
             normalizationContext: ['groups' => ['scheduler_task:read']],
-            security: "is_granted('ROLE_SUPER_ADMIN')"
+            security: "is_granted('SUPER_ADMIN')"
         ),
         new Post(
             denormalizationContext: ['groups' => ['scheduler_task:write']],
             normalizationContext: ['groups' => ['scheduler_task:read']],
-            security: "is_granted('ROLE_SUPER_ADMIN')"
+            security: "is_granted('SUPER_ADMIN')"
         ),
         new Patch(
             denormalizationContext: ['groups' => ['scheduler_task:write']],
             normalizationContext: ['groups' => ['scheduler_task:read']],
-            security: "is_granted('ROLE_SUPER_ADMIN')"
+            security: "is_granted('SUPER_ADMIN')"
         ),
         new Delete(
-            security: "is_granted('ROLE_SUPER_ADMIN')"
+            security: "is_granted('SUPER_ADMIN')"
         ),
     ],
 )]

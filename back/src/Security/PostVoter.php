@@ -94,6 +94,10 @@ class PostVoter extends Voter
         self::CAN_DELETE_ETABLISSEMENT,
     ];
 
+    public function __construct(
+        private readonly UserEffectivePermissionService $effectivePermissionService
+    ) {}
+
     /**
      * @inheritDoc
      */
@@ -115,7 +119,7 @@ class PostVoter extends Voter
             return false;
         }
 
-        // ROLE_SUPER_ADMIN a accès à tout
+        // SUPER_ADMIN a accès à tout
         if ($this->isSuperAdmin($user)) {
             return true;
         }
@@ -168,17 +172,12 @@ class PostVoter extends Voter
 
     private function isSuperAdmin(Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && in_array('ROLE_SUPER_ADMIN', $user->getRoles());
+        return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
     private function hasAnyRole(Personnel $user, array $roles): bool
     {
-        foreach ($roles as $role) {
-            if (in_array($role, $user->getRoles())) {
-                return true;
-            }
-        }
-        return false;
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
     }
 
     // ========== Etudiant ==========
@@ -198,7 +197,7 @@ class PostVoter extends Voter
     {
         if ($user instanceof Personnel) {
             return $this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_SCOLARITE',
                 'ROLE_CHEF_DEPT'
@@ -212,7 +211,7 @@ class PostVoter extends Voter
     private function canDeleteEtudiant(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }
@@ -224,7 +223,7 @@ class PostVoter extends Voter
         // Personnel avec rôles scolarité peut voir
         if ($user instanceof Personnel) {
             return $this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_SCOLARITE',
                 'ROLE_CHEF_DEPT',
@@ -248,7 +247,7 @@ class PostVoter extends Voter
     {
         if ($user instanceof Personnel) {
             return $this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_SCOLARITE',
                 'ROLE_CHEF_DEPT',
@@ -264,7 +263,7 @@ class PostVoter extends Voter
     private function canDeleteScolarite(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_SCOLARITE'
         ]);
@@ -277,7 +276,7 @@ class PostVoter extends Voter
         // Personnel autorisé ou avec rôles appropriés peut voir
         if ($user instanceof Personnel) {
             if ($this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_CHEF_DEPT',
                 'ROLE_RESP_PARCOURS',
@@ -309,7 +308,7 @@ class PostVoter extends Voter
 
         // Rôles avec accès complet
         if ($this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS',
@@ -333,7 +332,7 @@ class PostVoter extends Voter
         }
 
         return $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_NOTES'
@@ -346,7 +345,7 @@ class PostVoter extends Voter
     {
         if ($user instanceof Personnel) {
             if ($this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_CHEF_DEPT',
                 'ROLE_RESP_PARCOURS',
@@ -386,7 +385,7 @@ class PostVoter extends Voter
 
         // Rôles avec accès complet
         if ($this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS',
@@ -409,7 +408,7 @@ class PostVoter extends Voter
     private function canDeleteNotes(mixed $subject, Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_RESP_NOTES'
         ]);
@@ -421,7 +420,7 @@ class PostVoter extends Voter
     {
         if ($user instanceof Personnel) {
             return $this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_SCOLARITE',
                 'ROLE_CHEF_DEPT',
@@ -451,7 +450,7 @@ class PostVoter extends Voter
 
         // Rôles avec accès complet aux absences
         if ($this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_SCOLARITE',
             'ROLE_CHEF_DEPT',
@@ -471,7 +470,7 @@ class PostVoter extends Voter
     private function canDeleteAbsence(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_SCOLARITE'
         ]);
@@ -483,7 +482,7 @@ class PostVoter extends Voter
     {
         if ($user instanceof Personnel) {
             return $this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_SCOLARITE',
                 'ROLE_CHEF_DEPT',
@@ -513,7 +512,7 @@ class PostVoter extends Voter
     {
         if ($user instanceof Personnel) {
             return $this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_SCOLARITE',
                 'ROLE_CHEF_DEPT',
@@ -528,7 +527,7 @@ class PostVoter extends Voter
     private function canDeleteJustificatif(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_SCOLARITE'
         ]);
@@ -540,7 +539,7 @@ class PostVoter extends Voter
     {
         if ($user instanceof Personnel) {
             return $this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_SCOLARITE',
                 'ROLE_CHEF_DEPT',
@@ -562,7 +561,7 @@ class PostVoter extends Voter
     private function canEditEtudiantScolarite(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_SCOLARITE',
             'ROLE_CHEF_DEPT'
@@ -572,7 +571,7 @@ class PostVoter extends Voter
     private function canDeleteEtudiantScolarite(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_SCOLARITE'
         ]);
@@ -589,7 +588,7 @@ class PostVoter extends Voter
     private function canEditAnneeUniv(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN'
+            'SUPER_ADMIN'
         ]);
     }
 }

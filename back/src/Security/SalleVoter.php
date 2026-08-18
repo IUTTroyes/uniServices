@@ -26,6 +26,10 @@ class SalleVoter extends Voter
         self::CAN_DELETE_SALLE,
     ];
 
+    public function __construct(
+        private readonly UserEffectivePermissionService $effectivePermissionService
+    ) {}
+
     protected function supports(string $attribute, mixed $subject): bool
     {
         return in_array($attribute, self::SUPPORTED_ATTRIBUTES);
@@ -54,17 +58,12 @@ class SalleVoter extends Voter
 
     private function isSuperAdmin(Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && in_array('ROLE_SUPER_ADMIN', $user->getRoles());
+        return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
     private function hasAnyRole(Personnel $user, array $roles): bool
     {
-        foreach ($roles as $role) {
-            if (in_array($role, $user->getRoles())) {
-                return true;
-            }
-        }
-        return false;
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
     }
 
     private function canViewSalle(Personnel|Etudiant $user): bool
@@ -75,7 +74,7 @@ class SalleVoter extends Voter
     private function canEditSalle(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_EDT',
@@ -86,7 +85,7 @@ class SalleVoter extends Voter
     private function canDeleteSalle(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }

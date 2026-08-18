@@ -34,9 +34,9 @@ export const useSecurity = defineStore('security', () => {
   const hasPermission = (permission: string | boolean): boolean => {
     if (permission === true) return true;
     if (permission === false) return false;
-    
+
     // SuperAdmin override
-    if (user.value?.roles?.includes('ROLE_SUPER_ADMIN')) {
+    if (resolvedPermissions.value.includes('SUPER_ADMIN')) {
       return true;
     }
 
@@ -46,17 +46,15 @@ export const useSecurity = defineStore('security', () => {
 
   const hasPackage = (packageName: string): boolean => {
     // SuperAdmin override or core
-    if (user.value?.roles?.includes('ROLE_SUPER_ADMIN')) {
+    if (resolvedPermissions.value.includes('SUPER_ADMIN')) {
       return true;
     }
 
-    const normalizedName = packageName === 'intranet' ? 'core' : packageName;
-
-    if (normalizedName === 'core' || normalizedName === 'auth' || normalizedName === 'documents' || normalizedName === 'document') {
+    if (packageName === 'intranet' || packageName === 'auth' || packageName === 'documents' || packageName === 'document') {
       return true;
     }
     if (!isLoaded.value) return false;
-    return activePackages.value.includes(normalizedName);
+    return activePackages.value.includes(packageName);
   };
 
   const reset = () => {

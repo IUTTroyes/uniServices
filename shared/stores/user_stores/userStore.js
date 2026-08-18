@@ -35,6 +35,29 @@ export const useUsersStore = defineStore('users', () => {
 
     const anneeUnivStore = useAnneeUnivStore();
 
+    const normalizePersonnelDepartements = (items) => {
+        if (!Array.isArray(items)) {
+            return [];
+        }
+
+        // Format déjà normalisé côté front : [{ ..., departementPersonnel: {...} }]
+        if (items.every(item => item?.departementPersonnel)) {
+            return items;
+        }
+
+        // Format retour endpoint change_departement : [{ defaut, permissions, departement: {...} }]
+        if (items.every(item => item?.departement)) {
+            return items
+                .filter(item => item.departement)
+                .map(item => ({
+                    ...item.departement,
+                    departementPersonnel: item
+                }));
+        }
+
+        return items;
+    };
+
     // Initialiser les informations d'authentification depuis le serveur
     const initAuth = async () => {
         if (isAuthInitialized.value) {
@@ -113,6 +136,8 @@ export const useUsersStore = defineStore('users', () => {
                     }
                 }
 
+                departements.value = normalizePersonnelDepartements(departements.value);
+
                 // Mettre à jour les références des départements
                 departementDefaut.value = departements.value.find(departement => departement.departementPersonnel?.defaut === true) || {};
                 departementsNotDefaut.value = departements.value.filter(departement => departement.departementPersonnel?.defaut === false) || [];
@@ -156,13 +181,18 @@ export const useUsersStore = defineStore('users', () => {
                 return;
             }
 
-            departements.value = await changeDepartementActifService(departement.departementPersonnel.id);
+            departements.value = normalizePersonnelDepartements(await changeDepartementActifService(departement.departementPersonnel.id));
             // récupérer le département qui a defaut = true
             departementPersonnelDefaut.value = Array.isArray(departements.value) ?
-                await departements.value.find(departement => departement.defaut === true) : null;
+                await departements.value.find(departement => departement.departementPersonnel?.defaut === true)?.departementPersonnel : null;
 
             if (departementPersonnelDefaut.value && departementPersonnelDefaut.value.departement) {
-                departementDefaut.value = departementPersonnelDefaut.value.departement;
+                // Conserver le lien vers la structure département-personnel active
+                // (permissions/packages/roles), nécessaire pour les contrôles SUPER_ADMIN
+                departementDefaut.value = {
+                    ...departementPersonnelDefaut.value.departement,
+                    departementPersonnel: departementPersonnelDefaut.value
+                };
                 if (departementDefaut.value.id) {
                     localStorage.setItem('departement', departementDefaut.value.id);
                 }
@@ -171,7 +201,7 @@ export const useUsersStore = defineStore('users', () => {
             }
             // récupérer les départements qui n'ont pas defaut = true
             departementsPersonnelNotDefaut.value = Array.isArray(departements.value) ?
-                await departements.value.filter(departement => departement.defaut === false) : [];
+                await departements.value.filter(departement => departement.departementPersonnel?.defaut === false).map(departement => departement.departementPersonnel) : [];
             departementsNotDefaut.value = Array.isArray(departementsPersonnelNotDefaut.value) ?
                 await departementsPersonnelNotDefaut.value.map(departement => departement.departement) : [];
             // renvoyer vers la page d'accueil après le changement de département
@@ -235,7 +265,7 @@ export const useUsersStore = defineStore('users', () => {
         } catch (e) {
             // Fallback en dehors du contexte du routeur (ex: chargement initial)
         }
-        
+
         const pathname = window.location.pathname || '/';
         const segments = pathname.split('/').filter(Boolean);
         if (segments.length > 0) {
@@ -275,8 +305,9 @@ export const useUsersStore = defineStore('users', () => {
     // Vérifie si un rôle spécifique est actif.
     // Priorité :
     //   1. Mode impersonnalisation (temporaryRole) → comportement inchangé
-    //   2. Rôles structurels (ROLE_SUPER_ADMIN, ROLE_PERSONNEL) → toujours lus sur user.roles
-    //   3. Rôles métier → lus depuis rolesActifs (département actif pour l'app courante, sinon user.roles)
+    //   2. SUPER_ADMIN → lu depuis les permissions du département actif
+    //   3. ROLE_PERSONNEL → lu depuis user.roles
+    //   4. Rôles métier → lus depuis rolesActifs (département actif pour l'app courante, sinon user.roles)
     const hasRole = (role) => {
         if (temporaryRole.value) {
             // Correspondance exacte
@@ -293,9 +324,15 @@ export const useUsersStore = defineStore('users', () => {
             return false;
         }
 
-        // Rôles structurels : toujours lus sur user.roles (indépendants du département)
-        if (role === 'ROLE_SUPER_ADMIN' || role === 'ROLE_PERSONNEL') {
-            return Array.isArray(user.value?.roles) ? user.value.roles.includes(role) : false;
+        // SUPER_ADMIN vient des permissions du département actif
+        if (role === 'SUPER_ADMIN') {
+            const permissions = departementDefaut.value?.departementPersonnel?.permissions;
+            return Array.isArray(permissions) ? permissions.includes('SUPER_ADMIN') : false;
+        }
+
+        // Rôle structurel global conservé sur user.roles
+        if (role === 'ROLE_PERSONNEL') {
+            return Array.isArray(user.value?.roles) ? user.value.roles.includes('ROLE_PERSONNEL') : false;
         }
 
         // Rôles métier : lus depuis le département actif (ou fallback sur user.roles)
@@ -330,9 +367,9 @@ export const useUsersStore = defineStore('users', () => {
     const isStage = computed(() => hasRole('ROLE_STAGE'));
     const isRelaiComm = computed(() => hasRole('ROLE_RELAI_COMM'));
     const isEdusign = computed(() => hasRole('ROLE_EDUSIGN'));
-    const isAdmin = computed(() => hasRole('ROLE_SUPER_ADMIN') || hasRole('ROLE_DIRECTION') || hasRole('ROLE_SCOLARITE') || hasRole('ROLE_ASSISTANT') || hasRole('ROLE_CHEF_DEPARTEMENT') || hasRole('ROLE_DIRECTEUR_ETUDES'));
+    const isAdmin = computed(() => hasRole('SUPER_ADMIN') || hasRole('ROLE_DIRECTION') || hasRole('ROLE_SCOLARITE') || hasRole('ROLE_ASSISTANT') || hasRole('ROLE_CHEF_DEPARTEMENT') || hasRole('ROLE_DIRECTEUR_ETUDES'));
     const isReferent = computed(() => hasRole('ROLE_REFERENT'));
-    const isSuperAdmin = computed(() => hasRole('ROLE_SUPER_ADMIN'));
+    const isSuperAdmin = computed(() => hasRole('SUPER_ADMIN'));
 
     // Fonction de déconnexion
     const logout = async () => {
@@ -379,6 +416,7 @@ export const useUsersStore = defineStore('users', () => {
         isSuperAdmin,
         isReferent,
         isAdmin,
+        hasRole,
         setTemporaryRole,
         clearTemporaryRole,
         temporaryRole,

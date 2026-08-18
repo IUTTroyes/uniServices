@@ -63,23 +63,23 @@ class StructureDepartementPersonnel
     private ?int $id = null;
 
     #[ORM\Column]
-    #[Groups(groups: ['departement_personnel:read', 'departement_personnel:write'])]
-    private array $packages = [];
+    #[Groups(groups: ['departement_personnel:read', 'departement_personnel:write', 'departement:read'])]
+    private array $packages = ["intranet"];
 
     #[ORM\Column]
-    #[Groups(groups: ['departement_personnel:read', 'departement_personnel:write'])]
+    #[Groups(groups: ['departement_personnel:read', 'departement_personnel:write', 'departement:read'])]
     private array $permissions = [];
 
     #[ORM\Column]
     #[Groups(groups: ['personnel:read', 'departement_personnel:read', 'departement:read', 'departement_personnel:write'])]
     private ?bool $defaut = null;
 
-    #[ORM\ManyToOne(inversedBy: 'departementPersonnels')]
+    #[ORM\ManyToOne(inversedBy: 'departementsPersonnel')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(groups: ['departement_personnel:read', 'departement:read', 'departement_personnel:write'])]
     private ?Personnel $personnel = null;
 
-    #[ORM\ManyToOne(inversedBy: 'departementPersonnels')]
+    #[ORM\ManyToOne(inversedBy: 'departementsPersonnel')]
     #[Groups(groups: ['personnel:read', 'departement_personnel:read', 'departement_personnel:write'])]
     private ?StructureDepartement $departement = null;
 

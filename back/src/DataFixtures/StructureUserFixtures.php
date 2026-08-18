@@ -49,7 +49,7 @@ class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
             ->setMailUniv('superadmin@univ-reims.fr')
             ->setPassword($password)
             ->setStatut(StatutEnum::MCF)
-            ->setRoles(["ROLE_SUPER_ADMIN"])
+            ->setRoles(["ROLE_PERSONNEL"])
             ->setPrenom('Super')
             ->setNom('ADMIN')
             ->setApplications(['UniTranet'])

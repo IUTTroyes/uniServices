@@ -12,7 +12,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class AvailableCommandsController extends AbstractController
 {
     #[Route('/api/scheduler/available-commands', name: 'api_scheduler_available_commands', methods: ['GET'])]
-    #[IsGranted('ROLE_SUPER_ADMIN')]
+    #[IsGranted('SUPER_ADMIN')]
     public function getAvailableCommands(KernelInterface $kernel): JsonResponse
     {
         $application = new Application($kernel);

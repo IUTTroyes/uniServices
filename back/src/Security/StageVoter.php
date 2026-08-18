@@ -36,6 +36,10 @@ class StageVoter extends Voter
         self::CAN_VALIDATE_STAGE,
     ];
 
+    public function __construct(
+        private readonly UserEffectivePermissionService $effectivePermissionService
+    ) {}
+
     /**
      * @inheritDoc
      */
@@ -57,7 +61,7 @@ class StageVoter extends Voter
             return false;
         }
 
-        // ROLE_SUPER_ADMIN a accès à tout
+        // SUPER_ADMIN a accès à tout
         if ($this->isSuperAdmin($user)) {
             return true;
         }
@@ -82,17 +86,12 @@ class StageVoter extends Voter
 
     private function isSuperAdmin(Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && in_array('ROLE_SUPER_ADMIN', $user->getRoles());
+        return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
     private function hasAnyRole(Personnel $user, array $roles): bool
     {
-        foreach ($roles as $role) {
-            if (in_array($role, $user->getRoles())) {
-                return true;
-            }
-        }
-        return false;
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
     }
 
     // ========== StagePeriode ==========
@@ -106,7 +105,7 @@ class StageVoter extends Voter
     private function canEditStagePeriode(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_STAGES',
@@ -117,7 +116,7 @@ class StageVoter extends Voter
     private function canDeleteStagePeriode(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_RESP_STAGES'
         ]);
@@ -129,7 +128,7 @@ class StageVoter extends Voter
     {
         if ($user instanceof Personnel) {
             return $this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_CHEF_DEPT',
                 'ROLE_RESP_STAGES',
@@ -146,7 +145,7 @@ class StageVoter extends Voter
     {
         if ($user instanceof Personnel) {
             return $this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_CHEF_DEPT',
                 'ROLE_RESP_STAGES',
@@ -161,7 +160,7 @@ class StageVoter extends Voter
     private function canDeleteStage(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_RESP_STAGES'
         ]);
@@ -170,7 +169,7 @@ class StageVoter extends Voter
     private function canValidateStage(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_STAGES',

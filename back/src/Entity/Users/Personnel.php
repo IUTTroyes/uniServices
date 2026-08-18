@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Scolarite\ScolEvaluationRattrapage;
 use App\Entity\Structure\StructureService;
+use App\State\Provider\Personnel\PersonnelConfigProvider;
 use App\State\Provider\Personnel\PersonnelCountProvider;
 use HelpdeskBundle\Entity\HelpdeskTicket;
 use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
@@ -51,6 +52,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/liste/personnels',
             normalizationContext: ['groups' => ['personnel:liste']]
         ),
+        new GetCollection(
+            uriTemplate: '/config/personnels',
+            normalizationContext: ['groups' => ['personnel:config']],
+            provider: PersonnelConfigProvider::class
+        ),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_PERSONNEL', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_PERSONNEL', object)"),
         new Delete(security: "is_granted('CAN_DELETE_PERSONNEL', object)"),
@@ -66,30 +72,30 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['personnel:detail', 'personnel:light', 'departement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init', 'departement_personnel:read', 'stage_etudiant:read'])]
+    #[Groups(['personnel:detail', 'personnel:light', 'departement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:detail'])]
+    #[Groups(['personnel:detail', 'personnel:config'])]
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['personnel:detail', 'departement_personnel:read'])]
+    #[Groups(['personnel:detail', 'departement_personnel:read', 'personnel:config'])]
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
 
     #[ORM\Column(type: Types::JSON)]
-    #[Groups(['personnel:detail', 'personnel:liste', 'departement_personnel:read'])]
+    #[Groups(['personnel:detail', 'personnel:liste', 'departement_personnel:read', 'personnel:config'])]
     private array $roles = [];
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read'])]
+    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read'])]
+    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -100,14 +106,14 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'responsableDiplome')]
-    #[Groups(['personnel:detail'])]
+    #[Groups(['personnel:detail', 'personnel:config'])]
     private Collection $responsableDiplome;
 
     /**
      * @var Collection<int, StructureDiplome>
      */
     #[ORM\OneToMany(targetEntity: StructureDiplome::class, mappedBy: 'assistantDiplome')]
-    #[Groups(['personnel:detail'])]
+    #[Groups(['personnel:detail', 'personnel:config'])]
     private Collection $assistantDiplome;
 
     #[ORM\ManyToOne(inversedBy: 'personnels')]
@@ -122,8 +128,8 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, StructureDepartementPersonnel>
      */
     #[ORM\OneToMany(targetEntity: StructureDepartementPersonnel::class, mappedBy: 'personnel', orphanRemoval: true)]
-    #[Groups(['personnel:detail'])]
-    private Collection $departementPersonnels;
+    #[Groups(['personnel:detail', 'personnel:config'])]
+    private Collection $departementsPersonnel;
 
     /**
      * @var Collection<int, EtudiantAbsence>
@@ -166,7 +172,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $bureau = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['personnel:detail', 'personnel:liste'])]
+    #[Groups(['personnel:detail', 'personnel:liste', 'personnel:config'])]
     private ?int $numeroHarpege = null;
 
     #[ORM\Column(nullable: true)]
@@ -194,7 +200,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $posteInterne = null;
 
     #[ORM\Column(length: 15, nullable: true, enumType: StatutEnum::class)]
-    #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'personnel:liste', 'departement_personnel:read'])]
+    #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'personnel:liste', 'departement_personnel:read', 'personnel:config'])]
     private ?StatutEnum $statut = null;
 
     #[ORM\Column(length: 3, nullable: true)]
@@ -206,7 +212,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private ?array $contraintesEdt = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['personnel:detail', 'departement_personnel:read'])]
+    #[Groups(['personnel:detail', 'departement_personnel:read', 'personnel:config'])]
     private ?array $applications = null;
 
 
@@ -234,6 +240,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, StructureService>
      */
     #[ORM\ManyToMany(targetEntity: StructureService::class, mappedBy: 'personnel')]
+    #[Groups(['personnel:detail', 'personnel:config'])]
     private Collection $structureServices;
 
     /**
@@ -246,7 +253,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->responsableDiplome = new ArrayCollection();
         $this->assistantDiplome = new ArrayCollection();
-        $this->departementPersonnels = new ArrayCollection();
+        $this->departementsPersonnel = new ArrayCollection();
         $this->absences = new ArrayCollection();
         $this->evaluations = new ArrayCollection();
         $this->events = new ArrayCollection();
@@ -443,15 +450,15 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @return Collection<int, StructureDepartementPersonnel>
      */
-    public function getDepartementPersonnels(): Collection
+    public function getDepartementsPersonnel(): Collection
     {
-        return $this->departementPersonnels;
+        return $this->departementsPersonnel;
     }
 
     public function addDepartementPersonnel(StructureDepartementPersonnel $departementPersonnel): static
     {
-        if (!$this->departementPersonnels->contains($departementPersonnel)) {
-            $this->departementPersonnels->add($departementPersonnel);
+        if (!$this->departementsPersonnel->contains($departementPersonnel)) {
+            $this->departementsPersonnel->add($departementPersonnel);
             $departementPersonnel->setPersonnel($this);
         }
 
@@ -460,7 +467,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function removeDepartementPersonnel(StructureDepartementPersonnel $departementPersonnel): static
     {
-        if ($this->departementPersonnels->removeElement($departementPersonnel)) {
+        if ($this->departementsPersonnel->removeElement($departementPersonnel)) {
             // set the owning side to null (unless already changed)
             if ($departementPersonnel->getPersonnel() === $this) {
                 $departementPersonnel->setPersonnel(null);

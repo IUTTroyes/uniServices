@@ -17,8 +17,22 @@ class DepartmentPermissionChecker
     public function checkPermission(Personnel|Etudiant $user, StructureDepartement $departement, string $permission): bool
     {
         // 1. Super Admins have global access
-        if ($user instanceof Personnel && in_array('ROLE_SUPER_ADMIN', $user->getRoles(), true)) {
-            return true;
+        if ($user instanceof Personnel) {
+            $superAdminInDepartment = $this->departementPersonnelRepository->findOneBy([
+                'personnel' => $user,
+                'departement' => $departement,
+            ]);
+
+            if ($superAdminInDepartment) {
+                $resolvedPermissions = $this->resolver->resolve(
+                    $superAdminInDepartment->getPermissions(),
+                    $superAdminInDepartment->getPackages()
+                );
+
+                if (in_array('SUPER_ADMIN', $resolvedPermissions, true)) {
+                    return true;
+                }
+            }
         }
 
         // 2. Etudiants have a generic role within their active department

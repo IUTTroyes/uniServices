@@ -37,6 +37,10 @@ class PersonnelVoter extends Voter
         self::CAN_ASSIGN_ROLES,
     ];
 
+    public function __construct(
+        private readonly UserEffectivePermissionService $effectivePermissionService
+    ) {}
+
     /**
      * @inheritDoc
      */
@@ -58,7 +62,7 @@ class PersonnelVoter extends Voter
             return false;
         }
 
-        // ROLE_SUPER_ADMIN a accès à tout
+        // SUPER_ADMIN a accès à tout
         if ($this->isSuperAdmin($user)) {
             return true;
         }
@@ -85,17 +89,12 @@ class PersonnelVoter extends Voter
 
     private function isSuperAdmin(Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && in_array('ROLE_SUPER_ADMIN', $user->getRoles());
+        return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
     private function hasAnyRole(Personnel $user, array $roles): bool
     {
-        foreach ($roles as $role) {
-            if (in_array($role, $user->getRoles())) {
-                return true;
-            }
-        }
-        return false;
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
     }
 
     // ========== Personnel ==========
@@ -115,7 +114,7 @@ class PersonnelVoter extends Voter
 
         // Rôles avec accès complet
         if ($this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
         ])) {
@@ -133,7 +132,7 @@ class PersonnelVoter extends Voter
     private function canDeletePersonnel(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }
@@ -148,7 +147,7 @@ class PersonnelVoter extends Voter
     private function canEditDeptPersonnel(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
         ]);
@@ -157,7 +156,7 @@ class PersonnelVoter extends Voter
     private function canDeleteDeptPersonnel(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
         ]);
@@ -168,7 +167,7 @@ class PersonnelVoter extends Voter
     private function canAssignRoles(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }

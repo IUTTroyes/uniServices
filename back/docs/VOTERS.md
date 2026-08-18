@@ -273,7 +273,7 @@ public function someMethod(ScolEvaluation $evaluation): void
 
 | Rôle | Description |
 |------|-------------|
-| `ROLE_SUPER_ADMIN` | Accès complet à tout |
+| `SUPER_ADMIN` | Accès complet à tout (permission départementale) |
 | `ROLE_ADMIN` | Administration générale |
 | `ROLE_CHEF_DEPT` | Chef de département |
 | `ROLE_DIRECTEUR_ETUDES` | Directeur des études |

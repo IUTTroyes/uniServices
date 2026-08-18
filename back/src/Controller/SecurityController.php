@@ -10,6 +10,7 @@ use App\Repository\ResetTokenRepository;
 use App\Security\DepartmentPermissionChecker;
 use App\Security\PermissionRegistry;
 use App\Security\PermissionResolver;
+use App\Security\UserEffectivePermissionService;
 use App\Entity\Users\Personnel;
 use App\Entity\Users\Etudiant;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
@@ -232,7 +233,8 @@ class SecurityController extends AbstractController
     public function getSecurityContext(
         DepartmentPermissionChecker $checker,
         StructureDepartementPersonnelRepository $sdpRepo,
-        PermissionResolver $resolver
+        PermissionResolver $resolver,
+        UserEffectivePermissionService $effectivePermissionService
     ): JsonResponse
     {
         $user = $this->getUser();
@@ -252,7 +254,7 @@ class SecurityController extends AbstractController
                 if (!$dept) {
                     continue;
                 }
-                
+
                 $departmentsData[] = [
                     'id' => $dept->getId(),
                     'libelle' => $dept->getLibelle(),
@@ -295,7 +297,7 @@ class SecurityController extends AbstractController
                 $departmentsData[] = $currentDepartment;
             }
 
-            $activePackages = ['core', 'documents'];
+            $activePackages = ['intranet', 'documents'];
             $resolvedPermissions = ['ROLE_ETUDIANT'];
         }
 
@@ -307,7 +309,7 @@ class SecurityController extends AbstractController
                 'nom' => $user->getNom(),
                 'email' => $user->getMailUniv() ?? $user->getMailPerso(),
                 'type' => $user instanceof Personnel ? 'personnels' : 'etudiants',
-                'roles' => $user->getRoles(),
+                'roles' => $effectivePermissionService->getEffectivePermissions($user),
             ],
             'currentDepartment' => $currentDepartment,
             'departments' => $departmentsData,

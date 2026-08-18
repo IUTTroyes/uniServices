@@ -8,7 +8,7 @@ export default [
     path: 'super-administration',
     component: SuperAdministrationView,
     meta: {
-      permission: 'isSuperAdmin',
+      permission: 'SUPER_ADMIN',
       breadcrumb: [{ label: 'Dashboard', route: '/' }, {
         label: 'Super-Administration',
         route: null,
@@ -20,7 +20,7 @@ export default [
     path: 'super-administration/departement',
     component: NewDepartement,
     meta: {
-      permission: 'isSuperAdmin',
+      permission: 'SUPER_ADMIN',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Super-Administration', route: '/intranet/super-administration' },
@@ -36,7 +36,7 @@ export default [
     path: 'super-administration/departements',
     component: ListDepartement,
     meta: {
-      permission: 'isSuperAdmin',
+      permission: 'SUPER_ADMIN',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Super-Administration', route: '/intranet/super-administration' },
@@ -53,7 +53,7 @@ export default [
     name: 'groupe-edit',
     component: EditGroupeView,
     meta: {
-      permission: 'isSuperAdmin',
+      permission: 'SUPER_ADMIN',
       breadcrumb: [
         { label: 'Dashboard', route: '/' },
         { label: 'Super-Administration', route: '/intranet/super-administration' },

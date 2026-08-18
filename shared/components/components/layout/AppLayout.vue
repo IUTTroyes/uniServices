@@ -1,12 +1,12 @@
 <script setup>
 import { useLayout } from './composables/layout.js';
-import { computed, ref, watch, onMounted } from 'vue';
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import AppFooter from './AppFooter.vue';
 import AppSidebar from './AppSidebar.vue';
 import AppTopbar from './AppTopbar.vue';
 import AppBreadcrumb from "./AppBreadcrumb.vue";
-import { useSecurity } from '@stores';
+import { hasPermission } from '@utils/permissions';
 import { bundles } from '../../../../packages/shell/assets/bundles-registry';
 
 const props = defineProps({
@@ -47,8 +47,6 @@ const containerClass = computed(() => {
   };
 });
 
-const security = useSecurity();
-
 // Helper to determine package name from route path
 const getPackageFromPath = (path) => {
   const segments = path.split('/').filter(Boolean);
@@ -85,7 +83,7 @@ const computedMenuItems = computed(() => {
   menuSections.forEach(section => {
     const filteredItems = (section.items || []).filter(item => {
       if (item.permission) {
-        return security.hasPermission(item.permission);
+        return hasPermission(item.permission);
       }
       return true;
     });

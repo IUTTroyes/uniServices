@@ -100,6 +100,10 @@ class StructureVoter extends Voter
         self::CAN_DELETE_DEPT_PERSONNEL,
     ];
 
+    public function __construct(
+        private readonly UserEffectivePermissionService $effectivePermissionService
+    ) {}
+
     /**
      * @inheritDoc
      */
@@ -121,7 +125,7 @@ class StructureVoter extends Voter
             return false;
         }
 
-        // ROLE_SUPER_ADMIN a accès à tout
+        // SUPER_ADMIN a accès à tout
         if ($this->isSuperAdmin($user)) {
             return true;
         }
@@ -186,17 +190,12 @@ class StructureVoter extends Voter
 
     private function isSuperAdmin(Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && in_array('ROLE_SUPER_ADMIN', $user->getRoles());
+        return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
     private function hasAnyRole(Personnel $user, array $roles): bool
     {
-        foreach ($roles as $role) {
-            if (in_array($role, $user->getRoles())) {
-                return true;
-            }
-        }
-        return false;
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
     }
 
     // ========== Département ==========
@@ -210,7 +209,7 @@ class StructureVoter extends Voter
     private function canEditDepartement(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
         ]);
@@ -219,7 +218,7 @@ class StructureVoter extends Voter
     private function canDeleteDepartement(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }
@@ -240,7 +239,7 @@ class StructureVoter extends Voter
 
         // Rôles avec accès complet
         if ($this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
         ])) {
@@ -259,7 +258,7 @@ class StructureVoter extends Voter
     private function canDeleteDiplome(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }
@@ -280,7 +279,7 @@ class StructureVoter extends Voter
 
         // Rôles avec accès complet
         if ($this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS',
@@ -295,7 +294,7 @@ class StructureVoter extends Voter
     private function canDeleteSemestre(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }
@@ -311,7 +310,7 @@ class StructureVoter extends Voter
     private function canEditGroupe(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_SCOLARITE',
@@ -323,14 +322,14 @@ class StructureVoter extends Voter
     private function canEditGroupeStructure(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN'
+            'SUPER_ADMIN'
         ]);
     }
 
     private function canDeleteGroupe(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
         ]);
@@ -347,7 +346,7 @@ class StructureVoter extends Voter
     private function canEditUe(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS'
@@ -357,7 +356,7 @@ class StructureVoter extends Voter
     private function canDeleteUe(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }
@@ -373,7 +372,7 @@ class StructureVoter extends Voter
     private function canEditPn(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
         ]);
@@ -382,7 +381,7 @@ class StructureVoter extends Voter
     private function canDeletePn(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }
@@ -397,7 +396,7 @@ class StructureVoter extends Voter
     private function canEditAnnee(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_DIRECTEUR_ETUDES'
@@ -407,7 +406,7 @@ class StructureVoter extends Voter
     private function canDeleteAnnee(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }
@@ -422,7 +421,7 @@ class StructureVoter extends Voter
     private function canEditCalendrier(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_SCOLARITE',
@@ -433,7 +432,7 @@ class StructureVoter extends Voter
     private function canDeleteCalendrier(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }
@@ -448,7 +447,7 @@ class StructureVoter extends Voter
     private function canEditTypeDiplome(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }
@@ -456,7 +455,7 @@ class StructureVoter extends Voter
     private function canDeleteTypeDiplome(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN'
         ]);
     }
@@ -471,7 +470,7 @@ class StructureVoter extends Voter
     private function canEditDeptPersonnel(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
         ]);
@@ -480,7 +479,7 @@ class StructureVoter extends Voter
     private function canDeleteDeptPersonnel(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
         ]);

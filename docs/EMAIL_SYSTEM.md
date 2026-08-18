@@ -386,7 +386,7 @@ final class AbsenceService
 L'interface d'administration est accessible dans :  
 **Portail → Configuration → Communication → Modèles de mails**
 
-> Accès requis : rôle `ROLE_SUPER_ADMIN`
+> Accès requis : permission `SUPER_ADMIN` (portée département actif)
 
 ### Fonctionnement
 

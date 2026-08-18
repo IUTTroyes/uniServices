@@ -24,6 +24,9 @@
       <sourceFolder url="file://$MODULE_DIR$/packages/stage-bundle/src" isTestSource="false" packagePrefix="StageBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/stage-bundle/tests" isTestSource="true" packagePrefix="StageBundle\Tests\" />
       <sourceFolder url="file://$MODULE_DIR$/back/../packages/stage-bundle/src" isTestSource="false" packagePrefix="StageBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/back/../packages/document-bundle/src" isTestSource="false" packagePrefix="DocumentBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/document-bundle/src" isTestSource="false" packagePrefix="DocumentBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/document-bundle/tests" isTestSource="true" packagePrefix="DocumentBundle\Tests\" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/cache" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/collections" />
@@ -321,6 +324,9 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/intranet-bundle/vendor/symfony/var-dumper" />
       <excludeFolder url="file://$MODULE_DIR$/packages/intranet-bundle/vendor/symfony/var-exporter" />
       <excludeFolder url="file://$MODULE_DIR$/packages/intranet-bundle/vendor/theseer/tokenizer" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/dragonmantank/cron-expression" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/messenger" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/scheduler" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

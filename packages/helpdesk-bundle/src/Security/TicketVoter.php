@@ -5,6 +5,7 @@ namespace HelpdeskBundle\Security;
 use HelpdeskBundle\Entity\HelpdeskTicket;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Security\UserEffectivePermissionService;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -27,6 +28,10 @@ class TicketVoter extends Voter
         self::CAN_DELETE_TICKET,
         self::CAN_CREATE_TICKET,
     ];
+
+    public function __construct(
+        private readonly UserEffectivePermissionService $effectivePermissionService
+    ) {}
 
     protected function supports(string $attribute, mixed $subject): bool
     {
@@ -56,17 +61,12 @@ class TicketVoter extends Voter
 
     private function isSuperAdmin(Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && in_array('ROLE_SUPER_ADMIN', $user->getRoles());
+        return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
     private function hasAnyRole(Personnel $user, array $roles): bool
     {
-        foreach ($roles as $role) {
-            if (in_array($role, $user->getRoles())) {
-                return true;
-            }
-        }
-        return false;
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
     }
 
     private function canViewTicket(Personnel|Etudiant $user): bool

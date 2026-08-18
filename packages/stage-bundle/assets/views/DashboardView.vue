@@ -26,7 +26,7 @@ const roles = [
   { label: 'Étudiant (Demandes & Dépôts)', role: 'ROLE_ETUDIANT', icon: 'pi pi-user', color: 'bg-emerald-500' },
   { label: 'Tuteur / Enseignant (Suivis)', role: 'ROLE_PERSONNEL', icon: 'pi pi-users', color: 'bg-blue-500' },
   { label: 'Responsable Stage / Alternance', role: 'ROLE_STAGE', icon: 'pi pi-shield', color: 'bg-violet-500' },
-  { label: 'Super Admin (Modèles)', role: 'ROLE_SUPER_ADMIN', icon: 'pi pi-cog', color: 'bg-rose-500' }
+  { label: 'Super Admin (Modèles)', role: 'SUPER_ADMIN', icon: 'pi pi-cog', color: 'bg-rose-500' }
 ];
 
 const currentSimulatedRoleLabel = computed(() => {

@@ -15,9 +15,9 @@ Ces deux approches utilisent la même logique sous-jacente définie dans le fich
 
 Depuis la refactorisation de la gestion des accès, les droits sont structurés de manière modulaire :
 
-1. **Activation globale des Applications (Core)** : Chaque personnel dispose d'une liste d'applications autorisées (`applications` dans le profil). L'application principale **UniTranet** (`intranet`) est toujours activée d'office.
+1. **Activation globale des Applications** : Chaque personnel dispose d'une liste d'applications autorisées (`applications` dans le profil). L'application principale **UniTranet** (`intranet`) est toujours activée d'office.
 2. **Droits par Département (Local)** : Dans chaque département d'affectation, l'utilisateur possède :
-   - Une liste de **packages actifs** (ex: `core`, `stages`, `questionnaire`).
+   - Une liste de **packages actifs** (ex: `intranet`, `stages`, `questionnaire`).
    - Une liste de **permissions/rôles spécifiques** (ex: `ROLE_CHEF_DEPARTEMENT`, `ROLE_STAGE_MANAGER`).
 
 ### Résolution dynamique et unifiée (`securityStore`)
@@ -45,7 +45,8 @@ Le système utilise deux sources de rôles, appliquées dans cet ordre de priori
 
 1. **Rôles contextuels du département actif** (`StructureDepartementPersonnel.roles`) : rôles métier spécifiques au département dans lequel l'utilisateur est actuellement positionné. Ces rôles sont indexés par clé applicative (`intranet`, `edt`, `helpdesk`, etc.). Seuls les rôles correspondant au bundle actif sont utilisés.
 2. **Fallback sur les rôles globaux du Personnel** (`user.roles`) : utilisé si aucune clé applicative n'est définie pour le bundle courant dans les rôles du département, ou si l'utilisateur n'a pas de département actif.
-3. **Rôles structurels** (`ROLE_SUPER_ADMIN`, `ROLE_PERSONNEL`) : toujours lus depuis `user.roles`, indépendamment du département.
+3. **Rôle structurel global** (`ROLE_PERSONNEL`) : lu depuis `user.roles`.
+4. **Permission super admin** (`SUPER_ADMIN`) : lue depuis `StructureDepartementPersonnel.permissions` du département actif.
 
 ### Détection du bundle actif
 

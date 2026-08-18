@@ -13,7 +13,7 @@ class PermissionResolver
      * and a list of active package names.
      *
      * @param string[] $assignedRoles E.g., ['ROLE_STAGE_MANAGER']
-     * @param string[] $activePackages E.g., ['core', 'stages']
+     * @param string[] $activePackages E.g., ['intranet', 'stages']
      * @return string[] Resolved Symfony roles, e.g. ['ROLE_STAGE_MANAGER', 'ROLE_STAGE_VIEW', ...]
      */
     public function resolve(array $assignedRoles, array $activePackages): array

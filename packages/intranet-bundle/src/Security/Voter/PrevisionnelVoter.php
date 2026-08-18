@@ -5,6 +5,7 @@ namespace IntranetBundle\Security\Voter;
 use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Security\UserEffectivePermissionService;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -34,6 +35,10 @@ class PrevisionnelVoter extends Voter
         self::CAN_DELETE_HRS,
     ];
 
+    public function __construct(
+        private readonly UserEffectivePermissionService $effectivePermissionService
+    ) {}
+
     /**
      * @inheritDoc
      */
@@ -55,7 +60,7 @@ class PrevisionnelVoter extends Voter
             return false;
         }
 
-        // ROLE_SUPER_ADMIN a accès à tout
+        // SUPER_ADMIN a accès à tout
         if ($this->isSuperAdmin($user)) {
             return true;
         }
@@ -79,17 +84,12 @@ class PrevisionnelVoter extends Voter
 
     private function isSuperAdmin(Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && in_array('ROLE_SUPER_ADMIN', $user->getRoles());
+        return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
     private function hasAnyRole(Personnel $user, array $roles): bool
     {
-        foreach ($roles as $role) {
-            if (in_array($role, $user->getRoles())) {
-                return true;
-            }
-        }
-        return false;
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
     }
 
     // ========== Prévisionnel ==========
@@ -102,7 +102,7 @@ class PrevisionnelVoter extends Voter
 
         // Rôles avec accès complet
         if ($this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_DIRECTEUR_ETUDES',
@@ -133,7 +133,7 @@ class PrevisionnelVoter extends Voter
 
         // Rôles avec accès complet
         if ($this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_DIRECTEUR_ETUDES'
@@ -152,7 +152,7 @@ class PrevisionnelVoter extends Voter
     private function canDeletePrevisionnel(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_DIRECTEUR_ETUDES'
@@ -169,7 +169,7 @@ class PrevisionnelVoter extends Voter
 
         // Rôles avec accès complet
         if ($this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_DIRECTEUR_ETUDES',
@@ -187,7 +187,7 @@ class PrevisionnelVoter extends Voter
     private function canEditHrs(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_DIRECTEUR_ETUDES',
@@ -198,7 +198,7 @@ class PrevisionnelVoter extends Voter
     private function canDeleteHrs(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT'
         ]);

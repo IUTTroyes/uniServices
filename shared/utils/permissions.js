@@ -205,7 +205,7 @@ export const ROLE_MAP = {
   isRelaiComm: 'ROLE_RELAI_COMM',
   isEdusign: 'ROLE_EDUSIGN',
   isReferent: 'ROLE_REFERENT',
-  isSuperAdmin: 'ROLE_SUPER_ADMIN'
+  isSuperAdmin: 'SUPER_ADMIN'
 };
 
 export const AVAILABLE_ROLES = [
@@ -224,7 +224,7 @@ export const AVAILABLE_ROLES = [
   { property: 'isRelaiComm', label: 'Relai Communication', role: 'ROLE_RELAI_COMM' },
   { property: 'isEdusign', label: 'Edusign', role: 'ROLE_EDUSIGN' },
   { property: 'isReferent', label: 'Referent', role: 'ROLE_REFERENT' },
-  { property: 'isSuperAdmin', label: 'Super Admin', role: 'ROLE_SUPER_ADMIN' }
+  { property: 'isSuperAdmin', label: 'Super Admin', role: 'SUPER_ADMIN' }
 ];
 
 /**
@@ -251,16 +251,18 @@ function checkSinglePermission(permission, userStore) {
   }
 
   // Si un rôle temporaire est défini, on ignore le statut SuperAdmin pour permettre une impersonnalisation réelle
-  // Sauf si le rôle temporaire lui-même est ROLE_SUPER_ADMIN
-  const isImpersonating = !!userStore.temporaryRole && userStore.temporaryRole !== 'ROLE_SUPER_ADMIN';
+  // Sauf si le rôle temporaire lui-même est SUPER_ADMIN (ou l'ancien ROLE_SUPER_ADMIN pour compatibilité)
+  const isImpersonating = !!userStore.temporaryRole
+    && userStore.temporaryRole !== 'SUPER_ADMIN'
+    && userStore.temporaryRole !== 'ROLE_SUPER_ADMIN';
 
   // SuperAdmin a accès à tout (sauf en mode impersonnalisation)
-  if (security.user?.roles?.includes('ROLE_SUPER_ADMIN') && !isImpersonating) {
+  if (userStore.hasRole('SUPER_ADMIN') && !isImpersonating) {
     return true;
   }
 
   if (permission === 'isQualite') {
-    return security.hasPermission('ROLE_QUALITE') || security.hasPermission('ROLE_SUPER_ADMIN');
+    return security.hasPermission('ROLE_QUALITE') || userStore.hasRole('SUPER_ADMIN');
   }
 
   // Vérifier les permissions basées sur les rôles via la map

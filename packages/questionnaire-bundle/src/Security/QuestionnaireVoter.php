@@ -4,6 +4,7 @@ namespace QuestionnaireBundle\Security;
 
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Security\UserEffectivePermissionService;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
@@ -57,6 +58,10 @@ class QuestionnaireVoter extends Voter
         self::CAN_SUBMIT_ANSWERS,
     ];
 
+    public function __construct(
+        private readonly UserEffectivePermissionService $effectivePermissionService
+    ) {}
+
     /**
      * @inheritDoc
      */
@@ -80,7 +85,7 @@ class QuestionnaireVoter extends Voter
 
         return true; //todo: pour les tests
 
-        // ROLE_SUPER_ADMIN a accès à tout
+        // SUPER_ADMIN a accès à tout
         if ($this->isSuperAdmin($user)) {
             return true;
         }
@@ -119,17 +124,12 @@ class QuestionnaireVoter extends Voter
 
     private function isSuperAdmin(Personnel|Etudiant $user): bool
     {
-        return $user instanceof Personnel && in_array('ROLE_SUPER_ADMIN', $user->getRoles());
+        return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
     private function hasAnyRole(Personnel $user, array $roles): bool
     {
-        foreach ($roles as $role) {
-            if (in_array($role, $user->getRoles())) {
-                return true;
-            }
-        }
-        return false;
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
     }
 
     // ========== Questionnaire ==========
@@ -139,7 +139,7 @@ class QuestionnaireVoter extends Voter
         // Le personnel peut voir tous les questionnaires
         if ($user instanceof Personnel) {
             return $this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_CHEF_DEPT',
                 'ROLE_QUALITE',
@@ -157,7 +157,7 @@ class QuestionnaireVoter extends Voter
     private function canEditQuestionnaire(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_QUALITE',
@@ -168,7 +168,7 @@ class QuestionnaireVoter extends Voter
     private function canDeleteQuestionnaire(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_QUALITE'
         ]);
@@ -177,7 +177,7 @@ class QuestionnaireVoter extends Voter
     private function canPublishQuestionnaire(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_QUALITE'
@@ -195,7 +195,7 @@ class QuestionnaireVoter extends Voter
     private function canEditSection(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_QUALITE',
             'ROLE_RESP_PARCOURS'
@@ -205,7 +205,7 @@ class QuestionnaireVoter extends Voter
     private function canDeleteSection(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_QUALITE'
         ]);
@@ -221,7 +221,7 @@ class QuestionnaireVoter extends Voter
     private function canEditQuestion(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_QUALITE',
             'ROLE_RESP_PARCOURS'
@@ -231,7 +231,7 @@ class QuestionnaireVoter extends Voter
     private function canDeleteQuestion(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_QUALITE'
         ]);
@@ -243,7 +243,7 @@ class QuestionnaireVoter extends Voter
     {
         if ($user instanceof Personnel) {
             return $this->hasAnyRole($user, [
-                'ROLE_SUPER_ADMIN',
+                'SUPER_ADMIN',
                 'ROLE_ADMIN',
                 'ROLE_QUALITE',
                 'ROLE_CHEF_DEPT'
@@ -258,7 +258,7 @@ class QuestionnaireVoter extends Voter
     private function canEditInvitation(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_QUALITE'
         ]);
@@ -267,7 +267,7 @@ class QuestionnaireVoter extends Voter
     private function canDeleteInvitation(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_QUALITE'
         ]);
@@ -278,7 +278,7 @@ class QuestionnaireVoter extends Voter
     private function canViewAnswers(Personnel|Etudiant $user): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
-            'ROLE_SUPER_ADMIN',
+            'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_QUALITE',
             'ROLE_CHEF_DEPT',

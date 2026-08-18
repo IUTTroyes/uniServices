@@ -23,7 +23,6 @@ const isLoadingAnnee = ref(true);
 const isLoadingAnnees = ref(false);
 const page = ref(0);
 const rowOptions = [5, 10, 20, 50];
-
 const limit = ref(rowOptions[0]);
 const offset = computed(() => limit.value * page.value);
 
