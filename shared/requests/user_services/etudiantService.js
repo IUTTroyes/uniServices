@@ -29,7 +29,6 @@ const getEtudiantsService = async (params, scope = '', showToast = false) => {
             'Erreur lors de la récupération des étudiants',
             showToast
         );
-        response.member.totalItems = response.totalItems;
         return response.member;
     } catch (error) {
         console.error('Erreur dans getEtudiants:', error);

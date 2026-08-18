@@ -1,4 +1,5 @@
 import { showSuccess, showDanger } from '@helpers/toast.js'
+import { normalizeCollectionResponse } from '@helpers/collectionResponse.js'
 
 const apiCall = async (serviceMethod, args = [], successMessage = 'Operation Successful', errorMessage = 'An error occurred', showToast = true) => {
   try {
@@ -8,7 +9,17 @@ const apiCall = async (serviceMethod, args = [], successMessage = 'Operation Suc
     } else {
       if (showToast) showDanger(errorMessage)
     }
-    return response.data
+    const data = response.data
+
+    if (
+      Array.isArray(data)
+      || data?.member !== undefined
+      || data?.['hydra:member'] !== undefined
+    ) {
+      return normalizeCollectionResponse(data)
+    }
+
+    return data
   } catch (error) {
     if (showToast) showDanger(error.response?.data?.message || error.message)
     throw error

@@ -17,7 +17,7 @@ const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnnee
 const usersStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
 const personnels = ref()
-const nbPersonnels = ref()
+const nbPersonnels = ref(0)
 const isLoading = ref(true)
 const page = ref(0)
 const rowOptions = [30, 60, 120]
@@ -72,14 +72,8 @@ const getPersonnels = async () => {
       page: page.value + 1,
       filters: filters.value,
     }
-    const paramsCount = {
-      departement: departementId.value,
-      anneeUniversitaire: selectedAnneeUniversitaireId,
-      filters: filters.value
-    }
     personnels.value = await getPersonnelsService(paramsListe, '/liste')
-    nbPersonnels.value = await getPersonnelsService(paramsCount, '/count')
-    nbPersonnels.value = Number.parseInt(String(nbPersonnels.value), 10)
+    nbPersonnels.value = personnels.value?.totalRecords ?? personnels.value?.totalItems ?? personnels.value?.length ?? 0
   } catch(error) {
     console.error('Erreur lors du chargement des personnels:', error)
   } finally {

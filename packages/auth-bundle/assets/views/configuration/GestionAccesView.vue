@@ -11,6 +11,7 @@ const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnnee
 const etablissementStore = useEtablissementStore()
 const etablissement = etablissementStore.etablissement
 const personnels = ref([])
+const totalPersonnels = ref(0)
 const selectedPersonnel = ref(null)
 const accessDialogVisible = ref(false)
 const permissionCatalog = ref({})
@@ -33,6 +34,7 @@ const getPersonnels = async () => {
     }
 
     const response = await getPersonnelsService(params, '/config')
+    totalPersonnels.value = response?.totalRecords ?? response?.totalItems ?? response?.length ?? 0
     personnels.value = response.map((personnel) => ({
       ...personnel,
       packages: flattenUnique(personnel.packages),
@@ -151,7 +153,7 @@ onMounted(async () => {
         :first="offset"
         :rows="limit"
         :rowsPerPageOptions="rowOptions"
-        :totalRecords="personnels.length"
+        :totalRecords="totalPersonnels"
         :loading="isLoading"
         @page="onPageChange($event)"
         @update:rows="limit = $event"

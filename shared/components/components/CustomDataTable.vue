@@ -6,6 +6,7 @@ import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue'
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue'
 import { FilterMatchMode } from '@primevue/core/api'
 import api from '@helpers/axios.js'
+import { normalizeCollectionResponse } from '@helpers/collectionResponse.js'
 
 const props = defineProps({
   columns: {
@@ -62,7 +63,7 @@ const fetchData = async () => {
   const endpoint = props.apiEndpoint.startsWith('/') || props.apiEndpoint.startsWith('http')
     ? props.apiEndpoint
     : '/' + props.apiEndpoint
-  
+
   const params = {
     limit: limit.value,
     offset: offset.value,
@@ -73,11 +74,11 @@ const fetchData = async () => {
   if (props.searchParameter && filters.value.global.value) {
     params[props.searchParameter] = filters.value.global.value
   }
-  
+
   const response = await api.get(endpoint, { params })
-  totalRecords.value = response.data.totalItems ?? response.data['hydra:totalItems'] ?? (Array.isArray(response.data) ? response.data.length : 0)
-  const rawMember = response.data.member ?? response.data['hydra:member'] ?? (Array.isArray(response.data) ? response.data : [])
-  data.value = await rawMember
+  const normalized = normalizeCollectionResponse(response.data)
+  totalRecords.value = normalized.totalRecords
+  data.value = normalized.items
   loading.value = false
 }
 

@@ -32,7 +32,7 @@ class PersonnelFilter extends AbstractFilter
             $departementAlias = $queryNameGenerator->generateJoinAlias('departement');
 
             $queryBuilder
-                ->leftJoin(sprintf('%s.departementPersonnels', $alias), $departementPersonnelAlias)
+                ->leftJoin(sprintf('%s.departementsPersonnel', $alias), $departementPersonnelAlias)
                 ->leftJoin(sprintf('%s.departement', $departementPersonnelAlias), $departementAlias)
                 ->andWhere(sprintf('%s.id = :departement', $departementAlias))
                 ->setParameter('departement', $value);

@@ -154,6 +154,7 @@ const getAbsences = async () => {
       page: page.value + 1,
     }
     absences.value = await getEtudiantAbsencesService(params, '/administration');
+    totalAbsences.value = absences.value?.totalRecords ?? absences.value?.totalItems ?? absences.value?.length ?? 0;
   } catch (error) {
     hasError.value = true;
     console.error("Erreur lors de la récupération des absences :", error);
@@ -174,7 +175,6 @@ const getAbsencesStats = async () => {
     hasError.value = true;
     console.error("Erreur lors de la récupération des statistiques des absences :", error);
   } finally {
-    totalAbsences.value = absencesStats.value.find(stat => stat.title?.toLowerCase().includes('total'))?.value || 0;
     isLoadingAbsencesStats.value = false;
   }
 }
