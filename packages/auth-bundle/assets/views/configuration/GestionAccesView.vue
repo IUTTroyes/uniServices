@@ -43,13 +43,9 @@ const getPersonnels = async () => {
     personnels.value = response.map((personnel, index) => ({
       ...personnel,
       _rowKey: personnel.id ?? personnel.numeroHarpege ?? `${personnel.nom ?? 'personnel'}-${personnel.prenom ?? 'inconnu'}-${index}`,
-      roles: flattenUnique(personnel.roles),
-      packages: flattenUnique(personnel.packages),
-      permissions: flattenUnique(personnel.permissions),
       departements: Array.isArray(personnel.departements)
         ? personnel.departements.map((dept) => ({
             ...dept,
-            roles: flattenUnique(dept.roles),
             packages: flattenUnique(dept.packages),
             permissions: flattenUnique(dept.permissions),
           }))
@@ -137,7 +133,7 @@ watchChanges(async() => {
   <HeaderComponent
     icon="pi pi-lock"
     titre="Gestion des accès"
-    description="Visualisez les rôles et permissions globaux, ainsi que les accès détaillés par département."
+    description="Visualisez et gérez les rôles, permissions et packages par affectation départementale."
   />
 
   <div class="card">
@@ -210,30 +206,6 @@ watchChanges(async() => {
             <InputText size="small" v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par mail"/>
           </template>
         </Column>
-        <Column field="roles" header="Rôles globaux" :sortable="true">
-          <template #body="slotProps">
-            <div class="flex flex-wrap gap-2">
-              <Tag v-if="!slotProps.data.roles?.length" severity="secondary" value="Aucun" />
-              <Tag v-for="role in flattenUnique(slotProps.data.roles)" :key="role" severity="success" :value="role" />
-            </div>
-          </template>
-        </Column>
-        <Column field="packages" header="Packages globaux" :sortable="true">
-          <template #body="slotProps">
-            <div class="flex flex-wrap gap-2">
-              <Tag v-if="!slotProps.data.packages?.length" severity="secondary" value="Aucun" />
-              <Tag v-for="pkg in flattenUnique(slotProps.data.packages)" :key="pkg" severity="info" :value="pkg" />
-            </div>
-          </template>
-        </Column>
-        <Column field="permissions" header="Permissions globales" :sortable="true">
-          <template #body="slotProps">
-            <div class="flex flex-wrap gap-2">
-              <Tag v-if="!slotProps.data.permissions?.length" severity="secondary" value="Aucune" />
-              <Tag v-for="permission in flattenUnique(slotProps.data.permissions)" :key="permission" severity="warn" :value="permission" />
-            </div>
-          </template>
-        </Column>
 <!--        <Column field="departements" header="Départements" :sortable="true">-->
 <!--          <template #body="slotProps">-->
 <!--            <div class="flex flex-wrap gap-2">-->
@@ -274,23 +246,15 @@ watchChanges(async() => {
               responsiveLayout="scroll"
             >
               <Column field="libelle" header="Département" style="min-width: 14rem" />
-              <Column field="roles" header="Rôles par département" style="min-width: 20rem">
+              <Column field="permissions" header="Rôles par département" style="min-width: 24rem">
                 <template #body="{ data }">
                   <div class="flex flex-wrap gap-2">
-                    <Tag v-if="!data.roles?.length" severity="secondary" value="Aucun" />
-                    <Tag v-for="role in flattenUnique(data.roles)" :key="`${data.id ?? data.departementId}-role-${role}`" severity="success" :value="role" />
-                  </div>
-                </template>
-              </Column>
-              <Column field="permissions" header="Permissions par département" style="min-width: 24rem">
-                <template #body="{ data }">
-                  <div class="flex flex-wrap gap-2">
-                    <Tag v-if="!data.permissions?.length" severity="secondary" value="Aucune" />
+                    <Tag v-if="!data.permissions?.length" severity="secondary" value="Aucun" />
                     <Tag
-                      v-for="permission in flattenUnique(data.permissions)"
-                      :key="`${data.id ?? data.departementId}-permission-${permission}`"
-                      severity="warn"
-                      :value="permission"
+                      v-for="role in flattenUnique(data.permissions)"
+                      :key="`${data.id ?? data.departementId}-role-${role}`"
+                      severity="success"
+                      :value="role"
                     />
                   </div>
                 </template>

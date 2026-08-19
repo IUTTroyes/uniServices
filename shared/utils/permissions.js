@@ -265,9 +265,18 @@ function checkSinglePermission(permission, userStore) {
     return security.hasPermission('ROLE_QUALITE') || userStore.hasRole('SUPER_ADMIN');
   }
 
+  // En mode rôle temporaire, SUPER_ADMIN doit suivre le rôle actif simulé
+  if (permission === 'SUPER_ADMIN') {
+    return userStore.hasRole('SUPER_ADMIN');
+  }
+
   // Vérifier les permissions basées sur les rôles via la map
   if (permission in ROLE_MAP) {
-    return security.hasPermission(ROLE_MAP[permission]);
+    const mappedRole = ROLE_MAP[permission];
+    if (mappedRole === 'SUPER_ADMIN') {
+      return userStore.hasRole('SUPER_ADMIN');
+    }
+    return security.hasPermission(mappedRole);
   }
 
   // Vérifier les permissions composites

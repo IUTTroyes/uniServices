@@ -1,6 +1,5 @@
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
-import { useRouter } from 'vue-router';
 import {
     changeDepartementActifService,
     getAllStatutsService,
@@ -16,7 +15,6 @@ export const useUsersStore = defineStore('users', () => {
     // Les informations utilisateur seront récupérées depuis le serveur
     const userId = ref(null);
     const userType = ref(null);
-    const applications = ref([]);
     const user = ref(null);
     const userPhoto = ref([]);
     const departements = ref([]);
@@ -34,6 +32,46 @@ export const useUsersStore = defineStore('users', () => {
     const isAuthInitialized = ref(false);
 
     const anneeUnivStore = useAnneeUnivStore();
+
+    const normalizePackageSlug = (value) => {
+        if (typeof value !== 'string') {
+            return null;
+        }
+
+        const normalized = value.trim().toLowerCase();
+        if (!normalized) {
+            return null;
+        }
+
+        if (normalized === 'unitranet') {
+            return 'intranet';
+        }
+
+        return normalized;
+    };
+
+    const applications = computed(() => {
+        if (userType.value === 'personnels') {
+            const packages = departementDefaut.value?.departementPersonnel?.packages;
+            if (!Array.isArray(packages)) {
+                return ['intranet'];
+            }
+
+            const normalizedPackages = packages
+                .map(normalizePackageSlug)
+                .filter(Boolean);
+
+            return Array.from(new Set(['intranet', ...normalizedPackages]));
+        }
+
+        if (!Array.isArray(user.value?.applications)) {
+            return [];
+        }
+
+        return Array.from(new Set(user.value.applications
+            .map(normalizePackageSlug)
+            .filter(Boolean)));
+    });
 
     const normalizePersonnelDepartements = (items) => {
         if (!Array.isArray(items)) {
@@ -101,7 +139,6 @@ export const useUsersStore = defineStore('users', () => {
             user.value = await getUserService(userType.value, userId.value);
 
             userPhoto.value = noImage;
-            applications.value = user.value.applications || [];
 
             if (userType.value === 'personnels') {
                 const departementStore = useDepartementStore();
@@ -251,21 +288,9 @@ export const useUsersStore = defineStore('users', () => {
         temporaryRole.value = null;
     };
 
-    // Clé applicative déduite dynamiquement depuis la route active de la SPA
+    // Clé applicative déduite dynamiquement depuis l'URL active de la SPA
+    // (ne pas utiliser useRouter/useRoute dans un store)
     const currentAppKey = computed(() => {
-        try {
-            const router = useRouter();
-            if (router && router.currentRoute.value) {
-                const path = router.currentRoute.value.path;
-                const segments = path.split('/').filter(Boolean);
-                if (segments.length > 0) {
-                    return segments[0];
-                }
-            }
-        } catch (e) {
-            // Fallback en dehors du contexte du routeur (ex: chargement initial)
-        }
-
         const pathname = window.location.pathname || '/';
         const segments = pathname.split('/').filter(Boolean);
         if (segments.length > 0) {
@@ -279,12 +304,19 @@ export const useUsersStore = defineStore('users', () => {
     });
 
     // Rôles actifs pour l'application courante dans le département par défaut
-    // Format attendu de departementPersonnel.roles : { "intranet": ["ROLE_X", ...], "edt": [...] }
-    // Supporte aussi le format string unique : { "intranet": "ROLE_X" } (compatibilité BDD legacy)
-    // Si la clé applicative n'existe pas dans les rôles du département, on retombe sur user.roles
+    // Source principale : departementPersonnel.permissions (format actuel)
+    // Compatibilité legacy : departementPersonnel.roles indexé par clé applicative
     const rolesActifs = computed(() => {
         const dp = departementDefaut.value?.departementPersonnel;
         const appKey = currentAppKey.value;
+
+        if (!dp) {
+            return userType.value === 'etudiants' ? ['ROLE_ETUDIANT'] : [];
+        }
+
+        if (Array.isArray(dp.permissions)) {
+            return dp.permissions;
+        }
 
         if (appKey && dp?.roles && typeof dp.roles === 'object') {
             const appRoles = dp.roles[appKey];
@@ -298,16 +330,15 @@ export const useUsersStore = defineStore('users', () => {
             }
         }
 
-        // Fallback : rôles globaux du Personnel/Etudiant
-        return Array.isArray(user.value?.roles) ? user.value.roles : [];
+        return [];
     });
 
     // Vérifie si un rôle spécifique est actif.
     // Priorité :
     //   1. Mode impersonnalisation (temporaryRole) → comportement inchangé
     //   2. SUPER_ADMIN → lu depuis les permissions du département actif
-    //   3. ROLE_PERSONNEL → lu depuis user.roles
-    //   4. Rôles métier → lus depuis rolesActifs (département actif pour l'app courante, sinon user.roles)
+    //   3. ROLE_PERSONNEL/ROLE_ETUDIANT → déduit du type d'utilisateur
+    //   4. Rôles métier → lus depuis rolesActifs (département actif)
     const hasRole = (role) => {
         if (temporaryRole.value) {
             // Correspondance exacte
@@ -330,12 +361,16 @@ export const useUsersStore = defineStore('users', () => {
             return Array.isArray(permissions) ? permissions.includes('SUPER_ADMIN') : false;
         }
 
-        // Rôle structurel global conservé sur user.roles
+        // Rôle structurel déduit du type d'utilisateur
         if (role === 'ROLE_PERSONNEL') {
-            return Array.isArray(user.value?.roles) ? user.value.roles.includes('ROLE_PERSONNEL') : false;
+            return userType.value === 'personnels';
         }
 
-        // Rôles métier : lus depuis le département actif (ou fallback sur user.roles)
+        if (role === 'ROLE_ETUDIANT') {
+            return userType.value === 'etudiants';
+        }
+
+        // Rôles métier : lus depuis le département actif
         return rolesActifs.value.includes(role);
     };
 

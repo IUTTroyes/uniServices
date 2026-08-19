@@ -37,6 +37,12 @@ const onBundleClick = (bundleUrl) => {
   window.location.href = bundleUrl;
 };
 
+const isBundleActivated = (bundle) => {
+  console.log(userStore.applications)
+  console.log('bundle.urlSlug', bundle.urlSlug);
+  return bundle.urlSlug === 'intranet' || userStore.applications.includes(bundle.urlSlug);
+};
+
 const structureDepartementPersonnelId = computed(() => userStore.departementDefaut?.departementPersonnel?.id || null);
 
 const updateWidgetSpan = async (widget, spanType, newValue) => {
@@ -151,8 +157,8 @@ const getWidgets = async () => {
 onMounted(async () => {
   isLoadingBundles.value = true;
   try {
-    activatedBundles.value = tools.filter((bundle) => userStore.user.applications.includes(bundle.urlSlug));
-    unactivatedBundles.value = tools.filter((bundle) => !userStore.user.applications.includes(bundle.urlSlug));
+    activatedBundles.value = tools.filter((bundle) => isBundleActivated(bundle));
+    unactivatedBundles.value = tools.filter((bundle) => !isBundleActivated(bundle));
     // si on a le bundle "intranet" on le place en premier dans le tableau
     if (activatedBundles.value.some((bundle) => bundle.urlSlug === 'intranet')) {
       const intranetBundle = activatedBundles.value.find((bundle) => bundle.urlSlug === 'intranet');

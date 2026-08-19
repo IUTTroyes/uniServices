@@ -106,18 +106,18 @@ const save = () => emit('save')
               </div>
             </Fieldset>
 
-            <Fieldset legend="Permissions">
+            <Fieldset legend="Rôles">
               <template #legend>
                 <div class="flex items-center pl-2">
                   <i class="pi pi-key bg-primary-400/20 rounded-full p-4 text-primary-500"/>
                   <div class="flex flex-col">
-                    <span class="font-bold px-2 capitalize">Permissions</span>
-                    <em class="text-muted-color px-2">Accès aux fonctionnalités</em>
+                    <span class="font-bold px-2 capitalize">Rôles</span>
+                    <em class="text-muted-color px-2">Affectation des rôles par département</em>
                   </div>
                 </div>
               </template>
               <div v-if="Object.keys(props.permissionCatalog || {}).length === 0" class="text-sm text-muted-color">
-                Aucun catalogue de permissions disponible.
+                Aucun catalogue de rôles disponible.
               </div>
               <div v-else>
                 <div v-for="pkg in packageNames" :key="pkg" class="mt-3 first:mt-0">

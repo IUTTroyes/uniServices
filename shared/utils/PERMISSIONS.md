@@ -15,7 +15,7 @@ Ces deux approches utilisent la même logique sous-jacente définie dans le fich
 
 Depuis la refactorisation de la gestion des accès, les droits sont structurés de manière modulaire :
 
-1. **Activation globale des Applications** : Chaque personnel dispose d'une liste d'applications autorisées (`applications` dans le profil). L'application principale **UniTranet** (`intranet`) est toujours activée d'office.
+1. **Activation des Applications par Département** : Pour le personnel, la liste des applications actives provient des `packages` de l'affectation départementale active (`StructureDepartementPersonnel.packages`).
 2. **Droits par Département (Local)** : Dans chaque département d'affectation, l'utilisateur possède :
    - Une liste de **packages actifs** (ex: `intranet`, `stages`, `questionnaire`).
    - Une liste de **permissions/rôles spécifiques** (ex: `ROLE_CHEF_DEPARTEMENT`, `ROLE_STAGE_MANAGER`).
@@ -41,12 +41,11 @@ Le système distingue deux types principaux d'utilisateurs :
 
 ### Hiérarchie des rôles et source des permissions
 
-Le système utilise deux sources de rôles, appliquées dans cet ordre de priorité :
+Le système utilise les rôles/permissions du **département actif** comme source unique pour le personnel :
 
-1. **Rôles contextuels du département actif** (`StructureDepartementPersonnel.roles`) : rôles métier spécifiques au département dans lequel l'utilisateur est actuellement positionné. Ces rôles sont indexés par clé applicative (`intranet`, `edt`, `helpdesk`, etc.). Seuls les rôles correspondant au bundle actif sont utilisés.
-2. **Fallback sur les rôles globaux du Personnel** (`user.roles`) : utilisé si aucune clé applicative n'est définie pour le bundle courant dans les rôles du département, ou si l'utilisateur n'a pas de département actif.
-3. **Rôle structurel global** (`ROLE_PERSONNEL`) : lu depuis `user.roles`.
-4. **Permission super admin** (`SUPER_ADMIN`) : lue depuis `StructureDepartementPersonnel.permissions` du département actif.
+1. **Rôles du département actif** (`StructureDepartementPersonnel.permissions`) : rôles métier spécifiques au département dans lequel l'utilisateur est actuellement positionné.
+2. **Rôle structurel** (`ROLE_PERSONNEL` ou `ROLE_ETUDIANT`) : déduit du type d'utilisateur connecté.
+3. **Permission super admin** (`SUPER_ADMIN`) : lue depuis `StructureDepartementPersonnel.permissions` du département actif.
 
 ### Détection du bundle actif
 
@@ -60,16 +59,13 @@ La clé applicative est déduite automatiquement depuis `import.meta.env.BASE_UR
 | auth-bundle | `/auth/` | `auth` |
 | unifolio-bundle | `/unifolio/` | `unifolio` |
 
-Exemple de structure `roles` dans `StructureDepartementPersonnel` :
+Exemple de structure `permissions` dans `StructureDepartementPersonnel` :
 
 ```json
-{
-  "intranet": ["ROLE_CHEF_DEPARTEMENT", "ROLE_NOTE"],
-  "edt": ["ROLE_EDT"]
-}
+["ROLE_CHEF_DEPARTEMENT", "ROLE_STAGE_MANAGER", "ROLE_EDT"]
 ```
 
-Un personnel connecté sur le bundle intranet aura les rôles `ROLE_CHEF_DEPARTEMENT` et `ROLE_NOTE`. Sur le bundle edt, il n'aura que `ROLE_EDT`.
+Un personnel connecté hérite des rôles définis sur son affectation départementale active.
 
 ### Changement de département
 

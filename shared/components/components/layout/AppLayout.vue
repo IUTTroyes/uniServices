@@ -29,6 +29,8 @@ const props = defineProps({
   }
 });
 
+const currentRoute = useRoute();
+
 const { layoutConfig, layoutState, isSidebarActive, resetMenu } = useLayout();
 const selectedAnneeUniversitaire = computed(
   () => {
@@ -63,8 +65,7 @@ const getPackageFromPath = (path) => {
 };
 
 const computedMenuItems = computed(() => {
-  const currentRoute = useRoute();
-  const pathPkg = getPackageFromPath(currentRoute.path);
+  const pathPkg = getPackageFromPath(currentRoute?.path || '/');
 
   // Find the bundle manifest matching the current package name
   const activeBundle = bundles.find(b => b.name === pathPkg);

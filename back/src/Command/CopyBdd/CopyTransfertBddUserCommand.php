@@ -106,7 +106,6 @@ FOREIGN_KEY_CHECKS=1');
             $personnel->setPhotoName($pers['photo_name']);
             $personnel->setInitiales(substr($pers['initiales'], 0,3));
             $personnel->setOldId($pers['id']);
-            $personnel->setRoles(json_decode($pers['roles'], true) ?? []);
             $personnel->setAnneeUniversitaire($this->tAnneeUniversitaire[$pers['annee_universitaire_id']]);
             $personnel->setEntreprise($pers['entreprise']);
             $personnel->setTelBureau($pers['tel_bureau']);
@@ -123,7 +122,6 @@ FOREIGN_KEY_CHECKS=1');
             $personnel->setResponsabilites($pers['responsabilites']);
             $personnel->setPosteInterne($pers['poste_interne']);
             $personnel->setStatut(StatutEnum::tryFrom($pers['statut']));
-            $personnel->setApplications(['UniTranet']);
 
             // gestion des adresses
             if ($pers['adresse_id'] !== null && $pers['adresse_id'] !== '') {
@@ -365,7 +363,7 @@ FOREIGN_KEY_CHECKS=1');
             $depPers->setDepartement($departementTrouve);
             $depPers->setPersonnel($this->tPersonnels[$persDept['personnel_id']]);
             $depPers->setDefaut((bool)$persDept['defaut']);
-            $depPers->setRoles(['intranet' => json_decode($persDept['roles'], true)] ?? []);
+            $depPers->setPermissions(json_decode($persDept['roles'], true) ?? []);
 
             $this->entityManager->persist($depPers);
             // $this->io->info('Personnel : ' . $this->tPersonnels[$persDept['personnel_id']]->getNom() . ' ajouté au département ' . $departementTrouve->getLibelle());

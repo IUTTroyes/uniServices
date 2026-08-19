@@ -34,12 +34,9 @@ class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
             ->setMailUniv('personnel.user@univ-reims.fr')
             ->setPassword($password)
             ->setStatut(StatutEnum::MCF)
-            ->setRoles(["ROLE_PERMANENT", "ROLE_EDUSIGN", "ROLE_ASSISTANT"])
             ->setPrenom('John')
             ->setNom('DOE')
-            ->setApplications(['UniTranet'])
-            ->setPhotoName('noimage.png')
-            ->setApplications(["UniTranet"]);
+            ->setPhotoName('noimage.png');
         $manager->persist($personnel);
 
         // ----------- SUPERADMIN
@@ -49,10 +46,8 @@ class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
             ->setMailUniv('superadmin@univ-reims.fr')
             ->setPassword($password)
             ->setStatut(StatutEnum::MCF)
-            ->setRoles(["ROLE_PERSONNEL"])
             ->setPrenom('Super')
             ->setNom('ADMIN')
-            ->setApplications(['UniTranet'])
             ->setPhotoName('noimage.png')
         ;
         $manager->persist($superadmin);

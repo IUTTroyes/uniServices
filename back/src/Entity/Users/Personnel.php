@@ -88,10 +88,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
 
-    #[ORM\Column(type: Types::JSON)]
-    #[Groups(['personnel:detail', 'personnel:liste', 'departement_personnel:read', 'personnel:config'])]
-    private array $roles = [];
-
     #[ORM\Column(length: 75)]
     #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
     private string $prenom;
@@ -213,11 +209,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:detail'])]
     private ?array $contraintesEdt = null;
 
-    #[ORM\Column(nullable: true)]
-    #[Groups(['personnel:detail', 'departement_personnel:read', 'personnel:config'])]
-    private ?array $applications = null;
-
-
     /**
      * @var Collection<int, Previsionnel>
      */
@@ -331,14 +322,24 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function getRoles(): array
     {
-        return $this->roles;
-    }
+        $activeDepartementPersonnel = null;
+        foreach ($this->departementsPersonnel as $departementPersonnel) {
+            if ($departementPersonnel->isDefaut()) {
+                $activeDepartementPersonnel = $departementPersonnel;
+                break;
+            }
+        }
 
-    public function setRoles(array $roles): static
-    {
-        $this->roles = $roles;
+        if (null === $activeDepartementPersonnel) {
+            $first = $this->departementsPersonnel->first();
+            $activeDepartementPersonnel = false !== $first ? $first : null;
+        }
 
-        return $this;
+        if (null === $activeDepartementPersonnel) {
+            return [];
+        }
+
+        return array_values(array_unique(array_map('strval', $activeDepartementPersonnel->getPermissions())));
     }
 
     public function getPrenom(): ?string
@@ -772,18 +773,6 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     public function setContraintesEdt(?array $contraintesEdt): static
     {
         $this->contraintesEdt = $contraintesEdt;
-
-        return $this;
-    }
-
-    public function getApplications(): ?array
-    {
-        return $this->applications ?? ['UniTranet'];
-    }
-
-    public function setApplications(?array $applications): static
-    {
-        $this->applications = $applications;
 
         return $this;
     }
