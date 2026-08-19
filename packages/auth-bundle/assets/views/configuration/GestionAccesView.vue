@@ -23,6 +23,7 @@ const rowOptions = [30, 60, 120]
 const limit = ref(rowOptions[0])
 const offset = computed(() => Number(limit.value * page.value))
 const multiSortMeta = ref([])
+const expandedRows = ref({})
 
 const flattenUnique = (values = []) => [...new Set((Array.isArray(values) ? values : []).filter(Boolean))]
 
@@ -39,13 +40,16 @@ const getPersonnels = async () => {
 
     const response = await getPersonnelsService(params, '/config')
     totalPersonnels.value = response?.totalRecords ?? response?.totalItems ?? response?.length ?? 0
-    personnels.value = response.map((personnel) => ({
+    personnels.value = response.map((personnel, index) => ({
       ...personnel,
+      _rowKey: personnel.id ?? personnel.numeroHarpege ?? `${personnel.nom ?? 'personnel'}-${personnel.prenom ?? 'inconnu'}-${index}`,
+      roles: flattenUnique(personnel.roles),
       packages: flattenUnique(personnel.packages),
       permissions: flattenUnique(personnel.permissions),
       departements: Array.isArray(personnel.departements)
         ? personnel.departements.map((dept) => ({
             ...dept,
+            roles: flattenUnique(dept.roles),
             packages: flattenUnique(dept.packages),
             permissions: flattenUnique(dept.permissions),
           }))
@@ -133,7 +137,7 @@ watchChanges(async() => {
   <HeaderComponent
     icon="pi pi-lock"
     titre="Gestion des accès"
-    description="Gérez les affectations, les packages et les permissions d'accès par département."
+    description="Visualisez les rôles et permissions globaux, ainsi que les accès détaillés par département."
   />
 
   <div class="card">
@@ -155,6 +159,8 @@ watchChanges(async() => {
       </Message>
       <DataTable
         :value="personnels"
+        v-model:expandedRows="expandedRows"
+        dataKey="_rowKey"
         lazy
         striped-rows
         class="w-full"
@@ -174,6 +180,7 @@ watchChanges(async() => {
         @page="onPageChange($event)"
         @sort="onSortChange($event)"
         @update:rows="limit = $event">
+        <Column expander style="width: 3rem" />
         <Column field="photo" :showFilterMenu="false" header="" style="min-width: 6rem">
           <template #body="{ data }">
             <PhotoUser :user-photo="data.photoName" class="rounded-full w-14! h-auto border-4 border-gray-300 border-opacity-60 mx-auto"/>
@@ -205,43 +212,92 @@ watchChanges(async() => {
         </Column>
         <Column field="roles" header="Rôles globaux" :sortable="true">
           <template #body="slotProps">
-            <div class="chip-list">
-              <span v-if="!slotProps.data.roles?.length" class="muted-badge">Aucun</span>
-              <span v-for="role in flattenUnique(slotProps.data.roles)" :key="role" class="pill success-pill">{{ role }}</span>
+            <div class="flex flex-wrap gap-2">
+              <Tag v-if="!slotProps.data.roles?.length" severity="secondary" value="Aucun" />
+              <Tag v-for="role in flattenUnique(slotProps.data.roles)" :key="role" severity="success" :value="role" />
             </div>
           </template>
         </Column>
-        <Column field="packages" header="Packages" :sortable="true">
+        <Column field="packages" header="Packages globaux" :sortable="true">
           <template #body="slotProps">
-            <div class="chip-list">
-              <span v-if="!slotProps.data.packages?.length" class="muted-badge">Aucun</span>
-              <span v-for="pkg in flattenUnique(slotProps.data.packages)" :key="pkg" class="pill info-pill">{{ pkg }}</span>
+            <div class="flex flex-wrap gap-2">
+              <Tag v-if="!slotProps.data.packages?.length" severity="secondary" value="Aucun" />
+              <Tag v-for="pkg in flattenUnique(slotProps.data.packages)" :key="pkg" severity="info" :value="pkg" />
             </div>
           </template>
         </Column>
-        <Column field="permissions" header="Permissions" :sortable="true">
+        <Column field="permissions" header="Permissions globales" :sortable="true">
           <template #body="slotProps">
-            <div class="chip-list">
-              <span v-if="!slotProps.data.permissions?.length" class="muted-badge">Aucun</span>
-              <span v-for="permission in flattenUnique(slotProps.data.permissions)" :key="permission" class="pill warning-pill">{{ permission }}</span>
+            <div class="flex flex-wrap gap-2">
+              <Tag v-if="!slotProps.data.permissions?.length" severity="secondary" value="Aucune" />
+              <Tag v-for="permission in flattenUnique(slotProps.data.permissions)" :key="permission" severity="warn" :value="permission" />
             </div>
           </template>
         </Column>
-        <Column field="departements" header="Départements" :sortable="true">
-          <template #body="slotProps">
-            <div class="chip-list">
-              <span v-if="!slotProps.data.departements?.length" class="muted-badge">Aucun</span>
-              <span v-for="dept in slotProps.data.departements" :key="dept.id ?? dept.departementId" class="pill neutral-pill">
-                {{ dept.libelle }}
-              </span>
-            </div>
-          </template>
-        </Column>
+<!--        <Column field="departements" header="Départements" :sortable="true">-->
+<!--          <template #body="slotProps">-->
+<!--            <div class="flex flex-wrap gap-2">-->
+<!--              <Tag v-if="!slotProps.data.departements?.length" severity="secondary" value="Aucun" />-->
+<!--              <Tag v-for="dept in slotProps.data.departements" :key="dept.id ?? dept.departementId" severity="contrast" :value="dept.libelle" />-->
+<!--            </div>-->
+<!--          </template>-->
+<!--        </Column>-->
         <Column header="Actions" :style="{ width: '180px' }">
           <template #body="slotProps">
             <ButtonEdit @click="openAccessDialog(slotProps.data)" tooltip="Modifier les accès"/>
           </template>
         </Column>
+
+        <template #expansion="slotProps">
+          <div class="p-4 bg-surface-50 rounded-xl border border-surface-200">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="m-0 text-base font-semibold">Accès par département</h4>
+              <span class="text-xs uppercase font-bold text-muted-color">
+                {{ slotProps.data.departements?.length ?? 0 }} département(s)
+              </span>
+            </div>
+
+            <Message
+              v-if="!slotProps.data.departements?.length"
+              severity="info"
+              :closable="false"
+              icon="pi pi-info-circle"
+            >
+              Aucun département affecté.
+            </Message>
+
+            <DataTable
+              v-else
+              :value="slotProps.data.departements"
+              striped-rows
+              class="w-full"
+              responsiveLayout="scroll"
+            >
+              <Column field="libelle" header="Département" style="min-width: 14rem" />
+              <Column field="roles" header="Rôles par département" style="min-width: 20rem">
+                <template #body="{ data }">
+                  <div class="flex flex-wrap gap-2">
+                    <Tag v-if="!data.roles?.length" severity="secondary" value="Aucun" />
+                    <Tag v-for="role in flattenUnique(data.roles)" :key="`${data.id ?? data.departementId}-role-${role}`" severity="success" :value="role" />
+                  </div>
+                </template>
+              </Column>
+              <Column field="permissions" header="Permissions par département" style="min-width: 24rem">
+                <template #body="{ data }">
+                  <div class="flex flex-wrap gap-2">
+                    <Tag v-if="!data.permissions?.length" severity="secondary" value="Aucune" />
+                    <Tag
+                      v-for="permission in flattenUnique(data.permissions)"
+                      :key="`${data.id ?? data.departementId}-permission-${permission}`"
+                      severity="warn"
+                      :value="permission"
+                    />
+                  </div>
+                </template>
+              </Column>
+            </DataTable>
+          </div>
+        </template>
       </DataTable>
     </div>
   </div>

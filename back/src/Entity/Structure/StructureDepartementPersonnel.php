@@ -79,7 +79,7 @@ class StructureDepartementPersonnel
     #[Groups(groups: ['departement_personnel:read', 'departement:read', 'departement_personnel:write'])]
     private ?Personnel $personnel = null;
 
-    #[ORM\ManyToOne(inversedBy: 'departementsPersonnel')]
+    #[ORM\ManyToOne(inversedBy: 'departementPersonnels')]
     #[Groups(groups: ['personnel:read', 'departement_personnel:read', 'departement_personnel:write'])]
     private ?StructureDepartement $departement = null;
 
