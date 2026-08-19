@@ -3,6 +3,7 @@
 namespace App\Entity\Users;
 
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -39,6 +40,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PersonnelRepository::class)]
 #[ApiFilter(PersonnelFilter::class, SearchFilter::class, properties: ['structureServices' => 'exact'])]
+#[ApiFilter(OrderFilter::class, properties: ['nom', 'prenom', 'mailUniv'])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['personnel:detail']]),

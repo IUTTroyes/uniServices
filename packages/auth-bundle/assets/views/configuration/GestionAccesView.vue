@@ -1,10 +1,11 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { HeaderComponent, ButtonEdit } from '@components'
+import { HeaderComponent, ButtonEdit, PhotoUser } from '@components'
 import { getPersonnelsService } from '@requests'
 import { useEtablissementStore, useAnneeUnivStore } from '@stores'
 import api from '@helpers/axios'
 import AccessPersonnelDialog from "./components/AccessPersonnelDialog.vue";
+import { usePersonnelFilters } from '@composables/filters/usersFilters/usePersonnelFilters.ts';
 
 const anneeUnivStore = useAnneeUnivStore();
 const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
@@ -21,6 +22,7 @@ const page = ref(0)
 const rowOptions = [30, 60, 120]
 const limit = ref(rowOptions[0])
 const offset = computed(() => Number(limit.value * page.value))
+const multiSortMeta = ref([])
 
 const flattenUnique = (values = []) => [...new Set((Array.isArray(values) ? values : []).filter(Boolean))]
 
@@ -31,6 +33,8 @@ const getPersonnels = async () => {
       anneeUniversitaire: selectedAnneeUniversitaireId.value,
       itemsPerPage: limit.value,
       page: page.value + 1,
+      filters: filters.value,
+      sort: multiSortMeta.value,
     }
 
     const response = await getPersonnelsService(params, '/config')
@@ -60,25 +64,6 @@ const getPermissionCatalog = async () => {
 const openAccessDialog = (personnel) => {
   selectedPersonnel.value = personnel
   accessDialogVisible.value = true
-}
-
-const formatList = (values = []) => {
-  const normalized = flattenUnique(values)
-  if (!normalized.length) return 'Aucun'
-
-  return normalized.map((value) => {
-    const parts = value.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    return parts.join(' ')
-  }).join(', ')
-}
-
-const formatBadgeList = (values = []) => {
-  const normalized = flattenUnique(values)
-  if (!normalized.length) {
-    return '<span class="muted-badge">Aucun</span>'
-  }
-
-  return normalized.map((value) => `<span class="pill">${value}</span>`).join('')
 }
 
 const saveAccess = async () => {
@@ -117,10 +102,31 @@ const onPageChange = async (event) => {
   await getPersonnels()
 }
 
+const onSortChange = async (event) => {
+  multiSortMeta.value = event.multiSortMeta ?? []
+  page.value = 0
+  await getPersonnels()
+}
+
 onMounted(async () => {
   await getPermissionCatalog()
   await getPersonnels()
 })
+
+const FILTERS_DEBOUNCE_MS = 250;
+let filtersDebounceTimeout = null;
+
+//watch filters
+const {filters, watchChanges} = usePersonnelFilters();
+watchChanges(async() => {
+  page.value = 0;
+  if (filtersDebounceTimeout) {
+    clearTimeout(filtersDebounceTimeout);
+  }
+  filtersDebounceTimeout = setTimeout(() => {
+    getPersonnels();
+  }, FILTERS_DEBOUNCE_MS);
+});
 </script>
 
 <template>
@@ -144,24 +150,60 @@ onMounted(async () => {
     </div>
 
     <div class="card-body">
+      <Message severity="info" :closable="false" icon="pi pi-info-circle" class="mb-2">
+      Maintenez Ctrl ou Cmd et cliquez sur plusieurs colonnes pour trier par plusieurs champs à la fois.
+      </Message>
       <DataTable
         :value="personnels"
         lazy
         striped-rows
         class="w-full"
         paginator
+        scrollHeight="80vh"
+        scrollable
+        removableSort
+        sortMode="multiple"
         :first="offset"
         :rows="limit"
         :rowsPerPageOptions="rowOptions"
         :totalRecords="totalPersonnels"
         :loading="isLoading"
+        v-model:filters="filters"
+        :globalFilterFields="['nom', 'prenom', 'mailUniv']"
+        filterDisplay="row"
         @page="onPageChange($event)"
-        @update:rows="limit = $event"
-      >
-        <Column field="nom" header="Nom" sortable />
-        <Column field="prenom" header="Prénom" sortable />
-        <Column field="mailUniv" header="Mail Univ" sortable />
-        <Column field="roles" header="Rôles globaux" sortable>
+        @sort="onSortChange($event)"
+        @update:rows="limit = $event">
+        <Column field="photo" :showFilterMenu="false" header="" style="min-width: 6rem">
+          <template #body="{ data }">
+            <PhotoUser :user-photo="data.photoName" class="rounded-full w-14! h-auto border-4 border-gray-300 border-opacity-60 mx-auto"/>
+          </template>
+        </Column>
+        <Column field="nom" :showFilterMenu="false" header="Nom" :sortable="true">
+          <template #body="{ data }">
+            {{ data.nom }}
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <InputText size="small" v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom"/>
+          </template>
+        </Column>
+        <Column field="prenom" :showFilterMenu="false" header="Prénom" :sortable="true">
+          <template #body="{ data }">
+            {{ data.prenom }}
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <InputText size="small" v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
+          </template>
+        </Column>
+        <Column field="mailUniv" :showFilterMenu="false" header="Mail Univ" :sortable="true">
+          <template #body="{ data }">
+            {{ data.mailUniv }}
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <InputText size="small" v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par mail"/>
+          </template>
+        </Column>
+        <Column field="roles" header="Rôles globaux" :sortable="true">
           <template #body="slotProps">
             <div class="chip-list">
               <span v-if="!slotProps.data.roles?.length" class="muted-badge">Aucun</span>
@@ -169,7 +211,7 @@ onMounted(async () => {
             </div>
           </template>
         </Column>
-        <Column field="packages" header="Packages" sortable>
+        <Column field="packages" header="Packages" :sortable="true">
           <template #body="slotProps">
             <div class="chip-list">
               <span v-if="!slotProps.data.packages?.length" class="muted-badge">Aucun</span>
@@ -177,7 +219,7 @@ onMounted(async () => {
             </div>
           </template>
         </Column>
-        <Column field="permissions" header="Permissions" sortable>
+        <Column field="permissions" header="Permissions" :sortable="true">
           <template #body="slotProps">
             <div class="chip-list">
               <span v-if="!slotProps.data.permissions?.length" class="muted-badge">Aucun</span>
@@ -185,7 +227,7 @@ onMounted(async () => {
             </div>
           </template>
         </Column>
-        <Column field="departements" header="Départements" sortable>
+        <Column field="departements" header="Départements" :sortable="true">
           <template #body="slotProps">
             <div class="chip-list">
               <span v-if="!slotProps.data.departements?.length" class="muted-badge">Aucun</span>

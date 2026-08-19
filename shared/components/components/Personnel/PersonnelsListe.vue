@@ -21,6 +21,7 @@ const nbPersonnels = ref(0)
 const isLoading = ref(true)
 const page = ref(0)
 const rowOptions = [30, 60, 120]
+const multiSortMeta = ref([])
 
 const limit = ref(rowOptions[0])
 const offset = computed(() => Number(limit.value * page.value))
@@ -71,6 +72,7 @@ const getPersonnels = async () => {
       itemsPerPage: limit.value,
       page: page.value + 1,
       filters: filters.value,
+      sort: multiSortMeta.value,
     }
     personnels.value = await getPersonnelsService(paramsListe, '/liste')
     nbPersonnels.value = personnels.value?.totalRecords ?? personnels.value?.totalItems ?? personnels.value?.length ?? 0
@@ -85,6 +87,12 @@ async function onPageChange (event) {
   limit.value = event.rows;
   page.value = event.page;
   await getPersonnels();
+}
+
+const onSortChange = async (event) => {
+  multiSortMeta.value = event.multiSortMeta ?? []
+  page.value = 0
+  await getPersonnels()
 }
 
 const viewPersonnel = (personnel) => {
@@ -108,12 +116,17 @@ const editAccessPersonnel = (personnel) => {
 
 <template>
   <div class="card card-body">
+    <Message severity="info" :closable="false" icon="pi pi-info-circle" class="mb-2">
+      Maintenez Ctrl ou Cmd et cliquez sur plusieurs colonnes pour trier par plusieurs champs à la fois.
+    </Message>
     <DataTable
         :value="personnels"
         v-model:filters="filters"
         lazy
-        scrollHeight="800px"
+        scrollHeight="80vh"
         scrollable
+        removableSort
+        sortMode="multiple"
         stripedRows
         paginator
         :first="offset"
@@ -122,10 +135,11 @@ const editAccessPersonnel = (personnel) => {
         :totalRecords="nbPersonnels"
         dataKey="id" filterDisplay="row" :loading="isLoading"
         @page="onPageChange($event)"
+        @sort="onSortChange($event)"
         @update:rows="limit = $event"
         :globalFilterFields="['nom', 'prenom']">
-      <template #empty> No customers found.</template>
-      <template #isLoading> Loading customers data. Please wait.</template>
+      <template #empty>Aucun personnel trouvé.</template>
+      <template #isLoading>Loading customers data. Please wait.</template>
       <Column field="photo" :showFilterMenu="false" header="" style="min-width: 6rem">
         <template #body="{ data }">
           <PhotoUser :user-photo="data.photoName" class="rounded-full !w-14 h-auto border-4 border-gray-300 border-opacity-60 mx-auto"/>
