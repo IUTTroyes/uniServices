@@ -273,10 +273,7 @@ function checkSinglePermission(permission, userStore) {
   // Vérifier les permissions basées sur les rôles via la map
   if (permission in ROLE_MAP) {
     const mappedRole = ROLE_MAP[permission];
-    if (mappedRole === 'SUPER_ADMIN') {
-      return userStore.hasRole('SUPER_ADMIN');
-    }
-    return security.hasPermission(mappedRole);
+    return userStore.hasRole(mappedRole);
   }
 
   // Vérifier les permissions composites
@@ -284,7 +281,7 @@ function checkSinglePermission(permission, userStore) {
     // Vérifier si l'utilisateur possède l'un des rôles qui accordent cette permission
     return compositePermissions[permission].some(roleKey => {
       const mappedRole = ROLE_MAP[roleKey];
-      return mappedRole ? security.hasPermission(mappedRole) : false;
+      return mappedRole ? userStore.hasRole(mappedRole) : false;
     });
   }
 
