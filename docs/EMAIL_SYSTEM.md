@@ -94,7 +94,7 @@ Dans `packages/mon-bundle/src/Email/`, créer une classe qui étend `AbstractEma
 
 namespace MonBundle\Email;
 
-use App\Services\Email\AbstractEmailDefinition;
+use App\Service\Email\AbstractEmailDefinition;
 
 /**
  * Email envoyé quand une absence est enregistrée pour un étudiant.
@@ -319,7 +319,7 @@ services:
         exclude: '../src/{Entity,Repository,Tests}'
 
     _instanceof:
-        App\Services\Email\AbstractEmailDefinition:
+        App\Service\Email\AbstractEmailDefinition:
             tags: [ 'app.email_definition' ]
 ```
 
@@ -338,7 +338,7 @@ Le tag `app.email_definition` permet à l'`EmailRegistry` de collecter automatiq
 Injectez `EmailService` dans votre service métier :
 
 ```php
-use App\Services\Email\EmailService;
+use App\Service\Email\EmailService;
 use App\Entity\Structure\StructureDepartement;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -460,10 +460,10 @@ Les templates stockés en base de données (personnalisations) sont rendus dans 
 
 | Fichier | Description |
 |---|---|
-| [`back/src/Services/Email/AbstractEmailDefinition.php`](../back/src/Services/Email/AbstractEmailDefinition.php) | Classe abstraite de base |
-| [`back/src/Services/Email/EmailService.php`](../back/src/Services/Email/EmailService.php) | Service d'envoi |
-| [`back/src/Services/Email/EmailTemplateResolver.php`](../back/src/Services/Email/EmailTemplateResolver.php) | Logique de résolution BDD > fichier |
-| [`back/src/Services/Email/EmailRegistry.php`](../back/src/Services/Email/EmailRegistry.php) | Registre global |
+| [`back/src/Services/Email/AbstractEmailDefinition.php`](../back/src/Service/Email/AbstractEmailDefinition.php) | Classe abstraite de base |
+| [`back/src/Services/Email/EmailService.php`](../back/src/Service/Email/EmailService.php) | Service d'envoi |
+| [`back/src/Services/Email/EmailTemplateResolver.php`](../back/src/Service/Email/EmailTemplateResolver.php) | Logique de résolution BDD > fichier |
+| [`back/src/Services/Email/EmailRegistry.php`](../back/src/Service/Email/EmailRegistry.php) | Registre global |
 | [`back/src/Entity/Email/EmailTemplate.php`](../back/src/Entity/Email/EmailTemplate.php) | Entité de personnalisation |
 | [`back/src/Controller/EmailTemplateController.php`](../back/src/Controller/EmailTemplateController.php) | API REST admin |
 | [`back/templates/emails/layout.html.twig`](../back/templates/emails/layout.html.twig) | Layout HTML commun |

@@ -2,7 +2,7 @@
 
 namespace App\Controller\oreof;
 
-use App\Services\OReOF\SynchroRefCompetences;
+use App\Service\OReOF\SynchroRefCompetences;
 use App\Utils\JsonRequest;
 use App\Utils\JsonResponse;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

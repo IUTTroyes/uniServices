@@ -54,14 +54,14 @@ export const useUsersStore = defineStore('users', () => {
         if (userType.value === 'personnels') {
             const packages = departementDefaut.value?.departementPersonnel?.packages;
             if (!Array.isArray(packages)) {
-                return ['intranet'];
+                return [];
             }
 
             const normalizedPackages = packages
                 .map(normalizePackageSlug)
                 .filter(Boolean);
 
-            return Array.from(new Set(['intranet', ...normalizedPackages]));
+            return Array.from(new Set(normalizedPackages));
         }
 
         if (!Array.isArray(user.value?.applications)) {

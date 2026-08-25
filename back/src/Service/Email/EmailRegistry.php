@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Email;
+namespace App\Service\Email;
 
 /**
  * Registre centralisé de toutes les définitions d'emails disponibles dans l'application.

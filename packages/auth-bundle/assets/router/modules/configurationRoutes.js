@@ -160,6 +160,21 @@ export default [
     }
   },
   {
+    path: 'connect',
+    component: () => import('../../views/configuration/ConnectView.vue'),
+    name: 'connect',
+    meta: {
+      permission: 'isReferent',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Connexion avec les outils externes',
+        route: null
+      }]
+    }
+  },
+  {
     path: 'scheduler',
     component: () => import('../../views/configuration/scheduler/ListSchedulerTasks.vue'),
     name: 'scheduler-list',

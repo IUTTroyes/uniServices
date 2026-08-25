@@ -4,7 +4,7 @@ namespace EdtBundle\Controller;
 
 use App\Repository\Edt\EdtProgressionRepository;
 use IntranetBundle\Repository\Previsionnel\PrevisionnelRepository;
-use App\Services\Edt\GenereSlots;
+use App\Service\Edt\GenereSlots;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

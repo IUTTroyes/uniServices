@@ -2,7 +2,7 @@
 
 namespace QuestionnaireBundle\Email;
 
-use App\Services\Email\AbstractEmailDefinition;
+use App\Service\Email\AbstractEmailDefinition;
 
 /**
  * Définition de l'email de rappel pour répondre à un questionnaire.

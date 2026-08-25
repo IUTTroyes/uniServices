@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Email;
+namespace App\Service\Email;
 
 /**
  * Classe abstraite que chaque email de l'application doit étendre.

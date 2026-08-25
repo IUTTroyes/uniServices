@@ -2,7 +2,7 @@
 
 namespace QuestionnaireBundle\Email;
 
-use App\Services\Email\AbstractEmailDefinition;
+use App\Service\Email\AbstractEmailDefinition;
 
 /**
  * Définition de l'email d'invitation à répondre à un questionnaire.

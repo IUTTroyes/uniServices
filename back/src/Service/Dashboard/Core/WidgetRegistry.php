@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Dashboard\Core;
+namespace App\Service\Dashboard\Core;
 
 use App\Domain\Dashboard\WidgetDefinition;
 use App\Domain\Dashboard\WidgetProviderInterface;

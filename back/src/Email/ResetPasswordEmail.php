@@ -2,7 +2,7 @@
 
 namespace App\Email;
 
-use App\Services\Email\AbstractEmailDefinition;
+use App\Service\Email\AbstractEmailDefinition;
 
 /**
  * Définition de l'email de réinitialisation de mot de passe.

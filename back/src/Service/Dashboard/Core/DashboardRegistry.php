@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Dashboard\Core;
+namespace App\Service\Dashboard\Core;
 
 use App\Domain\Dashboard\DashboardDefinitionInterface;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;

@@ -43,8 +43,7 @@ const getPersonnels = async () => {
     personnels.value = response.map((personnel, index) => ({
       ...personnel,
       _rowKey: personnel.id ?? personnel.numeroHarpege ?? `${personnel.nom ?? 'personnel'}-${personnel.prenom ?? 'inconnu'}-${index}`,
-      departements: Array.isArray(personnel.departements)
-        ? personnel.departements.map((dept) => ({
+      departements: Array.isArray(personnel.departements) ? personnel.departements.sort((a, b) => b.defaut - a.defaut).map((dept) => ({
             ...dept,
             packages: flattenUnique(dept.packages),
             permissions: flattenUnique(dept.permissions),

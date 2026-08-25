@@ -2,7 +2,7 @@
 
 namespace QuestionnaireBundle\Command;
 
-use App\Services\Email\EmailService;
+use App\Service\Email\EmailService;
 use QuestionnaireBundle\Entity\Questionnaires\Questionnaire;
 use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireInvitationRepository;
 use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireRepository;

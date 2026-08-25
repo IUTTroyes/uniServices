@@ -4,7 +4,7 @@ namespace App\Domain\Dashboard;
 
 use App\Domain\Dashboard\DashboardDefinitionInterface;
 use App\Domain\Dashboard\DashboardWidgetLayout;
-use App\Services\Dashboard\Core\WidgetRegistry;
+use App\Service\Dashboard\Core\WidgetRegistry;
 
 class PortalDashboardDefinition implements DashboardDefinitionInterface
 {

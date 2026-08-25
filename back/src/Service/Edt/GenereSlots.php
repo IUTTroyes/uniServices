@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Edt;
+namespace App\Service\Edt;
 
 use App\Entity\Edt\EdtEvent;
 use IntranetBundle\Entity\Previsionnel\Previsionnel;

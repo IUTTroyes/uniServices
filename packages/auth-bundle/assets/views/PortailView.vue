@@ -1,10 +1,10 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { TopbarComponent, WidgetCard, GlobalLoader, HeaderComponent } from '@components';
+import { TopbarComponent, WidgetCard, GlobalLoader, HeaderComponent, PermissionGuard } from '@components';
 import { tools } from '@config/uniServices.js';
 import { getWidgetDataByCodeService, getWidgetsCatalogService, updateDashboardWidgetLayoutService } from '@requests';
-import { useUsersStore, useAnneeUnivStore } from "@stores";
+import { useUsersStore, useAnneeUnivStore, useEtablissementStore } from "@stores";
 import { formatDateLong } from "@helpers/date";
 
 const router = useRouter();
@@ -12,6 +12,8 @@ const route = useRoute();
 const userStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
 const date = new Date();
+const etablissementStore = useEtablissementStore();
+const departement = userStore.departementDefaut;
 
 defineProps({
   appName: {
@@ -32,15 +34,14 @@ const widgets = ref([]);
 const isLoadingWidgets = ref(false);
 const widgetData = ref({});
 const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
+const etablissement = ref([]);
 
 const onBundleClick = (bundleUrl) => {
   window.location.href = bundleUrl;
 };
 
 const isBundleActivated = (bundle) => {
-  console.log(userStore.applications)
-  console.log('bundle.urlSlug', bundle.urlSlug);
-  return bundle.urlSlug === 'intranet' || userStore.applications.includes(bundle.urlSlug);
+  return userStore.applications.includes(bundle.urlSlug);
 };
 
 const structureDepartementPersonnelId = computed(() => userStore.departementDefaut?.departementPersonnel?.id || null);
@@ -157,6 +158,9 @@ const getWidgets = async () => {
 onMounted(async () => {
   isLoadingBundles.value = true;
   try {
+    etablissement.value = await etablissementStore.etablissement;
+    console.log(etablissement.value)
+
     activatedBundles.value = tools.filter((bundle) => isBundleActivated(bundle));
     unactivatedBundles.value = tools.filter((bundle) => !isBundleActivated(bundle));
     // si on a le bundle "intranet" on le place en premier dans le tableau
@@ -196,17 +200,23 @@ watch(() => route.path, async (newPath, oldPath) => {
               <div class="text-md font-semibold text-color-secondary uppercase">Applications</div>
               <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
               <div v-else class="flex flex-col">
-                <Button
-                    v-for="bundle in activatedBundles"
-                    :key="bundle.urlSlug"
-                    type="button"
-                    text
-                    rounded
-                    class="justify-start! text-left font-semibold"
-                    @click="onBundleClick(bundle.url)"
-                >
-                  {{ bundle.name }}
-                </Button>
+                <template v-if="activatedBundles.length > 0">
+                  <Button
+                      v-for="bundle in activatedBundles"
+                      :key="bundle.urlSlug"
+                      type="button"
+                      text
+                      rounded
+                      class="justify-start! text-left font-semibold"
+                      @click="onBundleClick(bundle.url)"
+                  >
+                    {{ bundle.name }}
+                  </Button>
+                </template>
+                <Message v-else severity="warn" class="flex! flex-col! items-center! justify-center! text-center!">
+                  <i class="pi pi-exclamation-triangle text-2xl! font-bold" />
+                  <p class="font-bold">Vos accès aux applications n'ont pas été configurés. Veuillez contacter votre administrateur pour plus d'informations.</p>
+                </Message>
               </div>
             </div>
             <div v-if="userStore.isSuperAdmin" class="flex flex-col gap-4">
@@ -248,7 +258,7 @@ watch(() => route.path, async (newPath, oldPath) => {
           <div class="h-full overflow-y-auto">
             <HeaderComponent
                 icon="pi pi-home"
-                titre="Portail"
+                :titre="`Portail - ${departement.libelle}`"
                 description="Accédez à vos applications et personnalisez votre tableau de bord"
             />
             <div v-if="!userStore.isLoading" class="flex items-center justify-between mb-4">
@@ -274,6 +284,104 @@ watch(() => route.path, async (newPath, oldPath) => {
                   <div class="text-sm text-color-secondary">Personnalisez vos widgets.</div>
                 </div>
                 <Button icon="pi pi-cog" label="Configurer" size="small" @click="router.push({name: 'PortailDashboardWidgetsConfig', params: {bundle: 'portail'}})"/>
+              </div>
+            </div>
+            <div class="flex justify-between mb-4 gap-4">
+              <div class="card w-2/3">
+                <header class="card-header flex justify-between items-center w-full">
+                  <div class="flex flex-col items-start">
+                    <h2 class="m-0! text-xl!">
+                      <i class="pi pi-link text-primary"></i> Liens utiles
+                    </h2>
+                  </div>
+                  <PermissionGuard permission="isSuperAdmin">
+                    <Button severity="primary" size="small" icon="pi pi-pencil" label="Modifier"/>
+                  </PermissionGuard>
+                </header>
+                <div class="card-body flex items-start justify-around gap-4">
+                  <div class="w-full flex flex-col items-center justify-center bg-surface-200/20 rounded-md p-2">
+                    <i class="pi pi-book text-2xl! text-primary"></i>
+                    <div class="font-bold">Documentation</div>
+                    <Button severity="primary" size="small" icon="pi pi-external-link" label="Accéder"/>
+                  </div>
+                  <div class="w-full flex flex-col items-center justify-center bg-surface-200/20 rounded-md p-2">
+                    <i class="pi pi-crown text-2xl! text-primary"></i>
+                    <div class="font-bold">Site de l'URCA</div>
+                    <Button severity="primary" size="small" icon="pi pi-external-link" label="Accéder"/>
+                  </div>
+                  <div class="w-full flex flex-col items-center justify-center bg-surface-200/20 rounded-md p-2">
+                    <i class="pi pi-building-columns text-2xl! text-primary"></i>
+                    <div class="font-bold">Site de l'IUT</div>
+                    <Button severity="primary" size="small" icon="pi pi-external-link" label="Accéder"/>
+                  </div>
+                </div>
+              </div>
+              <div class="card w-1/3">
+                <header class="card-header flex justify-between items-center w-full">
+                  <div class="flex flex-col items-start">
+                    <h2 class="m-0! text-xl!"><i class="pi pi-users text-primary"></i> Contacts</h2>
+                  </div>
+                  <Button severity="primary" size="small" icon="pi pi-plus" label="Voir plus"/>
+                </header>
+                <div class="card-body flex items-start justify-around gap-4">
+                  <div class="w-full flex flex-col items-center justify-center">
+                    <p class="uppercase text-xs font-bold mb-0! text-muted-color">département</p>
+                    <div class="font-bold">Chef de département</div>
+                    <div>
+                      JOHN DOE
+                    </div>
+                    <div class="text-sm text-muted-color">
+                      john.doe@univ-reims.fr
+                    </div>
+                  </div>
+                  <div class="w-full flex flex-col items-center justify-center">
+                    <p class="uppercase text-xs font-bold mb-0! text-muted-color">département</p>
+                    <div class="font-bold">Support administratif</div>
+                    <div>
+                      JOHN DOE
+                    </div>
+                    <div class="text-sm text-muted-color">
+                      john.doe@univ-reims.fr
+                    </div>
+                  </div>
+                  <div class="w-full flex flex-col items-center justify-center">
+                    <p class="uppercase text-xs font-bold mb-0! text-muted-color">établissement</p>
+                    <div class="font-bold">Support technique</div>
+                    <div>
+                      CYNDEL HEROLT
+                    </div>
+                    <div class="text-sm text-muted-color">
+                      cyndel.herolt@univ-reims.fr
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="flex justify-between mb-4 gap-4">
+              <div class="card w-1/2">
+                <header class="card-header flex justify-between items-center w-full">
+                  <div>
+                    <div class="flex flex-col items-start">
+                      <h2 class="m-0! text-xl!">
+                        <i class="pi pi-calendar text-primary"></i> Actualités de {{etablissement.libelle}}
+                      </h2>
+                    </div>
+                  </div>
+                </header>
+                <div class="card-body">
+                  HELLO
+                </div>
+              </div>
+              <div class="card w-1/2">
+                <header class="card-header flex justify-between items-center w-full">
+                  <div class="flex flex-col items-start">
+                    <h2 class="m-0! text-xl!"><i class="pi pi-calendar-clock text-primary"></i> Actualités du département {{departement.libelle}}</h2>
+                  </div>
+                  <Button severity="primary" size="small" icon="pi pi-plus" label="Ajouter des éléments"/>
+                </header>
+                <div class="card-body">
+                  HELLO
+                </div>
               </div>
             </div>
             <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>

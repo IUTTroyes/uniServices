@@ -2,10 +2,8 @@
 
 namespace App\Security;
 
-use App\Entity\Edt\EdtContraintesSemestre;
-use App\Entity\Edt\EdtCreneauxInterditsSemaine;
+
 use App\Entity\Edt\EdtEvent;
-use App\Entity\Edt\EdtProgression;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;

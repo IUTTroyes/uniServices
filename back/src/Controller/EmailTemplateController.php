@@ -6,7 +6,7 @@ use App\Entity\Email\EmailTemplate;
 use App\Entity\Structure\StructureDepartement;
 use App\Repository\Email\EmailTemplateRepository;
 use App\Repository\Structure\StructureDepartementRepository;
-use App\Services\Email\EmailRegistry;
+use App\Service\Email\EmailRegistry;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;

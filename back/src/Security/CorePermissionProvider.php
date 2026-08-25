@@ -7,7 +7,7 @@ class CorePermissionProvider implements PermissionProviderInterface
     public function getPermissions(): array
     {
         return [
-            new PermissionDefinition('intranet.super_admin', 'SUPER_ADMIN', 'Super administrateur', 'intranet', ['ROLE_ADMIN']),
+            new PermissionDefinition('intranet.permanent', 'SUPER_ADMIN', 'Super Administrateur', 'intranet', []),
             new PermissionDefinition('intranet.admin', 'ROLE_ADMIN', 'Administrateur', 'intranet', [
                 'ROLE_DIRECTION',
                 'ROLE_CHEF_DEPARTEMENT',

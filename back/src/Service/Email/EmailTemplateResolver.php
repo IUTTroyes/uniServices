@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Email;
+namespace App\Service\Email;
 
 use App\Entity\Email\EmailTemplate;
 use App\Entity\Structure\StructureDepartement;

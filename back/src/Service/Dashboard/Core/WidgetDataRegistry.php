@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Dashboard\Core;
+namespace App\Service\Dashboard\Core;
 
 use App\Domain\Dashboard\WidgetDataProviderInterface;
 use App\Entity\Users\Personnel;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\OReOF;
+namespace App\Service\OReOF;
 
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Apc\ApcCompetence;
