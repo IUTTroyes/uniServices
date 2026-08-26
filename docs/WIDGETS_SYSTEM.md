@@ -167,3 +167,39 @@ Vérifier dans cet ordre :
 - **Shell**: exécute `registerAllBundleWidgets()` au démarrage
 - **Bundle**: enregistre ses composants via `registerWidgets`
 - **Shared**: résout le composant et gère le fallback avec `DefaultWidget`
+
+### Charger les services du bundle (important)
+
+Après avoir ajouté les fichiers frontend (`assets/manifest.ts`, `assets/widgets/registerWidgets.js`) et les providers backend, s'assurer que le bundle charge son `services.yaml`. Si l'extension du bundle ne charge pas `services.yaml`, les providers backend (par ex. WidgetProvider) ne seront pas taggés et leurs widgets n'apparaîtront pas dans le `WidgetRegistry`.
+
+Exemple d'Extension (packages/<votre-bundle>/src/DependencyInjection/YourBundleExtension.php) :
+
+```php
+use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\Loader\YamlFileLoader;
+
+$loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
+$loader->load('routes.yaml');
+$loader->load('services.yaml');
+```
+
+Vérifier également que `services.yaml` tagge correctement les providers, p.ex. :
+
+```yaml
+_instanceof:
+  App\Domain\Dashboard\WidgetProviderInterface:
+    tags: ['app.dashboard.widget_provider']
+```
+
+Après modification : vider le cache et redémarrer le serveur :
+
+```
+php bin/console cache:clear && symfony server:restart
+```
+
+Si le widget reste absent, vérifier l'API `/api/widgets/available/<dashboardCode>` et lister les services taggés :
+
+```
+php bin/console debug:container --tag=app.dashboard.widget_provider
+```
+

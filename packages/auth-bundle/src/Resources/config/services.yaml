@@ -1,0 +1,21 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  _instanceof:
+    App\Domain\Dashboard\WidgetProviderInterface:
+      tags: ["app.dashboard.widget_provider"]
+    App\Domain\Dashboard\WidgetDataProviderInterface:
+      tags: ["app.dashboard.widget_data_provider"]
+    App\Domain\Dashboard\DashboardDefinitionInterface:
+      tags:
+        - app.dashboard.definition
+    App\Service\Email\AbstractEmailDefinition:
+      tags: [ 'app.email_definition' ]
+
+  IntranetBundle\:
+    resource: "../../"
+    exclude:
+      - "../../Entity/"
+      - "../../IntranetBundle.php"
