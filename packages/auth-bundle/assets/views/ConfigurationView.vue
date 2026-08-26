@@ -16,7 +16,6 @@ const panelMenuUserItems = [
 const panelMenuItems = [
   { label: 'Années Universitaires', icon: 'pi pi-clock', route: '/auth/configuration/annees-universitaires' },
   { label: 'Documentation des Composants', icon: 'pi pi-palette', route: '/auth/configuration/styleguide' },
-  { label: 'Connexion avec des outils tiers', icon: 'pi pi-arrow-right-arrow-left', route: '/auth/configuration/connect' },
 ]
 
 const panelMenuCommunicationItems = computed(() => {

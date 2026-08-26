@@ -13,5 +13,6 @@ class AuthExtension extends Extension
     {
         $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('routes.yaml');
+        $loader->load('services.yaml');
     }
 }

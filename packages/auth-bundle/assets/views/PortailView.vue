@@ -3,7 +3,7 @@ import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { TopbarComponent, WidgetCard, GlobalLoader, HeaderComponent, PermissionGuard } from '@components';
 import { tools } from '@config/uniServices.js';
-import { getWidgetDataByCodeService, getWidgetsCatalogService, updateDashboardWidgetLayoutService } from '@requests';
+import { getWidgetDataByCodeService, getWidgetsCatalogService, updateDashboardWidgetLayoutService, getActualitesService } from '@requests';
 import { useUsersStore, useAnneeUnivStore, useEtablissementStore } from "@stores";
 import { formatDateLong } from "@helpers/date";
 
@@ -286,7 +286,23 @@ watch(() => route.path, async (newPath, oldPath) => {
                 <Button icon="pi pi-cog" label="Configurer" size="small" @click="router.push({name: 'PortailDashboardWidgetsConfig', params: {bundle: 'portail'}})"/>
               </div>
             </div>
-            <div class="flex justify-between mb-4 gap-4">
+            <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>
+            <div v-else class="dashboard-grid">
+              <WidgetCard
+                  v-for="widget in widgets"
+                  :key="widget.code"
+                  :widget="widget"
+                  :data="widgetData[widget.code]"
+                  :first="widget.position == 0 ? true : false"
+                  :last="widget.position == widgets.length - 1 ? true : false"
+                  @move="moveWidget"
+                  @updateSpan="updateWidgetSpan"
+                  @toggle="toggleWidget"
+                  :is-portail = true
+              />
+            </div>
+
+            <div class="flex justify-between mt-4 gap-4">
               <div class="card w-2/3">
                 <header class="card-header flex justify-between items-center w-full">
                   <div class="flex flex-col items-start">
@@ -356,48 +372,6 @@ watch(() => route.path, async (newPath, oldPath) => {
                   </div>
                 </div>
               </div>
-            </div>
-            <div class="flex justify-between mb-4 gap-4">
-              <div class="card w-1/2">
-                <header class="card-header flex justify-between items-center w-full">
-                  <div>
-                    <div class="flex flex-col items-start">
-                      <h2 class="m-0! text-xl!">
-                        <i class="pi pi-calendar text-primary"></i> Actualités de {{etablissement.libelle}}
-                      </h2>
-                    </div>
-                  </div>
-                </header>
-                <div class="card-body">
-                  HELLO
-                </div>
-              </div>
-              <div class="card w-1/2">
-                <header class="card-header flex justify-between items-center w-full">
-                  <div class="flex flex-col items-start">
-                    <h2 class="m-0! text-xl!"><i class="pi pi-calendar-clock text-primary"></i> Actualités du département {{departement.libelle}}</h2>
-                  </div>
-                  <Button severity="primary" size="small" icon="pi pi-plus" label="Ajouter des éléments"/>
-                </header>
-                <div class="card-body">
-                  HELLO
-                </div>
-              </div>
-            </div>
-            <GlobalLoader v-if="isLoadingWidgets" text="Chargement des widgets..."/>
-            <div v-else class="dashboard-grid">
-              <WidgetCard
-                  v-for="widget in widgets"
-                  :key="widget.code"
-                  :widget="widget"
-                  :data="widgetData[widget.code]"
-                  :first="widget.position == 0 ? true : false"
-                  :last="widget.position == widgets.length - 1 ? true : false"
-                  @move="moveWidget"
-                  @updateSpan="updateWidgetSpan"
-                  @toggle="toggleWidget"
-                  :is-portail = true
-              />
             </div>
           </div>
         </section>

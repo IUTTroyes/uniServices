@@ -43,5 +43,3 @@ export * from './structure_services/serviceService.js'
 
 
 export * from './dashboardService.js';
-
-export * from './external_tools_config_services/toolConfigService';

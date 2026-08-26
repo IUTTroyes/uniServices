@@ -42,7 +42,9 @@ class RssController extends AbstractController
     #[Route('/api/actualites', name: 'app_rss_actus')]
     public function getActus(): Response
     {
-        $actus = $this->loadRss('https://www.univ-reims.fr/iut-troyes/service/rss/getRss.php?type=news');
+        // récupérer l'url depuis .env
+        $actus_url=$_ENV['URL_ACTUS'];
+        $actus = $this->loadRss($actus_url);
         $data = [];
         if ($actus && isset($actus->channel->item)) {
             $count = 0;

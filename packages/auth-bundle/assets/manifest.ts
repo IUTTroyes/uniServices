@@ -6,6 +6,7 @@ import ResetPasswordView from "./views/ResetPasswordView.vue";
 import ResetPasswordConfirmView from "./views/ResetPasswordConfirmView.vue";
 import LogoIut from "@images/logo/logo_iut.png";
 import LayoutComponent from '@components/components/layout/AppLayout.vue';
+import { registerWidgets } from './widgets/registerWidgets';
 
 const authMenu = {
   label: 'Mon Espace',
@@ -18,6 +19,7 @@ const authMenu = {
 export default {
   name: 'auth',
   primaryColor: 'yellow',
+  registerWidgets,
   routes: [
     {
       path: '/auth',

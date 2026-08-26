@@ -37,12 +37,11 @@ const getBundleWidgets = async () => {
   const params = {
     structureDepartementPersonnelId: structureDepartementPersonnelId.value
   };
-  console.log(bundle.value);
   const response = await getWidgetsAvailableService(bundle.value, params);
   widgets.value = response.widgets || [];
+  console.log(widgets.value)
   loading.value = false;
 
-  console.log(widgets.value);
 }
 
 const updateWidget = async (widget) => {
@@ -54,8 +53,7 @@ const updateWidget = async (widget) => {
     structureDepartementPersonnelId: structureDepartementPersonnelId.value
   };
 
-  const response = await updateDashboardWidgetLayoutService(widget.key, payload, params);
-  console.log(response);
+  await updateDashboardWidgetLayoutService(widget.key, payload, params);
 
   await getBundleWidgets();
   saving.value[widget.key] = false;

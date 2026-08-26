@@ -1,10 +1,8 @@
 import { registerWidgetComponent } from '@components';
-import PortfolioToCorrectWidget from './widgets/PortfolioToCorrectWidget.vue';
-import PortfolioProgressWidget from './widgets/PortfolioProgressWidget.vue';
-import PortfolioAlertsWidget from './widgets/PortfolioAlertsWidget.vue';
+import ExtActusWidget from './widgets/ExtActusWidget.vue';
+import IntActusWidget from './widgets/IntActusWidget.vue';
 
 export const registerWidgets = () => {
-    registerWidgetComponent('PortfolioToCorrectWidget', PortfolioToCorrectWidget);
-    registerWidgetComponent('PortfolioProgressWidget', PortfolioProgressWidget);
-    registerWidgetComponent('PortfolioAlertsWidget', PortfolioAlertsWidget);
+    registerWidgetComponent('ExtActusWidget', ExtActusWidget);
+    registerWidgetComponent('IntActusWidget', IntActusWidget);
 };
