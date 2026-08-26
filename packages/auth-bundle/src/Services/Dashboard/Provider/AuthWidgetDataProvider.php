@@ -3,14 +3,19 @@
 namespace AuthBundle\Services\Dashboard\Provider;
 
 use App\Domain\Dashboard\WidgetDataProviderInterface;
+use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Users\Personnel;
+use App\Repository\DepartementActualiteRepository;
 use App\Repository\Edt\EdtEventRepository;
+use App\Repository\Structure\StructureDepartementPersonnelRepository;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AuthWidgetDataProvider implements WidgetDataProviderInterface
 {
     public function __construct(
-        private readonly HttpClientInterface $httpClient
+        private readonly HttpClientInterface $httpClient,
+        private readonly StructureDepartementPersonnelRepository $structureDepartementPersonnelRepository,
+        private readonly DepartementActualiteRepository $departementActualiteRepository,
     ) {
     }
 
@@ -23,30 +28,18 @@ class AuthWidgetDataProvider implements WidgetDataProviderInterface
     {
         return match ($code) {
             'auth.actus_ext' => $this->getActusExt(),
-            'auth.actus_int' => $this->getActusInt(),
+            'auth.actus_int' => $this->getActusInt($user),
             default => [],
         };
     }
 
-    private function getActusInt(): array
+    private function getActusInt(Personnel $user): array
     {
+        $departement = $this->structureDepartementPersonnelRepository->findOneBy(['personnel' => $user])->getDepartement();
+        $actus = $this->departementActualiteRepository->findBy(['departement' => $departement]);
+
         // Implementation for getting internal news data
-        return [
-            [
-                'title' => 'Internal News',
-                'description' => 'This is a placeholder for internal news data.',
-                'link' => '#',
-                'pubDate' => (new \DateTime())->format('D, d M Y H:i:s O'),
-                'image' => '',
-            ],
-            [
-                'title' => 'Another Internal News',
-                'description' => 'This is another placeholder for internal news data.',
-                'link' => '#',
-                'pubDate' => (new \DateTime())->format('D, d M Y H:i:s O'),
-                'image' => '',
-            ]
-        ];
+        return $actus;
     }
 
     private function getActusExt(): array

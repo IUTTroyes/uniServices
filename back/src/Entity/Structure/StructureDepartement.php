@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcReferentiel;
+use App\Entity\DepartementActualite;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -105,6 +106,12 @@ class StructureDepartement
     #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'departement')]
     private Collection $scolarites;
 
+    /**
+     * @var Collection<int, DepartementActualite>
+     */
+    #[ORM\OneToMany(targetEntity: DepartementActualite::class, mappedBy: 'departement', orphanRemoval: true)]
+    private Collection $departementActualites;
+
     public function __construct()
     {
         $this->diplomes = new ArrayCollection();
@@ -112,6 +119,7 @@ class StructureDepartement
         $this->setOpt([]);
         $this->referentiels = new ArrayCollection();
         $this->scolarites = new ArrayCollection();
+        $this->departementActualites = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -332,6 +340,36 @@ class StructureDepartement
             // set the owning side to null (unless already changed)
             if ($scolarite->getDepartement() === $this) {
                 $scolarite->setDepartement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, DepartementActualite>
+     */
+    public function getDepartementActualites(): Collection
+    {
+        return $this->departementActualites;
+    }
+
+    public function addDepartementActualite(DepartementActualite $departementActualite): static
+    {
+        if (!$this->departementActualites->contains($departementActualite)) {
+            $this->departementActualites->add($departementActualite);
+            $departementActualite->setDepartement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDepartementActualite(DepartementActualite $departementActualite): static
+    {
+        if ($this->departementActualites->removeElement($departementActualite)) {
+            // set the owning side to null (unless already changed)
+            if ($departementActualite->getDepartement() === $this) {
+                $departementActualite->setDepartement(null);
             }
         }
 
