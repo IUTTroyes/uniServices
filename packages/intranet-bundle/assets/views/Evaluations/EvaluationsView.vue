@@ -11,7 +11,7 @@ import {
   getAnneesService
 } from '@requests';
 import {useUsersStore, useAnneeStore, useAnneeUnivStore} from '@stores';
-import {PermissionGuard, SimpleSkeleton, ListSkeleton, HeaderComponent} from '@components';
+import {PermissionGuard, SimpleSkeleton, ListSkeleton, HeaderComponent, Kpi} from '@components';
 import EvaluationForm from "@/components/Evaluation/EvaluationForm.vue";
 import EvaluationSaisieNotesForm from "@/components/Evaluation/EvaluationSaisieNotesForm.vue";
 import EvaluationListeInitForm from "../../components/Evaluation/EvaluationListeInitForm.vue";

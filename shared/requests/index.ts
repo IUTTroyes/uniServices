@@ -43,3 +43,5 @@ export * from './structure_services/serviceService.js'
 
 
 export * from './dashboardService.js';
+
+export * from './actu_services/actualiteService.js'

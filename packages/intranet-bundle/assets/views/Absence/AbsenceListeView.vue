@@ -1,6 +1,6 @@
 <script setup>
 import {computed, onMounted, ref, watch} from "vue";
-import {SimpleSkeleton, HeaderComponent, EdtEventRow, ButtonInfo, ButtonEdit, ButtonDelete} from "@components";
+import {SimpleSkeleton, HeaderComponent, EdtEventRow, ButtonInfo, ButtonEdit, ButtonDelete, Kpi} from "@components";
 import {useAnneeStore, useSemestreStore, useUsersStore} from "@stores";
 import {getAnneeService, getSemestresService, getEtudiantAbsencesService, deleteEtudiantAbsenceService} from "@requests";
 import {useRoute, useRouter} from "vue-router";
@@ -324,12 +324,12 @@ const onPageChange = async event => {
 
   <div class="flex justify-around items-center mb-12">
     <div v-for="stat in absencesStats" :key="stat.title" class="card w-1/5 flex items-center justify-center flex-col">
-      <div class="font-bold text-lg card-header text-center">{{ stat.title }}</div>
-      <div class="flex items-center gap-2 card-body">
-        <i :class="[stat.icon, `text-${stat.color}`]" class="text-3xl!"></i>
-        <SimpleSkeleton v-if="isLoadingAbsencesStats" class="w-1/2"/>
-        <span v-else :class="`text-${stat.color}`" class="text-4xl font-extrabold">{{ stat.value }}</span>
-      </div>
+      <Kpi
+          :label="stat.title"
+          :value="stat.value"
+          :icon="stat.icon"
+          :color="stat.color"
+      />
     </div>
   </div>
 

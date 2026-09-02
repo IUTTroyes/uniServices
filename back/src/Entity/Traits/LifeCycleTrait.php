@@ -2,6 +2,7 @@
 
 namespace App\Entity\Traits;
 
+use ApiPlatform\Metadata\ApiProperty;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
@@ -12,11 +13,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
 trait LifeCycleTrait
 {
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-    #[Groups(['questionnaire:read','ticket:read', 'absence:administration'])]
+    #[Groups(['questionnaire:read','ticket:read', 'absence:administration', 'actu:read'])]
+    #[ApiProperty(writable: false)]
     private ?CarbonImmutable $created = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
-    #[Groups(['questionnaire:read', 'absence:administration'])]
+    #[Groups(['questionnaire:read', 'absence:administration', 'actu:read'])]
+    #[ApiProperty(writable: false)]
     private ?CarbonInterface $updated = null;
 
     public function getCreated(): ?CarbonImmutable

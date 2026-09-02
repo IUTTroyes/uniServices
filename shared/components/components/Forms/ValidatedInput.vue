@@ -303,16 +303,26 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
           :disabled="disabled"
         />
 
-        <RadioButton
-            v-else-if="type === 'radio'"
-            :inputId="`${name}-${value}`"
-            :name="name"
-            :modelValue="modelValue"
-            :value="value"
-            :class="[inputClass, { 'p-invalid': showError }]"
-            @update:modelValue="updateModelValue"
-            @change="e => onBlurModelValue(e, handleBlur)"
-        />
+        <div v-else-if="type === 'radio'" class="flex flex-col gap-2">
+          <div
+              v-for="option in options"
+              :key="option.value"
+              class="flex items-center gap-2"
+          >
+            <RadioButton
+                :inputId="`${name}-${option.value}`"
+                :name="name"
+                :modelValue="modelValue"
+                :value="option.value"
+                :class="{ 'p-invalid': showError }"
+                @update:modelValue="updateModelValue"
+                @change="e => onBlurModelValue(e, handleBlur)"
+            />
+            <label :for="`${name}-${option.value}`" class="cursor-pointer">
+              {{ option.label }}
+            </label>
+          </div>
+        </div>
 
         <AddressAutocomplete
             v-else-if="type === 'address'"

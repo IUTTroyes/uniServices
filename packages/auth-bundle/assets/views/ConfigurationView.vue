@@ -5,13 +5,19 @@ import { hasPermission } from "@utils/permissions";
 
 const isSuperAdmin = computed(() => hasPermission('SUPER_ADMIN'));
 
-const panelMenuEtablissementItems = [
-  { label: 'Informations générales', icon: 'pi pi-info-circle', route: '/auth/configuration/etablissement' },
-]
+const panelMenuEtablissementItems = computed(() => {
+  const items = [
+    { label: 'Informations générales', icon: 'pi pi-info-circle', route: '/auth/configuration/etablissement' },
+  ];
+  return items;
+});
 
-const panelMenuUserItems = [
-  { label: 'Gestion des accès', icon: 'pi pi-users', route: '/auth/configuration/gestion-acces' },
-]
+const panelMenuUserItems = computed(() => {
+  const items = [
+    { label: 'Gestion des accès', icon: 'pi pi-users', route: '/auth/configuration/gestion-acces' },
+  ];
+  return items;
+});
 
 const panelMenuItems = [
   { label: 'Années Universitaires', icon: 'pi pi-clock', route: '/auth/configuration/annees-universitaires' },

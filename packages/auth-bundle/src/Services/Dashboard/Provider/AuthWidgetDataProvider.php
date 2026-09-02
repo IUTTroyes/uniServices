@@ -35,10 +35,23 @@ class AuthWidgetDataProvider implements WidgetDataProviderInterface
 
     private function getActusInt(Personnel $user): array
     {
-        $departement = $this->structureDepartementPersonnelRepository->findOneBy(['personnel' => $user])->getDepartement();
+        $departement = $this->structureDepartementPersonnelRepository->findOneBy(['personnel' => $user, 'defaut' => true])->getDepartement();
         $actus = $this->departementActualiteRepository->findBy(['departement' => $departement]);
 
-        // Implementation for getting internal news data
+        foreach ($actus as $key => $actu) {
+            $actus[$key] = [
+                'created' => $actu->getCreated(),
+                'updated' => $actu->getUpdated(),
+                'title' => $actu->getLibelle(),
+                'description' => $actu->getDescription(),
+                'dateDebut' => $actu->getDateDebut(),
+                'dateFin' => $actu->getDateFin(),
+                'link' => $actu->getLink(),
+                'public' => $actu->getPublic(),
+                'actif' => $actu->isActif(),
+            ];
+        }
+
         return $actus;
     }
 
