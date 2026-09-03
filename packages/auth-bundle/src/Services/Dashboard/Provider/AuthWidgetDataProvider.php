@@ -42,7 +42,7 @@ class AuthWidgetDataProvider implements WidgetDataProviderInterface
             $actus[$key] = [
                 'created' => $actu->getCreated(),
                 'updated' => $actu->getUpdated(),
-                'title' => $actu->getLibelle(),
+                'libelle' => $actu->getLibelle(),
                 'description' => $actu->getDescription(),
                 'dateDebut' => $actu->getDateDebut(),
                 'dateFin' => $actu->getDateFin(),

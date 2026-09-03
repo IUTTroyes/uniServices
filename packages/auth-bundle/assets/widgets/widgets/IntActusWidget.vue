@@ -1,5 +1,5 @@
 <script setup>
-import {ref, onMounted} from 'vue';
+import {ref, onMounted, computed, watch} from 'vue';
 import {PermissionGuard, ValidatedInput, validationRules} from '@components';
 import {createActuService} from '@requests';
 import {formatDateCourt} from '@helpers/date.js'
@@ -43,10 +43,28 @@ const props = defineProps({
     default: () => ({items: []}),
   },
 });
+const emit = defineEmits(['actu-created']);
+
+// Local reactive copy of items (do not mutate props directly)
+const items = ref(props.data.items ? [...props.data.items] : []);
+watch(() => props.data.items, (v) => { items.value = v ? [...v] : []; });
 
 onMounted(() => {
   console.log(props.data);
 });
+
+// Pagination for Timeline (client-side)
+const rowsPerPage = 4;
+const first = ref(0); // index of first item on current page
+const totalItems = computed(() => items.value?.length || 0);
+const pagedItems = computed(() => {
+  return items.value.slice(first.value, first.value + rowsPerPage);
+});
+
+const onPage = (event) => {
+  // PrimeVue Paginator returns an event with `first` index
+  first.value = event.first ?? 0;
+};
 
 const handleValidation = (field, result) => {
   formErrors.value = {
@@ -106,18 +124,16 @@ const createActu = async () => {
     console.log('Payload for API:', payload);
     const response = await createActuService(payload, '', true);
 
-    // Utiliser les données retournées par l'API (qui incluent les dates et created)
-    props.data.items.push({
-      id: response.id,
-      created: response.created?.split('T')[0] || new Date().toISOString().slice(0, 10),
-      title: response.libelle,
-      description: response.description,
-      public: response.public,
-      actif: response.actif,
-      dateDebut: response.date_debut,
-      dateFin: response.date_fin,
-      link: response.link,
-    });
+    // Mettre à jour la liste des Actus
+    if (response) {
+      // update local list for immediate UI feedback
+      items.value.unshift(response);
+      // inform parent so it can update its data source if needed
+      emit('actu-created', response);
+      console.log('Actu created successfully:', response);
+    } else {
+      console.error('Unexpected response format:', response);
+    }
   } catch (error) {
     console.error('Error creating actu:', error);
   }
@@ -128,7 +144,8 @@ const createActu = async () => {
 
 <template>
   <div class="flex flex-col justify-between gap-4">
-    <Timeline v-if="data.items.length > 0" :value="data.items" align="left" class="w-full">
+    <div v-if="items.length > 0" class="w-full">
+      <Timeline :value="pagedItems" align="left" class="w-full">
       <template #content="slotProps">
         <div class="text-sm leading-4 flex flex-col">
           <div v-if="slotProps.item.dateDebut && slotProps.item.dateFin" class="text-muted-color">
@@ -138,11 +155,18 @@ const createActu = async () => {
             {{ formatDateCourt(slotProps.item.dateDebut) }}
           </div>
           <div class="font-semibold">
-            {{ slotProps.item.title }}
+            {{ slotProps.item.libelle }}
           </div>
         </div>
       </template>
-    </Timeline>
+      </Timeline>
+
+      <!-- Paginator affiché seulement s'il y a plus de rowsPerPage éléments -->
+      <div v-if="totalItems > rowsPerPage" class="flex justify-center mt-2">
+        <Paginator :first="first" :rows="rowsPerPage" :totalRecords="totalItems" @page="onPage" :rows-per-page-options="[4]" />
+      </div>
+    </div>
+
     <Message v-else severity="info" icon="pi pi-info-circle">
       Aucune actualité disponible.
     </Message>
@@ -162,13 +186,12 @@ const createActu = async () => {
       @update:visible="showActuDialog = $event"
   >
     <DataTable
-        :value="data.items"
+    :value="items"
         :paginator="true"
         :rows="5"
         striped-rows
         removableSort
         sortMode="multiple"
-        lazy
         :rows-per-page-options="[5, 10, 20]"
         responsive-layout="scroll"
         class="w-full mb-6"
@@ -178,8 +201,8 @@ const createActu = async () => {
           {{ slotProps.data.created ? formatDateCourt(slotProps.data.created) : '' }}
         </template>
       </Column>
-      <Column field="title" header="Titre" sortable></Column>
-      <Column field="dateDebut" header="Date de début" sortable>`
+      <Column field="libelle" header="Titre" sortable></Column>
+      <Column field="dateDebut" header="Date de début" sortable>
       <template #body="slotProps">
         {{ slotProps.data.dateDebut ? formatDateCourt(slotProps.data.dateDebut) : '' }}
       </template>

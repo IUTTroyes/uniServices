@@ -34,7 +34,8 @@ const createActuService = async (data, scope = '', showToast = false) => {
             'Erreur lors de la création de l\'actualité',
             showToast
         );
-        return response.member;
+        // return member when normalized collection, otherwise return raw response (created entity)
+        return response?.member ?? response;
     } catch (error) {
         console.error('Erreur dans createActuService:', error);
         throw error;
