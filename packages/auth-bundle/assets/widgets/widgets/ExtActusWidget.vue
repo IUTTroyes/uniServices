@@ -26,7 +26,7 @@ function formatDate(dateStr) {
         :key="actu.title"
         :href="actu.link || '#'"
         target="_blank"
-        class="w-1/3 bg-surface-200/20 rounded-md hover:shadow-md transition-shadow duration-200 overflow-hidden"
+        class="w-1/3 bg-surface-200/20 dark:bg-surface-950 rounded-md hover:shadow-md transition-shadow duration-200 overflow-hidden"
     >
       <div class="relative overflow-hidden">
         <img

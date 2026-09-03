@@ -40,6 +40,7 @@ class AuthWidgetDataProvider implements WidgetDataProviderInterface
 
         foreach ($actus as $key => $actu) {
             $actus[$key] = [
+                'id' => $actu->getId(),
                 'created' => $actu->getCreated(),
                 'updated' => $actu->getUpdated(),
                 'libelle' => $actu->getLibelle(),

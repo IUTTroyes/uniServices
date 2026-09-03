@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
@@ -20,7 +21,8 @@ use Symfony\Component\Serializer\Annotation\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['actu:read']]),
         new GetCollection(normalizationContext: ['groups' => ['actu:read']]),
-        new Post()
+        new Post(),
+        new Delete()
     ]
 )]
 class DepartementActualite

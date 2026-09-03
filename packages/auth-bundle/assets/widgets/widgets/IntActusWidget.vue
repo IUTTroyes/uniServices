@@ -1,7 +1,7 @@
 <script setup>
 import {ref, onMounted, computed, watch} from 'vue';
-import {PermissionGuard, ValidatedInput, validationRules} from '@components';
-import {createActuService} from '@requests';
+import {PermissionGuard, ValidatedInput, validationRules, ButtonDelete} from '@components';
+import {createActuService, deleteActuService} from '@requests';
 import {formatDateCourt} from '@helpers/date.js'
 import {useUsersStore} from '@stores'
 
@@ -140,30 +140,41 @@ const createActu = async () => {
 
   resetForm();
 };
+
+const deleteActu = async (actu) => {
+  try {
+    await deleteActuService(actu.id, '', true);
+    // Remove the deleted actu from the local list
+    items.value = items.value.filter(item => item.id !== actu.id);
+    console.log('Actu deleted successfully:', actu);
+  } catch (error) {
+    console.error('Error deleting actu:', error);
+  }
+}
 </script>
 
 <template>
   <div class="flex flex-col justify-between gap-4">
     <div v-if="items.length > 0" class="w-full">
-      <Timeline :value="pagedItems" align="left" class="w-full">
-      <template #content="slotProps">
-        <div class="text-sm leading-4 flex flex-col">
-          <div v-if="slotProps.item.dateDebut && slotProps.item.dateFin" class="text-muted-color">
-            du {{ formatDateCourt(slotProps.item.dateDebut) }} au {{formatDateCourt(slotProps.item.dateFin)}}
+      <Timeline :value="pagedItems" align="alternate" class="w-full">
+        <template #content="slotProps">
+          <div class="text-sm leading-4 flex flex-col p-2 bg-surface-200/20 dark:bg-surface-950 rounded-md hover:shadow-md transition-shadow duration-200">
+            <div v-if="slotProps.item.dateDebut && slotProps.item.dateFin" class="text-muted-color">
+              du {{ formatDateCourt(slotProps.item.dateDebut) }} au {{formatDateCourt(slotProps.item.dateFin)}}
+            </div>
+            <div v-else-if="slotProps.item.dateDebut" class="text-muted-color">
+              {{ formatDateCourt(slotProps.item.dateDebut) }}
+            </div>
+            <div class="font-semibold">
+              {{ slotProps.item.libelle }}
+            </div>
           </div>
-          <div v-else-if="slotProps.item.dateDebut" class="text-muted-color">
-            {{ formatDateCourt(slotProps.item.dateDebut) }}
-          </div>
-          <div class="font-semibold">
-            {{ slotProps.item.libelle }}
-          </div>
-        </div>
-      </template>
+        </template>
       </Timeline>
 
       <!-- Paginator affiché seulement s'il y a plus de rowsPerPage éléments -->
       <div v-if="totalItems > rowsPerPage" class="flex justify-center mt-2">
-        <Paginator :first="first" :rows="rowsPerPage" :totalRecords="totalItems" @page="onPage" :rows-per-page-options="[4]" />
+        <Paginator :first="first" :rows="rowsPerPage" :totalRecords="totalItems" @page="onPage" />
       </div>
     </div>
 
@@ -186,13 +197,13 @@ const createActu = async () => {
       @update:visible="showActuDialog = $event"
   >
     <DataTable
-    :value="items"
+        :value="items"
         :paginator="true"
         :rows="5"
         striped-rows
         removableSort
         sortMode="multiple"
-        :rows-per-page-options="[5, 10, 20]"
+        :rows-per-page-options="[10,20,40]"
         responsive-layout="scroll"
         class="w-full mb-6"
     >
@@ -203,9 +214,9 @@ const createActu = async () => {
       </Column>
       <Column field="libelle" header="Titre" sortable></Column>
       <Column field="dateDebut" header="Date de début" sortable>
-      <template #body="slotProps">
-        {{ slotProps.data.dateDebut ? formatDateCourt(slotProps.data.dateDebut) : '' }}
-      </template>
+        <template #body="slotProps">
+          {{ slotProps.data.dateDebut ? formatDateCourt(slotProps.data.dateDebut) : '' }}
+        </template>
       </Column>
       <Column field="dateFin" header="Date de fin" sortable>
         <template #body="slotProps">
@@ -220,6 +231,11 @@ const createActu = async () => {
         </template>
       </Column>
       <Column field="actif" header="Actif" sortable></Column>
+      <Column header="Actions">
+        <template #body="slotProps">
+          <ButtonDelete tooltip="Supprimer l'actualité" @confirm-delete="deleteActu(slotProps.data)" />
+        </template>
+      </Column>
 
       <template #empty>
         <Message severity="info" icon="pi pi-info-circle">
@@ -316,4 +332,7 @@ const createActu = async () => {
 </template>
 
 <style scoped>
+.p-timeline-event-opposite {
+  display: none;
+}
 </style>
