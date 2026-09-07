@@ -16,6 +16,17 @@ class DepartementActualiteRepository extends ServiceEntityRepository
         parent::__construct($registry, DepartementActualite::class);
     }
 
+    public function findByDepartementAndPublic($departement, string $public): array
+    {
+        $qb = $this->createQueryBuilder('a')
+            ->where('a.departement = :dept')
+            ->andWhere('a.public LIKE :public')
+            ->setParameter('dept', $departement)
+            ->setParameter('public', '%"'.$public.'"%');
+
+        return $qb->getQuery()->getResult();
+    }
+
     //    /**
     //     * @return DepartementActualite[] Returns an array of DepartementActualite objects
     //     */
