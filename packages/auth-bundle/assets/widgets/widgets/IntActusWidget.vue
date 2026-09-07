@@ -8,12 +8,14 @@ import {useUsersStore} from '@stores'
 
 const showNewActuForm = ref(false);
 const showActuDialog = ref(false);
+const showActuDetailsDialog = ref(false);
 const hasError = ref(false);
 const formValid = ref(true);
 const formErrors = ref({});
 const userStore = useUsersStore();
 const departement = userStore.departementDefaut;
 const selectedActus = ref([]);
+const selectedActuDetails = ref(null);
 const toast = useToast();
 
 // Formulaire de création
@@ -62,6 +64,11 @@ const pagedItems = computed(() => {
 const onPage = (event) => {
   // PrimeVue Paginator returns an event with `first` index
   first.value = event.first ?? 0;
+};
+
+const openActuDetails = (actu) => {
+  selectedActuDetails.value = actu;
+  showActuDetailsDialog.value = true;
 };
 
 const handleValidation = (field, result) => {
@@ -173,7 +180,8 @@ const deleteActus = async (actus) => {
     <div v-if="items.length > 0" class="w-full">
       <Timeline :value="pagedItems" align="alternate" class="w-full">
         <template #content="slotProps">
-          <div class="text-sm leading-4 flex flex-col p-2 bg-surface-200/20 dark:bg-surface-950 rounded-md hover:shadow-md transition-shadow duration-200">
+          <div class="text-sm leading-4 flex flex-col p-2 bg-surface-200/20 dark:bg-surface-950 rounded-md hover:shadow-md transition-shadow duration-200 cursor-pointer"
+               @click="openActuDetails(slotProps.item)">
             <div v-if="slotProps.item.dateDebut && slotProps.item.dateFin" class="text-muted-color">
               du {{ formatDateCourt(slotProps.item.dateDebut) }} au {{formatDateCourt(slotProps.item.dateFin)}}
             </div>
@@ -201,6 +209,49 @@ const deleteActus = async (actus) => {
       <Button size="small" severity="primary" label="Gérer les actus" icon="pi pi-pencil" @click="showActuDialog = true"/>
     </PermissionGuard>
   </div>
+
+  <Dialog
+      header="Détail de l'actualité"
+      :visible="showActuDetailsDialog"
+      modal
+      dismissable-mask
+      :style="{ width: '50rem', maxWidth: '95vw' }"
+      @update:visible="showActuDetailsDialog = $event"
+  >
+    <div v-if="selectedActuDetails" class="flex flex-col gap-4 p-1">
+      <div class="rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 p-4">
+        <div class="text-xs uppercase tracking-wide text-muted-color mb-2">Actualité</div>
+        <div class="font-semibold text-xl leading-6">{{ selectedActuDetails.libelle }}</div>
+      </div>
+
+      <div class="rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-950 p-4 flex flex-col gap-3">
+        <div v-if="selectedActuDetails.dateDebut && selectedActuDetails.dateFin" class="text-sm text-muted-color">
+          <span class="font-medium text-color">Période :</span>
+          du {{ formatDateCourt(selectedActuDetails.dateDebut) }} au {{ formatDateCourt(selectedActuDetails.dateFin) }}
+        </div>
+        <div v-else-if="selectedActuDetails.dateDebut" class="text-sm text-muted-color">
+          <span class="font-medium text-color">Date :</span>
+          {{ formatDateCourt(selectedActuDetails.dateDebut) }}
+        </div>
+
+        <div v-if="selectedActuDetails.description" class="whitespace-pre-line text-sm leading-6">
+          {{ selectedActuDetails.description }}
+        </div>
+
+        <div v-if="selectedActuDetails.public?.length" class="text-sm">
+          <span class="font-medium">Public : </span>
+          <span class="text-muted-color">{{ selectedActuDetails.public.join(', ') }}</span>
+        </div>
+
+        <div v-if="selectedActuDetails.link" class="pt-1">
+          <a :href="selectedActuDetails.link" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-primary font-medium underline break-all">
+            Ouvrir le lien associé
+            <i class="pi pi-external-link text-xs"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </Dialog>
 
   <Dialog
       header="Actualités du département"
