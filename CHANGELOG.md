@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.3](https://github.com/IUTTroyes/uniServices/compare/v0.1.2...v0.1.3) (2026-09-07)
+
+
+### Features
+
+* **Dashboard:** Widget actus du département ([#220](https://github.com/IUTTroyes/uniServices/issues/220)) ([49fa02b](https://github.com/IUTTroyes/uniServices/commit/49fa02b6b0451f9ba6173cecf6f97890b527dc17))
+
 ## [0.1.2](https://github.com/IUTTroyes/uniServices/compare/v0.1.1...v0.1.2) (2026-09-07)
 
 
