@@ -49,7 +49,6 @@ class AuthWidgetDataProvider implements WidgetDataProviderInterface
                 'dateFin' => $actu->getDateFin(),
                 'link' => $actu->getLink(),
                 'public' => $actu->getPublic(),
-                'actif' => $actu->isActif(),
             ];
         }
 

@@ -51,10 +51,6 @@ class DepartementActualite
     #[Groups(['actu:read'])]
     private array $public = [];
 
-    #[ORM\Column]
-    #[Groups(['actu:read'])]
-    private ?bool $actif = null;
-
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     #[Groups(['actu:read'])]
     private ?\DateTime $date_debut = null;
@@ -132,18 +128,6 @@ class DepartementActualite
             fn(string $value) => TypePublicEnum::from($value),
             $this->public
         );
-    }
-
-    public function isActif(): ?bool
-    {
-        return $this->actif;
-    }
-
-    public function setActif(bool $actif): static
-    {
-        $this->actif = $actif;
-
-        return $this;
     }
 
     public function getDateDebut(): ?\DateTime

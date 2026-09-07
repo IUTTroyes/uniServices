@@ -12,6 +12,7 @@ const formValid = ref(true);
 const formErrors = ref({});
 const userStore = useUsersStore();
 const departement = userStore.departementDefaut;
+const selectedActus = ref([]);
 
 // Formulaire de création
 const newActuForm = ref({
@@ -196,6 +197,14 @@ const deleteActu = async (actu) => {
       :breakpoints="{ '1199px': '85vw', '575px': '95vw' }"
       @update:visible="showActuDialog = $event"
   >
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3 p-3 rounded-md border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900">
+      <div class="flex items-center gap-2">
+        <span class="font-medium text-sm">Actualités sélectionnées</span>
+        <Badge :value="selectedActus && selectedActus.length > 0 ? selectedActus.length.toString() : ''" :severity="selectedActus && selectedActus.length ? 'info' : 'secondary'" />
+      </div>
+      <ButtonDelete :disabled="!selectedActus || !selectedActus.length" @click="deleteActu()">
+      </ButtonDelete>
+    </div>
     <DataTable
         :value="items"
         :paginator="true"
@@ -206,7 +215,9 @@ const deleteActu = async (actu) => {
         :rows-per-page-options="[10,20,40]"
         responsive-layout="scroll"
         class="w-full mb-6"
+        v-model:selection="selectedActus"
     >
+      <Column selectionMode="multiple" headerStyle="width: 3rem"></Column>
       <Column field="created" header="Date de publication" sortable>
         <template #body="slotProps">
           {{ slotProps.data.created ? formatDateCourt(slotProps.data.created) : '' }}
@@ -230,7 +241,6 @@ const deleteActu = async (actu) => {
           {{ slotProps.data.public?.join(', ') }}
         </template>
       </Column>
-      <Column field="actif" header="Actif" sortable></Column>
       <Column header="Actions">
         <template #body="slotProps">
           <ButtonDelete tooltip="Supprimer l'actualité" @confirm-delete="deleteActu(slotProps.data)" />
