@@ -4,6 +4,7 @@ namespace AuthBundle\Services\Dashboard\Provider;
 
 use App\Domain\Dashboard\WidgetDataProviderInterface;
 use App\Entity\Structure\StructureDepartementPersonnel;
+use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Repository\DepartementActualiteRepository;
 use App\Repository\Edt\EdtEventRepository;
@@ -24,7 +25,7 @@ class AuthWidgetDataProvider implements WidgetDataProviderInterface
         return str_starts_with($code, 'auth.');
     }
 
-    public function getData(string $code, Personnel $user): array
+    public function getData(string $code, Personnel|Etudiant $user): array
     {
         return match ($code) {
             'auth.actus_ext' => $this->getActusExt(),
@@ -33,10 +34,19 @@ class AuthWidgetDataProvider implements WidgetDataProviderInterface
         };
     }
 
-    private function getActusInt(Personnel $user): array
+    private function getActusInt(Personnel|Etudiant $user): array
     {
-        $departement = $this->structureDepartementPersonnelRepository->findOneBy(['personnel' => $user, 'defaut' => true])->getDepartement();
-        $actus = $this->departementActualiteRepository->findBy(['departement' => $departement]);
+
+        if ($user instanceof Personnel) {
+            $departement = $this->structureDepartementPersonnelRepository->findOneBy(['personnel' => $user, 'defaut' => true])->getDepartement();
+            $public = "personnel";
+        } elseif ($user instanceof Etudiant) {
+            $public = "etudiant";
+        } else {
+            return [];
+        }
+
+        $actus = $this->departementActualiteRepository->findByDepartementAndPublic($departement, $public);
 
         foreach ($actus as $key => $actu) {
             $actus[$key] = [

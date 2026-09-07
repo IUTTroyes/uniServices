@@ -3,6 +3,7 @@ import {ref, onMounted, computed, watch} from 'vue';
 import {PermissionGuard, ValidatedInput, validationRules, ButtonDelete} from '@components';
 import {createActuService, deleteActuService} from '@requests';
 import {formatDateCourt} from '@helpers/date.js'
+import {useToast} from "primevue/usetoast";
 import {useUsersStore} from '@stores'
 
 const showNewActuForm = ref(false);
@@ -13,6 +14,7 @@ const formErrors = ref({});
 const userStore = useUsersStore();
 const departement = userStore.departementDefaut;
 const selectedActus = ref([]);
+const toast = useToast();
 
 // Formulaire de création
 const newActuForm = ref({
@@ -31,11 +33,6 @@ const newActuForm = ref({
 const publicOptions = ref([
   {label: 'Étudiant', value: 'etudiant'},
   {label: 'Personnel', value: 'personnel'},
-]);
-// Options possibles pour le champ "actif"
-const actifOptions = ref([
-  {label: 'Oui', value: true},
-  {label: 'Non', value: false},
 ]);
 
 const props = defineProps({
@@ -142,14 +139,31 @@ const createActu = async () => {
   resetForm();
 };
 
-const deleteActu = async (actu) => {
+const deleteActus = async (actus) => {
   try {
-    await deleteActuService(actu.id, '', true);
+    const actusToDelete = Array.isArray(actus)
+      ? actus
+      : actus
+        ? [actus]
+        : selectedActus.value || [];
+
+    if (!actusToDelete.length) {
+      return;
+    }
+
+    for (const actu of actusToDelete) {
+      await deleteActuService(actu.id, '');
+    }
+
     // Remove the deleted actu from the local list
-    items.value = items.value.filter(item => item.id !== actu.id);
-    console.log('Actu deleted successfully:', actu);
+    items.value = items.value.filter(item => !actusToDelete.some(actu => actu.id === item.id));
+    selectedActus.value = selectedActus.value.filter(item => !actusToDelete.some(actu => actu.id === item.id));
+    console.log('Actu deleted successfully:', actusToDelete);
   } catch (error) {
     console.error('Error deleting actu:', error);
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors de la suppression de l\'actualité.' });
+  } finally {
+    toast.add({ severity: 'success', summary: 'Succès', detail: 'L\'actualité a été supprimée avec succès.' });
   }
 }
 </script>
@@ -202,7 +216,7 @@ const deleteActu = async (actu) => {
         <span class="font-medium text-sm">Actualités sélectionnées</span>
         <Badge :value="selectedActus && selectedActus.length > 0 ? selectedActus.length.toString() : ''" :severity="selectedActus && selectedActus.length ? 'info' : 'secondary'" />
       </div>
-      <ButtonDelete :disabled="!selectedActus || !selectedActus.length" @click="deleteActu()">
+      <ButtonDelete :disabled="!selectedActus || !selectedActus.length" @confirm-delete="deleteActus()">
       </ButtonDelete>
     </div>
     <DataTable
@@ -212,7 +226,6 @@ const deleteActu = async (actu) => {
         striped-rows
         removableSort
         sortMode="multiple"
-        :rows-per-page-options="[10,20,40]"
         responsive-layout="scroll"
         class="w-full mb-6"
         v-model:selection="selectedActus"
@@ -243,7 +256,7 @@ const deleteActu = async (actu) => {
       </Column>
       <Column header="Actions">
         <template #body="slotProps">
-          <ButtonDelete tooltip="Supprimer l'actualité" @confirm-delete="deleteActu(slotProps.data)" />
+          <ButtonDelete tooltip="Supprimer l'actualité" @confirm-delete="deleteActus(slotProps.data)" />
         </template>
       </Column>
 
@@ -267,7 +280,7 @@ const deleteActu = async (actu) => {
               name="libelle"
               label="Titre"
               type="text"
-              :rules="[validationRules.required]"
+              :rules="[validationRules.required, validationRules.maxLength(255)]"
               @validation="result => handleValidation('libelle', result)"
               help-text="Entrez le titre de l'actu."
           />
@@ -320,15 +333,6 @@ const deleteActu = async (actu) => {
               placeholder="Sélectionnez le type de public"
               class="w-full"
               help-text="Sélectionner à qui s'adresse cette actualité (étudiant, personnel ou les deux)."
-          />
-
-          <ValidatedInput
-              type="radio"
-              v-model="newActuForm.actif"
-              :options="actifOptions"
-              label="Visibilité"
-              :rules="[validationRules.required]"
-              help-text="Sélectionner si cette actualité est affichée ou non."
           />
 
           <div class="flex gap-2">
