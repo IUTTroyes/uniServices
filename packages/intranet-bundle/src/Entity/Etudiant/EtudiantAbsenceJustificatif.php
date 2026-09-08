@@ -3,7 +3,9 @@
 namespace IntranetBundle\Entity\Etudiant;
 
 use App\Entity\Traits\UuidTrait;
-use IntranetBundle\Repository\EtudiantAbsenceJustificatifRepository;
+use App\Entity\Users\Etudiant;
+use IntranetBundle\Enum\EtatJustificatifEnum;
+use IntranetBundle\Repository\Etudiant\EtudiantAbsenceJustificatifRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -20,23 +22,24 @@ class EtudiantAbsenceJustificatif
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $date = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $debut = null;
 
-    #[ORM\Column(type: Types::TIME_MUTABLE)]
-    private ?\DateTimeInterface $heureDebut = null;
-
-    #[ORM\Column(type: Types::TIME_MUTABLE)]
-    private ?\DateTimeInterface $heureFin = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $fin = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $motif = null;
 
-    #[ORM\Column(type: Types::SMALLINT)]
-    private ?int $etat = 0;
+    #[ORM\Column(type: Types::SMALLINT, enumType: EtatJustificatifEnum::class)]
+    private EtatJustificatifEnum $etat = EtatJustificatifEnum::EN_ATTENTE;
 
     #[ORM\Column(nullable: true, length: 255)]
     private ?string $fichier = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Etudiant $etudiant = null;
 
     /**
      * @var Collection<int, EtudiantAbsence>
@@ -54,40 +57,24 @@ class EtudiantAbsenceJustificatif
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDebut(): ?\DateTimeInterface
     {
-        return $this->date;
+        return $this->debut;
     }
 
-    public function setDate(\DateTimeInterface $date): static
+    public function setDebut(?\DateTimeInterface $debut): void
     {
-        $this->date = $date;
-
-        return $this;
+        $this->debut = $debut;
     }
 
-    public function getHeureDebut(): ?\DateTimeInterface
+    public function getFin(): ?\DateTimeInterface
     {
-        return $this->heureDebut;
+        return $this->fin;
     }
 
-    public function setHeureDebut(\DateTimeInterface $heureDebut): static
+    public function setFin(?\DateTimeInterface $fin): void
     {
-        $this->heureDebut = $heureDebut;
-
-        return $this;
-    }
-
-    public function getHeureFin(): ?\DateTimeInterface
-    {
-        return $this->heureFin;
-    }
-
-    public function setHeureFin(\DateTimeInterface $heureFin): static
-    {
-        $this->heureFin = $heureFin;
-
-        return $this;
+        $this->fin = $fin;
     }
 
     public function getMotif(): ?string
@@ -102,14 +89,26 @@ class EtudiantAbsenceJustificatif
         return $this;
     }
 
-    public function getEtat(): ?int
+    public function getEtat(): EtatJustificatifEnum
     {
         return $this->etat;
     }
 
-    public function setEtat(int $etat): static
+    public function setEtat(EtatJustificatifEnum $etat): static
     {
         $this->etat = $etat;
+
+        return $this;
+    }
+
+    public function getEtudiant(): ?Etudiant
+    {
+        return $this->etudiant;
+    }
+
+    public function setEtudiant(?Etudiant $etudiant): static
+    {
+        $this->etudiant = $etudiant;
 
         return $this;
     }
@@ -132,7 +131,15 @@ class EtudiantAbsenceJustificatif
         $this->fichier = $fichier;
     }
 
-    //todo: le dépot d'un justificatif pour une date ultérieure doit-il être possible ? si oui : provoque la création d'une ou plusieurs absences pour la durée du justificatif. Impossible si pas de cours sur la période ?
+    public function couvre(\DateTimeInterface $eventDebut, \DateTimeInterface $eventFin): bool
+    {
+        if (null === $this->debut || null === $this->fin) {
+            return false;
+        }
+
+        return $this->debut <= $eventDebut && $this->fin >= $eventFin;
+    }
+
     public function addAbsence(EtudiantAbsence $absence): static
     {
         if (!$this->absence->contains($absence)) {

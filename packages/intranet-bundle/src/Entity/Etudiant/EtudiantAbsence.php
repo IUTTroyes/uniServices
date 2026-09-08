@@ -14,6 +14,7 @@ use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
+use IntranetBundle\Enum\EtatJustificatifEnum;
 use IntranetBundle\Filter\AbsenceFilter;
 use IntranetBundle\Repository\Etudiant\EtudiantAbsenceRepository;
 use Doctrine\DBAL\Types\Types;
@@ -65,10 +66,6 @@ class EtudiantAbsence
     #[Groups(['absence:administration'])]
     private ?int $id = null;
 
-    #[ORM\Column]
-    #[Groups(['absence:administration'])]
-    private bool $justifiee = false;
-
     #[ORM\ManyToOne(inversedBy: 'absences')]
     #[Groups(['absence:administration'])]
     private ?Personnel $personnel = null;
@@ -78,6 +75,7 @@ class EtudiantAbsence
     private ?\DateTimeInterface $dateJustification = null;
 
     #[ORM\ManyToOne(inversedBy: 'absence')]
+    #[ORM\JoinColumn(nullable: true)]
     #[Groups(['absence:administration'])]
     private ?EtudiantAbsenceJustificatif $absenceJustificatif = null;
 
@@ -94,18 +92,6 @@ class EtudiantAbsence
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function isJustifiee(): ?bool
-    {
-        return $this->justifiee;
-    }
-
-    public function setJustifiee(bool $justifiee): static
-    {
-        $this->justifiee = $justifiee;
-
-        return $this;
     }
 
     public function getPersonnel(): ?Personnel
@@ -166,5 +152,11 @@ class EtudiantAbsence
         $this->event = $event;
 
         return $this;
+    }
+
+    public function isJustifiee(): bool
+    {
+        return $this->absenceJustificatif !== null
+            && $this->absenceJustificatif->getEtat() === EtatJustificatifEnum::VALIDEE;
     }
 }
