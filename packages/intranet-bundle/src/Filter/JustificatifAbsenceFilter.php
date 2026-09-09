@@ -4,14 +4,11 @@ namespace IntranetBundle\Filter;
 
 use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
-use IntranetBundle\Enum\EtatJustificatifEnum;
 use Symfony\Component\PropertyInfo\Type;
 
-#[ApiFilter(AbsenceFilter::class)]
-class AbsenceFilter extends AbstractFilter
+class JustificatifAbsenceFilter extends AbstractFilter
 {
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
@@ -22,7 +19,8 @@ class AbsenceFilter extends AbstractFilter
         $alias = $queryBuilder->getRootAliases()[0];
 
         if ('anneeUniversitaire' === $property) {
-            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolariteSemestre');
+            $absenceAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'absence');
+            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $absenceAlias, 'scolariteSemestre');
             $scolariteAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteSemestreAlias, 'scolarite');
             $anneeUniversitaireAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteAlias, 'anneeUniversitaire');
             $param = $queryNameGenerator->generateParameterName('anneeUniversitaire');
@@ -33,7 +31,8 @@ class AbsenceFilter extends AbstractFilter
         }
 
         if ('annee' === $property) {
-            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolariteSemestre');
+            $absenceAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'absence');
+            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $absenceAlias, 'scolariteSemestre');
             $semestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteSemestreAlias, 'semestre');
             $anneeAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $semestreAlias, 'annee');
             $param = $queryNameGenerator->generateParameterName('annee');
@@ -43,45 +42,27 @@ class AbsenceFilter extends AbstractFilter
                 ->setParameter($param, $value);
         }
 
-        if ('justifiee' === $property) {
-            $param = $queryNameGenerator->generateParameterName('justifiee');
-            $justificatifAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'absenceJustificatif');
-
-            if (filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE)) {
-                $queryBuilder
-                    ->andWhere(sprintf('%s.etat = :%s', $justificatifAlias, $param))
-                    ->setParameter($param, EtatJustificatifEnum::VALIDE);
-            } else {
-                $queryBuilder
-                    ->andWhere(sprintf('(%s.id IS NULL OR %s.etat != :%s)', $justificatifAlias, $justificatifAlias, $param))
-                    ->setParameter($param, EtatJustificatifEnum::VALIDE);
-            }
-        }
-
-        if ('event' === $property) {
-            $eventAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'event');
-            $param = $queryNameGenerator->generateParameterName('event');
+        if ('etat' === $property) {
+            $param = $queryNameGenerator->generateParameterName('etat');
 
             $queryBuilder
-                ->andWhere(sprintf('%s.id = :%s', $eventAlias, $param))
+                ->andWhere(sprintf('%s.etat = :%s', $alias, $param))
                 ->setParameter($param, $value);
         }
 
-        if ('personnel' === $property) {
-            $personnelAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'personnel');
-            $param = $queryNameGenerator->generateParameterName('personnel');
+        if ('debut' === $property) {
+            $param = $queryNameGenerator->generateParameterName('debut');
 
             $queryBuilder
-                ->andWhere(sprintf('%s.id = :%s', $personnelAlias, $param))
+                ->andWhere(sprintf('%s.debut >= :%s', $alias, $param))
                 ->setParameter($param, $value);
         }
 
-        if ('scolariteSemestre' === $property) {
-            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolariteSemestre');
-            $param = $queryNameGenerator->generateParameterName('scolariteSemestre');
+        if ('fin' === $property) {
+            $param = $queryNameGenerator->generateParameterName('fin');
 
             $queryBuilder
-                ->andWhere(sprintf('%s.id = :%s', $scolariteSemestreAlias, $param))
+                ->andWhere(sprintf('%s.fin <= :%s', $alias, $param))
                 ->setParameter($param, $value);
         }
     }
@@ -119,36 +100,28 @@ class AbsenceFilter extends AbstractFilter
                     'description' => 'Filter by anneeUniversitaire',
                 ],
             ],
-            'justifiee' => [
-                'property' => 'justifiee',
-                'type' => Type::BUILTIN_TYPE_BOOL,
+            'etat' => [
+                'property' => 'etat',
+                'type' => Type::BUILTIN_TYPE_STRING,
                 'required' => false,
                 'openapi' => [
-                    'description' => 'Filter by justifiee',
+                    'description' => 'Filter by etat',
                 ],
             ],
-            'event' => [
-                'property' => 'event',
-                'type' => Type::BUILTIN_TYPE_INT,
+            'debut' => [
+                'property' => 'debut',
+                'type' => Type::BUILTIN_TYPE_STRING,
                 'required' => false,
                 'openapi' => [
-                    'description' => 'Filter by event',
+                    'description' => 'Filter by start date',
                 ],
             ],
-            'personnel' => [
-                'property' => 'personnel',
-                'type' => Type::BUILTIN_TYPE_INT,
+            'fin' => [
+                'property' => 'fin',
+                'type' => Type::BUILTIN_TYPE_STRING,
                 'required' => false,
                 'openapi' => [
-                    'description' => 'Filter by personnel',
-                ],
-            ],
-            'scolariteSemestre' => [
-                'property' => 'scolariteSemestre',
-                'type' => Type::BUILTIN_TYPE_INT,
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by scolariteSemestre',
+                    'description' => 'Filter by end date',
                 ],
             ],
         ];

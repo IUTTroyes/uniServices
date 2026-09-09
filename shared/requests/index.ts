@@ -28,6 +28,7 @@ export * from './etudiant_services/etudiantScolariteService.js';
 export * from './etudiant_services/etudiantScolariteSemestreService.js';
 export * from './etudiant_services/etudiantNoteService.js';
 export * from './etudiant_services/etudiantAbsenceService.js';
+export * from './etudiant_services/absenceJustificatifService.js';
 
 export * from './personnel_services/personnelHrsService.js'
 

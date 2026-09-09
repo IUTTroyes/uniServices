@@ -100,16 +100,20 @@ export default [
   {
     path: 'justificatifs-absences/liste',
     name: 'liste-justificatifs-absences',
-    component: () => import('@/views/Groupes/StructureGroupeView.vue'),
+    component: () => import('@/views/Absence/AbsenceJustificatifListeView.vue'),
     meta: {
       permission: 'canViewAdministration',
-      breadcrumb: [{ label: 'Dashboard', route: '/' }, {
-        label: 'Administration',
-        route: '/intranet/administration',
-        icon: 'pi pi-wrench'
-      },
-      { label: 'Année', route: null },
-      { label: 'Liste des justificatifs d\'absences', route: null }]
+      breadcrumb: () => {
+        const anneeStore = useAnneeStore();
+        const selectedAnnee = anneeStore.annee;
+        return [{ label: 'Dashboard', route: '/' }, {
+          label: 'Administration',
+          route: '/intranet/administration',
+          icon: 'pi pi-wrench'
+        },
+        { label: selectedAnnee?.libelle ?? 'Année', route: null },
+        { label: 'Liste des justificatifs d\'absences', route: null }];
+      }
     },
   },
   {

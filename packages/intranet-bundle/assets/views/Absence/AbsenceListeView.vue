@@ -1,8 +1,8 @@
 <script setup>
 import {computed, onMounted, ref, watch} from "vue";
 import {SimpleSkeleton, HeaderComponent, EdtEventRow, ButtonInfo, ButtonEdit, ButtonDelete, Kpi} from "@components";
-import {useAnneeStore, useSemestreStore, useUsersStore} from "@stores";
-import {getAnneeService, getSemestresService, getEtudiantAbsencesService, deleteEtudiantAbsenceService} from "@requests";
+import {useAnneeStore, useUsersStore} from "@stores";
+import {getAnneeService, getEtudiantAbsencesService, deleteEtudiantAbsenceService} from "@requests";
 import {useRoute, useRouter} from "vue-router";
 import {Button} from "primevue";
 
@@ -12,11 +12,7 @@ const hasError = ref(false);
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const usersStore = useUsersStore();
 const departementId = usersStore.departementDefaut.id;
-const semestreStore = useSemestreStore();
 const anneeStore = useAnneeStore();
-const semestres = ref([]);
-const isLoadingSemestres = ref(true);
-const semestre = ref({});
 const annees = ref([]);
 const annee = ref({});
 const isLoadingAnnee = ref(true);
@@ -34,27 +30,11 @@ const isLoadingAbsencesStats = ref(true);
 const showDetailsDialog = ref(false);
 const selectedEpisode = ref(null);
 
-const resolveSemestreSelection = () => {
-  const semestreIdFromQuery = route.query.semestreId;
-  const semestreFromQuery = semestres.value.find(s => String(s.id) === String(semestreIdFromQuery));
-  if (semestreFromQuery) {
-    return semestreFromQuery;
-  }
-
-  const semestreFromStore = semestres.value.find(s => String(s.id) === String(semestreStore.semestre?.id));
-  if (semestreFromStore) {
-    return semestreFromStore;
-  }
-
-  return semestres.value.find(s => s.actif) || semestres.value[0] || {};
-};
-
 onMounted(async () => {
   await getAnnees();
   await getAnnee();
-  await getSemestres();
-  semestre.value = resolveSemestreSelection();
-  semestreStore.setSelectedSemestre(semestre.value);
+  await getAbsences();
+  await getAbsencesStats();
 });
 
 const getAnnees = async () => {
@@ -93,36 +73,6 @@ const getAnnee = async () => {
   }
 };
 
-const getSemestres = async () => {
-  isLoadingSemestres.value = true;
-  hasError.value = false;
-  try {
-    const params = {
-      annee: annee.value.id,
-    };
-    semestres.value = await getSemestresService(params, '/mini');
-  } catch (error) {
-    hasError.value = true;
-    console.error("Erreur lors de la récupération des semestres :", error);
-  } finally {
-
-    isLoadingSemestres.value = false;
-  }
-};
-
-watch(() => semestreStore.semestre, (newSemestre) => {
-  semestre.value = newSemestre;
-});
-
-// watcher pour relancer getGroupes quand semestre change
-watch(semestre, async (newSemestre, oldSemestre) => {
-  if (newSemestre?.id !== oldSemestre?.id) {
-    await getAbsences();
-    await getAbsencesStats();
-  }
-});
-
-// watcher pour relancer getSemestres quand annee change
 watch(annee, async (newAnnee, oldAnnee) => {
   if (newAnnee?.id === oldAnnee?.id) return;
 
@@ -137,18 +87,16 @@ watch(annee, async (newAnnee, oldAnnee) => {
     });
   }
 
-  await getSemestres();
-  // Changer automatiquement de semestre lors d'un changement d'année
-  semestre.value = resolveSemestreSelection();
-  semestreStore.setSelectedSemestre(semestre.value);
-
-  await anneeStore.setSelectedAnnee(newAnnee)
+  await anneeStore.setSelectedAnnee(newAnnee);
+  page.value = 0;
+  await getAbsences();
+  await getAbsencesStats();
 });
 
 const getAbsences = async () => {
   try {
     const params = {
-      semestre: semestre.value.id,
+      annee: annee.value?.id,
       anneeUniversitaire: anneeUniv.id,
       itemsPerPage: limit.value,
       page: page.value + 1,
@@ -167,7 +115,7 @@ const getAbsences = async () => {
 const getAbsencesStats = async () => {
   try {
     const params = {
-      semestre: semestre.value.id,
+      annee: annee.value?.id,
       anneeUniversitaire: anneeUniv.id,
     }
     absencesStats.value = await getEtudiantAbsencesService(params, '/administration/stats');
@@ -257,8 +205,6 @@ const editAbsence = async (absence) => {
     name: 'new-absence',
     params: { anneeId: annee?.value?.id },
     query: {
-      ...route.query,
-      semestreId: semestre?.value?.id,
       absenceId: absence?.id,
     },
   });
@@ -342,14 +288,14 @@ const onPageChange = async event => {
           </p>
           <div class="flex flex-col items-start">
             <p class="uppercase text-xs font-bold mb-0! text-muted-color">
-              semestre
+              année
             </p>
             <h2 class="mt-0!">
-              {{semestre.libelle}}
+              {{ annee?.libelle }}
             </h2>
           </div>
         </div>
-        <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
+        <SimpleSkeleton v-if="isLoadingAnnees || isLoadingAnnee" class="!w-60 !h-10"></SimpleSkeleton>
         <div v-else class="flex flex-col gap-2">
           <div class="flex gap-4 justify-end">
             <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
@@ -357,10 +303,9 @@ const onPageChange = async event => {
                 {{ annee?.libelle || "Changer d'année" }}
               </template>
             </Select>
-            <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
           </div>
           <div class="flex justify-end items-center">
-            <router-link :to="{ name: 'new-absence', params: { anneeId: annee?.id }, query: { semestreId: semestre?.id } }">
+            <router-link :to="{ name: 'new-absence', params: { anneeId: annee?.id } }">
               <Button label="Créer une absence" icon="pi pi-plus" @click="getAbsences()" severity="primary"/>
             </router-link>
           </div>
@@ -370,7 +315,7 @@ const onPageChange = async event => {
         <div>
           <h3 class="m-0 mb-3">Toutes les absences saisies</h3>
           <Message severity="info" icon="pi pi-info-circle" class="w-full flex justify-center" v-if="!isLoadingAbsences && (!absences || absences.length === 0)">
-            Aucune absence trouvée pour ce semestre.
+            Aucune absence trouvée pour cette année.
           </Message>
           <DataTable
               v-else
@@ -481,7 +426,7 @@ const onPageChange = async event => {
             <div>
               <h3 class="m-0 mb-3">Dernière absences saisies</h3>
               <Message severity="info" icon="pi pi-info-circle" class="w-full flex justify-center" v-if="!isLoadingAbsences && (!absences || absences.length === 0)">
-                Aucune absence trouvée pour ce semestre.
+                Aucune absence trouvée pour cette année.
               </Message>
 
             </div>
