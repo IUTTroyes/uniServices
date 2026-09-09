@@ -73,15 +73,15 @@ class EdtEvent
     private ?\DateTimeInterface $date = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration'])]
     private ?\DateTimeInterface $debut = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration'])]
     private ?\DateTimeInterface $fin = null;
 
     #[ORM\Column(length: 25)]
-    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration'])]
     private ?string $salle = '-';
 
     #[ORM\Column(length: 25, nullable: true)]
@@ -95,7 +95,7 @@ class EdtEvent
     private ?string $codePersonnel = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'justificatif:administration'])]
     private ?string $libPersonnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'edtEvents')]
@@ -103,11 +103,11 @@ class EdtEvent
     private ?ScolEnseignement $enseignement = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration'])]
     private ?string $codeModule = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration'])]
     private ?string $libModule = null;
 
     #[ORM\ManyToOne(inversedBy: 'edtEvents')]
@@ -115,15 +115,15 @@ class EdtEvent
     private ?StructureGroupe $groupe = null;
 
     #[ORM\Column(length: 30, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration'])]
     private ?string $codeGroupe = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration'])]
     private ?string $libGroupe = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration'])]
     private ?string $couleur = null;
 
     #[ORM\Column(nullable: true)]

@@ -8,18 +8,21 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\Patch;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Traits\EduSignTrait;
 use App\Entity\Traits\LifeCycleTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
+use IntranetBundle\Enum\EtatJustificatifEnum;
 use IntranetBundle\Filter\AbsenceFilter;
 use IntranetBundle\Repository\Etudiant\EtudiantAbsenceRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use IntranetBundle\State\Provider\Absence\AbsenceEpisodeProvider;
 use IntranetBundle\State\Provider\Absence\AbsenceStatsProvider;
+use IntranetBundle\State\Processor\Absence\EtudiantAbsenceCreateProcessor;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantAbsenceRepository::class)]
@@ -46,7 +49,15 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/administration/repartition/etudiant_absences',
             normalizationContext: ['groups' => ['absence:administration']],
         ),
-        new Post(),
+        new Post(
+            uriTemplate: '/administration/etudiant_absences',
+            denormalizationContext: ['groups' => ['absence:write:administration']],
+            processor: EtudiantAbsenceCreateProcessor::class,
+        ),
+        new Patch(
+            uriTemplate: '/administration/etudiant_absences/{id}',
+            denormalizationContext: ['groups' => ['absence:write:administration']],
+        ),
         new Delete(
             uriTemplate: '/administration/etudiant_absences/{id}',
         )
@@ -62,15 +73,11 @@ class EtudiantAbsence
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['absence:administration'])]
+    #[Groups(['absence:administration', 'justificatif:administration'])]
     private ?int $id = null;
 
-    #[ORM\Column]
-    #[Groups(['absence:administration'])]
-    private bool $justifiee = false;
-
     #[ORM\ManyToOne(inversedBy: 'absences')]
-    #[Groups(['absence:administration'])]
+    #[Groups(['absence:administration', 'justificatif:administration'])]
     private ?Personnel $personnel = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
@@ -78,6 +85,7 @@ class EtudiantAbsence
     private ?\DateTimeInterface $dateJustification = null;
 
     #[ORM\ManyToOne(inversedBy: 'absence')]
+    #[ORM\JoinColumn(nullable: true)]
     #[Groups(['absence:administration'])]
     private ?EtudiantAbsenceJustificatif $absenceJustificatif = null;
 
@@ -87,25 +95,13 @@ class EtudiantAbsence
     private ?EtudiantScolariteSemestre $scolariteSemestre = null;
 
     #[ORM\ManyToOne(inversedBy: 'absences')]
+    #[Groups(['absence:administration', 'absence:write:administration', 'justificatif:administration'])]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['absence:administration'])]
     private ?EdtEvent $event = null;
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function isJustifiee(): ?bool
-    {
-        return $this->justifiee;
-    }
-
-    public function setJustifiee(bool $justifiee): static
-    {
-        $this->justifiee = $justifiee;
-
-        return $this;
     }
 
     public function getPersonnel(): ?Personnel
@@ -166,5 +162,11 @@ class EtudiantAbsence
         $this->event = $event;
 
         return $this;
+    }
+
+    public function isJustifiee(): bool
+    {
+        return $this->absenceJustificatif !== null
+            && $this->absenceJustificatif->getEtat() === EtatJustificatifEnum::VALIDE;
     }
 }

@@ -10,10 +10,13 @@
     @apply bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700/60 shadow-sm;
 }
 .card-header {
-    @apply pt-3 pb-4 px-4 bg-slate-50/50 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-700/40 w-full;
+    @apply pt-3 pb-4 px-4 bg-slate-50/50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-700/40 w-full;
 
     .top-card-header {
         @apply text-sm uppercase font-extrabold text-primary-600 dark:text-primary-400 tracking-wider;
+    }
+    .filters-card-header {
+        @apply bg-white dark:bg-slate-800 rounded-md p-4 border border-slate-100 dark:border-slate-700/40;
     }
 }
 

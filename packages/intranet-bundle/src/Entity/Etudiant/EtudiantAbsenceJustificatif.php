@@ -2,15 +2,46 @@
 
 namespace IntranetBundle\Entity\Etudiant;
 
+use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\UuidTrait;
-use IntranetBundle\Repository\EtudiantAbsenceJustificatifRepository;
+use App\Entity\Users\Etudiant;
+use IntranetBundle\Enum\EtatJustificatifEnum;
+use IntranetBundle\Filter\JustificatifAbsenceFilter;
+use IntranetBundle\Repository\Etudiant\EtudiantAbsenceJustificatifRepository;
+use IntranetBundle\State\Processor\Absence\EtudiantAbsenceJustificatifCreateProcessor;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantAbsenceJustificatifRepository::class)]
 #[ORM\HasLifecycleCallbacks]
+#[ApiFilter(JustificatifAbsenceFilter::class)]
+#[ApiResource(
+    operations: [
+        new GetCollection(
+            uriTemplate: '/administration/etudiant_absence_justificatifs',
+            normalizationContext: ['groups' => ['justificatif:administration']],
+        ),
+        new Post(
+            uriTemplate: '/administration/etudiant_absence_justificatifs',
+            denormalizationContext: ['groups' => ['justificatif:write:administration']],
+            normalizationContext: ['groups' => ['justificatif:administration']],
+            processor: EtudiantAbsenceJustificatifCreateProcessor::class,
+        ),
+        new Patch(
+            uriTemplate: '/administration/etudiant_absence_justificatifs/{id}',
+            denormalizationContext: ['groups' => ['justificatif:write:administration']],
+            normalizationContext: ['groups' => ['justificatif:administration']],
+        ),
+    ],
+    order: ['debut' => 'DESC']
+)]
 class EtudiantAbsenceJustificatif
 {
     use UuidTrait;
@@ -18,25 +49,37 @@ class EtudiantAbsenceJustificatif
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['absence:administration', 'justificatif:administration'])]
     private ?int $id = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTimeInterface $date = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['justificatif:administration', 'justificatif:write:administration'])]
+    private ?\DateTimeInterface $debut = null;
 
-    #[ORM\Column(type: Types::TIME_MUTABLE)]
-    private ?\DateTimeInterface $heureDebut = null;
-
-    #[ORM\Column(type: Types::TIME_MUTABLE)]
-    private ?\DateTimeInterface $heureFin = null;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['justificatif:administration', 'justificatif:write:administration'])]
+    private ?\DateTimeInterface $fin = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['justificatif:administration', 'justificatif:write:administration'])]
     private ?string $motif = null;
 
-    #[ORM\Column(type: Types::SMALLINT)]
-    private ?int $etat = 0;
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['justificatif:administration', 'justificatif:write:administration'])]
+    private ?string $motif_refus = null;
+
+    #[ORM\Column(type: Types::SMALLINT, enumType: EtatJustificatifEnum::class)]
+    #[Groups(['absence:administration', 'justificatif:administration', 'justificatif:write:administration'])]
+    private EtatJustificatifEnum $etat = EtatJustificatifEnum::EN_ATTENTE;
 
     #[ORM\Column(nullable: true, length: 255)]
+    #[Groups(['justificatif:administration', 'justificatif:write:administration'])]
     private ?string $fichier = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['justificatif:administration', 'justificatif:write:administration'])]
+    private ?Etudiant $etudiant = null;
 
     /**
      * @var Collection<int, EtudiantAbsence>
@@ -54,40 +97,24 @@ class EtudiantAbsenceJustificatif
         return $this->id;
     }
 
-    public function getDate(): ?\DateTimeInterface
+    public function getDebut(): ?\DateTimeInterface
     {
-        return $this->date;
+        return $this->debut;
     }
 
-    public function setDate(\DateTimeInterface $date): static
+    public function setDebut(?\DateTimeInterface $debut): void
     {
-        $this->date = $date;
-
-        return $this;
+        $this->debut = $debut;
     }
 
-    public function getHeureDebut(): ?\DateTimeInterface
+    public function getFin(): ?\DateTimeInterface
     {
-        return $this->heureDebut;
+        return $this->fin;
     }
 
-    public function setHeureDebut(\DateTimeInterface $heureDebut): static
+    public function setFin(?\DateTimeInterface $fin): void
     {
-        $this->heureDebut = $heureDebut;
-
-        return $this;
-    }
-
-    public function getHeureFin(): ?\DateTimeInterface
-    {
-        return $this->heureFin;
-    }
-
-    public function setHeureFin(\DateTimeInterface $heureFin): static
-    {
-        $this->heureFin = $heureFin;
-
-        return $this;
+        $this->fin = $fin;
     }
 
     public function getMotif(): ?string
@@ -102,14 +129,38 @@ class EtudiantAbsenceJustificatif
         return $this;
     }
 
-    public function getEtat(): ?int
+    public function getEtat(): EtatJustificatifEnum
     {
         return $this->etat;
     }
 
-    public function setEtat(int $etat): static
+    public function setEtat(EtatJustificatifEnum $etat): static
     {
         $this->etat = $etat;
+
+        return $this;
+    }
+
+    #[Groups(['justificatif:administration'])]
+    public function getEtatBadge(): string
+    {
+        return $this->etat->getBadge();
+    }
+
+    #[Groups(['justificatif:administration'])]
+    public function getEtatLibelle(): string
+    {
+        return $this->etat->getLibelle();
+    }
+
+    public function getEtudiant(): ?Etudiant
+    {
+        return $this->etudiant;
+    }
+
+    public function setEtudiant(?Etudiant $etudiant): static
+    {
+        $this->etudiant = $etudiant;
 
         return $this;
     }
@@ -117,9 +168,16 @@ class EtudiantAbsenceJustificatif
     /**
      * @return Collection<int, EtudiantAbsence>
      */
+    #[Groups(['justificatif:administration'])]
     public function getAbsence(): Collection
     {
         return $this->absence;
+    }
+
+    #[Groups(['justificatif:administration'])]
+    public function getAbsencesCount(): int
+    {
+        return $this->absence->count();
     }
 
     public function getFichier(): ?string
@@ -132,7 +190,15 @@ class EtudiantAbsenceJustificatif
         $this->fichier = $fichier;
     }
 
-    //todo: le dépot d'un justificatif pour une date ultérieure doit-il être possible ? si oui : provoque la création d'une ou plusieurs absences pour la durée du justificatif. Impossible si pas de cours sur la période ?
+    public function couvre(\DateTimeInterface $eventDebut, \DateTimeInterface $eventFin): bool
+    {
+        if (null === $this->debut || null === $this->fin) {
+            return false;
+        }
+
+        return $this->debut <= $eventDebut && $this->fin >= $eventFin;
+    }
+
     public function addAbsence(EtudiantAbsence $absence): static
     {
         if (!$this->absence->contains($absence)) {
@@ -154,4 +220,16 @@ class EtudiantAbsenceJustificatif
 
         return $this;
     }
+
+    public function getMotifRefus(): ?string
+    {
+        return $this->motif_refus;
+    }
+
+    public function setMotifRefus(?string $motif_refus): void
+    {
+        $this->motif_refus = $motif_refus;
+    }
+
+
 }
