@@ -19,8 +19,7 @@ class JustificatifAbsenceFilter extends AbstractFilter
         $alias = $queryBuilder->getRootAliases()[0];
 
         if ('anneeUniversitaire' === $property) {
-            $absenceAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'absence');
-            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $absenceAlias, 'scolariteSemestre');
+            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolariteSemestre');
             $scolariteAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteSemestreAlias, 'scolarite');
             $anneeUniversitaireAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteAlias, 'anneeUniversitaire');
             $param = $queryNameGenerator->generateParameterName('anneeUniversitaire');
@@ -31,8 +30,7 @@ class JustificatifAbsenceFilter extends AbstractFilter
         }
 
         if ('annee' === $property) {
-            $absenceAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'absence');
-            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $absenceAlias, 'scolariteSemestre');
+            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolariteSemestre');
             $semestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteSemestreAlias, 'semestre');
             $anneeAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $semestreAlias, 'annee');
             $param = $queryNameGenerator->generateParameterName('annee');

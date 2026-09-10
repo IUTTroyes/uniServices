@@ -7,8 +7,8 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Traits\UuidTrait;
-use App\Entity\Users\Etudiant;
 use IntranetBundle\Enum\EtatJustificatifEnum;
 use IntranetBundle\Filter\JustificatifAbsenceFilter;
 use IntranetBundle\Repository\Etudiant\EtudiantAbsenceJustificatifRepository;
@@ -79,7 +79,7 @@ class EtudiantAbsenceJustificatif
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['justificatif:administration', 'justificatif:write:administration'])]
-    private ?Etudiant $etudiant = null;
+    private ?EtudiantScolariteSemestre $scolariteSemestre = null;
 
     /**
      * @var Collection<int, EtudiantAbsence>
@@ -153,14 +153,14 @@ class EtudiantAbsenceJustificatif
         return $this->etat->getLibelle();
     }
 
-    public function getEtudiant(): ?Etudiant
+    public function getScolariteSemestre(): ?EtudiantScolariteSemestre
     {
-        return $this->etudiant;
+        return $this->scolariteSemestre;
     }
 
-    public function setEtudiant(?Etudiant $etudiant): static
+    public function setScolariteSemestre(?EtudiantScolariteSemestre $scolariteSemestre): static
     {
-        $this->etudiant = $etudiant;
+        $this->scolariteSemestre = $scolariteSemestre;
 
         return $this;
     }

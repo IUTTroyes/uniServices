@@ -257,7 +257,7 @@ watch(annee, async (newAnnee, oldAnnee) => {
           <Badge severity="success">{{ selectedJustificatif.absencesCount ?? detailsAbsences.length }} cours manqué(s)</Badge>
         </div>
 
-        <div class="surface-0 border-1 border-200 border-round p-3">
+        <div class="my-8">
           <div class="text-lg font-semibold">Motif du justificatif</div>
           <div class="line-height-3">{{ selectedJustificatif.motif || 'Aucun motif saisi' }}</div>
 

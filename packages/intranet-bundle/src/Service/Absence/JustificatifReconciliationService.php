@@ -2,6 +2,7 @@
 
 namespace IntranetBundle\Service\Absence;
 
+use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Users\Etudiant;
 use Doctrine\ORM\EntityManagerInterface;
 use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
@@ -21,7 +22,17 @@ class JustificatifReconciliationService
     public function reconcilierPourEtudiant(Etudiant $etudiant): void
     {
         $absences = $this->absenceRepository->findWithoutJustificatifByEtudiant($etudiant);
-        $justificatifs = $this->justificatifRepository->findByEtudiant($etudiant);
+        $justificatifs = [];
+
+        foreach ($etudiant->getScolarites() as $etudiantScolarite) {
+            foreach ($etudiantScolarite->getScolariteSemestre() as $scolariteSemestre) {
+                if (!$scolariteSemestre instanceof EtudiantScolariteSemestre) {
+                    continue;
+                }
+
+                $justificatifs = [...$justificatifs, ...$this->justificatifRepository->findByScolariteSemestre($scolariteSemestre)];
+            }
+        }
 
         $hasChanges = $this->lierAbsences($absences, $justificatifs);
         if ($hasChanges) {
@@ -31,15 +42,23 @@ class JustificatifReconciliationService
 
     public function reconcilierPourJustificatif(EtudiantAbsenceJustificatif $justificatif): void
     {
-        $etudiant = $justificatif->getEtudiant();
+        $scolariteSemestre = $justificatif->getScolariteSemestre();
         $debut = $justificatif->getDebut();
         $fin = $justificatif->getFin();
 
-        if (!$etudiant || !$debut || !$fin) {
+        if (!$scolariteSemestre || !$debut || !$fin) {
             return;
         }
 
-        $absences = $this->absenceRepository->findWithoutJustificatifByEtudiantAndInterval($etudiant, $debut, $fin);
+        $etudiant = $scolariteSemestre->getScolarite()?->getEtudiant();
+        if (!$etudiant) {
+            return;
+        }
+
+        $absences = array_filter(
+            $this->absenceRepository->findWithoutJustificatifByEtudiantAndInterval($etudiant, $debut, $fin),
+            static fn (EtudiantAbsence $absence): bool => $absence->getScolariteSemestre()?->getId() === $scolariteSemestre->getId(),
+        );
 
         $hasChanges = $this->lierAbsences($absences, [$justificatif]);
         if ($hasChanges) {
