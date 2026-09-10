@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.4](https://github.com/IUTTroyes/uniServices/compare/v0.1.3...v0.1.4) (2026-09-10)
+
+
+### Features
+
+* **Absence:** Création et affichage des absences et justificatifs (en cours) ([#223](https://github.com/IUTTroyes/uniServices/issues/223)) ([8ae76fa](https://github.com/IUTTroyes/uniServices/commit/8ae76fa98459ff233e86f2c1123a50f5580ff6e8))
+
 ## [0.1.3](https://github.com/IUTTroyes/uniServices/compare/v0.1.2...v0.1.3) (2026-09-07)
 
 
