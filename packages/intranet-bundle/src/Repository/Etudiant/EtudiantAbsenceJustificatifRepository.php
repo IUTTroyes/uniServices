@@ -2,7 +2,7 @@
 
 namespace IntranetBundle\Repository\Etudiant;
 
-use App\Entity\Users\Etudiant;
+use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use IntranetBundle\Entity\Etudiant\EtudiantAbsenceJustificatif;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -20,11 +20,11 @@ class EtudiantAbsenceJustificatifRepository extends ServiceEntityRepository
     /**
      * @return EtudiantAbsenceJustificatif[]
      */
-    public function findByEtudiant(Etudiant $etudiant): array
+    public function findByScolariteSemestre(EtudiantScolariteSemestre $scolariteSemestre): array
     {
         return $this->createQueryBuilder('justificatif')
-            ->andWhere('justificatif.etudiant = :etudiant')
-            ->setParameter('etudiant', $etudiant)
+            ->andWhere('justificatif.scolariteSemestre = :scolariteSemestre')
+            ->setParameter('scolariteSemestre', $scolariteSemestre)
             ->orderBy('justificatif.debut', 'ASC')
             ->addOrderBy('justificatif.id', 'ASC')
             ->getQuery()
