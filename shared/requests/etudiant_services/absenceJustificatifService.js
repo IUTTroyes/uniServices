@@ -58,7 +58,7 @@ const getAbsenceJustificatifsService = async (params = {}, scope = '', showToast
     }
 }
 
-const patchAbsenceJustificatifService = async (id, data, scope = '', showToast = false) => {
+const updateAbsenceJustificatifService = async (id, data, scope = '', showToast = false) => {
     try {
         const response = await apiCall(
             api.patch,
@@ -69,9 +69,24 @@ const patchAbsenceJustificatifService = async (id, data, scope = '', showToast =
         );
         return response.member;
     } catch (error) {
-        console.error('Erreur dans patchAbsenceJustificatifService:', error);
+        console.error('Erreur dans updateAbsenceJustificatifService:', error);
         throw error;
     }
 }
 
-export { getAbsenceJustificatifsService, patchAbsenceJustificatifService };
+const deleteAbsenceJustificatifService = async (id, scope = '', showToast = false) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api${scope}/etudiant_absence_justificatifs/${id}`],
+            'Justificatif supprimé avec succès',
+            'Erreur lors de la suppression du justificatif',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deleteAbsenceJustificatifService:', error);
+        throw error;
+    }
+}
+
+export { getAbsenceJustificatifsService, updateAbsenceJustificatifService, deleteAbsenceJustificatifService };

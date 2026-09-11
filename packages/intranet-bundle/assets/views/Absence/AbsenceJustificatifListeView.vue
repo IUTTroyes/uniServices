@@ -1,10 +1,11 @@
 <script setup>
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
-import {HeaderComponent, Kpi, EdtEventRow, ValidatedInput, SimpleSkeleton} from '@components';
+import {HeaderComponent, Kpi, EdtEventRow, ValidatedInput, validationRules, SimpleSkeleton, ButtonInfo, ButtonDelete} from '@components';
 import {useAnneeStore, useUsersStore} from '@stores';
-import {getAbsenceJustificatifsService, getAnneeService, patchAbsenceJustificatifService} from '@requests';
+import {getAbsenceJustificatifsService, getAnneeService, updateAbsenceJustificatifService, deleteAbsenceJustificatifService} from '@requests';
 import {useRoute, useRouter} from 'vue-router';
 import {FilterMatchMode} from '@primevue/core/api';
+import {useConfirm} from "primevue/useconfirm";
 
 const route = useRoute();
 const router = useRouter();
@@ -29,6 +30,7 @@ const periode = ref(null);
 const minDate = ref(new Date(new Date().getFullYear(), 0, 1));
 const maxDate = ref(new Date(new Date().getFullYear(), 11, 31));
 const multiSortMeta = ref([]);
+const refuseMotif = ref('');
 
 const filters = ref({
   'etudiant.display': {value: null, matchMode: FilterMatchMode.CONTAINS},
@@ -104,7 +106,16 @@ const getAnnee = async () => {
 };
 
 const updateEtat = async (item, etat) => {
-  await patchAbsenceJustificatifService(item.id, {etat}, '/administration', true);
+  const params = {
+    etat: etat,
+    motif_refus: etat === 2 ? item.motif_refus : null,
+  };
+  await updateAbsenceJustificatifService(item.id, params, '/administration', true);
+  await getJustificatifs();
+};
+
+const deleteJustificatif = async item => {
+  await deleteAbsenceJustificatifService(item.id, '/administration', true);
   await getJustificatifs();
 };
 
@@ -127,9 +138,6 @@ const getEtatOptions = () => {
   if (!options || typeof options !== 'object') {
     return [];
   }
-
-  console.log('getEtatOptions', options);
-
   return Object.entries(options).map(([value, label]) => ({
     label,
     value: Number(value),
@@ -206,6 +214,54 @@ watch(annee, async (newAnnee, oldAnnee) => {
   page.value = 0;
   await getJustificatifs();
 });
+
+const confirm = useConfirm()
+const showRefuse = item => {
+  refuseMotif.value = '';
+  confirm.require({
+    group: 'refuse',
+    header: 'Confirmation de refus',
+    message: 'Êtes-vous sûr de vouloir refuser ce justificatif ?',
+    icon: 'pi pi-exclamation-triangle',
+    rejectProps: {
+      label: 'Annuler',
+      outlined: true,
+      severity: 'secondary'
+    },
+    acceptProps: {
+      label: 'Confirmer',
+      severity: 'warn'
+    },
+    accept: async () => {
+      await updateEtat({...item, motif_refus: refuseMotif.value}, 2);
+      refuseMotif.value = '';
+    },
+    reject: () => {
+      refuseMotif.value = '';
+    }
+  });
+};
+const showValidate = item => {
+  confirm.require({
+    group: 'valide',
+    header: 'Confirmation de validation',
+    message: 'Êtes-vous sûr de vouloir valider ce justificatif ?',
+    icon: 'pi pi-check-circle',
+
+    rejectProps: {
+      label: 'Annuler',
+      outlined: true,
+      severity: 'secondary'
+    },
+    acceptProps: {
+      label: 'Confirmer',
+      severity: 'success'
+    },
+    accept: async () => {
+      await updateEtat(item, 1);
+    },
+  });
+};
 </script>
 
 <template>
@@ -292,8 +348,10 @@ watch(annee, async (newAnnee, oldAnnee) => {
       </Column>
       <Column field="etat" header="État" sortable :showFilterMenu="false">
         <template #body="slotProps">
-          <Badge v-if="slotProps.data.etat === 2" :severity="getEtatBadge(slotProps.data)" v-tooltip.top="`${slotProps.data.motif_refus}`">{{ getEtatLibelle(slotProps.data) }}</Badge>
-          <Badge v-else :severity="getEtatBadge(slotProps.data)">{{ getEtatLibelle(slotProps.data) }}</Badge>
+          <div class="flex items-center gap-2">
+            <Badge :severity="getEtatBadge(slotProps.data)">{{ getEtatLibelle(slotProps.data) }}</Badge>
+            <Badge v-if="slotProps.data.motif_refus" severity="danger" v-tooltip.top="`${slotProps.data.motif_refus}`"><i class="pi pi-info-circle text-xs!"></i></Badge>
+          </div>
         </template>
         <template #filter="{ filterModel, filterCallback }">
           <Select v-model="filterModel.value" @change="filterCallback()" :options="getEtatOptions()" option-label="label" option-value="value"
@@ -309,15 +367,44 @@ watch(annee, async (newAnnee, oldAnnee) => {
       <Column field="absencesCount" header="Cours manqués" />
       <Column header="Actions">
         <template #body="slotProps">
-          <div class="flex gap-2">
-            <Button icon="pi pi-check" size="small" rounded variant="outlined" severity="success" v-tooltip.top="`Valider le justificatif`" @click="updateEtat(slotProps.data, 'VALIDE')" />
-            <Button icon="pi pi-times" size="small" rounded variant="outlined" severity="danger" v-tooltip.top="`Refuser le justificatif`" @click="updateEtat(slotProps.data, 'REFUSE')" />
-            <Button icon="pi pi-info-circle" size="small" rounded variant="outlined" v-tooltip.top="`Voir les détails`" @click="openDetails(slotProps.data)" />
+          <div class="flex">
+            <Button icon="pi pi-check" class="mr-2" rounded variant="outlined" severity="success" v-tooltip.top="`Valider le justificatif`" @click="showValidate(slotProps.data)" />
+            <Button icon="pi pi-times" class="mr-2" rounded variant="outlined" severity="warn" v-tooltip.top="`Refuser le justificatif`" @click="showRefuse(slotProps.data)" />
+            <ButtonDelete :tooltip="`Supprimer le justificatif`" @confirm-delete="deleteJustificatif(slotProps.data)" />
+            <ButtonInfo :tooltip="`Voir le détail du justificatif`" @click="openDetails(slotProps.data)" />
           </div>
         </template>
       </Column>
       <template #footer> {{ nbJustificatifs }} résultat(s).</template>
     </DataTable>
+    <ConfirmDialog group="refuse">
+      <template #message="{ message, icon }">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-4">
+            <i :class="message.icon" class="text-4xl!" />
+            <p>{{ message.message }}</p>
+          </div>
+          <ValidatedInput
+              type="textarea"
+              label="Motif du refus"
+              v-model="refuseMotif"
+              name="motif_refus"
+              :rules="[validationRules.required]"
+              placeholder="Motif du refus"
+              class="mt-4"
+              help-text="'Indiquez le motif de refus du justificatif. Ce motif sera visible par l\'étudiant.'"
+          />
+        </div>
+      </template>
+    </ConfirmDialog>
+    <ConfirmDialog group="valide">
+      <template #message="{ message, icon }">
+        <div class="flex items-center gap-4">
+          <i :class="message.icon" class="text-4xl!" />
+          <p>{{ message.message }}</p>
+        </div>
+      </template>
+    </ConfirmDialog>
   </div>
 </div><Dialog header="Détail du justificatif" :visible="showDetailsDialog" modal dismissable-mask :style="{ width: '85vw' }" @update:visible="showDetailsDialog = $event">
   <div v-if="selectedJustificatif" class="mb-4">
@@ -332,7 +419,6 @@ watch(annee, async (newAnnee, oldAnnee) => {
     <div class="my-8">
       <div class="text-lg font-semibold">Motif du justificatif</div>
       <div class="line-height-3">{{ selectedJustificatif.motif || 'Aucun motif saisi' }}</div>
-
       <a
           v-if="selectedJustificatif.fichier"
           :href="selectedJustificatif.fichier"
