@@ -5,6 +5,7 @@ namespace IntranetBundle\Entity\Etudiant;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
@@ -48,6 +49,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
             denormalizationContext: ['groups' => ['justificatif:write:administration']],
             normalizationContext: ['groups' => ['justificatif:administration']],
         ),
+        new Delete(
+            uriTemplate: '/administration/etudiant_absence_justificatifs/{id}',
+            normalizationContext: ['groups' => ['justificatif:administration']],
+        )
     ],
     order: ['debut' => 'DESC']
 )]
@@ -161,6 +166,12 @@ class EtudiantAbsenceJustificatif
     public function getEtatLibelle(): string
     {
         return $this->etat->getLibelle();
+    }
+
+    #[Groups(['justificatif:administration'])]
+    public function getEtatBadge(): string
+    {
+        return $this->etat->getBadge();
     }
 
     public function getScolariteSemestre(): ?EtudiantScolariteSemestre
