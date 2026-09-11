@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.5](https://github.com/IUTTroyes/uniServices/compare/v0.1.4...v0.1.5) (2026-09-11)
+
+
+### Features
+
+* **Absence:** Filtres et tri sur la liste des justificatifs ([#225](https://github.com/IUTTroyes/uniServices/issues/225)) ([831425f](https://github.com/IUTTroyes/uniServices/commit/831425f6c305568b323861d682f05d9f63061e91))
+
 ## [0.1.4](https://github.com/IUTTroyes/uniServices/compare/v0.1.3...v0.1.4) (2026-09-10)
 
 
