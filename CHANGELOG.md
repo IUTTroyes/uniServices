@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.6](https://github.com/IUTTroyes/uniServices/compare/v0.1.5...v0.1.6) (2026-09-11)
+
+
+### Features
+
+* **Absence:** Validation, refus et suppression des justificatifs ([#227](https://github.com/IUTTroyes/uniServices/issues/227)) ([cf6103c](https://github.com/IUTTroyes/uniServices/commit/cf6103c7e302d4cbb525a6dff07f04bebfa26876))
+
 ## [0.1.5](https://github.com/IUTTroyes/uniServices/compare/v0.1.4...v0.1.5) (2026-09-11)
 
 
