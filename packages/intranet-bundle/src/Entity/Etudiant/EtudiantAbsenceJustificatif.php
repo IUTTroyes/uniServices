@@ -10,7 +10,6 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Traits\UuidTrait;
-use App\Entity\Users\Etudiant;
 use IntranetBundle\Enum\EtatJustificatifEnum;
 use IntranetBundle\Filter\JustificatifAbsenceFilter;
 use IntranetBundle\Repository\Etudiant\EtudiantAbsenceJustificatifRepository;
