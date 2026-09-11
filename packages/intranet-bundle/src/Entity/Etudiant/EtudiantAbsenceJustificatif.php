@@ -4,6 +4,7 @@ namespace IntranetBundle\Entity\Etudiant;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
@@ -22,6 +23,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: EtudiantAbsenceJustificatifRepository::class)]
 #[ORM\HasLifecycleCallbacks]
 #[ApiFilter(JustificatifAbsenceFilter::class)]
+#[ApiFilter(OrderFilter::class, properties: [
+    'debut',
+    'fin',
+    'motif',
+    'etat',
+    'scolariteSemestre.scolarite.etudiant.nom',
+])]
 #[ApiResource(
     operations: [
         new GetCollection(
@@ -142,10 +150,11 @@ class EtudiantAbsenceJustificatif
     }
 
     #[Groups(['justificatif:administration'])]
-    public function getEtatBadge(): string
+    public function getEtatOptions(): array
     {
-        return $this->etat->getBadge();
+        return $this->etat->getOptions();
     }
+
 
     #[Groups(['justificatif:administration'])]
     public function getEtatLibelle(): string
@@ -231,5 +240,9 @@ class EtudiantAbsenceJustificatif
         $this->motif_refus = $motif_refus;
     }
 
-
+    #[Groups(['justificatif:administration'])]
+    public function getEtudiant(): ?Etudiant
+    {
+        return $this->scolariteSemestre->getScolarite()?->getEtudiant();
+    }
 }

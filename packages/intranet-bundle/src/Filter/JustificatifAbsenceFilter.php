@@ -43,9 +43,32 @@ class JustificatifAbsenceFilter extends AbstractFilter
         if ('etat' === $property) {
             $param = $queryNameGenerator->generateParameterName('etat');
 
+            if (is_string($value) && defined('IntranetBundle\\Enum\\EtatJustificatifEnum::'.$value)) {
+                $value = constant('IntranetBundle\\Enum\\EtatJustificatifEnum::'.$value)->value;
+            }
+
             $queryBuilder
                 ->andWhere(sprintf('%s.etat = :%s', $alias, $param))
                 ->setParameter($param, $value);
+        }
+
+        if ('motif' === $property) {
+            $param = $queryNameGenerator->generateParameterName('motif');
+
+            $queryBuilder
+                ->andWhere(sprintf('%s.motif LIKE :%s', $alias, $param))
+                ->setParameter($param, sprintf('%%%s%%', $value));
+        }
+
+        if ('etudiant' === $property) {
+            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolariteSemestre');
+            $scolariteAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteSemestreAlias, 'scolarite');
+            $etudiantAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteAlias, 'etudiant');
+            $param = $queryNameGenerator->generateParameterName('etudiant');
+
+            $queryBuilder
+                ->andWhere(sprintf("LOWER(CONCAT(%s.prenom, ' ', %s.nom)) LIKE :%s OR LOWER(CONCAT(%s.nom, ' ', %s.prenom)) LIKE :%s", $etudiantAlias, $etudiantAlias, $param, $etudiantAlias, $etudiantAlias, $param))
+                ->setParameter($param, sprintf('%%%s%%', mb_strtolower((string) $value)));
         }
 
         if ('debut' === $property) {
@@ -104,6 +127,22 @@ class JustificatifAbsenceFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by etat',
+                ],
+            ],
+            'motif' => [
+                'property' => 'motif',
+                'type' => Type::BUILTIN_TYPE_STRING,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by motif',
+                ],
+            ],
+            'etudiant' => [
+                'property' => 'etudiant',
+                'type' => Type::BUILTIN_TYPE_STRING,
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by etudiant display',
                 ],
             ],
             'debut' => [

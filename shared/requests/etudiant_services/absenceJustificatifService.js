@@ -3,14 +3,55 @@ import apiCall from '@helpers/apiCall';
 
 const getAbsenceJustificatifsService = async (params = {}, scope = '', showToast = false) => {
     try {
-        const response = await apiCall(
+        const apiParams = {...params};
+
+        if (apiParams.filters) {
+            if (apiParams.filters['etudiant.display']?.value) {
+                apiParams.etudiant = apiParams.filters['etudiant.display'].value;
+            }
+
+            if (apiParams.filters.motif?.value) {
+                apiParams.motif = apiParams.filters.motif.value;
+            }
+
+            if (apiParams.filters.etat?.value) {
+                apiParams.etat = apiParams.filters.etat.value;
+            }
+
+            const periodeValue = apiParams.filters.periode?.value;
+            if (Array.isArray(periodeValue) && periodeValue.length === 2) {
+                const [debut, fin] = periodeValue;
+
+                if (debut) {
+                    apiParams.debut = debut;
+                }
+
+                if (fin) {
+                    apiParams.fin = fin;
+                }
+            }
+        }
+
+        if (Array.isArray(apiParams.sort) && apiParams.sort.length > 0) {
+            apiParams.order = apiParams.sort.reduce((acc, sortItem) => {
+                if (!sortItem?.field || !sortItem?.order) return acc;
+
+                const mappedField = sortItem.field === 'periode' ? 'debut' : sortItem.field;
+                acc[mappedField] = sortItem.order > 0 ? 'asc' : 'desc';
+                return acc;
+            }, {});
+        }
+
+        delete apiParams.filters;
+        delete apiParams.sort;
+
+        return await apiCall(
             api.get,
-            [`/api${scope}/etudiant_absence_justificatifs`, { params }],
+            [`/api${scope}/etudiant_absence_justificatifs`, { params: apiParams }],
             'Justificatifs récupérés avec succès',
             'Erreur lors de la récupération des justificatifs',
             showToast
         );
-        return response.member;
     } catch (error) {
         console.error('Erreur dans getAbsenceJustificatifsService:', error);
         throw error;

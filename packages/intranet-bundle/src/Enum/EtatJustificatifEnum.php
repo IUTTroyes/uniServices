@@ -10,6 +10,15 @@ enum EtatJustificatifEnum: int implements BadgeEnumInterface
     case VALIDE = 1;
     case REFUSE = 2;
 
+    public function getOptions(): array
+    {
+        return [
+            self::EN_ATTENTE->value => self::EN_ATTENTE->getLibelle(),
+            self::VALIDE->value => self::VALIDE->getLibelle(),
+            self::REFUSE->value => self::REFUSE->getLibelle(),
+        ];
+    }
+
     public function getBadge(): string
     {
         return match($this) {
