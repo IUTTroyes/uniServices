@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.7](https://github.com/IUTTroyes/uniServices/compare/v0.1.6...v0.1.7) (2026-09-15)
+
+
+### Features
+
+* **Dashboard:** Gestion des profils `Personnel` / `Etudiant` dans le système de widgets ([#230](https://github.com/IUTTroyes/uniServices/issues/230)) ([ee29a68](https://github.com/IUTTroyes/uniServices/commit/ee29a68cf7ece9c937abc78468641bb3fa526b3c))
+
 ## [0.1.6](https://github.com/IUTTroyes/uniServices/compare/v0.1.5...v0.1.6) (2026-09-11)
 
 
