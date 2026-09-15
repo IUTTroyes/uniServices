@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Migration\IntranetV3\DatabaseResetter;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationRegistry;
 use App\Migration\IntranetV3\MigrationRunner;
@@ -23,6 +24,8 @@ final class MigrateIntranetV3Command extends Command
     public function __construct(
         private readonly MigrationRunner $runner,
         private readonly MigrationRegistry $registry,
+        private readonly DatabaseResetter $databaseResetter,
+        private readonly string $kernelEnvironment,
     ) {
         parent::__construct();
     }
@@ -33,7 +36,9 @@ final class MigrateIntranetV3Command extends Command
             ->addArgument('migration', InputArgument::OPTIONAL, 'Migration name. Omit to run all migrations.')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Run without writing data.')
             ->addOption('list', null, InputOption::VALUE_NONE, 'List available migrations.')
-            ->addOption('no-progress', null, InputOption::VALUE_NONE, 'Disable progress bars.');
+            ->addOption('no-progress', null, InputOption::VALUE_NONE, 'Disable progress bars.')
+            ->addOption('reset-db', null, InputOption::VALUE_NONE, 'Empty the target application tables before importing (dev/test only).')
+            ->addOption('force', 'f', InputOption::VALUE_NONE, 'Skip confirmation for --reset-db.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -46,6 +51,47 @@ final class MigrateIntranetV3Command extends Command
             $io->listing($names ?: ['No migration registered.']);
 
             return Command::SUCCESS;
+        }
+
+        if ($input->getOption('reset-db')) {
+            if ($input->getOption('dry-run')) {
+                $io->error('--reset-db and --dry-run cannot be used together: resetting the database is destructive.');
+
+                return Command::INVALID;
+            }
+
+            if (!in_array($this->kernelEnvironment, ['dev', 'test'], true)) {
+                $io->error(sprintf(
+                    '--reset-db is restricted to dev/test environments (current environment: %s).',
+                    $this->kernelEnvironment,
+                ));
+
+                return Command::INVALID;
+            }
+
+            if (!$input->getOption('force')) {
+                $confirmed = $io->confirm(
+                    sprintf('Empty the target database application tables in %s before importing?', $this->kernelEnvironment),
+                    false,
+                );
+                if (!$confirmed) {
+                    $io->warning('Database reset cancelled. No migration was run.');
+
+                    return Command::SUCCESS;
+                }
+            }
+
+            try {
+                $tableCount = $this->databaseResetter->reset();
+                $io->success(sprintf(
+                    'Target database reset: %d application table(s) emptied. Doctrine migration history was preserved.',
+                    $tableCount,
+                ));
+            } catch (\Throwable $exception) {
+                $io->error('Unable to reset target database: ' . $exception->getMessage());
+
+                return Command::FAILURE;
+            }
         }
 
         $migration = $input->getArgument('migration');
