@@ -63,10 +63,7 @@ final class MigrateIntranetV3Command extends Command
             }
 
             if (!in_array($this->kernelEnvironment, ['dev', 'test'], true)) {
-                $io->error(sprintf(
-                    '--reset-db is restricted to dev/test environments (current environment: %s).',
-                    $this->kernelEnvironment,
-                ));
+                $io->error(sprintf('--reset-db is restricted to dev/test environments (current environment: %s).', $this->kernelEnvironment));
 
                 return Command::INVALID;
             }
@@ -85,10 +82,7 @@ final class MigrateIntranetV3Command extends Command
 
             try {
                 $tableCount = $this->databaseResetter->reset();
-                $io->success(sprintf(
-                    'Target database reset: %d application table(s) emptied. Doctrine migration history was preserved.',
-                    $tableCount,
-                ));
+                $io->success(sprintf('Target database reset: %d application table(s) emptied. Doctrine migration history was preserved.', $tableCount));
             } catch (\Throwable $exception) {
                 $io->error('Unable to reset target database: ' . $exception->getMessage());
 
@@ -109,37 +103,55 @@ final class MigrateIntranetV3Command extends Command
 
         $overall = null;
         $detail = null;
+        $currentMigration = null;
+        $migrationIndex = 0;
+        $migrationCount = count($plan);
 
         if ($progressEnabled && [] !== $plan) {
-            $overall = new ProgressBar($output, count($plan));
-            $overall->setFormat(' %current%/%max% [%bar%] %percent:3s%%  %message%');
-            $overall->setMessage('Préparation…');
-            $overall->start();
+            $io->section(sprintf('Migration intranet V3 — %d étape(s)', $migrationCount));
         }
 
         $context = new MigrationContext(
             dryRun: (bool) $input->getOption('dry-run'),
             verbose: $output->isVerbose(),
-            onMigrationStart: static function (string $name) use (&$overall): void {
-                if (null !== $overall) {
-                    $overall->setMessage($name);
-                    $overall->display();
+            onMigrationStart: static function (string $name) use ($output, $progressEnabled, &$currentMigration, &$migrationIndex, $migrationCount): void {
+                $currentMigration = $name;
+                ++$migrationIndex;
+
+                if ($progressEnabled) {
+                    $output->writeln('');
+                    $output->writeln(sprintf(
+                        '<info>[%d/%d] ▶ %s</info>',
+                        $migrationIndex,
+                        $migrationCount,
+                        $name,
+                    ));
                 }
             },
-            onMigrationFinish: static function (string $name) use (&$overall): void {
-                if (null !== $overall) {
-                    $overall->setMessage($name.' ✓');
-                    $overall->advance();
+            onMigrationFinish: static function (string $name) use ($output, $progressEnabled): void {
+                if ($progressEnabled) {
+                    $output->writeln(sprintf('<info>      ✓ %s terminé</info>', $name));
                 }
             },
-            onProgressStart: static function (string $label, int $total) use ($output, &$detail): void {
+            onProgressStart: static function (string $label, int $total) use ($output, $progressEnabled, &$detail, &$currentMigration): void {
+                if (!$progressEnabled) {
+                    return;
+                }
+
+                if (null !== $detail) {
+                    $detail->finish();
+                    $output->writeln('');
+                }
+
                 $detail = new ProgressBar($output, $total);
                 if ($total > 0) {
-                    $detail->setFormat('      %message% %current%/%max% [%bar%] %percent:3s%%');
+                    $detail->setFormat(sprintf(
+                        '      %%message%% — %%current%%/%%max%% [%%bar%%] %%percent:3s%%%%',
+                    ));
                 } else {
-                    $detail->setFormat('      %message% %current% lignes traitées');
+                    $detail->setFormat('      %message% — %current% lignes traitées');
                 }
-                $detail->setMessage($label);
+                $detail->setMessage(sprintf('%s · %s', $currentMigration ?? 'migration', $label));
                 $detail->start();
             },
             onProgressAdvance: static function (int $step) use (&$detail): void {
@@ -147,9 +159,10 @@ final class MigrateIntranetV3Command extends Command
                     $detail->advance($step);
                 }
             },
-            onProgressFinish: static function () use (&$detail): void {
+            onProgressFinish: static function () use ($output, &$detail): void {
                 if (null !== $detail) {
                     $detail->finish();
+                    $output->writeln('');
                     $detail = null;
                 }
             },
@@ -158,20 +171,14 @@ final class MigrateIntranetV3Command extends Command
         try {
             $results = $this->runner->run($migration, $context);
         } catch (\InvalidArgumentException|\LogicException $exception) {
-            if (null !== $overall) {
-                $overall->clear();
-            }
             $io->error($exception->getMessage());
 
             return Command::INVALID;
         } finally {
             if (null !== $detail) {
                 $detail->finish();
-                $detail = null;
-            }
-            if (null !== $overall) {
-                $overall->finish();
                 $output->writeln('');
+                $detail = null;
             }
         }
 
@@ -194,6 +201,7 @@ final class MigrateIntranetV3Command extends Command
             }
         }
 
+        $io->section('Bilan de la migration');
         $io->table(['Migration', 'Created', 'Updated', 'Skipped', 'Failed', 'Total'], $rows);
 
         if ($context->dryRun) {
