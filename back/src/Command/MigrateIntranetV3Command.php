@@ -14,6 +14,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 #[AsCommand(
     name: 'app:migrate-intranet-v3',
@@ -25,6 +26,7 @@ final class MigrateIntranetV3Command extends Command
         private readonly MigrationRunner $runner,
         private readonly MigrationRegistry $registry,
         private readonly DatabaseResetter $databaseResetter,
+        #[Autowire(param: 'kernel.environment')]
         private readonly string $kernelEnvironment,
     ) {
         parent::__construct();
