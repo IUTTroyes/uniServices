@@ -4,6 +4,7 @@ namespace App\Repository\Dashboard;
 
 use App\Entity\Dashboard\DashboardPreference;
 use App\Entity\Structure\StructureDepartementPersonnel;
+use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
@@ -21,29 +22,46 @@ class DashboardPreferenceRepository extends ServiceEntityRepository
     /**
      * @return DashboardPreference[]
      */
-    public function findByPersonnel(Personnel $personnel, ?StructureDepartementPersonnel $structureDepartementPersonnel = null, string $dashboardCode = 'intranet'): array
+    public function findByUser(Personnel|Etudiant $user, ?StructureDepartementPersonnel $structureDepartementPersonnel = null, string $dashboardCode = 'intranet'): array
     {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.personnel = :personnel')
-            ->andWhere('p.structureDepartementPersonnel = :structureDepartementPersonnel')
+        $qb = $this->createQueryBuilder('p')
             ->andWhere('p.dashboardCode = :dashboardCode')
-            ->setParameter('personnel', $personnel)
-            ->setParameter('structureDepartementPersonnel', $structureDepartementPersonnel)
             ->setParameter('dashboardCode', $dashboardCode)
             ->orderBy('p.position', 'ASC')
-            ->addOrderBy('p.id', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->addOrderBy('p.id', 'ASC');
+
+        if ($user instanceof Personnel) {
+            $qb
+                ->andWhere('p.personnel = :personnel')
+                ->setParameter('personnel', $user);
+
+            $qb
+                ->andWhere('p.structureDepartementPersonnel = :structureDepartementPersonnel')
+                ->setParameter('structureDepartementPersonnel', $structureDepartementPersonnel);
+        } else {
+            $qb
+                ->andWhere('p.etudiant = :etudiant')
+                ->setParameter('etudiant', $user);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
-    public function findOneByPersonnelAndWidgetKey(Personnel $personnel, string $widgetKey, ?StructureDepartementPersonnel $structureDepartementPersonnel = null, string $dashboardCode = 'intranet'): ?DashboardPreference
+    public function findOneByUserAndWidgetKey(Personnel|Etudiant $user, string $widgetKey, ?StructureDepartementPersonnel $structureDepartementPersonnel = null, string $dashboardCode = 'intranet'): ?DashboardPreference
     {
-        return $this->findOneBy([
-            'personnel' => $personnel,
+        $criteria = [
             'widgetKey' => $widgetKey,
-            'structureDepartementPersonnel' => $structureDepartementPersonnel,
             'dashboardCode' => $dashboardCode,
-        ]);
+        ];
+
+        if ($user instanceof Personnel) {
+            $criteria['personnel'] = $user;
+            $criteria['structureDepartementPersonnel'] = $structureDepartementPersonnel;
+        } else {
+            $criteria['etudiant'] = $user;
+        }
+
+        return $this->findOneBy($criteria);
     }
 
     public function save(DashboardPreference $entity, bool $flush = false): void

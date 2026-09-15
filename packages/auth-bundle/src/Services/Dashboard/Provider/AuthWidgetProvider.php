@@ -21,7 +21,7 @@ class AuthWidgetProvider implements WidgetProviderInterface
     {
         return [
                 new WidgetDefinition('auth.actus_ext', 'auth', 'Actualités de ' . $this->getEtablissementLibelle(), 'pi pi-calendar', 'ExtActusWidget', 'large', true, defaultConfig: ['position' => 1]),
-                new WidgetDefinition('auth.actus_int', 'auth', 'Actualités du département', 'pi pi-calendar', 'IntActusWidget', 'large', true, defaultConfig: ['position' => 2]),
+                new WidgetDefinition('auth.actus_int', 'auth', 'Actualités du département', 'pi pi-calendar', 'IntActusWidget', 'large', true, defaultConfig: ['position' => 2], allowedProfiles: [WidgetDefinition::PROFILE_PERSONNEL]),
         ];
     }
 

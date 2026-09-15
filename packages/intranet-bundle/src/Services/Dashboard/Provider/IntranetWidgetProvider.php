@@ -21,8 +21,8 @@ class IntranetWidgetProvider implements WidgetProviderInterface
     {
         return [
             new WidgetDefinition('intranet.emploi_du_temps', 'intranet', 'Aujourd\'hui', 'pi pi-calendar', 'EmploiDuTempsWidget', 'large', true, defaultConfig: ['position' => 2]),
-            new WidgetDefinition('intranet.actions_urgentes', 'intranet', 'Actions urgentes', 'pi pi-sparkles', 'ActionsUrgentesWidget', 'medium', true, defaultConfig: ['position' => 3]),
-            new WidgetDefinition('intranet.notes', 'intranet', 'Notes', 'pi pi-pencil', 'NotesWidget', 'small', true, defaultConfig: ['position' => 5]),
+            new WidgetDefinition('intranet.actions_urgentes', 'intranet', 'Actions urgentes', 'pi pi-sparkles', 'ActionsUrgentesWidget', 'medium', true, defaultConfig: ['position' => 3], allowedProfiles: [WidgetDefinition::PROFILE_PERSONNEL]),
+            new WidgetDefinition('intranet.notes', 'intranet', 'Notes', 'pi pi-pencil', 'NotesWidget', 'small', true, defaultConfig: ['position' => 5], allowedProfiles: [WidgetDefinition::PROFILE_ETUDIANT]),
         ];
     }
 }
