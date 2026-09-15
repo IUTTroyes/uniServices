@@ -368,10 +368,10 @@ const showValidate = item => {
       <Column header="Actions">
         <template #body="slotProps">
           <div class="flex">
-            <Button icon="pi pi-check" class="mr-2" rounded variant="outlined" severity="success" v-tooltip.top="`Valider le justificatif`" @click="showValidate(slotProps.data)" />
-            <Button icon="pi pi-times" class="mr-2" rounded variant="outlined" severity="warn" v-tooltip.top="`Refuser le justificatif`" @click="showRefuse(slotProps.data)" />
-            <ButtonDelete :tooltip="`Supprimer le justificatif`" @confirm-delete="deleteJustificatif(slotProps.data)" />
+            <Button icon="pi pi-check" class="mr-2" rounded variant="outlined" severity="success" :disabled="slotProps.data.etat === 1" v-tooltip.top="`Valider le justificatif`" @click="showValidate(slotProps.data)" />
+            <Button icon="pi pi-times" class="mr-2" rounded variant="outlined" severity="warn" :disabled="slotProps.data.etat === 2" v-tooltip.top="`Refuser le justificatif`" @click="showRefuse(slotProps.data)" />
             <ButtonInfo :tooltip="`Voir le détail du justificatif`" @click="openDetails(slotProps.data)" />
+            <ButtonDelete :tooltip="`Supprimer le justificatif`" @confirm-delete="deleteJustificatif(slotProps.data)" />
           </div>
         </template>
       </Column>

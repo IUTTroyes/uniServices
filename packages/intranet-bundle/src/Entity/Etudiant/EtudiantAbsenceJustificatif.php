@@ -89,6 +89,10 @@ class EtudiantAbsenceJustificatif
     #[Groups(['justificatif:administration', 'justificatif:write:administration'])]
     private ?string $fichier = null;
 
+    #[ORM\Column(nullable: true, length: 255)]
+    #[Groups(['justificatif:administration', 'justificatif:write:administration'])]
+    private ?string $nom_fichier = null;
+
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['justificatif:administration', 'justificatif:write:administration'])]
@@ -251,9 +255,19 @@ class EtudiantAbsenceJustificatif
         $this->motif_refus = $motif_refus;
     }
 
-    #[Groups(['justificatif:administration'])]
-    public function getEtudiant(): ?Etudiant
+    public function getNomFichier(): ?string
     {
-        return $this->scolariteSemestre->getScolarite()?->getEtudiant();
+        return $this->nom_fichier;
+    }
+
+    public function setNomFichier(?string $nom_fichier): void
+    {
+        $this->nom_fichier = $nom_fichier;
+    }
+
+    #[Groups(['justificatif:administration'])]
+    public function getEtudiant() {
+
+        return $this->scolariteSemestre?->getScolarite()?->getEtudiant();
     }
 }
