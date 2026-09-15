@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.8](https://github.com/IUTTroyes/uniServices/compare/v0.1.7...v0.1.8) (2026-09-15)
+
+
+### Features
+
+* **Dashboard:** Initialisation du Dashboard intranet pour les user Etudiant ([#233](https://github.com/IUTTroyes/uniServices/issues/233)) ([896f6e4](https://github.com/IUTTroyes/uniServices/commit/896f6e4a19dbea092dd26a96a64746855cf82681))
+
 ## [0.1.7](https://github.com/IUTTroyes/uniServices/compare/v0.1.6...v0.1.7) (2026-09-15)
 
 
