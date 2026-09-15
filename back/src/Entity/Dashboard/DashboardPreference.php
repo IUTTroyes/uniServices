@@ -3,6 +3,7 @@
 namespace App\Entity\Dashboard;
 
 use App\Entity\Structure\StructureDepartementPersonnel;
+use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Repository\Dashboard\DashboardPreferenceRepository;
 use Doctrine\DBAL\Types\Types;
@@ -10,6 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: DashboardPreferenceRepository::class)]
 #[ORM\UniqueConstraint(name: 'uniq_dashboard_preference_user_dashboard_widget_structure', columns: ['personnel_id', 'dashboard_code', 'widget_key', 'structure_departement_personnel_id'])]
+#[ORM\UniqueConstraint(name: 'uniq_dashboard_preference_student_dashboard_widget_structure', columns: ['etudiant_id', 'dashboard_code', 'widget_key', 'structure_departement_personnel_id'])]
 class DashboardPreference
 {
     #[ORM\Id]
@@ -18,8 +20,12 @@ class DashboardPreference
     private ?int $id = null;
 
     #[ORM\ManyToOne]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     private ?Personnel $personnel = null;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    private ?Etudiant $etudiant = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
@@ -62,6 +68,18 @@ class DashboardPreference
     public function setPersonnel(?Personnel $personnel): static
     {
         $this->personnel = $personnel;
+
+        return $this;
+    }
+
+    public function getEtudiant(): ?Etudiant
+    {
+        return $this->etudiant;
+    }
+
+    public function setEtudiant(?Etudiant $etudiant): static
+    {
+        $this->etudiant = $etudiant;
 
         return $this;
     }

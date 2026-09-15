@@ -3,6 +3,7 @@
 namespace UnifolioBundle\Services\Dashboard\Provider;
 
 use App\Domain\Dashboard\WidgetDataProviderInterface;
+use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 
 class PortfolioWidgetDataProvider implements WidgetDataProviderInterface
@@ -12,7 +13,7 @@ class PortfolioWidgetDataProvider implements WidgetDataProviderInterface
         return str_starts_with($code, 'portfolio.');
     }
 
-    public function getData(string $code, Personnel $user): array
+    public function getData(string $code, Personnel|Etudiant $user): array
     {
         return match ($code) {
             'portfolio.to_correct' => [

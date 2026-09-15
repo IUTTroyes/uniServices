@@ -7,7 +7,7 @@ import {
     getUserService,
     updateUserService
 } from "@requests";
-import {useAnneeUnivStore, useDepartementStore} from '@stores';
+import {useDepartementStore} from '@stores';
 import noImage from "@images/photos_etudiants/noimage.png";
 import { getAuthenticatedUser, logout as authLogout } from "@helpers/authService";
 
@@ -24,14 +24,11 @@ export const useUsersStore = defineStore('users', () => {
     const departementsPersonnelNotDefaut = ref({});
     const statuts = ref([]);
     const scolariteActif = ref({});
-    const currentAnneeUniv = ref({});
     const temporaryRole = ref(null);
 
     const isLoading = ref(false);
     const isLoaded = ref(false);
     const isAuthInitialized = ref(false);
-
-    const anneeUnivStore = useAnneeUnivStore();
 
     const normalizePackageSlug = (value) => {
         if (typeof value !== 'string') {
