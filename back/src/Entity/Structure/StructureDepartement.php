@@ -55,11 +55,11 @@ class StructureDepartement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'departement_personnel:read', 'scoralite:read', 'diplome:detail', 'pn:detail', 'pn:light'])]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'departement_personnel:read', 'scoralite:read', 'diplome:detail', 'pn:detail', 'pn:light', 'scolarite:user'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'etudiant:read', 'departement_personnel:read', 'scolarite:read', 'diplome:detail', 'pn:detail', 'pn:light'])]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'etudiant:read', 'departement_personnel:read', 'scolarite:read', 'diplome:detail', 'pn:detail', 'pn:light', 'scolarite:user'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]

@@ -30,6 +30,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light', 'annee-univ:light']]),
         new GetCollection(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light', 'annee-univ:light']]),
         new GetCollection(
+            uriTemplate: '/user/etudiant_scolarites',
+            normalizationContext: ['groups' => ['scolarite:user']],
+        ),
+        new GetCollection(
             uriTemplate: '/mini/etudiant_scolarites',
             normalizationContext: ['groups' => ['scolarite:light']],
         ),
@@ -100,11 +104,11 @@ class EtudiantScolarite
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['scolarite:detail', 'scolarite:light'])]
+    #[Groups(['scolarite:detail', 'scolarite:light', 'scolarite:user'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'scolarite:user'])]
     private ?StructureDepartement $departement = null;
 
     /**
@@ -125,6 +129,10 @@ class EtudiantScolarite
     #[ORM\ManyToOne(inversedBy: 'etudiantScolaritesPropositions')]
     #[ORM\JoinColumn(onDelete: 'SET NULL')]
     private ?StructureAnnee $proposition = null;
+
+    #[ORM\Column]
+    #[Groups(groups: ['scolarite:detail', 'scolarite:user'])]
+    private array $packages = ["intranet"];
 
     public function __construct()
     {
@@ -335,5 +343,15 @@ class EtudiantScolarite
             }
         }
         return $annees;
+    }
+
+    public function getPackages(): array
+    {
+        return $this->packages;
+    }
+
+    public function setPackages(array $packages): void
+    {
+        $this->packages = $packages;
     }
 }

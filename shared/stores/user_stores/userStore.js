@@ -23,7 +23,7 @@ export const useUsersStore = defineStore('users', () => {
     const departementsNotDefaut = ref({});
     const departementsPersonnelNotDefaut = ref({});
     const statuts = ref([]);
-    const scolariteActif = ref({});
+    const scolariteActif = ref(null);
     const temporaryRole = ref(null);
 
     const isLoading = ref(false);
@@ -93,6 +93,20 @@ export const useUsersStore = defineStore('users', () => {
         return items;
     };
 
+    const extractEtudiantScolariteActif = (userData, scolarites = []) => {
+        const actifFromUser = userData?.etudiant?.etudiantScolarite?.actif;
+        if (actifFromUser) {
+            return actifFromUser;
+        }
+
+        if (!Array.isArray(scolarites) || scolarites.length === 0) {
+            return null;
+        }
+
+        const actifFromList = scolarites.find(scolarite => scolarite?.actif === true);
+        return actifFromList || scolarites[0] || null;
+    };
+
     // Initialiser les informations d'authentification depuis le serveur
     const initAuth = async () => {
         if (isAuthInitialized.value) {
@@ -138,6 +152,7 @@ export const useUsersStore = defineStore('users', () => {
             userPhoto.value = noImage;
 
             if (userType.value === 'personnels') {
+                scolariteActif.value = null;
                 const departementStore = useDepartementStore();
                 // Utiliser les départements en cache si disponibles, ou forcer le rechargement si nécessaire
                 departements.value = await departementStore.getDepartementsPersonnel(userId.value, force);
@@ -175,16 +190,32 @@ export const useUsersStore = defineStore('users', () => {
                 // Mettre à jour les références des départements
                 departementDefaut.value = departements.value.find(departement => departement.departementPersonnel?.defaut === true) || {};
                 departementsNotDefaut.value = departements.value.filter(departement => departement.departementPersonnel?.defaut === false) || [];
+                departementPersonnelDefaut.value = departementDefaut.value?.departementPersonnel || {};
+                departementsPersonnelNotDefaut.value = departementsNotDefaut.value
+                    .map(departement => departement?.departementPersonnel)
+                    .filter(Boolean);
             }
             if (userType.value === 'etudiants') {
                 try {
-                    const scolarites = await getEtudiantScolaritesService(userId.value, true);
-                    scolariteActif.value = Array.isArray(scolarites) && scolarites.length > 0 ? scolarites[0] : null;
+                    const params = {
+                        actif: true,
+                        etudiant: userId.value
+                    }
+                    const scolaritesActives = await getEtudiantScolaritesService(params, '/user');
+                    scolariteActif.value = scolaritesActives[0];
                     departementDefaut.value = scolariteActif.value?.departement || {};
+                    departements.value = departementDefaut.value?.id ? [departementDefaut.value] : [];
+                    departementsNotDefaut.value = [];
+                    departementPersonnelDefaut.value = {};
+                    departementsPersonnelNotDefaut.value = [];
                 } catch (error) {
                     console.error('Error fetching student scolarites:', error);
                     scolariteActif.value = null;
                     departementDefaut.value = {};
+                    departements.value = [];
+                    departementsNotDefaut.value = [];
+                    departementPersonnelDefaut.value = {};
+                    departementsPersonnelNotDefaut.value = [];
                 }
             }
             isLoaded.value = true;
