@@ -56,7 +56,7 @@ final class PersonnelDepartementMigrator extends AbstractMigrator
         $unresolvedPersonnel = $unresolvedDepartments = 0;
 
         $total = (int) $this->source->fetchOne('SELECT COUNT(*) FROM personnel_departement');
-        $context->startProgress($this->getName(), $total);
+        $this->startProgress($context, 'Affectations personnels/départements', $total);
 
         foreach ($this->source->executeQuery(
             'SELECT id, personnel_id, departement_id, roles, defaut FROM personnel_departement ORDER BY id'
@@ -120,7 +120,7 @@ final class PersonnelDepartementMigrator extends AbstractMigrator
         }
 
         $this->flushAndClear($context);
-        $context->finishProgress($this->getName());
+        $this->finishProgress($context);
 
         if ($unresolvedPersonnel > 0 || $unresolvedDepartments > 0) {
             $messages[] = sprintf('Références non résolues: personnels=%d, départements=%d.', $unresolvedPersonnel, $unresolvedDepartments);
@@ -168,8 +168,11 @@ final class PersonnelDepartementMigrator extends AbstractMigrator
     private function advance(MigrationContext $context, int &$processed): void
     {
         ++$processed;
-        $context->advanceProgress($this->getName());
-        $this->flushBatch($context, $processed);
+        $context->advanceProgress();
+
+        if ($processed > 0 && 0 === $processed % self::BATCH_SIZE) {
+            $this->flushAndClear($context);
+        }
     }
 
     /** @param list<string> $messages */
