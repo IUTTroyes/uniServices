@@ -36,6 +36,23 @@ const widgetData = ref({});
 const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnneeUniv?.id ?? null);
 const etablissement = ref([]);
 
+onMounted(async () => {
+  isLoadingBundles.value = true;
+  try {
+    etablissement.value = await etablissementStore.etablissement;
+    activatedBundles.value = tools.filter((bundle) => isBundleActivated(bundle));
+    unactivatedBundles.value = tools.filter((bundle) => !isBundleActivated(bundle));
+    // si on a le bundle "intranet" on le place en premier dans le tableau
+    if (activatedBundles.value.some((bundle) => bundle.urlSlug === 'intranet')) {
+      const intranetBundle = activatedBundles.value.find((bundle) => bundle.urlSlug === 'intranet');
+      activatedBundles.value = [intranetBundle, ...activatedBundles.value.filter((bundle) => bundle.urlSlug !== 'intranet')];
+    }
+    await getWidgets();
+  } finally {
+    isLoadingBundles.value = false;
+  }
+});
+
 const onBundleClick = (bundleUrl) => {
   window.location.href = bundleUrl;
 };
@@ -154,25 +171,6 @@ const getWidgets = async () => {
   );
   isLoadingWidgets.value = false;
 };
-
-onMounted(async () => {
-  isLoadingBundles.value = true;
-  try {
-    etablissement.value = await etablissementStore.etablissement;
-    console.log(etablissement.value)
-
-    activatedBundles.value = tools.filter((bundle) => isBundleActivated(bundle));
-    unactivatedBundles.value = tools.filter((bundle) => !isBundleActivated(bundle));
-    // si on a le bundle "intranet" on le place en premier dans le tableau
-    if (activatedBundles.value.some((bundle) => bundle.urlSlug === 'intranet')) {
-      const intranetBundle = activatedBundles.value.find((bundle) => bundle.urlSlug === 'intranet');
-      activatedBundles.value = [intranetBundle, ...activatedBundles.value.filter((bundle) => bundle.urlSlug !== 'intranet')];
-    }
-    await getWidgets();
-  } finally {
-    isLoadingBundles.value = false;
-  }
-});
 
 // Recharger les widgets quand on revient de la page de configuration
 watch(() => route.path, async (newPath, oldPath) => {

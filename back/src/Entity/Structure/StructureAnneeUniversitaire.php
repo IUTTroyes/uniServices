@@ -62,11 +62,11 @@ class StructureAnneeUniversitaire
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['annee_universitaire:detail', 'etudiant:read', 'maquette:detail', 'annee-univ:light', 'pn:light'])]
+    #[Groups(['annee_universitaire:detail', 'etudiant:read', 'maquette:detail', 'annee-univ:light', 'pn:light', 'scolarite:user'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
-    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light', 'pn:light'])]
+    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light', 'pn:light', 'scolarite:user'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
@@ -96,7 +96,7 @@ class StructureAnneeUniversitaire
     private Collection $personnels;
 
     #[ORM\Column]
-    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'maquette:detail', 'pn:read', 'scolarite:read', 'etudiant:read'])]
+    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'maquette:detail', 'pn:read', 'scolarite:read', 'etudiant:read', 'scolarite:user'])]
     private bool $actif = false;
 
     /**
