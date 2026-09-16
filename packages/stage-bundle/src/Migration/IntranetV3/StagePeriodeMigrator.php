@@ -4,6 +4,7 @@ namespace StageBundle\Migration\IntranetV3;
 
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
+use App\Entity\Users\Personnel;
 use App\Migration\IntranetV3\AbstractMigrator;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationResult;
@@ -18,8 +19,16 @@ final class StagePeriodeMigrator extends AbstractMigrator
     {
         $created = $updated = $skipped = $failed = $processed = 0;
         $messages = [];
+        $periodsWithManagers = 0;
+        $managersLinked = 0;
+        $missingManagers = 0;
         $total = (int) $this->source->fetchOne('SELECT COUNT(*) FROM stage_periode');
         $this->startProgress($context, 'Périodes de stage', $total);
+
+        $managerIdsByPeriod = [];
+        foreach ($this->source->executeQuery('SELECT stage_periode_id, personnel_id FROM stage_periode_personnel ORDER BY stage_periode_id, personnel_id')->iterateAssociative() as $managerRow) {
+            $managerIdsByPeriod[(int) $managerRow['stage_periode_id']][] = (int) $managerRow['personnel_id'];
+        }
 
         $sql = <<<'SQL'
 SELECT sp.id, sp.libelle, sp.nb_semaines, sp.nb_jours, sp.date_debut, sp.date_fin,
@@ -53,6 +62,30 @@ SQL;
                     ->setNbSemaines((int) $row['nb_semaines'])->setNbJours((int) $row['nb_jours'])->setDateDebut(new \DateTime((string) $row['date_debut']))->setDateFin(new \DateTime((string) $row['date_fin']))
                     ->setDatesFlexibles((bool) $row['dates_flexibles'])->setCompetencesVisees($row['competences_visees'])->setModalitesEvaluationEntreprise($row['modalite_evaluation'])
                     ->setModalitesEvaluationPedagogique($row['modalite_evaluation_pedagogique'])->setModalitesEncadrement($row['modalite_encadrement'])->setDocumentsRendre($row['document_rendre'])->setCommentaireLibre($row['texte_libre']);
+
+                // V3 had a single unordered ManyToMany collection of managers. In UniServices,
+                // the first legacy manager becomes the principal one and the remaining managers
+                // become co-responsables. Ordering by personnel_id makes reruns deterministic.
+                foreach ($entity->getCoResponsables()->toArray() as $coResponsable) $entity->removeCoResponsable($coResponsable);
+                $entity->setResponsablePrincipal(null);
+                $managerIds = $managerIdsByPeriod[(int) $row['id']] ?? [];
+                if ([] !== $managerIds) ++$periodsWithManagers;
+                $resolvedManagers = [];
+                foreach ($managerIds as $managerId) {
+                    $manager = $this->entityManager->getRepository(Personnel::class)->findOneBy(['oldId' => $managerId]);
+                    if (null === $manager) {
+                        ++$missingManagers;
+                        if (count($messages) < 20) $messages[] = sprintf('StagePeriode #%s: responsable Personnel V3 #%d introuvable.', $row['id'], $managerId);
+                        continue;
+                    }
+                    $resolvedManagers[] = $manager;
+                    ++$managersLinked;
+                }
+                if ([] !== $resolvedManagers) {
+                    $entity->setResponsablePrincipal(array_shift($resolvedManagers));
+                    foreach ($resolvedManagers as $coResponsable) $entity->addCoResponsable($coResponsable);
+                }
+
                 if ($isNew) { $this->entityManager->persist($entity); ++$created; } else { ++$updated; }
             } catch (\Throwable $e) {
                 ++$failed;
@@ -62,6 +95,8 @@ SQL;
             if (0 === $processed % self::BATCH_SIZE) $this->flushAndClear($context);
         }
         $this->flushAndClear($context); $this->finishProgress($context);
+        $messages[] = sprintf('%d périodes avec responsable(s), %d rattachement(s) Personnel migré(s).', $periodsWithManagers, $managersLinked);
+        if ($missingManagers > 0) $messages[] = sprintf('%d rattachement(s) de responsable ignoré(s): Personnel V3 introuvable.', $missingManagers);
         return new MigrationResult($created, $updated, $skipped, $failed, $messages);
     }
 }
