@@ -74,13 +74,18 @@ class ApcNiveau
     public function getOrdre(): ?int { return $this->ordre; }
     public function setOrdre(int $ordre): static { $this->ordre = $ordre; return $this; }
     public function getParcours(): Collection { return $this->parcours; }
-    public function addParcour(ApcParcours $parcour): static { if (!$this->parcours->contains($parcour)) { $this->parcours->add($parcour); } return $this; }
-    public function removeParcour(ApcParcours $parcour): static { $this->parcours->removeElement($parcour); return $this; }
+    public function addParcours(ApcParcours $parcours): static { if (!$this->parcours->contains($parcours)) { $this->parcours->add($parcours); } return $this; }
+    public function removeParcours(ApcParcours $parcours): static { $this->parcours->removeElement($parcours); return $this; }
     public function getCompetence(): ?ApcCompetence { return $this->competence; }
     public function setCompetence(?ApcCompetence $competence): static { $this->competence = $competence; return $this; }
-    public function getAnnee(): ?StructureAnnee { return $this->annee; }
-    public function setAnnee(?StructureAnnee $annee): static { $this->annee = $annee; return $this; }
     public function getApprentissageCritique(): Collection { return $this->apprentissageCritique; }
     public function addApprentissageCritique(ApcApprentissageCritique $apprentissageCritique): static { if (!$this->apprentissageCritique->contains($apprentissageCritique)) { $this->apprentissageCritique->add($apprentissageCritique); $apprentissageCritique->setNiveau($this); } return $this; }
     public function removeApprentissageCritique(ApcApprentissageCritique $apprentissageCritique): static { if ($this->apprentissageCritique->removeElement($apprentissageCritique) && $apprentissageCritique->getNiveau() === $this) { $apprentissageCritique->setNiveau(null); } return $this; }
+    public function display(): string
+    {
+        $niv = match ($this->ordre) { 1 => self::NIVEAU_1, 2 => self::NIVEAU_2, 3 => self::NIVEAU_3, default => null };
+        return $this->getCompetence()?->getNomCourt().' - Niveau '.$niv.'('.$this->ordre.')';
+    }
+    public function getAnnee(): ?StructureAnnee { return $this->annee; }
+    public function setAnnee(?StructureAnnee $annee): static { $this->annee = $annee; return $this; }
 }
