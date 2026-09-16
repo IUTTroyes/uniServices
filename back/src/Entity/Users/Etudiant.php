@@ -33,6 +33,10 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light']]),
+        new Get(
+            uriTemplate: '/scolarite/etudiant/{id}',
+            normalizationContext: ['groups' => ['etudiant:scolarite']],
+        ),
         new GetCollection(normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light']]),
         new Patch(normalizationContext: ['groups' => ['etudiant:write']], securityPostDenormalize: "is_granted('CAN_EDIT_ETUDIANT', object)"),
     ],
@@ -85,14 +89,14 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['etudiant:detail'])]
+    #[Groups(['etudiant:detail', 'etudiant:scolarite'])]
     private ?string $photoName = null;
 
     /**
      * @var Collection<int, EtudiantScolarite>
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'etudiant', orphanRemoval: true)]
-    #[Groups(['etudiant:detail'])]
+    #[Groups(['etudiant:detail', 'etudiant:scolarite'])]
     #[MaxDepth(1)]
     private Collection $scolarites;
 
@@ -113,11 +117,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $site_univ = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:detail', 'scolarite-semestre:manage-groupes'])]
+    #[Groups(['etudiant:detail', 'scolarite-semestre:manage-groupes', 'etudiant:scolarite'])]
     private ?string $num_etudiant = null;
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['etudiant:detail'])]
+    #[Groups(['etudiant:detail', 'etudiant:scolarite'])]
     private ?string $num_ine = null;
 
     #[ORM\Column(nullable: true)]
@@ -133,7 +137,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $amenagements_particuliers = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['etudiant:detail'])]
+    #[Groups(['etudiant:detail', 'etudiant:scolarite'])]
     private ?int $promotion = null;
 
     #[ORM\Column()]
@@ -587,7 +591,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:absence', 'absence:administration', 'justificatif:administration'])]
+    #[Groups(['etudiant:detail', 'etudiant:light', 'scolarite-semestre:absence', 'absence:administration', 'justificatif:administration', 'etudiant:scolarite'])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();
