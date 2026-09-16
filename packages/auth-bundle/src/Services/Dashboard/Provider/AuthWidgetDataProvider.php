@@ -9,6 +9,7 @@ use App\Entity\Users\Personnel;
 use App\Repository\DepartementActualiteRepository;
 use App\Repository\Edt\EdtEventRepository;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
+use App\Repository\Structure\StructureDepartementRepository;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AuthWidgetDataProvider implements WidgetDataProviderInterface
@@ -16,6 +17,7 @@ class AuthWidgetDataProvider implements WidgetDataProviderInterface
     public function __construct(
         private readonly HttpClientInterface $httpClient,
         private readonly StructureDepartementPersonnelRepository $structureDepartementPersonnelRepository,
+        private readonly StructureDepartementRepository $structureDepartementRepository,
         private readonly DepartementActualiteRepository $departementActualiteRepository,
     ) {
     }
@@ -41,6 +43,7 @@ class AuthWidgetDataProvider implements WidgetDataProviderInterface
             $departement = $this->structureDepartementPersonnelRepository->findOneBy(['personnel' => $user, 'defaut' => true])->getDepartement();
             $public = "personnel";
         } elseif ($user instanceof Etudiant) {
+            $departement = $this->structureDepartementRepository->findOneByEtudiant($user);
             $public = "etudiant";
         } else {
             return [];

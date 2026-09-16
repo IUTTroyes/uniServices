@@ -1,6 +1,7 @@
 import dashboardRoutes from './router/modules/dashboardRoutes.js';
 import agendaRoutes from './router/modules/agendaRoutes.js';
 import trombinoscopeRoutes from './router/modules/trombinoscopeRoutes.js';
+import scolariteRoutes from './router/modules/scolariteRoutes.js';
 import profilRoutes from './router/modules/profilRoutes.js';
 import administrationRoutes from './router/modules/administrationRoutes.js';
 import superAdministrationRoutes from './router/modules/superAdministrationRoutes.js';
@@ -14,7 +15,17 @@ const intranetMenu = {
   items: [
     { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/intranet/' },
     { label: 'Agenda', icon: 'pi pi-fw pi-calendar', to: '/intranet/agenda' },
-    { label: 'Trombinoscope', icon: 'pi pi-fw pi-users', to: '/intranet/trombinoscope' },
+    { label: 'Trombinoscope',
+      icon: 'pi pi-fw pi-users',
+      to: '/intranet/trombinoscope',
+      permission: 'isPersonnel'
+    },
+    {
+      label: 'Scolarité',
+      icon: 'pi pi-fw pi-graduation-cap',
+      to: '/intranet/scolarite',
+      permission: 'isEtudiant'
+    },
     {
       label: 'Administration',
       icon: 'pi pi-fw pi-wrench',
@@ -49,6 +60,7 @@ export default {
         ...dashboardRoutes,
         ...agendaRoutes,
         ...trombinoscopeRoutes,
+        ...scolariteRoutes,
         ...profilRoutes,
         ...administrationRoutes,
         ...superAdministrationRoutes,

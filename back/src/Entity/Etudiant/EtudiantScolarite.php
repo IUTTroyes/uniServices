@@ -68,22 +68,22 @@ class EtudiantScolarite
     private ?Etudiant $etudiant = null;
 
     #[ORM\Column]
-    #[Groups(['scolarite:detail', 'scolarite:light'])]
+    #[Groups(['scolarite:detail', 'scolarite:light', 'etudiant:scolarite'])]
     private int $ordre = 1;
 
     /**
      * @deprecated
      */
     #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'etudiant:scolarite'])]
     private ?float $moyenne = null;
 
     #[ORM\Column]
-    #[Groups(['scolarite:detail', 'scolarite-semestre:absence'])]
+    #[Groups(['scolarite:detail', 'scolarite-semestre:absence', 'etudiant:scolarite'])]
     private int $nbAbsences = 0;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'etudiant:scolarite'])]
     private ?string $commentaire = null;
 
     #[ORM\Column]
@@ -94,36 +94,36 @@ class EtudiantScolarite
      * @deprecated
      */
     #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'etudiant:scolarite'])]
     private ?array $moyennesMatiere = null;
 
     // moyennes annuelles
     #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'etudiant:scolarite'])]
     private ?array $moyennesUe = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['scolarite:detail', 'scolarite:light', 'scolarite:user'])]
+    #[Groups(['scolarite:detail', 'scolarite:light', 'scolarite:user', 'etudiant:scolarite'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
-    #[Groups(['scolarite:detail', 'scolarite:user'])]
+    #[Groups(['scolarite:detail', 'scolarite:user', 'etudiant:scolarite'])]
     private ?StructureDepartement $departement = null;
 
     /**
      * @var Collection<int, EtudiantScolariteSemestre>
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'scolarite', orphanRemoval: true, cascade: ['remove'])]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'etudiant:scolarite'])]
     private Collection $scolariteSemestre;
 
     #[ORM\Column]
-    #[Groups(['scolarite:detail', 'scolarite:light'])]
+    #[Groups(['scolarite:detail', 'scolarite:light', 'etudiant:scolarite'])]
     private bool $actif = false;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:detail'])]
+    #[Groups(['scolarite:detail', 'etudiant:scolarite'])]
     private ?bool $decision = null;
 
     #[ORM\ManyToOne(inversedBy: 'etudiantScolaritesPropositions')]
