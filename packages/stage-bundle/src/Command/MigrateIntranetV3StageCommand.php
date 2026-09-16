@@ -4,6 +4,7 @@ namespace StageBundle\Command;
 
 use App\Migration\IntranetV3\MigrationContext;
 use StageBundle\Migration\IntranetV3\StageDatabaseResetter;
+use StageBundle\Migration\IntranetV3\StageIntegrityChecker;
 use StageBundle\Migration\IntranetV3\StageMigrationRunner;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -21,6 +22,7 @@ final class MigrateIntranetV3StageCommand extends Command
     public function __construct(
         private readonly StageMigrationRunner $runner,
         private readonly StageDatabaseResetter $resetter,
+        private readonly StageIntegrityChecker $integrityChecker,
         private readonly KernelInterface $kernel,
     ) { parent::__construct(); }
 
@@ -29,6 +31,7 @@ final class MigrateIntranetV3StageCommand extends Command
         $this->addArgument('migration', InputArgument::OPTIONAL, 'Migration Stage à exécuter.')
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Exécute puis annule les écritures.')
             ->addOption('list', null, InputOption::VALUE_NONE, 'Liste les migrations Stage disponibles.')
+            ->addOption('check', null, InputOption::VALUE_NONE, 'Contrôle l’intégrité de la migration Stage déjà présente en base, sans importer.')
             ->addOption('reset', null, InputOption::VALUE_NONE, 'Vide les tables du bundle Stage avant import (dev/test uniquement).')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Ignore la confirmation de --reset.')
             ->addOption('no-progress', null, InputOption::VALUE_NONE, 'Désactive les barres de progression.');
@@ -42,6 +45,7 @@ final class MigrateIntranetV3StageCommand extends Command
             $io->listing($this->runner->names());
             return Command::SUCCESS;
         }
+        if ($input->getOption('check')) return $this->displayIntegrityReport($io);
 
         $dryRun = (bool) $input->getOption('dry-run');
         $reset = (bool) $input->getOption('reset');
@@ -89,6 +93,26 @@ final class MigrateIntranetV3StageCommand extends Command
         $io->newLine();
         $io->table(['Migration', 'Created', 'Updated', 'Skipped', 'Failed', 'Total'], $rows);
         if ($dryRun) $io->note('Dry-run : toutes les écritures ont été annulées.');
+        else $this->displayIntegrityReport($io, false);
+        return Command::SUCCESS;
+    }
+
+    private function displayIntegrityReport(SymfonyStyle $io, bool $withTitle = true): int
+    {
+        if ($withTitle) $io->title('Contrôle d’intégrité — migration Stage');
+        else $io->section('Contrôle d’intégrité');
+        try { $checks = $this->integrityChecker->check(); }
+        catch (\Throwable $e) { $io->error('Contrôle impossible : '.$e->getMessage()); return Command::FAILURE; }
+
+        $rows = [];
+        $hasErrors = false;
+        foreach ($checks as $check) {
+            $rows[] = [$check['ok'] ? '✓' : '✗', $check['label'], $check['source'], $check['target']];
+            $hasErrors = $hasErrors || !$check['ok'];
+        }
+        $io->table(['', 'Contrôle', 'V3', 'UniServices'], $rows);
+        if ($hasErrors) { $io->warning('Des écarts subsistent entre V3 et UniServices.'); return Command::FAILURE; }
+        $io->success('Les cardinalités contrôlées sont cohérentes avec V3.');
         return Command::SUCCESS;
     }
 }
