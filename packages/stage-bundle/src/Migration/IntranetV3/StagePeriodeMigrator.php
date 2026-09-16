@@ -4,13 +4,11 @@ namespace StageBundle\Migration\IntranetV3;
 
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
-use App\Entity\Users\Personnel;
 use App\Migration\IntranetV3\AbstractMigrator;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationResult;
 use App\Migration\IntranetV3\Structure\AnneeUniversitaireMigrator;
 use App\Migration\IntranetV3\Structure\SemestreMigrator;
-use App\Migration\IntranetV3\Users\PersonnelMigrator;
 use StageBundle\Entity\Stages\StagePeriode;
 
 final class StagePeriodeMigrator extends AbstractMigrator
@@ -22,11 +20,7 @@ final class StagePeriodeMigrator extends AbstractMigrator
 
     public function getDependencies(): array
     {
-        return [
-            AnneeUniversitaireMigrator::class,
-            SemestreMigrator::class,
-            PersonnelMigrator::class,
-        ];
+        return [AnneeUniversitaireMigrator::class, SemestreMigrator::class];
     }
 
     public function migrate(MigrationContext $context): MigrationResult
@@ -51,7 +45,9 @@ SQL;
                     ->findOneBy(['oldId' => (int) $row['annee_universitaire_id']]);
                 if (null === $annee) {
                     ++$skipped;
-                    $messages[] = sprintf('StagePeriode #%s: année universitaire V3 #%s introuvable.', $row['id'], $row['annee_universitaire_id']);
+                    if (count($messages) < 20) {
+                        $messages[] = sprintf('StagePeriode #%s: année universitaire V3 #%s introuvable.', $row['id'], $row['annee_universitaire_id']);
+                    }
                     ++$processed;
                     $context->advanceProgress();
                     continue;
@@ -59,9 +55,7 @@ SQL;
 
                 $semestre = null;
                 if (null !== $row['semestre_id']) {
-                    $matches = $this->entityManager->getRepository(StructureSemestre::class)->findBy([
-                        'oldId' => (int) $row['semestre_id'],
-                    ]);
+                    $matches = $this->entityManager->getRepository(StructureSemestre::class)->findBy(['oldId' => (int) $row['semestre_id']]);
                     $matches = array_values(array_filter(
                         $matches,
                         static fn (StructureSemestre $candidate): bool => $candidate->getAnnee()?->getPn()?->getAnneeUniversitaire()?->getId() === $annee->getId(),
