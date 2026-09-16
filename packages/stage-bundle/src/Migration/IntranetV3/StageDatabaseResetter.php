@@ -6,14 +6,14 @@ use Doctrine\DBAL\Connection;
 
 final readonly class StageDatabaseResetter
 {
-    private const TABLES = ['stage_etudiant', 'stage_periode'];
-
     public function __construct(private Connection $connection) {}
 
     public function reset(): int
     {
-        $existing = array_flip($this->connection->createSchemaManager()->listTableNames());
-        $tables = array_values(array_filter(self::TABLES, static fn (string $table): bool => isset($existing[$table])));
+        $tables = array_values(array_filter(
+            $this->connection->createSchemaManager()->listTableNames(),
+            static fn (string $table): bool => str_starts_with($table, 'stage_'),
+        ));
         if ([] === $tables) return 0;
         $platform = $this->connection->getDatabasePlatform()->getName();
         if (!in_array($platform, ['mysql', 'mariadb'], true)) throw new \RuntimeException(sprintf('Stage reset non implémenté pour "%s".', $platform));
