@@ -21,7 +21,7 @@ final class StageEtudiantMigrator extends AbstractMigrator
     public function migrate(MigrationContext $context): MigrationResult
     {
         $created = $updated = $skipped = $failed = $processed = 0;
-        $messages = []; $unknownStates = [];
+        $messages = []; $unknownStates = []; $invalidUuids = 0;
         $total = (int) $this->source->fetchOne('SELECT COUNT(*) FROM stage_etudiant');
         $this->startProgress($context, 'Stages étudiants', $total);
         $sql = <<<'SQL'
@@ -46,12 +46,14 @@ SQL;
                     if (count($messages) < 20) $messages[] = sprintf('StageEtudiant #%s: référence obligatoire introuvable (période=%s, étudiant=%s).', $row['id'], $row['stage_periode_id'] ?? 'null', $row['etudiant_id'] ?? 'null');
                     ++$processed; $context->advanceProgress(); continue;
                 }
-                if (empty($row['uuid']) || !Uuid::isValid((string) $row['uuid'])) {
-                    ++$skipped;
+
+                $uuid = self::legacyUuid($row['uuid']);
+                if (null === $uuid) {
+                    ++$skipped; ++$invalidUuids;
                     if (count($messages) < 20) $messages[] = sprintf('StageEtudiant #%s: UUID V3 absent ou invalide.', $row['id']);
                     ++$processed; $context->advanceProgress(); continue;
                 }
-                $uuid = Uuid::fromString((string) $row['uuid']);
+
                 $entity = $this->entityManager->getRepository(StageEtudiant::class)->findOneBy(['uuid' => $uuid]);
                 $isNew = null === $entity;
                 $entity ??= new StageEtudiant(self::nullableFloat($row['gratification_montant']));
@@ -75,12 +77,28 @@ SQL;
             if (0 === $processed % self::BATCH_SIZE) $this->flushAndClear($context);
         }
         $this->flushAndClear($context); $this->finishProgress($context);
+        if ($invalidUuids > 20) $messages[] = sprintf('%d StageEtudiant avec UUID V3 absent ou invalide au total.', $invalidUuids);
         if ([] !== $unknownStates) {
             ksort($unknownStates); $parts = [];
             foreach ($unknownStates as $state => $count) $parts[] = sprintf('%s=%d', '' !== $state ? $state : '(vide)', $count);
             $messages[] = 'États V3 non reconnus, importés comme AUTORISE: '.implode(', ', $parts).'.';
         }
         return new MigrationResult($created, $updated, $skipped, $failed, $messages);
+    }
+
+    private static function legacyUuid(mixed $value): ?Uuid
+    {
+        if (!is_string($value) || '' === $value) return null;
+
+        try {
+            // intranetV3 stores Ramsey UUIDs with Doctrine's uuid_binary type.
+            if (16 === strlen($value)) return Uuid::fromBinary($value);
+            if (Uuid::isValid($value)) return Uuid::fromString($value);
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return null;
     }
 
     private static function date(mixed $value): ?\DateTimeInterface { return empty($value) ? null : new \DateTime((string) $value); }
