@@ -33,7 +33,6 @@ use Symfony\Component\Uid\Uuid;
     ],
     normalizationContext: ['groups' => ['questionnaire:read']],
 )]
-#[ORM\HasLifecycleCallbacks]
 class Questionnaire
 {
     use LifeCycleTrait;
