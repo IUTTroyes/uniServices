@@ -22,7 +22,6 @@ use HelpdeskBundle\State\Processor\TicketProcessor;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: HelpdeskTicketRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiFilter(TicketFilter::class, MessageFilter::class)]
 #[ApiResource(
     operations: [
