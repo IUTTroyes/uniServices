@@ -26,7 +26,7 @@ trait LifeCycleTrait
 
     public function getCreated(): ?CarbonImmutable
     {
-        return $this->created ?? CarbonImmutable::now();
+        return $this->created;
     }
 
     public function setCreated(?CarbonImmutable $created): void
@@ -39,7 +39,7 @@ trait LifeCycleTrait
         return $this->updated;
     }
 
-    public function setUpdated(?CarbonInterface $updated): void
+    public function setUpdated(?CarbonImmutable $updated): void
     {
         $this->updated = $updated;
     }
