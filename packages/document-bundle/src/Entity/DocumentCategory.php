@@ -2,6 +2,7 @@
 
 namespace DocumentBundle\Entity;
 
+use App\Entity\Traits\OldIdTrait;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -37,6 +38,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 )]
 class DocumentCategory
 {
+    use OldIdTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
