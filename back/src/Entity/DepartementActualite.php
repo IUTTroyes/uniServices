@@ -8,7 +8,8 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Structure\StructureDepartement;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Enum\TypePublicEnum;
 use App\Repository\DepartementActualiteRepository;
 use Doctrine\DBAL\Types\Types;
@@ -24,9 +25,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Delete()
     ]
 )]
-class DepartementActualite
+class DepartementActualite implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
