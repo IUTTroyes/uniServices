@@ -71,7 +71,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Delete(security: "is_granted('CAN_DELETE_SEMESTRE', object)")
     ]
 )]
-#[ORM\HasLifecycleCallbacks]
 class StructureSemestre
 {
     use LifeCycleTrait;
