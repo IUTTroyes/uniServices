@@ -5,6 +5,7 @@ namespace DocumentBundle\Command;
 use App\Migration\IntranetV3\MigrationContext;
 use DocumentBundle\Migration\IntranetV3\DocumentDatabaseResetter;
 use DocumentBundle\Migration\IntranetV3\DocumentIntegrityChecker;
+use DocumentBundle\Migration\IntranetV3\DocumentFileMigrator;
 use DocumentBundle\Migration\IntranetV3\DocumentMigrationRunner;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -23,6 +24,7 @@ final class MigrateIntranetV3DocumentCommand extends Command
         private readonly DocumentMigrationRunner $runner,
         private readonly DocumentDatabaseResetter $resetter,
         private readonly DocumentIntegrityChecker $integrityChecker,
+        private readonly DocumentFileMigrator $fileMigrator,
         private readonly KernelInterface $kernel,
     ) { parent::__construct(); }
 
@@ -32,6 +34,9 @@ final class MigrateIntranetV3DocumentCommand extends Command
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Exécute puis annule les écritures.')
             ->addOption('list', null, InputOption::VALUE_NONE, 'Liste les migrations Document disponibles.')
             ->addOption('check', null, InputOption::VALUE_NONE, 'Contrôle les cardinalités V3/UniServices sans importer.')
+            ->addOption('files-source', null, InputOption::VALUE_REQUIRED, 'Dossier V3 contenant public/upload/documents/.')
+            ->addOption('files-target', null, InputOption::VALUE_REQUIRED, 'Dossier cible dans lequel copier/contrôler les fichiers.')
+            ->addOption('files-only', null, InputOption::VALUE_NONE, 'Ne traite que les fichiers physiques (nécessite --files-source et --files-target).')
             ->addOption('reset', null, InputOption::VALUE_NONE, 'Vide les tables du bundle Document avant import (dev/test uniquement).')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Ignore la confirmation de --reset.')
             ->addOption('no-progress', null, InputOption::VALUE_NONE, 'Désactive les barres de progression.');
@@ -41,7 +46,24 @@ final class MigrateIntranetV3DocumentCommand extends Command
     {
         $io = new SymfonyStyle($input, $output);
         if ($input->getOption('list')) { $io->title('Migrations intranet V3 — Document'); $io->listing($this->runner->names()); return Command::SUCCESS; }
-        if ($input->getOption('check')) return $this->displayIntegrityReport($io);
+        if ($input->getOption('check')) {
+            $status = $this->displayIntegrityReport($io);
+            if (null !== $input->getOption('files-target')) {
+                $fileStatus = $this->displayFileCheck($io, (string) $input->getOption('files-target'));
+                if (Command::SUCCESS !== $fileStatus) $status = $fileStatus;
+            }
+            return $status;
+        }
+
+        $filesSource = $input->getOption('files-source');
+        $filesTarget = $input->getOption('files-target');
+        if ($input->getOption('files-only')) {
+            if (null === $filesSource || null === $filesTarget) {
+                $io->error('--files-only nécessite --files-source et --files-target.');
+                return Command::INVALID;
+            }
+            return $this->migrateFiles($io, (string) $filesSource, (string) $filesTarget, (bool) $input->getOption('dry-run'));
+        }
 
         $dryRun = (bool) $input->getOption('dry-run');
         $reset = (bool) $input->getOption('reset');
@@ -90,8 +112,46 @@ final class MigrateIntranetV3DocumentCommand extends Command
         if ($dryRun) $io->note('Dry-run : toutes les écritures ont été annulées.');
         else $this->displayIntegrityReport($io, false);
 
-        $io->note('Cette commande migre les métadonnées documentaires. La copie/validation des fichiers physiques sera ajoutée comme étape dédiée car leur emplacement dépend du stockage V3 et du stockage cible.');
+        if (null !== $filesSource || null !== $filesTarget) {
+            if (null === $filesSource || null === $filesTarget) {
+                $io->error('Pour migrer les fichiers, --files-source et --files-target doivent être fournis ensemble.');
+                return Command::INVALID;
+            }
+            $fileStatus = $this->migrateFiles($io, (string) $filesSource, (string) $filesTarget, $dryRun);
+            if (Command::SUCCESS !== $fileStatus) return $fileStatus;
+        } else {
+            $io->note('Métadonnées migrées. Pour copier les fichiers V3, fournir --files-source=<ancien public/upload/documents> et --files-target=<stockage cible>.');
+        }
         return Command::SUCCESS;
+    }
+
+    private function migrateFiles(SymfonyStyle $io, string $source, string $target, bool $dryRun): int
+    {
+        $io->section($dryRun ? 'Simulation de migration des fichiers' : 'Migration des fichiers physiques');
+        try { $result = $this->fileMigrator->migrate($source, $target, $dryRun); }
+        catch (\Throwable $e) { $io->error($e->getMessage()); return Command::FAILURE; }
+
+        $io->table(['Attendus', $dryRun ? 'Copiables' : 'Copiés', 'Déjà présents', 'Manquants V3', 'Échecs'], [[
+            $result['expected'], $result['copied'], $result['existing'], $result['missing'], $result['failed'],
+        ]]);
+        if ([] !== $result['missingFiles']) $io->warning("Fichiers absents de V3 (100 premiers) :\n".implode("\n", $result['missingFiles']));
+        if ([] !== $result['errors']) $io->error("Erreurs de copie (100 premières) :\n".implode("\n", $result['errors']));
+        if ($dryRun) $io->note('Dry-run fichiers : aucune copie effectuée.');
+
+        return $result['failed'] > 0 ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    private function displayFileCheck(SymfonyStyle $io, string $directory): int
+    {
+        $io->section('Contrôle des fichiers physiques');
+        try { $result = $this->fileMigrator->check($directory); }
+        catch (\Throwable $e) { $io->error($e->getMessage()); return Command::FAILURE; }
+        $io->table(['Attendus', 'Présents', 'Manquants', 'Taille différente'], [[
+            $result['expected'], $result['present'], $result['missing'], $result['wrongSize'],
+        ]]);
+        if ([] !== $result['missingFiles']) $io->warning("Fichiers manquants (100 premiers) :\n".implode("\n", $result['missingFiles']));
+        if ([] !== $result['wrongSizeFiles']) $io->warning("Tailles différentes (100 premières) :\n".implode("\n", $result['wrongSizeFiles']));
+        return ($result['missing'] > 0 || $result['wrongSize'] > 0) ? Command::FAILURE : Command::SUCCESS;
     }
 
     private function displayIntegrityReport(SymfonyStyle $io, bool $withTitle = true): int
