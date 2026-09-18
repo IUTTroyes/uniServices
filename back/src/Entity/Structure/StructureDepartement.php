@@ -44,7 +44,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ]
 )]
 #[ApiFilter(DepartementFilter::class)]
-#[ORM\HasLifecycleCallbacks]
 class StructureDepartement
 {
     use UuidTrait;
