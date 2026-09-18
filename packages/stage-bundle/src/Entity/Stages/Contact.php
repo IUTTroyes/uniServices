@@ -9,7 +9,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ContactRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 class Contact
 {
     use LifeCycleTrait;
