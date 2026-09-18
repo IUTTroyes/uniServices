@@ -58,7 +58,8 @@ SQL;
                 $entity
                     ->setCompetence($competence)
                     ->setLibelle((string) $row['libelle'])
-                    ->setOrdre((int) $row['ordre']);
+                    ->setOrdre((int) $row['ordre'])
+                    ->setOrdreAnnee(null !== $row['ordre_annee'] ? (int) $row['ordre_annee'] : null);
 
                 if ($isNew) {
                     $this->entityManager->persist($entity);
