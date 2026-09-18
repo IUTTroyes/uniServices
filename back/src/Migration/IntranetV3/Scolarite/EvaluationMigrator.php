@@ -9,6 +9,7 @@ use App\Entity\Structure\StructureSemestre;
 use App\Entity\Users\Personnel;
 use App\Enum\EtatEvaluationEnum;
 use App\Enum\TypeEnseignementEnum;
+use App\Enum\TypeGroupeEnum;
 use App\Migration\IntranetV3\AbstractMigrator;
 use App\Migration\IntranetV3\Apc\ApcRessourceMigrator;
 use App\Migration\IntranetV3\Apc\ApcSaeMigrator;
@@ -149,7 +150,7 @@ SQL;
                     ->setDate(null !== $row['date_evaluation'] ? new \DateTime((string) $row['date_evaluation']) : null)
                     ->setVisible((bool) $row['visible'])
                     ->setModifiable((bool) $row['modifiable'])
-                    ->setTypeGroupe($row['type_groupe'] ?: null)
+                    ->setTypeGroupe($this->mapTypeGroupe($row['type_groupe'] ?? null))
                     ->setAnneeUniversitaire($anneeUniversitaire)
                     ->setSemestre($semestre)
                     ->setEnseignement($enseignement)
@@ -256,6 +257,22 @@ SQL;
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    private function mapTypeGroupe(?string $type): ?TypeGroupeEnum
+    {
+        if (null === $type || '' === trim($type)) {
+            return null;
+        }
+
+        return match (strtoupper(trim($type))) {
+            'CM' => TypeGroupeEnum::TYPE_GROUPE_CM,
+            'TD' => TypeGroupeEnum::TYPE_GROUPE_TD,
+            'TP' => TypeGroupeEnum::TYPE_GROUPE_TP,
+            'SPECIAL', 'SPÉCIAL' => TypeGroupeEnum::TYPE_GROUPE_SPECIAL,
+            'AUTRE' => TypeGroupeEnum::TYPE_GROUPE_AUTRE,
+            default => TypeGroupeEnum::TYPE_GROUPE_AUTRE,
+        };
     }
 
     private function mapEnseignementType(string $type): ?TypeEnseignementEnum
