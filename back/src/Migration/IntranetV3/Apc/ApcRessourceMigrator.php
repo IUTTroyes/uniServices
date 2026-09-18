@@ -47,7 +47,7 @@ SELECT
     r.id, r.libelle, r.libelle_court, r.description,
     r.cm_ppn, r.td_ppn, r.tp_ppn, r.cm_formation, r.td_formation, r.tp_formation,
     r.code_matiere, r.code_element, r.nb_notes, r.suspendu, r.mutualisee,
-    r.pre_requis, r.mots_cles
+    r.pre_requis, r.mots_cles, r.ressource_parent, r.has_coefficient_different
 FROM apc_ressource r
 INNER JOIN %s rs ON rs.apc_ressource_id = r.id
 WHERE rs.semestre_id = :semestre_id
@@ -78,6 +78,10 @@ SQL, $joinTable);
                             'TD' => ['PN' => (float) $row['td_ppn'], 'IUT' => (float) $row['td_formation']],
                             'TP' => ['PN' => (float) $row['tp_ppn'], 'IUT' => (float) $row['tp_formation']],
                             'Projet' => ['PN' => 0, 'IUT' => 0],
+                        ])
+                        ->setOpt([
+                            'ressource_parent' => (bool) $row['ressource_parent'],
+                            'has_coefficient_different' => (bool) $row['has_coefficient_different'],
                         ]);
 
                     if ($isNew) {
