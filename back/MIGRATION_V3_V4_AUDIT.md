@@ -955,3 +955,61 @@ La règle finale est qu'un fallback ne doit jamais être silencieux : toute vale
 4. des **données historiques volontairement hors périmètre**.
 
 Les oublis directs simples détectés lors des passes précédentes ont été corrigés au fil de l'audit.
+
+
+---
+
+# 20. Résolution des pertes structurelles UE / propositions
+
+## UE.coefficient
+
+Le doute de la passe précédente est levé : `UE.coefficient` est une donnée portée directement par l'UE V3 et elle est distincte du coefficient d'un enseignement dans une UE (`ScolEnseignementUe.coefficient`).
+
+Le modèle V4 avait d'ailleurs conservé un TODO explicite sur ce manque.
+
+✅ Correction :
+- ajout de `StructureUe.coefficient: float` ;
+- exposition dans les groupes API UE/maquette ;
+- migration directe de `ue.coefficient` ;
+- migration Doctrine associée.
+
+Il n'y a donc plus de perte identifiée sur ce champ.
+
+## Scolarite.proposition
+
+L'analyse des usages V3 confirme que `Scolarite.proposition` est une chaîne libre utilisée comme proposition d'orientation. Dans l'interface de fin de semestre V3, la valeur est comparée au **libellé du semestre d'arrivée**.
+
+Le modèle V4 `EtudiantScolariteSemestre.proposition` est donc cohérent : relation vers `StructureSemestre`.
+
+✅ Un resolver explicite a été ajouté au migrateur :
+- recherche uniquement dans le **même snapshot PN annuel** ;
+- comparaison normalisée du libellé V3 avec `StructureSemestre.libelle` ;
+- `?`, `E.C.` et `EC` sont considérés comme absence de proposition exploitable ;
+- aucune correspondance approximative ou inter-snapshot n'est autorisée ;
+- les propositions résolues et non résolues sont comptabilisées dans le rapport.
+
+Cette stratégie permet de migrer les propositions sans fabriquer de relation ambiguë.
+
+⚠️ Le dry-run final devra fournir la distribution des valeurs non résolues. Si certaines correspondent à des variantes historiques connues des libellés de semestre, elles pourront être ajoutées à un resolver/config explicite plutôt que via du fuzzy matching.
+
+## Distinction proposition semestrielle / annuelle
+
+V4 contient également `EtudiantScolarite.proposition → StructureAnnee`. Ce champ représente une proposition au niveau annuel et ne doit pas recevoir automatiquement la chaîne `Scolarite.proposition` V3 : la donnée source auditée est attachée à une ligne semestrielle et les usages V3 observés ciblent un semestre d'arrivée.
+
+Aucune duplication artificielle n'est donc faite vers la proposition annuelle.
+
+## État après correction
+
+Les deux pertes structurelles identifiées lors de la passe transversale sont maintenant traitées :
+- 🟢 `UE.coefficient` : ajouté et migré ;
+- 🟢 `Scolarite.rang` : ajouté et migré lors de la passe précédente ;
+- 🟢 `Scolarite.proposition` : resolver snapshot-aware ajouté ;
+- 🟢 `Bac.typeBac` : ajouté et migré ;
+- 🟢 `Annee.optAlternance` : migré vers OptionTrait.
+
+Les prochains points réellement structurants restent principalement :
+- `PersonnelDepartement.annee` et la question de l'historisation des affectations ;
+- `Personnel.accessOriginaux` vers les permissions du bundle Document ;
+- relations Groupe ↔ parcours/APC ;
+- SAÉ ↔ Ressource ;
+- fichiers physiques et sécurisation des resets Stage/Document.
