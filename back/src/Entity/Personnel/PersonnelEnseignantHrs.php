@@ -14,6 +14,7 @@ use App\Entity\Structure\StructureSemestre;
 use App\Entity\Users\Personnel;
 use App\Filter\PersonnelEnseignantHrsFilter;
 use App\Repository\PersonnelEnseignantHrsRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
