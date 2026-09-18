@@ -764,3 +764,106 @@ Le département V3 n'est pas dupliqué dans HRS V4. Il peut être déduit du con
 - 🟠 **HRS.departement** : vérifier les occurrences où ce contexte ne peut pas être déduit.
 - 🟢 **Evaluation.typeGroupe** : corrigé.
 - 🟢 **HRS.commentaire** : corrigé.
+
+
+---
+
+# 18. Passe utilisateurs, affectations et scolarités
+
+## Etudiant
+
+La passe complète inclut maintenant les champs hérités de `Utilisateur` et les champs propres à `Etudiant`.
+
+Déjà repris avant cette passe : identifiant V3, username, mails, nom/prénom, photo, numéros étudiant/INE, année de bac, boursier, aménagements, promotion, année de sortie, bac, EduSign, naissance, téléphones, lieu de naissance, sites et adresses étudiante/parentale.
+
+Correction appliquée : cinq champs administratifs V3 avaient encore une valeur fonctionnelle et aucun emplacement V4 :
+- `demandeurEmploi`
+- `loginSpecifique`
+- `formationContinue`
+- `intituleSecuriteSociale`
+- `adresseSecuriteSociale`
+
+Ils ont été ajoutés à l'entité V4 et au migrateur.
+
+Relations V3 non recopiées directement mais reconstruites ailleurs : semestre courant, groupes, scolarités, notes, absences, rattrapages, stages.
+
+Le `departement` direct V3 n'est pas recopié dans Etudiant : en V4 le contexte départemental est porté par la scolarité. C'est cohérent avec l'historisation multi-année.
+
+⚠️ Champs hérités de `Utilisateur` non présents en V4 : `civilite`, `remarque`, `signature`, `visible`, `slug`, `typeUser`. Ils doivent être arbitrés. `slug/typeUser` paraissent techniques V3 ; `civilite/remarque/visible` peuvent encore être fonctionnels. Le mot de passe/resetToken ne doivent pas être repris sans besoin explicite puisque l'authentification V4 est différente.
+
+Les étudiants `deleted=true` restent importés pour l'intégrité historique ; aucune désactivation V4 n'existe encore.
+
+## Personnel
+
+Déjà repris : oldId, username, mails, nom/prénom, photo, année universitaire, statut, poste, téléphone bureau, responsabilités, domaines, entreprise, bureaux fusionnés, Harpège, initiales, service, sites et EduSign.
+
+Relations historiques ou métier gérées ailleurs : départements/droits, évaluations, prévisionnels, HRS, stages.
+
+⚠️ Données V3 propres au personnel non encore reprises :
+- `couleur` ;
+- `configuration` ;
+- `signatureElectronique` ;
+- `accessOriginaux`.
+
+Elles nécessitent un arbitrage fonctionnel : `configuration` est probablement une ancienne préférence UI et ne doit pas être migrée aveuglément ; `accessOriginaux` peut désormais relever des permissions Document ; `signatureElectronique` doit être comparée au mécanisme V4 ; `couleur` peut être utile à l'EDT.
+
+Comme pour Etudiant, les champs hérités `civilite/remarque/signature/visible` ne sont pas présents en V4 et restent à arbitrer.
+
+Les personnels `deleted=true` sont conservés pour les références historiques.
+
+## PersonnelDepartement
+
+La relation V3 est correctement transformée en `StructureDepartementPersonnel` :
+- personnel ;
+- département ;
+- défaut ;
+- rôles → permissions ;
+- affectation active ;
+- package `intranet`.
+
+⚠️ `annee` existe dans l'entité V3 mais n'est pas sélectionné/migré. Le modèle V4 d'affectation n'est pas historisé par année. Il faut vérifier la distribution réelle de ce champ avant de décider s'il s'agit d'une perte fonctionnelle ou d'un reliquat V3.
+
+Les rôles sans équivalent restent volontairement diagnostiqués. En particulier les rôles propres à des bundles ne doivent pas être transformés en permissions Core arbitraires.
+
+## Bac
+
+`libelle`, `libelleLong`, `codeApogee` et oldId sont migrés.
+
+🔴 `typeBac` V3 n'est actuellement ni sélectionné ni représenté dans `ScolBac`. C'est un vrai point à traiter si cette classification est encore utilisée.
+
+## Scolarite
+
+La V3 stocke une ligne par semestre. La V4 sépare :
+- `EtudiantScolarite` : contexte annuel ;
+- `EtudiantScolariteSemestre` : contexte semestriel.
+
+Transformations correctes :
+- étudiant/année/département → scolarité annuelle ;
+- semestre → scolarité semestrielle ;
+- moyenne et nombre d'absences du semestre → détail semestriel ;
+- total des absences → annuel ;
+- `diffuse` → visibilité annuelle ;
+- commentaire → annuel ;
+- décision, moyennes matières et UE → détail semestriel via `ScolariteDetailsMigrator`.
+
+⚠️ `proposition` est encore non migrée : V3 utilise un champ libre alors que V4 attend une relation `StructureSemestre`. Le migrateur diagnostique ces occurrences sans inventer de correspondance.
+
+⚠️ `rang` est sélectionné dans `ScolariteDetailsMigrator` mais n'est pas affecté. V4 ne possède pas de champ rang dans `EtudiantScolariteSemestre`. **P1 à arbitrer**.
+
+⚠️ `scolaritePromo` n'est pas migré et n'a pas été identifié comme équivalent V4 dans cette passe.
+
+## Groupes étudiants
+
+La relation V3 `etudiant_groupe` n'étant pas historisée par année, la migration la rattache au snapshot/sc1olarité semestrielle compatible le plus récent. C'est une reconstruction explicite, avec diagnostics détaillés pour les incohérences V3.
+
+Les 802 anomalies déjà observées doivent donc être considérées comme anomalies de données source/résolution, et non comme champs oubliés silencieusement.
+
+## Points prioritaires de cette passe
+
+- 🔴 `Bac.typeBac` : équivalent V4 absent.
+- 🟠 `Scolarite.rang` : lu mais non affecté.
+- 🟠 `Scolarite.proposition` : nécessite un resolver explicite vers StructureSemestre.
+- 🟠 `PersonnelDepartement.annee` : vérifier si l'historisation des affectations est nécessaire.
+- 🟠 champs communs Utilisateur `civilite/remarque/visible` : arbitrage fonctionnel.
+- 🟠 Personnel `couleur/configuration/signatureElectronique/accessOriginaux` : arbitrage par fonctionnalité.
+- 🟢 champs administratifs Etudiant manquants : ajoutés et migrés.
