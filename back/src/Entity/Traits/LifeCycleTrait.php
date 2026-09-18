@@ -19,10 +19,10 @@ trait LifeCycleTrait
     #[ApiProperty(writable: false)]
     private ?CarbonImmutable $created = null;
 
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     #[Groups(['questionnaire:read', 'absence:administration', 'actu:read'])]
     #[ApiProperty(writable: false)]
-    private ?CarbonImmutable $updated = null;
+    private ?CarbonInterface $updated = null;
 
     public function getCreated(): ?CarbonImmutable
     {
@@ -39,7 +39,7 @@ trait LifeCycleTrait
         return $this->updated;
     }
 
-    public function setUpdated(?CarbonImmutable $updated): void
+    public function setUpdated(?CarbonInterface $updated): void
     {
         $this->updated = $updated;
     }
