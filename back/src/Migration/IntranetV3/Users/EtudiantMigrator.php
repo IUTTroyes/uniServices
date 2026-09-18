@@ -32,6 +32,8 @@ SELECT
     e.id, e.username, e.mail_univ, e.mail_perso, e.prenom, e.nom, e.photo_name,
     e.num_etudiant, e.num_ine, e.annee_bac, e.boursier, e.amenagements_particuliers,
     e.promotion, e.annee_sortie, e.bac_id, e.id_edu_sign, e.deleted,
+    e.demandeur_emploi, e.login_specifique, e.formation_continue,
+    e.intitule_securite_sociale, e.adresse_securite_sociale,
     e.date_naissance, e.tel1, e.tel2, e.lieu_naissance, e.site_perso, e.site_univ,
     ae.adresse1 AS adresse_etudiante_1, ae.adresse2 AS adresse_etudiante_2,
     ae.adresse3 AS adresse_etudiante_3, ae.code_postal AS adresse_etudiante_cp,
@@ -69,6 +71,11 @@ SQL;
                     ->setAmenagementsParticuliers($row['amenagements_particuliers'])
                     ->setPromotion(null !== $row['promotion'] ? (int) $row['promotion'] : null)
                     ->setAnneeSortie(null !== $row['annee_sortie'] ? (int) $row['annee_sortie'] : 0)
+                    ->setDemandeurEmploi((bool) $row['demandeur_emploi'])
+                    ->setLoginSpecifique($row['login_specifique'] ?: null)
+                    ->setFormationContinue((bool) $row['formation_continue'])
+                    ->setIntituleSecuriteSociale($row['intitule_securite_sociale'] ?: null)
+                    ->setAdresseSecuriteSociale($row['adresse_securite_sociale'] ?: null)
                     ->setRoles(['ROLE_ETUDIANT'])
                     ->setMailPerso($row['mail_perso'])
                     ->setDateNaissance(null !== $row['date_naissance'] ? new \DateTime((string) $row['date_naissance']) : null)
