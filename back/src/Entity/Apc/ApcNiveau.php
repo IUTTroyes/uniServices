@@ -44,6 +44,9 @@ class ApcNiveau
     #[Groups(['competence:referentiel:full'])]
     private ?int $ordre = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?int $ordreAnnee = null;
+
     /** @var Collection<int, ApcParcours> */
     #[ORM\ManyToMany(targetEntity: ApcParcours::class, inversedBy: 'niveaux')]
     #[Groups('diplome:read')]
@@ -73,6 +76,18 @@ class ApcNiveau
     public function setLibelle(string $libelle): static { $this->libelle = $libelle; return $this; }
     public function getOrdre(): ?int { return $this->ordre; }
     public function setOrdre(int $ordre): static { $this->ordre = $ordre; return $this; }
+    public function getOrdreAnnee(): ?int
+    {
+        return $this->ordreAnnee;
+    }
+
+    public function setOrdreAnnee(?int $ordreAnnee): static
+    {
+        $this->ordreAnnee = $ordreAnnee;
+
+        return $this;
+    }
+
     public function getParcours(): Collection { return $this->parcours; }
     public function addParcours(ApcParcours $parcours): static { if (!$this->parcours->contains($parcours)) { $this->parcours->add($parcours); } return $this; }
     public function removeParcours(ApcParcours $parcours): static { $this->parcours->removeElement($parcours); return $this; }
