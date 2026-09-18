@@ -3,13 +3,15 @@
 namespace App\Entity\Traits;
 
 use ApiPlatform\Metadata\ApiProperty;
-use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonInterface;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
+/**
+ * @deprecated Use TimestampableTrait on new entities. Kept for backward compatibility.
+ */
 trait LifeCycleTrait
 {
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
@@ -17,10 +19,10 @@ trait LifeCycleTrait
     #[ApiProperty(writable: false)]
     private ?CarbonImmutable $created = null;
 
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     #[Groups(['questionnaire:read', 'absence:administration', 'actu:read'])]
     #[ApiProperty(writable: false)]
-    private ?CarbonInterface $updated = null;
+    private ?CarbonImmutable $updated = null;
 
     public function getCreated(): ?CarbonImmutable
     {
@@ -42,21 +44,4 @@ trait LifeCycleTrait
         $this->updated = $updated;
     }
 
-    public function setUpdatedValue(): void
-    {
-        $this->updated = Carbon::now();
-    }
-
-    #[ORM\PrePersist]
-    #[ORM\PreUpdate]
-    public function setUpdatedEntity(): void
-    {
-        $this->updated = Carbon::now();
-    }
-
-    #[ORM\PrePersist]
-    public function setCreatedValue(): void
-    {
-        $this->created = CarbonImmutable::now();
-    }
 }
