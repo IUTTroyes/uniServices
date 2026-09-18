@@ -30,6 +30,9 @@ final class GroupeMigrator extends AbstractMigrator
         $pnRepository = $this->entityManager->getRepository(StructurePn::class);
         $created = $updated = $skipped = $failed = 0;
         $messages = [];
+        $unknownTypes = [];
+        $legacyParcoursLinks = 0;
+        $legacyEduSignIds = 0;
 
         $schemaManager = $this->source->createSchemaManager();
         $hasJoinTable = $schemaManager->tablesExist(['type_groupe_semestre']);
@@ -43,7 +46,7 @@ final class GroupeMigrator extends AbstractMigrator
 
             if ($hasJoinTable) {
                 $groupSql = <<<'SQL'
-SELECT DISTINCT g.id, g.parent_id, g.libelle, g.code_apogee, g.ordre, tg.type
+SELECT DISTINCT g.id, g.parent_id, g.libelle, g.code_apogee, g.ordre, g.parcours, g.apc_parcours_id, g.id_edu_sign, tg.type
 FROM groupe g
 INNER JOIN type_groupe tg ON tg.id = g.type_groupe_id
 INNER JOIN type_groupe_semestre tgs ON tgs.type_groupe_id = tg.id
@@ -63,7 +66,7 @@ WHERE a.diplome_id = :diplome_id
 SQL;
             } else {
                 $groupSql = <<<'SQL'
-SELECT DISTINCT g.id, g.parent_id, g.libelle, g.code_apogee, g.ordre, tg.type
+SELECT DISTINCT g.id, g.parent_id, g.libelle, g.code_apogee, g.ordre, g.parcours, g.apc_parcours_id, g.id_edu_sign, tg.type
 FROM groupe g
 INNER JOIN type_groupe tg ON tg.id = g.type_groupe_id
 INNER JOIN semestre s ON s.id = tg.semestre_id
@@ -86,6 +89,18 @@ SQL;
 
             foreach ($rows as $row) {
                 try {
+                    $type = TypeGroupeEnum::tryFrom((string) $row['type']);
+                    if (null === $type) {
+                        $unknownTypes[(string) $row['type']] = ($unknownTypes[(string) $row['type']] ?? 0) + 1;
+                        $type = TypeGroupeEnum::TYPE_GROUPE_AUTRE;
+                    }
+                    if (!empty($row['parcours']) || !empty($row['apc_parcours_id'])) {
+                        ++$legacyParcoursLinks;
+                    }
+                    if (!empty($row['id_edu_sign'])) {
+                        ++$legacyEduSignIds;
+                    }
+
                     $entity = $this->findSnapshotGroup((int) $row['id'], $pn);
                     $isNew = null === $entity;
                     $entity ??= new StructureGroupe();
@@ -93,7 +108,7 @@ SQL;
                     $entity
                         ->setOldId((int) $row['id'])
                         ->setLibelle((string) $row['libelle'])
-                        ->setType(TypeGroupeEnum::tryFrom((string) $row['type']) ?? TypeGroupeEnum::TYPE_GROUPE_AUTRE)
+                        ->setType($type)
                         ->setOrdre(null !== $row['ordre'] ? (int) $row['ordre'] : null)
                         ->setCodeApogee($row['code_apogee'] ?: null);
 
@@ -134,6 +149,21 @@ SQL;
             }
 
             $this->flush($context);
+        }
+
+        if ([] !== $unknownTypes) {
+            ksort($unknownTypes);
+            $messages[] = 'Types de groupe V3 inconnus convertis en TYPE_GROUPE_AUTRE: '.implode(', ', array_map(
+                static fn (string $type, int $count): string => sprintf('%s=%d', $type, $count),
+                array_keys($unknownTypes),
+                array_values($unknownTypes),
+            )).'.';
+        }
+        if ($legacyParcoursLinks > 0) {
+            $messages[] = sprintf('Occurrences groupe V3 avec parcours/apcParcours non transposées automatiquement: %d.', $legacyParcoursLinks);
+        }
+        if ($legacyEduSignIds > 0) {
+            $messages[] = sprintf('Occurrences groupe V3 avec idEduSign sans équivalent dans StructureGroupe V4: %d.', $legacyEduSignIds);
         }
 
         return new MigrationResult($created, $updated, $skipped, $failed, $messages);
