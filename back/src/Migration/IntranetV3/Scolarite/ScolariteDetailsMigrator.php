@@ -38,6 +38,7 @@ final class ScolariteDetailsMigrator extends AbstractMigrator
         $messages = [];
         $sampleCount = 0;
         $propositionsNonMigrees = 0;
+        $propositionsMigrees = 0;
 
         $sql = <<<'SQL'
 SELECT
@@ -145,12 +146,18 @@ SQL;
                 $scolariteSemestre->setMoyennesUe($this->decodeLegacyArray($row['moyennes_ues']));
 
                 if (null !== $row['proposition'] && '' !== trim((string) $row['proposition'])) {
-                    ++$propositionsNonMigrees;
-                    $this->addSample($messages, $sampleCount, sprintf(
-                        'Scolarite V3 #%s: proposition "%s" non migrée automatiquement (champ libre V3, relation StructureSemestre en cible).',
-                        $row['id'],
-                        (string) $row['proposition'],
-                    ));
+                    $proposition = $this->resolveProposition((string) $row['proposition'], $pn);
+                    if (null !== $proposition) {
+                        $scolariteSemestre->setProposition($proposition);
+                        ++$propositionsMigrees;
+                    } elseif (!in_array(strtoupper(trim((string) $row['proposition'])), ['?', 'E.C.', 'EC'], true)) {
+                        ++$propositionsNonMigrees;
+                        $this->addSample($messages, $sampleCount, sprintf(
+                            'Scolarite V3 #%s: proposition "%s" non résolue vers un semestre du même snapshot.',
+                            $row['id'],
+                            (string) $row['proposition'],
+                        ));
+                    }
                 }
 
                 ++$updated;
@@ -169,9 +176,13 @@ SQL;
 
         $this->flushAndClear($context);
 
+        if ($propositionsMigrees > 0) {
+            $messages[] = sprintf('Propositions V3 résolues vers StructureSemestre: %d.', $propositionsMigrees);
+        }
+
         if ($propositionsNonMigrees > 0) {
             $messages[] = sprintf(
-                'Propositions V3 non migrées automatiquement: %d. Une règle de résolution explicite vers StructureSemestre reste à définir.',
+                'Propositions V3 non migrées automatiquement: %d. Valeurs laissées à null car aucun semestre du snapshot ne correspond.',
                 $propositionsNonMigrees,
             );
         }
@@ -191,6 +202,24 @@ SQL;
             ->setParameter('pn', $pn)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    private function resolveProposition(string $value, StructurePn $pn): ?StructureSemestre
+    {
+        $normalized = mb_strtoupper(trim($value));
+        if ('' === $normalized || in_array($normalized, ['?', 'E.C.', 'EC'], true)) {
+            return null;
+        }
+
+        foreach ($pn->getAnnees() as $annee) {
+            foreach ($annee->getSemestres() as $semestre) {
+                if ($normalized === mb_strtoupper(trim((string) $semestre->getLibelle()))) {
+                    return $semestre;
+                }
+            }
+        }
+
+        return null;
     }
 
     private function mapDecision(mixed $decision): ?bool
