@@ -24,7 +24,8 @@ use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Enum\StatutEnum;
 use App\Filter\PersonnelFilter;
@@ -65,9 +66,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ],
     order: ['nom' => 'ASC'],
 )]
-class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
-{
-    use LifeCycleTrait;
+class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, TimestampableInterface {
+    use TimestampableTrait;
     use OldIdTrait;
 
     #[ORM\Id]
