@@ -4,7 +4,8 @@ namespace App\Entity\Scolarite;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Salle;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
@@ -14,9 +15,9 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ScolEvaluationRattrapageRepository::class)]
 #[ApiResource]
-class ScolEvaluationRattrapage
+class ScolEvaluationRattrapage implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use UuidTrait;
 
     #[ORM\Id]
