@@ -25,8 +25,25 @@ final class EtudiantMigrator extends AbstractMigrator
     {
         $created = $updated = $failed = $processed = 0;
         $messages = [];
+        $deletedCount = 0;
 
-        $sql = 'SELECT id, username, mail_univ, mail_perso, prenom, nom, photo_name, num_etudiant, num_ine, annee_bac, boursier, amenagements_particuliers, promotion, annee_sortie, bac_id FROM etudiant ORDER BY id';
+        $sql = <<<'SQL'
+SELECT
+    e.id, e.username, e.mail_univ, e.mail_perso, e.prenom, e.nom, e.photo_name,
+    e.num_etudiant, e.num_ine, e.annee_bac, e.boursier, e.amenagements_particuliers,
+    e.promotion, e.annee_sortie, e.bac_id, e.id_edu_sign, e.deleted,
+    e.date_naissance, e.tel1, e.tel2, e.lieu_naissance, e.site_perso, e.site_univ,
+    ae.adresse1 AS adresse_etudiante_1, ae.adresse2 AS adresse_etudiante_2,
+    ae.adresse3 AS adresse_etudiante_3, ae.code_postal AS adresse_etudiante_cp,
+    ae.ville AS adresse_etudiante_ville, ae.pays AS adresse_etudiante_pays,
+    ap.adresse1 AS adresse_parentale_1, ap.adresse2 AS adresse_parentale_2,
+    ap.adresse3 AS adresse_parentale_3, ap.code_postal AS adresse_parentale_cp,
+    ap.ville AS adresse_parentale_ville, ap.pays AS adresse_parentale_pays
+FROM etudiant e
+LEFT JOIN adresse ae ON ae.id = e.adresse_id
+LEFT JOIN adresse ap ON ap.id = e.adresse_parentale_id
+ORDER BY e.id
+SQL;
         $rows = $this->source->executeQuery($sql)->iterateAssociative();
 
         foreach ($rows as $row) {
@@ -53,7 +70,23 @@ final class EtudiantMigrator extends AbstractMigrator
                     ->setPromotion(null !== $row['promotion'] ? (int) $row['promotion'] : null)
                     ->setAnneeSortie(null !== $row['annee_sortie'] ? (int) $row['annee_sortie'] : 0)
                     ->setRoles(['ROLE_ETUDIANT'])
-                    ->setMailPerso($row['mail_perso']);
+                    ->setMailPerso($row['mail_perso'])
+                    ->setDateNaissance(null !== $row['date_naissance'] ? new \DateTime((string) $row['date_naissance']) : null)
+                    ->setTel1($row['tel1'])
+                    ->setTel2($row['tel2'])
+                    ->setLieuNaissance($row['lieu_naissance'])
+                    ->setSitePerso($row['site_perso'])
+                    ->setSiteUniv($row['site_univ'])
+                    ->setAdresseEtudiante($this->addressFromRow($row, 'adresse_etudiante'))
+                    ->setAdresseParentale($this->addressFromRow($row, 'adresse_parentale'));
+
+                if (null !== $row['id_edu_sign'] && '' !== trim((string) $row['id_edu_sign'])) {
+                    $entity->setIdEduSign((string) $row['id_edu_sign']);
+                }
+
+                if ((bool) $row['deleted']) {
+                    ++$deletedCount;
+                }
 
                 if (null !== $row['bac_id']) {
                     $entity->setBac($bacRepository->findOneBy(['oldId' => (int) $row['bac_id']]));
@@ -76,6 +109,33 @@ final class EtudiantMigrator extends AbstractMigrator
 
         $this->flushAndClear($context);
 
+        if ($deletedCount > 0) {
+            $messages[] = sprintf(
+                'Etudiants V3 marqués deleted=true: %d. La V4 ne possède pas de champ deleted; ils sont importés pour préserver scolarités, notes et stages. Leur politique d’accès doit être traitée explicitement.',
+                $deletedCount,
+            );
+        }
+
         return new MigrationResult($created, $updated, 0, $failed, $messages);
+    }
+
+    private function addressFromRow(array $row, string $prefix): ?array
+    {
+        $address = [
+            'adresse' => $row[$prefix.'_1'] ?? null,
+            'complement1' => $row[$prefix.'_2'] ?? null,
+            'complement2' => $row[$prefix.'_3'] ?? null,
+            'codePostal' => $row[$prefix.'_cp'] ?? null,
+            'ville' => $row[$prefix.'_ville'] ?? null,
+            'pays' => $row[$prefix.'_pays'] ?? 'France',
+        ];
+
+        foreach ($address as $key => $value) {
+            if ('pays' !== $key && null !== $value && '' !== trim((string) $value)) {
+                return $address;
+            }
+        }
+
+        return null;
     }
 }
