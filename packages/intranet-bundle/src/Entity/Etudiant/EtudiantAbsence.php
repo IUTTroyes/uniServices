@@ -26,7 +26,6 @@ use IntranetBundle\State\Processor\Absence\EtudiantAbsenceCreateProcessor;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantAbsenceRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiFilter(AbsenceFilter::class)]
 #[ApiResource(
     operations: [
