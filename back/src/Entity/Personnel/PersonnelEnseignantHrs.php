@@ -39,6 +39,9 @@ class PersonnelEnseignantHrs
     #[Groups(['enseignant_hrs:read'])]
     private ?string $libelle = null;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $commentaire = null;
+
     #[ORM\ManyToOne(inversedBy: 'enseignantHrs')]
     #[ORM\JoinColumn(nullable: false)]
     #[Groups(['enseignant_hrs:read'])]
@@ -78,6 +81,18 @@ class PersonnelEnseignantHrs
     public function setLibelle(?string $libelle): static
     {
         $this->libelle = $libelle;
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): static
+    {
+        $this->commentaire = $commentaire;
 
         return $this;
     }
