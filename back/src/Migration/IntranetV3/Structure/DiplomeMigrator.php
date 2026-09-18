@@ -4,6 +4,7 @@ namespace App\Migration\IntranetV3\Structure;
 
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
+use App\Entity\Structure\StructureTypeDiplome;
 use App\Migration\IntranetV3\AbstractMigrator;
 use App\Migration\IntranetV3\Contract\MigratorInterface;
 use App\Migration\IntranetV3\MigrationContext;
@@ -19,18 +20,21 @@ final class DiplomeMigrator extends AbstractMigrator
     /** @return list<class-string<MigratorInterface>> */
     public function getDependencies(): array
     {
-        return [DepartementMigrator::class];
+        return [DepartementMigrator::class, TypeDiplomeMigrator::class];
     }
 
     public function migrate(MigrationContext $context): MigrationResult
     {
         $rows = $this->source->fetchAllAssociative(
-            'SELECT id, departement_id, parent_id, libelle, volume_horaire, code_celcat_departement, sigle, actif, logo_partenaire, key_edu_sign FROM diplome ORDER BY id'
+            'SELECT d.id, d.departement_id, d.parent_id, d.type_diplome_id, td.sigle AS type_diplome_sigle, d.libelle, d.volume_horaire, d.code_celcat_departement, d.sigle, d.actif, d.logo_partenaire, d.key_edu_sign FROM diplome d LEFT JOIN type_diplome td ON td.id = d.type_diplome_id ORDER BY d.id'
         );
         $repository = $this->entityManager->getRepository(StructureDiplome::class);
         $departementRepository = $this->entityManager->getRepository(StructureDepartement::class);
+        $typeDiplomeRepository = $this->entityManager->getRepository(StructureTypeDiplome::class);
         $created = $updated = $skipped = $failed = 0;
         $messages = [];
+        $missingTypeDiplomes = 0;
+        $inactiveDiplomes = 0;
 
         foreach ($rows as $row) {
             try {
@@ -39,6 +43,18 @@ final class DiplomeMigrator extends AbstractMigrator
                     ++$skipped;
                     $messages[] = sprintf('Diplome #%s skipped: departement V3 #%s introuvable.', $row['id'], $row['departement_id']);
                     continue;
+                }
+
+                $typeDiplome = null;
+                if (null !== $row['type_diplome_id']) {
+                    $typeDiplome = $typeDiplomeRepository->findOneBy(['sigle' => (string) $row['type_diplome_sigle']]);
+                    if (null === $typeDiplome) {
+                        ++$missingTypeDiplomes;
+                    }
+                }
+
+                if (!(bool) $row['actif']) {
+                    ++$inactiveDiplomes;
                 }
 
                 $entity = $repository->findOneBy(['oldId' => (int) $row['id']]);
@@ -53,7 +69,8 @@ final class DiplomeMigrator extends AbstractMigrator
                     ->setCodeCelcatDepartement(null !== $row['code_celcat_departement'] ? (int) $row['code_celcat_departement'] : null)
                     ->setSigle($row['sigle'] ?: null)
                     ->setLogoPartenaire($row['logo_partenaire'] ?: null)
-                    ->setKeyEduSign($row['key_edu_sign'] ?: null);
+                    ->setKeyEduSign($row['key_edu_sign'] ?: null)
+                    ->setTypeDiplome($typeDiplome);
 
                 if ($isNew) {
                     $this->entityManager->persist($entity);
@@ -80,6 +97,16 @@ final class DiplomeMigrator extends AbstractMigrator
         }
 
         $this->flush($context);
+
+        if ($missingTypeDiplomes > 0) {
+            $messages[] = sprintf('Diplômes avec type V3 non résolu en V4: %d.', $missingTypeDiplomes);
+        }
+        if ($inactiveDiplomes > 0) {
+            $messages[] = sprintf(
+                'Diplômes V3 actif=false: %d. StructureDiplome ne possède pas de champ actif; ils sont conservés pour les snapshots et données historiques.',
+                $inactiveDiplomes,
+            );
+        }
 
         return new MigrationResult($created, $updated, $skipped, $failed, $messages);
     }
