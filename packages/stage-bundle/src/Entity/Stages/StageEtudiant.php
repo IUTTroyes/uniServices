@@ -24,7 +24,6 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 
 #[ORM\Entity(repositoryClass: StageEtudiantRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiFilter(SearchFilter::class, properties: ['stagePeriode' => 'exact', 'tuteurUniversitaire' => 'exact'])]
 #[ApiResource(
     operations: [
