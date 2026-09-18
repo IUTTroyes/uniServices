@@ -9,7 +9,8 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OptionTrait;
 use QuestionnaireBundle\Enum\QuestStatutEnum;
 use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireRepository;
@@ -33,9 +34,9 @@ use Symfony\Component\Uid\Uuid;
     ],
     normalizationContext: ['groups' => ['questionnaire:read']],
 )]
-class Questionnaire
+class Questionnaire implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OptionTrait;
 
     #[ORM\Column(type: UuidType::NAME)]
