@@ -18,7 +18,17 @@ final readonly class DocumentIntegrityChecker
         return [
             $this->row('Catégories', 'type_document', 'document_category'),
             $this->row('Documents', 'document', 'document'),
+            $this->customRow('Catégories originales', 'SELECT COUNT(*) FROM type_document WHERE originaux = 1', 'SELECT COUNT(*) FROM document_category WHERE old_id IS NOT NULL AND is_original = 1'),
+            $this->customRow('Catégories avec parent', 'SELECT COUNT(*) FROM type_document WHERE parent_id IS NOT NULL', 'SELECT COUNT(*) FROM document_category WHERE old_id IS NOT NULL AND parent_id IS NOT NULL'),
+            $this->customRow('Documents catégorisés', 'SELECT COUNT(*) FROM document WHERE type_document_id IS NOT NULL', 'SELECT COUNT(*) FROM document WHERE old_id IS NOT NULL AND category_id IS NOT NULL'),
         ];
+    }
+
+    private function customRow(string $label, string $sourceSql, string $targetSql): array
+    {
+        $source = (int) $this->source->fetchOne($sourceSql);
+        $target = (int) $this->target->fetchOne($targetSql);
+        return ['ok' => $source === $target, 'label' => $label, 'source' => $source, 'target' => $target];
     }
 
     private function row(string $label, string $sourceTable, string $targetTable): array
