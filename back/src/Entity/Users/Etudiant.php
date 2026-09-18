@@ -42,7 +42,6 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
     ],
     order: ['nom' => 'ASC']
 )]
-#[ORM\HasLifecycleCallbacks]
 #[ApiFilter(EtudiantFilter::class)]
 #[ApiFilter(SearchFilter::class, properties: [
     'nom' => 'start',
