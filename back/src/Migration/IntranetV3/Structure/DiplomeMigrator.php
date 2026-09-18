@@ -26,7 +26,7 @@ final class DiplomeMigrator extends AbstractMigrator
     public function migrate(MigrationContext $context): MigrationResult
     {
         $rows = $this->source->fetchAllAssociative(
-            'SELECT d.id, d.departement_id, d.parent_id, d.type_diplome_id, td.sigle AS type_diplome_sigle, d.libelle, d.volume_horaire, d.code_celcat_departement, d.sigle, d.actif, d.logo_partenaire, d.key_edu_sign FROM diplome d LEFT JOIN type_diplome td ON td.id = d.type_diplome_id ORDER BY d.id'
+            'SELECT d.id, d.departement_id, d.parent_id, d.type_diplome_id, td.sigle AS type_diplome_sigle, d.libelle, d.volume_horaire, d.code_celcat_departement, d.sigle, d.actif, d.logo_partenaire, d.key_edu_sign, d.opt_nb_jours_saisie, d.opt_suppr_absence, d.opt_anonymat, d.opt_commentaires_releve, d.opt_espace_perso_visible, d.opt_semaines_visibles, d.opt_certifie_qualite, d.opt_responsable_qualite, d.opt_update_celcat, d.saisie_cm_autorise FROM diplome d LEFT JOIN type_diplome td ON td.id = d.type_diplome_id ORDER BY d.id'
         );
         $repository = $this->entityManager->getRepository(StructureDiplome::class);
         $departementRepository = $this->entityManager->getRepository(StructureDepartement::class);
@@ -70,7 +70,19 @@ final class DiplomeMigrator extends AbstractMigrator
                     ->setSigle($row['sigle'] ?: null)
                     ->setLogoPartenaire($row['logo_partenaire'] ?: null)
                     ->setKeyEduSign($row['key_edu_sign'] ?: null)
-                    ->setTypeDiplome($typeDiplome);
+                    ->setTypeDiplome($typeDiplome)
+                    ->setOpt([
+                        'nb_jours_saisie_absence' => (int) $row['opt_nb_jours_saisie'],
+                        'supp_absence' => (bool) $row['opt_suppr_absence'],
+                        'anonymat' => (bool) $row['opt_anonymat'],
+                        'commentaire_releve' => (bool) $row['opt_commentaires_releve'],
+                        'espace_perso_visible' => (bool) $row['opt_espace_perso_visible'],
+                        'semaine_visible' => (int) $row['opt_semaines_visibles'],
+                        'certif_qualite' => (bool) $row['opt_certifie_qualite'],
+                        'resp_qualite' => (int) $row['opt_responsable_qualite'],
+                        'update_celcat' => (bool) $row['opt_update_celcat'],
+                        'saisie_cm_autorisee' => (bool) $row['saisie_cm_autorise'],
+                    ]);
 
                 if ($isNew) {
                     $this->entityManager->persist($entity);
