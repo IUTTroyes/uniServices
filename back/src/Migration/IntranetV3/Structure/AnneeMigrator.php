@@ -37,7 +37,7 @@ final class AnneeMigrator extends AbstractMigrator
             }
 
             $sql = <<<'SQL'
-SELECT id, diplome_id, libelle, ordre, libelle_long, actif, couleur, code_version, code_etape
+SELECT id, diplome_id, libelle, ordre, libelle_long, actif, couleur, code_version, code_etape, opt_alternance
 FROM annee
 WHERE diplome_id = :diplome_id
 ORDER BY ordre, id
@@ -61,7 +61,8 @@ SQL;
                         ->setActif((bool) $row['actif'])
                         ->setCouleur($row['couleur'] ?: null)
                         ->setApogeeCodeVersion($row['code_version'] ?: null)
-                        ->setApogeeCodeEtape($row['code_etape'] ?: null);
+                        ->setApogeeCodeEtape($row['code_etape'] ?: null)
+                        ->setOpt(['alternance' => (bool) $row['opt_alternance']]);
 
                     if ($isNew) {
                         $this->entityManager->persist($entity);
