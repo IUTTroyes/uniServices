@@ -18,7 +18,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: EmailTemplateRepository::class)]
 #[ORM\Table(name: 'email_template')]
 #[ORM\UniqueConstraint(name: 'uq_email_template', columns: ['email_key', 'departement_id', 'locale'])]
-#[ORM\HasLifecycleCallbacks]
 class EmailTemplate
 {
     use LifeCycleTrait;
