@@ -10,7 +10,8 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcNiveau;
 use App\Entity\Etudiant\EtudiantScolarite;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Filter\AnneeFilter;
 use App\Repository\Structure\StructureAnneeRepository;
@@ -37,9 +38,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiFilter(AnneeFilter::class)]
 #[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ORM\HasLifecycleCallbacks()]
-class StructureAnnee
+class StructureAnnee implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OptionTrait;
 
     #[ORM\Id]
