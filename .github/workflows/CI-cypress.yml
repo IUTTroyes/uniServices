@@ -4,9 +4,6 @@ env:
   FORCE_COLOR: 1
 
 on:
-  push:
-    branches:
-      - feat/CI
   pull_request:
     branches:
       - main
@@ -31,7 +28,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -71,7 +68,7 @@ jobs:
 
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
 
