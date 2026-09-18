@@ -34,7 +34,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiFilter(UeFilter::class)]
 class StructureUe implements TimestampableInterface
 {
-//    use TimestampableTrait;
+    use TimestampableTrait;
     use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]
