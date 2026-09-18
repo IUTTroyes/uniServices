@@ -449,7 +449,7 @@ Repris : oldId, titre, description, filename, MIME, taille, catégorie, départe
 - [ ] Définir la politique V4 pour les utilisateurs V3 `deleted=true` (ils sont désormais explicitement comptés par les migrateurs).
 - [x] Compléter les correspondances directes du profil **Personnel** ; les statuts inconnus sont diagnostiqués.
 - [x] Compléter les correspondances directes du profil **Etudiant** et ses deux adresses.
-- [ ] Vérifier le lien **Diplome → TypeDiplome** pour tous les diplômes, pas uniquement via la phase APC.
+- [x] Rattacher **Diplome → TypeDiplome** dès la migration Structure, indépendamment de l'APC.
 - [ ] Décider/réparer **SAE ↔ ressources**.
 - [ ] Diagnostiquer les **13 StageEtudiant Updated**.
 - [ ] Vérifier que les absences conservent réellement leur date/heure via l'event EDT.
@@ -529,3 +529,38 @@ Corrections appliquées aux migrateurs :
 - **PersonnelMigrator** : reprise du statut, poste, téléphone bureau, responsabilités, domaines, entreprise, bureaux, Harpège, initiales, service statutaire, sites et EduSign. Les statuts non reconnus sont recensés au lieu d'être convertis silencieusement.
 - **Choix volontaire** : aucun champ `deleted` n'a été ajouté artificiellement aux entités V4. Les comptes historiques restent nécessaires aux notes, scolarités, stages, EDT et autres relations. La désactivation fonctionnelle doit donc être modélisée explicitement si elle est encore nécessaire en V4.
 - **Restent à décider côté utilisateurs** : demandeur d'emploi, formation continue, login spécifique, CV, signature électronique, accessOriginaux et quelques anciennes configurations V3 sans équivalent direct.
+
+
+---
+
+# 15. Passe Structure — corrections automatiques
+
+Une nouvelle passe a été effectuée sur `Departement`, `TypeDiplome`, `Diplome`, `Annee`, `Semestre` et `Groupe`.
+
+## Corrections appliquées
+
+- **Diplome → TypeDiplome** est maintenant un lien de la migration structurelle elle-même. Il ne dépend plus du passage APC.
+- Les **types diplôme non résolus** sont comptés et signalés.
+- Les **diplômes V3 inactifs** sont comptés et signalés. Aucun champ `actif` n'a été ajouté artificiellement : `StructureDiplome` V4 n'en possède pas et ces diplômes peuvent être nécessaires à l'historique.
+- Les **types de groupes inconnus** restent convertis en `TYPE_GROUPE_AUTRE`, mais la conversion n'est plus silencieuse : le rapport donne les valeurs et occurrences.
+- Les anciens liens **Groupe.parcours / Groupe.apcParcours** et les **idEduSign de groupe** sont comptés lorsqu'ils existent et explicitement signalés comme non transposés.
+
+## Confirmé comme différence de modèle V4
+
+Les champs suivants n'ont actuellement **aucun emplacement direct** dans les entités Structure V4 et n'ont donc pas été ajoutés arbitrairement :
+
+- `TypeDiplome.nbSemestres`, `niveauEntree`, `niveauSortie`, MCC ;
+- options historiques de `Diplome` ;
+- `Annee.optAlternance` ;
+- nombreuses options applicatives de `Semestre` ;
+- `Groupe.idEduSign`.
+
+Ils restent des décisions métier/modèle P1.
+
+## Point important sur Departement
+
+Tous les champs présents à la fois dans V3 et `StructureDepartement` V4 sont déjà repris : libellé, logo, téléphone, couleur, site, description, actif. Les anciennes options départementales n'existent pas dans l'entité V4 et semblent davantage relever de l'activation/configuration des packages que de données structurelles. Aucune colonne V4 n'est donc ajoutée dans cette passe.
+
+## Point important sur Annee / Semestre
+
+Les champs structurels possédant un équivalent V4 sont déjà correctement migrés. Les champs restants sont essentiellement des options fonctionnelles V3 sans équivalent direct. Ils doivent être traités par décision de conception et non par simple copie.
