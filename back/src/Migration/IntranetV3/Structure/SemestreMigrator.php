@@ -40,7 +40,12 @@ final class SemestreMigrator extends AbstractMigrator
 
             $sql = <<<'SQL'
 SELECT id, annee_id, libelle, ordre_annee, ordre_lmd, actif,
-       nb_groupes_cm, nb_groupes_td, nb_groupes_tp, code_element
+       nb_groupes_cm, nb_groupes_td, nb_groupes_tp, code_element,
+       opt_mail_releve, opt_mail_modification_note, opt_dest_mail_releve, opt_dest_mail_modif_note,
+       opt_evaluation_visible, opt_evaluation_modifiable, opt_penalite_absence,
+       opt_mail_absence_resp, opt_dest_mail_absence_resp, opt_mail_absence_etudiant,
+       opt_point_penalite_absence, opt_mail_assistante_justificatif_absence,
+       opt_bilan_semestre, opt_rattrapage, opt_mail_rattrapage, id_edu_sign
 FROM semestre
 WHERE annee_id = :annee_id
 ORDER BY ordre_annee, id
@@ -65,7 +70,25 @@ SQL;
                         ->setNbGroupesCm((int) $row['nb_groupes_cm'])
                         ->setNbGroupesTd((int) $row['nb_groupes_td'])
                         ->setNbGroupesTp((int) $row['nb_groupes_tp'])
-                        ->setCodeElement($row['code_element'] ?: null);
+                        ->setCodeElement($row['code_element'] ?: null)
+                        ->setIdEduSign($row['id_edu_sign'] ?: null)
+                        ->setOpt([
+                            'mail_releve' => (bool) $row['opt_mail_releve'],
+                            'mail_modif_note' => (bool) $row['opt_mail_modification_note'],
+                            'dest_mail_releve' => (int) $row['opt_dest_mail_releve'],
+                            'dest_mail_modif_note' => (int) $row['opt_dest_mail_modif_note'],
+                            'eval_visible' => (bool) $row['opt_evaluation_visible'],
+                            'eval_modif' => (bool) $row['opt_evaluation_modifiable'],
+                            'penalite_absence' => (float) $row['opt_penalite_absence'],
+                            'mail_absence_resp' => (bool) $row['opt_mail_absence_resp'],
+                            'dest_mail_absence_resp' => (int) $row['opt_dest_mail_absence_resp'],
+                            'mail_absence_etudiant' => (bool) $row['opt_mail_absence_etudiant'],
+                            'opt_penalite_absence' => (bool) $row['opt_point_penalite_absence'],
+                            'mail_assistante_justif_absence' => (bool) $row['opt_mail_assistante_justificatif_absence'],
+                            'bilan_semestre' => (bool) $row['opt_bilan_semestre'],
+                            'rattrapage' => (bool) $row['opt_rattrapage'],
+                            'mail_rattrapage' => (int) $row['opt_mail_rattrapage'],
+                        ]);
 
                     if ($isNew) {
                         $this->entityManager->persist($entity);
