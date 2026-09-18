@@ -89,6 +89,10 @@ class DocumentCategory
     #[Groups(['document_category:read', 'document_category:write'])]
     private bool $isSystem = false;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    #[Groups(['document_category:read', 'document_category:write'])]
+    private bool $isOriginal = false;
+
     #[ORM\Column]
     #[Groups(['document_category:read'])]
     private \DateTimeImmutable $createdAt;
@@ -226,6 +230,17 @@ class DocumentCategory
     public function setIsSystem(bool $isSystem): static
     {
         $this->isSystem = $isSystem;
+        return $this;
+    }
+
+    public function isOriginal(): bool
+    {
+        return $this->isOriginal;
+    }
+
+    public function setIsOriginal(bool $isOriginal): static
+    {
+        $this->isOriginal = $isOriginal;
         return $this;
     }
 
