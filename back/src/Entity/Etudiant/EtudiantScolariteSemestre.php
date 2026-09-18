@@ -80,6 +80,10 @@ class EtudiantScolariteSemestre
 
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite-semestre:detail'])]
+    private ?int $rang = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite-semestre:detail'])]
     private ?array $moyennesMatiere = null;
 
     #[ORM\Column(nullable: true)]
@@ -216,6 +220,18 @@ class EtudiantScolariteSemestre
     public function setMoyenne(?float $moyenne): void
     {
         $this->moyenne = $moyenne;
+    }
+
+    public function getRang(): ?int
+    {
+        return $this->rang;
+    }
+
+    public function setRang(?int $rang): static
+    {
+        $this->rang = $rang;
+
+        return $this;
     }
 
     public function getMoyennesMatiere(): ?array
