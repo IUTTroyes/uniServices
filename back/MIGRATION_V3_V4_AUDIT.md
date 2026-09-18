@@ -469,8 +469,8 @@ Repris : oldId, titre, description, filename, MIME, taille, catégorie, départe
 - [ ] Scolarité : proposition, rang, nuances de décision.
 - [ ] Traiter/valider les affectations groupes non résolues.
 - [ ] UE : coefficient.
-- [ ] Matière : contenu, compétences visées, modalités, prolongements.
-- [ ] APC Niveau : ordreAnnee.
+- [x] Matière : contenu, compétences visées, modalités, prolongements conservés via options d'enseignement.
+- [x] APC Niveau : `ordreAnnee` ajouté et migré.
 - [ ] Évaluations : personnels autorisés.
 - [ ] Justificatifs : fichiers physiques.
 - [ ] Document : semestres et favoris.
@@ -603,3 +603,45 @@ Pour toutes les autres entités migrées, il faut désormais systématiquement c
 4. les éventuels resolvers/services qui interprètent ces options.
 
 Une option V3 n'est classée P1/perdue qu'après cette vérification.
+
+
+---
+
+# 16. Passe Maquette / APC
+
+La vérification a été poursuivie en tenant compte des champs directs, traits, structures JSON et resolvers.
+
+## ScolEnseignement
+
+Le modèle V4 regroupant Matière, Ressource et SAÉ dans `ScolEnseignement`, un stockage `opt` validé par `OptionsResolver` a été ajouté pour les métadonnées V3 qui restent utiles sans justifier des colonnes dédiées.
+
+Clés ajoutées :
+- `competences_visees`
+- `contenu`
+- `modalites`
+- `prolongements`
+- `pac`
+- `ppn_old_id`
+- `parcours_old_id`
+- `ressource_parent`
+- `has_coefficient_different`
+
+`MatiereMigrator` alimente les six premières familles pertinentes. Les anciens IDs PPN/parcours sont conservés comme références historiques plutôt que de recréer une relation incompatible avec les snapshots V4.
+
+`ApcRessourceMigrator` conserve désormais `ressourceParent` et `hasCoefficientDifferent`.
+
+## ApcNiveau
+
+`ordreAnnee` a une sémantique métier propre et existe encore dans le modèle conceptuel V4 : un champ nullable a été ajouté à `ApcNiveau` et le migrateur le renseigne. Migration Doctrine associée.
+
+## SAE ↔ Ressource
+
+Le point reste ouvert et prioritaire. La V3 possède une relation explicite `ApcSaeRessource`. Le modèle V4 `ScolEnseignement` possède déjà un champ `sae` (ManyToOne self), ce qui suggère qu'une ressource peut être rattachée à une SAÉ, mais la cardinalité V3 doit être mesurée avant conversion : si une ressource V3 peut être reliée à plusieurs SAÉ, le ManyToOne V4 est insuffisant. **Ne pas migrer cette relation avant ce contrôle de cardinalité.**
+
+## Autres constats
+
+- coefficient et ECTS des matières sont déjà conservés sur `ScolEnseignementUe` ;
+- coefficients Ressource/Compétence et SAÉ/Compétence sont transposés sur les liaisons enseignement/UE ;
+- apprentissages critiques Ressource/SAÉ sont déjà liés ;
+- volumes horaires utilisent un resolver JSON dédié et sont déjà correctement transposés ;
+- `ApcParcours.formation_continue` est déjà conservé via `OptionTrait`.
