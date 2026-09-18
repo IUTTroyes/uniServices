@@ -645,3 +645,122 @@ Le point reste ouvert et prioritaire. La V3 possède une relation explicite `Apc
 - apprentissages critiques Ressource/SAÉ sont déjà liés ;
 - volumes horaires utilisent un resolver JSON dédié et sont déjà correctement transposés ;
 - `ApcParcours.formation_continue` est déjà conservé via `OptionTrait`.
+
+
+---
+
+# 17. Passe données opérationnelles
+
+## Evaluations
+
+La comparaison V3/V4 confirme que les données principales sont présentes : UUID, libellé, commentaire, coefficient, date, visibilité, modification, année, semestre, enseignement, auteur/personnels autorisés et parent.
+
+Correction appliquée :
+- `Evaluation.typeGroupe` était disponible dans V4 mais oublié par le migrateur. Il est maintenant migré vers `TypeGroupeEnum`. Les anciennes valeurs non reconnues sont conservées sémantiquement comme `AUTRE`.
+
+À surveiller :
+- V4 possède aussi `type`, `etat` et `stats`. `etat` est reconstruit à partir de `visible`; `stats` est une donnée V4 et n'a pas à provenir de V3. Le champ `type` V4 n'a pas d'équivalent évident dans l'entité Evaluation V3 auditée.
+
+## Notes
+
+Les champs métier V3 sont repris :
+- évaluation ;
+- étudiant via sa scolarité ;
+- note ;
+- commentaire ;
+- absence justifiée, transformée en `presenceStatut`.
+
+La collection V3 `modificationNotes` n'est volontairement pas migrée conformément au périmètre historique décidé. V4 possède un champ `historique`, mais le périmètre actuel ne reconstruit pas cet historique.
+
+Attention : l'identification V4 utilise actuellement le couple évaluation/scolarité. Cela suppose une note unique par étudiant et évaluation, ce qui correspond au modèle attendu.
+
+## Absences
+
+Périmètre volontaire : détails de l'année active uniquement.
+
+Les informations structurelles sont transposées vers :
+- scolarité semestrielle ;
+- événement EDT ;
+- personnel ;
+- UUID ;
+- date de justification ;
+- EduSign lorsque le trait/mutateur est disponible.
+
+Les anciennes données `dateHeure`, durée et contexte matière ne sont pas recopiées en colonnes : elles sont représentées par l'événement EDT lié. C'est une transformation de modèle et non une perte si le rattachement EDT réussit.
+
+Le champ booléen V3 `justifie` n'est pas copié directement : V4 matérialise la justification par la relation vers `EtudiantAbsenceJustificatif` et sa date. La passe justificatifs reconstruit cette relation.
+
+## Justificatifs
+
+Périmètre volontaire : année active uniquement.
+
+Repris :
+- UUID ;
+- début/fin ;
+- motif ;
+- état ;
+- étudiant via scolarité semestrielle ;
+- nom/référence de fichier ;
+- couverture des absences recalculée à partir de la période.
+
+V4 possède `motif_refus` et `nom_fichier`, qui n'ont pas d'équivalent dans l'entité V3 auditée.
+
+⚠️ Le fichier est actuellement migré comme **métadonnée/nom uniquement**. La copie physique des justificatifs n'est pas couverte par ce migrateur et doit rester un point explicite de l'audit.
+
+## Rattrapages
+
+Périmètre volontaire : année active uniquement.
+
+Repris ou reconstruits :
+- UUID ;
+- étudiant ;
+- personnel ;
+- évaluation cible ;
+- état ;
+- date de rattrapage ;
+- heure début ;
+- heure fin calculée à partir de la durée.
+
+⚠️ `salle` V3 est une chaîne libre alors que V4 attend une entité `Salle` : aucune correspondance implicite n'est faite. C'est un point P1 si la salle historique doit être conservée.
+
+Les données de l'évaluation initiale (date/heure, matière, semestre) servent à retrouver `ScolEvaluation` plutôt qu'à être dupliquées dans l'entité V4.
+
+## EDT
+
+Périmètre volontaire : année active uniquement.
+
+La majorité des champs utiles sont transposés : semaine, jour, date, horaires, salle texte, personnel, enseignement, groupe, type, année, semestre, indicateur évaluation, ordre de séance et EduSign.
+
+Les anciennes valeurs texte `texte` servent de fallback au libellé module lorsque l'enseignement n'est pas résolu.
+
+Champs V4 sans source directe : couleur, celcatId, codeSalle, departementCodeCelcat, updatedEvent. Ils ne sont pas inventés.
+
+## Prévisionnels
+
+Périmètre volontaire : année active.
+
+Les champs V3 sont couverts : personnel, année, référent, heures CM/TD/TP et nombres de groupes CM/TD/TP. Les tableaux JSON V4 sont validés par leur resolver.
+
+`Projet` n'existe pas dans le modèle V3 audité et reste donc à zéro.
+
+## Types HRS
+
+Tous les champs V3 audités ont un équivalent et sont migrés : libellé, type, inclus dans le service, maximum.
+
+## HRS
+
+Correction appliquée :
+- `commentaire` V3 n'avait aucun emplacement V4 alors qu'il s'agit d'une donnée métier. Un champ nullable a été ajouté à `PersonnelEnseignantHrs` et le migrateur le renseigne.
+
+Les autres données sont reprises : volume TD, libellé, semestre, diplôme, personnel, type HRS, année.
+
+Le département V3 n'est pas dupliqué dans HRS V4. Il peut être déduit du contexte diplôme/semestre/personnel selon le cas ; il reste à vérifier si des HRS V3 possèdent un département sans diplôme/semestre permettant de conserver ce contexte.
+
+## Priorités issues de cette passe
+
+- 🔴 **SAÉ ↔ Ressource** : cardinalité V3 à mesurer avant choix du modèle V4.
+- 🟠 **fichiers physiques des justificatifs** : métadonnée migrée, fichier non copié.
+- 🟠 **Rattrapage.salle** : chaîne V3 non transposée vers l'entité Salle.
+- 🟠 **HRS.departement** : vérifier les occurrences où ce contexte ne peut pas être déduit.
+- 🟢 **Evaluation.typeGroupe** : corrigé.
+- 🟢 **HRS.commentaire** : corrigé.
