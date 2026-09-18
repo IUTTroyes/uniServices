@@ -25,7 +25,7 @@ final class TypeDiplomeMigrator extends AbstractMigrator
         $messages = [];
 
         $sql = <<<'SQL'
-SELECT id, libelle, sigle, apc
+SELECT id, libelle, sigle, nb_semestres, niveau_entree, niveau_sortie, apc
 FROM type_diplome
 ORDER BY id
 SQL;
@@ -40,7 +40,10 @@ SQL;
                 $entity
                     ->setLibelle((string) $row['libelle'])
                     ->setSigle((string) $row['sigle'])
-                    ->setApc((bool) $row['apc']);
+                    ->setApc((bool) $row['apc'])
+                    ->setNbSemestres((int) $row['nb_semestres'])
+                    ->setNiveauEntree((int) $row['niveau_entree'])
+                    ->setNiveauSortie((int) $row['niveau_sortie']);
 
                 if ($isNew) {
                     $this->entityManager->persist($entity);
