@@ -35,6 +35,7 @@ final class DocumentCategoryMigrator extends AbstractMigrator
                 } else {
                     $entity->setDepartement(null);
                 }
+                $entity->setIsOriginal((bool) $row['originaux']);
                 if ((bool) $row['originaux']) ++$originaux;
 
                 if ($isNew) { $this->entityManager->persist($entity); ++$created; } else { ++$updated; }
@@ -57,7 +58,7 @@ final class DocumentCategoryMigrator extends AbstractMigrator
         $this->flushAndClear($context); $this->finishProgress($context);
 
         if ($missingDepartments > 0) $messages[] = sprintf('%d catégorie(s) avec un département V3 introuvable ont été importées sans département.', $missingDepartments);
-        if ($originaux > 0) $messages[] = sprintf('%d catégorie(s) V3 marquée(s) originaux : information non transposée, aucun équivalent métier direct dans DocumentCategory.', $originaux);
+        if ($originaux > 0) $messages[] = sprintf('%d catégorie(s) V3 marquée(s) originaux ont été conservées via isOriginal.', $originaux);
 
         return new MigrationResult($created, $updated, $skipped, $failed, $messages);
     }
