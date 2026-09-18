@@ -3,6 +3,7 @@
 namespace App\Service\Dashboard\Core;
 
 use App\Domain\Dashboard\WidgetDataProviderInterface;
+use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 
@@ -16,7 +17,7 @@ class WidgetDataRegistry
         private readonly iterable $providers,
     ) {}
 
-    public function get(string $code, Personnel $user): ?array
+    public function get(string $code, Personnel|Etudiant $user): ?array
     {
         foreach ($this->providers as $provider) {
             if ($provider->supports($code)) {

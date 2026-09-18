@@ -18,4 +18,17 @@ class StructureDepartementRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, StructureDepartement::class);
     }
+
+    public function findOneByEtudiant($etudiant)
+    {
+        // récupérer le département de etudiant.etudiantScolarite quand etudiantScolarite.actif = true
+        $qb = $this->createQueryBuilder('d')
+            ->innerJoin('d.scolarites', 'es')
+            ->where('es.etudiant = :etudiant')
+            ->andWhere('es.actif = true')
+            ->setParameter('etudiant', $etudiant)
+            ->setMaxResults(1);
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
 }

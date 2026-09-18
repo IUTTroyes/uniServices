@@ -3,6 +3,7 @@
 namespace DocumentBundle\Services\Dashboard\Provider;
 
 use App\Domain\Dashboard\WidgetDataProviderInterface;
+use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use DocumentBundle\Repository\DocumentCategoryRepository;
 use DocumentBundle\Repository\DocumentRepository;
@@ -19,7 +20,7 @@ class DocumentWidgetDataProvider implements WidgetDataProviderInterface
         return str_starts_with($code, 'document.');
     }
 
-    public function getData(string $code, Personnel $user): array
+    public function getData(string $code, Personnel|Etudiant $user): array
     {
         return match ($code) {
             'document.recents' => [

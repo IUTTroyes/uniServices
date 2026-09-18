@@ -3,6 +3,7 @@
 namespace IntranetBundle\Services\Dashboard\Provider;
 
 use App\Domain\Dashboard\WidgetDataProviderInterface;
+use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Repository\Edt\EdtEventRepository;
 
@@ -17,7 +18,7 @@ class IntranetWidgetDataProvider implements WidgetDataProviderInterface
         return str_starts_with($code, 'intranet.');
     }
 
-    public function getData(string $code, Personnel $user): array
+    public function getData(string $code, Personnel|Etudiant $user): array
     {
         return match ($code) {
             'intranet.emploi_du_temps' => $this->getEmploiDuTemps($user),
@@ -37,8 +38,15 @@ class IntranetWidgetDataProvider implements WidgetDataProviderInterface
         };
     }
 
-    private function getEmploiDuTemps(Personnel $user): array
+    private function getEmploiDuTemps(Personnel|Etudiant $user): array
     {
+        if (!$user instanceof Personnel) {
+            return [
+                'todayLabel' => (new \IntlDateFormatter('fr_FR', \IntlDateFormatter::FULL, \IntlDateFormatter::NONE, null, \IntlDateFormatter::GREGORIAN, 'EEEE d MMMM yyyy'))->format(new \DateTimeImmutable('today')),
+                'items' => [],
+            ];
+        }
+
         $today = new \DateTimeImmutable('today');
         $tomorrow = $today->modify('+1 day');
         $events = $this->edtEventRepository->findByPersonnelAndRange($user->getId(), $today, $tomorrow);

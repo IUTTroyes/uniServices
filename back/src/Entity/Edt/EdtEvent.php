@@ -16,8 +16,9 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\EduSignTrait;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\OldIdTrait;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
 use App\Filter\EdtFilter;
@@ -50,11 +51,10 @@ use Symfony\Component\Uid\UuidV4;
         new Delete(security: "is_granted('CAN_DELETE_EDT', object)"),
     ]
 )]
-#[ORM\HasLifecycleCallbacks]
-class EdtEvent
+class EdtEvent implements TimestampableInterface
 {
     use UuidTrait;
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use EduSignTrait;
     use OldIdTrait;
 

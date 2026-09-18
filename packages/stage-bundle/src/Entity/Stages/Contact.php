@@ -2,18 +2,18 @@
 
 namespace StageBundle\Entity\Stages;
 
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\OldIdTrait;
+use App\Entity\Traits\TimestampableTrait;
 use StageBundle\Repository\Stages\ContactRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ContactRepository::class)]
-#[ORM\HasLifecycleCallbacks]
-class Contact
+class Contact implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OldIdTrait;
 
     #[ORM\Id]

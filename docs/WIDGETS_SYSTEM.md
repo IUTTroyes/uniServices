@@ -1,14 +1,15 @@
-# Système de widgets dashboard (front)
+# Système de widgets dashboard (front + backend)
 
-Ce document décrit l’architecture du rendu des widgets, le flux backend -> frontend, et la marche à suivre pour ajouter de nouveaux widgets dans un bundle existant ou dans un nouveau bundle.
+Ce document décrit l’architecture du rendu des widgets, le flux backend -> frontend, la gestion des droits par profil utilisateur (`Personnel` / `Etudiant`), et la marche à suivre pour ajouter de nouveaux widgets dans un bundle existant ou dans un nouveau bundle.
 
 ## Vue d’ensemble
 
-Le rendu d’un widget repose sur 3 éléments :
+Le rendu d’un widget repose sur 4 éléments :
 
-1. Le backend renvoie un catalogue de widgets avec un champ `component` (ex: `EmploiDuTempsWidget`).
-2. Le frontend résout ce nom via un registre global (`widgetRegistry`).
-3. `WidgetCard.vue` affiche dynamiquement le composant avec `<component :is="..." :data="..." :widget="..." />`.
+1. Le backend décrit les widgets (`WidgetDefinition`) et leurs profils autorisés.
+2. Le backend renvoie un catalogue filtré selon l’utilisateur connecté.
+3. Le frontend résout `component` via un registre global (`widgetRegistry`).
+4. `WidgetCard.vue` affiche dynamiquement le composant avec `<component :is="..." :data="..." :widget="..." />`.
 
 Si aucun composant n’est enregistré pour un nom donné, le fallback `DefaultWidget` affiche les données brutes de façon lisible.
 
@@ -33,6 +34,18 @@ Si aucun composant n’est enregistré pour un nom donné, le fallback `DefaultW
   - Idempotent (exécuté une seule fois)
 - `packages/shell/assets/main.js`
   - Appelle `registerAllBundleWidgets()` avant le montage de l’app
+
+### Contrat backend (droits d’accès)
+
+- `back/src/Domain/Dashboard/WidgetDefinition.php`
+  - Définit les constantes de profils : `PROFILE_PERSONNEL`, `PROFILE_ETUDIANT`
+  - Ajoute `allowedProfiles` (par défaut : les deux profils)
+  - Méthode `isAllowedForUser(Personnel|Etudiant $user)` pour centraliser le contrôle d’accès
+- `back/src/Controller/DashboardController.php`
+  - Filtre les widgets du catalogue et des widgets disponibles selon `isAllowedForUser(...)`
+  - Bloque l’accès aux données d’un widget non autorisé (`403`)
+- `back/src/Domain/Dashboard/WidgetDataProviderInterface.php`
+  - Signature `getData(string $code, Personnel|Etudiant $user): array`
 
 ### Contrat par bundle
 
@@ -68,15 +81,28 @@ Le hook pointe vers un module qui enregistre les composants du bundle via `regis
   - `PortfolioProgressWidget`
   - `PortfolioAlertsWidget`
 
+### Exemple de droits par profil
+
+- **Personnel uniquement**
+  - `auth.actus_int`
+  - `intranet.actions_urgentes`
+- **Etudiant uniquement**
+  - `intranet.notes`
+- **Personnel + Etudiant**
+  - `intranet.emploi_du_temps`
+  - (et tout widget qui ne précise pas `allowedProfiles`, car le défaut autorise les deux)
+
 ## Ajouter un widget dans un bundle existant
 
 ### 1) Backend : déclarer le widget et son nom de composant
 
-Dans le provider backend du bundle (`...WidgetProvider.php`), déclarer un `WidgetDefinition` avec un nom `component` unique.
+Dans le provider backend du bundle (`...WidgetProvider.php`), déclarer un `WidgetDefinition` avec un nom `component` unique, et préciser `allowedProfiles` si le widget n’est pas accessible aux deux profils.
 
 Exemple :
 
 ```php
+use App\Domain\Dashboard\WidgetDefinition;
+
 new WidgetDefinition(
     'questionnaire.pending',
     'questionnaire',
@@ -84,13 +110,22 @@ new WidgetDefinition(
     'pi pi-inbox',
     'QuestionnairePendingWidget',
     'medium',
-    true
+    true,
+    allowedProfiles: [WidgetDefinition::PROFILE_PERSONNEL]
 )
 ```
 
+Si `allowedProfiles` est omis, le widget est visible par `Personnel` et `Etudiant`.
+
 ### 2) Backend : fournir les données
 
-Dans le data provider (`...WidgetDataProvider.php`), retourner la structure consommée par le composant Vue.
+Dans le data provider (`...WidgetDataProvider.php`), retourner la structure consommée par le composant Vue avec la signature suivante :
+
+```php
+public function getData(string $code, Personnel|Etudiant $user): array
+```
+
+Le contrôleur bloque déjà les widgets non autorisés. Le provider doit cependant rester compatible avec les deux types d’utilisateur.
 
 ### 3) Front bundle : créer le composant Vue
 
@@ -161,9 +196,18 @@ Vérifier dans cet ordre :
 - Vérifier la structure renvoyée par le data provider backend.
 - Vérifier les clés attendues dans le composant Vue.
 
+### Symptôme: widget absent pour un profil donné
+
+Vérifier dans cet ordre :
+
+1. `allowedProfiles` dans la déclaration du widget (`WidgetDefinition`).
+2. Que le profil de l’utilisateur connecté est bien `Personnel` ou `Etudiant` attendu.
+3. Que l’endpoint appelé est celui du dashboard (`/api/widgets/catalog` ou `/api/widgets/available/{dashboardCode}`) et non une réponse cache obsolète.
+4. En accès data direct (`/api/widgets/data/{code}`), qu’un `403` est renvoyé si le widget est non autorisé (comportement attendu).
+
 ## Résumé architecture
 
-- **Backend**: définit `component` + payload data
+- **Backend**: définit `component` + `allowedProfiles` + payload data
 - **Shell**: exécute `registerAllBundleWidgets()` au démarrage
 - **Bundle**: enregistre ses composants via `registerWidgets`
 - **Shared**: résout le composant et gère le fallback avec `DefaultWidget`

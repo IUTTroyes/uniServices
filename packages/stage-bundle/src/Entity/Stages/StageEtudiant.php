@@ -8,7 +8,8 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
@@ -24,7 +25,6 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 
 #[ORM\Entity(repositoryClass: StageEtudiantRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiFilter(SearchFilter::class, properties: ['stagePeriode' => 'exact', 'tuteurUniversitaire' => 'exact'])]
 #[ApiResource(
     operations: [
@@ -41,10 +41,10 @@ use ApiPlatform\Metadata\ApiFilter;
         new Delete()
     ]
 )]
-class StageEtudiant
+class StageEtudiant implements TimestampableInterface
 {
     use UuidTrait;
-    use LifeCycleTrait;
+    use TimestampableTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

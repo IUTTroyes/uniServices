@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Dashboard\DashboardPreference;
+use App\Domain\Dashboard\WidgetDefinition;
 use App\Entity\Structure\StructureDepartementPersonnel;
+use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Repository\Dashboard\DashboardPreferenceRepository;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
@@ -44,7 +46,7 @@ class DashboardController extends AbstractController
         }
 
         // on recupere les preferences de l'utilisateur si elles existent
-        $preferences = $this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel, $dashboardCode);
+        $preferences = $this->preferenceRepository->findByUser($user, $structureDepartementPersonnel, $dashboardCode);
 
         $widgets = [];
         $dashboard = $this->dashboardRegistry->get($dashboardCode);
@@ -53,7 +55,7 @@ class DashboardController extends AbstractController
             // Si aucune préférence n'existe, on charge le layout par défaut
             foreach ($dashboard->getDefaultLayout() as $layout) {
                 $widgetDefinition = $this->coreWidgetRegistry->get($layout->widgetCode);
-                if (null === $widgetDefinition) {
+                if (null === $widgetDefinition || !$widgetDefinition->isAllowedForUser($user)) {
                     continue;
                 }
                 $definition = $widgetDefinition->toArray();
@@ -73,7 +75,7 @@ class DashboardController extends AbstractController
                     continue;
                 }
                 $widgetDefinition = $this->coreWidgetRegistry->get($preference->getWidgetKey());
-                if (null === $widgetDefinition) {
+                if (null === $widgetDefinition || !$widgetDefinition->isAllowedForUser($user)) {
                     continue;
                 }
                 $definition = $widgetDefinition->toArray();
@@ -112,7 +114,7 @@ class DashboardController extends AbstractController
 
         // Récupération des préférences
         $preferences = [];
-        foreach ($this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel, $dashboardCode) as $preference) {
+        foreach ($this->preferenceRepository->findByUser($user, $structureDepartementPersonnel, $dashboardCode) as $preference) {
             $preferences[$preference->getWidgetKey()] = $preference;
         }
 
@@ -120,7 +122,7 @@ class DashboardController extends AbstractController
         $widgets = [];
         foreach ($dashboard->getAvailableWidgets() as $layout) {
             $widgetDefinition = $this->coreWidgetRegistry->get($layout->widgetCode);
-            if ($widgetDefinition) {
+            if ($widgetDefinition && $widgetDefinition->isAllowedForUser($user)) {
                 $widgets[] = $widgetDefinition->toArray();
             }
         }
@@ -130,7 +132,7 @@ class DashboardController extends AbstractController
             // On commence par les widgets du layout par défaut
             foreach ($dashboard->getDefaultLayout() as $layout) {
                 $widgetDefinition = $this->coreWidgetRegistry->get($layout->widgetCode);
-                if (null === $widgetDefinition) {
+                if (null === $widgetDefinition || !$widgetDefinition->isAllowedForUser($user)) {
                     continue;
                 }
 
@@ -228,7 +230,7 @@ class DashboardController extends AbstractController
             $defaultOrder[$layout->widgetCode] = $index;
         }
 
-        $preferences = $this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel, $dashboardCode);
+        $preferences = $this->preferenceRepository->findByUser($user, $structureDepartementPersonnel, $dashboardCode);
 
         if (empty($preferences)) {
             // Initialiser les préférences à partir des widgets disponibles du dashboard
@@ -241,7 +243,11 @@ class DashboardController extends AbstractController
             foreach ($availableWidgets as $availableWidget) {
                 $code = $availableWidget->widgetCode;
                 $pref = new DashboardPreference();
-                $pref->setPersonnel($user);
+                if ($user instanceof Personnel) {
+                    $pref->setPersonnel($user);
+                } else {
+                    $pref->setEtudiant($user);
+                }
                 $pref->setStructureDepartementPersonnel($structureDepartementPersonnel);
                 $pref->setDashboardCode($dashboardCode);
                 $pref->setWidgetKey($code);
@@ -280,11 +286,15 @@ class DashboardController extends AbstractController
             }
         } else {
             // Les préférences existent déjà : mise à jour du widget ciblé
-            $pref = $this->preferenceRepository->findOneByPersonnelAndWidgetKey($user, $widgetKey, $structureDepartementPersonnel, $dashboardCode);
+            $pref = $this->preferenceRepository->findOneByUserAndWidgetKey($user, $widgetKey, $structureDepartementPersonnel, $dashboardCode);
 
             if (null === $pref) {
                 $pref = new DashboardPreference();
-                $pref->setPersonnel($user);
+                if ($user instanceof Personnel) {
+                    $pref->setPersonnel($user);
+                } else {
+                    $pref->setEtudiant($user);
+                }
                 $pref->setStructureDepartementPersonnel($structureDepartementPersonnel);
                 $pref->setDashboardCode($dashboardCode);
                 $pref->setWidgetKey($widgetKey);
@@ -325,7 +335,7 @@ class DashboardController extends AbstractController
 
         // Recalculer les positions de tous les widgets de ce dashboard
         // pour garantir un enchaînement contigu (0, 1, 2, ...) uniquement sur les widgets enabled
-        $allPreferences = $this->preferenceRepository->findByPersonnel($user, $structureDepartementPersonnel, $dashboardCode);
+        $allPreferences = $this->preferenceRepository->findByUser($user, $structureDepartementPersonnel, $dashboardCode);
 
         // Séparer enabled et disabled
         $enabledPrefs = [];
@@ -409,8 +419,13 @@ class DashboardController extends AbstractController
             return new JsonResponse(['message' => 'Utilisateur non autorisé'], JsonResponse::HTTP_FORBIDDEN);
         }
 
-        if (null === $this->coreWidgetRegistry->get($code)) {
+        $widgetDefinition = $this->coreWidgetRegistry->get($code);
+        if (null === $widgetDefinition) {
             return new JsonResponse(['message' => 'Widget introuvable'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        if (!$widgetDefinition->isAllowedForUser($user)) {
+            return new JsonResponse(['message' => 'Widget non autorisé pour cet utilisateur'], JsonResponse::HTTP_FORBIDDEN);
         }
 
         $data = $this->widgetDataRegistry->get($code, $user);
@@ -422,10 +437,10 @@ class DashboardController extends AbstractController
         return new JsonResponse($data);
     }
 
-    private function getCurrentPersonnel(): ?Personnel
+    private function getCurrentPersonnel(): Personnel|Etudiant|null
     {
         $user = $this->getUser();
 
-        return $user instanceof Personnel ? $user : null;
+        return $user instanceof Personnel || $user instanceof Etudiant ? $user : null;
     }
 }

@@ -17,6 +17,7 @@ declare module 'vue' {
     AccordionPanel: typeof import('primevue/accordionpanel')['default']
     Badge: typeof import('primevue/badge')['default']
     Button: typeof import('primevue/button')['default']
+    Calendar: typeof import('primevue/calendar')['default']
     Carousel: typeof import('primevue/carousel')['default']
     Chart: typeof import('primevue/chart')['default']
     Checkbox: typeof import('primevue/checkbox')['default']

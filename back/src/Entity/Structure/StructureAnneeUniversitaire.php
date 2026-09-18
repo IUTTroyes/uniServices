@@ -19,7 +19,8 @@ use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
 use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Users\Personnel;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
@@ -53,20 +54,19 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Delete(security: "is_granted('CAN_EDIT_ANNEE_UNIV', object)")
     ]
 )]
-#[ORM\HasLifecycleCallbacks]
-class StructureAnneeUniversitaire
+class StructureAnneeUniversitaire implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['annee_universitaire:detail', 'etudiant:read', 'maquette:detail', 'annee-univ:light', 'pn:light'])]
+    #[Groups(['annee_universitaire:detail', 'etudiant:read', 'maquette:detail', 'annee-univ:light', 'pn:light', 'scolarite:user'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
-    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light', 'pn:light'])]
+    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light', 'pn:light', 'scolarite:user'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
@@ -96,7 +96,7 @@ class StructureAnneeUniversitaire
     private Collection $personnels;
 
     #[ORM\Column]
-    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'maquette:detail', 'pn:read', 'scolarite:read', 'etudiant:read'])]
+    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'maquette:detail', 'pn:read', 'scolarite:read', 'etudiant:read', 'scolarite:user'])]
     private bool $actif = false;
 
     /**

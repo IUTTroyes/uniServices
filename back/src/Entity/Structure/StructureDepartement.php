@@ -12,7 +12,8 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\DepartementActualite;
 use App\Entity\Etudiant\EtudiantScolarite;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Traits\UuidTrait;
@@ -44,22 +45,21 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ]
 )]
 #[ApiFilter(DepartementFilter::class)]
-#[ORM\HasLifecycleCallbacks]
-class StructureDepartement
+class StructureDepartement implements TimestampableInterface
 {
     use UuidTrait;
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OptionTrait;
     use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'departement_personnel:read', 'scoralite:read', 'diplome:detail', 'pn:detail', 'pn:light'])]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'departement_personnel:read', 'scoralite:read', 'diplome:detail', 'pn:detail', 'pn:light', 'scolarite:user'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'etudiant:read', 'departement_personnel:read', 'scolarite:read', 'diplome:detail', 'pn:detail', 'pn:light'])]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'etudiant:read', 'departement_personnel:read', 'scolarite:read', 'diplome:detail', 'pn:detail', 'pn:light', 'scolarite:user'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]

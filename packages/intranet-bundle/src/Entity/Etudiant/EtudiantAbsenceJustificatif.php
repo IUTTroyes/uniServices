@@ -4,6 +4,8 @@ namespace IntranetBundle\Entity\Etudiant;
 
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
@@ -20,8 +22,14 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantAbsenceJustificatifRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiFilter(JustificatifAbsenceFilter::class)]
+#[ApiFilter(OrderFilter::class, properties: [
+    'debut',
+    'fin',
+    'motif',
+    'etat',
+    'scolariteSemestre.scolarite.etudiant.nom',
+])]
 #[ApiResource(
     operations: [
         new GetCollection(
@@ -39,6 +47,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
             denormalizationContext: ['groups' => ['justificatif:write:administration']],
             normalizationContext: ['groups' => ['justificatif:administration']],
         ),
+        new Delete(
+            uriTemplate: '/administration/etudiant_absence_justificatifs/{id}',
+            normalizationContext: ['groups' => ['justificatif:administration']],
+        )
     ],
     order: ['debut' => 'DESC']
 )]
@@ -75,6 +87,10 @@ class EtudiantAbsenceJustificatif
     #[ORM\Column(nullable: true, length: 255)]
     #[Groups(['justificatif:administration', 'justificatif:write:administration'])]
     private ?string $fichier = null;
+
+    #[ORM\Column(nullable: true, length: 255)]
+    #[Groups(['justificatif:administration', 'justificatif:write:administration'])]
+    private ?string $nom_fichier = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
@@ -142,15 +158,22 @@ class EtudiantAbsenceJustificatif
     }
 
     #[Groups(['justificatif:administration'])]
-    public function getEtatBadge(): string
+    public function getEtatOptions(): array
     {
-        return $this->etat->getBadge();
+        return $this->etat->getOptions();
     }
+
 
     #[Groups(['justificatif:administration'])]
     public function getEtatLibelle(): string
     {
         return $this->etat->getLibelle();
+    }
+
+    #[Groups(['justificatif:administration'])]
+    public function getEtatBadge(): string
+    {
+        return $this->etat->getBadge();
     }
 
     public function getScolariteSemestre(): ?EtudiantScolariteSemestre
@@ -231,5 +254,19 @@ class EtudiantAbsenceJustificatif
         $this->motif_refus = $motif_refus;
     }
 
+    public function getNomFichier(): ?string
+    {
+        return $this->nom_fichier;
+    }
 
+    public function setNomFichier(?string $nom_fichier): void
+    {
+        $this->nom_fichier = $nom_fichier;
+    }
+
+    #[Groups(['justificatif:administration'])]
+    public function getEtudiant() {
+
+        return $this->scolariteSemestre?->getScolarite()?->getEtudiant();
+    }
 }

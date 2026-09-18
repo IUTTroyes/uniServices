@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.1.8](https://github.com/IUTTroyes/uniServices/compare/v0.1.7...v0.1.8) (2026-09-15)
+
+
+### Features
+
+* **Dashboard:** Initialisation du Dashboard intranet pour les user Etudiant ([#233](https://github.com/IUTTroyes/uniServices/issues/233)) ([896f6e4](https://github.com/IUTTroyes/uniServices/commit/896f6e4a19dbea092dd26a96a64746855cf82681))
+
+## [0.1.7](https://github.com/IUTTroyes/uniServices/compare/v0.1.6...v0.1.7) (2026-09-15)
+
+
+### Features
+
+* **Dashboard:** Gestion des profils `Personnel` / `Etudiant` dans le système de widgets ([#230](https://github.com/IUTTroyes/uniServices/issues/230)) ([ee29a68](https://github.com/IUTTroyes/uniServices/commit/ee29a68cf7ece9c937abc78468641bb3fa526b3c))
+
+## [0.1.6](https://github.com/IUTTroyes/uniServices/compare/v0.1.5...v0.1.6) (2026-09-11)
+
+
+### Features
+
+* **Absence:** Validation, refus et suppression des justificatifs ([#227](https://github.com/IUTTroyes/uniServices/issues/227)) ([cf6103c](https://github.com/IUTTroyes/uniServices/commit/cf6103c7e302d4cbb525a6dff07f04bebfa26876))
+
+## [0.1.5](https://github.com/IUTTroyes/uniServices/compare/v0.1.4...v0.1.5) (2026-09-11)
+
+
+### Features
+
+* **Absence:** Filtres et tri sur la liste des justificatifs ([#225](https://github.com/IUTTroyes/uniServices/issues/225)) ([831425f](https://github.com/IUTTroyes/uniServices/commit/831425f6c305568b323861d682f05d9f63061e91))
+
 ## [0.1.4](https://github.com/IUTTroyes/uniServices/compare/v0.1.3...v0.1.4) (2026-09-10)
 
 

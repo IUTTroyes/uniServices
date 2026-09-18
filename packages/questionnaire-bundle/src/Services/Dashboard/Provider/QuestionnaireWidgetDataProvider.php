@@ -3,6 +3,7 @@
 namespace QuestionnaireBundle\Services\Dashboard\Provider;
 
 use App\Domain\Dashboard\WidgetDataProviderInterface;
+use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireRepository;
 use QuestionnaireBundle\Enum\QuestStatutEnum;
@@ -18,7 +19,7 @@ class QuestionnaireWidgetDataProvider implements WidgetDataProviderInterface
         return str_starts_with($code, 'questionnaire.');
     }
 
-    public function getData(string $code, Personnel $user): array
+    public function getData(string $code, Personnel|Etudiant $user): array
     {
         return match ($code) {
             'questionnaire.pending' => [
@@ -41,7 +42,7 @@ class QuestionnaireWidgetDataProvider implements WidgetDataProviderInterface
             'questionnaire.last_answers' => [
                 // List the 5 most recently created questionnaires
                 'items' => array_map(
-                    fn($q) => $q->getTitle() . ' (' . ($q->getCreated()?->format('d/m H:i') ?? 'N/A') . ')',
+                    fn($q) => $q->getTitle() . ' (' . ($q->getCreatedAt()?->format('d/m H:i') ?? 'N/A') . ')',
                     $this->questionnaireRepository->findBy(
                         [],
                         ['created' => 'DESC'],
@@ -53,3 +54,4 @@ class QuestionnaireWidgetDataProvider implements WidgetDataProviderInterface
         };
     }
 }
+

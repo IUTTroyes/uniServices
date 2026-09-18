@@ -9,7 +9,8 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Scolarite\ScolEvaluation;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Filter\EtudiantNoteFilter;
 use App\State\Processor\Evaluation\EtudiantNotePersistProcessor;
@@ -37,15 +38,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
     ],
 )]
-#[ORM\HasLifecycleCallbacks]
-class EtudiantNote
+class EtudiantNote implements TimestampableInterface
 {
     public const STATUT_PRESENT = 'present';
     public const STATUT_ABSENT_JUSTIFIE = 'absent_justifie';
     public const STATUT_DISPENSE = 'dispense';
     public const STATUT_ABSENT_INJUSTIFIE = 'absent_injustifie';
 
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use UuidTrait;
 
     #[ORM\Id]

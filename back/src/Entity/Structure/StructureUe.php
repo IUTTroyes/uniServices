@@ -11,7 +11,8 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcCompetence;
 use App\Entity\Scolarite\ScolEnseignementUe;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Filter\UeFilter;
 use App\Repository\Structure\StructureUeRepository;
@@ -31,9 +32,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ]
 )]
 #[ApiFilter(UeFilter::class)]
-class StructureUe
+class StructureUe implements TimestampableInterface
 {
-//    use LifeCycleTrait;
+//    use TimestampableTrait;
     use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]

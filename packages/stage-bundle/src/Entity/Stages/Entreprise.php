@@ -2,8 +2,9 @@
 
 namespace StageBundle\Entity\Stages;
 
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\OldIdTrait;
+use App\Entity\Traits\TimestampableTrait;
 use App\ValueObject\Adresse;
 use StageBundle\Repository\Stages\EntrepriseRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -14,10 +15,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: EntrepriseRepository::class)]
-#[ORM\HasLifecycleCallbacks]
-class Entreprise
+class Entreprise implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OldIdTrait;
 
     #[ORM\Id]
