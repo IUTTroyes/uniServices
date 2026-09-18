@@ -161,7 +161,13 @@ Le migrateur lit : `id, username, mail_univ, mail_perso, prenom, nom, photo_name
 
 Repris : identité, mails, login, photoName, numéro étudiant, INE, année du bac, bac, boursier, aménagements, promotion, année sortie, rôle étudiant.
 
-**Non repris :**
+**Complété lors de la passe utilisateurs :**
+- adresse étudiante V3 (`Utilisateur.adresse`) → `adresseEtudiante` JSON ;
+- adresse parentale → `adresseParentale` JSON ;
+- date/lieu de naissance, téléphones, sites personnel/universitaire ;
+- `idEduSign`.
+
+**Non repris / décision explicite :**
 - UUID V3 → ⏭️ P3 si aucune URL/intégration ne l'utilise ;
 - dates created/updated → ❌ P2 ;
 - `semestre` courant → 🔄 scolarité ;
@@ -183,9 +189,11 @@ Repris : identité, mails, login, photoName, numéro étudiant, INE, année du b
 
 Le migrateur actuel ne lit que : id, username, mails, prénom, nom, photo et année universitaire.
 
-C'est **le principal trou de migration utilisateur**.
+La passe utilisateurs complète maintenant les champs V4 ayant une correspondance directe.
 
-Champs V3 non repris :
+**Désormais repris :** mails, identité/photo, année universitaire, statut lorsqu'il correspond à `StatutEnum`, poste interne, téléphone bureau, responsabilités, domaines (texte V3 normalisé en tableau), entreprise, bureaux 1+2 fusionnés, numéro Harpège, initiales, nombre d'heures de service, sites personnel/universitaire et id EduSign JSON valide.
+
+**Toujours non repris / décision nécessaire :**
 - `statut` → ❌ **P0/P1** ;
 - `posteInterne`, `telBureau`, `responsabilites`, `domaines`, `entreprise`, `bureau1`, `bureau2`, `numeroHarpege`, `initiales` → ❌ P1/P2 ;
 - `cvName` → ❌ P2 + fichier ;
@@ -198,7 +206,9 @@ Champs V3 non repris :
 - `idEduSign` → ❌ P1 ;
 - created/updated → ❌ P2.
 
-**Action prioritaire : compléter PersonnelMigrator après comparaison avec l'entité V4.**
+**Statuts :** les valeurs correspondant exactement à `StatutEnum` sont migrées. Les valeurs inconnues sont laissées à `null` et comptées dans le rapport, sans fallback silencieux. `permanent` est actuellement converti en `AUTRE` faute d'équivalent métier exact : à confirmer.
+
+**Deleted :** comme pour les étudiants, la V4 ne possède pas de champ `deleted`. Les personnels restent importés pour préserver les références historiques et sont comptés dans le rapport.
 
 ## 3.3 PersonnelDepartement → StructureDepartementPersonnel
 
@@ -436,9 +446,9 @@ Repris : oldId, titre, description, filename, MIME, taille, catégorie, départe
 
 ## P0 — avant toute migration réelle
 
-- [ ] **Etudiant.deleted** : ne pas réactiver des comptes supprimés.
-- [ ] **Personnel.deleted** : idem.
-- [ ] Compléter les champs métier essentiels de **Personnel** (statut notamment).
+- [ ] Définir la politique V4 pour les utilisateurs V3 `deleted=true` (ils sont désormais explicitement comptés par les migrateurs).
+- [x] Compléter les correspondances directes du profil **Personnel** ; les statuts inconnus sont diagnostiqués.
+- [x] Compléter les correspondances directes du profil **Etudiant** et ses deux adresses.
 - [ ] Vérifier le lien **Diplome → TypeDiplome** pour tous les diplômes, pas uniquement via la phase APC.
 - [ ] Décider/réparer **SAE ↔ ressources**.
 - [ ] Diagnostiquer les **13 StageEtudiant Updated**.
@@ -507,3 +517,15 @@ Pour chaque migrateur avant validation :
 L'audit fait ressortir plusieurs corrections qui peuvent être réalisées sans décision métier : `deleted` utilisateurs, champs Personnel manifestement correspondants en V4, `Diplome.actif`, `rang` si V4 le supporte, dates historiques lorsque des setters existent, diagnostics de fallback et contrôles d'intégrité.
 
 Les points qui changent le modèle V4 (favoris Document, semestres Document, SAE↔ressources, propositions de scolarité, options structurelles) doivent être décidés explicitement avant modification du schéma.
+
+
+---
+
+# 14. Passe utilisateurs — 2026-09-18
+
+Corrections appliquées aux migrateurs :
+
+- **EtudiantMigrator** : reprise des deux adresses V3, date et lieu de naissance, téléphones, sites web et identifiant EduSign. Les utilisateurs `deleted=true` sont comptés et signalés, sans inventer un état cible inexistant.
+- **PersonnelMigrator** : reprise du statut, poste, téléphone bureau, responsabilités, domaines, entreprise, bureaux, Harpège, initiales, service statutaire, sites et EduSign. Les statuts non reconnus sont recensés au lieu d'être convertis silencieusement.
+- **Choix volontaire** : aucun champ `deleted` n'a été ajouté artificiellement aux entités V4. Les comptes historiques restent nécessaires aux notes, scolarités, stages, EDT et autres relations. La désactivation fonctionnelle doit donc être modélisée explicitement si elle est encore nécessaire en V4.
+- **Restent à décider côté utilisateurs** : demandeur d'emploi, formation continue, login spécifique, CV, signature électronique, accessOriginaux et quelques anciennes configurations V3 sans équivalent direct.
