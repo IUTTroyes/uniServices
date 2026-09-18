@@ -40,20 +40,11 @@ jobs:
       - name: Setup Composer
         run: composer self-update
 
-      - name: Setup Symfony CLI
-        run: curl -1sLf 'https://dl.cloudsmith.io/public/symfony/stable/setup.deb.sh' | sudo -E bash && sudo apt install symfony-cli
-
-      - name: Install back-end dependencies
-        working-directory: ./back
-        run: composer install --no-progress --no-interaction
-
-      - name: Install TLS
-        working-directory: ./back
-        run: symfony server:ca:install
-
       - name: Set up .env.test file
         working-directory: ./back
-        run: cp .env .env.test
+        run: |
+          cp .env .env.test
+          echo "DATABASE_URL=mysql://root:root@127.0.0.1:3306/cypress_test?serverVersion=8.0" >> .env.test
 
       - name: Generate JWT token
         working-directory: ./back
@@ -72,24 +63,25 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install pnpm
-        run: npm install -g pnpm
+      - name: Enable Corepack
+        run: corepack enable
 
       - name: Install front-end dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Set environment variables
-        run: echo "VITE_BASE_URL=https://127.0.0.1:8000" >> $GITHUB_ENV
+        run: echo "VITE_BASE_URL=http://127.0.0.1:8000" >> $GITHUB_ENV
 
-      - name: run servers
-        run: make start-back &
+      - name: Start Symfony server
+        working-directory: ./back
+        run: php -S 127.0.0.1:8000 -t public > /tmp/symfony-server.log 2>&1 &
 
       - name: Wait for Symfony server
         run: |
-          until curl -sk https://127.0.0.1:8000 > /dev/null; do
-            echo "Waiting for Symfony server..."
-            sleep 1
-          done
+          timeout 60 bash -c 'until curl -fsS http://127.0.0.1:8000 > /dev/null; do sleep 1; done' || {
+            cat /tmp/symfony-server.log
+            exit 1
+          }
 
       - name: Run Cypress tests
         uses: cypress-io/github-action@v6
@@ -110,5 +102,3 @@ jobs:
           name: cypress-results
           path: cypress/reports
 
-      - name: Stop Symfony server
-        run: symfony server:stop
