@@ -16,7 +16,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: DepartementActualiteRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['actu:read']]),
