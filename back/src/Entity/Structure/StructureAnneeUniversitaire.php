@@ -53,7 +53,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Delete(security: "is_granted('CAN_EDIT_ANNEE_UNIV', object)")
     ]
 )]
-#[ORM\HasLifecycleCallbacks]
 class StructureAnneeUniversitaire
 {
     use LifeCycleTrait;
