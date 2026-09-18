@@ -49,7 +49,6 @@ use Symfony\Component\Uid\UuidV4;
         new Delete(security: "is_granted('CAN_DELETE_EDT', object)"),
     ]
 )]
-#[ORM\HasLifecycleCallbacks]
 class EdtEvent
 {
     use UuidTrait;
