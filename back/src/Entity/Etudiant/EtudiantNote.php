@@ -37,7 +37,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
     ],
 )]
-#[ORM\HasLifecycleCallbacks]
 class EtudiantNote
 {
     public const STATUT_PRESENT = 'present';
