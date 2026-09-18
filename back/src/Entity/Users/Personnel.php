@@ -65,7 +65,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ],
     order: ['nom' => 'ASC'],
 )]
-#[ORM\HasLifecycleCallbacks]
 class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
 {
     use LifeCycleTrait;
