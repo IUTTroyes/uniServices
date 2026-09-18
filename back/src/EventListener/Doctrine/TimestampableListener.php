@@ -61,7 +61,7 @@ final readonly class TimestampableListener
             if ($entity instanceof TimestampableInterface) {
                 $entity->setUpdatedAt($now);
             } elseif ($this->usesLegacyLifeCycleTrait($entity)) {
-                $entity->setUpdated(CarbonImmutable::instance($now));
+                $entity->setUpdated(Carbon::instance($now));
             } else {
                 continue;
             }
