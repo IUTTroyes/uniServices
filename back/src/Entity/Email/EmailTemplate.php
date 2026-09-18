@@ -3,7 +3,8 @@
 namespace App\Entity\Email;
 
 use App\Entity\Structure\StructureDepartement;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Repository\Email\EmailTemplateRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -18,9 +19,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: EmailTemplateRepository::class)]
 #[ORM\Table(name: 'email_template')]
 #[ORM\UniqueConstraint(name: 'uq_email_template', columns: ['email_key', 'departement_id', 'locale'])]
-class EmailTemplate
+class EmailTemplate implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
