@@ -14,7 +14,8 @@ use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Traits\EduSignTrait;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Users\Personnel;
@@ -78,10 +79,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ],
     paginationEnabled: false
 )]
-class StructureDiplome
+class StructureDiplome implements TimestampableInterface
 {
     use EduSignTrait;
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OptionTrait;
     use OldIdTrait;
 
