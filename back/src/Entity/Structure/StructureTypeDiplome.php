@@ -32,6 +32,15 @@ class StructureTypeDiplome
     #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
     private bool $apc = false;
 
+    #[ORM\Column(options: ['default' => 2])]
+    private int $nbSemestres = 2;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private int $niveauEntree = 0;
+
+    #[ORM\Column(options: ['default' => 3])]
+    private int $niveauSortie = 3;
+
     /**
      * @var Collection<int, StructureDiplome>
      */
@@ -92,6 +101,13 @@ class StructureTypeDiplome
 
         return $this;
     }
+
+    public function getNbSemestres(): int { return $this->nbSemestres; }
+    public function setNbSemestres(int $value): static { $this->nbSemestres = $value; return $this; }
+    public function getNiveauEntree(): int { return $this->niveauEntree; }
+    public function setNiveauEntree(int $value): static { $this->niveauEntree = $value; return $this; }
+    public function getNiveauSortie(): int { return $this->niveauSortie; }
+    public function setNiveauSortie(int $value): static { $this->niveauSortie = $value; return $this; }
 
     /**
      * @return Collection<int, StructureDiplome>
