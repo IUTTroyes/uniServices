@@ -4,6 +4,7 @@ namespace App\EventListener\Doctrine;
 
 use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\LifeCycleTrait;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Doctrine\Bundle\DoctrineBundle\Attribute\AsDoctrineListener;
 use Doctrine\ORM\Event\OnFlushEventArgs;
@@ -44,7 +45,7 @@ final readonly class TimestampableListener
             }
 
             if (null === $entity->getUpdated()) {
-                $entity->setUpdated(CarbonImmutable::instance($now));
+                $entity->setUpdated(Carbon::instance($now));
             }
         }
     }
