@@ -140,6 +140,7 @@ SQL;
                 }
 
                 $scolariteSemestre->setDecision($this->mapDecision($row['decision']));
+                $scolariteSemestre->setRang(null !== $row['rang'] ? (int) $row['rang'] : null);
                 $scolariteSemestre->setMoyennesMatiere($this->decodeLegacyArray($row['moyennes_matieres']));
                 $scolariteSemestre->setMoyennesUe($this->decodeLegacyArray($row['moyennes_ues']));
 
