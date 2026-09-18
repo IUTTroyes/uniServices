@@ -12,7 +12,8 @@ use ApiPlatform\Metadata\Patch;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Traits\EduSignTrait;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
 use IntranetBundle\Enum\EtatJustificatifEnum;
@@ -63,11 +64,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ],
     order: ['created' => 'ASC']
 )]
-class EtudiantAbsence
+class EtudiantAbsence implements TimestampableInterface
 {
     use UuidTrait;
     use EduSignTrait;
-    use LifeCycleTrait;
+    use TimestampableTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
