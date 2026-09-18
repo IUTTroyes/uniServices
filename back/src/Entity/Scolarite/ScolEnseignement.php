@@ -77,6 +77,10 @@ class ScolEnseignement
     #[Groups(['enseignement:detail',  'scol:detail'])]
     private ?string $motsCles = null;
 
+    #[ORM\Column(type: Types::JSON)]
+    #[Groups(['enseignement:detail'])]
+    private array $opt = [];
+
     #[ORM\Column(length: 20, nullable: true)]
     #[Groups(['maquette:detail', 'enseignement:detail', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda', 'evaluation:init'])]
     private ?string $codeEnseignement = null;
@@ -312,6 +316,45 @@ class ScolEnseignement
         $resolver->setAllowedTypes('TD', 'array');
         $resolver->setAllowedTypes('TP', 'array');
         $resolver->setAllowedTypes('Projet', 'array');
+    }
+
+    public function setOpt(array $opt): static
+    {
+        $resolver = new OptionsResolver();
+        $this->configureTeachingOptions($resolver);
+        $this->opt = $resolver->resolve($opt);
+
+        return $this;
+    }
+
+    public function getOpt(): array
+    {
+        return $this->opt;
+    }
+
+    private function configureTeachingOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'competences_visees' => null,
+            'contenu' => null,
+            'modalites' => null,
+            'prolongements' => null,
+            'pac' => false,
+            'ppn_old_id' => null,
+            'parcours_old_id' => null,
+            'ressource_parent' => false,
+            'has_coefficient_different' => false,
+        ]);
+
+        foreach (['competences_visees', 'contenu', 'modalites', 'prolongements'] as $key) {
+            $resolver->setAllowedTypes($key, ['null', 'string']);
+        }
+        foreach (['ppn_old_id', 'parcours_old_id'] as $key) {
+            $resolver->setAllowedTypes($key, ['null', 'int']);
+        }
+        $resolver->setAllowedTypes('pac', 'bool');
+        $resolver->setAllowedTypes('ressource_parent', 'bool');
+        $resolver->setAllowedTypes('has_coefficient_different', 'bool');
     }
 
     public function getType(): TypeEnseignementEnum
