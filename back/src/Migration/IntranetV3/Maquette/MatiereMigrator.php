@@ -41,7 +41,7 @@ SELECT
     id, ue_id, matiere_parent_id, libelle, libelle_court, description,
     cm_ppn, td_ppn, tp_ppn, cm_formation, td_formation, tp_formation,
     code_matiere, code_element, nb_notes, suspendu, mutualisee,
-    coefficient, nb_ects, objectifs_module, pre_requis, mots_cles
+    coefficient, nb_ects, objectifs_module, competences_visees, contenu, pre_requis, modalites, prolongements, mots_cles, pac, ppn_id, parcours_id
 FROM matiere
 WHERE ue_id = :ue_id
 ORDER BY id
@@ -75,6 +75,15 @@ SQL;
                             'TD' => ['PN' => (float) $row['td_ppn'], 'IUT' => (float) $row['td_formation']],
                             'TP' => ['PN' => (float) $row['tp_ppn'], 'IUT' => (float) $row['tp_formation']],
                             'Projet' => ['PN' => 0, 'IUT' => 0],
+                        ])
+                        ->setOpt([
+                            'competences_visees' => $row['competences_visees'] ?: null,
+                            'contenu' => $row['contenu'] ?: null,
+                            'modalites' => $row['modalites'] ?: null,
+                            'prolongements' => $row['prolongements'] ?: null,
+                            'pac' => (bool) $row['pac'],
+                            'ppn_old_id' => null !== $row['ppn_id'] ? (int) $row['ppn_id'] : null,
+                            'parcours_old_id' => null !== $row['parcours_id'] ? (int) $row['parcours_id'] : null,
                         ]);
 
                     if ($isNew) {
