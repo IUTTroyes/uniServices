@@ -14,7 +14,8 @@ use App\Entity\Scolarite\ScolBac;
 use App\Entity\Scolarite\ScolEvaluationRattrapage;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\EduSignTrait;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Filter\EtudiantFilter;
 use App\Repository\EtudiantRepository;
@@ -48,9 +49,8 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
     'prenom' => 'start',
     'mailUniv' => 'partial'
 ])]
-class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
-{
-    use LifeCycleTrait;
+class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, TimestampableInterface {
+    use TimestampableTrait;
     use EduSignTrait;
     use OldIdTrait; //a supprimer après transfert
 
