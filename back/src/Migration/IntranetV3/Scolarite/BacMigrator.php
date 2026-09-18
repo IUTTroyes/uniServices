@@ -16,7 +16,7 @@ final class BacMigrator extends AbstractMigrator
 
     public function migrate(MigrationContext $context): MigrationResult
     {
-        $rows = $this->source->fetchAllAssociative('SELECT id, libelle, libelle_long, code_apogee FROM bac ORDER BY id');
+        $rows = $this->source->fetchAllAssociative('SELECT id, libelle, libelle_long, code_apogee, type_bac FROM bac ORDER BY id');
         $repository = $this->entityManager->getRepository(ScolBac::class);
         $created = $updated = $failed = 0;
         $messages = [];
@@ -31,7 +31,8 @@ final class BacMigrator extends AbstractMigrator
                     ->setOldId((int) $row['id'])
                     ->setLibelle((string) $row['libelle'])
                     ->setLibelleLong((string) $row['libelle_long'])
-                    ->setCodeApogee($row['code_apogee'] ?: null);
+                    ->setCodeApogee($row['code_apogee'] ?: null)
+                    ->setTypeBac($row['type_bac'] ?: null);
 
                 if ($isNew) {
                     $this->entityManager->persist($entity);
