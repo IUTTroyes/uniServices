@@ -61,6 +61,7 @@ SELECT
     e.annee_universitaire_id,
     e.semestre_id,
     e.parent_id,
+    e.type_groupe,
     e.type_matiere,
     e.id_matiere,
     e.date_evaluation,
@@ -148,6 +149,7 @@ SQL;
                     ->setDate(null !== $row['date_evaluation'] ? new \DateTime((string) $row['date_evaluation']) : null)
                     ->setVisible((bool) $row['visible'])
                     ->setModifiable((bool) $row['modifiable'])
+                    ->setTypeGroupe($row['type_groupe'] ?: null)
                     ->setAnneeUniversitaire($anneeUniversitaire)
                     ->setSemestre($semestre)
                     ->setEnseignement($enseignement)
