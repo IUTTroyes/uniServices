@@ -78,7 +78,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ],
     paginationEnabled: false
 )]
-#[ORM\HasLifecycleCallbacks]
 class StructureDiplome
 {
     use EduSignTrait;
