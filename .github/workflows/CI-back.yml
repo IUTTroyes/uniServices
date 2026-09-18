@@ -6,71 +6,61 @@ on:
     paths:
       - 'back/**'
       - 'packages/**'
+      - '.github/workflows/CI-back.yml'
   pull_request:
     branches: [main]
     paths:
       - 'back/**'
       - 'packages/**'
+      - '.github/workflows/CI-back.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-back-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test-back:
+    name: Symfony / PHP
     runs-on: ubuntu-latest
-
-    services:
-      mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: symfony_test
-        ports:
-          - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
+    defaults:
+      run:
+        working-directory: back
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: '8.3'
-        extensions: mbstring, intl, pdo_mysql, iconv, simplexml
-        coverage: none
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, pdo_mysql, iconv, simplexml
+          coverage: none
+          tools: composer:v2
 
-    - name: Install dependencies
-      working-directory: ./back
-      run: composer install --no-progress --no-interaction --prefer-dist
+      - name: Validate Composer configuration
+        run: composer validate --no-check-publish
 
-    - name: Set up .env.test file
-      working-directory: ./back
-      run: |
-        if [ -f .env.test ]; then
-          echo "Using existing .env.test"
-        else
-          cp .env .env.test || echo "DATABASE_URL=mysql://root:root@127.0.0.1:3306/symfony_test" > .env.test
-        fi
+      - name: Install dependencies
+        run: composer install --no-progress --no-interaction --prefer-dist
 
-    - name: Database setup
-      working-directory: ./back
-      env:
-        DATABASE_URL: 'mysql://root:root@127.0.0.1:3306/symfony_test'
-      run: |
-        php bin/console doctrine:database:create --if-not-exists --no-interaction
-        php bin/console doctrine:migrations:migrate --no-interaction
+      - name: Validate Symfony container
+        run: php bin/console lint:container
 
-    - name: Run PHPStan
-      working-directory: ./back
-      run: make phpstan
+      - name: Validate Doctrine mapping
+        run: php bin/console doctrine:schema:validate --skip-sync
 
-    - name: Run PHPUnit
-      working-directory: ./back
-      run: |
-        if [ -f vendor/bin/phpunit ]; then
+      - name: Run PHPStan
+        run: vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=1G
+
+      - name: Run PHPUnit
+        if: ${{ hashFiles('back/phpunit.xml', 'back/phpunit.xml.dist', 'back/tests/**/*.php') != '' }}
+        run: |
+          if [ ! -x vendor/bin/phpunit ]; then
+            echo "::error::PHPUnit tests/configuration exist but phpunit is not installed."
+            exit 1
+          fi
           vendor/bin/phpunit
-        else
-          echo "No PHPUnit found or no tests."
-        fi
