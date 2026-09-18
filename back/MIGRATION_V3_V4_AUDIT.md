@@ -867,3 +867,91 @@ Les 802 anomalies déjà observées doivent donc être considérées comme anoma
 - 🟠 champs communs Utilisateur `civilite/remarque/visible` : arbitrage fonctionnel.
 - 🟠 Personnel `couleur/configuration/signatureElectronique/accessOriginaux` : arbitrage par fonctionnalité.
 - 🟢 champs administratifs Etudiant manquants : ajoutés et migrés.
+
+
+---
+
+# 19. Passe transversale des migrateurs
+
+Une passe supplémentaire a été effectuée en recherchant en priorité :
+- colonnes V3 sélectionnées mais non affectées ;
+- propriétés V3 fonctionnelles jamais sélectionnées ;
+- options V3 alors que la cible utilise `OptionTrait` ;
+- valeurs de fallback silencieuses ;
+- relations V3 volontairement ou accidentellement ignorées.
+
+## Corrections issues directement de cette passe
+
+### StructureAnnee.optAlternance
+`Annee.optAlternance` avait un équivalent exact dans `StructureAnnee::configureOptions()` mais n'était pas sélectionné par le migrateur.
+
+✅ Corrigé : `opt_alternance → opt[alternance]`.
+
+### StructureTypeDiplome
+Trois propriétés structurelles V3 étaient absentes de V4 :
+- `nbSemestres`
+- `niveauEntree`
+- `niveauSortie`
+
+Elles décrivent le type de diplôme lui-même et ne sont pas de simples données de migration. Elles ont donc été réintroduites comme colonnes V4 et sont maintenant migrées.
+
+La relation `mccTypeEpreuves` reste séparée : elle relève du modèle MCC et ne doit pas être recréée comme simple champ de StructureTypeDiplome.
+
+### Bac.typeBac
+La classification V3 `g/t/p/e/a` était perdue.
+
+✅ Ajout de `ScolBac.typeBac` nullable et migration de la valeur historique. La valeur est conservée telle quelle afin de ne pas introduire une nouvelle enum uniquement pour la migration ; une enum V4 pourra être ajoutée ensuite si le domaine l'utilise encore.
+
+### Scolarite.rang
+`rang` était le cas typique d'un champ présent dans le SELECT mais jamais consommé.
+
+✅ Ajout de `EtudiantScolariteSemestre.rang` nullable et migration directe.
+
+## Champs SELECT volontairement non affectés
+
+La présence d'une colonne dans un SELECT n'implique pas nécessairement une perte :
+
+- `Diplome.actif` : V4 n'a pas d'état actif sur StructureDiplome ; les diplômes inactifs sont nécessaires aux snapshots historiques et sont comptabilisés explicitement.
+- `Groupe.parcours/apc_parcours_id` : détectés et comptabilisés, mais aucune relation n'est créée tant que la correspondance snapshot/APC n'est pas sûre.
+- `Groupe.id_edu_sign` : détecté, pas d'équivalent V4 dans StructureGroupe.
+- `UE.coefficient` : reste un point ouvert ; StructureUe contient d'ailleurs un TODO historique `add coeff. ?`. La donnée doit être arbitrée avant ajout.
+- `UE.apc_competence_id` : volontairement traité dans `ApcUeLinkMigrator`.
+- `Scolarite.proposition` : volontairement diagnostiquée sans conversion arbitraire.
+
+## Fallbacks à surveiller
+
+Les conversions suivantes sont explicites mais méritent un contrôle des valeurs réelles en dry-run :
+- type de groupe inconnu → `TYPE_GROUPE_AUTRE` avec compteur ;
+- décisions scolarité `V/VCJ/VCA → true`, `NV/DEF → false`, autres → null ;
+- certains enums historiques Stage/EDT/APC disposent également de conversions de compatibilité documentées dans leurs migrateurs.
+
+La règle finale est qu'un fallback ne doit jamais être silencieux : toute valeur source inconnue doit soit être comptée/reportée, soit provoquer un skip contrôlé lorsque le fallback changerait la sémantique métier.
+
+## Points encore ouverts après cette passe
+
+### P0/P1
+- SAÉ ↔ Ressource : cardinalité réelle V3.
+- UE.coefficient : déterminer si la donnée doit revenir dans StructureUe.
+- Scolarite.proposition : résolution explicite.
+- PersonnelDepartement.annee : utilité réelle de l'historisation.
+- fichiers physiques justificatifs.
+- StageEtudiant : diagnostic des 13 updates/UUID.
+- reset Stage sur Entreprise/Contact partagés.
+
+### P1/P2
+- Groupe parcours/APC et EduSign.
+- Personnel accessOriginaux → permission Document.
+- Personnel couleur/signatureElectronique.
+- champs communs Utilisateur civilité/remarque/visible.
+- MCC TypeDiplome : migration à traiter avec le futur modèle MCC plutôt que dans la structure.
+- lifecycle dates et fichiers physiques secondaires.
+
+## État de la couverture
+
+À ce stade, les pertes restantes identifiées sont désormais majoritairement :
+1. des **choix de modèle V4 à arbitrer** ;
+2. des **relations dont la cardinalité ou la sémantique diffère** ;
+3. des **fichiers physiques** ;
+4. des **données historiques volontairement hors périmètre**.
+
+Les oublis directs simples détectés lors des passes précédentes ont été corrigés au fil de l'audit.
