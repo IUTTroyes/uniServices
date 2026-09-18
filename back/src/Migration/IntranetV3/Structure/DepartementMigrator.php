@@ -17,7 +17,7 @@ final class DepartementMigrator extends AbstractMigrator
     public function migrate(MigrationContext $context): MigrationResult
     {
         $rows = $this->source->fetchAllAssociative(
-            'SELECT id, libelle, logo_name, tel_contact, couleur, site_web, description, actif FROM departement ORDER BY id'
+            'SELECT id, libelle, logo_name, tel_contact, couleur, site_web, description, actif, opt_materiel, opt_edt, opt_stage, respri_id FROM departement ORDER BY id'
         );
         $repository = $this->entityManager->getRepository(StructureDepartement::class);
         $created = $updated = $failed = 0;
@@ -37,7 +37,13 @@ final class DepartementMigrator extends AbstractMigrator
                     ->setCouleur($row['couleur'] ?: null)
                     ->setSiteWeb($row['site_web'] ?: null)
                     ->setDescription($row['description'] ?: null)
-                    ->setActif((bool) $row['actif']);
+                    ->setActif((bool) $row['actif'])
+                    ->setOpt([
+                        'materiel' => (bool) $row['opt_materiel'],
+                        'edt' => (bool) $row['opt_edt'],
+                        'stage' => (bool) $row['opt_stage'],
+                        'resp_ri' => null !== $row['respri_id'] ? (string) $row['respri_id'] : '',
+                    ]);
 
                 if ($isNew) {
                     $this->entityManager->persist($entity);
