@@ -52,10 +52,8 @@ final class EtudiantMigrator extends AbstractMigrator
                     ->setAmenagementsParticuliers($row['amenagements_particuliers'])
                     ->setPromotion(null !== $row['promotion'] ? (int) $row['promotion'] : null)
                     ->setAnneeSortie(null !== $row['annee_sortie'] ? (int) $row['annee_sortie'] : 0)
-                    ->setRoles(['ROLE_ETUDIANT']);
-
-                // setMailPerso() returns void in Etudiant, so it must not be part of the fluent chain.
-                $entity->setMailPerso($row['mail_perso']);
+                    ->setRoles(['ROLE_ETUDIANT'])
+                    ->setMailPerso($row['mail_perso']);
 
                 if (null !== $row['bac_id']) {
                     $entity->setBac($bacRepository->findOneBy(['oldId' => (int) $row['bac_id']]));

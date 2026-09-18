@@ -245,9 +245,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
         return $this->mailPerso;
     }
 
-    public function setMailPerso(?string $mailPerso): void
+    public function setMailPerso(?string $mailPerso): static
     {
         $this->mailPerso = $mailPerso;
+
+        return $this;
     }
 
     public function getPassword(): ?string

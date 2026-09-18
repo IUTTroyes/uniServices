@@ -18,3 +18,6 @@ start-all:
 # lancer la console de docker
 cli:
 	docker exec -it uniservice-web /bin/bash && cd /var/www/uniservice
+
+migrate:
+	php -d memory_limit=512M back/bin/console --no-debug app:migrate-intranet-v3 --dry-run
