@@ -56,6 +56,10 @@ class StructureUe implements TimestampableInterface
     private float $nbEcts = 0;
 
     #[ORM\Column]
+    #[Groups(['ue:read', 'maquette:detail'])]
+    private float $coefficient = 0;
+
+    #[ORM\Column]
     #[Groups(['ue:read'])]
     private bool $actif = true;
 
@@ -81,8 +85,6 @@ class StructureUe implements TimestampableInterface
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'ue', orphanRemoval: true, cascade: ['remove'])]
     #[Groups(['maquette:detail'])]
     private Collection $enseignementUes;
-
-    // todo: add coeff. ?
 
     public function __construct()
     {
@@ -132,6 +134,18 @@ class StructureUe implements TimestampableInterface
     public function setNbEcts(float $nbEcts): static
     {
         $this->nbEcts = $nbEcts;
+
+        return $this;
+    }
+
+    public function getCoefficient(): float
+    {
+        return $this->coefficient;
+    }
+
+    public function setCoefficient(float $coefficient): static
+    {
+        $this->coefficient = $coefficient;
 
         return $this;
     }
