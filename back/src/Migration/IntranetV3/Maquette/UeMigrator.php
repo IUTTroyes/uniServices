@@ -57,6 +57,7 @@ SQL;
                         ->setLibelle((string) $row['libelle'])
                         ->setNumero((int) $row['numero_ue'])
                         ->setNbEcts((float) $row['nb_ects'])
+                        ->setCoefficient((float) $row['coefficient'])
                         ->setActif((bool) $row['actif'])
                         ->setBonification((bool) $row['bonification'])
                         ->setCodeElement((string) ($row['code_element'] ?? ''));
