@@ -547,7 +547,7 @@ Une nouvelle passe a été effectuée sur `Departement`, `TypeDiplome`, `Diplome
 
 ## Confirmé comme différence de modèle V4
 
-Les champs suivants n'ont actuellement **aucun emplacement direct** dans les entités Structure V4 et n'ont donc pas été ajoutés arbitrairement :
+Après prise en compte de `OptionTrait`, les champs suivants n'ont toujours **aucun emplacement direct / aucune clé de resolver** dans les entités Structure V4 et n'ont donc pas été ajoutés arbitrairement :
 
 - `TypeDiplome.nbSemestres`, `niveauEntree`, `niveauSortie`, MCC ;
 - options historiques de `Diplome` ;
@@ -559,8 +559,47 @@ Ils restent des décisions métier/modèle P1.
 
 ## Point important sur Departement
 
-Tous les champs présents à la fois dans V3 et `StructureDepartement` V4 sont déjà repris : libellé, logo, téléphone, couleur, site, description, actif. Les anciennes options départementales n'existent pas dans l'entité V4 et semblent davantage relever de l'activation/configuration des packages que de données structurelles. Aucune colonne V4 n'est donc ajoutée dans cette passe.
+Tous les champs présents à la fois dans V3 et `StructureDepartement` V4 sont déjà repris : libellé, logo, téléphone, couleur, site, description, actif. `StructureDepartement` utilise `OptionTrait`. Les options compatibles sont désormais reprises : `optMateriel → materiel`, `optEdt → edt`, `optStage → stage`, et `respri_id → resp_ri` (ancienne référence conservée sous forme de chaîne, conformément au resolver actuel). Les autres options V3 sans clé dans le resolver restent à décider.
 
 ## Point important sur Annee / Semestre
 
 Les champs structurels possédant un équivalent V4 sont déjà correctement migrés. Les champs restants sont essentiellement des options fonctionnelles V3 sans équivalent direct. Ils doivent être traités par décision de conception et non par simple copie.
+
+
+## 15.1 Correction importante — OptionTrait
+
+La règle d'audit est corrigée : un ancien champ V3 `opt*` n'est **pas considéré perdu** lorsque l'entité V4 utilise `OptionTrait` et que son `configureOptions()` expose une clé sémantiquement équivalente.
+
+Mappings désormais appliqués :
+
+**StructureDepartement**
+- `opt_materiel → opt[materiel]`
+- `opt_edt → opt[edt]`
+- `opt_stage → opt[stage]`
+- `respri_id → opt[resp_ri]` (référence V3 sous forme de chaîne ; resolver V4 à faire évoluer si l'on veut une vraie relation/IRI)
+
+**StructureDiplome**
+- `opt_nb_jours_saisie → nb_jours_saisie_absence`
+- `opt_suppr_absence → supp_absence`
+- `opt_anonymat → anonymat`
+- `opt_commentaires_releve → commentaire_releve`
+- `opt_espace_perso_visible → espace_perso_visible`
+- `opt_semaines_visibles → semaine_visible`
+- `opt_certifie_qualite → certif_qualite`
+- `opt_responsable_qualite → resp_qualite`
+- `opt_update_celcat → update_celcat`
+- `saisie_cm_autorise → saisie_cm_autorisee`
+
+**StructureSemestre**
+- reprise de toutes les clés V3 disposant d'un équivalent dans le resolver : mails relevé/modification note, destinataires, visibilité/modification évaluation, pénalité absence, notifications absence, justificatifs, bilan, rattrapage ;
+- `idEduSign` est également repris via `EduSignTrait`.
+
+### Règle pour la suite de l'audit
+
+Pour toutes les autres entités migrées, il faut désormais systématiquement contrôler :
+1. les colonnes/propriétés V4 ;
+2. les traits V4 (`OptionTrait`, `EduSignTrait`, timestamp, etc.) ;
+3. le contenu de `configureOptions()` ;
+4. les éventuels resolvers/services qui interprètent ces options.
+
+Une option V3 n'est classée P1/perdue qu'après cette vérification.
