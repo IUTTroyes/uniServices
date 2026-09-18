@@ -498,6 +498,17 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
         return $this;
     }
 
+    public function isDemandeurEmploi(): bool { return $this->demandeurEmploi; }
+    public function setDemandeurEmploi(bool $value): static { $this->demandeurEmploi = $value; return $this; }
+    public function getLoginSpecifique(): ?string { return $this->loginSpecifique; }
+    public function setLoginSpecifique(?string $value): static { $this->loginSpecifique = $value; return $this; }
+    public function isFormationContinue(): bool { return $this->formationContinue; }
+    public function setFormationContinue(bool $value): static { $this->formationContinue = $value; return $this; }
+    public function getIntituleSecuriteSociale(): ?string { return $this->intituleSecuriteSociale; }
+    public function setIntituleSecuriteSociale(?string $value): static { $this->intituleSecuriteSociale = $value; return $this; }
+    public function getAdresseSecuriteSociale(): ?string { return $this->adresseSecuriteSociale; }
+    public function setAdresseSecuriteSociale(?string $value): static { $this->adresseSecuriteSociale = $value; return $this; }
+
     public function getDateNaissance(): ?\DateTimeInterface
     {
         return $this->date_naissance;
