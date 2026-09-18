@@ -16,7 +16,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StageSoutenanceRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['stage_soutenance:read']]),
