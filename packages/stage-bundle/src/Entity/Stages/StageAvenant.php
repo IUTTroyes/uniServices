@@ -8,7 +8,8 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use StageBundle\Repository\Stages\StageAvenantRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -30,9 +31,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Delete()
     ]
 )]
-class StageAvenant
+class StageAvenant implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
