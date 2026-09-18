@@ -54,6 +54,7 @@ SELECT
     h.id,
     h.nb_heures_td,
     h.libelle,
+    h.commentaire,
     h.semestre_id,
     h.diplome_id,
     h.personnel_id,
@@ -132,6 +133,7 @@ SQL;
                     ->setAnneeUniversitaire($anneeUniversitaire)
                     ->setEnseignantTypeHrs($typeHrs)
                     ->setLibelle((string) $row['libelle'])
+                    ->setCommentaire($row['commentaire'] ?: null)
                     ->setNbHeuresTd((float) ($row['nb_heures_td'] ?? 0))
                     ->setSemestre($semestre)
                     ->setDiplome($diplome);
