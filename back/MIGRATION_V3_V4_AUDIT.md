@@ -55,7 +55,7 @@ Le migrateur lit explicitement : `id, libelle, logo_name, tel_contact, couleur, 
 | siteWeb | siteWeb | ✅ | — |
 | description | description | ✅ | — |
 | actif | actif | ✅ | — |
-| fax | aucun mapping | ❌ P2 | décider abandon ou champ V4 |
+| fax | aucun mapping | ❌ P2 | abandon V4 |
 | ufr | aucun mapping | ❌ P1 | vérifier si établissement/composante V4 remplace cette relation |
 | respri | aucun mapping direct | 🔄 P1 | doit devenir permission/responsabilité |
 | respMateriel | aucun mapping direct | 🔄 P1 | doit relever d'un bundle/permission |
@@ -63,12 +63,12 @@ Le migrateur lit explicitement : `id, libelle, logo_name, tel_contact, couleur, 
 | preparationAnnee | aucun mapping direct | ⏭️/P2 | confirmer obsolescence |
 | optUpdateCelcat | aucun mapping | ❌ P1 | configuration intégration ? |
 | optAgence | aucun mapping | ⏭️ P2 | bundle/configuration |
-| optMateriel | aucun mapping | ⏭️ P2 | activation bundle |
-| optEdt | aucun mapping | ⏭️ P2 | activation bundle |
-| optStage | aucun mapping | ⏭️ P2 | activation bundle |
-| optSynthese | aucun mapping | ⏭️ P2 | confirmer obsolescence |
-| optMessagerie | aucun mapping | ⏭️ P2 | confirmer obsolescence |
-| optAnneePrevisionnel | aucun mapping | ❌ P1 | vérifier impact prévisionnels |
+| optMateriel | aucun mapping | ⏭️ P2 | abandon V4  |
+| optEdt | aucun mapping | ⏭️ P2 | abandon V4  |
+| optStage | aucun mapping | ⏭️ P2 | abandon V4  |
+| optSynthese | aucun mapping | ⏭️ P2 | abandon V4  |
+| optMessagerie | aucun mapping | ⏭️ P2 | abandon V4  |
+| optAnneePrevisionnel | aucun mapping | ❌ P1 | abandon V4  |
 
 **Point d'attention :** les options V3 ne doivent pas nécessairement devenir des colonnes V4 ; plusieurs correspondent mieux à l'activation/configuration des packages. Il faut néanmoins produire une règle explicite de conversion avant la bascule.
 
@@ -586,7 +586,7 @@ Mappings désormais appliqués :
 - `opt_espace_perso_visible → espace_perso_visible`
 - `opt_semaines_visibles → semaine_visible`
 - `opt_certifie_qualite → certif_qualite`
-- `opt_responsable_qualite → resp_qualite`
+- `opt_responsable_qualite_id → resp_qualite`
 - `opt_update_celcat → update_celcat`
 - `saisie_cm_autorise → saisie_cm_autorisee`
 
