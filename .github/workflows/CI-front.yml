@@ -48,8 +48,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run tests
-        run: pnpm -r --if-present test
-
-      - name: Build shell application
-        run: pnpm --filter @uni-service/shell build
+      - name: Run frontend quality checks
+        run: make check-front
