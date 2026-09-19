@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.9](https://github.com/IUTTroyes/uniServices/compare/v0.1.8...v0.1.9) (2026-09-19)
+
+
+### Features
+
+* **Scolarité:** ajout de la gestion des départements pour les étudiants et intégration de la vue Scolarité ([#235](https://github.com/IUTTroyes/uniServices/issues/235)) ([52127d8](https://github.com/IUTTroyes/uniServices/commit/52127d86b16c4c14313ef0bf9cd93a59dd2cfd56))
+
 ## [0.1.8](https://github.com/IUTTroyes/uniServices/compare/v0.1.7...v0.1.8) (2026-09-15)
 
 
