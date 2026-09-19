@@ -1,20 +1,44 @@
 BACK_DIR=back
 
-# Commandes
-.PHONY: start-back start-front start-all
+.PHONY: start-back start-front start-all cli check check-back check-front phpstan lint-container doctrine-validate composer-validate test-back test-front build-front
 
-# Lancer le serveur Symfony
 start-back:
 	cd $(BACK_DIR) && symfony server:start
 
-# Lancer le front-end (npm run dev)
 start-front:
-	npm run dev
+	pnpm run dev
 
-# Lancer les deux simultanément grâce à `&`
 start-all:
 	$(MAKE) start-back & $(MAKE) start-front
 
-# lancer la console de docker
 cli:
 	docker exec -it uniservice-web /bin/bash && cd /var/www/uniservice
+
+# Same validations as CI, runnable locally before pushing.
+check: check-back check-front
+
+check-back:
+	$(MAKE) -C $(BACK_DIR) check
+
+check-front: test-front build-front
+
+composer-validate:
+	$(MAKE) -C $(BACK_DIR) composer-validate
+
+lint-container:
+	$(MAKE) -C $(BACK_DIR) lint-container
+
+doctrine-validate:
+	$(MAKE) -C $(BACK_DIR) doctrine-validate
+
+phpstan:
+	$(MAKE) -C $(BACK_DIR) phpstan
+
+test-back:
+	$(MAKE) -C $(BACK_DIR) test
+
+test-front:
+	pnpm -r --if-present test
+
+build-front:
+	pnpm --filter @uni-service/shell build
