@@ -1,11 +1,14 @@
 PHPSTAN = vendor/bin/phpstan
 PHPSTAN_CONFIG = phpstan.neon
 
-.PHONY: all check composer-validate lint-container doctrine-validate phpstan test
+.PHONY: all check install composer-validate lint-container doctrine-validate phpstan test
 
 all: check
 
-check: composer-validate lint-container doctrine-validate phpstan test
+check: install composer-validate lint-container doctrine-validate phpstan test
+
+install:
+	composer install --no-progress --no-interaction --prefer-dist
 
 composer-validate:
 	composer validate --no-check-publish
