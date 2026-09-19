@@ -16,6 +16,8 @@ use App\Entity\Users\Personnel;
 use App\ValueObject\Adresse;
 use StageBundle\Enum\EtatStageEnum;
 use StageBundle\Repository\Stages\StageEtudiantRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -200,10 +202,18 @@ class StageEtudiant implements TimestampableInterface
     #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
     private ?string $reportName = null;
 
+    /**
+     * @var Collection<int, StageAvenant>
+     */
+    #[ORM\OneToMany(targetEntity: StageAvenant::class, mappedBy: 'stageEtudiant', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[Groups(['stage_etudiant:read'])]
+    private Collection $avenants;
+
     public function __construct(?float $gratificationMontant = null)
     {
         $this->setUuid();
         $this->gratificationMontant = $gratificationMontant;
+        $this->avenants = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -628,6 +638,36 @@ class StageEtudiant implements TimestampableInterface
     public function setReportName(?string $reportName): self
     {
         $this->reportName = $reportName;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StageAvenant>
+     */
+    public function getAvenants(): Collection
+    {
+        return $this->avenants;
+    }
+
+    public function addAvenant(StageAvenant $avenant): static
+    {
+        if (!$this->avenants->contains($avenant)) {
+            $this->avenants->add($avenant);
+            $avenant->setStageEtudiant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAvenant(StageAvenant $avenant): static
+    {
+        if ($this->avenants->removeElement($avenant)) {
+            // set the owning side to null (unless already changed)
+            if ($avenant->getStageEtudiant() === $this) {
+                $avenant->setStageEtudiant(null);
+            }
+        }
 
         return $this;
     }

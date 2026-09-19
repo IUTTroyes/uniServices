@@ -105,7 +105,7 @@ class HelpdeskTicket implements TimestampableInterface
     #[Groups(['ticket:write','ticket:read','ticket:delete'])]
     private ?Personnel $auteur = null;
 
-    #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
+    #[ORM\ManyToOne]
     private ?Personnel $assigne = null;
 
 

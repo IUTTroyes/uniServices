@@ -100,12 +100,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
     private bool $actif = false;
 
     /**
-     * @var Collection<int, ApcReferentiel>
-     */
-    #[ORM\OneToMany(targetEntity: ApcReferentiel::class, mappedBy: 'anneeUniversitaire')]
-    private Collection $referentiels;
-
-    /**
      * @var Collection<int, ScolEvaluation>
      */
     #[ORM\OneToMany(targetEntity: ScolEvaluation::class, mappedBy: 'anneeUniversitaire')]
@@ -159,7 +153,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
         $this->scolarites = new ArrayCollection();
         $this->pns = new ArrayCollection();
         $this->personnels = new ArrayCollection();
-        $this->referentiels = new ArrayCollection();
         $this->evaluations = new ArrayCollection();
         $this->edtEvents = new ArrayCollection();
 

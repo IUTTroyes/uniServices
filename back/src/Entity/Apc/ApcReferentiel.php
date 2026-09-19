@@ -72,7 +72,7 @@ class ApcReferentiel
     /**
      * @var Collection<int, StructurePn>
      */
-    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'referentiel')]
+    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'apcReferentiel')]
     private Collection $pn;
 
     #[ORM\ManyToOne(inversedBy: 'referentiels')]
