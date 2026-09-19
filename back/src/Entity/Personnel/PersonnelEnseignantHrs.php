@@ -14,6 +14,7 @@ use App\Entity\Structure\StructureSemestre;
 use App\Entity\Users\Personnel;
 use App\Filter\PersonnelEnseignantHrsFilter;
 use App\Repository\PersonnelEnseignantHrsRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -38,6 +39,9 @@ class PersonnelEnseignantHrs
     #[ORM\Column(length: 150, nullable: true)]
     #[Groups(['enseignant_hrs:read'])]
     private ?string $libelle = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $commentaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'enseignantHrs')]
     #[ORM\JoinColumn(nullable: false)]
@@ -78,6 +82,18 @@ class PersonnelEnseignantHrs
     public function setLibelle(?string $libelle): static
     {
         $this->libelle = $libelle;
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): static
+    {
+        $this->commentaire = $commentaire;
 
         return $this;
     }

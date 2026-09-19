@@ -4,7 +4,8 @@ namespace App\Entity\Scolarite;
 
 use ApiPlatform\Metadata\ApiResource;
 use App\Entity\Salle;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
@@ -13,11 +14,10 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: ScolEvaluationRattrapageRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiResource]
-class ScolEvaluationRattrapage
+class ScolEvaluationRattrapage implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use UuidTrait;
 
     #[ORM\Id]
@@ -31,10 +31,10 @@ class ScolEvaluationRattrapage
     #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
     private ?\DateTime $date = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, nullable: true)]
+    #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
     private ?\DateTime $heure_debut = null;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
     private ?\DateTime $heure_fin = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolEvaluationRattrapages')]
@@ -121,9 +121,9 @@ class ScolEvaluationRattrapage
         return $this->heure_fin;
     }
 
-    public function setHeureFin(\DateTime $heure_fin): static
+    public function setHeureFin(?\DateTime $heureFin): static
     {
-        $this->heure_fin = $heure_fin;
+        $this->heure_fin = $heureFin;
 
         return $this;
     }

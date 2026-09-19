@@ -14,8 +14,9 @@ use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Credentials\PasswordCredentials;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
+use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
 
-class LoginFormAuthenticator extends AbstractAuthenticator
+class LoginFormAuthenticator extends AbstractAuthenticator implements AuthenticationEntryPointInterface
 {
     private JWTTokenManagerInterface $jwtManager;
 
@@ -66,5 +67,10 @@ class LoginFormAuthenticator extends AbstractAuthenticator
     {
         // HelpdeskMessage générique pour ne pas révéler d'informations sur l'existence des comptes
         return new JsonResponse(['error' => 'Identifiants invalides'], JsonResponse::HTTP_UNAUTHORIZED);
+    }
+
+    public function start(Request $request, ?AuthenticationException $authException = null): Response
+    {
+        return new JsonResponse(['error' => 'Authentification requise'], Response::HTTP_UNAUTHORIZED);
     }
 }

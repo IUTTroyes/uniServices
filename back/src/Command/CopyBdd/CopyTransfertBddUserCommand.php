@@ -128,15 +128,7 @@ FOREIGN_KEY_CHECKS=1');
                 $sql = 'SELECT * FROM adresse WHERE id = ' . $pers['adresse_id'];
                 $adresse = $this->em->executeQuery($sql)->fetchAssociative();
 
-                $objAdresse = new Adresse(
-                    $adresse['adresse1'] ?? '',
-                    $adresse['adresse2'] ?? '',
-                    $adresse['adresse3'] ?? '',
-                    $adresse['code_postal'] ?? '',
-                    $adresse['ville'] ?? '',
-                    $adresse['pays'] ?? 'France'
-                );
-                $personnel->setAdressePersonnelle($objAdresse);
+                $personnel->setAdressePersonnelle(Adresse::fromArray($adresse ?: null));
             }
 
             /*
@@ -222,30 +214,14 @@ FOREIGN_KEY_CHECKS=1');
                 $sql = 'SELECT * FROM adresse WHERE id = ' . $etu['adresse_id'];
                 $adresse = $this->em->executeQuery($sql)->fetchAssociative();
 
-                $objAdresseEtudiante = new Adresse(
-                    $adresse['adresse1'] ?? '',
-                    $adresse['adresse2'] ?? '',
-                    $adresse['adresse3'] ?? '',
-                    $adresse['ville'] ?? '',
-                    $adresse['code_postal'] ?? '',
-                    $adresse['pays'] ?? 'France'
-                );
-                $etudiant->setAdresseEtudiante($objAdresseEtudiante);
+                $etudiant->setAdresseEtudiante(Adresse::fromArray($adresse ?: null));
             }
 
             if ($etu['adresse_parentale_id'] !== null && $etu['adresse_parentale_id'] !== '') {
                 $sql = 'SELECT * FROM adresse WHERE id = ' . $etu['adresse_parentale_id'];
                 $adresse = $this->em->executeQuery($sql)->fetchAssociative();
 
-                $objAdresseParentale = new Adresse(
-                    $adresse['adresse1'] ?? '',
-                    $adresse['adresse2'] ?? '',
-                    $adresse['adresse3'] ?? '',
-                    $adresse['ville'] ?? '',
-                    $adresse['code_postal'] ?? '',
-                    $adresse['pays'] ?? 'France'
-                );
-                $etudiant->setAdresseParentale($objAdresseParentale);
+                $etudiant->setAdresseParentale(Adresse::fromArray($adresse ?: null));
             }
 
             // Appel à addEtudiantBac

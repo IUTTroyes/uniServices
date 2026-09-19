@@ -10,6 +10,7 @@ use ApiPlatform\Metadata\Post;
 use App\Repository\EtablissementRepository;
 use App\State\Processor\EtablissementProcessor;
 use App\State\Provider\EtablissementProvider;
+use App\ValueObject\Adresse;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -107,14 +108,20 @@ class Etablissement
         return $this;
     }
 
-    public function getAdresse(): ?array
+    public function getAdresse(): ?Adresse
     {
-        return $this->adresse;
+        return Adresse::fromArray($this->adresse);
     }
 
-    public function setAdresse(?array $adresse): static
+    public function setAdresse(Adresse|array|null $adresse): static
     {
-        $this->adresse = $adresse;
+        if ($adresse instanceof Adresse) {
+            $this->adresse = $adresse->toArray();
+        } elseif (is_array($adresse)) {
+            $this->adresse = Adresse::fromArray($adresse)?->toArray();
+        } else {
+            $this->adresse = null;
+        }
 
         return $this;
     }

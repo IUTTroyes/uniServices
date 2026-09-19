@@ -25,7 +25,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ScolEvaluationRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiFilter(EvaluationFilter::class)]
 #[ApiResource(
     paginationEnabled: false,

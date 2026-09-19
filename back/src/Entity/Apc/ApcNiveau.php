@@ -44,9 +44,10 @@ class ApcNiveau
     #[Groups(['competence:referentiel:full'])]
     private ?int $ordre = null;
 
-    /**
-     * @var Collection<int, ApcParcours>
-     */
+    #[ORM\Column(nullable: true)]
+    private ?int $ordreAnnee = null;
+
+    /** @var Collection<int, ApcParcours> */
     #[ORM\ManyToMany(targetEntity: ApcParcours::class, inversedBy: 'niveaux')]
     #[Groups('diplome:read')]
     private Collection $parcours;
@@ -58,136 +59,48 @@ class ApcNiveau
     #[ORM\ManyToOne(inversedBy: 'niveaux')]
     private ?StructureAnnee $annee = null;
 
-    /**
-     * @var Collection<int, ApcApprentissageCritique>
-     */
+    /** @var Collection<int, ApcApprentissageCritique> */
     #[ORM\OneToMany(targetEntity: ApcApprentissageCritique::class, mappedBy: 'niveau')]
     #[Groups(['competence:referentiel:full'])]
     private Collection $apprentissageCritique;
 
-    public function __construct(ApcCompetence $competence = null)
+    public function __construct(?ApcCompetence $competence = null)
     {
         $this->competence = $competence;
         $this->parcours = new ArrayCollection();
         $this->apprentissageCritique = new ArrayCollection();
     }
 
-    public function getId(): ?int
+    public function getId(): ?int { return $this->id; }
+    public function getLibelle(): ?string { return $this->libelle; }
+    public function setLibelle(string $libelle): static { $this->libelle = $libelle; return $this; }
+    public function getOrdre(): ?int { return $this->ordre; }
+    public function setOrdre(int $ordre): static { $this->ordre = $ordre; return $this; }
+    public function getOrdreAnnee(): ?int
     {
-        return $this->id;
+        return $this->ordreAnnee;
     }
 
-    public function getLibelle(): ?string
+    public function setOrdreAnnee(?int $ordreAnnee): static
     {
-        return $this->libelle;
-    }
-
-    public function setLibelle(string $libelle): static
-    {
-        $this->libelle = $libelle;
+        $this->ordreAnnee = $ordreAnnee;
 
         return $this;
     }
 
-    public function getOrdre(): ?int
-    {
-        return $this->ordre;
-    }
-
-    public function setOrdre(int $ordre): static
-    {
-        $this->ordre = $ordre;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, ApcParcours>
-     */
-    public function getParcours(): Collection
-    {
-        return $this->parcours;
-    }
-
-    public function addParcours(ApcParcours $parcours): static
-    {
-        if (!$this->parcours->contains($parcours)) {
-            $this->parcours->add($parcours);
-        }
-
-        return $this;
-    }
-
-    public function removeParcours(ApcParcours $parcours): static
-    {
-        $this->parcours->removeElement($parcours);
-
-        return $this;
-    }
-
-    public function getCompetence(): ?ApcCompetence
-    {
-        return $this->competence;
-    }
-
-    public function setCompetence(?ApcCompetence $competence): static
-    {
-        $this->competence = $competence;
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, ApcApprentissageCritique>
-     */
-    public function getApprentissageCritique(): Collection
-    {
-        return $this->apprentissageCritique;
-    }
-
-    public function addApprentissageCritique(ApcApprentissageCritique $apprentissageCritique): static
-    {
-        if (!$this->apprentissageCritique->contains($apprentissageCritique)) {
-            $this->apprentissageCritique->add($apprentissageCritique);
-            $apprentissageCritique->setNiveau($this);
-        }
-
-        return $this;
-    }
-
-    public function removeApprentissageCritique(ApcApprentissageCritique $apprentissageCritique): static
-    {
-        if ($this->apprentissageCritique->removeElement($apprentissageCritique)) {
-            // set the owning side to null (unless already changed)
-            if ($apprentissageCritique->getNiveau() === $this) {
-                $apprentissageCritique->setNiveau(null);
-            }
-        }
-
-        return $this;
-    }
-
+    public function getParcours(): Collection { return $this->parcours; }
+    public function addParcours(ApcParcours $parcours): static { if (!$this->parcours->contains($parcours)) { $this->parcours->add($parcours); } return $this; }
+    public function removeParcours(ApcParcours $parcours): static { $this->parcours->removeElement($parcours); return $this; }
+    public function getCompetence(): ?ApcCompetence { return $this->competence; }
+    public function setCompetence(?ApcCompetence $competence): static { $this->competence = $competence; return $this; }
+    public function getApprentissageCritique(): Collection { return $this->apprentissageCritique; }
+    public function addApprentissageCritique(ApcApprentissageCritique $apprentissageCritique): static { if (!$this->apprentissageCritique->contains($apprentissageCritique)) { $this->apprentissageCritique->add($apprentissageCritique); $apprentissageCritique->setNiveau($this); } return $this; }
+    public function removeApprentissageCritique(ApcApprentissageCritique $apprentissageCritique): static { if ($this->apprentissageCritique->removeElement($apprentissageCritique) && $apprentissageCritique->getNiveau() === $this) { $apprentissageCritique->setNiveau(null); } return $this; }
     public function display(): string
     {
-        $niv = match ($this->ordre) {
-            1 => self::NIVEAU_1,
-            2 => self::NIVEAU_2,
-            3 => self::NIVEAU_3,
-            default => null,
-        };
-
+        $niv = match ($this->ordre) { 1 => self::NIVEAU_1, 2 => self::NIVEAU_2, 3 => self::NIVEAU_3, default => null };
         return $this->getCompetence()?->getNomCourt().' - Niveau '.$niv.'('.$this->ordre.')';
     }
-
-    public function getAnnee(): ?StructureAnnee
-    {
-        return $this->annee;
-    }
-
-    public function setAnnee(?StructureAnnee $annee): static
-    {
-        $this->annee = $annee;
-
-        return $this;
-    }
+    public function getAnnee(): ?StructureAnnee { return $this->annee; }
+    public function setAnnee(?StructureAnnee $annee): static { $this->annee = $annee; return $this; }
 }

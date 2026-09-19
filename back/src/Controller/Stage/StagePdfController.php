@@ -12,6 +12,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+//todo: a déplacer dans le bundle stage
 class StagePdfController extends AbstractController
 {
     private EntityManagerInterface $em;
@@ -177,7 +178,7 @@ class StagePdfController extends AbstractController
             }
         }
         if ($etab && $etab->getAdresse()) {
-            $deptAdresse = is_array($etab->getAdresse()) ? implode(', ', $etab->getAdresse()) : $etab->getAdresse();
+            $deptAdresse = (string) $etab->getAdresse();
         }
 
         // Annee universitaire display
@@ -195,7 +196,7 @@ class StagePdfController extends AbstractController
             '{etudiant.prenom}' => $etu ? $etu->getPrenom() : '',
             '{etudiant.sexe}' => $etu && method_exists($etu, 'getCivilite') && $etu->getCivilite() === 'Mme' ? 'Femme' : 'Homme',
             '{etudiant.date_naissance}' => $etu && $etu->getDateNaissance() ? $fmtDate($etu->getDateNaissance()) : '',
-            '{etudiant.adresse}' => $etu && method_exists($etu, 'getAdresseEtudiante') && $etu->getAdresseEtudiante() ? $etu->getAdresseEtudiante()->getAdresse() : '',
+            '{etudiant.adresse}' => $etu && method_exists($etu, 'getAdresseEtudiante') && $etu->getAdresseEtudiante() ? (string) $etu->getAdresseEtudiante() : '',
             '{etudiant.telephones}' => $telephones,
             '{etudiant.email}' => $etu ? $etu->getMailUniv() : '',
             '{etudiant.formation}' => $formationLibelle,
@@ -204,7 +205,7 @@ class StagePdfController extends AbstractController
             '{etudiant.secu_adresse}' => $etu && method_exists($etu, 'getAdresseSecuriteSociale') && $etu->getAdresseSecuriteSociale() ? $etu->getAdresseSecuriteSociale() : '',
 
             '{entreprise.nom}' => $ent ? $ent->getRaisonSociale() : '',
-            '{entreprise.adresse}' => $stage->getAdresseStage() ? (is_array($stage->getAdresseStage()) ? implode(', ', $stage->getAdresseStage()) : $stage->getAdresseStage()) : ($ent && $ent->getAdresse() ? $ent->getAdresse()->getAdresse() : ''),
+            '{entreprise.adresse}' => $stage->getAdresseStage() ? (string) $stage->getAdresseStage() : ($ent && $ent->getAdresse() ? (string) $ent->getAdresse() : ''),
             '{entreprise.signataire}' => $ent && $ent->getResponsable() ? $ent->getResponsable()->getDisplay() : '',
             '{entreprise.signataire_fonction}' => $ent && $ent->getResponsable() ? $ent->getResponsable()->getFonction() : '',
             '{entreprise.telephone}' => $ent && $ent->getResponsable() ? ($ent->getResponsable()->getTelephone() ?? $ent->getResponsable()->getPortable() ?? '') : '',
