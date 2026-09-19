@@ -1,11 +1,5 @@
 [
     {
-        "name": "UniEdt",
-        "description": "Plateforme de conception des emplois du temps et gestion des contraintes.",
-        "urlSlug": "edt",
-        "url": "http://localhost:3000/app/edt/"
-    },
-    {
         "name": "HelpDesk",
         "description": "Système de tickets",
         "urlSlug": "helpdesk",
