@@ -20,7 +20,10 @@ check: check-back check-front
 check-back:
 	$(MAKE) -C $(BACK_DIR) check
 
-check-front: test-front build-front
+check-front: install-front test-front build-front
+
+install-front:
+	pnpm install --frozen-lockfile
 
 composer-validate:
 	$(MAKE) -C $(BACK_DIR) composer-validate
