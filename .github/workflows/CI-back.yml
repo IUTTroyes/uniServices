@@ -41,26 +41,5 @@ jobs:
           coverage: none
           tools: composer:v2
 
-      - name: Validate Composer configuration
-        run: composer validate --no-check-publish
-
-      - name: Install dependencies
-        run: composer install --no-progress --no-interaction --prefer-dist
-
-      - name: Validate Symfony container
-        run: php bin/console lint:container
-
-      - name: Validate Doctrine mapping
-        run: php bin/console doctrine:schema:validate --skip-sync
-
-      - name: Run PHPStan
-        run: vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=1G
-
-      - name: Run PHPUnit
-        if: ${{ hashFiles('back/phpunit.xml', 'back/phpunit.xml.dist', 'back/tests/**/*.php') != '' }}
-        run: |
-          if [ ! -x vendor/bin/phpunit ]; then
-            echo "::error::PHPUnit tests/configuration exist but phpunit is not installed."
-            exit 1
-          fi
-          vendor/bin/phpunit
+      - name: Run backend quality checks
+        run: make check
