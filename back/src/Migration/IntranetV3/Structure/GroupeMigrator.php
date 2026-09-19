@@ -46,7 +46,7 @@ final class GroupeMigrator extends AbstractMigrator
 
             if ($hasJoinTable) {
                 $groupSql = <<<'SQL'
-SELECT DISTINCT g.id, g.parent_id, g.libelle, g.code_apogee, g.ordre, g.parcours, g.apc_parcours_id, g.id_edu_sign, tg.type
+SELECT DISTINCT g.id, g.parent_id, g.libelle, g.code_apogee, g.ordre, g.parcours_id, g.apc_parcours_id, g.id_edu_sign, tg.type
 FROM groupe g
 INNER JOIN type_groupe tg ON tg.id = g.type_groupe_id
 INNER JOIN type_groupe_semestre tgs ON tgs.type_groupe_id = tg.id

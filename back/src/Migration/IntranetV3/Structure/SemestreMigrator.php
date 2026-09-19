@@ -27,7 +27,10 @@ final class SemestreMigrator extends AbstractMigrator
         $repository = $this->entityManager->getRepository(StructureSemestre::class);
         $anneeRepository = $this->entityManager->getRepository(StructureAnnee::class);
         $created = $updated = $skipped = $failed = 0;
-        $messages = [];
+        $sample = $this->source->fetchAssociative('SELECT * FROM semestre LIMIT 1');
+        if ($sample) {
+            fwrite(STDERR, "\nColonnes semestre V3: " . implode(', ', array_keys($sample)) . "\n");
+        }
 
         // Chaque StructureAnnee est déjà un clone rattaché à un PN annuel.
         // On clone donc tous les semestres V3 de l'année source dans ce snapshot.
@@ -41,9 +44,9 @@ final class SemestreMigrator extends AbstractMigrator
             $sql = <<<'SQL'
 SELECT id, annee_id, libelle, ordre_annee, ordre_lmd, actif,
        nb_groupes_cm, nb_groupes_td, nb_groupes_tp, code_element,
-       opt_mail_releve, opt_mail_modification_note, opt_dest_mail_releve, opt_dest_mail_modif_note,
+       opt_mail_releve, opt_mail_modification_note, opt_dest_mail_releve_id, opt_dest_mail_modif_note_id,
        opt_evaluation_visible, opt_evaluation_modifiable, opt_penalite_absence,
-       opt_mail_absence_resp, opt_dest_mail_absence_resp, opt_mail_absence_etudiant,
+       opt_mail_absence_resp, opt_dest_mail_absence_resp_id, opt_mail_absence_etudiant,
        opt_point_penalite_absence, opt_mail_assistante_justificatif_absence,
        opt_bilan_semestre, opt_rattrapage, opt_mail_rattrapage, id_edu_sign
 FROM semestre
