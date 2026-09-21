@@ -2,6 +2,7 @@ import dashboardRoutes from './router/modules/dashboardRoutes.js';
 import agendaRoutes from './router/modules/agendaRoutes.js';
 import trombinoscopeRoutes from './router/modules/trombinoscopeRoutes.js';
 import scolariteRoutes from './router/modules/scolariteRoutes.js';
+import cahierDeTexteRoutes from './router/modules/cahierDeTexteRoutes.js';
 import profilRoutes from './router/modules/profilRoutes.js';
 import administrationRoutes from './router/modules/administrationRoutes.js';
 import superAdministrationRoutes from './router/modules/superAdministrationRoutes.js';
@@ -24,6 +25,12 @@ const intranetMenu = {
       label: 'Scolarité',
       icon: 'pi pi-fw pi-graduation-cap',
       to: '/intranet/scolarite',
+      permission: 'isEtudiant'
+    },
+    {
+      label: 'Cahier de texte',
+      icon: 'pi pi-fw pi-book',
+      to: '/intranet/cahier-de-texte',
       permission: 'isEtudiant'
     },
     {
@@ -61,6 +68,7 @@ export default {
         ...agendaRoutes,
         ...trombinoscopeRoutes,
         ...scolariteRoutes,
+        ...cahierDeTexteRoutes,
         ...profilRoutes,
         ...administrationRoutes,
         ...superAdministrationRoutes,

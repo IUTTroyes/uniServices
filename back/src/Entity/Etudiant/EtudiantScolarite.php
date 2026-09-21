@@ -30,6 +30,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light', 'annee-univ:light']]),
         new GetCollection(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light', 'annee-univ:light']]),
         new GetCollection(
+            uriTemplate: '/all/etudiant_scolarites',
+            normalizationContext: ['groups' => ['scolarite:all']],
+        ),
+        new GetCollection(
             uriTemplate: '/user/etudiant_scolarites',
             normalizationContext: ['groups' => ['scolarite:user']],
         ),
@@ -71,13 +75,6 @@ class EtudiantScolarite
     #[Groups(['scolarite:detail', 'scolarite:light', 'etudiant:scolarite'])]
     private int $ordre = 1;
 
-    /**
-     * @deprecated
-     */
-    #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:detail', 'etudiant:scolarite'])]
-    private ?float $moyenne = null;
-
     #[ORM\Column]
     #[Groups(['scolarite:detail', 'scolarite-semestre:absence', 'etudiant:scolarite'])]
     private int $nbAbsences = 0;
@@ -91,16 +88,11 @@ class EtudiantScolarite
     private bool $public = false;
 
     /**
-     * @deprecated
+     * valeur définie seulement après jury et seulement si diplome !APC
      */
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite:detail', 'etudiant:scolarite'])]
-    private ?array $moyennesMatiere = null;
-
-    // moyennes annuelles
-    #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite:detail', 'etudiant:scolarite'])]
-    private ?array $moyennesUe = null;
+    private ?float $moyenne = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
     #[ORM\JoinColumn(nullable: false)]
