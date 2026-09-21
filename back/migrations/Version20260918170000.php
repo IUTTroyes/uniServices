@@ -23,7 +23,6 @@ final class Version20260918170000 extends AbstractMigration
         $this->addSql("ALTER TABLE questionnaire_invitation ADD updated_at DATETIME DEFAULT NULL COMMENT '(DC2Type:datetime_immutable)'");
         $this->addSql('UPDATE questionnaire_invitation SET updated_at = created_at WHERE updated_at IS NULL');
         $this->addSql("ALTER TABLE questionnaire_invitation MODIFY updated_at DATETIME NOT NULL COMMENT '(DC2Type:datetime_immutable)'");
-    }
 
         $this->addSql('ALTER TABLE etudiant RENAME COLUMN created TO created_at');
         $this->addSql('ALTER TABLE etudiant RENAME COLUMN updated TO updated_at');
@@ -71,6 +70,7 @@ final class Version20260918170000 extends AbstractMigration
         $this->addSql('ALTER TABLE questionnaire RENAME COLUMN updated TO updated_at');
         $this->addSql('ALTER TABLE questionnaire_answer RENAME COLUMN created TO created_at');
         $this->addSql('ALTER TABLE questionnaire_answer RENAME COLUMN updated TO updated_at');
+    }
 
     public function down(Schema $schema): void
     {

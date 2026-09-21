@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Security;
+namespace StageBundle\Security;
 
-use App\Entity\Stages\StagePeriode;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
+use App\Security\UserEffectivePermissionService;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Vote;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;

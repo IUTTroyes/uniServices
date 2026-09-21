@@ -164,7 +164,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
     #[Groups(['personnel:detail'])]
     private ?array $domaines = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 100, nullable: true)]
     #[Groups(['personnel:detail'])]
     private ?string $bureau = null;
 
@@ -192,7 +192,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
     #[Groups(['personnel:detail', 'personnel:liste'])]
     private ?string $responsabilites = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 50, nullable: true)]
     #[Groups(['personnel:detail'])]
     private ?string $posteInterne = null;
 
@@ -200,7 +200,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
     #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'personnel:liste', 'departement_personnel:read', 'personnel:config'])]
     private ?StatutEnum $statut = null;
 
-    #[ORM\Column(length: 3, nullable: true)]
+    #[ORM\Column(length: 10, nullable: true)]
     #[Groups(['personnel:detail'])]
     private ?string $initiales = null;
 

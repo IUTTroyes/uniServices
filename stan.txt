@@ -1,0 +1,1355 @@
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -C back phpstan
+vendor/bin/phpstan analyse -c phpstan.neon --memory-limit=1G
+ ------ ---------------------------------------------------------------------------------------------- 
+  Line   back/src/ApiDto/PersonnelsContraintes.php                                                     
+ ------ ---------------------------------------------------------------------------------------------- 
+  :35    Class App\State\UniEdt\PersonnelsContraintesProvider not found.                               
+         🪪  class.notFound                                                                            
+         💡  Learn more at https://phpstan.org/user-guide/discovering-symbols                          
+  :53    Method App\ApiDto\PersonnelsContraintes::setSemaineFormation() has no return type specified.  
+         🪪  missingType.return                                                                        
+  :58    Method App\ApiDto\PersonnelsContraintes::setPersonnel() has no return type specified.         
+         🪪  missingType.return                                                                        
+ ------ ---------------------------------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------------------------- 
+  Line   back/src/Command/CopyBdd/CopyTransfertBddEnseignementsCommand.php                        
+ ------ ----------------------------------------------------------------------------------------- 
+  :153   Strict comparison using !== between (int|string) and null will always evaluate to true.  
+         🪪  notIdentical.alwaysTrue                                                              
+  :205   Strict comparison using !== between (int|string) and null will always evaluate to true.  
+         🪪  notIdentical.alwaysTrue                                                              
+ ------ ----------------------------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------------------- 
+  Line   back/src/Command/CopyBdd/CopyTransfertBddScolariteCommand.php                      
+ ------ ----------------------------------------------------------------------------------- 
+  :169   Strict comparison using === between mixed and null will always evaluate to false.  
+         🪪  identical.alwaysFalse                                                          
+         💡  Type null has already been eliminated from mixed.                              
+  :200   Strict comparison using !== between mixed and null will always evaluate to true.   
+         🪪  notIdentical.alwaysTrue                                                        
+         💡  Type null has already been eliminated from mixed.                              
+  :246   Strict comparison using !== between mixed and null will always evaluate to true.   
+         🪪  notIdentical.alwaysTrue                                                        
+         💡  Type null has already been eliminated from mixed.                              
+  :288   Strict comparison using === between mixed and null will always evaluate to false.  
+         🪪  identical.alwaysFalse                                                          
+         💡  Type null has already been eliminated from mixed.                              
+ ------ ----------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Command/CopyBdd/CopyTransfertBddStructureCommand.php                                                                 
+ ------ ------------------------------------------------------------------------------------------------------------------------------ 
+  :55    Property App\Command\CopyBdd\CopyTransfertBddStructureCommand::$structureAnneeUniversitaireRepository has no type specified.  
+         🪪  missingType.property                                                                                                      
+  :56    Property App\Command\CopyBdd\CopyTransfertBddStructureCommand::$personnelRepository has no type specified.                    
+         🪪  missingType.property                                                                                                      
+  :445   Access to an undefined property App\Command\CopyBdd\CopyTransfertBddStructureCommand::$tSemestreUes.                          
+         🪪  property.notFound                                                                                                         
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property                                         
+  :477   Method App\Command\CopyBdd\CopyTransfertBddStructureCommand::addGroupes() has no return type specified.                       
+         🪪  missingType.return                                                                                                        
+ ------ ------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ---------------------------------------------------------------------------------- 
+  Line   back/src/Command/MigrateIntranetV3Command.php                                     
+ ------ ---------------------------------------------------------------------------------- 
+  :154   Variable $currentMigration on left side of ?? always exists and is always null.   
+         🪪  nullCoalesce.variable                                                         
+  :158   Strict comparison using !== between null and null will always evaluate to false.  
+         🪪  notIdentical.alwaysFalse                                                      
+  :163   Strict comparison using !== between null and null will always evaluate to false.  
+         🪪  notIdentical.alwaysFalse                                                      
+  :178   Strict comparison using !== between null and null will always evaluate to false.  
+         🪪  notIdentical.alwaysFalse                                                      
+ ------ ---------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------ 
+  Line   back/src/Controller/AuthController.php                                                    
+ ------ ------------------------------------------------------------------------------------------ 
+  :80    Call to an undefined method Symfony\Component\Security\Core\User\UserInterface::getId().  
+         🪪  method.notFound                                                                       
+ ------ ------------------------------------------------------------------------------------------ 
+
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Controller/DashboardController.php                                                                                                       
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :382   Result of && is always false.                                                                                                                     
+         🪪  booleanAnd.alwaysFalse                                                                                                                        
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.  
+  :382   Strict comparison using !== between null and null will always evaluate to false.                                                                  
+         🪪  notIdentical.alwaysFalse                                                                                                                      
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.  
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Controller/ExportTablerController.php                                                        
+ ------ ------------------------------------------------------------------------------------------------------ 
+  :24    Method App\Controller\ExportTablerController::download() has parameter $data with no type specified.  
+         🪪  missingType.parameter                                                                             
+  :24    Method App\Controller\ExportTablerController::download() has parameter $type with no type specified.  
+         🪪  missingType.parameter                                                                             
+ ------ ------------------------------------------------------------------------------------------------------ 
+
+ ------ --------------------------------------------------------------- 
+  Line   back/src/Controller/Scheduler/AvailableCommandsController.php  
+ ------ --------------------------------------------------------------- 
+  :31    Expression on left side of ?? is not nullable.                 
+         🪪  nullCoalesce.expr                                          
+ ------ --------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Controller/SecurityController.php                                                                       
+ ------ ----------------------------------------------------------------------------------------------------------------- 
+  :222   Call to protected method getEntityManager() of class Doctrine\ORM\EntityRepository<App\Entity\ResetToken>.       
+         🪪  method.protected                                                                                             
+  :306   Call to an undefined method Symfony\Component\Security\Core\User\UserInterface::getId().                         
+         🪪  method.notFound                                                                                              
+  :307   Call to an undefined method Symfony\Component\Security\Core\User\UserInterface::getUsername().                   
+         🪪  method.notFound                                                                                              
+  :308   Call to an undefined method Symfony\Component\Security\Core\User\UserInterface::getPrenom().                     
+         🪪  method.notFound                                                                                              
+  :309   Call to an undefined method Symfony\Component\Security\Core\User\UserInterface::getNom().                        
+         🪪  method.notFound                                                                                              
+  :310   Call to an undefined method Symfony\Component\Security\Core\User\UserInterface::getMailPerso().                  
+         🪪  method.notFound                                                                                              
+  :310   Call to an undefined method Symfony\Component\Security\Core\User\UserInterface::getMailUniv().                   
+         🪪  method.notFound                                                                                              
+  :312   Parameter #1 $user of method App\Security\UserEffectivePermissionService::getEffectivePermissions() expects      
+         App\Entity\Users\Etudiant|App\Entity\Users\Personnel, Symfony\Component\Security\Core\User\UserInterface given.  
+         🪪  argument.type                                                                                                
+ ------ ----------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Controller/Stage/StagePdfController.php                                                                                                            
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :176   Left side of && is always true.                                                                                                                             
+         🪪  booleanAnd.leftAlwaysTrue                                                                                                                               
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.            
+         💡  If App\Entity\Structure\StructureSemestre::getLibelle() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.or  
+         g/blog/remembering-and-forgetting-returned-values                                                                                                           
+         💡  If App\Entity\Structure\StructureSemestre::getAnnee() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/  
+         blog/remembering-and-forgetting-returned-values                                                                                                             
+  :176   Right side of && is always true.                                                                                                                            
+         🪪  booleanAnd.rightAlwaysTrue                                                                                                                              
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.            
+         💡  If App\Entity\Structure\StructureSemestre::getAnnee() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/  
+         blog/remembering-and-forgetting-returned-values                                                                                                             
+  :199   Call to function method_exists() with App\Entity\Users\Etudiant and 'getAdresseEtudiante' will always evaluate to true.                                     
+         🪪  function.alreadyNarrowedType                                                                                                                            
+         💡  If App\Entity\Users\Etudiant::getTel1() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/rememberi  
+         ng-and-forgetting-returned-values                                                                                                                           
+         💡  If App\Entity\Users\Etudiant::getTel2() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/rememberi  
+         ng-and-forgetting-returned-values                                                                                                                           
+         💡  If App\Entity\Users\Etudiant::getNom() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/rememberin  
+         g-and-forgetting-returned-values                                                                                                                            
+         💡  If App\Entity\Users\Etudiant::getPrenom() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/remembe  
+         ring-and-forgetting-returned-values                                                                                                                         
+         💡  If App\Entity\Users\Etudiant::getDateNaissance() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/  
+         remembering-and-forgetting-returned-values                                                                                                                  
+  :204   Call to function method_exists() with App\Entity\Users\Etudiant and 'getIntituleSecurite…' will always evaluate to true.                                    
+         🪪  function.alreadyNarrowedType                                                                                                                            
+         💡  If App\Entity\Users\Etudiant::getTel1() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/rememberi  
+         ng-and-forgetting-returned-values                                                                                                                           
+         💡  If App\Entity\Users\Etudiant::getTel2() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/rememberi  
+         ng-and-forgetting-returned-values                                                                                                                           
+         💡  If App\Entity\Users\Etudiant::getNom() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/rememberin  
+         g-and-forgetting-returned-values                                                                                                                            
+         💡  If App\Entity\Users\Etudiant::getPrenom() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/remembe  
+         ring-and-forgetting-returned-values                                                                                                                         
+         💡  If App\Entity\Users\Etudiant::getDateNaissance() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/  
+         remembering-and-forgetting-returned-values                                                                                                                  
+         💡  If App\Entity\Users\Etudiant::getAdresseEtudiante() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/bl  
+         og/remembering-and-forgetting-returned-values                                                                                                               
+         💡  If App\Entity\Users\Etudiant::getMailUniv() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/remem  
+         bering-and-forgetting-returned-values                                                                                                                       
+  :205   Call to function method_exists() with App\Entity\Users\Etudiant and 'getAdresseSecuriteS…' will always evaluate to true.                                    
+         🪪  function.alreadyNarrowedType                                                                                                                            
+         💡  If App\Entity\Users\Etudiant::getTel1() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/rememberi  
+         ng-and-forgetting-returned-values                                                                                                                           
+         💡  If App\Entity\Users\Etudiant::getTel2() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/rememberi  
+         ng-and-forgetting-returned-values                                                                                                                           
+         💡  If App\Entity\Users\Etudiant::getNom() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/rememberin  
+         g-and-forgetting-returned-values                                                                                                                            
+         💡  If App\Entity\Users\Etudiant::getPrenom() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/remembe  
+         ring-and-forgetting-returned-values                                                                                                                         
+         💡  If App\Entity\Users\Etudiant::getDateNaissance() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/  
+         remembering-and-forgetting-returned-values                                                                                                                  
+         💡  If App\Entity\Users\Etudiant::getAdresseEtudiante() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/bl  
+         og/remembering-and-forgetting-returned-values                                                                                                               
+         💡  If App\Entity\Users\Etudiant::getMailUniv() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/remem  
+         bering-and-forgetting-returned-values                                                                                                                       
+         💡  If App\Entity\Users\Etudiant::getIntituleSecuriteSociale() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan  
+         .org/blog/remembering-and-forgetting-returned-values                                                                                                        
+  :219   Expression on left side of ?? is not nullable.                                                                                                              
+         🪪  nullCoalesce.expr                                                                                                                                       
+  :223   Expression on left side of ?? is not nullable.                                                                                                              
+         🪪  nullCoalesce.expr                                                                                                                                       
+  :230   Call to an undefined method StageBundle\Entity\Stages\StagePeriode::getNbEcts().                                                                            
+         🪪  method.notFound                                                                                                                                         
+  :230   Call to an undefined method StageBundle\Entity\Stages\StagePeriode::getNbEcts().                                                                            
+         🪪  method.notFound                                                                                                                                         
+  :233   Call to function method_exists() with App\Entity\Users\Personnel and 'getTelBureau' will always evaluate to true.                                           
+         🪪  function.alreadyNarrowedType                                                                                                                            
+         💡  If App\Entity\Users\Personnel::getDisplay() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/remem  
+         bering-and-forgetting-returned-values                                                                                                                       
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ---------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Controller/Structure/GroupesParSemestreController.php                                                              
+ ------ ---------------------------------------------------------------------------------------------------------------------------- 
+  :12    Method App\Controller\Structure\GroupesParSemestreController::__invoke() has no return type specified.                      
+         🪪  missingType.return                                                                                                      
+  :12    Method App\Controller\Structure\GroupesParSemestreController::__invoke() has parameter $semestreId with no type specified.  
+         🪪  missingType.parameter                                                                                                   
+ ------ ---------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------------------------------------- 
+  Line   back/src/DataFixtures/StructureUserFixtures.php                                                     
+ ------ ---------------------------------------------------------------------------------------------------- 
+  :64    Parameter #1 $boursier of method App\Entity\Users\Etudiant::setBoursier() expects bool, int given.  
+         🪪  argument.type                                                                                   
+ ------ ---------------------------------------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Entity/Apc/ApcApprentissageCritique.php                                                                       
+ ------ ----------------------------------------------------------------------------------------------------------------------- 
+  :59    Deprecated in PHP 8.4: Parameter #1 $niveau (App\Entity\Apc\ApcNiveau) is implicitly nullable via default value null.  
+         🪪  parameter.implicitlyNullable                                                                                       
+ ------ ----------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------ 
+  Line   back/src/Entity/Apc/ApcParcours.php                                                 
+ ------ ------------------------------------------------------------------------------------ 
+  :168   Call to an undefined method App\Entity\Structure\StructureDiplome::setParcourss().  
+         🪪  method.notFound                                                                 
+  :178   Call to an undefined method App\Entity\Structure\StructureDiplome::getParcourss().  
+         🪪  method.notFound                                                                 
+  :179   Call to an undefined method App\Entity\Structure\StructureDiplome::setParcourss().  
+         🪪  method.notFound                                                                 
+ ------ ------------------------------------------------------------------------------------ 
+
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Entity/DepartementActualite.php                                                                                                          
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :118   Instanceof between App\Enum\TypePublicEnum and App\Enum\TypePublicEnum will always evaluate to true.                                              
+         🪪  instanceof.alwaysTrue                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.  
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Entity/Edt/EdtEvent.php                                                                                              
+ ------ ------------------------------------------------------------------------------------------------------------------------------ 
+  :177   Method App\Entity\Edt\EdtEvent::getUuid() should return Symfony\Component\Uid\UuidV4 but returns Symfony\Component\Uid\Uuid.  
+         🪪  return.type                                                                                                               
+ ------ ------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Entity/Scolarite/ScolBac.php                                                                                                              
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :81    PHPDoc tag @return with type Doctrine\Common\Collections\Collection<int, App\Entity\Users\Etudiant> is incompatible with native type string|null.  
+         🪪  return.phpDocType                                                                                                                              
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------- 
+  Line   back/src/Entity/Structure/StructureCalendrier.php         
+ ------ ---------------------------------------------------------- 
+  :111   Call to an undefined method DateTimeInterface::modify().  
+         🪪  method.notFound                                       
+ ------ ---------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Entity/Structure/StructureDepartementPersonnel.php                                                            
+ ------ ----------------------------------------------------------------------------------------------------------------------- 
+  :97    Property App\Entity\Structure\StructureDepartementPersonnel::$packages (array) on left side of ?? is not nullable.     
+         🪪  nullCoalesce.property                                                                                              
+  :109   Property App\Entity\Structure\StructureDepartementPersonnel::$permissions (array) on left side of ?? is not nullable.  
+         🪪  nullCoalesce.property                                                                                              
+ ------ ----------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Entity/Structure/StructureTypeDiplome.php                                                                                                  
+ ------ ---------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :165   Parameter #1 $typeDiplome of method App\Entity\Apc\ApcReferentiel::setTypeDiplome() expects App\Entity\Structure\StructureTypeDiplome, null given.  
+         🪪  argument.type                                                                                                                                   
+ ------ ---------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------------------------- 
+  Line   back/src/Entity/Traits/LifeCycleTrait.php                                       
+ ------ -------------------------------------------------------------------------------- 
+  :15    Trait App\Entity\Traits\LifeCycleTrait is used zero times and is not analysed.  
+         🪪  trait.unused                                                                
+         💡  See: https://phpstan.org/blog/how-phpstan-analyses-traits                   
+ ------ -------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------- 
+  Line   back/src/Entity/Users/Etudiant.php                                                     
+ ------ --------------------------------------------------------------------------------------- 
+  :501   Access to an undefined property App\Entity\Users\Etudiant::$demandeurEmploi.           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :502   Access to an undefined property App\Entity\Users\Etudiant::$demandeurEmploi.           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :503   Access to an undefined property App\Entity\Users\Etudiant::$loginSpecifique.           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :504   Access to an undefined property App\Entity\Users\Etudiant::$loginSpecifique.           
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :505   Access to an undefined property App\Entity\Users\Etudiant::$formationContinue.         
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :506   Access to an undefined property App\Entity\Users\Etudiant::$formationContinue.         
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :507   Access to an undefined property App\Entity\Users\Etudiant::$intituleSecuriteSociale.   
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :508   Access to an undefined property App\Entity\Users\Etudiant::$intituleSecuriteSociale.   
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :509   Access to an undefined property App\Entity\Users\Etudiant::$adresseSecuriteSociale.    
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+  :510   Access to an undefined property App\Entity\Users\Etudiant::$adresseSecuriteSociale.    
+         🪪  property.notFound                                                                  
+         💡  Learn more: https://phpstan.org/blog/solving-phpstan-access-to-undefined-property  
+ ------ --------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Entity/Users/Personnel.php                                                                                               
+ ------ ---------------------------------------------------------------------------------------------------------------------------------- 
+  :744   Expression on left side of ?? is not nullable.                                                                                    
+         🪪  nullCoalesce.expr                                                                                                             
+  :872   Parameter #1 $auteur of method HelpdeskBundle\Entity\HelpdeskTicket::setAuteur() expects App\Entity\Users\Personnel, null given.  
+         🪪  argument.type                                                                                                                 
+ ------ ---------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------ 
+  Line   back/src/EventListener/JWTCreatedListener.php                                             
+ ------ ------------------------------------------------------------------------------------------ 
+  :22    Call to an undefined method Symfony\Component\Security\Core\User\UserInterface::getId().  
+         🪪  method.notFound                                                                       
+ ------ ------------------------------------------------------------------------------------------ 
+
+ ------ --------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/EventListener/Scheduler/SchedulerEventListener.php                                                                      
+ ------ --------------------------------------------------------------------------------------------------------------------------------- 
+  :32    Method App\EventListener\Scheduler\SchedulerEventListener::updateTaskExecution() has parameter $context with no type specified.  
+         🪪  missingType.parameter                                                                                                        
+ ------ --------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/AnneeFilter.php                                                                                                                             
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :15    Method App\Filter\AnneeFilter::filterProperty() has parameter $value with no type specified.                                                                
+         🪪  missingType.parameter                                                                                                                                   
+  :79    Method App\Filter\AnneeFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?: string,  
+         strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{departement: arr  
+         ay{property: 'departement', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, pn: array{property: 'pn', type: 'int', required:      
+         false, openapi: array{description: 'Filter by pn'}}, anneeUniversitaire: array{property: 'anneeUniversitaire', type: 'int', required: false, openapi:       
+         array{description: 'Filter by…'}}, diplome: array{property: 'diplome', type: 'int', required: false, openapi: array{description: 'Filter by diploma'}},     
+         actif: array{property: 'actif', type: 'bool', required: false, openapi: array{description: 'Filter by actif…'}}}.                                           
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/CompetenceFilter.php                                                                                                                        
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :15    Method App\Filter\CompetenceFilter::filterProperty() has parameter $value with no type specified.                                                           
+         🪪  missingType.parameter                                                                                                                                   
+  :51    Method App\Filter\CompetenceFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?:     
+         string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{ue: arra  
+         y{property: 'ue', type: 'int', required: false, openapi: array{description: 'Filter by ue'}}, referentiel: array{property: 'referentiel', type: 'int',      
+         required: false, openapi: array{description: 'Filter by…'}}}.                                                                                               
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/DepartementFilter.php                                                                                                                       
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :16    Method App\Filter\DepartementFilter::filterProperty() has parameter $value with no type specified.                                                          
+         🪪  missingType.parameter                                                                                                                                   
+  :41    Method App\Filter\DepartementFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?:    
+         string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{personne  
+         l: array{property: 'personnel', type: 'int', required: false, openapi: array{description: 'Filter by personnel'}}, actif: array{property: 'actif', type:    
+         'bool', required: false, openapi: array{description: 'Filter by active…'}}}.                                                                                
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/DepartementPersonnelFilter.php                                                                                                              
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :15    Method App\Filter\DepartementPersonnelFilter::filterProperty() has parameter $value with no type specified.                                                 
+         🪪  missingType.parameter                                                                                                                                   
+  :46    Method App\Filter\DepartementPersonnelFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool,         
+         description?: string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns   
+         array{departement: array{property: 'departement', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, personnel: array{property:      
+         'departement', type: 'int', required: false, openapi: array{description: 'Filter by personnel'}}}.                                                          
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+  :70    Method App\Filter\DepartementPersonnelFilter::getOrCreateJoin() is unused.                                                                                  
+         🪪  method.unused                                                                                                                                           
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/DiplomeFilter.php                                                                                                                           
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :15    Method App\Filter\DiplomeFilter::filterProperty() has parameter $value with no type specified.                                                              
+         🪪  missingType.parameter                                                                                                                                   
+  :41    Method App\Filter\DiplomeFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?:        
+         string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{departem  
+         ent: array{property: 'departement', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, anneeUniversitaire: array{property:           
+         'anneeUniversitaire', type: 'int', required: false, openapi: array{description: 'Filter by année…'}}}.                                                      
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/EdtFilter.php                                                                                                                               
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :16    Method App\Filter\EdtFilter::filterProperty() has parameter $value with no type specified.                                                                  
+         🪪  missingType.parameter                                                                                                                                   
+  :134   Method App\Filter\EdtFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?: string,    
+         strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{anneeUniversitai  
+         re: array{property: 'anneeUniversitaire', type: 'int', required: false, openapi: array{description: 'Filter by année…'}}, semaineFormation:                 
+         array{property: 'semaineFormation', type: 'int', required: false, openapi: array{description: 'Filter by semaine…'}}, personnel: array{property:            
+         'personnel', type: 'int', required: false, openapi: array{description: 'Filter by personnel'}}, departement: array{property: 'departement', type: 'int',    
+         required: false, openapi: array{description: 'Filter by department'}}, semestre: array{property: 'semestre', type: 'int', required: false, openapi:         
+         array{description: 'Filter by semester'}}, day: array{property: 'day', type: 'string', required: false, openapi: array{description: 'Filter events to…'}},  
+         debut: array{property: 'debut', type: 'string', required: false, openapi: array{description: 'Filter events to…'}}, fin: array{property: 'fin', type:       
+         'string', required: false, openapi: array{description: 'Filter events to…'}}, ...}.                                                                         
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/EnseignementFilter.php                                                                                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :15    Method App\Filter\EnseignementFilter::filterProperty() has parameter $value with no type specified.                                                         
+         🪪  missingType.parameter                                                                                                                                   
+  :79    Method App\Filter\EnseignementFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?:   
+         string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{semestre  
+         : array{property: 'semestre', type: 'int', required: false, openapi: array{description: 'Filter by semestre'}}, departement: array{property:                
+         'departement', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, ue: array{property: 'ue', type: 'int', required: false, openapi:   
+         array{description: 'Filter by UE'}}, actif: array{property: 'actif', type: 'bool', required: false, openapi: array{description: 'Filter by actif…'}},       
+         annee: array{property: 'annee', type: 'int', required: false, openapi: array{description: 'Filter by année'}}, anneeUniversitaire: array{property:          
+         'anneeUniversitaire', type: 'int', required: false, openapi: array{description: 'Filter by année…'}}}.                                                      
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/EtudiantFilter.php                                                                                                                          
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :15    Method App\Filter\EtudiantFilter::filterProperty() has parameter $value with no type specified.                                                             
+         🪪  missingType.parameter                                                                                                                                   
+  :76    Method App\Filter\EtudiantFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?:       
+         string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{departem  
+         ent: array{property: 'departement', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, anneeUniversitaire: array{property:           
+         'anneeUniversitaire', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, semestre: array{property: 'semestre', type: 'int',          
+         required: false, openapi: array{description: 'Filter by semestre'}}, annee: array{property: 'annee', type: 'int', required: false, openapi:                 
+         array{description: 'Filter by annee'}}, groupe: array{property: 'groupe', type: 'int', required: false, openapi: array{description: 'Filter by groupe'}}}.  
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/EtudiantNoteFilter.php                                                                                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :15    Method App\Filter\EtudiantNoteFilter::filterProperty() has parameter $value with no type specified.                                                         
+         🪪  missingType.parameter                                                                                                                                   
+  :41    Method App\Filter\EtudiantNoteFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?:   
+         string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{etudiant  
+         : array{property: 'etudiant', type: 'int', required: false, openapi: array{description: 'Filter by etudiant'}}, evaluation: array{property: 'evaluation',   
+         type: 'int', required: false, openapi: array{description: 'Filter by evaluation'}}}.                                                                        
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/EtudiantScolariteFilter.php                                                                                                                 
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :15    Method App\Filter\EtudiantScolariteFilter::filterProperty() has parameter $value with no type specified.                                                    
+         🪪  missingType.parameter                                                                                                                                   
+  :86    Method App\Filter\EtudiantScolariteFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool,            
+         description?: string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns   
+         array{departement: array{property: 'departement', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, anneeUniversitaire:             
+         array{property: 'anneeUniversitaire', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, etudiant: array{property: 'etudiant',       
+         type: 'int', required: false, openapi: array{description: 'Filter by etudiant'}}}.                                                                          
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/EtudiantScolariteSemestreFilter.php                                                                                                         
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :15    Method App\Filter\EtudiantScolariteSemestreFilter::filterProperty() has parameter $value with no type specified.                                            
+         🪪  missingType.parameter                                                                                                                                   
+  :89    Method App\Filter\EtudiantScolariteSemestreFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool,    
+         description?: string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns   
+         array{scolarite: array{property: 'scolarite', type: 'int', required: false, openapi: array{description: 'Filter by scolarite'}}, groupe: array{property:    
+         'groupe', type: 'int', required: false, openapi: array{description: 'Filter by groupe'}}, semestre: array{property: 'semestre', type: 'int', required:      
+         false, openapi: array{description: 'Filter by semestre'}}, etudiant: array{property: 'etudiant', type: 'int', required: false, openapi: array{description:  
+         'Filter by etudiant'}}, anneeUniversitaire: array{property: 'anneeUniversitaire', type: 'int', required: false, openapi: array{description: 'Filter         
+         by…'}}}.                                                                                                                                                    
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ --------------------------------------------------------------------------------------------------- 
+  Line   back/src/Filter/EvaluationFilter.php                                                               
+ ------ --------------------------------------------------------------------------------------------------- 
+  :15    Method App\Filter\EvaluationFilter::filterProperty() has parameter $value with no type specified.  
+         🪪  missingType.parameter                                                                          
+ ------ --------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/GroupeFilter.php                                                                                                                            
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :16    Method App\Filter\GroupeFilter::filterProperty() has parameter $value with no type specified.                                                               
+         🪪  missingType.parameter                                                                                                                                   
+  :40    Method App\Filter\GroupeFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?:         
+         string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{semestre  
+         : array{property: 'semestre', type: 'int', required: false, openapi: array{description: 'Filter by semestre'}}, type: array{property: 'type', type:         
+         'string', required: false, openapi: array{description: 'Filter by type (e.g…'}}}.                                                                           
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/PersonnelEnseignantHrsFilter.php                                                                                                            
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :15    Method App\Filter\PersonnelEnseignantHrsFilter::filterProperty() has parameter $value with no type specified.                                               
+         🪪  missingType.parameter                                                                                                                                   
+  :46    Method App\Filter\PersonnelEnseignantHrsFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool,       
+         description?: string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns   
+         array{personnel: array{property: 'personnel', type: 'int', required: false, openapi: array{description: 'Filter by personnel'}}, annee_universitaire:       
+         array{property: 'annee_universitaire', type: 'int', required: false, openapi: array{description: 'Filter by academic…'}}}.                                  
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/PersonnelFilter.php                                                                                                                         
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :15    Method App\Filter\PersonnelFilter::filterProperty() has parameter $value with no type specified.                                                            
+         🪪  missingType.parameter                                                                                                                                   
+  :91    Method App\Filter\PersonnelFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?:      
+         string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{departem  
+         ent: array{property: 'departement', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, enseignement: array{property:                 
+         'enseignement', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, enseignant: array{property: 'enseignant', type: 'bool',           
+         required: false, openapi: array{description: 'Filter by enseignant'}}}.                                                                                     
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/PnFilter.php                                                                                                                                
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :20    Method App\Filter\PnFilter::filterProperty() has parameter $value with no type specified.                                                                   
+         🪪  missingType.parameter                                                                                                                                   
+  :47    Method App\Filter\PnFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?: string,     
+         strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{diplome: array{p  
+         roperty: 'diplome', type: 'int', required: false, openapi: array{description: 'Filter by diplôme'}}, anneeUniversitaire: array{property:                    
+         'anneeUniversitaire', type: 'int', required: false, openapi: array{description: 'Filter by année…'}}}.                                                      
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/SemaineFormationFilter.php                                                                                                                  
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :15    Method App\Filter\SemaineFormationFilter::filterProperty() has parameter $value with no type specified.                                                     
+         🪪  missingType.parameter                                                                                                                                   
+  :31    Method App\Filter\SemaineFormationFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool,             
+         description?: string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns   
+         array{semaineFormation: array{property: 'semaineFormation', type: 'int', required: false, openapi: array{description: 'Filter by…'}}}.                      
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/SemestreFilter.php                                                                                                                          
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :16    Method App\Filter\SemestreFilter::filterProperty() has parameter $value with no type specified.                                                             
+         🪪  missingType.parameter                                                                                                                                   
+  :63    Method App\Filter\SemestreFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?:       
+         string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{departem  
+         ent: array{property: 'departement', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, diplome: array{property: 'diplome', type:     
+         'int', required: false, openapi: array{description: 'Filter by diplôme'}}, annee: array{property: 'annee', type: 'int', required: false, openapi:           
+         array{description: 'Filter by year'}}, actif: array{property: 'actif', type: 'bool', required: false, openapi: array{description: 'Filter by active…'}}}.   
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Filter/UeFilter.php                                                                                                                                
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :16    Method App\Filter\UeFilter::filterProperty() has parameter $value with no type specified.                                                                   
+         🪪  missingType.parameter                                                                                                                                   
+  :34    Method App\Filter\UeFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool, description?: string,     
+         strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns array{semestre: array{  
+         property: 'semestre', type: 'int', required: false, openapi: array{description: 'Filter by semestre'}}}.                                                    
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------- 
+  Line   back/src/Migration/IntranetV3/Structure/SemestreMigrator.php                         
+ ------ ------------------------------------------------------------------------------------- 
+  :77    Call to an undefined method App\Entity\Structure\StructureSemestre::setIdEduSign().  
+         🪪  method.notFound                                                                  
+  :116   Variable $messages might not be defined.                                             
+         🪪  variable.undefined                                                               
+ ------ ------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------ 
+  Line   back/src/Migration/IntranetV3/Users/EtudiantMigrator.php                
+ ------ ------------------------------------------------------------------------ 
+  :91    Call to an undefined method App\Entity\Users\Etudiant::setIdEduSign().  
+         🪪  method.notFound                                                     
+ ------ ------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Migration/IntranetV3/Users/PersonnelMigrator.php                                                                                                   
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :89    Call to function method_exists() with App\Entity\Users\Personnel and 'setMailPerso' will always evaluate to true.                                           
+         🪪  function.alreadyNarrowedType                                                                                                                            
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.            
+         💡  If App\Entity\Users\Personnel::setOldId() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/remembe  
+         ring-and-forgetting-returned-values                                                                                                                         
+         💡  If App\Entity\Users\Personnel::setStatut() is impure, add @phpstan-impure PHPDoc tag above its declaration. Learn more: https://phpstan.org/blog/rememb  
+         ering-and-forgetting-returned-values                                                                                                                        
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ -------------------------------------------------------------------------------------------------- 
+  Line   back/src/Repository/Apc/ApcCompetenceRepository.php                                               
+ ------ -------------------------------------------------------------------------------------------------- 
+  :23    Method App\Repository\Apc\ApcCompetenceRepository::findByDiplome() has no return type specified.  
+         🪪  missingType.return                                                                            
+ ------ -------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Repository/DepartementActualiteRepository.php                                                                                 
+ ------ --------------------------------------------------------------------------------------------------------------------------------------- 
+  :19    Method App\Repository\DepartementActualiteRepository::findByDepartementAndPublic() has parameter $departement with no type specified.  
+         🪪  missingType.parameter                                                                                                              
+ ------ --------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Repository/Structure/StructureDepartementRepository.php                                                                     
+ ------ ------------------------------------------------------------------------------------------------------------------------------------- 
+  :22    Method App\Repository\Structure\StructureDepartementRepository::findOneByEtudiant() has no return type specified.                    
+         🪪  missingType.return                                                                                                               
+  :22    Method App\Repository\Structure\StructureDepartementRepository::findOneByEtudiant() has parameter $etudiant with no type specified.  
+         🪪  missingType.parameter                                                                                                            
+ ------ ------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Repository/Structure/StructureDiplomeRepository.php                                                          
+ ------ ---------------------------------------------------------------------------------------------------------------------- 
+  :20    Method App\Repository\Structure\StructureDiplomeRepository::findByAnneeUniversitaire() has no return type specified.  
+         🪪  missingType.return                                                                                                
+ ------ ---------------------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Repository/Structure/StructureGroupeRepository.php                                                                      
+ ------ --------------------------------------------------------------------------------------------------------------------------------- 
+  :21    Method App\Repository\Structure\StructureGroupeRepository::findBySemestreId() has no return type specified.                      
+         🪪  missingType.return                                                                                                           
+  :21    Method App\Repository\Structure\StructureGroupeRepository::findBySemestreId() has parameter $semestreId with no type specified.  
+         🪪  missingType.parameter                                                                                                        
+ ------ --------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Repository/Structure/StructureSemestreRepository.php                                                                                   
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :22    Method App\Repository\Structure\StructureSemestreRepository::findSemestresByDepartement() has no return type specified.                         
+         🪪  missingType.return                                                                                                                          
+  :22    Method App\Repository\Structure\StructureSemestreRepository::findSemestresByDepartement() has parameter $departementId with no type specified.  
+         🪪  missingType.parameter                                                                                                                       
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Repository/Traits/FindAllByIdArrayTrait.php (in context of class App\Repository\Structure\StructureTypeDiplomeRepository)  
+ ------ ------------------------------------------------------------------------------------------------------------------------------------ 
+  :25    Call to an undefined method App\Entity\Structure\StructureTypeDiplome::getOldId().                                                  
+         🪪  method.notFound                                                                                                                 
+ ------ ------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   back/src/Repository/TypeHrsRepository.php                             
+ ------ ---------------------------------------------------------------------- 
+  :12    PHPDoc tag @extends has invalid type App\Entity\TypeHrs.              
+         🪪  class.notFound                                                    
+  :16    Class App\Entity\TypeHrs not found.                                   
+         🪪  class.notFound                                                    
+         💡  Learn more at https://phpstan.org/user-guide/discovering-symbols  
+ ------ ---------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Security/DepartmentPermissionChecker.php                                                           
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  :48    Instanceof between App\Entity\Users\Personnel and App\Entity\Users\Personnel will always evaluate to true.  
+         🪪  instanceof.alwaysTrue                                                                                   
+  :63    Unreachable statement - code above always terminates.                                                       
+         🪪  deadCode.unreachable                                                                                    
+ ------ ------------------------------------------------------------------------------------------------------------ 
+
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Security/DepartmentPermissionVoter.php                                                                                                         
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :29    Parameter #1 $user of method App\Security\DepartmentPermissionChecker::checkPermission() expects App\Entity\Users\Etudiant|App\Entity\Users\Personnel,  
+         Symfony\Component\Security\Core\User\UserInterface given.                                                                                               
+         🪪  argument.type                                                                                                                                       
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Security/PostVoter.php                                                                           
+ ------ ---------------------------------------------------------------------------------------------------------- 
+  :193   Instanceof between App\Entity\Users\Etudiant and App\Entity\Users\Etudiant will always evaluate to true.  
+         🪪  instanceof.alwaysTrue                                                                                 
+  :208   Instanceof between App\Entity\Users\Etudiant and App\Entity\Users\Etudiant will always evaluate to true.  
+         🪪  instanceof.alwaysTrue                                                                                 
+  :238   Instanceof between App\Entity\Users\Etudiant and App\Entity\Users\Etudiant will always evaluate to true.  
+         🪪  instanceof.alwaysTrue                                                                                 
+  :434   Instanceof between App\Entity\Users\Etudiant and App\Entity\Users\Etudiant will always evaluate to true.  
+         🪪  instanceof.alwaysTrue                                                                                 
+  :495   Instanceof between App\Entity\Users\Etudiant and App\Entity\Users\Etudiant will always evaluate to true.  
+         🪪  instanceof.alwaysTrue                                                                                 
+  :524   Instanceof between App\Entity\Users\Etudiant and App\Entity\Users\Etudiant will always evaluate to true.  
+         🪪  instanceof.alwaysTrue                                                                                 
+  :554   Instanceof between App\Entity\Users\Etudiant and App\Entity\Users\Etudiant will always evaluate to true.  
+         🪪  instanceof.alwaysTrue                                                                                 
+ ------ ---------------------------------------------------------------------------------------------------------- 
+
+
+ ------ ------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Service/Edt/GenereSlots.php                                                                                    
+ ------ ------------------------------------------------------------------------------------------------------------------------ 
+  :20    Method App\Service\Edt\GenereSlots::genereAllSlots() has no return type specified.                                      
+         🪪  missingType.return                                                                                                  
+  :31    Method App\Service\Edt\GenereSlots::genereSlots() has no return type specified.                                         
+         🪪  missingType.return                                                                                                  
+  :41    Method App\Service\Edt\GenereSlots::genereSlotsFromProgression() has no return type specified.                          
+         🪪  missingType.return                                                                                                  
+  :61    Method App\Service\Edt\GenereSlots::createEdtEvent() has no return type specified.                                      
+         🪪  missingType.return                                                                                                  
+  :64    Call to an undefined method IntranetBundle\Entity\Previsionnel\Previsionnel::getSemestre().                             
+         🪪  method.notFound                                                                                                     
+  :67    Parameter #1 $codePersonnel of method App\Entity\Edt\EdtEvent::setCodePersonnel() expects string|null, int|null given.  
+         🪪  argument.type                                                                                                       
+  :72    Call to an undefined method IntranetBundle\Entity\Previsionnel\Previsionnel::getMatiere().                              
+         🪪  method.notFound                                                                                                     
+  :73    Call to an undefined method IntranetBundle\Entity\Previsionnel\Previsionnel::getMatiere().                              
+         🪪  method.notFound                                                                                                     
+  :74    Call to an undefined method IntranetBundle\Entity\Previsionnel\Previsionnel::getMatiere().                              
+         🪪  method.notFound                                                                                                     
+  :75    Parameter #1 $ordreSeance of method App\Entity\Edt\EdtEvent::setOrdreSeance() expects int|null, string given.           
+         🪪  argument.type                                                                                                       
+  :77    Call to an undefined method IntranetBundle\Entity\Previsionnel\Previsionnel::getSemestre().                             
+         🪪  method.notFound                                                                                                     
+  :86    Method App\Service\Edt\GenereSlots::getGroupes() has no return type specified.                                          
+         🪪  missingType.return                                                                                                  
+  :88    Call to an undefined method IntranetBundle\Entity\Previsionnel\Previsionnel::getSemestre().                             
+         🪪  method.notFound                                                                                                     
+ ------ ------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ---------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/Service/OReOF/SynchroRefFormation.php                                                                        
+ ------ ---------------------------------------------------------------------------------------------------------------------- 
+  :53    Method App\Repository\Apc\ApcCompetenceRepository::findByDiplome() invoked with 2 parameters, 1 required.             
+         🪪  arguments.count                                                                                                   
+  :112   Parameter #1 $ordreAnnee of method App\Entity\Structure\StructureSemestre::setOrdreAnnee() expects int, float given.  
+         🪪  argument.type                                                                                                     
+ ------ ---------------------------------------------------------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/State/Processor/Evaluation/EtudiantNotePersistProcessor.php                                                                              
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :63    Access to undefined constant App\Enum\EtatEvaluationEnum::ETAT_TERMINEE.                                                                          
+         🪪  classConstant.notFound                                                                                                                        
+  :91    Instanceof between App\Entity\Etudiant\EtudiantNote and App\Entity\Etudiant\EtudiantNote will always evaluate to true.                            
+         🪪  instanceof.alwaysTrue                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.  
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------------------- 
+  Line   back/src/State/Processor/Evaluation/ScolEvaluationInitProcessor.php       
+ ------ -------------------------------------------------------------------------- 
+  :140   Access to undefined constant App\Enum\EtatEvaluationEnum::ETAT_TERMINEE.  
+         🪪  classConstant.notFound                                                
+ ------ -------------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/State/Provider/Edt/EdtAgendaProvider.php                                                             
+ ------ -------------------------------------------------------------------------------------------------------------- 
+  :40    Method App\State\Provider\Edt\EdtAgendaProvider::syntheseToDto() has parameter $item with no type specified.  
+         🪪  missingType.parameter                                                                                     
+ ------ -------------------------------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------------------------------------------- 
+  Line   back/src/State/Provider/Edt/EdtStatsProvider.php                                                          
+ ------ ---------------------------------------------------------------------------------------------------------- 
+  :21    Property App\State\Provider\Edt\EdtStatsProvider::$previsionnelRepository is never read, only written.    
+         🪪  property.onlyWritten                                                                                  
+         💡  See: https://phpstan.org/developing-extensions/always-read-written-properties                         
+  :140   Offset 'heures' on array{id: mixed, heures: float} on left side of ?? always exists and is not nullable.  
+         🪪  nullCoalesce.offset                                                                                   
+ ------ ---------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/State/Provider/Etudiant/EtudiantAnneesStatsProvider.php                                                                                            
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :58    Method App\State\Provider\Etudiant\EtudiantAnneesStatsProvider::provide() should return iterable<object>|object|null but returns list<array<string, mixed>  
+         >.                                                                                                                                                          
+         🪪  return.type                                                                                                                                             
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/State/Provider/Etudiant/EtudiantCountProvider.php                                                                                              
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :32    Method App\State\Provider\Etudiant\EtudiantCountProvider::provide() should return iterable<object>|object|null but returns array<string, int>.          
+         🪪  return.type                                                                                                                                         
+  :35    Method App\State\Provider\Etudiant\EtudiantCountProvider::provide() should return iterable<object>|object|null but returns array<string, int<0, max>>.  
+         🪪  return.type                                                                                                                                         
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/State/Provider/Etudiant/EtudiantListeProvider.php                                                                               
+ ------ ----------------------------------------------------------------------------------------------------------------------------------------- 
+  :46    Method App\State\Provider\Etudiant\EtudiantListeProvider::provide() should return iterable<object>|object|null but returns list<array>.  
+         🪪  return.type                                                                                                                          
+ ------ ----------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/State/Provider/Etudiant/EtudiantTrombinoscopeProvider.php                                                                                       
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :66    Call to function method_exists() with App\ApiDto\EtudiantScolariteSemestre\EtudiantScolariteSemestreDto and 'getEtudiant' will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :68    Call to function is_array() with array will always evaluate to true.                                                                                     
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :70    Call to function method_exists() with App\ApiDto\EtudiantScolariteSemestre\EtudiantScolariteSemestreDto and 'getEtudiant' will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :72    Call to function is_array() with array will always evaluate to true.                                                                                     
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :123   Call to function method_exists() with App\ApiDto\EtudiantScolariteSemestre\EtudiantScolariteSemestreDto and 'getEtudiant' will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :125   Call to function is_array() with array will always evaluate to true.                                                                                     
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :127   Call to function method_exists() with App\ApiDto\EtudiantScolariteSemestre\EtudiantScolariteSemestreDto and 'getEtudiant' will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :129   Call to function is_array() with array will always evaluate to true.                                                                                     
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/State/Provider/EtudiantScolariteSemestre/EtudiantScolariteSemestreProvider.php                                                                  
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :67    Call to function method_exists() with App\ApiDto\EtudiantScolariteSemestre\EtudiantScolariteSemestreDto and 'getEtudiant' will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :69    Call to function is_array() with array will always evaluate to true.                                                                                     
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :71    Call to function method_exists() with App\ApiDto\EtudiantScolariteSemestre\EtudiantScolariteSemestreDto and 'getEtudiant' will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :73    Call to function is_array() with array will always evaluate to true.                                                                                     
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :125   Call to function method_exists() with App\ApiDto\EtudiantScolariteSemestre\EtudiantScolariteSemestreDto and 'getEtudiant' will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :127   Call to function is_array() with array will always evaluate to true.                                                                                     
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :129   Call to function method_exists() with App\ApiDto\EtudiantScolariteSemestre\EtudiantScolariteSemestreDto and 'getEtudiant' will always evaluate to true.  
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+  :131   Call to function is_array() with array will always evaluate to true.                                                                                     
+         🪪  function.alreadyNarrowedType                                                                                                                         
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.         
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   back/src/State/Provider/Personnel/PersonnelConfigProvider.php                                                                                               
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :51    Method App\State\Provider\Personnel\PersonnelConfigProvider::provide() should return iterable<object>|object|null but returns array<int|string, array|int>  
+         .                                                                                                                                                           
+         🪪  return.type                                                                                                                                             
+  :57    Method App\State\Provider\Personnel\PersonnelConfigProvider::formatPersonnel() has parameter $item with no type specified.                                  
+         🪪  missingType.parameter                                                                                                                                   
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ---------------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   back/src/State/Provider/Personnel/PersonnelCountProvider.php                                                                                              
+ ------ ---------------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :31    Method App\State\Provider\Personnel\PersonnelCountProvider::provide() should return iterable<object>|object|null but returns array<string, int>.          
+         🪪  return.type                                                                                                                                           
+  :34    Method App\State\Provider\Personnel\PersonnelCountProvider::provide() should return iterable<object>|object|null but returns array<string, int<0, max>>.  
+         🪪  return.type                                                                                                                                           
+ ------ ---------------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------ 
+  Line   back/src/Utils/JsonRequest.php                                                                        
+ ------ ------------------------------------------------------------------------------------------------------ 
+  :12    Deprecated in PHP 8.4: Parameter #1 $content (string) is implicitly nullable via default value null.  
+         🪪  parameter.implicitlyNullable                                                                      
+  :30    Strict comparison using === between string and null will always evaluate to false.                    
+         🪪  identical.alwaysFalse                                                                             
+ ------ ------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------ 
+  Line   packages/auth-bundle/src/Controller/AuthController.php                                    
+ ------ ------------------------------------------------------------------------------------------ 
+  :80    Call to an undefined method Symfony\Component\Security\Core\User\UserInterface::getId().  
+         🪪  method.notFound                                                                       
+ ------ ------------------------------------------------------------------------------------------ 
+
+ ------ ---------------------------------------------------------------------------------------------------------- 
+  Line   packages/auth-bundle/src/Services/Dashboard/Provider/AuthWidgetDataProvider.php                           
+ ------ ---------------------------------------------------------------------------------------------------------- 
+  :45    Instanceof between App\Entity\Users\Etudiant and App\Entity\Users\Etudiant will always evaluate to true.  
+         🪪  instanceof.alwaysTrue                                                                                 
+         💡  Remove remaining cases below this one and this error will disappear too.                              
+ ------ ---------------------------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------------------- 
+  Line   packages/document-bundle/src/Command/MigrateIntranetV3DocumentCommand.php         
+ ------ ---------------------------------------------------------------------------------- 
+  :95    Variable $currentMigration on left side of ?? always exists and is always null.   
+         🪪  nullCoalesce.variable                                                         
+  :98    Cannot call method advance() on null.                                             
+         🪪  method.nonObject                                                              
+  :99    Strict comparison using !== between null and null will always evaluate to false.  
+         🪪  notIdentical.alwaysFalse                                                      
+ ------ ---------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/document-bundle/src/DataFixtures/DocumentFixtures.php                                                                                              
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :97    Offset 'children' on array{libelle: 'Finance &…', icon: '💰', color: 'bg-green-500', packageKey: 'intranet', isSystem: true, children: array{array{libelle:  
+         'Budgets…', icon: '📈', color: 'bg-green-400', packageKey: 'intranet', isSystem: true}, array{libelle: 'Factures &…', icon: '📊', color: 'bg-green-400',    
+         packageKey: 'intranet', isSystem: true}}}|array{libelle: 'Ressources Humaines', icon: '👥', color: 'bg-blue-500', packageKey: 'intranet', isSystem: true,   
+         children: array{array{libelle: 'Contrats', icon: '📋', color: 'bg-blue-400', packageKey: 'intranet', isSystem: true}, array{libelle: 'Formations', icon:    
+         '🎓', color: 'bg-blue-400', packageKey: 'intranet', isSystem: true}}}|array{libelle: 'Stages & Alternances', icon: '💼', color: 'bg-teal-500', packageKey:  
+         'stage', isSystem: true, children: array{array{libelle: 'Modèles de…', icon: '📝', color: 'bg-teal-400', packageKey: 'stage', isSystem: true},              
+         array{libelle: 'Fiches d\'Offres de…', icon: '📄', color: 'bg-teal-400', packageKey: 'stage', isSystem: true}}}|array{libelle: 'Technique &…', icon: '⚙️',  
+         color: 'bg-purple-500', packageKey: null, isSystem: false, children: array{array{libelle: 'Documentation API', icon: '🔧', color: 'bg-purple-400',          
+         packageKey: null, isSystem: false}, array{libelle: 'Guides Utilisateur', icon: '📖', color: 'bg-purple-400', packageKey: null, isSystem: false}}} in        
+         isset() always exists and is not nullable.                                                                                                                  
+         🪪  isset.offset                                                                                                                                            
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ---------------------------------------------------------------------- 
+  Line   packages/helpdesk-bundle/src/Entity/HelpdeskTicket.php                
+ ------ ---------------------------------------------------------------------- 
+  :26    Class HelpdeskBundle\Entity\MessageFilter not found.                  
+         🪪  class.notFound                                                    
+         💡  Learn more at https://phpstan.org/user-guide/discovering-symbols  
+ ------ ---------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/helpdesk-bundle/src/Filter/TicketFilter.php                                                                                                        
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :16    Method HelpdeskBundle\Filter\TicketFilter::filterProperty() has parameter $value with no type specified.                                                    
+         🪪  missingType.parameter                                                                                                                                   
+  :54    Method HelpdeskBundle\Filter\TicketFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool,            
+         description?: string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns   
+         array{latest: array{property: 'latest', type: 'int', required: false, openapi: array{description: 'Filter by latests…'}}, auteur: array{property:           
+         'auteur', type: 'int', required: false, openapi: array{description: 'Filter by auteur'}}, statut: array{property: 'statut', type: 'string', required:       
+         false, openapi: array{description: 'Filter by statut'}}, hasRecentMessage: array{property: 'hasRecentMessage', type: 'bool', required: false, openapi:      
+         array{description: 'Filter by new…'}}}.                                                                                                                     
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ -------------------------------------------------------------------------- 
+  Line   packages/helpdesk-bundle/src/Security/TicketVoter.php                     
+ ------ -------------------------------------------------------------------------- 
+  :67    Method HelpdeskBundle\Security\TicketVoter::hasAnyRole() is unused.       
+         🪪  method.unused                                                         
+  :77    Method HelpdeskBundle\Security\TicketVoter::canCreateTicket() is unused.  
+         🪪  method.unused                                                         
+ ------ -------------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------------------------- 
+  Line   packages/intranet-bundle/src/Controller/CreateEtudiantController.php            
+ ------ -------------------------------------------------------------------------------- 
+  :251   Call to an undefined method App\Entity\Etudiant\EtudiantScolarite::addAnnee().  
+         🪪  method.notFound                                                             
+ ------ -------------------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------------------------------------------------------------- 
+  Line   packages/intranet-bundle/src/Controller/GroupesParSemestreController.php                                                     
+ ------ ----------------------------------------------------------------------------------------------------------------------------- 
+  :12    Method IntranetBundle\Controller\GroupesParSemestreController::__invoke() has no return type specified.                      
+         🪪  missingType.return                                                                                                       
+  :12    Method IntranetBundle\Controller\GroupesParSemestreController::__invoke() has parameter $semestreId with no type specified.  
+         🪪  missingType.parameter                                                                                                    
+ ------ ----------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------------------------------------------------- 
+  Line   packages/intranet-bundle/src/Entity/Etudiant/EtudiantAbsenceJustificatif.php                                    
+ ------ ---------------------------------------------------------------------------------------------------------------- 
+  :267   Method IntranetBundle\Entity\Etudiant\EtudiantAbsenceJustificatif::getEtudiant() has no return type specified.  
+         🪪  missingType.return                                                                                          
+ ------ ---------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/intranet-bundle/src/Filter/AbsenceFilter.php                                                                                                       
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :16    Method IntranetBundle\Filter\AbsenceFilter::filterProperty() has parameter $value with no type specified.                                                   
+         🪪  missingType.parameter                                                                                                                                   
+  :105   Method IntranetBundle\Filter\AbsenceFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool,           
+         description?: string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns   
+         array{annee: array{property: 'annee', type: 'int', required: false, openapi: array{description: 'Filter by annee'}}, anneeUniversitaire: array{property:    
+         'anneeUniversitaire', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, justifiee: array{property: 'justifiee', type: 'bool',       
+         required: false, openapi: array{description: 'Filter by justifiee'}}, event: array{property: 'event', type: 'int', required: false, openapi:                
+         array{description: 'Filter by event'}}, personnel: array{property: 'personnel', type: 'int', required: false, openapi: array{description: 'Filter by        
+         personnel'}}, scolariteSemestre: array{property: 'scolariteSemestre', type: 'int', required: false, openapi: array{description: 'Filter by…'}}}.            
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/intranet-bundle/src/Filter/JustificatifAbsenceFilter.php                                                                                           
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :13    Method IntranetBundle\Filter\JustificatifAbsenceFilter::filterProperty() has parameter $value with no type specified.                                       
+         🪪  missingType.parameter                                                                                                                                   
+  :107   Method IntranetBundle\Filter\JustificatifAbsenceFilter::getDescription() should return array<string, array{property?: string, type?: string, required?:     
+         bool, description?: string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but re  
+         turns array{annee: array{property: 'annee', type: 'int', required: false, openapi: array{description: 'Filter by annee'}}, anneeUniversitaire:              
+         array{property: 'anneeUniversitaire', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, etat: array{property: 'etat', type:         
+         'string', required: false, openapi: array{description: 'Filter by etat'}}, motif: array{property: 'motif', type: 'string', required: false, openapi:        
+         array{description: 'Filter by motif'}}, etudiant: array{property: 'etudiant', type: 'string', required: false, openapi: array{description: 'Filter by       
+         etudiant…'}}, debut: array{property: 'debut', type: 'string', required: false, openapi: array{description: 'Filter by start date'}}, fin: array{property:   
+         'fin', type: 'string', required: false, openapi: array{description: 'Filter by end date'}}}.                                                                
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/intranet-bundle/src/Filter/PrevisionnelFilter.php                                                                                                  
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :31    Method IntranetBundle\Filter\PrevisionnelFilter::filterProperty() has parameter $value with no type specified.                                              
+         🪪  missingType.parameter                                                                                                                                   
+  :117   Method IntranetBundle\Filter\PrevisionnelFilter::getDescription() should return array<string, array{property?: string, type?: string, required?: bool,      
+         description?: string, strategy?: string, is_collection?: bool, openapi?: ApiPlatform\OpenApi\Model\Parameter, schema?: array<string, mixed>}> but returns   
+         array{personnel: array{property: 'personnel', type: 'int', required: false, openapi: array{description: 'Filter by personnel'}}, anneeUniversitaire:        
+         array{property: 'anneeUniversitaire', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, departement: array{property:                
+         'departement', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, diplome: array{property: 'diplome', type: 'int', required: false,  
+         openapi: array{description: 'Filter by diplome'}}, semestre: array{property: 'semestre', type: 'int', required: false, openapi: array{description: 'Filter  
+         by semestre'}}, enseignement: array{property: 'enseignement', type: 'int', required: false, openapi: array{description: 'Filter by…'}}, annee:              
+         array{property: 'annee', type: 'int', required: false, openapi: array{description: 'Filter by annee'}}}.                                                    
+         🪪  return.type                                                                                                                                             
+         💡  Offset 'openapi' (ApiPlatform\OpenApi\Model\Parameter) does not accept type array<string, string>.                                                      
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ---------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   packages/intranet-bundle/src/Service/Absence/JustificatifReconciliationService.php                                                                  
+ ------ ---------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :29    Instanceof between App\Entity\Etudiant\EtudiantScolariteSemestre and App\Entity\Etudiant\EtudiantScolariteSemestre will always evaluate to true.    
+         🪪  instanceof.alwaysTrue                                                                                                                           
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.    
+  :78    Instanceof between IntranetBundle\Entity\Etudiant\EtudiantAbsence and IntranetBundle\Entity\Etudiant\EtudiantAbsence will always evaluate to true.  
+         🪪  instanceof.alwaysTrue                                                                                                                           
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.    
+ ------ ---------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/intranet-bundle/src/State/Provider/Absence/AbsenceEpisodeProvider.php                                                                              
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :53    Method IntranetBundle\State\Provider\Absence\AbsenceEpisodeProvider::provide() should return iterable<object>|object|null but returns array<int, array<str  
+         ing, mixed>>.                                                                                                                                               
+         🪪  return.type                                                                                                                                             
+  :58    Method IntranetBundle\State\Provider\Absence\AbsenceEpisodeProvider::provide() should return iterable<object>|object|null but returns array<int, array<str  
+         ing, mixed>>.                                                                                                                                               
+         🪪  return.type                                                                                                                                             
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/intranet-bundle/src/State/Provider/Absence/AbsenceStatsProvider.php                                                                                
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :57    Method IntranetBundle\State\Provider\Absence\AbsenceStatsProvider::provide() should return iterable<object>|object|null but returns array<string, array<st  
+         ring, int|string>>.                                                                                                                                         
+         🪪  return.type                                                                                                                                             
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   packages/intranet-bundle/src/State/Provider/Previsionnel/PreviStatsEdtProvider.php                                                                
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :20    Property IntranetBundle\State\Provider\Previsionnel\PreviStatsEdtProvider::$previsionnelRepository is never read, only written.                   
+         🪪  property.onlyWritten                                                                                                                          
+         💡  See: https://phpstan.org/developing-extensions/always-read-written-properties                                                                 
+  :43    Strict comparison using !== between (int|string) and null will always evaluate to true.                                                           
+         🪪  notIdentical.alwaysTrue                                                                                                                       
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.  
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/intranet-bundle/src/State/Provider/Previsionnel/PrevisionnelAllPersonnelsProvider.php                                                              
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :183   Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelAllPersonnelsProvider::provide() should return iterable<object>|object|null but returns arra  
+         y<string, array<int<0, max>|string, float|int|IntranetBundle\Dto\Previsionnel\PrevisionnelAllPersonnelsDto>>.                                               
+         🪪  return.type                                                                                                                                             
+  :191   Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelAllPersonnelsProvider::toDto() has parameter $group with no type specified.                   
+         🪪  missingType.parameter                                                                                                                                   
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/intranet-bundle/src/State/Provider/Previsionnel/PrevisionnelEnseignementProvider.php                                                               
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :34    Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelEnseignementProvider::provide() should return iterable<object>|object|null but returns array  
+         <string, array>.                                                                                                                                            
+         🪪  return.type                                                                                                                                             
+  :90    Variable $item might not be defined.                                                                                                                        
+         🪪  variable.undefined                                                                                                                                      
+  :93    Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelEnseignementProvider::provide() should return iterable<object>|object|null but returns array  
+         <string, array<int|string, mixed>>.                                                                                                                         
+         🪪  return.type                                                                                                                                             
+  :101   Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelEnseignementProvider::toDto() has no return type specified.                                   
+         🪪  missingType.return                                                                                                                                      
+  :101   Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelEnseignementProvider::toDto() has parameter $item with no type specified.                     
+         🪪  missingType.parameter                                                                                                                                   
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/intranet-bundle/src/State/Provider/Previsionnel/PrevisionnelPersonnelProvider.php                                                                  
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :52    Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelPersonnelProvider::provide() should return iterable<object>|object|null but returns array<in  
+         t, array<string, int|string>>.                                                                                                                              
+         🪪  return.type                                                                                                                                             
+  :154   Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelPersonnelProvider::provide() should return iterable<object>|object|null but returns array<in  
+         t, array<int<0, max>|string, float|int|IntranetBundle\Dto\Previsionnel\PrevisionnelPersonnelDto|string>>.                                                   
+         🪪  return.type                                                                                                                                             
+  :162   Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelPersonnelProvider::toDto() has parameter $item with no type specified.                        
+         🪪  missingType.parameter                                                                                                                                   
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/intranet-bundle/src/State/Provider/Previsionnel/PrevisionnelSemestreProvider.php                                                                   
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :62    Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelSemestreProvider::provide() should return iterable<object>|object|null but returns array<int  
+         , array<string, array<string, int>|int>>.                                                                                                                   
+         🪪  return.type                                                                                                                                             
+  :147   Variable $item might not be defined.                                                                                                                        
+         🪪  variable.undefined                                                                                                                                      
+  :148   Variable $item might not be defined.                                                                                                                        
+         🪪  variable.undefined                                                                                                                                      
+  :149   Variable $item might not be defined.                                                                                                                        
+         🪪  variable.undefined                                                                                                                                      
+  :212   Variable $item might not be defined.                                                                                                                        
+         🪪  variable.undefined                                                                                                                                      
+  :215   Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelSemestreProvider::provide() should return iterable<object>|object|null but returns array<int  
+         , array<int<0, max>|string, array<string, (float|int)>|float|IntranetBundle\Dto\Previsionnel\PrevisionnelSemestreDto>>.                                     
+         🪪  return.type                                                                                                                                             
+  :223   Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelSemestreProvider::syntheseToDto() has parameter $group with no type specified.                
+         🪪  missingType.parameter                                                                                                                                   
+  :258   Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelSemestreProvider::formToDto() has parameter $item with no type specified.                     
+         🪪  missingType.parameter                                                                                                                                   
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/intranet-bundle/src/State/Provider/Previsionnel/PrevisionnelSemestreTestProvider.php                                                               
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :18    Property IntranetBundle\State\Provider\Previsionnel\PrevisionnelSemestreTestProvider::$itemProvider is never read, only written.                            
+         🪪  property.onlyWritten                                                                                                                                    
+         💡  See: https://phpstan.org/developing-extensions/always-read-written-properties                                                                           
+  :19    Property IntranetBundle\State\Provider\Previsionnel\PrevisionnelSemestreTestProvider::$semestreRepository is never read, only written.                      
+         🪪  property.onlyWritten                                                                                                                                    
+         💡  See: https://phpstan.org/developing-extensions/always-read-written-properties                                                                           
+  :60    Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelSemestreTestProvider::provide() should return iterable<object>|object|null but returns array  
+         <string, array<array<mixed>|IntranetBundle\Dto\Previsionnel\PrevisionnelSemestreDto>>.                                                                      
+         🪪  return.type                                                                                                                                             
+  :67    Method IntranetBundle\State\Provider\Previsionnel\PrevisionnelSemestreTestProvider::formToDto() has parameter $item with no type specified.                 
+         🪪  missingType.parameter                                                                                                                                   
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ -------------------------------------------------------------------------------------------------------------------------- 
+  Line   packages/questionnaire-bundle/src/Controller/QuestionnaireExportController.php                                            
+ ------ -------------------------------------------------------------------------------------------------------------------------- 
+  :52    Access to undefined constant PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_3.                            
+         🪪  classConstant.notFound                                                                                                
+  :105   Access to undefined constant PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_PERCENTAGE_3.                            
+         🪪  classConstant.notFound                                                                                                
+  :146   Cannot use ++ on literal-string.                                                                                          
+         🪪  postInc.type                                                                                                          
+         💡  Operator ++ is deprecated for non-numeric-strings. Either narrow the type to numeric-string, or use str_increment().  
+  :155   Cannot use ++ on literal-string.                                                                                          
+         🪪  postInc.type                                                                                                          
+         💡  Operator ++ is deprecated for non-numeric-strings. Either narrow the type to numeric-string, or use str_increment().  
+ ------ -------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   packages/questionnaire-bundle/src/Domain/Questionnaire/Duplicate/DuplicateQuestionnaireService.php                                                
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :29    Expression on left side of ?? is not nullable.                                                                                                    
+         🪪  nullCoalesce.expr                                                                                                                             
+  :51    Expression on left side of ?? is not nullable.                                                                                                    
+         🪪  nullCoalesce.expr                                                                                                                             
+  :72    Expression on left side of ?? is not nullable.                                                                                                    
+         🪪  nullCoalesce.expr                                                                                                                             
+  :88    Call to function is_array() with non-empty-array will always evaluate to true.                                                                    
+         🪪  function.alreadyNarrowedType                                                                                                                  
+         💡  Because the type is coming from a PHPDoc, you can turn off this check by setting treatPhpDocTypesAsCertain: false in your back/phpstan.neon.  
+ ------ -------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------ 
+  Line   packages/questionnaire-bundle/src/Domain/Questionnaire/Mapping/QuestionRuntimeMapper.php  
+ ------ ------------------------------------------------------------------------------------------ 
+  :55    Call to function is_array() with non-empty-array will always evaluate to true.            
+         🪪  function.alreadyNarrowedType                                                          
+ ------ ------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/questionnaire-bundle/src/Domain/Questionnaire/Publish/PublishQuestionnaireService.php                                                              
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :38    Offset 'sortOrder' does not exist on array{sectionTemplate: QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSection, title: string, repeatItemType:  
+         string|null, repeatItemId: string|null, order: int}.                                                                                                        
+         🪪  offsetAccess.notFound                                                                                                                                   
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/questionnaire-bundle/src/Domain/Questionnaire/Structure/QuestionnaireStructureService.php                                                          
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :12    Property QuestionnaireBundle\Domain\Questionnaire\Structure\QuestionnaireStructureService::$repeatRegistry is never read, only written.                     
+         🪪  property.onlyWritten                                                                                                                                    
+         💡  See: https://phpstan.org/developing-extensions/always-read-written-properties                                                                           
+  :57    Method QuestionnaireBundle\Domain\Questionnaire\Structure\QuestionnaireStructureService::buildPlan() should return list<array{sectionTemplate: Questionnai  
+         reBundle\Entity\Questionnaires\QuestionnaireSection, title: string, repeatItemType: string|null, repeatItemId: string|null, order: int}> but returns list<  
+         array{sectionTemplate: QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSection, title: array<string>|string|null, repeatItemType: mixed, repeatItem  
+         Id: mixed, sortOrder: int<1, max>}>.                                                                                                                        
+         🪪  return.type                                                                                                                                             
+         💡  Array does not have offset 'order'.                                                                                                                     
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   packages/questionnaire-bundle/src/Email/QuestionnaireInvitationEmail.php                                                                           
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :32    Method QuestionnaireBundle\Email\QuestionnaireInvitationEmail::getTxtTemplatePath() never returns null so it can be removed from the return type.  
+         🪪  return.unusedType                                                                                                                              
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   packages/questionnaire-bundle/src/Email/QuestionnaireReminderEmail.php                                                                           
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :32    Method QuestionnaireBundle\Email\QuestionnaireReminderEmail::getTxtTemplatePath() never returns null so it can be removed from the return type.  
+         🪪  return.unusedType                                                                                                                            
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   packages/questionnaire-bundle/src/Entity/Questionnaires/QuestionnaireSectionInstance.php                                                       
+ ------ ----------------------------------------------------------------------------------------------------------------------------------------------- 
+  :60    Property QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSectionInstance::$repeatSectionItemId (int|null) does not accept string|null.  
+         🪪  assign.propertyType                                                                                                                        
+ ------ ----------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  Line   packages/questionnaire-bundle/src/Security/QuestionnaireVoter.php                                           
+ ------ ------------------------------------------------------------------------------------------------------------ 
+  :89    Unreachable statement - code above always terminates.                                                       
+         🪪  deadCode.unreachable                                                                                    
+  :125   Method QuestionnaireBundle\Security\QuestionnaireVoter::isSuperAdmin() is unused.                           
+         🪪  method.unused                                                                                           
+  :137   Method QuestionnaireBundle\Security\QuestionnaireVoter::canViewQuestionnaire() is unused.                   
+         🪪  method.unused                                                                                           
+  :157   Method QuestionnaireBundle\Security\QuestionnaireVoter::canEditQuestionnaire() is unused.                   
+         🪪  method.unused                                                                                           
+  :168   Method QuestionnaireBundle\Security\QuestionnaireVoter::canDeleteQuestionnaire() is unused.                 
+         🪪  method.unused                                                                                           
+  :177   Method QuestionnaireBundle\Security\QuestionnaireVoter::canPublishQuestionnaire() is unused.                
+         🪪  method.unused                                                                                           
+  :189   Method QuestionnaireBundle\Security\QuestionnaireVoter::canViewSection() is unused.                         
+         🪪  method.unused                                                                                           
+  :195   Method QuestionnaireBundle\Security\QuestionnaireVoter::canEditSection() is unused.                         
+         🪪  method.unused                                                                                           
+  :205   Method QuestionnaireBundle\Security\QuestionnaireVoter::canDeleteSection() is unused.                       
+         🪪  method.unused                                                                                           
+  :216   Method QuestionnaireBundle\Security\QuestionnaireVoter::canViewQuestion() is unused.                        
+         🪪  method.unused                                                                                           
+  :221   Method QuestionnaireBundle\Security\QuestionnaireVoter::canEditQuestion() is unused.                        
+         🪪  method.unused                                                                                           
+  :231   Method QuestionnaireBundle\Security\QuestionnaireVoter::canDeleteQuestion() is unused.                      
+         🪪  method.unused                                                                                           
+  :242   Method QuestionnaireBundle\Security\QuestionnaireVoter::canViewInvitation() is unused.                      
+         🪪  method.unused                                                                                           
+  :255   Instanceof between App\Entity\Users\Etudiant and App\Entity\Users\Etudiant will always evaluate to true.    
+         🪪  instanceof.alwaysTrue                                                                                   
+  :258   Method QuestionnaireBundle\Security\QuestionnaireVoter::canEditInvitation() is unused.                      
+         🪪  method.unused                                                                                           
+  :267   Method QuestionnaireBundle\Security\QuestionnaireVoter::canDeleteInvitation() is unused.                    
+         🪪  method.unused                                                                                           
+  :278   Method QuestionnaireBundle\Security\QuestionnaireVoter::canViewAnswers() is unused.                         
+         🪪  method.unused                                                                                           
+  :290   Method QuestionnaireBundle\Security\QuestionnaireVoter::canSubmitAnswers() is unused.                       
+         🪪  method.unused                                                                                           
+  :298   Instanceof between App\Entity\Users\Personnel and App\Entity\Users\Personnel will always evaluate to true.  
+         🪪  instanceof.alwaysTrue                                                                                   
+ ------ ------------------------------------------------------------------------------------------------------------ 
+
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------------- 
+  Line   packages/questionnaire-bundle/src/Services/Analytics/QuestionnaireAnalyticsService.php                                                                   
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------------- 
+  :36    Offset 'pending'|'started'|'submitted' on array{submitted: int<0, max>, started: int<0, max>, pending: int<0, max>} in isset() always exists and is not  
+         nullable.                                                                                                                                                
+         🪪  isset.offset                                                                                                                                         
+ ------ --------------------------------------------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  Line   packages/questionnaire-bundle/src/State/Provider/Questionnaire/Preview/PreviewIndexProvider.php                                                             
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+  :42    Offset 'sortOrder' does not exist on array{sectionTemplate: QuestionnaireBundle\Entity\Questionnaires\QuestionnaireSection, title: string, repeatItemType:  
+         string|null, repeatItemId: string|null, order: int}.                                                                                                        
+         🪪  offsetAccess.notFound                                                                                                                                   
+ ------ ------------------------------------------------------------------------------------------------------------------------------------------------------------ 
+
+ ------ ------------------------------------------------------------------------------------------------------------------- 
+  Line   packages/questionnaire-bundle/src/State/Provider/Questionnaire/Runtime/SaveAnswersProcessor.php                    
+ ------ ------------------------------------------------------------------------------------------------------------------- 
+  :47    Offset 'questionId' on array{questionId: int, value: mixed} on left side of ?? always exists and is not nullable.  
+         🪪  nullCoalesce.offset                                                                                            
+ ------ ------------------------------------------------------------------------------------------------------------------- 
+
+ ------ ------------------------------------------------------------------------------------------------------- 
+  Line   packages/questionnaire-bundle/src/State/Provider/Questionnaire/Runtime/StudentInvitationsProvider.php  
+ ------ ------------------------------------------------------------------------------------------------------- 
+  :55    Using nullsafe property access "?->value" on left side of ?? is unnecessary. Use -> instead.           
+         🪪  nullsafe.neverNull                                                                                 
+ ------ ------------------------------------------------------------------------------------------------------- 
+
+ ------ ---------------------------------------------------------------------------------- 
+  Line   packages/stage-bundle/src/Command/MigrateIntranetV3StageCommand.php               
+ ------ ---------------------------------------------------------------------------------- 
+  :78    Variable $currentMigration on left side of ?? always exists and is always null.   
+         🪪  nullCoalesce.variable                                                         
+  :81    Cannot call method advance() on null.                                             
+         🪪  method.nonObject                                                              
+  :82    Strict comparison using !== between null and null will always evaluate to false.  
+         🪪  notIdentical.alwaysFalse                                                      
+ ------ ---------------------------------------------------------------------------------- 
+
+ ------ ----------------------------------------------------------------------------- 
+  Line   packages/stage-bundle/src/DataFixtures/StageFixtures.php                     
+ ------ ----------------------------------------------------------------------------- 
+  :77    Call to an undefined method App\Entity\Users\Etudiant::setSemestreActuel().  
+         🪪  method.notFound                                                          
+ ------ ----------------------------------------------------------------------------- 
+
+ [ERROR] Found 276 errors                                                                                               
+

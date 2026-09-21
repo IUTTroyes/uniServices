@@ -79,7 +79,7 @@ final class DiplomeMigrator extends AbstractMigrator
                         'espace_perso_visible' => (bool) $row['opt_espace_perso_visible'],
                         'semaine_visible' => (int) $row['opt_semaines_visibles'],
                         'certif_qualite' => (bool) $row['opt_certifie_qualite'],
-                        'resp_qualite' => (int) $row['opt_responsable_qualite'],
+                        'resp_qualite' => (int) $row['opt_responsable_qualite_id'],
                         'update_celcat' => (bool) $row['opt_update_celcat'],
                         'saisie_cm_autorisee' => (bool) $row['saisie_cm_autorise'],
                     ]);

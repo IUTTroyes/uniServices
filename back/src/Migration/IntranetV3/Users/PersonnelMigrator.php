@@ -62,7 +62,7 @@ SQL;
                     ->setEntreprise($row['entreprise'])
                     ->setBureau($this->mergeBureaux($row['bureau1'], $row['bureau2']))
                     ->setNumeroHarpege(null !== $row['numero_harpege'] && '' !== trim((string) $row['numero_harpege']) ? (int) $row['numero_harpege'] : null)
-                    ->setInitiales($row['initiales'])
+                    ->setInitiales(null !== $row['initiales'] && '' !== trim((string) $row['initiales']) ? mb_substr(trim((string) $row['initiales']), 0, 10) : null)
                     ->setNbHeuresService(null !== $row['nb_heures_service'] ? (int) round((float) $row['nb_heures_service']) : null)
                     ->setSitePerso($row['site_perso'])
                     ->setSiteUniv($row['site_univ'])
@@ -166,6 +166,10 @@ SQL;
             static fn (string $value): bool => '' !== $value,
         ));
 
-        return [] === $parts ? null : implode(' / ', array_unique($parts));
+        if ([] === $parts) {
+            return null;
+        }
+
+        return mb_substr(implode(' / ', array_unique($parts)), 0, 100);
     }
 }

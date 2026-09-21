@@ -56,7 +56,7 @@ class ApcApprentissageCritique
     private ?ApcNiveau $niveau = null;
 
     public function __construct(
-        ApcNiveau $niveau = null,
+        ?ApcNiveau $niveau = null,
     )
     {
         $this->niveau = $niveau;

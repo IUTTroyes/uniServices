@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controller\Stage;
+namespace StageBundle\Controller\Stage;
 
 use App\Entity\Users\Personnel;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,7 +22,7 @@ class StageSoutenanceController extends AbstractController
         $this->em = $em;
     }
 
-    private function getIdFromIri($id): ?int
+    private function getIdFromIri(string $id): ?int
     {
         if ($id === null || $id === '') {
             return null;
