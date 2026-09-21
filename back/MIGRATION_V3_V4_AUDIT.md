@@ -1013,3 +1013,61 @@ Les prochains points réellement structurants restent principalement :
 - relations Groupe ↔ parcours/APC ;
 - SAÉ ↔ Ressource ;
 - fichiers physiques et sécurisation des resets Stage/Document.
+
+
+---
+
+# 21. Initialisation des données propres à UniServices V4
+
+Les données nécessaires à une installation V4 mais qui ne proviennent pas réellement d'une entité V3 sont désormais séparées des migrateurs.
+
+## Architecture
+
+Un mécanisme générique d'initialisation a été ajouté hors du namespace `Migration/IntranetV3` :
+
+- `App\Initialization\InitializerInterface`
+- `App\Initialization\InitializationRunner`
+- `App\Initialization\EtablissementInitializer`
+
+Les initializers sont enregistrés automatiquement avec le tag `app.initializer`.
+
+Lors d'une migration V3 complète, l'ordre devient :
+
+1. reset éventuel ;
+2. initialisation des données V4 ;
+3. migration V3 → V4 ;
+4. contrôles d'intégrité.
+
+Une migration nommée ne rejoue pas les initializers : ceux-ci sont destinés au bootstrap global.
+
+## Etablissement
+
+`EtablissementInitializer` crée ou met à jour l'établissement principal de façon idempotente.
+
+La recherche se fait d'abord sur `isMain=true`, puis sur le libellé configuré. L'initializer ne crée donc pas un établissement supplémentaire à chaque exécution.
+
+Les données sont définies par la configuration `app.establishment`, elle-même alimentée par des variables d'environnement :
+
+- `ETABLISSEMENT_LIBELLE`
+- `ETABLISSEMENT_SITE_WEB`
+- `ETABLISSEMENT_TELEPHONE`
+- `ETABLISSEMENT_ADRESSE`
+- `ETABLISSEMENT_ADRESSE_COMPLEMENT1`
+- `ETABLISSEMENT_ADRESSE_COMPLEMENT2`
+- `ETABLISSEMENT_VILLE`
+- `ETABLISSEMENT_CODE_POSTAL`
+- `ETABLISSEMENT_PAYS`
+
+Les valeurs par défaut du projet initialisent actuellement l'Université de Reims Champagne-Ardenne. Les données spécifiques à une autre installation peuvent être remplacées par l'environnement sans modifier le code.
+
+## Dry-run
+
+L'initializer respecte `MigrationContext::dryRun` via une transaction dédiée lorsqu'il est exécuté seul avant le runner de migration. Les données sont flushées afin de détecter les contraintes Doctrine/SQL, puis rollbackées.
+
+## Principe retenu
+
+Une donnée doit aller dans un **migrateur** si sa source de vérité est la V3 et qu'elle doit être transformée.
+
+Une donnée doit aller dans un **initializer** si elle est requise par UniServices V4 mais relève de la configuration/du bootstrap de l'installation.
+
+Cette séparation doit être conservée pour les futures données obligatoires V4 absentes de la V3.
