@@ -589,7 +589,6 @@ onUnmounted(() => {
               v-tooltip.bottom="`Synchroniser les groupes depuis Apogée il faut attendre 24h entre la saisie dans Apogée et la possibilité de synchroniser`"
           />
         </div>
-        <Button label="Initialiser toutes les évaluations" icon="pi pi-plus-circle" severity="primary" size="small" @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')" :disabled="isLoadingEtudiants || isLoadingGroupes || isRepartitionLoading"/>
       </div>
     </div>
     <div class="card-body">

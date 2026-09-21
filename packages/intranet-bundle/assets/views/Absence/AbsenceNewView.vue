@@ -197,6 +197,8 @@ const getEtudiantsScolSemestre = async () => {
 };
 
 const getEdtEvents = async () => {
+  //todo: si prof lambda -> ne voit que ses events, si min resp absences -> voit tous les events
+
   isLoadingEvents.value = true;
   try {
     if (!date.value || !selectedGroupe.value?.id) {
