@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Initialization\InitializationRunner;
 use App\Migration\IntranetV3\DatabaseResetter;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationRegistry;
@@ -26,6 +27,7 @@ final class MigrateIntranetV3Command extends Command
         private readonly MigrationRunner $runner,
         private readonly MigrationRegistry $registry,
         private readonly DatabaseResetter $databaseResetter,
+        private readonly InitializationRunner $initializationRunner,
         #[Autowire(param: 'kernel.environment')]
         private readonly string $kernelEnvironment,
     ) {
@@ -91,6 +93,20 @@ final class MigrateIntranetV3Command extends Command
         }
 
         $migration = $input->getArgument('migration');
+
+        $initializationResults = [];
+        if (null === $migration) {
+            try {
+                $initializationResults = $this->initializationRunner->run(new MigrationContext(
+                    dryRun: (bool) $input->getOption('dry-run'),
+                    verbose: $output->isVerbose(),
+                ));
+            } catch (\Throwable $exception) {
+                $io->error('Application initialization failed: ' . $exception->getMessage());
+
+                return Command::FAILURE;
+            }
+        }
         $progressEnabled = !$input->getOption('no-progress') && !$output->isQuiet();
 
         try {
@@ -182,7 +198,7 @@ final class MigrateIntranetV3Command extends Command
             }
         }
 
-        if ($results === []) {
+        if ($results === [] && $initializationResults === []) {
             $io->warning('No migration is registered yet.');
 
             return Command::SUCCESS;
@@ -190,6 +206,11 @@ final class MigrateIntranetV3Command extends Command
 
         $rows = [];
         $hasFailure = false;
+
+        foreach ($initializationResults as $name => $result) {
+            $rows[] = [$name, $result->created, $result->updated, $result->skipped, $result->failed, $result->total()];
+            $hasFailure = $hasFailure || $result->failed > 0;
+        }
         foreach ($results as $name => $result) {
             $rows[] = [$name, $result->created, $result->updated, $result->skipped, $result->failed, $result->total()];
             $hasFailure = $hasFailure || $result->failed > 0;
