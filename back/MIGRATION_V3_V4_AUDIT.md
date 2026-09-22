@@ -1089,3 +1089,67 @@ Le reset MySQL/MariaDB utilise `TRUNCATE`, qui nécessite un metadata lock. Une 
 Le reset configure maintenant un `SESSION lock_wait_timeout` court (5 secondes). En cas de verrou concurrent, la commande échoue donc avec une erreur exploitable au lieu d'attendre indéfiniment.
 
 Avec `-v`, la commande affiche également chaque table juste avant son `TRUNCATE`, ce qui permet d'identifier immédiatement la table sur laquelle un verrou est rencontré.
+
+
+---
+
+# 22. Recette migration complète — premier run réel
+
+Bilan reçu après reset + migration complète :
+- initialisation établissement : OK ;
+- types diplômes, départements, APC, diplômes, années universitaires, PN et années : créations cohérentes ;
+- `semestres` : **672 échecs / 672** ;
+- `etudiants` : **5974 créés / 674 échecs** ;
+- de nombreuses migrations aval sont ensuite à 0 création ou entièrement skipped.
+
+## Cause racine identifiée — semestres
+
+Le SELECT du `SemestreMigrator` expose les colonnes :
+- `opt_dest_mail_releve_id`
+- `opt_dest_mail_modif_note_id`
+- `opt_dest_mail_absence_resp_id`
+
+mais le mapping lisait respectivement les clés sans suffixe `_id`.
+
+Cela provoquait une exception sur **chaque semestre** avant persist.
+
+✅ Corrigé.
+
+Conséquence importante : une grande partie des résultats suivants n'est **pas interprétable comme une anomalie de données** sur ce run. Sans semestre cible :
+- aucune UE ;
+- aucune ressource/SAÉ/matière ;
+- aucune scolarité semestrielle ;
+- aucun rattachement étudiant-groupe ;
+- aucune évaluation ;
+- aucune note ;
+- prévisionnels et autres données dépendantes sont skipped/non créés.
+
+Ces compteurs devront être réévalués après un nouveau reset + run complet.
+
+## Ordonnancement APC ↔ Diplômes
+
+`apc-diplome-liens` s'exécutait avant `diplomes`. Les 63 lignes étaient donc skipped puisque le `StructureDiplome` cible n'existait pas encore.
+
+✅ `ApcDiplomeLinkMigrator` dépend maintenant explicitement de `DiplomeMigrator`.
+
+Les 63 skips observés sur ce run ne constituent donc pas une perte de données source.
+
+## Etudiants
+
+Les **674 échecs étudiants** sont indépendants de la panne des semestres et restent à diagnostiquer.
+
+Le migrateur capture déjà le message exact par étudiant. Au prochain run, exécuter la commande avec `-v` permettra de récupérer ces messages dans le bilan détaillé.
+
+Ce point est désormais **P0 recette** : il faut identifier si les 674 lignes partagent une contrainte cible (username/mail, valeur de date, longueur, enum, champ obligatoire, doublon, etc.) avant de considérer la migration utilisateurs comme validée.
+
+## Lecture du prochain run
+
+Le prochain run complet doit d'abord vérifier les invariants suivants :
+
+1. `semestres` : créations > 0 et failed = 0 ;
+2. `ues`, `matieres`, `apc-ressources`, `apc-sae` : ne doivent plus rester artificiellement à zéro ;
+3. `apc-diplome-liens` : les 63 liens doivent être traités après les diplômes ;
+4. `scolarites`, `evaluations`, `notes` : les énormes volumes de skips doivent fortement diminuer ;
+5. `etudiants` : analyser séparément les 674 échecs persistants.
+
+Le bilan de ce premier run est donc utile principalement comme **test d'intégration de l'ordre des migrateurs et des dépendances structurelles**, mais ne doit pas encore servir de bilan de couverture final.
