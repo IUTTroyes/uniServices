@@ -1170,3 +1170,17 @@ Une passe mémoire a donc été ajoutée :
 Objectif : rendre la consommation mémoire approximativement bornée par la taille d'un batch plutôt que par la totalité du graphe structurel déjà migré.
 
 Cette optimisation est préférable à une simple augmentation du `memory_limit`, qui masquerait la rétention Doctrine sans corriger sa cause.
+
+
+### Correction recette : batching des snapshots
+
+Le run suivant a créé seulement **3 semestres** alors que 419 années snapshot étaient présentes. La cause était la première optimisation mémoire : un `EntityManager::clear()` pouvait intervenir au milieu de la boucle clonant les descendants d'un même parent (`StructurePn` ou `StructureAnnee`). Le parent devenait alors détaché pendant que la boucle source continuait à l'utiliser.
+
+La stratégie a été corrigée :
+- le parent reste managé pendant la totalité de ses descendants ;
+- flush + clear à la **frontière du parent** (fin d'un PN pour les années, fin d'une année pour les semestres) ;
+- le `MigrationRunner` conserve son clear entre migrateurs.
+
+Les cardinalités par parent sont faibles (quelques années par PN, quelques semestres par année), donc cette frontière fournit un batch mémoire naturel et sûr sans conserver l'intégralité du graphe.
+
+Les skips massifs observés sur évaluations, notes, scolarités et prévisionnels dans ce run restent des conséquences du snapshot incomplet et doivent être réévalués après cette correction.
