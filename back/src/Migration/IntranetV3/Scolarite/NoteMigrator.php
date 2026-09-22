@@ -16,6 +16,7 @@ use Symfony\Component\Uid\Uuid;
 final class NoteMigrator extends AbstractMigrator
 {
     private const MAX_DIAGNOSTIC_SAMPLES = 20;
+    private const SOURCE_PAGE_SIZE = 2000;
 
     public function getName(): string
     {
@@ -42,7 +43,14 @@ final class NoteMigrator extends AbstractMigrator
         ];
         $sampleCount = 0;
 
-        $sql = <<<'SQL'
+        // Do not stream the whole note table through one PDO result set.
+        // With MySQL/PDO the driver may buffer the complete result (~500k rows)
+        // before iterateAssociative() can yield the first row. Keyset pagination
+        // keeps the source result bounded without OFFSET degradation.
+        $lastId = 0;
+
+        do {
+            $sql = <<<'SQL'
 SELECT
     n.id,
     n.etudiant_id,
@@ -54,10 +62,23 @@ SELECT
 FROM note n
 INNER JOIN evaluation e ON e.id = n.evaluation_id
 WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
+  AND n.id > :last_id
 ORDER BY n.id
+LIMIT :page_size
 SQL;
 
-        foreach ($this->source->executeQuery($sql)->iterateAssociative() as $row) {
+            $pageCount = 0;
+            $result = $this->source->executeQuery($sql, [
+                'last_id' => $lastId,
+                'page_size' => self::SOURCE_PAGE_SIZE,
+            ], [
+                'last_id' => \Doctrine\DBAL\ParameterType::INTEGER,
+                'page_size' => \Doctrine\DBAL\ParameterType::INTEGER,
+            ]);
+
+            foreach ($result->iterateAssociative() as $row) {
+                ++$pageCount;
+                $lastId = (int) $row['id'];
             try {
                 $evaluation = $this->entityManager->getRepository(ScolEvaluation::class)
                     ->findOneBy(['uuid' => $this->uuidFromHex($row['evaluation_uuid_hex'])]);
@@ -174,9 +195,15 @@ SQL;
                 ));
             }
 
-            ++$processed;
-            $this->flushBatch($context, $processed);
-        }
+                ++$processed;
+                $this->flushBatch($context, $processed);
+            }
+
+            $result->free();
+            // flushBatch already bounds the ORM UnitOfWork; this additionally
+            // releases the PDO page before asking the source for the next one.
+            gc_collect_cycles();
+        } while ($pageCount === self::SOURCE_PAGE_SIZE);
 
         $this->flushAndClear($context);
 
