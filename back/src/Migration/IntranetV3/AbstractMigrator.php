@@ -66,6 +66,17 @@ abstract class AbstractMigrator implements MigratorInterface
         $this->entityManager->clear();
     }
 
+    /**
+     * Flushes the current UnitOfWork and clears Doctrine when the batch limit is reached.
+     * Useful for snapshot-cloning migrators whose source loop is not a single flat row stream.
+     */
+    protected function flushAndClearBatch(MigrationContext $context, int $processed): void
+    {
+        if ($processed > 0 && 0 === $processed % self::BATCH_SIZE) {
+            $this->flushAndClear($context);
+        }
+    }
+
     protected function resolveUuid(mixed $value): \Symfony\Component\Uid\Uuid
     {
         if ($value instanceof \Symfony\Component\Uid\Uuid) {
