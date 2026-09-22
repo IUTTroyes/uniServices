@@ -185,204 +185,162 @@ const deleteObject = async (objectType, id) => {
   />
   <ErrorView v-if="hasError"/>
   <div v-else class="card h-full">
-    <div v-if="isLoadingDiplomes">
-      <SimpleSkeleton width="100%" class="mb-6"/>
-      <div class="flex flex-row justify-between">
-        <SimpleSkeleton width="20%" class="mb-6"/>
-        <SimpleSkeleton width="10%" class="mb-6"/>
-      </div>
-    </div>
-    <div v-else>
-      <Tabs :value="selectedDiplome?.id || diplomes[0]?.id" scrollable>
-        <TabList>
-          <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="changeDiplome(diplome)">
-            <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span>
-          </Tab>
-        </TabList>
-      </Tabs>
-    </div>
+    <div class="card-header">
 
-    <Loader v-if="isLoadingDiplome" class="mt-6"/>
-    <div v-else class="mt-6">
-      <PermissionGuard permission="isSuperAdmin">
-        <ButtonDelete tooltip="Supprimer ce Diplôme" @confirm-delete="deleteObject('diplome', selectedDiplome.id)"/>
-        <Tag severity="info">ID Diplome: {{ selectedDiplome.id }}</Tag>
-      </PermissionGuard>
-      <div class="flex justify-between items-center my-6">
-        <div class="text-xl font-bold">{{ selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné` }}</div>
-        <Button
-            @click="visibleDialogOreof = true"
-            label="Synchronisation depuis ORéOF"
-            icon="pi pi-refresh"/>
+    </div>
+    <div class="card-body">
+      <div v-if="isLoadingDiplomes">
+        <SimpleSkeleton width="100%" class="mb-6"/>
+        <div class="flex flex-row justify-between">
+          <SimpleSkeleton width="20%" class="mb-6"/>
+          <SimpleSkeleton width="10%" class="mb-6"/>
+        </div>
       </div>
-      <div class="text-muted-color mb-4">Responsable du diplome :
-        {{ selectedDiplome?.responsableDiplome?.display ?? `Pas de responsable` }}
+      <div v-else>
+        <Tabs :value="selectedDiplome?.id || diplomes[0]?.id" scrollable>
+          <TabList>
+            <Tab v-for="diplome in diplomes" :key="diplome.libelle" :value="diplome.id" @click="changeDiplome(diplome)">
+              <span>{{ diplome.typeDiplome.sigle }}</span> | <span>{{ diplome.sigle }}</span>
+            </Tab>
+          </TabList>
+        </Tabs>
       </div>
-      <template v-if="pn">
+
+      <Loader v-if="isLoadingDiplome" class="mt-6"/>
+      <div v-else class="mt-6">
         <PermissionGuard permission="isSuperAdmin">
-          <ButtonDelete tooltip="Supprimer ce Pn" @confirm-delete="deleteObject('pn', pn.id)"/>
-          <Tag severity="info">ID Pn: {{ pn.id }}</Tag>
+          <ButtonDelete tooltip="Supprimer ce Diplôme" @confirm-delete="deleteObject('diplome', selectedDiplome.id)"/>
+          <Tag severity="info">ID Diplome: {{ selectedDiplome.id }}</Tag>
         </PermissionGuard>
-        <Fieldset v-for="annee in pn.annees" :legend="`${annee.libelle}`" :toggleable="true">
-          <template #toggleicon>
-            <i class="pi pi-angle-down"></i>
-          </template>
-          <div class="border-l-4 border-primary-500 pl-4">
-            <div class="mb-1 text-lg">{{ annee.libelleLong }}</div>
-            <PermissionGuard permission="isSuperAdmin">
-              <ButtonDelete tooltip="Supprimer cette année du Pn" @confirm-delete="deleteObject('annee', annee.id)"/>
-              <Tag severity="info">ID Année: {{ annee.id }}</Tag>
-            </PermissionGuard>
-            <div class="my-6 flex flex-row items-center gap-4">
-              <table class="text-lg">
-                <thead>
-                <tr class="border-b">
-                  <th class="px-2 font-normal text-muted-color text-start">Année</th>
-                  <th class="px-2 font-normal text-muted-color text-start">Code étape</th>
-                  <th class="px-2 font-normal text-muted-color text-start">Code version</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                  <td class="px-2 font-bold">{{ annee.libelle }}</td>
-                  <td class="px-2 font-bold">{{ annee.apogeeCodeEtape }}</td>
-                  <td class="px-2 font-bold">{{ annee.apogeeCodeVersion }}</td>
-                </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div v-for="semestre in annee.semestres" class="ml-6 border-l-4 border-primary-300 pl-4">
+        <div class="flex justify-between items-center my-6">
+          <div class="text-xl font-bold">{{ selectedDiplome?.parcours?.display ?? `Aucun parcours renseigné` }}</div>
+          <Button
+              @click="visibleDialogOreof = true"
+              label="Synchronisation depuis ORéOF"
+              icon="pi pi-refresh"/>
+        </div>
+        <div class="text-muted-color mb-4">Responsable du diplome :
+          {{ selectedDiplome?.responsableDiplome?.display ?? `Pas de responsable` }}
+        </div>
+        <template v-if="pn">
+          <PermissionGuard permission="isSuperAdmin">
+            <ButtonDelete tooltip="Supprimer ce Pn" @confirm-delete="deleteObject('pn', pn.id)"/>
+            <Tag severity="info">ID Pn: {{ pn.id }}</Tag>
+          </PermissionGuard>
+          <Fieldset v-for="annee in pn.annees" :legend="`${annee.libelle}`" :toggleable="true">
+            <template #toggleicon>
+              <i class="pi pi-angle-down"></i>
+            </template>
+            <div class="border-l-4 border-primary-500 pl-4">
+              <div class="mb-1 text-lg">{{ annee.libelleLong }}</div>
               <PermissionGuard permission="isSuperAdmin">
-                <ButtonDelete tooltip="Supprimer ce semestre du Pn" @confirm-delete="deleteObject('semestre', semestre.id)"/>
-                <Tag severity="info">ID Semestre: {{ semestre.id }}</Tag>
+                <ButtonDelete tooltip="Supprimer cette année du Pn" @confirm-delete="deleteObject('annee', annee.id)"/>
+                <Tag severity="info">ID Année: {{ annee.id }}</Tag>
               </PermissionGuard>
-              <div class="mt-6 mb-2 flex flex-row items-center gap-4">
+              <div class="my-6 flex flex-row items-center gap-4">
                 <table class="text-lg">
                   <thead>
                   <tr class="border-b">
-                    <th class="px-2 font-normal text-muted-color text-start">Semestre</th>
-                    <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
-                    <th class="px-2 font-normal text-muted-color text-start">Nbr. d'UEs</th>
-
+                    <th class="px-2 font-normal text-muted-color text-start">Année</th>
+                    <th class="px-2 font-normal text-muted-color text-start">Code étape</th>
+                    <th class="px-2 font-normal text-muted-color text-start">Code version</th>
                   </tr>
                   </thead>
                   <tbody>
                   <tr>
-                    <td class="px-2 font-bold">{{ semestre.libelle }}</td>
-                    <td class="px-2 font-bold">{{ semestre.codeElement }}</td>
-                    <td class="px-2 font-bold">{{ semestre.ues?.length ?? '' }}</td>
+                    <td class="px-2 font-bold">{{ annee.libelle }}</td>
+                    <td class="px-2 font-bold">{{ annee.apogeeCodeEtape }}</td>
+                    <td class="px-2 font-bold">{{ annee.apogeeCodeVersion }}</td>
                   </tr>
                   </tbody>
                 </table>
               </div>
-              <Fieldset v-for="ue in semestre.ues" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`"
-                        class="ml-6" :collapsed="true">
-                <template #toggleicon>
-                  <i class="pi pi-angle-down"></i>
-                </template>
+
+              <div v-for="semestre in annee.semestres" class="ml-6 border-l-4 border-primary-300 pl-4">
                 <PermissionGuard permission="isSuperAdmin">
-                  <ButtonDelete tooltip="Supprimer cette UE du Pn" @confirm-delete="deleteObject('ue', ue.id)"/>
-                  <Tag severity="info">ID UE: {{ ue.id }}</Tag>
+                  <ButtonDelete tooltip="Supprimer ce semestre du Pn" @confirm-delete="deleteObject('semestre', semestre.id)"/>
+                  <Tag severity="info">ID Semestre: {{ semestre.id }}</Tag>
                 </PermissionGuard>
-                <div class="my-6 flex flex-row items-center gap-4">
+                <div class="mt-6 mb-2 flex flex-row items-center gap-4">
                   <table class="text-lg">
                     <thead>
                     <tr class="border-b">
-                      <th class="px-2 font-normal text-muted-color text-start">UE</th>
+                      <th class="px-2 font-normal text-muted-color text-start">Semestre</th>
                       <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
-                      <th v-if="selectedDiplome.typeDiplome.apc" class="px-2 font-normal text-muted-color text-start">
-                        Compétence Apc
-                      </th>
-                      <th class="px-2 font-normal text-muted-color text-start">Nb. ECTS</th>
-                      <th v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-normal text-muted-color text-start">
-                        Coeff
-                      </th>
+                      <th class="px-2 font-normal text-muted-color text-start">Nbr. d'UEs</th>
+
                     </tr>
                     </thead>
                     <tbody>
                     <tr>
-                      <td class="px-2 font-bold">{{ ue.libelle }}</td>
-                      <td class="px-2 font-bold">{{ ue.codeElement }}</td>
-                      <td v-if="selectedDiplome.typeDiplome.apc" :class="ue.competence?.couleur ?? 'bg-gray-300'"
-                          class="px-2 font-bold !w-fit !bg-opacity-40">{{ ue.competence?.nomCourt ?? '-erreur-' }}
-                      </td>
-                      <td class="px-2 font-bold !w-fit">{{ ue.nbEcts }}</td>
-                      <td v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-bold !w-fit">0</td>
+                      <td class="px-2 font-bold">{{ semestre.libelle }}</td>
+                      <td class="px-2 font-bold">{{ semestre.codeElement }}</td>
+                      <td class="px-2 font-bold">{{ semestre.ues?.length ?? '' }}</td>
                     </tr>
                     </tbody>
                   </table>
-                  <Button icon="pi pi-cog" rounded outlined severity="warn" @click=""
-                          v-tooltip.top="`Accéder aux paramètres`"/>
                 </div>
+                <Fieldset v-for="ue in semestre.ues" :toggleable="true" :legend="`${ue.numero} . ${ue.displayApc}`"
+                          class="ml-6" :collapsed="true">
+                  <template #toggleicon>
+                    <i class="pi pi-angle-down"></i>
+                  </template>
+                  <PermissionGuard permission="isSuperAdmin">
+                    <ButtonDelete tooltip="Supprimer cette UE du Pn" @confirm-delete="deleteObject('ue', ue.id)"/>
+                    <Tag severity="info">ID UE: {{ ue.id }}</Tag>
+                  </PermissionGuard>
+                  <div class="my-6 flex flex-row items-center gap-4">
+                    <table class="text-lg">
+                      <thead>
+                      <tr class="border-b">
+                        <th class="px-2 font-normal text-muted-color text-start">UE</th>
+                        <th class="px-2 font-normal text-muted-color text-start">Code élément</th>
+                        <th v-if="selectedDiplome.typeDiplome.apc" class="px-2 font-normal text-muted-color text-start">
+                          Compétence Apc
+                        </th>
+                        <th class="px-2 font-normal text-muted-color text-start">Nb. ECTS</th>
+                        <th v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-normal text-muted-color text-start">
+                          Coeff
+                        </th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <tr>
+                        <td class="px-2 font-bold">{{ ue.libelle }}</td>
+                        <td class="px-2 font-bold">{{ ue.codeElement }}</td>
+                        <td v-if="selectedDiplome.typeDiplome.apc" :class="ue.competence?.couleur ?? 'bg-gray-300'"
+                            class="px-2 font-bold !w-fit !bg-opacity-40">{{ ue.competence?.nomCourt ?? '-erreur-' }}
+                        </td>
+                        <td class="px-2 font-bold !w-fit">{{ ue.nbEcts }}</td>
+                        <td v-if="!selectedDiplome.typeDiplome.apc" class="px-2 font-bold !w-fit">0</td>
+                      </tr>
+                      </tbody>
+                    </table>
+                    <Button icon="pi pi-cog" rounded outlined severity="warn" @click=""
+                            v-tooltip.top="`Accéder aux paramètres`"/>
+                  </div>
 
-                <div v-for="enseignementUe in ue.enseignementUes"
-                     class="!border-l-4 !border-l-primary-200 !pl-4 !border-0">
-                  <Fieldset v-if="!enseignementUe.enseignement.parent" legend="" :toggleable="true">
-                    <template #toggleicon>
-                      <i class="pi pi-angle-down"></i>
-                      <div>{{ enseignementUe.enseignement.libelle }}</div>
-                      <Tag v-if="enseignementUe.enseignement.enfants && enseignementUe.enseignement.enfants.length >= 1"
-                           severity="danger">Ressource parent
-                      </Tag>
-                    </template>
-                    <PermissionGuard permission="isSuperAdmin">
-                      <ButtonDelete tooltip="Supprimer cet enseignment" @confirm-delete="deleteObject('enseignement', enseignementUe.id)"/>
-                      <Tag severity="info">ID EnseignementUe: {{ enseignementUe.id }}</Tag>
-                    </PermissionGuard>
-                    <div class="my-6 flex flex-row items-center gap-4">
-                      <table class="text-lg">
-                        <thead>
-                        <tr class="border-b">
-                          <th class="px-2 font-normal text-muted-color text-start">Code
-                            {{ enseignementUe.enseignement.type }}
-                          </th>
-                          <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
-                          <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
-                          <th class="px-2 font-normal text-muted-color text-start">Type</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr>
-                          <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeEnseignement }}</td>
-                          <td class="px-2 font-bold">{{ enseignementUe.enseignement.libelle }}</td>
-                          <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeApogee }}</td>
-                          <td class="px-2 font-bold">
-                            <Tag v-if="enseignementUe.enseignement.type === 'sae'" severity="success">
-                              {{ enseignementUe.enseignement.type }}
-                            </Tag>
-                            <Tag v-else severity="info">{{ enseignementUe.enseignement.type }}</Tag>
-                          </td>
-                        </tr>
-                        </tbody>
-                      </table>
-                      <div v-if="enseignementUe.enseignement.bonification" class="px-2 font-bold">
-                        <Tag severity="danger">Bonif.</Tag>
-                      </div>
-
-                      <Button icon="pi pi-info-circle" rounded outlined severity="info"
-                              @click="showDetails(enseignementUe.enseignement, semestre)"
-                              v-tooltip.top="`Accéder au détail`"/>
-                      <Button icon="pi pi-book" rounded outlined severity="primary" @click=""
-                              v-tooltip.top="`Accéder au plan de cours`"/>
-                      <Button icon="pi pi-cog" rounded outlined severity="warn" @click=""
-                              v-tooltip.top="`Accéder aux paramètres`"/>
-                    </div>
-
-                    <Fieldset v-for="enfant in enseignementUe.enseignement.enfants" :toggleable="true"
-                              class="!bg-gray-300 !bg-opacity-10">
+                  <div v-for="enseignementUe in ue.enseignementUes"
+                       class="!border-l-4 !border-l-primary-200 !pl-4 !border-0">
+                    <Fieldset v-if="!enseignementUe.enseignement.parent" legend="" :toggleable="true">
                       <template #toggleicon>
                         <i class="pi pi-angle-down"></i>
-                        <div>{{ enfant.libelle }}</div>
-                        <Tag v-if="enfant.enfants && enfant.enfants.length >= 1" severity="danger">Ressource parent
+                        <div>{{ enseignementUe.enseignement.libelle }}</div>
+                        <Tag v-if="enseignementUe.enseignement.enfants && enseignementUe.enseignement.enfants.length >= 1"
+                             severity="danger">Ressource parent
                         </Tag>
-                        <Tag v-if="enfant.parent" severity="warn">Ressource enfant</Tag>
                       </template>
+                      <PermissionGuard permission="isSuperAdmin">
+                        <ButtonDelete tooltip="Supprimer cet enseignment" @confirm-delete="deleteObject('enseignement', enseignementUe.id)"/>
+                        <Tag severity="info">ID EnseignementUe: {{ enseignementUe.id }}</Tag>
+                      </PermissionGuard>
                       <div class="my-6 flex flex-row items-center gap-4">
                         <table class="text-lg">
                           <thead>
                           <tr class="border-b">
-                            <th class="px-2 font-normal text-muted-color text-start">Code {{ enfant.type }}</th>
+                            <th class="px-2 font-normal text-muted-color text-start">Code
+                              {{ enseignementUe.enseignement.type }}
+                            </th>
                             <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
                             <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
                             <th class="px-2 font-normal text-muted-color text-start">Type</th>
@@ -390,39 +348,86 @@ const deleteObject = async (objectType, id) => {
                           </thead>
                           <tbody>
                           <tr>
-                            <td class="px-2 font-bold">{{ enfant.codeEnseignement }}</td>
-                            <td class="px-2 font-bold">{{ enfant.libelle }}</td>
-                            <td class="px-2 font-bold">{{ enfant.codeApogee }}</td>
+                            <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeEnseignement }}</td>
+                            <td class="px-2 font-bold">{{ enseignementUe.enseignement.libelle }}</td>
+                            <td class="px-2 font-bold">{{ enseignementUe.enseignement.codeApogee }}</td>
                             <td class="px-2 font-bold">
-                              <Tag v-if="enfant.type === 'sae'" severity="success">{{ enfant.type }}</Tag>
-                              <Tag v-else severity="info">{{ enfant.type }}</Tag>
+                              <Tag v-if="enseignementUe.enseignement.type === 'sae'" severity="success">
+                                {{ enseignementUe.enseignement.type }}
+                              </Tag>
+                              <Tag v-else severity="info">{{ enseignementUe.enseignement.type }}</Tag>
                             </td>
                           </tr>
                           </tbody>
                         </table>
-                        <div v-if="enfant.bonification" class="px-2 font-bold">
+                        <div v-if="enseignementUe.enseignement.bonification" class="px-2 font-bold">
                           <Tag severity="danger">Bonif.</Tag>
                         </div>
 
                         <Button icon="pi pi-info-circle" rounded outlined severity="info"
-                                @click="getEnseignement(enfant.id, semestre)" v-tooltip.top="`Accéder au détail`"/>
+                                @click="showDetails(enseignementUe.enseignement, semestre)"
+                                v-tooltip.top="`Accéder au détail`"/>
                         <Button icon="pi pi-book" rounded outlined severity="primary" @click=""
                                 v-tooltip.top="`Accéder au plan de cours`"/>
                         <Button icon="pi pi-cog" rounded outlined severity="warn" @click=""
                                 v-tooltip.top="`Accéder aux paramètres`"/>
                       </div>
+
+                      <Fieldset v-for="enfant in enseignementUe.enseignement.enfants" :toggleable="true"
+                                class="!bg-gray-300 !bg-opacity-10">
+                        <template #toggleicon>
+                          <i class="pi pi-angle-down"></i>
+                          <div>{{ enfant.libelle }}</div>
+                          <Tag v-if="enfant.enfants && enfant.enfants.length >= 1" severity="danger">Ressource parent
+                          </Tag>
+                          <Tag v-if="enfant.parent" severity="warn">Ressource enfant</Tag>
+                        </template>
+                        <div class="my-6 flex flex-row items-center gap-4">
+                          <table class="text-lg">
+                            <thead>
+                            <tr class="border-b">
+                              <th class="px-2 font-normal text-muted-color text-start">Code {{ enfant.type }}</th>
+                              <th class="px-2 font-normal text-muted-color text-start">Enseignement</th>
+                              <th class="px-2 font-normal text-muted-color text-start">Code apogée</th>
+                              <th class="px-2 font-normal text-muted-color text-start">Type</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr>
+                              <td class="px-2 font-bold">{{ enfant.codeEnseignement }}</td>
+                              <td class="px-2 font-bold">{{ enfant.libelle }}</td>
+                              <td class="px-2 font-bold">{{ enfant.codeApogee }}</td>
+                              <td class="px-2 font-bold">
+                                <Tag v-if="enfant.type === 'sae'" severity="success">{{ enfant.type }}</Tag>
+                                <Tag v-else severity="info">{{ enfant.type }}</Tag>
+                              </td>
+                            </tr>
+                            </tbody>
+                          </table>
+                          <div v-if="enfant.bonification" class="px-2 font-bold">
+                            <Tag severity="danger">Bonif.</Tag>
+                          </div>
+
+                          <Button icon="pi pi-info-circle" rounded outlined severity="info"
+                                  @click="getEnseignement(enfant.id, semestre)" v-tooltip.top="`Accéder au détail`"/>
+                          <Button icon="pi pi-book" rounded outlined severity="primary" @click=""
+                                  v-tooltip.top="`Accéder au plan de cours`"/>
+                          <Button icon="pi pi-cog" rounded outlined severity="warn" @click=""
+                                  v-tooltip.top="`Accéder aux paramètres`"/>
+                        </div>
+                      </Fieldset>
                     </Fieldset>
-                  </Fieldset>
-                </div>
-              </Fieldset>
+                  </div>
+                </Fieldset>
+              </div>
             </div>
-          </div>
-        </Fieldset>
-      </template>
-      <div v-else class="flex justify-center">
-        <Message severity="error" icon="pi pi-exclamation-triangle" class="w-fit">
-          Aucun programme pédagogique national trouvé pour le diplôme et l'année universitaire sélectionné.
-        </Message>
+          </Fieldset>
+        </template>
+        <div v-else class="flex justify-center">
+          <Message severity="error" icon="pi pi-exclamation-triangle" class="w-fit">
+            Aucun programme pédagogique national trouvé pour le diplôme et l'année universitaire sélectionné.
+          </Message>
+        </div>
       </div>
     </div>
   </div>

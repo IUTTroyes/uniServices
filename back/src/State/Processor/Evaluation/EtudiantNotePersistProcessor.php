@@ -60,7 +60,7 @@ class EtudiantNotePersistProcessor implements ProcessorInterface
             $today = new \DateTimeImmutable('today');
             $evaluationDate = \DateTimeImmutable::createFromInterface($evaluation->getDate());
             $newEtat = $evaluationDate < $today
-                ? EtatEvaluationEnum::ETAT_TERMINEE
+                ? EtatEvaluationEnum::ETAT_COMPLETEE
                 : EtatEvaluationEnum::ETAT_PLANIFIEE;
         } else {
             $newEtat = EtatEvaluationEnum::ETAT_INITIALISEE;

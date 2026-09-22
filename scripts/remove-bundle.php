@@ -88,6 +88,8 @@ $bundleShortName = preg_replace('/-bundle$/', '', $bundleKebab);
 
 $projectRoot = dirname(__DIR__);
 $bundlesConfigPath = $projectRoot . '/back/config/bundles.php';
+$doctrineConfigPath = $projectRoot . '/back/config/packages/doctrine.yaml';
+$frontBundlesRegistryPath = $projectRoot . '/packages/shell/assets/bundles-registry.js';
 $rootPackagePath = $projectRoot . '/package.json';
 $rootComposerPath = $projectRoot . '/composer.json';
 $backComposerPath = $projectRoot . '/back/composer.json';
@@ -186,6 +188,10 @@ if (file_exists($rootComposerPath)) {
             unset($rootComposer['replace']["iuttroyes/$bundleKebab"]);
             $changed = true;
         }
+        if (isset($rootComposer['autoload-dev']['psr-4']["$bundlePascal\\Tests\\"])) {
+            unset($rootComposer['autoload-dev']['psr-4']["$bundlePascal\\Tests\\"]);
+            $changed = true;
+        }
 
         if ($changed) {
             file_put_contents($rootComposerPath, json_encode($rootComposer, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
@@ -215,6 +221,40 @@ if (file_exists($bundlesConfigPath)) {
     }
 }
 
+// 5b. Update Doctrine mappings to avoid references to disabled/removed bundles
+if (file_exists($doctrineConfigPath)) {
+    $doctrineConfigRaw = file_get_contents($doctrineConfigPath);
+    $mappingPattern = '/^\s{20}' . preg_quote($bundlePascal, '/') . ':\R(?:^\s{24}[^\r\n]*\R)*/m';
+    if (preg_match($mappingPattern, $doctrineConfigRaw)) {
+        $doctrineConfigRaw = preg_replace($mappingPattern, '', $doctrineConfigRaw);
+        file_put_contents($doctrineConfigPath, $doctrineConfigRaw);
+        echo "Updated back/config/packages/doctrine.yaml\n";
+    }
+}
+
+// 5c. Update front bundles registry (shell/widgets)
+if (file_exists($frontBundlesRegistryPath)) {
+    $frontRegistryRaw = file_get_contents($frontBundlesRegistryPath);
+    $changed = false;
+
+    $importPattern = '/^\s*import\s+' . preg_quote($bundleShortName, '/') . '\s+from\s+["\'][^"\']*["\'];\s*\R?/m';
+    if (preg_match($importPattern, $frontRegistryRaw)) {
+        $frontRegistryRaw = preg_replace($importPattern, '', $frontRegistryRaw);
+        $changed = true;
+    }
+
+    $bundleEntryPattern = '/^\s*' . preg_quote($bundleShortName, '/') . '\s*,?\s*\R?/m';
+    if (preg_match($bundleEntryPattern, $frontRegistryRaw)) {
+        $frontRegistryRaw = preg_replace($bundleEntryPattern, '', $frontRegistryRaw);
+        $changed = true;
+    }
+
+    if ($changed) {
+        file_put_contents($frontBundlesRegistryPath, $frontRegistryRaw);
+        echo "Updated packages/shell/assets/bundles-registry.js\n";
+    }
+}
+
 // 6. Regenerate tools registry from all bundle.meta.json (local + external)
 regenerate_tools_registry($projectRoot);
 
@@ -222,7 +262,11 @@ echo "- Updating PHP autoloading...\n";
 runCommand('composer dump-autoload', $projectRoot);
 if (is_dir($projectRoot . '/back')) {
     runCommand('composer dump-autoload', $projectRoot . '/back');
-    runCommand('bin/console cache:clear', $projectRoot . '/back');
+    $backCachePath = $projectRoot . '/back/var/cache';
+    removeDirectoryRecursive($backCachePath . '/dev');
+    removeDirectoryRecursive($backCachePath . '/prod');
+    runCommand('bin/console cache:clear --env=dev --no-warmup', $projectRoot . '/back');
+    runCommand('bin/console cache:clear --env=prod --no-warmup', $projectRoot . '/back');
 }
 
 echo "- Updating Node workspaces...\n";

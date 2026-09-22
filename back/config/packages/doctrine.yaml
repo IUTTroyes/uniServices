@@ -53,12 +53,6 @@ doctrine:
                         dir: 'src/Entity'
                         prefix: 'AuthBundle\Entity'
                         alias: Auth
-                    EdtBundle:
-                        is_bundle: true
-                        type: attribute
-                        dir: 'src/Entity'
-                        prefix: 'EdtBundle\Entity'
-                        alias: Edt
 
 
 when@test:

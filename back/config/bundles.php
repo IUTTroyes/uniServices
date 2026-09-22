@@ -15,7 +15,6 @@ return [
     Gesdinet\JWTRefreshTokenBundle\GesdinetJWTRefreshTokenBundle::class => ['all' => true],
     Jawira\DoctrineDiagramBundle\DoctrineDiagramBundle::class => ['dev' => true, 'test' => true],
     AuthBundle\AuthBundle::class => ['all' => true],
-    EdtBundle\EdtBundle::class => ['all' => true],
     IntranetBundle\IntranetBundle::class => ['all' => true],
     UnifolioBundle\UnifolioBundle::class => ['all' => true],
     HelpdeskBundle\HelpdeskBundle::class => ['all' => true],

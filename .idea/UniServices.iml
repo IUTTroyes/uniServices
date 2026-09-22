@@ -14,7 +14,6 @@
       <sourceFolder url="file://$MODULE_DIR$/packages/unifolio-bundle/src" isTestSource="false" packagePrefix="UnifolioBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/intranet-bundle/tests" isTestSource="true" packagePrefix="IntranetBundle\Tests\" />
       <sourceFolder url="file://$MODULE_DIR$/back/../packages/auth-bundle/src" isTestSource="false" packagePrefix="AuthBundle\" />
-      <sourceFolder url="file://$MODULE_DIR$/back/../packages/edt-bundle/src" isTestSource="false" packagePrefix="EdtBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/back/../packages/intranet-bundle/src" isTestSource="false" packagePrefix="IntranetBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/back/../packages/helpdesk-bundle/src" isTestSource="false" packagePrefix="HelpdeskBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/helpdesk-bundle/src" isTestSource="false" packagePrefix="HelpdeskBundle\" />
