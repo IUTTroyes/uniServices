@@ -26,7 +26,7 @@ final class SemestreMigrator extends AbstractMigrator
     {
         $repository = $this->entityManager->getRepository(StructureSemestre::class);
         $anneeRepository = $this->entityManager->getRepository(StructureAnnee::class);
-        $created = $updated = $skipped = $failed = 0;
+        $created = $updated = $skipped = $failed = $processed = 0;
         $sample = $this->source->fetchAssociative('SELECT * FROM semestre LIMIT 1');
         $messages = [];
         
@@ -36,7 +36,18 @@ final class SemestreMigrator extends AbstractMigrator
 
         // Chaque StructureAnnee est déjà un clone rattaché à un PN annuel.
         // On clone donc tous les semestres V3 de l'année source dans ce snapshot.
-        foreach ($anneeRepository->findAll() as $annee) {
+        $anneeIds = $this->entityManager->createQueryBuilder()
+            ->select('a.id')
+            ->from(StructureAnnee::class, 'a')
+            ->orderBy('a.id', 'ASC')
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        foreach ($anneeIds as $anneeId) {
+            $annee = $anneeRepository->find((int) $anneeId);
+            if (null === $annee) {
+                continue;
+            }
             $anneeOldId = $annee->getOldId();
             if (null === $anneeOldId || null === $annee->getPn()?->getAnneeUniversitaire()) {
                 ++$skipped;
@@ -110,7 +121,19 @@ SQL;
                         $e->getMessage(),
                     );
                 }
+
+                ++$processed;
+                $this->flushAndClearBatch($context, $processed);
+
+                if (!$this->entityManager->contains($annee)) {
+                    $annee = $anneeRepository->find((int) $anneeId);
+                    if (null === $annee) {
+                        break;
+                    }
+                }
             }
+
+            $this->entityManager->clear();
         }
 
         $this->flush($context);
