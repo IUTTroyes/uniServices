@@ -1184,3 +1184,20 @@ La stratégie a été corrigée :
 Les cardinalités par parent sont faibles (quelques années par PN, quelques semestres par année), donc cette frontière fournit un batch mémoire naturel et sûr sans conserver l'intégralité du graphe.
 
 Les skips massifs observés sur évaluations, notes, scolarités et prévisionnels dans ce run restent des conséquences du snapshot incomplet et doivent être réévalués après cette correction.
+
+
+### Notes : résultat PDO source trop volumineux
+
+Le run complet atteint désormais `notes`, mais échouait avant même la première itération avec 128 Mio de `memory_limit`. La trace se termine dans `PDO->query()` sur le SELECT des notes (~473k lignes) : le problème est donc le buffering du résultat source par PDO/MySQL, et non l'UnitOfWork Doctrine cible.
+
+`NoteMigrator` utilise désormais une pagination par curseur sur la clé primaire :
+
+```sql
+WHERE n.id > :last_id
+ORDER BY n.id
+LIMIT :page_size
+```
+
+avec des pages de 2 000 lignes. Cette stratégie évite à la fois le buffering de plusieurs centaines de milliers de lignes et le coût croissant de `OFFSET`. Le résultat DBAL de chaque page est explicitement libéré avant la suivante. Le batching ORM existant à 200 entités reste en place pour la base cible.
+
+Le `memory_limit` n'a volontairement pas été augmenté : la migration doit pouvoir traiter le volume historique avec une mémoire bornée.
