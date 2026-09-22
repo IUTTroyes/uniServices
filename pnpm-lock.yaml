@@ -146,8 +146,6 @@ importers:
 
   packages/document-bundle: {}
 
-  packages/edt-bundle: {}
-
   packages/helpdesk-bundle: {}
 
   packages/intranet-bundle: {}

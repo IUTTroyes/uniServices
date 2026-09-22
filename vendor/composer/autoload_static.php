@@ -54,6 +54,12 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
             'Symfony\\Component\\DependencyInjection\\' => 38,
             'Symfony\\Component\\Console\\' => 26,
             'Symfony\\Component\\Config\\' => 25,
+            'StageBundle\\Tests\\' => 18,
+            'StageBundle\\' => 12,
+        ),
+        'Q' =>
+        array (
+            'QuestionnaireBundle\\' => 20,
         ),
         'P' =>
         array (
@@ -75,10 +81,10 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
             'HelpdeskBundle\\Tests\\' => 21,
             'HelpdeskBundle\\' => 15,
         ),
-        'E' =>
+        'D' =>
         array (
-            'EdtBundle\\Tests\\' => 16,
-            'EdtBundle\\' => 10,
+            'DocumentBundle\\Tests\\' => 21,
+            'DocumentBundle\\' => 15,
         ),
         'A' =>
         array (
@@ -201,6 +207,18 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
         array (
             0 => __DIR__ . '/..' . '/symfony/config',
         ),
+        'StageBundle\\Tests\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/packages/stage-bundle/tests',
+        ),
+        'StageBundle\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/packages/stage-bundle/src',
+        ),
+        'QuestionnaireBundle\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/packages/questionnaire-bundle/src',
+        ),
         'Psr\\Log\\' =>
         array (
             0 => __DIR__ . '/..' . '/psr/log/src',
@@ -233,13 +251,13 @@ class ComposerStaticInit11e119cb221f78827268467d6e69e0ee
         array (
             0 => __DIR__ . '/../..' . '/packages/helpdesk-bundle/src',
         ),
-        'EdtBundle\\Tests\\' =>
+        'DocumentBundle\\Tests\\' =>
         array (
-            0 => __DIR__ . '/../..' . '/packages/edt-bundle/tests',
+            0 => __DIR__ . '/../..' . '/packages/document-bundle/tests',
         ),
-        'EdtBundle\\' =>
+        'DocumentBundle\\' =>
         array (
-            0 => __DIR__ . '/../..' . '/packages/edt-bundle/src',
+            0 => __DIR__ . '/../..' . '/packages/document-bundle/src',
         ),
         'AuthBundle\\Tests\\' =>
         array (

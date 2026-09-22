@@ -14,7 +14,6 @@
         "psr-4": {
             "AuthBundle\\": "packages/auth-bundle/src/",
             "DocumentBundle\\": "packages/document-bundle/src/",
-            "EdtBundle\\": "packages/edt-bundle/src/",
             "HelpdeskBundle\\": "packages/helpdesk-bundle/src/",
             "IntranetBundle\\": "packages/intranet-bundle/src/",
             "QuestionnaireBundle\\": "packages/questionnaire-bundle/src/",
@@ -26,7 +25,6 @@
         "psr-4": {
             "AuthBundle\\Tests\\": "packages/auth-bundle/tests/",
             "DocumentBundle\\Tests\\": "packages/document-bundle/tests/",
-            "EdtBundle\\Tests\\": "packages/edt-bundle/tests/",
             "HelpdeskBundle\\Tests\\": "packages/helpdesk-bundle/tests/",
             "IntranetBundle\\Tests\\": "packages/intranet-bundle/tests/",
             "StageBundle\\Tests\\": "packages/stage-bundle/tests/"
@@ -41,7 +39,6 @@
     "replace": {
         "iuttroyes/auth-bundle": "self.version",
         "iuttroyes/document-bundle": "self.version",
-        "iuttroyes/edt-bundle": "self.version",
         "iuttroyes/helpdesk-bundle": "self.version",
         "iuttroyes/intranet-bundle": "self.version",
         "iuttroyes/questionnaire-bundle": "self.version",

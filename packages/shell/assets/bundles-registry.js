@@ -4,7 +4,6 @@
 import auth from '../../auth-bundle/assets/manifest.ts';
 import intranet from '../../intranet-bundle/assets/manifest.ts';
 import unifolio from '../../unifolio-bundle/assets/manifest.ts';
-import edt from '../../edt-bundle/assets/manifest.ts';
 import helpdesk from '../../helpdesk-bundle/assets/manifest.ts';
 import questionnaire from '../../questionnaire-bundle/assets/manifest.ts';
 import stage from '../../stage-bundle/assets/manifest.ts';
@@ -14,8 +13,7 @@ export const bundles = [
   auth,
   intranet,
   unifolio,
-  edt,
-  helpdesk,
+helpdesk,
   questionnaire,
   stage,
   document
