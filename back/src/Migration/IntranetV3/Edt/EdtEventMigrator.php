@@ -161,10 +161,8 @@ SQL;
                     ->setCodeGroupe($groupe?->getLibelle())
                     ->setLibGroupe($groupe?->getLibelle());
 
-                if (method_exists($event, 'setIdEduSign')) {
-                    $event->setIdEduSign($row['id_edu_sign'] ?: null);
-                }
-
+                $event->setKeyEduSign($row['id_edu_sign'] ?: null);
+                
                 if ($isNew) {
                     $this->entityManager->persist($event);
                     ++$created;

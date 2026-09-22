@@ -90,7 +90,7 @@ SQL;
                     ->setAdresseParentale($this->addressFromRow($row, 'adresse_parentale'));
 
                 if (null !== $row['id_edu_sign'] && '' !== trim((string) $row['id_edu_sign'])) {
-                    $entity->setIdEduSign((string) $row['id_edu_sign']);
+                    $entity->setKeyEduSign((string) $row['id_edu_sign']);
                 }
 
                 if ((bool) $row['deleted']) {

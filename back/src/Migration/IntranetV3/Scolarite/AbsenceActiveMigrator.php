@@ -129,9 +129,8 @@ SQL;
                     ->setEvent($event)
                     ->setDateJustification(!empty($row['date_justifie']) ? new \DateTime((string) $row['date_justifie']) : null);
 
-                if (method_exists($absence, 'setIdEduSign')) {
-                    $absence->setIdEduSign($row['id_edu_sign'] ?: null);
-                }
+                $absence->setKeyEduSign($row['id_edu_sign'] ?: null);
+                
 
                 if ($isNew) {
                     $this->entityManager->persist($absence);
