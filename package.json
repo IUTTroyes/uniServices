@@ -9,8 +9,7 @@
     "scripts": {
         "dev": "npm run dev:shell",
         "dev:shell": "cd packages/shell && vite --port 3000",
-        "build:shell": "cd packages/shell && vite build",
-        "lint:commit": "commitlint"
+        "build:shell": "cd packages/shell && vite build"
     },
     "devDependencies": {
         "@primeuix/themes": "^2.0.3",
@@ -24,9 +23,7 @@
         "vite": "^6.4.2",
         "vite-plugin-vue-devtools": "^8.1.2",
         "vue": "^3.5.35",
-        "vue-router": "^5.1.0",
-        "@commitlint/cli": "^20.0.0",
-        "@commitlint/config-conventional": "^20.0.0"
+        "vue-router": "^5.1.0"
     },
     "dependencies": {
         "@faker-js/faker": "^10.4.0",
