@@ -41,7 +41,7 @@ final class MigrateIntranetV3Command extends Command
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'Run without writing data.')
             ->addOption('list', null, InputOption::VALUE_NONE, 'List available migrations.')
             ->addOption('no-progress', null, InputOption::VALUE_NONE, 'Disable progress bars.')
-            ->addOption('reset-db', null, InputOption::VALUE_NONE, 'Empty the target application tables before importing (dev/test only).')
+            ->addOption('reset-db', null, InputOption::VALUE_NONE, 'Empty the target application tables and stop (dev/test only).')
             ->addOption('force', 'f', InputOption::VALUE_NONE, 'Skip confirmation for --reset-db.');
     }
 
@@ -85,6 +85,8 @@ final class MigrateIntranetV3Command extends Command
             try {
                 $tableCount = $this->databaseResetter->reset();
                 $io->success(sprintf('Target database reset: %d application table(s) emptied. Doctrine migration history was preserved.', $tableCount));
+
+                return Command::SUCCESS;
             } catch (\Throwable $exception) {
                 $io->error('Unable to reset target database: ' . $exception->getMessage());
 
