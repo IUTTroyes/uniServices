@@ -1153,3 +1153,20 @@ Le prochain run complet doit d'abord vérifier les invariants suivants :
 5. `etudiants` : analyser séparément les 674 échecs persistants.
 
 Le bilan de ce premier run est donc utile principalement comme **test d'intégration de l'ordre des migrateurs et des dépendances structurelles**, mais ne doit pas encore servir de bilan de couverture final.
+
+
+## Optimisation mémoire après correction des semestres
+
+Le premier run avec les semestres réellement créés augmente fortement le graphe Doctrine chargé : les snapshots PN clonent années puis semestres et les associations bidirectionnelles peuvent conserver les objets dans l'UnitOfWork jusqu'à la fin d'un migrateur.
+
+Une passe mémoire a donc été ajoutée :
+
+- `AnneeMigrator` et `SemestreMigrator` ne chargent plus toutes les entités parentes avec `findAll()` ; ils parcourent d'abord uniquement leurs IDs ;
+- flush + `EntityManager::clear()` tous les `BATCH_SIZE=200` descendants créés ;
+- rechargement du parent après un clear lorsque nécessaire ;
+- clear explicite après chaque parent snapshot ;
+- `MigrationRunner` libère systématiquement l'EntityManager et lance `gc_collect_cycles()` entre deux migrateurs.
+
+Objectif : rendre la consommation mémoire approximativement bornée par la taille d'un batch plutôt que par la totalité du graphe structurel déjà migré.
+
+Cette optimisation est préférable à une simple augmentation du `memory_limit`, qui masquerait la rétention Doctrine sans corriger sa cause.
