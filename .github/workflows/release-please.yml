@@ -1,19 +1,25 @@
-name: release-please
+name: Release Please
 
 on:
   push:
     branches:
       - main
-
+  workflow_dispatch:  
 permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: release-please-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   release-please:
+    name: Update changelog and release
     runs-on: ubuntu-latest
     steps:
-      - uses: googleapis/release-please-action@v4
+      - name: Run Release Please
+        id: release
+        uses: googleapis/release-please-action@v4
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
