@@ -83,12 +83,22 @@ final class MigrateIntranetV3Command extends Command
             }
 
             try {
-                $tableCount = $this->databaseResetter->reset();
+                $io->section('Reset de la base cible');
+                $io->writeln('<comment>Les TRUNCATE utilisent un verrou de métadonnées. Un timeout court évite désormais un blocage indéfini.</comment>');
+
+                $tableCount = $this->databaseResetter->reset(
+                    static function (string $table) use ($output): void {
+                        if ($output->isVerbose()) {
+                            $output->writeln(sprintf('  <comment>TRUNCATE</comment> %s', $table));
+                        }
+                    },
+                );
                 $io->success(sprintf('Target database reset: %d application table(s) emptied. Doctrine migration history was preserved.', $tableCount));
 
                 return Command::SUCCESS;
             } catch (\Throwable $exception) {
                 $io->error('Unable to reset target database: ' . $exception->getMessage());
+                $io->note('Si le message mentionne un lock timeout, fermez les connexions/transactions actives (application, worker, phpMyAdmin/IDE) puis relancez. Utilisez -v pour voir la dernière table traitée.');
 
                 return Command::FAILURE;
             }
