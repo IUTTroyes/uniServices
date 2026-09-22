@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 
 final readonly class DatabaseResetter
 {
+    private const LOCK_WAIT_TIMEOUT_SECONDS = 5;
     private const PRESERVED_TABLES = [
         'doctrine_migration_versions',
     ];
@@ -21,7 +22,10 @@ final readonly class DatabaseResetter
      *
      * @return int number of truncated tables
      */
-    public function reset(): int
+    /**
+     * @param null|callable(string): void $onTableReset
+     */
+    public function reset(?callable $onTableReset = null): int
     {
         $schemaManager = $this->connection->createSchemaManager();
         $tables = array_values(array_filter(
@@ -36,7 +40,7 @@ final readonly class DatabaseResetter
         $platform = $this->connection->getDatabasePlatform()->getName();
 
         if (in_array($platform, ['mysql', 'mariadb'], true)) {
-            return $this->resetMySql($tables);
+            return $this->resetMySql($tables, $onTableReset);
         }
 
         throw new \RuntimeException(sprintf(
@@ -45,13 +49,26 @@ final readonly class DatabaseResetter
         ));
     }
 
-    /** @param list<string> $tables */
-    private function resetMySql(array $tables): int
+    /**
+     * @param list<string> $tables
+     * @param null|callable(string): void $onTableReset
+     */
+    private function resetMySql(array $tables, ?callable $onTableReset): int
     {
+        // TRUNCATE takes a metadata lock. Without a session timeout, another
+        // connection using a table can make this command appear frozen forever.
+        $this->connection->executeStatement(sprintf(
+            'SET SESSION lock_wait_timeout = %d',
+            self::LOCK_WAIT_TIMEOUT_SECONDS,
+        ));
         $this->connection->executeStatement('SET FOREIGN_KEY_CHECKS = 0');
 
         try {
             foreach ($tables as $table) {
+                if (null !== $onTableReset) {
+                    $onTableReset($table);
+                }
+
                 $this->connection->executeStatement(
                     'TRUNCATE TABLE ' . $this->connection->quoteIdentifier($table),
                 );
