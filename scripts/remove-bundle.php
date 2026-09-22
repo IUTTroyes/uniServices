@@ -66,6 +66,33 @@ function extractUsedDevPorts(array $scripts): array
     return array_values(array_unique($usedPorts));
 }
 
+function escapeSqlLiteral(string $value): string
+{
+    return str_replace("'", "''", $value);
+}
+
+function cleanupPackagesReferences(string $projectRoot, array $packageNames): void
+{
+    if (!is_dir($projectRoot . '/back')) {
+        return;
+    }
+
+    $cleanedNames = array_values(array_unique(array_filter(array_map(static fn ($name) => trim((string) $name), $packageNames))));
+    if ($cleanedNames === []) {
+        return;
+    }
+
+    foreach ($cleanedNames as $packageName) {
+        $escapedName = escapeSqlLiteral($packageName);
+
+        $removeFromEtudiantScolarite = "UPDATE etudiant_scolarite SET packages = COALESCE((SELECT jsonb_agg(value) FROM jsonb_array_elements_text(packages::jsonb) AS value WHERE value <> '{$escapedName}'), '[]'::jsonb)::json WHERE packages::jsonb ? '{$escapedName}'";
+        runCommand('bin/console doctrine:query:sql ' . escapeshellarg($removeFromEtudiantScolarite), $projectRoot . '/back');
+
+        $removeFromStructureDepartementPersonnel = "UPDATE structure_departement_personnel SET packages = COALESCE((SELECT jsonb_agg(value) FROM jsonb_array_elements_text(packages::jsonb) AS value WHERE value <> '{$escapedName}'), '[]'::jsonb)::json WHERE packages::jsonb ? '{$escapedName}'";
+        runCommand('bin/console doctrine:query:sql ' . escapeshellarg($removeFromStructureDepartementPersonnel), $projectRoot . '/back');
+    }
+}
+
 if ($argc < 2) {
     echo "Usage: php scripts/remove-bundle.php <bundle-name>\n";
     echo "Example: php scripts/remove-bundle.php sample-bundle\n";
@@ -85,6 +112,7 @@ if (!str_ends_with($bundlePascal, 'Bundle')) {
     $bundlePascal .= 'Bundle';
 }
 $bundleShortName = preg_replace('/-bundle$/', '', $bundleKebab);
+$bundleBasePascal = preg_replace('/Bundle$/', '', $bundlePascal);
 
 $projectRoot = dirname(__DIR__);
 $bundlesConfigPath = $projectRoot . '/back/config/bundles.php';
@@ -114,6 +142,8 @@ if (is_file($metaPath)) {
         $publicAssetsPath = $projectRoot . '/back/public/' . $bundleShortName;
     }
 }
+
+$packagesNamesToCleanup = [$bundleShortName, $bundleKebab, $bundlePascal, $bundleBasePascal, lcfirst($bundleBasePascal)];
 
 // 1. Remove directory
 if (is_dir($bundlePath)) {
@@ -262,6 +292,8 @@ echo "- Updating PHP autoloading...\n";
 runCommand('composer dump-autoload', $projectRoot);
 if (is_dir($projectRoot . '/back')) {
     runCommand('composer dump-autoload', $projectRoot . '/back');
+    echo "- Cleaning packages references in DB...\n";
+    cleanupPackagesReferences($projectRoot, $packagesNamesToCleanup);
     $backCachePath = $projectRoot . '/back/var/cache';
     removeDirectoryRecursive($backCachePath . '/dev');
     removeDirectoryRecursive($backCachePath . '/prod');
