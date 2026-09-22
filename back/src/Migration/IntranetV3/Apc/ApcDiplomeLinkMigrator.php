@@ -10,6 +10,7 @@ use App\Migration\IntranetV3\AbstractMigrator;
 use App\Migration\IntranetV3\Contract\MigratorInterface;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationResult;
+use App\Migration\IntranetV3\Structure\DiplomeMigrator;
 use App\Migration\IntranetV3\Structure\TypeDiplomeMigrator;
 
 final class ApcDiplomeLinkMigrator extends AbstractMigrator
@@ -22,7 +23,7 @@ final class ApcDiplomeLinkMigrator extends AbstractMigrator
     /** @return list<class-string<MigratorInterface>> */
     public function getDependencies(): array
     {
-        return [ApcParcoursMigrator::class, ApcReferentielMigrator::class, TypeDiplomeMigrator::class];
+        return [ApcParcoursMigrator::class, ApcReferentielMigrator::class, TypeDiplomeMigrator::class, DiplomeMigrator::class];
     }
 
     public function migrate(MigrationContext $context): MigrationResult
