@@ -1071,3 +1071,21 @@ Une donnée doit aller dans un **migrateur** si sa source de vérité est la V3 
 Une donnée doit aller dans un **initializer** si elle est requise par UniServices V4 mais relève de la configuration/du bootstrap de l'installation.
 
 Cette séparation doit être conservée pour les futures données obligatoires V4 absentes de la V3.
+
+
+## Reset de la base cible
+
+Le comportement de `--reset-db` a été clarifié : cette option effectue désormais **uniquement le reset puis termine la commande**. Elle ne lance plus automatiquement l'initialisation ni la migration V3.
+
+Séquence recommandée :
+
+```bash
+php bin/console app:migrate-intranet-v3 --reset-db
+php bin/console app:migrate-intranet-v3
+```
+
+Le reset MySQL/MariaDB utilise `TRUNCATE`, qui nécessite un metadata lock. Une connexion ou transaction encore active (application, worker, outil SQL, etc.) pouvait donc faire paraître la console figée sans produire d'erreur.
+
+Le reset configure maintenant un `SESSION lock_wait_timeout` court (5 secondes). En cas de verrou concurrent, la commande échoue donc avec une erreur exploitable au lieu d'attendre indéfiniment.
+
+Avec `-v`, la commande affiche également chaque table juste avant son `TRUNCATE`, ce qui permet d'identifier immédiatement la table sur laquelle un verrou est rencontré.
