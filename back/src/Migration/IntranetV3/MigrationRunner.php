@@ -105,6 +105,10 @@ final class MigrationRunner
             $results[$name] = $migrator->migrate($context);
         } finally {
             $context->finishProgress();
+            // A migrator must not keep the managed graph alive for the next one.
+            // Dependencies are resolved again by id/oldId when needed.
+            $this->entityManager->clear();
+            gc_collect_cycles();
             $context->migrationFinished($name);
         }
 
