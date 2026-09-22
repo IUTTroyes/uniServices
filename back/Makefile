@@ -1,14 +1,33 @@
-# Makefile
-
-# Define the PHPStan command
 PHPSTAN = vendor/bin/phpstan
-
-# Define the PHPStan configuration file
 PHPSTAN_CONFIG = phpstan.neon
 
-# Define the target to run PHPStan
-phpstan:
-	$(PHPSTAN) analyse -c $(PHPSTAN_CONFIG) --memory-limit 1G
+.PHONY: all check install composer-validate lint-container doctrine-validate phpstan test
 
-# Define the default target
-all: phpstan
+all: check
+
+check: install composer-validate lint-container doctrine-validate phpstan test
+
+install:
+	composer install --no-progress --no-interaction --prefer-dist
+
+composer-validate:
+	composer validate --no-check-publish
+
+lint-container:
+	php bin/console lint:container
+
+doctrine-validate:
+	php bin/console doctrine:schema:validate --skip-sync
+
+phpstan:
+	$(PHPSTAN) analyse -c $(PHPSTAN_CONFIG) --memory-limit=1G
+
+test:
+	@if [ -x vendor/bin/phpunit ]; then \
+		vendor/bin/phpunit; \
+	elif [ -f phpunit.xml ] || [ -f phpunit.xml.dist ] || [ -d tests ]; then \
+		echo "PHPUnit tests/configuration exist but phpunit is not installed."; \
+		exit 1; \
+	else \
+		echo "No PHPUnit test suite configured; skipping."; \
+	fi
