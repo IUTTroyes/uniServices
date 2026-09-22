@@ -84,14 +84,6 @@ class EtudiantScolariteSemestre
 
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite-semestre:detail'])]
-    private ?array $moyennesMatiere = null;
-
-    #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite-semestre:detail'])]
-    private ?array $moyennesUe = null;
-
-    #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite-semestre:detail'])]
     private ?bool $decision = null;
 
     #[ORM\Column(options: ['default' => 0])]
@@ -232,26 +224,6 @@ class EtudiantScolariteSemestre
         $this->rang = $rang;
 
         return $this;
-    }
-
-    public function getMoyennesMatiere(): ?array
-    {
-        return $this->moyennesMatiere;
-    }
-
-    public function setMoyennesMatiere(?array $moyennesMatiere): void
-    {
-        $this->moyennesMatiere = $moyennesMatiere;
-    }
-
-    public function getMoyennesUe(): ?array
-    {
-        return $this->moyennesUe;
-    }
-
-    public function setMoyennesUe(?array $moyennesUe): void
-    {
-        $this->moyennesUe = $moyennesUe;
     }
 
     public function getDecision(): ?bool
