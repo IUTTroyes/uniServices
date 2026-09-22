@@ -62,7 +62,7 @@ SELECT
     e.annee_universitaire_id,
     e.semestre_id,
     e.parent_id,
-    e.type_groupe,
+    e.type_groupe_id,
     e.type_matiere,
     e.id_matiere,
     e.date_evaluation,

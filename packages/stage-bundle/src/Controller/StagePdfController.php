@@ -1,6 +1,6 @@
 <?php
 
-namespace StageBundle\Controller\Stage;
+namespace StageBundle\Controller;
 
 use App\Entity\Etablissement;
 use Doctrine\ORM\EntityManagerInterface;

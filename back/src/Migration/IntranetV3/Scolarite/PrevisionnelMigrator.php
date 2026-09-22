@@ -53,9 +53,9 @@ SELECT
     p.personnel_id,
     p.annee,
     p.referent,
-    p.nb_h_cm,
-    p.nb_h_td,
-    p.nb_h_tp,
+    p.nb_hcm,
+    p.nb_htd,
+    p.nb_htp,
     p.nb_gr_cm,
     p.nb_gr_td,
     p.nb_gr_tp,
@@ -144,9 +144,9 @@ SQL;
                     ->setEnseignement($enseignement)
                     ->setReferent((bool) $row['referent'])
                     ->setHeures([
-                        'CM' => (float) ($row['nb_h_cm'] ?? 0),
-                        'TD' => (float) ($row['nb_h_td'] ?? 0),
-                        'TP' => (float) ($row['nb_h_tp'] ?? 0),
+                        'CM' => (float) ($row['nb_hcm'] ?? 0),
+                        'TD' => (float) ($row['nb_htd'] ?? 0),
+                        'TP' => (float) ($row['nb_htp'] ?? 0),
                         'Projet' => 0.0,
                     ])
                     ->setGroupes([

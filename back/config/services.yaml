@@ -4,10 +4,13 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+  default_etablissement_pays: 'France'
+  default_email_from_address: 'no-reply@univ-reims.fr'
+  default_email_from_name: 'UniServices'
   URL_INTRANET_V3: "%env(URL_INTRANET_V3)%"
   etablissement_logo_upload_dir: "%kernel.project_dir%/public/uploads/etablissement"
-  email_from_address: "%env(EMAIL_FROM_ADDRESS)%"
-  email_from_name: "%env(string:EMAIL_FROM_NAME)%"
+  email_from_address: "%env(default:default_email_from_address:EMAIL_FROM_ADDRESS)%"
+  email_from_name: "%env(default:default_email_from_name:EMAIL_FROM_NAME)%"
 
   # Application bootstrap data. These values are V4 configuration, not V3 data.
   app.establishment:
@@ -21,7 +24,7 @@ parameters:
       complement2: "%env(default::ETABLISSEMENT_ADRESSE_COMPLEMENT2)%"
       ville: "%env(default::ETABLISSEMENT_VILLE)%"
       codePostal: "%env(default::ETABLISSEMENT_CODE_POSTAL)%"
-      pays: "%env(default:France:ETABLISSEMENT_PAYS)%"
+      pays: "%env(default:default_etablissement_pays:ETABLISSEMENT_PAYS)%"
 
 services:
   # default configuration for services in *this* file

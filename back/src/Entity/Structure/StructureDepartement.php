@@ -114,6 +114,7 @@ class StructureDepartement implements TimestampableInterface
 
     public function __construct()
     {
+        $this->setUuid();
         $this->diplomes = new ArrayCollection();
         $this->departementPersonnels = new ArrayCollection();
         $this->setOpt([]);
