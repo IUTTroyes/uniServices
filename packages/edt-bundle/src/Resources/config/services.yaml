@@ -1,0 +1,17 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  _instanceof:
+    App\Security\PermissionProviderInterface:
+      tags: [ 'app.permission_provider' ]
+    App\Service\Email\AbstractEmailDefinition:
+      tags: [ 'app.email_definition' ]
+
+  EdtBundle\:
+    resource: '../../'
+    exclude:
+      - '../../Entity/'
+      - '../../DependencyInjection/'
+      - '../../EdtBundle.php'

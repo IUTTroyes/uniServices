@@ -1,0 +1,1 @@
+import{H as s,m as t,g as o}from"./index-6nPNuiHD.js";const n=s("weeks",()=>{const r=t([]);return{weeks:r,fetchWeeks:async()=>{console.log("fetching weeks");try{const e=await o.get("/api/structure_calendriers");r.value=e.data}catch(e){console.error("Error fetching weeks:",e)}}}});export{n as u};
