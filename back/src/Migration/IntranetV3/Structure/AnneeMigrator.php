@@ -92,17 +92,9 @@ SQL;
                 }
 
                 ++$processed;
-                $this->flushAndClearBatch($context, $processed);
-
-                if (!$this->entityManager->contains($pn)) {
-                    $pn = $pnRepository->find((int) $pnId);
-                    if (null === $pn) {
-                        break;
-                    }
-                }
             }
 
-            $this->entityManager->clear();
+            $this->flushAndClear($context);
         }
 
         $this->flush($context);
