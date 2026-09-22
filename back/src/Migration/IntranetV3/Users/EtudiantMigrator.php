@@ -71,11 +71,13 @@ SQL;
                     ->setAmenagementsParticuliers($row['amenagements_particuliers'])
                     ->setPromotion(null !== $row['promotion'] ? (int) $row['promotion'] : null)
                     ->setAnneeSortie(null !== $row['annee_sortie'] ? (int) $row['annee_sortie'] : 0)
-                    ->setDemandeurEmploi((bool) $row['demandeur_emploi'])
-                    ->setLoginSpecifique($row['login_specifique'] ?: null)
-                    ->setFormationContinue((bool) $row['formation_continue'])
-                    ->setIntituleSecuriteSociale($row['intitule_securite_sociale'] ?: null)
-                    ->setAdresseSecuriteSociale($row['adresse_securite_sociale'] ?: null)
+                    ->setOpt([
+                        'demandeur_emploi' => (bool) $row['demandeur_emploi'],
+                        'login_specifique' => $row['login_specifique'] ?: null,
+                        'formation_continue' => (bool) $row['formation_continue'],
+                        'intitule_securite_sociale' => $row['intitule_securite_sociale'] ?: null,
+                        'adresse_securite_sociale' => $row['adresse_securite_sociale'] ?: null,
+                    ])
                     ->setRoles(['ROLE_ETUDIANT'])
                     ->setMailPerso($row['mail_perso'])
                     ->setDateNaissance(null !== $row['date_naissance'] ? new \DateTime((string) $row['date_naissance']) : null)

@@ -201,8 +201,8 @@ class StagePdfController extends AbstractController
             '{etudiant.email}' => $etu ? $etu->getMailUniv() : '',
             '{etudiant.formation}' => $formationLibelle,
             '{formation.volume_horaire}' => $volumeHoraire,
-            '{etudiant.secu}' => $etu && method_exists($etu, 'getIntituleSecuriteSociale') && $etu->getIntituleSecuriteSociale() ? $etu->getIntituleSecuriteSociale() : 'CPAM de l\'Aube',
-            '{etudiant.secu_adresse}' => $etu && method_exists($etu, 'getAdresseSecuriteSociale') && $etu->getAdresseSecuriteSociale() ? $etu->getAdresseSecuriteSociale() : '',
+            '{etudiant.secu}' => $etu && method_exists($etu, 'getOpt') && !empty($etu->getOpt()['intitule_securite_sociale']) ? $etu->getOpt()['intitule_securite_sociale'] : ($etu && method_exists($etu, 'getIntituleSecuriteSociale') && $etu->getIntituleSecuriteSociale() ? $etu->getIntituleSecuriteSociale() : 'CPAM de l\'Aube'),
+            '{etudiant.secu_adresse}' => $etu && method_exists($etu, 'getOpt') && !empty($etu->getOpt()['adresse_securite_sociale']) ? $etu->getOpt()['adresse_securite_sociale'] : ($etu && method_exists($etu, 'getAdresseSecuriteSociale') && $etu->getAdresseSecuriteSociale() ? $etu->getAdresseSecuriteSociale() : ''),
 
             '{entreprise.nom}' => $ent ? $ent->getRaisonSociale() : '',
             '{entreprise.adresse}' => $stage->getAdresseStage() ? (string) $stage->getAdresseStage() : ($ent && $ent->getAdresse() ? (string) $ent->getAdresse() : ''),

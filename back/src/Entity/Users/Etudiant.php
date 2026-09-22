@@ -17,6 +17,7 @@ use App\Entity\Traits\EduSignTrait;
 use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
+use App\Entity\Traits\OptionTrait;
 use App\Filter\EtudiantFilter;
 use App\Repository\EtudiantRepository;
 use App\State\Provider\Etudiant\EtudiantTrombinoscopeProvider;
@@ -25,6 +26,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -53,6 +55,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
     use TimestampableTrait;
     use EduSignTrait;
     use OldIdTrait; //a supprimer après transfert
+    use OptionTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -185,6 +188,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
         $this->scolarites = new ArrayCollection();
         $this->groupes = new ArrayCollection();
         $this->scolEvaluationRattrapages = new ArrayCollection();
+        $this->setOpt([]);
     }
 
     public function getMails(): array
@@ -498,16 +502,22 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
         return $this;
     }
 
-    public function isDemandeurEmploi(): bool { return $this->demandeurEmploi; }
-    public function setDemandeurEmploi(bool $value): static { $this->demandeurEmploi = $value; return $this; }
-    public function getLoginSpecifique(): ?string { return $this->loginSpecifique; }
-    public function setLoginSpecifique(?string $value): static { $this->loginSpecifique = $value; return $this; }
-    public function isFormationContinue(): bool { return $this->formationContinue; }
-    public function setFormationContinue(bool $value): static { $this->formationContinue = $value; return $this; }
-    public function getIntituleSecuriteSociale(): ?string { return $this->intituleSecuriteSociale; }
-    public function setIntituleSecuriteSociale(?string $value): static { $this->intituleSecuriteSociale = $value; return $this; }
-    public function getAdresseSecuriteSociale(): ?string { return $this->adresseSecuriteSociale; }
-    public function setAdresseSecuriteSociale(?string $value): static { $this->adresseSecuriteSociale = $value; return $this; }
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'demandeur_emploi' => false,
+            'login_specifique' => null,
+            'formation_continue' => false,
+            'intitule_securite_sociale' => null,
+            'adresse_securite_sociale' => null,
+        ]);
+
+        $resolver->setAllowedTypes('demandeur_emploi', 'bool');
+        $resolver->setAllowedTypes('login_specifique', ['null', 'string']);
+        $resolver->setAllowedTypes('formation_continue', 'bool');
+        $resolver->setAllowedTypes('intitule_securite_sociale', ['null', 'string']);
+        $resolver->setAllowedTypes('adresse_securite_sociale', ['null', 'string']);
+    }
 
     public function getDateNaissance(): ?\DateTimeInterface
     {
