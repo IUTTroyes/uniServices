@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import ButtonInfo from '@components/components/Buttons/ButtonInfo.vue';
 import ButtonEdit from '@components/components/Buttons/ButtonEdit.vue';
 import ButtonDelete from '@components/components/Buttons/ButtonDelete.vue';
-import {ProfilEtudiant, SimpleSkeleton, HeaderComponent} from '@components';
+import {ProfilEtudiant, SimpleSkeleton, HeaderComponent, Kpi} from '@components';
 import { getEtudiantsScolariteService, demissionEtudiantScolariteService, getAnneesService } from '@requests';
 import { useToast } from 'primevue/usetoast';
 import { useUsersStore, useAnneeUnivStore } from '@stores';
@@ -23,6 +23,16 @@ const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnnee
 const anneesList = ref([]);
 const isLoadingAnnees = ref(false);
 const isLoadingStats = ref(false);
+const selectedAnnee = ref(null);
+
+const displayedAnneesList = computed(() => {
+  const selectedAnneeId = filters.value.annee.value;
+  if (!selectedAnneeId) {
+    return anneesList.value;
+  }
+
+  return anneesList.value.filter(annee => annee.id === selectedAnneeId);
+});
 
 const isInitialLoading = ref(true);
 
@@ -230,16 +240,12 @@ const deleteEtudiant = async etudiant => {
   />
 
   <div class="flex justify-around mb-12 gap-2">
-    <div v-for="annee in anneesList" :key="annee.id" class="card flex flex-col items-stretch" :style="{ width: anneesList.length ? (100 / anneesList.length) + '%' : 'auto' }">
-      <SimpleSkeleton v-if="isLoadingStats" />
-      <template v-else>
-        <div class="font-bold text-lg card-header text-center">
-          {{ annee.libelle }}
-        </div>
-        <div class="card-body h-full flex flex-col justify-end items-center">
-          <span class="text-2xl font-bold">{{annee.etudiantsCount}}</span> <span class="text-sm text-muted-color">étudiant(s)</span>
-        </div>
-      </template>
+    <div v-for="annee in displayedAnneesList" :key="annee.id" :style="{ width: displayedAnneesList.length ? (100 / displayedAnneesList.length) + '%' : 'auto' }">
+      <Kpi
+          :label="annee.libelle"
+          :value="annee.etudiantsCount"
+          :loading="isLoadingStats"
+      />
     </div>
   </div>
 

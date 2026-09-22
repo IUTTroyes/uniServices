@@ -14,8 +14,8 @@ const props = withDefaults(defineProps<{
 </script>
 
 <template>
-  <div class="card w-full flex items-center justify-center flex-col">
-    <div class="font-bold text-lg card-header text-center">{{ props.label }}</div>
+  <div class="card w-full flex items-center justify-center flex-col h-full">
+    <div class="font-bold text-lg card-header text-center h-full">{{ props.label }}</div>
     <div class="flex items-center gap-2 card-body">
       <i :class="[props.icon, `text-${props.color}`]" class="text-3xl!"></i>
       <SimpleSkeleton v-if="props.loading" class="w-1/2" />
