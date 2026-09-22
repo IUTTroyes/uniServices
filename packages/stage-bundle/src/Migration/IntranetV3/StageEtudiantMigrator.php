@@ -52,9 +52,7 @@ SQL;
                 if (null === $etudiant) { ++$skipped; if (count($messages) < 20) $messages[] = sprintf('StageEtudiant #%s: étudiant V3 #%s introuvable.', $row['id'], $row['etudiant_id'] ?? 'null'); ++$processed; $context->advanceProgress(); continue; }
                 if (null !== $row['stage_periode_id'] && null === $stagePeriode) { ++$skipped; if (count($messages) < 20) $messages[] = sprintf('StageEtudiant #%s: période V3 #%s introuvable.', $row['id'], $row['stage_periode_id']); ++$processed; $context->advanceProgress(); continue; }
 
-                $uuid = self::legacyUuid($row['uuid']);
-                if (null === $uuid) { ++$skipped; ++$invalidUuids; if (count($messages) < 20) $messages[] = sprintf('StageEtudiant #%s: UUID V3 absent ou invalide.', $row['id']); ++$processed; $context->advanceProgress(); continue; }
-
+                $uuid = self::legacyUuid($row['uuid']) ?? \Symfony\Component\Uid\Uuid::v4();
                 $entity = $this->entityManager->getRepository(StageEtudiant::class)->findOneBy(['uuid' => $uuid]);
                 $isNew = null === $entity;
                 $entity ??= new StageEtudiant(self::nullableFloat($row['gratification_montant']));

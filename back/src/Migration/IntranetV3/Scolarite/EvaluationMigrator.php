@@ -88,7 +88,7 @@ SQL;
                     continue;
                 }
 
-                $uuid = $this->uuidFromHex($row['uuid_hex']);
+                $uuid = $this->resolveUuid($row['uuid_hex'] ?? $row['uuid'] ?? null);
                 $anneeUniversitaire = null !== $row['annee_universitaire_id']
                     ? $this->entityManager->getRepository(StructureAnneeUniversitaire::class)
                         ->findOneBy(['oldId' => (int) $row['annee_universitaire_id']])

@@ -51,6 +51,11 @@ class ScolEvaluationRattrapage implements TimestampableInterface
     #[ORM\JoinColumn(nullable: false)]
     private ?ScolEvaluation $evaluation = null;
 
+    public function __construct()
+    {
+        $this->setUuid();
+    }
+
     public function getId(): ?int
     {
         return $this->id;

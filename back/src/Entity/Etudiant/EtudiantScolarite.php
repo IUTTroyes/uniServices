@@ -128,6 +128,7 @@ class EtudiantScolarite
     public function __construct()
     {
         $this->scolariteSemestre = new ArrayCollection();
+        $this->setUuid();
     }
 
     public function getId(): ?int

@@ -84,7 +84,7 @@ SQL;
                     continue;
                 }
 
-                $uuid = $this->uuidFromHex($row['uuid_hex']);
+                $uuid = $this->resolveUuid($row['uuid_hex'] ?? $row['uuid'] ?? null);
                 $justificatif = $this->entityManager->getRepository(EtudiantAbsenceJustificatif::class)
                     ->findOneBy(['uuid' => $uuid]);
                 $isNew = null === $justificatif;

@@ -30,6 +30,7 @@ final class DepartementMigrator extends AbstractMigrator
                 $entity ??= new StructureDepartement();
 
                 $entity
+                    ->setUuid($this->resolveUuid($row['uuid'] ?? null))
                     ->setOldId((int) $row['id'])
                     ->setLibelle((string) $row['libelle'])
                     ->setLogoName($row['logo_name'] ?: null)

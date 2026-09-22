@@ -139,6 +139,7 @@ class ScolEvaluation
 
     public function __construct()
     {
+        $this->setUuid();
         $this->personnelAutorise = new ArrayCollection();
         $this->evaluations = new ArrayCollection();
         $this->notes = new ArrayCollection();

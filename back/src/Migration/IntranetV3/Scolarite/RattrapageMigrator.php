@@ -75,15 +75,7 @@ SQL;
 
         foreach ($this->source->executeQuery($sql)->iterateAssociative() as $row) {
             try {
-                $uuid = $this->uuidFromHex($row['uuid_hex']);
-                if (null === $uuid) {
-                    ++$skipped;
-                    ++$diagnostics['uuid'];
-                    $this->addSample($messages, $sampleCount, sprintf('Rattrapage V3 #%s ignoré: UUID invalide.', $row['id']));
-                    ++$processed;
-                    $this->flushBatch($context, $processed);
-                    continue;
-                }
+                $uuid = $this->resolveUuid($row['uuid_hex'] ?? $row['uuid'] ?? null);
 
                 $etudiant = $this->entityManager->getRepository(Etudiant::class)
                     ->findOneBy(['oldId' => (int) $row['etudiant_id']]);

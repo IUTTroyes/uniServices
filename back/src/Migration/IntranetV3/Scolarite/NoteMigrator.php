@@ -132,6 +132,7 @@ SQL;
                 $note ??= new EtudiantNote();
 
                 $note
+                    ->setUuid($this->resolveUuid($row['uuid'] ?? null))
                     ->setEvaluation($evaluation)
                     ->setScolarite($scolarite)
                     ->setScolariteSemestre($scolariteSemestre)

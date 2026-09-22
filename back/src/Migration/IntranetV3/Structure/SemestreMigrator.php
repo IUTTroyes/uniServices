@@ -28,6 +28,8 @@ final class SemestreMigrator extends AbstractMigrator
         $anneeRepository = $this->entityManager->getRepository(StructureAnnee::class);
         $created = $updated = $skipped = $failed = 0;
         $sample = $this->source->fetchAssociative('SELECT * FROM semestre LIMIT 1');
+        $messages = [];
+        
         if ($sample) {
             fwrite(STDERR, "\nColonnes semestre V3: " . implode(', ', array_keys($sample)) . "\n");
         }
@@ -74,7 +76,7 @@ SQL;
                         ->setNbGroupesTd((int) $row['nb_groupes_td'])
                         ->setNbGroupesTp((int) $row['nb_groupes_tp'])
                         ->setCodeElement($row['code_element'] ?: null)
-                        ->setIdEduSign($row['id_edu_sign'] ?: null)
+                        ->setKeyEduSign($row['id_edu_sign'] ?: null)
                         ->setOpt([
                             'mail_releve' => (bool) $row['opt_mail_releve'],
                             'mail_modif_note' => (bool) $row['opt_mail_modification_note'],

@@ -174,8 +174,6 @@ class EdtEvent implements TimestampableInterface
     public function setSemaineFormation(?int $semaineFormation): static { $this->semaineFormation = $semaineFormation; return $this; }
     public function getJour(): ?int { return $this->jour; }
     public function setJour(?int $jour): static { $this->jour = $jour; return $this; }
-    public function getUuid(): UuidV4 { return $this->uuid; }
-    public function setUuid(UuidV4 $uuid): void { $this->uuid = $uuid; }
     public function getDate(): ?\DateTimeInterface { return $this->date; }
     public function setDate(?\DateTimeInterface $date): static { $this->date = $date; return $this; }
     public function getDebut(): ?\DateTimeInterface { return $this->debut; }

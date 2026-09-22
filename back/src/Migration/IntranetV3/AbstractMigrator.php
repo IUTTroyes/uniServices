@@ -65,4 +65,43 @@ abstract class AbstractMigrator implements MigratorInterface
     {
         $this->entityManager->clear();
     }
+
+    protected function resolveUuid(mixed $value): \Symfony\Component\Uid\Uuid
+    {
+        if ($value instanceof \Symfony\Component\Uid\Uuid) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            $trimmed = trim($value);
+            if ('' === $trimmed) {
+                return \Symfony\Component\Uid\Uuid::v4();
+            }
+
+            if (16 === strlen($trimmed)) {
+                try {
+                    return \Symfony\Component\Uid\Uuid::fromBinary($trimmed);
+                } catch (\Throwable) {
+                }
+            }
+
+            if (\Symfony\Component\Uid\Uuid::isValid($trimmed)) {
+                return \Symfony\Component\Uid\Uuid::fromString($trimmed);
+            }
+
+            $hex = str_replace('-', '', $trimmed);
+            if (32 === strlen($hex) && ctype_xdigit($hex)) {
+                return \Symfony\Component\Uid\Uuid::fromString(sprintf(
+                    '%s-%s-%s-%s-%s',
+                    substr($hex, 0, 8),
+                    substr($hex, 8, 4),
+                    substr($hex, 12, 4),
+                    substr($hex, 16, 4),
+                    substr($hex, 20, 12),
+                ));
+            }
+        }
+
+        return \Symfony\Component\Uid\Uuid::v4();
+    }
 }

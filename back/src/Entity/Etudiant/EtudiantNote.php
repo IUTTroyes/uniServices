@@ -85,6 +85,11 @@ class EtudiantNote implements TimestampableInterface
     #[Groups(['note:write', 'note:detail'])]
     private ?EtudiantScolariteSemestre $scolariteSemestre = null;
 
+    public function __construct()
+    {
+        $this->setUuid();
+    }
+
     public function getId(): ?int
     {
         return $this->id;

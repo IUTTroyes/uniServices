@@ -139,6 +139,7 @@ SQL;
                 if (null === $scolarite) {
                     $scolarite = new EtudiantScolarite();
                     $scolarite
+                        ->setUuid($this->resolveUuid($row['uuid'] ?? null))
                         ->setEtudiant($etudiant)
                         ->setAnneeUniversitaire($anneeUniversitaire)
                         ->setDepartement($semestre->getAnnee()?->getDepartement())
