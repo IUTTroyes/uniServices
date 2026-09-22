@@ -80,14 +80,6 @@ class EtudiantScolariteSemestre
 
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite-semestre:detail'])]
-    private ?array $moyennesMatiere = null;
-
-    #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite-semestre:detail'])]
-    private ?array $moyennesUe = null;
-
-    #[ORM\Column(nullable: true)]
-    #[Groups(['scolarite-semestre:detail'])]
     private ?bool $decision = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
