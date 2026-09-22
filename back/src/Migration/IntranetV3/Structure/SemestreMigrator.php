@@ -123,17 +123,15 @@ SQL;
                 }
 
                 ++$processed;
-                $this->flushAndClearBatch($context, $processed);
 
-                if (!$this->entityManager->contains($annee)) {
-                    $annee = $anneeRepository->find((int) $anneeId);
-                    if (null === $annee) {
-                        break;
-                    }
-                }
+                // Flush/clear only once the complete source year has been cloned.
+                // Clearing in the middle of this inner loop detaches $annee while
+                // Doctrine is still processing its remaining V3 semesters.
+                // As a V3 year only owns a few semesters, the parent boundary is
+                // already a small and safe memory batch.
             }
 
-            $this->entityManager->clear();
+            $this->flushAndClear($context);
         }
 
         $this->flush($context);
