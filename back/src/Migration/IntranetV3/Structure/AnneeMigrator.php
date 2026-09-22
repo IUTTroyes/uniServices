@@ -26,10 +26,21 @@ final class AnneeMigrator extends AbstractMigrator
     {
         $repository = $this->entityManager->getRepository(StructureAnnee::class);
         $pnRepository = $this->entityManager->getRepository(StructurePn::class);
-        $created = $updated = $skipped = $failed = 0;
+        $created = $updated = $skipped = $failed = $processed = 0;
         $messages = [];
 
-        foreach ($pnRepository->findAll() as $pn) {
+        $pnIds = $this->entityManager->createQueryBuilder()
+            ->select('pn.id')
+            ->from(StructurePn::class, 'pn')
+            ->orderBy('pn.id', 'ASC')
+            ->getQuery()
+            ->getSingleColumnResult();
+
+        foreach ($pnIds as $pnId) {
+            $pn = $pnRepository->find((int) $pnId);
+            if (null === $pn) {
+                continue;
+            }
             $diplomeOldId = $pn->getDiplome()?->getOldId();
             if (null === $diplomeOldId || null === $pn->getAnneeUniversitaire()) {
                 ++$skipped;
@@ -79,7 +90,19 @@ SQL;
                         $e->getMessage(),
                     );
                 }
+
+                ++$processed;
+                $this->flushAndClearBatch($context, $processed);
+
+                if (!$this->entityManager->contains($pn)) {
+                    $pn = $pnRepository->find((int) $pnId);
+                    if (null === $pn) {
+                        break;
+                    }
+                }
             }
+
+            $this->entityManager->clear();
         }
 
         $this->flush($context);
