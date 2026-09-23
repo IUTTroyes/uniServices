@@ -1280,3 +1280,12 @@ Après application des migrations Doctrine :
 7. vérifier un échantillon d'étudiants historiques : année → scolarité → scolarité semestre (`legacyContext`) → note → évaluation (`legacyContext`).
 
 Le prochain run complet doit être considéré comme une recette de cohérence, pas seulement comme un test d'absence d'exception.
+
+
+### 24.1 Référentiel APC du PN 2026-2027
+
+Le PN annuel doit porter explicitement le référentiel APC utilisé. `PnMigrator` dépend désormais de `ApcDiplomeLinkMigrator` afin que `StructureDiplome.referentiel` soit résolu avant la création/mise à jour du PN.
+
+Pour chaque diplôme APC, `StructurePn.apcReferentiel` reçoit le référentiel associé au diplôme. Un diplôme dont le type est marqué `apc=true` mais qui n'a aucun référentiel résolu est signalé dans le rapport de migration. Les diplômes non APC conservent `apcReferentiel = null`.
+
+Le bilan `pns` indique le nombre de référentiels associés et le nombre de diplômes APC anormaux sans référentiel.
