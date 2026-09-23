@@ -27,15 +27,11 @@ final class SemestreMigrator extends AbstractMigrator
         $repository = $this->entityManager->getRepository(StructureSemestre::class);
         $anneeRepository = $this->entityManager->getRepository(StructureAnnee::class);
         $created = $updated = $skipped = $failed = $processed = 0;
-        $sample = $this->source->fetchAssociative('SELECT * FROM semestre LIMIT 1');
         $messages = [];
-        
-        if ($sample) {
-            fwrite(STDERR, "\nColonnes semestre V3: " . implode(', ', array_keys($sample)) . "\n");
-        }
 
-        // Chaque StructureAnnee est déjà un clone rattaché à un PN annuel.
-        // On clone donc tous les semestres V3 de l'année source dans ce snapshot.
+        // Depuis la frontière 2026-2027, les StructureAnnee présentes ici
+        // appartiennent uniquement au PN natif V4. Aucun semestre historique
+        // artificiel n'est créé.
         $anneeIds = $this->entityManager->createQueryBuilder()
             ->select('a.id')
             ->from(StructureAnnee::class, 'a')
