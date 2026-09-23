@@ -134,12 +134,23 @@ SQL;
                     continue;
                 }
 
-                $scolariteSemestre = null !== $semestre
-                    ? $this->entityManager->getRepository(EtudiantScolariteSemestre::class)->findOneBy([
+                $scolariteSemestre = null;
+                if (null !== $semestre) {
+                    $scolariteSemestre = $this->entityManager->getRepository(EtudiantScolariteSemestre::class)->findOneBy([
                         'scolarite' => $scolarite,
                         'semestre' => $semestre,
-                    ])
-                    : null;
+                    ]);
+                } else {
+                    $legacySemestreOldId = (int) ($evaluation->getLegacyContext()['semestre']['oldId'] ?? 0);
+                    if ($legacySemestreOldId > 0) {
+                        foreach ($scolarite->getScolariteSemestre() as $candidate) {
+                            if ((int) ($candidate->getLegacyContext()['semestre']['oldId'] ?? 0) === $legacySemestreOldId) {
+                                $scolariteSemestre = $candidate;
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 if (null === $scolariteSemestre) {
                     ++$partial['scolariteSemestre'];
