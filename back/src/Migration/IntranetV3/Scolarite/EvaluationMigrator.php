@@ -71,9 +71,21 @@ SELECT
     e.coefficient,
     e.commentaire,
     e.libelle,
+    s.libelle AS semestre_libelle,
+    s.ordre_annee AS semestre_ordre,
+    CASE
+        WHEN e.type_matiere = 'matiere' THEN m.libelle
+        WHEN e.type_matiere = 'ressource' THEN r.libelle
+        WHEN e.type_matiere = 'sae' THEN sae.libelle
+        ELSE NULL
+    END AS enseignement_libelle,
     HEX(parent.uuid) AS parent_uuid_hex
 FROM evaluation e
 LEFT JOIN evaluation parent ON parent.id = e.parent_id
+LEFT JOIN semestre s ON s.id = e.semestre_id
+LEFT JOIN matiere m ON e.type_matiere = 'matiere' AND m.id = e.id_matiere
+LEFT JOIN apc_ressource r ON e.type_matiere = 'ressource' AND r.id = e.id_matiere
+LEFT JOIN apc_sae sae ON e.type_matiere = 'sae' AND sae.id = e.id_matiere
 ORDER BY e.id
 SQL;
 
@@ -107,8 +119,11 @@ SQL;
                     continue;
                 }
 
-                $semestre = $this->findSnapshotSemestre((int) $row['semestre_id'], $anneeUniversitaire);
-                if (null === $semestre) {
+                $isNativeV4Year = 2026 === $anneeUniversitaire->getAnnee();
+                $semestre = $isNativeV4Year
+                    ? $this->findSnapshotSemestre((int) $row['semestre_id'], $anneeUniversitaire)
+                    : null;
+                if ($isNativeV4Year && null === $semestre) {
                     ++$skipped;
                     ++$diagnostics['semestre'];
                     $this->addSample($messages, $sampleCount, sprintf(
@@ -122,8 +137,10 @@ SQL;
                     continue;
                 }
 
-                $enseignement = $this->findSnapshotEnseignement((int) $row['id_matiere'], $semestre, $enseignementType);
-                if (null === $enseignement) {
+                $enseignement = null !== $semestre
+                    ? $this->findSnapshotEnseignement((int) $row['id_matiere'], $semestre, $enseignementType)
+                    : null;
+                if ($isNativeV4Year && null === $enseignement) {
                     ++$skipped;
                     ++$diagnostics['enseignement'];
                     $this->addSample($messages, $sampleCount, sprintf(
@@ -154,6 +171,19 @@ SQL;
                     ->setAnneeUniversitaire($anneeUniversitaire)
                     ->setSemestre($semestre)
                     ->setEnseignement($enseignement)
+                    ->setLegacyContext($isNativeV4Year ? null : [
+                        'source' => 'intranet-v3',
+                        'semestre' => [
+                            'oldId' => (int) $row['semestre_id'],
+                            'libelle' => $row['semestre_libelle'] ?: null,
+                            'ordre' => null !== $row['semestre_ordre'] ? (int) $row['semestre_ordre'] : null,
+                        ],
+                        'enseignement' => [
+                            'oldId' => (int) $row['id_matiere'],
+                            'type' => $row['type_matiere'],
+                            'libelle' => $row['enseignement_libelle'] ?: null,
+                        ],
+                    ])
                     ->setEtat((bool) $row['visible'] ? EtatEvaluationEnum::ETAT_PUBLIEE : EtatEvaluationEnum::ETAT_INITIALISEE);
 
                 if (null !== $row['personnel_auteur_id']) {
