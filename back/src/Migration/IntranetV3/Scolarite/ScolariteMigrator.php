@@ -55,6 +55,9 @@ SELECT
     sc.nb_absences,
     sc.commentaire,
     sc.diffuse,
+    s.libelle AS semestre_libelle,
+    s.ordre_annee AS semestre_ordre,
+    a.libelle AS annee_libelle,
     SUM(sc.nb_absences) OVER (PARTITION BY sc.etudiant_id, sc.annee_universitaire_id) AS total_nb_absences,
     MAX(sc.diffuse) OVER (PARTITION BY sc.etudiant_id, sc.annee_universitaire_id) AS public_annee
 FROM scolarite sc
@@ -111,13 +114,14 @@ SQL;
                     ++$diagnostics['diplome'];
                     $missing[] = sprintf('diplôme V3 #%s', $row['diplome_id']);
                 }
-                if (null !== $diplome && null !== $anneeUniversitaire && null === $pn) {
+                $isNativeV4Year = null !== $anneeUniversitaire && 2026 === $anneeUniversitaire->getAnnee();
+                if ($isNativeV4Year && null !== $diplome && null === $pn) {
                     ++$diagnostics['pn'];
-                    $missing[] = sprintf('PN snapshot diplôme #%s / année #%s', $row['diplome_id'], $row['annee_universitaire_id']);
+                    $missing[] = sprintf('PN 2026-2027 diplôme #%s', $row['diplome_id']);
                 }
-                if (null !== $pn && null === $semestre) {
+                if ($isNativeV4Year && null !== $pn && null === $semestre) {
                     ++$diagnostics['semestre'];
-                    $missing[] = sprintf('semestre snapshot V3 #%s', $row['semestre_id']);
+                    $missing[] = sprintf('semestre 2026-2027 V3 #%s', $row['semestre_id']);
                 }
 
                 if ([] !== $missing) {
@@ -142,7 +146,7 @@ SQL;
                         ->setUuid($this->resolveUuid($row['uuid'] ?? null))
                         ->setEtudiant($etudiant)
                         ->setAnneeUniversitaire($anneeUniversitaire)
-                        ->setDepartement($semestre->getAnnee()?->getDepartement())
+                        ->setDepartement($diplome?->getDepartement())
                         ->setOrdre((int) $row['ordre']);
                     $this->entityManager->persist($scolarite);
                     ++$created;
@@ -156,13 +160,25 @@ SQL;
                 $scolarite->setActif($anneeUniversitaire->isActif() ?? false);
 
                 if (null === $scolarite->getDepartement()) {
-                    $scolarite->setDepartement($semestre->getAnnee()?->getDepartement());
+                    $scolarite->setDepartement($diplome?->getDepartement());
                 }
 
-                $scolariteSemestre = $scolariteSemestreRepository->findOneBy([
-                    'scolarite' => $scolarite,
-                    'semestre' => $semestre,
-                ]);
+                $scolariteSemestre = null !== $semestre
+                    ? $scolariteSemestreRepository->findOneBy([
+                        'scolarite' => $scolarite,
+                        'semestre' => $semestre,
+                    ])
+                    : $this->entityManager->createQueryBuilder()
+                        ->select('ss')
+                        ->from(EtudiantScolariteSemestre::class, 'ss')
+                        ->andWhere('ss.scolarite = :scolarite')
+                        ->andWhere('ss.semestre IS NULL')
+                        ->andWhere('JSON_EXTRACT(ss.legacyContext, \'$.semestre.oldId\') = :semestreOldId')
+                        ->setParameter('scolarite', $scolarite)
+                        ->setParameter('semestreOldId', (int) $row['semestre_id'])
+                        ->setMaxResults(1)
+                        ->getQuery()
+                        ->getOneOrNullResult();
 
                 if (null === $scolariteSemestre) {
                     $scolariteSemestre = new EtudiantScolariteSemestre();
@@ -171,6 +187,17 @@ SQL;
                         ->setSemestre($semestre);
                     $this->entityManager->persist($scolariteSemestre);
                 }
+
+                $scolariteSemestre->setLegacyContext(null === $semestre ? [
+                    'source' => 'intranet-v3',
+                    'annee' => ['libelle' => $row['annee_libelle'] ?: null],
+                    'semestre' => [
+                        'oldId' => (int) $row['semestre_id'],
+                        'libelle' => $row['semestre_libelle'] ?: null,
+                        'ordre' => null !== $row['semestre_ordre'] ? (int) $row['semestre_ordre'] : null,
+                    ],
+                    'diplome' => ['oldId' => (int) $row['diplome_id']],
+                ] : null);
 
                 $scolariteSemestre->setMoyenne(null !== $row['moyenne'] ? (float) $row['moyenne'] : null);
                 $scolariteSemestre->setNbAbsences((int) ($row['nb_absences'] ?? 0));
