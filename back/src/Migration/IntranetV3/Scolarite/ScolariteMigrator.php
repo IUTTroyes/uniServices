@@ -168,17 +168,16 @@ SQL;
                         'scolarite' => $scolarite,
                         'semestre' => $semestre,
                     ])
-                    : $this->entityManager->createQueryBuilder()
-                        ->select('ss')
-                        ->from(EtudiantScolariteSemestre::class, 'ss')
-                        ->andWhere('ss.scolarite = :scolarite')
-                        ->andWhere('ss.semestre IS NULL')
-                        ->andWhere('JSON_EXTRACT(ss.legacyContext, \'$.semestre.oldId\') = :semestreOldId')
-                        ->setParameter('scolarite', $scolarite)
-                        ->setParameter('semestreOldId', (int) $row['semestre_id'])
-                        ->setMaxResults(1)
-                        ->getQuery()
-                        ->getOneOrNullResult();
+                    : null;
+
+                if (null === $semestre) {
+                    foreach ($scolarite->getScolariteSemestre() as $candidate) {
+                        if ((int) ($candidate->getLegacyContext()['semestre']['oldId'] ?? 0) === (int) $row['semestre_id']) {
+                            $scolariteSemestre = $candidate;
+                            break;
+                        }
+                    }
+                }
 
                 if (null === $scolariteSemestre) {
                     $scolariteSemestre = new EtudiantScolariteSemestre();
