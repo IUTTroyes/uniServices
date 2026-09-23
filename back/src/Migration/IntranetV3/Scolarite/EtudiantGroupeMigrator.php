@@ -73,9 +73,9 @@ SQL;
                 }
 
                 /*
-                 * V3 ne versionne pas etudiant_groupe par année universitaire.
-                 * On rattache donc l'affectation au semestre le plus récent dans lequel
-                 * l'étudiant possède une scolarité et où ce groupe V3 existe dans le snapshot.
+                 * V3 ne versionne pas etudiant_groupe. Ce lien décrit donc l'affectation
+                 * courante au moment de la bascule : on ne fabrique pas de groupes historiques.
+                 * On le rattache uniquement à une scolarité 2026-2027 ayant une structure V4.
                  */
                 $scolariteSemestre = $this->entityManager->createQueryBuilder()
                     ->select('ss')
@@ -87,9 +87,11 @@ SQL;
                     ->innerJoin('pn.anneeUniversitaire', 'au')
                     ->innerJoin('sem.groupes', 'g')
                     ->andWhere('sc.etudiant = :etudiant')
+                    ->andWhere('au.annee = :nativeYear')
                     ->andWhere('g.oldId = :groupeOldId')
                     ->setParameter('etudiant', $etudiant)
                     ->setParameter('groupeOldId', (int) $row['groupe_id'])
+                    ->setParameter('nativeYear', 2026)
                     ->orderBy('au.annee', 'DESC')
                     ->addOrderBy('sem.ordreLmd', 'DESC')
                     ->setMaxResults(1)
@@ -109,7 +111,7 @@ SQL;
                     );
 
                     $this->addSample($messages, $sampleCount, sprintf(
-                        'Affectation étudiant V3 #%s / groupe V3 #%s ignorée: aucune scolarité semestrielle compatible trouvée (%s).',
+                        'Affectation étudiant V3 #%s / groupe V3 #%s ignorée: aucune scolarité 2026-2027 compatible trouvée (%s).',
                         $row['etudiant_id'],
                         $row['groupe_id'],
                         $reason,
@@ -120,7 +122,7 @@ SQL;
                 }
 
                 $groupe = null;
-                foreach ($scolariteSemestre->getSemestre()->getGroupes() as $candidate) {
+                foreach ($scolariteSemestre->getSemestre()?->getGroupes() ?? [] as $candidate) {
                     if ($candidate->getOldId() === (int) $row['groupe_id']) {
                         $groupe = $candidate;
                         break;
