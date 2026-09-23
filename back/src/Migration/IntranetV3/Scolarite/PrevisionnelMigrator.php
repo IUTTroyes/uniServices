@@ -63,7 +63,7 @@ SELECT
     p.id_matiere
 FROM previsionnel p
 INNER JOIN annee_universitaire au ON au.annee = p.annee
-WHERE au.active = 1
+WHERE au.annee = 2026
 ORDER BY p.id
 SQL;
 
@@ -81,7 +81,7 @@ SQL;
                 }
 
                 $anneeUniversitaire = $this->entityManager->getRepository(StructureAnneeUniversitaire::class)
-                    ->findOneBy(['annee' => (int) $row['annee'], 'actif' => true]);
+                    ->findOneBy(['annee' => 2026]);
                 if (null === $anneeUniversitaire) {
                     ++$skipped;
                     ++$diagnostics['annee'];
