@@ -25,7 +25,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ScolEvaluationRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiFilter(EvaluationFilter::class)]
 #[ApiResource(
     paginationEnabled: false,
@@ -108,9 +107,17 @@ class ScolEvaluation
     private Collection $evaluations;
 
     #[ORM\ManyToOne(inversedBy: 'evaluations')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['evaluation:detail', 'evaluation:init'])]
     private ?ScolEnseignement $enseignement = null;
+
+    /**
+     * Immutable V3 context for evaluations predating the first versioned V4 PN.
+     * Null for evaluations attached to a native V4 structure.
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['evaluation:detail'])]
+    private ?array $legacyContext = null;
 
     /**
      * @var Collection<int, EtudiantNote>
@@ -140,6 +147,7 @@ class ScolEvaluation
 
     public function __construct()
     {
+        $this->setUuid();
         $this->personnelAutorise = new ArrayCollection();
         $this->evaluations = new ArrayCollection();
         $this->notes = new ArrayCollection();
@@ -332,6 +340,18 @@ class ScolEvaluation
     /**
      * @return Collection<int, EtudiantNote>
      */
+    public function getLegacyContext(): ?array
+    {
+        return $this->legacyContext;
+    }
+
+    public function setLegacyContext(?array $legacyContext): static
+    {
+        $this->legacyContext = $legacyContext;
+
+        return $this;
+    }
+
     public function getNotes(): Collection
     {
         return $this->notes;

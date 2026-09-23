@@ -4,10 +4,27 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+  default_etablissement_pays: 'France'
+  default_email_from_address: 'no-reply@univ-reims.fr'
+  default_email_from_name: 'UniServices'
   URL_INTRANET_V3: "%env(URL_INTRANET_V3)%"
   etablissement_logo_upload_dir: "%kernel.project_dir%/public/uploads/etablissement"
-  email_from_address: "%env(EMAIL_FROM_ADDRESS)%"
-  email_from_name: "%env(string:EMAIL_FROM_NAME)%"
+  email_from_address: "%env(default:default_email_from_address:EMAIL_FROM_ADDRESS)%"
+  email_from_name: "%env(default:default_email_from_name:EMAIL_FROM_NAME)%"
+
+  # Application bootstrap data. These values are V4 configuration, not V3 data.
+  app.establishment:
+    libelle: "%env(string:ETABLISSEMENT_LIBELLE)%"
+    site_web: "%env(default::ETABLISSEMENT_SITE_WEB)%"
+    telephone: "%env(default::ETABLISSEMENT_TELEPHONE)%"
+    is_main: true
+    adresse:
+      adresse: "%env(default::ETABLISSEMENT_ADRESSE)%"
+      complement1: "%env(default::ETABLISSEMENT_ADRESSE_COMPLEMENT1)%"
+      complement2: "%env(default::ETABLISSEMENT_ADRESSE_COMPLEMENT2)%"
+      ville: "%env(default::ETABLISSEMENT_VILLE)%"
+      codePostal: "%env(default::ETABLISSEMENT_CODE_POSTAL)%"
+      pays: "%env(default:default_etablissement_pays:ETABLISSEMENT_PAYS)%"
 
 services:
   # default configuration for services in *this* file
@@ -64,11 +81,25 @@ services:
     App\Security\PermissionProviderInterface:
       tags:
         - app.permission_provider
+    App\Migration\IntranetV3\Contract\MigratorInterface:
+      tags:
+        - app.intranet_v3.migrator
+    App\Initialization\InitializerInterface:
+      tags:
+        - app.initializer
     # Toutes les classes qui étendent AbstractEmailDefinition sont automatiquement
     # taggées et injectées dans l'EmailRegistry
     App\Service\Email\AbstractEmailDefinition:
       tags:
         - app.email_definition
+
+  App\Migration\IntranetV3\MigrationRegistry:
+    arguments:
+      $migrators: !tagged_iterator app.intranet_v3.migrator
+
+  App\Initialization\InitializationRunner:
+    arguments:
+      $initializers: !tagged_iterator app.initializer
 
   # Registre des emails : reçoit toutes les définitions taggées
   App\Service\Email\EmailRegistry:

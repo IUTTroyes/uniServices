@@ -6,6 +6,7 @@ use App\Entity\Edt\EdtEvent;
 use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use Doctrine\ORM\EntityManagerInterface;
 
+/** @deprecated ?? */
 class GenereSlots
 {
     private int $nbSlots = 0;

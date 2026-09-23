@@ -550,6 +550,8 @@
       <path value="$PROJECT_DIR$/back/vendor/dragonmantank/cron-expression" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/messenger" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/scheduler" />
+      <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-php85" />
+      <path value="$PROJECT_DIR$/back/vendor/symfony/workflow" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
@@ -566,7 +568,6 @@
     <phpunit_settings>
       <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/packages/intranet-bundle/vendor/autoload.php" />
       <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/back/vendor/autoload.php" />
-      <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/vendor/autoload.php" />
     </phpunit_settings>
   </component>
   <component name="Psalm">

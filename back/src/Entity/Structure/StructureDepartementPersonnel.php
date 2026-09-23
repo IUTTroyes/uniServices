@@ -12,6 +12,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use App\Entity\Users\Personnel;
+use App\Entity\Traits\OldIdTrait;
 use App\Repository\Structure\StructureDepartementPersonnelRepository;
 use App\Filter\DepartementPersonnelFilter;
 use Doctrine\ORM\Mapping as ORM;
@@ -56,6 +57,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 )]
 class StructureDepartementPersonnel
 {
+    use OldIdTrait; // référence V3 temporaire pour contrôler la bascule
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
