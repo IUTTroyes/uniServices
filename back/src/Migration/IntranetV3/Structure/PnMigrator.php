@@ -31,31 +31,26 @@ final class PnMigrator extends AbstractMigrator
         $created = $updated = $skipped = $failed = 0;
         $messages = [];
 
-        // V3 ne versionnait pas réellement la structure. On reconstruit donc une
-        // racine de snapshot par couple (diplôme, année universitaire) effectivement
-        // utilisé dans les scolarités. Les descendants seront clonés depuis l'état
-        // de structure V3 connu aujourd'hui.
-        $sql = <<<'SQL'
-SELECT DISTINCT a.diplome_id, sc.annee_universitaire_id
-FROM scolarite sc
-INNER JOIN semestre s ON s.id = sc.semestre_id
-INNER JOIN annee a ON a.id = s.annee_id
-WHERE sc.annee_universitaire_id IS NOT NULL
-ORDER BY sc.annee_universitaire_id, a.diplome_id
-SQL;
+        // V4 starts its trustworthy structural history with 2026-2027.
+        // V3 did not version the maquette, therefore cloning today's structure
+        // into older academic years would manufacture a false history.
+        $anneeUniversitaire = $anneeUniversitaireRepository->findOneBy(['annee' => 2026]);
+        if (null === $anneeUniversitaire) {
+            return new MigrationResult(0, 0, 0, 1, [
+                'PN 2026-2027 non migré: année universitaire 2026 introuvable.',
+            ]);
+        }
 
-        foreach ($this->source->iterateAssociative($sql) as $row) {
+        $diplomeOldIds = $this->source->fetchFirstColumn(
+            'SELECT DISTINCT diplome_id FROM annee WHERE diplome_id IS NOT NULL ORDER BY diplome_id'
+        );
+
+        foreach ($diplomeOldIds as $diplomeOldId) {
             try {
-                $diplome = $diplomeRepository->findOneBy(['oldId' => (int) $row['diplome_id']]);
-                $anneeUniversitaire = $anneeUniversitaireRepository->findOneBy(['oldId' => (int) $row['annee_universitaire_id']]);
-
-                if (null === $diplome || null === $anneeUniversitaire) {
+                $diplome = $diplomeRepository->findOneBy(['oldId' => (int) $diplomeOldId]);
+                if (null === $diplome) {
                     ++$skipped;
-                    $messages[] = sprintf(
-                        'PN snapshot skipped: diplôme V3 #%s ou année universitaire V3 #%s introuvable.',
-                        $row['diplome_id'],
-                        $row['annee_universitaire_id'],
-                    );
+                    $messages[] = sprintf('PN 2026-2027 ignoré: diplôme V3 #%s introuvable.', $diplomeOldId);
                     continue;
                 }
 
@@ -69,7 +64,7 @@ SQL;
                 $entity
                     ->setDiplome($diplome)
                     ->setAnneeUniversitaire($anneeUniversitaire)
-                    ->setAnneePublication((int) $anneeUniversitaire->getAnnee())
+                    ->setAnneePublication(2026)
                     ->setLibelle(sprintf('%s — %s', $diplome->getLibelle(), $anneeUniversitaire->getLibelle()));
 
                 if ($isNew) {
@@ -80,12 +75,7 @@ SQL;
                 }
             } catch (\Throwable $e) {
                 ++$failed;
-                $messages[] = sprintf(
-                    'PN snapshot diplôme #%s / année #%s: %s',
-                    $row['diplome_id'],
-                    $row['annee_universitaire_id'],
-                    $e->getMessage(),
-                );
+                $messages[] = sprintf('PN 2026-2027 diplôme #%s: %s', $diplomeOldId, $e->getMessage());
             }
         }
 
