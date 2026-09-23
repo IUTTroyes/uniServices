@@ -88,15 +88,17 @@ SQL;
                     continue;
                 }
 
-                $pn = $pnRepository->findOneBy([
+                $isNativeV4Year = 2026 === $anneeUniversitaire->getAnnee();
+                $pn = $isNativeV4Year ? $pnRepository->findOneBy([
                     'diplome' => $diplome,
                     'anneeUniversitaire' => $anneeUniversitaire,
-                ]);
+                ]) : null;
+                $semestre = null !== $pn ? $this->findSnapshotSemestre((int) $row['semestre_id'], $pn) : null;
 
-                if (null === $pn) {
+                if ($isNativeV4Year && (null === $pn || null === $semestre)) {
                     ++$skipped;
                     $this->addSample($messages, $sampleCount, sprintf(
-                        'Scolarite V3 #%s ignorée: snapshot PN non résolu.',
+                        'Scolarite V3 #%s ignorée: structure 2026-2027 non résolue.',
                         $row['id'],
                     ));
                     ++$processed;
@@ -104,30 +106,21 @@ SQL;
                     continue;
                 }
 
-                $semestre = $this->findSnapshotSemestre((int) $row['semestre_id'], $pn);
-                if (null === $semestre) {
-                    ++$skipped;
-                    $this->addSample($messages, $sampleCount, sprintf(
-                        'Scolarite V3 #%s ignorée: semestre snapshot non résolu.',
-                        $row['id'],
-                    ));
-                    ++$processed;
-                    $this->flushBatch($context, $processed);
-                    continue;
+                $scolarite = $this->entityManager->getRepository(\App\Entity\Etudiant\EtudiantScolarite::class)
+                    ->findOneBy(['etudiant' => $etudiant, 'anneeUniversitaire' => $anneeUniversitaire]);
+                $scolariteSemestre = null;
+                if (null !== $scolarite) {
+                    foreach ($scolarite->getScolariteSemestre() as $candidate) {
+                        if (null !== $semestre && $candidate->getSemestre()?->getId() === $semestre->getId()) {
+                            $scolariteSemestre = $candidate;
+                            break;
+                        }
+                        if (null === $semestre && (int) ($candidate->getLegacyContext()['semestre']['oldId'] ?? 0) === (int) $row['semestre_id']) {
+                            $scolariteSemestre = $candidate;
+                            break;
+                        }
+                    }
                 }
-
-                $scolariteSemestre = $this->entityManager->createQueryBuilder()
-                    ->select('ss')
-                    ->from(EtudiantScolariteSemestre::class, 'ss')
-                    ->innerJoin('ss.scolarite', 'sc')
-                    ->andWhere('sc.etudiant = :etudiant')
-                    ->andWhere('sc.anneeUniversitaire = :anneeUniversitaire')
-                    ->andWhere('ss.semestre = :semestre')
-                    ->setParameter('etudiant', $etudiant)
-                    ->setParameter('anneeUniversitaire', $anneeUniversitaire)
-                    ->setParameter('semestre', $semestre)
-                    ->getQuery()
-                    ->getOneOrNullResult();
 
                 if (null === $scolariteSemestre) {
                     ++$skipped;
@@ -146,12 +139,17 @@ SQL;
                 $scolariteSemestre->setMoyennesUe($this->decodeLegacyArray($row['moyennes_ues']));
 
                 if (null !== $row['proposition'] && '' !== trim((string) $row['proposition'])) {
-                    $proposition = $this->resolveProposition((string) $row['proposition'], $pn);
+                    $proposition = null !== $pn ? $this->resolveProposition((string) $row['proposition'], $pn) : null;
                     if (null !== $proposition) {
                         $scolariteSemestre->setProposition($proposition);
                         ++$propositionsMigrees;
                     } elseif (!in_array(strtoupper(trim((string) $row['proposition'])), ['?', 'E.C.', 'EC'], true)) {
                         ++$propositionsNonMigrees;
+                        if (!$isNativeV4Year) {
+                            $legacyContext = $scolariteSemestre->getLegacyContext() ?? ['source' => 'intranet-v3'];
+                            $legacyContext['proposition'] = (string) $row['proposition'];
+                            $scolariteSemestre->setLegacyContext($legacyContext);
+                        }
                         $this->addSample($messages, $sampleCount, sprintf(
                             'Scolarite V3 #%s: proposition "%s" non résolue vers un semestre du même snapshot.',
                             $row['id'],
