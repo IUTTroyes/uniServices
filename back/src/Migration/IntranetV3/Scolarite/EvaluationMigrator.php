@@ -34,6 +34,9 @@ final class EvaluationMigrator extends AbstractMigrator
     public function getDependencies(): array
     {
         return [
+            // Structure teaching migrations are still required for 2026-2027.
+            // Historical evaluations (< 2026) only need the academic year and
+            // personnel; their teaching context is archived in legacyContext.
             MatiereMigrator::class,
             ApcRessourceMigrator::class,
             ApcSaeMigrator::class,
