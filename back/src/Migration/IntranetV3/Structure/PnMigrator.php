@@ -2,10 +2,12 @@
 
 namespace App\Migration\IntranetV3\Structure;
 
+use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructurePn;
 use App\Migration\IntranetV3\AbstractMigrator;
+use App\Migration\IntranetV3\Apc\ApcDiplomeLinkMigrator;
 use App\Migration\IntranetV3\Contract\MigratorInterface;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationResult;
@@ -20,7 +22,7 @@ final class PnMigrator extends AbstractMigrator
     /** @return list<class-string<MigratorInterface>> */
     public function getDependencies(): array
     {
-        return [DiplomeMigrator::class, AnneeUniversitaireMigrator::class];
+        return [DiplomeMigrator::class, AnneeUniversitaireMigrator::class, ApcDiplomeLinkMigrator::class];
     }
 
     public function migrate(MigrationContext $context): MigrationResult
@@ -30,6 +32,8 @@ final class PnMigrator extends AbstractMigrator
         $anneeUniversitaireRepository = $this->entityManager->getRepository(StructureAnneeUniversitaire::class);
         $created = $updated = $skipped = $failed = 0;
         $messages = [];
+        $apcLinked = 0;
+        $apcMissing = 0;
 
         // V4 starts its trustworthy structural history with 2026-2027.
         // V3 did not version the maquette, therefore cloning today's structure
@@ -67,6 +71,22 @@ final class PnMigrator extends AbstractMigrator
                     ->setAnneePublication(2026)
                     ->setLibelle(sprintf('%s — %s', $diplome->getLibelle(), $anneeUniversitaire->getLibelle()));
 
+                // Le référentiel APC est stable et porté par le diplôme. Le PN annuel
+                // doit néanmoins mémoriser explicitement le référentiel utilisé.
+                $referentiel = $diplome->getReferentiel();
+                if ($referentiel instanceof ApcReferentiel) {
+                    $entity->setApcReferentiel($referentiel);
+                    ++$apcLinked;
+                } elseif ($diplome->getTypeDiplome()?->isApc()) {
+                    ++$apcMissing;
+                    $messages[] = sprintf(
+                        'PN 2026-2027 diplôme V3 #%s: diplôme APC sans référentiel associé.',
+                        $diplomeOldId,
+                    );
+                } else {
+                    $entity->setApcReferentiel(null);
+                }
+
                 if ($isNew) {
                     $this->entityManager->persist($entity);
                     ++$created;
@@ -80,6 +100,12 @@ final class PnMigrator extends AbstractMigrator
         }
 
         $this->flush($context);
+
+        $messages[] = sprintf(
+            'Référentiels APC des PN: associés=%d, diplômes APC sans référentiel=%d.',
+            $apcLinked,
+            $apcMissing,
+        );
 
         return new MigrationResult($created, $updated, $skipped, $failed, $messages);
     }
