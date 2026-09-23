@@ -55,6 +55,7 @@ SELECT
     sc.nb_absences,
     sc.commentaire,
     sc.diffuse,
+    au.annee AS annee_universitaire,
     s.libelle AS semestre_libelle,
     s.ordre_annee AS semestre_ordre,
     a.libelle AS annee_libelle,
@@ -62,6 +63,7 @@ SELECT
     MAX(sc.diffuse) OVER (PARTITION BY sc.etudiant_id, sc.annee_universitaire_id) AS public_annee
 FROM scolarite sc
 INNER JOIN semestre s ON s.id = sc.semestre_id
+INNER JOIN annee_universitaire au ON au.id = sc.annee_universitaire_id
 INNER JOIN annee a ON a.id = s.annee_id
 ORDER BY sc.annee_universitaire_id, sc.etudiant_id, sc.ordre, sc.id
 SQL;
@@ -163,6 +165,8 @@ SQL;
                     $scolarite->setDepartement($diplome?->getDepartement());
                 }
 
+                // Group membership is intentionally restarted in 2026-2027. Historical
+                // scolarities remain readable, but no group relation is reconstructed.
                 $scolariteSemestre = null !== $semestre
                     ? $scolariteSemestreRepository->findOneBy([
                         'scolarite' => $scolarite,
