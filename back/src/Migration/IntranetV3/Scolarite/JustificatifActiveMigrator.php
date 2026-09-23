@@ -53,7 +53,7 @@ SELECT
     j.semestre_id
 FROM absence_justificatif j
 INNER JOIN annee_universitaire au ON au.id = j.annee_universitaire_id
-WHERE au.active = 1
+WHERE au.annee = 2026
 ORDER BY j.id
 SQL;
 
