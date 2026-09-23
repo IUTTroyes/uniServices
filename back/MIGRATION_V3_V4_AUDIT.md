@@ -1255,3 +1255,28 @@ Passe transversale effectuée après introduction des relations historiques null
 - Le provider de gestion des groupes ne déréférence pas directement `semestre`. Combiné à la règle métier 2026-2027, les écrans de gestion doivent être appelés avec les filtres structurels de l'année courante.
 
 Point de vigilance restant : toute nouvelle fonctionnalité qui veut afficher l'historique doit utiliser les champs de présentation de `legacyContext` lorsque `semestre` ou `enseignement` vaut null, et ne doit pas réutiliser ces archives dans les workflows de modification de la maquette courante.
+
+
+## 24. Préparation du prochain run complet
+
+Passe de validation statique effectuée après la bascule vers la frontière structurelle 2026-2027.
+
+- Le debug temporaire qui imprimait toutes les colonnes V3 de `semestre` a été retiré.
+- Les dépendances structurelles de `EvaluationMigrator` restent nécessaires : elles alimentent les relations normales des évaluations 2026-2027. Pour les évaluations antérieures, elles ne sont plus utilisées pour fabriquer une structure et le contexte est archivé dans `legacyContext`.
+- `NoteMigrator` conserve la pagination keyset de 2 000 lignes et le flush Doctrine tous les 200 éléments. Le résultat PDO de chaque page est explicitement libéré avant la suivante.
+- Un contrôle de conservation a été ajouté aux notes : le nombre de lignes V3 éligibles est comparé à `created + updated + skipped + failed`. Une divergence est remontée explicitement dans le rapport.
+- Les notes historiques peuvent maintenant retrouver leur scolarité semestrielle via le `legacyContext` de l'évaluation, sans dépendre d'un `StructureSemestre` artificiel.
+
+### Recette recommandée
+
+Après application des migrations Doctrine :
+
+1. `php bin/console app:migrate-intranet-v3 --reset-db --force -v`
+2. `php bin/console app:migrate-intranet-v3 --no-progress -v`
+3. contrôler en priorité les volumes de `pns`, `annees`, `semestres`, `scolarites`, `evaluations`, `notes` et `etudiant-groupes` ;
+4. pour `notes`, exiger l'égalité entre le compteur source éligible et le total comptabilisé ;
+5. vérifier que les PN/années/semestres cibles appartiennent uniquement à 2026-2027 ;
+6. vérifier qu'aucune affectation de groupe n'existe sur les scolarités historiques ;
+7. vérifier un échantillon d'étudiants historiques : année → scolarité → scolarité semestre (`legacyContext`) → note → évaluation (`legacyContext`).
+
+Le prochain run complet doit être considéré comme une recette de cohérence, pas seulement comme un test d'absence d'exception.
