@@ -73,19 +73,10 @@ SELECT
     e.libelle,
     s.libelle AS semestre_libelle,
     s.ordre_annee AS semestre_ordre,
-    CASE
-        WHEN e.type_matiere = 'matiere' THEN m.libelle
-        WHEN e.type_matiere = 'ressource' THEN r.libelle
-        WHEN e.type_matiere = 'sae' THEN sae.libelle
-        ELSE NULL
-    END AS enseignement_libelle,
     HEX(parent.uuid) AS parent_uuid_hex
 FROM evaluation e
 LEFT JOIN evaluation parent ON parent.id = e.parent_id
 LEFT JOIN semestre s ON s.id = e.semestre_id
-LEFT JOIN matiere m ON e.type_matiere = 'matiere' AND m.id = e.id_matiere
-LEFT JOIN apc_ressource r ON e.type_matiere = 'ressource' AND r.id = e.id_matiere
-LEFT JOIN apc_sae sae ON e.type_matiere = 'sae' AND sae.id = e.id_matiere
 ORDER BY e.id
 SQL;
 
@@ -181,7 +172,6 @@ SQL;
                         'enseignement' => [
                             'oldId' => (int) $row['id_matiere'],
                             'type' => $row['type_matiere'],
-                            'libelle' => $row['enseignement_libelle'] ?: null,
                         ],
                     ])
                     ->setEtat((bool) $row['visible'] ? EtatEvaluationEnum::ETAT_PUBLIEE : EtatEvaluationEnum::ETAT_INITIALISEE);
