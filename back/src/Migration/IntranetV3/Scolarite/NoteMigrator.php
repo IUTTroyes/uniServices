@@ -41,6 +41,12 @@ final class NoteMigrator extends AbstractMigrator
         $partial = [
             'scolariteSemestre' => 0,
         ];
+        $sourceEligible = (int) $this->source->fetchOne(<<<'SQL'
+SELECT COUNT(*)
+FROM note n
+INNER JOIN evaluation e ON e.id = n.evaluation_id
+WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
+SQL);
         $sampleCount = 0;
 
         // Do not stream the whole note table through one PDO result set.
@@ -58,7 +64,9 @@ SELECT
     n.note,
     n.commentaire,
     n.absence_justifie,
-    HEX(e.uuid) AS evaluation_uuid_hex
+    HEX(e.uuid) AS evaluation_uuid_hex,
+    e.annee_universitaire_id,
+    e.semestre_id
 FROM note n
 INNER JOIN evaluation e ON e.id = n.evaluation_id
 WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
@@ -225,6 +233,21 @@ SQL;
                 $diagnostics['etudiant'],
                 $diagnostics['scolarite'],
             );
+        }
+
+        $accounted = $created + $updated + $skipped + $failed;
+        if ($accounted !== $sourceEligible) {
+            $messages[] = sprintf(
+                'ALERTE comptage notes: source éligible=%d, comptabilisées=%d (created=%d, updated=%d, skipped=%d, failed=%d).',
+                $sourceEligible,
+                $accounted,
+                $created,
+                $updated,
+                $skipped,
+                $failed,
+            );
+        } else {
+            $messages[] = sprintf('Contrôle notes: %d/%d lignes source comptabilisées.', $accounted, $sourceEligible);
         }
 
         if ($partial['scolariteSemestre'] > 0) {
