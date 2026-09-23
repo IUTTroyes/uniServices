@@ -1242,3 +1242,16 @@ Les données opérationnelles non destinées à constituer un historique long so
 - prévisionnels.
 
 Cela évite qu'une mauvaise valeur du drapeau `active` V3 fasse importer une autre année alors que la frontière fonctionnelle de migration est désormais explicite. L'historique agrégé des absences et l'historique académique (scolarités, évaluations, notes) restent traités séparément selon les règles précédentes.
+
+
+### 23.3 Compatibilité applicative des relations historiques nullables
+
+Passe transversale effectuée après introduction des relations historiques nullables.
+
+- Les notes historiques utilisent désormais le `legacyContext.semestre.oldId` de leur évaluation pour retrouver la `EtudiantScolariteSemestre` historique correspondante. On conserve donc le lien note → scolarité semestrielle même sans `StructureSemestre` historique.
+- `ScolEvaluationInitProcessor` est déjà compatible : une évaluation sans semestre n'essaie pas de générer de notes par groupes. Ce cas correspond aux archives et non au workflow V4 courant.
+- `EtudiantScolarite::getAnnee()` ignore déjà les scolarités semestrielles dont le semestre structurel est null.
+- Les filtres explicites par semestre/enseignement utilisent des jointures structurelles : ils ciblent volontairement les données V4 structurées et n'incluent donc pas les archives `legacyContext`.
+- Le provider de gestion des groupes ne déréférence pas directement `semestre`. Combiné à la règle métier 2026-2027, les écrans de gestion doivent être appelés avec les filtres structurels de l'année courante.
+
+Point de vigilance restant : toute nouvelle fonctionnalité qui veut afficher l'historique doit utiliser les champs de présentation de `legacyContext` lorsque `semestre` ou `enseignement` vaut null, et ne doit pas réutiliser ces archives dans les workflows de modification de la maquette courante.
