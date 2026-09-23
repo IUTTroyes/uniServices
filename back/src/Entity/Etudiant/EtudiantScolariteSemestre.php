@@ -16,6 +16,7 @@ use App\State\Provider\EtudiantScolariteSemestre\EtudiantScolariteSemestreProvid
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\DBAL\Types\Types;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantScolariteSemestreRepository::class)]
@@ -46,9 +47,17 @@ class EtudiantScolariteSemestre
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite-semestre:absence'])]
     private ?StructureSemestre $semestre = null;
+
+    /**
+     * Immutable context imported from intranet V3 when no historical PN exists in V4.
+     * Null for native V4 scolarities (2026-2027 and later).
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['scolarite-semestre:detail', 'etudiant:read'])]
+    private ?array $legacyContext = null;
 
     /**
      * @var Collection<int, \IntranetBundle\Entity\Etudiant\EtudiantAbsence>
@@ -112,9 +121,21 @@ class EtudiantScolariteSemestre
         return $this->semestre;
     }
 
-    public function setSemestre(StructureSemestre $semestre): static
+    public function setSemestre(?StructureSemestre $semestre): static
     {
         $this->semestre = $semestre;
+
+        return $this;
+    }
+
+    public function getLegacyContext(): ?array
+    {
+        return $this->legacyContext;
+    }
+
+    public function setLegacyContext(?array $legacyContext): static
+    {
+        $this->legacyContext = $legacyContext;
 
         return $this;
     }
