@@ -83,7 +83,12 @@ final class PersonnelDepartementMigrator extends AbstractMigrator
                 }
 
                 $entity = $this->entityManager->getRepository(StructureDepartementPersonnel::class)
-                    ->findOneBy(['personnel' => $personnel, 'departement' => $departement]);
+                    ->findOneBy(['oldId' => (int) $row['id']]);
+
+                if (null === $entity) {
+                    $entity = $this->entityManager->getRepository(StructureDepartementPersonnel::class)
+                        ->findOneBy(['personnel' => $personnel, 'departement' => $departement]);
+                }
                 $isNew = null === $entity;
                 $entity ??= new StructureDepartementPersonnel();
 
@@ -98,6 +103,7 @@ final class PersonnelDepartementMigrator extends AbstractMigrator
                 }
 
                 $entity
+                    ->setOldId((int) $row['id'])
                     ->setPersonnel($personnel)
                     ->setDepartement($departement)
                     ->setDefaut((bool) $row['defaut'])
@@ -121,6 +127,17 @@ final class PersonnelDepartementMigrator extends AbstractMigrator
 
         $this->flushAndClear($context);
         $this->finishProgress($context);
+
+        $targetCount = (int) $this->entityManager->getRepository(StructureDepartementPersonnel::class)
+            ->createQueryBuilder('dp')
+            ->select('COUNT(dp.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+        $messages[] = sprintf(
+            'Contrôle cible structure_departement_personnel: %d ligne(s), source personnel_departement: %d.',
+            $targetCount,
+            $total,
+        );
 
         if ($unresolvedPersonnel > 0 || $unresolvedDepartments > 0) {
             $messages[] = sprintf('Références non résolues: personnels=%d, départements=%d.', $unresolvedPersonnel, $unresolvedDepartments);
