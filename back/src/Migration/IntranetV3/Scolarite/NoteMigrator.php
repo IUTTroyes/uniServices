@@ -64,9 +64,7 @@ SELECT
     n.note,
     n.commentaire,
     n.absence_justifie,
-    HEX(e.uuid) AS evaluation_uuid_hex,
-    e.annee_universitaire_id,
-    e.semestre_id
+    HEX(e.uuid) AS evaluation_uuid_hex
 FROM note n
 INNER JOIN evaluation e ON e.id = n.evaluation_id
 WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
