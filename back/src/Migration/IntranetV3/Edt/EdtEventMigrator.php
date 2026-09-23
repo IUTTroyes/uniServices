@@ -79,14 +79,14 @@ SELECT
     ep.id_matiere
 FROM edt_planning ep
 INNER JOIN annee_universitaire au ON au.id = ep.annee_universitaire_id
-WHERE au.active = 1
+WHERE au.annee = 2026
 ORDER BY ep.id
 SQL;
 
         foreach ($this->source->executeQuery($sql)->iterateAssociative() as $row) {
             try {
                 $anneeUniversitaire = $this->entityManager->getRepository(StructureAnneeUniversitaire::class)
-                    ->findOneBy(['oldId' => (int) $row['annee_universitaire_id'], 'actif' => true]);
+                    ->findOneBy(['annee' => 2026]);
 
                 if (null === $anneeUniversitaire) {
                     ++$skipped;
