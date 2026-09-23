@@ -70,7 +70,7 @@ SELECT
     ) AS edt_planning_id
 FROM absence a
 INNER JOIN annee_universitaire au ON au.id = a.annee_universitaire_id
-WHERE au.active = 1
+WHERE au.annee = 2026
 ORDER BY a.id
 SQL;
 
