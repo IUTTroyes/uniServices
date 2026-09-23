@@ -1201,3 +1201,21 @@ LIMIT :page_size
 avec des pages de 2 000 lignes. Cette stratégie évite à la fois le buffering de plusieurs centaines de milliers de lignes et le coût croissant de `OFFSET`. Le résultat DBAL de chaque page est explicitement libéré avant la suivante. Le batching ORM existant à 200 entités reste en place pour la base cible.
 
 Le `memory_limit` n'a volontairement pas été augmenté : la migration doit pouvoir traiter le volume historique avec une mémoire bornée.
+
+
+## 23. Bascule de stratégie historique : V4 structurelle à partir de 2026-2027
+
+Décision fonctionnelle : la V3 ne versionnait pas réellement la maquette. Il est donc incorrect de cloner la structure V3 connue au moment de la bascule pour fabriquer des PN historiques.
+
+Nouvelle règle :
+- toutes les `StructureAnneeUniversitaire` historiques restent migrées ;
+- le référentiel APC reste migré indépendamment de la maquette annuelle ;
+- les `StructurePn` et leurs descendants (`StructureAnnee`, `StructureSemestre`, UE, matières, ressources, SAE) sont créés uniquement pour **2026-2027** ;
+- à partir de 2026-2027, V4 porte le véritable historique structurel par PN annuel ;
+- les scolarités et évaluations antérieures restent migrées mais portent un `legacyContext` JSON minimal au lieu de pointer vers une structure historique artificielle.
+
+`EtudiantScolariteSemestre.semestre` devient nullable. Pour une ligne V3 historique, `legacyContext` contient notamment la référence V3, le libellé et l'ordre du semestre. Pour 2026-2027, la relation normale vers `StructureSemestre` est utilisée et `legacyContext` reste null.
+
+`ScolEvaluation.enseignement` était obligatoire ; il devient nullable pour les évaluations historiques. Le contexte V3 conserve le semestre et la référence/type de l'enseignement. La note continue de référencer l'évaluation, ce qui évite de dupliquer ce contexte sur les centaines de milliers de notes.
+
+Les `oldId` restent des références techniques de migration et pourront être retirés après recette. Le `legacyContext`, lui, est une archive fonctionnelle durable pour les données antérieures à 2026-2027.
