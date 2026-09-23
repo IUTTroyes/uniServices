@@ -1228,3 +1228,17 @@ Les `oldId` restent des références techniques de migration et pourront être r
 `EtudiantGroupeMigrator` est volontairement limité à la structure 2026-2027 : `etudiant_groupe` n'étant pas historisé dans V3, l'utiliser pour reconstruire des affectations de groupes anciennes fabriquerait là encore un faux historique. Les groupes représentent donc l'état courant au moment de la bascule.
 
 Les filtres/providers de scolarité semestrielle inspectés n'imposent pas directement la présence d'un semestre pour les consultations génériques ; le filtre explicite `semestre` continue naturellement à ne sélectionner que les lignes structurelles V4.
+
+
+### 23.2 Frontière opérationnelle confirmée
+
+Décision confirmée : aucune affectation étudiant/groupe antérieure à 2026-2027 n'est conservée. La V4 repart proprement pour les groupes en 2026-2027.
+
+Les données opérationnelles non destinées à constituer un historique long sont maintenant explicitement bornées à l'année **2026-2027**, et non plus à un simple drapeau V3 `active` :
+- EDT détaillé ;
+- absences détaillées ;
+- justificatifs d'absence ;
+- rattrapages ;
+- prévisionnels.
+
+Cela évite qu'une mauvaise valeur du drapeau `active` V3 fasse importer une autre année alors que la frontière fonctionnelle de migration est désormais explicite. L'historique agrégé des absences et l'historique académique (scolarités, évaluations, notes) restent traités séparément selon les règles précédentes.
