@@ -1219,3 +1219,12 @@ Nouvelle règle :
 `ScolEvaluation.enseignement` était obligatoire ; il devient nullable pour les évaluations historiques. Le contexte V3 conserve le semestre et la référence/type de l'enseignement. La note continue de référencer l'évaluation, ce qui évite de dupliquer ce contexte sur les centaines de milliers de notes.
 
 Les `oldId` restent des références techniques de migration et pourront être retirés après recette. Le `legacyContext`, lui, est une archive fonctionnelle durable pour les données antérieures à 2026-2027.
+
+
+### 23.1 Passe suivante : détails de scolarité et groupes
+
+`ScolariteDetailsMigrator` ne requiert plus de PN pour les années antérieures à 2026-2027. Il retrouve la scolarité semestrielle historique via son `legacyContext.semestre.oldId`, puis conserve décision, rang, moyennes matières/UE. Une proposition V3 historique non structurelle est conservée dans `legacyContext.proposition` plutôt que résolue artificiellement vers un semestre V4.
+
+`EtudiantGroupeMigrator` est volontairement limité à la structure 2026-2027 : `etudiant_groupe` n'étant pas historisé dans V3, l'utiliser pour reconstruire des affectations de groupes anciennes fabriquerait là encore un faux historique. Les groupes représentent donc l'état courant au moment de la bascule.
+
+Les filtres/providers de scolarité semestrielle inspectés n'imposent pas directement la présence d'un semestre pour les consultations génériques ; le filtre explicite `semestre` continue naturellement à ne sélectionner que les lignes structurelles V4.
