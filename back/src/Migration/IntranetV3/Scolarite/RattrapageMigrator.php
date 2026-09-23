@@ -44,7 +44,7 @@ final class RattrapageMigrator extends AbstractMigrator
         ];
 
         $activeYear = $this->entityManager->getRepository(StructureAnneeUniversitaire::class)
-            ->findOneBy(['actif' => true]);
+            ->findOneBy(['annee' => 2026]);
 
         if (null === $activeYear || null === $activeYear->getOldId()) {
             return new MigrationResult(0, 0, 0, 1, ['Rattrapages: année universitaire active non résolue.']);
@@ -69,7 +69,7 @@ SELECT
     r.etat_demande
 FROM rattrapage r
 INNER JOIN annee_universitaire au ON au.id = r.annee_universitaire_id
-WHERE au.active = 1
+WHERE au.annee = 2026
 ORDER BY r.id
 SQL;
 
