@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.11](https://github.com/IUTTroyes/uniServices/compare/v0.1.10...v0.1.11) (2026-09-22)
+
+
+### Bug Fixes
+
+* mise à jour du script de suppression d'un bundle pour retirer les références dans les packages autorisés des users ([c813a0e](https://github.com/IUTTroyes/uniServices/commit/c813a0e397c3ce543256031db59e2b69c6955437))
+
 ## [0.1.10](https://github.com/IUTTroyes/uniServices/compare/v0.1.9...v0.1.10) (2026-09-22)
 
 
