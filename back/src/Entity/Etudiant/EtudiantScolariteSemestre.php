@@ -217,26 +217,6 @@ class EtudiantScolariteSemestre
         $this->moyenne = $moyenne;
     }
 
-    public function getMoyennesMatiere(): ?array
-    {
-        return $this->moyennesMatiere;
-    }
-
-    public function setMoyennesMatiere(?array $moyennesMatiere): void
-    {
-        $this->moyennesMatiere = $moyennesMatiere;
-    }
-
-    public function getMoyennesUe(): ?array
-    {
-        return $this->moyennesUe;
-    }
-
-    public function setMoyennesUe(?array $moyennesUe): void
-    {
-        $this->moyennesUe = $moyennesUe;
-    }
-
     public function getDecision(): ?bool
     {
         return $this->decision;
