@@ -1,9 +1,8 @@
 <script setup>
 import {computed, onMounted, ref, watch} from "vue";
-import {SimpleSkeleton, HeaderComponent, Kpi} from "@components";
-import {useAnneeStore, useUsersStore} from "@stores";
+import {SimpleSkeleton, HeaderComponent, Kpi, ListSkeleton} from "@components";
+import {useAnneeStore, useEtablissementStore, useUsersStore} from "@stores";
 import {getAnneeService} from "@requests";
-import {Button} from "primevue";
 import {useRoute, useRouter} from "vue-router";
 
 const route = useRoute();
@@ -13,19 +12,55 @@ const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localSt
 const usersStore = useUsersStore();
 const departementId = usersStore.departementDefaut.id;
 const anneeStore = useAnneeStore();
+const etablissementStore = useEtablissementStore();
 const annees = ref([]);
 const annee = ref({});
+const etablissement = ref(null);
 const isLoadingAnnee = ref(true);
 const isLoadingAnnees = ref(false);
+const isLoadingEtablissement = ref(true);
 const page = ref(0);
 const rowOptions = [5, 10, 20, 50];
 const limit = ref(rowOptions[0]);
 const offset = computed(() => limit.value * page.value);
+const edusignScopeMessage = computed(() => {
+  const edusignSettings = etablissement.value?.settings?.integrations?.edusign;
+  const isEnabled = !!edusignSettings?.enabled;
+
+  if (!isEnabled) {
+    return null;
+  }
+
+  const rawScope = edusignSettings?.scope;
+  const normalizedScope = Array.isArray(rawScope)
+      ? rawScope.filter(item => ['FI', 'FC'].includes(item))
+      : [];
+
+  if (normalizedScope.length !== 1) {
+    return null;
+  }
+
+  const [scope] = normalizedScope;
+  return `Edusign est activé pour la ${scope} qui n'est donc pas disponible pour le suivi du pointage des présences.`;
+});
 
 onMounted(async () => {
   await getAnnees();
   await getAnnee();
+  await getEtablissement();
 });
+
+const getEtablissement = async () => {
+  try {
+    isLoadingEtablissement.value = true;
+    await etablissementStore.getEtablissement();
+    etablissement.value = etablissementStore.etablissement;
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'établissement :", error);
+  } finally {
+    isLoadingEtablissement.value = false;
+  }
+};
 
 const getAnnees = async () => {
   if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
@@ -137,6 +172,12 @@ const onPageChange = async event => {
         </div>
       </div>
       <div class="card-body">
+        <ListSkeleton v-if="isLoadingEtablissement"/>
+        <div v-else class="">
+          <Message v-if="edusignScopeMessage" icon="pi pi-info-circle" severity="info" class="mb-3">
+            {{ edusignScopeMessage }}
+          </Message>
+        </div>
 
       </div>
     </div>

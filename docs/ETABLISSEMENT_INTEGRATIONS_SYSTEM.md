@@ -52,12 +52,6 @@ Structure attendue :
 
 ## Interface de configuration (Front)
 
-### Informations générales établissement
-
-- Vue : `packages/auth-bundle/assets/views/configuration/EtablissementView.vue`
-- Contient les données d’identité établissement (libellé, logo, site web, adresse, téléphone).
-- Sauvegarde via `PATCH /api/etablissements/{id}`.
-
 ### Intégrations
 
 - Vue dédiée : `packages/auth-bundle/assets/views/configuration/IntegrationsView.vue`
