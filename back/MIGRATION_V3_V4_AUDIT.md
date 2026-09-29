@@ -1300,3 +1300,16 @@ Dans V3, les situations professionnelles et les composantes essentielles sont de
 Dans V4, elles sont intégrées directement à `ApcCompetence` dans les colonnes JSON `situationsProfessionnelles` et `composantesEssentielles`.
 
 `ApcCompetenceMigrator` récupère désormais les libellés des deux tables pour chaque compétence, les trie selon leur `id` V3, supprime les libellés vides et alimente les deux tableaux V4. Le rapport de migration indique également le nombre total de situations professionnelles et de composantes essentielles intégrées.
+
+
+### 24.3 Calendrier universitaire
+
+La table V3 `calendrier` est désormais migrée vers l'entité V4 existante `StructureCalendrier`.
+
+Mapping :
+- `calendrier.semaine_formation` → `StructureCalendrier.semaineFormation` ;
+- `calendrier.semaine_reelle` → `StructureCalendrier.semaineReelle` ;
+- `calendrier.date_lundi` → `StructureCalendrier.dateLundi` ;
+- `calendrier.annee_universitaire_id` → `StructureCalendrier.anneeUniversitaire`, résolu via l'`oldId` de `StructureAnneeUniversitaire`.
+
+Contrairement à la maquette, le calendrier n'est pas un snapshot structurel du diplôme : les calendriers des années universitaires présentes dans V3 sont donc conservés. `StructureCalendrier` reçoit temporairement `OldIdTrait` pour garantir l'idempotence de la migration. Le migrateur `calendriers` dépend de `annees-universitaires`.
