@@ -1289,3 +1289,14 @@ Le PN annuel doit porter explicitement le référentiel APC utilisé. `PnMigrato
 Pour chaque diplôme APC, `StructurePn.apcReferentiel` reçoit le référentiel associé au diplôme. Un diplôme dont le type est marqué `apc=true` mais qui n'a aucun référentiel résolu est signalé dans le rapport de migration. Les diplômes non APC conservent `apcReferentiel = null`.
 
 Le bilan `pns` indique le nombre de référentiels associés et le nombre de diplômes APC anormaux sans référentiel.
+
+
+### 24.2 Situations professionnelles et composantes essentielles APC
+
+Dans V3, les situations professionnelles et les composantes essentielles sont des entités séparées reliées à `ApcCompetence` :
+- `apc_situation_professionnelle(competence_id, libelle)` ;
+- `apc_composante_essentielle(competence_id, libelle)`.
+
+Dans V4, elles sont intégrées directement à `ApcCompetence` dans les colonnes JSON `situationsProfessionnelles` et `composantesEssentielles`.
+
+`ApcCompetenceMigrator` récupère désormais les libellés des deux tables pour chaque compétence, les trie selon leur `id` V3, supprime les libellés vides et alimente les deux tableaux V4. Le rapport de migration indique également le nombre total de situations professionnelles et de composantes essentielles intégrées.
