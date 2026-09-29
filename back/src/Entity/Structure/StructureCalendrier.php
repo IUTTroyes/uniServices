@@ -5,6 +5,11 @@ namespace App\Entity\Structure;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtCreneauxInterditsSemaine;
 use App\Filter\SemaineFormationFilter;
 use App\Repository\Structure\StructureCalendrierRepository;
@@ -12,11 +17,27 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureCalendrierRepository::class)]
 #[ApiResource(
-    paginationEnabled: false
-    //todo: filtrer en direct possible puisque semaineFormation est un champ de la table ?
+    paginationEnabled: false,
+    operations: [
+        new Get(normalizationContext: ['groups' => ['calendrier:detail', 'annee_univ:light']]),
+        new GetCollection(normalizationContext: ['groups' => ['calendrier:detail', 'annee_univ:light']]),
+        new Post(
+            normalizationContext: ['groups' => ['calendrier:detail', 'annee_univ:light']],
+            denormalizationContext: ['groups' => ['calendrier:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_CALENDRIER', object)"
+        ),
+        new Patch(
+            normalizationContext: ['groups' => ['calendrier:detail', 'annee_univ:light']],
+            denormalizationContext: ['groups' => ['calendrier:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_CALENDRIER', object)"
+        ),
+        new Delete(security: "is_granted('CAN_DELETE_CALENDRIER', object)"),
+    ],
+    order: ['semaineFormation' => 'ASC']
 )]
 #[ApiFilter(SearchFilter::class, properties: ['semaineReelle' => 'exact', 'anneeUniversitaire' => 'exact'])]
 class StructureCalendrier
@@ -24,18 +45,23 @@ class StructureCalendrier
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['calendrier:detail', 'calendrier:light'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'calendriers')]
+    #[Groups(['calendrier:detail', 'calendrier:write'])]
     private ?StructureAnneeUniversitaire $anneeUniversitaire = null;
 
     #[ORM\Column]
+    #[Groups(['calendrier:detail', 'calendrier:light', 'calendrier:write'])]
     private ?int $semaineFormation = null;
 
     #[ORM\Column]
+    #[Groups(['calendrier:detail', 'calendrier:light', 'calendrier:write'])]
     private ?int $semaineReelle = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Groups(['calendrier:detail', 'calendrier:light', 'calendrier:write'])]
     private ?\DateTimeInterface $dateLundi = null;
 
     /**

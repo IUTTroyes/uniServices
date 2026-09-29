@@ -108,7 +108,7 @@ class ScolEvaluation
     private Collection $evaluations;
 
     #[ORM\ManyToOne(inversedBy: 'evaluations')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     #[Groups(['evaluation:detail', 'evaluation:init'])]
     private ?ScolEnseignement $enseignement = null;
 
