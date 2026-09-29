@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulaire d'accompagnement Bon de Commande</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+        }
+        * {
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            color: #111827;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .header-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 13pt;
+            text-transform: uppercase;
+            border: 2px solid #000;
+            padding: 6px;
+            margin-bottom: 10px;
+            background-color: #f9fafb;
+        }
+        .main-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 2px solid #000;
+        }
+        .step-col {
+            width: 28px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 9pt;
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            background-color: #f3f4f6;
+            border-right: 2px solid #000;
+            border-bottom: 2px solid #000;
+            padding: 4px 0;
+            vertical-align: middle;
+        }
+        .content-cell {
+            padding: 8px;
+            border-bottom: 2px solid #000;
+            vertical-align: top;
+        }
+        .checkbox-box {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 1.5px solid #000;
+            margin-right: 4px;
+            vertical-align: middle;
+            text-align: center;
+            line-height: 12px;
+            font-weight: bold;
+            font-size: 9pt;
+        }
+        .row {
+            margin-bottom: 6px;
+        }
+        .label {
+            font-weight: bold;
+        }
+        .underline-field {
+            border-bottom: 1px dotted #4b5563;
+            display: inline-block;
+            min-width: 150px;
+            padding-left: 4px;
+        }
+        .note-box {
+            border: 1px solid #9ca3af;
+            background: #fafafa;
+            min-height: 55px;
+            padding: 6px;
+            margin-top: 4px;
+            font-size: 9.5pt;
+        }
+        .signatures-grid {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+        }
+        .sig-block {
+            width: 48%;
+            border: 1px dashed #9ca3af;
+            padding: 6px;
+            min-height: 50px;
+        }
+        .migo-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 4px;
+            margin: 6px 0;
+        }
+        .footer-note {
+            font-size: 7.5pt;
+            font-style: italic;
+            margin-top: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div style="font-weight: bold; font-size: 14pt; color: #1e3a8a;">
+            <span style="color:#f59e0b;">iUT</span> Troyes
+        </div>
+        <div style="text-align: right; font-size: 8.5pt; text-transform: uppercase; font-weight: bold;">
+            Université de Reims<br><span style="font-size: 7.5pt; font-weight: normal;">Champagne-Ardenne</span>
+        </div>
+    </div>
+
+    <div class="header-title">
+        Formulaire accompagnement bon de commande
+    </div>
+
+    <table class="main-table">
+        <!-- 1 - DEMANDE -->
+        <tr>
+            <td class="step-col">1 - DEMANDE</td>
+            <td class="content-cell">
+                <div class="row">
+                    <span class="label">Service / Département :</span>
+                    <span class="underline-field" style="min-width: 350px;">
+                        {{ commande.service ? commande.service.libelle : (commande.departement ? commande.departement.libelle : '____________________') }}
+                    </span>
+                </div>
+                <div class="row" style="margin-top: 6px;">
+                    <span class="label">Prestation :</span> &nbsp;&nbsp;
+                    <span class="checkbox-box">{{ commande.prestation.value == 'Fournitures' ? 'X' : '' }}</span> Fournitures &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="checkbox-box">{{ commande.prestation.value == 'Services' ? 'X' : '' }}</span> Services &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="checkbox-box">{{ commande.prestation.value == 'Travaux' ? 'X' : '' }}</span> Travaux
+                </div>
+                <div class="row" style="margin-top: 6px;">
+                    <span class="label">Responsable :</span>
+                    <span class="underline-field" style="min-width: 350px;">
+                        {{ commande.responsable ? commande.responsable.display : (commande.demandeur ? commande.demandeur.display : '____________________') }}
+                    </span>
+                </div>
+                <div class="row" style="margin-top: 6px;">
+                    <span class="label">Objet de la demande :</span>
+                    <span class="underline-field" style="min-width: 450px; font-weight: 500;">
+                        {{ commande.objetDemande }}
+                    </span>
+                </div>
+                <div class="row" style="margin-top: 6px;">
+                    <span class="label">Montant :</span>
+                    <span class="underline-field" style="min-width: 150px; font-weight: bold;">
+                        {{ commande.montantHt ? (commande.montantHt ~ ' € HT') : '' }}
+                        {{ commande.montantTtc ? (' / ' ~ commande.montantTtc ~ ' € TTC') : '' }}
+                    </span>
+                </div>
+                <div class="row" style="margin-top: 6px;">
+                    <span class="label">Note explicative synthétique (contexte / motivation / objectifs…) :</span>
+                    <div class="note-box">
+                        {{ commande.noteExplicative|default('Aucune note saisie.')|nl2br }}
+                    </div>
+                </div>
+
+                <div class="signatures-grid">
+                    <div class="sig-block">
+                        <div><strong>Date :</strong> {{ commande.dateDemande ? commande.dateDemande|date('d/m/Y') : '' }}</div>
+                        <div style="margin-top: 4px;"><strong>Signature du Responsable :</strong></div>
+                        {% if commande.dateSignatureResponsable or commande.dateSignatureDemandeur %}
+                            <div style="color: #059669; font-size: 8pt; margin-top: 6px;">[Signé électroniquement]</div>
+                        {% endif %}
+                    </div>
+                    <div class="sig-block">
+                        <div><strong>Avis du Directeur :</strong></div>
+                        <div style="margin-top: 4px;">
+                            <span class="checkbox-box">{{ commande.avisDirecteur and commande.avisDirecteur.value == 'FAVORABLE' ? 'X' : '' }}</span> Favorable &nbsp;&nbsp;
+                            <span class="checkbox-box">{{ commande.avisDirecteur and commande.avisDirecteur.value == 'DEFAVORABLE' ? 'X' : '' }}</span> Défavorable
+                        </div>
+                        <div style="margin-top: 3px;">
+                            <span class="checkbox-box">{{ commande.avisDirecteur and commande.avisDirecteur.value == 'DEMANDE_INFO' ? 'X' : '' }}</span> Demande d'information : {{ commande.avisDirecteurCommentaire }}
+                        </div>
+                        <div style="margin-top: 4px; font-size: 8.5pt;">
+                            Date : {{ commande.dateAvisDirecteur ? commande.dateAvisDirecteur|date('d/m/Y') : '' }} - Signature : {{ commande.signataireDirecteur ? commande.signataireDirecteur.display : '' }}
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+
+        <!-- 2 - VERIFICATION -->
+        <tr>
+            <td class="step-col">2 - VERIFICATION</td>
+            <td class="content-cell">
+                <div class="row">
+                    <span class="label">N° et Nom du fournisseur :</span>
+                    <span class="underline-field" style="min-width: 380px;">
+                        {% if commande.fournisseur %}
+                            {{ commande.fournisseur.numeroFournisseur ? (commande.fournisseur.numeroFournisseur ~ ' - ') : '' }}{{ commande.fournisseur.nomFournisseur }}
+                        {% else %}
+                            ___________________________________
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="row" style="margin-top: 6px;">
+                    <span class="label">Commande sur marché :</span>
+                    <span class="checkbox-box">{{ commande.commandeSurMarche ? 'X' : '' }}</span> OUI &nbsp;&nbsp;
+                    <span class="checkbox-box">{{ not commande.commandeSurMarche ? 'X' : '' }}</span> NON
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="label">N° Bon de Commande :</span>
+                    <span class="underline-field" style="min-width: 180px; font-weight: bold;">{{ commande.numeroBonCommande|default('________________') }}</span>
+                </div>
+                <div class="row" style="margin-top: 6px;">
+                    <span class="label">Date de livraison renseignée :</span>
+                    <span class="checkbox-box">{{ commande.dateLivraisonRenseignee ? 'X' : '' }}</span> OUI &nbsp;&nbsp;
+                    <span class="checkbox-box">{{ not commande.dateLivraisonRenseignee ? 'X' : '' }}</span> NON
+                </div>
+                <div class="signatures-grid" style="margin-top: 4px;">
+                    <div style="width: 100%; border: 1px dashed #9ca3af; padding: 4px;">
+                        <strong>Date de vérification du service financier :</strong> {{ commande.dateVerificationFinanciere ? commande.dateVerificationFinanciere|date('d/m/Y') : '' }}
+                        &nbsp;&nbsp;&nbsp;&nbsp;
+                        <strong>Signature du service financier :</strong> {{ commande.verificateurFinancier ? commande.verificateurFinancier.display : '' }}
+                    </div>
+                </div>
+            </td>
+        </tr>
+
+        <!-- 3 - VISA -->
+        <tr>
+            <td class="step-col">3 - VISA</td>
+            <td class="content-cell" style="padding-top: 4px; padding-bottom: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div><strong>Date :</strong> {{ commande.dateVisaEngagement ? commande.dateVisaEngagement|date('d/m/Y') : '' }}</div>
+                    <div><strong>Signature :</strong> {{ commande.signataireVisaEngagement ? commande.signataireVisaEngagement.display : '' }}</div>
+                    <div style="font-style: italic; font-size: 8.5pt; font-weight: bold;">
+                        Chef des Services Administratifs / Responsable du service financier
+                    </div>
+                </div>
+            </td>
+        </tr>
+
+        <!-- 4 - CONSTATATION SERVICE FAIT -->
+        {% set rec = commande.receptions|first %}
+        <tr>
+            <td class="step-col">4 - CONSTATATION SERVICE FAIT</td>
+            <td class="content-cell">
+                <div class="row">
+                    Je soussigné* <span class="underline-field" style="min-width: 250px; font-weight: bold;">{{ rec and rec.receptionnaire ? rec.receptionnaire.display : (commande.demandeur ? commande.demandeur.display : '____________________') }}</span>
+                    agissant en qualité de <span class="underline-field" style="min-width: 180px;">{{ rec ? rec.qualiteReceptionnaire : '________________' }}</span> atteste :
+                </div>
+                <div class="row" style="margin-left: 10px; margin-top: 4px;">
+                    <span class="checkbox-box">{{ rec and rec.dateEffectiveReception ? 'X' : '' }}</span> avoir reçu le : <strong>{{ rec and rec.dateEffectiveReception ? rec.dateEffectiveReception|date('d/m/Y') : '____ / ____ / ________' }}</strong> (date effective de réception)
+                </div>
+                <div class="row" style="margin-left: 20px;">
+                    <span class="checkbox-box">{{ rec and rec.typeReception.value == 'TOTALE' ? 'X' : '' }}</span> la totalité de la commande mentionnée ci-dessous - Montant TTC : <strong>{{ rec and rec.typeReception.value == 'TOTALE' ? rec.montantTtcConstate : (commande.montantTtc|default('')) }} €</strong>
+                </div>
+                <div class="row" style="margin-left: 20px;">
+                    <span class="checkbox-box">{{ rec and rec.typeReception.value == 'PARTIELLE' ? 'X' : '' }}</span> une partie des biens/prestations commandés dans la commande ci-dessous - Montant TTC : <strong>{{ rec and rec.typeReception.value == 'PARTIELLE' ? rec.montantTtcConstate : '' }} €</strong>
+                </div>
+                <div class="row" style="margin-left: 10px; margin-top: 2px;">
+                    <span class="checkbox-box">{{ rec and rec.prestationsConformes ? 'X' : '' }}</span> que les prestations ont été exécutées et sont conformes
+                </div>
+                {% if rec and rec.detailsReceptionPartielle %}
+                <div class="row" style="margin-top: 4px; font-size: 8.5pt;">
+                    <em>En cas de réception partielle :</em> {{ rec.detailsReceptionPartielle }}
+                </div>
+                {% endif %}
+
+                <div class="migo-grid" style="margin-top: 6px;">
+                    <div>N° MIGO : <span class="underline-field" style="min-width: 140px;">{{ rec and rec.numerosMigo ? rec.numerosMigo|join(', ') : '' }}</span></div>
+                    <div>BL rattaché dans SIFAC : <span class="checkbox-box">{{ rec and rec.blRattacheSifac ? 'X' : '' }}</span> OUI &nbsp; <span class="checkbox-box">{{ rec and not rec.blRattacheSifac ? 'X' : '' }}</span> NON</div>
+                </div>
+
+                <div class="signatures-grid" style="margin-top: 6px;">
+                    <div style="width: 48%; border: 1px dashed #9ca3af; padding: 4px;">
+                        <div style="font-size: 8pt;"><strong>Signature du demandeur de l'achat / réceptionnaire :</strong></div>
+                        <div style="font-size: 8pt; color: #059669; margin-top: 4px;">{{ rec and rec.dateSignatureServiceFait ? ('Signé le ' ~ rec.dateSignatureServiceFait|date('d/m/Y')) : '' }}</div>
+                    </div>
+                    <div style="width: 48%; border: 1px dashed #9ca3af; padding: 4px;">
+                        <div style="font-size: 8pt;"><strong>Date :</strong> {{ rec and rec.dateSignatureServiceFait ? rec.dateSignatureServiceFait|date('d/m/Y') : '' }}</div>
+                        <div style="font-size: 8pt; margin-top: 2px;"><strong>Signature du Responsable :</strong></div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+
+        <!-- 5 - CERTIFICATION -->
+        <tr>
+            <td class="step-col">5 - CERTIFICATION</td>
+            <td class="content-cell" style="padding-top: 4px; padding-bottom: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div><strong>Pour certification du service fait</strong></div>
+                    <div>Date : {{ commande.dateCertificationServiceFait ? commande.dateCertificationServiceFait|date('d/m/Y') : '' }}</div>
+                    <div style="font-style: italic; font-size: 8.5pt; font-weight: bold;">
+                        Chef des Services Administratifs / Responsable du service financier
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="footer-note">
+        <div>*NOM - prénom du demandeur de l'achat (personne ayant exprimé le besoin d'achat ou désignée par ce dernier pour réceptionner le bien/service)</div>
+        <div>version du {{ "now"|date("d/m/Y") }}</div>
+    </div>
+
+</body>
+</html>

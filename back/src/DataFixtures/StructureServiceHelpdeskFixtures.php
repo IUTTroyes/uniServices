@@ -29,12 +29,11 @@ class StructureServiceHelpdeskFixtures extends Fixture implements OrderedFixture
         for ($i = 0; $i < 2; $i++) {
             $service = new StructureService();
 
-            if ($i===0) {
+            if ($i === 0) {
                 foreach ($listePersonnel as $index => $personne) {
                     if ($index % 2 === 0) {
                         $service->addPersonnel($personne);
                     }
-                    $manager->persist($service);
                 }
                 $service->setLibelle('Scolarité');
             } else {
@@ -42,12 +41,20 @@ class StructureServiceHelpdeskFixtures extends Fixture implements OrderedFixture
                     if ($index % 2 !== 0) {
                         $service->addPersonnel($personne);
                     }
-                    $manager->persist($service);
                 }
                 $service->setLibelle('Audiovisuel');
             }
+            $manager->persist($service);
         }
 
+        // Service Financier
+        $serviceFinancier = new StructureService();
+        $serviceFinancier->setLibelle('Service Financier');
+        $financeUser = $this->personnelRepository->findOneBy(['username' => 'finance']);
+        if ($financeUser) {
+            $serviceFinancier->addPersonnel($financeUser);
+        }
+        $manager->persist($serviceFinancier);
 
         $manager->flush();
     }

@@ -57,6 +57,7 @@
             "App\\": "src/",
             "AuthBundle\\": "../packages/auth-bundle/src/",
             "DocumentBundle\\": "../packages/document-bundle/src/",
+            "FinanceBundle\\": "../packages/finance-bundle/src/",
             "IntranetBundle\\": "../packages/intranet-bundle/src/",
             "UnifolioBundle\\": "../packages/unifolio-bundle/src/",
             "HelpdeskBundle\\": "../packages/helpdesk-bundle/src/",
