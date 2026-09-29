@@ -140,6 +140,10 @@ SQL;
 
         $this->flushAndClear($context);
 
+        if (0 === $processed) {
+            $messages[] = 'Aucun justificatif V3 trouvé pour 2026-2027. Répartition V3: '.$this->sourceYearDistribution();
+        }
+
         if (array_sum($diagnostics) > 0) {
             $messages[] = sprintf(
                 'Résumé justificatifs actifs non migrés: étudiants=%d, scolarités semestrielles=%d.',
@@ -198,6 +202,26 @@ SQL;
             substr($hex, 12, 4),
             substr($hex, 16, 4),
             substr($hex, 20, 12),
+        ));
+    }
+
+    private function sourceYearDistribution(): string
+    {
+        $rows = $this->source->fetchAllAssociative(<<<'SQL'
+SELECT au.annee, COUNT(*) AS total
+FROM absence_justificatif j
+INNER JOIN annee_universitaire au ON au.id = j.annee_universitaire_id
+GROUP BY au.annee
+ORDER BY au.annee
+SQL);
+
+        if ([] === $rows) {
+            return 'aucun justificatif dans la table source';
+        }
+
+        return implode(', ', array_map(
+            static fn (array $row): string => sprintf('%s=%d', $row['annee'], $row['total']),
+            $rows,
         ));
     }
 
