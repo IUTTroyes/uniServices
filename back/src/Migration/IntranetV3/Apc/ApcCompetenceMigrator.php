@@ -26,6 +26,8 @@ final class ApcCompetenceMigrator extends AbstractMigrator
     {
         $created = $updated = $skipped = $failed = $processed = 0;
         $messages = [];
+        $situationsProfessionnellesCount = 0;
+        $composantesEssentiellesCount = 0;
 
         $sql = <<<'SQL'
 SELECT
@@ -56,6 +58,17 @@ SQL;
                     continue;
                 }
 
+                $situationsProfessionnelles = $this->fetchLibelles(
+                    'apc_situation_professionnelle',
+                    (int) $row['id'],
+                );
+                $composantesEssentielles = $this->fetchLibelles(
+                    'apc_composante_essentielle',
+                    (int) $row['id'],
+                );
+                $situationsProfessionnellesCount += count($situationsProfessionnelles);
+                $composantesEssentiellesCount += count($composantesEssentielles);
+
                 $entity = $this->entityManager->getRepository(ApcCompetence::class)->findOneBy([
                     'oldId' => (int) $row['id'],
                     'referentiel' => $referentiel,
@@ -68,7 +81,9 @@ SQL;
                     ->setLibelle((string) $row['libelle'])
                     ->setNomCourt($row['nom_court'] ?: null)
                     ->setCouleur($row['couleur'] ?: null)
-                    ->setReferentiel($referentiel);
+                    ->setReferentiel($referentiel)
+                    ->setSituationsProfessionnelles($situationsProfessionnelles)
+                    ->setComposantesEssentielles($composantesEssentielles);
 
                 if ($isNew) {
                     $this->entityManager->persist($entity);
@@ -89,7 +104,34 @@ SQL;
 
         $this->flushAndClear($context);
 
+        $messages[] = sprintf(
+            'Données intégrées aux compétences: situations professionnelles=%d, composantes essentielles=%d.',
+            $situationsProfessionnellesCount,
+            $composantesEssentiellesCount,
+        );
+
         return new MigrationResult($created, $updated, $skipped, $failed, $messages);
+    }
+
+    /** @return list<string> */
+    private function fetchLibelles(string $table, int $competenceOldId): array
+    {
+        if (!in_array($table, ['apc_situation_professionnelle', 'apc_composante_essentielle'], true)) {
+            throw new \InvalidArgumentException(sprintf('Table APC non supportée: %s.', $table));
+        }
+
+        $rows = $this->source->fetchFirstColumn(
+            sprintf(
+                'SELECT libelle FROM %s WHERE competence_id = :competence_id ORDER BY id',
+                $table,
+            ),
+            ['competence_id' => $competenceOldId],
+        );
+
+        return array_values(array_filter(
+            array_map(static fn (mixed $libelle): string => trim((string) $libelle), $rows),
+            static fn (string $libelle): bool => '' !== $libelle,
+        ));
     }
 
     /** @param array<string,mixed> $row */
