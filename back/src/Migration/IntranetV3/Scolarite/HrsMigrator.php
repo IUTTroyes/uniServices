@@ -65,7 +65,7 @@ SELECT
 FROM hrs h
 INNER JOIN annee_universitaire au ON au.annee = h.annee
 LEFT JOIN type_hrs th ON th.id = h.type_hrs_id
-WHERE au.active = 1
+WHERE au.annee = 2026
 ORDER BY h.id
 SQL;
 
@@ -74,7 +74,7 @@ SQL;
                 $personnel = $this->entityManager->getRepository(Personnel::class)
                     ->findOneBy(['oldId' => (int) $row['personnel_id']]);
                 $anneeUniversitaire = $this->entityManager->getRepository(StructureAnneeUniversitaire::class)
-                    ->findOneBy(['annee' => (int) $row['annee'], 'actif' => true]);
+                    ->findOneBy(['annee' => (int) $row['annee']]);
                 $typeHrs = $this->findTypeHrs($row);
 
                 if (null === $personnel) {
@@ -155,6 +155,10 @@ SQL;
 
         $this->flushAndClear($context);
 
+        if (0 === $processed) {
+            $messages[] = 'Aucune HRS V3 trouvée pour 2026-2027. Répartition V3: '.$this->sourceYearDistribution();
+        }
+
         if (array_sum($diagnostics) > 0) {
             $messages[] = sprintf(
                 'Résumé HRS actives: personnels=%d, années=%d, types=%d, semestres non résolus=%d, diplômes non résolus=%d.',
@@ -202,6 +206,22 @@ SQL;
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    private function sourceYearDistribution(): string
+    {
+        $rows = $this->source->fetchAllAssociative(
+            'SELECT h.annee, COUNT(*) AS total FROM hrs h GROUP BY h.annee ORDER BY h.annee'
+        );
+
+        if ([] === $rows) {
+            return 'aucune HRS dans la table source';
+        }
+
+        return implode(', ', array_map(
+            static fn (array $row): string => sprintf('%s=%d', $row['annee'], $row['total']),
+            $rows,
+        ));
     }
 
     /** @param list<string> $messages */
