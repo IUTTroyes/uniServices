@@ -6,6 +6,7 @@
 /front/apps/intranet/public/common-images/
 /.idea
 /vendor
+
 # macOS
 .DS_Store
 **/.DS_Store
