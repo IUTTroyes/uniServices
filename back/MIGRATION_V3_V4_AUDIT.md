@@ -1313,3 +1313,26 @@ Mapping :
 - `calendrier.annee_universitaire_id` → `StructureCalendrier.anneeUniversitaire`, résolu via l'`oldId` de `StructureAnneeUniversitaire`.
 
 Contrairement à la maquette, le calendrier n'est pas un snapshot structurel du diplôme : les calendriers des années universitaires présentes dans V3 sont donc conservés. `StructureCalendrier` reçoit temporairement `OldIdTrait` pour garantir l'idempotence de la migration. Le migrateur `calendriers` dépend de `annees-universitaires`.
+
+
+### 24.4 Migration du bundle Document
+
+La migration documentaire est volontairement portée par `packages/document-bundle` et non par le runner Core.
+
+Commande :
+`php bin/console app:migrate-intranet-v3-document`
+
+Elle migre :
+- `type_document` → `DocumentCategory` (arborescence, département, `originaux`) ;
+- `document` → `Document` (titre, description, fichier, MIME, taille, catégorie, visibilité, département, dates V3) ;
+- les fichiers physiques via `--files-source` et `--files-target`.
+
+Sécurité :
+- un `type_destinataire` V3 inconnu provoque désormais un skip avec diagnostic plutôt qu'un fallback `PUBLIC` ;
+- `--reset` ne supprime que les documents/catégories importés depuis V3 (`old_id IS NOT NULL`) et préserve les données natives V4 ;
+- les relations V3 document↔semestres et les favoris personnels ne sont pas convertis vers les champs V4 actuels car leur sémantique n'est pas équivalente.
+
+Exemples :
+`php bin/console app:migrate-intranet-v3-document --dry-run -v`
+`php bin/console app:migrate-intranet-v3-document --check`
+`php bin/console app:migrate-intranet-v3-document --files-source=/chemin/v3/public/upload/documents --files-target=/chemin/v4/documents`
