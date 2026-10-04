@@ -22,11 +22,20 @@ final class StagePeriodeMigrator extends AbstractMigrator
         $periodsWithManagers = 0;
         $managersLinked = 0;
         $missingManagers = 0;
-        $total = (int) $this->source->fetchOne('SELECT COUNT(*) FROM stage_periode');
+        $total = (int) $this->source->fetchOne(
+            'SELECT COUNT(*) FROM stage_periode sp INNER JOIN annee_universitaire au ON au.id = sp.annee_universitaire_id WHERE au.active = 1'
+        );
         $this->startProgress($context, 'Périodes de stage', $total);
 
         $managerIdsByPeriod = [];
-        foreach ($this->source->executeQuery('SELECT stage_periode_id, personnel_id FROM stage_periode_personnel ORDER BY stage_periode_id, personnel_id')->iterateAssociative() as $managerRow) {
+        foreach ($this->source->executeQuery(<<<'SQL'
+SELECT spp.stage_periode_id, spp.personnel_id
+FROM stage_periode_personnel spp
+INNER JOIN stage_periode sp ON sp.id = spp.stage_periode_id
+INNER JOIN annee_universitaire au ON au.id = sp.annee_universitaire_id
+WHERE au.active = 1
+ORDER BY spp.stage_periode_id, spp.personnel_id
+SQL)->iterateAssociative() as $managerRow) {
             $managerIdsByPeriod[(int) $managerRow['stage_periode_id']][] = (int) $managerRow['personnel_id'];
         }
 
@@ -36,6 +45,8 @@ SELECT sp.id, sp.libelle, sp.nb_semaines, sp.nb_jours, sp.date_debut, sp.date_fi
        sp.modalite_encadrement, sp.document_rendre, sp.semestre_id, sp.dates_flexibles,
        sp.texte_libre, sp.annee_universitaire_id
 FROM stage_periode sp
+INNER JOIN annee_universitaire au ON au.id = sp.annee_universitaire_id
+WHERE au.active = 1
 ORDER BY sp.id
 SQL;
 
