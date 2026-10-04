@@ -20,7 +20,7 @@ final class DocumentMigrator extends AbstractMigrator
         $total = (int) $this->source->fetchOne('SELECT COUNT(*) FROM document');
         $this->startProgress($context, 'Documents', $total);
 
-        $sql = 'SELECT id, taille, type_fichier, type_document_id, description, libelle, document_name, type_destinataire FROM document ORDER BY id';
+        $sql = 'SELECT id, taille, type_fichier, type_document_id, description, libelle, document_name, type_destinataire, created, updated FROM document ORDER BY id';
         foreach ($this->source->executeQuery($sql)->iterateAssociative() as $row) {
             try {
                 $entity = $this->entityManager->getRepository(Document::class)->findOneBy(['oldId' => (int) $row['id']]);
@@ -48,7 +48,20 @@ final class DocumentMigrator extends AbstractMigrator
                     null, '' => 'PUBLIC',
                     default => null,
                 };
-                if (null === $visibility) { $visibility = 'PUBLIC'; ++$unknownVisibility; }
+                if (null === $visibility) {
+                    ++$unknownVisibility;
+                    ++$skipped;
+                    if (count($messages) < 20) {
+                        $messages[] = sprintf(
+                            'Document #%s ignoré : type_destinataire V3 inconnu "%s".',
+                            $row['id'],
+                            $row['type_destinataire'],
+                        );
+                    }
+                    $context->advanceProgress();
+                    ++$processed;
+                    continue;
+                }
 
                 $entity->setOldId((int) $row['id'])
                     ->setTitre((string) ($row['libelle'] ?: $filename))
@@ -61,6 +74,15 @@ final class DocumentMigrator extends AbstractMigrator
                     ->setCategory($category)
                     ->setDepartement($category?->getDepartement());
 
+                if (!empty($row['created'])) {
+                    $entity->setCreatedAt(new \DateTimeImmutable((string) $row['created']));
+                }
+                if (!empty($row['updated'])) {
+                    $entity->setUpdatedAt(new \DateTimeImmutable((string) $row['updated']));
+                } elseif (!empty($row['created'])) {
+                    $entity->setUpdatedAt(new \DateTimeImmutable((string) $row['created']));
+                }
+
                 if ($isNew) { $this->entityManager->persist($entity); ++$created; } else { ++$updated; }
             } catch (\Throwable $e) {
                 ++$failed;
@@ -72,7 +94,7 @@ final class DocumentMigrator extends AbstractMigrator
         $this->flushAndClear($context); $this->finishProgress($context);
 
         if ($missingCategory > 0) $messages[] = sprintf('%d document(s) avec une catégorie V3 introuvable ont été importés sans catégorie.', $missingCategory);
-        if ($unknownVisibility > 0) $messages[] = sprintf('%d document(s) avec un typeDestinataire V3 inconnu ont été importés PUBLIC et doivent être vérifiés.', $unknownVisibility);
+        if ($unknownVisibility > 0) $messages[] = sprintf('%d document(s) avec un typeDestinataire V3 inconnu ont été ignorés pour éviter une exposition PUBLIC accidentelle.', $unknownVisibility);
         $messages[] = 'Les relations V3 document↔semestres et les favoris ne sont pas migrés : le modèle Document actuel ne possède pas d’équivalent direct.';
         $messages[] = 'Cette étape migre les métadonnées. Les fichiers physiques sont contrôlés séparément.';
 
