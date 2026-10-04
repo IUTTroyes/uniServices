@@ -24,15 +24,15 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     paginationEnabled: false,
     operations: [
-        new Get(normalizationContext: ['groups' => ['calendrier:detail', 'annee_univ:light']]),
-        new GetCollection(normalizationContext: ['groups' => ['calendrier:detail', 'annee_univ:light']]),
+        new Get(normalizationContext: ['groups' => ['calendrier:detail', 'annee-univ:light']]),
+        new GetCollection(normalizationContext: ['groups' => ['calendrier:detail', 'annee-univ:light']]),
         new Post(
-            normalizationContext: ['groups' => ['calendrier:detail', 'annee_univ:light']],
+            normalizationContext: ['groups' => ['calendrier:detail', 'annee-univ:light']],
             denormalizationContext: ['groups' => ['calendrier:write']],
             securityPostDenormalize: "is_granted('CAN_EDIT_CALENDRIER', object)"
         ),
         new Patch(
-            normalizationContext: ['groups' => ['calendrier:detail', 'annee_univ:light']],
+            normalizationContext: ['groups' => ['calendrier:detail', 'annee-univ:light']],
             denormalizationContext: ['groups' => ['calendrier:write']],
             securityPostDenormalize: "is_granted('CAN_EDIT_CALENDRIER', object)"
         ),

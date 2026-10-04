@@ -56,6 +56,25 @@ const getDepartementsPersonnelService = async (personnelId, actif, showToast = f
 // ------------------- CREATE -------------------
 // ----------------------------------------------
 
+const createDepartementService = async (data, showToast = true) => {
+    try {
+        return await apiCall(
+            api.post,
+            ['/api/structure_departements', data, {
+                headers: {
+                    'Content-Type': 'application/ld+json'
+                }
+            }],
+            'Département créé avec succès',
+            'Erreur lors de la création du département',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans createDepartementService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
@@ -103,4 +122,27 @@ const updateDepartementService = async (departementId, data,showToast = true) =>
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getAllDepartementsService, getDepartementService, getDepartementsPersonnelService, changeDepartementActifService, updateDepartementService };
+const deleteDepartementService = async (departementId, showToast = true) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api/structure_departements/${departementId}`],
+            'Département supprimé avec succès',
+            'Erreur lors de la suppression du département',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deleteDepartementService:', error);
+        throw error;
+    }
+}
+
+export {
+    getAllDepartementsService,
+    getDepartementService,
+    getDepartementsPersonnelService,
+    createDepartementService,
+    changeDepartementActifService,
+    updateDepartementService,
+    deleteDepartementService
+};

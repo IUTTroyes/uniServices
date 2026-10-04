@@ -8,7 +8,7 @@ import {
   deleteCalendrierService,
   getAllAnneesUniversitairesService
 } from '@requests';
-import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit } from '@components';
+import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useAnneeUnivStore } from '@stores';
 import { useToast } from 'primevue/usetoast';
 
@@ -92,6 +92,14 @@ const getCalendriers = async () => {
   } finally {
     isLoading.value = false;
   }
+};
+
+const getAnneeLibelle = (annee) => {
+  if (!annee) return null;
+  if (typeof annee === 'object' && annee.libelle) return annee.libelle;
+  const id = typeof annee === 'object' ? annee.id : (typeof annee === 'string' ? parseInt(annee.split('/').pop()) : annee);
+  const found = anneesUniv.value.find(a => a.id === id);
+  return found ? found.libelle : null;
 };
 
 const formatDate = (dateStr) => {
@@ -219,22 +227,25 @@ const deleteItem = async (item) => {
 </script>
 
 <template>
-  <div class="card">
-    <div class="card-title mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Gestion du calendrier universitaire</h1>
-        <p class="text-muted-color">Gérer les semaines de formation, semaines réelles et dates associées.</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <Button
-          label="Nouvelle semaine"
-          icon="pi pi-plus"
-          severity="primary"
-          @click="openNewDialog"
-        />
-      </div>
-    </div>
+  <HeaderComponent
+    icon="pi pi-calendar"
+    color="purple"
+    titre="Gestion du calendrier universitaire"
+    description="Gérer les semaines de formation, semaines réelles et dates associées."
+    :show-back="true"
+    back-url="/intranet/super-administration"
+  >
+    <template #actions>
+      <Button
+        label="Nouvelle semaine"
+        icon="pi pi-plus"
+        severity="primary"
+        @click="openNewDialog"
+      />
+    </template>
+  </HeaderComponent>
 
+  <Card>
     <ErrorView v-if="hasError" />
     <ListSkeleton v-else-if="isLoading" :count="5" />
     <template v-else>
@@ -275,8 +286,8 @@ const deleteItem = async (item) => {
         <Column field="id" header="ID" :sortable="true" style="width: 80px;" />
         <Column header="Année Universitaire" style="width: 180px;">
           <template #body="{ data }">
-            <span v-if="data.anneeUniversitaire?.libelle" class="font-medium">
-              {{ data.anneeUniversitaire.libelle }}
+            <span v-if="getAnneeLibelle(data.anneeUniversitaire)" class="font-medium">
+              {{ getAnneeLibelle(data.anneeUniversitaire) }}
             </span>
             <span v-else class="text-muted-color italic">-</span>
           </template>
@@ -312,85 +323,85 @@ const deleteItem = async (item) => {
         </Column>
       </DataTable>
     </template>
+  </Card>
 
-    <!-- Modal d'ajout / modification -->
-    <Dialog
-      v-model:visible="dialogVisible"
-      modal
-      :header="isEditing ? 'Modifier une semaine de calendrier' : 'Nouvelle semaine de calendrier'"
-      :style="{ width: '480px' }"
-    >
-      <div class="flex flex-col gap-4 py-2">
+  <!-- Modal d'ajout / modification -->
+  <Dialog
+    v-model:visible="dialogVisible"
+    modal
+    :header="isEditing ? 'Modifier une semaine de calendrier' : 'Nouvelle semaine de calendrier'"
+    :style="{ width: '480px' }"
+  >
+    <div class="flex flex-col gap-4 py-2">
+      <div class="flex flex-col gap-2">
+        <label for="cal-annee-univ" class="font-semibold text-sm">Année Universitaire</label>
+        <Select
+          id="cal-annee-univ"
+          v-model="formCalendrier.anneeUniversitaire"
+          :options="anneesUniv.map(a => ({ label: a.libelle, value: `/api/structure_annee_universitaires/${a.id}` }))"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Sélectionner une année universitaire"
+          class="w-full"
+        />
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
         <div class="flex flex-col gap-2">
-          <label for="cal-annee-univ" class="font-semibold text-sm">Année Universitaire</label>
-          <Select
-            id="cal-annee-univ"
-            v-model="formCalendrier.anneeUniversitaire"
-            :options="anneesUniv.map(a => ({ label: a.libelle, value: `/api/structure_annee_universitaires/${a.id}` }))"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Sélectionner une année universitaire"
+          <label for="cal-semaine-formation" class="font-semibold text-sm">Semaine Formation <span class="text-red-500">*</span></label>
+          <InputNumber
+            id="cal-semaine-formation"
+            v-model="formCalendrier.semaineFormation"
+            :min="1"
+            :max="53"
             class="w-full"
           />
         </div>
 
-        <div class="grid grid-cols-2 gap-4">
-          <div class="flex flex-col gap-2">
-            <label for="cal-semaine-formation" class="font-semibold text-sm">Semaine Formation <span class="text-red-500">*</span></label>
-            <InputNumber
-              id="cal-semaine-formation"
-              v-model="formCalendrier.semaineFormation"
-              :min="1"
-              :max="53"
-              class="w-full"
-            />
-          </div>
-
-          <div class="flex flex-col gap-2">
-            <label for="cal-semaine-reelle" class="font-semibold text-sm">Semaine Réelle <span class="text-red-500">*</span></label>
-            <InputNumber
-              id="cal-semaine-reelle"
-              v-model="formCalendrier.semaineReelle"
-              :min="1"
-              :max="53"
-              class="w-full"
-            />
-          </div>
-        </div>
-
         <div class="flex flex-col gap-2">
-          <label for="cal-date-lundi" class="font-semibold text-sm">Date du lundi <span class="text-red-500">*</span></label>
-          <DatePicker
-            id="cal-date-lundi"
-            v-model="formCalendrier.dateLundi"
-            dateFormat="dd/mm/yy"
-            showIcon
+          <label for="cal-semaine-reelle" class="font-semibold text-sm">Semaine Réelle <span class="text-red-500">*</span></label>
+          <InputNumber
+            id="cal-semaine-reelle"
+            v-model="formCalendrier.semaineReelle"
+            :min="1"
+            :max="53"
             class="w-full"
           />
         </div>
       </div>
 
-      <template #footer>
-        <div class="flex justify-end gap-2 pt-2">
-          <Button
-            label="Annuler"
-            icon="pi pi-times"
-            severity="secondary"
-            outlined
-            @click="dialogVisible = false"
-            :disabled="isSubmitting"
-          />
-          <Button
-            :label="isEditing ? 'Mettre à jour' : 'Enregistrer'"
-            icon="pi pi-check"
-            severity="primary"
-            @click="saveCalendrier"
-            :loading="isSubmitting"
-          />
-        </div>
-      </template>
-    </Dialog>
-  </div>
+      <div class="flex flex-col gap-2">
+        <label for="cal-date-lundi" class="font-semibold text-sm">Date du lundi <span class="text-red-500">*</span></label>
+        <DatePicker
+          id="cal-date-lundi"
+          v-model="formCalendrier.dateLundi"
+          dateFormat="dd/mm/yy"
+          showIcon
+          class="w-full"
+        />
+      </div>
+    </div>
+
+    <template #footer>
+      <div class="flex justify-end gap-2 pt-2">
+        <Button
+          label="Annuler"
+          icon="pi pi-times"
+          severity="secondary"
+          outlined
+          @click="dialogVisible = false"
+          :disabled="isSubmitting"
+        />
+        <Button
+          :label="isEditing ? 'Mettre à jour' : 'Enregistrer'"
+          icon="pi pi-check"
+          severity="primary"
+          @click="saveCalendrier"
+          :loading="isSubmitting"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <style scoped>

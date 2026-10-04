@@ -7,7 +7,7 @@ import {
   updateTypeHrsService,
   deleteTypeHrsService
 } from '@requests';
-import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit } from '@components';
+import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -192,22 +192,25 @@ const deleteItem = async (item) => {
 </script>
 
 <template>
-  <div class="card">
-    <div class="card-title mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Types d'heures (HRS / PCA / PRP)</h1>
-        <p class="text-muted-color">Gérer les types d'heures complémentaires, référentiels et plafonds horaires.</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <Button
-          label="Nouveau type d'heures"
-          icon="pi pi-plus"
-          severity="primary"
-          @click="openNewDialog"
-        />
-      </div>
-    </div>
+  <HeaderComponent
+    icon="pi pi-clock"
+    color="orange"
+    titre="Types d'heures (HRS / PCA / PRP)"
+    description="Gérer les types d'heures complémentaires, référentiels et plafonds horaires."
+    :show-back="true"
+    back-url="/intranet/super-administration"
+  >
+    <template #actions>
+      <Button
+        label="Nouveau type d'heures"
+        icon="pi pi-plus"
+        severity="primary"
+        @click="openNewDialog"
+      />
+    </template>
+  </HeaderComponent>
 
+  <Card>
     <ErrorView v-if="hasError" />
     <ListSkeleton v-else-if="isLoading" :count="5" />
     <template v-else>
@@ -280,86 +283,86 @@ const deleteItem = async (item) => {
         </Column>
       </DataTable>
     </template>
+  </Card>
 
-    <!-- Modal d'ajout / modification -->
-    <Dialog
-      v-model:visible="dialogVisible"
-      modal
-      :header="isEditing ? 'Modifier un type d\'heures' : 'Nouveau type d\'heures'"
-      :style="{ width: '500px' }"
-    >
-      <div class="flex flex-col gap-4 py-2">
-        <div class="flex flex-col gap-2">
-          <label for="hrs-type" class="font-semibold text-sm">Catégorie <span class="text-red-500">*</span></label>
-          <Select
-            id="hrs-type"
-            v-model="formTypeHrs.type"
-            :options="typeOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Sélectionner une catégorie"
-            class="w-full font-bold"
-          />
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <label for="hrs-libelle" class="font-semibold text-sm">Libellé <span class="text-red-500">*</span></label>
-          <InputText
-            id="hrs-libelle"
-            v-model="formTypeHrs.libelle"
-            placeholder="Ex: Responsabilité de diplôme, Suivi stage..."
-            class="w-full"
-            autofocus
-          />
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <label for="hrs-maximum" class="font-semibold text-sm">Plafond maximum (heures)</label>
-          <InputNumber
-            id="hrs-maximum"
-            v-model="formTypeHrs.maximum"
-            :min="0"
-            :max="1000"
-            :minFractionDigits="0"
-            :maxFractionDigits="2"
-            suffix=" h"
-            class="w-full"
-          />
-        </div>
-
-        <div class="flex items-center gap-3 pt-2">
-          <Checkbox
-            id="hrs-inclu-service"
-            v-model="formTypeHrs.incluService"
-            :binary="true"
-          />
-          <label for="hrs-inclu-service" class="font-medium text-sm cursor-pointer select-none">
-            Inclus dans le calcul du service obligatoire
-          </label>
-        </div>
+  <!-- Modal d'ajout / modification -->
+  <Dialog
+    v-model:visible="dialogVisible"
+    modal
+    :header="isEditing ? 'Modifier un type d\'heures' : 'Nouveau type d\'heures'"
+    :style="{ width: '500px' }"
+  >
+    <div class="flex flex-col gap-4 py-2">
+      <div class="flex flex-col gap-2">
+        <label for="hrs-type" class="font-semibold text-sm">Catégorie <span class="text-red-500">*</span></label>
+        <Select
+          id="hrs-type"
+          v-model="formTypeHrs.type"
+          :options="typeOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Sélectionner une catégorie"
+          class="w-full font-bold"
+        />
       </div>
 
-      <template #footer>
-        <div class="flex justify-end gap-2 pt-2">
-          <Button
-            label="Annuler"
-            icon="pi pi-times"
-            severity="secondary"
-            outlined
-            @click="dialogVisible = false"
-            :disabled="isSubmitting"
-          />
-          <Button
-            :label="isEditing ? 'Mettre à jour' : 'Enregistrer'"
-            icon="pi pi-check"
-            severity="primary"
-            @click="saveTypeHrs"
-            :loading="isSubmitting"
-          />
-        </div>
-      </template>
-    </Dialog>
-  </div>
+      <div class="flex flex-col gap-2">
+        <label for="hrs-libelle" class="font-semibold text-sm">Libellé <span class="text-red-500">*</span></label>
+        <InputText
+          id="hrs-libelle"
+          v-model="formTypeHrs.libelle"
+          placeholder="Ex: Responsabilité de diplôme, Suivi stage..."
+          class="w-full"
+          autofocus
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="hrs-maximum" class="font-semibold text-sm">Plafond maximum (heures)</label>
+        <InputNumber
+          id="hrs-maximum"
+          v-model="formTypeHrs.maximum"
+          :min="0"
+          :max="1000"
+          :minFractionDigits="0"
+          :maxFractionDigits="2"
+          suffix=" h"
+          class="w-full"
+        />
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <Checkbox
+          id="hrs-inclu-service"
+          v-model="formTypeHrs.incluService"
+          :binary="true"
+        />
+        <label for="hrs-inclu-service" class="font-medium text-sm cursor-pointer select-none">
+          Inclus dans le calcul du service obligatoire
+        </label>
+      </div>
+    </div>
+
+    <template #footer>
+      <div class="flex justify-end gap-2 pt-2">
+        <Button
+          label="Annuler"
+          icon="pi pi-times"
+          severity="secondary"
+          outlined
+          @click="dialogVisible = false"
+          :disabled="isSubmitting"
+        />
+        <Button
+          :label="isEditing ? 'Mettre à jour' : 'Enregistrer'"
+          icon="pi pi-check"
+          severity="primary"
+          @click="saveTypeHrs"
+          :loading="isSubmitting"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <style scoped>

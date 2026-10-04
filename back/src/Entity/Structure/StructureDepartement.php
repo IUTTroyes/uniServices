@@ -36,8 +36,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['departement:administration']],
         ),
         new Get(normalizationContext: ['groups' => ['departement:read']]),
-        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)"),
+        new Post(
+            normalizationContext: ['groups' => ['departement:administration']],
+            denormalizationContext: ['groups' => ['departement:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)"
+        ),
         new Patch(
+            normalizationContext: ['groups' => ['departement:administration']],
+            denormalizationContext: ['groups' => ['departement:write']],
             securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)",
             processor: DepartementUpdateProcessor::class
         ),
@@ -59,26 +65,31 @@ class StructureDepartement implements TimestampableInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'etudiant:read', 'departement_personnel:read', 'scolarite:read', 'diplome:detail', 'pn:detail', 'pn:light', 'scolarite:user'])]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'etudiant:read', 'departement_personnel:read', 'scolarite:read', 'diplome:detail', 'pn:detail', 'pn:light', 'scolarite:user', 'departement:write'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'departement:write'])]
     private ?string $logoName = null;
 
     #[ORM\Column(length: 16, nullable: true)]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'departement:write'])]
     private ?string $telContact = null;
 
     #[ORM\Column(length: 16, nullable: true)]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'departement:write'])]
     private ?string $couleur = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'departement:write'])]
     private ?string $siteWeb = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'departement:write'])]
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups(groups: ['departement:administration', 'departement:read', 'diplome:detail', 'pn:detail', 'pn:light'])]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'diplome:detail', 'pn:detail', 'pn:light', 'departement:write'])]
     private ?bool $actif = null;
 
     /**

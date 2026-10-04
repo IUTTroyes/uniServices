@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { createCalendrierService, getAllAnneesUniversitairesService } from '@requests';
-import { ErrorView } from '@components';
+import { ErrorView, HeaderComponent, Card } from '@components';
 import { useAnneeUnivStore } from '@stores';
 import { useToast } from 'primevue/usetoast';
 
@@ -88,21 +88,16 @@ const save = async () => {
 </script>
 
 <template>
-  <div class="card">
-    <div class="card-title mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Nouvelle semaine de calendrier</h1>
-        <p class="text-muted-color">Définissez une nouvelle semaine universitaire et sa date de début.</p>
-      </div>
-      <Button
-        label="Retour à la liste"
-        icon="pi pi-arrow-left"
-        severity="secondary"
-        outlined
-        @click="router.push('/intranet/super-administration/calendriers')"
-      />
-    </div>
+  <HeaderComponent
+    icon="pi pi-calendar"
+    color="purple"
+    titre="Nouvelle semaine de calendrier"
+    description="Définissez une nouvelle semaine universitaire et sa date de début."
+    :show-back="true"
+    back-url="/intranet/super-administration/calendriers"
+  />
 
+  <Card title="Informations de la semaine" icon="pi pi-calendar-plus" color="purple">
     <ErrorView v-if="hasError" />
     <div v-else class="max-w-2xl">
       <form @submit.prevent="save" class="flex flex-col gap-6">
@@ -180,8 +175,9 @@ const save = async () => {
         </div>
       </form>
     </div>
-  </div>
+  </Card>
 </template>
 
 <style scoped>
 </style>
+
