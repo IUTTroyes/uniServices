@@ -11,9 +11,6 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use App\Entity\Apc\ApcReferentiel;
-use App\Entity\Edt\EdtContraintesSemestre;
-use App\Entity\Edt\EdtCreneauxInterditsSemaine;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
@@ -118,18 +115,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
     private Collection $calendriers;
 
     /**
-     * @var Collection<int, EdtCreneauxInterditsSemaine>
-     */
-    #[ORM\OneToMany(targetEntity: EdtCreneauxInterditsSemaine::class, mappedBy: 'anneeUniversitaire')]
-    private Collection $creneauxInterditsSemaines;
-
-    /**
-     * @var Collection<int, EdtContraintesSemestre>
-     */
-    #[ORM\OneToMany(targetEntity: EdtContraintesSemestre::class, mappedBy: 'anneeUniversitaire')]
-    private Collection $contraintesSemestres;
-
-    /**
      * @var Collection<int, Previsionnel>
      */
     #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'anneeUniversitaire')]
@@ -158,8 +143,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
 
         $this->annee = (int) date('Y');
         $this->calendriers = new ArrayCollection();
-        $this->creneauxInterditsSemaines = new ArrayCollection();
-        $this->contraintesSemestres = new ArrayCollection();
         $this->previsionnels = new ArrayCollection();
         $this->enseignantHrs = new ArrayCollection();
         $this->diplomes = new ArrayCollection();
@@ -392,66 +375,6 @@ class StructureAnneeUniversitaire implements TimestampableInterface
             // set the owning side to null (unless already changed)
             if ($calendrier->getAnneeUniversitaire() === $this) {
                 $calendrier->setAnneeUniversitaire(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, EdtCreneauxInterditsSemaine>
-     */
-    public function getCreneauxInterditsSemaines(): Collection
-    {
-        return $this->creneauxInterditsSemaines;
-    }
-
-    public function addCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $creneauxInterditsSemaine): static
-    {
-        if (!$this->creneauxInterditsSemaines->contains($creneauxInterditsSemaine)) {
-            $this->creneauxInterditsSemaines->add($creneauxInterditsSemaine);
-            $creneauxInterditsSemaine->setAnneeUniversitaire($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $creneauxInterditsSemaine): static
-    {
-        if ($this->creneauxInterditsSemaines->removeElement($creneauxInterditsSemaine)) {
-            // set the owning side to null (unless already changed)
-            if ($creneauxInterditsSemaine->getAnneeUniversitaire() === $this) {
-                $creneauxInterditsSemaine->setAnneeUniversitaire(null);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
-     * @return Collection<int, EdtContraintesSemestre>
-     */
-    public function getContraintesSemestres(): Collection
-    {
-        return $this->contraintesSemestres;
-    }
-
-    public function addContraintesSemestre(EdtContraintesSemestre $contraintesSemestre): static
-    {
-        if (!$this->contraintesSemestres->contains($contraintesSemestre)) {
-            $this->contraintesSemestres->add($contraintesSemestre);
-            $contraintesSemestre->setAnneeUniversitaire($this);
-        }
-
-        return $this;
-    }
-
-    public function removeContraintesSemestre(EdtContraintesSemestre $contraintesSemestre): static
-    {
-        if ($this->contraintesSemestres->removeElement($contraintesSemestre)) {
-            // set the owning side to null (unless already changed)
-            if ($contraintesSemestre->getAnneeUniversitaire() === $this) {
-                $contraintesSemestre->setAnneeUniversitaire(null);
             }
         }
 
