@@ -7,8 +7,8 @@
         "doctrine/doctrine-bundle": "*",
         "doctrine/orm": "*",
         "php": "^8.2",
-        "symfony/framework-bundle": "^7.0",
-        "symfony/http-kernel": "^7.0"
+        "symfony/framework-bundle": "^8.1",
+        "symfony/http-kernel": "^8.1"
     },
     "autoload": {
         "psr-4": {
@@ -33,7 +33,7 @@
     "extra": {
         "symfony": {
             "allow-contrib": false,
-            "require": "7.0.*"
+            "require": "8.1.*"
         }
     },
     "replace": {
