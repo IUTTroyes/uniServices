@@ -3,6 +3,11 @@
 namespace App\Entity\Scolarite;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Users\Etudiant;
@@ -13,7 +18,24 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ScolBacRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['bac:detail', 'bac:light']]),
+        new GetCollection(normalizationContext: ['groups' => ['bac:detail', 'bac:light']]),
+        new Post(
+            normalizationContext: ['groups' => ['bac:detail', 'bac:light']],
+            denormalizationContext: ['groups' => ['bac:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_BAC', object)"
+        ),
+        new Patch(
+            normalizationContext: ['groups' => ['bac:detail', 'bac:light']],
+            denormalizationContext: ['groups' => ['bac:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_BAC', object)"
+        ),
+        new Delete(security: "is_granted('CAN_DELETE_BAC', object)"),
+    ],
+    order: ['libelle' => 'ASC']
+)]
 class ScolBac
 {
     use ApogeeTrait;
@@ -22,14 +44,15 @@ class ScolBac
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups('bac:light')]
+    #[Groups(['bac:light', 'bac:detail'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
-    #[Groups(['bac:light', 'scolarite-semestre:manage-groupes'])]
+    #[Groups(['bac:light', 'bac:detail', 'scolarite-semestre:manage-groupes', 'bac:write'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['bac:light', 'bac:detail', 'bac:write'])]
     private ?string $libelle_long = null;
 
     /**
@@ -98,6 +121,20 @@ class ScolBac
                 $etudiant->setBac(null);
             }
         }
+
+        return $this;
+    }
+
+    #[Groups(['bac:light', 'bac:detail', 'bac:write'])]
+    public function getCodeApogee(): ?string
+    {
+        return $this->codeApogee;
+    }
+
+    #[Groups(['bac:write'])]
+    public function setCodeApogee(?string $codeApogee): static
+    {
+        $this->codeApogee = $codeApogee;
 
         return $this;
     }

@@ -46,7 +46,7 @@ class EtudiantScolariteSemestre
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
     #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite-semestre:absence'])]
     private ?StructureSemestre $semestre = null;
 
