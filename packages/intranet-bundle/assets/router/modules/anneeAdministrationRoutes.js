@@ -117,6 +117,25 @@ export default [
     },
   },
   {
+    path: 'pointages/liste',
+    name: 'liste-pointage',
+    component: () => import('@/views/Absence/SuiviPointageView.vue'),
+    meta: {
+      permission: 'canViewAdministration',
+      breadcrumb: () => {
+        const anneeStore = useAnneeStore();
+        const selectedAnnee = anneeStore.annee;
+        return [{ label: 'Dashboard', route: '/' }, {
+          label: 'Administration',
+          route: '/intranet/administration',
+          icon: 'pi pi-wrench'
+        },
+        { label: selectedAnnee?.libelle ?? 'Année', route: null },
+        { label: 'Suivi des pointages de présence', route: null }];
+      }
+    },
+  },
+  {
     path: 'evaluations',
     name: 'liste-evaluations',
     component: () => import('@/views/Evaluations/EvaluationsView.vue'),

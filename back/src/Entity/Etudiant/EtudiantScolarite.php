@@ -208,30 +208,6 @@ class EtudiantScolarite
         return $this;
     }
 
-    public function getMoyennesMatiere(): ?array
-    {
-        return $this->moyennesMatiere;
-    }
-
-    public function setMoyennesMatiere(?array $moyennesMatiere): static
-    {
-        $this->moyennesMatiere = $moyennesMatiere;
-
-        return $this;
-    }
-
-    public function getMoyennesUe(): ?array
-    {
-        return $this->moyennesUe;
-    }
-
-    public function setMoyennesUe(?array $moyennesUe): static
-    {
-        $this->moyennesUe = $moyennesUe;
-
-        return $this;
-    }
-
     public function getAnneeUniversitaire(): ?StructureAnneeUniversitaire
     {
         return $this->anneeUniversitaire;

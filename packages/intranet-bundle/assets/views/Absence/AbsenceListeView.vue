@@ -297,7 +297,8 @@ const onPageChange = async event => {
         </div>
         <SimpleSkeleton v-if="isLoadingAnnees || isLoadingAnnee" class="!w-60 !h-10"></SimpleSkeleton>
         <div v-else class="flex flex-col gap-2">
-          <div class="flex gap-4 justify-end">
+          <div class="flex flex-col justify-center items-end filters-card-header">
+            <div class="text-sm uppercase font-semibold">Changer d'année</div>
             <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
               <template #value>
                 {{ annee?.libelle || "Changer d'année" }}

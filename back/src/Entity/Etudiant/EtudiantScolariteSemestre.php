@@ -235,29 +235,7 @@ class EtudiantScolariteSemestre
         $this->moyenne = $moyenne;
     }
 
-    public function getRang(): ?int
-    {
-        return $this->rang;
-    }
-
-    public function setRang(?int $rang): static
-    {
-        $this->rang = $rang;
-
-        return $this;
-    }
-
     public function getDecision(): ?bool
-    {
-        return $this->decision;
-    }
-
-    public function setDecision(?bool $decision): void
-    {
-        $this->decision = $decision;
-    }
-
-    public function getNbAbsences(): int
     {
         return $this->nbAbsences;
     }

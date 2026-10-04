@@ -164,7 +164,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
     #[Groups(['personnel:detail'])]
     private ?array $domaines = null;
 
-    #[ORM\Column(length: 100, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['personnel:detail'])]
     private ?string $bureau = null;
 
