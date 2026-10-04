@@ -18,14 +18,26 @@ final class EntrepriseMigrator extends AbstractMigrator
     {
         $created = $updated = $skipped = $failed = $processed = 0;
         $messages = []; $missingResponsables = 0;
-        $total = (int) $this->source->fetchOne('SELECT COUNT(DISTINCT entreprise_id) FROM stage_etudiant WHERE entreprise_id IS NOT NULL');
+        $total = (int) $this->source->fetchOne(<<<'SQL'
+SELECT COUNT(DISTINCT se.entreprise_id)
+FROM stage_etudiant se
+INNER JOIN stage_periode sp ON sp.id = se.stage_periode_id
+INNER JOIN annee_universitaire au ON au.id = sp.annee_universitaire_id
+WHERE au.active = 1 AND se.entreprise_id IS NOT NULL
+SQL);
         $this->startProgress($context, 'Entreprises de stage référencées', $total);
         $sql = <<<'SQL'
 SELECT e.id, e.siret, e.raison_sociale, e.responsable_id,
        a.adresse1, a.adresse2, a.adresse3, a.code_postal, a.ville, a.pays
 FROM entreprise e
 LEFT JOIN adresse a ON a.id = e.adresse_id
-INNER JOIN (SELECT DISTINCT entreprise_id FROM stage_etudiant WHERE entreprise_id IS NOT NULL) refs ON refs.entreprise_id = e.id
+INNER JOIN (
+    SELECT DISTINCT se.entreprise_id
+    FROM stage_etudiant se
+    INNER JOIN stage_periode sp ON sp.id = se.stage_periode_id
+    INNER JOIN annee_universitaire au ON au.id = sp.annee_universitaire_id
+    WHERE au.active = 1 AND se.entreprise_id IS NOT NULL
+) refs ON refs.entreprise_id = e.id
 ORDER BY e.id
 SQL;
         foreach ($this->source->executeQuery($sql)->iterateAssociative() as $row) {
