@@ -14,15 +14,23 @@ final readonly class DocumentDatabaseResetter
             throw new \RuntimeException('Le reset Document est actuellement prévu pour MySQL/MariaDB.');
         }
         $schema = $this->connection->createSchemaManager();
-        $tables = ['document', 'document_category'];
         $existing = array_map(static fn ($table) => $table->getName(), $schema->listTables());
         $count = 0;
+
         $this->connection->executeStatement('SET FOREIGN_KEY_CHECKS=0');
         try {
-            foreach ($tables as $table) if (in_array($table, $existing, true)) { $this->connection->executeStatement('TRUNCATE TABLE '.$table); ++$count; }
+            // Ne jamais supprimer les documents natifs V4 : seuls les enregistrements
+            // provenant de V3 sont identifiables de manière sûre par old_id.
+            if (in_array('document', $existing, true)) {
+                $count += $this->connection->executeStatement('DELETE FROM document WHERE old_id IS NOT NULL');
+            }
+            if (in_array('document_category', $existing, true)) {
+                $count += $this->connection->executeStatement('DELETE FROM document_category WHERE old_id IS NOT NULL');
+            }
         } finally {
             $this->connection->executeStatement('SET FOREIGN_KEY_CHECKS=1');
         }
+
         return $count;
     }
 }
