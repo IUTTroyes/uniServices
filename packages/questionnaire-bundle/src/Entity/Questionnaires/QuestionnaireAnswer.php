@@ -2,20 +2,19 @@
 
 namespace QuestionnaireBundle\Entity\Questionnaires;
 
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireReponseRepository;
-use Carbon\CarbonImmutable;
 use Doctrine\ORM\Mapping as ORM;
 
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: QuestionnaireReponseRepository::class)]
-#[Orm\HasLifecycleCallbacks]
 #[ORM\UniqueConstraint(name: 'uniq_answer', columns: ['invitation_id', 'section_id', 'question_id'])]
 #[ORM\Index(name: 'idx_answer_invitation', columns: ['invitation_id'])]
-class QuestionnaireAnswer
+class QuestionnaireAnswer implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -26,10 +25,10 @@ class QuestionnaireAnswer
     #[ORM\ManyToOne(inversedBy: 'questionnaireReponses')]
     private ?QuestionnaireInvitation $invitation = null;
 
-    #[ORM\ManyToOne(inversedBy: 'questionnaireReponses')]
+    #[ORM\ManyToOne(inversedBy: 'answers')]
     private ?QuestionnaireSectionInstance $section = null;
 
-    #[ORM\ManyToOne(inversedBy: 'questionnaireReponses')]
+    #[ORM\ManyToOne(inversedBy: 'answers')]
     #[Groups(['invitation:read'])]
     private ?QuestionnaireQuestion $question = null;
 
@@ -43,7 +42,6 @@ class QuestionnaireAnswer
         $this->section = $psi;
         $this->question = $qt;
         $this->value = $value;
-        $this->created = CarbonImmutable::now();
     }
 
     public function getId(): ?int
@@ -95,7 +93,6 @@ class QuestionnaireAnswer
     public function setValue(mixed $value): static
     {
         $this->value = $value;
-        $this->updated = CarbonImmutable::now();
 
         return $this;
     }

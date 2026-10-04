@@ -11,7 +11,6 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Edt\EdtEvent;
-use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
 use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -77,6 +76,10 @@ class ScolEnseignement
     #[Groups(['enseignement:detail',  'scol:detail'])]
     private ?string $motsCles = null;
 
+    #[ORM\Column(type: Types::JSON)]
+    #[Groups(['enseignement:detail'])]
+    private array $opt = [];
+
     #[ORM\Column(length: 20, nullable: true)]
     #[Groups(['maquette:detail', 'enseignement:detail', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda', 'evaluation:init'])]
     private ?string $codeEnseignement = null;
@@ -134,11 +137,6 @@ class ScolEnseignement
     #[Groups(['enseignement:detail'])]
     private Collection $apprentissageCritique;
 
-    /**
-     * @var Collection<int, EtudiantAbsence>
-     */
-    #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'enseignement', cascade: ['remove'], orphanRemoval: true)]
-    private Collection $absences;
 
     /**
      * @var Collection<int, ScolEvaluation>
@@ -171,7 +169,6 @@ class ScolEnseignement
     {
         $this->enfants = new ArrayCollection();
         $this->apprentissageCritique = new ArrayCollection();
-        $this->absences = new ArrayCollection();
         $this->evaluations = new ArrayCollection();
         $this->edtEvents = new ArrayCollection();
         $this->enseignementUes = new ArrayCollection();
@@ -314,6 +311,45 @@ class ScolEnseignement
         $resolver->setAllowedTypes('Projet', 'array');
     }
 
+    public function setOpt(array $opt): static
+    {
+        $resolver = new OptionsResolver();
+        $this->configureTeachingOptions($resolver);
+        $this->opt = $resolver->resolve($opt);
+
+        return $this;
+    }
+
+    public function getOpt(): array
+    {
+        return $this->opt;
+    }
+
+    private function configureTeachingOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'competences_visees' => null,
+            'contenu' => null,
+            'modalites' => null,
+            'prolongements' => null,
+            'pac' => false,
+            'ppn_old_id' => null,
+            'parcours_old_id' => null,
+            'ressource_parent' => false,
+            'has_coefficient_different' => false,
+        ]);
+
+        foreach (['competences_visees', 'contenu', 'modalites', 'prolongements'] as $key) {
+            $resolver->setAllowedTypes($key, ['null', 'string']);
+        }
+        foreach (['ppn_old_id', 'parcours_old_id'] as $key) {
+            $resolver->setAllowedTypes($key, ['null', 'int']);
+        }
+        $resolver->setAllowedTypes('pac', 'bool');
+        $resolver->setAllowedTypes('ressource_parent', 'bool');
+        $resolver->setAllowedTypes('has_coefficient_different', 'bool');
+    }
+
     public function getType(): TypeEnseignementEnum
     {
         return $this->type;
@@ -422,35 +458,6 @@ class ScolEnseignement
         return $this;
     }
 
-    /**
-     * @return Collection<int, EtudiantAbsence>
-     */
-    public function getAbsences(): Collection
-    {
-        return $this->absences;
-    }
-
-    public function addAbsence(EtudiantAbsence $absence): static
-    {
-        if (!$this->absences->contains($absence)) {
-            $this->absences->add($absence);
-            $absence->setEnseignement($this);
-        }
-
-        return $this;
-    }
-
-    public function removeAbsence(EtudiantAbsence $absence): static
-    {
-        if ($this->absences->removeElement($absence)) {
-            // set the owning side to null (unless already changed)
-            if ($absence->getEnseignement() === $this) {
-                $absence->setEnseignement(null);
-            }
-        }
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, ScolEvaluation>

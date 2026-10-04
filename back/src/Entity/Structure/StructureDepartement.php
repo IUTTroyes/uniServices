@@ -12,7 +12,8 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\DepartementActualite;
 use App\Entity\Etudiant\EtudiantScolarite;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Traits\UuidTrait;
@@ -44,11 +45,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ]
 )]
 #[ApiFilter(DepartementFilter::class)]
-#[ORM\HasLifecycleCallbacks]
-class StructureDepartement
+class StructureDepartement implements TimestampableInterface
 {
     use UuidTrait;
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OptionTrait;
     use OldIdTrait; //a supprimer après transfert
 
@@ -114,6 +114,7 @@ class StructureDepartement
 
     public function __construct()
     {
+        $this->setUuid();
         $this->diplomes = new ArrayCollection();
         $this->departementPersonnels = new ArrayCollection();
         $this->setOpt([]);

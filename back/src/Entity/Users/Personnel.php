@@ -24,7 +24,8 @@ use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Enum\StatutEnum;
 use App\Filter\PersonnelFilter;
@@ -65,10 +66,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ],
     order: ['nom' => 'ASC'],
 )]
-#[ORM\HasLifecycleCallbacks]
-class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
-{
-    use LifeCycleTrait;
+class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, TimestampableInterface {
+    use TimestampableTrait;
     use OldIdTrait;
 
     #[ORM\Id]
@@ -480,17 +479,21 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function setAdressePersonnelle(Adresse $adresse): void
+    public function setAdressePersonnelle(Adresse|array|null $adresse): static
     {
-        $this->adressePersonnelle = $adresse->toArray();
+        if ($adresse instanceof Adresse) {
+            $this->adressePersonnelle = $adresse->toArray();
+        } elseif (is_array($adresse)) {
+            $this->adressePersonnelle = Adresse::fromArray($adresse)?->toArray();
+        } else {
+            $this->adressePersonnelle = null;
+        }
+
+        return $this;
     }
 
     public function getAdressePersonnelle(): ?Adresse
     {
-        if ($this->adressePersonnelle === null) {
-            return null;
-        }
-
         return Adresse::fromArray($this->adressePersonnelle);
     }
 

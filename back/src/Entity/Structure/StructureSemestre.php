@@ -16,7 +16,8 @@ use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Traits\EduSignTrait;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Filter\SemestreFilter;
@@ -71,10 +72,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Delete(security: "is_granted('CAN_DELETE_SEMESTRE', object)")
     ]
 )]
-#[ORM\HasLifecycleCallbacks]
-class StructureSemestre
+class StructureSemestre implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OptionTrait;
     use EduSignTrait;
     use OldIdTrait; //todo: a supprimer après transfert

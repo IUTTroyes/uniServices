@@ -8,7 +8,8 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Users\Personnel;
 use StageBundle\Repository\Stages\StageSoutenanceRepository;
 use Doctrine\DBAL\Types\Types;
@@ -16,7 +17,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StageSoutenanceRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['stage_soutenance:read']]),
@@ -32,9 +32,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Delete()
     ]
 )]
-class StageSoutenance
+class StageSoutenance implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]

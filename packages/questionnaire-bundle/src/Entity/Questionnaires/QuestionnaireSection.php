@@ -64,7 +64,7 @@ class QuestionnaireSection
     private Uuid $uuid;
 
 
-    #[ORM\ManyToOne(inversedBy: 'questionnaireSections')]
+    #[ORM\ManyToOne(inversedBy: 'sections')]
     private ?Questionnaire $questionnaire = null;
 
     #[ORM\Column(length: 255, nullable: true)]

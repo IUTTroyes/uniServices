@@ -23,7 +23,7 @@ class TicketFilter extends AbstractFilter
 
         if ('latest' === $property) {
             $queryBuilder
-                ->orderBy(sprintf('%s.created', $alias),'DESC')
+                ->orderBy(sprintf('%s.createdAt', $alias),'DESC')
                 ->setMaxResults($value);
             ;
         }

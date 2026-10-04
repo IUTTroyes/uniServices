@@ -55,6 +55,9 @@ class ScolBac
     #[Groups(['bac:light', 'bac:detail', 'bac:write'])]
     private ?string $libelle_long = null;
 
+    #[ORM\Column(length: 1, nullable: true)]
+    private ?string $typeBac = null;
+
     /**
      * @var Collection<int, Etudiant>
      */
@@ -98,6 +101,18 @@ class ScolBac
     /**
      * @return Collection<int, Etudiant>
      */
+    public function getTypeBac(): ?string
+    {
+        return $this->typeBac;
+    }
+
+    public function setTypeBac(?string $typeBac): static
+    {
+        $this->typeBac = $typeBac;
+
+        return $this;
+    }
+
     public function getEtudiants(): Collection
     {
         return $this->etudiants;

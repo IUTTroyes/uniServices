@@ -10,7 +10,9 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use App\Entity\Apc\ApcNiveau;
 use App\Entity\Etudiant\EtudiantScolarite;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\OldIdTrait;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Filter\AnneeFilter;
 use App\Repository\Structure\StructureAnneeRepository;
@@ -37,10 +39,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
 #[ApiFilter(AnneeFilter::class)]
 #[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ORM\HasLifecycleCallbacks()]
-class StructureAnnee
+class StructureAnnee implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OptionTrait;
+    use OldIdTrait; // à supprimer après stabilisation de la migration V3
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -67,9 +70,7 @@ class StructureAnnee
     #[ORM\Column(length: 30, nullable: true)]
     private ?string $couleur = null;
 
-    /**
-     * @var Collection<int, StructureSemestre>
-     */
+    /** @var Collection<int, StructureSemestre> */
     #[ORM\OneToMany(targetEntity: StructureSemestre::class, mappedBy: 'annee', orphanRemoval: true, cascade: ['remove'])]
     #[Groups(['maquette:detail', 'annee:read'])]
     private Collection $semestres;
@@ -82,18 +83,14 @@ class StructureAnnee
     #[Groups(['annee:read', 'maquette:detail'])]
     private ?string $apogeeCodeEtape = null;
 
-    /**
-     * @var Collection<int, ApcNiveau>
-     */
+    /** @var Collection<int, ApcNiveau> */
     #[ORM\OneToMany(targetEntity: ApcNiveau::class, mappedBy: 'annee', orphanRemoval: true, cascade: ['remove'])]
     private Collection $niveaux;
 
     #[ORM\ManyToOne(inversedBy: 'annees')]
     private ?StructurePn $pn = null;
 
-    /**
-     * @var Collection<int, EtudiantScolarite>
-     */
+    /** @var Collection<int, EtudiantScolarite> */
     #[ORM\OneToMany(targetEntity: EtudiantScolarite::class, mappedBy: 'proposition', orphanRemoval: true, cascade: ['remove'])]
     private Collection $etudiantScolaritesPropositions;
 
@@ -170,9 +167,7 @@ class StructureAnnee
         return $this;
     }
 
-    /**
-     * @return Collection<int, StructureSemestre>
-     */
+    /** @return Collection<int, StructureSemestre> */
     public function getSemestres(): Collection
     {
         return $this->semestres;
@@ -190,11 +185,8 @@ class StructureAnnee
 
     public function removeSemestre(StructureSemestre $semestre): static
     {
-        if ($this->semestres->removeElement($semestre)) {
-            // set the owning side to null (unless already changed)
-            if ($semestre->getAnnee() === $this) {
-                $semestre->setAnnee(null);
-            }
+        if ($this->semestres->removeElement($semestre) && $semestre->getAnnee() === $this) {
+            $semestre->setAnnee(null);
         }
 
         return $this;
@@ -233,9 +225,7 @@ class StructureAnnee
         return $this;
     }
 
-    /**
-     * @return Collection<int, ApcNiveau>
-     */
+    /** @return Collection<int, ApcNiveau> */
     public function getNiveaux(): Collection
     {
         return $this->niveaux;
@@ -253,22 +243,12 @@ class StructureAnnee
 
     public function removeNiveau(ApcNiveau $niveau): static
     {
-        if ($this->niveaux->removeElement($niveau)) {
-            // set the owning side to null (unless already changed)
-            if ($niveau->getAnnee() === $this) {
-                $niveau->setAnnee(null);
-            }
+        if ($this->niveaux->removeElement($niveau) && $niveau->getAnnee() === $this) {
+            $niveau->setAnnee(null);
         }
 
         return $this;
     }
-
-    /**
-     * @return Collection<int, EtudiantScolarite>
-     */
-
-
-
 
     public function getPn(): ?StructurePn
     {
@@ -307,9 +287,7 @@ class StructureAnnee
         return $this->getDiplome()?->getDepartement();
     }
 
-    /**
-     * @return Collection<int, EtudiantScolarite>
-     */
+    /** @return Collection<int, EtudiantScolarite> */
     public function getEtudiantScolaritesPropositions(): Collection
     {
         return $this->etudiantScolaritesPropositions;
@@ -327,11 +305,9 @@ class StructureAnnee
 
     public function removeEtudiantScolaritesProposition(EtudiantScolarite $etudiantScolaritesProposition): static
     {
-        if ($this->etudiantScolaritesPropositions->removeElement($etudiantScolaritesProposition)) {
-            // set the owning side to null (unless already changed)
-            if ($etudiantScolaritesProposition->getProposition() === $this) {
-                $etudiantScolaritesProposition->setProposition(null);
-            }
+        if ($this->etudiantScolaritesPropositions->removeElement($etudiantScolaritesProposition)
+            && $etudiantScolaritesProposition->getProposition() === $this) {
+            $etudiantScolaritesProposition->setProposition(null);
         }
 
         return $this;
