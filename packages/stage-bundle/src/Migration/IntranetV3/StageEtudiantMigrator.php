@@ -27,7 +27,13 @@ final class StageEtudiantMigrator extends AbstractMigrator
         $created = $updated = $skipped = $failed = $processed = 0;
         $messages = []; $unknownStates = []; $invalidUuids = 0; $withoutPeriod = 0;
         $specialContexts = []; $missingCompanies = 0; $missingTutors = 0;
-        $total = (int) $this->source->fetchOne('SELECT COUNT(*) FROM stage_etudiant');
+        $total = (int) $this->source->fetchOne(<<<'SQL'
+SELECT COUNT(*)
+FROM stage_etudiant se
+INNER JOIN stage_periode sp ON sp.id = se.stage_periode_id
+INNER JOIN annee_universitaire au ON au.id = sp.annee_universitaire_id
+WHERE au.active = 1
+SQL);
         $this->startProgress($context, 'Stages étudiants', $total);
         $sql = <<<'SQL'
 SELECT se.id, se.uuid, se.stage_periode_id, se.etudiant_id, se.entreprise_id, se.tuteur_id,
@@ -39,7 +45,10 @@ SELECT se.id, se.uuid, se.stage_periode_id, se.etudiant_id, se.entreprise_id, se
        se.adresse_stage_id, se.periodes_interruptions, se.commentaire_duree_hebdomadaire,
        a.adresse1, a.adresse2, a.adresse3, a.code_postal, a.ville, a.pays
 FROM stage_etudiant se
+INNER JOIN stage_periode sp ON sp.id = se.stage_periode_id
+INNER JOIN annee_universitaire au ON au.id = sp.annee_universitaire_id
 LEFT JOIN adresse a ON a.id = se.adresse_stage_id
+WHERE au.active = 1
 ORDER BY se.id
 SQL;
         foreach ($this->source->executeQuery($sql)->iterateAssociative() as $row) {
@@ -87,7 +96,7 @@ SQL;
             ++$processed; $context->advanceProgress(); if (0 === $processed % self::BATCH_SIZE) $this->flushAndClear($context);
         }
         $this->flushAndClear($context); $this->finishProgress($context);
-        if ($withoutPeriod > 0) $messages[] = sprintf('%d stages sans période V3 importés avec stagePeriode=null.', $withoutPeriod);
+        if ($withoutPeriod > 0) $messages[] = sprintf('%d stages sans période V3 rencontrés.', $withoutPeriod);
         if ($missingCompanies > 0) $messages[] = sprintf('%d références entreprise V3 n’ont pas pu être résolues.', $missingCompanies);
         if ($missingTutors > 0) $messages[] = sprintf('%d références tuteur entreprise V3 n’ont pas pu être résolues.', $missingTutors);
         if ($invalidUuids > 20) $messages[] = sprintf('%d StageEtudiant avec UUID V3 absent ou invalide au total.', $invalidUuids);
