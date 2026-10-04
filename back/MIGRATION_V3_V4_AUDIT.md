@@ -1336,3 +1336,17 @@ Exemples :
 `php bin/console app:migrate-intranet-v3-document --dry-run -v`
 `php bin/console app:migrate-intranet-v3-document --check`
 `php bin/console app:migrate-intranet-v3-document --files-source=/chemin/v3/public/upload/documents --files-target=/chemin/v4/documents`
+
+
+### 24.5 Migration Stage limitée à l'année universitaire active V3
+
+Le runner dédié `app:migrate-intranet-v3-stage` ne reprend désormais que le périmètre opérationnel courant :
+
+- `StagePeriode` : uniquement les périodes dont `annee_universitaire.active = 1` dans V3 ;
+- responsables de période : uniquement ceux de ces périodes ;
+- `StageEtudiant` : uniquement les stages rattachés à une période de l'année active ; les stages sans période et les stages historiques sont exclus ;
+- `Entreprise` : uniquement les entreprises référencées par ces stages ;
+- `Contact` : uniquement les tuteurs et responsables d'entreprise nécessaires à ces stages ;
+- les offres de stage restent hors périmètre.
+
+Le contrôle d'intégrité applique exactement le même filtre V3 afin de comparer le périmètre réellement attendu avec les données importées.
