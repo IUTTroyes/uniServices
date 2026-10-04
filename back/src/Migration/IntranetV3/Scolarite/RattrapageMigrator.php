@@ -2,6 +2,7 @@
 
 namespace App\Migration\IntranetV3\Scolarite;
 
+use App\Entity\Salle;
 use App\Entity\Scolarite\ScolEnseignement;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Scolarite\ScolEvaluationRattrapage;
@@ -13,6 +14,7 @@ use App\Migration\IntranetV3\AbstractMigrator;
 use App\Migration\IntranetV3\Contract\MigratorInterface;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationResult;
+use App\Migration\IntranetV3\Structure\SalleMigrator;
 use App\Migration\IntranetV3\Users\EtudiantMigrator;
 use App\Migration\IntranetV3\Users\PersonnelMigrator;
 use Symfony\Component\Uid\Uuid;
@@ -29,7 +31,7 @@ final class RattrapageMigrator extends AbstractMigrator
     /** @return list<class-string<MigratorInterface>> */
     public function getDependencies(): array
     {
-        return [EvaluationMigrator::class, EtudiantMigrator::class, PersonnelMigrator::class];
+        return [EvaluationMigrator::class, EtudiantMigrator::class, PersonnelMigrator::class, SalleMigrator::class];
     }
 
     public function migrate(MigrationContext $context): MigrationResult
@@ -41,6 +43,7 @@ final class RattrapageMigrator extends AbstractMigrator
             'etudiant' => 0,
             'evaluation' => 0,
             'uuid' => 0,
+            'salle' => 0,
         ];
 
         $activeYear = $this->entityManager->getRepository(StructureAnneeUniversitaire::class)
@@ -138,9 +141,16 @@ SQL;
                     ->setHeureDebut($heureDebut)
                     ->setHeureFin($heureFin);
 
-                // Le champ V3 `salle` est une chaîne libre alors que la cible attend une entité Salle.
-                // On ne fabrique pas de correspondance implicite ici.
-                $entity->setSalle(null);
+                $salle = $this->findSalle($row['salle'] ?: null);
+                if (null !== $row['salle'] && '' !== trim((string) $row['salle']) && null === $salle) {
+                    ++$diagnostics['salle'];
+                    $this->addSample($messages, $sampleCount, sprintf(
+                        'Rattrapage V3 #%s: salle "%s" non résolue.',
+                        $row['id'],
+                        $row['salle'],
+                    ));
+                }
+                $entity->setSalle($salle);
 
                 if ($isNew) {
                     $this->entityManager->persist($entity);
@@ -161,14 +171,31 @@ SQL;
 
         if (array_sum($diagnostics) > 0) {
             $messages[] = sprintf(
-                'Résumé rattrapages non migrés (année active uniquement): étudiants=%d, évaluations=%d, UUID=%d.',
+                'Résumé rattrapages non migrés (2026-2027): étudiants=%d, évaluations=%d, UUID=%d, salles non résolues=%d.',
                 $diagnostics['etudiant'],
                 $diagnostics['evaluation'],
                 $diagnostics['uuid'],
+                $diagnostics['salle'],
             );
         }
 
         return new MigrationResult($created, $updated, $skipped, $failed, $messages);
+    }
+
+    private function findSalle(?string $libelle): ?Salle
+    {
+        if (null === $libelle || '' === trim($libelle)) {
+            return null;
+        }
+
+        return $this->entityManager->createQueryBuilder()
+            ->select('s')
+            ->from(Salle::class, 's')
+            ->andWhere('LOWER(s.libelle) = :libelle')
+            ->setParameter('libelle', strtolower(trim($libelle)))
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 
     private function findEvaluation(
