@@ -18,12 +18,18 @@ final class ContactMigrator extends AbstractMigrator
         $messages = [];
         $idsSql = <<<'SQL'
 SELECT DISTINCT contact_id FROM (
-    SELECT se.tuteur_id AS contact_id FROM stage_etudiant se WHERE se.tuteur_id IS NOT NULL
+    SELECT se.tuteur_id AS contact_id
+    FROM stage_etudiant se
+    INNER JOIN stage_periode sp ON sp.id = se.stage_periode_id
+    INNER JOIN annee_universitaire au ON au.id = sp.annee_universitaire_id
+    WHERE au.active = 1 AND se.tuteur_id IS NOT NULL
     UNION
     SELECT e.responsable_id AS contact_id
     FROM entreprise e
     INNER JOIN stage_etudiant se ON se.entreprise_id = e.id
-    WHERE e.responsable_id IS NOT NULL
+    INNER JOIN stage_periode sp ON sp.id = se.stage_periode_id
+    INNER JOIN annee_universitaire au ON au.id = sp.annee_universitaire_id
+    WHERE au.active = 1 AND e.responsable_id IS NOT NULL
 ) contacts
 SQL;
         $total = (int) $this->source->fetchOne('SELECT COUNT(*) FROM ('.$idsSql.') c');
