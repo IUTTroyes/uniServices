@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.13](https://github.com/IUTTroyes/uniServices/compare/v0.1.12...v0.1.13) (2026-10-05)
+
+
+### Features
+
+* add questionnaire runtime providers, mappers, DTOs, and frontend survey components ([260fec9](https://github.com/IUTTroyes/uniServices/commit/260fec9695753e68b354b75f394e9daa7355ebbf))
+
 ## [0.1.12](https://github.com/IUTTroyes/uniServices/compare/v0.1.11...v0.1.12) (2026-10-05)
 
 
