@@ -30,16 +30,14 @@ jobs:
           manifest-file: .release-please-manifest.json
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Detect Release Please branch
+      - name: Get Release Please branch
         id: release-pr
+        if: steps.release.outputs.prs_created == 'true'
+        env:
+          RELEASE_PRS: ${{ steps.release.outputs.prs }}
         run: |
-          branch="release-please--branches--${GITHUB_REF_NAME}"
-
-          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
-            echo "branch=$branch" >> "$GITHUB_OUTPUT"
-          else
-            echo "branch=" >> "$GITHUB_OUTPUT"
-          fi
+          branch="$(jq -r '.[0].headBranchName // empty' <<< "$RELEASE_PRS")"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
 
       - name: Checkout Release Please branch
         if: steps.release-pr.outputs.branch != ''
