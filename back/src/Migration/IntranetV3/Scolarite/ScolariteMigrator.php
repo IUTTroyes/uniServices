@@ -99,6 +99,8 @@ SQL;
                         ->andWhere('an.pn = :pn')
                         ->setParameter('oldId', (int) $row['semestre_id'])
                         ->setParameter('pn', $pn)
+                        ->orderBy('sem.id', 'ASC')
+                        ->setMaxResults(1)
                         ->getQuery()
                         ->getOneOrNullResult();
                 }

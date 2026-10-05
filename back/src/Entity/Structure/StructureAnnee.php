@@ -48,11 +48,11 @@ class StructureAnnee implements TimestampableInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['maquette:detail', 'annee:light', 'annee:read', 'semestre:detail', 'scolarite:administration'])]
+    #[Groups(['maquette:detail', 'annee:light', 'annee:read', 'semestre:detail', 'scolarite:administration', 'stage_periode:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['maquette:detail', 'scolarite:read', 'annee:read', 'annee:light', 'semestre:detail', 'scolarite:administration'])]
+    #[Groups(['maquette:detail', 'scolarite:read', 'annee:read', 'annee:light', 'semestre:detail', 'scolarite:administration', 'stage_periode:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
@@ -88,6 +88,7 @@ class StructureAnnee implements TimestampableInterface
     private Collection $niveaux;
 
     #[ORM\ManyToOne(inversedBy: 'annees')]
+    #[Groups(['semestre:detail', 'annee:detail', 'annee:read', 'maquette:detail', 'stage_periode:read'])]
     private ?StructurePn $pn = null;
 
     /** @var Collection<int, EtudiantScolarite> */

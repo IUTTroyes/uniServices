@@ -73,7 +73,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['personnel:detail', 'personnel:light', 'departement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
+    #[Groups(['personnel:detail', 'personnel:light', 'departement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config', 'stage_periode:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
@@ -81,18 +81,18 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['personnel:detail', 'departement_personnel:read', 'personnel:config'])]
+    #[Groups(['personnel:detail', 'personnel:light', 'stage_periode:read', 'departement_personnel:read', 'personnel:config'])]
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
+    #[Groups(['personnel:detail', 'personnel:light', 'stage_periode:read', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
+    #[Groups(['personnel:detail', 'personnel:light', 'stage_periode:read', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]

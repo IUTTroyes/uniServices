@@ -47,8 +47,25 @@ const deleteStageEtudiantService = async (id, showToast = false) => {
     }
 };
 
+const createStageEtudiantService = async (data, showToast = false) => {
+    try {
+        return await apiCall(
+            api.post,
+            ['/api/stage_etudiants', data],
+            'Demande de convention créée',
+            'Erreur lors de la création de la demande',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans createStageEtudiantService:', error);
+        throw error;
+    }
+};
+
 export {
     getStageEtudiantsService,
+    createStageEtudiantService,
     updateStageEtudiantService,
     deleteStageEtudiantService
 };
+
