@@ -195,7 +195,7 @@ class ScolEnseignement
         return $this;
     }
 
-    #[Groups(['enseignement:detail', 'enseignement:light'])]
+    #[Groups(['enseignement:detail', 'enseignement:light', 'edt_pointage:read'])]
     public function getDisplay(): string
     {
         return $this->codeEnseignement . ' - ' . $this->libelle;
