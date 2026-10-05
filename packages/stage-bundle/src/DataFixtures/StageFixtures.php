@@ -9,8 +9,8 @@ use App\Entity\Users\Personnel;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\OrderedFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
-use StageBundle\Entity\Stages\Contact;
-use StageBundle\Entity\Stages\Entreprise;
+use StageBundle\Entity\Stages\StageContact;
+use StageBundle\Entity\Stages\StageEntreprise;
 use StageBundle\Entity\Stages\StageEtudiant;
 use StageBundle\Entity\Stages\StagePeriode;
 use StageBundle\Enum\EtatStageEnum;
@@ -110,7 +110,7 @@ class StageFixtures extends Fixture implements OrderedFixtureInterface, FixtureG
 
         // Stage terminé pour l'étudiant principal en BUT2
         if ($mainStudent) {
-            $tuteur2 = new Contact();
+            $tuteur2 = new StageContact();
             $tuteur2->setCivilite('M')
                 ->setPrenom('Marc')
                 ->setNom('Vasseur')
@@ -120,7 +120,7 @@ class StageFixtures extends Fixture implements OrderedFixtureInterface, FixtureG
             ;
             $manager->persist($tuteur2);
 
-            $entreprise2 = new Entreprise();
+            $entreprise2 = new StageEntreprise();
             $entreprise2->setRaisonSociale('TechSolutions SAS')
                 ->setSiret('98765432100023')
                 ->setResponsable($tuteur2)

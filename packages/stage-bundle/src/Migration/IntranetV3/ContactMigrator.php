@@ -5,7 +5,7 @@ namespace StageBundle\Migration\IntranetV3;
 use App\Migration\IntranetV3\AbstractMigrator;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationResult;
-use StageBundle\Entity\Stages\Contact;
+use StageBundle\Entity\Stages\StageContact;
 
 final class ContactMigrator extends AbstractMigrator
 {
@@ -38,9 +38,9 @@ SQL;
 
         foreach ($this->source->executeQuery($sql)->iterateAssociative() as $row) {
             try {
-                $entity = $this->entityManager->getRepository(Contact::class)->findOneBy(['oldId' => (int) $row['id']]);
+                $entity = $this->entityManager->getRepository(StageContact::class)->findOneBy(['oldId' => (int) $row['id']]);
                 $isNew = null === $entity;
-                $entity ??= new Contact();
+                $entity ??= new StageContact();
                 $entity->setOldId((int) $row['id'])
                     ->setNom($row['nom'])->setPrenom($row['prenom'])->setFonction($row['fonction'])
                     ->setTelephone($row['telephone'])->setEmail($row['email'])->setPortable($row['portable'])

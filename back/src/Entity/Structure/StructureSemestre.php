@@ -82,11 +82,11 @@ class StructureSemestre implements TimestampableInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['semestre:detail', 'semestre:light', 'maquette:detail', 'scolarite:read', 'enseignement:read', 'annee:read'])]
+    #[Groups(['semestre:detail', 'semestre:light', 'maquette:detail', 'scolarite:read', 'enseignement:read', 'annee:read', 'stage_periode:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['semestre:detail', 'semestre:light', 'maquette:detail', 'scolarite:read', 'etudiant:read', 'pn:read', 'enseignant_hrs:read', 'edt_event:read:agenda', 'annee:read'])]
+    #[Groups(['semestre:detail', 'semestre:light', 'maquette:detail', 'scolarite:read', 'etudiant:read', 'pn:read', 'enseignant_hrs:read', 'edt_event:read:agenda', 'annee:read', 'stage_periode:read'])]
     private string $libelle;
 
     #[ORM\Column]
@@ -125,7 +125,7 @@ class StructureSemestre implements TimestampableInterface
     private Collection $groupes;
 
     #[ORM\ManyToOne(inversedBy: 'semestres')]
-    #[Groups(['semestre:detail', 'semestre:light', 'annee:light', 'scolarite:read', 'enseignement:read', 'etudiant:read'])]
+    #[Groups(['semestre:detail', 'semestre:light', 'annee:light', 'scolarite:read', 'enseignement:read', 'etudiant:read', 'stage_periode:read'])]
     private ?StructureAnnee $annee = null;
 
     /**

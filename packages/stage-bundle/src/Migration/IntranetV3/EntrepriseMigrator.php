@@ -6,8 +6,8 @@ use App\Migration\IntranetV3\AbstractMigrator;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationResult;
 use App\ValueObject\Adresse;
-use StageBundle\Entity\Stages\Contact;
-use StageBundle\Entity\Stages\Entreprise;
+use StageBundle\Entity\Stages\StageContact;
+use StageBundle\Entity\Stages\StageEntreprise;
 
 final class EntrepriseMigrator extends AbstractMigrator
 {
@@ -42,12 +42,12 @@ ORDER BY e.id
 SQL;
         foreach ($this->source->executeQuery($sql)->iterateAssociative() as $row) {
             try {
-                $entity = $this->entityManager->getRepository(Entreprise::class)->findOneBy(['oldId' => (int) $row['id']]);
+                $entity = $this->entityManager->getRepository(StageEntreprise::class)->findOneBy(['oldId' => (int) $row['id']]);
                 $isNew = null === $entity;
-                $entity ??= new Entreprise();
+                $entity ??= new StageEntreprise();
                 $responsable = null;
                 if (null !== $row['responsable_id']) {
-                    $responsable = $this->entityManager->getRepository(Contact::class)->findOneBy(['oldId' => (int) $row['responsable_id']]);
+                    $responsable = $this->entityManager->getRepository(StageContact::class)->findOneBy(['oldId' => (int) $row['responsable_id']]);
                     if (null === $responsable) ++$missingResponsables;
                 }
                 $entity->setOldId((int) $row['id'])

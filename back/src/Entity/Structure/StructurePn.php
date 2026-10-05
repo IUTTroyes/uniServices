@@ -33,11 +33,11 @@ class StructurePn
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['pn:detail', 'maquette:detail', 'pn:light'])]
+    #[Groups(['pn:detail', 'maquette:detail', 'pn:light', 'stage_periode:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['pn:detail', 'maquette:detail', 'pn:light'])]
+    #[Groups(['pn:detail', 'maquette:detail', 'pn:light', 'stage_periode:read'])]
     private string $libelle;
 
     #[ORM\Column]
@@ -45,7 +45,7 @@ class StructurePn
     private int $anneePublication;
 
     #[ORM\ManyToOne(inversedBy: 'pns')]
-    #[Groups(['pn:detail'])]
+    #[Groups(['pn:detail', 'stage_periode:read', 'semestre:detail', 'annee:detail', 'maquette:detail', 'pn:light'])]
     private ?StructureDiplome $diplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'pns')]

@@ -1,6 +1,6 @@
 [
     {
-        "name": "DocumentBundle",
+        "name": "Documents",
         "description": "Gestion \u00c9lectronique de Documents (GED)",
         "urlSlug": "documents",
         "url": "http://localhost:5173/documents"
@@ -18,13 +18,13 @@
         "url": "http://localhost:3001/intranet/"
     },
     {
-        "name": "QuestionnaireBundle",
-        "description": "Application QuestionnaireBundle",
+        "name": "Questionnaires",
+        "description": "Application de gestion des questionnaires",
         "urlSlug": "questionnaire",
         "url": "http://localhost:3005/questionnaire/"
     },
     {
-        "name": "StageBundle",
+        "name": "Stage/Alternance",
         "description": "Gestion des stages et alternances",
         "urlSlug": "stage",
         "url": "http://localhost:3005/stage/"
