@@ -166,9 +166,14 @@ function updateSurveyDescription() {
   }
 }
 
-function updateSurveySettings(opt: any) {
-  surveyStore.updateSurvey({ opt });
+function updateSurveySettings(payload: any) {
+  if (payload && (payload.opt !== undefined || payload.openingDate !== undefined || payload.closingDate !== undefined || payload.startText !== undefined || payload.endText !== undefined || payload.estimatedTime !== undefined)) {
+    surveyStore.updateSurvey(payload);
+  } else {
+    surveyStore.updateSurvey({ opt: payload });
+  }
   showSettings.value = false;
+  uiStore.addNotification('success', 'Paramètres enregistrés', 'Les paramètres du questionnaire ont été mis à jour.');
 }
 
 // Section management
