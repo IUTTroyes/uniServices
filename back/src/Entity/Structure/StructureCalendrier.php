@@ -10,8 +10,6 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use App\Entity\Edt\EdtCreneauxInterditsSemaine;
-use App\Entity\Traits\OldIdTrait;
 use App\Filter\SemaineFormationFilter;
 use App\Repository\Structure\StructureCalendrierRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -24,15 +22,15 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ApiResource(
     paginationEnabled: false,
     operations: [
-        new Get(normalizationContext: ['groups' => ['calendrier:detail', 'annee_univ:light']]),
-        new GetCollection(normalizationContext: ['groups' => ['calendrier:detail', 'annee_univ:light']]),
+        new Get(normalizationContext: ['groups' => ['calendrier:detail', 'annee-univ:light']]),
+        new GetCollection(normalizationContext: ['groups' => ['calendrier:detail', 'annee-univ:light']]),
         new Post(
-            normalizationContext: ['groups' => ['calendrier:detail', 'annee_univ:light']],
+            normalizationContext: ['groups' => ['calendrier:detail', 'annee-univ:light']],
             denormalizationContext: ['groups' => ['calendrier:write']],
             securityPostDenormalize: "is_granted('CAN_EDIT_CALENDRIER', object)"
         ),
         new Patch(
-            normalizationContext: ['groups' => ['calendrier:detail', 'annee_univ:light']],
+            normalizationContext: ['groups' => ['calendrier:detail', 'annee-univ:light']],
             denormalizationContext: ['groups' => ['calendrier:write']],
             securityPostDenormalize: "is_granted('CAN_EDIT_CALENDRIER', object)"
         ),
@@ -67,15 +65,8 @@ class StructureCalendrier
     #[Groups(['calendrier:detail', 'calendrier:light', 'calendrier:write'])]
     private ?\DateTimeInterface $dateLundi = null;
 
-    /**
-     * @var Collection<int, EdtCreneauxInterditsSemaine>
-     */
-    #[ORM\OneToMany(targetEntity: EdtCreneauxInterditsSemaine::class, mappedBy: 'semaine')]
-    private Collection $creneauxInterditsSemaines;
-
     public function __construct()
     {
-        $this->creneauxInterditsSemaines = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -141,35 +132,5 @@ class StructureCalendrier
         }
 
         return $jours;
-    }
-
-    /**
-     * @return Collection<int, EdtCreneauxInterditsSemaine>
-     */
-    public function getCreneauxInterditsSemaines(): Collection
-    {
-        return $this->creneauxInterditsSemaines;
-    }
-
-    public function addCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $creneauxInterditsSemaine): static
-    {
-        if (!$this->creneauxInterditsSemaines->contains($creneauxInterditsSemaine)) {
-            $this->creneauxInterditsSemaines->add($creneauxInterditsSemaine);
-            $creneauxInterditsSemaine->setSemaine($this);
-        }
-
-        return $this;
-    }
-
-    public function removeCreneauxInterditsSemaine(EdtCreneauxInterditsSemaine $creneauxInterditsSemaine): static
-    {
-        if ($this->creneauxInterditsSemaines->removeElement($creneauxInterditsSemaine)) {
-            // set the owning side to null (unless already changed)
-            if ($creneauxInterditsSemaine->getSemaine() === $this) {
-                $creneauxInterditsSemaine->setSemaine(null);
-            }
-        }
-
-        return $this;
     }
 }

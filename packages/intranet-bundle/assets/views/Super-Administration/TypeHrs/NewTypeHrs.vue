@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { createTypeHrsService } from '@requests';
-import { ErrorView } from '@components';
+import { ErrorView, HeaderComponent, Card } from '@components';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -69,21 +69,16 @@ const save = async () => {
 </script>
 
 <template>
-  <div class="card">
-    <div class="card-title mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Nouveau type d'heures (HRS / PCA / PRP)</h1>
-        <p class="text-muted-color">Créez un nouveau type d'heures complémentaires ou de responsabilités.</p>
-      </div>
-      <Button
-        label="Retour à la liste"
-        icon="pi pi-arrow-left"
-        severity="secondary"
-        outlined
-        @click="router.push('/intranet/super-administration/types-hrs')"
-      />
-    </div>
+  <HeaderComponent
+    icon="pi pi-clock"
+    color="orange"
+    titre="Nouveau type d'heures (HRS / PCA / PRP)"
+    description="Créez un nouveau type d'heures complémentaires ou de responsabilités."
+    :show-back="true"
+    back-url="/intranet/super-administration/types-hrs"
+  />
 
+  <Card title="Informations du type d'heures" icon="pi pi-plus" color="orange">
     <ErrorView v-if="hasError" />
     <div v-else class="max-w-2xl">
       <form @submit.prevent="save" class="flex flex-col gap-6">
@@ -161,8 +156,9 @@ const save = async () => {
         </div>
       </form>
     </div>
-  </div>
+  </Card>
 </template>
 
 <style scoped>
 </style>
+

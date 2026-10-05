@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { createTypeDiplomeService } from '@requests';
-import { ErrorView } from '@components';
+import { ErrorView, HeaderComponent, Card } from '@components';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -69,21 +69,16 @@ const save = async () => {
 </script>
 
 <template>
-  <div class="card">
-    <div class="card-title mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Nouveau type de diplôme</h1>
-        <p class="text-muted-color">Créez un nouveau type de diplôme dans l'établissement.</p>
-      </div>
-      <Button
-        label="Retour à la liste"
-        icon="pi pi-arrow-left"
-        severity="secondary"
-        outlined
-        @click="router.push('/intranet/super-administration/types-diplomes')"
-      />
-    </div>
+  <HeaderComponent
+    icon="pi pi-graduation-cap"
+    color="emerald"
+    titre="Nouveau type de diplôme"
+    description="Créez un nouveau type de diplôme dans l'établissement."
+    :show-back="true"
+    back-url="/intranet/super-administration/types-diplomes"
+  />
 
+  <Card title="Informations du type de diplôme" icon="pi pi-plus" color="emerald">
     <ErrorView v-if="hasError" />
     <div v-else class="max-w-2xl">
       <form @submit.prevent="save" class="flex flex-col gap-6">
@@ -143,8 +138,9 @@ const save = async () => {
         </div>
       </form>
     </div>
-  </div>
+  </Card>
 </template>
 
 <style scoped>
 </style>
+

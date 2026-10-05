@@ -1,24 +1,32 @@
 <script setup>
-import {ref} from "vue";
-import {ErrorView} from "@components"
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { ErrorView, HeaderComponent, Card } from "@components";
 
-const hasError = ref(false)
+const router = useRouter();
+const hasError = ref(false);
 </script>
 
 <template>
-  <div class="card">
-    <div class="card-title mb-8">
-      <h1 class="text-2xl font-bold">Édition du groupe</h1>
-      <p class="text-muted-color">Modifiez les informations du groupe.</p>
-    </div>
+  <HeaderComponent
+    icon="pi pi-users"
+    color="blue"
+    titre="Édition du groupe"
+    description="Modifiez les informations et la structure du groupe."
+    :show-back="true"
+    back-url="/intranet/super-administration"
+  />
 
-    <ErrorView v-if="hasError"/>
+  <Card title="Paramètres du groupe" icon="pi pi-pencil" color="blue">
+    <ErrorView v-if="hasError" />
     <template v-else>
-
+      <div class="p-4 text-muted-color">
+        Édition des détails du groupe en cours de configuration.
+      </div>
     </template>
-  </div>
+  </Card>
 </template>
 
 <style scoped>
-
 </style>
+

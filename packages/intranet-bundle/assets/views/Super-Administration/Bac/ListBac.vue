@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { getAllBacsService, createBacService, updateBacService, deleteBacService } from '@requests';
-import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit } from '@components';
+import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -156,22 +156,25 @@ const deleteBac = async (bac) => {
 </script>
 
 <template>
-  <div class="card">
-    <div class="card-title mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Gestion des types de bacs</h1>
-        <p class="text-muted-color">Gérer les types de baccalauréat disponibles dans l'établissement.</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <Button
-          label="Nouveau bac"
-          icon="pi pi-plus"
-          severity="primary"
-          @click="openNewDialog"
-        />
-      </div>
-    </div>
+  <HeaderComponent
+    icon="pi pi-id-card"
+    color="amber"
+    titre="Gestion des types de bacs"
+    description="Gérer les types de baccalauréat disponibles dans l'établissement."
+    :show-back="true"
+    back-url="/intranet/super-administration"
+  >
+    <template #actions>
+      <Button
+        label="Nouveau bac"
+        icon="pi pi-plus"
+        severity="primary"
+        @click="openNewDialog"
+      />
+    </template>
+  </HeaderComponent>
 
+  <Card>
     <ErrorView v-if="hasError" />
     <ListSkeleton v-else-if="isLoadingBacs" :count="5" />
     <template v-else>
@@ -227,68 +230,68 @@ const deleteBac = async (bac) => {
         </Column>
       </DataTable>
     </template>
+  </Card>
 
-    <!-- Modal d'ajout / modification -->
-    <Dialog
-      v-model:visible="dialogVisible"
-      modal
-      :header="isEditing ? 'Modifier un bac' : 'Nouveau type de bac'"
-      :style="{ width: '450px' }"
-    >
-      <div class="flex flex-col gap-4 py-2">
-        <div class="flex flex-col gap-2">
-          <label for="bac-libelle" class="font-semibold text-sm">Libellé court <span class="text-red-500">*</span></label>
-          <InputText
-            id="bac-libelle"
-            v-model="formBac.libelle"
-            placeholder="Ex: Général, STI2D, STMG..."
-            class="w-full"
-            autofocus
-          />
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <label for="bac-libelle-long" class="font-semibold text-sm">Libellé long</label>
-          <InputText
-            id="bac-libelle-long"
-            v-model="formBac.libelleLong"
-            placeholder="Ex: Baccalauréat Général"
-            class="w-full"
-          />
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <label for="bac-code-apogee" class="font-semibold text-sm">Code Apogée</label>
-          <InputText
-            id="bac-code-apogee"
-            v-model="formBac.codeApogee"
-            placeholder="Ex: S, ES, L, 0001..."
-            class="w-full font-mono"
-          />
-        </div>
+  <!-- Modal d'ajout / modification -->
+  <Dialog
+    v-model:visible="dialogVisible"
+    modal
+    :header="isEditing ? 'Modifier un bac' : 'Nouveau type de bac'"
+    :style="{ width: '450px' }"
+  >
+    <div class="flex flex-col gap-4 py-2">
+      <div class="flex flex-col gap-2">
+        <label for="bac-libelle" class="font-semibold text-sm">Libellé court <span class="text-red-500">*</span></label>
+        <InputText
+          id="bac-libelle"
+          v-model="formBac.libelle"
+          placeholder="Ex: Général, STI2D, STMG..."
+          class="w-full"
+          autofocus
+        />
       </div>
 
-      <template #footer>
-        <div class="flex justify-end gap-2 pt-2">
-          <Button
-            label="Annuler"
-            icon="pi pi-times"
-            severity="secondary"
-            outlined
-            @click="dialogVisible = false"
-            :disabled="isSubmitting"
-          />
-          <Button
-            :label="isEditing ? 'Mettre à jour' : 'Enregistrer'"
-            icon="pi pi-check"
-            severity="primary"
-            @click="saveBac"
-            :loading="isSubmitting"
-          />
-        </div>
-      </template>
-    </Dialog>
-  </div>
+      <div class="flex flex-col gap-2">
+        <label for="bac-libelle-long" class="font-semibold text-sm">Libellé long</label>
+        <InputText
+          id="bac-libelle-long"
+          v-model="formBac.libelleLong"
+          placeholder="Ex: Baccalauréat Général"
+          class="w-full"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="bac-code-apogee" class="font-semibold text-sm">Code Apogée</label>
+        <InputText
+          id="bac-code-apogee"
+          v-model="formBac.codeApogee"
+          placeholder="Ex: S, ES, L, 0001..."
+          class="w-full font-mono"
+        />
+      </div>
+    </div>
+
+    <template #footer>
+      <div class="flex justify-end gap-2 pt-2">
+        <Button
+          label="Annuler"
+          icon="pi pi-times"
+          severity="secondary"
+          outlined
+          @click="dialogVisible = false"
+          :disabled="isSubmitting"
+        />
+        <Button
+          :label="isEditing ? 'Mettre à jour' : 'Enregistrer'"
+          icon="pi pi-check"
+          severity="primary"
+          @click="saveBac"
+          :loading="isSubmitting"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <style scoped>

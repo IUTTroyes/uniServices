@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { createBacService } from '@requests';
-import { ErrorView } from '@components';
+import { ErrorView, HeaderComponent, Card } from '@components';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -59,21 +59,16 @@ const save = async () => {
 </script>
 
 <template>
-  <div class="card">
-    <div class="card-title mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Nouveau type de bac</h1>
-        <p class="text-muted-color">Créez un nouveau type de baccalauréat dans l'établissement.</p>
-      </div>
-      <Button
-        label="Retour à la liste"
-        icon="pi pi-arrow-left"
-        severity="secondary"
-        outlined
-        @click="router.push('/intranet/super-administration/bacs')"
-      />
-    </div>
+  <HeaderComponent
+    icon="pi pi-id-card"
+    color="amber"
+    titre="Nouveau type de bac"
+    description="Créez un nouveau type de baccalauréat dans l'établissement."
+    :show-back="true"
+    back-url="/intranet/super-administration/bacs"
+  />
 
+  <Card title="Informations du type de bac" icon="pi pi-plus" color="amber">
     <ErrorView v-if="hasError" />
     <div v-else class="max-w-2xl">
       <form @submit.prevent="save" class="flex flex-col gap-6">
@@ -132,8 +127,9 @@ const save = async () => {
         </div>
       </form>
     </div>
-  </div>
+  </Card>
 </template>
 
 <style scoped>
 </style>
+

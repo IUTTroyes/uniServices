@@ -1,9 +1,12 @@
 <script setup>
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, onMounted, onUnmounted, ref, watch} from "vue";
 import {SimpleSkeleton, HeaderComponent, Kpi, ListSkeleton} from "@components";
 import {useAnneeStore, useEtablissementStore, useUsersStore} from "@stores";
-import {getAnneeService} from "@requests";
+import {getAnneeService, getEdtEventsService} from "@requests";
+import { formatDateCourt, heuresMinutesDate } from "@helpers/date";
+
 import {useRoute, useRouter} from "vue-router";
+import {FilterMatchMode} from "@primevue/core/api";
 
 const route = useRoute();
 const router = useRouter();
@@ -19,10 +22,19 @@ const etablissement = ref(null);
 const isLoadingAnnee = ref(true);
 const isLoadingAnnees = ref(false);
 const isLoadingEtablissement = ref(true);
+const events = ref([]);
+const totalEvents = ref(0);
+const isLoadingEvents = ref(false);
 const page = ref(0);
-const rowOptions = [5, 10, 20, 50];
+const rowOptions = [10, 20, 50];
 const limit = ref(rowOptions[0]);
 const offset = computed(() => limit.value * page.value);
+const filters = ref({
+  'enseignement.display': {value: null, matchMode: FilterMatchMode.CONTAINS},
+});
+const FILTERS_DEBOUNCE_MS = 250;
+let filtersDebounceTimeout = null;
+
 const edusignScopeMessage = computed(() => {
   const edusignSettings = etablissement.value?.settings?.integrations?.edusign;
   const isEnabled = !!edusignSettings?.enabled;
@@ -116,12 +128,51 @@ watch(annee, async (newAnnee, oldAnnee) => {
   page.value = 0;
 
   // ICI: appeler les requêtes qui récupères les datas
+  await getEdtEvents();
 });
+
+
+onUnmounted(() => {
+  if (filtersDebounceTimeout) {
+    clearTimeout(filtersDebounceTimeout);
+  }
+});
+
+watch(filters, () => {
+  page.value = 0;
+  if (filtersDebounceTimeout) {
+    clearTimeout(filtersDebounceTimeout);
+  }
+  filtersDebounceTimeout = setTimeout(() => {
+    getEdtEvents();
+  }, FILTERS_DEBOUNCE_MS);
+}, {deep: true});
+
+const getEdtEvents = async () => {
+  try {
+    const params = {
+      annee: annee.value.id,
+      anneeUniversitaire: anneeUniv.id,
+      pagination: true,
+      itemsPerPage: limit.value,
+      page: page.value + 1,
+      filters: filters.value,
+    };
+
+    events.value = await getEdtEventsService(params, '/pointage');
+    totalEvents.value = events.value?.totalItems || 0;
+    console.log("Events récupérés :", events.value);
+  } catch (error) {
+    console.error("Erreur lors de la récupération des événements :", error);
+  } finally {
+    isLoadingEvents.value = false;
+  }
+};
 
 const onPageChange = async event => {
   limit.value = event.rows;
   page.value = event.page;
-  await getAbsences();
+  await getEdtEvents();
 };
 </script>
 
@@ -132,16 +183,16 @@ const onPageChange = async event => {
       description="Vérifiez que l'appel a bien été réalisée sur l'ensemble des cours"
   />
 
-<!--  <div class="flex justify-around items-center mb-12">-->
-<!--    <div v-for="stat in absencesStats" :key="stat.title" class="card w-1/5 flex items-center justify-center flex-col">-->
-<!--      <Kpi-->
-<!--          :label="stat.title"-->
-<!--          :value="stat.value"-->
-<!--          :icon="stat.icon"-->
-<!--          :color="stat.color"-->
-<!--      />-->
-<!--    </div>-->
-<!--  </div>-->
+  <!--  <div class="flex justify-around items-center mb-12">-->
+  <!--    <div v-for="stat in absencesStats" :key="stat.title" class="card w-1/5 flex items-center justify-center flex-col">-->
+  <!--      <Kpi-->
+  <!--          :label="stat.title"-->
+  <!--          :value="stat.value"-->
+  <!--          :icon="stat.icon"-->
+  <!--          :color="stat.color"-->
+  <!--      />-->
+  <!--    </div>-->
+  <!--  </div>-->
 
   <div class="flex flex-col gap-6">
     <div class="card">
@@ -174,11 +225,51 @@ const onPageChange = async event => {
       <div class="card-body">
         <ListSkeleton v-if="isLoadingEtablissement"/>
         <div v-else class="">
-          <Message v-if="edusignScopeMessage" icon="pi pi-info-circle" severity="info" class="mb-3">
+          <Message v-if="edusignScopeMessage" icon="pi pi-info-circle" severity="warn" class="mx-auto w-1/2 mb-12 mt-12">
             {{ edusignScopeMessage }}
           </Message>
+          <Divider></Divider>
         </div>
 
+        <Message severity="info" :closable="false" icon="pi pi-info-circle" class="mb-2">
+          Maintenez Ctrl ou Cmd et cliquez sur plusieurs colonnes pour trier par plusieurs champs à la fois.
+        </Message>
+        <Message severity="info" icon="pi pi-info-circle" class="w-full flex justify-center" v-if="!isLoadingEvents && (!events || events.length === 0)">
+          Aucuns événements trouvée pour cette année.
+        </Message>
+        <DataTable
+            v-else
+            :value="events"
+            v-model:filters="filters"
+            lazy
+            striped-rows
+            class="w-full"
+            paginator
+            removableSort
+            sortMode="multiple"
+            :first="offset"
+            :rows="limit"
+            :rowsPerPageOptions="rowOptions"
+            :totalRecords="totalEvents"
+            @page="onPageChange($event)"
+            @update:rows="limit = $event"
+        >
+          <Column field="date" header="Date" sortable>
+            <template #body="slotProps">
+              {{ formatDateCourt(slotProps.data.date) }} <br /> {{ heuresMinutesDate(slotProps.data.debut) }} - {{ heuresMinutesDate(slotProps.data.fin) }}
+            </template>
+          </Column>
+          <Column field="enseignement.display" header="Enseignement" sortable/>
+          <Column field="groupe.libelle" header="Groupe" sortable/>
+          <Column field="personnel.display" header="Enseignant" sortable/>
+          <Column field="appel.etat" header="État" sortable>
+            <template #body="slotProps">
+              <Tag :severity="slotProps.data.appel ? 'success' : !slotProps.data.appel ? 'danger' : 'secondary'" :icon="slotProps.data.appel ? 'pi pi-check' : !slotProps.data.appel ? 'pi pi-times' : 'pi pi-question'">
+                {{ slotProps.data.appel ? 'Appel fait' : !slotProps.data.appel ? 'Appel non fait' : 'Inconnu' }}
+              </Tag>
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
 

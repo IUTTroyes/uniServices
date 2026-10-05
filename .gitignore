@@ -5,6 +5,7 @@
 /front/apps/edt/public/common-images/
 /front/apps/intranet/public/common-images/
 /.idea
+/vendor
 
 # macOS
 .DS_Store

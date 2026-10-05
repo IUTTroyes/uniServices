@@ -7,7 +7,7 @@ import {
   updateTypeDiplomeService,
   deleteTypeDiplomeService
 } from '@requests';
-import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit } from '@components';
+import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useToast } from 'primevue/usetoast';
 
 const router = useRouter();
@@ -190,22 +190,25 @@ const deleteTypeDiplome = async (type) => {
 </script>
 
 <template>
-  <div class="card">
-    <div class="card-title mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-bold">Types de diplômes</h1>
-        <p class="text-muted-color">Gérer les types de diplômes et leurs caractéristiques (APC, sigle, libellé).</p>
-      </div>
-      <div class="flex items-center gap-3">
-        <Button
-          label="Nouveau type de diplôme"
-          icon="pi pi-plus"
-          severity="primary"
-          @click="openNewDialog"
-        />
-      </div>
-    </div>
+  <HeaderComponent
+    icon="pi pi-graduation-cap"
+    color="emerald"
+    titre="Types de diplômes"
+    description="Gérer les types de diplômes et leurs caractéristiques (APC, sigle, libellé)."
+    :show-back="true"
+    back-url="/intranet/super-administration"
+  >
+    <template #actions>
+      <Button
+        label="Nouveau type de diplôme"
+        icon="pi pi-plus"
+        severity="primary"
+        @click="openNewDialog"
+      />
+    </template>
+  </HeaderComponent>
 
+  <Card>
     <ErrorView v-if="hasError" />
     <ListSkeleton v-else-if="isLoadingTypes" :count="5" />
     <template v-else>
@@ -268,69 +271,69 @@ const deleteTypeDiplome = async (type) => {
         </Column>
       </DataTable>
     </template>
+  </Card>
 
-    <!-- Modal d'ajout / modification -->
-    <Dialog
-      v-model:visible="dialogVisible"
-      modal
-      :header="isEditing ? 'Modifier un type de diplôme' : 'Nouveau type de diplôme'"
-      :style="{ width: '500px' }"
-    >
-      <div class="flex flex-col gap-4 py-2">
-        <div class="flex flex-col gap-2">
-          <label for="type-sigle" class="font-semibold text-sm">Sigle <span class="text-red-500">*</span></label>
-          <InputText
-            id="type-sigle"
-            v-model="formType.sigle"
-            placeholder="Ex: BUT, LP, DUT, MASTER..."
-            class="w-full uppercase font-mono font-bold"
-            autofocus
-          />
-        </div>
-
-        <div class="flex flex-col gap-2">
-          <label for="type-libelle" class="font-semibold text-sm">Libellé <span class="text-red-500">*</span></label>
-          <InputText
-            id="type-libelle"
-            v-model="formType.libelle"
-            placeholder="Ex: Bachelor Universitaire de Technologie"
-            class="w-full"
-          />
-        </div>
-
-        <div class="flex items-center gap-3 pt-2">
-          <Checkbox
-            id="type-apc"
-            v-model="formType.apc"
-            :binary="true"
-          />
-          <label for="type-apc" class="font-medium text-sm cursor-pointer select-none">
-            Diplôme sous Approche Par Compétences (APC)
-          </label>
-        </div>
+  <!-- Modal d'ajout / modification -->
+  <Dialog
+    v-model:visible="dialogVisible"
+    modal
+    :header="isEditing ? 'Modifier un type de diplôme' : 'Nouveau type de diplôme'"
+    :style="{ width: '500px' }"
+  >
+    <div class="flex flex-col gap-4 py-2">
+      <div class="flex flex-col gap-2">
+        <label for="type-sigle" class="font-semibold text-sm">Sigle <span class="text-red-500">*</span></label>
+        <InputText
+          id="type-sigle"
+          v-model="formType.sigle"
+          placeholder="Ex: BUT, LP, DUT, MASTER..."
+          class="w-full uppercase font-mono font-bold"
+          autofocus
+        />
       </div>
 
-      <template #footer>
-        <div class="flex justify-end gap-2 pt-2">
-          <Button
-            label="Annuler"
-            icon="pi pi-times"
-            severity="secondary"
-            outlined
-            @click="dialogVisible = false"
-            :disabled="isSubmitting"
-          />
-          <Button
-            :label="isEditing ? 'Mettre à jour' : 'Enregistrer'"
-            icon="pi pi-check"
-            severity="primary"
-            @click="saveTypeDiplome"
-            :loading="isSubmitting"
-          />
-        </div>
-      </template>
-    </Dialog>
-  </div>
+      <div class="flex flex-col gap-2">
+        <label for="type-libelle" class="font-semibold text-sm">Libellé <span class="text-red-500">*</span></label>
+        <InputText
+          id="type-libelle"
+          v-model="formType.libelle"
+          placeholder="Ex: Bachelor Universitaire de Technologie"
+          class="w-full"
+        />
+      </div>
+
+      <div class="flex items-center gap-3 pt-2">
+        <Checkbox
+          id="type-apc"
+          v-model="formType.apc"
+          :binary="true"
+        />
+        <label for="type-apc" class="font-medium text-sm cursor-pointer select-none">
+          Diplôme sous Approche Par Compétences (APC)
+        </label>
+      </div>
+    </div>
+
+    <template #footer>
+      <div class="flex justify-end gap-2 pt-2">
+        <Button
+          label="Annuler"
+          icon="pi pi-times"
+          severity="secondary"
+          outlined
+          @click="dialogVisible = false"
+          :disabled="isSubmitting"
+        />
+        <Button
+          :label="isEditing ? 'Mettre à jour' : 'Enregistrer'"
+          icon="pi pi-check"
+          severity="primary"
+          @click="saveTypeDiplome"
+          :loading="isSubmitting"
+        />
+      </div>
+    </template>
+  </Dialog>
 </template>
 
 <style scoped>
