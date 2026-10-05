@@ -1350,3 +1350,17 @@ Le runner dédié `app:migrate-intranet-v3-stage` ne reprend désormais que le p
 - les offres de stage restent hors périmètre.
 
 Le contrôle d'intégrité applique exactement le même filtre V3 afin de comparer le périmètre réellement attendu avec les données importées.
+
+
+### 24.6 Notes détaillées limitées aux étudiants en cours de formation
+
+La V3 utilise explicitement `etudiant.annee_sortie = 0` pour identifier une scolarité en cours.
+
+Afin d'éviter de recopier plusieurs centaines de milliers de notes historiques devenues inutiles opérationnellement :
+- `NoteMigrator` ne migre que les notes dont l'étudiant V3 a `annee_sortie = 0` ;
+- `EvaluationMigrator` ne migre que les évaluations ayant au moins une note d'un étudiant en cours ;
+- une évaluation parent est également conservée lorsqu'un de ses enfants possède une note d'étudiant en cours, afin de préserver l'arborescence ;
+- les scolarités historiques et leurs résultats consolidés (moyennes, rangs, décisions, etc.) restent migrés indépendamment ;
+- les rapports indiquent le nombre de notes et d'évaluations historiques volontairement exclues.
+
+Cette règle ne supprime pas les étudiants sortis : elle évite uniquement la migration de leur détail d'évaluations/notes.
