@@ -62,7 +62,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/administration/etudiant_absences/{id}',
         )
     ],
-    order: ['created' => 'ASC']
+    order: ['createdAt' => 'ASC']
 )]
 class EtudiantAbsence implements TimestampableInterface
 {
