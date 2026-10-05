@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.15](https://github.com/IUTTroyes/uniServices/compare/v0.1.14...v0.1.15) (2026-10-05)
+
+
+### Bug Fixes
+
+* **ci:** enrich existing release-please PRs ([4871a25](https://github.com/IUTTroyes/uniServices/commit/4871a25fb21c3cb343ac63b044d442d07a496ef9))
+* **ci:** find release PR without bot author filter ([57323a7](https://github.com/IUTTroyes/uniServices/commit/57323a7be00b9b31e1f6c07f71ca535918f082b1))
+* **ci:** use release-please PR output for changelog enrichment ([0f372ff](https://github.com/IUTTroyes/uniServices/commit/0f372ffff75f89e43b9ef5b182696ca971e4ad11))
+
 ## [0.1.14](https://github.com/IUTTroyes/uniServices/compare/v0.1.13...v0.1.14) (2026-10-05)
 
 
