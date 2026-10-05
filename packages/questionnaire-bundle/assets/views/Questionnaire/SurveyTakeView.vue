@@ -364,22 +364,35 @@ const progress = computed(() => {
   return Math.round(((currentSectionIndex.value + 1) / survey.value.sections.length) * 100);
 });
 
+function normalizeString(v: any): string {
+  return String(v ?? '').trim().toLowerCase();
+}
+
 function evaluateConditionValue(operator: string, value: any, dependentAnswer: any): boolean {
+  const normVal = normalizeString(value);
+  const normAns = normalizeString(dependentAnswer);
+
   switch (operator) {
     case 'equals':
-      return String(dependentAnswer ?? '') === String(value ?? '');
+      if (Array.isArray(dependentAnswer)) {
+        return dependentAnswer.some(item => normalizeString(item) === normVal);
+      }
+      return normAns === normVal || String(dependentAnswer ?? '') === String(value ?? '');
     case 'not_equals':
-      return String(dependentAnswer ?? '') !== String(value ?? '');
+      if (Array.isArray(dependentAnswer)) {
+        return !dependentAnswer.some(item => normalizeString(item) === normVal);
+      }
+      return normAns !== normVal && String(dependentAnswer ?? '') !== String(value ?? '');
     case 'contains':
       if (Array.isArray(dependentAnswer)) {
-        return dependentAnswer.includes(value);
+        return dependentAnswer.some(item => normalizeString(item).includes(normVal));
       }
-      return String(dependentAnswer || '').includes(String(value));
+      return normAns.includes(normVal) || String(dependentAnswer || '').includes(String(value));
     case 'not_contains':
       if (Array.isArray(dependentAnswer)) {
-        return !dependentAnswer.includes(value);
+        return !dependentAnswer.some(item => normalizeString(item).includes(normVal));
       }
-      return !String(dependentAnswer || '').includes(String(value));
+      return !normAns.includes(normVal) && !String(dependentAnswer || '').includes(String(value));
     case 'greater_than':
       return Number(dependentAnswer) > Number(value);
     case 'less_than':
@@ -389,16 +402,35 @@ function evaluateConditionValue(operator: string, value: any, dependentAnswer: a
     case 'less_equal':
       return Number(dependentAnswer) <= Number(value);
     case 'starts_with':
-      return String(dependentAnswer || '').startsWith(String(value));
+      return normAns.startsWith(normVal);
     case 'ends_with':
-      return String(dependentAnswer || '').endsWith(String(value));
+      return normAns.endsWith(normVal);
     case 'is_empty':
-      return dependentAnswer === undefined || dependentAnswer === null || dependentAnswer === '';
+      return dependentAnswer === undefined || dependentAnswer === null || dependentAnswer === '' || (Array.isArray(dependentAnswer) && dependentAnswer.length === 0);
     case 'is_not_empty':
-      return dependentAnswer !== undefined && dependentAnswer !== null && dependentAnswer !== '';
+      return dependentAnswer !== undefined && dependentAnswer !== null && dependentAnswer !== '' && (!Array.isArray(dependentAnswer) || dependentAnswer.length > 0);
     default:
-      return String(dependentAnswer ?? '') === String(value ?? '');
+      return normAns === normVal;
   }
+}
+
+function getAnswerForQuestion(questionId: any): any {
+  if (questionId === undefined || questionId === null) return undefined;
+  if (answers.value[questionId] !== undefined) return answers.value[questionId];
+
+  const allSurveyQuestions = (survey.value?.sections || []).flatMap(s => s.questions || []);
+  const qObj = allSurveyQuestions.find((q: any) =>
+    String(q.id) === String(questionId) ||
+    String(q.uuid) === String(questionId) ||
+    String(q.questionId) === String(questionId)
+  );
+
+  if (qObj) {
+    if (qObj.id !== undefined && answers.value[qObj.id] !== undefined) return answers.value[qObj.id];
+    if (qObj.uuid && answers.value[qObj.uuid] !== undefined) return answers.value[qObj.uuid];
+    if (qObj.questionId !== undefined && answers.value[qObj.questionId] !== undefined) return answers.value[qObj.questionId];
+  }
+  return undefined;
 }
 
 function evaluateRule(rule: any): boolean {
@@ -410,38 +442,60 @@ function evaluateRule(rule: any): boolean {
 
   if (op === 'OR') {
     return conditions.some((c: any) => {
-      const dependentAnswer = answers.value[c.dependsOn];
+      const dependentAnswer = getAnswerForQuestion(c.dependsOn ?? c.dependsOnQuestionId);
       return evaluateConditionValue(c.operator, c.value, dependentAnswer);
     });
   } else {
     return conditions.every((c: any) => {
-      const dependentAnswer = answers.value[c.dependsOn];
+      const dependentAnswer = getAnswerForQuestion(c.dependsOn ?? c.dependsOnQuestionId);
       return evaluateConditionValue(c.operator, c.value, dependentAnswer);
     });
   }
 }
 
 const visibleQuestions = computed(() => {
-  if (!currentSection.value) return [];
+  if (!currentSection.value || !currentSection.value.questions) return [];
 
   // Gather all questions across all sections in the survey
   const allSurveyQuestions = (survey.value?.sections || []).flatMap(s => s.questions || []);
 
-  return currentSection.value.questions.filter(question => {
-    const qId = question.id;
+  return currentSection.value.questions.filter((question: any) => {
+    const qId = question.id || question.questionId || question.uuid;
 
     // Find all rules across the survey targeting this question
     const applicableRules: any[] = [];
 
+    // 1. DTO Visibility
+    if (question.visibility && (question.visibility.dependsOnQuestionId || (question.visibility.conditions && question.visibility.conditions.length > 0))) {
+      applicableRules.push({
+        dependsOn: question.visibility.dependsOnQuestionId,
+        operator: question.visibility.operator,
+        value: question.visibility.value,
+        logicalOperator: question.visibility.logicalOperator || 'AND',
+        conditions: question.visibility.conditions || [],
+        action: question.visibility.action || 'show',
+        type: 'show_hide'
+      });
+    }
+
+    // 2. Questions with conditionalRules
     allSurveyQuestions.forEach((sq: any) => {
       if (sq.conditionalRules && Array.isArray(sq.conditionalRules)) {
         sq.conditionalRules.forEach((r: any) => {
           const isTargeted = (r.targetQuestionIds && Array.isArray(r.targetQuestionIds) && r.targetQuestionIds.length > 0)
             ? r.targetQuestionIds.some((tid: any) => String(tid) === String(qId) || (question.uuid && String(tid) === String(question.uuid)))
-            : (String(r.dependsOn) !== String(qId) && (question.uuid ? String(r.dependsOn) !== String(question.uuid) : true));
+            : (String(r.dependsOn) !== String(qId) && (question.uuid ? String(r.dependsOn) !== String(question.uuid) : true) && (String(sq.id) === String(qId) || (question.uuid && String(sq.uuid) === String(question.uuid))));
 
           if (isTargeted) {
-            applicableRules.push(r);
+            applicableRules.push({
+              dependsOn: r.dependsOn,
+              operator: r.operator,
+              value: r.value,
+              logicalOperator: r.logicalOperator || 'AND',
+              conditions: r.conditions || [],
+              action: r.action || 'show',
+              type: r.type || 'show_hide'
+            });
           }
         });
       }
@@ -449,13 +503,13 @@ const visibleQuestions = computed(() => {
 
     if (applicableRules.length === 0) return true;
 
-    // Check applicable rules - question is visible if ANY rule passes
+    // Check applicable rules
     return applicableRules.some(rule => {
       const conditionMet = evaluateRule(rule);
       const { action, type } = rule;
 
       // Apply the action based on rule type
-      if (type === 'show_hide') {
+      if (type === 'show_hide' || !type) {
         if (action === 'show') {
           return conditionMet; // Show if condition is met
         } else if (action === 'hide') {
@@ -463,7 +517,6 @@ const visibleQuestions = computed(() => {
         }
       }
 
-      // For other rule types, default behavior is to show the question
       return true;
     });
   });
@@ -631,12 +684,15 @@ async function loadSectionQuestions(index: number) {
     const questionsList = Array.isArray(secDetails.questions) ? secDetails.questions : (secDetails.questions?.member || secDetails.questions || []);
     sec.questions = questionsList.map((q: any) => ({
       id: q.questionId,
+      uuid: q.uuid,
       type: q.typeQuestion?.value || q.typeQuestion || 'text_short',
       title: q.label,
       description: '',
       required: q.required,
-      options: q.choices ? q.choices.map((c: any) => ({ id: c.id, text: c.text || c.label })) : [],
-      validation: q.scale ? { min: q.scale.min, max: q.scale.max } : {}
+      options: q.choices ? q.choices.map((c: any) => ({ id: c.id, text: c.text || c.label, value: c.value })) : [],
+      validation: q.scale ? { min: q.scale.min, max: q.scale.max } : {},
+      visibility: q.visibility,
+      conditionalRules: q.conditionalRules || []
     }));
     
     questionsList.forEach((q: any) => {

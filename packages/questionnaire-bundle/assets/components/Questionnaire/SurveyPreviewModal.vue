@@ -335,22 +335,35 @@ function getAnswerForQuestion(questionId: any): any {
   return val;
 }
 
+function normalizeString(v: any): string {
+  return String(v ?? '').trim().toLowerCase();
+}
+
 function evaluateConditionValue(operator: string, value: any, dependentAnswer: any): boolean {
+  const normVal = normalizeString(value);
+  const normAns = normalizeString(dependentAnswer);
+
   switch (operator) {
     case 'equals':
-      return String(dependentAnswer ?? '') === String(value ?? '');
+      if (Array.isArray(dependentAnswer)) {
+        return dependentAnswer.some(item => normalizeString(item) === normVal);
+      }
+      return normAns === normVal || String(dependentAnswer ?? '') === String(value ?? '');
     case 'not_equals':
-      return String(dependentAnswer ?? '') !== String(value ?? '');
+      if (Array.isArray(dependentAnswer)) {
+        return !dependentAnswer.some(item => normalizeString(item) === normVal);
+      }
+      return normAns !== normVal && String(dependentAnswer ?? '') !== String(value ?? '');
     case 'contains':
       if (Array.isArray(dependentAnswer)) {
-        return dependentAnswer.includes(value);
+        return dependentAnswer.some(item => normalizeString(item).includes(normVal));
       }
-      return String(dependentAnswer || '').includes(String(value));
+      return normAns.includes(normVal) || String(dependentAnswer || '').includes(String(value));
     case 'not_contains':
       if (Array.isArray(dependentAnswer)) {
-        return !dependentAnswer.includes(value);
+        return !dependentAnswer.some(item => normalizeString(item).includes(normVal));
       }
-      return !String(dependentAnswer || '').includes(String(value));
+      return !normAns.includes(normVal) && !String(dependentAnswer || '').includes(String(value));
     case 'greater_than':
       return Number(dependentAnswer) > Number(value);
     case 'less_than':
@@ -360,15 +373,15 @@ function evaluateConditionValue(operator: string, value: any, dependentAnswer: a
     case 'less_equal':
       return Number(dependentAnswer) <= Number(value);
     case 'starts_with':
-      return String(dependentAnswer || '').startsWith(String(value));
+      return normAns.startsWith(normVal);
     case 'ends_with':
-      return String(dependentAnswer || '').endsWith(String(value));
+      return normAns.endsWith(normVal);
     case 'is_empty':
-      return dependentAnswer === undefined || dependentAnswer === null || dependentAnswer === '';
+      return dependentAnswer === undefined || dependentAnswer === null || dependentAnswer === '' || (Array.isArray(dependentAnswer) && dependentAnswer.length === 0);
     case 'is_not_empty':
-      return dependentAnswer !== undefined && dependentAnswer !== null && dependentAnswer !== '';
+      return dependentAnswer !== undefined && dependentAnswer !== null && dependentAnswer !== '' && (!Array.isArray(dependentAnswer) || dependentAnswer.length > 0);
     default:
-      return String(dependentAnswer ?? '') === String(value ?? '');
+      return normAns === normVal;
   }
 }
 
@@ -422,7 +435,7 @@ const visibleQuestions = computed(() => {
         sq.conditionalRules.forEach((r: any) => {
           const isTargeted = (r.targetQuestionIds && Array.isArray(r.targetQuestionIds) && r.targetQuestionIds.length > 0)
             ? r.targetQuestionIds.some((tid: any) => String(tid) === String(qId) || (question.uuid && String(tid) === String(question.uuid)))
-            : (String(r.dependsOn) !== String(qId) && (question.uuid ? String(r.dependsOn) !== String(question.uuid) : true));
+            : (String(r.dependsOn) !== String(qId) && (question.uuid ? String(r.dependsOn) !== String(question.uuid) : true) && (String(sq.id) === String(qId) || (question.uuid && String(sq.uuid) === String(question.uuid))));
 
           if (isTargeted) {
             applicableRules.push({

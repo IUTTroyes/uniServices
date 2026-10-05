@@ -253,7 +253,7 @@ const exportSurvey = (survey: any) => {
           <template #body="{ data }">
             <div class="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300">
               <CalendarIcon class="w-4 h-4 text-gray-450 shrink-0" />
-              {{ data.created ? formatDate(data.created) : '-' }}
+              {{ formatDate(data.createdAt || data.created) }}
             </div>
           </template>
         </Column>

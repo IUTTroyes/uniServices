@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { 
   ClockIcon,
@@ -19,7 +19,8 @@ import {
   XMarkIcon,
   PencilIcon,
   TrashIcon,
-  EllipsisVerticalIcon
+  EllipsisVerticalIcon,
+  CheckCircleIcon
 } from '@heroicons/vue/24/outline';
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 import { useSurveyStore } from '@/stores/survey';
@@ -37,6 +38,12 @@ const uiStore = useUIStore();
 const showTemplates = ref(false);
 const showDuplicateModal = ref(false);
 const selectedSurveyToDuplicate = ref<any>(null);
+
+onMounted(async () => {
+  if (!surveyStore.surveys || surveyStore.surveys.length === 0) {
+    await surveyStore.loadQuestionnaires();
+  }
+});
 
 const templates = [
   {
@@ -84,79 +91,119 @@ const templates = [
 ];
 
 const recentSurveys = computed(() => {
-  if (!surveyStore.surveys) return [];
+  if (!surveyStore.surveys || surveyStore.surveys.length === 0) return [];
   return [...surveyStore.surveys]
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .sort((a, b) => {
+      const getValidTime = (d: any) => {
+        if (!d) return 0;
+        const time = new Date(d).getTime();
+        return isNaN(time) ? 0 : time;
+      };
+      const dateA = Math.max(getValidTime(a.updatedAt), getValidTime(a.createdAt));
+      const dateB = Math.max(getValidTime(b.updatedAt), getValidTime(b.createdAt));
+      return dateB - dateA;
+    })
     .slice(0, 5);
+});
+
+const totalResponsesCount = computed(() => {
+  if (!surveyStore.surveys) return 0;
+  const storeTotal = responseStore.totalResponses;
+  const computedTotal = surveyStore.surveys.reduce((sum, s) => sum + (s.totalResponses || 0), 0);
+  return Math.max(storeTotal, computedTotal);
 });
 
 const averageCompletionRate = computed(() => {
   if (!surveyStore.publishedSurveys || surveyStore.publishedSurveys.length === 0) return 0;
-  const rates = surveyStore.publishedSurveys.map(survey =>
-    responseStore.completionRate(survey.uuid)
-  );
+  const rates = surveyStore.publishedSurveys.map(survey => getSurveyStats(survey.uuid).rate);
   return Math.round(rates.reduce((sum, rate) => sum + rate, 0) / rates.length);
+});
+
+const lastPublishedSurvey = computed(() => {
+  if (!surveyStore.publishedSurveys || surveyStore.publishedSurveys.length === 0) return null;
+  return [...surveyStore.publishedSurveys].sort((a, b) => {
+    const dateA = new Date(a.publishedAt || a.updatedAt || a.createdAt || 0).getTime();
+    const dateB = new Date(b.publishedAt || b.updatedAt || b.createdAt || 0).getTime();
+    return dateB - dateA;
+  })[0];
 });
 
 const recentActivity = computed(() => {
   const activities: any[] = [];
-  if (!surveyStore.surveys || !responseStore.responses) return [];
+  if (!surveyStore.surveys || surveyStore.surveys.length === 0) return [];
 
-  // Add survey creation activities
+  // Add survey activities
   surveyStore.surveys.forEach(survey => {
+    const createdDate = survey.createdAt || survey.updatedAt || new Date();
     activities.push({
-      id: `survey-${survey.uuid}`,
+      id: `survey-create-${survey.uuid || survey.id || Math.random()}`,
       type: 'survey_created',
-      message: `Questionnaire "${survey.title}" créé`,
-      timestamp: survey.createdAt
+      message: `Questionnaire "${survey.title || 'Sans titre'}" créé`,
+      timestamp: createdDate
     });
 
     if (survey.status === 'published') {
       activities.push({
-        id: `publish-${survey.uuid}`,
+        id: `survey-publish-${survey.uuid || survey.id}`,
         type: 'survey_published',
-        message: `Questionnaire "${survey.title}" publié`,
-        timestamp: survey.updatedAt
+        message: `Questionnaire "${survey.title || 'Sans titre'}" publié`,
+        timestamp: survey.publishedAt || survey.updatedAt || survey.createdAt || new Date()
+      });
+    } else if (survey.status === 'closed') {
+      activities.push({
+        id: `survey-close-${survey.uuid || survey.id}`,
+        type: 'survey_closed',
+        message: `Questionnaire "${survey.title || 'Sans titre'}" clôturé`,
+        timestamp: survey.closingDate || survey.updatedAt || survey.createdAt || new Date()
       });
     }
   });
 
   // Add response activities
-  responseStore.responses.forEach(response => {
-    if (response.completed) {
-      const survey = surveyStore.surveys.find(s => s.uuid === response.surveyId);
-      activities.push({
-        id: `response-${response.id}`,
-        type: 'response_received',
-        message: `Nouvelle réponse pour "${survey?.title || 'Questionnaire'}"`,
-        timestamp: response.submittedAt || response.lastActivity
-      });
-    }
-  });
+  if (responseStore.responses && responseStore.responses.length > 0) {
+    responseStore.responses.forEach(response => {
+      if (response.completed) {
+        const survey = surveyStore.surveys.find(s => s.uuid === response.surveyId || s.id === response.surveyId);
+        activities.push({
+          id: `response-${response.id}`,
+          type: 'response_received',
+          message: `Nouvelle réponse pour "${survey?.title || 'Questionnaire'}"`,
+          timestamp: response.submittedAt || response.lastActivity || new Date()
+        });
+      }
+    });
+  }
 
-  const getTimestamp = (date: any) => new Date(date).getTime();
+  const getTimestamp = (date: any) => {
+    if (!date) return 0;
+    const t = new Date(date).getTime();
+    return isNaN(t) ? 0 : t;
+  };
 
   return activities
+    .filter(a => getTimestamp(a.timestamp) > 0)
     .sort((a, b) => getTimestamp(b.timestamp) - getTimestamp(a.timestamp))
     .slice(0, 10);
 });
 
 function getActivityColor(type: string): string {
-  const colors = {
+  const colors: Record<string, string> = {
     survey_created: 'bg-blue-500',
     survey_published: 'bg-green-500',
+    survey_closed: 'bg-amber-500',
     response_received: 'bg-purple-500'
   };
-  return colors[type as keyof typeof colors] || 'bg-gray-500';
+  return colors[type] || 'bg-gray-500';
 }
 
 function getActivityIcon(type: string) {
-  const icons = {
+  const icons: Record<string, any> = {
     survey_created: PlusIcon,
     survey_published: RocketLaunchIcon,
+    survey_closed: CheckCircleIcon,
     response_received: ChatBubbleLeftRightIcon
   };
-  return icons[type as keyof typeof icons] || DocumentTextIcon;
+  return icons[type] || DocumentTextIcon;
 }
 
 function openDuplicateModal(survey: any) {
@@ -202,11 +249,10 @@ function createFromTemplate(template: any) {
 }
 
 function getSurveyStats(surveyUuid: string) {
-  const responsesCount = responseStore.completedResponses(surveyUuid).length;
-  const analytics = responseStore.getSurveyAnalytics(surveyUuid);
-  const invited = analytics.totalInvited || 120;
-  const responded = analytics.totalResponses || (surveyUuid.startsWith('active-') ? 85 : 0);
-  const rate = Math.round(analytics.completionRate) || (surveyUuid.startsWith('active-') ? Math.round((responded / invited) * 105) : 0);
+  const survey = surveyStore.surveys?.find(s => s.uuid === surveyUuid);
+  const invited = survey?.totalInvited ?? responseStore.responsesBySurvey(surveyUuid).length;
+  const responded = survey?.totalResponses ?? responseStore.completedResponses(surveyUuid).length;
+  const rate = invited > 0 ? Math.round((responded / invited) * 100) : 0;
   return { 
     responded: Math.min(invited, responded), 
     invited, 
@@ -221,8 +267,8 @@ function getSurveyStats(surveyUuid: string) {
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <Kpi label="Questionnaires" :value="surveyStore.surveyCount" :icon="DocumentTextIcon" color="blue" />
       <Kpi label="Publiés" :value="surveyStore.publishedSurveys.length" :icon="RocketLaunchIcon" color="green" />
-      <Kpi label="Réponses totales" :value="responseStore.totalResponses" :icon="ChatBubbleLeftRightIcon" color="teal" />
-      <Kpi label="Taux moyen" :value="averageCompletionRate" :icon="ArrowTrendingUpIcon" color="orange" />
+      <Kpi label="Réponses totales" :value="totalResponsesCount" :icon="ChatBubbleLeftRightIcon" color="teal" />
+      <Kpi label="Taux moyen" :value="averageCompletionRate + '%'" :icon="ArrowTrendingUpIcon" color="orange" />
     </div>
 
     <!-- Quick Actions Row -->
@@ -291,7 +337,7 @@ function getSurveyStats(surveyUuid: string) {
                     {{ survey.status === 'published' ? 'Publié' : 'Brouillon' }}
                   </span>
                   <span class="text-xs text-gray-500 dark:text-gray-400">
-                    Modifié le {{ formatDate(survey.updatedAt) }}
+                    Modifié le {{ formatDate(survey.updatedAt || survey.createdAt) }}
                   </span>
                 </div>
               </div>
@@ -386,13 +432,16 @@ function getSurveyStats(surveyUuid: string) {
           <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">
             Configurez les synthèses de résultats publiées et visibles par les étudiants.
           </p>
-          <div class="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-850 text-center">
+          <div v-if="lastPublishedSurvey" class="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-850 text-center">
             <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">Dernière publication :</p>
-            <p class="font-bold text-gray-900 dark:text-white mt-0.5">Synthèse Évaluation Semestre 1</p>
-            <p class="text-xs text-gray-500 mt-0.5">Publié le 14/02/2026</p>
-            <button class="mt-3 text-xs bg-primary-100 dark:bg-primary-950 text-primary-700 dark:text-primary-300 px-3 py-1.5 rounded-lg font-semibold hover:bg-primary-200 transition-colors cursor-pointer border-0">
-              Mettre à jour la publication
-            </button>
+            <p class="font-bold text-gray-900 dark:text-white mt-0.5">{{ lastPublishedSurvey.title }}</p>
+            <p class="text-xs text-gray-500 mt-0.5">Publié le {{ formatDate(lastPublishedSurvey.publishedAt || lastPublishedSurvey.updatedAt) }}</p>
+            <router-link :to="{ name: 'questionnaire_analytics', params: { id: lastPublishedSurvey.uuid } }" class="mt-3 inline-block text-xs bg-primary-100 dark:bg-primary-950 text-primary-700 dark:text-primary-300 px-3 py-1.5 rounded-lg font-semibold hover:bg-primary-200 transition-colors cursor-pointer border-0">
+              Voir les résultats
+            </router-link>
+          </div>
+          <div v-else class="p-4 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-850 text-center">
+            <p class="text-sm text-gray-500 dark:text-gray-400">Aucun questionnaire publié pour le moment.</p>
           </div>
         </div>
 

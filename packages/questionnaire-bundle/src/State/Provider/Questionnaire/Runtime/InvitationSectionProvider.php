@@ -42,7 +42,12 @@ final class InvitationSectionProvider implements ProviderInterface
             $answersByQid[$a->getQuestion()->getId()] = $a->getValue();
         }
 
-        $allQuestions = iterator_to_array($psi->getSection()->getQuestions());
+        $allQuestions = [];
+        foreach ($inv->getQuestionnaire()->getSections() as $st) {
+            foreach ($st->getQuestions() as $sqt) {
+                $allQuestions[] = $sqt;
+            }
+        }
         $questions = [];
         foreach ($psi->getSection()->getQuestions() as $qt) {
             $questions[] = $this->mapper->map($qt, $answersByQid[$qt->getId()] ?? null, $allQuestions);

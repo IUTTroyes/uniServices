@@ -12,62 +12,7 @@ import ScrollPanel from 'primevue/scrollpanel';
 
 const selectedFormation = ref('all');
 
-const teacherCoursesStats = ref([
-  {
-    formation: 'BUT Informatique A1',
-    courseCode: 'R1.01',
-    courseName: 'Initiation au Développement (S1)',
-    satisfaction: 92,
-    responseRate: 84,
-    indicators: [
-      { name: 'Pédagogie & Clarté', score: 4.6 },
-      { name: 'Organisation des TP', score: 4.8 },
-      { name: 'Volume horaire adapté', score: 4.1 },
-      { name: 'Utilité perçue', score: 4.7 }
-    ],
-    comments: [
-      { text: 'Le cours est très bien structuré, les TPs aident à bien comprendre la matière.', sentiment: 'positive' },
-      { text: 'Parfois le rythme est un peu rapide au début pour les débutants.', sentiment: 'neutral' },
-      { text: 'Super prof de TP, très disponible pour réexpliquer.', sentiment: 'positive' }
-    ]
-  },
-  {
-    formation: 'BUT Informatique A1',
-    courseCode: 'R1.02',
-    courseName: 'Développement Web (S1)',
-    satisfaction: 88,
-    responseRate: 78,
-    indicators: [
-      { name: 'Pédagogie & Clarté', score: 4.3 },
-      { name: 'Organisation des TP', score: 4.5 },
-      { name: 'Volume horaire adapté', score: 3.9 },
-      { name: 'Utilité perçue', score: 4.6 }
-    ],
-    comments: [
-      { text: 'TPs très intéressants et appliqués.', sentiment: 'positive' },
-      { text: 'Dommage qu\'on ne puisse pas choisir nos groupes de projet.', sentiment: 'neutral' },
-      { text: 'Excellente introduction au HTML/CSS.', sentiment: 'positive' }
-    ]
-  },
-  {
-    formation: 'LP Métiers du Multimédia',
-    courseCode: 'R3.01',
-    courseName: 'Services Web avancés (S2)',
-    satisfaction: 79,
-    responseRate: 65,
-    indicators: [
-      { name: 'Pédagogie & Clarté', score: 3.8 },
-      { name: 'Organisation des TP', score: 4.2 },
-      { name: 'Volume horaire adapté', score: 3.5 },
-      { name: 'Utilité perçue', score: 4.3 }
-    ],
-    comments: [
-      { text: 'La théorie est un peu abstraite, mais les projets finaux sont passionnants.', sentiment: 'neutral' },
-      { text: 'Besoin de plus d\'exemples pratiques sur les API complexes.', sentiment: 'neutral' },
-      { text: 'Le projet de groupe est très formateur.', sentiment: 'positive' }
-    ]
-  }
-]);
+const teacherCoursesStats = ref<any[]>([]);
 
 const teacherFormations = computed(() => {
   const forms = new Set(teacherCoursesStats.value.map(c => c.formation));
@@ -145,6 +90,14 @@ const formationOptions = computed(() => [
 
     <!-- Course Evaluation Blocks -->
     <div class="space-y-6">
+      <div v-if="filteredTeacherStats.length === 0" class="card text-center py-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl">
+        <ChatBubbleLeftRightIcon class="w-12 h-12 text-gray-400 mx-auto mb-3" />
+        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Aucune évaluation disponible</h3>
+        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
+          Aucune donnée d'évaluation d'enseignement disponible pour le moment.
+        </p>
+      </div>
+
       <Card 
         v-for="stat in filteredTeacherStats" 
         :key="stat.courseCode"

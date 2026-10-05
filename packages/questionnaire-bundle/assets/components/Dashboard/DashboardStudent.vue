@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import {
   ClockIcon,
   CheckCircleIcon,
@@ -9,34 +9,12 @@ import {
   ChartBarIcon
 } from '@heroicons/vue/24/outline';
 import { getStudentInvitations } from '@/requests/questionnaire_services/questionnaireService';
+import { formatDate } from '@/utils/date';
 
 const isLoading = ref(false);
 const studentPendingSurveys = ref<any[]>([]);
 const studentCompletedSurveys = ref<any[]>([]);
-
-const publishedAnalytics = ref([
-  {
-    id: 'report-1',
-    title: 'Rapport d\'analyse & Actions - Évaluation du S1',
-    date: '14/02/2026',
-    stats: { satisfaction: 85, participation: 74 },
-    actions: [
-      'Achat de 15 nouveaux PC performants pour la salle réseau (M305).',
-      'Ajustement du calendrier des examens du S2 pour limiter la charge de travail hebdomadaire.',
-      'Mise à disposition de tutoriels vidéos supplémentaires en programmation.'
-    ]
-  },
-  {
-    id: 'report-2',
-    title: 'Retour sur l\'enquête d\'intégration des nouveaux étudiants 2025',
-    date: '10/10/2025',
-    stats: { satisfaction: 91, participation: 88 },
-    actions: [
-      'Création d\'un système de parrainage pérenne BUT1 - BUT2.',
-      'Refonte de l\'intranet d\'accueil pour centraliser les emplois du temps.'
-    ]
-  }
-]);
+const publishedAnalytics = ref<any[]>([]);
 
 onMounted(() => {
   loadData();
@@ -55,8 +33,7 @@ async function loadData() {
 
     studentCompletedSurveys.value = items.filter((item: any) => item.status === 'submitted').map((item: any) => ({
       ...item,
-      // Default placeholder date if not available, since submittedAt is not currently on DTO
-      submittedAt: item.deadline || 'Récemment'
+      submittedAt: item.submittedAt ? formatDate(item.submittedAt) : (item.deadline ? formatDate(item.deadline) : 'Récemment')
     }));
   } catch (error) {
     console.error('Failed to load student invitations:', error);
@@ -177,6 +154,12 @@ async function loadData() {
         </h3>
 
         <div class="space-y-4">
+          <div v-if="publishedAnalytics.length === 0" class="card text-center py-8">
+            <ChartBarIcon class="w-12 h-12 text-gray-400 mx-auto mb-2" />
+            <p class="text-gray-700 dark:text-gray-300 font-medium">Aucun retour publié</p>
+            <p class="text-gray-500 dark:text-gray-400 text-sm">Les bilans et plans d'actions publiés apparaîtront ici.</p>
+          </div>
+
           <div v-for="analysis in publishedAnalytics" :key="analysis.id"
             class="card overflow-hidden hover:scale-101 transition-transform border border-gray-200 dark:border-gray-700 shadow-sm">
             <div class="p-5 border-b border-gray-150 dark:border-gray-700 bg-gray-55 dark:bg-gray-800/40">

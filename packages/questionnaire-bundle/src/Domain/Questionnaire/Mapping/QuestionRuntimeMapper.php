@@ -19,7 +19,7 @@ final class QuestionRuntimeMapper
         if (in_array($q->getTypeQuestion(), [QuestTypeQuestionEnum::MultipleChoice, QuestTypeQuestionEnum::SingleChoice], true)) {
             $choices = [];
             foreach ($config as $c) {
-                $choices[] = new ChoiceDto((string) $c['id'], (string) $c['text'], (string) $c['value']);
+                $choices[] = new ChoiceDto((string) $c['id'], (string) $c['text'], (string) ($c['value'] ?? $c['text']));
             }
         }
 
@@ -73,7 +73,7 @@ final class QuestionRuntimeMapper
                     }
                 } else {
                     $dep = (string) ($r['dependsOnQuestionId'] ?? $r['dependsOn'] ?? '');
-                    if ($dep !== '' && $dep !== $qId && ($qUuid === null || $dep !== $qUuid) && (string)$sq->getId() === $qId) {
+                    if ($dep !== '' && $dep !== $qId && ($qUuid === null || $dep !== $qUuid) && ((string)$sq->getId() === $qId || ($qUuid !== null && (string)$sq->getUuid() === $qUuid))) {
                         $isTargeted = true;
                     }
                 }
@@ -95,8 +95,16 @@ final class QuestionRuntimeMapper
                     if (!is_array($cond)) continue;
                     $dep = $cond['dependsOnQuestionId'] ?? $cond['dependsOn'] ?? null;
                     if ($dep !== null) {
+                        $depStr = (string) $dep;
+                        $resolvedId = null;
+                        foreach ($searchQuestions as $item) {
+                            if ((string)$item->getUuid() === $depStr || (string)$item->getId() === $depStr) {
+                                $resolvedId = $item->getId();
+                                break;
+                            }
+                        }
                         $conditions[] = [
-                            'dependsOnQuestionId' => is_numeric($dep) ? (int) $dep : (string) $dep,
+                            'dependsOnQuestionId' => $resolvedId ?? (is_numeric($dep) ? (int) $dep : $depStr),
                             'operator' => (string) ($cond['operator'] ?? ''),
                             'value' => $cond['value'] ?? null,
                         ];
@@ -109,8 +117,16 @@ final class QuestionRuntimeMapper
                 $dep = $targetedRule['dependsOnQuestionId'] ?? $targetedRule['dependsOn'] ?? null;
                 $operator = $targetedRule['operator'] ?? null;
                 if ($dep !== null && $operator !== null) {
+                    $depStr = (string) $dep;
+                    $resolvedId = null;
+                    foreach ($searchQuestions as $item) {
+                        if ((string)$item->getUuid() === $depStr || (string)$item->getId() === $depStr) {
+                            $resolvedId = $item->getId();
+                            break;
+                        }
+                    }
                     $conditions[] = [
-                        'dependsOnQuestionId' => is_numeric($dep) ? (int) $dep : (string) $dep,
+                        'dependsOnQuestionId' => $resolvedId ?? (is_numeric($dep) ? (int) $dep : $depStr),
                         'operator' => (string) $operator,
                         'value' => $targetedRule['value'] ?? null,
                     ];
@@ -139,6 +155,8 @@ final class QuestionRuntimeMapper
             choices: $choices,
             scale: $scale,
             visibility: $visibility,
+            uuid: $q->getUuid() ? (string) $q->getUuid() : null,
+            conditionalRules: $q->getConditionalRules()
         );
     }
 }

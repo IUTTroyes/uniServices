@@ -1,13 +1,17 @@
 import { format, formatRelative } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-export function formatDate(date: Date | string | number): string {
+export function formatDate(date?: Date | string | number | null): string {
+  if (!date) return '-';
   const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return '-';
   return format(d, 'dd/MM/yyyy', { locale: fr });
 }
 
-export function formatRelativeTime(date: Date | string | number): string {
+export function formatRelativeTime(date?: Date | string | number | null): string {
+  if (!date) return '-';
   const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return '-';
   return formatRelative(d, new Date(), { locale: fr });
 }
 

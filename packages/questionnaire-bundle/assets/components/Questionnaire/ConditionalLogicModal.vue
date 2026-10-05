@@ -702,6 +702,16 @@ function removeRule(originalIndex: number) {
 }
 
 function saveRules() {
+  if (isRuleComplete.value) {
+    if (logicMode.value === 'trigger') {
+      rule.value.type = selectedRuleType.value;
+    } else {
+      rule.value.type = rule.value.action === 'require' ? 'set_required' : 'show_hide';
+      rule.value.targetQuestionIds = [currentQuestionId];
+    }
+    existingRules.value.push(JSON.parse(JSON.stringify(rule.value)));
+  }
+
   const convertedRules: ConditionalRule[] = existingRules.value.map(r => {
     // Backwards compatibility fallback properties from the first condition
     const firstCond = r.conditions[0];
