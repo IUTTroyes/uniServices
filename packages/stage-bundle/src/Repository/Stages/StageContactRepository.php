@@ -2,17 +2,17 @@
 
 namespace StageBundle\Repository\Stages;
 
-use StageBundle\Entity\Stages\Contact;
+use StageBundle\Entity\Stages\StageContact;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Contact>
+ * @extends ServiceEntityRepository<StageContact>
  */
-class ContactRepository extends ServiceEntityRepository
+class StageContactRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Contact::class);
+        parent::__construct($registry, StageContact::class);
     }
 }

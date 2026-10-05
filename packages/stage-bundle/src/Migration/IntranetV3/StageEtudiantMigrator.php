@@ -8,8 +8,8 @@ use App\Migration\IntranetV3\AbstractMigrator;
 use App\Migration\IntranetV3\MigrationContext;
 use App\Migration\IntranetV3\MigrationResult;
 use App\ValueObject\Adresse;
-use StageBundle\Entity\Stages\Contact;
-use StageBundle\Entity\Stages\Entreprise;
+use StageBundle\Entity\Stages\StageContact;
+use StageBundle\Entity\Stages\StageEntreprise;
 use StageBundle\Entity\Stages\StageContexte;
 use StageBundle\Entity\Stages\StageEtudiant;
 use StageBundle\Entity\Stages\StagePeriode;
@@ -70,9 +70,9 @@ SQL;
                 $tuteurUniversitaire = null;
                 if (null !== $row['tuteur_universitaire_id']) $tuteurUniversitaire = $this->entityManager->getRepository(Personnel::class)->findOneBy(['oldId' => (int) $row['tuteur_universitaire_id']]);
                 $entreprise = null;
-                if (null !== $row['entreprise_id']) { $entreprise = $this->entityManager->getRepository(Entreprise::class)->findOneBy(['oldId' => (int) $row['entreprise_id']]); if (null === $entreprise) ++$missingCompanies; }
+                if (null !== $row['entreprise_id']) { $entreprise = $this->entityManager->getRepository(StageEntreprise::class)->findOneBy(['oldId' => (int) $row['entreprise_id']]); if (null === $entreprise) ++$missingCompanies; }
                 $tuteurEntreprise = null;
-                if (null !== $row['tuteur_id']) { $tuteurEntreprise = $this->entityManager->getRepository(Contact::class)->findOneBy(['oldId' => (int) $row['tuteur_id']]); if (null === $tuteurEntreprise) ++$missingTutors; }
+                if (null !== $row['tuteur_id']) { $tuteurEntreprise = $this->entityManager->getRepository(StageContact::class)->findOneBy(['oldId' => (int) $row['tuteur_id']]); if (null === $tuteurEntreprise) ++$missingTutors; }
 
                 [$state, $type] = self::stageStateAndType((string) $row['etat_stage']);
                 if (null === $state) { $unknownStates[(string) $row['etat_stage']] = ($unknownStates[(string) $row['etat_stage']] ?? 0) + 1; $state = EtatStageEnum::AUTORISE; }

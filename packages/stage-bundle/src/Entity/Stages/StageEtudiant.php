@@ -62,9 +62,9 @@ class StageEtudiant implements TimestampableInterface
     #[Groups(['stage_periode_gestion', 'stage_etudiant:read', 'stage_etudiant:write'])]
     private ?Etudiant $etudiant = null;
 
-    #[ORM\OneToOne(targetEntity: Contact::class, cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(targetEntity: StageContact::class, cascade: ['persist', 'remove'])]
     #[Groups(['stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read', 'stage_etudiant:write'])]
-    private ?Contact $tuteur = null;
+    private ?StageContact $tuteur = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     #[Groups(['stage_periode_gestion', 'stage_entreprise', 'stage_etudiant:read', 'stage_etudiant:write'])]
@@ -150,9 +150,9 @@ class StageEtudiant implements TimestampableInterface
     #[Groups(['stage_periode_gestion', 'stage_etudiant:read', 'stage_etudiant:write'])]
     private ?Personnel $tuteurUniversitaire = null;
 
-    #[ORM\ManyToOne(targetEntity: Entreprise::class, inversedBy: 'stageEtudiants', cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(targetEntity: StageEntreprise::class, inversedBy: 'stageEtudiants', cascade: ['persist', 'remove'])]
     #[Groups(['stage_entreprise_administration', 'stage_periode_gestion', 'stage_etudiant:read', 'stage_etudiant:write'])]
-    private ?Entreprise $entreprise = null;
+    private ?StageEntreprise $entreprise = null;
 
     #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
     #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
@@ -245,12 +245,12 @@ class StageEtudiant implements TimestampableInterface
         return $this;
     }
 
-    public function getTuteur(): ?Contact
+    public function getTuteur(): ?StageContact
     {
         return $this->tuteur;
     }
 
-    public function setTuteur(?Contact $tuteur): self
+    public function setTuteur(?StageContact $tuteur): self
     {
         $this->tuteur = $tuteur;
 
@@ -449,12 +449,12 @@ class StageEtudiant implements TimestampableInterface
         return $this;
     }
 
-    public function getEntreprise(): ?Entreprise
+    public function getEntreprise(): ?StageEntreprise
     {
         return $this->entreprise;
     }
 
-    public function setEntreprise(?Entreprise $entreprise): self
+    public function setEntreprise(?StageEntreprise $entreprise): self
     {
         $this->entreprise = $entreprise;
 
@@ -493,9 +493,15 @@ class StageEtudiant implements TimestampableInterface
         return Adresse::fromArray($this->adresseStage);
     }
 
-    public function setAdresseStage(?Adresse $adresseStage): self
+    public function setAdresseStage(Adresse|array|null $adresseStage): self
     {
-        $this->adresseStage = $adresseStage ? $adresseStage->toArray() : null;
+        if ($adresseStage instanceof Adresse) {
+            $this->adresseStage = $adresseStage->toArray();
+        } elseif (is_array($adresseStage)) {
+            $this->adresseStage = Adresse::fromArray($adresseStage)?->toArray();
+        } else {
+            $this->adresseStage = null;
+        }
 
         return $this;
     }

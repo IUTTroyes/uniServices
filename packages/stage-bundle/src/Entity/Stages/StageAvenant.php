@@ -86,10 +86,10 @@ class StageAvenant implements TimestampableInterface
     #[Groups(['stage_avenant:read', 'stage_avenant:write', 'stage_etudiant:read'])]
     private ?float $newGratificationMontant = null;
 
-    #[ORM\ManyToOne(targetEntity: Contact::class)]
+    #[ORM\ManyToOne(targetEntity: StageContact::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['stage_avenant:read', 'stage_avenant:write', 'stage_etudiant:read'])]
-    private ?Contact $newTuteur = null;
+    private ?StageContact $newTuteur = null;
 
     public function __construct()
     {
@@ -233,12 +233,12 @@ class StageAvenant implements TimestampableInterface
         return $this;
     }
 
-    public function getNewTuteur(): ?Contact
+    public function getNewTuteur(): ?StageContact
     {
         return $this->newTuteur;
     }
 
-    public function setNewTuteur(?Contact $newTuteur): self
+    public function setNewTuteur(?StageContact $newTuteur): self
     {
         $this->newTuteur = $newTuteur;
 
