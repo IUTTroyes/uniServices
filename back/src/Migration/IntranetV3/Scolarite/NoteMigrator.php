@@ -45,7 +45,17 @@ final class NoteMigrator extends AbstractMigrator
 SELECT COUNT(*)
 FROM note n
 INNER JOIN evaluation e ON e.id = n.evaluation_id
+INNER JOIN etudiant etu ON etu.id = n.etudiant_id
 WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
+  AND etu.annee_sortie = 0
+SQL);
+        $excludedFormerStudents = (int) $this->source->fetchOne(<<<'SQL'
+SELECT COUNT(*)
+FROM note n
+INNER JOIN evaluation e ON e.id = n.evaluation_id
+INNER JOIN etudiant etu ON etu.id = n.etudiant_id
+WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
+  AND etu.annee_sortie <> 0
 SQL);
         $sampleCount = 0;
 
@@ -67,7 +77,9 @@ SELECT
     HEX(e.uuid) AS evaluation_uuid_hex
 FROM note n
 INNER JOIN evaluation e ON e.id = n.evaluation_id
+INNER JOIN etudiant etu ON etu.id = n.etudiant_id
 WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
+  AND etu.annee_sortie = 0
   AND n.id > :last_id
 ORDER BY n.id
 LIMIT :page_size
@@ -246,6 +258,13 @@ SQL;
             );
         } else {
             $messages[] = sprintf('Contrôle notes: %d/%d lignes source comptabilisées.', $accounted, $sourceEligible);
+        }
+
+        if ($excludedFormerStudents > 0) {
+            $messages[] = sprintf(
+                'Notes détaillées historiques volontairement exclues pour les étudiants sortis (annee_sortie != 0): %d.',
+                $excludedFormerStudents,
+            );
         }
 
         if ($partial['scolariteSemestre'] > 0) {
