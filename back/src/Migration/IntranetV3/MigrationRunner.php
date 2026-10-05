@@ -103,6 +103,12 @@ final class MigrationRunner
 
         try {
             $results[$name] = $migrator->migrate($context);
+        } catch (\Throwable $e) {
+            throw new \RuntimeException(
+                sprintf('Migration "%s" échouée: %s', $name, $e->getMessage()),
+                (int) $e->getCode(),
+                $e,
+            );
         } finally {
             $context->finishProgress();
             // A migrator must not keep the managed graph alive for the next one.
