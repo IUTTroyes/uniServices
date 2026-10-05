@@ -5,23 +5,23 @@
 
 ### Features
 
-* add questionnaire runtime providers, mappers, DTOs, and frontend survey components ([260fec9](https://github.com/IUTTroyes/uniServices/commit/260fec9695753e68b354b75f394e9daa7355ebbf))
+* add questionnaire runtime providers, mappers, DTOs, and frontend survey components ([260fec9](https://github.com/IUTTroyes/uniServices/commit/260fec9695753e68b354b75f394e9daa7355ebbf)) — [@Dannebicque](https://github.com/Dannebicque)
 
 ## [0.1.12](https://github.com/IUTTroyes/uniServices/compare/v0.1.11...v0.1.12) (2026-10-05)
 
 
 ### Features
 
-* partie stage ([aa08021](https://github.com/IUTTroyes/uniServices/commit/aa08021cab89f0fa23e291adea2914e583c93998))
-* refonte super admin + bugs. Utilisation des composants (styleguide) ([0a3fea2](https://github.com/IUTTroyes/uniServices/commit/0a3fea2c390f608464220661fbd7d23334465a86))
+* partie stage ([aa08021](https://github.com/IUTTroyes/uniServices/commit/aa08021cab89f0fa23e291adea2914e583c93998)) — [@Dannebicque](https://github.com/Dannebicque)
+* refonte super admin + bugs. Utilisation des composants (styleguide) ([0a3fea2](https://github.com/IUTTroyes/uniServices/commit/0a3fea2c390f608464220661fbd7d23334465a86)) — [@Dannebicque](https://github.com/Dannebicque)
 
 
 ### Bug Fixes
 
-* **Core:** use OldIdTrait ([195e701](https://github.com/IUTTroyes/uniServices/commit/195e701b978576f1a10de1724cedd0c35b20a795))
-* **intranet:** correction de l'utilisation de la propriété de TimestampableTrait pour le tri ([8847545](https://github.com/IUTTroyes/uniServices/commit/88475455dc97eb05f37a241fee600ae07591f00f))
-* renommage des tables associées aux stages ([db78b71](https://github.com/IUTTroyes/uniServices/commit/db78b71878bd9f51c1c8772d578327ee830ad4ee))
-* typo et textes ([6c0b455](https://github.com/IUTTroyes/uniServices/commit/6c0b455f82923d0833e27fda273d27f1542a5544))
+* **Core:** use OldIdTrait ([195e701](https://github.com/IUTTroyes/uniServices/commit/195e701b978576f1a10de1724cedd0c35b20a795)) — [@Dannebicque](https://github.com/Dannebicque)
+* **intranet:** correction de l'utilisation de la propriété de TimestampableTrait pour le tri ([8847545](https://github.com/IUTTroyes/uniServices/commit/88475455dc97eb05f37a241fee600ae07591f00f)) — [@CyndelHerolt](https://github.com/CyndelHerolt)
+* renommage des tables associées aux stages ([db78b71](https://github.com/IUTTroyes/uniServices/commit/db78b71878bd9f51c1c8772d578327ee830ad4ee)) — [@Dannebicque](https://github.com/Dannebicque)
+* typo et textes ([6c0b455](https://github.com/IUTTroyes/uniServices/commit/6c0b455f82923d0833e27fda273d27f1542a5544)) — [@Dannebicque](https://github.com/Dannebicque)
 
 ## [0.1.11](https://github.com/IUTTroyes/uniServices/compare/v0.1.10...v0.1.11) (2026-09-22)
 
