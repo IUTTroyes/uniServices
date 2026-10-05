@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.16](https://github.com/IUTTroyes/uniServices/compare/v0.1.15...v0.1.16) (2026-10-05)
+
+
+### Bug Fixes
+
+* A11Y/UX ([68849e4](https://github.com/IUTTroyes/uniServices/commit/68849e4695df63381c568b963588f73d92560ccc))
+
 ## [0.1.15](https://github.com/IUTTroyes/uniServices/compare/v0.1.14...v0.1.15) (2026-10-05)
 
 
