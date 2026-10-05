@@ -89,11 +89,11 @@ class StructureDiplome implements TimestampableInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:light', 'stage_periode:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:detail', 'pn:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:detail', 'pn:light', 'stage_periode:read'])]
     private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome', cascade: ['persist'])]
@@ -113,7 +113,7 @@ class StructureDiplome implements TimestampableInterface
     private ?int $codeCelcatDepartement = null;
 
     #[ORM\Column(length: 40, nullable: true)]
-    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'pn:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'pn:light', 'stage_periode:read'])]
     private ?string $sigle = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]

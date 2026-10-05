@@ -59,15 +59,15 @@ class StructureAnneeUniversitaire implements TimestampableInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['annee_universitaire:detail', 'etudiant:read', 'maquette:detail', 'annee-univ:light', 'annee_univ:light', 'pn:light', 'scolarite:user'])]
+    #[Groups(['annee_universitaire:detail', 'etudiant:read', 'maquette:detail', 'annee-univ:light', 'annee_univ:light', 'pn:light', 'scolarite:user', 'stage_periode:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 30)]
-    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light', 'annee_univ:light', 'pn:light', 'scolarite:user'])]
+    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light', 'annee_univ:light', 'pn:light', 'scolarite:user', 'stage_periode:read'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
-    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light', 'annee_univ:light'])]
+    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'scolarite:read', 'annee-univ:light', 'annee_univ:light', 'stage_periode:read'])]
     private int $annee;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
