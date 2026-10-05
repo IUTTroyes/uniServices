@@ -56,6 +56,26 @@ final class EvaluationMigrator extends AbstractMigrator
             'enseignement' => 0,
         ];
         $sampleCount = 0;
+        $excludedHistoricalEvaluations = (int) $this->source->fetchOne(<<<'SQL'
+SELECT COUNT(*)
+FROM evaluation e
+WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
+  AND NOT EXISTS (
+      SELECT 1
+      FROM note n
+      INNER JOIN etudiant etu ON etu.id = n.etudiant_id
+      WHERE n.evaluation_id = e.id
+        AND etu.annee_sortie = 0
+  )
+  AND NOT EXISTS (
+      SELECT 1
+      FROM evaluation child
+      INNER JOIN note n ON n.evaluation_id = child.id
+      INNER JOIN etudiant etu ON etu.id = n.etudiant_id
+      WHERE child.parent_id = e.id
+        AND etu.annee_sortie = 0
+  )
+SQL);
 
         $sql = <<<'SQL'
 SELECT
@@ -80,6 +100,24 @@ SELECT
 FROM evaluation e
 LEFT JOIN evaluation parent ON parent.id = e.parent_id
 LEFT JOIN semestre s ON s.id = e.semestre_id
+WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
+  AND (
+      EXISTS (
+          SELECT 1
+          FROM note n
+          INNER JOIN etudiant etu ON etu.id = n.etudiant_id
+          WHERE n.evaluation_id = e.id
+            AND etu.annee_sortie = 0
+      )
+      OR EXISTS (
+          SELECT 1
+          FROM evaluation child
+          INNER JOIN note n ON n.evaluation_id = child.id
+          INNER JOIN etudiant etu ON etu.id = n.etudiant_id
+          WHERE child.parent_id = e.id
+            AND etu.annee_sortie = 0
+      )
+  )
 ORDER BY e.id
 SQL;
 
@@ -213,6 +251,23 @@ SELECT HEX(e.uuid) AS uuid_hex, HEX(parent.uuid) AS parent_uuid_hex
 FROM evaluation e
 INNER JOIN evaluation parent ON parent.id = e.parent_id
 WHERE e.type_matiere IN ('matiere', 'ressource', 'sae')
+  AND (
+      EXISTS (
+          SELECT 1
+          FROM note n
+          INNER JOIN etudiant etu ON etu.id = n.etudiant_id
+          WHERE n.evaluation_id = e.id
+            AND etu.annee_sortie = 0
+      )
+      OR EXISTS (
+          SELECT 1
+          FROM evaluation child
+          INNER JOIN note n ON n.evaluation_id = child.id
+          INNER JOIN etudiant etu ON etu.id = n.etudiant_id
+          WHERE child.parent_id = e.id
+            AND etu.annee_sortie = 0
+      )
+  )
 SQL;
 
         foreach ($this->source->executeQuery($parentSql)->iterateAssociative() as $row) {
@@ -239,6 +294,13 @@ SQL;
                 $diagnostics['anneeUniversitaire'],
                 $diagnostics['semestre'],
                 $diagnostics['enseignement'],
+            );
+        }
+
+        if ($excludedHistoricalEvaluations > 0) {
+            $messages[] = sprintf(
+                'Évaluations historiques sans note d’étudiant en cours volontairement exclues: %d.',
+                $excludedHistoricalEvaluations,
             );
         }
 
