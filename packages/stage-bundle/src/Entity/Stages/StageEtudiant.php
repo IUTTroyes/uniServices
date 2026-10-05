@@ -8,13 +8,16 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\ValueObject\Adresse;
 use StageBundle\Enum\EtatStageEnum;
 use StageBundle\Repository\Stages\StageEtudiantRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -24,7 +27,6 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Metadata\ApiFilter;
 
 #[ORM\Entity(repositoryClass: StageEtudiantRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiFilter(SearchFilter::class, properties: ['stagePeriode' => 'exact', 'tuteurUniversitaire' => 'exact'])]
 #[ApiResource(
     operations: [
@@ -41,10 +43,10 @@ use ApiPlatform\Metadata\ApiFilter;
         new Delete()
     ]
 )]
-class StageEtudiant
+class StageEtudiant implements TimestampableInterface
 {
     use UuidTrait;
-    use LifeCycleTrait;
+    use TimestampableTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -200,10 +202,18 @@ class StageEtudiant
     #[Groups(['stage_etudiant:read', 'stage_etudiant:write'])]
     private ?string $reportName = null;
 
+    /**
+     * @var Collection<int, StageAvenant>
+     */
+    #[ORM\OneToMany(targetEntity: StageAvenant::class, mappedBy: 'stageEtudiant', cascade: ['persist', 'remove'], orphanRemoval: true)]
+    #[Groups(['stage_etudiant:read'])]
+    private Collection $avenants;
+
     public function __construct(?float $gratificationMontant = null)
     {
         $this->setUuid();
         $this->gratificationMontant = $gratificationMontant;
+        $this->avenants = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -628,6 +638,36 @@ class StageEtudiant
     public function setReportName(?string $reportName): self
     {
         $this->reportName = $reportName;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, StageAvenant>
+     */
+    public function getAvenants(): Collection
+    {
+        return $this->avenants;
+    }
+
+    public function addAvenant(StageAvenant $avenant): static
+    {
+        if (!$this->avenants->contains($avenant)) {
+            $this->avenants->add($avenant);
+            $avenant->setStageEtudiant($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAvenant(StageAvenant $avenant): static
+    {
+        if ($this->avenants->removeElement($avenant)) {
+            // set the owning side to null (unless already changed)
+            if ($avenant->getStageEtudiant() === $this) {
+                $avenant->setStageEtudiant(null);
+            }
+        }
 
         return $this;
     }

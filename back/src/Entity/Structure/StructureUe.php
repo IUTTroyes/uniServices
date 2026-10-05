@@ -11,7 +11,8 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcCompetence;
 use App\Entity\Scolarite\ScolEnseignementUe;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Filter\UeFilter;
 use App\Repository\Structure\StructureUeRepository;
@@ -31,9 +32,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ]
 )]
 #[ApiFilter(UeFilter::class)]
-class StructureUe
+class StructureUe implements TimestampableInterface
 {
-//    use LifeCycleTrait;
+    use TimestampableTrait;
     use OldIdTrait; //a supprimer après transfert
 
     #[ORM\Id]
@@ -53,6 +54,10 @@ class StructureUe
     #[ORM\Column]
     #[Groups(['ue:read', 'maquette:detail'])]
     private float $nbEcts = 0;
+
+    #[ORM\Column]
+    #[Groups(['ue:read', 'maquette:detail'])]
+    private float $coefficient = 0;
 
     #[ORM\Column]
     #[Groups(['ue:read'])]
@@ -80,8 +85,6 @@ class StructureUe
     #[ORM\OneToMany(targetEntity: ScolEnseignementUe::class, mappedBy: 'ue', orphanRemoval: true, cascade: ['remove'])]
     #[Groups(['maquette:detail'])]
     private Collection $enseignementUes;
-
-    // todo: add coeff. ?
 
     public function __construct()
     {
@@ -131,6 +134,18 @@ class StructureUe
     public function setNbEcts(float $nbEcts): static
     {
         $this->nbEcts = $nbEcts;
+
+        return $this;
+    }
+
+    public function getCoefficient(): float
+    {
+        return $this->coefficient;
+    }
+
+    public function setCoefficient(float $coefficient): static
+    {
+        $this->coefficient = $coefficient;
 
         return $this;
     }

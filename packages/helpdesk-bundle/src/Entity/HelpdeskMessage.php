@@ -5,7 +5,8 @@ namespace HelpdeskBundle\Entity;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Post;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Users\Personnel;
 use App\State\Processor\EtablissementProcessor;
 use HelpdeskBundle\Repository\HelpDeskMessageRepository;
@@ -14,7 +15,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: HelpDeskMessageRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
         new Get(
@@ -26,9 +26,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ]
 )
 ]
-class HelpdeskMessage
+class HelpdeskMessage implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

@@ -17,10 +17,10 @@ class QuestionnaireSectionInstance
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\ManyToOne(inversedBy: 'questionnaireSectionInstances')]
+    #[ORM\ManyToOne(inversedBy: 'sectionInstances')]
     private ?Questionnaire $questionnaire = null;
 
-    #[ORM\ManyToOne(inversedBy: 'questionnaireSectionInstances')]
+    #[ORM\ManyToOne(inversedBy: 'sectionInstances')]
     private ?QuestionnaireSection $section = null;
 
     #[ORM\Column]

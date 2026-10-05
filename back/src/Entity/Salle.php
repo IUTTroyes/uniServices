@@ -9,6 +9,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Scolarite\ScolEvaluationRattrapage;
+use App\Entity\Traits\OldIdTrait;
 use App\Repository\SalleRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -29,6 +30,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 )]
 class Salle
 {
+    use OldIdTrait; // à supprimer après transfert
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

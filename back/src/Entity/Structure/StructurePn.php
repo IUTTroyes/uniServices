@@ -17,6 +17,9 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: StructurePnRepository::class)]
+#[ORM\Table(uniqueConstraints: [
+    new ORM\UniqueConstraint(name: 'UNIQ_STRUCTURE_PN_DIPLOME_ANNEE_UNIV', columns: ['diplome_id', 'annee_universitaire_id']),
+])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['pn:detail']]),

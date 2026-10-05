@@ -3,6 +3,11 @@
 namespace App\Entity\Structure;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
+use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcReferentiel;
 use App\Repository\Structure\StructureTypeDiplomeRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -11,7 +16,24 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureTypeDiplomeRepository::class)]
-#[ApiResource]
+#[ApiResource(
+    operations: [
+        new Get(normalizationContext: ['groups' => ['type-diplome:detail']]),
+        new GetCollection(normalizationContext: ['groups' => ['type-diplome:detail', 'type-diplome:light']]),
+        new Post(
+            normalizationContext: ['groups' => ['type-diplome:detail']],
+            denormalizationContext: ['groups' => ['type-diplome:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_TYPE_DIPLOME', object)"
+        ),
+        new Patch(
+            normalizationContext: ['groups' => ['type-diplome:detail']],
+            denormalizationContext: ['groups' => ['type-diplome:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_TYPE_DIPLOME', object)"
+        ),
+        new Delete(security: "is_granted('CAN_DELETE_TYPE_DIPLOME', object)"),
+    ],
+    order: ['libelle' => 'ASC']
+)]
 class StructureTypeDiplome
 {
     #[ORM\Id]
@@ -21,16 +43,25 @@ class StructureTypeDiplome
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['maquette:detail', 'type-diplome:detail', 'pn:light'])]
+    #[Groups(['maquette:detail', 'type-diplome:detail', 'pn:light', 'type-diplome:write'])]
     private string $libelle;
 
     #[ORM\Column(length: 20)]
-    #[Groups(['type-diplome:detail', 'type-diplome:light', 'maquette:detail', 'diplome:detail', 'diplome:light', 'diplome:edt:read', 'pn:detail'])]
+    #[Groups(['type-diplome:detail', 'type-diplome:light', 'maquette:detail', 'diplome:detail', 'diplome:light', 'diplome:edt:read', 'pn:detail', 'type-diplome:write'])]
     private string $sigle;
 
     #[ORM\Column]
-    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'maquette:detail', 'type-diplome:detail', 'type-diplome:light', 'type-diplome:write'])]
     private bool $apc = false;
+
+    #[ORM\Column(options: ['default' => 2])]
+    private int $nbSemestres = 2;
+
+    #[ORM\Column(options: ['default' => 0])]
+    private int $niveauEntree = 0;
+
+    #[ORM\Column(options: ['default' => 3])]
+    private int $niveauSortie = 3;
 
     /**
      * @var Collection<int, StructureDiplome>
@@ -92,6 +123,13 @@ class StructureTypeDiplome
 
         return $this;
     }
+
+    public function getNbSemestres(): int { return $this->nbSemestres; }
+    public function setNbSemestres(int $value): static { $this->nbSemestres = $value; return $this; }
+    public function getNiveauEntree(): int { return $this->niveauEntree; }
+    public function setNiveauEntree(int $value): static { $this->niveauEntree = $value; return $this; }
+    public function getNiveauSortie(): int { return $this->niveauSortie; }
+    public function setNiveauSortie(int $value): static { $this->niveauSortie = $value; return $this; }
 
     /**
      * @return Collection<int, StructureDiplome>

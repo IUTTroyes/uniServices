@@ -301,8 +301,6 @@ public function someMethod(ScolEvaluation $evaluation): void
 | `Apc/` | ApcNiveau | ApcVoter |
 | `Apc/` | ApcParcours | ApcVoter |
 | `Apc/` | ApcReferentiel | ApcVoter |
-| `Edt/` | EdtContraintesSemestre | EdtVoter |
-| `Edt/` | EdtCreneauxInterditsSemaine | EdtVoter |
 | `Edt/` | EdtEvent | EdtVoter |
 | `Edt/` | EdtProgression | EdtVoter |
 | `Etudiant/` | EtudiantAbsence | PostVoter |

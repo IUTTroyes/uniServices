@@ -225,15 +225,8 @@ class CreateEtudiantController extends AbstractController
         $etudiant->setBoursier(false);
 
         // Créer l'adresse étudiante si les champs nécessaires sont présents
-        if (!empty($data['LIB_AD1']) || !empty($data['ville']) || !empty($data['codepostal'])) {
-            $adresse = new Adresse(
-                $data['LIB_AD1'] ?? '',
-                $data['LIB_AD2'] ?? '',
-                $data['LIB_AD3'] ?? '',
-                $data['ville'] ?? '',
-                $data['codepostal'] ?? '',
-                'France' // Pays par défaut
-            );
+        $adresse = Adresse::fromArray($data);
+        if ($adresse) {
             $etudiant->setAdresseEtudiante($adresse);
         }
 
