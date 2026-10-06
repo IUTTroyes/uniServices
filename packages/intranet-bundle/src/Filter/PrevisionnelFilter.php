@@ -14,7 +14,6 @@ use App\Entity\Structure\StructurePn;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Structure\StructureUe;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(PrevisionnelFilter::class)]
 class PrevisionnelFilter extends AbstractFilter
@@ -117,7 +116,7 @@ class PrevisionnelFilter extends AbstractFilter
         return [
             'personnel' => [
                 'property' => 'personnel',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by personnel',
@@ -125,7 +124,7 @@ class PrevisionnelFilter extends AbstractFilter
             ],
             'anneeUniversitaire' => [
                 'property' => 'anneeUniversitaire',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by anneeUniversitaire',
@@ -133,7 +132,7 @@ class PrevisionnelFilter extends AbstractFilter
             ],
             'departement' => [
                 'property' => 'departement',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by departement',
@@ -141,7 +140,7 @@ class PrevisionnelFilter extends AbstractFilter
             ],
             'diplome' => [
                 'property' => 'diplome',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by diplome',
@@ -149,7 +148,7 @@ class PrevisionnelFilter extends AbstractFilter
             ],
             'semestre' => [
                 'property' => 'semestre',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by semestre',
@@ -157,7 +156,7 @@ class PrevisionnelFilter extends AbstractFilter
             ],
             'enseignement' => [
                 'property' => 'enseignement',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by enseignement',
@@ -165,7 +164,7 @@ class PrevisionnelFilter extends AbstractFilter
             ],
             'annee' => [
                 'property' => 'annee',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by annee',

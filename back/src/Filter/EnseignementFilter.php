@@ -7,7 +7,6 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(EnseignementFilter::class)]
 class EnseignementFilter extends AbstractFilter
@@ -79,7 +78,7 @@ class EnseignementFilter extends AbstractFilter
         return [
             'semestre' => [
                 'property' => 'semestre',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by semestre',
@@ -87,7 +86,7 @@ class EnseignementFilter extends AbstractFilter
             ],
             'departement' => [
                 'property' => 'departement',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by departement',
@@ -95,7 +94,7 @@ class EnseignementFilter extends AbstractFilter
             ],
             'ue' => [
                 'property' => 'ue',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by UE',
@@ -103,7 +102,7 @@ class EnseignementFilter extends AbstractFilter
             ],
             'actif' => [
                 'property' => 'actif',
-                'type' => Type::BUILTIN_TYPE_BOOL,
+                'type' => 'bool',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by actif status',
@@ -111,7 +110,7 @@ class EnseignementFilter extends AbstractFilter
             ],
             'annee' => [
                 'property' => 'annee',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by année',
@@ -119,7 +118,7 @@ class EnseignementFilter extends AbstractFilter
             ],
             'anneeUniversitaire' => [
                 'property' => 'anneeUniversitaire',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by année universitaire',

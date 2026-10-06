@@ -4,7 +4,7 @@
     "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": ">=8.2",
+        "php": ">=8.4",
         "ext-ctype": "*",
         "ext-iconv": "*",
         "ext-libxml": "*",
@@ -12,8 +12,8 @@
         "api-platform/doctrine-orm": "^4.0",
         "api-platform/symfony": "^4.0",
         "davidannebicque/html-to-spreadsheet-bundle": "^0.2.0",
-        "doctrine/dbal": "^3",
-        "doctrine/doctrine-bundle": "*",
+        "doctrine/dbal": "^4.5",
+        "doctrine/doctrine-bundle": "^3.3",
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "*",
         "dragonmantank/cron-expression": "^3.6",
@@ -101,7 +101,7 @@
         }
     },
     "require-dev": {
-        "doctrine/doctrine-fixtures-bundle": "^3.6",
+        "doctrine/doctrine-fixtures-bundle": "^4.3",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^2.0",
         "phpstan/phpstan-doctrine": "^2.0",

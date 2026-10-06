@@ -8,7 +8,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use App\Entity\Structure\StructureAnnee;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(EdtFilter::class)]
 class EdtFilter extends AbstractFilter
@@ -134,7 +133,7 @@ class EdtFilter extends AbstractFilter
         return [
             'anneeUniversitaire' => [
                 'property' => 'anneeUniversitaire',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by année universitaire',
@@ -142,7 +141,7 @@ class EdtFilter extends AbstractFilter
             ],
             'semaineFormation' => [
                 'property' => 'semaineFormation',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by semaine de formation',
@@ -150,7 +149,7 @@ class EdtFilter extends AbstractFilter
             ],
             'personnel' => [
                 'property' => 'personnel',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by personnel',
@@ -158,7 +157,7 @@ class EdtFilter extends AbstractFilter
             ],
             'departement' => [
                 'property' => 'departement',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by department',
@@ -166,7 +165,7 @@ class EdtFilter extends AbstractFilter
             ],
             'semestre' => [
                 'property' => 'semestre',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by semester',
@@ -174,7 +173,7 @@ class EdtFilter extends AbstractFilter
             ],
             'day' => [
                 'property' => 'day',
-                'type' => Type::BUILTIN_TYPE_STRING,
+                'type' => 'string',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter events to only include events on the specified date (format: YYYY-MM-DD)',
@@ -182,7 +181,7 @@ class EdtFilter extends AbstractFilter
             ],
             'debut' => [
                 'property' => 'debut',
-                'type' => Type::BUILTIN_TYPE_STRING,
+                'type' => 'string',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter events to only include events starting from the specified date (format: YYYY-MM-DD)',
@@ -190,7 +189,7 @@ class EdtFilter extends AbstractFilter
             ],
             'fin' => [
                 'property' => 'fin',
-                'type' => Type::BUILTIN_TYPE_STRING,
+                'type' => 'string',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter events to only include events ending before the specified date (format: YYYY-MM-DD)',
@@ -198,7 +197,7 @@ class EdtFilter extends AbstractFilter
             ],
             'enseignement' => [
                 'property' => 'enseignement',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by enseignement',
@@ -206,7 +205,7 @@ class EdtFilter extends AbstractFilter
             ],
             'salle' => [
                 'property' => 'salle',
-                'type' => Type::BUILTIN_TYPE_STRING,
+                'type' => 'string',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by salle (partial match)',
@@ -214,7 +213,7 @@ class EdtFilter extends AbstractFilter
             ],
             'annee' => [
                 'property' => 'annee',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by annee',

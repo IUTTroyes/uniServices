@@ -7,7 +7,6 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(EtudiantScolariteFilter::class)]
 class EtudiantScolariteFilter extends AbstractFilter
@@ -86,7 +85,7 @@ class EtudiantScolariteFilter extends AbstractFilter
         return [
             'departement' => [
                 'property' => 'departement',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by departement',
@@ -94,7 +93,7 @@ class EtudiantScolariteFilter extends AbstractFilter
             ],
             'anneeUniversitaire' => [
                 'property' => 'anneeUniversitaire',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by anneeUniversitaire',
@@ -102,7 +101,7 @@ class EtudiantScolariteFilter extends AbstractFilter
             ],
             'etudiant' => [
                 'property' => 'etudiant',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by etudiant',

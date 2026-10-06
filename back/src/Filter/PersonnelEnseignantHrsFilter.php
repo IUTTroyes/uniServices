@@ -7,7 +7,6 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(PersonnelEnseignantHrsFilter::class)]
 class PersonnelEnseignantHrsFilter extends AbstractFilter
@@ -46,7 +45,7 @@ class PersonnelEnseignantHrsFilter extends AbstractFilter
         return [
             'personnel' => [
                 'property' => 'personnel',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by personnel',
@@ -54,7 +53,7 @@ class PersonnelEnseignantHrsFilter extends AbstractFilter
             ],
             'annee_universitaire' => [
                 'property' => 'annee_universitaire',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by academic year',
