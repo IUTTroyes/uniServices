@@ -27,6 +27,7 @@ import SectionConfigModal from '@/components/Questionnaire/SectionConfigModal.vu
 import SurveyPublishModal from '@/components/Questionnaire/SurveyPublishModal.vue';
 import DuplicateSectionModal from '@/components/Questionnaire/DuplicateSectionModal.vue';
 import DuplicateQuestionModal from '@/components/Questionnaire/DuplicateQuestionModal.vue';
+import { FormField } from '@/components/Form';
 
 const route = useRoute();
 const router = useRouter();
@@ -346,20 +347,31 @@ onMounted(async () => {
     <!-- Left Panel - Survey Structure -->
     <div class="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col me-3">
       <!-- Survey Info -->
-      <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col">
-        <div class="flex items-center">
-          <div class="flex-1">
-            <input v-model="surveyTitle" @blur="updateSurveyTitle"
-              class="text-lg font-semibold w-full bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1"
-              placeholder="Titre du questionnaire" />
-            <textarea v-model="surveyDescription" @blur="updateSurveyDescription"
-              class="text-sm text-gray-600 dark:text-gray-400 w-full bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-2 py-1 mt-2 resize-none"
-              placeholder="Description (optionnelle)" rows="2" />
-          </div>
+      <div class="p-4 border-b border-slate-200 dark:border-slate-700/80 bg-slate-50/50 dark:bg-slate-900/30 space-y-3">
+        <div class="space-y-3">
+          <FormField label="Titre du questionnaire">
+            <input
+              v-model="surveyTitle"
+              @blur="updateSurveyTitle"
+              class="q-input font-semibold text-sm"
+              placeholder="Titre du questionnaire..."
+            />
+          </FormField>
+
+          <FormField label="Description">
+            <textarea
+              v-model="surveyDescription"
+              @blur="updateSurveyDescription"
+              class="q-input text-xs resize-none"
+              placeholder="Description ou consignes (optionnelle)..."
+              rows="2"
+            />
+          </FormField>
         </div>
-        <div class="mt-2 px-2 flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-          <ClockIcon class="w-4 h-4 text-gray-400" />
-          <span>Temps de réponse estimé : {{ formatEstimatedTime(estimatedTime) }}</span>
+
+        <div class="pt-1 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+          <ClockIcon class="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <span>Temps estimé : <strong class="text-slate-700 dark:text-slate-300 font-semibold">{{ formatEstimatedTime(estimatedTime) }}</strong></span>
         </div>
       </div>
 
