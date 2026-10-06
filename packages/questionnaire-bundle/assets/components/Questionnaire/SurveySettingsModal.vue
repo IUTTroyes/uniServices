@@ -8,65 +8,31 @@
     @update:visible="$emit('close')"
   >
     <template #header>
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400 border border-primary-200 dark:border-primary-800/60 flex items-center justify-center shrink-0">
-          <AdjustmentsHorizontalIcon class="w-5 h-5" />
-        </div>
-        <div>
-          <h2 class="text-lg font-bold text-slate-900 dark:text-white leading-tight">
-            Paramètres du questionnaire
-          </h2>
-          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Configurez la diffusion, l'anonymat, l'expérience de réponse et les messages
-          </p>
-        </div>
-      </div>
+      <DialogHeader
+        :icon="AdjustmentsHorizontalIcon"
+        title="Paramètres du questionnaire"
+        subtitle="Configurez la diffusion, l'anonymat, l'expérience de réponse et les messages"
+      />
     </template>
 
-    <form @submit.prevent="saveSettings" class="space-y-5 py-2">
+    <form @submit.prevent="saveSettings" class="q-form">
       <!-- 1. Publication & Dates -->
-      <div class="bg-slate-50/80 dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-4 md:p-5 space-y-4">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900/60 flex items-center justify-center shrink-0">
-            <CalendarDaysIcon class="w-4 h-4" />
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Période de diffusion & Durée</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Planifiez la disponibilité et estimez le temps requis</p>
-          </div>
-        </div>
-
+      <FormSection
+        :icon="CalendarDaysIcon"
+        tone="blue"
+        title="Période de diffusion & Durée"
+        subtitle="Planifiez la disponibilité et estimez le temps requis"
+      >
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label for="opening-date" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Date et heure d'ouverture
-            </label>
-            <input
-              id="opening-date"
-              v-model="formState.openingDate"
-              type="datetime-local"
-              class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors shadow-2xs"
-            />
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Laissez vide pour ouverture immédiate</p>
-          </div>
+          <FormField label="Date et heure d'ouverture" for="opening-date" hint="Laissez vide pour ouverture immédiate">
+            <input id="opening-date" v-model="formState.openingDate" type="datetime-local" class="q-input" />
+          </FormField>
 
-          <div>
-            <label for="closing-date" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Date et heure de fermeture
-            </label>
-            <input
-              id="closing-date"
-              v-model="formState.closingDate"
-              type="datetime-local"
-              class="w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors shadow-2xs"
-            />
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Date limite de réponse</p>
-          </div>
+          <FormField label="Date et heure de fermeture" for="closing-date" hint="Date limite de réponse">
+            <input id="closing-date" v-model="formState.closingDate" type="datetime-local" class="q-input" />
+          </FormField>
 
-          <div>
-            <label for="estimated-time" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Temps estimé (minutes)
-            </label>
+          <FormField label="Temps estimé (minutes)" for="estimated-time" hint="Indiqué aux participants">
             <div class="relative">
               <input
                 id="estimated-time"
@@ -75,195 +41,119 @@
                 min="1"
                 max="300"
                 placeholder="ex: 10"
-                class="w-full px-3 py-2 pr-12 text-sm rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors shadow-2xs"
+                class="q-input pr-12"
               />
               <span class="absolute right-3 top-2.5 text-xs text-slate-400 dark:text-slate-500 pointer-events-none">min</span>
             </div>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1">Indiqué aux participants</p>
-          </div>
+          </FormField>
         </div>
-      </div>
+      </FormSection>
 
       <!-- 2. Privacy & Confidentiality -->
-      <div class="bg-slate-50/80 dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-4 md:p-5 space-y-3">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900/60 flex items-center justify-center shrink-0">
-            <ShieldCheckIcon class="w-4 h-4" />
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Confidentialité des réponses</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Garantie d'anonymat et traçabilité</p>
-          </div>
-        </div>
-
-        <div
-          @click="localSettings.anonymous = !localSettings.anonymous"
-          :class="[
-            'p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-4 shadow-2xs select-none',
-            localSettings.anonymous
-              ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800/80'
-              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600'
-          ]"
+      <FormSection
+        :icon="ShieldCheckIcon"
+        tone="emerald"
+        title="Confidentialité des réponses"
+        subtitle="Garantie d'anonymat et traçabilité"
+      >
+        <ToggleCard
+          v-model="localSettings.anonymous"
+          :icon="LockClosedIcon"
+          tone="emerald"
+          description="Les réponses collectées ne seront jamais associées à l'identité ou à l'adresse e-mail des participants."
         >
-          <div class="flex items-start gap-3">
-            <div :class="['w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5', localSettings.anonymous ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300' : 'bg-slate-100 dark:bg-slate-700 text-slate-500']">
-              <LockClosedIcon class="w-4 h-4" />
-            </div>
-            <div>
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-semibold text-slate-900 dark:text-white">Questionnaire 100% anonyme</span>
-                <span v-if="localSettings.anonymous" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200">
-                  Activé
-                </span>
-              </div>
-              <p class="text-xs text-slate-600 dark:text-slate-400 mt-0.5 leading-relaxed">
-                Les réponses collectées ne seront jamais associées à l'identité ou à l'adresse e-mail des participants.
-              </p>
-            </div>
-          </div>
-          <ToggleSwitch v-model="localSettings.anonymous" @click.stop class="shrink-0" />
-        </div>
-      </div>
+          <template #title>
+            <span class="inline-flex items-center gap-2">
+              Questionnaire 100% anonyme
+              <span v-if="localSettings.anonymous" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200">
+                Activé
+              </span>
+            </span>
+          </template>
+        </ToggleCard>
+      </FormSection>
 
       <!-- 3. User Experience & Navigation -->
-      <div class="bg-slate-50/80 dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-4 md:p-5 space-y-3">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-900/60 flex items-center justify-center shrink-0">
-            <SparklesIcon class="w-4 h-4" />
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Expérience utilisateur & Navigation</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Comportement du formulaire lors de la complétion</p>
-          </div>
-        </div>
-
+      <FormSection
+        :icon="SparklesIcon"
+        tone="purple"
+        title="Expérience utilisateur & Navigation"
+        subtitle="Comportement du formulaire lors de la complétion"
+      >
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <!-- Auto-save -->
-          <div
-            @click="localSettings.autoSave = !localSettings.autoSave"
-            class="p-3 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-2xs select-none"
-          >
-            <div class="flex items-start gap-2.5 min-w-0">
-              <CloudArrowUpIcon class="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-              <div class="min-w-0">
-                <span class="text-xs font-bold text-slate-900 dark:text-white block leading-tight">Sauvegarde automatique</span>
-                <span class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">Enregistre les réponses en cours au fur et à mesure</span>
-              </div>
-            </div>
-            <ToggleSwitch v-model="localSettings.autoSave" @click.stop class="shrink-0" />
-          </div>
-
-          <!-- Allow back -->
-          <div
-            @click="localSettings.allowBack = !localSettings.allowBack"
-            class="p-3 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-2xs select-none"
-          >
-            <div class="flex items-start gap-2.5 min-w-0">
-              <ArrowUturnLeftIcon class="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-              <div class="min-w-0">
-                <span class="text-xs font-bold text-slate-900 dark:text-white block leading-tight">Retour en arrière</span>
-                <span class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">Permet de revenir modifier les sections précédentes</span>
-              </div>
-            </div>
-            <ToggleSwitch v-model="localSettings.allowBack" @click.stop class="shrink-0" />
-          </div>
-
-          <!-- Show progress -->
-          <div
-            @click="localSettings.showProgress = !localSettings.showProgress"
-            class="p-3 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-2xs select-none"
-          >
-            <div class="flex items-start gap-2.5 min-w-0">
-              <ChartBarIcon class="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-              <div class="min-w-0">
-                <span class="text-xs font-bold text-slate-900 dark:text-white block leading-tight">Barre de progression</span>
-                <span class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">Affiche le pourcentage et les étapes franchies</span>
-              </div>
-            </div>
-            <ToggleSwitch v-model="localSettings.showProgress" @click.stop class="shrink-0" />
-          </div>
-
-          <!-- Require completion -->
-          <div
-            @click="localSettings.requireCompletion = !localSettings.requireCompletion"
-            class="p-3 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer flex items-center justify-between gap-3 shadow-2xs select-none"
-          >
-            <div class="flex items-start gap-2.5 min-w-0">
-              <CheckBadgeIcon class="w-5 h-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-              <div class="min-w-0">
-                <span class="text-xs font-bold text-slate-900 dark:text-white block leading-tight">Validation complète</span>
-                <span class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">Bloque la soumission si des champs requis manquent</span>
-              </div>
-            </div>
-            <ToggleSwitch v-model="localSettings.requireCompletion" @click.stop class="shrink-0" />
-          </div>
+          <ToggleCard
+            v-model="localSettings.autoSave"
+            :icon="CloudArrowUpIcon"
+            tone="purple"
+            title="Sauvegarde automatique"
+            description="Enregistre les réponses en cours au fur et à mesure"
+          />
+          <ToggleCard
+            v-model="localSettings.allowBack"
+            :icon="ArrowUturnLeftIcon"
+            tone="purple"
+            title="Retour en arrière"
+            description="Permet de revenir modifier les sections précédentes"
+          />
+          <ToggleCard
+            v-model="localSettings.showProgress"
+            :icon="ChartBarIcon"
+            tone="purple"
+            title="Barre de progression"
+            description="Affiche le pourcentage et les étapes franchies"
+          />
+          <ToggleCard
+            v-model="localSettings.requireCompletion"
+            :icon="CheckBadgeIcon"
+            tone="purple"
+            title="Validation complète"
+            description="Bloque la soumission si des champs requis manquent"
+          />
         </div>
-      </div>
+      </FormSection>
 
       <!-- 4. Messages (Introduction & Thank you) -->
-      <div class="bg-slate-50/80 dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-4 md:p-5 space-y-4">
-        <div class="flex items-center gap-2.5">
-          <div class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-900/60 flex items-center justify-center shrink-0">
-            <ChatBubbleBottomCenterTextIcon class="w-4 h-4" />
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Messages d'accompagnement</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Personnalisez les messages d'accueil et de remerciement</p>
-          </div>
-        </div>
+      <FormSection
+        :icon="ChatBubbleBottomCenterTextIcon"
+        tone="amber"
+        title="Messages d'accompagnement"
+        subtitle="Personnalisez les messages d'accueil et de remerciement"
+      >
+        <FormField
+          label="Message d'introduction & présentation"
+          for="start-text"
+          hint="Affiché au participant sur la première page avant de démarrer l'enquête."
+          hint-position="top"
+        >
+          <textarea
+            id="start-text"
+            v-model="formState.startText"
+            rows="3"
+            class="q-input"
+            placeholder="Ex: Bienvenue dans ce questionnaire d'évaluation. Vos retours nous aident à améliorer constamment nos formations..."
+          />
+        </FormField>
 
-        <div class="space-y-4">
-          <div>
-            <label for="start-text" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Message d'introduction & présentation
-            </label>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
-              Affiché au participant sur la première page avant de démarrer l'enquête.
-            </p>
-            <textarea
-              id="start-text"
-              v-model="formState.startText"
-              rows="3"
-              class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors shadow-2xs resize-y"
-              placeholder="Ex: Bienvenue dans ce questionnaire d'évaluation. Vos retours nous aident à améliorer constamment nos formations..."
-            />
-          </div>
-
-          <div>
-            <label for="end-text" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Message de conclusion & remerciement
-            </label>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 mb-2">
-              Affiché au participant immédiatement après la soumission finale de ses réponses.
-            </p>
-            <textarea
-              id="end-text"
-              v-model="formState.endText"
-              rows="3"
-              class="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors shadow-2xs resize-y"
-              placeholder="Ex: Merci d'avoir pris le temps de répondre ! Vos retours ont été enregistrés avec succès."
-            />
-          </div>
-        </div>
-      </div>
+        <FormField
+          label="Message de conclusion & remerciement"
+          for="end-text"
+          hint="Affiché au participant immédiatement après la soumission finale de ses réponses."
+          hint-position="top"
+        >
+          <textarea
+            id="end-text"
+            v-model="formState.endText"
+            rows="3"
+            class="q-input"
+            placeholder="Ex: Merci d'avoir pris le temps de répondre ! Vos retours ont été enregistrés avec succès."
+          />
+        </FormField>
+      </FormSection>
 
       <!-- Action Buttons -->
-      <div class="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-700">
-        <Button
-          severity="secondary"
-          type="button"
-          outlined
-          @click="$emit('close')"
-          class="px-4 py-2 text-sm font-medium rounded-xl"
-        >
-          Annuler
-        </Button>
-        <Button
-          type="submit"
-          icon="pi pi-check"
-          label="Enregistrer les paramètres"
-          class="px-4 py-2 text-sm font-semibold rounded-xl shadow-xs"
-        />
+      <div class="q-actions">
+        <Button severity="secondary" type="button" outlined label="Annuler" @click="$emit('close')" />
+        <Button type="submit" icon="pi pi-check" label="Enregistrer les paramètres" />
       </div>
     </form>
   </Dialog>
@@ -272,9 +162,9 @@
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue';
 import type { Survey, SurveySettings } from '@types';
-import ToggleSwitch from 'primevue/toggleswitch';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
+import { DialogHeader, FormSection, FormField, ToggleCard } from '../Form';
 import {
   AdjustmentsHorizontalIcon,
   CalendarDaysIcon,
@@ -386,4 +276,3 @@ function saveSettings() {
   emit('update', payload);
 }
 </script>
-

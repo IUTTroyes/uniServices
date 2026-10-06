@@ -1,79 +1,53 @@
 <template>
   <Dialog
-    header="Dupliquer la section"
     :visible="true"
     :modal="true"
     :closable="true"
-    :style="{ width: '520px' }"
+    :draggable="false"
+    :style="{ width: '92vw', maxWidth: '520px' }"
     @update:visible="$emit('close')"
   >
-    <div class="space-y-5 py-2">
-      <!-- Title Input -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Nom de la nouvelle section
-        </label>
+    <template #header>
+      <DialogHeader :icon="DocumentDuplicateIcon" title="Dupliquer la section" />
+    </template>
+
+    <div class="q-form">
+      <FormField label="Nom de la nouvelle section" for="dup-section-title" required>
         <input
+          id="dup-section-title"
           v-model="newTitle"
           type="text"
-          class="input-field w-full"
+          class="q-input"
           placeholder="Titre de la section"
+        />
+      </FormField>
+
+      <div class="space-y-3">
+        <ToggleCard
+          v-model="duplicateQuestions"
+          :icon="QueueListIcon"
+          :title="`Dupliquer toutes les questions (${section.questions?.length || 0})`"
+          description="Copie également l'ensemble des options, des textes et des paramètres des questions."
+        />
+
+        <ToggleCard
+          v-if="duplicateQuestions && hasConditionalRules"
+          v-model="adaptConditionalRules"
+          :icon="BoltIcon"
+          tone="amber"
+          title="Adapter la logique conditionnelle"
+          description="Ré-associe automatiquement les règles conditionnelles vers les nouvelles questions de la section dupliquée pour conserver une logique autonome."
         />
       </div>
 
-      <!-- Option 1: Duplicate Questions -->
-      <div class="p-3.5 bg-gray-50 dark:bg-gray-800/80 rounded-xl border border-gray-200 dark:border-gray-700">
-        <label class="flex items-start space-x-3 cursor-pointer">
-          <input
-            v-model="duplicateQuestions"
-            type="checkbox"
-            class="mt-1 text-primary-600 rounded focus:ring-primary-500"
-          />
-          <div>
-            <span class="text-sm font-medium text-gray-900 dark:text-white">
-              Dupliquer toutes les questions ({{ section.questions?.length || 0 }})
-            </span>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Copie également l'ensemble des options, des textes et des paramètres des questions.
-            </p>
-          </div>
-        </label>
-      </div>
-
-      <!-- Option 2: Adapt Conditional Rules -->
-      <div
-        v-if="duplicateQuestions && hasConditionalRules"
-        class="p-3.5 bg-amber-50/70 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800"
-      >
-        <label class="flex items-start space-x-3 cursor-pointer">
-          <input
-            v-model="adaptConditionalRules"
-            type="checkbox"
-            class="mt-1 text-amber-600 rounded focus:ring-amber-500"
-          />
-          <div>
-            <span class="text-sm font-semibold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
-              <span>⚡ Adapter la logique conditionnelle</span>
-            </span>
-            <p class="text-xs text-amber-800/80 dark:text-amber-300 mt-0.5 leading-relaxed">
-              Ré-associe automatiquement les règles conditionnelles vers les nouvelles questions de la section dupliquée pour conserver une logique autonome.
-            </p>
-          </div>
-        </label>
-      </div>
-
-      <!-- Actions -->
-      <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <Button severity="secondary" @click="$emit('close')">
-          Annuler
-        </Button>
+      <div class="q-actions">
+        <Button severity="secondary" outlined label="Annuler" @click="$emit('close')" />
         <Button
-          severity="primary"
+          icon="pi pi-copy"
+          label="Dupliquer la section"
           :disabled="!newTitle.trim()"
           @click="confirmDuplicate"
-        >
-          Dupliquer la section
-        </Button>
+        />
       </div>
     </div>
   </Dialog>
@@ -81,7 +55,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
+import { BoltIcon, DocumentDuplicateIcon, QueueListIcon } from '@heroicons/vue/24/outline';
 import type { Section } from '@/types/survey';
+import { DialogHeader, FormField, ToggleCard } from '../Form';
 
 interface Props {
   section: Section;

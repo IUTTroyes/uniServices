@@ -1,3 +1,4 @@
+import './assets/forms.css';
 import dashboardRoutes from './router/modules/dashboardRoutes.js';
 import qualiteRoutes from './router/modules/questionnaireAdministrationRoutes.js';
 import Logo from "@images/logo/logo_intranet_iut_troyes.svg";

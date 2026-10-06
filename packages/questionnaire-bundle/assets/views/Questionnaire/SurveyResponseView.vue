@@ -23,10 +23,11 @@ import { useResponseStore } from '@/stores/responses';
 import { useUIStore } from '@/stores/ui';
 import InviteParticipantsModal from '@/components/Questionnaire/InviteParticipantsModal.vue';
 import ResponseDetailModal from '@/components/Questionnaire/ResponseDetailModal.vue';
-import ActionButtonVertical from '@components/components/ActionButtonVertical.vue';
 import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
 import type { Response } from '@/types/survey';
 import { formatRelativeTime, formatDuration } from '@/utils/date';
+import { DialogHeader, FormField, FormSection } from '@/components/Form';
 import { HeaderComponent, Kpi, Card } from '@components';
 
 const route = useRoute();
@@ -437,113 +438,107 @@ onMounted(async () => {
       @close="showResponseDetail = false" />
 
     <!-- Reminder Modal -->
-    <Transition name="fade">
-      <div v-if="showReminderModal"
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-        @click.self="showReminderModal = false">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-          <!-- Header -->
-          <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-            <div class="flex items-center space-x-3">
-              <div class="w-10 h-10 bg-yellow-100 dark:bg-yellow-900/40 rounded-xl flex items-center justify-center">
-                <BellIcon class="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
-              </div>
-              <div>
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white">Envoyer un rappel</h2>
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                  {{ reminderTargets.length }} participant{{ reminderTargets.length > 1 ? 's' : '' }} ciblé{{ reminderTargets.length > 1 ? 's' : '' }}
-                </p>
-              </div>
-            </div>
-            <button @click="showReminderModal = false"
-              class="p-2 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-              <XMarkIcon class="w-5 h-5" />
-            </button>
-          </div>
+    <!-- Reminder Modal -->
+    <Dialog
+      :style="{ width: '92vw', maxWidth: '680px' }"
+      :visible="showReminderModal"
+      :modal="true"
+      :closable="true"
+      :draggable="false"
+      @update:visible="showReminderModal = $event"
+    >
+      <template #header>
+        <DialogHeader
+          :icon="BellIcon"
+          tone="amber"
+          title="Envoyer un rappel"
+          :subtitle="`${reminderTargets.length} participant${reminderTargets.length > 1 ? 's' : ''} ciblé${reminderTargets.length > 1 ? 's' : ''}`"
+        />
+      </template>
 
-          <div class="p-6 space-y-6">
-            <!-- Recipients list -->
-            <div>
-              <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center">
-                <UsersIcon class="w-4 h-4 mr-2" />
-                Destinataires
-              </h3>
-              <div class="max-h-36 overflow-y-auto space-y-1.5 pr-1">
-                <div v-for="response in reminderTargets" :key="response.id"
-                  class="flex items-center justify-between bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
-                  <div class="flex items-center space-x-2">
-                    <div class="w-7 h-7 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center text-xs font-medium text-gray-700 dark:text-gray-300">
-                      {{ getParticipantInitials(response.participantId) }}
-                    </div>
-                    <div>
-                      <p class="text-sm font-medium text-gray-900 dark:text-white">{{ getParticipantName(response.participantId) }}</p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">{{ getParticipantEmail(response.participantId) }}</p>
-                    </div>
-                  </div>
-                  <span :class="['text-xs px-2 py-0.5 rounded-full font-medium', getStatusColor(response)]">
-                    {{ getStatusLabel(response) }}
-                  </span>
+      <div class="q-form">
+        <!-- Recipients list -->
+        <FormSection :icon="UsersIcon" tone="slate" title="Destinataires">
+          <div class="max-h-36 overflow-y-auto space-y-1.5 pr-1">
+            <div
+              v-for="response in reminderTargets"
+              :key="response.id"
+              class="flex items-center justify-between bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl px-3 py-2"
+            >
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-xs font-bold text-slate-700 dark:text-slate-300">
+                  {{ getParticipantInitials(response.participantId) }}
+                </div>
+                <div>
+                  <p class="text-xs font-medium text-slate-900 dark:text-white">{{ getParticipantName(response.participantId) }}</p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ getParticipantEmail(response.participantId) }}</p>
                 </div>
               </div>
-            </div>
-
-            <!-- Message preview / editor -->
-            <div>
-              <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center">
-                  <EnvelopeIcon class="w-4 h-4 mr-2" />
-                  Message de rappel
-                </h3>
-                <button @click="resetReminderMessage"
-                  class="text-xs text-primary-600 dark:text-primary-400 hover:underline">
-                  Réinitialiser
-                </button>
-              </div>
-
-              <!-- Subject -->
-              <div class="mb-3">
-                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Objet</label>
-                <input v-model="reminderSubject" type="text"
-                  class="w-full input-field text-sm"
-                  placeholder="Objet de l'email..." />
-              </div>
-
-              <!-- Body -->
-              <div>
-                <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Corps du message</label>
-                <textarea v-model="reminderMessage" rows="8"
-                  class="w-full input-field text-sm resize-none font-mono leading-relaxed"
-                  placeholder="Corps du message..." />
-              </div>
-
-              <p class="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                Les variables <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">{{ '{prenom}' }}</code>,
-                <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">{{ '{lien}' }}</code> et
-                <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">{{ '{questionnaire}' }}</code>
-                seront remplacées automatiquement.
-              </p>
+              <span :class="['text-[11px] px-2 py-0.5 rounded-full font-medium', getStatusColor(response)]">
+                {{ getStatusLabel(response) }}
+              </span>
             </div>
           </div>
+        </FormSection>
 
-          <!-- Footer -->
-          <div class="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 dark:border-gray-700">
-            <Button
-              label="Annuler"
-              severity="secondary"
-              outlined
-              @click="showReminderModal = false"
+        <!-- Message preview / editor -->
+        <FormSection :icon="EnvelopeIcon" tone="amber" title="Message de rappel">
+          <template #actions>
+            <button
+              type="button"
+              class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer"
+              @click="resetReminderMessage"
+            >
+              Réinitialiser
+            </button>
+          </template>
+
+          <FormField label="Objet du message" for="reminder-subject">
+            <input
+              id="reminder-subject"
+              v-model="reminderSubject"
+              type="text"
+              class="q-input"
+              placeholder="Objet de l'email..."
             />
-            <Button
-              :label="`Envoyer ${reminderTargets.length > 1 ? 'les ' + reminderTargets.length + ' rappels' : 'le rappel'}`"
-              severity="warn"
-              :loading="isSendingReminders"
-              :icon="isSendingReminders ? undefined : 'pi pi-bell'"
-              @click="confirmSendReminders"
+          </FormField>
+
+          <FormField label="Corps du message" for="reminder-message">
+            <textarea
+              id="reminder-message"
+              v-model="reminderMessage"
+              rows="7"
+              class="q-input font-mono text-xs leading-relaxed"
+              placeholder="Corps du message..."
             />
-          </div>
+          </FormField>
+
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">
+            Les variables <code class="bg-slate-100 dark:bg-slate-700 px-1 py-0.5 rounded font-mono">{{ '{prenom}' }}</code>,
+            <code class="bg-slate-100 dark:bg-slate-700 px-1 py-0.5 rounded font-mono">{{ '{lien}' }}</code> et
+            <code class="bg-slate-100 dark:bg-slate-700 px-1 py-0.5 rounded font-mono">{{ '{questionnaire}' }}</code>
+            seront remplacées automatiquement.
+          </p>
+        </FormSection>
+
+        <!-- Actions -->
+        <div class="q-actions">
+          <Button
+            label="Annuler"
+            severity="secondary"
+            outlined
+            @click="showReminderModal = false"
+          />
+          <Button
+            :label="`Envoyer ${reminderTargets.length > 1 ? 'les ' + reminderTargets.length + ' rappels' : 'le rappel'}`"
+            severity="warn"
+            :loading="isSendingReminders"
+            :icon="isSendingReminders ? undefined : 'pi pi-bell'"
+            @click="confirmSendReminders"
+          />
         </div>
       </div>
-    </Transition>
+    </Dialog>
   </div>
 </template>
 

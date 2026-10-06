@@ -1,215 +1,171 @@
 <template>
-  <Dialog header="Confirmation de publication"
-          :style="{ width: '50vw', minWidth: '450px' }"
-          :visible="true"
-          @update:visible="$emit('close')"
-          :modal="true" :closable="true">
+  <Dialog
+    :style="{ width: '92vw', maxWidth: '780px' }"
+    :visible="true"
+    :modal="true"
+    :closable="true"
+    :draggable="false"
+    @update:visible="$emit('close')"
+  >
+    <template #header>
+      <DialogHeader
+        :icon="PaperAirplaneIcon"
+        title="Confirmation de publication"
+        subtitle="Passez en revue les détails avant de lancer la diffusion"
+      />
+    </template>
 
-    <div class="bg-white dark:bg-gray-800 rounded-xl p-2 w-full max-h-[80vh] overflow-y-auto" @click.stop>
-      <div class="mb-6">
-        <p class="text-gray-600 dark:text-gray-400 text-sm">
-          Vous êtes sur le point de publier le questionnaire <span class="font-semibold text-gray-900 dark:text-white">"{{ survey?.title }}"</span>. 
-          Veuillez passer en revue les détails de publication ci-dessous.
-        </p>
-      </div>
+    <div class="q-form">
+      <p class="text-sm text-slate-600 dark:text-slate-400">
+        Vous êtes sur le point de publier le questionnaire
+        <span class="font-semibold text-slate-900 dark:text-white">"{{ survey?.title }}"</span>.
+      </p>
 
       <!-- Dates Section -->
-      <div class="mb-6 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-        <h3 class="text-sm font-semibold text-gray-900 dark:text-white flex items-center mb-3">
-          <CalendarIcon class="w-5 h-5 text-primary-500 me-2" />
-          Dates de diffusion
-        </h3>
-        <div class="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <span class="block text-gray-500 dark:text-gray-400 text-xs">Date de début</span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ formatDate(survey?.openingDate) }}
-            </span>
+      <FormSection :icon="CalendarDaysIcon" tone="blue" title="Dates de diffusion">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80">
+            <span class="q-label !mb-0.5">Date de début</span>
+            <span class="text-sm font-medium text-slate-900 dark:text-white">{{ formatDate(survey?.openingDate) }}</span>
           </div>
-          <div>
-            <span class="block text-gray-500 dark:text-gray-400 text-xs">Date de fin</span>
-            <span class="font-medium text-gray-900 dark:text-white">
-              {{ formatDate(survey?.closingDate) }}
-            </span>
+          <div class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80">
+            <span class="q-label !mb-0.5">Date de fin</span>
+            <span class="text-sm font-medium text-slate-900 dark:text-white">{{ formatDate(survey?.closingDate) }}</span>
           </div>
         </div>
-      </div>
+      </FormSection>
 
       <!-- KPIs / Statistics Section -->
-      <div class="mb-6 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-        <h3 class="text-sm font-semibold text-gray-900 dark:text-white flex items-center mb-3">
-          <ChartPieIcon class="w-5 h-5 text-primary-500 me-2" />
-          Aperçu de la structure (KPIs)
-        </h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-            <span class="block text-2xl font-bold text-primary-600">{{ sectionsCount }}</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">Sections</span>
-          </div>
-          <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-            <span class="block text-2xl font-bold text-primary-600">{{ questionsCount }}</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">Questions</span>
-          </div>
-          <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-            <span class="block text-2xl font-bold text-primary-600">{{ configurableSectionsCount }}</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">Dyna.</span>
-          </div>
-          <div class="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-sm border border-gray-100 dark:border-gray-700">
-            <span class="block text-sm font-bold text-gray-800 dark:text-white mt-1.5">{{ isAnonymous ? 'Oui' : 'Non' }}</span>
-            <span class="text-xs text-gray-500 dark:text-gray-400">Anonyme</span>
+      <FormSection :icon="ChartPieIcon" tone="purple" title="Aperçu de la structure">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+          <div v-for="kpi in kpis" :key="kpi.label" class="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80">
+            <span :class="['block font-bold text-primary-600 dark:text-primary-400', kpi.small ? 'text-sm mt-1.5' : 'text-2xl']">{{ kpi.value }}</span>
+            <span class="text-[11px] text-slate-500 dark:text-slate-400">{{ kpi.label }}</span>
           </div>
         </div>
-      </div>
+      </FormSection>
 
       <!-- Recipients Section -->
-      <div class="mb-6 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-semibold text-gray-900 dark:text-white flex items-center">
-            <UsersIcon class="w-5 h-5 text-primary-500 me-2" />
-            Destinataires / Participants
-          </h3>
-        </div>
-
-        <!-- Mode Tabs -->
-        <div class="mb-4 bg-gray-200/80 dark:bg-gray-800 p-1 rounded-xl flex gap-1 shadow-inner border border-gray-300/30 dark:border-gray-700/30">
+      <FormSection :icon="UsersIcon" tone="emerald" title="Destinataires / Participants">
+        <div class="q-tabs">
           <button
             v-for="mode in modes"
             :key="mode.id"
             type="button"
+            :class="['q-tab', activeMode === mode.id && 'q-tab-active']"
             @click="selectMode(mode.id)"
-            :class="[
-              'flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 border-0 cursor-pointer',
-              activeMode === mode.id
-                ? 'bg-white dark:bg-gray-700 text-primary-600 dark:text-white shadow-md'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 bg-transparent'
-            ]"
           >
             {{ mode.label }}
           </button>
         </div>
 
-        <div class="space-y-3">
-          <!-- 1. MANUAL MODE -->
-          <div v-if="activeMode === 'manual'" class="space-y-2">
-            <div class="flex items-center justify-between">
-              <label class="block text-xs text-gray-650 dark:text-gray-400">
-                Saisissez les adresses email (un email par ligne, ou séparés par des virgules) :
-              </label>
-              <button v-if="existingParticipants.length > 0 && !hasImported" 
-                      type="button" 
-                      @click="importExistingParticipants"
-                      class="text-xs text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer">
-                Importer existants ({{ existingParticipants.length }})
-              </button>
-            </div>
-            <textarea
-              v-model="rawEmails"
-              rows="4"
-              class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary-500 focus:outline-none"
-              placeholder="invite1@example.com&#10;invite2@example.com"
-            />
+        <!-- 1. MANUAL MODE -->
+        <div v-if="activeMode === 'manual'">
+          <div class="flex items-center justify-between gap-3">
+            <label for="publish-emails" class="q-label">
+              Adresses email (une par ligne, ou séparées par des virgules)
+            </label>
+            <button
+              v-if="existingParticipants.length > 0 && !hasImported"
+              type="button"
+              class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer mb-1.5"
+              @click="importExistingParticipants"
+            >
+              Importer existants ({{ existingParticipants.length }})
+            </button>
           </div>
-
-          <!-- 2. PERSONNEL MODE -->
-          <div v-else-if="activeMode === 'personnels'" class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Type de personnel</label>
-                <select v-model="personnelFilterType" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                  <option value="all">Tous les personnels</option>
-                  <option value="permanent">Permanents</option>
-                  <option value="vacataire">Vacataires</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Par statut précis</label>
-                <select v-model="personnelFilterStatut" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                  <option value="">Tous les statuts</option>
-                  <option v-for="st in statuses" :key="st" :value="st">{{ st }}</option>
-                </select>
-              </div>
-            </div>
-            <div v-if="isLoadingData" class="text-xs text-gray-550 dark:text-gray-400">
-              Chargement des personnels...
-            </div>
-            <div v-else class="text-xs text-gray-700 dark:text-gray-300">
-              <strong>{{ filteredPersonnels.length }}</strong> personnels sélectionnés.
-            </div>
-          </div>
-
-          <!-- 3. STUDENT MODE -->
-          <div v-else-if="activeMode === 'etudiants'" class="space-y-4">
-            <div>
-              <label class="block text-xs text-gray-600 dark:text-gray-400 mb-1.5 font-medium">Sélectionnez le semestre</label>
-              <select v-model="selectedSemestre" @change="loadSemesterStudents" class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500">
-                <option value="">Choisir un semestre...</option>
-                <option v-for="sem in semesters" :key="sem.id" :value="sem.id">{{ sem.libelle }}</option>
-              </select>
-            </div>
-            <div v-if="isLoadingData" class="text-xs text-gray-550 dark:text-gray-400">
-              Chargement des étudiants...
-            </div>
-            <div v-else-if="selectedSemestre" class="text-xs text-gray-700 dark:text-gray-300">
-              <strong>{{ filteredStudents.length }}</strong> étudiants sélectionnés pour ce semestre.
-            </div>
-          </div>
-
-          <!-- Email Count Indicators -->
-          <div class="flex flex-wrap items-center gap-4 text-xs mt-2 border-t border-gray-200/50 dark:border-gray-700/50 pt-2">
-            <span class="flex items-center text-gray-600 dark:text-gray-400">
-              Total détectés : <strong class="ms-1">{{ activeMode === 'manual' ? emailsList.length : validEmails.length }}</strong>
-            </span>
-            <span v-if="validEmails.length > 0" class="flex items-center text-green-600 dark:text-green-400">
-              <CheckCircleIcon class="w-4 h-4 me-1" />
-              Valides : <strong class="ms-1">{{ validEmails.length }}</strong>
-            </span>
-            <span v-if="activeMode === 'manual' && invalidEmails.length > 0" class="flex items-center text-red-600 dark:text-red-400">
-              <ExclamationTriangleIcon class="w-4 h-4 me-1" />
-              Invalides (ignorés) : <strong class="ms-1">{{ invalidEmails.length }}</strong>
-            </span>
-          </div>
+          <textarea
+            id="publish-emails"
+            v-model="rawEmails"
+            rows="4"
+            class="q-input"
+            placeholder="invite1@example.com&#10;invite2@example.com"
+          />
         </div>
-      </div>
+
+        <!-- 2. PERSONNEL MODE -->
+        <div v-else-if="activeMode === 'personnels'" class="space-y-3">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField label="Type de personnel" for="publish-pers-type">
+              <select id="publish-pers-type" v-model="personnelFilterType" class="q-input">
+                <option value="all">Tous les personnels</option>
+                <option value="permanent">Permanents</option>
+                <option value="vacataire">Vacataires</option>
+              </select>
+            </FormField>
+            <FormField label="Par statut précis" for="publish-pers-statut">
+              <select id="publish-pers-statut" v-model="personnelFilterStatut" class="q-input">
+                <option value="">Tous les statuts</option>
+                <option v-for="st in statuses" :key="st" :value="st">{{ st }}</option>
+              </select>
+            </FormField>
+          </div>
+          <p v-if="isLoadingData" class="q-hint">Chargement des personnels...</p>
+          <p v-else class="text-xs text-slate-700 dark:text-slate-300">
+            <strong>{{ filteredPersonnels.length }}</strong> personnels sélectionnés.
+          </p>
+        </div>
+
+        <!-- 3. STUDENT MODE -->
+        <div v-else-if="activeMode === 'etudiants'" class="space-y-3">
+          <FormField label="Sélectionnez le semestre" for="publish-semestre">
+            <select id="publish-semestre" v-model="selectedSemestre" class="q-input" @change="loadSemesterStudents">
+              <option value="">Choisir un semestre...</option>
+              <option v-for="sem in semesters" :key="sem.id" :value="sem.id">{{ sem.libelle }}</option>
+            </select>
+          </FormField>
+          <p v-if="isLoadingData" class="q-hint">Chargement des étudiants...</p>
+          <p v-else-if="selectedSemestre" class="text-xs text-slate-700 dark:text-slate-300">
+            <strong>{{ filteredStudents.length }}</strong> étudiants sélectionnés pour ce semestre.
+          </p>
+        </div>
+
+        <!-- Email Count Indicators -->
+        <div class="flex flex-wrap items-center gap-4 text-xs pt-3 border-t border-slate-200 dark:border-slate-700/80">
+          <span class="flex items-center text-slate-600 dark:text-slate-400">
+            Total détectés : <strong class="ms-1">{{ activeMode === 'manual' ? emailsList.length : validEmails.length }}</strong>
+          </span>
+          <span v-if="validEmails.length > 0" class="flex items-center text-emerald-600 dark:text-emerald-400">
+            <CheckCircleIcon class="w-4 h-4 me-1" />
+            Valides : <strong class="ms-1">{{ validEmails.length }}</strong>
+          </span>
+          <span v-if="activeMode === 'manual' && invalidEmails.length > 0" class="flex items-center text-red-600 dark:text-red-400">
+            <ExclamationTriangleIcon class="w-4 h-4 me-1" />
+            Invalides (ignorés) : <strong class="ms-1">{{ invalidEmails.length }}</strong>
+          </span>
+        </div>
+      </FormSection>
 
       <!-- Warning Alert -->
-      <div class="mb-6 bg-amber-50 dark:bg-amber-950/30 p-4 rounded-xl border border-amber-200 dark:border-amber-900/50 text-amber-800 dark:text-amber-300 text-sm flex items-start">
-        <ExclamationTriangleIcon class="w-5 h-5 me-3 flex-shrink-0 mt-0.5 text-amber-500" />
+      <div class="q-callout q-callout-warning">
+        <ExclamationTriangleIcon class="w-4 h-4 shrink-0 mt-0.5" />
         <div>
-          <h4 class="font-semibold mb-1">Attention</h4>
-          <p class="text-xs">
+          <p class="font-semibold">Attention</p>
+          <p class="mt-0.5 opacity-90">
             La publication figera définitivement la structure du questionnaire (sections et questions). Vous ne pourrez plus y apporter de modifications structurelles.
           </p>
         </div>
       </div>
 
-      <!-- Confirmation Checkbox -->
-      <div class="mb-6 flex items-start">
-        <input
-          id="confirmCheckbox"
-          v-model="isConfirmed"
-          type="checkbox"
-          class="mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-        />
-        <label for="confirmCheckbox" class="ml-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">
-          Je confirme vouloir publier ce questionnaire et lancer sa diffusion aux destinataires.
-        </label>
-      </div>
+      <!-- Confirmation -->
+      <ToggleCard
+        v-model="isConfirmed"
+        control="checkbox"
+        tone="emerald"
+        :icon="CheckBadgeIcon"
+        title="Je confirme vouloir publier ce questionnaire"
+        description="et lancer sa diffusion aux destinataires."
+      />
 
-      <!-- Actions -->
-      <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+      <div class="q-actions">
+        <Button severity="secondary" outlined type="button" label="Annuler" @click="$emit('close')" />
         <Button
-          severity="secondary"
-          type="button" 
-          @click="$emit('close')">
-          Annuler
-        </Button>
-        <Button 
           type="button"
-          severity="primary"
+          icon="pi pi-send"
+          label="Confirmer et Publier"
           :disabled="!isConfirmed"
-          @click="submitPublish">
-          Confirmer et Publier
-        </Button>
+          @click="submitPublish"
+        />
       </div>
     </div>
   </Dialog>
@@ -220,11 +176,13 @@ import { ref, computed } from 'vue';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
-  CalendarIcon,
+  CalendarDaysIcon,
   UsersIcon,
   ChartPieIcon,
   ExclamationTriangleIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  CheckBadgeIcon,
+  PaperAirplaneIcon
 } from '@heroicons/vue/24/outline';
 import type { Survey } from '@types';
 import { useResponseStore } from '@/stores/responses';
@@ -234,6 +192,7 @@ import {
   getAllPersonnels, 
   getStudentSemestres 
 } from '@/requests/questionnaire_services/questionnaireService';
+import { DialogHeader, FormField, FormSection, ToggleCard } from '../Form';
 
 interface Props {
   survey: Survey | null;
@@ -353,6 +312,13 @@ const configurableSectionsCount = computed(() => {
   return props.survey.sections.filter(s => s.typeSection === 'configurable').length;
 });
 const isAnonymous = computed(() => props.survey?.opt?.anonymous ?? false);
+
+const kpis = computed(() => [
+  { label: 'Sections', value: sectionsCount.value },
+  { label: 'Questions', value: questionsCount.value },
+  { label: 'Dyna.', value: configurableSectionsCount.value },
+  { label: 'Anonyme', value: isAnonymous.value ? 'Oui' : 'Non', small: true }
+]);
 
 // Recipients calculations
 const emailsList = computed(() => {

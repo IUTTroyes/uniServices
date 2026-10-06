@@ -1,154 +1,125 @@
 <template>
-  <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100]" @click="$emit('close')">
-    <div
-      class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl"
-      @click.stop
-    >
-      <div class="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-700 pb-3">
-        <div>
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <span>⚙️ Logique conditionnelle</span>
-          </h2>
-          <p class="text-sm text-gray-550 dark:text-gray-400 mt-1">
-            Question active : <span class="font-medium text-gray-805 dark:text-gray-250">"{{ question.label }}"</span>
-          </p>
-        </div>
-        <button
-          @click="$emit('close')"
-          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border-0 text-gray-405 hover:text-gray-600"
-        >
-          <XMarkIcon class="w-5 h-5" />
-        </button>
-      </div>
+  <Dialog
+    :style="{ width: '92vw', maxWidth: '950px' }"
+    :visible="true"
+    :modal="true"
+    :closable="true"
+    :draggable="false"
+    @update:visible="$emit('close')"
+  >
+    <template #header>
+      <DialogHeader
+        :icon="BoltIcon"
+        tone="amber"
+        title="Logique conditionnelle"
+        :subtitle="`Question active : « ${question.label} »`"
+      />
+    </template>
 
+    <div class="q-form">
       <!-- Mode Selector -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <!-- Mode 1: Trigger Mode -->
         <div
-          :class="[
-            'p-4 border-2 rounded-xl cursor-pointer transition-all',
-            logicMode === 'trigger'
-              ? 'border-amber-500 bg-amber-50/70 dark:bg-amber-950/40 shadow-sm'
-              : 'border-gray-200 dark:border-gray-700 hover:border-amber-300 dark:hover:border-amber-700'
-          ]"
+          :class="['q-choice', logicMode === 'trigger' && 'q-choice-active']"
           @click="setLogicMode('trigger')"
         >
-          <div class="flex items-start space-x-3">
-            <div class="p-2 rounded-lg bg-amber-100 dark:bg-amber-900 text-amber-600 dark:text-amber-300 flex-shrink-0">
-              <BoltIcon class="w-6 h-6" />
-            </div>
-            <div>
-              <h3 class="font-semibold text-gray-900 dark:text-white text-base flex items-center gap-2">
-                ⚡ Déclencheur
-              </h3>
-              <p class="text-xs text-gray-650 dark:text-gray-400 mt-1 leading-relaxed">
-                Définir des actions qui se déclenchent selon la réponse à cette question (afficher/masquer d'autres questions, sauter une section, etc.).
-              </p>
-            </div>
+          <div class="p-2 rounded-lg bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 shrink-0">
+            <BoltIcon class="w-5 h-5" />
+          </div>
+          <div>
+            <span class="q-choice-title">⚡ Déclencheur</span>
+            <span class="q-choice-desc block">
+              Définir des actions qui se déclenchent selon la réponse à cette question (afficher/masquer d'autres questions, sauter une section...).
+            </span>
           </div>
         </div>
 
         <!-- Mode 2: Dependency Mode -->
         <div
-          :class="[
-            'p-4 border-2 rounded-xl cursor-pointer transition-all',
-            logicMode === 'dependency'
-              ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/40 shadow-sm'
-              : 'border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700'
-          ]"
+          :class="['q-choice', logicMode === 'dependency' && 'q-choice-active']"
           @click="setLogicMode('dependency')"
         >
-          <div class="flex items-start space-x-3">
-            <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 flex-shrink-0">
-              <LinkIcon class="w-6 h-6" />
-            </div>
-            <div>
-              <h3 class="font-semibold text-gray-900 dark:text-white text-base flex items-center gap-2">
-                🔗 Question conditionnée
-              </h3>
-              <p class="text-xs text-gray-650 dark:text-gray-400 mt-1 leading-relaxed">
-                Conditionner l'affichage ou l'obligation de la question actuelle selon les réponses données à d'autres questions précédentes.
-              </p>
-            </div>
+          <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 shrink-0">
+            <LinkIcon class="w-5 h-5" />
+          </div>
+          <div>
+            <span class="q-choice-title">🔗 Question conditionnée</span>
+            <span class="q-choice-desc block">
+              Conditionner l'affichage ou l'obligation de la question actuelle selon les réponses données à des questions précédentes.
+            </span>
           </div>
         </div>
       </div>
 
       <!-- Logic Rule Form -->
-      <div class="space-y-6 bg-gray-50/50 dark:bg-gray-800/40 p-5 rounded-xl border border-gray-200 dark:border-gray-700">
-        <!-- Rule Type Selection -->
+      <FormSection :icon="AdjustmentsHorizontalIcon" tone="slate" title="Configuration de la règle">
+        <!-- Rule Type Selection (Trigger Mode) -->
         <div v-if="logicMode === 'trigger'">
-          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-            Quel type d'action déclencher ?
-          </label>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+          <label class="q-label">Type d'action à déclencher</label>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
             <div
               v-for="ruleType in ruleTypes"
               :key="ruleType.value"
               :class="[
-                'p-3 border-2 rounded-lg cursor-pointer transition-all',
+                'p-2.5 rounded-xl border text-xs cursor-pointer transition-all flex items-center gap-2',
                 selectedRuleType === ruleType.value
-                  ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/40'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-350 dark:hover:border-gray-600'
+                  ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-400 dark:border-amber-700 text-amber-900 dark:text-amber-200 font-semibold shadow-2xs'
+                  : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-300 hover:border-slate-300'
               ]"
               @click="selectedRuleType = ruleType.value"
             >
-              <div class="flex items-center space-x-2">
-                <component :is="ruleType.icon" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-                <h4 class="text-xs font-semibold text-gray-900 dark:text-white">{{ ruleType.title }}</h4>
-              </div>
+              <component :is="ruleType.icon" class="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+              <span class="truncate">{{ ruleType.title }}</span>
             </div>
           </div>
         </div>
 
-        <div class="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-4">
+        <div class="space-y-3 pt-2">
           <!-- Logical operator connector (AND / OR) -->
-          <div v-if="rule.conditions.length > 1" class="flex items-center space-x-3 bg-indigo-50/50 dark:bg-indigo-950/20 p-3 rounded-lg border border-indigo-100 dark:border-indigo-900">
-            <span class="text-xs font-bold text-indigo-900 dark:text-indigo-200 uppercase">Connecteur logique :</span>
-            <div class="flex bg-gray-200 dark:bg-gray-750 p-0.5 rounded-lg">
+          <div v-if="rule.conditions.length > 1" class="flex items-center gap-3 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80">
+            <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Connecteur logique :</span>
+            <div class="q-tabs !p-0.5 max-w-xs">
               <button
                 type="button"
+                :class="['q-tab !py-1 text-[11px]', rule.logicalOperator === 'AND' && 'q-tab-active']"
                 @click="rule.logicalOperator = 'AND'"
-                :class="['px-3 py-1 text-xs font-semibold rounded-md transition-colors', rule.logicalOperator === 'AND' ? 'bg-white dark:bg-gray-600 shadow text-indigo-700 dark:text-indigo-150' : 'text-gray-600 dark:text-gray-400']"
               >
-                ET (Toutes les conditions)
+                ET (Toutes)
               </button>
               <button
                 type="button"
+                :class="['q-tab !py-1 text-[11px]', rule.logicalOperator === 'OR' && 'q-tab-active']"
                 @click="rule.logicalOperator = 'OR'"
-                :class="['px-3 py-1 text-xs font-semibold rounded-md transition-colors', rule.logicalOperator === 'OR' ? 'bg-white dark:bg-gray-600 shadow text-indigo-700 dark:text-indigo-150' : 'text-gray-600 dark:text-gray-400']"
               >
-                OU (Au moins une condition)
+                OU (Au moins une)
               </button>
             </div>
           </div>
 
-          <div class="space-y-3">
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Lorsque les conditions suivantes sont remplies :
-            </label>
+          <div class="space-y-2">
+            <label class="q-label">Lorsque les conditions suivantes sont remplies :</label>
 
             <!-- Condition Rows List -->
-            <div class="space-y-3">
+            <div class="space-y-2">
               <div
                 v-for="(cond, idx) in rule.conditions"
                 :key="idx"
-                class="flex flex-col md:flex-row gap-3 items-stretch md:items-center bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 relative"
+                class="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80"
               >
-                <!-- Condition index / logic connector label -->
-                <div class="absolute -left-2 top-3 md:top-auto bg-gray-150 dark:bg-gray-700 px-2 py-0.5 rounded text-2xs font-bold text-gray-600 dark:text-gray-400 uppercase">
+                <span class="px-2 py-1 rounded bg-slate-100 dark:bg-slate-700 text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase shrink-0 text-center">
                   {{ idx === 0 ? 'Si' : rule.logicalOperator === 'AND' ? 'ET' : 'OU' }}
-                </div>
+                </span>
 
                 <!-- Source Question Dropdown -->
-                <div class="flex-1 min-w-0 pl-3 md:pl-0">
+                <div class="flex-1 min-w-0">
                   <select
                     v-model="cond.sourceQuestionId"
                     :disabled="logicMode === 'trigger' && idx === 0"
-                    class="input-field w-full text-xs"
+                    class="q-input q-input-sm"
                     @change="onSourceQuestionChange(cond)"
                   >
-                    <option value="">Sélectionnez la question</option>
+                    <option value="">Sélectionnez la question...</option>
                     <option
                       v-for="q in (logicMode === 'trigger' ? allQuestions : otherQuestions)"
                       :key="q.uuid || q.id"
@@ -160,9 +131,13 @@
                 </div>
 
                 <!-- Operator Dropdown -->
-                <div class="w-full md:w-48">
-                  <select v-model="cond.operator" :disabled="!cond.sourceQuestionId" class="input-field w-full text-xs">
-                    <option value="">Sélectionnez une condition</option>
+                <div class="w-full sm:w-44">
+                  <select
+                    v-model="cond.operator"
+                    :disabled="!cond.sourceQuestionId"
+                    class="q-input q-input-sm"
+                  >
+                    <option value="">Condition...</option>
                     <option
                       v-for="op in getOperatorsForQuestion(cond.sourceQuestionId)"
                       :key="op.value"
@@ -174,14 +149,13 @@
                 </div>
 
                 <!-- Answer Value input -->
-                <div class="w-full md:w-56" v-if="cond.operator && !['is_empty', 'is_not_empty'].includes(cond.operator)">
-                  <!-- Choice / Choice List options -->
+                <div class="w-full sm:w-48" v-if="cond.operator && !['is_empty', 'is_not_empty'].includes(cond.operator)">
                   <select
                     v-if="getQuestionById(cond.sourceQuestionId) && ['single_choice', 'multiple_choice', 'ranking'].includes(getQuestionById(cond.sourceQuestionId).typeQuestion)"
                     v-model="cond.value"
-                    class="input-field w-full text-xs"
+                    class="q-input q-input-sm"
                   >
-                    <option value="">Sélectionnez une option</option>
+                    <option value="">Option...</option>
                     <option
                       v-for="option in getQuestionById(cond.sourceQuestionId).choices"
                       :key="option.id"
@@ -191,267 +165,271 @@
                     </option>
                   </select>
 
-                  <!-- Scale values -->
                   <input
                     v-else-if="getQuestionById(cond.sourceQuestionId)?.typeQuestion === 'scale'"
                     v-model.number="cond.value"
                     type="number"
                     :min="getQuestionById(cond.sourceQuestionId).opt?.min || getQuestionById(cond.sourceQuestionId).validation?.min || 1"
                     :max="getQuestionById(cond.sourceQuestionId).opt?.max || getQuestionById(cond.sourceQuestionId).validation?.max || 10"
-                    class="input-field w-full text-xs"
+                    class="q-input q-input-sm"
                     placeholder="Valeur"
                   />
 
-                  <!-- Text input -->
                   <input
                     v-else
                     v-model="cond.value"
                     type="text"
-                    class="input-field w-full text-xs"
+                    class="q-input q-input-sm"
                     placeholder="Valeur à comparer"
                   />
                 </div>
 
                 <!-- Delete condition row button -->
-                <button
-                  type="button"
+                <Button
                   v-if="rule.conditions.length > 1"
+                  severity="danger"
+                  text
+                  rounded
+                  size="small"
+                  icon="pi pi-times"
+                  aria-label="Supprimer la condition"
                   @click="removeConditionRow(idx)"
-                  class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors border-0 self-end md:self-auto"
-                >
-                  <TrashIcon class="w-4 h-4" />
-                </button>
+                />
               </div>
             </div>
 
             <!-- Add new condition row button -->
-            <button
-              type="button"
+            <Button
+              size="small"
+              severity="secondary"
+              outlined
+              icon="pi pi-plus"
+              label="Ajouter un critère"
               @click="addConditionRow"
-              class="flex items-center space-x-2 text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 border-0 bg-transparent cursor-pointer mt-2"
-            >
-              <span>➕ Ajouter un critère</span>
-            </button>
+            />
           </div>
 
           <!-- Targets / Actions configuration -->
-          <div v-if="hasValidConditions" class="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Alors effectuer l'action suivante :
-            </label>
+          <div v-if="hasValidConditions" class="pt-3 border-t border-slate-200 dark:border-slate-700/80 space-y-3">
+            <label class="q-label !mb-0">Action à effectuer :</label>
 
             <!-- Show/Hide other questions (Trigger Mode) -->
             <div v-if="logicMode === 'trigger' && selectedRuleType === 'show_hide'" class="space-y-3">
-              <div class="flex flex-col space-y-2 mb-3">
-                <label class="flex items-start cursor-pointer p-2 rounded-lg hover:bg-gray-150 dark:hover:bg-gray-700/50">
-                  <input v-model="rule.action" type="radio" value="show" class="text-primary-600 focus:ring-primary-500 mt-0.5" />
-                  <div class="ml-2">
-                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">Afficher les questions cibles</span>
-                    <p class="text-2xs text-gray-500 dark:text-gray-400 mt-0.5">💡 Les questions cibles seront masquées par défaut au démarrage du questionnaire.</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label :class="['q-choice', rule.action === 'show' && 'q-choice-active']">
+                  <input v-model="rule.action" type="radio" value="show" class="q-check mt-0.5" />
+                  <div>
+                    <span class="q-choice-title">Afficher les questions cibles</span>
+                    <span class="q-choice-desc block">Masquées par défaut au démarrage du questionnaire</span>
                   </div>
                 </label>
 
-                <label class="flex items-start cursor-pointer p-2 rounded-lg hover:bg-gray-150 dark:hover:bg-gray-700/50">
-                  <input v-model="rule.action" type="radio" value="hide" class="text-primary-600 focus:ring-primary-500 mt-0.5" />
-                  <div class="ml-2">
-                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">Masquer les questions cibles</span>
-                    <p class="text-2xs text-gray-500 dark:text-gray-400 mt-0.5">💡 Les questions cibles seront affichées par défaut au démarrage du questionnaire.</p>
+                <label :class="['q-choice', rule.action === 'hide' && 'q-choice-active']">
+                  <input v-model="rule.action" type="radio" value="hide" class="q-check mt-0.5" />
+                  <div>
+                    <span class="q-choice-title">Masquer les questions cibles</span>
+                    <span class="q-choice-desc block">Visibles par défaut au démarrage du questionnaire</span>
                   </div>
                 </label>
               </div>
 
-              <div class="border border-gray-200 dark:border-gray-650 bg-white dark:bg-gray-800 rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
-                <label v-for="q in otherQuestions" :key="q.uuid || q.id" class="flex items-center space-x-2 cursor-pointer">
-                  <input v-model="rule.targetQuestionIds" type="checkbox" :value="q.uuid || q.id" class="text-primary-600 focus:ring-primary-500 rounded" />
-                  <span class="text-xs text-gray-700 dark:text-gray-300">{{ q.label }}</span>
+              <div class="border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 rounded-xl p-3 max-h-40 overflow-y-auto space-y-1.5">
+                <label v-for="q in otherQuestions" :key="q.uuid || q.id" class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                  <input v-model="rule.targetQuestionIds" type="checkbox" :value="q.uuid || q.id" class="q-check !w-3.5 !h-3.5" />
+                  <span class="text-xs text-slate-800 dark:text-slate-200">{{ q.label }}</span>
                 </label>
               </div>
             </div>
 
             <!-- Jump Section (Trigger Mode) -->
             <div v-else-if="logicMode === 'trigger' && selectedRuleType === 'jump_section'">
-              <select v-model="rule.targetSectionId" class="input-field">
-                <option value="">Sélectionnez la section destination</option>
-                <option v-for="s in availableSections" :key="s.uuid || s.id" :value="s.uuid || s.id">{{ s.title }}</option>
-              </select>
+              <FormField label="Section destination" for="jump-section-select">
+                <select id="jump-section-select" v-model="rule.targetSectionId" class="q-input">
+                  <option value="">Sélectionnez la section destination...</option>
+                  <option v-for="s in availableSections" :key="s.uuid || s.id" :value="s.uuid || s.id">{{ s.title }}</option>
+                </select>
+              </FormField>
             </div>
 
             <!-- End Survey (Trigger Mode) -->
-            <div v-else-if="logicMode === 'trigger' && selectedRuleType === 'end_survey'" class="space-y-3">
-              <p class="text-xs text-yellow-800 dark:text-yellow-250 bg-yellow-50 dark:bg-yellow-950/20 p-3 rounded-lg border border-yellow-200 dark:border-yellow-900">
-                ⚠️ Cette action terminera prématurément le questionnaire pour le répondant.
-              </p>
-              <textarea v-model="rule.endMessage" class="w-full input-field" rows="2" placeholder="Message de fin personnalisé (optionnel)" />
+            <div v-else-if="logicMode === 'trigger' && selectedRuleType === 'end_survey'" class="space-y-2">
+              <div class="q-callout q-callout-warning">
+                <ExclamationCircleIcon class="w-4 h-4 shrink-0 mt-0.5" />
+                <p>Cette action terminera immédiatement le questionnaire pour le participant.</p>
+              </div>
+              <textarea v-model="rule.endMessage" class="q-input" rows="2" placeholder="Message de fin personnalisé (optionnel)" />
             </div>
 
             <!-- Set Required (Trigger Mode) -->
             <div v-else-if="logicMode === 'trigger' && selectedRuleType === 'set_required'" class="space-y-3">
-              <div class="flex flex-col space-y-2 mb-3">
-                <label class="flex items-start cursor-pointer p-2 rounded-lg hover:bg-gray-150 dark:hover:bg-gray-700/50">
-                  <input v-model="rule.action" type="radio" value="require" class="text-primary-600 focus:ring-primary-500 mt-0.5" />
-                  <div class="ml-2">
-                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">Rendre obligatoire</span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <label :class="['q-choice', rule.action === 'require' && 'q-choice-active']">
+                  <input v-model="rule.action" type="radio" value="require" class="q-check mt-0.5" />
+                  <div>
+                    <span class="q-choice-title">Rendre obligatoire</span>
                   </div>
                 </label>
-                <label class="flex items-start cursor-pointer p-2 rounded-lg hover:bg-gray-150 dark:hover:bg-gray-700/50">
-                  <input v-model="rule.action" type="radio" value="optional" class="text-primary-600 focus:ring-primary-500 mt-0.5" />
-                  <div class="ml-2">
-                    <span class="text-sm font-semibold text-gray-800 dark:text-gray-200">Rendre facultatif</span>
+                <label :class="['q-choice', rule.action === 'optional' && 'q-choice-active']">
+                  <input v-model="rule.action" type="radio" value="optional" class="q-check mt-0.5" />
+                  <div>
+                    <span class="q-choice-title">Rendre facultatif</span>
                   </div>
                 </label>
               </div>
 
-              <div class="border border-gray-200 dark:border-gray-650 bg-white dark:bg-gray-800 rounded-lg p-3 max-h-40 overflow-y-auto space-y-2">
-                <label v-for="q in otherQuestions" :key="q.uuid || q.id" class="flex items-center space-x-2 cursor-pointer">
-                  <input v-model="rule.targetQuestionIds" type="checkbox" :value="q.uuid || q.id" class="text-primary-600 focus:ring-primary-500 rounded" />
-                  <span class="text-xs text-gray-700 dark:text-gray-300">{{ q.label }}</span>
+              <div class="border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 rounded-xl p-3 max-h-40 overflow-y-auto space-y-1.5">
+                <label v-for="q in otherQuestions" :key="q.uuid || q.id" class="flex items-center gap-2 cursor-pointer p-1 rounded hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                  <input v-model="rule.targetQuestionIds" type="checkbox" :value="q.uuid || q.id" class="q-check !w-3.5 !h-3.5" />
+                  <span class="text-xs text-slate-800 dark:text-slate-200">{{ q.label }}</span>
                 </label>
               </div>
             </div>
 
             <!-- Actions list (Dependency Mode) -->
-            <div v-else-if="logicMode === 'dependency'" class="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <label :class="['p-3 border rounded-lg cursor-pointer flex flex-col justify-between text-xs', rule.action === 'show' ? 'border-primary-500 bg-primary-50/50 dark:bg-primary-950/20 text-primary-950 dark:text-primary-200' : 'border-gray-200 dark:border-gray-700']">
-                <div class="flex items-center space-x-2 font-semibold">
-                  <input v-model="rule.action" type="radio" value="show" class="text-primary-600 focus:ring-primary-500" />
-                  <span>Afficher la question</span>
+            <div v-else-if="logicMode === 'dependency'" class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <label :class="['q-choice', rule.action === 'show' && 'q-choice-active']">
+                <input v-model="rule.action" type="radio" value="show" class="q-check mt-0.5" />
+                <div>
+                  <span class="q-choice-title">Afficher la question</span>
+                  <span class="q-choice-desc block">Masquée par défaut</span>
                 </div>
-                <span class="text-2xs text-gray-500 dark:text-gray-400 mt-2">💡 Masquée par défaut, s'affiche si la condition est vraie.</span>
               </label>
 
-              <label :class="['p-3 border rounded-lg cursor-pointer flex flex-col justify-between text-xs', rule.action === 'hide' ? 'border-primary-500 bg-primary-50/50 dark:bg-primary-950/20 text-primary-950 dark:text-primary-200' : 'border-gray-200 dark:border-gray-700']">
-                <div class="flex items-center space-x-2 font-semibold">
-                  <input v-model="rule.action" type="radio" value="hide" class="text-primary-600 focus:ring-primary-500" />
-                  <span>Masquer la question</span>
+              <label :class="['q-choice', rule.action === 'hide' && 'q-choice-active']">
+                <input v-model="rule.action" type="radio" value="hide" class="q-check mt-0.5" />
+                <div>
+                  <span class="q-choice-title">Masquer la question</span>
+                  <span class="q-choice-desc block">Visible par défaut</span>
                 </div>
-                <span class="text-2xs text-gray-500 dark:text-gray-400 mt-2">💡 Visible par défaut, se masque si la condition est vraie.</span>
               </label>
 
-              <label :class="['p-3 border rounded-lg cursor-pointer flex flex-col justify-between text-xs', rule.action === 'require' ? 'border-primary-500 bg-primary-50/50 dark:bg-primary-950/20 text-primary-950 dark:text-primary-200' : 'border-gray-200 dark:border-gray-700']">
-                <div class="flex items-center space-x-2 font-semibold">
-                  <input v-model="rule.action" type="radio" value="require" class="text-primary-600 focus:ring-primary-500" />
-                  <span>Rendre obligatoire</span>
+              <label :class="['q-choice', rule.action === 'require' && 'q-choice-active']">
+                <input v-model="rule.action" type="radio" value="require" class="q-check mt-0.5" />
+                <div>
+                  <span class="q-choice-title">Rendre obligatoire</span>
+                  <span class="q-choice-desc block">Facultative par défaut</span>
                 </div>
-                <span class="text-2xs text-gray-500 dark:text-gray-400 mt-2">💡 Devient obligatoire si la condition est vraie.</span>
               </label>
             </div>
           </div>
         </div>
-      </div>
+      </FormSection>
 
       <!-- Live Preview of Current Rule -->
-      <div v-if="isRuleComplete" class="mt-4 p-4 rounded-xl border bg-emerald-50/80 dark:bg-emerald-950/30 border-emerald-205 dark:border-emerald-800 shadow-sm">
-        <h4 class="text-2xs font-semibold uppercase tracking-wider text-emerald-800 dark:text-emerald-300 mb-1">
-          ✓ Aperçu de la nouvelle règle
-        </h4>
-        <p class="text-xs text-emerald-900 dark:text-emerald-250 font-medium">
-          {{ getRulePreviewText() }}
-        </p>
+      <div v-if="isRuleComplete" class="q-callout q-callout-success">
+        <CheckCircleIcon class="w-4 h-4 shrink-0 mt-0.5" />
+        <div>
+          <p class="font-bold text-xs">Aperçu de la règle en cours</p>
+          <p class="mt-0.5">{{ getRulePreviewText() }}</p>
+        </div>
       </div>
 
       <!-- Existing Rules Summaries -->
-      <div class="border-t border-gray-200 dark:border-gray-700 pt-6 mt-6">
+      <div v-if="outgoingRules.length > 0 || incomingRules.length > 0" class="space-y-4 pt-2 border-t border-slate-200 dark:border-slate-700/80">
         <!-- Outgoing Rules (Triggered by active question) -->
-        <div v-if="outgoingRules.length > 0" class="mb-6">
-          <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-            <span>⚡ Règles déclenchées par cette question</span>
-            <span class="text-2xs bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200 px-2 py-0.5 rounded-full font-semibold">
+        <div v-if="outgoingRules.length > 0" class="space-y-2">
+          <div class="flex items-center gap-2">
+            <h3 class="q-label !mb-0">⚡ Règles déclenchées par cette question</h3>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200">
               {{ outgoingRules.length }}
             </span>
-          </h3>
+          </div>
           <div class="space-y-2">
             <div
               v-for="(r, index) in outgoingRules"
               :key="index"
-              class="flex items-center justify-between p-3 border border-amber-200 dark:border-amber-800/50 bg-amber-50/30 dark:bg-amber-950/20 rounded-lg shadow-sm"
+              class="flex items-center justify-between gap-3 p-3 border border-amber-200 dark:border-amber-800/50 bg-amber-50/30 dark:bg-amber-950/20 rounded-xl"
             >
-              <div class="flex-1 min-w-0 pr-4">
-                <p class="text-xs font-semibold text-gray-900 dark:text-white leading-relaxed">
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold text-slate-900 dark:text-white leading-relaxed">
                   {{ getRuleDescriptionText(r) }}
                 </p>
-                <p class="text-2xs text-gray-500 dark:text-gray-400 mt-1">
-                  Type d'action: {{ getRuleTypeLabel(r.type) }}
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                  Type : {{ getRuleTypeLabel(r.type) }}
                 </p>
               </div>
-              <button
+              <Button
+                severity="danger"
+                text
+                rounded
+                size="small"
+                icon="pi pi-trash"
+                aria-label="Supprimer la règle"
                 @click="removeRule(r.originalIndex)"
-                class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors border-0"
-              >
-                <TrashIcon class="w-4 h-4" />
-              </button>
+              />
             </div>
           </div>
         </div>
 
         <!-- Incoming Rules (Dependencies on prior questions) -->
-        <div v-if="incomingRules.length > 0">
-          <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-            <span>🔗 Dépendances (Question conditionnée par d'autres)</span>
-            <span class="text-2xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-2 py-0.5 rounded-full font-semibold">
+        <div v-if="incomingRules.length > 0" class="space-y-2">
+          <div class="flex items-center gap-2">
+            <h3 class="q-label !mb-0">🔗 Dépendances (Question conditionnée par d'autres)</h3>
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200">
               {{ incomingRules.length }}
             </span>
-          </h3>
+          </div>
           <div class="space-y-2">
             <div
               v-for="(inc, index) in incomingRules"
               :key="index"
-              class="flex items-center justify-between p-3 border border-blue-200 dark:border-blue-800/50 bg-blue-50/30 dark:bg-blue-950/20 rounded-lg shadow-sm"
+              class="flex items-center justify-between gap-3 p-3 border border-blue-200 dark:border-blue-800/50 bg-blue-50/30 dark:bg-blue-950/20 rounded-xl"
             >
-              <div class="flex-1 min-w-0 pr-4">
-                <p class="text-xs font-semibold text-gray-900 dark:text-white leading-relaxed">
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-semibold text-slate-900 dark:text-white leading-relaxed">
                   {{ getRuleDescriptionText(inc.rule) }}
                 </p>
               </div>
-              <button
+              <Button
+                severity="danger"
+                text
+                rounded
+                size="small"
+                icon="pi pi-trash"
+                aria-label="Supprimer la dépendance"
                 @click="removeRule(inc.originalIndex)"
-                class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors border-0"
-              >
-                <TrashIcon class="w-4 h-4" />
-              </button>
+              />
             </div>
           </div>
         </div>
       </div>
 
       <!-- Action Buttons -->
-      <div class="flex items-center justify-end space-x-3 pt-6 mt-6 border-t border-gray-200 dark:border-gray-700">
-        <button
-          @click="$emit('close')"
-          class="px-4 py-2 text-xs font-semibold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors border-0 cursor-pointer"
-        >
-          Annuler
-        </button>
-        <button
+      <div class="q-actions">
+        <Button severity="secondary" outlined label="Annuler" @click="$emit('close')" />
+        <Button
           v-if="isRuleComplete"
+          severity="secondary"
+          icon="pi pi-plus"
+          label="Ajouter la règle"
           @click="addRule"
-          class="px-4 py-2 text-xs font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors border-0 cursor-pointer shadow"
-        >
-          Ajouter la règle
-        </button>
-        <button
+        />
+        <Button
+          icon="pi pi-check"
+          label="Enregistrer et fermer"
           @click="saveRules"
-          class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors border-0 cursor-pointer shadow"
-        >
-          Enregistrer et fermer
-        </button>
+        />
       </div>
     </div>
-  </div>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
 import {
-  XMarkIcon,
   EyeIcon,
   ArrowRightIcon,
   StopIcon,
   ExclamationCircleIcon,
   BoltIcon,
   LinkIcon,
-  TrashIcon
+  AdjustmentsHorizontalIcon,
+  CheckCircleIcon
 } from '@heroicons/vue/24/outline';
 import type { Question, Section, ConditionalRule } from '@/types/survey';
+import { DialogHeader, FormField, FormSection } from '../Form';
 
 interface Props {
   question: Question;
@@ -508,7 +486,6 @@ onMounted(() => {
           value: c.value
         }));
       } else if (r.dependsOn) {
-        // Fallback backward compatibility
         conditions = [{
           sourceQuestionId: r.dependsOn,
           operator: r.operator || 'equals',
@@ -574,10 +551,10 @@ function onSourceQuestionChange(cond: ConditionDraft) {
 }
 
 const ruleTypes = [
-  { value: 'show_hide', title: 'Afficher / Masquer des questions', icon: EyeIcon },
+  { value: 'show_hide', title: 'Afficher / Masquer', icon: EyeIcon },
   { value: 'jump_section', title: 'Aller à une section', icon: ArrowRightIcon },
-  { value: 'end_survey', title: 'Terminer le questionnaire', icon: StopIcon },
-  { value: 'set_required', title: 'Modifier obligation', icon: ExclamationCircleIcon }
+  { value: 'end_survey', title: 'Terminer', icon: StopIcon },
+  { value: 'set_required', title: 'Obligation', icon: ExclamationCircleIcon }
 ];
 
 const otherQuestions = computed(() => {
@@ -664,7 +641,6 @@ const isRuleComplete = computed(() => {
         return false;
     }
   } else {
-    // Dependency Mode
     return !!rule.value.action;
   }
 });
@@ -683,14 +659,12 @@ function addRule() {
   setLogicMode(logicMode.value);
 }
 
-// Outgoing rules: rules where the current question is part of the triggering conditions
 const outgoingRules = computed(() => {
   return existingRules.value
     .map((r, index) => ({ ...r, originalIndex: index }))
     .filter(r => r.conditions.some(c => String(c.sourceQuestionId) === String(currentQuestionId)));
 });
 
-// Incoming rules: dependencies targeting the current question, triggered by other questions
 const incomingRules = computed(() => {
   return existingRules.value
     .map((r, index) => ({ ...r, originalIndex: index }))
@@ -713,7 +687,6 @@ function saveRules() {
   }
 
   const convertedRules: ConditionalRule[] = existingRules.value.map(r => {
-    // Backwards compatibility fallback properties from the first condition
     const firstCond = r.conditions[0];
     return {
       dependsOn: firstCond?.sourceQuestionId,
@@ -769,7 +742,6 @@ function getTargetQuestionsNames(targetIds: string[] = []): string {
   return `les questions (${names.join(', ')})`;
 }
 
-// Generate verbal explanation of rule conditions
 function getConditionsExplanation(conditionsList: ConditionDraft[], op: 'AND' | 'OR'): string {
   const condTexts = conditionsList.map(c => {
     const q = getQuestionById(c.sourceQuestionId);

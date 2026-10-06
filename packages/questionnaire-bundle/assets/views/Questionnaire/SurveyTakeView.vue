@@ -85,64 +85,62 @@
           </div>
 
           <!-- Questions -->
-          <div class="space-y-8">
+          <div class="space-y-6">
             <div
               v-for="(question, questionIndex) in visibleQuestions"
               :key="question.id"
-              class="card"
+              class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-2xs space-y-3"
             >
-              <div class="mb-4">
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              <div>
+                <h3 class="text-base font-bold text-slate-900 dark:text-white">
                   {{ getSectionQuestionNumber(questionIndex) }}. {{ question.title }}
                   <span v-if="question.required" class="text-red-500 ml-1">*</span>
                 </h3>
-                <p v-if="question.description" class="text-sm text-gray-600 dark:text-gray-400">
+                <p v-if="question.description" class="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   {{ question.description }}
                 </p>
               </div>
 
               <!-- Question Input -->
-              <div class="space-y-3">
+              <div class="space-y-2">
                 <!-- Single Choice -->
-                <div v-if="question.type === 'single_choice'" class="space-y-3">
-                  <div
+                <div v-if="question.type === 'single_choice'" class="space-y-2">
+                  <label
                     v-for="option in question.options"
                     :key="option.id"
-                    class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary-300 dark:hover:border-primary-600 transition-colors cursor-pointer"
-                    @click="setAnswer(question.id, option.text)"
+                    :class="['q-choice', answers[question.id] === option.text && 'q-choice-active']"
                   >
                     <input
                       type="radio"
                       :name="`question_${question.id}`"
                       :value="option.text"
                       :checked="answers[question.id] === option.text"
-                      class="text-primary-600 focus:ring-primary-500"
+                      class="q-check mt-0.5"
                       @change="setAnswer(question.id, option.text)"
                     />
-                    <label class="flex-1 cursor-pointer text-gray-700 dark:text-gray-300">
+                    <span class="flex-1 text-xs font-medium text-slate-800 dark:text-slate-200">
                       {{ option.text }}
-                    </label>
-                  </div>
+                    </span>
+                  </label>
                 </div>
 
                 <!-- Multiple Choice -->
-                <div v-else-if="question.type === 'multiple_choice'" class="space-y-3">
-                  <div
+                <div v-else-if="question.type === 'multiple_choice'" class="space-y-2">
+                  <label
                     v-for="option in question.options"
                     :key="option.id"
-                    class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary-300 dark:hover:border-primary-600 transition-colors cursor-pointer"
-                    @click="toggleMultipleChoice(question.id, option.text)"
+                    :class="['q-choice', (answers[question.id] as string[] || []).includes(option.text) && 'q-choice-active']"
                   >
                     <input
                       type="checkbox"
                       :checked="(answers[question.id] as string[] || []).includes(option.text)"
-                      class="text-primary-600 focus:ring-primary-500 rounded"
+                      class="q-check mt-0.5"
                       @change="toggleMultipleChoice(question.id, option.text)"
                     />
-                    <label class="flex-1 cursor-pointer text-gray-700 dark:text-gray-300">
+                    <span class="flex-1 text-xs font-medium text-slate-800 dark:text-slate-200">
                       {{ option.text }}
-                    </label>
-                  </div>
+                    </span>
+                  </label>
                 </div>
 
                 <!-- Text Short -->
@@ -151,13 +149,13 @@
                     type="text"
                     :value="answers[question.id] || ''"
                     @input="setAnswer(question.id, ($event.target as HTMLInputElement).value)"
-                    class="w-full input-field"
+                    class="q-input"
                     placeholder="Votre réponse..."
                     :maxlength="question.validation?.maxLength"
                   />
                   <div
                     v-if="question.validation?.maxLength"
-                    class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right"
+                    class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 text-right"
                   >
                     {{ (answers[question.id] as string || '').length }} / {{ question.validation.maxLength }}
                   </div>
@@ -168,88 +166,81 @@
                   <textarea
                     :value="answers[question.id] || ''"
                     @input="setAnswer(question.id, ($event.target as HTMLTextAreaElement).value)"
-                    class="w-full input-field resize-none"
+                    class="q-input"
                     rows="4"
                     placeholder="Votre réponse..."
                     :maxlength="question.validation?.maxLength"
                   />
                   <div
                     v-if="question.validation?.maxLength"
-                    class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right"
+                    class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 text-right"
                   >
                     {{ (answers[question.id] as string || '').length }} / {{ question.validation.maxLength }}
                   </div>
                 </div>
 
                 <!-- Scale -->
-                <div v-else-if="question.type === 'scale'">
-                  <div class="flex items-center justify-between px-4">
-                    <span class="text-sm text-gray-600 dark:text-gray-400">
-                      {{ question.validation?.min || 1 }}
-                    </span>
-                    <div class="flex space-x-2">
-                      <button
-                        v-for="n in ((question.validation?.max || 10) - (question.validation?.min || 1) + 1)"
-                        :key="n"
-                        type="button"
-                        @click="setAnswer(question.id, (question.validation?.min || 1) + n - 1)"
-                        :class="[
-                          'w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-all',
-                          answers[question.id] === (question.validation?.min || 1) + n - 1
-                            ? 'border-primary-500 bg-primary-500 text-white'
-                            : 'border-gray-300 dark:border-gray-600 hover:border-primary-400 text-gray-700 dark:text-gray-300'
-                        ]"
-                      >
-                        {{ (question.validation?.min || 1) + n - 1 }}
-                      </button>
-                    </div>
-                    <span class="text-sm text-gray-600 dark:text-gray-400">
-                      {{ question.validation?.max || 10 }}
-                    </span>
+                <div v-else-if="question.type === 'scale'" class="space-y-2">
+                  <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                    <span>{{ question.validation?.min || 1 }}</span>
+                    <span>{{ question.validation?.max || 10 }}</span>
+                  </div>
+                  <div class="flex flex-wrap gap-2 justify-center">
+                    <button
+                      v-for="n in ((question.validation?.max || 10) - (question.validation?.min || 1) + 1)"
+                      :key="n"
+                      type="button"
+                      @click="setAnswer(question.id, (question.validation?.min || 1) + n - 1)"
+                      :class="[
+                        'w-9 h-9 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center',
+                        answers[question.id] === (question.validation?.min || 1) + n - 1
+                          ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
+                          : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-primary-400'
+                      ]"
+                    >
+                      {{ (question.validation?.min || 1) + n - 1 }}
+                    </button>
                   </div>
                 </div>
 
                 <!-- Matrix (simplified) -->
-                <div v-else-if="question.type === 'matrix'">
-                  <div class="overflow-x-auto">
-                    <table class="w-full border border-gray-300 dark:border-gray-600 rounded-lg">
-                      <thead class="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                          <th class="p-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300"></th>
-                          <th
-                            v-for="col in ['Pas du tout', 'Peu', 'Moyennement', 'Beaucoup', 'Énormément']"
-                            :key="col"
-                            class="p-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
-                          >
-                            {{ col }}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr
-                          v-for="row in ['Critère 1', 'Critère 2']"
-                          :key="row"
-                          class="border-t border-gray-300 dark:border-gray-600"
+                <div v-else-if="question.type === 'matrix'" class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/80">
+                  <table class="w-full text-xs">
+                    <thead class="bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 font-semibold">
+                      <tr>
+                        <th class="p-2.5 text-left font-semibold"></th>
+                        <th
+                          v-for="col in ['Pas du tout', 'Peu', 'Moyennement', 'Beaucoup', 'Énormément']"
+                          :key="col"
+                          class="p-2.5 text-center font-semibold"
                         >
-                          <td class="p-3 text-sm text-gray-700 dark:text-gray-300 font-medium">{{ row }}</td>
-                          <td v-for="(col, colIndex) in ['Pas du tout', 'Peu', 'Moyennement', 'Beaucoup', 'Énormément']" :key="col" class="p-3 text-center">
-                            <input
-                              type="radio"
-                              :name="`matrix_${question.id}_${row}`"
-                              :value="col"
-                              @change="setMatrixAnswer(question.id, row, col)"
-                              class="text-primary-600 focus:ring-primary-500"
-                            />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
+                          {{ col }}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 dark:divide-slate-700/80 bg-white dark:bg-slate-800">
+                      <tr
+                        v-for="row in ['Critère 1', 'Critère 2']"
+                        :key="row"
+                      >
+                        <td class="p-2.5 font-medium text-slate-800 dark:text-slate-200">{{ row }}</td>
+                        <td v-for="(col) in ['Pas du tout', 'Peu', 'Moyennement', 'Beaucoup', 'Énormément']" :key="col" class="p-2.5 text-center">
+                          <input
+                            type="radio"
+                            :name="`matrix_${question.id}_${row}`"
+                            :value="col"
+                            @change="setMatrixAnswer(question.id, row, col)"
+                            class="q-check !w-3.5 !h-3.5 mx-auto"
+                          />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
 
                 <!-- Ranking -->
                 <div v-else-if="question.type === 'ranking'">
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">
                     Glissez les éléments pour les classer par ordre de préférence
                   </p>
                   <draggable
@@ -260,14 +251,14 @@
                     <div
                       v-for="(item, index) in rankingItems[question.id] || []"
                       :key="item"
-                      class="flex items-center space-x-3 p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg cursor-move hover:shadow-md transition-all"
+                      class="flex items-center gap-3 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-2xs cursor-move hover:shadow-md transition-all"
                     >
-                      <div class="flex items-center justify-center w-6 h-6 bg-primary-100 dark:bg-primary-900 text-primary-600 dark:text-primary-400 rounded-full text-sm font-medium">
+                      <div class="flex items-center justify-center w-6 h-6 bg-primary-100 dark:bg-primary-950/60 text-primary-700 dark:text-primary-300 rounded-lg text-xs font-bold">
                         {{ index + 1 }}
                       </div>
-                      <span class="text-gray-700 dark:text-gray-300">{{ item }}</span>
-                      <div class="ml-auto text-gray-400">
-                        <Bars3Icon class="w-5 h-5" />
+                      <span class="text-xs font-medium text-slate-800 dark:text-slate-200">{{ item }}</span>
+                      <div class="ml-auto text-slate-400">
+                        <Bars3Icon class="w-4 h-4" />
                       </div>
                     </div>
                   </draggable>
@@ -275,7 +266,7 @@
               </div>
 
               <!-- Validation Error -->
-              <div v-if="errors[question.id]" class="mt-2 text-sm text-red-600 dark:text-red-400">
+              <div v-if="errors[question.id]" class="q-error">
                 {{ errors[question.id] }}
               </div>
             </div>

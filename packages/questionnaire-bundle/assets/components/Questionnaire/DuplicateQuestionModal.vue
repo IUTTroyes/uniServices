@@ -1,77 +1,62 @@
 <template>
   <Dialog
-    header="Dupliquer la question"
     :visible="true"
     :modal="true"
     :closable="true"
-    :style="{ width: '500px' }"
+    :draggable="false"
+    :style="{ width: '92vw', maxWidth: '520px' }"
     @update:visible="$emit('close')"
   >
-    <div class="space-y-5 py-2">
-      <!-- Label Input -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Libellé de la nouvelle question
-        </label>
+    <template #header>
+      <DialogHeader :icon="DocumentDuplicateIcon" title="Dupliquer la question" />
+    </template>
+
+    <div class="q-form">
+      <FormField label="Libellé de la nouvelle question" for="dup-question-label" required>
         <input
+          id="dup-question-label"
           v-model="newLabel"
           type="text"
-          class="input-field w-full"
+          class="q-input"
           placeholder="Intitulé de la question"
         />
-      </div>
+      </FormField>
 
       <!-- Conditional Rules Option (only if question has rules) -->
-      <div
+      <FormSection
         v-if="hasConditionalRules"
-        class="p-3.5 bg-amber-50/70 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800 space-y-3"
+        :icon="BoltIcon"
+        tone="amber"
+        title="Logique conditionnelle"
+        :subtitle="`Cette question possède ${conditionalRules.length} règle(s) conditionnelle(s)`"
       >
-        <div class="flex items-center space-x-2 text-amber-900 dark:text-amber-200 font-semibold text-sm">
-          <BoltIcon class="w-4 h-4 text-amber-600 dark:text-amber-400" />
-          <span>Cette question possède {{ conditionalRules.length }} règle(s) conditionnelle(s)</span>
-        </div>
-
         <div class="space-y-2">
-          <label class="flex items-start space-x-2.5 cursor-pointer p-2 rounded-lg hover:bg-amber-100/50 dark:hover:bg-amber-900/30">
-            <input
-              v-model="copyRulesMode"
-              type="radio"
-              value="copy_adapt"
-              class="mt-0.5 text-amber-600 focus:ring-amber-500"
-            />
-            <div class="text-xs">
-              <span class="font-medium text-gray-900 dark:text-white">Copier et adapter les règles (Recommandé)</span>
-              <p class="text-gray-500 dark:text-gray-400 mt-0.5">La nouvelle question sera définie comme déclencheur de ces mêmes actions.</p>
+          <label :class="['q-choice', copyRulesMode === 'copy_adapt' && 'q-choice-active']">
+            <input v-model="copyRulesMode" type="radio" value="copy_adapt" class="q-check mt-0.5" />
+            <div>
+              <span class="q-choice-title">Copier et adapter les règles (Recommandé)</span>
+              <span class="q-choice-desc block">La nouvelle question sera définie comme déclencheur de ces mêmes actions.</span>
             </div>
           </label>
 
-          <label class="flex items-start space-x-2.5 cursor-pointer p-2 rounded-lg hover:bg-amber-100/50 dark:hover:bg-amber-900/30">
-            <input
-              v-model="copyRulesMode"
-              type="radio"
-              value="none"
-              class="mt-0.5 text-amber-600 focus:ring-amber-500"
-            />
-            <div class="text-xs">
-              <span class="font-medium text-gray-900 dark:text-white">Ne pas copier les règles</span>
-              <p class="text-gray-500 dark:text-gray-400 mt-0.5">Dupliquer la question sans aucune logique conditionnelle.</p>
+          <label :class="['q-choice', copyRulesMode === 'none' && 'q-choice-active']">
+            <input v-model="copyRulesMode" type="radio" value="none" class="q-check mt-0.5" />
+            <div>
+              <span class="q-choice-title">Ne pas copier les règles</span>
+              <span class="q-choice-desc block">Dupliquer la question sans aucune logique conditionnelle.</span>
             </div>
           </label>
         </div>
-      </div>
+      </FormSection>
 
-      <!-- Actions -->
-      <div class="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-        <Button severity="secondary" @click="$emit('close')">
-          Annuler
-        </Button>
+      <div class="q-actions">
+        <Button severity="secondary" outlined label="Annuler" @click="$emit('close')" />
         <Button
-          severity="primary"
+          icon="pi pi-copy"
+          label="Dupliquer la question"
           :disabled="!newLabel.trim()"
           @click="confirmDuplicate"
-        >
-          Dupliquer la question
-        </Button>
+        />
       </div>
     </div>
   </Dialog>
@@ -79,8 +64,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
-import { BoltIcon } from '@heroicons/vue/24/outline';
+import { BoltIcon, DocumentDuplicateIcon } from '@heroicons/vue/24/outline';
 import type { Question } from '@/types/survey';
+import { DialogHeader, FormField, FormSection } from '../Form';
 
 interface Props {
   question: Question;

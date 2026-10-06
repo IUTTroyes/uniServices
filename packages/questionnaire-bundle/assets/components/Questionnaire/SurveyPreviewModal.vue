@@ -1,254 +1,249 @@
 <template>
-  <Dialog header="Aperçu du questionnaire"
-          :style="{ width: '80vw' }"
-          :visible="true"
-          @update:visible="$emit('close')"
-          :modal="true" :closable="true">
-    <div
-        class="bg-white dark:bg-gray-800 rounded-xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col"
-        @click.stop
-    >
-      <div class="px-6 pt-4 pb-2 border-b border-gray-100 dark:border-gray-700/50 flex items-center justify-between">
-        <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
-          <span class="px-2.5 py-1 bg-purple-100 dark:bg-purple-900/60 text-purple-800 dark:text-purple-200 text-xs font-semibold rounded-full flex items-center gap-1">
-            🧪 Mode Test Interactif
-          </span>
-          Vous pouvez sélectionner des réponses pour tester en direct vos règles conditionnelles.
-        </p>
+  <Dialog
+    :style="{ width: '92vw', maxWidth: '900px' }"
+    :visible="true"
+    :modal="true"
+    :closable="true"
+    :draggable="false"
+    @update:visible="$emit('close')"
+  >
+    <template #header>
+      <DialogHeader
+        :icon="EyeIcon"
+        title="Aperçu du questionnaire"
+        subtitle="Test interactif des questions et des règles conditionnelles"
+      />
+    </template>
+
+    <div class="q-form">
+      <div class="q-callout q-callout-info">
+        <SparklesIcon class="w-4 h-4 shrink-0 mt-0.5" />
+        <div class="flex items-center justify-between gap-2 w-full">
+          <p class="font-semibold text-xs">
+            Mode Test Interactif — vous pouvez cocher et saisir des réponses pour tester en direct le comportement du questionnaire.
+          </p>
+        </div>
       </div>
 
       <!-- Preview Content -->
-      <div class="flex-1 overflow-y-auto p-6">
-        <div class="mx-auto">
-          <div v-if="survey">
-            <!-- Survey Header -->
-            <div class="text-center mb-8">
-              <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {{ survey.title }}
-              </h1>
-              <p v-if="survey.description" class="text-gray-600 dark:text-gray-400">
-                {{ survey.description }}
+      <div v-if="survey" class="space-y-5">
+        <!-- Survey Header -->
+        <div class="text-center py-2 border-b border-slate-200 dark:border-slate-700/80">
+          <h1 class="text-xl font-bold text-slate-900 dark:text-white">
+            {{ survey.title }}
+          </h1>
+          <p v-if="survey.description" class="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-2xl mx-auto">
+            {{ survey.description }}
+          </p>
+        </div>
+
+        <!-- Progress Bar -->
+        <div v-if="survey.opt?.showProgress" class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs font-semibold text-slate-600 dark:text-slate-400">
+            <span>Progression</span>
+            <span>{{ Math.round((currentSectionIndex + 1) / survey.sections.length * 100) }}%</span>
+          </div>
+          <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+            <div
+              class="bg-primary-600 h-2 rounded-full transition-all duration-300"
+              :style="{ width: `${(currentSectionIndex + 1) / survey.sections.length * 100}%` }"
+            />
+          </div>
+        </div>
+
+        <!-- Current Section -->
+        <ListSkeleton v-if="isLoadingSection" />
+        <template v-else>
+          <div v-if="currentSection" class="space-y-4">
+            <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/80">
+              <div class="flex items-center gap-2">
+                <h2 class="text-sm font-bold text-slate-900 dark:text-white">
+                  {{ currentSection.title }}
+                </h2>
+                <span
+                  v-if="currentSection.typeSection === 'configurable'"
+                  class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 inline-flex items-center gap-1"
+                >
+                  <Cog6ToothIcon class="w-3 h-3" />
+                  Section configurable
+                </span>
+              </div>
+              <p v-if="currentSection.description" class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                {{ currentSection.description }}
               </p>
             </div>
 
-            <!-- Progress Bar -->
-            <div v-if="survey.opt?.showProgress" class="mb-8">
-              <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                <span>Progression</span>
-                <span>{{ Math.round((currentSectionIndex + 1) / survey.sections.length * 100) }}%</span>
-              </div>
-              <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                <div
-                    class="bg-primary-600 h-2 rounded-full transition-all duration-300"
-                    :style="{ width: `${(currentSectionIndex + 1) / survey.sections.length * 100}%` }"
-                />
-              </div>
-            </div>
-
-            <!-- Current Section -->
-            <ListSkeleton v-if="isLoadingSection" />
-            <template v-else>
-              <div v-if="currentSection" class="space-y-6">
+            <!-- Questions -->
+            <div class="space-y-4">
+              <div
+                v-for="(question, questionIndex) in visibleQuestions"
+                :key="question.id || question.uuid"
+                class="p-4 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 shadow-2xs space-y-3"
+              >
                 <div>
-                  <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    {{ currentSection.title }}
-                  </h2>
-                  <div v-if="currentSection.typeSection === 'configurable'" class="mb-2">
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                      <Cog6ToothIcon class="w-3 h-3 mr-1" />
-                      Section configurable
-                    </span>
-                  </div>
-                  <p v-if="currentSection.description" class="text-gray-600 dark:text-gray-400 mb-6">
-                    {{ currentSection.description }}
+                  <h3 class="text-sm font-bold text-slate-900 dark:text-white">
+                    {{ questionIndex + 1 }}. {{ question.label }}
+                    <span v-if="question.required" class="text-red-500">*</span>
+                  </h3>
+                  <p v-if="question.help" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    {{ question.help }}
                   </p>
                 </div>
 
-                <!-- Questions -->
-                <div class="space-y-6">
-                  <div
-                      v-for="(question, questionIndex) in visibleQuestions"
-                      :key="question.id || question.uuid"
-                      class="bg-gray-50 dark:bg-gray-700/60 rounded-xl p-5 border border-gray-200/80 dark:border-gray-600/80 transition-all duration-200"
-                  >
+                <!-- Question Preview (Interactive) -->
+                <div>
+                  <!-- Single Choice -->
+                  <div v-if="question.typeQuestion === 'single_choice'" class="space-y-2">
+                    <label
+                      v-for="option in question.choices"
+                      :key="option.id"
+                      :class="['q-choice', answers[question.id || question.uuid] === option.text && 'q-choice-active']"
+                    >
+                      <input
+                        type="radio"
+                        :name="`question_${question.id || question.uuid}`"
+                        class="q-check mt-0.5"
+                        :checked="answers[question.id || question.uuid] === option.text"
+                        :value="option.text"
+                        @change="setAnswer(question.id || question.uuid, option.text)"
+                      />
+                      <span class="text-xs font-medium text-slate-800 dark:text-slate-200 flex-1">{{ option.text }}</span>
+                    </label>
+                  </div>
 
-                    <div class="mb-3">
-                      <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                        {{ questionIndex + 1 }}. {{ question.label }}
-                        <span v-if="question.required" class="text-red-500">*</span>
-                      </h3>
-                      <p v-if="question.help" class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {{ question.help }}
-                      </p>
+                  <!-- Multiple Choice -->
+                  <div v-else-if="question.typeQuestion === 'multiple_choice'" class="space-y-2">
+                    <label
+                      v-for="option in question.choices"
+                      :key="option.id"
+                      :class="['q-choice', (answers[question.id || question.uuid] || []).includes(option.text) && 'q-choice-active']"
+                    >
+                      <input
+                        type="checkbox"
+                        class="q-check mt-0.5"
+                        :checked="(answers[question.id || question.uuid] || []).includes(option.text)"
+                        :value="option.text"
+                        @change="toggleMultipleChoice(question.id || question.uuid, option.text)"
+                      />
+                      <span class="text-xs font-medium text-slate-800 dark:text-slate-200 flex-1">{{ option.text }}</span>
+                    </label>
+                  </div>
+
+                  <!-- Text Short -->
+                  <div v-else-if="question.typeQuestion === 'text_short'">
+                    <input
+                      type="text"
+                      :value="answers[question.id || question.uuid] || ''"
+                      @input="setAnswer(question.id || question.uuid, ($event.target as HTMLInputElement).value)"
+                      class="q-input"
+                      placeholder="Votre réponse..."
+                    />
+                  </div>
+
+                  <!-- Text Long -->
+                  <div v-else-if="question.typeQuestion === 'text_long'">
+                    <textarea
+                      :value="answers[question.id || question.uuid] || ''"
+                      @input="setAnswer(question.id || question.uuid, ($event.target as HTMLTextAreaElement).value)"
+                      class="q-input"
+                      rows="4"
+                      placeholder="Votre réponse..."
+                    />
+                  </div>
+
+                  <!-- Scale -->
+                  <div v-else-if="question.typeQuestion === 'scale'" class="space-y-2">
+                    <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                      <span>{{ question.scale?.minLabel || question.validation?.min || 1 }}</span>
+                      <span>{{ question.scale?.maxLabel || question.validation?.max || 10 }}</span>
                     </div>
+                    <div class="flex flex-wrap gap-2 justify-center">
+                      <button
+                        v-for="n in ((question.scale?.max || question.validation?.max || 10) - (question.scale?.min || question.validation?.min || 1) + 1)"
+                        :key="n"
+                        type="button"
+                        :class="[
+                          'w-9 h-9 rounded-xl border text-xs font-bold transition-all cursor-pointer flex items-center justify-center',
+                          answers[question.id || question.uuid] === ((question.scale?.min || question.validation?.min || 1) + n - 1)
+                            ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
+                            : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:border-primary-400'
+                        ]"
+                        @click="setAnswer(question.id || question.uuid, (question.scale?.min || question.validation?.min || 1) + n - 1)"
+                      >
+                        {{ (question.scale?.min || question.validation?.min || 1) + n - 1 }}
+                      </button>
+                    </div>
+                  </div>
 
-                    <!-- Question Preview (Interactive) -->
-                    <div class="mt-3">
-                      <!-- Single Choice -->
-                      <div v-if="question.typeQuestion === 'single_choice'" class="space-y-2">
-                        <div
-                            v-for="option in question.choices"
-                            :key="option.id"
-                            class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary-400 cursor-pointer bg-white dark:bg-gray-800 transition-colors"
-                            @click="setAnswer(question.id || question.uuid, option.text)"
-                        >
-                          <input type="radio" :name="`question_${question.id || question.uuid}`" class="text-primary-600"
-                          :checked="answers[question.id || question.uuid] === option.text"
-                          :value="option.text"
-                          @change="setAnswer(question.id || question.uuid, option.text)"
-                          />
-                          <label class="text-gray-700 dark:text-gray-300 cursor-pointer flex-1">{{ option.text }}</label>
-                        </div>
-                      </div>
+                  <!-- Matrix -->
+                  <div v-else-if="question.typeQuestion === 'matrix'" class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700/80">
+                    <table class="w-full text-xs">
+                      <thead class="bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-300 font-semibold">
+                        <tr>
+                          <th class="p-2.5 text-left"></th>
+                          <th v-for="col in ['Pas du tout', 'Peu', 'Moyennement', 'Beaucoup', 'Énormément']" :key="col" class="p-2.5 text-center">
+                            {{ col }}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-200 dark:divide-slate-700/80 bg-white dark:bg-slate-800">
+                        <tr v-for="row in ['Critère 1', 'Critère 2']" :key="row">
+                          <td class="p-2.5 font-medium text-slate-800 dark:text-slate-200">{{ row }}</td>
+                          <td v-for="n in 5" :key="n" class="p-2.5 text-center">
+                            <input type="radio" :name="`matrix_${row}`" class="q-check !w-3.5 !h-3.5 mx-auto" />
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
 
-                      <!-- Multiple Choice -->
-                      <div v-else-if="question.typeQuestion === 'multiple_choice'" class="space-y-2">
-                        <div
-                            v-for="option in question.choices"
-                            :key="option.id"
-                            class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg hover:border-primary-400 cursor-pointer bg-white dark:bg-gray-800 transition-colors"
-                            @click="toggleMultipleChoice(question.id || question.uuid, option.text)"
-                        >
-                          <input type="checkbox" class="text-primary-600 rounded"
-                                 :checked="(answers[question.id || question.uuid] || []).includes(option.text)"
-                                 :value="option.text"
-                                 @change="toggleMultipleChoice(question.id || question.uuid, option.text)" />
-                          <label class="text-gray-700 dark:text-gray-300 cursor-pointer flex-1">{{ option.text }}</label>
-                        </div>
+                  <!-- Ranking -->
+                  <div v-else-if="question.typeQuestion === 'ranking'" class="space-y-2">
+                    <div
+                      v-for="(option, index) in question.choices"
+                      :key="option.id"
+                      class="flex items-center gap-3 p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-2xs"
+                    >
+                      <div class="flex items-center justify-center w-6 h-6 bg-slate-100 dark:bg-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200">
+                        {{ index + 1 }}
                       </div>
-
-                      <!-- Text Short -->
-                      <div v-else-if="question.typeQuestion === 'text_short'">
-                        <input
-                            type="text"
-                            :value="answers[question.id || question.uuid] || ''"
-                            @input="setAnswer(question.id || question.uuid, ($event.target as HTMLInputElement).value)"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                            placeholder="Votre réponse..."
-                        />
-                      </div>
-
-                      <!-- Text Long -->
-                      <div v-else-if="question.typeQuestion === 'text_long'">
-                        <textarea
-                            :value="answers[question.id || question.uuid] || ''"
-                            @input="setAnswer(question.id || question.uuid, ($event.target as HTMLTextAreaElement).value)"
-                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white resize-none"
-                            rows="4"
-                            placeholder="Votre réponse..."
-                        />
-                      </div>
-
-                      <!-- Scale -->
-                      <div v-else-if="question.typeQuestion === 'scale'">
-                        <div class="flex items-center justify-between">
-                          <span class="text-sm text-gray-600 dark:text-gray-400">
-                            {{ question.scale?.minLabel || question.validation?.min || 1 }}
-                          </span>
-                          <div class="flex space-x-2">
-                            <button
-                                v-for="n in ((question.scale?.max || question.validation?.max || 10) - (question.scale?.min || question.validation?.min || 1) + 1)"
-                                :key="n"
-                                :class="[
-                                  'w-10 h-10 rounded-full border-2 flex items-center justify-center text-sm font-medium transition-all',
-                                  answers[question.id || question.uuid] === ((question.scale?.min || question.validation?.min || 1) + n - 1)
-                                    ? 'border-primary-600 bg-primary-50 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300 font-bold shadow-sm'
-                                    : 'border-gray-300 dark:border-gray-600 hover:border-primary-400 text-gray-700 dark:text-gray-200'
-                                ]"
-                                @click="setAnswer(question.id || question.uuid, (question.scale?.min || question.validation?.min || 1) + n - 1)"
-                            >
-                              {{ (question.scale?.min || question.validation?.min || 1) + n - 1 }}
-                            </button>
-                          </div>
-                          <span class="text-sm text-gray-600 dark:text-gray-400">
-                            {{ question.scale?.maxLabel || question.validation?.max || 10 }}
-                          </span>
-                        </div>
-                      </div>
-
-                      <!-- Matrix -->
-                      <div v-else-if="question.typeQuestion === 'matrix'">
-                        <div class="overflow-x-auto">
-                          <table class="w-full border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800">
-                            <thead class="bg-gray-100 dark:bg-gray-700">
-                            <tr>
-                              <th class="p-3 text-left text-sm font-medium text-gray-700 dark:text-gray-300"></th>
-                              <th
-                                  v-for="col in ['Pas du tout', 'Peu', 'Moyennement', 'Beaucoup', 'Énormément']"
-                                  :key="col"
-                                  class="p-3 text-center text-sm font-medium text-gray-700 dark:text-gray-300"
-                              >
-                                {{ col }}
-                              </th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr
-                                v-for="row in ['Critère 1', 'Critère 2']"
-                                :key="row"
-                                class="border-t border-gray-300 dark:border-gray-600"
-                            >
-                              <td class="p-3 text-sm text-gray-700 dark:text-gray-300 font-medium">{{ row }}</td>
-                              <td v-for="n in 5" :key="n" class="p-3 text-center">
-                                <input type="radio" :name="`matrix_${row}`" />
-                              </td>
-                            </tr>
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-
-                      <!-- Ranking -->
-                      <div v-else-if="question.typeQuestion === 'ranking'">
-                        <div class="space-y-2">
-                          <div
-                              v-for="(option, index) in question.choices"
-                              :key="option.id"
-                              class="flex items-center space-x-3 p-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg"
-                          >
-                            <div class="flex items-center justify-center w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded text-sm font-medium">
-                              {{ index + 1 }}
-                            </div>
-                            <span class="text-gray-700 dark:text-gray-300">{{ option.text }}</span>
-                          </div>
-                        </div>
-                      </div>
+                      <span class="text-xs font-medium text-slate-800 dark:text-slate-200">{{ option.text }}</span>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
 
-              <!-- Navigation -->
-              <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <!-- Navigation -->
+            <div class="q-actions !justify-between">
+              <Button
+                v-if="survey.opt?.allowBack && currentSectionIndex > 0"
+                severity="secondary"
+                outlined
+                icon="pi pi-chevron-left"
+                label="Précédent"
+                @click="prevSection()"
+              />
+              <div v-else></div>
+
+              <div class="flex items-center gap-2">
                 <Button
-                    severity="secondary"
-                    v-if="survey.opt?.allowBack && currentSectionIndex > 0"
-                    @click="prevSection()"
-                >
-                  <ChevronLeftIcon class="w-4 h-4" />
-                  Précédent
-                </Button>
-                <div v-else></div>
-
-                <div class="flex items-center space-x-2">
-                  <Button
-                      v-if="currentSectionIndex < survey.sections.length - 1"
-                      @click="nextSection()"
-                  >
-                    Suivant
-                    <ChevronRightIcon class="w-4 h-4" />
-                  </Button>
-                  <Button
-                      v-else
-                  >
-                    Terminer (Mode Aperçu)
-                    <CheckIcon class="w-4 h-4" />
-                  </Button>
-                </div>
+                  v-if="currentSectionIndex < survey.sections.length - 1"
+                  icon="pi pi-chevron-right"
+                  iconPos="right"
+                  label="Suivant"
+                  @click="nextSection()"
+                />
+                <Button
+                  v-else
+                  icon="pi pi-check"
+                  label="Terminer (Mode Aperçu)"
+                  @click="$emit('close')"
+                />
               </div>
-            </template>
+            </div>
           </div>
-        </div>
+        </template>
       </div>
     </div>
   </Dialog>
@@ -256,15 +251,17 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
+import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
 import {
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  CheckIcon,
-  Cog6ToothIcon
+  Cog6ToothIcon,
+  EyeIcon,
+  SparklesIcon
 } from '@heroicons/vue/24/outline';
 import type { Section, Survey } from '@/types/survey';
 import { getPreviewQuestionnaire, getPreviewQuestionnaireSection } from '@/requests/questionnaire_services/questionnaireService.js';
 import { ListSkeleton } from '@components';
+import { DialogHeader } from '../Form';
 
 interface Props {
   uuid: string;
@@ -323,7 +320,6 @@ function getAnswerForQuestion(questionId: any): any {
   let val = answers.value[questionId];
   if (val !== undefined) return val;
 
-  // Search by UUID or ID match
   const allQuestions = getAllQuestions();
   allQuestions.forEach((sq: any) => {
     const sqId = sq.id || sq.uuid || sq.questionId;
@@ -413,10 +409,8 @@ const visibleQuestions = computed(() => {
   return currentSection.value.questions.filter((question: any) => {
     const qId = question.id || question.uuid || question.questionId;
 
-    // Collect all applicable rules for this question
     const applicableRules: any[] = [];
 
-    // 1. Check if question has a DTO visibility property from backend preview
     if (question.visibility && (question.visibility.dependsOnQuestionId || (question.visibility.conditions && question.visibility.conditions.length > 0))) {
       applicableRules.push({
         dependsOn: question.visibility.dependsOnQuestionId,
@@ -429,7 +423,6 @@ const visibleQuestions = computed(() => {
       });
     }
 
-    // 2. Check conditionalRules across all questions in the survey
     allQuestions.forEach((sq: any) => {
       if (sq.conditionalRules && Array.isArray(sq.conditionalRules)) {
         sq.conditionalRules.forEach((r: any) => {
@@ -492,4 +485,3 @@ const prevSection = async () => {
   }
 };
 </script>
-
