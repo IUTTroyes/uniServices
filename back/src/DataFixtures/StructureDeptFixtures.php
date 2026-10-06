@@ -71,10 +71,34 @@ class StructureDeptFixtures extends Fixture implements OrderedFixtureInterface
             $superadminDept = new StructureDepartementPersonnel();
             $superadminDept->setPersonnel($superadmin)
                 ->setDepartement($departement1)
-                ->setPackages(['intranet', 'stages', 'edt', 'helpdesk', 'questionnaire', 'unifolio'])
+                ->setPackages(['intranet', 'stages', 'edt', 'helpdesk', 'questionnaire', 'unifolio', 'finance'])
                 ->setPermissions(['SUPER_ADMIN'])
                 ->setDefaut(true);
             $manager->persist($superadminDept);
+        }
+
+        // ----------- ASSISTANTE DEPARTEMENT MMI
+        $assistante = $this->personnelRepository->findOneBy(['username' => 'assistante']);
+        if ($assistante) {
+            $assistanteDept = new StructureDepartementPersonnel();
+            $assistanteDept->setPersonnel($assistante)
+                ->setDepartement($departement1)
+                ->setPackages(['intranet', 'stages', 'edt', 'helpdesk', 'questionnaire', 'unifolio', 'finance'])
+                ->setPermissions(['ROLE_ASSISTANTE', 'ROLE_FINANCE_DEMANDEUR', 'ROLE_FINANCE_VIEW'])
+                ->setDefaut(true);
+            $manager->persist($assistanteDept);
+        }
+
+        // ----------- COMPTE FINANCE
+        $finance = $this->personnelRepository->findOneBy(['username' => 'finance']);
+        if ($finance) {
+            $financeDept = new StructureDepartementPersonnel();
+            $financeDept->setPersonnel($finance)
+                ->setDepartement($departement1)
+                ->setPackages(['intranet', 'helpdesk', 'finance'])
+                ->setPermissions(['ROLE_FINANCE_MANAGER', 'ROLE_FINANCE_DEMANDEUR', 'ROLE_FINANCE_VIEW'])
+                ->setDefaut(true);
+            $manager->persist($financeDept);
         }
 
         $manager->flush();
