@@ -3,14 +3,14 @@
 namespace App\Service\Dashboard\Core;
 
 use App\Domain\Dashboard\DashboardDefinitionInterface;
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 class DashboardRegistry
 {
     private array $dashboards = [];
 
     public function __construct(
-        #[TaggedIterator('app.dashboard.definition')]
+        #[AutowireIterator('app.dashboard.definition')]
         iterable $definitions
     ) {
         foreach ($definitions as $definition) {

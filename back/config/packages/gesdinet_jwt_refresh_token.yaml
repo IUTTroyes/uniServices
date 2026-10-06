@@ -1,7 +1,6 @@
 gesdinet_jwt_refresh_token:
     refresh_token_class: App\Entity\RefreshToken
     ttl: 1209600 # 14 jours (14 * 24 * 60 * 60)
-    user_identity_field: username
     single_use: true # Rotation : nouveau token à chaque refresh pour plus de sécurité
     cookie:
         enabled: true

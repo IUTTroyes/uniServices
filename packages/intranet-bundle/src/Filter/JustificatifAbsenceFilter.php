@@ -6,7 +6,6 @@ use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\PropertyInfo\Type;
 
 class JustificatifAbsenceFilter extends AbstractFilter
 {
@@ -107,7 +106,7 @@ class JustificatifAbsenceFilter extends AbstractFilter
         return [
             'annee' => [
                 'property' => 'annee',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by annee',
@@ -115,7 +114,7 @@ class JustificatifAbsenceFilter extends AbstractFilter
             ],
             'anneeUniversitaire' => [
                 'property' => 'anneeUniversitaire',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by anneeUniversitaire',
@@ -123,7 +122,7 @@ class JustificatifAbsenceFilter extends AbstractFilter
             ],
             'etat' => [
                 'property' => 'etat',
-                'type' => Type::BUILTIN_TYPE_STRING,
+                'type' => 'string',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by etat',
@@ -131,7 +130,7 @@ class JustificatifAbsenceFilter extends AbstractFilter
             ],
             'motif' => [
                 'property' => 'motif',
-                'type' => Type::BUILTIN_TYPE_STRING,
+                'type' => 'string',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by motif',
@@ -139,7 +138,7 @@ class JustificatifAbsenceFilter extends AbstractFilter
             ],
             'etudiant' => [
                 'property' => 'etudiant',
-                'type' => Type::BUILTIN_TYPE_STRING,
+                'type' => 'string',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by etudiant display',
@@ -147,7 +146,7 @@ class JustificatifAbsenceFilter extends AbstractFilter
             ],
             'debut' => [
                 'property' => 'debut',
-                'type' => Type::BUILTIN_TYPE_STRING,
+                'type' => 'string',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by start date',
@@ -155,7 +154,7 @@ class JustificatifAbsenceFilter extends AbstractFilter
             ],
             'fin' => [
                 'property' => 'fin',
-                'type' => Type::BUILTIN_TYPE_STRING,
+                'type' => 'string',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by end date',

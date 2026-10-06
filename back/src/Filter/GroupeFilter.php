@@ -8,7 +8,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use App\Entity\Structure\StructureAnnee;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(GroupeFilter::class)]
 class GroupeFilter extends AbstractFilter
@@ -40,7 +39,7 @@ class GroupeFilter extends AbstractFilter
         return [
             'semestre' => [
                 'property' => 'semestre',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by semestre',
@@ -48,7 +47,7 @@ class GroupeFilter extends AbstractFilter
             ],
             'type' => [
                 'property' => 'type',
-                'type' => Type::BUILTIN_TYPE_STRING,
+                'type' => 'string',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by type (e.g., TD, TP, CM)',

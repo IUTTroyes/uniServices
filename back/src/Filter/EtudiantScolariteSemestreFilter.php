@@ -7,7 +7,6 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(EtudiantScolariteSemestreFilter::class)]
 class EtudiantScolariteSemestreFilter extends AbstractFilter
@@ -89,7 +88,7 @@ class EtudiantScolariteSemestreFilter extends AbstractFilter
         return [
             'scolarite' => [
                 'property' => 'scolarite',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by scolarite',
@@ -97,7 +96,7 @@ class EtudiantScolariteSemestreFilter extends AbstractFilter
             ],
             'groupe' => [
                 'property' => 'groupe',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by groupe',
@@ -105,7 +104,7 @@ class EtudiantScolariteSemestreFilter extends AbstractFilter
             ],
             'semestre' => [
                 'property' => 'semestre',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by semestre',
@@ -113,7 +112,7 @@ class EtudiantScolariteSemestreFilter extends AbstractFilter
             ],
             'etudiant' => [
                 'property' => 'etudiant',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by etudiant',
@@ -121,7 +120,7 @@ class EtudiantScolariteSemestreFilter extends AbstractFilter
             ],
             'anneeUniversitaire' => [
                 'property' => 'anneeUniversitaire',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by anneeUniversitaire',
