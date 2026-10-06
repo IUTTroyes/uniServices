@@ -1,6 +1,13 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
+import Button from 'primevue/button';
+import {
+  DocumentTextIcon,
+  TagIcon,
+  EyeIcon
+} from '@heroicons/vue/24/outline';
+import { FormSection } from '../../components/Form';
 
 const toast = useToast();
 
@@ -51,13 +58,13 @@ const insertTag = (tag) => {
 // Computed property to parse and render preview in real-time
 const renderedPreview = computed(() => {
   let output = templateBody.value;
-  
+
   // Replace tags with sample data
   placeholders.forEach(item => {
     // Escape special characters for regex search
     const escapedTag = item.tag.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
     const regex = new RegExp(escapedTag, 'g');
-    output = output.replace(regex, `<span class="bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-400 px-1 py-0.5 rounded font-semibold font-mono text-[11px]">${item.example}</span>`);
+    output = output.replace(regex, `<span class="bg-teal-100 dark:bg-teal-950/50 text-teal-800 dark:text-teal-300 px-1 py-0.5 rounded font-semibold font-mono text-[11px] border border-teal-200 dark:border-teal-800/80">${item.example}</span>`);
   });
 
   // Preserve linebreaks as html tags
@@ -79,10 +86,10 @@ const saveTemplate = () => {
     <Toast />
 
     <!-- Top Header -->
-    <div class="flex items-center gap-4 justify-between border-b border-slate-100 dark:border-slate-800 pb-5">
+    <div class="flex items-center gap-4 justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
       <div>
         <h1 class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-          <i class="pi pi-cog text-rose-500"></i>
+          <i class="pi pi-cog text-teal-600"></i>
           <span>Gestion des Modèles de Convention</span>
         </h1>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -90,98 +97,95 @@ const saveTemplate = () => {
         </p>
       </div>
 
-      <button 
+      <Button
+        label="Enregistrer le modèle"
+        icon="pi pi-save"
+        severity="primary"
         @click="saveTemplate"
-        class="text-xs font-bold px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md transition-all flex items-center gap-2"
-      >
-        <i class="pi pi-save"></i>
-        <span>Enregistrer le modèle</span>
-      </button>
+      />
     </div>
 
     <!-- Main Workspace Splitter -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-      
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
       <!-- Left Column: Template Editor Area (7 columns) -->
       <div class="lg:col-span-7 space-y-6">
-        
-        <!-- Editor Input Card -->
-        <div class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm space-y-4">
-          <div class="flex justify-between items-center">
-            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Corps de la Convention</h3>
-            <span class="text-[10px] text-slate-400 font-mono">Format brut (Variables incluses)</span>
-          </div>
 
-          <textarea 
-            v-model="templateBody" 
-            rows="16" 
-            class="w-full p-4 border border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-900 text-xs font-mono text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-500 leading-relaxed"
+        <!-- Editor Input Card -->
+        <FormSection
+          :icon="DocumentTextIcon"
+          tone="teal"
+          title="Corps de la Convention"
+          description="Format brut avec intégration de variables dynamiques entre accolades."
+        >
+          <textarea
+            v-model="templateBody"
+            rows="16"
+            class="q-input font-mono text-xs leading-relaxed"
             placeholder="Saisissez le texte du modèle de convention..."
           ></textarea>
-        </div>
+        </FormSection>
 
         <!-- Placeholders Helper Catalog -->
-        <div class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm">
-          <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-            <i class="pi pi-tags text-rose-500"></i>
-            <span>Variables dynamiques disponibles</span>
-          </h3>
-          <p class="text-xs text-slate-400 mb-4">Cliquez sur une variable ci-dessous pour l'ajouter à la fin du document.</p>
-
-          <div class="flex flex-wrap gap-2 max-h-[160px] overflow-y-auto pr-2">
-            <button 
-              v-for="item in placeholders" 
+        <FormSection
+          :icon="TagIcon"
+          tone="indigo"
+          title="Variables dynamiques disponibles"
+          description="Cliquez sur une variable pour l'insérer à la fin du document."
+        >
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-[220px] overflow-y-auto pr-1">
+            <button
+              v-for="item in placeholders"
               :key="item.tag"
               @click="insertTag(item.tag)"
-              class="px-2.5 py-1.5 bg-slate-50 hover:bg-rose-50 dark:bg-slate-700/40 dark:hover:bg-rose-950/20 text-slate-700 hover:text-rose-700 dark:text-slate-300 dark:hover:text-rose-400 border border-slate-200/60 dark:border-slate-700 rounded-lg text-[10px] font-mono transition-all text-left flex flex-col gap-0.5 w-[calc(50%-4px)] md:w-[calc(33.33%-6px)]"
-              v-tooltip="item.desc"
+              class="p-2 bg-white dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-teal-950/30 text-slate-700 hover:text-teal-700 dark:text-slate-300 dark:hover:text-teal-300 border border-slate-200 dark:border-slate-700/80 hover:border-teal-300 rounded-xl text-xs font-mono transition-all text-left flex flex-col gap-0.5 cursor-pointer shadow-2xs"
             >
-              <strong class="text-rose-600 dark:text-rose-400">{{ item.tag }}</strong>
-              <span class="text-[9px] text-slate-400 truncate">{{ item.desc }}</span>
+              <strong class="text-teal-600 dark:text-teal-400 text-xs">{{ item.tag }}</strong>
+              <span class="text-2xs text-slate-400 dark:text-slate-500 truncate">{{ item.desc }}</span>
             </button>
           </div>
-        </div>
+        </FormSection>
 
       </div>
 
       <!-- Right Column: Visual Real-time Preview (5 columns) -->
-      <div class="lg:col-span-5 space-y-6">
-        
-        <div class="flex flex-col h-full">
-          <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Prévisualisation du rendu (Format A4)</h3>
-          
-          <!-- Mock Letterhead Page -->
-          <div class="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/50 rounded-2xl shadow-xl flex-1 p-8 min-h-[500px] flex flex-col relative overflow-hidden select-none">
-            
-            <!-- Letterhead header -->
-            <div class="flex justify-between items-start border-b-2 border-slate-100 dark:border-slate-800 pb-4 mb-6">
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-lg bg-rose-500 flex items-center justify-center text-white text-[10px] font-black tracking-tighter">
-                  IUT
-                </div>
-                <div>
-                  <h4 class="text-[10px] font-black text-slate-900 dark:text-white uppercase leading-none">IUT de Troyes</h4>
-                  <span class="text-[8px] text-slate-400 leading-none">Université de Reims Champagne-Ardenne</span>
-                </div>
+      <div class="lg:col-span-5 space-y-3">
+        <div class="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <EyeIcon class="w-4 h-4 text-teal-600" />
+          <span>Aperçu du rendu (Format A4)</span>
+        </div>
+
+        <!-- Mock Letterhead Page -->
+        <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-2xl shadow-xs p-7 min-h-[520px] flex flex-col relative overflow-hidden select-none">
+
+          <!-- Letterhead header -->
+          <div class="flex justify-between items-start border-b border-slate-100 dark:border-slate-800 pb-4 mb-6">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white text-[11px] font-black tracking-tighter shadow-2xs">
+                IUT
               </div>
-              <span class="text-[8px] text-slate-400 font-mono">DOC_CONV_V2</span>
+              <div>
+                <h4 class="text-xs font-black text-slate-900 dark:text-white uppercase leading-none">IUT de Troyes</h4>
+                <span class="text-[9px] text-slate-400 leading-none">Université de Reims Champagne-Ardenne</span>
+              </div>
             </div>
+            <span class="text-[9px] text-slate-400 font-mono">DOC_CONV_V2</span>
+          </div>
 
-            <!-- Content Area rendering dynamic preview -->
-            <div 
-              class="text-[10px] leading-relaxed text-slate-700 dark:text-slate-300 flex-1 whitespace-pre-line"
-              v-html="renderedPreview"
-            ></div>
+          <!-- Content Area rendering dynamic preview -->
+          <div
+            class="text-[11px] leading-relaxed text-slate-700 dark:text-slate-300 flex-1 whitespace-pre-line"
+            v-html="renderedPreview"
+          ></div>
 
-            <!-- Letterhead footer -->
-            <div class="border-t border-slate-100 dark:border-slate-800 pt-3 mt-8 text-[7px] text-center text-slate-400 uppercase tracking-wider">
-              Document officiel généré numériquement par UniServices - IUT de Troyes
-            </div>
+          <!-- Letterhead footer -->
+          <div class="border-t border-slate-100 dark:border-slate-800 pt-3 mt-8 text-[8px] text-center text-slate-400 uppercase tracking-wider">
+            Document officiel généré numériquement par UniServices - IUT de Troyes
+          </div>
 
-            <!-- Page watermark -->
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03] transform -rotate-12 select-none">
-              <span class="text-5xl font-black uppercase text-slate-900">Spécimen</span>
-            </div>
+          <!-- Page watermark -->
+          <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.02] transform -rotate-12 select-none">
+            <span class="text-6xl font-black uppercase text-slate-900 dark:text-white">Spécimen</span>
           </div>
         </div>
 
@@ -191,13 +195,3 @@ const saveTemplate = () => {
   </div>
 </template>
 
-<style scoped>
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-</style>

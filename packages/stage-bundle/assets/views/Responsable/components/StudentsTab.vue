@@ -28,7 +28,10 @@ import {
   InformationCircleIcon,
   EnvelopeIcon,
   XCircleIcon,
+  DocumentCheckIcon,
+  BuildingOffice2Icon,
 } from '@heroicons/vue/24/outline';
+import { DialogHeader, FormSection } from '../../../components/Form';
 
 const props = defineProps({
   periods: {
@@ -948,17 +951,32 @@ const finalizeSignature = (student) => {
     </Card>
 
     <!-- DIALOG: EXAMINER / VALIDATION FLOW & DETAIL SHEET -->
-    <Dialog v-model:visible="showReviewDialog" modal header="Instruction de la demande de convention"
-      :style="{ width: '90vw', maxWidth: '850px' }" class="text-xs dark:bg-slate-800 dark:text-slate-200">
-      <div v-if="selectedRequest" class="space-y-6 py-4">
+    <Dialog
+      v-model:visible="showReviewDialog"
+      modal
+      :closable="false"
+      :style="{ width: '90vw', maxWidth: '850px' }"
+      class="p-dialog-clean"
+    >
+      <template #header>
+        <DialogHeader
+          :icon="DocumentCheckIcon"
+          tone="teal"
+          title="Instruction de la demande de convention"
+          :subtitle="selectedRequest ? `Étudiant : ${selectedRequest.studentName}` : ''"
+          @close="showReviewDialog = false"
+        />
+      </template>
+
+      <div v-if="selectedRequest" class="space-y-6 pt-1 max-h-[70vh] overflow-y-auto pr-1">
         <!-- Relecture & Édition des informations de stage/convention -->
         <div v-if="selectedRequest.hasStage" class="space-y-4">
-          <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-            <h4 class="text-xs font-black uppercase tracking-wider text-violet-600 dark:text-violet-400 flex items-center gap-1.5">
-              <i class="pi pi-file-edit"></i>
+          <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-700/80 pb-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400 flex items-center gap-1.5">
+              <PencilSquareIcon class="w-4 h-4" />
               <span>Relecture et modification des données (Responsable)</span>
             </h4>
-            <span :class="['px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase tracking-wider',
+            <span :class="['px-2.5 py-0.5 text-xs font-bold rounded-full uppercase tracking-wider',
               selectedRequest.conventionStatus === 'Validée' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300' :
               selectedRequest.conventionStatus === 'Rejetée' ? 'bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-300' :
               'bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300'
@@ -967,220 +985,210 @@ const finalizeSignature = (student) => {
             </span>
           </div>
 
-          <!-- Nom étudiant (Lecture seule) -->
-          <div class="flex flex-col gap-1 bg-slate-50 dark:bg-slate-900/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-            <span class="font-bold text-slate-400 text-[10px] uppercase">Étudiant déclarant</span>
-            <span class="font-black text-sm text-slate-800 dark:text-slate-200 mt-0.5">{{ selectedRequest.studentName }}</span>
-          </div>
-
-          <div class="space-y-6">
+          <div class="space-y-4">
             <!-- Section 1 : Profil Étudiant & Assurances -->
-            <div class="bg-slate-50/50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-4">
-              <h5 class="text-xs font-bold text-violet-750 dark:text-violet-400 flex items-center gap-2 pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
-                <i class="pi pi-user text-xs"></i>
-                <span>1. Profil Étudiant &amp; Assurances</span>
-              </h5>
+            <FormSection
+              :icon="UserIcon"
+              tone="teal"
+              title="1. Profil Étudiant & Assurances"
+            >
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Téléphone personnel</label>
-                  <input v-model="editForm.studentPhone" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Téléphone personnel</label>
+                  <input v-model="editForm.studentPhone" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">E-mail personnel (de secours)</label>
-                  <input v-model="editForm.studentEmail" type="email" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">E-mail personnel (de secours)</label>
+                  <input v-model="editForm.studentEmail" type="email" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Compagnie d'assurance RC</label>
-                  <input v-model="editForm.insuranceCompany" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Compagnie d'assurance RC</label>
+                  <input v-model="editForm.insuranceCompany" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Numéro de police d'assurance</label>
-                  <input v-model="editForm.insurancePolicyNumber" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Numéro de police d'assurance</label>
+                  <input v-model="editForm.insurancePolicyNumber" type="text" class="q-input q-input-sm" />
                 </div>
               </div>
-            </div>
+            </FormSection>
 
             <!-- Section 2 : Entreprise d'accueil -->
-            <div class="bg-slate-50/50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-4">
-              <h5 class="text-xs font-bold text-violet-755 dark:text-violet-400 flex items-center gap-2 pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
-                <i class="pi pi-briefcase text-xs"></i>
-                <span>2. Entreprise d'accueil</span>
-              </h5>
+            <FormSection
+              :icon="BuildingOffice2Icon"
+              tone="teal"
+              title="2. Entreprise d'accueil"
+            >
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Raison Sociale</label>
-                  <input v-model="editForm.companyName" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Raison Sociale</label>
+                  <input v-model="editForm.companyName" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Numéro SIRET</label>
-                  <input v-model="editForm.companySiret" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Numéro SIRET</label>
+                  <input v-model="editForm.companySiret" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-2">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Téléphone standard entreprise</label>
-                  <input v-model="editForm.companyPhone" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Téléphone standard entreprise</label>
+                  <input v-model="editForm.companyPhone" type="text" class="q-input q-input-sm" />
                 </div>
 
                 <!-- Adresse de l'entreprise -->
-                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3 bg-white dark:bg-slate-900/60 p-3 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-3 bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-2xs">
                   <div class="flex flex-col gap-1 md:col-span-3">
-                    <label class="font-bold text-slate-500 dark:text-slate-400 font-semibold">Adresse (Rue, Avenue...)</label>
-                    <input v-model="editForm.companyAddress.adresse" type="text" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none" />
+                    <label class="q-label">Adresse (Rue, Avenue...)</label>
+                    <input v-model="editForm.companyAddress.adresse" type="text" class="q-input q-input-sm" />
                   </div>
                   <div class="flex flex-col gap-1">
-                    <label class="font-bold text-slate-500 dark:text-slate-400 font-semibold">Code Postal</label>
-                    <input v-model="editForm.companyAddress.codePostal" type="text" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none" />
+                    <label class="q-label">Code Postal</label>
+                    <input v-model="editForm.companyAddress.codePostal" type="text" class="q-input q-input-sm" />
                   </div>
                   <div class="flex flex-col gap-1">
-                    <label class="font-bold text-slate-500 dark:text-slate-400 font-semibold">Ville</label>
-                    <input v-model="editForm.companyAddress.ville" type="text" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none" />
+                    <label class="q-label">Ville</label>
+                    <input v-model="editForm.companyAddress.ville" type="text" class="q-input q-input-sm" />
                   </div>
                   <div class="flex flex-col gap-1">
-                    <label class="font-bold text-slate-500 dark:text-slate-400 font-semibold">Pays</label>
-                    <input v-model="editForm.companyAddress.pays" type="text" class="w-full p-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none" />
+                    <label class="q-label">Pays</label>
+                    <input v-model="editForm.companyAddress.pays" type="text" class="q-input q-input-sm" />
                   </div>
                 </div>
               </div>
-            </div>
+            </FormSection>
 
             <!-- Section 3 : Représentant Légal (Signataire) -->
-            <div class="bg-slate-50/50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-4">
-              <h5 class="text-xs font-bold text-violet-755 dark:text-violet-400 flex items-center gap-2 pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
-                <i class="pi pi-id-card text-xs"></i>
-                <span>3. Représentant Légal (Signataire de la convention)</span>
-              </h5>
+            <FormSection
+              :icon="IdentificationIcon"
+              tone="indigo"
+              title="3. Représentant Légal (Signataire de la convention)"
+            >
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Civilité</label>
-                  <select v-model="editForm.signatoryCivilite" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                  <label class="q-label">Civilité</label>
+                  <select v-model="editForm.signatoryCivilite" class="q-input q-input-sm">
                     <option value="M">Monsieur (M.)</option>
                     <option value="Mme">Madame (Mme)</option>
                   </select>
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Prénom</label>
-                  <input v-model="editForm.signatoryPrenom" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Prénom</label>
+                  <input v-model="editForm.signatoryPrenom" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Nom</label>
-                  <input v-model="editForm.signatoryNom" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Nom</label>
+                  <input v-model="editForm.signatoryNom" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-3">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Fonction / Titre</label>
-                  <input v-model="editForm.signatoryTitle" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Fonction / Titre</label>
+                  <input v-model="editForm.signatoryTitle" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-2">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">E-mail direct</label>
-                  <input v-model="editForm.signatoryEmail" type="email" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">E-mail direct</label>
+                  <input v-model="editForm.signatoryEmail" type="email" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Téléphone direct</label>
-                  <input v-model="editForm.signatoryPhone" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Téléphone direct</label>
+                  <input v-model="editForm.signatoryPhone" type="text" class="q-input q-input-sm" />
                 </div>
               </div>
-            </div>
+            </FormSection>
 
             <!-- Section 4 : Maître de Stage (Tuteur entreprise) -->
-            <div class="bg-slate-50/50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-4">
-              <h5 class="text-xs font-bold text-violet-755 dark:text-violet-400 flex items-center gap-2 pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
-                <i class="pi pi-user-edit text-xs"></i>
-                <span>4. Maître de Stage (Tuteur entreprise)</span>
-              </h5>
-
+            <FormSection
+              :icon="UserIcon"
+              tone="purple"
+              title="4. Maître de Stage (Tuteur entreprise)"
+            >
               <!-- Checkbox tuteurSameAsSignatory -->
-              <label class="flex items-center gap-3 cursor-pointer select-none group w-fit">
-                <div class="relative">
-                  <input type="checkbox" v-model="editForm.tuteurSameAsSignatory" class="sr-only peer" />
-                  <div class="w-10 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer-checked:bg-violet-600 transition-all"></div>
-                  <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-5 shadow-sm"></div>
+              <label class="q-choice mb-3">
+                <input type="checkbox" v-model="editForm.tuteurSameAsSignatory" class="q-check mt-0.5" />
+                <div class="flex-1 min-w-0">
+                  <span class="q-choice-title">Le maître de stage est identique au signataire</span>
+                  <p class="q-choice-desc">Cochez cette case pour synchroniser automatiquement les coordonnées.</p>
                 </div>
-                <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 group-hover:text-violet-600 transition-colors">
-                  Le maître de stage est le même que le représentant légal
-                </span>
               </label>
 
               <!-- Champs du tuteur, visibles si différent -->
               <div v-if="!editForm.tuteurSameAsSignatory" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Civilité</label>
-                  <select v-model="editForm.supervisorCivilite" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                  <label class="q-label">Civilité</label>
+                  <select v-model="editForm.supervisorCivilite" class="q-input q-input-sm">
                     <option value="M">Monsieur (M.)</option>
                     <option value="Mme">Madame (Mme)</option>
                   </select>
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Prénom</label>
-                  <input v-model="editForm.supervisorPrenom" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Prénom</label>
+                  <input v-model="editForm.supervisorPrenom" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Nom</label>
-                  <input v-model="editForm.supervisorNom" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Nom</label>
+                  <input v-model="editForm.supervisorNom" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-3">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Fonction</label>
-                  <input v-model="editForm.supervisorFunction" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Fonction</label>
+                  <input v-model="editForm.supervisorFunction" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-2">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">E-mail</label>
-                  <input v-model="editForm.supervisorEmail" type="email" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">E-mail</label>
+                  <input v-model="editForm.supervisorEmail" type="email" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Téléphone</label>
-                  <input v-model="editForm.supervisorPhone" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Téléphone</label>
+                  <input v-model="editForm.supervisorPhone" type="text" class="q-input q-input-sm" />
                 </div>
               </div>
-              <div v-else class="p-3 bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/40 rounded-xl text-violet-800 dark:text-violet-300">
+              <div v-else class="q-callout q-callout-info">
                 <i class="pi pi-info-circle text-xs mr-1"></i>
-                Le maître de stage est identique au signataire de la convention.
+                <span>Le maître de stage est identique au signataire de la convention.</span>
               </div>
-            </div>
+            </FormSection>
 
             <!-- Section 5 : Modalités & Mission -->
-            <div class="bg-slate-50/50 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-4">
-              <h5 class="text-xs font-bold text-violet-755 dark:text-violet-400 flex items-center gap-2 pb-2 border-b border-slate-200/60 dark:border-slate-700/60">
-                <i class="pi pi-file-edit text-xs"></i>
-                <span>5. Modalités &amp; Mission</span>
-              </h5>
+            <FormSection
+              :icon="BriefcaseIcon"
+              tone="teal"
+              title="5. Modalités & Mission"
+            >
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Date de début</label>
-                  <input v-model="editForm.startDate" type="date" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Date de début</label>
+                  <input v-model="editForm.startDate" type="date" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Date de fin</label>
-                  <input v-model="editForm.endDate" type="date" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Date de fin</label>
+                  <input v-model="editForm.endDate" type="date" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Volume horaire hebdomadaire</label>
-                  <input v-model="editForm.weeklyHours" type="number" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Volume horaire hebdomadaire</label>
+                  <input v-model="editForm.weeklyHours" type="number" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Gratification horaire nette (€/h)</label>
-                  <input v-model="editForm.salaryAmount" type="number" step="0.01" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Gratification horaire nette (€/h)</label>
+                  <input v-model="editForm.salaryAmount" type="number" step="0.01" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-2">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Tuteur Universitaire (IUT)</label>
-                  <select v-model="tutorSelect" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500">
+                  <label class="q-label">Tuteur Universitaire (IUT)</label>
+                  <select v-model="tutorSelect" class="q-input q-input-sm">
                     <option v-for="t in teachers" :key="t.iri || t" :value="t.fullName || t">{{ t.fullName || t }}</option>
                   </select>
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-2">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Sujet du stage / Mission principale</label>
-                  <input v-model="editForm.subject" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Sujet du stage / Mission principale</label>
+                  <input v-model="editForm.subject" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-2">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Détail des activités confiées</label>
-                  <textarea v-model="editForm.activities" rows="3" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500"></textarea>
+                  <label class="q-label">Détail des activités confiées</label>
+                  <textarea v-model="editForm.activities" rows="3" class="q-input q-input-sm"></textarea>
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-2">
-                  <label class="font-bold text-slate-500 dark:text-slate-400">Aménagements éventuels (ex: Télétravail...)</label>
-                  <input v-model="editForm.amenagementStage" type="text" class="w-full p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-violet-500" />
+                  <label class="q-label">Aménagements éventuels (ex: Télétravail...)</label>
+                  <input v-model="editForm.amenagementStage" type="text" class="q-input q-input-sm" />
                 </div>
               </div>
-            </div>
+            </FormSection>
           </div>
 
           <div class="flex justify-end gap-2 pt-2">
-            <button @click="saveEdits(false)" class="px-4 py-2 bg-slate-900 dark:bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all">
+            <button @click="saveEdits(false)" class="px-4 py-2 bg-slate-900 dark:bg-slate-950 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer">
               <i class="pi pi-save"></i>
               <span>Enregistrer les corrections</span>
             </button>
@@ -1189,8 +1197,8 @@ const finalizeSignature = (student) => {
 
         <!-- If student doesn't have a stage yet (Case B / active search) -->
         <div v-else class="space-y-4">
-          <div class="bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 rounded-2xl p-6 text-center">
-            <div class="w-12 h-12 bg-violet-50 dark:bg-violet-500/10 text-violet-600 rounded-full flex items-center justify-center mx-auto mb-3">
+          <div class="bg-slate-50/70 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-6 text-center">
+            <div class="w-12 h-12 bg-teal-50 dark:bg-teal-500/10 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-3">
               <i class="pi pi-search text-xl"></i>
             </div>
             <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200">Étudiant en recherche active de stage</h4>
@@ -1217,11 +1225,13 @@ const finalizeSignature = (student) => {
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Footing buttons -->
-        <div class="border-t border-slate-100 dark:border-slate-700/50 pt-5 flex flex-wrap items-center justify-between gap-4">
+      <!-- Footing buttons -->
+      <template #footer>
+        <div class="border-t border-slate-200 dark:border-slate-700/80 pt-4 flex flex-wrap items-center justify-between gap-3 w-full">
           <!-- Left side: Reset / Delete (Danger Zone) -->
-          <div v-if="selectedRequest.hasStage" class="flex gap-2">
+          <div v-if="selectedRequest && selectedRequest.hasStage" class="flex gap-2">
             <button @click="resetStudentSubmission" class="px-3.5 py-2 border border-amber-200 dark:border-amber-900/40 hover:bg-amber-50 dark:hover:bg-amber-950/20 text-amber-700 dark:text-amber-400 font-bold rounded-xl text-[11px] transition-all flex items-center gap-1.5 cursor-pointer">
               <i class="pi pi-refresh"></i>
               <span>Réinitialiser la saisie</span>
@@ -1234,21 +1244,21 @@ const finalizeSignature = (student) => {
           <div v-else></div>
 
           <!-- Right side: Validate / Reject / Generate PDF / Close -->
-          <div class="flex gap-2 ml-auto">
+          <div class="flex items-center gap-2 ml-auto">
             <!-- If validated, show Generate PDF button -->
-            <button v-if="selectedRequest.hasStage && selectedRequest.conventionStatus === 'Validée'" @click="generatePDF" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+            <button v-if="selectedRequest && selectedRequest.hasStage && selectedRequest.conventionStatus === 'Validée'" @click="generatePDF" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
               <i class="pi pi-file-pdf"></i>
               <span>Générer la convention PDF</span>
             </button>
 
             <!-- If in signature, show Finalize signature button -->
-            <button v-if="selectedRequest.hasStage && selectedRequest.conventionStatus === 'En cours de signature'" @click="finalizeSignature(selectedRequest); showReviewDialog = false" class="px-4 py-2 bg-indigo-650 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+            <button v-if="selectedRequest && selectedRequest.hasStage && selectedRequest.conventionStatus === 'En cours de signature'" @click="finalizeSignature(selectedRequest); showReviewDialog = false" class="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
               <i class="pi pi-check-square"></i>
               <span>Finaliser la signature</span>
             </button>
 
             <!-- Validate / Reject (Only if status is En attente) -->
-            <div v-if="selectedRequest.hasStage && selectedRequest.conventionStatus === 'En attente'" class="flex gap-2">
+            <div v-if="selectedRequest && selectedRequest.hasStage && selectedRequest.conventionStatus === 'En attente'" class="flex items-center gap-2">
               <button @click="showReviewDialog = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-bold rounded-xl text-xs transition-all cursor-pointer">
                 Annuler
               </button>
@@ -1256,13 +1266,13 @@ const finalizeSignature = (student) => {
               <!-- Rejection input context -->
               <div class="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-3">
                 <input v-model="rejectReason" type="text" placeholder="Motif de rejet..." class="p-2 text-xs border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none w-[140px]" />
-                <button @click="rejectRequest" class="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition-all flex items-center gap-1 cursor-pointer">
+                <button @click="rejectRequest" class="px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition-all flex items-center gap-1 cursor-pointer shadow-xs">
                   <i class="pi pi-times"></i>
                   <span>Rejeter</span>
                 </button>
               </div>
 
-              <button @click="approveRequest" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer">
+              <button @click="approveRequest" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
                 <i class="pi pi-check"></i>
                 <span>Valider la convention</span>
               </button>
@@ -1274,7 +1284,7 @@ const finalizeSignature = (student) => {
             </button>
           </div>
         </div>
-      </div>
+      </template>
     </Dialog>
   </div>
 </template>
