@@ -6,7 +6,7 @@ const router = useRouter();
 const panelMenuItems = [
   { label: 'Programmes pédagogiques nationaux', icon: 'pi pi-book', command: () => {router.push('/intranet/administration/pn');} },
   { label: 'Référentiels de compétences', icon: 'pi pi-list', command: () => {router.push('/intranet/administration/referentiels-competences');} },
-  { label: 'Gestion des plan de cours', icon: 'pi pi-file', command: () => {} },
+  { label: 'Gestion des plans de cours', icon: 'pi pi-file', command: () => { router.push('/intranet/administration/plans-cours'); } },
 ];
 </script>
 

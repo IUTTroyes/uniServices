@@ -190,6 +190,11 @@ class StructureSemestre implements TimestampableInterface
         return $this;
     }
 
+    public function getDiplome(): ?StructureDiplome
+    {
+        return $this->annee?->getPn()?->getDiplome();
+    }
+
     public function getOrdreAnnee(): ?int
     {
         return $this->ordreAnnee;
