@@ -24,14 +24,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: ApcReferentielRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['referentiel:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['referentiel:read']]),
+        new Get(normalizationContext: ['groups' => ['referentiel:read', 'departement:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['referentiel:read', 'departement:read']]),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_APC_REFERENTIEL', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_APC_REFERENTIEL', object)"),
         new Delete(security: "is_granted('CAN_DELETE_APC_REFERENTIEL', object)"),
     ]
 )]
-#[ApiFilter(SearchFilter::class, properties: ['departement.id' => 'exact', 'departement.libelle' => 'partial'])]
+#[ApiFilter(SearchFilter::class, properties: ['departement' => 'exact', 'departement.id' => 'exact', 'departement.libelle' => 'partial'])]
 class ApcReferentiel
 {
     #[ORM\Id]
@@ -61,6 +61,7 @@ class ApcReferentiel
     private Collection $diplomes;
 
     #[ORM\ManyToOne(inversedBy: 'referentiels')]
+    #[Groups(['referentiel:read'])]
     private ?StructureDepartement $departement = null;
 
     /**
