@@ -30,7 +30,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StructureDepartementRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(normalizationContext: ['groups' => ['departement:read']]),
+        new GetCollection(
+            normalizationContext: ['groups' => ['departement:read']],
+            paginationEnabled: false
+        ),
         new GetCollection(
             uriTemplate: '/administration/structure_departements',
             normalizationContext: ['groups' => ['departement:administration']],

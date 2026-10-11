@@ -240,41 +240,8 @@ const handleCreateReferentiel = async () => {
     <div v-else class="card mt-4 p-5 sm:p-6 bg-surface-0 dark:bg-surface-900 rounded-2xl border border-surface-200 dark:border-surface-800 shadow-sm">
       <!-- Barre d'outils supérieure : Sélecteur de département & Actions -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 mb-5 border-b border-surface-200 dark:border-surface-800">
-        <!-- Sélection du département -->
         <div class="flex flex-wrap items-center gap-3">
-          <div class="flex items-center gap-2 text-surface-700 dark:text-surface-200 font-medium text-sm">
-            <i class="pi pi-building text-primary"></i>
-            <span>Département :</span>
-          </div>
-
-          <div v-if="userDepartements.length > 1" class="w-64">
-            <Select
-              v-model="selectedDepartementId"
-              :options="userDepartements"
-              optionLabel="libelle"
-              optionValue="id"
-              placeholder="Choisir un département"
-              class="w-full"
-            >
-              <template #value="slotProps">
-                <div v-if="slotProps.value" class="flex items-center gap-2">
-                  <span class="font-semibold">{{ currentDepartement?.libelle }}</span>
-                  <span v-if="currentDepartement?.sigle" class="text-xs text-muted-color">({{ currentDepartement?.sigle }})</span>
-                </div>
-                <span v-else class="text-muted-color">Choisir un département</span>
-              </template>
-            </Select>
-          </div>
-
-          <div v-else-if="userDepartements.length === 1" class="flex items-center">
-            <span class="px-3 py-1.5 rounded-xl text-sm font-semibold bg-primary-50 dark:bg-primary-950/40 text-primary border border-primary-200 dark:border-primary-800">
-              {{ userDepartements[0].libelle }}
-            </span>
-          </div>
-
-          <span v-else class="text-sm text-muted-color italic">
-            Aucun département associé
-          </span>
+        
         </div>
 
         <!-- Boutons d'action -->
