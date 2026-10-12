@@ -49,3 +49,5 @@ export * from './structure_services/serviceService.js'
 export * from './dashboardService.js';
 
 export * from './actu_services/actualiteService.js'
+export * from './plan_cours_services/planCoursService.js';
+

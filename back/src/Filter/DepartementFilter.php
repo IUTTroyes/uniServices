@@ -22,9 +22,9 @@ class DepartementFilter extends AbstractFilter
 
         if ('personnel' === $property) {
             $queryBuilder
-                ->innerJoin(StructureDepartementPersonnel::class, 'sdp', 'WITH', sprintf('%s.id = sdp.departement', $alias))
+                ->innerJoin(sprintf('%s.departementPersonnels', $alias), 'sdp')
                 ->andWhere('sdp.personnel = :personnel')
-                ->setParameter('personnel', $value)
+                ->setParameter('personnel', (int) $value)
                 ->orderBy(sprintf('%s.libelle', $alias), 'ASC')
             ;
         } elseif ('actif' === $property) {

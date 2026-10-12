@@ -199,6 +199,23 @@ class StructureDiplome implements TimestampableInterface
         return $this->id;
     }
 
+    /**
+     * @return StructureSemestre[]
+     */
+    public function getSemestres(): array
+    {
+        $semestres = [];
+        foreach ($this->pns as $pn) {
+            foreach ($pn->getAnnees() as $annee) {
+                foreach ($annee->getSemestres() as $semestre) {
+                    $semestres[$semestre->getId()] = $semestre;
+                }
+            }
+        }
+
+        return array_values($semestres);
+    }
+
     public function getLibelle(): ?string
     {
         return $this->libelle;

@@ -10,6 +10,7 @@ import EtudiantsAjoutResultView from '@/views/Etudiants/EtudiantsAjoutResultView
 import PnView from '@/views/Pn/PnView.vue';
 import RefCompetencesIndexView from '@/views/Ref-Competences/IndexView.vue';
 import PrevisionnelView from '@/views/Previsionnel/PrevisionnelView.vue';
+import PlanCoursAdminView from '@/views/PlanCours/Administration/PlanCoursAdminView.vue';
 
 export default [
   {
@@ -98,6 +99,18 @@ export default [
         label: 'Administration',
         route: '/intranet/administration'
       }, { label: 'Référentiels de compétences', route: null }]
+    },
+  },
+  {
+    path: 'administration/plans-cours',
+    component: PlanCoursAdminView,
+    meta: {
+      permission: 'canViewAdministration',
+      breadcrumb: [
+        { label: 'Dashboard', route: '/' },
+        { label: 'Administration', route: '/intranet/administration' },
+        { label: 'Plans de cours', route: null, icon: 'pi pi-file' }
+      ]
     },
   },
   {
