@@ -1,86 +1,91 @@
 <template>
-  <div class="card p-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm transition-all mb-4">
-    <div class="flex items-start space-x-4">
+  <div class="p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-2xs transition-all mb-4">
+    <div class="flex items-start gap-3.5">
       <!-- Drag Handle -->
-      <div class="question-handle drag-handle mt-3">
+      <div class="question-handle drag-handle mt-2 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-grab active:cursor-grabbing rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700/60 transition-colors">
         <Bars3Icon class="w-5 h-5" />
       </div>
 
       <!-- Question Content -->
-      <div class="flex-1">
+      <div class="flex-1 min-w-0">
         <!-- Question Header -->
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center space-x-3">
-            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/70 text-slate-700 dark:text-slate-300 text-xs font-bold font-mono">
               Q{{ question.sortOrder }}
             </span>
             <span
               :class="[
-                'inline-flex items-center px-2 py-1 rounded-full text-xs font-medium',
+                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold',
                 getQuestionTypeColor(question.typeQuestion)
               ]"
             >
               {{ getQuestionTypeLabel(question.typeQuestion) }}
             </span>
-            <div class="flex items-center space-x-2">
+
+            <label class="inline-flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400 cursor-pointer select-none ml-1">
               <input
                 type="checkbox"
                 :checked="question.required"
                 @change="updateQuestion({ required: !question.required })"
-                class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                class="q-check !w-3.5 !h-3.5"
               />
-              <span class="text-sm text-gray-600 dark:text-gray-400">Obligatoire</span>
-            </div>
+              <span class="font-medium">Obligatoire</span>
+            </label>
+
             <!-- Badges for Conditional Logic -->
-            <span v-if="hasConditionalRules" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
+            <span v-if="hasConditionalRules" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200 border border-amber-300 dark:border-amber-700">
               ⚡ Déclenche {{ conditionalRules.length }} règle(s)
             </span>
-            <span v-if="incomingRules.length > 0" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200 border border-blue-300 dark:border-blue-700">
+            <span v-if="incomingRules.length > 0" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-200 border border-blue-300 dark:border-blue-700">
               🔗 Conditionnée par {{ incomingRules.length }} question(s)
             </span>
-            <span v-if="defaultVisibilityState" :class="['inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border', defaultVisibilityState.color]">
+            <span v-if="defaultVisibilityState" :class="['inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border', defaultVisibilityState.color]">
               {{ defaultVisibilityState.label }}
             </span>
           </div>
-          <div class="relative">
+
+          <div class="flex items-center gap-1">
             <ButtonDuplicate tooltip="Dupliquer la question" @confirm-duplicate="duplicateQuestion" />
             <ButtonDelete tooltip="Supprimer la question" @confirm-delete="$emit('delete', question.uuid)" />
           </div>
         </div>
 
         <!-- Question Title -->
-        <div class="mb-4">
+        <FormField label="Libellé de la question" :required="question.required" class="mb-3">
           <input
             :value="question.label"
             @change="updateQuestion({ label: ($event.target as HTMLInputElement).value })"
-            class="text-lg font-medium w-full bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-3 py-2 border border-gray-200 dark:border-gray-600"
+            class="q-input text-base font-semibold"
             placeholder="Tapez votre question ici..."
           />
-        </div>
+        </FormField>
 
-        <!-- Question Description -->
-        <div class="mb-4">
+        <!-- Question Description / Help -->
+        <FormField label="Texte d'aide / Instructions" hint="Précisions affichées sous la question pour orienter le répondant" class="mb-4">
           <textarea
             :value="question.help || ''"
             @change="updateQuestion({ help: ($event.target as HTMLTextAreaElement).value })"
-            class="text-sm text-gray-600 dark:text-gray-400 w-full bg-transparent border border-gray-200 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-3 py-2 resize-none"
-            placeholder="Description ou instructions (optionnel)"
+            class="q-input text-xs"
+            placeholder="Description ou instructions complémentaires (optionnel)"
             rows="2"
           />
-        </div>
+        </FormField>
 
         <!-- Question-specific Options -->
         <div class="space-y-4">
           <!-- Single Choice / Multiple Choice Options -->
-          <div v-if="['single_choice', 'multiple_choice', 'ranking'].includes(question.typeQuestion)">
-            <div class="flex items-center justify-between mb-3">
-              <h4 class="text-sm font-medium text-gray-900 dark:text-white">Options</h4>
-              <Button @click="addOption"
-                      severity="success"
-                      class="text-sm">
-                <PlusIcon class="w-4 h-4" />
-                Ajouter
-              </Button>
+          <div v-if="['single_choice', 'multiple_choice', 'ranking'].includes(question.typeQuestion)" class="p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/80 space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="q-label !mb-0">Options de réponse</h4>
+              <Button
+                size="small"
+                severity="secondary"
+                outlined
+                icon="pi pi-plus"
+                label="Ajouter une option"
+                @click="addOption"
+              />
             </div>
             <draggable
               v-model="questionOptions"
@@ -90,15 +95,15 @@
               <div
                 v-for="(option, optionIndex) in questionOptions"
                 :key="option.id"
-                class="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-600 rounded-lg"
+                class="flex items-center gap-2 p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-2xs"
               >
-                <div class="option-handle drag-handle">
+                <div class="option-handle drag-handle p-1 text-slate-400 hover:text-slate-600 cursor-grab">
                   <Bars3Icon class="w-4 h-4" />
                 </div>
-                <div class="flex-shrink-0">
+                <div class="shrink-0">
                   <div
                     :class="[
-                      'w-4 h-4 border-2 border-gray-300',
+                      'w-4 h-4 border-2 border-slate-300 dark:border-slate-600',
                       question.typeQuestion === 'single_choice' ? 'rounded-full' : 'rounded'
                     ]"
                   />
@@ -106,84 +111,72 @@
                 <input
                   :value="option.text"
                   @input="updateOption(optionIndex, { text: ($event.target as HTMLInputElement).value })"
-                  class="flex-1 bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-primary-500 rounded px-2 py-1"
+                  class="flex-1 bg-transparent border-0 text-xs text-slate-900 dark:text-white focus:outline-none px-2 py-1"
                   placeholder="Texte de l'option"
                 />
-                <button
+                <Button
                   v-if="questionOptions.length > 2"
+                  severity="danger"
+                  text
+                  rounded
+                  size="small"
+                  icon="pi pi-times"
+                  aria-label="Supprimer"
                   @click="removeOption(optionIndex)"
-                  class="p-1 text-red-500 hover:text-red-700 rounded"
-                >
-                  <XMarkIcon class="w-4 h-4" />
-                </button>
+                />
               </div>
             </draggable>
           </div>
 
           <!-- Scale Options -->
-          <div v-if="question.typeQuestion === 'scale'">
-            <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Paramètres de l'échelle</h4>
-            <div class="grid grid-cols-2 gap-4">
+          <div v-if="question.typeQuestion === 'scale'" class="p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/80 space-y-3">
+            <h4 class="q-label !mb-0">Paramètres de l'échelle</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Valeur minimale</label>
+                <label class="q-label">Valeur minimale</label>
                 <input
                   type="number"
                   :value="question.opt?.min || 1"
                   @input="updateValidation({ min: parseInt(($event.target as HTMLInputElement).value) })"
-                  class="input-field"
+                  class="q-input q-input-sm"
                   min="0"
                 />
               </div>
               <div>
-                <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Valeur maximale</label>
+                <label class="q-label">Valeur maximale</label>
                 <input
                   type="number"
                   :value="question.opt?.max || 10"
                   @input="updateValidation({ max: parseInt(($event.target as HTMLInputElement).value) })"
-                  class="input-field"
+                  class="q-input q-input-sm"
                   min="1"
-                />
-              </div>
-            </div>
-            <div class="mt-3">
-              <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Libellés des extrémités</label>
-              <div class="grid grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  placeholder="Libellé minimum"
-                  class="input-field"
-                />
-                <input
-                  type="text"
-                  placeholder="Libellé maximum"
-                  class="input-field"
                 />
               </div>
             </div>
           </div>
 
           <!-- Text Options -->
-          <div v-if="['text_short', 'text_long'].includes(question.typeQuestion)">
-            <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Validation du texte</h4>
-            <div class="grid grid-cols-2 gap-4">
+          <div v-if="['text_short', 'text_long'].includes(question.typeQuestion)" class="p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/80 space-y-3">
+            <h4 class="q-label !mb-0">Validation de la saisie</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Longueur minimale</label>
+                <label class="q-label">Longueur minimale (caractères)</label>
                 <input
                   type="number"
                   :value="question.opt?.minLength || ''"
                   @input="updateValidation({ minLength: parseInt(($event.target as HTMLInputElement).value) || undefined })"
-                  class="input-field"
+                  class="q-input q-input-sm"
                   min="0"
                   placeholder="0"
                 />
               </div>
               <div>
-                <label class="block text-sm text-gray-600 dark:text-gray-400 mb-1">Longueur maximale</label>
+                <label class="q-label">Longueur maximale (caractères)</label>
                 <input
                   type="number"
                   :value="question.opt?.maxLength || ''"
                   @input="updateValidation({ maxLength: parseInt(($event.target as HTMLInputElement).value) || undefined })"
-                  class="input-field"
+                  class="q-input q-input-sm"
                   min="1"
                   placeholder="Illimité"
                 />
@@ -192,67 +185,65 @@
           </div>
 
           <!-- Matrix Options -->
-          <div v-if="question.typeQuestion === 'matrix'">
-            <div class="space-y-4">
-              <div>
-                <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Lignes (éléments à évaluer)</h4>
-                <div class="space-y-2">
-                  <div
-                    v-for="(row, rowIndex) in matrixRows"
-                    :key="rowIndex"
-                    class="flex items-center space-x-3"
-                  >
-                    <input
-                      :value="row"
-                      @input="updateMatrixRow(rowIndex, ($event.target as HTMLInputElement).value)"
-                      class="flex-1 input-field"
-                      placeholder="Ligne"
-                    />
-                    <button
-                      v-if="matrixRows.length > 1"
-                      @click="removeMatrixRow(rowIndex)"
-                      class="p-1 text-red-500 hover:text-red-700"
-                    >
-                      <XMarkIcon class="w-4 h-4" />
-                    </button>
-                  </div>
-                  <Button @click="addMatrixRow"
-                          severity="success"
-                          class="text-sm">
-                    <PlusIcon class="w-4 h-4" />
-                    Ajouter une ligne
-                  </Button>
+          <div v-if="question.typeQuestion === 'matrix'" class="p-3.5 rounded-xl bg-slate-50/70 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/80 space-y-4">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="q-label !mb-0">Lignes (éléments à évaluer)</h4>
+                <Button size="small" severity="secondary" outlined icon="pi pi-plus" label="Ajouter une ligne" @click="addMatrixRow" />
+              </div>
+              <div class="space-y-2">
+                <div
+                  v-for="(row, rowIndex) in matrixRows"
+                  :key="rowIndex"
+                  class="flex items-center gap-2"
+                >
+                  <input
+                    :value="row"
+                    @input="updateMatrixRow(rowIndex, ($event.target as HTMLInputElement).value)"
+                    class="flex-1 q-input q-input-sm"
+                    placeholder="Ligne"
+                  />
+                  <Button
+                    v-if="matrixRows.length > 1"
+                    severity="danger"
+                    text
+                    rounded
+                    size="small"
+                    icon="pi pi-times"
+                    aria-label="Supprimer"
+                    @click="removeMatrixRow(rowIndex)"
+                  />
                 </div>
               </div>
+            </div>
 
-              <div>
-                <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">Colonnes (échelle d'évaluation)</h4>
-                <div class="space-y-2">
-                  <div
-                    v-for="(col, colIndex) in matrixColumns"
-                    :key="colIndex"
-                    class="flex items-center space-x-3"
-                  >
-                    <input
-                      :value="col"
-                      @input="updateMatrixColumn(colIndex, ($event.target as HTMLInputElement).value)"
-                      class="flex-1 input-field"
-                      placeholder="Colonne"
-                    />
-                    <button
-                      v-if="matrixColumns.length > 1"
-                      @click="removeMatrixColumn(colIndex)"
-                      class="p-1 text-red-500 hover:text-red-700"
-                    >
-                      <XMarkIcon class="w-4 h-4" />
-                    </button>
-                  </div>
-                  <Button @click="addMatrixColumn"
-                          severity="success"
-                          class="text-sm">
-                    <PlusIcon class="w-4 h-4" />
-                    Ajouter une colonne
-                  </Button>
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="q-label !mb-0">Colonnes (échelle d'évaluation)</h4>
+                <Button size="small" severity="secondary" outlined icon="pi pi-plus" label="Ajouter une colonne" @click="addMatrixColumn" />
+              </div>
+              <div class="space-y-2">
+                <div
+                  v-for="(col, colIndex) in matrixColumns"
+                  :key="colIndex"
+                  class="flex items-center gap-2"
+                >
+                  <input
+                    :value="col"
+                    @input="updateMatrixColumn(colIndex, ($event.target as HTMLInputElement).value)"
+                    class="flex-1 q-input q-input-sm"
+                    placeholder="Colonne"
+                  />
+                  <Button
+                    v-if="matrixColumns.length > 1"
+                    severity="danger"
+                    text
+                    rounded
+                    size="small"
+                    icon="pi pi-times"
+                    aria-label="Supprimer"
+                    @click="removeMatrixColumn(colIndex)"
+                  />
                 </div>
               </div>
             </div>
@@ -260,49 +251,44 @@
         </div>
 
         <!-- Conditional Logic -->
-        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center space-x-2">
-              <h4 class="text-sm font-medium text-gray-900 dark:text-white">Logique conditionnelle</h4>
-            </div>
+        <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-700/80">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="q-label !mb-0">Logique conditionnelle</h4>
             <Button
-              @click="showConditionalModal = true"
+              size="small"
               :severity="hasConditionalRules ? 'warn' : 'secondary'"
-              class="text-sm"
-            >
-              {{ hasConditionalRules ? 'Gérer les règles' : 'Ajouter une règle' }}
-            </Button>
+              :outlined="!hasConditionalRules"
+              icon="pi pi-bolt"
+              :label="hasConditionalRules ? 'Gérer les règles' : 'Ajouter une règle'"
+              @click="showConditionalModal = true"
+            />
           </div>
 
           <!-- Outgoing rules (this question triggers rules) -->
-          <div v-if="hasConditionalRules" class="space-y-2 mb-3">
-            <h5 class="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+          <div v-if="hasConditionalRules" class="space-y-2 mb-2">
+            <h5 class="text-[11px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
               ⚡ Règles déclenchées par cette question ({{ conditionalRules.length }})
             </h5>
             <div
               v-for="(rule, index) in conditionalRules"
               :key="index"
-              class="p-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/50 rounded-lg text-sm"
+              class="p-2.5 bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/60 rounded-xl text-xs text-amber-900 dark:text-amber-200"
             >
-              <p class="text-amber-900 dark:text-amber-200">
-                {{ getConditionalRuleDescription(rule) }}
-              </p>
+              {{ getConditionalRuleDescription(rule) }}
             </div>
           </div>
 
           <!-- Incoming rules (this question is controlled by another question) -->
           <div v-if="incomingRules.length > 0" class="space-y-2">
-            <h5 class="text-xs font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">
+            <h5 class="text-[11px] font-semibold uppercase tracking-wider text-blue-700 dark:text-blue-400">
               🔗 Conditionnée par d'autres questions ({{ incomingRules.length }})
             </h5>
             <div
               v-for="(inc, index) in incomingRules"
               :key="index"
-              class="p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800/50 rounded-lg text-sm"
+              class="p-2.5 bg-blue-50/70 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-900/60 rounded-xl text-xs text-blue-900 dark:text-blue-200"
             >
-              <p class="text-blue-900 dark:text-blue-200">
-                Si <span class="font-semibold">"{{ inc.sourceQuestion.label }}"</span> {{ getOperatorLabel(inc.rule.operator) }} <span class="font-semibold">"{{ inc.rule.value }}"</span>, alors {{ inc.rule.action === 'show' ? 'afficher' : 'masquer' }} cette question.
-              </p>
+              Si <span class="font-semibold">"{{ inc.sourceQuestion.label }}"</span> {{ getOperatorLabel(inc.rule.operator) }} <span class="font-semibold">"{{ inc.rule.value }}"</span>, alors {{ inc.rule.action === 'show' ? 'afficher' : 'masquer' }} cette question.
             </div>
           </div>
         </div>
@@ -324,17 +310,13 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import {
-  Bars3Icon,
-  EllipsisVerticalIcon,
-  DocumentDuplicateIcon,
-  TrashIcon,
-  PlusIcon,
-  XMarkIcon
+  Bars3Icon
 } from '@heroicons/vue/24/outline';
-import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
+import Button from 'primevue/button';
 import { VueDraggableNext as draggable } from 'vue-draggable-next';
 import type { Question, QuestionOption } from '@types';
 import { v4 as uuidv4 } from 'uuid';
+import { FormField } from '../Form';
 import ConditionalLogicModal from './ConditionalLogicModal.vue';
 import ButtonDelete from "@components/components/Buttons/ButtonDelete.vue";
 import ButtonDuplicate from "@components/components/Buttons/ButtonDuplicate.vue";
@@ -416,8 +398,6 @@ function updateQuestion(updates: Partial<Question>) {
 
 function updateValidation(opt: Partial<Question['opt']>) {
   const currentValidation = props.question.opt || {};
-  console.log('val1', currentValidation)
-  console.log('val2', { ...currentValidation, ...opt })
   updateQuestion({
     opt: { ...currentValidation, ...opt }
   });
@@ -438,15 +418,15 @@ function getQuestionTypeLabel(type: string): string {
 
 function getQuestionTypeColor(type: string): string {
   const colors = {
-    single_choice: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    multiple_choice: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-    text_short: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    text_long: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    scale: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-    matrix: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
-    ranking: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200'
+    single_choice: 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300',
+    multiple_choice: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300',
+    text_short: 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300',
+    text_long: 'bg-purple-100 text-purple-800 dark:bg-purple-950/60 dark:text-purple-300',
+    scale: 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300',
+    matrix: 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300',
+    ranking: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/60 dark:text-indigo-300'
   };
-  return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+  return colors[type as keyof typeof colors] || 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200';
 }
 
 // Option management
@@ -572,4 +552,3 @@ function getConditionalRuleDescription(rule: any): string {
   }
 }
 </script>
-

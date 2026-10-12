@@ -4,12 +4,12 @@ namespace App\Entity\Users;
 
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Scolarite\ScolEvaluationRattrapage;
@@ -40,8 +40,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PersonnelRepository::class)]
-#[ApiFilter(PersonnelFilter::class, SearchFilter::class, properties: ['structureServices' => 'exact'])]
-#[ApiFilter(OrderFilter::class, properties: ['nom', 'prenom', 'mailUniv'])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['personnel:detail']]),
@@ -65,6 +63,15 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Delete(security: "is_granted('CAN_DELETE_PERSONNEL', object)"),
     ],
     order: ['nom' => 'ASC'],
+    parameters: [
+        'departement' => new QueryParameter(filter: PersonnelFilter::class),
+        'enseignement' => new QueryParameter(filter: PersonnelFilter::class),
+        'enseignant' => new QueryParameter(filter: PersonnelFilter::class),
+        'structureServices' => new QueryParameter(filter: SearchFilter::class),
+        'order[nom]' => new QueryParameter(filter: OrderFilter::class),
+        'order[prenom]' => new QueryParameter(filter: OrderFilter::class),
+        'order[mailUniv]' => new QueryParameter(filter: OrderFilter::class),
+    ]
 )]
 class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, TimestampableInterface {
     use TimestampableTrait;

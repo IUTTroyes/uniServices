@@ -2,11 +2,11 @@
 
 namespace App\Entity\Structure;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Apc\ApcReferentiel;
 use App\Filter\PnFilter;
 use App\Repository\Structure\StructurePnRepository;
@@ -14,7 +14,7 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructurePnRepository::class)]
 #[ORM\Table(uniqueConstraints: [
@@ -25,9 +25,12 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new Get(normalizationContext: ['groups' => ['pn:detail']]),
         new GetCollection(normalizationContext: ['groups' => ['pn:detail']]),
         new Delete(),
+    ],
+    parameters: [
+        'diplome' => new QueryParameter(filter: PnFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: PnFilter::class),
     ]
 )]
-#[ApiFilter(PnFilter::class)]
 class StructurePn
 {
     #[ORM\Id]

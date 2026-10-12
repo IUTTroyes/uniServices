@@ -3,12 +3,12 @@
 namespace IntranetBundle\Entity\Etudiant;
 
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Traits\EduSignTrait;
@@ -27,7 +27,6 @@ use IntranetBundle\State\Processor\Absence\EtudiantAbsenceCreateProcessor;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantAbsenceRepository::class)]
-#[ApiFilter(AbsenceFilter::class)]
 #[ApiResource(
     operations: [
         new GetCollection(
@@ -62,7 +61,15 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/administration/etudiant_absences/{id}',
         )
     ],
-    order: ['createdAt' => 'ASC']
+    order: ['createdAt' => 'ASC'],
+    parameters: [
+        'annee' => new QueryParameter(filter: AbsenceFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: AbsenceFilter::class),
+        'justifiee' => new QueryParameter(filter: AbsenceFilter::class),
+        'event' => new QueryParameter(filter: AbsenceFilter::class),
+        'personnel' => new QueryParameter(filter: AbsenceFilter::class),
+        'scolariteSemestre' => new QueryParameter(filter: AbsenceFilter::class),
+    ]
 )]
 class EtudiantAbsence implements TimestampableInterface
 {

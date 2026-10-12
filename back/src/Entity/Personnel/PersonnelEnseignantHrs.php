@@ -2,12 +2,12 @@
 
 namespace App\Entity\Personnel;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
@@ -25,9 +25,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(normalizationContext: ['groups' => ['enseignant_hrs:read']]),
         new Post(normalizationContext: ['groups' => ['enseignant_hrs:write']],),
         new Delete(normalizationContext: ['groups' => ['enseignant_hrs:write']],)
+    ],
+    parameters: [
+        'personnel' => new QueryParameter(filter: PersonnelEnseignantHrsFilter::class),
+        'annee_universitaire' => new QueryParameter(filter: PersonnelEnseignantHrsFilter::class),
     ]
 )]
-#[ApiFilter(PersonnelEnseignantHrsFilter::class)]
 class PersonnelEnseignantHrs
 {
     #[ORM\Id]

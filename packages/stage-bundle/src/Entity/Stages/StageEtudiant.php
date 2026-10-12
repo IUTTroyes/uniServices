@@ -8,6 +8,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\UuidTrait;
@@ -24,10 +25,8 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Metadata\ApiFilter;
 
 #[ORM\Entity(repositoryClass: StageEtudiantRepository::class)]
-#[ApiFilter(SearchFilter::class, properties: ['stagePeriode' => 'exact', 'tuteurUniversitaire' => 'exact'])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']]),
@@ -41,6 +40,10 @@ use ApiPlatform\Metadata\ApiFilter;
             denormalizationContext: ['groups' => ['stage_etudiant:write']]
         ),
         new Delete()
+    ],
+    parameters: [
+        'stagePeriode' => new QueryParameter(filter: SearchFilter::class),
+        'tuteurUniversitaire' => new QueryParameter(filter: SearchFilter::class),
     ]
 )]
 class StageEtudiant implements TimestampableInterface

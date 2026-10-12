@@ -1,0 +1,115 @@
+@reference "./tailwind.css";
+
+/*
+ * Styles de formulaires partagés du package questionnaire.
+ * Référence visuelle : components/Questionnaire/SurveySettingsModal.vue
+ * Toutes les classes sont préfixées `q-` (fichier chargé globalement).
+ */
+
+/* ---------- Structure ---------- */
+.q-form {
+  @apply space-y-5 py-2;
+}
+
+.q-section {
+  @apply bg-slate-50/80 dark:bg-slate-900/40 rounded-2xl border border-slate-200 dark:border-slate-700/80 p-4 md:p-5 space-y-4;
+}
+
+.q-actions {
+  @apply flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-700;
+}
+
+/* ---------- Libellés & aides ---------- */
+.q-label {
+  @apply block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5;
+}
+
+.q-label-required::after {
+  content: ' *';
+  @apply text-red-500;
+}
+
+.q-hint {
+  @apply text-[11px] text-slate-500 dark:text-slate-400 mt-1;
+}
+
+.q-error {
+  @apply text-[11px] text-red-600 dark:text-red-400 mt-1;
+}
+
+/* ---------- Champs ---------- */
+.q-input {
+  @apply w-full px-3 py-2 text-sm rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder:text-slate-400 shadow-2xs transition-colors;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500;
+  @apply disabled:opacity-60 disabled:cursor-not-allowed;
+}
+
+textarea.q-input {
+  @apply px-3.5 py-2.5 resize-y;
+}
+
+.q-input-invalid {
+  @apply border-red-400 dark:border-red-500 focus:ring-red-500/20 focus:border-red-500;
+}
+
+.q-input-sm {
+  @apply px-2.5 py-1.5 text-xs rounded-lg;
+}
+
+/* Cases à cocher / boutons radio natifs */
+.q-check {
+  @apply w-4 h-4 shrink-0 cursor-pointer accent-primary-600 rounded border-slate-300 dark:border-slate-600;
+}
+
+/* ---------- Carte de choix (checkbox / radio / toggle) ---------- */
+.q-choice {
+  @apply p-3 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800 shadow-2xs transition-all cursor-pointer select-none flex items-start gap-3;
+  @apply hover:border-slate-300 dark:hover:border-slate-600;
+}
+
+.q-choice-active {
+  @apply border-primary-300 dark:border-primary-700/80 bg-primary-50/60 dark:bg-primary-950/30;
+}
+
+.q-choice-title {
+  @apply text-xs font-bold text-slate-900 dark:text-white block leading-tight;
+}
+
+.q-choice-desc {
+  @apply text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed;
+}
+
+/* ---------- Onglets segmentés ---------- */
+.q-tabs {
+  @apply flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80;
+}
+
+.q-tab {
+  @apply flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all border-0 cursor-pointer bg-transparent text-slate-600 dark:text-slate-400;
+  @apply hover:text-slate-900 dark:hover:text-slate-200;
+}
+
+.q-tab-active {
+  @apply bg-white dark:bg-slate-700 text-primary-600 dark:text-white shadow-xs;
+}
+
+/* ---------- Encarts ---------- */
+.q-callout {
+  @apply p-3.5 rounded-xl border text-xs leading-relaxed flex items-start gap-2.5;
+}
+
+.q-callout-info {
+  @apply bg-blue-50/70 dark:bg-blue-950/30 border-blue-200 dark:border-blue-900/60 text-blue-800 dark:text-blue-200;
+}
+
+.q-callout-warning {
+  @apply bg-amber-50/70 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800/80 text-amber-800 dark:text-amber-200;
+}
+
+.q-callout-danger {
+  @apply bg-red-50/70 dark:bg-red-950/30 border-red-200 dark:border-red-900/60 text-red-800 dark:text-red-200;
+}
+
+.q-callout-success {
+  @apply bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/60 text-emerald-800 dark:text-emerald-200;
+}

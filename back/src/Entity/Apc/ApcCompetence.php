@@ -2,12 +2,12 @@
 
 namespace App\Entity\Apc;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Structure\StructureUe;
 use App\Entity\Traits\OldIdTrait;
@@ -31,9 +31,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_APC_COMPETENCE', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_APC_COMPETENCE', object)"),
         new Delete(security: "is_granted('CAN_DELETE_APC_COMPETENCE', object)"),
+    ],
+    parameters: [
+        'ue' => new QueryParameter(filter: CompetenceFilter::class),
+        'referentiel' => new QueryParameter(filter: CompetenceFilter::class),
     ]
 )]
-#[ApiFilter(CompetenceFilter::class)]
 class ApcCompetence
 {
     use OldIdTrait; //todo: a supprimer après transfert

@@ -4,12 +4,12 @@ namespace App\Entity\Structure;
 
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolarite;
@@ -29,8 +29,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureAnneeUniversitaireRepository::class)]
-#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
-#[ApiFilter(OrderFilter::class, properties: ['annee'])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['annee_universitaire:detail']]),
@@ -49,6 +47,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
             processor: AnneeUnivInitProcessor::class
         ),
         new Delete(security: "is_granted('CAN_EDIT_ANNEE_UNIV', object)")
+    ],
+    parameters: [
+        'actif' => new QueryParameter(filter: BooleanFilter::class),
+        'order[annee]' => new QueryParameter(filter: OrderFilter::class),
     ]
 )]
 class StructureAnneeUniversitaire implements TimestampableInterface

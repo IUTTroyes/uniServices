@@ -8,7 +8,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use App\Entity\Structure\StructureAnnee;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(TicketFilter::class)]
 class TicketFilter extends AbstractFilter
@@ -54,7 +53,7 @@ class TicketFilter extends AbstractFilter
         return [
             'latest' => [
                 'property' => 'latest',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by latests tickets',
@@ -62,7 +61,7 @@ class TicketFilter extends AbstractFilter
             ],
             'auteur' => [
                 'property' => 'auteur',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by auteur',
@@ -70,7 +69,7 @@ class TicketFilter extends AbstractFilter
             ],
             'statut' => [
                 'property' => 'statut',
-                'type' => Type::BUILTIN_TYPE_STRING,
+                'type' => 'string',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by statut',
@@ -78,7 +77,7 @@ class TicketFilter extends AbstractFilter
             ],
             'hasRecentMessage' => [
                 'property' => 'hasRecentMessage',
-                'type' => Type::BUILTIN_TYPE_BOOL,
+                'type' => 'bool',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by new message',

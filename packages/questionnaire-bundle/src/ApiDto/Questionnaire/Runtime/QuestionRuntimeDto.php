@@ -16,7 +16,9 @@ final class QuestionRuntimeDto
         public mixed                 $answer,
         public ?array                $choices = null,
         public ?ScaleDto             $scale = null,
-        public ?VisibilityRuleDto    $visibility = null
+        public ?VisibilityRuleDto    $visibility = null,
+        public ?string               $uuid = null,
+        public ?array                $conditionalRules = null
     )
     {
     }

@@ -160,7 +160,6 @@
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/polyfill-intl-grapheme" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/polyfill-intl-normalizer" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/polyfill-mbstring" />
-      <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/polyfill-php83" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/polyfill-uuid" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/process" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/property-access" />
@@ -200,7 +199,6 @@
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/translation" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/http-client" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/http-client-contracts" />
-      <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/polyfill-php84" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/egulias/email-validator" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/mailer" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/mime" />
@@ -326,6 +324,9 @@
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/dragonmantank/cron-expression" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/messenger" />
       <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/scheduler" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/polyfill-deepclone" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/polyfill-php85" />
+      <excludeFolder url="file://$MODULE_DIR$/back/vendor/symfony/polyfill-php86" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

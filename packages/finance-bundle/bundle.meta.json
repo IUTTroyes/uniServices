@@ -1,0 +1,6 @@
+{
+  "name": "FinanceBundle",
+  "description": "Gestion financière, bons de commande et suivi budgétaire",
+  "urlSlug": "finance",
+  "url": "http://localhost:3007/finance/"
+}

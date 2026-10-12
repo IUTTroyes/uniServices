@@ -38,9 +38,16 @@ const getDepartementService = async (departementId, showToast = false) => {
 
 const getDepartementsPersonnelService = async (personnelId, actif, showToast = false) => {
     try {
+        const params = {};
+        if (personnelId !== undefined && personnelId !== null) {
+            params.personnel = personnelId;
+        }
+        if (actif !== undefined && actif !== null) {
+            params.actif = actif;
+        }
         const response = await apiCall(
             api.get,
-            [`/api/structure_departements?personnel=${personnelId}?actif=${actif}`],
+            ['/api/structure_departements', { params }],
             'Départements du personnel récupérés avec succès',
             'Erreur lors de la récupération des départements du personnel',
             showToast

@@ -18,7 +18,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['category:read']],
         ),
         new GetCollection(
-            uriTemplate: '/mini/structure_services',
+            uriTemplate: '/mini/helpdesk_categories',
             normalizationContext: ['groups' => ['category:light']],
         ),
         new GetCollection(

@@ -2,12 +2,12 @@
 
 namespace App\Entity\Structure;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\DepartementActualite;
@@ -30,7 +30,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StructureDepartementRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(normalizationContext: ['groups' => ['departement:read']]),
+        new GetCollection(
+            normalizationContext: ['groups' => ['departement:read']],
+            paginationEnabled: false
+        ),
         new GetCollection(
             uriTemplate: '/administration/structure_departements',
             normalizationContext: ['groups' => ['departement:administration']],
@@ -48,9 +51,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
             processor: DepartementUpdateProcessor::class
         ),
         new Delete(security: "is_granted('CAN_DELETE_DEPARTEMENT', object)"),
+    ],
+    parameters: [
+        'personnel' => new QueryParameter(filter: DepartementFilter::class),
+        'actif' => new QueryParameter(filter: DepartementFilter::class),
     ]
 )]
-#[ApiFilter(DepartementFilter::class)]
 class StructureDepartement implements TimestampableInterface
 {
     use UuidTrait;

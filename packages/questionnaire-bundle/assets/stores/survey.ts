@@ -53,13 +53,15 @@ export const useSurveyStore = defineStore('survey', () => {
             createdBy: 'current-user'
         };
 
-        surveys.value.push(survey);
-        currentSurvey.value = await saveQuestionnaire(survey);
+        const saved = await saveQuestionnaire(survey);
+        currentSurvey.value = saved || survey;
 
         // Create an initial section
-        addSection('Section 1');
+        await addSection('Section 1');
 
-        return survey;
+        await loadQuestionnaires();
+
+        return currentSurvey.value || survey;
     }
 
     async function saveQuestionnaire(survey: Survey): Promise<Survey> {
@@ -80,7 +82,18 @@ export const useSurveyStore = defineStore('survey', () => {
 
     async function updateSurvey(updates: Partial<Survey>) {
         if (!currentSurvey.value) return;
-        currentSurvey.value = await updateQuestionnaire(currentSurvey.value.uuid, updates, true)
+        const res = await updateQuestionnaire(currentSurvey.value.uuid, updates, true);
+        if (res) {
+            currentSurvey.value = { ...currentSurvey.value, ...res };
+            const idx = surveys.value.findIndex(s => s.uuid === currentSurvey.value.uuid || s.id === currentSurvey.value.uuid);
+            if (idx !== -1) {
+                surveys.value[idx] = {
+                    ...surveys.value[idx],
+                    ...res,
+                    updatedAt: res.updatedAt ? new Date(res.updatedAt) : new Date()
+                };
+            }
+        }
     }
 
     function deleteSurvey(surveyId: string) {
@@ -408,26 +421,27 @@ console.log(questionId)
     // }
 
     async function loadQuestionnaires() {
-        const _questionnaires = await getAllQuestionnaires()
-        console.log(_questionnaires)
-        if (_questionnaires) {
-            try {
-                const parsed = await _questionnaires['member'];
-                console.log(parsed)
-                surveyCount.value = await _questionnaires['totalItems']
-                surveys.value = parsed.map((s: any) => ({
+        try {
+            const _questionnaires = await getAllQuestionnaires();
+            if (_questionnaires) {
+                const parsed = _questionnaires['member'] || _questionnaires['hydra:member'] || _questionnaires['items'] || (Array.isArray(_questionnaires) ? _questionnaires : []);
+                surveyCount.value = _questionnaires['totalItems'] ?? _questionnaires['totalRecords'] ?? _questionnaires['hydra:totalItems'] ?? (Array.isArray(parsed) ? parsed.length : 0);
+                surveys.value = (Array.isArray(parsed) ? parsed : []).map((s: any) => ({
                     ...s,
-                    createdAt: new Date(s.createdAt),
-                    updatedAt: new Date(s.updatedAt),
+                    createdAt: s.createdAt ? new Date(s.createdAt) : undefined,
+                    updatedAt: s.updatedAt ? new Date(s.updatedAt) : undefined,
+                    publishedAt: s.publishedAt ? new Date(s.publishedAt) : undefined,
                     openingDate: s.openingDate ? new Date(s.openingDate) : undefined,
                     closingDate: s.closingDate ? new Date(s.closingDate) : undefined,
+                    totalInvited: s.totalInvited ?? 0,
+                    totalResponses: s.totalResponses ?? 0,
                     settings: {
                         ...s.opt,
                     }
                 }));
-            } catch (e) {
-                console.error('Failed to load surveys :', e);
             }
+        } catch (e) {
+            console.error('Failed to load surveys :', e);
         }
     }
 

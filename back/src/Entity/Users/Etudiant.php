@@ -3,11 +3,11 @@
 namespace App\Entity\Users;
 
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use App\ApiDto\Etudiant\EtudiantTrombinoscopeDto;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Scolarite\ScolBac;
@@ -43,14 +43,19 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
         new GetCollection(normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light']]),
         new Patch(normalizationContext: ['groups' => ['etudiant:write']], securityPostDenormalize: "is_granted('CAN_EDIT_ETUDIANT', object)"),
     ],
-    order: ['nom' => 'ASC']
+    order: ['nom' => 'ASC'],
+    parameters: [
+        'departement' => new QueryParameter(filter: EtudiantFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: EtudiantFilter::class),
+        'semestre' => new QueryParameter(filter: EtudiantFilter::class),
+        'annee' => new QueryParameter(filter: EtudiantFilter::class),
+        'groupe' => new QueryParameter(filter: EtudiantFilter::class),
+        'nom' => new QueryParameter(filter: SearchFilter::class),
+        'start' => new QueryParameter(filter: SearchFilter::class),
+        'prenom' => new QueryParameter(filter: SearchFilter::class),
+        'mailUniv' => new QueryParameter(filter: SearchFilter::class),
+    ]
 )]
-#[ApiFilter(EtudiantFilter::class)]
-#[ApiFilter(SearchFilter::class, properties: [
-    'nom' => 'start',
-    'prenom' => 'start',
-    'mailUniv' => 'partial'
-])]
 class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, TimestampableInterface {
     use TimestampableTrait;
     use EduSignTrait;

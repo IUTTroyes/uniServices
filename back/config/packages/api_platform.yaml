@@ -16,3 +16,6 @@ api_platform:
             vary: ['Content-Type', 'Authorization', 'Origin']
         pagination_client_enabled: true
         pagination_client_items_per_page: true
+    eager_loading:
+        force_eager: false
+        max_joins: 100

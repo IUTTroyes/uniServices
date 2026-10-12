@@ -45,6 +45,7 @@ class ApcNiveau
     private ?int $ordre = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['competence:referentiel:full'])]
     private ?int $ordreAnnee = null;
 
     /** @var Collection<int, ApcParcours> */

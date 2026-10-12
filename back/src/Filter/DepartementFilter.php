@@ -8,7 +8,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(DepartementFilter::class)]
 class DepartementFilter extends AbstractFilter
@@ -23,9 +22,9 @@ class DepartementFilter extends AbstractFilter
 
         if ('personnel' === $property) {
             $queryBuilder
-                ->innerJoin(StructureDepartementPersonnel::class, 'sdp', 'WITH', sprintf('%s.id = sdp.departement', $alias))
+                ->innerJoin(sprintf('%s.departementPersonnels', $alias), 'sdp')
                 ->andWhere('sdp.personnel = :personnel')
-                ->setParameter('personnel', $value)
+                ->setParameter('personnel', (int) $value)
                 ->orderBy(sprintf('%s.libelle', $alias), 'ASC')
             ;
         } elseif ('actif' === $property) {
@@ -41,7 +40,7 @@ class DepartementFilter extends AbstractFilter
         return [
             'personnel' => [
                 'property' => 'personnel',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by personnel',
@@ -49,7 +48,7 @@ class DepartementFilter extends AbstractFilter
             ],
             'actif' => [
                 'property' => 'actif',
-                'type' => Type::BUILTIN_TYPE_BOOL,
+                'type' => 'bool',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by active status',

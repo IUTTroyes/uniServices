@@ -52,6 +52,30 @@ class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
         ;
         $manager->persist($superadmin);
 
+        // ----------- PERSONNEL FINANCE
+        $finance = new Personnel();
+        $passwordFinance = $this->encoder->hashPassword($finance, 'test');
+        $finance->setUsername('finance')
+            ->setMailUniv('finance@univ-reims.fr')
+            ->setPassword($passwordFinance)
+            ->setStatut(StatutEnum::BIATSS)
+            ->setPrenom('Service')
+            ->setNom('FINANCE')
+            ->setPhotoName('noimage.png');
+        $manager->persist($finance);
+
+        // ----------- ASSISTANTE DEPARTEMENT
+        $assistante = new Personnel();
+        $passwordAssistante = $this->encoder->hashPassword($assistante, 'test');
+        $assistante->setUsername('assistante')
+            ->setMailUniv('assistante.mmi@univ-reims.fr')
+            ->setPassword($passwordAssistante)
+            ->setStatut(StatutEnum::BIATSS)
+            ->setPrenom('Sophie')
+            ->setNom('ASSISTANTE')
+            ->setPhotoName('noimage.png');
+        $manager->persist($assistante);
+
         // ----------- ETUDIANT
         $etudiant = new Etudiant();
         $password = $this->encoder->hashPassword($etudiant, 'test');
