@@ -7,7 +7,6 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(DepartementPersonnelFilter::class)]
 class DepartementPersonnelFilter extends AbstractFilter
@@ -46,7 +45,7 @@ class DepartementPersonnelFilter extends AbstractFilter
         return [
             'departement' => [
                 'property' => 'departement',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by departement',
@@ -54,7 +53,7 @@ class DepartementPersonnelFilter extends AbstractFilter
             ],
             'personnel' => [
                 'property' => 'departement',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by personnel',

@@ -2,12 +2,12 @@
 
 namespace App\Entity\Structure;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcCompetence;
 use App\Entity\Scolarite\ScolEnseignementUe;
@@ -29,9 +29,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_UE', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_UE', object)"),
         new Delete(security: "is_granted('CAN_DELETE_UE', object)")
+    ],
+    parameters: [
+        'semestre' => new QueryParameter(filter: UeFilter::class),
     ]
 )]
-#[ApiFilter(UeFilter::class)]
 class StructureUe implements TimestampableInterface
 {
     use TimestampableTrait;

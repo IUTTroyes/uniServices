@@ -3,12 +3,12 @@
 namespace App\Entity\Edt;
 
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\ApiDto\Edt\EdtStatsDto;
 use App\Entity\Scolarite\ScolEnseignement;
@@ -34,8 +34,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\UuidV4;
 
 #[ORM\Entity(repositoryClass: EdtEventRepository::class)]
-#[ApiFilter(BooleanFilter::class, properties: ['aPlacer'])]
-#[ApiFilter(EdtFilter::class)]
 #[ApiResource(
     paginationEnabled: false,
     operations: [
@@ -54,6 +52,20 @@ use Symfony\Component\Uid\UuidV4;
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_EDT', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_EDT', object)"),
         new Delete(security: "is_granted('CAN_DELETE_EDT', object)"),
+    ],
+    parameters: [
+        'aPlacer' => new QueryParameter(filter: BooleanFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: EdtFilter::class),
+        'semaineFormation' => new QueryParameter(filter: EdtFilter::class),
+        'personnel' => new QueryParameter(filter: EdtFilter::class),
+        'departement' => new QueryParameter(filter: EdtFilter::class),
+        'semestre' => new QueryParameter(filter: EdtFilter::class),
+        'day' => new QueryParameter(filter: EdtFilter::class),
+        'debut' => new QueryParameter(filter: EdtFilter::class),
+        'fin' => new QueryParameter(filter: EdtFilter::class),
+        'enseignement' => new QueryParameter(filter: EdtFilter::class),
+        'salle' => new QueryParameter(filter: EdtFilter::class),
+        'annee' => new QueryParameter(filter: EdtFilter::class),
     ]
 )]
 class EdtEvent implements TimestampableInterface

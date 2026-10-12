@@ -2,13 +2,13 @@
 
 namespace IntranetBundle\Entity\Previsionnel;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Put;
 use IntranetBundle\Dto\Previsionnel\PrevisionnelAllPersonnelsDto;
 use IntranetBundle\Dto\Previsionnel\PrevisionnelEnseignementDto;
@@ -81,8 +81,16 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Delete(normalizationContext: ['groups' => ['previsionnel:read']], security: "is_granted('CAN_DELETE_PREVISIONNEL', object)"),
     ],
     paginationEnabled: false,
+    parameters: [
+        'personnel' => new QueryParameter(filter: PrevisionnelFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: PrevisionnelFilter::class),
+        'departement' => new QueryParameter(filter: PrevisionnelFilter::class),
+        'annee' => new QueryParameter(filter: PrevisionnelFilter::class),
+        'semestre' => new QueryParameter(filter: PrevisionnelFilter::class),
+        'enseignement' => new QueryParameter(filter: PrevisionnelFilter::class),
+        'diplome' => new QueryParameter(filter: PrevisionnelFilter::class),
+    ]
 )]
-#[ApiFilter(PrevisionnelFilter::class)]
 class Previsionnel
 {
     public const DUREE_SEANCE = 1;

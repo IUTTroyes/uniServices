@@ -3,12 +3,12 @@
 namespace App\Entity\Structure;
 
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Filter\SemaineFormationFilter;
 use App\Repository\Structure\StructureCalendrierRepository;
@@ -35,9 +35,12 @@ use App\Entity\Traits\OldIdTrait;
         ),
         new Delete(security: "is_granted('CAN_DELETE_CALENDRIER', object)"),
     ],
-    order: ['semaineFormation' => 'ASC']
+    order: ['semaineFormation' => 'ASC'],
+    parameters: [
+        'semaineReelle' => new QueryParameter(filter: SearchFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: SearchFilter::class),
+    ]
 )]
-#[ApiFilter(SearchFilter::class, properties: ['semaineReelle' => 'exact', 'anneeUniversitaire' => 'exact'])]
 class StructureCalendrier
 {
     use OldIdTrait; // à supprimer après transfert

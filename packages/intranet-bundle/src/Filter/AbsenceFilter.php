@@ -8,7 +8,6 @@ use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
 use IntranetBundle\Enum\EtatJustificatifEnum;
-use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(AbsenceFilter::class)]
 class AbsenceFilter extends AbstractFilter
@@ -105,7 +104,7 @@ class AbsenceFilter extends AbstractFilter
         return [
             'annee' => [
                 'property' => 'annee',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by annee',
@@ -113,7 +112,7 @@ class AbsenceFilter extends AbstractFilter
             ],
             'anneeUniversitaire' => [
                 'property' => 'anneeUniversitaire',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by anneeUniversitaire',
@@ -121,7 +120,7 @@ class AbsenceFilter extends AbstractFilter
             ],
             'justifiee' => [
                 'property' => 'justifiee',
-                'type' => Type::BUILTIN_TYPE_BOOL,
+                'type' => 'bool',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by justifiee',
@@ -129,7 +128,7 @@ class AbsenceFilter extends AbstractFilter
             ],
             'event' => [
                 'property' => 'event',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by event',
@@ -137,7 +136,7 @@ class AbsenceFilter extends AbstractFilter
             ],
             'personnel' => [
                 'property' => 'personnel',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by personnel',
@@ -145,7 +144,7 @@ class AbsenceFilter extends AbstractFilter
             ],
             'scolariteSemestre' => [
                 'property' => 'scolariteSemestre',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by scolariteSemestre',

@@ -2,11 +2,11 @@
 
 namespace App\Entity\Etudiant;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use App\ApiDto\EtudiantScolariteSemestre\EtudiantScolariteSemestreDto;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
@@ -20,7 +20,6 @@ use Doctrine\DBAL\Types\Types;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantScolariteSemestreRepository::class)]
-#[ApiFilter(EtudiantScolariteSemestreFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['scolarite-semestre:detail']]),
@@ -36,6 +35,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
         new GetCollection(normalizationContext: ['groups' => ['scolarite-semestre:detail', 'semestre:light', 'annee:light', 'groupe:light']]),
         new Patch(normalizationContext: ['groups' => ['scolarite-semestre:write']], securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),
+    ],
+    parameters: [
+        'scolarite' => new QueryParameter(filter: EtudiantScolariteSemestreFilter::class),
+        'groupe' => new QueryParameter(filter: EtudiantScolariteSemestreFilter::class),
+        'semestre' => new QueryParameter(filter: EtudiantScolariteSemestreFilter::class),
+        'etudiant' => new QueryParameter(filter: EtudiantScolariteSemestreFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: EtudiantScolariteSemestreFilter::class),
     ]
 )]
 class EtudiantScolariteSemestre

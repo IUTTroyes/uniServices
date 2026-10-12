@@ -2,12 +2,12 @@
 
 namespace App\Entity\Structure;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Apc\ApcReferentiel;
@@ -28,7 +28,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDiplomeRepository::class)]
-#[ApiFilter(DiplomeFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['diplome:detail', 'type-diplome:light']]),
@@ -77,7 +76,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_DIPLOME', object)"),
         new Delete(security: "is_granted('CAN_DELETE_DIPLOME', object)"),
     ],
-    paginationEnabled: false
+    paginationEnabled: false,
+    parameters: [
+        'departement' => new QueryParameter(filter: DiplomeFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: DiplomeFilter::class),
+    ]
 )]
 class StructureDiplome implements TimestampableInterface
 {
@@ -194,6 +197,23 @@ class StructureDiplome implements TimestampableInterface
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return StructureSemestre[]
+     */
+    public function getSemestres(): array
+    {
+        $semestres = [];
+        foreach ($this->pns as $pn) {
+            foreach ($pn->getAnnees() as $annee) {
+                foreach ($annee->getSemestres() as $semestre) {
+                    $semestres[$semestre->getId()] = $semestre;
+                }
+            }
+        }
+
+        return array_values($semestres);
     }
 
     public function getLibelle(): ?string

@@ -2,13 +2,13 @@
 
 namespace IntranetBundle\Entity\Etudiant;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Traits\UuidTrait;
 use IntranetBundle\Enum\EtatJustificatifEnum;
@@ -22,14 +22,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantAbsenceJustificatifRepository::class)]
-#[ApiFilter(JustificatifAbsenceFilter::class)]
-#[ApiFilter(OrderFilter::class, properties: [
-    'debut',
-    'fin',
-    'motif',
-    'etat',
-    'scolariteSemestre.scolarite.etudiant.nom',
-])]
 #[ApiResource(
     operations: [
         new GetCollection(
@@ -52,7 +44,21 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['justificatif:administration']],
         )
     ],
-    order: ['debut' => 'DESC']
+    order: ['debut' => 'DESC'],
+    parameters: [
+        'annee' => new QueryParameter(filter: JustificatifAbsenceFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: JustificatifAbsenceFilter::class),
+        'etat' => new QueryParameter(filter: JustificatifAbsenceFilter::class),
+        'motif' => new QueryParameter(filter: JustificatifAbsenceFilter::class),
+        'etudiant' => new QueryParameter(filter: JustificatifAbsenceFilter::class),
+        'debut' => new QueryParameter(filter: JustificatifAbsenceFilter::class),
+        'fin' => new QueryParameter(filter: JustificatifAbsenceFilter::class),
+        'order[debut]' => new QueryParameter(filter: OrderFilter::class),
+        'order[fin]' => new QueryParameter(filter: OrderFilter::class),
+        'order[motif]' => new QueryParameter(filter: OrderFilter::class),
+        'order[etat]' => new QueryParameter(filter: OrderFilter::class),
+        'order[scolariteSemestre.scolarite.etudiant.nom]' => new QueryParameter(filter: OrderFilter::class),
+    ]
 )]
 class EtudiantAbsenceJustificatif
 {

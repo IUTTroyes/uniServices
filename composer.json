@@ -6,7 +6,7 @@
     "require": {
         "doctrine/doctrine-bundle": "*",
         "doctrine/orm": "*",
-        "php": "^8.2",
+        "php": "^8.4",
         "symfony/framework-bundle": "^8.1",
         "symfony/http-kernel": "^8.1"
     },
