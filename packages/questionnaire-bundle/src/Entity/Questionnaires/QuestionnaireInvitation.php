@@ -11,8 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\QueryParameter;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: QuestionnaireInvitationRepository::class)]
@@ -24,8 +24,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(normalizationContext: ['groups' => ['invitation:read']]),
     ],
     normalizationContext: ['groups' => ['invitation:read']],
+    parameters: [
+        'questionnaire' => new QueryParameter(filter: SearchFilter::class),
+        'questionnaire.uuid' => new QueryParameter(filter: SearchFilter::class),
+    ]
 )]
-#[ApiFilter(SearchFilter::class, properties: ['questionnaire' => 'exact', 'questionnaire.uuid' => 'exact'])]
 class QuestionnaireInvitation implements TimestampableInterface
 {
     #[ORM\Id]

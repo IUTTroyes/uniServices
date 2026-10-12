@@ -2,12 +2,12 @@
 
 namespace App\Entity\Structure;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Edt\EdtEvent;
@@ -26,7 +26,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureGroupeRepository::class)]
-#[ApiFilter(GroupeFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['groupe:detail', 'diplome:read', 'diplome:read:full']]),
@@ -61,6 +60,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
             processor: GroupeDeletefromSemestreProcessor::class,
         ),
         new Delete(security: "is_granted('CAN_DELETE_GROUPE', object)"),
+    ],
+    parameters: [
+        'semestre' => new QueryParameter(filter: GroupeFilter::class),
+        'type' => new QueryParameter(filter: GroupeFilter::class),
     ]
 )]
 class StructureGroupe

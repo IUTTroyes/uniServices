@@ -2,11 +2,11 @@
 
 namespace App\Entity\Etudiant;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Contracts\TimestampableInterface;
@@ -21,7 +21,6 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 
 #[ORM\Entity(repositoryClass: EtudiantNoteRepository::class)]
-#[ApiFilter(EtudiantNoteFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['note:detail']]),
@@ -37,6 +36,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
             processor: EtudiantNotePersistProcessor::class
         ),
     ],
+    parameters: [
+        'etudiant' => new QueryParameter(filter: EtudiantNoteFilter::class),
+        'evaluation' => new QueryParameter(filter: EtudiantNoteFilter::class),
+    ]
 )]
 class EtudiantNote implements TimestampableInterface
 {

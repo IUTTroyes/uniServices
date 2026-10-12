@@ -2,12 +2,12 @@
 
 namespace App\Entity\Structure;
 
-use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
-use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Doctrine\Orm\Filter\ExactFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Apc\ApcNiveau;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Contracts\TimestampableInterface;
@@ -21,7 +21,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureAnneeRepository::class)]
 #[ApiResource(
@@ -34,10 +34,16 @@ use Symfony\Component\Serializer\Annotation\Groups;
             provider: EtudiantAnneesStatsProvider::class,
         ),
         new Delete(),
+    ],
+    parameters: [
+        'departement' => new QueryParameter(filter: AnneeFilter::class),
+        'pn' => new QueryParameter(filter: AnneeFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: AnneeFilter::class),
+        'diplome' => new QueryParameter(filter: AnneeFilter::class),
+        'actif' => new QueryParameter(filter: AnneeFilter::class),
+        'id' => new QueryParameter(filter: ExactFilter::class),
     ]
 )]
-#[ApiFilter(AnneeFilter::class)]
-#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
 #[ORM\HasLifecycleCallbacks()]
 class StructureAnnee implements TimestampableInterface
 {
