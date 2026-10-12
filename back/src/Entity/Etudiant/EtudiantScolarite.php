@@ -3,11 +3,11 @@
 namespace App\Entity\Etudiant;
 
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Structure\StructureAnnee;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartement;
@@ -24,7 +24,6 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantScolariteRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['scolarite:detail', 'etudiant:light', 'annee:light', 'annee-univ:light']]),
@@ -53,9 +52,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
 
     ],
+    parameters: [
+        'actif' => new QueryParameter(filter: BooleanFilter::class),
+        'departement' => new QueryParameter(filter: EtudiantScolariteFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: EtudiantScolariteFilter::class),
+        'etudiant' => new QueryParameter(filter: EtudiantScolariteFilter::class),
+    ]
 )]
-#[ApiFilter(BooleanFilter::class, properties: ['actif'])]
-#[ApiFilter(EtudiantScolariteFilter::class)]
 class EtudiantScolarite
 {
     use UuidTrait;
@@ -129,6 +132,7 @@ class EtudiantScolarite
     public function __construct()
     {
         $this->scolariteSemestre = new ArrayCollection();
+        $this->setUuid();
     }
 
     public function getId(): ?int
@@ -204,30 +208,6 @@ class EtudiantScolarite
     public function setPublic(bool $public): static
     {
         $this->public = $public;
-
-        return $this;
-    }
-
-    public function getMoyennesMatiere(): ?array
-    {
-        return $this->moyennesMatiere;
-    }
-
-    public function setMoyennesMatiere(?array $moyennesMatiere): static
-    {
-        $this->moyennesMatiere = $moyennesMatiere;
-
-        return $this;
-    }
-
-    public function getMoyennesUe(): ?array
-    {
-        return $this->moyennesUe;
-    }
-
-    public function setMoyennesUe(?array $moyennesUe): static
-    {
-        $this->moyennesUe = $moyennesUe;
 
         return $this;
     }

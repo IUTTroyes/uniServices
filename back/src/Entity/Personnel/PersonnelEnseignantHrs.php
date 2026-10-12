@@ -2,18 +2,19 @@
 
 namespace App\Entity\Personnel;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDiplome;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Users\Personnel;
 use App\Filter\PersonnelEnseignantHrsFilter;
 use App\Repository\PersonnelEnseignantHrsRepository;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -24,9 +25,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(normalizationContext: ['groups' => ['enseignant_hrs:read']]),
         new Post(normalizationContext: ['groups' => ['enseignant_hrs:write']],),
         new Delete(normalizationContext: ['groups' => ['enseignant_hrs:write']],)
+    ],
+    parameters: [
+        'personnel' => new QueryParameter(filter: PersonnelEnseignantHrsFilter::class),
+        'annee_universitaire' => new QueryParameter(filter: PersonnelEnseignantHrsFilter::class),
     ]
 )]
-#[ApiFilter(PersonnelEnseignantHrsFilter::class)]
 class PersonnelEnseignantHrs
 {
     #[ORM\Id]
@@ -38,6 +42,9 @@ class PersonnelEnseignantHrs
     #[ORM\Column(length: 150, nullable: true)]
     #[Groups(['enseignant_hrs:read'])]
     private ?string $libelle = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $commentaire = null;
 
     #[ORM\ManyToOne(inversedBy: 'enseignantHrs')]
     #[ORM\JoinColumn(nullable: false)]
@@ -78,6 +85,18 @@ class PersonnelEnseignantHrs
     public function setLibelle(?string $libelle): static
     {
         $this->libelle = $libelle;
+
+        return $this;
+    }
+
+    public function getCommentaire(): ?string
+    {
+        return $this->commentaire;
+    }
+
+    public function setCommentaire(?string $commentaire): static
+    {
+        $this->commentaire = $commentaire;
 
         return $this;
     }

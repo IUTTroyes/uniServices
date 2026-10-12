@@ -3,12 +3,12 @@
 namespace App\Entity\Apc;
 
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Structure\StructureDepartement;
 use App\Entity\Structure\StructureDiplome;
@@ -24,14 +24,17 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: ApcReferentielRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['referentiel:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['referentiel:read']]),
+        new Get(normalizationContext: ['groups' => ['referentiel:read', 'departement:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['referentiel:read', 'departement:read']]),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_APC_REFERENTIEL', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_APC_REFERENTIEL', object)"),
         new Delete(security: "is_granted('CAN_DELETE_APC_REFERENTIEL', object)"),
+    ],
+    parameters: [
+        'departement.id' => new QueryParameter(filter: SearchFilter::class),
+        'departement.libelle' => new QueryParameter(filter: SearchFilter::class),
     ]
 )]
-#[ApiFilter(SearchFilter::class, properties: ['departement.id' => 'exact', 'departement.libelle' => 'partial'])]
 class ApcReferentiel
 {
     #[ORM\Id]
@@ -61,6 +64,7 @@ class ApcReferentiel
     private Collection $diplomes;
 
     #[ORM\ManyToOne(inversedBy: 'referentiels')]
+    #[Groups(['referentiel:read'])]
     private ?StructureDepartement $departement = null;
 
     /**
@@ -72,7 +76,7 @@ class ApcReferentiel
     /**
      * @var Collection<int, StructurePn>
      */
-    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'referentiel')]
+    #[ORM\OneToMany(targetEntity: StructurePn::class, mappedBy: 'apcReferentiel')]
     private Collection $pn;
 
     #[ORM\ManyToOne(inversedBy: 'referentiels')]

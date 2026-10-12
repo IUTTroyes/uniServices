@@ -2,17 +2,18 @@
 
 namespace App\Entity\Structure;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\DepartementActualite;
 use App\Entity\Etudiant\EtudiantScolarite;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Traits\UuidTrait;
@@ -29,26 +30,37 @@ use Symfony\Component\Serializer\Attribute\Groups;
 #[ORM\Entity(repositoryClass: StructureDepartementRepository::class)]
 #[ApiResource(
     operations: [
-        new GetCollection(normalizationContext: ['groups' => ['departement:read']]),
+        new GetCollection(
+            normalizationContext: ['groups' => ['departement:read']],
+            paginationEnabled: false
+        ),
         new GetCollection(
             uriTemplate: '/administration/structure_departements',
             normalizationContext: ['groups' => ['departement:administration']],
         ),
         new Get(normalizationContext: ['groups' => ['departement:read']]),
-        new Post(securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)"),
+        new Post(
+            normalizationContext: ['groups' => ['departement:administration']],
+            denormalizationContext: ['groups' => ['departement:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)"
+        ),
         new Patch(
+            normalizationContext: ['groups' => ['departement:administration']],
+            denormalizationContext: ['groups' => ['departement:write']],
             securityPostDenormalize: "is_granted('CAN_EDIT_DEPARTEMENT', object)",
             processor: DepartementUpdateProcessor::class
         ),
         new Delete(security: "is_granted('CAN_DELETE_DEPARTEMENT', object)"),
+    ],
+    parameters: [
+        'personnel' => new QueryParameter(filter: DepartementFilter::class),
+        'actif' => new QueryParameter(filter: DepartementFilter::class),
     ]
 )]
-#[ApiFilter(DepartementFilter::class)]
-#[ORM\HasLifecycleCallbacks]
-class StructureDepartement
+class StructureDepartement implements TimestampableInterface
 {
     use UuidTrait;
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OptionTrait;
     use OldIdTrait; //a supprimer après transfert
 
@@ -59,26 +71,31 @@ class StructureDepartement
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'etudiant:read', 'departement_personnel:read', 'scolarite:read', 'diplome:detail', 'pn:detail', 'pn:light', 'scolarite:user'])]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'personnel:read', 'etudiant:read', 'departement_personnel:read', 'scolarite:read', 'diplome:detail', 'pn:detail', 'pn:light', 'scolarite:user', 'departement:write'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'departement:write'])]
     private ?string $logoName = null;
 
     #[ORM\Column(length: 16, nullable: true)]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'departement:write'])]
     private ?string $telContact = null;
 
     #[ORM\Column(length: 16, nullable: true)]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'departement:write'])]
     private ?string $couleur = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'departement:write'])]
     private ?string $siteWeb = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'departement:write'])]
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups(groups: ['departement:administration', 'departement:read', 'diplome:detail', 'pn:detail', 'pn:light'])]
+    #[Groups(groups: ['departement:administration', 'departement:read', 'diplome:detail', 'pn:detail', 'pn:light', 'departement:write'])]
     private ?bool $actif = null;
 
     /**
@@ -114,6 +131,7 @@ class StructureDepartement
 
     public function __construct()
     {
+        $this->setUuid();
         $this->diplomes = new ArrayCollection();
         $this->departementPersonnels = new ArrayCollection();
         $this->setOpt([]);

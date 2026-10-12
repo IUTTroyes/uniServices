@@ -3,7 +3,11 @@
 namespace App\Entity\Personnel;
 
 use ApiPlatform\Metadata\ApiResource;
+use ApiPlatform\Metadata\Delete;
+use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use App\Enum\TypeHrsEnum;
 use App\Repository\PersonnelEnseignantTypeHrsRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -14,20 +18,34 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PersonnelEnseignantTypeHrsRepository::class)]
 #[ApiResource(
+    paginationEnabled: false,
     operations: [
-        new GetCollection(normalizationContext: ['groups' => ['enseignant_hrs:read']]),
-    ]
+        new Get(normalizationContext: ['groups' => ['enseignant_type_hrs:detail', 'enseignant_hrs:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['enseignant_type_hrs:detail', 'enseignant_hrs:read']]),
+        new Post(
+            normalizationContext: ['groups' => ['enseignant_type_hrs:detail', 'enseignant_hrs:read']],
+            denormalizationContext: ['groups' => ['enseignant_type_hrs:write']],
+            securityPostDenormalize: "is_granted('SUPER_ADMIN')"
+        ),
+        new Patch(
+            normalizationContext: ['groups' => ['enseignant_type_hrs:detail', 'enseignant_hrs:read']],
+            denormalizationContext: ['groups' => ['enseignant_type_hrs:write']],
+            securityPostDenormalize: "is_granted('SUPER_ADMIN')"
+        ),
+        new Delete(security: "is_granted('SUPER_ADMIN')"),
+    ],
+    order: ['libelle' => 'ASC']
 )]
 class PersonnelEnseignantTypeHrs
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['enseignant_hrs:read'])]
+    #[Groups(['enseignant_hrs:read', 'enseignant_type_hrs:detail'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 150)]
-    #[Groups(['enseignant_hrs:read'])]
+    #[Groups(['enseignant_hrs:read', 'enseignant_type_hrs:detail', 'enseignant_type_hrs:write'])]
     private ?string $libelle = null;
 
     /**
@@ -37,15 +55,15 @@ class PersonnelEnseignantTypeHrs
     private Collection $enseignantHrs;
 
     #[ORM\Column]
-    #[Groups(['enseignant_hrs:read'])]
+    #[Groups(['enseignant_hrs:read', 'enseignant_type_hrs:detail', 'enseignant_type_hrs:write'])]
     private ?bool $incluService = null;
 
     #[ORM\Column]
-    #[Groups(['enseignant_hrs:read'])]
+    #[Groups(['enseignant_hrs:read', 'enseignant_type_hrs:detail', 'enseignant_type_hrs:write'])]
     private ?float $maximum = null;
 
     #[ORM\Column(type: Types::STRING, length: 20, nullable: true, enumType: TypeHrsEnum::class)]
-    #[Groups(['enseignant_hrs:read'])]
+    #[Groups(['enseignant_hrs:read', 'enseignant_type_hrs:detail', 'enseignant_type_hrs:write'])]
     private TypeHrsEnum|null $type = null;
 
     public function __construct()

@@ -2,11 +2,11 @@
 
 namespace App\Entity\Scolarite;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Etudiant\EtudiantNote;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureSemestre;
@@ -22,11 +22,9 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: ScolEvaluationRepository::class)]
-#[ORM\HasLifecycleCallbacks]
-#[ApiFilter(EvaluationFilter::class)]
 #[ApiResource(
     paginationEnabled: false,
     operations: [
@@ -41,6 +39,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
             normalizationContext: ['groups' => ['evaluation:mini', 'evaluation:init']],
         ),
         new Patch(normalizationContext: ['groups' => ['evaluation:write']], securityPostDenormalize: "is_granted('CAN_EDIT_EVAL', object)", processor: ScolEvaluationInitProcessor::class),
+    ],
+    parameters: [
+        'enseignement' => new QueryParameter(filter: EvaluationFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: EvaluationFilter::class),
     ]
 )]
 class ScolEvaluation
@@ -108,9 +110,17 @@ class ScolEvaluation
     private Collection $evaluations;
 
     #[ORM\ManyToOne(inversedBy: 'evaluations')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: true)]
     #[Groups(['evaluation:detail', 'evaluation:init'])]
     private ?ScolEnseignement $enseignement = null;
+
+    /**
+     * Immutable V3 context for evaluations predating the first versioned V4 PN.
+     * Null for evaluations attached to a native V4 structure.
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['evaluation:detail'])]
+    private ?array $legacyContext = null;
 
     /**
      * @var Collection<int, EtudiantNote>
@@ -140,6 +150,7 @@ class ScolEvaluation
 
     public function __construct()
     {
+        $this->setUuid();
         $this->personnelAutorise = new ArrayCollection();
         $this->evaluations = new ArrayCollection();
         $this->notes = new ArrayCollection();
@@ -332,6 +343,18 @@ class ScolEvaluation
     /**
      * @return Collection<int, EtudiantNote>
      */
+    public function getLegacyContext(): ?array
+    {
+        return $this->legacyContext;
+    }
+
+    public function setLegacyContext(?array $legacyContext): static
+    {
+        $this->legacyContext = $legacyContext;
+
+        return $this;
+    }
+
     public function getNotes(): Collection
     {
         return $this->notes;

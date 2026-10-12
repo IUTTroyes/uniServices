@@ -2,6 +2,7 @@
 
 namespace QuestionnaireBundle\Entity\Questionnaires;
 
+use App\Entity\Contracts\TimestampableInterface;
 use QuestionnaireBundle\Enum\QuestInvitationStatusEnum;
 use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireInvitationRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -10,8 +11,8 @@ use Doctrine\ORM\Mapping as ORM;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\QueryParameter;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: QuestionnaireInvitationRepository::class)]
@@ -23,9 +24,12 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(normalizationContext: ['groups' => ['invitation:read']]),
     ],
     normalizationContext: ['groups' => ['invitation:read']],
+    parameters: [
+        'questionnaire' => new QueryParameter(filter: SearchFilter::class),
+        'questionnaire.uuid' => new QueryParameter(filter: SearchFilter::class),
+    ]
 )]
-#[ApiFilter(SearchFilter::class, properties: ['questionnaire' => 'exact', 'questionnaire.uuid' => 'exact'])]
-class QuestionnaireInvitation
+class QuestionnaireInvitation implements TimestampableInterface
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -52,6 +56,10 @@ class QuestionnaireInvitation
     #[ORM\Column]
     #[Groups(['invitation:read'])]
     private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column]
+    #[Groups(['invitation:read'])]
+    private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\Column(nullable: true)]
     #[Groups(['invitation:read'])]
@@ -84,7 +92,6 @@ class QuestionnaireInvitation
         $this->questionnaire = $q;
         $this->token = $token;
         $this->email = $email;
-        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -133,11 +140,19 @@ class QuestionnaireInvitation
         return $this->createdAt;
     }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
+    public function setCreatedAt(\DateTimeImmutable $createdAt): void
     {
         $this->createdAt = $createdAt;
+    }
 
-        return $this;
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): void
+    {
+        $this->updatedAt = $updatedAt;
     }
 
     public function getStartedAt(): ?\DateTimeImmutable

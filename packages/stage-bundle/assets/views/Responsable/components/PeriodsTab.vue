@@ -4,7 +4,8 @@ import {
   UsersIcon,
   UserPlusIcon,
   ClockIcon,
-  DocumentTextIcon
+  DocumentTextIcon,
+  AcademicCapIcon
 } from '@heroicons/vue/24/outline';
 import { Card, ButtonDelete } from '@components';
 
@@ -46,12 +47,24 @@ const emit = defineEmits(['create', 'edit', 'delete', 'select']);
         body-class="flex-1 flex flex-col justify-between pt-4"
       >
         <div>
-          <!-- Type and Date tags -->
+          <!-- Type, Diplome, Semestre and Date tags -->
           <div class="flex flex-wrap gap-2 mb-4">
             <Tag
               :value="p.type"
               severity="info"
               class="text-[9px] font-extrabold uppercase font-sans px-2.5 py-0.5 rounded"
+            />
+            <Tag
+              v-if="p.diplome && p.diplome !== 'Diplôme non défini'"
+              :value="p.diplome"
+              severity="warn"
+              class="text-[9px] font-bold font-sans px-2.5 py-0.5 rounded"
+            />
+            <Tag
+              v-if="p.semestre && p.semestre !== 'Semestre non défini'"
+              :value="'Semestre : ' + p.semestre"
+              severity="secondary"
+              class="text-[9px] font-bold font-sans px-2 py-0.5 rounded"
             />
             <Tag
               :value="p.datesFlexibles ? 'Dates flexibles' : 'Dates strictes'"
@@ -62,6 +75,10 @@ const emit = defineEmits(['create', 'edit', 'delete', 'select']);
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
             <div class="space-y-2">
+              <div class="flex items-center gap-2" v-if="p.diplome || p.semestre">
+                <AcademicCapIcon class="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span>Formation : <strong>{{ p.diplome }}</strong> ({{ p.semestre }})</span>
+              </div>
               <div class="flex items-center gap-2">
                 <CalendarIcon class="w-3.5 h-3.5 text-slate-400 shrink-0" />
                 <span>{{ p.dates }} ({{ p.minWeeks }} sem. min)</span>

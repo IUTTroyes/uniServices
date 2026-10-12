@@ -3,6 +3,7 @@ export * from './addressService.js';
 
 export * from './structure_services/departementService.js';
 export * from './structure_services/diplomeService.js';
+export * from './structure_services/typeDiplomeService.js';
 export * from './structure_services/anneeService.js';
 export * from './structure_services/semestreService.js';
 export * from './structure_services/anneeUnivService.js';
@@ -13,6 +14,7 @@ export * from './structure_services/ueService.js';
 export * from './structure_services/previsionnelService.js';
 export * from './structure_services/groupeService.js';
 
+export * from './scol_services/bacService.js';
 export * from './scol_services/enseignementService.js';
 export * from './scol_services/evaluationService.js';
 
@@ -28,9 +30,10 @@ export * from './etudiant_services/etudiantScolariteService.js';
 export * from './etudiant_services/etudiantScolariteSemestreService.js';
 export * from './etudiant_services/etudiantNoteService.js';
 export * from './etudiant_services/etudiantAbsenceService.js';
-export * from './etudiant_services/absenceJustificatifService.js';
+export * from './absence_services/absenceJustificatifService.js';
 
-export * from './personnel_services/personnelHrsService.js'
+export * from './personnel_services/personnelHrsService.js';
+export * from './personnel_services/typeHrsService.js';
 
 export * from './apc_services/competenceService.js';
 export * from './salleService.js';
@@ -46,3 +49,5 @@ export * from './structure_services/serviceService.js'
 export * from './dashboardService.js';
 
 export * from './actu_services/actualiteService.js'
+export * from './plan_cours_services/planCoursService.js';
+

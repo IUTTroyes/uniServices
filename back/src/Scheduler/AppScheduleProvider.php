@@ -25,13 +25,13 @@ class AppScheduleProvider implements ScheduleProviderInterface
             $activeTasks = $this->taskRepository->findBy(['active' => true]);
             foreach ($activeTasks as $task) {
                 $trigger = CronExpressionTrigger::fromSpec($task->getCronExpression());
-                
+
                 $commandLine = $task->getCommand();
                 $args = $task->getArguments() ?? [];
                 if (!empty($args)) {
                     $commandLine .= ' ' . implode(' ', $args);
                 }
-                
+
                 $message = new RunCommandMessage($commandLine);
 
                 $schedule = $schedule->with(

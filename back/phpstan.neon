@@ -14,7 +14,6 @@ parameters:
         - src
         - ../packages/auth-bundle/src
         - ../packages/document-bundle/src
-        - ../packages/edt-bundle/src
         - ../packages/intranet-bundle/src
         - ../packages/unifolio-bundle/src
         - ../packages/helpdesk-bundle/src

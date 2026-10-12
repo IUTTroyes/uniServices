@@ -2,12 +2,14 @@
 
 namespace DocumentBundle\Entity;
 
+use App\Entity\Traits\OldIdTrait;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
+use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Structure\StructureDepartement;
 use DocumentBundle\Repository\DocumentCategoryRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -35,8 +37,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
     normalizationContext: ['groups' => ['document_category:read']],
     denormalizationContext: ['groups' => ['document_category:write']]
 )]
-class DocumentCategory
+class DocumentCategory implements TimestampableInterface
 {
+    use OldIdTrait;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -86,15 +90,22 @@ class DocumentCategory
     #[Groups(['document_category:read', 'document_category:write'])]
     private bool $isSystem = false;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    #[Groups(['document_category:read', 'document_category:write'])]
+    private bool $isOriginal = false;
+
     #[ORM\Column]
     #[Groups(['document_category:read'])]
-    private \DateTimeImmutable $createdAt;
+    private ?\DateTimeImmutable $createdAt = null;
+
+    #[ORM\Column]
+    #[Groups(['document_category:read'])]
+    private ?\DateTimeImmutable $updatedAt = null;
 
     public function __construct()
     {
         $this->children = new ArrayCollection();
         $this->documents = new ArrayCollection();
-        $this->createdAt = new \DateTimeImmutable();
     }
 
     public function getId(): ?int
@@ -226,8 +237,34 @@ class DocumentCategory
         return $this;
     }
 
-    public function getCreatedAt(): \DateTimeImmutable
+    public function isOriginal(): bool
+    {
+        return $this->isOriginal;
+    }
+
+    public function setIsOriginal(bool $isOriginal): static
+    {
+        $this->isOriginal = $isOriginal;
+        return $this;
+    }
+
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function setCreatedAt(\DateTimeImmutable $createdAt): void
+    {
+        $this->createdAt = $createdAt;
+    }
+
+    public function getUpdatedAt(): ?\DateTimeImmutable
+    {
+        return $this->updatedAt;
+    }
+
+    public function setUpdatedAt(\DateTimeImmutable $updatedAt): void
+    {
+        $this->updatedAt = $updatedAt;
     }
 }

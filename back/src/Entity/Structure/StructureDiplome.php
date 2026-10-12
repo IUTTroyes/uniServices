@@ -2,19 +2,20 @@
 
 namespace App\Entity\Structure;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcParcours;
 use App\Entity\Apc\ApcReferentiel;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Traits\EduSignTrait;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Entity\Traits\OptionTrait;
 use App\Entity\Users\Personnel;
@@ -27,7 +28,6 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructureDiplomeRepository::class)]
-#[ApiFilter(DiplomeFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['diplome:detail', 'type-diplome:light']]),
@@ -76,24 +76,27 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_DIPLOME', object)"),
         new Delete(security: "is_granted('CAN_DELETE_DIPLOME', object)"),
     ],
-    paginationEnabled: false
+    paginationEnabled: false,
+    parameters: [
+        'departement' => new QueryParameter(filter: DiplomeFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: DiplomeFilter::class),
+    ]
 )]
-#[ORM\HasLifecycleCallbacks]
-class StructureDiplome
+class StructureDiplome implements TimestampableInterface
 {
     use EduSignTrait;
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OptionTrait;
     use OldIdTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:light', 'stage_periode:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:detail', 'pn:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:detail', 'pn:light', 'stage_periode:read'])]
     private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome', cascade: ['persist'])]
@@ -113,7 +116,7 @@ class StructureDiplome
     private ?int $codeCelcatDepartement = null;
 
     #[ORM\Column(length: 40, nullable: true)]
-    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'pn:light'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'pn:light', 'stage_periode:read'])]
     private ?string $sigle = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'enfants')]
@@ -194,6 +197,23 @@ class StructureDiplome
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    /**
+     * @return StructureSemestre[]
+     */
+    public function getSemestres(): array
+    {
+        $semestres = [];
+        foreach ($this->pns as $pn) {
+            foreach ($pn->getAnnees() as $annee) {
+                foreach ($annee->getSemestres() as $semestre) {
+                    $semestres[$semestre->getId()] = $semestre;
+                }
+            }
+        }
+
+        return array_values($semestres);
     }
 
     public function getLibelle(): ?string

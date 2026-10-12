@@ -57,7 +57,9 @@ const panelMenuItems = computed(() => {
           label: 'Liste des justificatifs', icon: 'pi pi-folder-open',
           route: aid ? '/intranet/administration/annee/' + aid + '/justificatifs-absences/liste' : null,
         },
-        { label: 'Suivi des pointages de présence', icon: 'pi pi-eye', command: () => {} },
+        { label: 'Suivi des pointages de présence', icon: 'pi pi-eye',
+          route: aid ? '/intranet/administration/annee/' + aid + '/pointages/liste' : null
+        },
       ]
     },
     {

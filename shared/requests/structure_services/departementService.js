@@ -38,9 +38,16 @@ const getDepartementService = async (departementId, showToast = false) => {
 
 const getDepartementsPersonnelService = async (personnelId, actif, showToast = false) => {
     try {
+        const params = {};
+        if (personnelId !== undefined && personnelId !== null) {
+            params.personnel = personnelId;
+        }
+        if (actif !== undefined && actif !== null) {
+            params.actif = actif;
+        }
         const response = await apiCall(
             api.get,
-            [`/api/structure_departements?personnel=${personnelId}?actif=${actif}`],
+            ['/api/structure_departements', { params }],
             'Départements du personnel récupérés avec succès',
             'Erreur lors de la récupération des départements du personnel',
             showToast
@@ -55,6 +62,25 @@ const getDepartementsPersonnelService = async (personnelId, actif, showToast = f
 // ----------------------------------------------
 // ------------------- CREATE -------------------
 // ----------------------------------------------
+
+const createDepartementService = async (data, showToast = true) => {
+    try {
+        return await apiCall(
+            api.post,
+            ['/api/structure_departements', data, {
+                headers: {
+                    'Content-Type': 'application/ld+json'
+                }
+            }],
+            'Département créé avec succès',
+            'Erreur lors de la création du département',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans createDepartementService:', error);
+        throw error;
+    }
+}
 
 // ----------------------------------------------
 // ------------------- UPDATE -------------------
@@ -103,4 +129,27 @@ const updateDepartementService = async (departementId, data,showToast = true) =>
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getAllDepartementsService, getDepartementService, getDepartementsPersonnelService, changeDepartementActifService, updateDepartementService };
+const deleteDepartementService = async (departementId, showToast = true) => {
+    try {
+        return await apiCall(
+            api.delete,
+            [`/api/structure_departements/${departementId}`],
+            'Département supprimé avec succès',
+            'Erreur lors de la suppression du département',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans deleteDepartementService:', error);
+        throw error;
+    }
+}
+
+export {
+    getAllDepartementsService,
+    getDepartementService,
+    getDepartementsPersonnelService,
+    createDepartementService,
+    changeDepartementActifService,
+    updateDepartementService,
+    deleteDepartementService
+};

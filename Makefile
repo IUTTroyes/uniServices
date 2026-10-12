@@ -1,6 +1,6 @@
 BACK_DIR=back
 
-.PHONY: start-back start-front start-all cli check check-back check-front phpstan lint-container doctrine-validate composer-validate test-back test-front build-front
+.PHONY: start-back start-front start-all cli check check-back check-front phpstan lint-container doctrine-validate composer-validate test-back test-front build-front migrate
 
 start-back:
 	cd $(BACK_DIR) && symfony server:start
@@ -13,6 +13,9 @@ start-all:
 
 cli:
 	docker exec -it uniservice-web /bin/bash && cd /var/www/uniservice
+
+migrate:
+	php -d memory_limit=512M back/bin/console --no-debug app:migrate-intranet-v3 --dry-run
 
 # Same validations as CI, runnable locally before pushing.
 check: check-back check-front

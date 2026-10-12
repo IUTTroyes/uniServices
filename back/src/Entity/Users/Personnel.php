@@ -4,12 +4,12 @@ namespace App\Entity\Users;
 
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Scolarite\ScolEvaluationRattrapage;
@@ -24,7 +24,8 @@ use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Structure\StructureDiplome;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
 use App\Enum\StatutEnum;
 use App\Filter\PersonnelFilter;
@@ -39,8 +40,6 @@ use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: PersonnelRepository::class)]
-#[ApiFilter(PersonnelFilter::class, SearchFilter::class, properties: ['structureServices' => 'exact'])]
-#[ApiFilter(OrderFilter::class, properties: ['nom', 'prenom', 'mailUniv'])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['personnel:detail']]),
@@ -64,17 +63,24 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Delete(security: "is_granted('CAN_DELETE_PERSONNEL', object)"),
     ],
     order: ['nom' => 'ASC'],
+    parameters: [
+        'departement' => new QueryParameter(filter: PersonnelFilter::class),
+        'enseignement' => new QueryParameter(filter: PersonnelFilter::class),
+        'enseignant' => new QueryParameter(filter: PersonnelFilter::class),
+        'structureServices' => new QueryParameter(filter: SearchFilter::class),
+        'order[nom]' => new QueryParameter(filter: OrderFilter::class),
+        'order[prenom]' => new QueryParameter(filter: OrderFilter::class),
+        'order[mailUniv]' => new QueryParameter(filter: OrderFilter::class),
+    ]
 )]
-#[ORM\HasLifecycleCallbacks]
-class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
-{
-    use LifeCycleTrait;
+class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, TimestampableInterface {
+    use TimestampableTrait;
     use OldIdTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['personnel:detail', 'personnel:light', 'departement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
+    #[Groups(['personnel:detail', 'personnel:light', 'departement:read', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config', 'stage_periode:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 75)]
@@ -82,18 +88,18 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     private string $username;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['personnel:detail', 'departement_personnel:read', 'personnel:config'])]
+    #[Groups(['personnel:detail', 'personnel:light', 'stage_periode:read', 'departement_personnel:read', 'personnel:config'])]
     private string $mailUniv;
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $password = null;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
+    #[Groups(['personnel:detail', 'personnel:light', 'stage_periode:read', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
     private string $prenom;
 
     #[ORM\Column(length: 75)]
-    #[Groups(['personnel:detail', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
+    #[Groups(['personnel:detail', 'personnel:light', 'stage_periode:read', 'previsionnel:read', 'enseignement:read', 'previsionnel_semestre:read', 'previsionnel_enseignement:read', 'personnel:liste', 'departement_personnel:read', 'stage_etudiant:read', 'personnel:config'])]
     private string $nom;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -165,7 +171,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:detail'])]
     private ?array $domaines = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['personnel:detail'])]
     private ?string $bureau = null;
 
@@ -193,7 +199,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:detail', 'personnel:liste'])]
     private ?string $responsabilites = null;
 
-    #[ORM\Column(length: 20, nullable: true)]
+    #[ORM\Column(length: 50, nullable: true)]
     #[Groups(['personnel:detail'])]
     private ?string $posteInterne = null;
 
@@ -201,7 +207,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['personnel:detail', 'previsionnel_personnel:read', 'previsionnel_all_personnels:read', 'personnel:liste', 'departement_personnel:read', 'personnel:config'])]
     private ?StatutEnum $statut = null;
 
-    #[ORM\Column(length: 3, nullable: true)]
+    #[ORM\Column(length: 10, nullable: true)]
     #[Groups(['personnel:detail'])]
     private ?string $initiales = null;
 
@@ -480,17 +486,21 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function setAdressePersonnelle(Adresse $adresse): void
+    public function setAdressePersonnelle(Adresse|array|null $adresse): static
     {
-        $this->adressePersonnelle = $adresse->toArray();
+        if ($adresse instanceof Adresse) {
+            $this->adressePersonnelle = $adresse->toArray();
+        } elseif (is_array($adresse)) {
+            $this->adressePersonnelle = Adresse::fromArray($adresse)?->toArray();
+        } else {
+            $this->adressePersonnelle = null;
+        }
+
+        return $this;
     }
 
     public function getAdressePersonnelle(): ?Adresse
     {
-        if ($this->adressePersonnelle === null) {
-            return null;
-        }
-
         return Adresse::fromArray($this->adressePersonnelle);
     }
 
@@ -741,7 +751,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->statut->getLibelle() ?? '-';
     }
 
-    #[Groups(['diplome:detail', 'maquette:detail', 'personnel:detail', 'personnel:light', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda', 'ticket:read', 'evaluation:init', 'absence:administration'])]
+    #[Groups(['diplome:detail', 'maquette:detail', 'personnel:detail', 'personnel:light', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda', 'ticket:read', 'evaluation:init', 'absence:administration', 'edt_pointage:read'])]
     public function getDisplay(): string
     {
         return $this->getPrenom() . ' ' . $this->getNom();

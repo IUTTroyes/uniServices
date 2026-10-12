@@ -2,11 +2,11 @@
 
 namespace App\Entity\Structure;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Apc\ApcReferentiel;
 use App\Filter\PnFilter;
 use App\Repository\Structure\StructurePnRepository;
@@ -14,27 +14,33 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StructurePnRepository::class)]
+#[ORM\Table(uniqueConstraints: [
+    new ORM\UniqueConstraint(name: 'UNIQ_STRUCTURE_PN_DIPLOME_ANNEE_UNIV', columns: ['diplome_id', 'annee_universitaire_id']),
+])]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['pn:detail']]),
         new GetCollection(normalizationContext: ['groups' => ['pn:detail']]),
         new Delete(),
+    ],
+    parameters: [
+        'diplome' => new QueryParameter(filter: PnFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: PnFilter::class),
     ]
 )]
-#[ApiFilter(PnFilter::class)]
 class StructurePn
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['pn:detail', 'maquette:detail', 'pn:light'])]
+    #[Groups(['pn:detail', 'maquette:detail', 'pn:light', 'stage_periode:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['pn:detail', 'maquette:detail', 'pn:light'])]
+    #[Groups(['pn:detail', 'maquette:detail', 'pn:light', 'stage_periode:read'])]
     private string $libelle;
 
     #[ORM\Column]
@@ -42,7 +48,7 @@ class StructurePn
     private int $anneePublication;
 
     #[ORM\ManyToOne(inversedBy: 'pns')]
-    #[Groups(['pn:detail'])]
+    #[Groups(['pn:detail', 'stage_periode:read', 'semestre:detail', 'annee:detail', 'maquette:detail', 'pn:light'])]
     private ?StructureDiplome $diplome = null;
 
     #[ORM\ManyToOne(inversedBy: 'pns')]

@@ -10,8 +10,10 @@ use ApiPlatform\Metadata\Post;
 use App\Repository\EtablissementRepository;
 use App\State\Processor\EtablissementProcessor;
 use App\State\Provider\EtablissementProvider;
+use App\ValueObject\Adresse;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtablissementRepository::class)]
@@ -78,6 +80,10 @@ class Etablissement
     #[ORM\Column(length: 20, nullable: true)]
     private ?string $telephone = null;
 
+    #[ORM\Column(nullable: true)]
+    #[Groups(['etablissement:read', 'etablissement:write'])]
+    private ?array $settings = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -107,14 +113,20 @@ class Etablissement
         return $this;
     }
 
-    public function getAdresse(): ?array
+    public function getAdresse(): ?Adresse
     {
-        return $this->adresse;
+        return Adresse::fromArray($this->adresse);
     }
 
-    public function setAdresse(?array $adresse): static
+    public function setAdresse(Adresse|array|null $adresse): static
     {
-        $this->adresse = $adresse;
+        if ($adresse instanceof Adresse) {
+            $this->adresse = $adresse->toArray();
+        } elseif (is_array($adresse)) {
+            $this->adresse = Adresse::fromArray($adresse)?->toArray();
+        } else {
+            $this->adresse = null;
+        }
 
         return $this;
     }
@@ -151,5 +163,91 @@ class Etablissement
         $this->telephone = $telephone;
 
         return $this;
+    }
+
+    public function getSettings(): array
+    {
+        return $this->resolveSettings($this->settings ?? []);
+    }
+
+    public function setSettings(?array $settings): static
+    {
+        $this->settings = $this->resolveSettings($settings ?? []);
+
+        return $this;
+    }
+
+    private function resolveSettings(array $settings): array
+    {
+        $defaults = $this->defaultSettings();
+
+        $resolver = new OptionsResolver();
+        $resolver->setDefaults($defaults);
+        $resolver->setAllowedTypes('integrations', 'array');
+        $resolver->setNormalizer('integrations', function ($options, array $integrations): array {
+            $integrationsResolver = new OptionsResolver();
+            $integrationsResolver->setDefaults([
+                'edusign' => [
+                    'enabled' => false,
+                    'scope' => [],
+                    'apiKey' => null,
+                    'apiUrl' => null,
+                ],
+                'orebut' => [
+                    'enabled' => false,
+                    'apiUrl' => null,
+                ],
+            ]);
+            $integrationsResolver->setAllowedTypes('edusign', 'array');
+            $integrationsResolver->setAllowedTypes('orebut', 'array');
+            $resolvedIntegrations = $integrationsResolver->resolve($integrations);
+
+            $edusignResolver = new OptionsResolver();
+            $edusignResolver->setDefaults([
+                'enabled' => false,
+                'scope' => [],
+                'apiKey' => null,
+                'apiUrl' => null,
+            ]);
+            $edusignResolver->setAllowedTypes('enabled', 'bool');
+            $edusignResolver->setAllowedTypes('scope', 'array');
+            $edusignResolver->setAllowedTypes('apiKey', ['null', 'string']);
+            $edusignResolver->setAllowedTypes('apiUrl', ['null', 'string']);
+
+            $orebutResolver = new OptionsResolver();
+            $orebutResolver->setDefaults([
+                'enabled' => false,
+                'apiKey' => null,
+                'apiUrl' => null,
+            ]);
+            $orebutResolver->setAllowedTypes('enabled', 'bool');
+            $orebutResolver->setAllowedTypes('apiKey', ['null', 'string']);
+            $orebutResolver->setAllowedTypes('apiUrl', ['null', 'string']);
+
+            $resolvedIntegrations['edusign'] = $edusignResolver->resolve($resolvedIntegrations['edusign']);
+            $resolvedIntegrations['orebut'] = $orebutResolver->resolve($resolvedIntegrations['orebut']);
+
+            return $resolvedIntegrations;
+        });
+
+        return $resolver->resolve($settings);
+    }
+
+    private function defaultSettings(): array
+    {
+        return [
+            'integrations' => [
+                'edusign' => [
+                    'enabled' => false,
+                    'scope' => [],
+                    'apiKey' => null,
+                    'apiUrl' => null,
+                ],
+                'orebut' => [
+                    'enabled' => false,
+                    'apiUrl' => null,
+                ],
+            ],
+        ];
     }
 }

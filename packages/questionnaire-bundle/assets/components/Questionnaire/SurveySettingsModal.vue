@@ -1,175 +1,204 @@
 <template>
-  <Dialog header="Paramètres du questionnaire"
-          :style="{ width: '80vw' }"
-          :visible="true"
-          @update:visible="$emit('close')"
-          :modal="true" :closable="true">
+  <Dialog
+    :style="{ width: '92vw', maxWidth: '780px' }"
+    :visible="true"
+    :modal="true"
+    :closable="true"
+    :draggable="false"
+    @update:visible="$emit('close')"
+  >
+    <template #header>
+      <DialogHeader
+        :icon="AdjustmentsHorizontalIcon"
+        title="Paramètres du questionnaire"
+        subtitle="Configurez la diffusion, l'anonymat, l'expérience de réponse et les messages"
+      />
+    </template>
 
-    <div
-        class="bg-white dark:bg-gray-800 rounded-xl p-6 w-full mx-4 max-h-[80vh] overflow-y-auto"
-        @click.stop
-    >
-      <form @submit.prevent="saveSettings" class="space-y-6">
-        <!-- Publication Settings -->
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Publication</h3>
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Date de début
-                </label>
-                <input
-                    v-model="localSurvey.openingDate"
-                    type="datetime-local"
-                    class="input-field"
-                />
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Date de fin
-                </label>
-                <input
-                    v-model="localSurvey.closingDate"
-                    type="datetime-local"
-                    class="input-field"
-                />
-              </div>
+    <form @submit.prevent="saveSettings" class="q-form">
+      <!-- 1. Publication & Dates -->
+      <FormSection
+        :icon="CalendarDaysIcon"
+        tone="blue"
+        title="Période de diffusion & Durée"
+        subtitle="Planifiez la disponibilité et estimez le temps requis"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <FormField label="Date et heure d'ouverture" for="opening-date" hint="Laissez vide pour ouverture immédiate">
+            <input id="opening-date" v-model="formState.openingDate" type="datetime-local" class="q-input" />
+          </FormField>
+
+          <FormField label="Date et heure de fermeture" for="closing-date" hint="Date limite de réponse">
+            <input id="closing-date" v-model="formState.closingDate" type="datetime-local" class="q-input" />
+          </FormField>
+
+          <FormField label="Temps estimé (minutes)" for="estimated-time" hint="Indiqué aux participants">
+            <div class="relative">
+              <input
+                id="estimated-time"
+                v-model.number="formState.estimatedTime"
+                type="number"
+                min="1"
+                max="300"
+                placeholder="ex: 10"
+                class="q-input pr-12"
+              />
+              <span class="absolute right-3 top-2.5 text-xs text-slate-400 dark:text-slate-500 pointer-events-none">min</span>
             </div>
-          </div>
+          </FormField>
         </div>
+      </FormSection>
 
-        <!-- Privacy Settings -->
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Confidentialité</h3>
-          <div class="space-y-4">
-            <div class="flex items-center">
-              <input
-                  v-model="localSettings.anonymous"
-                  type="checkbox"
-                  class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <label class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                Questionnaire anonyme
-              </label>
-            </div>
-            <p class="text-sm text-gray-600 dark:text-gray-400">
-              Les réponses seront collectées de manière anonyme, sans identifier les participants.
-            </p>
-          </div>
-        </div>
+      <!-- 2. Privacy & Confidentiality -->
+      <FormSection
+        :icon="ShieldCheckIcon"
+        tone="emerald"
+        title="Confidentialité des réponses"
+        subtitle="Garantie d'anonymat et traçabilité"
+      >
+        <ToggleCard
+          v-model="localSettings.anonymous"
+          :icon="LockClosedIcon"
+          tone="emerald"
+          description="Les réponses collectées ne seront jamais associées à l'identité ou à l'adresse e-mail des participants."
+        >
+          <template #title>
+            <span class="inline-flex items-center gap-2">
+              Questionnaire 100% anonyme
+              <span v-if="localSettings.anonymous" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-200">
+                Activé
+              </span>
+            </span>
+          </template>
+        </ToggleCard>
+      </FormSection>
 
-        <!-- User Experience Settings -->
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Expérience utilisateur</h3>
-          <div class="space-y-4">
-            <div class="flex items-center">
-              <input
-                  v-model="localSettings.autoSave"
-                  type="checkbox"
-                  class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <label class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                Sauvegarde automatique
-              </label>
-            </div>
-
-            <div class="flex items-center">
-              <input
-                  v-model="localSettings.allowBack"
-                  type="checkbox"
-                  class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <label class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                Autoriser le retour en arrière
-              </label>
-            </div>
-
-            <div class="flex items-center">
-              <input
-                  v-model="localSettings.showProgress"
-                  type="checkbox"
-                  class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <label class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                Afficher la barre de progression
-              </label>
-            </div>
-
-            <div class="flex items-center">
-              <input
-                  v-model="localSettings.requireCompletion"
-                  type="checkbox"
-                  class="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-              />
-              <label class="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                Validation finale obligatoire
-              </label>
-            </div>
-          </div>
-        </div>
-
-        <!-- HelpdeskMessage d'introduction -->
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Message d'introduction/présentation</h3>
-          <ValidatedInput
-              v-model="localSurvey.startText"
-              name="startText"
-              label="Message d'introduction/présentation"
-              type="textarea"
-              :rules="[]"
-              placeholder="Ce questionnaire ..."
+      <!-- 3. User Experience & Navigation -->
+      <FormSection
+        :icon="SparklesIcon"
+        tone="purple"
+        title="Expérience utilisateur & Navigation"
+        subtitle="Comportement du formulaire lors de la complétion"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <ToggleCard
+            v-model="localSettings.autoSave"
+            :icon="CloudArrowUpIcon"
+            tone="purple"
+            title="Sauvegarde automatique"
+            description="Enregistre les réponses en cours au fur et à mesure"
+          />
+          <ToggleCard
+            v-model="localSettings.allowBack"
+            :icon="ArrowUturnLeftIcon"
+            tone="purple"
+            title="Retour en arrière"
+            description="Permet de revenir modifier les sections précédentes"
+          />
+          <ToggleCard
+            v-model="localSettings.showProgress"
+            :icon="ChartBarIcon"
+            tone="purple"
+            title="Barre de progression"
+            description="Affiche le pourcentage et les étapes franchies"
+          />
+          <ToggleCard
+            v-model="localSettings.requireCompletion"
+            :icon="CheckBadgeIcon"
+            tone="purple"
+            title="Validation complète"
+            description="Bloque la soumission si des champs requis manquent"
           />
         </div>
+      </FormSection>
 
-        <!-- Thank You HelpdeskMessage -->
-        <div>
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Message de remerciement</h3>
-          <ValidatedInput
-              v-model="localSurvey.endText"
-              name="endText"
-              label="Message de remerciement"
-              type="textarea"
-              :rules="[]"
-              placeholder="Merci d'avoir participé à cette enquête..."
+      <!-- 4. Messages (Introduction & Thank you) -->
+      <FormSection
+        :icon="ChatBubbleBottomCenterTextIcon"
+        tone="amber"
+        title="Messages d'accompagnement"
+        subtitle="Personnalisez les messages d'accueil et de remerciement"
+      >
+        <FormField
+          label="Message d'introduction & présentation"
+          for="start-text"
+          hint="Affiché au participant sur la première page avant de démarrer l'enquête."
+          hint-position="top"
+        >
+          <textarea
+            id="start-text"
+            v-model="formState.startText"
+            rows="3"
+            class="q-input"
+            placeholder="Ex: Bienvenue dans ce questionnaire d'évaluation. Vos retours nous aident à améliorer constamment nos formations..."
           />
-        </div>
+        </FormField>
 
-        <!-- Actions -->
-        <div class="flex items-center justify-end space-x-3 pt-6">
-          <Button
-              severity="secondary"
-              type="button" @click="$emit('close')">
-            Annuler
-          </Button>
-          <Button type="submit">
-            Enregistrer
-          </Button>
-        </div>
-      </form>
-    </div>
+        <FormField
+          label="Message de conclusion & remerciement"
+          for="end-text"
+          hint="Affiché au participant immédiatement après la soumission finale de ses réponses."
+          hint-position="top"
+        >
+          <textarea
+            id="end-text"
+            v-model="formState.endText"
+            rows="3"
+            class="q-input"
+            placeholder="Ex: Merci d'avoir pris le temps de répondre ! Vos retours ont été enregistrés avec succès."
+          />
+        </FormField>
+      </FormSection>
+
+      <!-- Action Buttons -->
+      <div class="q-actions">
+        <Button severity="secondary" type="button" outlined label="Annuler" @click="$emit('close')" />
+        <Button type="submit" icon="pi pi-check" label="Enregistrer les paramètres" />
+      </div>
+    </form>
   </Dialog>
 </template>
 
 <script setup lang="ts">
-import { ValidatedInput, validationRules } from '@components';
-import {onMounted, ref, watch } from 'vue';
-import type {Survey, SurveySettings} from '@types';
+import { ref, reactive, watch } from 'vue';
+import type { Survey, SurveySettings } from '@types';
+import Button from 'primevue/button';
+import Dialog from 'primevue/dialog';
+import { DialogHeader, FormSection, FormField, ToggleCard } from '../Form';
+import {
+  AdjustmentsHorizontalIcon,
+  CalendarDaysIcon,
+  ShieldCheckIcon,
+  LockClosedIcon,
+  SparklesIcon,
+  CloudArrowUpIcon,
+  ArrowUturnLeftIcon,
+  ChartBarIcon,
+  CheckBadgeIcon,
+  ChatBubbleBottomCenterTextIcon
+} from '@heroicons/vue/24/outline';
 
 interface Props {
   survey: Survey | null;
 }
 
+interface SettingsPayload {
+  opt: SurveySettings;
+  openingDate?: string | null;
+  closingDate?: string | null;
+  estimatedTime?: number | null;
+  startText?: string;
+  endText?: string;
+}
+
 interface Emits {
   close: [];
-  update: [settings: SurveySettings];
-  updateSurvey: [survey: Survey | null];
+  update: [payload: SettingsPayload | SurveySettings];
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<Emits>();
 
-const localSurvey = ref<Survey>();
 const localSettings = ref<SurveySettings>({
   anonymous: false,
   autoSave: true,
@@ -178,38 +207,72 @@ const localSettings = ref<SurveySettings>({
   requireCompletion: false
 });
 
-watch(
-    () => props.survey,
-    (s) => {
-      if (s) {
-        // clone profond simple (compatible navigateur / Node)
-        try {
-          // prefer structuredClone si dispo
-          // @ts-ignore
-          localSurvey.value = typeof structuredClone === 'function' ? structuredClone(s) : JSON.parse(JSON.stringify(s));
-        } catch {
-          localSurvey.value = JSON.parse(JSON.stringify(s));
-        }
+const formState = reactive({
+  openingDate: '',
+  closingDate: '',
+  estimatedTime: null as number | null,
+  startText: '',
+  endText: ''
+});
 
-        // remplir localSettings à partir des opt ou des champs racine si présents
-        localSettings.value = {
-          ...(s.opt ?? {})
-        };
-      } else {
-        localSurvey.value = null;
-        localSettings.value = {
-          anonymous: false,
-          autoSave: true,
-          allowBack: true,
-          showProgress: true,
-          requireCompletion: false
-        };
-      }
-    },
-    { immediate: true }
+function toInputDateTime(val: any): string {
+  if (!val) return '';
+  const d = val instanceof Date ? val : new Date(val);
+  if (isNaN(d.getTime())) return '';
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+}
+
+watch(
+  () => props.survey,
+  (s) => {
+    if (s) {
+      localSettings.value = {
+        anonymous: s.opt?.anonymous ?? false,
+        autoSave: s.opt?.autoSave ?? true,
+        allowBack: s.opt?.allowBack ?? true,
+        showProgress: s.opt?.showProgress ?? true,
+        requireCompletion: s.opt?.requireCompletion ?? false
+      };
+
+      formState.openingDate = toInputDateTime(s.openingDate);
+      formState.closingDate = toInputDateTime(s.closingDate);
+      formState.estimatedTime = s.estimatedTime ?? null;
+      formState.startText = s.startText || '';
+      formState.endText = s.endText || '';
+    } else {
+      localSettings.value = {
+        anonymous: false,
+        autoSave: true,
+        allowBack: true,
+        showProgress: true,
+        requireCompletion: false
+      };
+      formState.openingDate = '';
+      formState.closingDate = '';
+      formState.estimatedTime = null;
+      formState.startText = '';
+      formState.endText = '';
+    }
+  },
+  { immediate: true }
 );
 
 function saveSettings() {
-  emit('update', localSettings.value);
+  const payload: SettingsPayload = {
+    opt: { ...localSettings.value },
+    openingDate: formState.openingDate ? new Date(formState.openingDate).toISOString() : null,
+    closingDate: formState.closingDate ? new Date(formState.closingDate).toISOString() : null,
+    estimatedTime: formState.estimatedTime ? Number(formState.estimatedTime) : null,
+    startText: formState.startText.trim(),
+    endText: formState.endText.trim()
+  };
+
+  emit('update', payload);
 }
 </script>

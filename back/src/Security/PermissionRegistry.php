@@ -2,7 +2,7 @@
 
 namespace App\Security;
 
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 class PermissionRegistry
 {
@@ -15,7 +15,7 @@ class PermissionRegistry
      * @param iterable<PermissionProviderInterface> $providers
      */
     public function __construct(
-        #[TaggedIterator('app.permission_provider')] iterable $providers
+        #[AutowireIterator('app.permission_provider')] iterable $providers
     ) {
         foreach ($providers as $provider) {
             foreach ($provider->getPermissions() as $definition) {

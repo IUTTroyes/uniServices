@@ -162,7 +162,13 @@ export const useUsersStore = defineStore('users', () => {
                     departements.value = departements.value.map(departement => {
                         if (!departement.departementPersonnels) return departement;
 
-                        const personnelDepartements = departement.departementPersonnels.filter(dp => dp.personnel.id === userId.value);
+                        const targetUserId = Number(userId.value);
+                        const personnelDepartements = departement.departementPersonnels.filter(dp => 
+                            dp?.personnel && (
+                                Number(dp.personnel.id) === targetUserId ||
+                                dp.personnel['@id'] === `/api/personnels/${targetUserId}`
+                            )
+                        );
                         departement.departementPersonnel = personnelDepartements.length > 0 ? personnelDepartements[0] : null;
 
                         delete departement.departementPersonnels;

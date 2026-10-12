@@ -3,19 +3,21 @@
 namespace App\Entity\Users;
 
 use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use App\ApiDto\Etudiant\EtudiantTrombinoscopeDto;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Scolarite\ScolBac;
 use App\Entity\Scolarite\ScolEvaluationRattrapage;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Traits\EduSignTrait;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OldIdTrait;
+use App\Entity\Traits\OptionTrait;
 use App\Filter\EtudiantFilter;
 use App\Repository\EtudiantRepository;
 use App\State\Provider\Etudiant\EtudiantTrombinoscopeProvider;
@@ -24,6 +26,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Attribute\Groups;
@@ -40,20 +43,24 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
         new GetCollection(normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light']]),
         new Patch(normalizationContext: ['groups' => ['etudiant:write']], securityPostDenormalize: "is_granted('CAN_EDIT_ETUDIANT', object)"),
     ],
-    order: ['nom' => 'ASC']
+    order: ['nom' => 'ASC'],
+    parameters: [
+        'departement' => new QueryParameter(filter: EtudiantFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: EtudiantFilter::class),
+        'semestre' => new QueryParameter(filter: EtudiantFilter::class),
+        'annee' => new QueryParameter(filter: EtudiantFilter::class),
+        'groupe' => new QueryParameter(filter: EtudiantFilter::class),
+        'nom' => new QueryParameter(filter: SearchFilter::class),
+        'start' => new QueryParameter(filter: SearchFilter::class),
+        'prenom' => new QueryParameter(filter: SearchFilter::class),
+        'mailUniv' => new QueryParameter(filter: SearchFilter::class),
+    ]
 )]
-#[ORM\HasLifecycleCallbacks]
-#[ApiFilter(EtudiantFilter::class)]
-#[ApiFilter(SearchFilter::class, properties: [
-    'nom' => 'start',
-    'prenom' => 'start',
-    'mailUniv' => 'partial'
-])]
-class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
-{
-    use LifeCycleTrait;
+class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, TimestampableInterface {
+    use TimestampableTrait;
     use EduSignTrait;
     use OldIdTrait; //a supprimer après transfert
+    use OptionTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -102,11 +109,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     #[Groups(['etudiant:detail', 'etudiant:write'])]
-    private ?array $adresseEtudiante = null;
+    private ?array $adresseEtudiante = null; //faire un valueobject ?
 
     #[ORM\Column(type: Types::JSON, nullable: true)]
     #[Groups(['etudiant:detail', 'etudiant:write'])]
-    private ?array $adresseParentale = null;
+    private ?array $adresseParentale = null; //faire un valueobject ?
 
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['etudiant:detail', 'etudiant:write'])]
@@ -186,6 +193,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
         $this->scolarites = new ArrayCollection();
         $this->groupes = new ArrayCollection();
         $this->scolEvaluationRattrapages = new ArrayCollection();
+        $this->setOpt([]);
     }
 
     public function getMails(): array
@@ -246,9 +254,11 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->mailPerso;
     }
 
-    public function setMailPerso(?string $mailPerso): void
+    public function setMailPerso(?string $mailPerso): static
     {
         $this->mailPerso = $mailPerso;
+
+        return $this;
     }
 
     public function getPassword(): ?string
@@ -341,50 +351,40 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function setAdresseEtudiante(Adresse $adresse): void
+    public function setAdresseEtudiante(Adresse|array|null $adresse): static
     {
-        $this->adresseEtudiante = $adresse->toArray();
+        if ($adresse instanceof Adresse) {
+            $this->adresseEtudiante = $adresse->toArray();
+        } elseif (is_array($adresse)) {
+            $this->adresseEtudiante = Adresse::fromArray($adresse)?->toArray();
+        } else {
+            $this->adresseEtudiante = null;
+        }
+
+        return $this;
     }
 
     public function getAdresseEtudiante(): ?Adresse
     {
-        if ($this->adresseEtudiante === null) {
-            return null;
-        }
-
-        $data = [
-            'adresse' => $this->adresseEtudiante['adresse'],
-            'complement1' => $this->adresseEtudiante['complement1'],
-            'complement2' => $this->adresseEtudiante['complement2'],
-            'ville' => $this->adresseEtudiante['ville'],
-            'codePostal' => $this->adresseEtudiante['codePostal'],
-            'pays' => $this->adresseEtudiante['pays'],
-        ];
-
-        return Adresse::fromArray($data);
+        return Adresse::fromArray($this->adresseEtudiante);
     }
 
-    public function setAdresseParentale(Adresse $adresse): void
+    public function setAdresseParentale(Adresse|array|null $adresse): static
     {
-        $this->adresseParentale= $adresse->toArray();
+        if ($adresse instanceof Adresse) {
+            $this->adresseParentale = $adresse->toArray();
+        } elseif (is_array($adresse)) {
+            $this->adresseParentale = Adresse::fromArray($adresse)?->toArray();
+        } else {
+            $this->adresseParentale = null;
+        }
+
+        return $this;
     }
 
     public function getAdresseParentale(): ?Adresse
     {
-        if ($this->adresseParentale === null) {
-            return null;
-        }
-
-        $data = [
-            'adresse' => $this->adresseParentale['adresse'],
-            'complement1' => $this->adresseParentale['complement1'],
-            'complement2' => $this->adresseParentale['complement2'],
-            'ville' => $this->adresseParentale['ville'],
-            'codePostal' => $this->adresseParentale['codePostal'],
-            'pays' => $this->adresseParentale['pays'],
-        ];
-
-        return Adresse::fromArray($data);
+        return Adresse::fromArray($this->adresseParentale);
     }
 
     public function getApplications(): ?array
@@ -505,6 +505,23 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface
         $this->annee_sortie = $annee_sortie;
 
         return $this;
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults([
+            'demandeur_emploi' => false,
+            'login_specifique' => null,
+            'formation_continue' => false,
+            'intitule_securite_sociale' => null,
+            'adresse_securite_sociale' => null,
+        ]);
+
+        $resolver->setAllowedTypes('demandeur_emploi', 'bool');
+        $resolver->setAllowedTypes('login_specifique', ['null', 'string']);
+        $resolver->setAllowedTypes('formation_continue', 'bool');
+        $resolver->setAllowedTypes('intitule_securite_sociale', ['null', 'string']);
+        $resolver->setAllowedTypes('adresse_securite_sociale', ['null', 'string']);
     }
 
     public function getDateNaissance(): ?\DateTimeInterface

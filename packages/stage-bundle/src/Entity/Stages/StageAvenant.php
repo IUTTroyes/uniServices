@@ -8,14 +8,14 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use StageBundle\Repository\Stages\StageAvenantRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: StageAvenantRepository::class)]
-#[ORM\HasLifecycleCallbacks]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['stage_avenant:read']]),
@@ -31,9 +31,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Delete()
     ]
 )]
-class StageAvenant
+class StageAvenant implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -86,10 +86,10 @@ class StageAvenant
     #[Groups(['stage_avenant:read', 'stage_avenant:write', 'stage_etudiant:read'])]
     private ?float $newGratificationMontant = null;
 
-    #[ORM\ManyToOne(targetEntity: Contact::class)]
+    #[ORM\ManyToOne(targetEntity: StageContact::class)]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['stage_avenant:read', 'stage_avenant:write', 'stage_etudiant:read'])]
-    private ?Contact $newTuteur = null;
+    private ?StageContact $newTuteur = null;
 
     public function __construct()
     {
@@ -233,12 +233,12 @@ class StageAvenant
         return $this;
     }
 
-    public function getNewTuteur(): ?Contact
+    public function getNewTuteur(): ?StageContact
     {
         return $this->newTuteur;
     }
 
-    public function setNewTuteur(?Contact $newTuteur): self
+    public function setNewTuteur(?StageContact $newTuteur): self
     {
         $this->newTuteur = $newTuteur;
 

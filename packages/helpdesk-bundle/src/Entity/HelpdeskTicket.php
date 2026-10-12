@@ -2,14 +2,15 @@
 
 namespace HelpdeskBundle\Entity;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\Patch;
-use App\Entity\Traits\LifeCycleTrait;
+use ApiPlatform\Metadata\QueryParameter;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Users\Personnel;
 use HelpdeskBundle\Enum\StatutTicketEnum;
 use HelpdeskBundle\Filter\TicketFilter;
@@ -22,8 +23,6 @@ use HelpdeskBundle\State\Processor\TicketProcessor;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: HelpdeskTicketRepository::class)]
-#[ORM\HasLifecycleCallbacks]
-#[ApiFilter(TicketFilter::class, MessageFilter::class)]
 #[ApiResource(
     operations: [
         new Post(
@@ -50,11 +49,17 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['ticket:delete']],
         )
     ],
-    paginationEnabled: false
+    paginationEnabled: false,
+    parameters: [
+        'latest' => new QueryParameter(filter: TicketFilter::class),
+        'auteur' => new QueryParameter(filter: TicketFilter::class),
+        'statut' => new QueryParameter(filter: TicketFilter::class),
+        'hasRecentMessage' => new QueryParameter(filter: TicketFilter::class),
+    ]
 )]
-class HelpdeskTicket
+class HelpdeskTicket implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
@@ -105,7 +110,7 @@ class HelpdeskTicket
     #[Groups(['ticket:write','ticket:read','ticket:delete'])]
     private ?Personnel $auteur = null;
 
-    #[ORM\ManyToOne(inversedBy: 'helpdeskTickets')]
+    #[ORM\ManyToOne]
     private ?Personnel $assigne = null;
 
 

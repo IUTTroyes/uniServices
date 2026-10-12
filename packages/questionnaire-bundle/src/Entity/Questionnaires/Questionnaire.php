@@ -9,9 +9,11 @@ use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OptionTrait;
 use QuestionnaireBundle\Enum\QuestStatutEnum;
+use QuestionnaireBundle\Enum\QuestInvitationStatusEnum;
 use QuestionnaireBundle\Repository\Questionnaires\QuestionnaireRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -25,23 +27,22 @@ use Symfony\Component\Uid\Uuid;
 #[ORM\Entity(repositoryClass: QuestionnaireRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['questionnaire:read']]),
-        new GetCollection(normalizationContext: ['groups' => ['questionnaire:read']]),
+        new Get(normalizationContext: ['groups' => ['questionnaire:read', 'timestamp:read']]),
+        new GetCollection(normalizationContext: ['groups' => ['questionnaire:read', 'timestamp:read']]),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_QUESTIONNAIRE', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_QUESTIONNAIRE', object)"),
         new Delete(security: "is_granted('CAN_DELETE_QUESTIONNAIRE', object)"),
     ],
-    normalizationContext: ['groups' => ['questionnaire:read']],
+    normalizationContext: ['groups' => ['questionnaire:read', 'timestamp:read']],
 )]
-#[ORM\HasLifecycleCallbacks]
-class Questionnaire
+class Questionnaire implements TimestampableInterface
 {
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use OptionTrait;
 
     #[ORM\Column(type: UuidType::NAME)]
     #[ApiProperty(identifier: true)]
-    #[Groups(['questionnaire:read'])]
+    #[Groups(['questionnaire:read', 'invitation:read'])]
     private Uuid $uuid;
 
     public function getUuidString(): string
@@ -67,7 +68,7 @@ class Questionnaire
     private ?int $id = null;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['questionnaire:read'])]
+    #[Groups(['questionnaire:read', 'invitation:read'])]
     private ?string $title = null;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -363,5 +364,20 @@ class Questionnaire
         $this->estimatedTime = $estimatedTime;
 
         return $this;
+    }
+
+
+    #[Groups(['questionnaire:read'])]
+    public function getTotalInvited(): int
+    {
+        return $this->invitations->count();
+    }
+
+    #[Groups(['questionnaire:read'])]
+    public function getTotalResponses(): int
+    {
+        return $this->invitations->filter(
+            fn(QuestionnaireInvitation $inv) => $inv->getStatus() === QuestInvitationStatusEnum::SUBMITTED
+        )->count();
     }
 }

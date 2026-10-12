@@ -11,6 +11,7 @@ import {
   updateStagePeriodeService,
   deleteStagePeriodeService,
   getStageEtudiantsService,
+  createStageEtudiantService,
   updateStageEtudiantService,
   deleteStageEtudiantService
 } from '@/requests/stage_service';
@@ -18,6 +19,7 @@ import { getPersonnelsService } from '@requests/user_services/personnelService';
 import { getAllAnneesUniversitairesService } from '@requests/structure_services/anneeUnivService';
 import { getSemestresService } from '@requests/structure_services/semestreService';
 import { updateEtudiantService } from '@requests/user_services/etudiantService';
+import { getEtudiantScolariteSemestresService } from '@requests/etudiant_services/etudiantScolariteSemestreService';
 
 import StudentsTab from './components/StudentsTab.vue';
 import PeriodsTab from './components/PeriodsTab.vue';
@@ -63,6 +65,8 @@ const viewMode = ref('dashboard'); // 'dashboard' | 'period'
 
 const periods = ref([]);
 const students = ref([]);
+const semesterStudentsMap = ref({});
+const isLoadingSemesterStudents = ref(false);
 
 const mapVueStatusToBackend = (status, inputAuthorized) => {
   switch (status) {
@@ -177,11 +181,54 @@ const fetchAllStudents = async () => {
   }
 };
 
-const syncRouteState = () => {
+const fetchStudentsForSemesters = async (semestreIds, anneeUnivId) => {
+  const missingIds = (semestreIds || []).filter(id => id && !semesterStudentsMap.value[id]);
+  if (missingIds.length === 0) return;
+
+  isLoadingSemesterStudents.value = true;
+  try {
+    await Promise.all(missingIds.map(async (semId) => {
+      try {
+        const params = {
+          semestre: semId,
+          pagination: false
+        };
+        if (anneeUnivId) {
+          params.anneeUniversitaire = anneeUnivId;
+        }
+        const data = await getEtudiantScolariteSemestresService(params, '/manage-groupes');
+        const list = Array.isArray(data) ? data : [];
+        semesterStudentsMap.value[semId] = list.map(item => {
+          const etu = item.etudiant || {};
+          return {
+            id: etu.id,
+            nom: etu.nom || '',
+            prenom: etu.prenom || '',
+            mailUniv: etu.mailUniv || '',
+            numEtudiant: etu.numEtudiant || '',
+            groupes: item.groupes || []
+          };
+        }).filter(e => e.id);
+      } catch (e) {
+        console.error(`Erreur chargement étudiants pour le semestre ${semId}:`, e);
+        semesterStudentsMap.value[semId] = [];
+      }
+    }));
+  } finally {
+    isLoadingSemesterStudents.value = false;
+  }
+};
+
+const syncRouteState = async () => {
   const periodIdParam = route.params.id;
   if (periodIdParam) {
-    selectedPeriodId.value = parseInt(periodIdParam, 10);
+    const pId = parseInt(periodIdParam, 10);
+    selectedPeriodId.value = pId;
     viewMode.value = 'period';
+    const curPeriod = periods.value.find(p => p.id === pId);
+    if (curPeriod && curPeriod.semestreIds && curPeriod.semestreIds.length > 0) {
+      await fetchStudentsForSemesters(curPeriod.semestreIds, curPeriod.anneeUniversitaireId);
+    }
   } else {
     viewMode.value = 'dashboard';
     selectedPeriodId.value = null;
@@ -192,9 +239,15 @@ watch(() => route.params.id, () => {
   syncRouteState();
 });
 
-watch(selectedPeriodId, (newId) => {
+watch(selectedPeriodId, async (newId) => {
   if (newId && viewMode.value === 'period' && parseInt(route.params.id, 10) !== newId) {
     router.push({ name: 'ResponsablePeriodDashboard', params: { id: newId } });
+  }
+  if (newId) {
+    const curPeriod = periods.value.find(p => p.id === newId);
+    if (curPeriod && curPeriod.semestreIds && curPeriod.semestreIds.length > 0) {
+      await fetchStudentsForSemesters(curPeriod.semestreIds, curPeriod.anneeUniversitaireId);
+    }
   }
 });
 
@@ -248,6 +301,17 @@ const parseDates = (datesStr) => {
   return { dateDebut, dateFin };
 };
 
+const getSemestreIdFromIriOrObj = (sem) => {
+  if (!sem) return null;
+  if (typeof sem === 'number') return sem;
+  if (typeof sem === 'object' && sem.id) return sem.id;
+  if (typeof sem === 'string') {
+    const parts = sem.split('/');
+    return parseInt(parts[parts.length - 1], 10) || null;
+  }
+  return null;
+};
+
 const mapPeriodToVue = (backendPeriod) => {
   let datesStr = '';
   if (backendPeriod.dateDebut && backendPeriod.dateFin) {
@@ -256,27 +320,82 @@ const mapPeriodToVue = (backendPeriod) => {
     datesStr = `${debut} au ${fin}`;
   }
 
-  const mainResp = backendPeriod.responsablePrincipal;
-  const mainRespName = mainResp ? `${mainResp.civilite || 'M.'} ${mainResp.prenom} ${mainResp.nom}` : 'Non renseigné';
+  const semProgId = getSemestreIdFromIriOrObj(backendPeriod.semestreProgramme);
+  const semSaisieIds = (backendPeriod.semestresSaisie || []).map(getSemestreIdFromIriOrObj).filter(Boolean);
+  const allSemIds = semProgId ? [semProgId, ...semSaisieIds.filter(id => id !== semProgId)] : semSaisieIds;
+  const anneeUnivId = getSemestreIdFromIriOrObj(backendPeriod.anneeUniversitaire);
 
+  const semObj = (typeof backendPeriod.semestreProgramme === 'object' && backendPeriod.semestreProgramme !== null)
+    ? backendPeriod.semestreProgramme
+    : dbSemestres.value.find(s => s.id === semProgId || s['@id'] === backendPeriod.semestreProgramme);
+
+  const semLibelle = semObj?.libelle || backendPeriod.semestreProgramme?.libelle || 'Semestre non défini';
+  const anneeObj = semObj?.annee;
+  const diplomeObj = anneeObj?.pn?.diplome;
+  const diplomeLibelle = diplomeObj?.sigle || diplomeObj?.libelle || anneeObj?.libelle || 'Diplôme non défini';
+
+  // Responsable Principal resolution
+  let mainRespName = 'Non renseigné';
+  let mainRespIri = '';
+  const mainResp = backendPeriod.responsablePrincipal;
+  if (mainResp) {
+    if (typeof mainResp === 'object') {
+      mainRespIri = mainResp['@id'] || (mainResp.id ? `/api/personnels/${mainResp.id}` : '');
+      if (mainResp.nom || mainResp.prenom) {
+        mainRespName = `${mainResp.prenom || ''} ${mainResp.nom || ''}`.trim();
+      } else if (mainRespIri && dbPersonnels.value.length > 0) {
+        const found = dbPersonnels.value.find(p => p['@id'] === mainRespIri || p.id === mainResp.id);
+        if (found) {
+          mainRespName = `${found.prenom || ''} ${found.nom || ''}`.trim();
+        }
+      }
+    } else if (typeof mainResp === 'string') {
+      mainRespIri = mainResp;
+      const pId = parseInt(mainResp.split('/').pop(), 10);
+      const found = dbPersonnels.value.find(p => p['@id'] === mainResp || p.id === pId);
+      if (found) {
+        mainRespName = `${found.prenom || ''} ${found.nom || ''}`.trim();
+      }
+    }
+  }
+
+  // Co-responsables resolution
   const coResps = backendPeriod.coResponsables || [];
-  const coRespsNames = coResps.map(c => `${c.civilite || 'M.'} ${c.prenom} ${c.nom}`);
-  const coRespsIris = coResps.map(c => c['@id']);
+  const coRespsNames = coResps.map(c => {
+    if (typeof c === 'object' && (c.nom || c.prenom)) {
+      return `${c.prenom || ''} ${c.nom || ''}`.trim();
+    }
+    const cIri = typeof c === 'object' ? (c['@id'] || `/api/personnels/${c.id}`) : c;
+    const pId = typeof c === 'object' ? c.id : parseInt(c.split('/').pop(), 10);
+    const found = dbPersonnels.value.find(p => p['@id'] === cIri || p.id === pId);
+    return found ? `${found.prenom || ''} ${found.nom || ''}`.trim() : 'Co-responsable';
+  });
+  const coRespsIris = coResps.map(c => (typeof c === 'object' ? (c['@id'] || `/api/personnels/${c.id}`) : c));
+
+  const anneeUnivObj = (typeof backendPeriod.anneeUniversitaire === 'object' && backendPeriod.anneeUniversitaire !== null)
+    ? backendPeriod.anneeUniversitaire
+    : dbAnneeUnivs.value.find(a => a.id === anneeUnivId || a['@id'] === backendPeriod.anneeUniversitaire);
+  const anneeUnivLibelle = anneeUnivObj?.libelle || (anneeUnivObj?.annee ? `${anneeUnivObj.annee}-${anneeUnivObj.annee + 1}` : (anneeUnivId ? `Année ${anneeUnivId}` : ''));
 
   return {
     id: backendPeriod.id,
     name: backendPeriod.libelle,
     type: backendPeriod.nbSemaines > 20 ? 'Alternance' : 'Stage',
-    level: backendPeriod.semestreProgramme ? backendPeriod.semestreProgramme.libelle : 'BUT 3',
-    semestreProgrammeIri: backendPeriod.semestreProgramme ? backendPeriod.semestreProgramme['@id'] : '',
+    level: semLibelle,
+    semestre: semLibelle,
+    diplome: diplomeLibelle,
+    semestreProgrammeIri: backendPeriod.semestreProgramme ? (backendPeriod.semestreProgramme['@id'] || (semProgId ? `/api/structure_semestres/${semProgId}` : '')) : '',
+    semestreProgrammeId: semProgId,
+    semestreIds: allSemIds,
+    anneeUniversitaireId: anneeUnivId,
     dates: datesStr,
     minWeeks: backendPeriod.nbSemaines || 16,
     studentCount: backendPeriod.studentCount || 0,
     active: backendPeriod.actif ?? true,
-    anneeUniv: backendPeriod.anneeUniversitaire ? backendPeriod.anneeUniversitaire.libelle : '2025-2026',
-    anneeUniversitaireIri: backendPeriod.anneeUniversitaire ? backendPeriod.anneeUniversitaire['@id'] : '',
+    anneeUniv: anneeUnivLibelle || backendPeriod.anneeUniversitaire?.libelle || '',
+    anneeUniversitaireIri: backendPeriod.anneeUniversitaire ? (backendPeriod.anneeUniversitaire['@id'] || (anneeUnivId ? `/api/structure_annee_universitaires/${anneeUnivId}` : '')) : '',
     responsablePrincipal: mainRespName,
-    responsablePrincipalIri: mainResp ? mainResp['@id'] : '',
+    responsablePrincipalIri: mainRespIri,
     coResponsables: coRespsNames,
     coResponsablesIris: coRespsIris,
     datesFlexibles: backendPeriod.datesFlexibles || false,
@@ -387,7 +506,7 @@ const loadAllData = async () => {
     }
 
     await fetchAllStudents();
-    syncRouteState();
+    await syncRouteState();
   } catch (error) {
     console.error('Erreur au chargement des données:', error);
     toast.add({ severity: 'error', summary: 'Erreur de chargement', detail: 'Erreur de communication avec le serveur.', life: 4000 });
@@ -406,9 +525,107 @@ const activePeriodName = computed(() => {
   return p ? p.name : 'Période Sélectionnée';
 });
 
-// Reactively filter students based on active selected period
+// Reactively filter and merge students based on active selected period
 const periodStudents = computed(() => {
-  return students.value.filter(s => s.periodId === selectedPeriodId.value);
+  if (!selectedPeriodId.value) return [];
+  const currentPeriod = periods.value.find(p => p.id === selectedPeriodId.value);
+  if (!currentPeriod) return [];
+
+  // 1. Existing StageEtudiant records for this period
+  const existingStageStudents = students.value.filter(s => s.periodId === selectedPeriodId.value);
+  const stageMapByEtudiantId = new Map();
+  for (const se of existingStageStudents) {
+    if (se.studentId) {
+      stageMapByEtudiantId.set(se.studentId, se);
+    }
+  }
+
+  // 2. All enrolled students for this period's semesters
+  const enrolledStudents = [];
+  const seenStudentIds = new Set();
+
+  for (const semId of (currentPeriod.semestreIds || [])) {
+    const list = semesterStudentsMap.value[semId] || [];
+    for (const etu of list) {
+      if (!seenStudentIds.has(etu.id)) {
+        seenStudentIds.add(etu.id);
+        enrolledStudents.push(etu);
+      }
+    }
+  }
+
+  // 3. Merge: For each enrolled student, use existing StageEtudiant or create default "Sans Stage"
+  const result = [];
+  for (const etu of enrolledStudents) {
+    const existing = stageMapByEtudiantId.get(etu.id);
+    if (existing) {
+      result.push({
+        ...existing,
+        studentName: existing.studentName || `${etu.prenom} ${etu.nom}`.trim(),
+        studentEmail: existing.studentEmail || etu.mailUniv,
+      });
+      stageMapByEtudiantId.delete(etu.id);
+    } else {
+      result.push({
+        id: `sans-stage-${currentPeriod.id}-${etu.id}`,
+        studentId: etu.id,
+        studentName: `${etu.prenom} ${etu.nom}`.trim() || 'Étudiant inconnu',
+        periodId: currentPeriod.id,
+        hasStage: false,
+        company: '-',
+        siret: '',
+        dates: '-',
+        subject: '-',
+        activities: '',
+        supervisor: '-',
+        salary: '-',
+        conventionStatus: 'Aucune',
+        tutor: 'Non affecté',
+        tutorIri: '',
+        inputAuthorized: true,
+        reportUploaded: false,
+        reportName: '',
+        studentPhone: '',
+        studentEmail: etu.mailUniv || '',
+        insuranceCompany: '',
+        insurancePolicyNumber: '',
+        companyPhone: '',
+        companyAddress: {
+          adresse: '',
+          complement1: '',
+          complement2: '',
+          ville: '',
+          codePostal: '',
+          pays: 'France'
+        },
+        signatoryCivilite: 'M',
+        signatoryPrenom: '',
+        signatoryNom: '',
+        signatoryTitle: '',
+        signatoryEmail: '',
+        signatoryPhone: '',
+        tuteurSameAsSignatory: false,
+        supervisorCivilite: 'M',
+        supervisorPrenom: '',
+        supervisorNom: '',
+        supervisorFunction: '',
+        supervisorEmail: '',
+        supervisorPhone: '',
+        startDate: '',
+        endDate: '',
+        weeklyHours: 35,
+        salaryAmount: 0,
+        amenagementStage: ''
+      });
+    }
+  }
+
+  // 4. Include any leftover StageEtudiant whose student wasn't in semester list (edge cases/historical)
+  for (const leftover of stageMapByEtudiantId.values()) {
+    result.push(leftover);
+  }
+
+  return result;
 });
 
 const getPeriodName = (periodId) => {
@@ -435,11 +652,12 @@ const kpis = computed(() => {
 });
 
 const globalKpis = computed(() => {
+  const totalEnrolled = Object.values(semesterStudentsMap.value).flat().length;
   const list = students.value;
-  const total = list.length;
   const placed = list.filter(s => s.hasStage).length;
   const pending = list.filter(s => s.conventionStatus === 'En attente').length;
   const reports = list.filter(s => s.reportUploaded).length;
+  const total = Math.max(totalEnrolled, list.length);
   const rate = total > 0 ? Math.round((placed / total) * 100) : 0;
 
   return {
@@ -484,8 +702,10 @@ const openEditPeriodDialog = (p) => {
 };
 
 const handleUpdateStudent = async ({ id, changes }) => {
-  const student = students.value.find(s => s.id === id);
+  const student = periodStudents.value.find(s => s.id === id) || students.value.find(s => s.id === id);
   if (!student) return;
+
+  const isTemp = typeof id === 'string' && id.startsWith('sans-stage-');
 
   try {
     // 1. If student personal details are changed, update Etudiant entity first
@@ -496,7 +716,7 @@ const handleUpdateStudent = async ({ id, changes }) => {
       });
     }
 
-    // 2. Prepare payload for StageEtudiant patch
+    // 2. Prepare payload for StageEtudiant patch / post
     const patchPayload = {};
 
     // Map status change
@@ -605,13 +825,32 @@ const handleUpdateStudent = async ({ id, changes }) => {
       }
     }
 
-    // 3. Make patch call to API Platform
-    if (Object.keys(patchPayload).length > 0) {
+    // 3. Make patch or create call to API Platform
+    if (isTemp) {
+      const stagePeriodeIri = `/api/stage_periodes/${student.periodId}`;
+      const etudiantIri = `/api/etudiants/${student.studentId}`;
+      const isAuth = changes.inputAuthorized !== undefined ? changes.inputAuthorized : student.inputAuthorized;
+      const backendStatus = changes.conventionStatus !== undefined
+        ? mapVueStatusToBackend(changes.conventionStatus, isAuth)
+        : (isAuth ? 'ETAT_STAGE_AUTORISE' : 'ETAT_STAGE_INCOMPLET');
+
+      const createPayload = {
+        stagePeriode: stagePeriodeIri,
+        etudiant: etudiantIri,
+        etatStage: backendStatus,
+        dureeHebdomadaire: changes.weeklyHours ? parseFloat(changes.weeklyHours) : 35,
+        gratification: (changes.salaryAmount && parseFloat(changes.salaryAmount) > 0) || false,
+        gratificationMontant: changes.salaryAmount ? parseFloat(changes.salaryAmount) : 0,
+        ...patchPayload
+      };
+      await createStageEtudiantService(createPayload);
+    } else if (Object.keys(patchPayload).length > 0) {
       await updateStageEtudiantService(id, patchPayload);
     }
 
     // 4. Reload all students to get updated status and database structure
-    await fetchPeriodStudents(selectedPeriodId.value);
+    await fetchAllStudents();
+    toast.add({ severity: 'success', summary: 'Succès', detail: 'Modifications synchronisées avec succès.', life: 3000 });
 
   } catch (error) {
     console.error('Erreur lors de la mise à jour de l\'étudiant:', error);

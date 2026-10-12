@@ -4,7 +4,7 @@ namespace App\Service\Dashboard\Core;
 
 use App\Domain\Dashboard\WidgetDefinition;
 use App\Domain\Dashboard\WidgetProviderInterface;
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
+use Symfony\Component\DependencyInjection\Attribute\AutowireIterator;
 
 class WidgetRegistry
 {
@@ -19,7 +19,7 @@ class WidgetRegistry
     private array $bundles = [];
 
     public function __construct(
-        #[TaggedIterator('app.dashboard.widget_provider')]
+        #[AutowireIterator('app.dashboard.widget_provider')]
         iterable $providers,
     ) {
         //ici on recupere tout les providers taggés avec app.dashboard.widget_provider

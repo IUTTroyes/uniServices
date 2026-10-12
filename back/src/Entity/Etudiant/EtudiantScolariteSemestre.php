@@ -2,11 +2,11 @@
 
 namespace App\Entity\Etudiant;
 
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use App\ApiDto\EtudiantScolariteSemestre\EtudiantScolariteSemestreDto;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
@@ -16,10 +16,10 @@ use App\State\Provider\EtudiantScolariteSemestre\EtudiantScolariteSemestreProvid
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\DBAL\Types\Types;
 use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: EtudiantScolariteSemestreRepository::class)]
-#[ApiFilter(EtudiantScolariteSemestreFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['scolarite-semestre:detail']]),
@@ -35,6 +35,13 @@ use Symfony\Component\Serializer\Attribute\Groups;
         ),
         new GetCollection(normalizationContext: ['groups' => ['scolarite-semestre:detail', 'semestre:light', 'annee:light', 'groupe:light']]),
         new Patch(normalizationContext: ['groups' => ['scolarite-semestre:write']], securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),
+    ],
+    parameters: [
+        'scolarite' => new QueryParameter(filter: EtudiantScolariteSemestreFilter::class),
+        'groupe' => new QueryParameter(filter: EtudiantScolariteSemestreFilter::class),
+        'semestre' => new QueryParameter(filter: EtudiantScolariteSemestreFilter::class),
+        'etudiant' => new QueryParameter(filter: EtudiantScolariteSemestreFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: EtudiantScolariteSemestreFilter::class),
     ]
 )]
 class EtudiantScolariteSemestre
@@ -46,9 +53,17 @@ class EtudiantScolariteSemestre
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
-    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite-semestre:absence'])]
     private ?StructureSemestre $semestre = null;
+
+    /**
+     * Immutable context imported from intranet V3 when no historical PN exists in V4.
+     * Null for native V4 scolarities (2026-2027 and later).
+     */
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    #[Groups(['scolarite-semestre:detail', 'etudiant:read'])]
+    private ?array $legacyContext = null;
 
     /**
      * @var Collection<int, \IntranetBundle\Entity\Etudiant\EtudiantAbsence>
@@ -60,7 +75,7 @@ class EtudiantScolariteSemestre
     /**
      * @var Collection<int, EtudiantNote>
      */
-    #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'semestre')]
+    #[ORM\OneToMany(targetEntity: EtudiantNote::class, mappedBy: 'scolariteSemestre')]
     private Collection $note;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
@@ -80,9 +95,17 @@ class EtudiantScolariteSemestre
 
     #[ORM\Column(nullable: true)]
     #[Groups(['scolarite-semestre:detail'])]
+    private ?int $rang = null;
+
+    #[ORM\Column(nullable: true)]
+    #[Groups(['scolarite-semestre:detail'])]
     private ?bool $decision = null;
 
-    #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
+    #[ORM\Column(options: ['default' => 0])]
+    #[Groups(['scolarite-semestre:detail', 'scolarite-semestre:absence'])]
+    private int $nbAbsences = 0;
+
+    #[ORM\ManyToOne(inversedBy: 'scolariteSemestrePropositions')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['scolarite-semestre:detail', 'etudiant:read'])]
     private ?StructureSemestre $proposition = null;
@@ -104,16 +127,25 @@ class EtudiantScolariteSemestre
         return $this->semestre;
     }
 
-    public function setSemestre(StructureSemestre $semestre): static
+    public function setSemestre(?StructureSemestre $semestre): static
     {
         $this->semestre = $semestre;
 
         return $this;
     }
 
-    /**
-     * @return Collection<int, \IntranetBundle\Entity\Etudiant\EtudiantAbsence>
-     */
+    public function getLegacyContext(): ?array
+    {
+        return $this->legacyContext;
+    }
+
+    public function setLegacyContext(?array $legacyContext): static
+    {
+        $this->legacyContext = $legacyContext;
+
+        return $this;
+    }
+
     public function getAbsence(): Collection
     {
         return $this->absence;
@@ -132,7 +164,6 @@ class EtudiantScolariteSemestre
     public function removeAbsence(\IntranetBundle\Entity\Etudiant\EtudiantAbsence $absence): static
     {
         if ($this->absence->removeElement($absence)) {
-            // set the owning side to null (unless already changed)
             if ($absence->getScolariteSemestre() === $this) {
                 $absence->setScolariteSemestre(null);
             }
@@ -141,9 +172,6 @@ class EtudiantScolariteSemestre
         return $this;
     }
 
-    /**
-     * @return Collection<int, EtudiantNote>
-     */
     public function getNote(): Collection
     {
         return $this->note;
@@ -162,7 +190,6 @@ class EtudiantScolariteSemestre
     public function removeNote(EtudiantNote $note): static
     {
         if ($this->note->removeElement($note)) {
-            // set the owning side to null (unless already changed)
             if ($note->getScolariteSemestre() === $this) {
                 $note->setScolariteSemestre(null);
             }
@@ -183,9 +210,6 @@ class EtudiantScolariteSemestre
         return $this;
     }
 
-    /**
-     * @return Collection<int, StructureGroupe>
-     */
     public function getGroupes(): Collection
     {
         return $this->groupes;
@@ -217,34 +241,16 @@ class EtudiantScolariteSemestre
         $this->moyenne = $moyenne;
     }
 
-    public function getMoyennesMatiere(): ?array
-    {
-        return $this->moyennesMatiere;
-    }
-
-    public function setMoyennesMatiere(?array $moyennesMatiere): void
-    {
-        $this->moyennesMatiere = $moyennesMatiere;
-    }
-
-    public function getMoyennesUe(): ?array
-    {
-        return $this->moyennesUe;
-    }
-
-    public function setMoyennesUe(?array $moyennesUe): void
-    {
-        $this->moyennesUe = $moyennesUe;
-    }
-
     public function getDecision(): ?bool
     {
-        return $this->decision;
+        return $this->nbAbsences;
     }
 
-    public function setDecision(?bool $decision): void
+    public function setNbAbsences(int $nbAbsences): static
     {
-        $this->decision = $decision;
+        $this->nbAbsences = $nbAbsences;
+
+        return $this;
     }
 
     public function getProposition(): ?StructureSemestre

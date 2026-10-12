@@ -6,6 +6,14 @@ import { getStagePeriodesService } from '../../requests/stage_service';
 import { useUsersStore } from '@stores';
 import api from '@helpers/axios';
 import { ValidatedInput, validationRules } from '@components';
+import { FormSection, ToggleCard } from '../../components/Form';
+import {
+  UserIcon,
+  BuildingOffice2Icon,
+  CalendarDaysIcon,
+  ClipboardDocumentCheckIcon,
+  ExclamationTriangleIcon
+} from '@heroicons/vue/24/outline';
 
 const router = useRouter();
 const route = useRoute();
@@ -302,126 +310,136 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
     <Toast />
 
     <!-- ── En-tête ─────────────────────────────────────────────────────────── -->
-    <div class="flex items-center gap-4 justify-between border-b border-slate-100 dark:border-slate-800 pb-5">
+    <div class="flex items-center gap-4 justify-between border-b border-slate-200 dark:border-slate-800 pb-5">
       <div>
         <h1 class="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-          <i class="pi pi-file-edit text-violet-600"></i>
+          <i class="pi pi-file-edit text-teal-600"></i>
           <span>Demande de Convention de Stage</span>
         </h1>
         <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-          Remplissez les informations nécessaires pour la signature de votre convention de stage.
+          Remplissez les informations nécessaires pour la validation et l'édition de votre convention de stage.
         </p>
       </div>
-      <button @click="cancelRequest" class="text-xs font-semibold px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+      <button
+        @click="cancelRequest"
+        class="text-xs font-semibold px-4 py-2 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all cursor-pointer"
+      >
         Annuler
       </button>
     </div>
 
     <!-- ── Stepper ─────────────────────────────────────────────────────────── -->
-    <div class="grid grid-cols-4 gap-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
       <div
         v-for="step in steps"
         :key="step.id"
         :class="[
-          'flex flex-col items-center text-center p-3 rounded-2xl transition-all duration-300',
-          currentStep === step.id  ? 'bg-violet-50 dark:bg-violet-950/20 text-violet-700 dark:text-violet-400'
-          : currentStep > step.id ? 'text-emerald-600 dark:text-emerald-400'
-          : 'text-slate-400 dark:text-slate-600'
+          'flex flex-col items-center text-center p-3 rounded-2xl border transition-all duration-300',
+          currentStep === step.id
+            ? 'bg-teal-50/70 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300 shadow-2xs'
+            : currentStep > step.id
+            ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-emerald-600 dark:text-emerald-400'
+            : 'bg-white dark:bg-slate-800/20 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600'
         ]"
       >
-        <div :class="[
-          'w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs border-2 mb-2 transition-all',
-          currentStep === step.id  ? 'border-violet-600 bg-violet-600 text-white'
-          : currentStep > step.id ? 'border-emerald-500 bg-emerald-500 text-white'
-          : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-500'
-        ]">
+        <div
+          :class="[
+            'w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs border mb-1.5 transition-all shadow-2xs',
+            currentStep === step.id
+              ? 'border-teal-600 bg-teal-600 text-white'
+              : currentStep > step.id
+              ? 'border-emerald-500 bg-emerald-500 text-white'
+              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-400'
+          ]"
+        >
           <i v-if="currentStep > step.id" class="pi pi-check text-xs"></i>
           <span v-else>{{ step.id }}</span>
         </div>
-        <span class="text-[10px] font-bold uppercase tracking-wider hidden md:block">{{ step.label }}</span>
+        <span class="text-[11px] font-bold tracking-tight">{{ step.label }}</span>
       </div>
     </div>
 
     <!-- ── Carte principale ───────────────────────────────────────────────── -->
-    <div class="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 rounded-3xl p-8 shadow-sm">
+    <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 rounded-3xl p-6 md:p-8 shadow-xs space-y-6">
 
       <!-- ═══════════════════════════════════════════════════════════════════
            ÉTAPE 1 : Profil étudiant & Assurances
            ═══════════════════════════════════════════════════════════════════ -->
       <div v-if="currentStep === 1" class="space-y-6 animate-slide-in">
-        <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 border-b border-slate-50 dark:border-slate-700/40 pb-2">
-          Étape 1 : Coordonnées de l'étudiant &amp; Assurances
-        </h3>
+        <FormSection
+          :icon="UserIcon"
+          tone="teal"
+          title="Coordonnées de l'étudiant & Assurances"
+          description="Vérifiez vos coordonnées personnelles et précisez votre assurance responsabilité civile obligatoire."
+        >
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Période de stage -->
+            <ValidatedInput
+              v-model="form.stagePeriodeIri"
+              name="stagePeriodeIri"
+              label="Période du parcours universitaire"
+              type="select"
+              placeholder="Sélectionnez une période de stage"
+              :options="periodOptions"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('stagePeriodeIri', res)"
+              :disabled="!!route.query.periodId"
+              :help-text="route.query.periodId ? 'La période est pré-remplie à partir de votre tableau de bord et n\'est pas modifiable.' : ''"
+              class="md:col-span-2"
+            />
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <!-- Période de stage -->
-          <ValidatedInput
-            v-model="form.stagePeriodeIri"
-            name="stagePeriodeIri"
-            label="Période du parcours universitaire"
-            type="select"
-            placeholder="Sélectionnez une période de stage"
-            :options="periodOptions"
-            :rules="validationRules.required"
-            @validation="res => handleValidation('stagePeriodeIri', res)"
-            :disabled="!!route.query.periodId"
-            :help-text="route.query.periodId ? 'La période est pré-remplie à partir de votre tableau de bord et n\'est pas modifiable.' : ''"
-            class="md:col-span-2"
-          />
+            <!-- Téléphone -->
+            <ValidatedInput
+              v-model="form.phone"
+              name="phone"
+              label="Téléphone personnel"
+              placeholder="Ex: 06 12 34 56 78"
+              type="text"
+              :rules="[validationRules.phone, validationRules.required]"
+              @validation="res => handleValidation('phone', res)"
+            />
 
-          <!-- Téléphone -->
-          <ValidatedInput
-            v-model="form.phone"
-            name="phone"
-            label="Téléphone personnel"
-            placeholder="Ex: 06 12 34 56 78"
-            type="text"
-            :rules="[validationRules.phone, validationRules.required]"
-            @validation="res => handleValidation('phone', res)"
-          />
+            <!-- Email perso -->
+            <ValidatedInput
+              v-model="form.emailPerso"
+              name="emailPerso"
+              label="E-mail personnel (de secours)"
+              placeholder="Ex: etudiant@gmail.com"
+              type="text"
+              :rules="[validationRules.email, validationRules.required]"
+              @validation="res => handleValidation('emailPerso', res)"
+            />
 
-          <!-- Email perso -->
-          <ValidatedInput
-            v-model="form.emailPerso"
-            name="emailPerso"
-            label="E-mail personnel (de secours)"
-            placeholder="Ex: etudiant@gmail.com"
-            type="text"
-            :rules="[validationRules.email, validationRules.required]"
-            @validation="res => handleValidation('emailPerso', res)"
-          />
-
-          <!-- Assurance -->
-          <ValidatedInput
-            v-model="form.insuranceCompany"
-            name="insuranceCompany"
-            label="Compagnie d'assurance RC"
-            placeholder="Ex: MAIF, MACIF, MAAF…"
-            type="text"
-          />
-          <ValidatedInput
-            v-model="form.insurancePolicyNumber"
-            name="insurancePolicyNumber"
-            label="Numéro de police d'assurance"
-            placeholder="Ex: 9876543-A"
-            type="text"
-          />
-        </div>
+            <!-- Assurance -->
+            <ValidatedInput
+              v-model="form.insuranceCompany"
+              name="insuranceCompany"
+              label="Compagnie d'assurance RC"
+              placeholder="Ex: MAIF, MACIF, MAAF…"
+              type="text"
+            />
+            <ValidatedInput
+              v-model="form.insurancePolicyNumber"
+              name="insurancePolicyNumber"
+              label="Numéro de police d'assurance"
+              placeholder="Ex: 9876543-A"
+              type="text"
+            />
+          </div>
+        </FormSection>
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════
            ÉTAPE 2 : Entreprise d'accueil
            ═══════════════════════════════════════════════════════════════════ -->
-      <div v-if="currentStep === 2" class="space-y-8 animate-slide-in">
-        <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 border-b border-slate-50 dark:border-slate-700/40 pb-2">
-          Étape 2 : Entreprise d'accueil
-        </h3>
-
-        <!-- ─── Informations générales de l'entreprise ─── -->
-        <div class="space-y-4">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <i class="pi pi-building text-violet-500"></i> Identification
-          </h4>
+      <div v-if="currentStep === 2" class="space-y-6 animate-slide-in">
+        <!-- Informations générales de l'entreprise -->
+        <FormSection
+          :icon="BuildingOffice2Icon"
+          tone="teal"
+          title="Identification de l'entreprise"
+          description="Coordonnées et adresse de la structure qui vous accueille pour votre stage."
+        >
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <ValidatedInput
               v-model="form.companyName"
@@ -451,27 +469,27 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
               @validation="res => handleValidation('companyPhone', res)"
               class="md:col-span-2"
             />
+            <div class="md:col-span-2">
+              <ValidatedInput
+                v-model="form.companyAddress"
+                name="companyAddress"
+                label="Adresse de l'entreprise"
+                type="address"
+                placeholder="Cherchez l'adresse de l'entreprise…"
+                :rules="validationRules.required"
+                @validation="res => handleValidation('companyAddress', res)"
+              />
+            </div>
           </div>
+        </FormSection>
 
-          <!-- Adresse avec autocomplete -->
-          <div class="flex flex-col gap-2">
-            <ValidatedInput
-              v-model="form.companyAddress"
-              name="companyAddress"
-              label="Adresse de l'entreprise"
-              type="address"
-              placeholder="Cherchez l'adresse de l'entreprise…"
-              :rules="validationRules.required"
-              @validation="res => handleValidation('companyAddress', res)"
-            />
-          </div>
-        </div>
-
-        <!-- ─── Représentant légal (signataire de la convention) ─── -->
-        <div class="space-y-4">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <i class="pi pi-id-card text-violet-500"></i> Représentant légal (signataire de la convention)
-          </h4>
+        <!-- Représentant légal (signataire) -->
+        <FormSection
+          :icon="UserIcon"
+          tone="indigo"
+          title="Représentant légal (signataire de la convention)"
+          description="Personne habilitée à signer les conventions au nom de l'entreprise (Directeur, DRH...)."
+        >
           <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <ValidatedInput
               v-model="form.signatoryCivilite"
@@ -528,25 +546,22 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
               @validation="res => handleValidation('signatoryPhone', res)"
             />
           </div>
-        </div>
+        </FormSection>
 
-        <!-- ─── Maître de stage (encadrant) ─── -->
-        <div class="space-y-4">
-          <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
-            <i class="pi pi-user-edit text-violet-500"></i> Maître de stage (encadrant en entreprise)
-          </h4>
-
-          <!-- Toggle "même personne" -->
-          <label class="flex items-center gap-3 cursor-pointer select-none group w-fit">
-            <div class="relative">
-              <input type="checkbox" v-model="form.tuteurSameAsSignatory" @change="syncTuteurFromSignatory" class="sr-only peer" />
-              <div class="w-10 h-5 bg-slate-200 dark:bg-slate-700 rounded-full peer-checked:bg-violet-600 transition-all"></div>
-              <div class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-all peer-checked:translate-x-5 shadow-sm"></div>
-            </div>
-            <span class="text-xs font-semibold text-slate-700 dark:text-slate-300 group-hover:text-violet-600 transition-colors">
-              Le maître de stage est le même que le représentant légal
-            </span>
-          </label>
+        <!-- Maître de stage (encadrant) -->
+        <FormSection
+          :icon="UserIcon"
+          tone="purple"
+          title="Maître de stage (encadrant en entreprise)"
+          description="Votre responsable opérationnel au quotidien au sein de l'entreprise."
+        >
+          <!-- Toggle "même personne" avec ToggleCard -->
+          <ToggleCard
+            v-model="form.tuteurSameAsSignatory"
+            title="Le maître de stage est identique au représentant légal"
+            description="Cochez cette option si la personne qui vous encadre est également celle qui signe la convention."
+            class="mb-4"
+          />
 
           <!-- Champs du tuteur (masqués si même personne) -->
           <div v-if="!form.tuteurSameAsSignatory" class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -607,194 +622,202 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
           </div>
 
           <!-- Récap quand même personne -->
-          <div v-else class="flex items-center gap-3 p-3 rounded-xl bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800/40">
-            <i class="pi pi-info-circle text-violet-600"></i>
-            <p class="text-xs text-violet-800 dark:text-violet-300">
-              Les coordonnées du maître de stage seront identiques à celles du représentant légal :
-              <span class="font-bold">{{ form.signatoryCivilite }} {{ form.signatoryPrenom }} {{ form.signatoryNom }}</span>
-              <span v-if="form.signatoryTitle"> – {{ form.signatoryTitle }}</span>.
-            </p>
+          <div v-else class="q-callout q-callout-info">
+            <i class="pi pi-info-circle text-base text-blue-600 dark:text-blue-400 mt-0.5"></i>
+            <div>
+              <p class="font-semibold">Coordonnées synchronisées avec le représentant légal</p>
+              <p class="text-2xs text-blue-700 dark:text-blue-300 mt-0.5">
+                {{ form.signatoryCivilite }} {{ form.signatoryPrenom }} {{ form.signatoryNom }}
+                <span v-if="form.signatoryTitle"> — {{ form.signatoryTitle }}</span>
+              </p>
+            </div>
           </div>
-        </div>
+        </FormSection>
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════
            ÉTAPE 3 : Dates & Mission
            ═══════════════════════════════════════════════════════════════════ -->
       <div v-if="currentStep === 3" class="space-y-6 animate-slide-in">
-        <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 border-b border-slate-50 dark:border-slate-700/40 pb-2">
-          Étape 3 : Dates, Gratification &amp; Missions
-        </h3>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ValidatedInput
-            v-model="form.startDate"
-            name="startDate"
-            label="Date de début"
-            type="date"
-            :rules="validationRules.required"
-            @validation="res => handleValidation('startDate', res)"
-          />
-          <ValidatedInput
-            v-model="form.endDate"
-            name="endDate"
-            label="Date de fin"
-            type="date"
-            :rules="validationRules.required"
-            @validation="res => handleValidation('endDate', res)"
-          />
-          <ValidatedInput
-            v-model="form.weeklyHours"
-            name="weeklyHours"
-            label="Volume horaire hebdomadaire"
-            type="number"
-            :min="1"
-            :max="48"
-            :rules="[validationRules.required, validationRules.numeric, validationRules.minValue(1), validationRules.maxValue(48)]"
-            @validation="res => handleValidation('weeklyHours', res)"
-          />
-          <ValidatedInput
-            v-model="form.salaryAmount"
-            name="salaryAmount"
-            label="Gratification horaire nette (€/h)"
-            type="number"
-            :rules="[validationRules.required, validationRules.minValue(0)]"
-            @validation="res => handleValidation('salaryAmount', res)"
-          />
-          <ValidatedInput
-            v-model="form.subject"
-            name="subject"
-            label="Sujet de stage (mission principale)"
-            placeholder="Ex: Développement d'une API de suivi…"
-            type="text"
-            :rules="validationRules.required"
-            @validation="res => handleValidation('subject', res)"
-            class="md:col-span-2"
-          />
-          <ValidatedInput
-            v-model="form.activities"
-            name="activities"
-            label="Détail des activités confiées"
-            placeholder="Décrivez les tâches au quotidien…"
-            type="textarea"
-            :rules="validationRules.required"
-            @validation="res => handleValidation('activities', res)"
-            class="md:col-span-2"
-          />
-          <ValidatedInput
-            v-model="form.amenagementStage"
-            name="amenagementStage"
-            label="Aménagements éventuels"
-            placeholder="Ex: Télétravail 2 jours/semaine"
-            type="text"
-            class="md:col-span-2"
-          />
-        </div>
+        <FormSection
+          :icon="CalendarDaysIcon"
+          tone="teal"
+          title="Dates, Gratification & Missions"
+          description="Période effective de réalisation, indemnisation légale et descriptif du projet confié."
+        >
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <ValidatedInput
+              v-model="form.startDate"
+              name="startDate"
+              label="Date de début"
+              type="date"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('startDate', res)"
+            />
+            <ValidatedInput
+              v-model="form.endDate"
+              name="endDate"
+              label="Date de fin"
+              type="date"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('endDate', res)"
+            />
+            <ValidatedInput
+              v-model="form.weeklyHours"
+              name="weeklyHours"
+              label="Volume horaire hebdomadaire"
+              type="number"
+              :min="1"
+              :max="48"
+              :rules="[validationRules.required, validationRules.numeric, validationRules.minValue(1), validationRules.maxValue(48)]"
+              @validation="res => handleValidation('weeklyHours', res)"
+            />
+            <ValidatedInput
+              v-model="form.salaryAmount"
+              name="salaryAmount"
+              label="Gratification horaire nette (€/h)"
+              type="number"
+              :rules="[validationRules.required, validationRules.minValue(0)]"
+              @validation="res => handleValidation('salaryAmount', res)"
+            />
+            <ValidatedInput
+              v-model="form.subject"
+              name="subject"
+              label="Sujet de stage (mission principale)"
+              placeholder="Ex: Déploiement d'une solution de supervision réseau…"
+              type="text"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('subject', res)"
+              class="md:col-span-2"
+            />
+            <ValidatedInput
+              v-model="form.activities"
+              name="activities"
+              label="Détail des activités confiées"
+              placeholder="Décrivez les tâches et compétences mises en œuvre au quotidien…"
+              type="textarea"
+              :rules="validationRules.required"
+              @validation="res => handleValidation('activities', res)"
+              class="md:col-span-2"
+            />
+            <ValidatedInput
+              v-model="form.amenagementStage"
+              name="amenagementStage"
+              label="Aménagements éventuels"
+              placeholder="Ex: Télétravail 2 jours/semaine, horaires adaptés..."
+              type="text"
+              class="md:col-span-2"
+            />
+          </div>
+        </FormSection>
       </div>
 
       <!-- ═══════════════════════════════════════════════════════════════════
            ÉTAPE 4 : Récapitulatif
            ═══════════════════════════════════════════════════════════════════ -->
       <div v-if="currentStep === 4" class="space-y-6 animate-slide-in">
-        <h3 class="text-base font-bold text-slate-800 dark:text-slate-100 border-b border-slate-50 dark:border-slate-700/40 pb-2">
-          Étape 4 : Récapitulatif et envoi
-        </h3>
+        <FormSection
+          :icon="ClipboardDocumentCheckIcon"
+          tone="emerald"
+          title="Récapitulatif et validation"
+          description="Vérifiez l'ensemble des informations avant d'envoyer votre demande pour signature."
+        >
+          <div class="bg-slate-50/70 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-5 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <!-- Période & contact -->
+              <div>
+                <span class="text-slate-400 block font-medium">Période du stage :</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedPeriodLabel || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block font-medium">Téléphone / e-mail étudiant :</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ form.phone || '-' }} — {{ form.emailPerso || '-' }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block font-medium">Assurance RC :</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ form.insuranceCompany || '-' }} ({{ form.insurancePolicyNumber || 'n° non renseigné' }})</span>
+              </div>
 
-        <div class="bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 rounded-2xl p-6 space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <!-- Période & contact -->
-            <div>
-              <span class="text-slate-400 block">Période du stage :</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedPeriodLabel || '-' }}</span>
-            </div>
-            <div>
-              <span class="text-slate-400 block">Téléphone / e-mail étudiant :</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">{{ form.phone || '-' }} — {{ form.emailPerso || '-' }}</span>
-            </div>
-            <div>
-              <span class="text-slate-400 block">Assurance RC :</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">{{ form.insuranceCompany || '-' }} ({{ form.insurancePolicyNumber || 'n° non renseigné' }})</span>
-            </div>
+              <div class="md:col-span-2 border-t border-slate-200 dark:border-slate-700/60 pt-3 mt-1">
+                <span class="text-2xs font-bold uppercase tracking-wider text-slate-400 block mb-2">Entreprise</span>
+              </div>
+              <div class="md:col-span-2">
+                <span class="text-slate-400 block font-medium">Raison sociale &amp; SIRET :</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ form.companyName || '-' }} <span class="font-normal">({{ form.companySiret || 'SIRET non renseigné' }})</span></span>
+              </div>
+              <div class="md:col-span-2">
+                <span class="text-slate-400 block font-medium">Adresse :</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">
+                  {{ form.companyAddress.adresse || '-' }}, {{ form.companyAddress.codePostal }} {{ form.companyAddress.ville }}
+                </span>
+              </div>
+              <div>
+                <span class="text-slate-400 block font-medium">Représentant légal :</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ form.signatoryCivilite }} {{ form.signatoryPrenom }} {{ form.signatoryNom || '-' }}</span>
+                <span class="text-slate-500 block">{{ form.signatoryTitle }}</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block font-medium">Maître de stage :</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ supervisorDisplay }}</span>
+                <span v-if="form.tuteurSameAsSignatory" class="text-2xs text-teal-600 dark:text-teal-400 block">(idem représentant légal)</span>
+              </div>
 
-            <div class="md:col-span-2 border-t border-slate-200/50 dark:border-slate-700/40 pt-3 mt-1">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Entreprise</span>
-            </div>
-            <div class="md:col-span-2">
-              <span class="text-slate-400 block">Raison sociale &amp; SIRET :</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">{{ form.companyName || '-' }} <span class="font-normal">({{ form.companySiret || 'SIRET non renseigné' }})</span></span>
-            </div>
-            <div class="md:col-span-2">
-              <span class="text-slate-400 block">Adresse :</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">
-                {{ form.companyAddress.adresse || '-' }}, {{ form.companyAddress.codePostal }} {{ form.companyAddress.ville }}
-              </span>
-            </div>
-            <div>
-              <span class="text-slate-400 block">Représentant légal :</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">{{ form.signatoryCivilite }} {{ form.signatoryPrenom }} {{ form.signatoryNom || '-' }}</span>
-              <span class="text-slate-500 block">{{ form.signatoryTitle }}</span>
-            </div>
-            <div>
-              <span class="text-slate-400 block">Maître de stage :</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">{{ supervisorDisplay }}</span>
-              <span v-if="form.tuteurSameAsSignatory" class="text-[10px] text-violet-500">(idem représentant légal)</span>
-            </div>
-
-            <div class="md:col-span-2 border-t border-slate-200/50 dark:border-slate-700/40 pt-3 mt-1">
-              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-2">Mission</span>
-            </div>
-            <div>
-              <span class="text-slate-400 block">Dates :</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">
-                {{ form.startDate ? new Date(form.startDate).toLocaleDateString('fr-FR') : '-' }}
-                au {{ form.endDate   ? new Date(form.endDate).toLocaleDateString('fr-FR')   : '-' }}
-              </span>
-            </div>
-            <div>
-              <span class="text-slate-400 block">Gratification :</span>
-              <span class="font-bold text-slate-800 dark:text-slate-200">{{ form.salaryAmount }} €/h — {{ form.weeklyHours }}h/semaine</span>
-            </div>
-            <div class="md:col-span-2">
-              <span class="text-slate-400 block">Sujet :</span>
-              <p class="font-bold text-slate-800 dark:text-slate-200 mt-1">{{ form.subject || '-' }}</p>
-            </div>
-            <div class="md:col-span-2">
-              <span class="text-slate-400 block">Activités :</span>
-              <p class="font-medium text-slate-700 dark:text-slate-300 mt-1 leading-relaxed whitespace-pre-line">{{ form.activities || '-' }}</p>
+              <div class="md:col-span-2 border-t border-slate-200 dark:border-slate-700/60 pt-3 mt-1">
+                <span class="text-2xs font-bold uppercase tracking-wider text-slate-400 block mb-2">Mission</span>
+              </div>
+              <div>
+                <span class="text-slate-400 block font-medium">Dates :</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">
+                  {{ form.startDate ? new Date(form.startDate).toLocaleDateString('fr-FR') : '-' }}
+                  au {{ form.endDate ? new Date(form.endDate).toLocaleDateString('fr-FR') : '-' }}
+                </span>
+              </div>
+              <div>
+                <span class="text-slate-400 block font-medium">Gratification :</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ form.salaryAmount }} €/h — {{ form.weeklyHours }}h/semaine</span>
+              </div>
+              <div class="md:col-span-2">
+                <span class="text-slate-400 block font-medium">Sujet :</span>
+                <p class="font-bold text-slate-800 dark:text-slate-200 mt-1">{{ form.subject || '-' }}</p>
+              </div>
+              <div class="md:col-span-2">
+                <span class="text-slate-400 block font-medium">Activités :</span>
+                <p class="font-medium text-slate-700 dark:text-slate-300 mt-1 leading-relaxed whitespace-pre-line">{{ form.activities || '-' }}</p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Déclaration sur l'honneur -->
-        <div class="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/40 rounded-2xl p-4 flex items-start gap-3">
-          <i class="pi pi-exclamation-triangle text-amber-600 mt-0.5"></i>
-          <div>
-            <h5 class="text-xs font-bold text-amber-800 dark:text-amber-300">Déclaration sur l'honneur</h5>
-            <p class="text-[10px] text-amber-600 dark:text-amber-400 mt-0.5">
-              En soumettant cette demande, vous certifiez l'exactitude des informations relatives à l'entreprise d'accueil et à vos garanties d'assurance responsabilité civile. Des informations fausses retarderont l'édition et la signature de la convention.
-            </p>
+          <!-- Déclaration sur l'honneur -->
+          <div class="q-callout q-callout-warning">
+            <ExclamationTriangleIcon class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <h5 class="font-bold text-xs">Déclaration sur l'honneur</h5>
+              <p class="text-[11px] mt-0.5">
+                En soumettant cette demande, vous certifiez l'exactitude des informations relatives à l'entreprise d'accueil et à vos garanties d'assurance responsabilité civile. Des informations inexactes retarderont l'édition et la signature de la convention.
+              </p>
+            </div>
           </div>
-        </div>
+        </FormSection>
       </div>
 
       <!-- ── Boutons de navigation ──────────────────────────────────────── -->
-      <div class="flex items-center justify-between border-t border-slate-50 dark:border-slate-700/40 pt-6 mt-8">
+      <div class="flex items-center justify-between border-t border-slate-200 dark:border-slate-700/80 pt-5 mt-6">
         <button
           v-if="currentStep > 1"
           @click="prevStep"
-          class="text-xs font-bold px-5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all flex items-center gap-2"
+          class="text-xs font-semibold px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center gap-2 cursor-pointer"
         >
           <i class="pi pi-arrow-left text-[10px]"></i>
           <span>Précédent</span>
         </button>
         <div v-else></div>
 
-        <div>
+        <div class="flex items-center gap-2">
           <button
             v-if="currentStep < totalSteps"
             @click="nextStep"
             :disabled="stepHasErrors"
-            class="text-xs font-bold px-6 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-50 text-white transition-all flex items-center gap-2"
+            class="text-xs font-bold px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 disabled:opacity-50 text-white transition-all flex items-center gap-2 cursor-pointer shadow-xs"
           >
             <span>Suivant</span>
             <i class="pi pi-arrow-right text-[10px]"></i>
@@ -803,7 +826,7 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
             v-else
             @click="submitRequest"
             :disabled="isSubmitting || stepHasErrors"
-            class="text-xs font-bold px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white transition-all flex items-center gap-2"
+            class="text-xs font-bold px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white transition-all flex items-center gap-2 cursor-pointer shadow-xs"
           >
             <i v-if="isSubmitting" class="pi pi-spin pi-spinner"></i>
             <i v-else class="pi pi-check"></i>
@@ -816,29 +839,6 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
 </template>
 
 <style scoped>
-.input-field {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid rgb(226 232 240);
-  border-radius: 0.75rem;
-  background-color: rgb(248 250 252);
-  font-size: 0.75rem;
-  color: rgb(30 41 59);
-  transition: all 0.2s;
-}
-.input-field:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgb(139 92 246);
-}
-@media (prefers-color-scheme: dark) {
-  .input-field {
-    border-color: rgb(51 65 85);
-    background-color: rgb(15 23 42);
-    color: rgb(226 232 240);
-  }
-}
-
-
 .animate-slide-in {
   animation: slideIn 0.3s ease-out;
 }
@@ -848,3 +848,4 @@ const cancelRequest = () => { router.push({ name: 'EtudiantDashboard' }); };
   to   { opacity: 1; transform: translateX(0); }
 }
 </style>
+

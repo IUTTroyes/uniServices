@@ -162,6 +162,7 @@ const handleValidation = (field, result) => {
             help-text="Entrez le numéro de téléphone de l'établissement"
             class="w-full"
             />
+
           <Button label="Enregistrer" class="w-full" type="submit" :disabled="!formValid"/>
         </form>
       </div>

@@ -17,13 +17,19 @@ const getReferentielCompetencesComplet =  (async (referentielId, showToast = fal
   }
 })
 
-const getReferentiels =  (async (departementId, showToast = false) => {
-  console.log(departementId)
+const getReferentiels = async (departementId, showToast = false) => {
   try {
+    const params = {};
+    if (Array.isArray(departementId)) {
+      params['departement'] = departementId;
+    } else if (departementId) {
+      params['departement'] = departementId;
+    }
+
     const response = await apiCall(
       api.get,
-      [`/api/apc_referentiels?departement=${departementId}`],
-      'Référentiels de compétences du département récupérés avec succès',
+      ['/api/apc_referentiels', { params }],
+      'Référentiels de compétences récupérés avec succès',
       'Erreur lors de la récupération des référentiels de compétences',
       showToast
     );
@@ -32,6 +38,6 @@ const getReferentiels =  (async (departementId, showToast = false) => {
     console.error('Erreur dans getReferentiels:', error);
     throw error;
   }
-})
+};
 
 export { getReferentielCompetencesComplet, getReferentiels };

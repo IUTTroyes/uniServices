@@ -3,12 +3,12 @@
 namespace App\Entity\Edt;
 
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
-use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\ApiDto\Edt\EdtStatsDto;
 use App\Entity\Scolarite\ScolEnseignement;
@@ -16,7 +16,9 @@ use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
 use App\Entity\Traits\EduSignTrait;
-use App\Entity\Traits\LifeCycleTrait;
+use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Traits\OldIdTrait;
+use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\UuidTrait;
 use App\Entity\Users\Personnel;
 use App\Filter\EdtFilter;
@@ -26,13 +28,12 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use IntranetBundle\Entity\Edt\EdtAppel;
 use IntranetBundle\Entity\Etudiant\EtudiantAbsence;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\UuidV4;
 
 #[ORM\Entity(repositoryClass: EdtEventRepository::class)]
-#[ApiFilter(BooleanFilter::class, properties: ['aPlacer'])]
-#[ApiFilter(EdtFilter::class)]
 #[ApiResource(
     paginationEnabled: false,
     operations: [
@@ -43,23 +44,41 @@ use Symfony\Component\Uid\UuidV4;
             provider: EdtStatsProvider::class,
             output: EdtStatsDto::class,
         ),
+        new GetCollection(
+            uriTemplate: '/pointage/edt_events',
+            normalizationContext: ['groups' => ['edt_pointage:read']],
+        ),
         new Get(normalizationContext: ['groups' => ['edt_event:read:agenda']]),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_EDT', object)"),
         new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_EDT', object)"),
         new Delete(security: "is_granted('CAN_DELETE_EDT', object)"),
+    ],
+    parameters: [
+        'aPlacer' => new QueryParameter(filter: BooleanFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: EdtFilter::class),
+        'semaineFormation' => new QueryParameter(filter: EdtFilter::class),
+        'personnel' => new QueryParameter(filter: EdtFilter::class),
+        'departement' => new QueryParameter(filter: EdtFilter::class),
+        'semestre' => new QueryParameter(filter: EdtFilter::class),
+        'day' => new QueryParameter(filter: EdtFilter::class),
+        'debut' => new QueryParameter(filter: EdtFilter::class),
+        'fin' => new QueryParameter(filter: EdtFilter::class),
+        'enseignement' => new QueryParameter(filter: EdtFilter::class),
+        'salle' => new QueryParameter(filter: EdtFilter::class),
+        'annee' => new QueryParameter(filter: EdtFilter::class),
     ]
 )]
-#[ORM\HasLifecycleCallbacks]
-class EdtEvent
+class EdtEvent implements TimestampableInterface
 {
     use UuidTrait;
-    use LifeCycleTrait;
+    use TimestampableTrait;
     use EduSignTrait;
+    use OldIdTrait;
 
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'edt_pointage:read'])]
     private ?int $id = null;
 
     #[ORM\Column(nullable: true)]
@@ -69,15 +88,15 @@ class EdtEvent
     private ?int $jour = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'edt_pointage:read'])]
     private ?\DateTimeInterface $date = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration', 'edt_pointage:read'])]
     private ?\DateTimeInterface $debut = null;
 
     #[ORM\Column(type: Types::TIME_MUTABLE, nullable: true)]
-    #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration', 'edt_pointage:read'])]
     private ?\DateTimeInterface $fin = null;
 
     #[ORM\Column(length: 25)]
@@ -88,7 +107,7 @@ class EdtEvent
     private ?string $codeSalle = null;
 
     #[ORM\ManyToOne(inversedBy: 'events')]
-    #[Groups(['edt_event:read:agenda', 'absence:administration'])]
+    #[Groups(['edt_event:read:agenda', 'absence:administration', 'edt_pointage:read'])]
     private ?Personnel $personnel = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -99,7 +118,7 @@ class EdtEvent
     private ?string $libPersonnel = null;
 
     #[ORM\ManyToOne(inversedBy: 'edtEvents')]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'edt_pointage:read'])]
     private ?ScolEnseignement $enseignement = null;
 
     #[ORM\Column(length: 20, nullable: true)]
@@ -111,13 +130,16 @@ class EdtEvent
     private ?string $libModule = null;
 
     #[ORM\ManyToOne(inversedBy: 'edtEvents')]
-    #[Groups(['edt_event:read:agenda'])]
+    #[Groups(['edt_event:read:agenda', 'edt_pointage:read'])]
     private ?StructureGroupe $groupe = null;
 
     #[ORM\Column(length: 30, nullable: true)]
     #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration'])]
     private ?string $codeGroupe = null;
 
+    /**
+     * @deprecated Use $groupe->getLibelle() instead
+     */
     #[ORM\Column(length: 255, nullable: true)]
     #[Groups(['edt_event:read:agenda', 'absence:administration', 'justificatif:administration'])]
     private ?string $libGroupe = null;
@@ -157,13 +179,13 @@ class EdtEvent
     #[ORM\Column(nullable: true)]
     private ?int $ordreSeance = null;
 
-    /**
-     * @var Collection<int, EtudiantAbsence>
-     */
+    /** @var Collection<int, EtudiantAbsence> */
     #[ORM\OneToMany(targetEntity: EtudiantAbsence::class, mappedBy: 'event')]
     private Collection $absences;
 
-
+    #[ORM\OneToOne(mappedBy: 'edtEvent')]
+    #[Groups(['edt_pointage:read'])]
+    private ?EdtAppel $appel = null;
 
     public function __construct()
     {
@@ -526,4 +548,15 @@ class EdtEvent
 
         return $this;
     }
+
+    public function getAppel(): ?EdtAppel
+    {
+        return $this->appel;
+    }
+
+    public function setAppel(?EdtAppel $appel): void
+    {
+        $this->appel = $appel;
+    }
+
 }

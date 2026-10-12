@@ -388,7 +388,6 @@
       <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-intl-grapheme" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-intl-normalizer" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-mbstring" />
-      <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-php83" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-uuid" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/process" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/property-access" />
@@ -429,7 +428,6 @@
       <path value="$PROJECT_DIR$/back/vendor/symfony/translation" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/http-client" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/http-client-contracts" />
-      <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-php84" />
       <path value="$PROJECT_DIR$/back/vendor/egulias/email-validator" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/mailer" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/mime" />
@@ -550,9 +548,13 @@
       <path value="$PROJECT_DIR$/back/vendor/dragonmantank/cron-expression" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/messenger" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/scheduler" />
+      <path value="$PROJECT_DIR$/back/vendor/symfony/workflow" />
+      <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-deepclone" />
+      <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-php85" />
+      <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-php86" />
     </include_path>
   </component>
-  <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
+  <component name="PhpProjectSharedConfiguration" php_language_level="8.4" />
   <component name="PhpStan">
     <PhpStan_settings>
       <PhpStanConfiguration tool_path="$PROJECT_DIR$/back/vendor/bin/phpstan" />

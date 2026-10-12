@@ -7,7 +7,6 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
-use Symfony\Component\PropertyInfo\Type;
 
 #[ApiFilter(EtudiantFilter::class)]
 class EtudiantFilter extends AbstractFilter
@@ -76,7 +75,7 @@ class EtudiantFilter extends AbstractFilter
         return [
             'departement' => [
                 'property' => 'departement',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by departement',
@@ -84,7 +83,7 @@ class EtudiantFilter extends AbstractFilter
             ],
             'anneeUniversitaire' => [
                 'property' => 'anneeUniversitaire',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by anneeUniversitaire',
@@ -92,7 +91,7 @@ class EtudiantFilter extends AbstractFilter
             ],
             'semestre' => [
                 'property' => 'semestre',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by semestre',
@@ -100,7 +99,7 @@ class EtudiantFilter extends AbstractFilter
             ],
             'annee' => [
                 'property' => 'annee',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by annee',
@@ -108,7 +107,7 @@ class EtudiantFilter extends AbstractFilter
             ],
             'groupe' => [
                 'property' => 'groupe',
-                'type' => Type::BUILTIN_TYPE_INT,
+                'type' => 'int',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by groupe',

@@ -8,14 +8,15 @@ import helpdesk from '../../helpdesk-bundle/assets/manifest.ts';
 import questionnaire from '../../questionnaire-bundle/assets/manifest.ts';
 import stage from '../../stage-bundle/assets/manifest.ts';
 import document from '../../document-bundle/assets/manifest.ts';
+import finance from '../../finance-bundle/assets/manifest.ts';
 
 export const bundles = [
   auth,
   intranet,
   unifolio,
-helpdesk,
+  helpdesk,
   questionnaire,
   stage,
-  document
+  document,
+  finance
 ];
-
