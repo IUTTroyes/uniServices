@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.1.17](https://github.com/IUTTroyes/uniServices/compare/v0.1.16...v0.1.17) (2026-10-12)
+
+
+### Features
+
+* **finance:** [WIP] Ajout d'un bundle pour le circuit financier ([#249](https://github.com/IUTTroyes/uniServices/issues/249)) ([46460cf](https://github.com/IUTTroyes/uniServices/commit/46460cf089438f6ede09fdc523502641632ffb89))
+* Montée version SF 8.1 ([#260](https://github.com/IUTTroyes/uniServices/issues/260)) ([48b4fb4](https://github.com/IUTTroyes/uniServices/commit/48b4fb49df4ee8293ccc752941652a777c3cdbc5))
+* **questionnaire:** refonte de la mise en page de design système cohérent ([d127f69](https://github.com/IUTTroyes/uniServices/commit/d127f690eee58b042e768081205d49aed2005f18))
+* **questionnaire:** titre + description questionnaire ([2bedf3d](https://github.com/IUTTroyes/uniServices/commit/2bedf3d6b99a9b6ddd73b348c1642372676bc423))
+* **stage:** mise en forme + design système cohérent ([6337448](https://github.com/IUTTroyes/uniServices/commit/63374484f8e92e8f6a4e6c961c5ec5ed924b9c4e))
+
+
+### Bug Fixes
+
+* **ci:** use release-please branch directly ([135eb3b](https://github.com/IUTTroyes/uniServices/commit/135eb3be1b7088e152ade16d1166d74a9e807361))
+* UX sur les questionnaires ([44ea968](https://github.com/IUTTroyes/uniServices/commit/44ea9680136141b9660efe6eaa1dfc2c0b0c242d))
+
 ## [0.1.16](https://github.com/IUTTroyes/uniServices/compare/v0.1.15...v0.1.16) (2026-10-05)
 
 
