@@ -9,7 +9,7 @@ twig:
 #        '%kernel.project_dir%/../packages/intranet-bundle/templates': ~
 #        '%kernel.project_dir%/../packages/questionnaire-bundle/templates': ~
 #        '%kernel.project_dir%/../packages/shell/templates': ~
-#        '%kernel.project_dir%/../packages/stage-bundle/templates': ~
+#        '%kernel.project_dir%/../packages/finance-bundle/templates': Finance
 #        '%kernel.project_dir%/../packages/unifolio-bundle/templates': ~
 
 when@test:
