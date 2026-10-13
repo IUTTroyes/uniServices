@@ -5,63 +5,63 @@
 
 ### Features
 
-* **finance:** [WIP] Ajout d'un bundle pour le circuit financier ([#249](https://github.com/IUTTroyes/uniServices/issues/249)) ([46460cf](https://github.com/IUTTroyes/uniServices/commit/46460cf089438f6ede09fdc523502641632ffb89))
-* Montée version SF 8.1 ([#260](https://github.com/IUTTroyes/uniServices/issues/260)) ([48b4fb4](https://github.com/IUTTroyes/uniServices/commit/48b4fb49df4ee8293ccc752941652a777c3cdbc5))
-* **questionnaire:** refonte de la mise en page de design système cohérent ([d127f69](https://github.com/IUTTroyes/uniServices/commit/d127f690eee58b042e768081205d49aed2005f18))
-* **questionnaire:** titre + description questionnaire ([2bedf3d](https://github.com/IUTTroyes/uniServices/commit/2bedf3d6b99a9b6ddd73b348c1642372676bc423))
-* **stage:** mise en forme + design système cohérent ([6337448](https://github.com/IUTTroyes/uniServices/commit/63374484f8e92e8f6a4e6c961c5ec5ed924b9c4e))
+* **finance:** [WIP] Ajout d'un bundle pour le circuit financier ([#249](https://github.com/IUTTroyes/uniServices/issues/249)) ([46460cf](https://github.com/IUTTroyes/uniServices/commit/46460cf089438f6ede09fdc523502641632ffb89)) — [@Dannebicque](https://github.com/Dannebicque)
+* Montée version SF 8.1 ([#260](https://github.com/IUTTroyes/uniServices/issues/260)) ([48b4fb4](https://github.com/IUTTroyes/uniServices/commit/48b4fb49df4ee8293ccc752941652a777c3cdbc5)) — [@Dannebicque](https://github.com/Dannebicque)
+* **questionnaire:** refonte de la mise en page de design système cohérent ([d127f69](https://github.com/IUTTroyes/uniServices/commit/d127f690eee58b042e768081205d49aed2005f18)) — [@Dannebicque](https://github.com/Dannebicque)
+* **questionnaire:** titre + description questionnaire ([2bedf3d](https://github.com/IUTTroyes/uniServices/commit/2bedf3d6b99a9b6ddd73b348c1642372676bc423)) — [@Dannebicque](https://github.com/Dannebicque)
+* **stage:** mise en forme + design système cohérent ([6337448](https://github.com/IUTTroyes/uniServices/commit/63374484f8e92e8f6a4e6c961c5ec5ed924b9c4e)) — [@Dannebicque](https://github.com/Dannebicque)
 
 
 ### Bug Fixes
 
-* **ci:** use release-please branch directly ([135eb3b](https://github.com/IUTTroyes/uniServices/commit/135eb3be1b7088e152ade16d1166d74a9e807361))
-* UX sur les questionnaires ([44ea968](https://github.com/IUTTroyes/uniServices/commit/44ea9680136141b9660efe6eaa1dfc2c0b0c242d))
+* **ci:** use release-please branch directly ([135eb3b](https://github.com/IUTTroyes/uniServices/commit/135eb3be1b7088e152ade16d1166d74a9e807361)) — [@Dannebicque](https://github.com/Dannebicque)
+* UX sur les questionnaires ([44ea968](https://github.com/IUTTroyes/uniServices/commit/44ea9680136141b9660efe6eaa1dfc2c0b0c242d)) — [@Dannebicque](https://github.com/Dannebicque)
 
 ## [0.1.16](https://github.com/IUTTroyes/uniServices/compare/v0.1.15...v0.1.16) (2026-10-05)
 
 
 ### Bug Fixes
 
-* A11Y/UX ([68849e4](https://github.com/IUTTroyes/uniServices/commit/68849e4695df63381c568b963588f73d92560ccc))
+* A11Y/UX ([68849e4](https://github.com/IUTTroyes/uniServices/commit/68849e4695df63381c568b963588f73d92560ccc)) — [@Dannebicque](https://github.com/Dannebicque)
 
 ## [0.1.15](https://github.com/IUTTroyes/uniServices/compare/v0.1.14...v0.1.15) (2026-10-05)
 
 
 ### Bug Fixes
 
-* **ci:** enrich existing release-please PRs ([4871a25](https://github.com/IUTTroyes/uniServices/commit/4871a25fb21c3cb343ac63b044d442d07a496ef9))
-* **ci:** find release PR without bot author filter ([57323a7](https://github.com/IUTTroyes/uniServices/commit/57323a7be00b9b31e1f6c07f71ca535918f082b1))
-* **ci:** use release-please PR output for changelog enrichment ([0f372ff](https://github.com/IUTTroyes/uniServices/commit/0f372ffff75f89e43b9ef5b182696ca971e4ad11))
+* **ci:** enrich existing release-please PRs ([4871a25](https://github.com/IUTTroyes/uniServices/commit/4871a25fb21c3cb343ac63b044d442d07a496ef9)) — [@Dannebicque](https://github.com/Dannebicque)
+* **ci:** find release PR without bot author filter ([57323a7](https://github.com/IUTTroyes/uniServices/commit/57323a7be00b9b31e1f6c07f71ca535918f082b1)) — [@Dannebicque](https://github.com/Dannebicque)
+* **ci:** use release-please PR output for changelog enrichment ([0f372ff](https://github.com/IUTTroyes/uniServices/commit/0f372ffff75f89e43b9ef5b182696ca971e4ad11)) — [@Dannebicque](https://github.com/Dannebicque)
 
 ## [0.1.14](https://github.com/IUTTroyes/uniServices/compare/v0.1.13...v0.1.14) (2026-10-05)
 
 
 ### Bug Fixes
 
-* **ci:** reliably detect release-please branch ([f0adab6](https://github.com/IUTTroyes/uniServices/commit/f0adab6e42d7290536b0b5f883e72b84db8027a5))
+* **ci:** reliably detect release-please branch ([f0adab6](https://github.com/IUTTroyes/uniServices/commit/f0adab6e42d7290536b0b5f883e72b84db8027a5)) — [@Dannebicque](https://github.com/Dannebicque)
 
 ## [0.1.13](https://github.com/IUTTroyes/uniServices/compare/v0.1.12...v0.1.13) (2026-10-05)
 
 
 ### Features
 
-* add questionnaire runtime providers, mappers, DTOs, and frontend survey components ([260fec9](https://github.com/IUTTroyes/uniServices/commit/260fec9695753e68b354b75f394e9daa7355ebbf))
+* add questionnaire runtime providers, mappers, DTOs, and frontend survey components ([260fec9](https://github.com/IUTTroyes/uniServices/commit/260fec9695753e68b354b75f394e9daa7355ebbf)) — [@Dannebicque](https://github.com/Dannebicque)
 
 ## [0.1.12](https://github.com/IUTTroyes/uniServices/compare/v0.1.11...v0.1.12) (2026-10-05)
 
 
 ### Features
 
-* partie stage ([aa08021](https://github.com/IUTTroyes/uniServices/commit/aa08021cab89f0fa23e291adea2914e583c93998))
-* refonte super admin + bugs. Utilisation des composants (styleguide) ([0a3fea2](https://github.com/IUTTroyes/uniServices/commit/0a3fea2c390f608464220661fbd7d23334465a86))
+* partie stage ([aa08021](https://github.com/IUTTroyes/uniServices/commit/aa08021cab89f0fa23e291adea2914e583c93998)) — [@Dannebicque](https://github.com/Dannebicque)
+* refonte super admin + bugs. Utilisation des composants (styleguide) ([0a3fea2](https://github.com/IUTTroyes/uniServices/commit/0a3fea2c390f608464220661fbd7d23334465a86)) — [@Dannebicque](https://github.com/Dannebicque)
 
 
 ### Bug Fixes
 
-* **Core:** use OldIdTrait ([195e701](https://github.com/IUTTroyes/uniServices/commit/195e701b978576f1a10de1724cedd0c35b20a795))
-* **intranet:** correction de l'utilisation de la propriété de TimestampableTrait pour le tri ([8847545](https://github.com/IUTTroyes/uniServices/commit/88475455dc97eb05f37a241fee600ae07591f00f))
-* renommage des tables associées aux stages ([db78b71](https://github.com/IUTTroyes/uniServices/commit/db78b71878bd9f51c1c8772d578327ee830ad4ee))
-* typo et textes ([6c0b455](https://github.com/IUTTroyes/uniServices/commit/6c0b455f82923d0833e27fda273d27f1542a5544))
+* **Core:** use OldIdTrait ([195e701](https://github.com/IUTTroyes/uniServices/commit/195e701b978576f1a10de1724cedd0c35b20a795)) — [@Dannebicque](https://github.com/Dannebicque)
+* **intranet:** correction de l'utilisation de la propriété de TimestampableTrait pour le tri ([8847545](https://github.com/IUTTroyes/uniServices/commit/88475455dc97eb05f37a241fee600ae07591f00f)) — [@CyndelHerolt](https://github.com/CyndelHerolt)
+* renommage des tables associées aux stages ([db78b71](https://github.com/IUTTroyes/uniServices/commit/db78b71878bd9f51c1c8772d578327ee830ad4ee)) — [@Dannebicque](https://github.com/Dannebicque)
+* typo et textes ([6c0b455](https://github.com/IUTTroyes/uniServices/commit/6c0b455f82923d0833e27fda273d27f1542a5544)) — [@Dannebicque](https://github.com/Dannebicque)
 
 ## [0.1.11](https://github.com/IUTTroyes/uniServices/compare/v0.1.10...v0.1.11) (2026-09-22)
 
