@@ -3,7 +3,9 @@
 namespace App\Entity\Structure;
 
 use ApiPlatform\Doctrine\Orm\Filter\BooleanFilter;
+use ApiPlatform\Doctrine\Orm\Filter\ExactFilter;
 use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SortFilter;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
@@ -14,6 +16,7 @@ use ApiPlatform\Metadata\Post;
 use App\Entity\Edt\EdtEvent;
 use App\Entity\Etudiant\EtudiantScolarite;
 use App\Entity\Personnel\PersonnelEnseignantHrs;
+use App\Filter\AnneeUniversitaireFilter;
 use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Scolarite\ScolEvaluation;
 use App\Entity\Contracts\TimestampableInterface;
@@ -49,8 +52,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Delete(security: "is_granted('CAN_EDIT_ANNEE_UNIV', object)")
     ],
     parameters: [
-        'actif' => new QueryParameter(filter: BooleanFilter::class),
-        'order[annee]' => new QueryParameter(filter: OrderFilter::class),
+        'actif' => new QueryParameter(filter: ExactFilter::class),
+        'order[annee]' => new QueryParameter(filter: SortFilter::class),
+        'since' => new QueryParameter(filter: AnneeUniversitaireFilter::class),
+        'until' => new QueryParameter(filter: AnneeUniversitaireFilter::class)
     ]
 )]
 class StructureAnneeUniversitaire implements TimestampableInterface

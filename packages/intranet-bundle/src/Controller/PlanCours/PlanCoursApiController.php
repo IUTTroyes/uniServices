@@ -27,6 +27,7 @@ class PlanCoursApiController extends AbstractController
     }
 
     #[Route('/plan_cours_administration', name: 'api_plan_cours_administration', methods: ['GET'])]
+    #[Route('/administration/plan_cours', methods: ['GET'])]
     public function administration(Request $request): JsonResponse
     {
         $diplomeId = $request->query->get('diplome');
@@ -173,6 +174,7 @@ class PlanCoursApiController extends AbstractController
     }
 
     #[Route('/plan_cours_personnel', name: 'api_plan_cours_personnel', methods: ['GET'])]
+    #[Route('/personnel/plan_cours', methods: ['GET'])]
     public function personnel(Request $request): JsonResponse
     {
         $user = $this->getUser();

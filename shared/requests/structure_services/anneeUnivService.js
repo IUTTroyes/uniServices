@@ -5,27 +5,27 @@ import apiCall from '@helpers/apiCall';
 // ------------------- GET ----------------------
 // ----------------------------------------------
 
-const getAllAnneesUniversitairesService = async (showToast = false) => {
+const getAnneesUniversitairesService = async (params = {}, scope = '', showToast = false) => {
     try {
         const response = await apiCall(
             api.get,
-            [`/api/structure_annee_universitaires`],
+            [`/api${scope}/structure_annee_universitaires`, {params}],
             'Années universitaires récupérées avec succès',
             'Erreur lors de la récupération des années universitaires',
             showToast
         );
-        return response['member'];
+        return response.member;
     } catch (error) {
-        console.error('Erreur dans getAllAnneesUniversitairesService:', error);
+        console.error('Erreur dans getAnneesUniversitairesService:', error);
         throw error;
     }
 }
 
-const getAnneeUniversitaireService = async (id, showToast = false) => {
+const getAnneeUniversitaireService = async (id, scope = '', showToast = false) => {
     try {
         return await apiCall(
             api.get,
-            [`/api/structure_annee_universitaires/${id}`],
+            [`/api${scope}/structure_annee_universitaires/${id}`],
             'Année universitaire récupérée avec succès',
             'Erreur lors de la récupération de l\'année universitaire',
             showToast
@@ -36,31 +36,15 @@ const getAnneeUniversitaireService = async (id, showToast = false) => {
     }
 }
 
-const getCurrentAnneeUniversitaireService = async (showToast = false) => {
-    try {
-        const response = await apiCall(
-            api.get,
-            [`/api/structure_annee_universitaires?actif=true`],
-            'Année universitaire courante récupérée avec succès',
-            'Erreur lors de la récupération de l\'année universitaire courante',
-            showToast
-        );
-        return await response.member[0];
-    } catch (error) {
-        console.error('Erreur dans getCurrentAnneeUniversitaireService:', error);
-        throw error;
-    }
-}
-
 // ----------------------------------------------
 // ------------------- CREATE -------------------
 // ----------------------------------------------
 
-const createAnneeUniversitaireService = async (data, showToast = false) => {
+const createAnneeUniversitaireService = async (data, scope = '', showToast = false) => {
     try {
         return await apiCall(
             api.post,
-            [`/api/structure_annee_universitaires`, data, { headers: { 'Content-Type': 'application/ld+json' }}],
+            [`/api${scope}/structure_annee_universitaires`, data, { headers: { 'Content-Type': 'application/ld+json' }}],
             'Année universitaire créée avec succès',
             'Erreur lors de la création de l\'année universitaire',
             showToast
@@ -75,11 +59,11 @@ const createAnneeUniversitaireService = async (data, showToast = false) => {
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
 
-const updateAnneeUniversitaireService = async (id, data, showToast = false) => {
+const updateAnneeUniversitaireService = async (id, data, scope = '', showToast = false) => {
     try {
         return await apiCall(
             api.patch,
-            [`/api/structure_annee_universitaires/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
+            [`/api${scope}/structure_annee_universitaires/${id}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
             'Année universitaire mise à jour avec succès',
             'Erreur lors de la mise à jour de l\'année universitaire',
             showToast
@@ -90,30 +74,15 @@ const updateAnneeUniversitaireService = async (id, data, showToast = false) => {
     }
 }
 
-const activateAnneeUniversitaireService = async (id, showToast = false) => {
-    try {
-        return await apiCall(
-            api.patch,
-            [`/api/structure_annee_universitaires/${id}`, { actif: true }, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
-            'Année universitaire activée avec succès',
-            'Erreur lors de l\'activation de l\'année universitaire',
-            showToast
-        );
-    } catch (error) {
-        console.error('Erreur dans activateAnneeUniversitaireService:', error);
-        throw error;
-    }
-}
-
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-const deleteAnneeUniversitaireService = async (id, showToast = false) => {
+const deleteAnneeUniversitaireService = async (id, scope = '', showToast = false) => {
     try {
         return await apiCall(
             api.delete,
-            [`/api/structure_annee_universitaires/${id}`],
+            [`/api${scope}/structure_annee_universitaires/${id}`],
             'Année universitaire supprimée avec succès',
             'Erreur lors de la suppression de l\'année universitaire',
             showToast
@@ -124,4 +93,4 @@ const deleteAnneeUniversitaireService = async (id, showToast = false) => {
     }
 }
 
-export { getAllAnneesUniversitairesService, getAnneeUniversitaireService, getCurrentAnneeUniversitaireService, createAnneeUniversitaireService, updateAnneeUniversitaireService, activateAnneeUniversitaireService, deleteAnneeUniversitaireService };
+export { getAnneesUniversitairesService, getAnneeUniversitaireService, createAnneeUniversitaireService, updateAnneeUniversitaireService, deleteAnneeUniversitaireService };

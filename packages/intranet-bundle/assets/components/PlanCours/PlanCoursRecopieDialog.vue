@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { recopiePlanCoursService } from '@requests'
+import { createPlanCoursService } from '@requests'
 import { showSuccess, showDanger } from '@helpers/toast'
 
 const props = defineProps({
@@ -48,7 +48,11 @@ const handleRecopie = async () => {
 
   isSubmitting.value = true
   try {
-    await recopiePlanCoursService(props.targetPlanCoursId, selectedSourceId.value, false)
+    const data = {
+      sourcePlanCoursId: selectedSourceId.value
+    }
+
+    await createPlanCoursService(data, `/${props.targetPlanCoursId}/recopie`, false)
     showSuccess('Le plan de cours a été recopié avec succès.')
     isVisible.value = false
     emit('recopied')
@@ -97,7 +101,7 @@ const handleRecopie = async () => {
           severity="primary"
           :loading="isSubmitting"
           :disabled="!selectedSourceId"
-          @click={handleRecopie}
+          @click="handleRecopie"
         />
       </div>
     </template>

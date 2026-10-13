@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { createCalendrierService, getAllAnneesUniversitairesService } from '@requests';
+import { createCalendrierService, getAnneesUniversitairesService } from '@requests';
 import { ErrorView, HeaderComponent, Card } from '@components';
 import { useAnneeUnivStore } from '@stores';
 import { useToast } from 'primevue/usetoast';
@@ -23,7 +23,7 @@ const form = ref({
 
 onMounted(async () => {
   try {
-    const res = await getAllAnneesUniversitairesService();
+    const res = await getAnneesUniversitairesService();
     anneesUniv.value = res || [];
     if (anneeUnivStore.anneeUniv?.id) {
       form.value.anneeUniversitaire = `/api/structure_annee_universitaires/${anneeUnivStore.anneeUniv.id}`;

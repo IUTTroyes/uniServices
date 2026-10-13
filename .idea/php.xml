@@ -556,6 +556,7 @@
       <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-php86" />
     </include_path>
   </component>
+  <component name="PhpProjectSharedConfiguration" php_language_level="8.4" />
   <component name="PhpStan">
     <PhpStan_settings>
       <PhpStanConfiguration tool_path="$PROJECT_DIR$/back/vendor/bin/phpstan" />
@@ -569,6 +570,7 @@
     <phpunit_settings>
       <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/packages/intranet-bundle/vendor/autoload.php" />
       <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/back/vendor/autoload.php" />
+      <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/vendor/autoload.php" />
     </phpunit_settings>
   </component>
   <component name="Psalm">

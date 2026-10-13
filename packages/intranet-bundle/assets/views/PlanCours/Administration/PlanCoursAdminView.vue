@@ -3,7 +3,7 @@ import { onMounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAnneeUnivStore, useUsersStore } from '@stores'
 import { HeaderComponent } from '@components'
-import { getDiplomesService, getPlansCoursAdministrationService, getPlanCoursService, initPlanCoursModuleService } from '@requests'
+import { getDiplomesService, getPlansCoursService, getPlanCoursService, createPlanCoursService } from '@requests'
 import { showSuccess, showDanger } from '@helpers/toast'
 import PlanCoursShowDialog from '@/components/PlanCours/PlanCoursShowDialog.vue'
 
@@ -85,7 +85,7 @@ const loadTableData = async () => {
       params.etat = selectedEtat.value
     }
 
-    const data = await getPlansCoursAdministrationService(params)
+    const data = await getPlansCoursService(params, '/administration')
     adminData.value = data
     stats.value = data.stats || { total: 0, complet: 0, enCours: 0, none: 0 }
     enseignements.value = data.enseignements || []
@@ -161,7 +161,10 @@ const openEditOrCreate = async (item) => {
     try {
       isLoadingTable.value = true
       const activeAnneeId = anneeUnivStore.selectedAnneeUniv?.id || anneeUnivStore.anneeUniv?.id
-      const res = await initPlanCoursModuleService(item.enseignement.id, activeAnneeId)
+      const res = await createPlanCoursService({
+        enseignementId: item.enseignement.id,
+        anneeUniversitaireId: activeAnneeId,
+      }, '/init_module')
       router.push(`/intranet/plan-de-cours/edit/${res.id}`)
     } catch (e) {
       showDanger('Erreur lors de l\'initialisation du plan de cours.')

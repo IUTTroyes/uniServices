@@ -12,6 +12,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class ImportApogeeEtudiantController extends AbstractController
 {
     #[Route('/api/etudiants/import_apogee', methods: ['POST'])]
+    #[Route('/api/import_apogee/etudiants', methods: ['POST'])]
     public function import(Request $request): Response
     {
         // Récupérer les données JSON envoyées dans la requête
