@@ -305,6 +305,60 @@ import { ButtonDelete, ButtonSave, ButtonEdit, ButtonInfo, ButtonDuplicate } fro
 
 ---
 
+### 2.7. `ApplicationBadge` — Badge d'application avec couleurs du Manifeste
+
+Affiche un badge thématique standardisé représentant une application du portail UniServices, en appliquant rigoureusement les couleurs et icônes officielles configurées dans `manifest.ts`.
+
+```vue
+<script setup lang="ts">
+import { ApplicationBadge } from '@components';
+</script>
+
+<template>
+  <div class="flex flex-wrap items-center gap-2">
+    <!-- Puce par défaut -->
+    <ApplicationBadge app="intranet" />
+
+    <!-- Avec icône PrimeIcon de l'application -->
+    <ApplicationBadge app="stage" show-icon />
+
+    <!-- Avec indicateur point (dot) -->
+    <ApplicationBadge app="questionnaire" show-dot />
+
+    <!-- Format pilule (rounded-full) -->
+    <ApplicationBadge app="helpdesk" rounded show-icon />
+
+    <!-- Tailles disponibles : xs, sm (défaut), md -->
+    <ApplicationBadge app="documents" size="xs" />
+    <ApplicationBadge app="unifolio" size="sm" show-icon />
+    <ApplicationBadge app="finance" size="md" show-dot />
+  </div>
+</template>
+```
+
+#### Propriétés
+| Propriété | Type | Défaut | Description |
+|---|---|---|---|
+| `app` | `String \| Object` | *(Requis)* | Clé de l'application (`'intranet'`, `'stage'`, `'questionnaire'`, `'documents'`, `'helpdesk'`, `'unifolio'`, `'finance'`, `'auth'`) ou objet contenant un identifiant. |
+| `size` | `String` | `'sm'` | Taille d'affichage : `'xs'` (compact/tableaux), `'sm'` (standard), `'md'` (confort). |
+| `showIcon` | `Boolean` | `false` | Affiche l'icône PrimeIcon associée à l'application. |
+| `showDot` | `Boolean` | `false` | Affiche une pastille ronde colorée (dot) à gauche du libellé. |
+| `rounded` | `Boolean` | `false` | Style de bordure : `false` pour puce (`rounded-md`), `true` pour pilule (`rounded-full`). |
+
+#### Couleurs officielles (selon `manifest.ts`)
+| Application | Clé | Couleur principale |
+|---|---|---|
+| Intranet | `intranet` | Violet (`violet`) |
+| Gestion des stages | `stage` | Sarcelle (`teal`) |
+| Questionnaires & Qualité | `questionnaire` | Vert (`green`) |
+| Gestion des documents | `documents` | Bleu (`blue`) |
+| Assistance & Helpdesk | `helpdesk` | Orange (`orange`) |
+| Portefeuille de compétences UniFolio | `unifolio` | Émeraude (`emerald`) |
+| Gestion financière | `finance` | Émeraude (`emerald`) |
+| Portail & Authentification | `auth` | Jaune (`yellow`) |
+
+---
+
 ## 3. Conventions de Tableaux (`DataTable` PrimeVue)
 
 Pour toutes les pages de liste et de gestion :
@@ -353,9 +407,13 @@ Pour toutes les pages de liste et de gestion :
 ❌ **Anti-pattern 5** : Réinventer des boîtes de dialogue de confirmation de suppression avec des `confirm()` natifs du navigateur.  
 👉 **Règle** : Utiliser `<ButtonDelete @confirm-delete="..." />` avec `<ConfirmDialog />` de PrimeVue.
 
+❌ **Anti-pattern 6** : Coder des badges d'applications personnalisés en HTML brut (ex: `<span class="bg-blue-100 text-blue-800">Stages</span>`).  
+👉 **Règle** : Toujours utiliser `<ApplicationBadge :app="..." />` pour garantir l'application fidèle des couleurs et icônes officielles de `manifest.ts`.
+
 ---
 
 ## 6. Page de Démonstration Interactive
 
 Pour visualiser, tester et copier les extraits de code en direct, rendez-vous dans l'application sur la route du styleguide :
 `http://localhost:3000/auth/configuration/styleguide` (composant `StyleguideView.vue`).
+

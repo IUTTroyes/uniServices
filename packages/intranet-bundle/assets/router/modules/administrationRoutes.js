@@ -37,6 +37,18 @@ export default [
     },
   },
   {
+    path: 'administration/etudiants',
+    component: () => import('@/views/Etudiants/EtudiantsListeView.vue'),
+    meta: {
+      permission: 'canViewAdministration',
+      breadcrumb: [
+        { label: 'Dashboard', route: '/' },
+        { label: 'Administration', route: '/intranet/administration', icon: 'pi pi-wrench' },
+        { label: 'Étudiants & Applications', route: null }
+      ]
+    },
+  },
+  {
     path: 'administration/etudiant',
     meta: {
       permission: 'canViewAdministration',

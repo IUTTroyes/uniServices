@@ -6,6 +6,7 @@ const defaultPersonnelFilters = {
     prenom: { value: null, matchMode: FilterMatchMode.CONTAINS },
     statut: { value: null, matchMode: FilterMatchMode.EQUALS },
     numeroHarpege: { value: null, matchMode: FilterMatchMode.EQUALS },
+    username: { value: null, matchMode: FilterMatchMode.CONTAINS },
     mailUniv: { value: null, matchMode: FilterMatchMode.EQUALS },
 };
 

@@ -5,7 +5,7 @@ import { fr } from "date-fns/locale";
 import { format, parseISO, differenceInYears } from "date-fns";
 import { formatAdresse } from "@helpers/adresse.js";
 import { updateEtudiantService, getEtudiantService, getGroupesService } from "@requests";
-import { ValidatedInput, validationRules, ErrorView, PermissionGuard } from "@components";
+import { ValidatedInput, validationRules, ErrorView, PermissionGuard, ApplicationBadge } from "@components";
 import { PhotoUser } from "@components";
 import { useUsersStore } from "@stores";
 import { SimpleSkeleton } from "@components";
@@ -208,6 +208,18 @@ const updateEtudiantData = async () => {
           </div>
           <div class="text-center underline hover:cursor-pointer" @click="copyToClipboard(etudiant.mailUniv)">
             {{ etudiant.mailUniv }} <i class="pi pi-copy"></i>
+          </div>
+          <div v-if="etudiant.applications?.length" class="mt-2 pt-2 border-t border-surface-200 dark:border-surface-700">
+            <div class="text-[10px] font-semibold text-muted-color uppercase tracking-wider mb-1.5 text-center">Applications autorisées</div>
+            <div class="flex flex-wrap gap-1 justify-center">
+              <ApplicationBadge
+                v-for="app in etudiant.applications"
+                :key="app"
+                :app="app"
+                size="xs"
+                show-dot
+              />
+            </div>
           </div>
           <hr>
         </div>

@@ -170,50 +170,80 @@ watchChanges(async() => {
         :totalRecords="totalPersonnels"
         :loading="isLoading"
         v-model:filters="filters"
-        :globalFilterFields="['nom', 'prenom', 'mailUniv']"
+        :globalFilterFields="['nom', 'prenom', 'username', 'numeroHarpege', 'mailUniv']"
         filterDisplay="row"
         @page="onPageChange($event)"
         @sort="onSortChange($event)"
         @update:rows="limit = $event">
         <Column expander style="width: 3rem" />
-        <Column field="photo" :showFilterMenu="false" header="" style="min-width: 6rem">
+        <Column field="photo" :showFilterMenu="false" header="" style="width: 4rem">
           <template #body="{ data }">
-            <PhotoUser :user-photo="data.photoName" class="rounded-full w-14! h-auto border-4 border-gray-300 border-opacity-60 mx-auto"/>
+            <PhotoUser :user-photo="data.photoName" class="rounded-full w-10 h-10 border border-surface-200 dark:border-surface-700 object-cover mx-auto"/>
           </template>
         </Column>
-        <Column field="nom" :showFilterMenu="false" header="Nom" :sortable="true">
+        <Column field="nom" :showFilterMenu="false" header="Nom" :sortable="true" style="min-width: 9rem">
           <template #body="{ data }">
-            {{ data.nom }}
+            <span class="font-bold text-surface-900 dark:text-surface-100">{{ data.nom }}</span>
           </template>
           <template #filter="{ filterModel, filterCallback }">
             <InputText size="small" v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par nom"/>
           </template>
         </Column>
-        <Column field="prenom" :showFilterMenu="false" header="Prénom" :sortable="true">
+        <Column field="prenom" :showFilterMenu="false" header="Prénom" :sortable="true" style="min-width: 9rem">
           <template #body="{ data }">
-            {{ data.prenom }}
+            <span>{{ data.prenom }}</span>
           </template>
           <template #filter="{ filterModel, filterCallback }">
             <InputText size="small" v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par prénom"/>
           </template>
         </Column>
-        <Column field="mailUniv" :showFilterMenu="false" header="Mail Univ" :sortable="true">
+        <Column field="username" :showFilterMenu="false" header="Login" :sortable="true" style="min-width: 9rem">
           <template #body="{ data }">
-            {{ data.mailUniv }}
+            <span class="font-mono text-xs text-surface-700 dark:text-surface-300 font-semibold">
+              {{ data.username || '-' }}
+            </span>
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <InputText size="small" v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par login"/>
+          </template>
+        </Column>
+        <Column field="numeroHarpege" :showFilterMenu="false" header="ID RH" :sortable="true" style="min-width: 8rem">
+          <template #body="{ data }">
+            <span class="font-mono text-xs text-muted-color">
+              {{ data.numeroHarpege ?? '-' }}
+            </span>
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <InputText size="small" v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par ID RH"/>
+          </template>
+        </Column>
+        <Column field="mailUniv" :showFilterMenu="false" header="Mail Univ" :sortable="true" style="min-width: 14rem">
+          <template #body="{ data }">
+            <span class="text-xs text-surface-700 dark:text-surface-300">{{ data.mailUniv }}</span>
           </template>
           <template #filter="{ filterModel, filterCallback }">
             <InputText size="small" v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par mail"/>
           </template>
         </Column>
-<!--        <Column field="departements" header="Départements" :sortable="true">-->
-<!--          <template #body="slotProps">-->
-<!--            <div class="flex flex-wrap gap-2">-->
-<!--              <Tag v-if="!slotProps.data.departements?.length" severity="secondary" value="Aucun" />-->
-<!--              <Tag v-for="dept in slotProps.data.departements" :key="dept.id ?? dept.departementId" severity="contrast" :value="dept.libelle" />-->
-<!--            </div>-->
-<!--          </template>-->
-<!--        </Column>-->
-        <Column header="Actions" :style="{ width: '180px' }">
+        <Column header="Départements autorisés" style="min-width: 16rem">
+          <template #body="{ data }">
+            <div class="flex flex-wrap gap-1.5 items-center">
+              <span v-if="!data.departements?.length" class="text-xs text-muted-color italic">
+                Aucun département
+              </span>
+              <Tag
+                v-for="dept in data.departements"
+                :key="dept.id ?? dept.departementId"
+                :severity="dept.defaut ? 'primary' : 'secondary'"
+                :value="dept.libelle"
+                :icon="dept.defaut ? 'pi pi-star-fill' : undefined"
+                class="text-[11px]"
+                :title="dept.defaut ? 'Département par défaut' : 'Département affecté'"
+              />
+            </div>
+          </template>
+        </Column>
+        <Column header="Actions" :style="{ width: '6rem', textAlign: 'center' }">
           <template #body="slotProps">
             <ButtonEdit @click="openAccessDialog(slotProps.data)" tooltip="Modifier les accès"/>
           </template>

@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '@helpers/axios'
 import { useToast } from 'primevue/usetoast'
+import { ApplicationBadge } from '@components'
 
 const router = useRouter()
 const toast = useToast()
@@ -164,9 +165,7 @@ const bundleColor = (bundle) => {
 
         <!-- Bundle header -->
         <div class="flex items-center gap-2">
-          <span :class="['px-2.5 py-1 rounded-lg text-[11px] font-bold', bundleColor(group.bundle)]">
-            {{ group.bundle }}
-          </span>
+          <ApplicationBadge :app="group.bundle" size="sm" show-dot />
           <span class="text-xs text-slate-400">{{ group.items.length }} modèle{{ group.items.length > 1 ? 's' : '' }}</span>
           <div class="flex-1 h-px bg-slate-100 dark:bg-slate-800 ml-1"/>
         </div>

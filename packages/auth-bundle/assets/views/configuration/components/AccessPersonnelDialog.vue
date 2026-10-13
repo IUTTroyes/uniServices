@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { tools } from '@config/uniServices.js'
+import { ApplicationBadge } from '@components'
 
 const props = defineProps({
   isVisible: Boolean,
@@ -148,7 +149,7 @@ const save = () => emit('save')
                     <div
                         v-for="pkg in packageNames"
                         :key="`${departmentKey(department)}-${pkg}`"
-                        class="inline-flex items-center gap-2 rounded-full border border-surface-300 bg-surface-0 px-3 py-1.5"
+                        class="inline-flex items-center gap-2 rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-0 dark:bg-surface-800 px-3 py-1.5"
                     >
                       <Checkbox
                           :input-id="`package-${departmentKey(department)}-${pkg}`"
@@ -156,7 +157,9 @@ const save = () => emit('save')
                           :binary="true"
                           @update:model-value="togglePackage(department, pkg, $event)"
                       />
-                      <label :for="`package-${departmentKey(department)}-${pkg}`">{{ pkg }}</label>
+                      <label :for="`package-${departmentKey(department)}-${pkg}`" class="cursor-pointer">
+                        <ApplicationBadge :app="pkg" size="xs" show-dot />
+                      </label>
                     </div>
                   </div>
                 </Fieldset>

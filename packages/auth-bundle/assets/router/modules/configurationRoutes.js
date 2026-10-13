@@ -128,6 +128,21 @@ export default [
     },
   },
   {
+    path: 'gestion-acces-etudiants',
+    component: () => import('../../views/configuration/GestionAccesEtudiantsView.vue'),
+    name: 'gestion-acces-etudiants',
+    meta: {
+      permission: 'isSuperAdmin',
+      breadcrumb: [{ label: 'Portail', route: '/portail' }, {
+        label: 'Configuration',
+        route: '/configuration'
+      }, {
+        label: 'Gestion des accès étudiants',
+        route: null
+      }]
+    },
+  },
+  {
     path: 'emails',
     component: EmailsView,
     name: 'emails-configuration',

@@ -141,8 +141,23 @@ const demissionEtudiantScolariteService = async (scolariteId, showToast = false)
     }
 }
 
+const bulkUpdateEtudiantApplicationsService = async (payload, showToast = true) => {
+    try {
+        return await apiCall(
+            api.post,
+            ['/api/etudiants/bulk-applications', payload],
+            'Applications mises à jour avec succès',
+            'Erreur lors de la mise à jour des applications',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans bulkUpdateEtudiantApplicationsService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getEtudiantsScolariteService, getEtudiantScolariteService, getEtudiantScolaritesService, updateEtudiantScolariteService, demissionEtudiantScolariteService };
+export { getEtudiantsScolariteService, getEtudiantScolariteService, getEtudiantScolaritesService, updateEtudiantScolariteService, demissionEtudiantScolariteService, bulkUpdateEtudiantApplicationsService };

@@ -35,13 +35,14 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
 #[ORM\Entity(repositoryClass: EtudiantRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light']]),
+        new Get(requirements: ['id' => '\d+'], normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light']]),
         new Get(
             uriTemplate: '/scolarite/etudiant/{id}',
+            requirements: ['id' => '\d+'],
             normalizationContext: ['groups' => ['etudiant:scolarite']],
         ),
         new GetCollection(normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light']]),
-        new Patch(normalizationContext: ['groups' => ['etudiant:write']], securityPostDenormalize: "is_granted('CAN_EDIT_ETUDIANT', object)"),
+        new Patch(requirements: ['id' => '\d+'], normalizationContext: ['groups' => ['etudiant:write']], securityPostDenormalize: "is_granted('CAN_EDIT_ETUDIANT', object)"),
     ],
     order: ['nom' => 'ASC'],
     parameters: [
@@ -168,7 +169,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
     private ?string $lieu_naissance = null;
 
     #[ORM\Column(nullable: true)]
-    #[Groups(['etudiant:detail'])]
+    #[Groups(['etudiant:detail', 'etudiant:write'])]
     private ?array $applications = null;
 
     /**

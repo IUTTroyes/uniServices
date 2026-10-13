@@ -61,6 +61,15 @@ class EtudiantListeProvider implements ProviderInterface
             ];
         }
 
+        $rawApps = $etudiant ? ($etudiant->getApplications() ?? ['UniTranet']) : [];
+        $normalizedApps = array_values(array_unique(array_map(function($app) {
+            $low = strtolower((string) $app);
+            return $low === 'unitranet' ? 'intranet' : $low;
+        }, $rawApps)));
+        if (empty($normalizedApps) && $etudiant) {
+            $normalizedApps = ['intranet'];
+        }
+
         return [
             'id' => $scolarite->getId(),
             'etudiant' => $etudiant ? [
@@ -69,6 +78,7 @@ class EtudiantListeProvider implements ProviderInterface
                 'nom' => $etudiant->getNom(),
                 'mailUniv' => $etudiant->getMailUniv(),
                 'numEtudiant' => $etudiant->getNumEtudiant(),
+                'applications' => $normalizedApps,
             ] : [],
             'annee' => $annees,
         ];

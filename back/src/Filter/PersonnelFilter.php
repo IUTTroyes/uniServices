@@ -77,6 +77,12 @@ class PersonnelFilter extends AbstractFilter
                 ->setParameter('numeroHarpege', "$value%");
         }
 
+        if ('username' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.username LIKE :username', $alias))
+                ->setParameter('username', "$value%");
+        }
+
         if ('statut' === $property) {
             $queryBuilder
                 ->andWhere(sprintf('%s.statut LIKE :statut', $alias))

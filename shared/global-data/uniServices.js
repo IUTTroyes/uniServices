@@ -1,5 +1,11 @@
 import LogoIut from "@images/logo/logo_intranet_iut_troyes.svg";
 import toolsMeta from "./tools.generated.json";
+import {
+  APPLICATION_REGISTRY,
+  normalizeAppSlug,
+  getApplicationMeta,
+  getAppTagInfo
+} from "../utils/applicationColors.js";
 
 // La liste des outils est désormais générée automatiquement à partir des bundles
 // via le fichier tools.generated.json (créé/maintenu par les scripts PHP).
@@ -10,14 +16,25 @@ export const tools = (toolsMeta || []).map(item => {
   if (targetUrl.startsWith('http://localhost') || targetUrl.startsWith('https://localhost')) {
     targetUrl = `/app/${item.urlSlug}`;
   }
+  const meta = getApplicationMeta(item.urlSlug || item.name);
   return {
     name: item.name,
     description: item.description,
     url: targetUrl,
     logo: LogoIut || item.logo,
     urlSlug: item.urlSlug,
+    primaryColor: meta.primaryColor,
+    color: meta.primaryColor,
+    icon: meta.icon,
   };
 });
+
+export {
+  APPLICATION_REGISTRY,
+  normalizeAppSlug,
+  getApplicationMeta,
+  getAppTagInfo,
+};
 
 export const statuts = [
   { label: 'Maître de conférences', value: 'MCF', severity: 'info' },

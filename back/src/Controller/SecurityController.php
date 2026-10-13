@@ -297,7 +297,14 @@ class SecurityController extends AbstractController
                 $departmentsData[] = $currentDepartment;
             }
 
-            $activePackages = ['intranet', 'documents'];
+            $rawApps = $user->getApplications() ?? ['UniTranet'];
+            $activePackages = array_values(array_unique(array_map(function($app) {
+                $low = strtolower((string) $app);
+                return $low === 'unitranet' ? 'intranet' : $low;
+            }, $rawApps)));
+            if (empty($activePackages)) {
+                $activePackages = ['intranet'];
+            }
             $resolvedPermissions = ['ROLE_ETUDIANT'];
         }
 
@@ -310,6 +317,7 @@ class SecurityController extends AbstractController
                 'email' => $user->getMailUniv() ?? $user->getMailPerso(),
                 'type' => $user instanceof Personnel ? 'personnels' : 'etudiants',
                 'roles' => $effectivePermissionService->getEffectivePermissions($user),
+                'applications' => $activePackages,
             ],
             'currentDepartment' => $currentDepartment,
             'departments' => $departmentsData,

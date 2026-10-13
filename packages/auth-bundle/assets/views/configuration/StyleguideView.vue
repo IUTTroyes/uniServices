@@ -29,13 +29,15 @@ import {
   FormValidator,
   ValidatedInput,
   AddressAutocomplete,
-  ExampleValidatedForm
+  ExampleValidatedForm,
+  ApplicationBadge
 } from '@components';
+import { APPLICATION_REGISTRY } from '@utils';
 import ActionButtonVertical from '@components/components/ActionButtonVertical.vue';
 import Alert from '@components/components/Alert.vue';
 
 // Active tab sidebar selection
-const activeComponent = ref<'header' | 'card' | 'kpi' | 'quick-action' | 'action-btn' | 'alert' | 'empty-state' | 'buttons' | 'forms'>('header');
+const activeComponent = ref<'header' | 'card' | 'kpi' | 'quick-action' | 'action-btn' | 'alert' | 'empty-state' | 'buttons' | 'forms' | 'application-badge'>('header');
 const copiedText = ref(false);
 
 function triggerCopiedNotification() {
@@ -272,6 +274,27 @@ const formsCode = computed(() => {
   v-model="valeur"${optionsMarkup}
 />`;
 });
+
+// 10. ApplicationBadge
+const applicationBadgeProps = ref({
+  app: 'intranet',
+  size: 'sm' as 'xs' | 'sm' | 'md',
+  showDot: true,
+  showIcon: false,
+  rounded: false,
+});
+
+const applicationBadgeCode = computed(() => {
+  const dotStr = applicationBadgeProps.value.showDot ? ' show-dot' : '';
+  const iconStr = applicationBadgeProps.value.showIcon ? ' show-icon' : '';
+  const roundedStr = applicationBadgeProps.value.rounded ? ' rounded' : '';
+  const sizeStr = applicationBadgeProps.value.size !== 'sm' ? ` size="${applicationBadgeProps.value.size}"` : '';
+  return `<ApplicationBadge
+  app="${applicationBadgeProps.value.app}"${sizeStr}${dotStr}${iconStr}${roundedStr}
+/>`;
+});
+
+const availableAppsList = computed(() => Object.keys(APPLICATION_REGISTRY));
 </script>
 
 <template>
@@ -356,6 +379,15 @@ const formsCode = computed(() => {
           >
             <i class="pi pi-pencil text-sm" />
             Formulaires & Validations
+          </button>
+          <div class="h-[1px] bg-slate-100 dark:bg-slate-700 my-2"></div>
+          <button
+            @click="activeComponent = 'application-badge'"
+            :class="['w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+                     activeComponent === 'application-badge' ? 'bg-primary-500 text-white shadow-md' : 'text-gray-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-700/50']"
+          >
+            <i class="pi pi-tag text-sm" />
+            ApplicationBadge
           </button>
         </div>
       </div>
@@ -1928,6 +1960,168 @@ const formsCode = computed(() => {
               <p class="text-xs text-gray-500 mb-4">Formulaire complet pré-configuré démontrant l'utilisation du validateur global.</p>
               <pre class="bg-slate-950 text-slate-200 p-3 rounded-xl overflow-x-auto text-[11px] font-mono leading-relaxed"><code>&lt;ExampleValidatedForm /&gt;</code></pre>
             </div>
+          </div>
+        </Card>
+      </div>
+
+      <!-- 10. APPLICATION BADGE DOCUMENTATION -->
+      <div v-if="activeComponent === 'application-badge'" class="space-y-6">
+        <div class="card p-6 bg-gradient-to-br from-primary-500/5 to-transparent border border-primary-500/10 rounded-2xl">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">ApplicationBadge</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Badge normalisé pour identifier visuellement chaque application d'UniServices. Respecte scrupuleusement la couleur primaire (<code class="text-xs font-mono">primaryColor</code>) définie dans le <code class="text-xs font-mono">manifest.ts</code> de chaque bundle.
+          </p>
+        </div>
+
+        <!-- Live Demo -->
+        <Card title="Aperçu Interactif">
+          <div class="bg-slate-50 dark:bg-slate-900/40 p-8 rounded-2xl border border-slate-100 dark:border-slate-800/80 mb-6 flex flex-col items-center justify-center gap-4 min-h-[140px]">
+            <ApplicationBadge
+              :app="applicationBadgeProps.app"
+              :size="applicationBadgeProps.size"
+              :show-dot="applicationBadgeProps.showDot"
+              :show-icon="applicationBadgeProps.showIcon"
+              :rounded="applicationBadgeProps.rounded"
+            />
+            <span class="text-xs text-muted-color">
+              Couleur manifest : <strong class="font-mono text-primary-500">{{ APPLICATION_REGISTRY[applicationBadgeProps.app]?.primaryColor || 'surface' }}</strong>
+            </span>
+          </div>
+
+          <!-- Controls -->
+          <div class="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Contrôles du composant</h4>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Application ciblée</label>
+                <select
+                  v-model="applicationBadgeProps.app"
+                  class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                >
+                  <option v-for="appSlug in availableAppsList" :key="appSlug" :value="appSlug">
+                    {{ APPLICATION_REGISTRY[appSlug].name }} ({{ APPLICATION_REGISTRY[appSlug].primaryColor }})
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Taille (size)</label>
+                <div class="flex gap-2">
+                  <button
+                    v-for="s in ['xs', 'sm', 'md']"
+                    :key="s"
+                    type="button"
+                    @click="applicationBadgeProps.size = s"
+                    :class="['px-3 py-1.5 rounded-lg text-xs font-bold transition-all', applicationBadgeProps.size === s ? 'bg-primary-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300']"
+                  >
+                    {{ s }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-6 pt-2">
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">
+                <input v-model="applicationBadgeProps.showDot" type="checkbox" class="w-4 h-4 rounded text-primary-500 focus:ring-primary-500" />
+                Afficher la pastille couleur (show-dot)
+              </label>
+
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">
+                <input v-model="applicationBadgeProps.showIcon" type="checkbox" class="w-4 h-4 rounded text-primary-500 focus:ring-primary-500" />
+                Afficher l'icône de l'application (show-icon)
+              </label>
+
+              <label class="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 cursor-pointer">
+                <input v-model="applicationBadgeProps.rounded" type="checkbox" class="w-4 h-4 rounded text-primary-500 focus:ring-primary-500" />
+                Bords arrondis complets (rounded)
+              </label>
+            </div>
+          </div>
+        </Card>
+
+        <!-- Gallery of all apps -->
+        <Card title="Catalogue complet des applications et couleurs officielles">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div
+              v-for="(meta, slug) in APPLICATION_REGISTRY"
+              :key="slug"
+              class="flex items-center justify-between p-3 rounded-xl border border-surface-200 dark:border-surface-800 bg-surface-50/50 dark:bg-surface-900/50"
+            >
+              <div class="flex items-center gap-2.5">
+                <i :class="[meta.icon, 'text-muted-color text-sm']" />
+                <span class="text-xs font-semibold text-surface-900 dark:text-surface-100">{{ meta.name }}</span>
+              </div>
+              <ApplicationBadge :app="slug" size="xs" show-dot />
+            </div>
+          </div>
+        </Card>
+
+        <!-- Properties Table -->
+        <Card title="Propriétés & Configuration">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-200 dark:border-slate-700/80">
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/4">Propriété</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/5">Type</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/6">Défaut</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white w-1/12">Requis</th>
+                  <th class="py-3 px-4 font-semibold text-slate-900 dark:text-white">Description & Valeurs</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">app</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">String | Object</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">-</td>
+                  <td class="py-3 px-4 text-emerald-600 font-bold">Oui</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Slug de l'application (ex: <code class="font-mono text-xs">'stage'</code>, <code class="font-mono text-xs">'intranet'</code>) ou objet contenant <code class="font-mono text-xs">slug / urlSlug / name</code>. Gère automatiquement les alias.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">size</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">'xs' | 'sm' | 'md'</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">'sm'</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Taille du badge (<code class="font-mono text-xs">'xs'</code> pour tableaux denses et dialogues, <code class="font-mono text-xs">'sm'</code> par défaut, <code class="font-mono text-xs">'md'</code> pour en-têtes).</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">showDot</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">Boolean</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">false</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Affiche une pastille colorée circulaire à gauche du libellé avec la teinte 500 de l'application.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">showIcon</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">Boolean</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">false</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Affiche l'icône PrimeIcon associée à l'application dans le registre.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">rounded</td>
+                  <td class="py-3 px-4 font-mono text-slate-650">Boolean</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">false</td>
+                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Passe en style pilule (<code class="font-mono text-xs">rounded-full</code>) au lieu du style standard (<code class="font-mono text-xs">rounded-md</code>).</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </Card>
+
+        <!-- Code Snippet -->
+        <Card title="Code d'intégration">
+          <div class="relative">
+            <pre class="bg-slate-950 text-slate-200 p-5 rounded-2xl overflow-x-auto text-xs leading-relaxed font-mono"><code>{{ applicationBadgeCode }}</code></pre>
+            <button
+              @click="copyCode(applicationBadgeCode)"
+              class="absolute top-3 right-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white p-2 rounded-xl text-xs flex items-center gap-1.5 transition-all duration-200 border border-slate-700/50"
+            >
+              <CheckIcon v-if="copiedText" class="w-4 h-4 text-green-400" />
+              <ClipboardIcon v-else class="w-4 h-4" />
+              {{ copiedText ? 'Copié !' : 'Copier' }}
+            </button>
           </div>
         </Card>
       </div>

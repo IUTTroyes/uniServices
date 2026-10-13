@@ -1,6 +1,7 @@
 <script setup>
 import { computed, defineProps, ref } from 'vue';
 import { resolveWidgetComponent } from './widgets/widgetRegistry';
+import ApplicationBadge from '../Application/ApplicationBadge.vue';
 
 const isEditing = ref(false);
 
@@ -62,6 +63,16 @@ const decreaseRowSpan = () => {
 const toggleWidget = () => {
     emit('toggle', props.widget);
 };
+
+const showBundleBadge = computed(() => {
+    if (!props.widget?.bundle) return false;
+    // Sur le portail, on n'affiche pas le badge pour les widgets natifs du portail (auth)
+    if (props.isPortail) {
+        return props.widget.bundle !== 'auth';
+    }
+    // Sur un dashboard dédié (ex: intranet), on affiche si le widget provient d'un autre bundle
+    return props.widget.bundle !== 'intranet';
+});
 </script>
 
 <template>
@@ -91,10 +102,8 @@ const toggleWidget = () => {
                 <i :class="`${widget.icon} text-primary-500`"/>
                 <span>{{ widget.label }}</span>
             </div>
-            <div v-if="widget.bundle && props.isPortail" class="mt-1">
-                <span v-if="widget.bundle !== 'auth'" class="inline-flex items-center rounded bg-primary-50 dark:bg-primary-900/30 px-1.5 py-0.5 text-xs font-semibold text-primary-700 dark:text-primary-300 border border-primary-200/50 dark:border-primary-900/50 uppercase tracking-wider">
-                    {{ widget.bundle }}
-                </span>
+            <div v-if="showBundleBadge" class="mt-1">
+                <ApplicationBadge :app="widget.bundle" size="xs" show-dot />
             </div>
         </div>
         <Button v-if="!isEditing" icon="pi pi-cog" size="small" text rounded title="Configurer le widget" @click="isEditing = !isEditing"/>
