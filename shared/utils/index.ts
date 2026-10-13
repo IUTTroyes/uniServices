@@ -8,6 +8,14 @@ import { hasPermission, permissionDirective, registerPermissionDirective } from 
 // Status utilities
 import { getStatutColor, getStatutText } from './statuts';
 
+// Application utilities (manifest colors & badges)
+import {
+  APPLICATION_REGISTRY,
+  normalizeAppSlug,
+  getApplicationMeta,
+  getAppTagInfo,
+} from './applicationColors';
+
 // Permissions
 export {
   hasPermission,
@@ -19,6 +27,14 @@ export {
 export {
   getStatutColor,
   getStatutText,
+};
+
+// Applications
+export {
+  APPLICATION_REGISTRY,
+  normalizeAppSlug,
+  getApplicationMeta,
+  getAppTagInfo,
 };
 
 

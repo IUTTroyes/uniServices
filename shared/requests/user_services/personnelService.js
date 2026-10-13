@@ -22,6 +22,9 @@ const getPersonnelsService = async (params, scope = '', showToast = false) => {
             if (apiParams.filters.mailUniv) {
                 apiParams['mailUniv'] = apiParams.filters.mailUniv.value;
             }
+            if (apiParams.filters.username) {
+                apiParams['username'] = apiParams.filters.username.value;
+            }
         }
 
         if (Array.isArray(apiParams.sort) && apiParams.sort.length > 0) {

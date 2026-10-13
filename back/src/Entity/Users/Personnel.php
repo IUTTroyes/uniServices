@@ -67,10 +67,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'departement' => new QueryParameter(filter: PersonnelFilter::class),
         'enseignement' => new QueryParameter(filter: PersonnelFilter::class),
         'enseignant' => new QueryParameter(filter: PersonnelFilter::class),
+        'username' => new QueryParameter(filter: PersonnelFilter::class),
+        'numeroHarpege' => new QueryParameter(filter: PersonnelFilter::class),
         'structureServices' => new QueryParameter(filter: SearchFilter::class),
         'order[nom]' => new QueryParameter(filter: OrderFilter::class),
         'order[prenom]' => new QueryParameter(filter: OrderFilter::class),
         'order[mailUniv]' => new QueryParameter(filter: OrderFilter::class),
+        'order[username]' => new QueryParameter(filter: OrderFilter::class),
+        'order[numeroHarpege]' => new QueryParameter(filter: OrderFilter::class),
     ]
 )]
 class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, TimestampableInterface {

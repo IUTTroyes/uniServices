@@ -3,6 +3,7 @@ import {computed, onMounted, ref } from 'vue';
 import {useRouter} from 'vue-router';
 import {useUsersStore} from '@stores';
 import {getWidgetsAvailableService, updateDashboardWidgetLayoutService } from '@requests';
+import ApplicationBadge from '../Application/ApplicationBadge.vue';
 
 const router = useRouter();
 const userStore = useUsersStore();
@@ -80,9 +81,7 @@ const updateWidget = async (widget) => {
           <div class="flex flex-col">
             <div class="font-semibold">{{ widget.label }}</div>
             <div v-if="widget.bundle" class="mt-1">
-                            <span class="inline-flex items-center rounded bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 text-xs font-semibold text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-900/50 uppercase tracking-wider">
-                                {{ widget.bundle }}
-                            </span>
+              <ApplicationBadge :app="widget.bundle" size="xs" show-dot />
             </div>
           </div>
           <Badge :value="widget.enabled ? 'Actif' : 'Inactif'" :severity="widget.enabled ? 'success' : 'danger'" />

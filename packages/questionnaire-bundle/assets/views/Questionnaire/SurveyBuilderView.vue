@@ -28,6 +28,7 @@ import SurveyPublishModal from '@/components/Questionnaire/SurveyPublishModal.vu
 import DuplicateSectionModal from '@/components/Questionnaire/DuplicateSectionModal.vue';
 import DuplicateQuestionModal from '@/components/Questionnaire/DuplicateQuestionModal.vue';
 import { FormField } from '@/components/Form';
+import { calculateEstimatedTime, formatEstimatedTime } from '@/utils/survey';
 
 const route = useRoute();
 const router = useRouter();
@@ -64,62 +65,7 @@ const currentSurvey = computed(() => surveyStore.currentSurvey);
 const currentSection = computed(() => surveyStore.currentSection);
 const sections = computed(() => surveyStore.currentSections);
 
-const estimatedTime = computed(() => {
-  if (!sections.value) return 0;
-
-  let totalSeconds = 0;
-  for (const section of sections.value) {
-    let sectionSeconds = 0;
-
-    // Check if section is configurable and get elements count
-    const numElements = section.typeSection === 'configurable' && section.opt?.elements
-      ? section.opt.elements.length
-      : 1;
-
-    for (const question of section.questions) {
-      switch (question.typeQuestion) {
-        case 'single_choice':
-          sectionSeconds += 15;
-          break;
-        case 'multiple_choice':
-          sectionSeconds += 25;
-          break;
-        case 'text_short':
-          sectionSeconds += 30;
-          break;
-        case 'text_long':
-          sectionSeconds += 60;
-          break;
-        case 'scale':
-          sectionSeconds += 15;
-          break;
-        case 'matrix':
-          sectionSeconds += 30;
-          break;
-        case 'ranking':
-          sectionSeconds += 30;
-          break;
-        default:
-          sectionSeconds += 15;
-          break;
-      }
-    }
-    totalSeconds += sectionSeconds * numElements;
-  }
-  return totalSeconds;
-});
-
-function formatEstimatedTime(seconds: number): string {
-  if (seconds < 60) {
-    return "moins d'une minute";
-  }
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  if (remainingSeconds === 0) {
-    return `${minutes} min`;
-  }
-  return `${minutes} min ${remainingSeconds} s`;
-}
+const estimatedTime = computed(() => calculateEstimatedTime(sections.value));
 
 // Watch for changes in estimatedTime and save it to the database
 watch(estimatedTime, (newValue) => {
@@ -287,10 +233,21 @@ function publishSurvey() {
   showPublishModal.value = true;
 }
 
-async function confirmPublish(recipients: string[]) {
+async function confirmPublish(payload: string[] | { recipients: string[]; openingDate?: string | null; closingDate?: string | null }) {
   if (!currentSurvey.value) return;
 
   try {
+    const recipients = Array.isArray(payload) ? payload : payload.recipients;
+    const openingDate = !Array.isArray(payload) ? payload.openingDate : undefined;
+    const closingDate = !Array.isArray(payload) ? payload.closingDate : undefined;
+
+    if (!Array.isArray(payload) && (openingDate !== undefined || closingDate !== undefined)) {
+      await surveyStore.updateSurvey({
+        openingDate: openingDate ? new Date(openingDate) : null,
+        closingDate: closingDate ? new Date(closingDate) : null
+      });
+    }
+
     await surveyStore.publishSurvey(currentSurvey.value.uuid, recipients);
     showPublishModal.value = false;
     uiStore.addNotification('success', 'Questionnaire publié', 'Le questionnaire a été publié avec succès.');
@@ -522,8 +479,14 @@ onMounted(async () => {
     @save="saveSection" />
 
   <!-- Publish Confirmation Modal -->
-  <SurveyPublishModal v-if="showPublishModal" :survey="currentSurvey" @close="showPublishModal = false"
-    @confirm="confirmPublish" />
+  <SurveyPublishModal
+    v-if="showPublishModal"
+    :survey="currentSurvey"
+    :sections="sections"
+    :estimated-time="estimatedTime"
+    @close="showPublishModal = false"
+    @confirm="confirmPublish"
+  />
 
   <!-- Duplicate Section Modal -->
   <DuplicateSectionModal

@@ -8,10 +8,12 @@ import ListSkeleton from './loader/ListSkeleton.vue';
 import CardSkeleton from "./loader/CardSkeleton.vue";
 import ApcCompetenceBadge from "./Apc/ApcCompetenceBadge.vue";
 import ApcAcBadge from "./Apc/ApcAcBadge.vue";
+import ApplicationBadge from "./components/Application/ApplicationBadge.vue";
 import ErrorView from './components/ErrorView.vue';
 import PhotoUser from './components/PhotoUser.vue';
 import ProfilEtudiant from "./components/Etudiant/ProfilEtudiant/ProfilEtudiant.vue";
 import ScolariteEtudiant from "./components/Etudiant/ProfilEtudiant/ScolariteEtudiant.vue";
+import EtudiantApplicationsDialog from "./components/Etudiant/EtudiantApplicationsDialog.vue";
 import ProfilPersonnel from "./components/Personnel/ProfilPersonnel.vue";
 import PermissionGuard from "./components/Permission/PermissionGuard.vue";
 import MessageCard from "./components/Messages/MessageCard.vue";
@@ -46,6 +48,7 @@ import { validationRules, validateField } from './utils/formValidation';
 export {
   // Composants utilitaires
   PermissionGuard,
+  ApplicationBadge,
 
 
   // Composants mineurs
@@ -75,6 +78,7 @@ export {
   PersonnelsListe,
   ProfilEtudiant,
   ScolariteEtudiant,
+  EtudiantApplicationsDialog,
   ProfilPersonnel,
   WidgetCard,
   DashboardWidgetsConfiguration,

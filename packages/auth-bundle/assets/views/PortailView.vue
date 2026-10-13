@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
-import { TopbarComponent, WidgetCard, GlobalLoader, HeaderComponent, PermissionGuard } from '@components';
+import { TopbarComponent, WidgetCard, GlobalLoader, HeaderComponent, PermissionGuard, ApplicationBadge } from '@components';
 import { tools } from '@config/uniServices.js';
 import { getWidgetDataByCodeService, getWidgetsCatalogService, updateDashboardWidgetLayoutService, getActualitesService } from '@requests';
 import { useUsersStore, useAnneeUnivStore, useEtablissementStore } from "@stores";
@@ -205,10 +205,11 @@ watch(() => route.path, async (newPath, oldPath) => {
                       type="button"
                       text
                       rounded
-                      class="justify-start! text-left font-semibold"
+                      class="justify-between! text-left font-semibold w-full"
                       @click="onBundleClick(bundle.url)"
                   >
-                    {{ bundle.name }}
+                    <span>{{ bundle.name }}</span>
+                    <ApplicationBadge :app="bundle.urlSlug" size="xs" show-dot />
                   </Button>
                 </template>
                 <Message v-else severity="warn" class="flex! flex-col! items-center! justify-center! text-center!">
@@ -243,9 +244,10 @@ watch(() => route.path, async (newPath, oldPath) => {
                     rounded
                     severity="secondary"
                     disabled
-                    class="justify-start! text-left font-semibold"
+                    class="justify-between! text-left font-semibold w-full opacity-60"
                 >
-                  {{ bundle.name }}
+                  <span>{{ bundle.name }}</span>
+                  <ApplicationBadge :app="bundle.urlSlug" size="xs" class="opacity-50" />
                 </Button>
               </div>
             </div>
