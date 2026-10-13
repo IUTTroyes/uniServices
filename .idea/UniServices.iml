@@ -26,6 +26,8 @@
       <sourceFolder url="file://$MODULE_DIR$/back/../packages/document-bundle/src" isTestSource="false" packagePrefix="DocumentBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/document-bundle/src" isTestSource="false" packagePrefix="DocumentBundle\" />
       <sourceFolder url="file://$MODULE_DIR$/packages/document-bundle/tests" isTestSource="true" packagePrefix="DocumentBundle\Tests\" />
+      <sourceFolder url="file://$MODULE_DIR$/back/../packages/finance-bundle/src" isTestSource="false" packagePrefix="FinanceBundle\" />
+      <sourceFolder url="file://$MODULE_DIR$/packages/finance-bundle/src" isTestSource="false" packagePrefix="FinanceBundle\" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/composer" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/cache" />
       <excludeFolder url="file://$MODULE_DIR$/BackendUniServices/vendor/doctrine/collections" />

@@ -6,7 +6,7 @@ import {
   createCalendrierService,
   updateCalendrierService,
   deleteCalendrierService,
-  getAllAnneesUniversitairesService
+  getAnneesUniversitairesService
 } from '@requests';
 import { ErrorView, ListSkeleton, ButtonDelete, ButtonEdit, HeaderComponent, Card } from '@components';
 import { useAnneeUnivStore } from '@stores';
@@ -67,7 +67,7 @@ onMounted(async () => {
 
 const loadAnneesUniv = async () => {
   try {
-    const res = await getAllAnneesUniversitairesService();
+    const res = await getAnneesUniversitairesService();
     anneesUniv.value = res || [];
     if (anneeUnivStore.anneeUniv?.id) {
       selectedAnneeUniv.value = anneeUnivStore.anneeUniv.id;

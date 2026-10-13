@@ -9,6 +9,7 @@ import { getEtudiantsScolariteService, demissionEtudiantScolariteService, getAnn
 import { useToast } from 'primevue/usetoast';
 import { useUsersStore, useAnneeUnivStore } from '@stores';
 import { useEtudiantFilters } from '../../../../../shared/composables/filters/usersFilters/useEtudiantFilters.ts';
+import { Button } from 'primevue';
 
 const toast = useToast();
 const route = useRoute();
@@ -23,6 +24,9 @@ const selectedAnneeUniversitaireId = computed(() => anneeUnivStore.selectedAnnee
 const anneesList = ref([]);
 const isLoadingAnnees = ref(false);
 const isLoadingStats = ref(false);
+const annee = computed(() => {
+  return anneesList.value.find(a => a.id === filters.value.annee.value) || null;
+});
 
 const isInitialLoading = ref(true);
 
@@ -244,6 +248,29 @@ const deleteEtudiant = async etudiant => {
   </div>
 
   <div class="card">
+    <header class="card-header flex justify-between items-center w-full mb-6">
+      <div>
+        <p class="top-card-header">
+          Liste
+        </p>
+        <div class="flex flex-col items-start">
+          <p v-if="annee" class="uppercase text-xs font-bold mb-0! text-muted-color">
+            {{ annee.libelle }}
+          </p>
+          <p v-else class="uppercase text-xs font-bold mb-0! text-muted-color">
+            Toutes les années
+          </p>
+          <h2 class="mt-0!">
+            Étudiants inscrits dans le département
+          </h2>
+        </div>
+      </div>
+      <div class="flex justify-end items-center">
+        <router-link :to="{ name: 'ajout-etudiants-sans-scolarite' }">
+          <Button label="Voir les étudiants sans scolarité" icon="pi pi-eye" severity="primary" />
+        </router-link>
+      </div>
+    </header>
     <div class="card-body">
       <DataTable
           scrollHeight="800px"

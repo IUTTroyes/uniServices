@@ -3,7 +3,7 @@ import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAnneeUnivStore, useUsersStore } from '@stores'
 import { HeaderComponent } from '@components'
-import { getPlansCoursPersonnelService, initPlanCoursModuleService, getPlanCoursService } from '@requests'
+import { getPlansCoursService, createPlanCoursService, getPlanCoursService } from '@requests'
 import { showSuccess, showDanger } from '@helpers/toast'
 import PlanCoursShowDialog from '@/components/PlanCours/PlanCoursShowDialog.vue'
 import PlanCoursRecopieDialog from '@/components/PlanCours/PlanCoursRecopieDialog.vue'
@@ -48,7 +48,7 @@ const loadData = async () => {
       params.personnel = usersStore.userId
     }
 
-    const data = await getPlansCoursPersonnelService(params)
+    const data = await getPlansCoursService(params, '/personnel')
     anneeUniv.value = data.anneeUniversitaire
     personnel.value = data.personnel
     modules.value = data.modules || []
@@ -122,7 +122,10 @@ const handleEditOrCreate = async (item) => {
     try {
       isLoading.value = true
       const activeAnneeId = anneeUnivStore.selectedAnneeUniv?.id || anneeUnivStore.anneeUniv?.id
-      const res = await initPlanCoursModuleService(item.enseignement.id, activeAnneeId)
+      const res = await createPlanCoursService({
+        enseignementId: item.enseignement.id,
+        anneeUniversitaireId: activeAnneeId,
+      }, '/init_module')
       showSuccess('Plan de cours initialisé.')
       router.push(`/intranet/plan-de-cours/edit/${res.id}`)
     } catch (error) {

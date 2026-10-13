@@ -16,7 +16,7 @@ import {
   deleteStageEtudiantService
 } from '@/requests/stage_service';
 import { getPersonnelsService } from '@requests/user_services/personnelService';
-import { getAllAnneesUniversitairesService } from '@requests/structure_services/anneeUnivService';
+import { getAnneesUniversitairesService } from '@requests/structure_services/anneeUnivService';
 import { getSemestresService } from '@requests/structure_services/semestreService';
 import { updateEtudiantService } from '@requests/user_services/etudiantService';
 import { getEtudiantScolariteSemestresService } from '@requests/etudiant_services/etudiantScolariteSemestreService';
@@ -477,7 +477,7 @@ const formatPeriodPayload = (formValue) => {
 const loadAllData = async () => {
   isLoading.value = true;
   try {
-    const years = await getAllAnneesUniversitairesService();
+    const years = await getAnneesUniversitairesService();
     dbAnneeUnivs.value = years || [];
 
     const personnels = await getPersonnelsService({ limit: 200 });

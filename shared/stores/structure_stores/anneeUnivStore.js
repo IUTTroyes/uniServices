@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia'
 import {ref} from 'vue'
-import {getAllAnneesUniversitairesService, getCurrentAnneeUniversitaireService, getAnneeUniversitaireService, activateAnneeUniversitaireService } from '@requests'
+import {getAnneesUniversitairesService, getAnneeUniversitaireService, updateAnneeUniversitaireService } from '@requests'
 
 export const useAnneeUnivStore = defineStore('anneeUniv', () => {
 
@@ -10,7 +10,7 @@ export const useAnneeUnivStore = defineStore('anneeUniv', () => {
 
   const getAllAnneesUniv = async () => {
     try {
-      anneesUniv.value = await getAllAnneesUniversitairesService();
+      anneesUniv.value = await getAnneesUniversitairesService();
     } catch (error) {
       console.error('Error fetching user:', error);
     }
@@ -18,7 +18,9 @@ export const useAnneeUnivStore = defineStore('anneeUniv', () => {
 
   const getCurrentAnneeUniv = async () => {
     try {
-        anneeUniv.value = await getCurrentAnneeUniversitaireService();
+        const params = { actif: true };
+        const currentYears = await getAnneesUniversitairesService(params);
+        anneeUniv.value = currentYears[0] ?? null;
         console.log('année store', anneeUniv.value)
     } catch (error) {
       console.error('Error fetching user:', error);
@@ -53,7 +55,7 @@ export const useAnneeUnivStore = defineStore('anneeUniv', () => {
 
   const activateAnneeUniv = async (id) => {
     try {
-      await activateAnneeUniversitaireService(id, true);
+      await updateAnneeUniversitaireService(id, { actif: true }, '', true);
       // Rafraîchir la liste des années après activation
       await getAllAnneesUniv();
       await getCurrentAnneeUniv();
