@@ -11,7 +11,7 @@ use Doctrine\ORM\QueryBuilder;
 #[ApiFilter(EtudiantFilter::class)]
 class EtudiantFilter extends AbstractFilter
 {
-    protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
+    protected function filterProperty(string $property, mixed $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
         if (null === $value) {
             return;
@@ -20,60 +20,90 @@ class EtudiantFilter extends AbstractFilter
         $alias = $queryBuilder->getRootAliases()[0];
 
         if ('departement' === $property) {
+            $scolaritesAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolarites');
+            $deptAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolaritesAlias, 'departement');
             $queryBuilder
-                ->join(sprintf('%s.scolarites', $alias), 'scolarites')
-                ->join('scolarites.departement', 'departement')
-                ->andWhere('departement.id = :departement')
+                ->andWhere(sprintf('%s.id = :departement', $deptAlias))
                 ->setParameter('departement', $value);
         }
 
         if ('anneeUniversitaire' === $property) {
+            $scolaritesAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolarites');
+            $anneeUnivAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolaritesAlias, 'anneeUniversitaire');
             $queryBuilder
-                ->join(sprintf('%s.scolarites', $alias), 'scolarites')
-                ->join('scolarites.anneeUniversitaire', 'anneeUniversitaire')
-                ->andWhere('anneeUniversitaire.id = :anneeUniversitaire')
+                ->andWhere(sprintf('%s.id = :anneeUniversitaire', $anneeUnivAlias))
                 ->setParameter('anneeUniversitaire', $value);
 
             if (isset($context['filters']['annee'])) {
+                $anneeAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolaritesAlias, 'annee');
                 $queryBuilder
-                    ->join('scolarites.annee', 'annee')
-                    ->andWhere('annee.id = :annee')
+                    ->andWhere(sprintf('%s.id = :annee', $anneeAlias))
                     ->setParameter('annee', $context['filters']['annee']);
             }
         }
 
         if ('semestre' === $property) {
+            $scolaritesAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolarites');
+            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolaritesAlias, 'scolariteSemestre');
+            $semestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteSemestreAlias, 'semestre');
             $queryBuilder
-                ->join(sprintf('%s.scolarites', $alias), 'scolarites')
-                ->join('scolarites.semestre', 'scolariteSemestre')
-                ->join('scolariteSemestre.semestre', 'semestre')
-                ->andWhere('semestre.id = :semestre')
+                ->andWhere(sprintf('%s.id = :semestre', $semestreAlias))
                 ->setParameter('semestre', $value);
         }
 
         if ('annee' === $property) {
+            $scolaritesAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolarites');
+            $anneeAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolaritesAlias, 'annee');
             $queryBuilder
-                ->join(sprintf('%s.scolarites', $alias), 'scolarites')
-                ->join('scolarites.annee', 'annee')
-                ->andWhere('annee.id = :annee')
-                ->andWhere('scolarites.actif = true')
+                ->andWhere(sprintf('%s.id = :annee', $anneeAlias))
+                ->andWhere(sprintf('%s.actif = true', $scolaritesAlias))
                 ->setParameter('annee', $value);
         }
 
         if ('groupe' === $property) {
+            $scolaritesAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolarites');
+            $scolariteSemestreAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolaritesAlias, 'scolariteSemestre');
+            $groupeAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $scolariteSemestreAlias, 'groupes');
             $queryBuilder
-                ->join(sprintf('%s.scolarites', $alias), 'scolarites')
-                ->join('scolarites.scolariteSemestre', 'scolariteSemestre')
-                ->join('scolariteSemestre.groupes', 'groupe')
-                ->andWhere('groupe.id = :groupe')
+                ->andWhere(sprintf('%s.id = :groupe', $groupeAlias))
                 ->setParameter('groupe', $value);
         }
 
+<<<<<<< HEAD
         if ('sansScolarite' === $property && filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
             $queryBuilder
                 ->leftJoin(sprintf('%s.scolarites', $alias), 'scolaritesSans')
                 ->andWhere('scolaritesSans.id IS NULL');
         }
+=======
+        if ('actif' === $property) {
+            $scolaritesAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolarites');
+            $queryBuilder
+                ->andWhere(sprintf('%s.actif = :actif', $scolaritesAlias))
+                ->setParameter('actif', filter_var($value, FILTER_VALIDATE_BOOLEAN));
+        }
+
+        if ('anneeSortie' === $property || 'annee_sortie' === $property) {
+            $queryBuilder
+                ->andWhere(sprintf('%s.annee_sortie = :anneeSortie', $alias))
+                ->setParameter('anneeSortie', (int) $value);
+        }
+    }
+
+    private function getOrCreateJoin(QueryBuilder $qb, QueryNameGeneratorInterface $queryNameGenerator, string $fromAlias, string $association): string
+    {
+        foreach ($qb->getDQLPart('join') as $joins) {
+            foreach ($joins as $join) {
+                if ($join->getJoin() === "$fromAlias.$association") {
+                    return $join->getAlias();
+                }
+            }
+        }
+
+        $newAlias = $queryNameGenerator->generateJoinAlias($association);
+        $qb->join("$fromAlias.$association", $newAlias);
+        return $newAlias;
+>>>>>>> 7f386a88b (feat: Gestion des PDF/Excels/Export des étudiants (mise en page à finaliser) + Trombinoscope)
     }
 
     public function getDescription(string $resourceClass): array
@@ -119,12 +149,29 @@ class EtudiantFilter extends AbstractFilter
                     'description' => 'Filter by groupe',
                 ],
             ],
+<<<<<<< HEAD
             'sansScolarite' => [
                 'property' => 'sansScolarite',
                 'type' => 'bool',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter students without any EtudiantScolarite',
+=======
+            'actif' => [
+                'property' => 'actif',
+                'type' => 'bool',
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by active scolarite',
+                ],
+            ],
+            'anneeSortie' => [
+                'property' => 'anneeSortie',
+                'type' => 'int',
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter by annee_sortie (0 for active students)',
+>>>>>>> 7f386a88b (feat: Gestion des PDF/Excels/Export des étudiants (mise en page à finaliser) + Trombinoscope)
                 ],
             ],
         ];

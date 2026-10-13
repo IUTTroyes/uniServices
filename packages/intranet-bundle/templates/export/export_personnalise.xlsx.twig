@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Export Personnalisé</title>
+</head>
+<body>
+
+{% for groupData in data %}
+    {% set groupe = groupData.groupe %}
+    {% set etudiants = groupData.etudiants %}
+
+    <table data-xls-sheet="{{ groupe.libelle|slice(0, 31) }}" data-xls-autosize="true">
+        <thead>
+            <tr>
+                <th data-xls-colspan="{{ champs|length + 1 }}" data-xls-font-bold="true" data-xls-font-size="15" data-xls-bg-color="#0284C7" data-xls-font-color="#FFFFFF">
+                    EXPORT ÉTUDIANTS - {{ groupe.libelle }} - Semestre {{ semestre.libelle }}
+                </th>
+            </tr>
+            <tr>
+                <th data-xls-colspan="{{ champs|length + 1 }}" data-xls-font-color="#475569" data-xls-font-size="10">
+                    Généré le {{ "now"|date("d/m/Y H:i") }} • Année Univ. {{ anneeUniversitaire.libelle|default('') }}
+                </th>
+            </tr>
+            <tr><th data-xls-colspan="{{ champs|length + 1 }}"></th></tr>
+            <tr>
+                <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">#</th>
+                {% for champKey, champLabel in colonnes %}
+                    <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">{{ champLabel }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for etudiant in etudiants %}
+                <tr>
+                    <td data-xls-border="thin" data-xls-type="number">{{ loop.index }}</td>
+                    {% for champKey, champLabel in colonnes %}
+                        <td data-xls-border="thin" data-xls-type="text">{{ etudiant[champKey]|default('') }}</td>
+                    {% endfor %}
+                </tr>
+            {% else %}
+                <tr>
+                    <td data-xls-colspan="{{ champs|length + 1 }}" data-xls-border="thin">Aucun étudiant</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endfor %}
+
+</body>
+</html>

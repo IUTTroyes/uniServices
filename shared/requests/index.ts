@@ -39,6 +39,7 @@ export * from './apc_services/competenceService.js';
 export * from './salleService.js';
 
 export * from './export/exportService.js';
+export * from './export/listingExportService.js';
 
 export * from './helpdesk_services/ticketService.js'
 export * from './helpdesk_services/categorieService.js'

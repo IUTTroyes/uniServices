@@ -135,6 +135,18 @@
             "phpstan.dist.neon"
         ]
     },
+    "sensiolabs/gotenberg-bundle": {
+        "version": "1.4",
+        "recipe": {
+            "repo": "github.com/symfony/recipes-contrib",
+            "branch": "main",
+            "version": "0.1",
+            "ref": "4b40c14df89ba85902d42b112fee818843af6530"
+        },
+        "files": [
+            "config/packages/gotenberg.yaml"
+        ]
+    },
     "symfony/console": {
         "version": "7.1",
         "recipe": {

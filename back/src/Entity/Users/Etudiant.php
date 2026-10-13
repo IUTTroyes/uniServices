@@ -35,13 +35,13 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
 #[ORM\Entity(repositoryClass: EtudiantRepository::class)]
 #[ApiResource(
     operations: [
-        new Get(requirements: ['id' => '\d+'], normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light']]),
+        new Get(requirements: ['id' => '\d+'], normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light', 'semestre:light', 'groupe:light', 'annee_univ:light']]),
         new Get(
             uriTemplate: '/scolarite/etudiant/{id}',
             requirements: ['id' => '\d+'],
             normalizationContext: ['groups' => ['etudiant:scolarite']],
         ),
-        new GetCollection(normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light']]),
+        new GetCollection(normalizationContext: ['groups' => ['etudiant:detail', 'scolarite:light', 'bac:light', 'semestre:light', 'groupe:light', 'annee_univ:light']]),
         new Patch(requirements: ['id' => '\d+'], normalizationContext: ['groups' => ['etudiant:write']], securityPostDenormalize: "is_granted('CAN_EDIT_ETUDIANT', object)"),
     ],
     order: ['nom' => 'ASC'],
@@ -51,7 +51,13 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
         'semestre' => new QueryParameter(filter: EtudiantFilter::class),
         'annee' => new QueryParameter(filter: EtudiantFilter::class),
         'groupe' => new QueryParameter(filter: EtudiantFilter::class),
+<<<<<<< HEAD
         'sansScolarite' => new QueryParameter(filter: EtudiantFilter::class),
+=======
+        'actif' => new QueryParameter(filter: EtudiantFilter::class),
+        'anneeSortie' => new QueryParameter(filter: EtudiantFilter::class),
+        'annee_sortie' => new QueryParameter(filter: EtudiantFilter::class),
+>>>>>>> 7f386a88b (feat: Gestion des PDF/Excels/Export des étudiants (mise en page à finaliser) + Trombinoscope)
         'nom' => new QueryParameter(filter: SearchFilter::class),
         'start' => new QueryParameter(filter: SearchFilter::class),
         'prenom' => new QueryParameter(filter: SearchFilter::class),

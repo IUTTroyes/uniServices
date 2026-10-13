@@ -1,5 +1,5 @@
 import { ref, computed } from 'vue';
-import type { Ref } from 'vue'
+import type { Ref } from 'vue';
 import type { FilterState, Etudiant, Personnel } from '@types';
 
 export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
@@ -12,7 +12,8 @@ export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
             group: null,
         },
         staffFilters: {
-            statut: null
+            statut: null,
+            department: null,
         },
         sortBy: 'nom',
         sortOrder: 'asc',
@@ -26,25 +27,45 @@ export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
 
         // Apply search filter
         if (filters.value.searchTerm && filters.value.searchTerm.trim() !== '') {
-            const searchLower = filters.value.searchTerm.toLowerCase();
-            result = result.filter(student =>
-                student.prenom.toLowerCase().includes(searchLower) ||
-                student.nom.toLowerCase().includes(searchLower) ||
-                student.mailUniv.toLowerCase().includes(searchLower)
-            );
+            const searchLower = filters.value.searchTerm.toLowerCase().trim();
+            result = result.filter(student => {
+                const s = student as any;
+                return (
+                    (student.prenom && student.prenom.toLowerCase().includes(searchLower)) ||
+                    (student.nom && student.nom.toLowerCase().includes(searchLower)) ||
+                    (student.mailUniv && student.mailUniv.toLowerCase().includes(searchLower)) ||
+                    (s.numEtudiant && String(s.numEtudiant).toLowerCase().includes(searchLower))
+                );
+            });
         }
 
         // Apply semester filter
-        if (filters.value.studentFilters.semester) {
-            result = result.filter(student => student.semestre === filters.value.studentFilters.semester);
+        if (filters.value.studentFilters.semester !== null && filters.value.studentFilters.semester !== '') {
+            const targetSem = String(filters.value.studentFilters.semester);
+            result = result.filter(student => {
+                const s = (student as any).semestre;
+                const lib = (student as any).semestreLibelle;
+                return (
+                    (s !== undefined && s !== null && String(s) === targetSem) ||
+                    (lib && String(lib).toLowerCase() === targetSem.toLowerCase())
+                );
+            });
         }
 
         // Apply group filters
         if (filters.value.studentFilters.groupType) {
+            const groupType = filters.value.studentFilters.groupType;
             result = result.filter(student => {
-                const groups = student.groupes[filters.value.studentFilters.groupType!];
-                if (filters.value.studentFilters.group) {
-                    return groups.includes(filters.value.studentFilters.group);
+                const s = student as any;
+                const groups: string[] = s.groupes?.[groupType] || [];
+                const groupIds: (string | number)[] = s.groupesIds?.[groupType] || [];
+
+                if (filters.value.studentFilters.group !== null && filters.value.studentFilters.group !== '') {
+                    const targetGroup = String(filters.value.studentFilters.group);
+                    return (
+                        groupIds.some(id => String(id) === targetGroup) ||
+                        groups.some(lib => String(lib).toLowerCase() === targetGroup.toLowerCase())
+                    );
                 }
                 return groups.length > 0;
             });
@@ -52,32 +73,37 @@ export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
 
         // Apply sorting
         result.sort((a, b) => {
-            let aValue: any, bValue: any;
+            let aValue: any = '';
+            let bValue: any = '';
 
             switch (filters.value.sortBy) {
                 case 'prenom':
-                    aValue = a.prenom.toLowerCase();
-                    bValue = b.prenom.toLowerCase();
+                    aValue = (a.prenom || '').toLowerCase();
+                    bValue = (b.prenom || '').toLowerCase();
                     break;
                 case 'nom':
-                    aValue = a.nom.toLowerCase();
-                    bValue = b.nom.toLowerCase();
+                    aValue = (a.nom || '').toLowerCase();
+                    bValue = (b.nom || '').toLowerCase();
                     break;
                 case 'semester':
-                    aValue = a.semestre;
-                    bValue = b.semestre;
+                    aValue = ((a as any).semestreLibelle || (a as any).semestre || '').toString().toLowerCase();
+                    bValue = ((b as any).semestreLibelle || (b as any).semestre || '').toString().toLowerCase();
+                    break;
+                case 'groupe':
+                    const aG = (a as any).groupes?.TD?.[0] || (a as any).groupes?.TP?.[0] || (a as any).groupes?.CM?.[0] || '';
+                    const bG = (b as any).groupes?.TD?.[0] || (b as any).groupes?.TP?.[0] || (b as any).groupes?.CM?.[0] || '';
+                    aValue = aG.toLowerCase();
+                    bValue = bG.toLowerCase();
                     break;
                 default:
-                    aValue = a.nom.toLowerCase();
-                    bValue = b.nom.toLowerCase();
+                    aValue = (a.nom || '').toLowerCase();
+                    bValue = (b.nom || '').toLowerCase();
             }
 
             if (aValue < bValue) return filters.value.sortOrder === 'asc' ? -1 : 1;
             if (aValue > bValue) return filters.value.sortOrder === 'asc' ? 1 : -1;
             return 0;
         });
-
-
 
         return result;
     });
@@ -88,13 +114,20 @@ export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
         let result = [...staff.value];
 
         // Apply search filter
-        if (filters.value.searchTerm) {
-            const searchLower = filters.value.searchTerm.toLowerCase();
-            result = result.filter(person =>
-                person.prenom.toLowerCase().includes(searchLower) ||
-                person.nom.toLowerCase().includes(searchLower) ||
-                person.mailUniv.toLowerCase().includes(searchLower)
-            );
+        if (filters.value.searchTerm && filters.value.searchTerm.trim() !== '') {
+            const searchLower = filters.value.searchTerm.toLowerCase().trim();
+            result = result.filter(person => {
+                const p = person as any;
+                return (
+                    (person.prenom && person.prenom.toLowerCase().includes(searchLower)) ||
+                    (person.nom && person.nom.toLowerCase().includes(searchLower)) ||
+                    (person.mailUniv && person.mailUniv.toLowerCase().includes(searchLower)) ||
+                    (person.statut && person.statut.toLowerCase().includes(searchLower)) ||
+                    (p.displayStatut && p.displayStatut.toLowerCase().includes(searchLower)) ||
+                    (p.bureau && p.bureau.toLowerCase().includes(searchLower)) ||
+                    (p.domaines && p.domaines.toLowerCase().includes(searchLower))
+                );
+            });
         }
 
         // Apply statut filter
@@ -102,26 +135,32 @@ export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
             result = result.filter(person => person.statut === filters.value.staffFilters.statut);
         }
 
+        // Apply department filter
+        if (filters.value.staffFilters.department) {
+            result = result.filter(person => (person as any).department === filters.value.staffFilters.department);
+        }
+
         // Apply sorting
         result.sort((a, b) => {
-            let aValue: any, bValue: any;
+            let aValue: any = '';
+            let bValue: any = '';
 
             switch (filters.value.sortBy) {
                 case 'nom':
-                    aValue = a.nom.toLowerCase();
-                    bValue = b.nom.toLowerCase();
+                    aValue = (a.nom || '').toLowerCase();
+                    bValue = (b.nom || '').toLowerCase();
                     break;
                 case 'prenom':
-                    aValue = a.prenom.toLowerCase();
-                    bValue = b.prenom.toLowerCase();
+                    aValue = (a.prenom || '').toLowerCase();
+                    bValue = (b.prenom || '').toLowerCase();
                     break;
                 case 'statut':
-                    aValue = a.statut.toLowerCase();
-                    bValue = b.statut.toLowerCase();
+                    aValue = (a.statut || '').toLowerCase();
+                    bValue = (b.statut || '').toLowerCase();
                     break;
                 default:
-                    aValue = a.nom.toLowerCase();
-                    bValue = b.nom.toLowerCase();
+                    aValue = (a.nom || '').toLowerCase();
+                    bValue = (b.nom || '').toLowerCase();
             }
 
             if (aValue < bValue) return filters.value.sortOrder === 'asc' ? -1 : 1;
@@ -138,7 +177,7 @@ export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
 
     const resetFilters = () => {
         filters.value = {
-            mode: filters.value.mode, // Keep the current mode
+            mode: filters.value.mode,
             searchTerm: '',
             studentFilters: {
                 semester: null,
@@ -146,11 +185,12 @@ export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
                 group: null,
             },
             staffFilters: {
-                statut: null
+                statut: null,
+                department: null,
             },
             sortBy: 'nom',
             sortOrder: 'asc',
-            viewMode: filters.value.viewMode, // Keep the current view mode
+            viewMode: filters.value.viewMode,
         };
     };
 
@@ -165,31 +205,36 @@ export function useFilters(students: Ref<Etudiant[]>, staff: Ref<Personnel[]>) {
         let csvContent = '';
 
         if (filters.value.mode === 'students') {
-            csvContent = 'Prénom,Nom,Email,Semestre,Statut,Groupes CM,Groupes TD,Groupes TP\n';
-            (currentData as Etudiant[]).forEach(student => {
+            csvContent = '\uFEFFPrénom,Nom,Numéro étudiant,Email,Semestre,Groupes CM,Groupes TD,Groupes TP,Statut\n';
+            (currentData as any[]).forEach(student => {
+                const cm = (student.groupes?.CM || []).join('; ');
+                const td = (student.groupes?.TD || []).join('; ');
+                const tp = (student.groupes?.TP || []).join('; ');
                 const row = [
-                    student.prenom,
-                    student.nom,
-                    student.mailUniv,
-                    student.semestre.toString(),
-                    student.groupes['CM'].join('; '),
-                    student.groupes['TD'].join('; '),
-                    student.groupes['TP'].join('; ')
-                ].map(field => `"${field}"`).join(',');
+                    student.prenom || '',
+                    student.nom || '',
+                    student.numEtudiant || '',
+                    student.mailUniv || '',
+                    student.semestreLibelle || student.semestre || '',
+                    cm,
+                    td,
+                    tp,
+                    student.status || 'actif'
+                ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(',');
                 csvContent += row + '\n';
             });
         } else {
-            csvContent = 'Prénom,Nom,Email,Statut,Département,Poste,Date d\'embauche\n';
-            (currentData as Personnel[]).forEach(person => {
+            csvContent = '\uFEFFPrénom,Nom,Email,Statut,Bureau,Téléphone,Département\n';
+            (currentData as any[]).forEach(person => {
                 const row = [
-                    person.prenom,
-                    person.nom,
-                    person.mailUniv,
-                    person.statut,
-                    // person.department,
-                    // person.position,
-                    // person.hireDate
-                ].map(field => `"${field}"`).join(',');
+                    person.prenom || '',
+                    person.nom || '',
+                    person.mailUniv || '',
+                    person.displayStatut || person.statut || '',
+                    person.bureau || '',
+                    person.telBureau || '',
+                    person.department || ''
+                ].map(field => `"${String(field).replace(/"/g, '""')}"`).join(',');
                 csvContent += row + '\n';
             });
         }

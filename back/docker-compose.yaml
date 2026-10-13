@@ -26,5 +26,10 @@ services:
     depends_on:
       - database
 
+###> sensiolabs/gotenberg-bundle ###
+  gotenberg:
+    image: 'gotenberg/gotenberg:8'
+###< sensiolabs/gotenberg-bundle ###
+
 volumes:
   mariadb_data:

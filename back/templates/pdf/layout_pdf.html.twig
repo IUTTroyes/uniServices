@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Document uniServices{% endblock %}</title>
+    <style>
+        {% include 'pdf/_base_pdf.css.twig' %}
+        {% block extra_styles %}{% endblock %}
+    </style>
+</head>
+<body>
+    {% block content %}{% endblock %}
+</body>
+</html>

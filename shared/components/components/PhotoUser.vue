@@ -4,18 +4,29 @@ import { ref, watch } from "vue";
 
 const props = defineProps({
   userPhoto: String,
+  type: {
+    type: String,
+    default: "personnels",
+  },
 });
 
 const photoSrc = ref(noImage);
 
 watch(
-    () => props.userPhoto,
-    (newPhoto) => {
-      const basePath = "/common-images/photos_personnels/";
+    [() => props.userPhoto, () => props.type],
+    ([newPhoto, newType]) => {
       if (!newPhoto) {
         photoSrc.value = noImage;
         return;
       }
+
+      if (newPhoto.startsWith("http") || newPhoto.startsWith("/")) {
+        photoSrc.value = newPhoto;
+        return;
+      }
+
+      const folder = newType === "etudiants" ? "photos_etudiants" : "photos_personnels";
+      const basePath = `/common-images/${folder}/`;
 
       const img = new Image();
       img.src = `${basePath}${newPhoto}`;
@@ -35,5 +46,4 @@ watch(
 </template>
 
 <style scoped>
-
 </style>

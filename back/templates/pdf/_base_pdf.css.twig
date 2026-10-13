@@ -1,0 +1,184 @@
+/**
+ * uniServices - Feuille de style globale centralisée pour les exports PDF (Gotenberg Chromium)
+ */
+* {
+    box-sizing: border-box;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 10px;
+    line-height: 1.4;
+    color: #1e293b;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* --- UTILITAIRES DE SAUT DE PAGE --- */
+.page-break,
+.page-group {
+    page-break-after: always;
+    break-after: page;
+}
+
+.page-group:last-child {
+    page-break-after: avoid;
+    break-after: avoid;
+}
+
+.no-break,
+.keep-together,
+tr,
+.pdf-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* --- TYPOGRAPHIE --- */
+h1, h2, h3, h4, h5, h6 {
+    color: #0f172a;
+    margin-top: 0;
+    font-weight: 700;
+}
+
+h1 { font-size: 16px; margin-bottom: 4px; }
+h2 { font-size: 14px; margin-bottom: 4px; }
+h3 { font-size: 12px; margin-bottom: 3px; }
+
+.text-muted { color: #64748b; }
+.text-subtle { color: #94a3b8; }
+.text-bold { font-weight: 700; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+
+.sep {
+    color: #cbd5e1;
+    margin: 0 4px;
+}
+
+/* --- TABLEAUX PDF --- */
+.pdf-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+    font-size: 9.5px;
+}
+
+.pdf-table th {
+    background-color: #f1f5f9;
+    color: #334155;
+    font-weight: 700;
+    font-size: 8.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 6px 8px;
+    border: 1px solid #cbd5e1;
+    vertical-align: middle;
+}
+
+.pdf-table td {
+    padding: 5px 8px;
+    border: 1px solid #e2e8f0;
+    vertical-align: middle;
+    color: #1e293b;
+}
+
+.pdf-table tbody tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+
+.pdf-table-compact th {
+    padding: 4px 6px;
+    font-size: 8px;
+}
+
+.pdf-table-compact td {
+    padding: 3px 6px;
+    font-size: 8.5px;
+}
+
+/* --- BADGES & PILULES --- */
+.badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
+}
+
+.badge-primary { background: #0284c7; color: #ffffff; }
+.badge-secondary { background: #e2e8f0; color: #334155; }
+.badge-purple { background: #7c3aed; color: #ffffff; }
+.badge-success { background: #16a34a; color: #ffffff; }
+.badge-warning { background: #ea580c; color: #ffffff; }
+.badge-auto {
+    font-size: 6.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    background: #f1f5f9;
+    color: #475569;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-weight: 700;
+    border: 1px solid #cbd5e1;
+}
+
+/* --- BLOCS & BANDEAUX D'EN-TÊTE DE PAGE --- */
+.page-header-box {
+    border-bottom: 2px solid #0284c7;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.page-header-box.purple { border-bottom-color: #7c3aed; }
+.page-header-box.slate { border-bottom-color: #475569; }
+
+/* --- GRILLES (TROMBINOSCOPES, CARTES) --- */
+.pdf-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.pdf-grid-5 {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+.pdf-card {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 8px;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+/* --- CASES À COCHER & BLOCS DE SIGNATURE --- */
+.checkbox-cell {
+    width: 26px;
+    height: 22px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+}
+
+.signature-box {
+    display: inline-block;
+    width: 140px;
+    height: 40px;
+    border: 1px dashed #94a3b8;
+    background: #fafafa;
+    border-radius: 4px;
+    vertical-align: middle;
+}

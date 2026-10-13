@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Trombinoscope - {{ titre|default('Trombinoscope Étudiants') }}</title>
+    <style>
+        {% include 'pdf/_base_pdf.css.twig' %}
+        @page {
+            size: A4 portrait;
+            margin: 10mm 12mm;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 11px;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+        }
+        .page-group {
+            page-break-after: always;
+            break-after: page;
+        }
+        .page-group:last-child {
+            page-break-after: avoid;
+            break-after: avoid;
+        }
+        .header-box {
+            border-bottom: 2px solid #8b5cf6;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .header-left h1 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: -0.3px;
+        }
+        .header-left .subtitle {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 2px;
+            font-weight: 500;
+        }
+        .header-right {
+            text-align: right;
+            font-size: 10.5px;
+            color: #475569;
+        }
+        .badge-group {
+            background: #7c3aed;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .student-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+            padding: 8px 6px;
+            text-align: center;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 180px;
+        }
+        .photo-container {
+            width: 85px;
+            height: 105px;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #e2e8f0;
+            border: 1px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 6px;
+        }
+        .photo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .placeholder-avatar {
+            color: #94a3b8;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .student-nom {
+            font-size: 11px;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+            line-height: 1.2;
+            word-break: break-word;
+        }
+        .student-prenom {
+            font-size: 10.5px;
+            color: #334155;
+            font-weight: 500;
+            line-height: 1.2;
+        }
+        .student-num {
+            font-size: 9.5px;
+            color: #64748b;
+            font-family: monospace;
+            margin-top: 3px;
+        }
+    </style>
+</head>
+<body>
+
+{% for groupData in data %}
+    {% set groupe = groupData.groupe %}
+    {% set etudiants = groupData.etudiants %}
+    
+    <div class="page-group">
+        <div class="header-box">
+            <div class="header-left">
+                <span class="badge-group">Groupe {{ groupe.libelle }}</span>
+                <h1>Trombinoscope</h1>
+                <div class="subtitle">
+                    Semestre {{ semestre.libelle }}
+                    {% if diplome %} • {{ diplome.libelle }}{% endif %}
+                    {% if departement %} • {{ departement.libelle }}{% endif %}
+                </div>
+            </div>
+            <div class="header-right">
+                <div><strong>Année Universitaire :</strong> {{ anneeUniversitaire.libelle|default('2025-2026') }}</div>
+                <div><strong>Effectif :</strong> {{ etudiants|length }} étudiant{{ etudiants|length > 1 ? 's' : '' }}</div>
+            </div>
+        </div>
+
+        <div class="cards-grid">
+            {% for etudiant in etudiants %}
+                <div class="student-card">
+                    <div class="photo-container">
+                        {% if etudiant.photoBase64 is defined and etudiant.photoBase64 %}
+                            <img src="{{ etudiant.photoBase64 }}" alt="{{ etudiant.nom }}">
+                        {% else %}
+                            <div class="placeholder-avatar">
+                                {{ etudiant.prenom|slice(0, 1)|upper }}{{ etudiant.nom|slice(0, 1)|upper }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <div class="student-nom">{{ etudiant.nom }}</div>
+                        <div class="student-prenom">{{ etudiant.prenom }}</div>
+                        <div class="student-num">{{ etudiant.numEtudiant }}</div>
+                    </div>
+                </div>
+            {% else %}
+                <div style="grid-column: span 4; text-align: center; padding: 40px; color: #64748b;">
+                    Aucun étudiant affecté à ce groupe.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endfor %}
+
+</body>
+</html>

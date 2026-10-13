@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Export Excel Étudiants</title>
+</head>
+<body>
+
+{% for groupData in data %}
+    {% set groupe = groupData.groupe %}
+    {% set etudiants = groupData.etudiants %}
+
+    <table data-xls-sheet="{{ groupe.libelle|slice(0, 31) }}" data-xls-autosize="true">
+        <thead>
+            <tr>
+                <th data-xls-colspan="10" data-xls-font-bold="true" data-xls-font-size="16" data-xls-bg-color="#0284C7" data-xls-font-color="#FFFFFF">
+                    FEUILLE D'ÉMARGEMENT - {{ groupe.libelle }} - Semestre {{ semestre.libelle }}
+                </th>
+            </tr>
+            <tr>
+                <th data-xls-colspan="10" data-xls-font-color="#475569" data-xls-font-size="11">
+                    {% if departement %}{{ departement.libelle }} • {% endif %}
+                    {% if diplome %}{{ diplome.libelle }} • {% endif %}
+                    Année Universitaire {{ anneeUniversitaire.libelle|default('') }}
+                </th>
+            </tr>
+            <tr><th data-xls-colspan="10"></th></tr>
+            <tr>
+                <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">#</th>
+                <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">N° Étudiant</th>
+                <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Nom</th>
+                <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Prénom</th>
+                <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Email Universitaire</th>
+                <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Bac</th>
+                <th data-xls-border="thin" data-xls-bg-color="#E2E8F0" data-xls-font-bold="true">Séance 1</th>
+                <th data-xls-border="thin" data-xls-bg-color="#E2E8F0" data-xls-font-bold="true">Séance 2</th>
+                <th data-xls-border="thin" data-xls-bg-color="#E2E8F0" data-xls-font-bold="true">Séance 3</th>
+                <th data-xls-border="thin" data-xls-bg-color="#E2E8F0" data-xls-font-bold="true">Total Absences</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for etudiant in etudiants %}
+                <tr>
+                    <td data-xls-border="thin" data-xls-type="number">{{ loop.index }}</td>
+                    <td data-xls-border="thin" data-xls-type="text">{{ etudiant.numEtudiant }}</td>
+                    <td data-xls-border="thin" data-xls-type="text" data-xls-font-bold="true">{{ etudiant.nom|upper }}</td>
+                    <td data-xls-border="thin" data-xls-type="text">{{ etudiant.prenom }}</td>
+                    <td data-xls-border="thin" data-xls-type="text">{{ etudiant.mailUniv }}</td>
+                    <td data-xls-border="thin" data-xls-type="text">{{ etudiant.bac }}</td>
+                    <td data-xls-border="thin" data-xls-type="text"></td>
+                    <td data-xls-border="thin" data-xls-type="text"></td>
+                    <td data-xls-border="thin" data-xls-type="text"></td>
+                    <td data-xls-border="thin" data-xls-type="number">0</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td data-xls-colspan="10" data-xls-border="thin">Aucun étudiant dans ce groupe</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endfor %}
+
+</body>
+</html>

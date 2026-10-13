@@ -34,6 +34,11 @@ class IntranetWidgetDataProvider implements WidgetDataProviderInterface
                     ['title' => 'Préparer réunion pédagogique', 'done' => true],
                 ],
             ],
+            'intranet.listings_etudiants' => [
+                'supportedFormats' => ['pdf', 'xlsx', 'csv'],
+                'hasGotenberg' => true,
+                'hasSpreadsheet' => true,
+            ],
             default => [],
         };
     }

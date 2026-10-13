@@ -111,7 +111,7 @@ class EtudiantScolarite
      * @var Collection<int, EtudiantScolariteSemestre>
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'scolarite', orphanRemoval: true, cascade: ['remove'])]
-    #[Groups(['scolarite:detail', 'etudiant:scolarite'])]
+    #[Groups(['scolarite:detail', 'etudiant:scolarite', 'scolarite:light'])]
     private Collection $scolariteSemestre;
 
     #[ORM\Column]

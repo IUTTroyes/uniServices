@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Feuille d'émargement - {{ titre|default('Listing Étudiants') }}</title>
+    <style>
+        {% include 'pdf/_base_pdf.css.twig' %}
+        @page {
+            size: A4 landscape;
+            margin: 8mm 10mm;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-size: 11px;
+            color: #1e293b;
+            margin: 0;
+            padding: 0;
+            background: #ffffff;
+        }
+        .page-group {
+            page-break-after: always;
+            break-after: page;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .page-group:last-child {
+            page-break-after: avoid;
+            break-after: avoid;
+        }
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #0284c7;
+            padding-bottom: 6px;
+        }
+        .header-table td {
+            vertical-align: middle;
+        }
+        .logo-box {
+            font-size: 16px;
+            font-weight: 800;
+            color: #0369a1;
+            letter-spacing: -0.5px;
+        }
+        .sub-logo {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 500;
+        }
+        .title-box {
+            text-align: center;
+        }
+        .title-box h1 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #0f172a;
+            letter-spacing: 0.5px;
+        }
+        .title-box .subtitle {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+        .info-box {
+            text-align: right;
+            font-size: 10px;
+            color: #334155;
+            line-height: 1.4;
+        }
+        .meta-card {
+            display: flex;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 6px 10px;
+            margin-bottom: 8px;
+            font-size: 10.5px;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .meta-item {
+            display: flex;
+            gap: 4px;
+        }
+        .meta-label {
+            font-weight: 700;
+            color: #475569;
+        }
+        .meta-dots {
+            border-bottom: 1px dotted #94a3b8;
+            min-width: 120px;
+            display: inline-block;
+        }
+        .badge-group {
+            background: #0284c7;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        table.listing-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10px;
+        }
+        table.listing-table th,
+        table.listing-table td {
+            border: 1px solid #94a3b8;
+            padding: 3px 5px;
+        }
+        table.listing-table th {
+            background-color: #f1f5f9;
+            font-weight: 700;
+            color: #0f172a;
+            text-align: center;
+        }
+        table.listing-table tr:nth-child(even) td {
+            background-color: #f8fafc;
+        }
+        table.listing-table td.col-index {
+            width: 25px;
+            text-align: center;
+            color: #64748b;
+            font-weight: 600;
+        }
+        table.listing-table td.col-num {
+            width: 75px;
+            text-align: center;
+            font-family: monospace;
+            font-weight: 600;
+        }
+        table.listing-table td.col-nom {
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        table.listing-table td.col-prenom {
+            color: #334155;
+        }
+        table.listing-table td.col-check {
+            width: 60px;
+            text-align: center;
+        }
+        .footer-summary {
+            margin-top: 8px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            border-radius: 4px;
+            padding: 6px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+        }
+        .signature-box {
+            border-bottom: 1px solid #64748b;
+            width: 160px;
+            display: inline-block;
+            margin-left: 6px;
+        }
+    </style>
+</head>
+<body>
+
+{% for groupData in data %}
+    {% set groupe = groupData.groupe %}
+    {% set etudiants = groupData.etudiants %}
+    
+    <div class="page-group">
+        <!-- HEADER -->
+        <table class="header-table">
+            <tr>
+                <td style="width: 28%;">
+                    <div class="logo-box">
+                        {% if etablissement and etablissement.libelle %}
+                            {{ etablissement.libelle }}
+                        {% else %}
+                            UniServices • Intranet
+                        {% endif %}
+                    </div>
+                    <div class="sub-logo">
+                        {% if departement %}{{ departement.libelle }}{% endif %}
+                    </div>
+                </td>
+                <td class="title-box" style="width: 44%;">
+                    <h1>Feuille d'émargement</h1>
+                    <div class="subtitle">
+                        Semestre {{ semestre.libelle }}
+                        {% if diplome %} • {{ diplome.libelle }}{% endif %}
+                    </div>
+                </td>
+                <td class="info-box" style="width: 28%;">
+                    <strong>Année Univ. :</strong> {{ anneeUniversitaire.libelle|default('2025-2026') }}<br>
+                    <strong>Période du :</strong> ............... <strong>au :</strong> ...............
+                </td>
+            </tr>
+        </table>
+
+        <!-- METADATA ENSEIGNANT & GROUPE -->
+        <div class="meta-card">
+            <div class="meta-item">
+                <span class="meta-label">Enseignant :</span>
+                <span class="meta-dots">{{ personnel.display|default('') }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Matière / SAE :</span>
+                <span class="meta-dots">{{ matiere.display|default('') }}</span>
+            </div>
+            <div class="meta-item">
+                <span class="meta-label">Effectif :</span>
+                <strong>{{ etudiants|length }}</strong> étudiant{{ etudiants|length > 1 ? 's' : '' }}
+            </div>
+            <div>
+                <span class="badge-group">Groupe {{ groupe.libelle }}</span>
+            </div>
+        </div>
+
+        <!-- TABLE ÉMARGEMENT -->
+        <table class="listing-table">
+            <thead>
+                <tr style="height: 22px;">
+                    <th colspan="4" style="text-align: left; padding-left: 8px;">Date de la séance</th>
+                    <th class="col-check">..../..../....</th>
+                    <th class="col-check">..../..../....</th>
+                    <th class="col-check">..../..../....</th>
+                    <th class="col-check">..../..../....</th>
+                    <th class="col-check">..../..../....</th>
+                    <th class="col-check">..../..../....</th>
+                    <th class="col-check">..../..../....</th>
+                </tr>
+                <tr style="height: 22px;">
+                    <th colspan="4" style="text-align: left; padding-left: 8px;">Durée / Heures de la séance</th>
+                    <th class="col-check">....h....</th>
+                    <th class="col-check">....h....</th>
+                    <th class="col-check">....h....</th>
+                    <th class="col-check">....h....</th>
+                    <th class="col-check">....h....</th>
+                    <th class="col-check">....h....</th>
+                    <th class="col-check">....h....</th>
+                </tr>
+                <tr style="height: 20px;">
+                    <th style="width: 25px;">#</th>
+                    <th style="width: 75px;">N° Étudiant</th>
+                    <th style="width: 140px; text-align: left;">Nom</th>
+                    <th style="text-align: left;">Prénom</th>
+                    <th class="col-check">Émarg.</th>
+                    <th class="col-check">Émarg.</th>
+                    <th class="col-check">Émarg.</th>
+                    <th class="col-check">Émarg.</th>
+                    <th class="col-check">Émarg.</th>
+                    <th class="col-check">Émarg.</th>
+                    <th class="col-check">Émarg.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for etudiant in etudiants %}
+                <tr style="height: 22px;">
+                    <td class="col-index">{{ loop.index }}</td>
+                    <td class="col-num">{{ etudiant.numEtudiant }}</td>
+                    <td class="col-nom">{{ etudiant.nom }}</td>
+                    <td class="col-prenom">{{ etudiant.prenom }}</td>
+                    <td class="col-check"></td>
+                    <td class="col-check"></td>
+                    <td class="col-check"></td>
+                    <td class="col-check"></td>
+                    <td class="col-check"></td>
+                    <td class="col-check"></td>
+                    <td class="col-check"></td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="11" style="text-align: center; padding: 15px; color: #64748b;">
+                        Aucun étudiant affecté à ce groupe.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- FOOTER & SIGNATURES -->
+        <div class="footer-summary">
+            <div>
+                <strong>Total heures réalisées sur la période :</strong> [ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]
+            </div>
+            <div>
+                <strong>Nb. total d'absences :</strong> [ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]
+            </div>
+            <div>
+                <strong>Signature de l'enseignant :</strong>
+                <span class="signature-box"></span>
+            </div>
+        </div>
+    </div>
+{% endfor %}
+
+</body>
+</html>

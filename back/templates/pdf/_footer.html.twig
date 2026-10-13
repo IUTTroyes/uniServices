@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 7.5pt;
+            color: #64748b;
+            margin: 0;
+            padding: 0 10mm;
+            width: 100%;
+            box-sizing: border-box;
+            background: transparent;
+        }
+        .footer-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #cbd5e1;
+            padding-top: 4px;
+            width: 100%;
+        }
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #64748b;
+        }
+        .badge-auto {
+            font-size: 6pt;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-weight: 700;
+            border: 1px solid #cbd5e1;
+            display: inline-block;
+        }
+        .footer-mention {
+            font-weight: 500;
+        }
+        .footer-meta {
+            color: #94a3b8;
+        }
+        .sep {
+            color: #cbd5e1;
+            margin: 0 2px;
+        }
+        .footer-right {
+            font-size: 7.5pt;
+            color: #334155;
+            font-weight: 600;
+            text-align: right;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="footer-container">
+        <div class="footer-left">
+            <span class="badge-auto">Auto</span>
+            <span class="footer-mention">{{ generationMention|default("Document généré automatiquement depuis l'intranet uniServices") }}</span>
+            <span class="sep">•</span>
+            <span class="footer-meta">le {{ generationDateFormatted|default("now"|date("d/m/Y à H:i")) }}</span>
+            {% if generatedBy is defined and generatedBy %}
+                <span class="sep">•</span>
+                <span class="footer-meta">par {{ generatedBy }}</span>
+            {% endif %}
+        </div>
+        <div class="footer-right">
+            Page <span class="pageNumber"></span> / <span class="totalPages"></span>
+        </div>
+    </div>
+</body>
+</html>
