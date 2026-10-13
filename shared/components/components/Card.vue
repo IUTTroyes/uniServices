@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import Tag from 'primevue/tag';
 
 const props = defineProps({
   title: {
@@ -135,8 +136,11 @@ const colorClasses = computed(() => {
             {{ subtitle }}
           </p>
         </div>
-        <div v-if="badge" class="flex-shrink-0">
-          <Tag :value="badge" :severity="badgeSeverity" class="text-xs font-bold font-sans" />
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <slot name="header-actions" />
+          <div v-if="badge">
+            <Tag :value="badge" :severity="badgeSeverity" class="text-xs font-bold font-sans" />
+          </div>
         </div>
       </slot>
     </div>

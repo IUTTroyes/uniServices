@@ -23,9 +23,14 @@ import {
 } from '@heroicons/vue/24/outline';
 import { Menu, MenuButton, MenuItems, MenuItem } from '@headlessui/vue';
 import Dialog from 'primevue/dialog';
+import Select from 'primevue/select';
+import Tag from 'primevue/tag';
+import Button from 'primevue/button';
 import { useSurveyStore } from '@/stores/survey';
 import { useResponseStore } from '@/stores/responses';
 import { useUIStore } from '@/stores/ui';
+import { useUsersStore } from '@stores';
+import { hasPermission } from '@utils/permissions';
 import { formatDate, formatRelativeTime } from '@/utils/date';
 import { Kpi, QuickActionCard, EmptyState, Card } from '@components';
 import DuplicateSurveyModal from '@/components/Questionnaire/DuplicateSurveyModal.vue';
@@ -35,10 +40,61 @@ const router = useRouter();
 const surveyStore = useSurveyStore();
 const responseStore = useResponseStore();
 const uiStore = useUIStore();
+const userStore = useUsersStore();
 
 const showTemplates = ref(false);
 const showDuplicateModal = ref(false);
 const selectedSurveyToDuplicate = ref<Survey | null>(null);
+
+// Scope management
+const isGlobalQuality = computed(() => {
+  if (userStore?.temporaryRole) {
+    const role = typeof userStore.temporaryRole === 'object' && userStore.temporaryRole !== null && 'value' in userStore.temporaryRole
+      ? (userStore.temporaryRole as any).value
+      : userStore.temporaryRole;
+    return role === 'ROLE_QUALITE' || role === 'ROLE_SUPER_ADMIN' || role === 'SUPER_ADMIN' || role === 'ROLE_DIRECTION';
+  }
+  return (
+    hasPermission('isQualite') ||
+    hasPermission('isSuperAdmin') ||
+    hasPermission('isDirection') ||
+    Boolean(userStore?.isQualite) ||
+    Boolean(userStore?.isSuperAdmin) ||
+    Boolean(userStore?.isDirection)
+  );
+});
+
+const isChefDepartement = computed(() => {
+  if (userStore?.temporaryRole) {
+    const role = typeof userStore.temporaryRole === 'object' && userStore.temporaryRole !== null && 'value' in userStore.temporaryRole
+      ? (userStore.temporaryRole as any).value
+      : userStore.temporaryRole;
+    return role === 'ROLE_CHEF_DEPARTEMENT';
+  }
+  return hasPermission('isChefDepartement') || Boolean(userStore?.isChefDepartement);
+});
+
+const currentDepartmentName = computed(() => {
+  return userStore?.departementDefaut?.libelle || 
+         userStore?.departementDefaut?.sigle || 
+         (userStore?.departements?.[0]?.libelle ?? 'Mon Département');
+});
+
+const selectedDepartement = ref<string | number>('all');
+
+const departementOptions = computed(() => {
+  const list = Array.isArray(userStore?.departements) ? userStore.departements : [];
+  const options = [{ label: 'Tous les départements (Vue Globale IUT)', value: 'all' }];
+  list.forEach(dept => {
+    if (dept && (dept.id || dept.libelle)) {
+      options.push({
+        label: dept.libelle || dept.sigle || `Département ${dept.id}`,
+        value: dept.id ?? dept.libelle
+      });
+    }
+  });
+  return options;
+});
 
 onMounted(async () => {
   if (!surveyStore.surveys || surveyStore.surveys.length === 0) {
@@ -49,31 +105,24 @@ onMounted(async () => {
 const templates = [
   {
     id: 'satisfaction',
-    title: 'Satisfaction client',
-    description: 'Évaluez la satisfaction globale de vos usagers et bénéficiaires.',
+    title: 'Satisfaction globale',
+    description: 'Évaluez la satisfaction globale des étudiants et usagers sur la formation.',
     questions: 8,
     icon: HeartIcon
   },
   {
     id: 'employee',
     title: 'Enquête collaborateurs',
-    description: 'Recueillez les avis et feedbacks de vos équipes et enseignants.',
+    description: 'Recueillez les avis et feedbacks de vos équipes pédagogiques et administratives.',
     questions: 12,
     icon: BuildingOfficeIcon
   },
   {
     id: 'event',
     title: 'Feedback événement',
-    description: 'Évaluez le déroulement et l\'organisation d\'un événement ou formation.',
+    description: 'Évaluez le déroulement et l\'organisation d\'un projet, stage ou événement.',
     questions: 10,
     icon: UserGroupIcon
-  },
-  {
-    id: 'product',
-    title: 'Étude d\'usage',
-    description: 'Testez l\'adoption d\'un outil, service ou équipement pédagogique.',
-    questions: 15,
-    icon: ShoppingBagIcon
   },
   {
     id: 'education',
@@ -84,45 +133,48 @@ const templates = [
   },
   {
     id: 'market',
-    title: 'Besoins & Attentes',
-    description: 'Analysez les attentes et opportunités d\'évolution des formations.',
+    title: 'Besoins & Débouchés',
+    description: 'Analysez l\'insertion professionnelle et les opportunités d\'évolution.',
     questions: 18,
     icon: ChartBarIcon
   }
 ];
 
-const recentSurveys = computed<Survey[]>(() => {
+// Scoped Surveys
+const scopedSurveys = computed<Survey[]>(() => {
   if (!surveyStore.surveys || surveyStore.surveys.length === 0) return [];
-  return [...surveyStore.surveys]
-    .sort((a, b) => {
-      const getValidTime = (d: any) => {
-        if (!d) return 0;
-        const time = new Date(d).getTime();
-        return isNaN(time) ? 0 : time;
-      };
-      const dateA = Math.max(getValidTime(a.updatedAt), getValidTime(a.createdAt));
-      const dateB = Math.max(getValidTime(b.updatedAt), getValidTime(b.createdAt));
-      return dateB - dateA;
-    })
-    .slice(0, 5);
+  if (isGlobalQuality.value && selectedDepartement.value === 'all') {
+    return surveyStore.surveys;
+  }
+  if (selectedDepartement.value !== 'all') {
+    return surveyStore.surveys.filter(s => {
+      const sDept = (s as any).departementId || (s as any).departement?.id;
+      return !sDept || String(sDept) === String(selectedDepartement.value);
+    });
+  }
+  return surveyStore.surveys;
 });
 
-const totalResponsesCount = computed(() => {
-  if (!surveyStore.surveys) return 0;
-  const storeTotal = responseStore.totalResponses;
-  const computedTotal = surveyStore.surveys.reduce((sum, s) => sum + (s.totalResponses || 0), 0);
-  return Math.max(storeTotal, computedTotal);
+const scopedPublishedSurveys = computed(() => 
+  scopedSurveys.value.filter(s => s.status === 'published')
+);
+
+const scopedTotalResponses = computed(() => {
+  return scopedSurveys.value.reduce((sum, s) => {
+    const stats = getSurveyStats(s.uuid);
+    return sum + stats.responded;
+  }, 0);
 });
 
-const averageCompletionRate = computed(() => {
-  if (!surveyStore.publishedSurveys || surveyStore.publishedSurveys.length === 0) return 0;
-  const rates = surveyStore.publishedSurveys.map(survey => getSurveyStats(survey.uuid).rate);
-  return Math.round(rates.reduce((sum, rate) => sum + rate, 0) / rates.length);
+const scopedAverageRate = computed(() => {
+  if (scopedPublishedSurveys.value.length === 0) return 0;
+  const rates = scopedPublishedSurveys.value.map(s => getSurveyStats(s.uuid).rate);
+  return Math.round(rates.reduce((sum, r) => sum + r, 0) / rates.length);
 });
 
 const lastPublishedSurvey = computed<Survey | null>(() => {
-  if (!surveyStore.publishedSurveys || surveyStore.publishedSurveys.length === 0) return null;
-  return [...surveyStore.publishedSurveys].sort((a, b) => {
+  if (!scopedPublishedSurveys.value || scopedPublishedSurveys.value.length === 0) return null;
+  return [...scopedPublishedSurveys.value].sort((a, b) => {
     const dateA = new Date(a.publishedAt || a.updatedAt || a.createdAt || 0).getTime();
     const dateB = new Date(b.publishedAt || b.updatedAt || b.createdAt || 0).getTime();
     return dateB - dateA;
@@ -138,30 +190,30 @@ interface ActivityItem {
 
 const recentActivity = computed<ActivityItem[]>(() => {
   const activities: ActivityItem[] = [];
-  if (!surveyStore.surveys || surveyStore.surveys.length === 0) return [];
+  if (!scopedSurveys.value || scopedSurveys.value.length === 0) return [];
 
   // Add survey activities
-  surveyStore.surveys.forEach(survey => {
+  scopedSurveys.value.forEach(survey => {
     const createdDate = survey.createdAt || survey.updatedAt || new Date();
     activities.push({
-      id: `survey-create-${survey.uuid || survey.id || Math.random()}`,
+      id: `survey-create-${survey.uuid || (survey as any).id || Math.random()}`,
       type: 'survey_created',
-      message: `Questionnaire "${survey.title || 'Sans titre'}" créé`,
+      message: `Enquête "${survey.title || 'Sans titre'}" créée`,
       timestamp: createdDate
     });
 
     if (survey.status === 'published') {
       activities.push({
-        id: `survey-publish-${survey.uuid || survey.id}`,
+        id: `survey-publish-${survey.uuid || (survey as any).id}`,
         type: 'survey_published',
-        message: `Questionnaire "${survey.title || 'Sans titre'}" publié`,
+        message: `Enquête "${survey.title || 'Sans titre'}" publiée`,
         timestamp: survey.publishedAt || survey.updatedAt || survey.createdAt || new Date()
       });
     } else if (survey.status === 'closed') {
       activities.push({
-        id: `survey-close-${survey.uuid || survey.id}`,
+        id: `survey-close-${survey.uuid || (survey as any).id}`,
         type: 'survey_closed',
-        message: `Questionnaire "${survey.title || 'Sans titre'}" clôturé`,
+        message: `Enquête "${survey.title || 'Sans titre'}" clôturée`,
         timestamp: survey.closingDate || survey.updatedAt || survey.createdAt || new Date()
       });
     }
@@ -171,13 +223,15 @@ const recentActivity = computed<ActivityItem[]>(() => {
   if (responseStore.responses && responseStore.responses.length > 0) {
     responseStore.responses.forEach(response => {
       if (response.completed) {
-        const survey = surveyStore.surveys.find(s => s.uuid === response.surveyId || s.id === response.surveyId);
-        activities.push({
-          id: `response-${response.id}`,
-          type: 'response_received',
-          message: `Nouvelle réponse pour "${survey?.title || 'Questionnaire'}"`,
-          timestamp: response.submittedAt || response.lastActivity || new Date()
-        });
+        const survey = scopedSurveys.value.find(s => s.uuid === response.surveyId || (s as any).id === response.surveyId);
+        if (survey) {
+          activities.push({
+            id: `response-${response.id}`,
+            type: 'response_received',
+            message: `Nouvelle réponse enregistrée pour "${survey.title || 'Enquête'}"`,
+            timestamp: response.submittedAt || response.lastActivity || new Date()
+          });
+        }
       }
     });
   }
@@ -230,7 +284,7 @@ async function confirmDuplicateSurvey(payload: { newTitle: string }) {
     showDuplicateModal.value = false;
     selectedSurveyToDuplicate.value = null;
     if (duplicate) {
-      uiStore.addNotification('success', 'Questionnaire dupliqué', `"${duplicate.title}" et l'ensemble de ses règles ont été dupliqués.`);
+      uiStore.addNotification('success', 'Questionnaire dupliqué', `"${duplicate.title}" et ses paramètres ont été dupliqués.`);
     }
   } catch (error) {
     console.error('Failed to duplicate survey:', error);
@@ -251,15 +305,15 @@ async function createFromTemplate(template: any) {
   uiStore.addNotification(
     'success',
     'Questionnaire créé',
-    `Le questionnaire "${template.title}" a été créé à partir du modèle.`
+    `L'enquête "${template.title}" a été créée à partir du modèle.`
   );
   router.push({ name: 'questionnaire_builder', params: { id: survey.uuid } });
 }
 
 function getSurveyStats(surveyUuid: string) {
   const survey = surveyStore.surveys?.find(s => s.uuid === surveyUuid);
-  const invited = survey?.totalInvited ?? responseStore.responsesBySurvey(surveyUuid).length;
-  const responded = survey?.totalResponses ?? responseStore.completedResponses(surveyUuid).length;
+  const invited = (survey as any)?.totalInvited ?? responseStore.responsesBySurvey(surveyUuid).length;
+  const responded = (survey as any)?.totalResponses ?? responseStore.completedResponses(surveyUuid).length;
   const rate = invited > 0 ? Math.round((responded / invited) * 100) : 0;
   return { 
     responded: Math.min(invited, responded), 
@@ -271,19 +325,60 @@ function getSurveyStats(surveyUuid: string) {
 
 <template>
   <div class="space-y-8">
-    <!-- Quick Stats Banner -->
+    <!-- Scope / Périmètre de Pilotage Bar -->
+    <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4.5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+          <BuildingOfficeIcon class="w-6 h-6" />
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            Périmètre de pilotage qualité
+          </div>
+          <div class="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2 mt-0.5">
+            <span v-if="isGlobalQuality">Démarche Qualité — Vue Globale IUT</span>
+            <span v-else>Département {{ currentDepartmentName }}</span>
+            <Tag 
+              :value="isGlobalQuality ? 'Tous départements' : 'Département'" 
+              :severity="isGlobalQuality ? 'info' : 'secondary'"
+              class="text-xs font-semibold"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Scope Selector for Global Quality Managers -->
+      <div v-if="isGlobalQuality && departementOptions.length > 1" class="flex items-center gap-2.5">
+        <label for="dept-scope-select" class="text-xs font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">
+          Filtrer par département :
+        </label>
+        <Select 
+          id="dept-scope-select"
+          v-model="selectedDepartement" 
+          :options="departementOptions" 
+          optionLabel="label" 
+          optionValue="value" 
+          class="w-72 text-sm" 
+        />
+      </div>
+      <div v-else class="text-xs text-gray-500 dark:text-gray-400 italic">
+        Vue restreinte aux enquêtes et formations de votre département
+      </div>
+    </div>
+
+    <!-- Base Quality Metrics Banner -->
     <section aria-label="Statistiques clés" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <Kpi label="Questionnaires" :value="surveyStore.surveyCount" :icon="DocumentTextIcon" color="blue" />
-      <Kpi label="Publiés" :value="surveyStore.publishedSurveys.length" :icon="RocketLaunchIcon" color="green" />
-      <Kpi label="Réponses totales" :value="totalResponsesCount" :icon="ChatBubbleLeftRightIcon" color="teal" />
-      <Kpi label="Taux moyen" :value="averageCompletionRate + '%'" :icon="ArrowTrendingUpIcon" color="orange" />
+      <Kpi label="Campagnes dans le périmètre" :value="scopedSurveys.length" :icon="DocumentTextIcon" color="blue" />
+      <Kpi label="Enquêtes publiées" :value="scopedPublishedSurveys.length" :icon="RocketLaunchIcon" color="green" />
+      <Kpi label="Réponses collectées" :value="scopedTotalResponses" :icon="ChatBubbleLeftRightIcon" color="teal" />
+      <Kpi label="Taux moyen de retour" :value="scopedAverageRate + '%'" :icon="ArrowTrendingUpIcon" color="orange" />
     </section>
 
     <!-- Quick Actions Row -->
     <section aria-label="Actions rapides" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <QuickActionCard
-        title="Créer un questionnaire"
-        description="Commencer par en créer un nouveau de zéro"
+        title="Créer une enquête"
+        description="Concevoir un nouveau questionnaire d'évaluation"
         :icon="PlusIcon"
         color="blue"
         button-label="Créer"
@@ -292,16 +387,16 @@ function getSurveyStats(surveyUuid: string) {
 
       <QuickActionCard
         title="Modèles pré-définis"
-        description="Créer depuis des modèles existants"
+        description="Créer depuis un modèle qualité prêt à l'emploi"
         :icon="DocumentDuplicateIcon"
         color="green"
-        button-label="Parcourir"
+        button-label="Parcourir les modèles"
         @action="showTemplates = true"
       />
 
       <QuickActionCard
-        title="Gestion Détaillée"
-        description="Consulter et filtrer la liste complète"
+        title="Tous les questionnaires"
+        description="Consulter et administrer la liste exhaustive"
         :icon="ListBulletIcon"
         color="purple"
         button-label="Voir la liste"
@@ -311,154 +406,168 @@ function getSurveyStats(surveyUuid: string) {
 
     <!-- Dynamic Content Section -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <!-- Left: My Surveys List (2/3 width) -->
-      <section aria-labelledby="recent-surveys-title" class="lg:col-span-2 space-y-4">
-        <div class="flex items-center justify-between mb-2">
-          <h2 id="recent-surveys-title" class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <DocumentTextIcon class="w-5 h-5 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-            Mes questionnaires récents
-          </h2>
-          <router-link 
-            :to="{name: 'questionnaire_enquetes-liste'}" 
-            class="text-primary-700 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 hover:underline text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-1"
-          >
-            Voir tout
-          </router-link>
-        </div>
-
-        <div v-if="recentSurveys.length > 0" class="space-y-4">
-          <article 
-            v-for="survey in recentSurveys" 
-            :key="survey.uuid"
-            class="card flex flex-col p-4.5 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow"
-          >
-            <!-- Top Row: Title & Actions -->
-            <div class="flex items-center justify-between gap-4">
-              <div class="flex-1 min-w-0">
-                <h3 class="font-bold text-gray-900 dark:text-white text-base truncate">{{ survey.title }}</h3>
-                <div class="flex items-center space-x-3 mt-1.5 flex-wrap gap-y-1">
-                  <!-- Status Badge WCAG Compliant -->
-                  <span 
-                    :class="[
-                      'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border',
-                      survey.status === 'published' 
-                        ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/80 dark:text-emerald-200 border-emerald-300 dark:border-emerald-800' 
-                        : 'bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:text-amber-200 border-amber-300 dark:border-amber-800'
-                    ]"
-                  >
-                    {{ survey.status === 'published' ? 'Publié' : 'Brouillon' }}
-                  </span>
-                  <span class="text-xs text-gray-600 dark:text-gray-300 font-medium">
-                    Modifié le {{ formatDate(survey.updatedAt || survey.createdAt) }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Actions Pill -->
-              <div class="flex items-center space-x-2 shrink-0">
-                <router-link 
-                  :to="{ name: 'questionnaire_builder', params: { id: survey.uuid } }"
-                  :aria-label="`Modifier le questionnaire ${survey.title}`"
-                  v-tooltip.top="'Modifier le questionnaire'"
-                  class="p-2 text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/60 border border-orange-300 dark:border-orange-800 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-                >
-                  <PencilIcon class="w-4 h-4" aria-hidden="true" />
-                </router-link>
-
-                <router-link 
-                  v-if="survey.status === 'published'"
-                  :to="{ name: 'questionnaire_responses', params: { id: survey.uuid } }"
-                  :aria-label="`Consulter les réponses pour ${survey.title}`"
-                  v-tooltip.top="'Consulter les réponses'"
-                  class="p-2 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-800 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                >
-                  <ChatBubbleLeftRightIcon class="w-4 h-4" aria-hidden="true" />
-                </router-link>
-
-                <router-link 
-                  v-if="survey.status === 'published'"
-                  :to="{ name: 'questionnaire_analytics', params: { id: survey.uuid } }"
-                  :aria-label="`Voir les statistiques et analyses pour ${survey.title}`"
-                  v-tooltip.top="'Statistiques et analyses'"
-                  class="p-2 text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-300 dark:border-purple-800 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <ChartBarIcon class="w-4 h-4" aria-hidden="true" />
-                </router-link>
-
-                <!-- Options Menu Dropdown -->
-                <Menu as="div" class="relative inline-block text-left">
-                  <MenuButton 
-                    :aria-label="`Options supplémentaires pour ${survey.title}`"
-                    v-tooltip.top="'Options'"
-                    class="p-2 text-gray-800 dark:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg transition-all flex items-center justify-center hover:scale-105 active:scale-95 shadow-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  >
-                    <EllipsisVerticalIcon class="w-4 h-4" aria-hidden="true" />
-                  </MenuButton>
-                  <MenuItems class="survey-menu">
-                    <MenuItem v-slot="{ active }">
-                      <button 
-                        @click="openDuplicateModal(survey)"
-                        :class="[active ? 'bg-gray-100 dark:bg-gray-700' : '', 'menu-item w-full']"
-                        role="menuitem"
-                      >
-                        <DocumentDuplicateIcon class="w-4 h-4 text-gray-700 dark:text-gray-300" aria-hidden="true" />
-                        <span>Dupliquer</span>
-                      </button>
-                    </MenuItem>
-                    <MenuItem v-slot="{ active }">
-                      <button 
-                        @click="deleteSurvey(survey)"
-                        :class="[active ? 'bg-red-50 dark:bg-red-950/40' : '', 'menu-item w-full text-red-700 dark:text-red-400 font-medium']"
-                        role="menuitem"
-                      >
-                        <TrashIcon class="w-4 h-4 text-red-700 dark:text-red-400" aria-hidden="true" />
-                        <span>Supprimer</span>
-                      </button>
-                    </MenuItem>
-                  </MenuItems>
-                </Menu>
-              </div>
-            </div>
-
-            <!-- Bottom Row: Progress Bar for active surveys -->
-            <div 
-              v-if="survey.status === 'published'" 
-              class="mt-4 space-y-1.5 border-t border-gray-100 dark:border-gray-700/60 pt-3"
-            >
-              <div class="flex justify-between text-xs">
-                <span class="text-gray-700 dark:text-gray-300 font-medium">
-                  Participation : <strong class="text-gray-900 dark:text-white">{{ getSurveyStats(survey.uuid).responded }}</strong> / {{ getSurveyStats(survey.uuid).invited }}
-                </span>
-                <span class="font-bold text-gray-900 dark:text-white">{{ getSurveyStats(survey.uuid).rate }}%</span>
-              </div>
-              <div 
-                class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden"
-                role="progressbar"
-                :aria-valuenow="getSurveyStats(survey.uuid).rate"
-                aria-valuemin="0"
-                aria-valuemax="100"
-                :aria-label="`Taux de participation : ${getSurveyStats(survey.uuid).rate}%`"
-              >
-                <div 
-                  class="bg-gradient-to-r from-primary-600 to-primary-500 h-2 rounded-full transition-all duration-500"
-                  :style="{ width: `${getSurveyStats(survey.uuid).rate}%` }"
-                ></div>
-              </div>
-            </div>
-          </article>
-        </div>
-
-        <!-- Empty State Component -->
-        <EmptyState 
-          v-else
-          title="Aucun questionnaire créé pour le moment"
-          description="Créez votre première enquête ou utilisez un modèle pour débuter rapidement."
-          icon="pi pi-file-edit"
+      <!-- Left: Quality Campaigns Synthesis Table (2/3 width) -->
+      <section aria-labelledby="campaigns-synthesis-title" class="lg:col-span-2 space-y-4">
+        <Card 
+          title="Campagnes d'Évaluation Qualité" 
+          subtitle="Suivi de la participation et accès direct au suivi détaillé sans ressaisie" 
+          icon="pi pi-chart-bar" 
           color="blue"
-          action-label="Créer votre premier questionnaire"
-          action-icon="pi pi-plus"
-          @action="router.push({ name: 'questionnaire_builder', params: { id: 'new' } })"
-        />
+        >
+          <template #header-actions>
+            <router-link 
+              :to="{ name: 'questionnaire_enquetes-liste' }" 
+              class="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 flex items-center gap-1.5 focus:outline-none focus:ring-2 focus:ring-primary-500 rounded px-1.5 py-0.5"
+            >
+              <span>Voir toute la liste</span>
+              <i class="pi pi-arrow-right text-[10px]" aria-hidden="true"></i>
+            </router-link>
+          </template>
+
+          <div v-if="scopedSurveys.length > 0" class="overflow-x-auto -mx-5 -mb-5">
+            <table class="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr class="border-b border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-gray-50/70 dark:bg-gray-800/40">
+                  <th scope="col" class="py-3 px-5">Enquête / Campagne</th>
+                  <th scope="col" class="py-3 px-4">Statut</th>
+                  <th scope="col" class="py-3 px-4">Participation</th>
+                  <th scope="col" class="py-3 px-4">Période</th>
+                  <th scope="col" class="py-3 px-5 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-150 dark:divide-gray-800 bg-white dark:bg-gray-850">
+                <tr 
+                  v-for="survey in scopedSurveys" 
+                  :key="survey.uuid" 
+                  class="hover:bg-gray-50/80 dark:hover:bg-gray-800/50 transition-colors"
+                >
+                  <td class="py-3.5 px-5">
+                    <div class="font-bold text-gray-900 dark:text-white">{{ survey.title }}</div>
+                    <div v-if="survey.description" class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs mt-0.5">
+                      {{ survey.description }}
+                    </div>
+                  </td>
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <Tag 
+                      :value="survey.status === 'published' ? 'Publiée' : survey.status === 'closed' ? 'Clôturée' : 'Brouillon'"
+                      :severity="survey.status === 'published' ? 'success' : survey.status === 'closed' ? 'secondary' : 'warn'"
+                      class="text-xs font-semibold"
+                    />
+                  </td>
+                  <td class="py-3.5 px-4 min-w-[170px]">
+                    <div class="flex items-center justify-between text-xs mb-1">
+                      <span class="text-gray-600 dark:text-gray-300 font-medium">
+                        {{ getSurveyStats(survey.uuid).responded }} / {{ getSurveyStats(survey.uuid).invited }}
+                      </span>
+                      <span class="font-bold text-gray-900 dark:text-white">
+                        {{ getSurveyStats(survey.uuid).rate }}%
+                      </span>
+                    </div>
+                    <div 
+                      class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden"
+                      role="progressbar"
+                      :aria-valuenow="getSurveyStats(survey.uuid).rate"
+                      aria-valuemin="0"
+                      aria-valuemax="100"
+                    >
+                      <div 
+                        class="h-1.5 rounded-full transition-all duration-500"
+                        :class="[
+                          getSurveyStats(survey.uuid).rate >= 60 ? 'bg-emerald-500' :
+                          getSurveyStats(survey.uuid).rate >= 30 ? 'bg-amber-500' : 'bg-primary-500'
+                        ]"
+                        :style="{ width: `${getSurveyStats(survey.uuid).rate}%` }"
+                      ></div>
+                    </div>
+                  </td>
+                  <td class="py-3.5 px-4 text-xs text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                    <span v-if="survey.closingDate">Jusqu'au {{ formatDate(survey.closingDate) }}</span>
+                    <span v-else-if="survey.publishedAt">Publiée le {{ formatDate(survey.publishedAt) }}</span>
+                    <span v-else>Créée le {{ formatDate(survey.createdAt) }}</span>
+                  </td>
+                  <td class="py-3.5 px-5 text-right whitespace-nowrap">
+                    <div class="inline-flex items-center gap-1.5">
+                      <!-- Direct Link to existing Responses & Reminders (No duplication!) -->
+                      <router-link 
+                        v-if="survey.status === 'published'"
+                        :to="{ name: 'questionnaire_responses', params: { id: survey.uuid } }"
+                        v-tooltip.top="'Suivi des répondants & Relances'"
+                        class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-300 dark:border-emerald-800 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      >
+                        <i class="pi pi-users text-xs" aria-hidden="true"></i>
+                        <span class="hidden sm:inline">Suivi & Relances</span>
+                      </router-link>
+
+                      <!-- Direct Link to Analytics -->
+                      <router-link 
+                        v-if="survey.status === 'published'"
+                        :to="{ name: 'questionnaire_analytics', params: { id: survey.uuid } }"
+                        v-tooltip.top="'Synthèse des résultats'"
+                        class="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-900/60 border border-purple-300 dark:border-purple-800 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      >
+                        <i class="pi pi-chart-pie text-xs" aria-hidden="true"></i>
+                        <span class="hidden sm:inline">Résultats</span>
+                      </router-link>
+
+                      <!-- Edit Builder -->
+                      <router-link 
+                        :to="{ name: 'questionnaire_builder', params: { id: survey.uuid } }"
+                        v-tooltip.top="'Modifier le questionnaire'"
+                        class="p-1.5 text-orange-700 dark:text-orange-300 bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/60 border border-orange-200 dark:border-orange-800 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500"
+                      >
+                        <PencilIcon class="w-4 h-4" aria-hidden="true" />
+                      </router-link>
+
+                      <!-- Dropdown menu for duplicate / delete -->
+                      <Menu as="div" class="relative inline-block text-left">
+                        <MenuButton 
+                          v-tooltip.top="'Plus d\'options'"
+                          class="p-1.5 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        >
+                          <EllipsisVerticalIcon class="w-4 h-4" aria-hidden="true" />
+                        </MenuButton>
+                        <MenuItems class="survey-menu">
+                          <MenuItem v-slot="{ active }">
+                            <button 
+                              @click="openDuplicateModal(survey)"
+                              :class="[active ? 'bg-gray-100 dark:bg-gray-700' : '', 'menu-item w-full']"
+                              role="menuitem"
+                            >
+                              <DocumentDuplicateIcon class="w-4 h-4 text-gray-700 dark:text-gray-300" aria-hidden="true" />
+                              <span>Dupliquer</span>
+                            </button>
+                          </MenuItem>
+                          <MenuItem v-slot="{ active }">
+                            <button 
+                              @click="deleteSurvey(survey)"
+                              :class="[active ? 'bg-red-50 dark:bg-red-950/40' : '', 'menu-item w-full text-red-700 dark:text-red-400 font-medium']"
+                              role="menuitem"
+                            >
+                              <TrashIcon class="w-4 h-4 text-red-700 dark:text-red-400" aria-hidden="true" />
+                              <span>Supprimer</span>
+                            </button>
+                          </MenuItem>
+                        </MenuItems>
+                      </Menu>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State -->
+          <EmptyState 
+            v-else
+            title="Aucune campagne d'enquête pour ce périmètre"
+            description="Créez votre première enquête ou utilisez un modèle pour débuter."
+            icon="pi pi-chart-bar"
+            color="blue"
+            action-label="Créer une enquête"
+            action-icon="pi pi-plus"
+            @action="router.push({ name: 'questionnaire_builder', params: { id: 'new' } })"
+          />
+        </Card>
       </section>
 
       <!-- Right: Summary Configuration & Recent Activity (1/3 width) -->

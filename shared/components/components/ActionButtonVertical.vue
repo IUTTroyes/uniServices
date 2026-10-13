@@ -10,7 +10,8 @@
     ]"
     @click="handleClick"
   >
-    <component :is="icon" class="w-5 h-5 mb-1.5 transition-transform group-hover:scale-110" />
+    <i v-if="typeof icon === 'string'" :class="[icon, 'text-xl mb-1.5 transition-transform group-hover:scale-110']" />
+    <component v-else-if="icon" :is="icon" class="w-5 h-5 mb-1.5 transition-transform group-hover:scale-110" />
     <span class="text-xs font-semibold leading-tight select-none">{{ label }}</span>
   </component>
 </template>

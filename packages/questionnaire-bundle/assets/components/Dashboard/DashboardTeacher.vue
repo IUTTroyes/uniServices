@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { 
-  ChatBubbleLeftRightIcon 
+  ChatBubbleLeftRightIcon,
+  AcademicCapIcon,
+  ArrowTrendingUpIcon
 } from '@heroicons/vue/24/outline';
-import Kpi from '@components/Kpi.vue';
-import Card from '@components/components/Card.vue';
+import { Kpi, Card, EmptyState } from '@components';
 import Select from 'primevue/select';
 import Tag from 'primevue/tag';
 import Rating from 'primevue/rating';
@@ -70,14 +71,14 @@ const formationOptions = computed(() => [
         :value="filteredTeacherStats.length"
         description="Modules avec évaluations actives"
         color="indigo"
-        :icon="ChatBubbleLeftRightIcon"
+        :icon="AcademicCapIcon"
       />
       <Kpi
         label="Moyenne de satisfaction"
         :value="averageTeacherSatisfaction + '%'"
         description="Moyenne globale pondérée"
         color="emerald"
-        :icon="ChatBubbleLeftRightIcon"
+        :icon="ArrowTrendingUpIcon"
       />
       <Kpi
         label="Taux de participation"
@@ -90,13 +91,13 @@ const formationOptions = computed(() => [
 
     <!-- Course Evaluation Blocks -->
     <div class="space-y-6">
-      <div v-if="filteredTeacherStats.length === 0" class="card text-center py-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl">
-        <ChatBubbleLeftRightIcon class="w-12 h-12 text-gray-400 mx-auto mb-3" />
-        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Aucune évaluation disponible</h3>
-        <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">
-          Aucune donnée d'évaluation d'enseignement disponible pour le moment.
-        </p>
-      </div>
+      <EmptyState 
+        v-if="filteredTeacherStats.length === 0"
+        title="Aucune évaluation disponible pour le moment"
+        description="Les résultats d'évaluation de vos enseignements apparaîtront ici dès que les questionnaires étudiants seront clôturés et validés."
+        icon="pi pi-chart-pie"
+        color="blue"
+      />
 
       <Card 
         v-for="stat in filteredTeacherStats" 

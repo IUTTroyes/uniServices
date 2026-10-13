@@ -131,12 +131,10 @@ const colorClasses = computed(() => {
         </p>
       </div>
       <div class="flex items-center gap-3 shrink-0">
+        <slot name="actions" />
         <Button v-if="props.showBack" severity="primary" label="Retour" icon="pi pi-arrow-left" @click="props.backUrl ? $router.push(props.backUrl) : $router.go(-1)" />
       </div>
     </div>
-    <template class="w-full flex justify-end items-center gap-2">
-      <slot name="actions"/>
-    </template>
   </div>
 </template>
 

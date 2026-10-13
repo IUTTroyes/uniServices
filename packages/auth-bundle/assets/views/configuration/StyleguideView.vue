@@ -701,6 +701,7 @@ const formsCode = computed(() => {
             <span class="font-semibold text-slate-800 dark:text-slate-200">Slots disponibles :</span>
             <ul class="list-disc list-inside mt-2 space-y-1 text-slate-600 dark:text-slate-400">
               <li><code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">header</code> : Permet de remplacer entièrement l'en-tête de la carte.</li>
+              <li><code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">header-actions</code> : Permet d'insérer des contrôles ou boutons d'actions à droite de l'en-tête sans écraser le titre et l'icône.</li>
               <li><code class="font-mono text-primary-600 dark:text-primary-400 font-semibold">default</code> : Slot principal pour y déposer le contenu interne de la carte.</li>
             </ul>
           </div>
@@ -823,10 +824,24 @@ const formsCode = computed(() => {
                 </tr>
                 <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
                   <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">description</td>
-                  <td class="py-3 px-4 font-mono text-slate-650">string</td>
-                  <td class="py-3 px-4 font-mono text-slate-505">undefined</td>
-                  <td class="py-3 px-4 text-slate-505">Non</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">string</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">undefined</td>
+                  <td class="py-3 px-4 text-slate-500">Non</td>
                   <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Libellé informatif ou tendance affiché en dessous de la valeur.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">to</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">string | object</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">undefined</td>
+                  <td class="py-3 px-4 text-slate-500">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Lien Vue Router optionnel transformant le KPI en carte interactive cliquable avec micro-animations.</td>
+                </tr>
+                <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/10">
+                  <td class="py-3 px-4 font-mono text-primary-600 dark:text-primary-400 font-semibold">loading</td>
+                  <td class="py-3 px-4 font-mono text-slate-600 dark:text-slate-400">boolean</td>
+                  <td class="py-3 px-4 font-mono text-slate-500">false</td>
+                  <td class="py-3 px-4 text-slate-500">Non</td>
+                  <td class="py-3 px-4 text-slate-600 dark:text-slate-400">Indique si la valeur est en chargement et affiche un squelette de chargement (SimpleSkeleton).</td>
                 </tr>
               </tbody>
             </table>

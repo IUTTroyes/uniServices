@@ -9,8 +9,9 @@ const questionnaireMenu = {
   label: 'Questionnaires',
   icon: 'pi pi-fw pi-check-square',
   items: [
-    { label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/questionnaire/' },
-    { label: 'Qualité', icon: 'pi pi-fw pi-star', to: '/questionnaire/qualite/enquetes' },
+    { label: 'Tableau de bord', icon: 'pi pi-fw pi-home', to: '/questionnaire/' },
+    { label: 'Tous les questionnaires', icon: 'pi pi-fw pi-list', to: '/questionnaire/qualite/enquetes/liste', permission: 'isPersonnel' },
+    { label: 'Créer un questionnaire', icon: 'pi pi-fw pi-plus', to: '/questionnaire/qualite/enquetes/builder/new', permission: 'isPersonnel' },
   ]
 };
 

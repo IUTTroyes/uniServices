@@ -18,6 +18,7 @@
 	```
 - Utiliser les *Skeleton* de primevue comme loader -> en faire des composants si nécessaire
 - Inclure 'Service' à la fin du nom des méthodes qui font les requêtes API (dans le dossier ``shared/requests/``) exemple : `getUserService`
+- Respecter impérativement le **Styleguide & Design System** (`@components`) : consulter le guide [STYLEGUIDE_AI_AGENTS.md](docs/STYLEGUIDE_AI_AGENTS.md) ou la vue interactive `/auth/configuration/styleguide`.
 
 ### Alias
 
