@@ -69,13 +69,11 @@ class EtudiantFilter extends AbstractFilter
                 ->setParameter('groupe', $value);
         }
 
-<<<<<<< HEAD
         if ('sansScolarite' === $property && filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
             $queryBuilder
                 ->leftJoin(sprintf('%s.scolarites', $alias), 'scolaritesSans')
                 ->andWhere('scolaritesSans.id IS NULL');
         }
-=======
         if ('actif' === $property) {
             $scolaritesAlias = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'scolarites');
             $queryBuilder
@@ -103,7 +101,6 @@ class EtudiantFilter extends AbstractFilter
         $newAlias = $queryNameGenerator->generateJoinAlias($association);
         $qb->join("$fromAlias.$association", $newAlias);
         return $newAlias;
->>>>>>> 7f386a88b (feat: Gestion des PDF/Excels/Export des étudiants (mise en page à finaliser) + Trombinoscope)
     }
 
     public function getDescription(string $resourceClass): array
@@ -149,14 +146,14 @@ class EtudiantFilter extends AbstractFilter
                     'description' => 'Filter by groupe',
                 ],
             ],
-<<<<<<< HEAD
             'sansScolarite' => [
                 'property' => 'sansScolarite',
                 'type' => 'bool',
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter students without any EtudiantScolarite',
-=======
+                ],
+            ],
             'actif' => [
                 'property' => 'actif',
                 'type' => 'bool',
@@ -171,7 +168,6 @@ class EtudiantFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by annee_sortie (0 for active students)',
->>>>>>> 7f386a88b (feat: Gestion des PDF/Excels/Export des étudiants (mise en page à finaliser) + Trombinoscope)
                 ],
             ],
         ];

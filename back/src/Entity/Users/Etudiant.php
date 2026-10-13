@@ -51,13 +51,10 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
         'semestre' => new QueryParameter(filter: EtudiantFilter::class),
         'annee' => new QueryParameter(filter: EtudiantFilter::class),
         'groupe' => new QueryParameter(filter: EtudiantFilter::class),
-<<<<<<< HEAD
         'sansScolarite' => new QueryParameter(filter: EtudiantFilter::class),
-=======
         'actif' => new QueryParameter(filter: EtudiantFilter::class),
         'anneeSortie' => new QueryParameter(filter: EtudiantFilter::class),
         'annee_sortie' => new QueryParameter(filter: EtudiantFilter::class),
->>>>>>> 7f386a88b (feat: Gestion des PDF/Excels/Export des étudiants (mise en page à finaliser) + Trombinoscope)
         'nom' => new QueryParameter(filter: SearchFilter::class),
         'start' => new QueryParameter(filter: SearchFilter::class),
         'prenom' => new QueryParameter(filter: SearchFilter::class),
