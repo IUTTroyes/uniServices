@@ -47,6 +47,8 @@ const isLoading = ref(true);
 const currentStudentYear = ref('BUT3'); // 'BUT1' | 'BUT2' | 'BUT3'
 const activePeriodTab = ref('BUT3');   // Active academic year tab selected
 const activeSubTabs = ref({});          // Map: periodId -> subTab ('overview' | 'documents' | 'offers' | 'report')
+const studentDepartmentName = ref('');
+const showArchives = ref(false);
 
 // Upload state simulation
 const fileInput = ref(null);
@@ -89,28 +91,88 @@ const studentAcademicHistory = ref({
 const fetchDashboardData = async () => {
   isLoading.value = true;
   try {
-    const apiPeriods = await getStagePeriodesService({}, false);
-    const apiStages = await getStageEtudiantsService({}, false);
+    await userStore.initAuth();
+    const user = await userStore.getUser();
+
+    const studentDeptId = userStore.departementDefaut?.id 
+      || userStore.scolariteActif?.departement?.id 
+      || user?.scolarites?.find(s => s.actif)?.departement?.id;
+
+    studentDepartmentName.value = userStore.departementDefaut?.libelle 
+      || userStore.scolariteActif?.departement?.libelle 
+      || '';
+
+    const activeScol = userStore.scolariteActif || user?.scolarites?.find(s => s.actif);
+    const activeAnneeUnivLib = activeScol?.anneeUniversitaire?.libelle || '';
+
+    // Détection de l'année/BUT courant de l'étudiant
+    let detectedOrdre = 3;
+    const firstSem = activeScol?.scolariteSemestre?.[0]?.semestre;
+    if (firstSem?.annee?.ordre) {
+      detectedOrdre = firstSem.annee.ordre;
+    } else if (firstSem?.libelle) {
+      const semLib = firstSem.libelle.toUpperCase();
+      if (semLib.includes('S1') || semLib.includes('S2')) detectedOrdre = 1;
+      else if (semLib.includes('S3') || semLib.includes('S4')) detectedOrdre = 2;
+      else if (semLib.includes('S5') || semLib.includes('S6')) detectedOrdre = 3;
+    } else if (activeScol?.ordre) {
+      detectedOrdre = activeScol.ordre;
+    }
+
+    currentStudentYear.value = `BUT${detectedOrdre}`;
+    activePeriodTab.value = `BUT${detectedOrdre}`;
+
+    const params = {};
+    if (studentDeptId) {
+      params.departement = studentDeptId;
+    }
+    const apiPeriods = await getStagePeriodesService(params, false);
+
+    const stagesParams = {};
+    if (userStore.userId) {
+      stagesParams.etudiant = `/api/etudiants/${userStore.userId}`;
+    }
+    const apiStages = await getStageEtudiantsService(stagesParams, false);
     const gedOffers = await fetchStageOfferDocuments();
 
     const history = {
-      BUT1: { yearLabel: 'BUT 1 - Année Universitaire 2023-2024', periods: [] },
-      BUT2: { yearLabel: 'BUT 2 - Année Universitaire 2024-2025', periods: [] },
-      BUT3: { yearLabel: 'BUT 3 - Année Universitaire 2025-2026', periods: [] }
+      BUT1: { yearLabel: `BUT 1 ${detectedOrdre === 1 && activeAnneeUnivLib ? '- ' + activeAnneeUnivLib : ''}`.trim(), periods: [] },
+      BUT2: { yearLabel: `BUT 2 ${detectedOrdre === 2 && activeAnneeUnivLib ? '- ' + activeAnneeUnivLib : ''}`.trim(), periods: [] },
+      BUT3: { yearLabel: `BUT 3 ${detectedOrdre === 3 && activeAnneeUnivLib ? '- ' + activeAnneeUnivLib : ''}`.trim(), periods: [] }
     };
 
     if (Array.isArray(apiPeriods)) {
-      apiPeriods.forEach(p => {
-        // Determine Academic Year Tab
-        let yearKey = 'BUT3';
+      // Filtrer strictement les périodes par le département de l'étudiant (aucun débordement inter-département)
+      const deptFiltered = apiPeriods.filter(p => {
+        if (!studentDeptId) return true;
+        const pDeptId = p.departement?.id || p.semestreProgramme?.annee?.pn?.diplome?.departement?.id;
+        return !pDeptId || pDeptId === studentDeptId;
+      });
+
+      deptFiltered.forEach(p => {
+        // Déterminer l'ordre BUT de la période
+        let pOrdre = p.ordreAnnee || p.semestreProgramme?.annee?.ordre;
         const lib = (p.libelle || '').toUpperCase();
         const semLib = (p.semestreProgramme?.libelle || '').toUpperCase();
         const anneeUnivLib = p.anneeUniversitaire?.libelle || '';
 
-        if (lib.includes('BUT 1') || lib.includes('BUT1') || semLib === 'S1' || semLib === 'S2' || anneeUnivLib.includes('2023-2024')) {
-          yearKey = 'BUT1';
-        } else if (lib.includes('BUT 2') || lib.includes('BUT2') || semLib === 'S3' || semLib === 'S4' || anneeUnivLib.includes('2024-2025')) {
-          yearKey = 'BUT2';
+        if (!pOrdre) {
+          if (lib.includes('BUT 1') || lib.includes('BUT1') || semLib.includes('S1') || semLib.includes('S2')) {
+            pOrdre = 1;
+          } else if (lib.includes('BUT 2') || lib.includes('BUT2') || semLib.includes('S3') || semLib.includes('S4')) {
+            pOrdre = 2;
+          } else {
+            pOrdre = 3;
+          }
+        }
+
+        const yearKey = `BUT${pOrdre}`;
+        const isCurrentUniv = p.anneeUniversitaire?.actif === true || (activeAnneeUnivLib && anneeUnivLib === activeAnneeUnivLib);
+
+        if (anneeUnivLib && history[yearKey]) {
+          if (pOrdre === detectedOrdre || isCurrentUniv || !history[yearKey].yearLabel.includes('20')) {
+            history[yearKey].yearLabel = `BUT ${pOrdre} - Année Universitaire ${anneeUnivLib}`;
+          }
         }
 
         // Match student stage for this period
@@ -133,6 +195,8 @@ const fetchDashboardData = async () => {
         const periodObj = {
           id: p.id,
           periodName: p.libelle,
+          isCurrentUniv,
+          anneeUnivLibelle: anneeUnivLib,
           dates: p.dateDebut && p.dateFin 
             ? `${new Date(p.dateDebut).toLocaleDateString('fr-FR')} au ${new Date(p.dateFin).toLocaleDateString('fr-FR')}` 
             : 'Dates à venir',
@@ -176,7 +240,18 @@ const fetchDashboardData = async () => {
           } : null
         };
 
-        history[yearKey].periods.push(periodObj);
+        if (history[yearKey]) {
+          history[yearKey].periods.push(periodObj);
+        }
+      });
+
+      // Trier les périodes dans chaque BUT : l'année universitaire active en premier
+      Object.keys(history).forEach(yk => {
+        history[yk].periods.sort((a, b) => {
+          if (a.isCurrentUniv && !b.isCurrentUniv) return -1;
+          if (!a.isCurrentUniv && b.isCurrentUniv) return 1;
+          return (b.id || 0) - (a.id || 0);
+        });
       });
     }
 
@@ -220,7 +295,25 @@ const currentYearData = computed(() => {
 });
 
 const currentPeriods = computed(() => {
-  return currentYearData.value ? currentYearData.value.periods : [];
+  if (!currentYearData.value) return [];
+  const all = currentYearData.value.periods || [];
+  // Pour les années antérieures (archivées), on affiche toutes les périodes de cette année passée
+  if (activePeriodTab.value !== currentStudentYear.value) {
+    return all;
+  }
+  // Pour l'année courante : si l'étudiant a activé l'affichage des archives, on affiche tout
+  if (showArchives.value) {
+    return all;
+  }
+  // Par défaut : la période en lien avec l'année universitaire active
+  const activePeriods = all.filter(p => p.isCurrentUniv);
+  return activePeriods.length > 0 ? activePeriods : all;
+});
+
+const archivedPeriodsCountInCurrentTab = computed(() => {
+  if (!currentYearData.value || activePeriodTab.value !== currentStudentYear.value) return 0;
+  const all = currentYearData.value.periods || [];
+  return all.filter(p => !p.isCurrentUniv).length;
 });
 
 // Computed KPIs for top view summary
@@ -408,18 +501,35 @@ const openOfferModal = (offer) => {
         />
       </div>
 
-      <!-- Active Year Subtitle Info -->
-      <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-100 dark:border-slate-700/50">
-        <div class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+      <!-- Active Year Subtitle Info & Filters -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+        <div class="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
           <i class="pi pi-calendar text-violet-500"></i>
           <span>{{ currentYearData?.yearLabel }}</span>
+          <span v-if="studentDepartmentName" class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+            Département {{ studentDepartmentName }}
+          </span>
         </div>
-        <span v-if="activePeriodTab === currentStudentYear" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-violet-100 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300">
-          Année Active
-        </span>
-        <span v-else class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300">
-          Historique Archivé
-        </span>
+
+        <div class="flex items-center gap-2">
+          <!-- Toggle archives si périodes archivées disponibles dans l'année active -->
+          <button
+            v-if="activePeriodTab === currentStudentYear && archivedPeriodsCountInCurrentTab > 0"
+            @click="showArchives = !showArchives"
+            class="px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
+            :class="showArchives ? 'bg-violet-50 text-violet-700 dark:bg-violet-950/40 dark:text-violet-300 border-violet-200' : 'text-slate-600 dark:text-slate-300'"
+          >
+            <i class="pi pi-history text-xs"></i>
+            <span>{{ showArchives ? 'Masquer les archives' : `Afficher les archives (${archivedPeriodsCountInCurrentTab})` }}</span>
+          </button>
+
+          <span v-if="activePeriodTab === currentStudentYear" class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-violet-100 text-violet-800 dark:bg-violet-950/50 dark:text-violet-300">
+            Année Active
+          </span>
+          <span v-else class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300">
+            Historique Archivé
+          </span>
+        </div>
       </div>
 
       <!-- CAS 1 : L'ANNÉE SÉLECTIONNÉE N'A PAS DE STAGE (Composant EmptyState Harmonisé) -->
@@ -445,6 +555,16 @@ const openOfferModal = (offer) => {
               <div class="flex flex-wrap items-center gap-2 mb-1">
                 <span class="text-[10px] font-black uppercase tracking-wider text-violet-600 dark:text-violet-400">
                   Période de Stage Académique
+                </span>
+
+                <!-- Badge Année active ou Archive -->
+                <span v-if="period.isCurrentUniv" class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-50 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-1">
+                  <SparklesIcon class="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Année active {{ period.anneeUnivLibelle ? `(${period.anneeUnivLibelle})` : '' }}</span>
+                </span>
+                <span v-else class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300 flex items-center gap-1">
+                  <ClockIcon class="w-3.5 h-3.5 text-slate-500" />
+                  <span>Archive {{ period.anneeUnivLibelle ? `(${period.anneeUnivLibelle})` : '' }}</span>
                 </span>
 
                 <!-- Statut global du stage ou de la demande -->

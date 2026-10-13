@@ -44,6 +44,7 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
     parameters: [
         'stagePeriode' => new QueryParameter(filter: SearchFilter::class),
         'tuteurUniversitaire' => new QueryParameter(filter: SearchFilter::class),
+        'etudiant' => new QueryParameter(filter: SearchFilter::class),
     ]
 )]
 class StageEtudiant implements TimestampableInterface

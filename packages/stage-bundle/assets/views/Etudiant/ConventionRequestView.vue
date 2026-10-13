@@ -128,13 +128,31 @@ onMounted(async () => {
       form.value.phone      = user.tel1     || '';
       form.value.emailPerso = user.mailPerso || '';
     }
-    const response = await getStagePeriodesService();
-    stagePeriodes.value = response || [];
+
+    const studentDeptId = userStore.departementDefaut?.id 
+      || userStore.scolariteActif?.departement?.id 
+      || user?.scolarites?.find(s => s.actif)?.departement?.id;
+
+    const params = { actif: true };
+    if (studentDeptId) {
+      params.departement = studentDeptId;
+    }
+    const response = await getStagePeriodesService(params);
+    let periods = Array.isArray(response) ? response : [];
+    if (studentDeptId) {
+      periods = periods.filter(p => {
+        const pDeptId = p.departement?.id || p.semestreProgramme?.annee?.pn?.diplome?.departement?.id;
+        return !pDeptId || pDeptId === studentDeptId;
+      });
+    }
+    stagePeriodes.value = periods;
     if (route.query.periodId) {
       const exists = stagePeriodes.value.find(p => p.id == route.query.periodId);
       if (exists) {
         form.value.stagePeriodeIri = `/api/stage_periodes/${exists.id}`;
       }
+    } else if (stagePeriodes.value.length === 1) {
+      form.value.stagePeriodeIri = `/api/stage_periodes/${stagePeriodes.value[0].id}`;
     }
   } catch (error) {
     console.error('Erreur de chargement:', error);
@@ -152,7 +170,7 @@ const selectedPeriodLabel = computed(() => {
 
 const periodOptions = computed(() => {
   return stagePeriodes.value.map(p => ({
-    label: `${p.libelle} (${p.nbSemaines} sem.)`,
+    label: `${p.libelle} (${p.nbSemaines} sem.)${p.anneeUniversitaire?.libelle ? ' - ' + p.anneeUniversitaire.libelle : ''}`,
     value: `/api/stage_periodes/${p.id}`
   }));
 });

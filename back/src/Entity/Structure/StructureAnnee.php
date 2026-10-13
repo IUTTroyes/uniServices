@@ -62,7 +62,7 @@ class StructureAnnee implements TimestampableInterface
     private ?string $libelle = null;
 
     #[ORM\Column]
-    #[Groups(['maquette:detail'])]
+    #[Groups(['maquette:detail', 'stage_periode:read'])]
     private int $ordre = 0;
 
     #[ORM\Column(length: 255, nullable: true)]
