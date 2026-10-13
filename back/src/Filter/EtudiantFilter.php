@@ -68,6 +68,12 @@ class EtudiantFilter extends AbstractFilter
                 ->andWhere('groupe.id = :groupe')
                 ->setParameter('groupe', $value);
         }
+
+        if ('sansScolarite' === $property && filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
+            $queryBuilder
+                ->leftJoin(sprintf('%s.scolarites', $alias), 'scolaritesSans')
+                ->andWhere('scolaritesSans.id IS NULL');
+        }
     }
 
     public function getDescription(string $resourceClass): array
@@ -111,6 +117,14 @@ class EtudiantFilter extends AbstractFilter
                 'required' => false,
                 'openapi' => [
                     'description' => 'Filter by groupe',
+                ],
+            ],
+            'sansScolarite' => [
+                'property' => 'sansScolarite',
+                'type' => 'bool',
+                'required' => false,
+                'openapi' => [
+                    'description' => 'Filter students without any EtudiantScolarite',
                 ],
             ],
         ];

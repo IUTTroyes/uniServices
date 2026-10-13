@@ -1,9 +1,9 @@
 <script setup>
-import {onMounted, ref, watch} from "vue";
+import {onMounted, ref} from "vue";
 import {
   getAnneesService,
-  createEtudiantsService,
-  getAllAnneesUniversitairesService
+  createEtudiantService,
+  getAnneesUniversitairesService
 } from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore } from "@stores";
@@ -80,7 +80,7 @@ const getAnnees = async () => {
 const getAnneesUniv = async () => {
   try {
     isLoadingAnneesUniv.value = true;
-    anneesUniv.value = await getAllAnneesUniversitairesService();
+    anneesUniv.value = await getAnneesUniversitairesService();
   } catch (error) {
     console.error('Erreur lors du chargement des années universitaires :', error);
     hasError.value = true;
@@ -143,7 +143,7 @@ const createEtudiant = async () => {
       };
 
       try {
-        const response = await createEtudiantsService(data, true);
+        const response = await createEtudiantService(data, '/new', true);
 
         // Redirect to the result page with the response data
         router.push({

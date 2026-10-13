@@ -9,6 +9,8 @@ use App\Entity\Etudiant\EtudiantScolariteSemestre;
 use App\Entity\Structure\StructureAnnee;
 use App\Entity\Structure\StructureAnneeUniversitaire;
 use App\Entity\Users\Etudiant;
+use App\Repository\EtudiantScolariteRepository;
+use App\Repository\EtudiantScolariteSemestreRepository;
 use App\Repository\EtudiantRepository;
 use App\Repository\Structure\StructureAnneeRepository;
 use App\Repository\Structure\StructureAnneeUniversitaireRepository;
@@ -27,13 +29,63 @@ class CreateEtudiantController extends AbstractController
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
         private readonly EtudiantRepository $etudiantRepository,
+        private readonly EtudiantScolariteRepository $etudiantScolariteRepository,
+        private readonly EtudiantScolariteSemestreRepository $etudiantScolariteSemestreRepository,
         private readonly StructureAnneeRepository $structureAnneeRepository,
         private readonly StructureSemestreRepository $structureSemestreRepository,
         private readonly StructureAnneeUniversitaireRepository $structureAnneeUniversitaireRepository,
         private readonly UserPasswordHasherInterface $passwordHasher
     ) {}
 
+    #[Route('/api/etudiants/{id}/integrer_scolarite', methods: ['POST'], name: 'integrer_etudiant_scolarite')]
+    #[Route('/api/{id}/integrer_scolarite/etudiants', methods: ['POST'])]
+    public function integrerScolarite(int $id, Request $request): Response
+    {
+        $data = $request->toArray();
+        $anneeUnivId = $data['anneeUniversitaireId'] ?? null;
+        $anneeId = $data['anneeId'] ?? null;
+
+        if (!$anneeUnivId || !$anneeId) {
+            return new JsonResponse(['message' => 'anneeUniversitaireId et anneeId sont obligatoires'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $etudiant = $this->etudiantRepository->find($id);
+        if (!$etudiant instanceof Etudiant) {
+            return new JsonResponse(['message' => 'Étudiant introuvable'], Response::HTTP_NOT_FOUND);
+        }
+
+        $anneeUniv = $this->structureAnneeUniversitaireRepository->find($anneeUnivId);
+        if (!$anneeUniv instanceof StructureAnneeUniversitaire) {
+            return new JsonResponse(['message' => 'Année universitaire introuvable'], Response::HTTP_NOT_FOUND);
+        }
+
+        $annee = $this->structureAnneeRepository->find($anneeId);
+        if (!$annee instanceof StructureAnnee) {
+            return new JsonResponse(['message' => 'Année pédagogique introuvable'], Response::HTTP_NOT_FOUND);
+        }
+
+        $scolarite = $this->etudiantScolariteRepository->findOneBy([
+            'etudiant' => $etudiant,
+            'anneeUniversitaire' => $anneeUniv,
+        ]);
+
+        if (!$scolarite instanceof EtudiantScolarite) {
+            $scolarite = $this->createEtudiantScolariteFromData($etudiant, $anneeUniv, $annee);
+            $this->entityManager->persist($scolarite);
+        }
+
+        $scolariteSemestres = $this->createEtudiantScolariteSemestreFromData($scolarite, $annee, false);
+        $this->entityManager->flush();
+
+        return new JsonResponse([
+            'message' => 'Scolarité intégrée avec succès',
+            'scolariteId' => $scolarite->getId(),
+            'scolariteSemestreIds' => array_map(static fn (EtudiantScolariteSemestre $semestre) => $semestre->getId(), $scolariteSemestres),
+        ], Response::HTTP_OK);
+    }
+
     #[Route('/api/etudiants/new', methods: ['POST'], name: 'create_etudiant')]
+    #[Route('/api/new/etudiants', methods: ['POST'])]
     public function create(Request $request): Response
     {
         // Récupérer les données JSON envoyées dans la requête
@@ -61,7 +113,8 @@ class CreateEtudiantController extends AbstractController
         $processedLines = []; // Tableau pour stocker les informations sur chaque ligne traitée
 
         // Traiter chaque ligne de données (à partir de la deuxième ligne)
-        for ($i = 1; $i < count($lines); $i++) {
+        $linesCount = count($lines);
+        for ($i = 1; $i < $linesCount; $i++) {
             $line = trim($lines[$i]);
             if (empty($line)) {
                 continue; // Ignorer les lignes vides
@@ -249,25 +302,40 @@ class CreateEtudiantController extends AbstractController
         return $etudiantSco;
     }
 
-    public function createEtudiantScolariteSemestreFromData(EtudiantScolarite $etudiantScolarite, StructureAnnee $annee): mixed
+    public function createEtudiantScolariteSemestreFromData(EtudiantScolarite $etudiantScolarite, StructureAnnee $annee, bool $assignDefaultGroupes = true): array
     {
         $semestres = $this->structureSemestreRepository->findBy(['annee' => $annee]);
+        $createdSemestres = [];
 
-        if (count($semestres) === 2) {
-            foreach ($semestres as $semestre) {
-                $etudiantScoSemestre = new EtudiantScolariteSemestre();
-                $etudiantScoSemestre->setScolarite($etudiantScolarite);
-                $etudiantScoSemestre->setSemestre($semestre);
+        if (0 === count($semestres)) {
+            return [];
+        }
+
+        foreach ($semestres as $semestre) {
+            $existing = $this->etudiantScolariteSemestreRepository->findOneBy([
+                'scolarite' => $etudiantScolarite,
+                'semestre' => $semestre,
+            ]);
+            if ($existing instanceof EtudiantScolariteSemestre) {
+                $createdSemestres[] = $existing;
+                continue;
+            }
+
+            $etudiantScoSemestre = new EtudiantScolariteSemestre();
+            $etudiantScoSemestre->setScolarite($etudiantScolarite);
+            $etudiantScoSemestre->setSemestre($semestre);
+
+            if ($assignDefaultGroupes) {
                 $groupes = $semestre->getGroupes();
                 foreach ($groupes as $groupe) {
                     $etudiantScoSemestre->addGroupe($groupe);
                 }
-                $this->entityManager->persist($etudiantScoSemestre);
-                $this->entityManager->flush();
             }
-        } else {
-            return null;
+
+            $this->entityManager->persist($etudiantScoSemestre);
+            $createdSemestres[] = $etudiantScoSemestre;
         }
-        return $etudiantScoSemestre;
+
+        return $createdSemestres;
     }
 }

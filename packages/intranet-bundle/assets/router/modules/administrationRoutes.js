@@ -63,6 +63,10 @@ export default [
           },{
             path: 'manuel',
             component: EtudiantAddManuel,
+          },{
+            path: 'sans-scolarite',
+            name: 'ajout-etudiants-sans-scolarite',
+            component: () => import('@/components/Etudiant/EtudiantsSansScolarite.vue'),
           },
         ]
       },

@@ -1,8 +1,8 @@
 <script setup>
 import {onMounted, ref, watch} from 'vue';
-import { getAnneesService, getAnneeSemestresService, getAllAnneesUniversitairesService, importEtudiantApogeeService } from "@requests";
+import { getAnneesService, getAnneeSemestresService, getAnneesUniversitairesService, createEtudiantService } from "@requests";
 import {ErrorView, ListSkeleton} from "@components";
-import { useUsersStore, useSemestreStore } from "@stores";
+import { useUsersStore } from "@stores";
 import { useToast } from "primevue/usetoast";
 
 const hasError = ref(false);
@@ -15,10 +15,10 @@ const selectedSemestre = ref(null);
 const anneesUniv = ref([]);
 const selectedAnneeUniv = ref(null);
 
-const selectedFeature = ref(null);
+const selectedFeature = ref('import_promo');
 const features = [
-  { id: 'import_cible', libelle: 'Import ciblé' },
   { id: 'import_promo', libelle: 'Import promo' },
+  { id: 'import_cible', libelle: 'Import ciblé' },
 ];
 
 const isLoadingAnnees = ref(true);
@@ -55,7 +55,10 @@ const formatSize = (bytes) => {
 const getAnneesUniv = async () => {
   try {
     isLoadingAnneesUniv.value = true;
-    anneesUniv.value = await getAllAnneesUniversitairesService();
+    const params = {
+      since: new Date().getFullYear()
+    };
+    anneesUniv.value = await getAnneesUniversitairesService(params);
   } catch (error) {
     console.error('Erreur lors du chargement des années universitaires :', error);
     hasError.value = true;
@@ -66,6 +69,8 @@ const getAnneesUniv = async () => {
       life: 5000,
     });
   } finally {
+    // préselectionner l'année universitaire.actif
+    selectedAnneeUniv.value = anneesUniv.value.find(annee => annee.actif)?.id ?? null;
     isLoadingAnneesUniv.value = false;
   }
 };
@@ -89,7 +94,6 @@ const getAnnees = async () => {
       life: 5000,
     });
   } finally {
-    console.log(annees.value)
     isLoadingAnnees.value = false;
   }
 };
@@ -110,17 +114,20 @@ const getSemestresSelectedAnnee = async () => {
     });
   } finally {
     isLoadingSemestres.value = false;
-    console.log(semestres.value)
   }
 };
 
 const importEtudiants = async () => {
   try {
-    if (!selectedAnnee.value || !selectedSemestre.value || !selectedAnneeUniv.value) {
+    const isImportPromo = selectedFeature.value === 'import_promo';
+
+    if (!selectedAnnee.value || !selectedAnneeUniv.value || (!isImportPromo && !selectedSemestre.value)) {
       toast.add({
         severity: 'warn',
         summary: 'Attention',
-        detail: 'Veuillez sélectionner une année, un semestre et une année universitaire avant d\'importer des étudiants.',
+        detail: isImportPromo
+          ? 'Veuillez sélectionner une année et une année universitaire avant d\'importer des étudiants.'
+          : 'Veuillez sélectionner une année, un semestre et une année universitaire avant d\'importer des étudiants.',
         life: 5000,
       });
       return;
@@ -129,12 +136,13 @@ const importEtudiants = async () => {
     const data = {
       file: file,
       anneeId: selectedAnnee.value.id,
-      semestreId: selectedSemestre.value.id,
       anneeUnivId: selectedAnneeUniv.value.id,
     };
-    console.log(data)
+    if (!isImportPromo) {
+      data.semestreId = selectedSemestre.value.id;
+    }
 
-    await importEtudiantApogeeService(data);
+    await createEtudiantService(data, '/import_apogee');
   } catch (error) {
     console.error('Erreur lors de l\'importation des étudiants :', error);
     hasError.value = true;
@@ -155,7 +163,6 @@ watch(selectedAnnee, async (newValue) => {
 
 watch(selectedAnneeUniv, async (newValue) => {
   if (newValue) {
-    console.log(newValue)
   }
 })
 
@@ -163,7 +170,6 @@ onMounted(async() => {
   await getAnneesUniv();
   await getAnnees();
 });
-
 </script>
 
 <template>
@@ -173,9 +179,12 @@ onMounted(async() => {
     <SelectButton :options="features" v-model="selectedFeature" class="w-full justify-center" optionLabel="libelle" optionValue="id"/>
 
     <div v-if="selectedFeature">
-      <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
-        <div class="font-medium text-lg">
+      <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+        <div v-if="anneesUniv.length > 1" class="font-medium text-lg">
           Sélectionner une année universitaire
+        </div>
+        <div v-else class="font-medium text-lg">
+          Année universitaire
         </div>
         <ListSkeleton v-if="isLoadingAnneesUniv" class="w-full"/>
         <SelectButton v-else :options="anneesUniv" v-model="selectedAnneeUniv" class="w-full justify-center" optionLabel="libelle" optionValue="id"/>
@@ -187,12 +196,12 @@ onMounted(async() => {
         Importer un ou plusieurs étudiants depuis Apogée
       </em>
       <Message severity="info" icon="pi pi-info-circle" class="mx-auto">Cette fonctionnalité permet d'importer des étudiants de manière ciblée (avec un numéro étudiant). Vous pouvez saisir plusieurs numéros en séparant par un ; (point virgule).</Message>
-      <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+      <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
         <label for="num_etudiants">Numéro(s) étudiant</label>
         <Textarea id="num_etudiants" rows="1" placeholder="Saisir ici les numéros des étudiants à importer" class="w-full"/>
       </div>
       <div class="w-full flex gap-2">
-        <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
+        <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
           <div class="font-medium text-lg">
             Sélectionner une année
           </div>
@@ -200,20 +209,6 @@ onMounted(async() => {
           <Button v-else :severity="selectedAnnee && selectedAnnee.id === annee.id ? 'primary' : 'secondary'" v-for="annee in annees" :key="annee.id" class="w-full" @click="selectedAnnee = annee">
             {{annee.libelle}}
           </Button>
-        </div>
-        <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
-          <div class="font-medium text-lg">
-            Sélectionner un semestre
-          </div>
-          <ListSkeleton v-if="isLoadingSemestres" class="w-full"/>
-          <Button v-else-if="semestres.length > 0" :severity="selectedSemestre && selectedSemestre.id === semestre.id ? 'primary' : 'secondary'" v-for="semestre in semestres" :key="semestre.id" class="w-full" @click="selectedSemestre = semestre">
-            {{semestre.libelle}}
-          </Button>
-          <div v-else class="flex items-center justify-center h-full">
-            <Message severity="warn" icon="pi pi-info-circle">
-              Veuillez d'abord sélectionner une année
-            </Message>
-          </div>
         </div>
       </div>
     </div>
@@ -223,7 +218,7 @@ onMounted(async() => {
       </em>
       <Message severity="info" icon="pi pi-info-circle" class="mx-auto">Cette fonctionnalité permet d'importer toute une promo</Message>
       <div class="w-full flex gap-2">
-        <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
+        <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
           <div class="font-medium text-lg">
             Sélectionner une année
           </div>
@@ -232,22 +227,8 @@ onMounted(async() => {
             {{annee.libelle}}
           </Button>
         </div>
-        <div class="text-lg font-medium border p-4 w-1/2 text-center mx-auto rounded-md flex flex-col gap-2">
-          <div class="font-medium text-lg">
-            Sélectionner un semestre
-          </div>
-          <ListSkeleton v-if="isLoadingSemestres" class="w-full"/>
-          <Button v-else-if="semestres.length > 0" :severity="selectedSemestre && selectedSemestre.id === semestre.id ? 'primary' : 'secondary'" v-for="semestre in semestres" :key="semestre.id" class="w-full" @click="selectedSemestre = semestre">
-            {{semestre.libelle}}
-          </Button>
-          <div v-else class="flex items-center justify-center h-full">
-            <Message severity="warn" icon="pi pi-info-circle">
-              Veuillez d'abord sélectionner une année
-            </Message>
-          </div>
-        </div>
       </div>
-      <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+      <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
         <div class="flex flex-col items-center justify-center h-full">
           <div class="font-medium text-lg">
             Importer les photos des étudiants
@@ -283,7 +264,7 @@ onMounted(async() => {
             <div class="flex flex-col gap-8 pt-4">
               <div v-if="files.length > 0">
                 <div class="flex flex-wrap gap-4">
-                  <div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="p-4 rounded-border flex flex-col border border-surface items-center gap-2 w-full">
+                  <div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="p-4 rounded-flex flex-col border-surface items-center gap-2 w-full">
                     <div>
                       <span class="font-semibold text-ellipsis whitespace-nowrap overflow-hidden text-sm">{{ file.name }}</span>
                       <div>{{ formatSize(file.size) }}</div>
@@ -305,7 +286,7 @@ onMounted(async() => {
     </div>
     <div v-if="selectedFeature" class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
       <div class="flex items-center justify-center h-full">
-        <Button severity="primary" class="w-full" :disabled="!selectedAnnee || !selectedSemestre || !selectedAnneeUniv" @click="importEtudiants()">
+        <Button severity="primary" class="w-full" :disabled="!selectedAnnee || !selectedAnneeUniv || (selectedFeature !== 'import_promo' && !selectedSemestre)" @click="importEtudiants()">
           Importer les étudiants
         </Button>
       </div>

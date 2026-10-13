@@ -50,6 +50,7 @@ use Symfony\Component\Serializer\Attribute\MaxDepth;
         'semestre' => new QueryParameter(filter: EtudiantFilter::class),
         'annee' => new QueryParameter(filter: EtudiantFilter::class),
         'groupe' => new QueryParameter(filter: EtudiantFilter::class),
+        'sansScolarite' => new QueryParameter(filter: EtudiantFilter::class),
         'nom' => new QueryParameter(filter: SearchFilter::class),
         'start' => new QueryParameter(filter: SearchFilter::class),
         'prenom' => new QueryParameter(filter: SearchFilter::class),
