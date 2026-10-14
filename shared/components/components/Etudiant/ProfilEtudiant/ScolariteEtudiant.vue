@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { getEtudiantScolaritesService, getEtudiantScolariteSemestresService } from "@requests";
 import { updateEtudiantScolariteSemestreService, getUeService, getGroupesService } from "@requests";
 import { ValidatedInput, ErrorView } from "@components";
@@ -8,7 +8,7 @@ import { SimpleSkeleton } from "@components";
 
 const props = defineProps({
   isVisible: Boolean,
-  etudiantId: Number,
+  etudiantId: [Number, String],
 });
 
 const isLoadingScolarites = ref(true);
@@ -21,8 +21,17 @@ const ueLabels = ref({});
 const hasError = ref(false);
 
 onMounted(async () => {
-  await getEtudiantScolarites();
+  if (props.etudiantId) {
+    await getEtudiantScolarites();
+  }
 });
+
+watch(() => props.etudiantId, async (newId) => {
+  if (newId) {
+    await getEtudiantScolarites();
+  }
+});
+
 
 
 const getEtudiantScolarites = async () => {

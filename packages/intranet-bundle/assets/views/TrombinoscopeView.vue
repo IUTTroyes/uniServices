@@ -11,12 +11,31 @@ import FilterSidebar from '@/components/Trombinoscope/FilterSidebar.vue';
 import StatisticsPanel from '@/components/Trombinoscope/StatisticsPanel.vue';
 import PersonCard from '@/components/Trombinoscope/PersonCard.vue';
 import { useUsersStore, useAnneeUnivStore } from '@stores';
-import { HeaderComponent } from '@components';
+import { HeaderComponent, ProfilEtudiant } from '@components';
+import { ViewPersonnelDialog } from '@dialogs';
+import Dialog from 'primevue/dialog';
 import { useToast } from 'primevue/usetoast';
 
 const toast = useToast();
 const usersStore = useUsersStore();
 const anneeUnivStore = useAnneeUnivStore();
+
+// Profile dialog states
+const showStudentDialog = ref(false);
+const selectedStudent = ref<any>(null);
+
+const showStaffDialog = ref(false);
+const selectedStaff = ref<any>(null);
+
+const handleViewProfile = (person: any) => {
+  if (filters.value.mode === 'students' || 'scolarites' in person) {
+    selectedStudent.value = person;
+    showStudentDialog.value = true;
+  } else {
+    selectedStaff.value = person;
+    showStaffDialog.value = true;
+  }
+};
 
 const departementId = computed(() => usersStore.departementDefaut?.id);
 const selectedAnneeUnivId = computed(() => {
@@ -422,6 +441,7 @@ onUnmounted(() => {
                 :person="person"
                 :mode="filters.mode"
                 :view-mode="filters.viewMode"
+                @view-profile="handleViewProfile"
             />
           </div>
 
@@ -436,6 +456,7 @@ onUnmounted(() => {
                 :person="person"
                 :mode="filters.mode"
                 :view-mode="filters.viewMode"
+                @view-profile="handleViewProfile"
             />
           </div>
         </div>
@@ -459,5 +480,32 @@ onUnmounted(() => {
         </footer>
       </main>
     </div>
+
+    <!-- Student Profile Dialog -->
+    <Dialog
+        header=" "
+        :visible="showStudentDialog"
+        modal
+        :style="{ width: '90vw' }"
+        :breakpoints="{ '1199px': '75vw', '575px': '90vw' }"
+        dismissable-mask
+        :closable="true"
+        @update:visible="showStudentDialog = $event"
+    >
+      <ProfilEtudiant
+          v-if="selectedStudent && showStudentDialog"
+          :key="selectedStudent.id"
+          :etudiantId="Number(selectedStudent.id)"
+          :isVisible="showStudentDialog"
+      />
+    </Dialog>
+
+    <!-- Staff Profile Dialog -->
+    <ViewPersonnelDialog
+        :isVisible="showStaffDialog"
+        :personnel="selectedStaff"
+        @update:visible="showStaffDialog = $event"
+    />
   </div>
 </template>
+

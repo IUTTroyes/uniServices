@@ -51,6 +51,23 @@ const getPersonnelsService = async (params, scope = '', showToast = false) => {
         console.error('Erreur dans getPersonnelsDepartementService:', error);
         throw error;
     }
-}
+};
 
-export { getPersonnelsService };
+const getPersonnelService = async (id, scope = '', showToast = false) => {
+    try {
+        return await apiCall(
+            api.get,
+            [`/api${scope}/personnels/${id}`],
+            'Personnel récupéré avec succès',
+            'Erreur lors de la récupération du personnel',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans getPersonnelService:', error);
+        throw error;
+    }
+};
+
+export { getPersonnelsService, getPersonnelService };
+
+

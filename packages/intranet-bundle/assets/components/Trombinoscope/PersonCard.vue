@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { getStatutText, getStatutColor } from "@utils";
 import { PhotoUser } from "@components";
+import Button from "primevue/button";
 
 interface Props {
   person: any;
@@ -9,6 +10,10 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+const emit = defineEmits<{
+  (e: 'view-profile', person: any): void;
+}>();
 
 const isStudent = (person: any): boolean => {
   return props.mode === 'students' || 'scolarites' in person;
@@ -22,11 +27,15 @@ const isStudent = (person: any): boolean => {
   >
     <!-- Top section: Photo + Identity -->
     <div class="text-center">
-      <div class="relative inline-block mb-3">
+      <div
+          class="relative inline-block mb-3 cursor-pointer"
+          @click="emit('view-profile', person)"
+          :title="`Voir le profil de ${person.prenom} ${person.nom}`"
+      >
         <PhotoUser
             :user-photo="person.photoName"
             :type="isStudent(person) ? 'etudiants' : 'personnels'"
-            class="rounded-full w-24 h-24 object-cover border-4 border-gray-100 group-hover:border-primary-100 shadow-sm mx-auto transition-colors"
+            class="rounded-full w-24 h-24 object-cover border-4 border-gray-100 group-hover:border-primary-200 shadow-sm mx-auto transition-colors"
         />
         <span
             v-if="isStudent(person) && person.status === 'active'"
@@ -35,7 +44,11 @@ const isStudent = (person: any): boolean => {
         ></span>
       </div>
 
-      <h3 class="text-base font-semibold text-gray-900 group-hover:text-primary-700 transition-colors leading-tight truncate px-1">
+      <h3
+          class="text-base font-semibold text-gray-900 group-hover:text-primary-700 transition-colors leading-tight truncate px-1 cursor-pointer"
+          @click="emit('view-profile', person)"
+          :title="`Voir le profil de ${person.prenom} ${person.nom}`"
+      >
         {{ person.prenom }} {{ person.nom }}
       </h3>
 
@@ -43,6 +56,7 @@ const isStudent = (person: any): boolean => {
         <a
             v-if="person.mailUniv"
             :href="`mailto:${person.mailUniv}`"
+            @click.stop
             class="text-xs text-gray-500 hover:text-primary-600 inline-flex items-center gap-1 truncate max-w-full"
             :title="person.mailUniv"
         >
@@ -138,6 +152,20 @@ const isStudent = (person: any): boolean => {
         </div>
       </div>
     </div>
+
+    <!-- Bottom section: Action button to access profile -->
+    <div class="mt-4 pt-3 border-t border-gray-100">
+      <Button
+          type="button"
+          icon="pi pi-id-card"
+          label="Voir le profil"
+          size="small"
+          outlined
+          severity="secondary"
+          class="!text-xs !py-1.5 !px-3 w-full rounded-xl hover:!bg-primary-50 hover:!text-primary-700 hover:!border-primary-300 transition-colors flex items-center justify-center gap-1.5"
+          @click.stop="emit('view-profile', person)"
+      />
+    </div>
   </div>
 
   <!-- List view mode -->
@@ -147,18 +175,29 @@ const isStudent = (person: any): boolean => {
   >
     <!-- Left: Photo + Name + Mail -->
     <div class="flex items-center gap-4 min-w-0">
-      <PhotoUser
-          :user-photo="person.photoName"
-          :type="isStudent(person) ? 'etudiants' : 'personnels'"
-          class="rounded-full w-14 h-14 object-cover border-2 border-gray-100 group-hover:border-primary-100 shadow-sm flex-shrink-0"
-      />
+      <div
+          class="cursor-pointer"
+          @click="emit('view-profile', person)"
+          :title="`Voir le profil de ${person.prenom} ${person.nom}`"
+      >
+        <PhotoUser
+            :user-photo="person.photoName"
+            :type="isStudent(person) ? 'etudiants' : 'personnels'"
+            class="rounded-full w-14 h-14 object-cover border-2 border-gray-100 group-hover:border-primary-200 shadow-sm flex-shrink-0 transition-colors"
+        />
+      </div>
       <div class="min-w-0">
-        <h3 class="text-base font-semibold text-gray-900 group-hover:text-primary-700 transition-colors leading-tight truncate">
+        <h3
+            class="text-base font-semibold text-gray-900 group-hover:text-primary-700 transition-colors leading-tight truncate cursor-pointer"
+            @click="emit('view-profile', person)"
+            :title="`Voir le profil de ${person.prenom} ${person.nom}`"
+        >
           {{ person.prenom }} {{ person.nom }}
         </h3>
         <a
             v-if="person.mailUniv"
             :href="`mailto:${person.mailUniv}`"
+            @click.stop
             class="text-xs text-gray-500 hover:text-primary-600 inline-flex items-center gap-1 truncate max-w-full mt-0.5"
         >
           <i class="pi pi-envelope text-[11px]"></i>
@@ -167,7 +206,7 @@ const isStudent = (person: any): boolean => {
       </div>
     </div>
 
-    <!-- Right: Badges and Details -->
+    <!-- Right: Badges, Details and Action Button -->
     <div class="flex items-center gap-3 flex-shrink-0">
       <template v-if="isStudent(person)">
         <Tag
@@ -219,6 +258,20 @@ const isStudent = (person: any): boolean => {
           <i class="pi pi-phone text-gray-400"></i> {{ person.telBureau }}
         </span>
       </template>
+
+      <!-- Action button to access profile -->
+      <Button
+          type="button"
+          icon="pi pi-id-card"
+          label="Voir le profil"
+          size="small"
+          outlined
+          severity="secondary"
+          class="!text-xs !py-1.5 !px-3 rounded-xl hover:!bg-primary-50 hover:!text-primary-700 hover:!border-primary-300 transition-colors flex items-center gap-1.5 ml-1"
+          @click.stop="emit('view-profile', person)"
+      />
     </div>
   </div>
 </template>
+
+<style scoped></style>
