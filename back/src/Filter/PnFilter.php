@@ -2,13 +2,16 @@
 
 namespace App\Filter;
 
-use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
+use ApiPlatform\Doctrine\Orm\Filter\FilterInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
+use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
 
-class PnFilter extends AbstractFilter
+class PnFilter implements FilterInterface
 {
+    use BackwardCompatibleFilterDescriptionTrait;
+
     private const FILTERS = [
         'personnel' => 'personnel',
         'anneeUniversitaire' => 'anneeUniversitaire',
@@ -16,6 +19,22 @@ class PnFilter extends AbstractFilter
         'enseignement' => 'enseignement',
         'diplome' => 'diplome',
     ];
+
+    public function apply(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
+    {
+        if (isset($context['parameter'])) {
+            $parameter = $context['parameter'];
+            $property = $parameter->getProperty() ?? $parameter->getKey();
+            $this->filterProperty($property, $parameter->getValue(), $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
+
+            return;
+        }
+
+        foreach ($context['filters'] ?? [] as $property => $value) {
+            $this->filterProperty((string) $property, $value, $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
+        }
+    }
+
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
         if (!in_array($property, self::FILTERS) || null === $value) {
@@ -39,27 +58,5 @@ class PnFilter extends AbstractFilter
                 ->setParameter("anneeUniversitaire", $value)
             ;
         }
-    }
-
-    public function getDescription(string $resourceClass): array
-    {
-        return [
-            'diplome' => [
-                'property' => 'diplome',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by diplôme',
-                ],
-            ],
-            'anneeUniversitaire' => [
-                'property' => 'anneeUniversitaire',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by année universitaire',
-                ],
-            ],
-        ];
     }
 }

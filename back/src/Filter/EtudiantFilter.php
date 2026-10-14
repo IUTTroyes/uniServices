@@ -2,15 +2,31 @@
 
 namespace App\Filter;
 
-use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
+use ApiPlatform\Doctrine\Orm\Filter\FilterInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
-use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
 
-#[ApiFilter(EtudiantFilter::class)]
-class EtudiantFilter extends AbstractFilter
+class EtudiantFilter implements FilterInterface
 {
+    use BackwardCompatibleFilterDescriptionTrait;
+
+    public function apply(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
+    {
+        if (isset($context['parameter'])) {
+            $parameter = $context['parameter'];
+            $property = $parameter->getProperty() ?? $parameter->getKey();
+            $this->filterProperty($property, $parameter->getValue(), $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
+
+            return;
+        }
+
+        foreach ($context['filters'] ?? [] as $property => $value) {
+            $this->filterProperty((string) $property, $value, $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
+        }
+    }
+
     protected function filterProperty(string $property, mixed $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
         if (null === $value) {
@@ -101,75 +117,5 @@ class EtudiantFilter extends AbstractFilter
         $newAlias = $queryNameGenerator->generateJoinAlias($association);
         $qb->join("$fromAlias.$association", $newAlias);
         return $newAlias;
-    }
-
-    public function getDescription(string $resourceClass): array
-    {
-        return [
-            'departement' => [
-                'property' => 'departement',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by departement',
-                ],
-            ],
-            'anneeUniversitaire' => [
-                'property' => 'anneeUniversitaire',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by anneeUniversitaire',
-                ],
-            ],
-            'semestre' => [
-                'property' => 'semestre',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by semestre',
-                ],
-            ],
-            'annee' => [
-                'property' => 'annee',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by annee',
-                ],
-            ],
-            'groupe' => [
-                'property' => 'groupe',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by groupe',
-                ],
-            ],
-            'sansScolarite' => [
-                'property' => 'sansScolarite',
-                'type' => 'bool',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter students without any EtudiantScolarite',
-                ],
-            ],
-            'actif' => [
-                'property' => 'actif',
-                'type' => 'bool',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by active scolarite',
-                ],
-            ],
-            'anneeSortie' => [
-                'property' => 'anneeSortie',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by annee_sortie (0 for active students)',
-                ],
-            ],
-        ];
     }
 }

@@ -2,16 +2,32 @@
 
 namespace App\Filter;
 
-use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
+use ApiPlatform\Doctrine\Orm\Filter\FilterInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
-use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
 use ApiPlatform\Metadata\Operation;
 use App\Entity\Structure\StructureAnnee;
 use Doctrine\ORM\QueryBuilder;
 
-#[ApiFilter(EdtFilter::class)]
-class EdtFilter extends AbstractFilter
+class EdtFilter implements FilterInterface
 {
+    use BackwardCompatibleFilterDescriptionTrait;
+
+    public function apply(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
+    {
+        if (isset($context['parameter'])) {
+            $parameter = $context['parameter'];
+            $property = $parameter->getProperty() ?? $parameter->getKey();
+            $this->filterProperty($property, $parameter->getValue(), $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
+
+            return;
+        }
+
+        foreach ($context['filters'] ?? [] as $property => $value) {
+            $this->filterProperty((string) $property, $value, $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
+        }
+    }
+
     protected function filterProperty(
         string $property,
                $value,
@@ -128,97 +144,5 @@ class EdtFilter extends AbstractFilter
 
     }
 
-    public function getDescription(string $resourceClass): array
-    {
-        return [
-            'anneeUniversitaire' => [
-                'property' => 'anneeUniversitaire',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by année universitaire',
-                ],
-            ],
-            'semaineFormation' => [
-                'property' => 'semaineFormation',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by semaine de formation',
-                ],
-            ],
-            'personnel' => [
-                'property' => 'personnel',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by personnel',
-                ],
-            ],
-            'departement' => [
-                'property' => 'departement',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by department',
-                ],
-            ],
-            'semestre' => [
-                'property' => 'semestre',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by semester',
-                ],
-            ],
-            'day' => [
-                'property' => 'day',
-                'type' => 'string',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter events to only include events on the specified date (format: YYYY-MM-DD)',
-                ]
-            ],
-            'debut' => [
-                'property' => 'debut',
-                'type' => 'string',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter events to only include events starting from the specified date (format: YYYY-MM-DD)',
-                ]
-            ],
-            'fin' => [
-                'property' => 'fin',
-                'type' => 'string',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter events to only include events ending before the specified date (format: YYYY-MM-DD)',
-                ]
-            ],
-            'enseignement' => [
-                'property' => 'enseignement',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by enseignement',
-                ],
-            ],
-            'salle' => [
-                'property' => 'salle',
-                'type' => 'string',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by salle (partial match)',
-                ],
-            ],
-            'annee' => [
-                'property' => 'annee',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by annee',
-                ],
-            ]
-        ];
-    }
+
 }
