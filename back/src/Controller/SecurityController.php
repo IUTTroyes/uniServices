@@ -297,10 +297,10 @@ class SecurityController extends AbstractController
                 $departmentsData[] = $currentDepartment;
             }
 
-            $rawApps = $user->getApplications() ?? ['UniTranet'];
+            $rawApps = $user->getApplications() ?? ['Intranet'];
             $activePackages = array_values(array_unique(array_map(function($app) {
                 $low = strtolower((string) $app);
-                return $low === 'unitranet' ? 'intranet' : $low;
+                return $low === 'intranet' ? 'intranet' : $low;
             }, $rawApps)));
             if (empty($activePackages)) {
                 $activePackages = ['intranet'];

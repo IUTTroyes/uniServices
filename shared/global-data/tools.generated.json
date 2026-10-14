@@ -12,7 +12,7 @@
         "url": "http://localhost:3004/helpdesk/"
     },
     {
-        "name": "UniTranet",
+        "name": "Intranet",
         "description": "Gestion de la structure des formations et des \u00e9tudiants.",
         "urlSlug": "intranet",
         "url": "http://localhost:3001/intranet/"

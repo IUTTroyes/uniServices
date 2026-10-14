@@ -394,7 +394,7 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
 
     public function getApplications(): ?array
     {
-        return $this->applications ?? ['UniTranet'];
+        return $this->applications ?? ['Intranet'];
     }
 
     public function setApplications(?array $applications): static

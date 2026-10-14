@@ -3,7 +3,7 @@
  * Every application's primary color strictly matches the `primaryColor` declared in its `manifest.ts`.
  *
  * References:
- * - intranet / unitranet: 'violet' (packages/intranet-bundle/assets/manifest.ts)
+ * - intranet / intranet: 'violet' (packages/intranet-bundle/assets/manifest.ts)
  * - stage / stages:       'teal'   (packages/stage-bundle/assets/manifest.ts)
  * - questionnaire:        'green'  (packages/questionnaire-bundle/assets/manifest.ts)
  * - documents / document: 'blue'   (packages/document-bundle/assets/manifest.ts)
@@ -17,8 +17,8 @@
 export const APPLICATION_REGISTRY = {
   intranet: {
     slug: 'intranet',
-    name: 'UniTranet',
-    shortLabel: 'UniTranet',
+    name: 'Intranet',
+    shortLabel: 'Intranet',
     primaryColor: 'violet',
     color: 'violet',
     icon: 'pi pi-desktop',
@@ -137,7 +137,7 @@ export function normalizeAppSlug(appInput) {
   const clean = raw.trim().toLowerCase();
 
   const aliases = {
-    unitranet: 'intranet',
+    intranet: 'intranet',
     stages: 'stage',
     questionnaires: 'questionnaire',
     document: 'documents',

@@ -40,7 +40,7 @@ export const useUsersStore = defineStore('users', () => {
             return null;
         }
 
-        if (normalized === 'unitranet') {
+        if (normalized === 'intranet') {
             return 'intranet';
         }
 

@@ -129,7 +129,7 @@ const save = async () => {
     toast.add({
       severity: 'warn',
       summary: 'Attention',
-      detail: 'Veuillez sélectionner au moins une application (ex: UniTranet).',
+      detail: 'Veuillez sélectionner au moins une application (ex: Intranet).',
       life: 4000,
     });
     return;
@@ -339,7 +339,7 @@ const save = async () => {
             @click="selectAll"
           />
           <Button
-            label="UniTranet seul"
+            label="Intranet seul"
             icon="pi pi-refresh"
             text
             size="small"
@@ -408,7 +408,7 @@ const save = async () => {
           Les applications cochées seront <strong>ajoutées</strong> aux accès déjà attribués à chacun des étudiants ciblés.
         </template>
         <template v-else-if="bulkAction === 'remove'">
-          Les applications cochées seront <strong>retirées</strong> des accès de chacun des étudiants ciblés. L'accès de base (UniTranet) reste toujours conservé.
+          Les applications cochées seront <strong>retirées</strong> des accès de chacun des étudiants ciblés. L'accès de base (Intranet) reste toujours conservé.
         </template>
         <template v-else>
           La liste exacte d'applications sélectionnée ci-dessus deviendra le nouvel ensemble d'applications actives pour ces étudiants.

@@ -146,7 +146,7 @@ class StructureGroupeFixtures extends Fixture implements OrderedFixtureInterface
             $etudiant->setPassword('test');
             $etudiant->setRoles(['ROLE_ETUDIANT']);
             $etudiant->setPhotoName('noimage.png');
-            $etudiant->setApplications(['UniTranet']);
+            $etudiant->setApplications(['Intranet']);
             $etudiant->setNumEtudiant('123456789'.$i);
             $etudiant->setNumIne('123456789'.$i);
             $etudiant->setAnneeBac(2020);

@@ -61,10 +61,10 @@ class EtudiantListeProvider implements ProviderInterface
             ];
         }
 
-        $rawApps = $etudiant ? ($etudiant->getApplications() ?? ['UniTranet']) : [];
+        $rawApps = $etudiant ? ($etudiant->getApplications() ?? ['Intranet']) : [];
         $normalizedApps = array_values(array_unique(array_map(function($app) {
             $low = strtolower((string) $app);
-            return $low === 'unitranet' ? 'intranet' : $low;
+            return $low === 'intranet' ? 'intranet' : $low;
         }, $rawApps)));
         if (empty($normalizedApps) && $etudiant) {
             $normalizedApps = ['intranet'];

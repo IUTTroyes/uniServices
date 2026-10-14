@@ -52,7 +52,7 @@ class EtudiantApplicationsController extends AbstractController
         // Normalize input applications
         $inputApps = array_values(array_unique(array_filter(array_map(function ($app) {
             $low = strtolower(trim((string) $app));
-            return $low === 'unitranet' ? 'intranet' : $low;
+            return $low === 'intranet' ? 'intranet' : $low;
         }, $applications))));
 
         /** @var \App\Entity\Users\Etudiant[] $etudiants */
@@ -96,10 +96,10 @@ class EtudiantApplicationsController extends AbstractController
         }
 
         foreach ($etudiants as $etudiant) {
-            $rawApps = $etudiant->getApplications() ?? ['UniTranet'];
+            $rawApps = $etudiant->getApplications() ?? ['Intranet'];
             $currentApps = array_values(array_unique(array_map(function ($app) {
                 $low = strtolower(trim((string) $app));
-                return $low === 'unitranet' ? 'intranet' : $low;
+                return $low === 'intranet' ? 'intranet' : $low;
             }, $rawApps)));
 
             if ($action === 'add') {

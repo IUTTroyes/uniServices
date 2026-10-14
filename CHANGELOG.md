@@ -193,7 +193,7 @@
 * Evaluations View -&gt; listing des enseignements ([480b633](https://github.com/IUTTroyes/uniServices/commit/480b63325583524999e1e8d4a9b69d08c5e86405)) — [@CyndelHerolt](https://github.com/CyndelHerolt)
 * formulaire étudiant + api adresse ([69a1371](https://github.com/IUTTroyes/uniServices/commit/69a1371ed2e755806a6a26c6a4fd76a70af6bc40)) — [@Dannebicque](https://github.com/Dannebicque)
 * gestion des données de l'établissement ([1b8b653](https://github.com/IUTTroyes/uniServices/commit/1b8b6535a829953f8eface77b87aebdf283583f3)) — [@CyndelHerolt](https://github.com/CyndelHerolt)
-* Harmonisation package avec PrimeVue + DA UniTranet ([068c1f6](https://github.com/IUTTroyes/uniServices/commit/068c1f68c76ec163001b9982d6d7c9d9762ddde9)) — [@Dannebicque](https://github.com/Dannebicque)
+* Harmonisation package avec PrimeVue + DA Intranet ([068c1f6](https://github.com/IUTTroyes/uniServices/commit/068c1f68c76ec163001b9982d6d7c9d9762ddde9)) — [@Dannebicque](https://github.com/Dannebicque)
 * implement activation and deletion services for academic years, enhance UI interactions in ListAnneeUniv ([b676b54](https://github.com/IUTTroyes/uniServices/commit/b676b5423a6cd48e809223af4f3bde6165f6affc)) — [@CyndelHerolt](https://github.com/CyndelHerolt)
 * implement automatic PN creation on academic year creation, add inactivity logout timer and improve logout handling ([6ad5f54](https://github.com/IUTTroyes/uniServices/commit/6ad5f54cf1dc2772077265d25c9e6388236b8153)) — [@CyndelHerolt](https://github.com/CyndelHerolt)
 * implement context-aware role management based on application bundles and department structures ([92deda7](https://github.com/IUTTroyes/uniServices/commit/92deda7ce5cd5fec8cb49b81e2e8017c3f15390f)) — [@CyndelHerolt](https://github.com/CyndelHerolt)
