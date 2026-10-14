@@ -2,15 +2,30 @@
 
 namespace App\Filter;
 
-use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
+use ApiPlatform\Doctrine\Orm\Filter\FilterInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
-use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
 
-#[ApiFilter(AnneeFilter::class)]
-class AnneeFilter extends AbstractFilter
+class AnneeFilter implements FilterInterface
 {
+    use BackwardCompatibleFilterDescriptionTrait;
+
+    public function apply(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
+    {
+        if (isset($context['parameter'])) {
+            $parameter = $context['parameter'];
+            $property = $parameter->getProperty() ?? $parameter->getKey();
+            $this->filterProperty($property, $parameter->getValue(), $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
+
+            return;
+        }
+
+        foreach ($context['filters'] ?? [] as $property => $value) {
+            $this->filterProperty((string) $property, $value, $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
+        }
+    }
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
         if (null === $value) {
@@ -73,51 +88,6 @@ class AnneeFilter extends AbstractFilter
         }
     }
 
-    public function getDescription(string $resourceClass): array
-    {
-        return [
-            'departement' => [
-                'property' => 'departement',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by departement',
-                ],
-            ],
-            'pn' => [
-                'property' => 'pn',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by pn',
-                ],
-            ],
-            'anneeUniversitaire' => [
-                'property' => 'anneeUniversitaire',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by anneeUniversitaire',
-                ]
-            ],
-            'diplome' => [
-                'property' => 'diplome',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by diploma',
-                ],
-            ],
-            'actif' => [
-                'property' => 'actif',
-                'type' => 'bool',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by actif status',
-                ],
-            ]
-        ];
-    }
 
     /**
      * Reuse an existing join alias if present, otherwise create a new join and return its alias.

@@ -2,15 +2,31 @@
 
 namespace App\Filter;
 
-use ApiPlatform\Doctrine\Orm\Filter\AbstractFilter;
+use ApiPlatform\Doctrine\Orm\Filter\FilterInterface;
 use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
-use ApiPlatform\Metadata\ApiFilter;
+use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
 
-#[ApiFilter(CompetenceFilter::class)]
-class CompetenceFilter extends AbstractFilter
+class CompetenceFilter implements FilterInterface
 {
+    use BackwardCompatibleFilterDescriptionTrait;
+
+    public function apply(QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
+    {
+        if (isset($context['parameter'])) {
+            $parameter = $context['parameter'];
+            $property = $parameter->getProperty() ?? $parameter->getKey();
+            $this->filterProperty($property, $parameter->getValue(), $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
+
+            return;
+        }
+
+        foreach ($context['filters'] ?? [] as $property => $value) {
+            $this->filterProperty((string) $property, $value, $queryBuilder, $queryNameGenerator, $resourceClass, $operation, $context);
+        }
+    }
+
     protected function filterProperty(string $property, $value, QueryBuilder $queryBuilder, QueryNameGeneratorInterface $queryNameGenerator, string $resourceClass, ?Operation $operation = null, array $context = []): void
     {
         if (null === $value) {
@@ -43,27 +59,5 @@ class CompetenceFilter extends AbstractFilter
                 ->setParameter($param, $value)
             ;
         }
-    }
-
-    public function getDescription(string $resourceClass): array
-    {
-        return [
-            'ue' => [
-                'property' => 'ue',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by ue',
-                ],
-            ],
-            'referentiel' => [
-                'property' => 'referentiel',
-                'type' => 'int',
-                'required' => false,
-                'openapi' => [
-                    'description' => 'Filter by referentiel',
-                ],
-            ],
-        ];
     }
 }
