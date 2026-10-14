@@ -205,17 +205,35 @@ watch(() => route.path, async (newPath, oldPath) => {
                       type="button"
                       text
                       rounded
-                      class="justify-between! text-left font-semibold w-full"
+                      class="justify-between! text-left font-semibold w-full hover:bg-transparent! hover:scale-105! transition-transform! duration-200!"
                       @click="onBundleClick(bundle.url)"
                   >
-                    <span>{{ bundle.name }}</span>
-                    <ApplicationBadge :app="bundle.urlSlug" size="xs" show-dot />
+                    <ApplicationBadge :app="bundle.urlSlug" :showIcon="true"/>
                   </Button>
                 </template>
                 <Message v-else severity="warn" class="flex! flex-col! items-center! justify-center! text-center!">
                   <i class="pi pi-exclamation-triangle text-2xl! font-bold" />
                   <p class="font-bold">Vos accès aux applications n'ont pas été configurés. Veuillez contacter votre administrateur pour plus d'informations.</p>
                 </Message>
+              </div>
+
+              <div v-if="unactivatedBundles.length > 0" class="flex flex-col gap-4">
+                <div class="text-sm font-semibold pl-4 uppercase opacity-70">Inactives</div>
+                <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
+                <div v-else class="flex flex-col">
+                  <Button
+                      v-for="bundle in unactivatedBundles"
+                      :key="bundle.urlSlug"
+                      type="button"
+                      text
+                      rounded
+                      severity="secondary"
+                      disabled
+                      class="justify-between! text-left font-semibold w-full opacity-60"
+                  >
+                    <ApplicationBadge :app="bundle.urlSlug" :showIcon="true"/>
+                  </Button>
+                </div>
               </div>
             </div>
             <div v-if="userStore.isSuperAdmin" class="flex flex-col gap-4">
@@ -225,29 +243,10 @@ watch(() => route.path, async (newPath, oldPath) => {
                     type="button"
                     text
                     rounded
-                    class="justify-start! text-left font-semibold"
+                    class="justify-start! text-left font-semibold text-black! text-sm!"
                     @click="router.push('/configuration')"
                 >
                   Configuration
-                </Button>
-              </div>
-            </div>
-            <div v-if="unactivatedBundles.length > 0" class="flex flex-col gap-4">
-              <div class="text-ms font-semibold text-color-secondary uppercase">Non activé</div>
-              <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
-              <div v-else class="flex flex-col">
-                <Button
-                    v-for="bundle in unactivatedBundles"
-                    :key="bundle.urlSlug"
-                    type="button"
-                    text
-                    rounded
-                    severity="secondary"
-                    disabled
-                    class="justify-between! text-left font-semibold w-full opacity-60"
-                >
-                  <span>{{ bundle.name }}</span>
-                  <ApplicationBadge :app="bundle.urlSlug" size="xs" class="opacity-50" />
                 </Button>
               </div>
             </div>

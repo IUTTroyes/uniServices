@@ -54,17 +54,10 @@ const iconSizeClasses = computed(() => {
 </script>
 
 <template>
-  <span
-    :class="[
-      'inline-flex items-center font-semibold border tracking-tight select-none shrink-0 transition-colors',
-      props.rounded ? 'rounded-full' : 'rounded-md',
-      sizeClasses,
-      meta.badgeClasses
-    ]"
-    :title="meta.name"
-  >
-    <span v-if="props.showDot" :class="['w-1.5 h-1.5 rounded-full shrink-0', meta.dotClass]" />
-    <i v-if="props.showIcon && meta.icon" :class="[meta.icon, iconSizeClasses, 'shrink-0']" />
-    <span class="truncate">{{ meta.shortLabel || meta.name }}</span>
-  </span>
+  <Chip :label="meta.name" :class="[sizeClasses,
+      meta.badgeClasses]">
+    <template #icon>
+      <i v-if="props.showIcon && meta.icon" :class="[meta.icon, iconSizeClasses, 'shrink-0']" />
+    </template>
+  </Chip>
 </template>

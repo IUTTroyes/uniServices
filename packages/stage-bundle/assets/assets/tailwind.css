@@ -5,3 +5,5 @@
 
 @source "../**/*.vue";
 @source "../../../shared/**/*.vue";
+@source "../../../shared/**/*.js";
+@source "../../../shared/**/*.ts";

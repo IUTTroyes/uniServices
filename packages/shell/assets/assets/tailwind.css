@@ -5,6 +5,8 @@
 
 @source "../../../../packages/*/assets/**/*.vue";
 @source "../../../../shared/**/*.vue";
+@source "../../../../shared/**/*.js";
+@source "../../../../shared/**/*.ts";
 
 .card {
     @apply bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700/60 shadow-sm;
