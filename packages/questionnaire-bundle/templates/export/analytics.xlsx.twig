@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>Statistiques questionnaire</title>
+</head>
+<body>
+
+{# ───────────── Feuille 1 : vue d'ensemble ───────────── #}
+<table data-xls-sheet="Vue d'ensemble" data-xls-autosize="true">
+    <thead>
+        <tr>
+            <th data-xls-colspan="2" data-xls-font-bold="true" data-xls-font-size="16" data-xls-bg-color="#0284C7" data-xls-font-color="#FFFFFF">
+                {{ questionnaire.title }}
+            </th>
+        </tr>
+        <tr><th data-xls-colspan="2"></th></tr>
+        <tr>
+            <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Métrique</th>
+            <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Valeur</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td data-xls-border="thin" data-xls-type="text">Participants invités</td>
+            <td data-xls-border="thin" data-xls-type="number">{{ analytics.totalInvited }}</td>
+        </tr>
+        <tr>
+            <td data-xls-border="thin" data-xls-type="text">Réponses complétées</td>
+            <td data-xls-border="thin" data-xls-type="number">{{ analytics.totalResponses }}</td>
+        </tr>
+        <tr>
+            <td data-xls-border="thin" data-xls-type="text">Taux de complétion (%)</td>
+            <td data-xls-border="thin" data-xls-type="number">{{ analytics.completionRate|round(1) }}</td>
+        </tr>
+        <tr>
+            <td data-xls-border="thin" data-xls-type="text">Temps moyen (secondes)</td>
+            <td data-xls-border="thin" data-xls-type="number">{{ analytics.averageTimeSpent|round(0) }}</td>
+        </tr>
+        <tr><td data-xls-colspan="2"></td></tr>
+        <tr>
+            <td data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Statut de participation</td>
+            <td data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Nombre</td>
+        </tr>
+        <tr>
+            <td data-xls-border="thin" data-xls-type="text">Terminé</td>
+            <td data-xls-border="thin" data-xls-type="number">{{ analytics.statusCounts.submitted|default(0) }}</td>
+        </tr>
+        <tr>
+            <td data-xls-border="thin" data-xls-type="text">En cours</td>
+            <td data-xls-border="thin" data-xls-type="number">{{ analytics.statusCounts.started|default(0) }}</td>
+        </tr>
+        <tr>
+            <td data-xls-border="thin" data-xls-type="text">Non commencé</td>
+            <td data-xls-border="thin" data-xls-type="number">{{ analytics.statusCounts.pending|default(0) }}</td>
+        </tr>
+    </tbody>
+</table>
+
+{# ───────────── Feuille 2 : statistiques détaillées ───────────── #}
+<table data-xls-sheet="Statistiques détaillées" data-xls-autosize="true">
+    <thead>
+        <tr>
+            <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Section</th>
+            <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Question</th>
+            <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Type</th>
+            <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Indicateur</th>
+            <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Valeur</th>
+            <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Pourcentage (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for section in analytics.sections %}
+        {% for question in section.questions %}
+            {% set stats = question.stats %}
+            {% set sectionLabel = section.sectionTitle ~ (section.repeatItemId ? ' (' ~ section.repeatItemType ~ ' #' ~ section.repeatItemId ~ ')' : '') %}
+            {% if question.questionType in ['single_choice', 'multiple_choice'] %}
+                {% for choice in stats.choices|default([]) %}
+                    <tr>
+                        <td data-xls-border="thin" data-xls-type="text">{{ sectionLabel }}</td>
+                        <td data-xls-border="thin" data-xls-type="text">{{ question.questionLabel }}</td>
+                        <td data-xls-border="thin" data-xls-type="text">{{ question.questionType }}</td>
+                        <td data-xls-border="thin" data-xls-type="text">{{ choice.text }}</td>
+                        <td data-xls-border="thin" data-xls-type="number">{{ choice.count }}</td>
+                        <td data-xls-border="thin" data-xls-type="number">{{ choice.percentage }}</td>
+                    </tr>
+                {% endfor %}
+            {% elseif question.questionType == 'scale' %}
+                <tr>
+                    <td data-xls-border="thin" data-xls-type="text">{{ sectionLabel }}</td>
+                    <td data-xls-border="thin" data-xls-type="text">{{ question.questionLabel }}</td>
+                    <td data-xls-border="thin" data-xls-type="text">{{ question.questionType }}</td>
+                    <td data-xls-border="thin" data-xls-type="text" data-xls-font-bold="true">Note moyenne</td>
+                    <td data-xls-border="thin" data-xls-type="number">{{ stats.average|default(0) }}</td>
+                    <td data-xls-border="thin" data-xls-type="text"></td>
+                </tr>
+                {% for note, count in stats.distribution|default({}) %}
+                    <tr>
+                        <td data-xls-border="thin" data-xls-type="text">{{ sectionLabel }}</td>
+                        <td data-xls-border="thin" data-xls-type="text">{{ question.questionLabel }}</td>
+                        <td data-xls-border="thin" data-xls-type="text">{{ question.questionType }}</td>
+                        <td data-xls-border="thin" data-xls-type="text">Note {{ note }}</td>
+                        <td data-xls-border="thin" data-xls-type="number">{{ count }}</td>
+                        <td data-xls-border="thin" data-xls-type="text"></td>
+                    </tr>
+                {% endfor %}
+            {% elseif question.questionType == 'ranking' %}
+                {% for item in stats.ranking|default([]) %}
+                    <tr>
+                        <td data-xls-border="thin" data-xls-type="text">{{ sectionLabel }}</td>
+                        <td data-xls-border="thin" data-xls-type="text">{{ question.questionLabel }}</td>
+                        <td data-xls-border="thin" data-xls-type="text">{{ question.questionType }}</td>
+                        <td data-xls-border="thin" data-xls-type="text">{{ item.text }} (rang moyen)</td>
+                        <td data-xls-border="thin" data-xls-type="number">{{ item.averageRank }}</td>
+                        <td data-xls-border="thin" data-xls-type="text"></td>
+                    </tr>
+                {% endfor %}
+            {% elseif question.questionType == 'matrix' %}
+                {% for row in stats.rows|default([]) %}
+                    {% for col in stats.columns|default([]) %}
+                        <tr>
+                            <td data-xls-border="thin" data-xls-type="text">{{ sectionLabel }}</td>
+                            <td data-xls-border="thin" data-xls-type="text">{{ question.questionLabel }}</td>
+                            <td data-xls-border="thin" data-xls-type="text">{{ question.questionType }}</td>
+                            <td data-xls-border="thin" data-xls-type="text">{{ row }} / {{ col }}</td>
+                            <td data-xls-border="thin" data-xls-type="number">{{ stats.grid[row][col]|default(0) }}</td>
+                            <td data-xls-border="thin" data-xls-type="text"></td>
+                        </tr>
+                    {% endfor %}
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td data-xls-border="thin" data-xls-type="text">{{ sectionLabel }}</td>
+                    <td data-xls-border="thin" data-xls-type="text">{{ question.questionLabel }}</td>
+                    <td data-xls-border="thin" data-xls-type="text">{{ question.questionType }}</td>
+                    <td data-xls-border="thin" data-xls-type="text">Nombre de réponses</td>
+                    <td data-xls-border="thin" data-xls-type="number">{{ question.totalResponses }}</td>
+                    <td data-xls-border="thin" data-xls-type="text"></td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+    {% else %}
+        <tr><td data-xls-colspan="6" data-xls-border="thin">Aucune donnée</td></tr>
+    {% endfor %}
+    </tbody>
+</table>
+
+{# ───────────── Feuille 3 : commentaires libres ───────────── #}
+<table data-xls-sheet="Commentaires" data-xls-autosize="true">
+    <thead>
+        <tr>
+            <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Section</th>
+            <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Question</th>
+            <th data-xls-border="thin" data-xls-bg-color="#F1F5F9" data-xls-font-bold="true">Réponse / Commentaire</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for section in analytics.sections %}
+        {% for question in section.questions %}
+            {% if question.questionType in ['text_short', 'text_long'] %}
+            {% for sample in question.stats.samples|default([]) %}
+                <tr>
+                    <td data-xls-border="thin" data-xls-type="text">{{ section.sectionTitle }}</td>
+                    <td data-xls-border="thin" data-xls-type="text">{{ question.questionLabel }}</td>
+                    <td data-xls-border="thin" data-xls-type="text">{{ sample }}</td>
+                </tr>
+            {% endfor %}
+            {% endif %}
+        {% endfor %}
+    {% endfor %}
+    </tbody>
+</table>
+
+</body>
+</html>

@@ -16,3 +16,9 @@ stage_controllers:
         namespace: StageBundle\Controller
     type: attribute
 
+questionnaire_controllers:
+    resource:
+        path: '../../packages/questionnaire-bundle/src/Controller/'
+        namespace: QuestionnaireBundle\Controller
+    type: attribute
+

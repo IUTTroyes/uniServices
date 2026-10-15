@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { FilterMatchMode } from '@primevue/core/api';
 import {
   ChartBarIcon,
@@ -32,6 +32,7 @@ import { DialogHeader, FormField, FormSection } from '@/components/Form';
 import { HeaderComponent, Kpi, Card, EmptyState, ActionButtonVertical } from '@components';
 
 const route = useRoute();
+const router = useRouter();
 const surveyStore = useSurveyStore();
 const responseStore = useResponseStore();
 const uiStore = useUIStore();
@@ -311,6 +312,30 @@ function getProgress(response: Response): number {
   const answeredQuestions = response.answers ? Object.keys(response.answers).length : 0;
 
   return totalQuestions > 0 ? Math.round((answeredQuestions / totalQuestions) * 100) : 0;
+}
+
+function getSurveyUrl(response: Response): string {
+  const href = router.resolve({ name: 'questionnaire_take-survey', params: { token: response.id } }).href;
+  return new URL(href, window.location.origin).toString();
+}
+
+async function copySurveyUrl(response: Response) {
+  const url = getSurveyUrl(response);
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url);
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = url;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    uiStore.addNotification('success', 'Lien copié', 'L\'URL du questionnaire a été copiée dans le presse-papiers.');
+  } catch (e) {
+    uiStore.addNotification('danger', 'Erreur', `Impossible de copier le lien : ${url}`);
+  }
 }
 
 function viewResponse(response: Response) {
@@ -637,7 +662,7 @@ onMounted(async () => {
           </template>
         </Column>
 
-        <Column header="Actions" style="min-width: 10rem">
+        <Column header="Actions" style="min-width: 15rem">
           <template #body="{ data }">
             <div class="flex items-center gap-1">
               <Button
@@ -649,6 +674,17 @@ onMounted(async () => {
                 severity="info"
                 class="text-xs !py-1 !px-2"
                 @click="viewResponse(data)"
+              />
+              <Button
+                type="button"
+                icon="pi pi-link"
+                label="Lien"
+                text
+                size="small"
+                severity="secondary"
+                title="Copier l'URL du questionnaire de ce participant"
+                class="text-xs !py-1 !px-2"
+                @click="copySurveyUrl(data)"
               />
               <Button
                 v-if="!data.completed"

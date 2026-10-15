@@ -29,6 +29,9 @@ import { fr } from 'date-fns/locale';
 import { formatDuration } from '@/utils/date';
 import { HeaderComponent, Kpi, Card } from '@components';
 import { CheckCircleIcon } from '@heroicons/vue/24/outline';
+import { DocumentArrowDownIcon, TableCellsIcon } from '@heroicons/vue/24/outline';
+import { showSuccess, showDanger } from '@helpers/toast';
+import { exportQuestionnaireExcel, exportQuestionnairePdf } from '@/requests/questionnaire_services/questionnaireService';
 
 // Register Chart.js components
 ChartJS.register(
@@ -246,8 +249,64 @@ function getRankingDistributionChartData(question: any) {
   };
 }
 
-async function exportAnalytics() {
-  await responseStore.triggerExcelExport(surveyId);
+const isExportingPdf = ref(false);
+const isExportingExcel = ref(false);
+
+// Références vers les composants vue-chartjs pour capturer les graphiques en image
+const chartRefs = new Map<string, any>();
+function setChartRef(key: string) {
+  return (el: any) => {
+    if (el) chartRefs.set(key, el);
+    else chartRefs.delete(key);
+  };
+}
+
+/** Rend l'image du graphique sur fond blanc (le canvas Chart.js est transparent). */
+function chartToImage(key: string): string | null {
+  const chart = chartRefs.get(key)?.chart;
+  const canvas: HTMLCanvasElement | undefined = chart?.canvas;
+  if (!canvas || canvas.width === 0 || canvas.height === 0) return null;
+
+  const out = document.createElement('canvas');
+  out.width = canvas.width;
+  out.height = canvas.height;
+  const ctx = out.getContext('2d');
+  if (!ctx) return null;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, out.width, out.height);
+  ctx.drawImage(canvas, 0, 0);
+  return out.toDataURL('image/png');
+}
+
+async function exportPdf() {
+  isExportingPdf.value = true;
+  try {
+    const charts: Record<string, string> = {};
+    for (const key of chartRefs.keys()) {
+      const img = chartToImage(key);
+      if (img) charts[key] = img;
+    }
+    await exportQuestionnairePdf(surveyId, charts);
+    showSuccess('Le rapport PDF a été téléchargé.', 'Export PDF terminé');
+  } catch (e) {
+    console.error(e);
+    showDanger('Impossible de générer le PDF.', 'Erreur d\'export');
+  } finally {
+    isExportingPdf.value = false;
+  }
+}
+
+async function exportExcel() {
+  isExportingExcel.value = true;
+  try {
+    await exportQuestionnaireExcel(surveyId);
+    showSuccess('Le fichier Excel a été téléchargé.', 'Export Excel terminé');
+  } catch (e) {
+    console.error(e);
+    showDanger('Impossible de générer le fichier Excel.', 'Erreur d\'export');
+  } finally {
+    isExportingExcel.value = false;
+  }
 }
 
 onMounted(async () => {
@@ -263,7 +322,8 @@ onMounted(async () => {
       <template #actions>
         <ActionButtonVertical :to="{ name: 'questionnaire_responses', params: { id: surveyId } }"
           :icon="ChatBubbleLeftRightIcon" label="Voir les réponses" severity="success" />
-        <ActionButtonVertical :icon="ArrowDownTrayIcon" label="Exporter" severity="secondary" @click="exportAnalytics" />
+        <ActionButtonVertical :icon="TableCellsIcon" label="Excel" severity="secondary" :disabled="isExportingExcel" @click="exportExcel" />
+        <ActionButtonVertical :icon="DocumentArrowDownIcon" label="PDF" severity="secondary" :disabled="isExportingPdf" @click="exportPdf" />
       </template>
     </HeaderComponent>
 
@@ -286,11 +346,11 @@ onMounted(async () => {
   <!-- Response Trends -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
     <Card title="Évolution des réponses" body-class="h-64">
-      <Line :data="responseChartData" :options="chartOptions" />
+      <Line :ref="setChartRef('responses')" :data="responseChartData" :options="chartOptions" />
     </Card>
 
     <Card title="Répartition par statut" body-class="h-64 flex items-center justify-center">
-      <Doughnut :data="statusChartData" :options="doughnutOptions" />
+      <Doughnut :ref="setChartRef('status')" :data="statusChartData" :options="doughnutOptions" />
     </Card>
   </div>
 
@@ -316,7 +376,7 @@ onMounted(async () => {
           <!-- Single/Multiple Choice Stats & Chart -->
           <div v-if="['single_choice', 'multiple_choice'].includes(question.questionType)">
             <div class="h-48 mb-4">
-              <Bar :data="getChoiceChartData(question)" :options="questionChartOptions" />
+              <Bar :ref="setChartRef(question.questionId)" :data="getChoiceChartData(question)" :options="questionChartOptions" />
             </div>
             <div class="space-y-2 mt-4 max-h-48 overflow-y-auto pr-1">
               <div v-for="choice in question.stats.choices" :key="choice.text"
@@ -334,7 +394,7 @@ onMounted(async () => {
           <!-- Scale Visualization -->
           <div v-else-if="question.questionType === 'scale'">
             <div class="h-48 mb-4">
-              <Bar :data="getScaleDistributionChartData(question)" :options="questionChartOptions" />
+              <Bar :ref="setChartRef(question.questionId)" :data="getScaleDistributionChartData(question)" :options="questionChartOptions" />
             </div>
             <div class="flex items-center justify-between mt-3 text-sm text-gray-600 dark:text-gray-400">
               <span>Total : {{ question.totalResponses }} réponses</span>
@@ -413,7 +473,7 @@ onMounted(async () => {
           <!-- Ranking Analysis -->
           <div v-else-if="question.questionType === 'ranking'">
             <div class="h-48 mb-4">
-              <Bar :data="getRankingDistributionChartData(question)" :options="questionChartOptions" />
+              <Bar :ref="setChartRef(question.questionId)" :data="getRankingDistributionChartData(question)" :options="questionChartOptions" />
             </div>
             <div class="space-y-2 mt-4 max-h-48 overflow-y-auto pr-1">
               <div v-for="rank in question.stats.ranking" :key="rank.text"
