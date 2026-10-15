@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useToast } from 'primevue/usetoast';
 import { FilterMatchMode } from '@primevue/core/api';
-import { useUsersStore } from '@stores';
+import { useUsersStore, useAnneeUnivStore } from '@stores';
 import { getStageEtudiantsService, updateStageEtudiantService, getStagePeriodesService } from '@/requests/stage_service';
 import { HeaderComponent, Card, Kpi } from '@components';
 import {
@@ -25,19 +25,41 @@ import {
   CalendarDaysIcon,
   ChatBubbleLeftRightIcon,
   ClockIcon,
-  EnvelopeIcon
+  EnvelopeIcon,
+  ArchiveBoxIcon
 } from '@heroicons/vue/24/outline';
 
 const toast = useToast();
 const userStore = useUsersStore();
+const anneeUnivStore = useAnneeUnivStore();
 
-// Filtering state
+const activeTab = ref('current');
+
+// Current academic year libelle
+const currentAnneeUnivLibelle = computed(() => {
+  return anneeUnivStore.selectedAnneeUniv?.libelle 
+    || anneeUnivStore.selectedAnneeUniv?.label
+    || anneeUnivStore.anneeUniv?.libelle 
+    || '2026-2027';
+});
+
+// Filtering state for current year
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   studentName: { value: null, matchMode: FilterMatchMode.CONTAINS },
   company: { value: null, matchMode: FilterMatchMode.CONTAINS },
   period: { value: null, matchMode: FilterMatchMode.EQUALS },
   reportUploaded: { value: null, matchMode: FilterMatchMode.EQUALS }
+});
+
+// Filtering state for archives
+const archiveFilters = ref({
+  global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  studentName: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  company: { value: null, matchMode: FilterMatchMode.CONTAINS },
+  period: { value: null, matchMode: FilterMatchMode.EQUALS },
+  reportUploaded: { value: null, matchMode: FilterMatchMode.EQUALS },
+  anneeUniversitaire: { value: null, matchMode: FilterMatchMode.EQUALS }
 });
 
 const periodOptions = ref([]);
@@ -87,12 +109,26 @@ const mapStageEtudiantToVue = (se) => {
   const resp = ent.responsable || {};
   const signatoryName = resp.prenom ? `${resp.civilite || 'M.'} ${resp.prenom} ${resp.nom}` : '-';
 
+  const anneeUniv = p.anneeUniversitaire || {};
+  const anneeUnivLibelle = (typeof anneeUniv === 'object' && anneeUniv !== null)
+    ? (anneeUniv.libelle || '')
+    : '';
+  const anneeUnivId = (typeof anneeUniv === 'object' && anneeUniv !== null)
+    ? (anneeUniv.id || null)
+    : (typeof anneeUniv === 'string' ? parseInt(anneeUniv.split('/').pop(), 10) : null);
+  const anneeUnivActif = (typeof anneeUniv === 'object' && anneeUniv !== null)
+    ? (anneeUniv.actif === true)
+    : false;
+
   return {
     id: se.id,
     studentName: `${etu.prenom || ''} ${etu.nom || ''}`.trim() || 'Étudiant inconnu',
     studentPhone: etu.tel1 || etu.tel2 || '',
     studentEmail: etu.mailPerso || etu.mailUniv || '',
     period: p.libelle || 'Période inconnue',
+    anneeUniversitaire: anneeUnivLibelle || 'Non définie',
+    anneeUnivId,
+    anneeUnivActif,
     company: ent.raisonSociale || '-',
     siret: ent.siret || '-',
     companyAddress: formattedAddress,
@@ -124,12 +160,70 @@ const mapStageEtudiantToVue = (se) => {
   };
 };
 
+// Check if a student belongs to the current academic year
+const isStudentInCurrentYear = (s) => {
+  if (s.anneeUnivActif) return true;
+  const currentLib = currentAnneeUnivLibelle.value;
+  if (s.anneeUniversitaire && currentLib && s.anneeUniversitaire === currentLib) return true;
+  if (!s.anneeUnivId && (!s.anneeUniversitaire || s.anneeUniversitaire === 'Non définie')) return true;
+  return false;
+};
+
+// Split into current year students and archives
+const currentStudents = computed(() => {
+  return students.value.filter(isStudentInCurrentYear);
+});
+
+const archiveStudents = computed(() => {
+  return students.value.filter(s => !isStudentInCurrentYear(s));
+});
+
+const sortedArchiveStudents = computed(() => {
+  return [...archiveStudents.value].sort((a, b) => {
+    return (b.anneeUniversitaire || '').localeCompare(a.anneeUniversitaire || '');
+  });
+});
+
+const archiveYearOptions = computed(() => {
+  const years = archiveStudents.value
+    .map(s => s.anneeUniversitaire)
+    .filter(y => y && y !== 'Non définie');
+  return [...new Set(years)].sort((a, b) => b.localeCompare(a));
+});
+
+const currentPeriodOptions = computed(() => {
+  const list = currentStudents.value.map(s => s.period).filter(Boolean);
+  return [...new Set(list)];
+});
+
+const archivePeriodOptions = computed(() => {
+  const list = archiveStudents.value.map(s => s.period).filter(Boolean);
+  return [...new Set(list)];
+});
+
 const fetchSupervisedStudents = async () => {
   if (!userStore.userId) return;
   loading.value = true;
   try {
-    const data = await getStageEtudiantsService({ tuteurUniversitaire: `/api/personnels/${userStore.userId}` });
-    students.value = (data || []).map(mapStageEtudiantToVue);
+    const data = await getStageEtudiantsService({
+      tuteurUniversitaire: `/api/personnels/${userStore.userId}`,
+      itemsPerPage: 300
+    });
+    const targetUserId = parseInt(userStore.userId, 10);
+    const targetUserIri = `/api/personnels/${targetUserId}`;
+    const supervisedOnly = (data || []).filter(se => {
+      const tut = se.tuteurUniversitaire;
+      if (!tut) return false;
+      if (typeof tut === 'object' && tut !== null) {
+        if (tut.id && parseInt(tut.id, 10) === targetUserId) return true;
+        if (tut['@id'] && tut['@id'] === targetUserIri) return true;
+      }
+      if (typeof tut === 'string') {
+        return tut === targetUserIri || parseInt(tut.split('/').pop(), 10) === targetUserId;
+      }
+      return false;
+    });
+    students.value = supervisedOnly.map(mapStageEtudiantToVue);
   } catch (error) {
     console.error('Erreur lors du chargement des étudiants suivis:', error);
     toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger vos étudiants.', life: 3000 });
@@ -149,6 +243,13 @@ const fetchPeriodOptions = async () => {
 
 onMounted(async () => {
   await userStore.getUser();
+  try {
+    if (!anneeUnivStore.anneeUniv) {
+      await anneeUnivStore.getCurrentAnneeUniv();
+    }
+  } catch (err) {
+    console.error('Erreur chargement année univ:', err);
+  }
   await fetchSupervisedStudents();
   await fetchPeriodOptions();
 });
@@ -174,10 +275,10 @@ const newFollowup = ref({
 const gradingInput = ref('');
 const commentsInput = ref('');
 
-// Computed counts
-const totalSupervised = computed(() => students.value.length);
-const reportsDeposited = computed(() => students.value.filter(s => s.reportUploaded).length);
-const gradedCount = computed(() => students.value.filter(s => s.grade !== '').length);
+// Computed counts based on current year
+const totalSupervised = computed(() => currentStudents.value.length);
+const reportsDeposited = computed(() => currentStudents.value.filter(s => s.reportUploaded).length);
+const gradedCount = computed(() => currentStudents.value.filter(s => s.grade !== '').length);
 
 const openStudentDetails = (student) => {
   selectedStudent.value = student;
@@ -283,7 +384,7 @@ const getInitials = (name) => {
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <Kpi
         :value="totalSupervised"
-        label="Étudiants suivis"
+        :label="`Étudiants suivis (${currentAnneeUnivLibelle})`"
         :icon="UserIcon"
         color="indigo"
       />
@@ -301,116 +402,272 @@ const getInitials = (name) => {
       />
     </div>
 
-    <!-- Students DataTable wrapped in Card -->
-    <Card
-      title="Liste des étudiants"
-      subtitle="Suivi individuel, documents rendus et évaluation finale."
-      :icon="UsersIcon"
-      color="violet"
-    >
-      <DataTable
-        v-model:filters="filters"
-        :value="students"
-        :loading="loading"
-        dataKey="id"
-        paginator
-        :rows="10"
-        :rowsPerPageOptions="[10, 25, 50]"
-        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-        currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} étudiants"
-        responsiveLayout="scroll"
-        class="text-xs text-slate-700 dark:text-slate-300"
-        stripedRows
-        :globalFilterFields="['studentName', 'company', 'supervisor', 'period']"
-      >
-        <template #header>
-          <div class="flex flex-wrap gap-4 items-center justify-between p-2 bg-slate-50/50 dark:bg-slate-900/20 border-b border-slate-100 dark:border-slate-800">
-            <div></div> <!-- Spacer -->
-            <div class="flex flex-wrap gap-3 items-center ml-auto">
-              <!-- Global Search -->
-              <IconField>
-                <InputIcon>
-                  <MagnifyingGlassIcon class="w-4 h-4 text-slate-400" />
-                </InputIcon>
-                <InputText v-model="filters.global.value" placeholder="Rechercher..." class="py-1.5 px-3 text-xs w-[180px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none" />
-              </IconField>
+    <!-- Navigation Tabs: Année en cours & Archives -->
+    <Tabs v-model:value="activeTab" class="w-full">
+      <TabList class="mb-4 border-b border-slate-200 dark:border-slate-800">
+        <Tab value="current" class="flex items-center gap-2 cursor-pointer font-bold text-sm py-3 px-4">
+          <CalendarDaysIcon class="w-4 h-4 text-violet-600 dark:text-violet-400" />
+          <span>Année en cours ({{ currentAnneeUnivLibelle }})</span>
+          <span class="ml-1.5 px-2 py-0.5 rounded-full text-xs font-bold bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300">
+            {{ currentStudents.length }}
+          </span>
+        </Tab>
+        <Tab value="archives" class="flex items-center gap-2 cursor-pointer font-bold text-sm py-3 px-4">
+          <ArchiveBoxIcon class="w-4 h-4 text-slate-500" />
+          <span>Archives des années précédentes</span>
+          <span class="ml-1.5 px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+            {{ archiveStudents.length }}
+          </span>
+        </Tab>
+      </TabList>
+
+      <TabPanels class="p-0 bg-transparent">
+        <!-- Tab 1: Current Academic Year -->
+        <TabPanel value="current">
+          <Card
+            title="Étudiants de l'année en cours"
+            :subtitle="`Stages en cours pour l'année universitaire ${currentAnneeUnivLibelle}`"
+            :icon="UsersIcon"
+            color="violet"
+          >
+            <DataTable
+              v-model:filters="filters"
+              :value="currentStudents"
+              :loading="loading"
+              dataKey="id"
+              paginator
+              :rows="10"
+              :rowsPerPageOptions="[10, 25, 50]"
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+              currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} étudiants"
+              responsiveLayout="scroll"
+              class="text-xs text-slate-700 dark:text-slate-300"
+              stripedRows
+              :globalFilterFields="['studentName', 'company', 'supervisor', 'period']"
+            >
+              <template #header>
+                <div class="flex flex-wrap gap-4 items-center justify-between p-2 bg-slate-50/50 dark:bg-slate-900/20 border-b border-slate-100 dark:border-slate-800">
+                  <div></div>
+                  <div class="flex flex-wrap gap-3 items-center ml-auto">
+                    <!-- Global Search -->
+                    <IconField>
+                      <InputIcon>
+                        <MagnifyingGlassIcon class="w-4 h-4 text-slate-400" />
+                      </InputIcon>
+                      <InputText v-model="filters.global.value" placeholder="Rechercher..." class="py-1.5 px-3 text-xs w-[180px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none" />
+                    </IconField>
+                    
+                    <!-- Filter by Period -->
+                    <Select v-model="filters.period.value" :options="currentPeriodOptions.length > 0 ? currentPeriodOptions : periodOptions" showClear placeholder="Formation" class="text-xs min-w-[150px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+
+                    <!-- Filter by Report Status -->
+                    <Select v-model="filters.reportUploaded.value" :options="statusOptions" optionLabel="label" optionValue="value" showClear placeholder="État du rapport" class="text-xs min-w-[150px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+                  </div>
+                </div>
+              </template>
               
-              <!-- Filter by Period -->
-              <Select v-model="filters.period.value" :options="periodOptions" showClear placeholder="Formation" class="text-xs min-w-[150px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+              <Column header="Étudiant" field="studentName" sortable class="font-semibold text-slate-900 dark:text-white">
+                <template #body="slotProps">
+                  <div class="flex items-center gap-3 py-1">
+                    <div
+                      class="w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 flex items-center justify-center font-bold text-xs uppercase">
+                      {{ getInitials(slotProps.data.studentName) }}
+                    </div>
+                    <div>
+                      <span class="font-bold text-sm block">{{ slotProps.data.studentName }}</span>
+                      <span class="text-[10px] text-slate-400 block">{{ slotProps.data.period }}</span>
+                    </div>
+                  </div>
+                </template>
+              </Column>
 
-              <!-- Filter by Report Status -->
-              <Select v-model="filters.reportUploaded.value" :options="statusOptions" optionLabel="label" optionValue="value" showClear placeholder="État du rapport" class="text-xs min-w-[150px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
-            </div>
-          </div>
-        </template>
-        
-        <Column header="Étudiant" field="studentName" sortable class="font-semibold text-slate-900 dark:text-white">
-          <template #body="slotProps">
-            <div class="flex items-center gap-3 py-1">
-              <div
-                class="w-8 h-8 rounded-lg bg-violet-100 dark:bg-violet-950 text-violet-700 dark:text-violet-300 flex items-center justify-center font-bold text-xs uppercase">
-                {{ getInitials(slotProps.data.studentName) }}
-              </div>
-              <div>
-                <span class="font-bold text-sm block">{{ slotProps.data.studentName }}</span>
-                <span class="text-[10px] text-slate-400 block">{{ slotProps.data.period }}</span>
-              </div>
-            </div>
-          </template>
-        </Column>
+              <Column field="company" header="Entreprise" sortable />
+              
+              <Column header="Dates">
+                <template #body="slotProps">
+                  <span :class="{'text-amber-600 dark:text-amber-400 font-black flex items-center gap-1 w-max': slotProps.data.isDatesDiff}" :title="slotProps.data.isDatesDiff ? 'Dates différentes de la période de stage (' + slotProps.data.periodStartDateStr + ' au ' + slotProps.data.periodEndDateStr + ')' : ''">
+                    <span>{{ slotProps.data.dates }}</span>
+                    <ExclamationTriangleIcon v-if="slotProps.data.isDatesDiff" class="w-3.5 h-3.5 text-amber-500" />
+                  </span>
+                </template>
+              </Column>
+              
+              <Column field="supervisor" header="Maître de Stage" sortable />
 
-        <Column field="company" header="Entreprise" sortable />
-        
-        <Column header="Dates">
-          <template #body="slotProps">
-            <span :class="{'text-amber-600 dark:text-amber-400 font-black flex items-center gap-1 w-max': slotProps.data.isDatesDiff}" :title="slotProps.data.isDatesDiff ? 'Dates différentes de la période de stage (' + slotProps.data.periodStartDateStr + ' au ' + slotProps.data.periodEndDateStr + ')' : ''">
-              <span>{{ slotProps.data.dates }}</span>
-              <ExclamationTriangleIcon v-if="slotProps.data.isDatesDiff" class="w-3.5 h-3.5 text-amber-500" />
-            </span>
-          </template>
-        </Column>
-        
-        <Column field="supervisor" header="Maître de Stage" sortable />
+              <Column header="Rapport" class="text-center">
+                <template #body="slotProps">
+                  <span v-if="slotProps.data.reportUploaded"
+                    class="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1 w-max">
+                    <CheckIcon class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    <span>Déposé</span>
+                  </span>
+                  <span v-else
+                    class="bg-rose-100 dark:bg-rose-950/30 text-rose-800 dark:text-rose-400 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1 w-max">
+                    <XMarkIcon class="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                    <span>En attente</span>
+                  </span>
+                </template>
+              </Column>
 
-        <Column header="Rapport" class="text-center">
-          <template #body="slotProps">
-            <span v-if="slotProps.data.reportUploaded"
-              class="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1 w-max">
-              <CheckIcon class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-              <span>Déposé</span>
-            </span>
-            <span v-else
-              class="bg-rose-100 dark:bg-rose-950/30 text-rose-800 dark:text-rose-400 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1 w-max">
-              <XMarkIcon class="w-3 h-3 text-rose-600 dark:text-rose-400" />
-              <span>En attente</span>
-            </span>
-          </template>
-        </Column>
+              <Column field="grade" header="Note" sortable class="text-center font-bold">
+                <template #body="slotProps">
+                  <span>{{ slotProps.data.grade ? slotProps.data.grade + ' / 20' : '-' }}</span>
+                </template>
+              </Column>
 
-        <Column field="grade" header="Note" sortable class="text-center font-bold">
-          <template #body="slotProps">
-            <span>{{ slotProps.data.grade ? slotProps.data.grade + ' / 20' : '-' }}</span>
-          </template>
-        </Column>
+              <Column header="Actions" class="text-right py-1">
+                <template #body="slotProps">
+                  <div class="flex gap-2 justify-end">
+                    <button @click="openStudentInfo(slotProps.data)"
+                      class="text-xs font-bold px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-650 text-slate-800 dark:text-slate-200 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border-0 shadow-sm">
+                      <EyeIcon class="w-3.5 h-3.5 text-slate-600 dark:text-slate-350" />
+                      <span>Détails</span>
+                    </button>
+                    <button @click="openStudentDetails(slotProps.data)"
+                      class="text-xs font-bold px-2.5 py-1.5 bg-slate-50 dark:bg-slate-700 hover:bg-violet-650 hover:text-white dark:hover:bg-violet-650 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border-0 shadow-sm">
+                      <ChatBubbleLeftRightIcon class="w-3.5 h-3.5" />
+                      <span>Suivre</span>
+                    </button>
+                  </div>
+                </template>
+              </Column>
 
-        <Column header="Actions" class="text-right py-1">
-          <template #body="slotProps">
-            <div class="flex gap-2 justify-end">
-              <button @click="openStudentInfo(slotProps.data)"
-                class="text-xs font-bold px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-650 text-slate-800 dark:text-slate-200 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border-0 shadow-sm">
-                <EyeIcon class="w-3.5 h-3.5 text-slate-600 dark:text-slate-350" />
-                <span>Détails</span>
-              </button>
-              <button @click="openStudentDetails(slotProps.data)"
-                class="text-xs font-bold px-2.5 py-1.5 bg-slate-50 dark:bg-slate-700 hover:bg-violet-650 hover:text-white dark:hover:bg-violet-650 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border-0 shadow-sm">
-                <ChatBubbleLeftRightIcon class="w-3.5 h-3.5" />
-                <span>Suivre</span>
-              </button>
-            </div>
-          </template>
-        </Column>
-      </DataTable>
-    </Card>
+              <template #empty>
+                <div class="py-12 text-center text-slate-400">
+                  <UsersIcon class="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+                  <p class="font-medium">Aucun étudiant en stage pour l'année universitaire {{ currentAnneeUnivLibelle }}.</p>
+                </div>
+              </template>
+            </DataTable>
+          </Card>
+        </TabPanel>
+
+        <!-- Tab 2: Archives of Previous Academic Years -->
+        <TabPanel value="archives">
+          <Card
+            title="Archives des stages"
+            subtitle="Historique des étudiants suivis lors des années universitaires précédentes."
+            :icon="ArchiveBoxIcon"
+            color="slate"
+          >
+            <DataTable
+              v-model:filters="archiveFilters"
+              :value="sortedArchiveStudents"
+              :loading="loading"
+              dataKey="id"
+              paginator
+              :rows="10"
+              :rowsPerPageOptions="[10, 25, 50]"
+              paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+              currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} étudiants archivés"
+              responsiveLayout="scroll"
+              class="text-xs text-slate-700 dark:text-slate-300"
+              stripedRows
+              :globalFilterFields="['studentName', 'company', 'supervisor', 'period', 'anneeUniversitaire']"
+            >
+              <template #header>
+                <div class="flex flex-wrap gap-4 items-center justify-between p-2 bg-slate-50/50 dark:bg-slate-900/20 border-b border-slate-100 dark:border-slate-800">
+                  <div></div>
+                  <div class="flex flex-wrap gap-3 items-center ml-auto">
+                    <!-- Global Search -->
+                    <IconField>
+                      <InputIcon>
+                        <MagnifyingGlassIcon class="w-4 h-4 text-slate-400" />
+                      </InputIcon>
+                      <InputText v-model="archiveFilters.global.value" placeholder="Rechercher..." class="py-1.5 px-3 text-xs w-[180px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none" />
+                    </IconField>
+                    
+                    <!-- Filter by Année Universitaire -->
+                    <Select v-if="archiveYearOptions.length > 0" v-model="archiveFilters.anneeUniversitaire.value" :options="archiveYearOptions" showClear placeholder="Année Univ." class="text-xs min-w-[140px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+
+                    <!-- Filter by Period -->
+                    <Select v-model="archiveFilters.period.value" :options="archivePeriodOptions.length > 0 ? archivePeriodOptions : periodOptions" showClear placeholder="Formation" class="text-xs min-w-[150px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+
+                    <!-- Filter by Report Status -->
+                    <Select v-model="archiveFilters.reportUploaded.value" :options="statusOptions" optionLabel="label" optionValue="value" showClear placeholder="État du rapport" class="text-xs min-w-[150px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl" />
+                  </div>
+                </div>
+              </template>
+
+              <!-- Column 1: Année Universitaire (with Badge) -->
+              <Column header="Année Univ." field="anneeUniversitaire" sortable class="font-bold min-w-[130px]">
+                <template #body="slotProps">
+                  <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    <CalendarDaysIcon class="w-3.5 h-3.5 mr-1 text-slate-500" />
+                    {{ slotProps.data.anneeUniversitaire }}
+                  </span>
+                </template>
+              </Column>
+
+              <!-- Column 2: Étudiant -->
+              <Column header="Étudiant" field="studentName" sortable class="font-semibold text-slate-900 dark:text-white">
+                <template #body="slotProps">
+                  <div class="flex items-center gap-3 py-1">
+                    <div
+                      class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 flex items-center justify-center font-bold text-xs uppercase">
+                      {{ getInitials(slotProps.data.studentName) }}
+                    </div>
+                    <div>
+                      <span class="font-bold text-sm block">{{ slotProps.data.studentName }}</span>
+                      <span class="text-[10px] text-slate-400 block">{{ slotProps.data.period }}</span>
+                    </div>
+                  </div>
+                </template>
+              </Column>
+
+              <Column field="company" header="Entreprise" sortable />
+              <Column header="Dates" field="dates" />
+              <Column field="supervisor" header="Maître de Stage" sortable />
+
+              <Column header="Rapport" class="text-center">
+                <template #body="slotProps">
+                  <span v-if="slotProps.data.reportUploaded"
+                    class="bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1 w-max">
+                    <CheckIcon class="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                    <span>Déposé</span>
+                  </span>
+                  <span v-else
+                    class="bg-rose-100 dark:bg-rose-950/30 text-rose-800 dark:text-rose-400 px-2 py-0.5 rounded font-bold text-[10px] flex items-center gap-1 w-max">
+                    <XMarkIcon class="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                    <span>En attente</span>
+                  </span>
+                </template>
+              </Column>
+
+              <Column field="grade" header="Note" sortable class="text-center font-bold">
+                <template #body="slotProps">
+                  <span>{{ slotProps.data.grade ? slotProps.data.grade + ' / 20' : '-' }}</span>
+                </template>
+              </Column>
+
+              <Column header="Actions" class="text-right py-1">
+                <template #body="slotProps">
+                  <div class="flex gap-2 justify-end">
+                    <button @click="openStudentInfo(slotProps.data)"
+                      class="text-xs font-bold px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-650 text-slate-800 dark:text-slate-200 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border-0 shadow-sm">
+                      <EyeIcon class="w-3.5 h-3.5 text-slate-600 dark:text-slate-350" />
+                      <span>Détails</span>
+                    </button>
+                    <button @click="openStudentDetails(slotProps.data)"
+                      class="text-xs font-bold px-2.5 py-1.5 bg-slate-50 dark:bg-slate-700 hover:bg-violet-650 hover:text-white dark:hover:bg-violet-650 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer border-0 shadow-sm">
+                      <ChatBubbleLeftRightIcon class="w-3.5 h-3.5" />
+                      <span>Suivre</span>
+                    </button>
+                  </div>
+                </template>
+              </Column>
+
+              <template #empty>
+                <div class="py-12 text-center text-slate-400">
+                  <ArchiveBoxIcon class="w-10 h-10 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+                  <p class="font-medium">Aucun stage archivé pour les années précédentes.</p>
+                </div>
+              </template>
+            </DataTable>
+          </Card>
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
 
     <!-- Student Detail & Follow-up Slideout Dialog -->
     <Dialog v-model:visible="showDetailDialog" modal header="Suivi individualisé de l'étudiant"
@@ -432,6 +689,10 @@ const getInitials = (name) => {
                 <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.studentName }}</span>
               </div>
               <div>
+                <span class="text-slate-400 block">Année universitaire</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.anneeUniversitaire }}</span>
+              </div>
+              <div>
                 <span class="text-slate-400 block">Entreprise</span>
                 <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.company }}</span>
               </div>
@@ -439,7 +700,7 @@ const getInitials = (name) => {
                 <span class="text-slate-400 block">Maître de stage</span>
                 <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.supervisor }}</span>
               </div>
-              <div>
+              <div class="col-span-2">
                 <span class="text-slate-400 block">Période de stage</span>
                 <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.dates }}</span>
               </div>
@@ -591,10 +852,14 @@ const getInitials = (name) => {
               <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.period }}</span>
             </div>
             <div>
+              <span class="text-slate-400 block">Année universitaire</span>
+              <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.anneeUniversitaire }}</span>
+            </div>
+            <div>
               <span class="text-slate-400 block">Durée hebdomadaire</span>
               <span class="font-bold text-slate-800 dark:text-slate-200">{{ selectedStudent.weeklyHours }} heures</span>
             </div>
-            <div>
+            <div class="col-span-2">
               <span class="text-slate-400 block">Dates de stage</span>
               <span class="font-bold text-slate-800 dark:text-slate-200" :class="{'text-amber-600 dark:text-amber-400': selectedStudent.isDatesDiff}">
                 {{ selectedStudent.dates }}

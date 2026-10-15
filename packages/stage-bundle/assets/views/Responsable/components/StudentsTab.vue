@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
+import AutoComplete from 'primevue/autocomplete';
 import { Kpi, Card } from '@components';
 import {
   ArrowDownTrayIcon,
@@ -86,6 +87,44 @@ const showReviewDialog = ref(false);
 const tutorSelect = ref('');
 const rejectReason = ref('');
 
+const filteredTutors = ref([]);
+const searchTutors = (event) => {
+  const query = (event.query || '').trim().toLowerCase();
+  if (!query) {
+    filteredTutors.value = [...props.teachers];
+  } else {
+    filteredTutors.value = props.teachers.filter(t =>
+      (t.fullName && t.fullName.toLowerCase().includes(query)) ||
+      (t.shortName && t.shortName.toLowerCase().includes(query)) ||
+      (t.nom && t.nom.toLowerCase().includes(query)) ||
+      (t.prenom && t.prenom.toLowerCase().includes(query))
+    );
+  }
+};
+
+const dialogTutorSuggestions = ref([]);
+const searchDialogTutors = (event) => {
+  const query = (event.query || '').trim().toLowerCase();
+  if (!query) {
+    dialogTutorSuggestions.value = [...props.teachers];
+  } else {
+    dialogTutorSuggestions.value = props.teachers.filter(t =>
+      (t.fullName && t.fullName.toLowerCase().includes(query)) ||
+      (t.shortName && t.shortName.toLowerCase().includes(query)) ||
+      (t.nom && t.nom.toLowerCase().includes(query)) ||
+      (t.prenom && t.prenom.toLowerCase().includes(query)) ||
+      (t.email && t.email.toLowerCase().includes(query))
+    );
+  }
+};
+
+const getSelectedTutorName = () => {
+  if (typeof tutorSelect.value === 'object' && tutorSelect.value !== null) {
+    return tutorSelect.value.fullName || tutorSelect.value.shortName || '';
+  }
+  return tutorSelect.value || '';
+};
+
 // local form state for proofreading & editing
 const parseSupervisor = (supervisorStr) => {
   if (!supervisorStr || supervisorStr === '-') {
@@ -164,7 +203,8 @@ const editForm = ref({
 
 const openReviewRequest = (student) => {
   selectedRequest.value = student;
-  tutorSelect.value = student.tutor || (props.teachers[0]?.fullName || 'M. Jean Dupont');
+  const foundTeacher = props.teachers.find(t => t.fullName === student.tutor || t.shortName === student.tutor);
+  tutorSelect.value = foundTeacher || (student.tutor && student.tutor !== 'Non affecté' ? student.tutor : '');
   rejectReason.value = '';
 
   const supInfo = parseSupervisor(student.supervisor);
@@ -254,7 +294,7 @@ const saveEdits = (silent = false) => {
     activities: editForm.value.activities,
     supervisor: supervisorFormatted,
     salary: salaryFormatted,
-    tutor: tutorSelect.value,
+    tutor: getSelectedTutorName() || 'Non affecté',
 
     studentPhone: editForm.value.studentPhone,
     studentEmail: editForm.value.studentEmail,
@@ -303,20 +343,28 @@ const approveRequest = () => {
   // Save edits first
   saveEdits(true);
 
+  const assignedTutorName = getSelectedTutorName() || 'Non affecté';
+  const assignedTutorIri = typeof tutorSelect.value === 'object' && tutorSelect.value ? tutorSelect.value.iri : undefined;
+
   emit('update-student', {
     id: selectedRequest.value.id,
     changes: {
       conventionStatus: 'Validée',
-      tutor: tutorSelect.value
+      tutor: assignedTutorName,
+      tutorIri: assignedTutorIri
     }
   });
 
   selectedRequest.value.conventionStatus = 'Validée';
+  selectedRequest.value.tutor = assignedTutorName;
+  if (assignedTutorIri) {
+    selectedRequest.value.tutorIri = assignedTutorIri;
+  }
 
   toast.add({
     severity: 'success',
     summary: 'Convention Validée',
-    detail: `La demande de ${selectedRequest.value.studentName} a été approuvée. Tuteur : ${tutorSelect.value}.`,
+    detail: `La demande de ${selectedRequest.value.studentName} a été approuvée. Tuteur : ${assignedTutorName}.`,
     life: 4000
   });
   showReviewDialog.value = false;
@@ -483,17 +531,26 @@ const generatePDF = () => {
 };
 
 const assignTutorDirectly = (student, newTutor) => {
+  const tutorName = typeof newTutor === 'object' && newTutor ? newTutor.fullName : (newTutor || 'Non affecté');
+  const tutorIri = typeof newTutor === 'object' && newTutor ? newTutor.iri : undefined;
+
+  student.tutor = tutorName;
+  if (tutorIri !== undefined) {
+    student.tutorIri = tutorIri;
+  }
+
   emit('update-student', {
     id: student.id,
     changes: {
-      tutor: newTutor
+      tutor: tutorName,
+      tutorIri: tutorIri
     }
   });
 
   toast.add({
     severity: 'success',
     summary: 'Tuteur affecté',
-    detail: `Tuteur de ${student.studentName} mis à jour : ${newTutor}.`,
+    detail: `Tuteur de ${student.studentName} mis à jour : ${tutorName}.`,
     life: 3000
   });
 };
@@ -892,17 +949,37 @@ const finalizeSignature = (student) => {
           </template>
         </Column>
 
-        <!-- Column 4: Tutor assignment drop-down -->
-        <Column header="Tuteur Universitaire" field="tutor" sortable :showFilterMenu="false" class="min-w-[170px]">
+        <!-- Column 4: Tutor assignment AutoComplete -->
+        <Column header="Tuteur Universitaire" field="tutor" sortable :showFilterMenu="false" class="min-w-[200px]">
           <template #body="slotProps">
-            <!-- Dropdown directly editable in table if they have a stage -->
-            <select v-if="slotProps.data.hasStage" :value="slotProps.data.tutor || ''"
-              @change="assignTutorDirectly(slotProps.data, $event.target.value)"
-              class="p-1 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-[10px] font-semibold text-slate-800 dark:text-slate-200 focus:outline-none w-full max-w-[150px]">
-              <option value="">-- Assigner --</option>
-              <option v-for="t in teachers" :key="t.iri || t" :value="t.fullName || t">{{ t.fullName || t }}</option>
-            </select>
-            <span v-else class="text-[10px] text-slate-400">Non applicable</span>
+            <div v-if="slotProps.data.hasStage" class="w-full max-w-[210px]">
+              <AutoComplete
+                :modelValue="slotProps.data.tutor && slotProps.data.tutor !== 'Non affecté' ? slotProps.data.tutor : ''"
+                :suggestions="filteredTutors"
+                @complete="searchTutors"
+                optionLabel="fullName"
+                placeholder="Assigner un tuteur..."
+                dropdown
+                class="w-full text-xs"
+                inputClass="text-[11px] py-1 px-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 w-full focus:outline-none"
+                scrollHeight="220px"
+                appendTo="body"
+                @item-select="(e) => assignTutorDirectly(slotProps.data, e.value)"
+                @clear="assignTutorDirectly(slotProps.data, 'Non affecté')"
+                :showClear="Boolean(slotProps.data.tutor && slotProps.data.tutor !== 'Non affecté')"
+              >
+                <template #option="{ option }">
+                  <div class="flex flex-col py-0.5">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">{{ option.fullName }}</span>
+                    <span v-if="option.email" class="text-[9px] text-slate-400">{{ option.email }}</span>
+                  </div>
+                </template>
+                <template #empty>
+                  <div class="p-2 text-xs text-slate-400 italic">Aucun enseignant trouvé</div>
+                </template>
+              </AutoComplete>
+            </div>
+            <span v-else class="text-[10px] text-slate-400 italic">Sans stage</span>
           </template>
           <template #filter="{ filterModel, filterCallback }">
             <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer..."
@@ -1205,9 +1282,29 @@ const finalizeSignature = (student) => {
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-2">
                   <label class="q-label">Tuteur Universitaire (IUT)</label>
-                  <select v-model="tutorSelect" class="q-input q-input-sm">
-                    <option v-for="t in teachers" :key="t.iri || t" :value="t.fullName || t">{{ t.fullName || t }}</option>
-                  </select>
+                  <AutoComplete
+                    v-model="tutorSelect"
+                    :suggestions="dialogTutorSuggestions"
+                    @complete="searchDialogTutors"
+                    optionLabel="fullName"
+                    placeholder="Taper un nom ou choisir un tuteur..."
+                    dropdown
+                    class="w-full text-xs"
+                    inputClass="q-input q-input-sm w-full"
+                    scrollHeight="220px"
+                    appendTo="body"
+                    :showClear="true"
+                  >
+                    <template #option="{ option }">
+                      <div class="flex items-center justify-between py-0.5">
+                        <span class="font-medium text-xs">{{ option.fullName }}</span>
+                        <span v-if="option.email" class="text-[10px] text-slate-400 ml-2">{{ option.email }}</span>
+                      </div>
+                    </template>
+                    <template #empty>
+                      <div class="p-2 text-xs text-slate-400 italic">Aucun enseignant trouvé</div>
+                    </template>
+                  </AutoComplete>
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-2">
                   <label class="q-label">Sujet du stage / Mission principale</label>
