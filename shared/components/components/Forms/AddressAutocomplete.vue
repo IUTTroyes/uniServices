@@ -92,12 +92,48 @@ const onInput = (e) => {
 };
 
 const selectSuggestion = (item) => {
+  let street = item.address || item.name || '';
+  let postalCode = item.postalCode || item.postcode || '';
+  let city = item.city || '';
+
+  // Fallbacks depuis les propriétés brutes Géoplateforme
+  if (!postalCode && item.raw?.properties?.postcode) {
+    postalCode = item.raw.properties.postcode;
+  }
+  if (!postalCode && item.raw?.properties?.postalCode) {
+    postalCode = item.raw.properties.postalCode;
+  }
+  if (!city && item.raw?.properties?.city) {
+    city = item.raw.properties.city;
+  }
+  if (!street && item.raw?.properties?.name) {
+    street = item.raw.properties.name;
+  }
+
+  // Fallback depuis le label si toujours manquant
+  const label = item.label || item.value || '';
+  if (!postalCode && label) {
+    const cpMatch = label.match(/\b(\d{5})\b/);
+    if (cpMatch) postalCode = cpMatch[1];
+  }
+  if (!city && postalCode && label) {
+    const parts = label.split(postalCode);
+    if (parts[1]) city = parts[1].replace(/^[,\s-]+|[,\s-]+$/g, '').trim();
+  }
+  if (!street && label) {
+    if (postalCode) {
+      street = label.split(postalCode)[0].replace(/^[,\s-]+|[,\s-]+$/g, '').trim();
+    } else {
+      street = label;
+    }
+  }
+
   internalAddress.value = {
-    adresse: item.address || '',
+    adresse: street || label,
     complement1: '',
     complement2: '',
-    ville: item.city || '',
-    codePostal: item.postalCode || '',
+    ville: city,
+    codePostal: postalCode,
     pays: 'France'
   };
   addressSelected.value = true;

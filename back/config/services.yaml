@@ -74,6 +74,9 @@ services:
       $entityManager: "@doctrine.orm.entity_manager"
     tags: ["api_platform.state_provider"]
 
+  App\Service\Pdf\PdfExportService:
+    public: true
+
   _instanceof:
     App\Domain\Dashboard\DashboardDefinitionInterface:
       tags:

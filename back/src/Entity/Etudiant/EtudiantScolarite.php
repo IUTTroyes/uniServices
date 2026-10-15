@@ -53,7 +53,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
 
     ],
     parameters: [
-        'actif' => new QueryParameter(filter: BooleanFilter::class),
+        'actif' => new QueryParameter(filter: EtudiantScolariteFilter::class),
         'departement' => new QueryParameter(filter: EtudiantScolariteFilter::class),
         'anneeUniversitaire' => new QueryParameter(filter: EtudiantScolariteFilter::class),
         'etudiant' => new QueryParameter(filter: EtudiantScolariteFilter::class),
@@ -67,7 +67,7 @@ class EtudiantScolarite
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['scolarite:detail', 'scolarite:light'])]
+    #[Groups(['scolarite:detail', 'scolarite:light', 'scolarite:user'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolarites')]
@@ -111,11 +111,11 @@ class EtudiantScolarite
      * @var Collection<int, EtudiantScolariteSemestre>
      */
     #[ORM\OneToMany(targetEntity: EtudiantScolariteSemestre::class, mappedBy: 'scolarite', orphanRemoval: true, cascade: ['remove'])]
-    #[Groups(['scolarite:detail', 'etudiant:scolarite', 'scolarite:light'])]
+    #[Groups(['scolarite:detail', 'etudiant:scolarite', 'scolarite:light', 'scolarite:user'])]
     private Collection $scolariteSemestre;
 
     #[ORM\Column]
-    #[Groups(['scolarite:detail', 'scolarite:light', 'etudiant:scolarite'])]
+    #[Groups(['scolarite:detail', 'scolarite:light', 'scolarite:user', 'etudiant:scolarite'])]
     private bool $actif = false;
 
     #[ORM\Column(nullable: true)]

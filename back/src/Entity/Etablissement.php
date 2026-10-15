@@ -230,6 +230,16 @@ class Etablissement
             return $resolvedIntegrations;
         });
 
+        $resolver->setAllowedTypes('stage', 'array');
+        $resolver->setNormalizer('stage', function ($options, array $stage): array {
+            $stageResolver = new OptionsResolver();
+            $stageResolver->setDefaults([
+                'gratification_minimale' => 4.35,
+            ]);
+            $stageResolver->setAllowedTypes('gratification_minimale', ['float', 'int']);
+            return $stageResolver->resolve($stage);
+        });
+
         return $resolver->resolve($settings);
     }
 
@@ -248,6 +258,15 @@ class Etablissement
                     'apiUrl' => null,
                 ],
             ],
+            'stage' => [
+                'gratification_minimale' => 4.35,
+            ],
         ];
+    }
+
+    #[Groups(['etablissement:read'])]
+    public function getGratificationMinimale(): float
+    {
+        return (float) ($this->getSettings()['stage']['gratification_minimale'] ?? 4.35);
     }
 }

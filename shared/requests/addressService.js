@@ -44,28 +44,43 @@ const searchAddresses = async (query, countryCode = 'fr') => {
       // Construire l'adresse complète
       const fullAddress = props.label || '';
 
-      // Parser l'adresse pour extraire les composants
-      const addressParts = fullAddress.split(',').map(p => p.trim());
-      const streetAddress = addressParts[0] || '';
-
-      // Extraire le code postal et la ville
-      let postalCode = props.postalCode || '';
+      // Extraire le code postal (postcode dans l'API BAN/Géoplateforme)
+      let postalCode = props.postcode || props.postalCode || '';
       let city = props.city || props.town || '';
+      let streetAddress = props.name || props.street || '';
 
-      // Chercher le code postal et la ville dans les parties de l'adresse
-      for (const part of addressParts) {
-        if (/^\d{5}$/.test(part)) {
-          postalCode = part;
-        } else if (!city && part !== streetAddress) {
-          city = part;
+      // Si le code postal n'est pas dans les propriétés directes, le chercher dans le libellé
+      if (!postalCode) {
+        const cpMatch = fullAddress.match(/\b(\d{5})\b/);
+        if (cpMatch) {
+          postalCode = cpMatch[1];
+        }
+      }
+
+      // Si la ville est manquante et qu'on a le code postal
+      if (!city && postalCode) {
+        const parts = fullAddress.split(postalCode);
+        if (parts[1]) {
+          city = parts[1].replace(/^[,\s-]+|[,\s-]+$/g, '').trim();
+        }
+      }
+
+      // Si la rue est manquante
+      if (!streetAddress) {
+        if (postalCode) {
+          streetAddress = fullAddress.split(postalCode)[0].replace(/^[,\s-]+|[,\s-]+$/g, '').trim();
+        } else {
+          streetAddress = fullAddress;
         }
       }
 
       return {
         label: fullAddress,
         value: fullAddress,
+        name: streetAddress,
         address: streetAddress,
         postalCode: postalCode,
+        postcode: postalCode,
         city: city,
         country: 'France',
         lat: lat.toString(),
@@ -104,27 +119,39 @@ const reverseGeocode = async (lat, lon) => {
     const props = feature.properties || {};
     const fullAddress = props.label || '';
 
-    // Parser l'adresse pour extraire les composants
-    const addressParts = fullAddress.split(',').map(p => p.trim());
-    const streetAddress = addressParts[0] || '';
-
-    let postalCode = props.postalCode || '';
+    let postalCode = props.postcode || props.postalCode || '';
     let city = props.city || props.town || '';
+    let streetAddress = props.name || props.street || '';
 
-    // Chercher le code postal et la ville dans les parties de l'adresse
-    for (const part of addressParts) {
-      if (/^\d{5}$/.test(part)) {
-        postalCode = part;
-      } else if (!city && part !== streetAddress) {
-        city = part;
+    if (!postalCode) {
+      const cpMatch = fullAddress.match(/\b(\d{5})\b/);
+      if (cpMatch) {
+        postalCode = cpMatch[1];
+      }
+    }
+
+    if (!city && postalCode) {
+      const parts = fullAddress.split(postalCode);
+      if (parts[1]) {
+        city = parts[1].replace(/^[,\s-]+|[,\s-]+$/g, '').trim();
+      }
+    }
+
+    if (!streetAddress) {
+      if (postalCode) {
+        streetAddress = fullAddress.split(postalCode)[0].replace(/^[,\s-]+|[,\s-]+$/g, '').trim();
+      } else {
+        streetAddress = fullAddress;
       }
     }
 
     return {
       label: fullAddress,
       value: fullAddress,
+      name: streetAddress,
       address: streetAddress,
       postalCode: postalCode,
+      postcode: postalCode,
       city: city,
       country: 'France',
       lat: lat.toString(),

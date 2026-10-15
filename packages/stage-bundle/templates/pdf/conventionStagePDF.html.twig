@@ -1,74 +1,62 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<style>
-    body {
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-        font-size: 9.5px;
-        line-height: 1.35;
-        color: #2D3748;
-        margin: 15px;
+{% extends "pdf/basepdf.html.twig" %}
+
+{% block style %}
+    {% include('pdf/cssPDF.css.twig') %}
+    body
+    {
+    font-size: 10px;
+    line-height: normal;
     }
+
     .blocconvention {
-        margin: 0;
-        padding: 0;
-        font-size: 9.5px;
-        text-align: justify;
+    margin: 0;
+    padding:0;
+    font-size:10px;
+    text-align:justify;
     }
+
     .blocconvention_colonne {
-        width: 100%;
-        margin: 0;
-        padding: 5px;
-        font-size: 9.5px;
-        text-align: justify;
-        border-spacing: 0;
+    margin: 0;
+    padding:5px;
+    font-size:10px;
+    text-align:justify;
     }
-    .blocconvention_colonne td {
-        vertical-align: top;
-    }
+
     .blocconvention_preambule {
-        font-size: 11px;
+    font-size: 12px;
     }
+
     .blocconvention_preambule_encadre {
-        font-size: 10.5px;
-        padding: 10px;
-        border: 1px solid #4A5568;
-        margin-bottom: 10px;
-        background-color: #F8FAFC;
-        border-radius: 6px;
+    font-size: 12px;
+    width: 95%;
+    padding:10px;
+    border: 1px solid black;
     }
+
     p {
-        margin: 0;
-        padding: 0;
-        padding-bottom: 4px;
+    margin: 0;
+    padding:0;
+    padding-bottom:5px;
     }
+
     ul {
-        margin: 0;
-        margin-left: 20px;
-        padding: 0;
+    margin: 0;
+    margin-left: 30px;
+    padding:0;
     }
-    .center {
-        text-align: center;
+
+    ul li {
+    margin: 0;
+    padding:0;
     }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-bottom: 10px;
-    }
-    td {
-        border-color: #A0AEC0;
-    }
-    strong {
-        color: #1A202C;
-    }
-</style>
-</head>
-<body><table style="width:100%; border-spacing: 0;">
+{% endblock %}
+
+{% block content %}
+    <table style="width:100%; border-spacing: 0;">
         <tr>
             <td style="width:40%">&nbsp;</td>
             <td style="font-size:16px; text-align: center; border: 1px solid black;
-            padding:10px; font-weight: bold; width:60%">Année universitaire : {annee_universitaire}
+            padding:10px; font-weight: bold; width:60%">Année universitaire : {{ user_data.displayAnneeUniversitaire }}
                 <br><br>Convention de
                                                         stage
                                                         étudiant/e
@@ -88,26 +76,29 @@
                 <p>Tél. : 03.26.91.34.68</p>
                 <p>Représentée par (signataire de la convention) : Martial Martin</p>
                 <p>Qualité du représentant : DIRECTEUR</p>
-                <p>Département/Composante : {etudiant.parcours} / IUT de Troyes</p>
-                <p>Tél. : {dept.tel}</p>
-                <p>Email : {dept.mail}</p>
+                <p>Département/Composante : {{ proposition.etudiant.semestre.annee.diplome.typediplome
+                    .sigle }} {{ proposition.etudiant.semestre.annee.diplome.sigle }} / IUT de Troyes</p>
+                <p>Tél. : {{ user_data.departement.telcontact|tel_format }}</p>
+                <p>Email : {{ proposition.etudiant.semestre.annee.diplome.assistantDiplome != null ? proposition.etudiant.semestre.annee.diplome.assistantDiplome.mailUniv : '' }}</p>
                 <p>Adresse (si différente de celle de l’établissement)
-                   : {dept.adresse}
+                   : {% if user_data.departement.ufr.sitePrincipal.adresse != null %}{{ user_data.departement.ufr.sitePrincipal.adresse.display|striptags }}{% endif %}
             </td>
             <td style="width: 50%; border: 1px solid black;padding:5px;">
                 <div class="center"><strong><u>L’ORGANISME D’ACCUEIL</u></strong></div>
                 <br>
-                <p>Nom : {entreprise.nom}</p>
+                <p>Nom : {{ proposition.entreprise.raisonSociale }}</p>
                 <p>Adresse
-                   : {entreprise.adresse}</p>
+                   : {% if proposition.entreprise.adresse != null %}{{ proposition.entreprise.adresse.display|striptags }}{% endif %}</p>
                 <p>Représenté par (nom du signataire de la convention) :<br>
-                    {entreprise.signataire}</p>
-                <p>Qualité du représentant : <br>{entreprise.signataire_fonction}</p>
-                <p>Service dans lequel le stage sera effectué : <br>{stage.service}</p>
-                <p>Tél. : {entreprise.telephone}</p>
-                <p>Email : {entreprise.email}</p>
+                    {{ proposition.entreprise.responsable.display }}</p>
+                <p>Qualité du représentant : <br>{{ proposition.entreprise.responsable.fonction }}</p>
+                <p>Service dans lequel le stage sera effectué : <br>{{ proposition.serviceStageEntreprise }}</p>
+                <p>Tél. : {{ proposition.entreprise.responsable.telephone != null ? proposition.entreprise.responsable.telephone|tel_format : proposition.entreprise.responsable.portable|tel_format }}</p>
+                <p>Email : {{ proposition.entreprise.responsable.email }}</p>
                 <p>Lieu du stage (si différent de l’adresse de l’organisme) :</p>
-                {stage.adresse_different}
+                {% if proposition.adresseStage != null %}
+                    {{ proposition.adresseStage.display|striptags }}
+                {% endif %}
             </td>
         </tr>
     </table>
@@ -117,18 +108,20 @@
             <td style="width: 100%; border: 1px solid black;padding:5px;">
                 <div class="center"><strong><u>LE STAGIAIRE</u></strong></div>
                 <br>
-                <p>Nom: {etudiant.nom} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Prénom
-                   : {etudiant.prenom}
+                <p>Nom: {{ proposition.etudiant.nom }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Prénom
+                   : {{ proposition.etudiant.prenom|title }}
                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Sexe
-                   : {etudiant.sexe} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Né(e)
-                   le : {etudiant.date_naissance}</p>
+                   : {% if proposition.etudiant.civilite == "Mme" %}Femme{% else %}Homme{% endif %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Né(e)
+                   le : {{ proposition.etudiant.datenaissance|date('d/m/Y') }}</p>
                 <p>Adresse
-                   : {etudiant.adresse}</p>
-                <p> Tél. : {etudiant.telephones}
-                    Email : {etudiant.email}</p>
+                   : {% if proposition.etudiant.adresse != null %}{{ proposition.etudiant.adresse.display|striptags }}{% endif %}</p>
+                <p> Tél. : {{ proposition.etudiant.tel1|tel_format }} / {{ proposition.etudiant.tel2|tel_format }}
+                    Email : {{ proposition.etudiant.mailUniv }}</p>
                 <p>INTITULE DE LA FORMATION OU DU CURSUS SUIVI DANS L’ETABLISSEMENT D’ENSEIGNEMENT SUPERIEUR ET
                    VOLUME HORAIRE (ANNUEL OU SEMESTRIEL) :<br>
-                    {etudiant.formation} ({formation.volume_horaire} heures pour le diplôme)</p>
+                    {{ proposition.etudiant.semestre.annee.diplome.typediplome.libelle }} {{ proposition
+                    .etudiant.semestre.annee.diplome.libelle }} ({{ proposition.etudiant.semestre.annee.diplome
+                    .volumehoraire }} heures pour le diplôme)</p>
             </td>
         </tr>
     </table>
@@ -136,20 +129,25 @@
     <table style="width:100%; border-spacing: 0;">
         <tr>
             <td style="width: 100%; border: 1px solid black;padding:5px;">
-                <p><strong><u>Sujet du stage</u></strong> : {stage.sujet}</p>
-                <p>Dates du stage : Du {stage.date_debut}
-                   Au {stage.date_fin}</p>
-                <p>Représentant une <strong>durée totale</strong> de : {stage.semaines}
+                <p><strong><u>Sujet du stage</u></strong> : {{ proposition.sujetStage }}</p>
+                <p>Dates du stage : Du {{ proposition.dateDebutStage|date('d/m/Y') }}
+                   Au {{ proposition.dateFinStage|date('d/m/Y') }}</p>
+                <p>Représentant une <strong>durée totale</strong> de : {{ (proposition.dureeJoursStage/5)
+                    |round(0, 'ceil') }}
                    semaines/
                     <s>mois</s>
                    (rayer la
                    mention inutile)</p>
-                <p>Et correspondant à {stage.jours} Jours de présence dans l’organisme
+                <p>Et correspondant à {{ proposition.dureeJoursStage }} Jours de présence dans l’organisme
                    d’accueil.</p>
                 <p>Répartition en cas de stage discontinu : ………….. nombre d’heures par semaine ou par jour rayer la
                    mention inutile) :<br>
-                <p>Commentaire : {stage.commentaire_heures}.
-                    {stage.interruptions}</p>
+                <p>Commentaire : {{ proposition.commentaireDureeHebdomadaire }}.
+                    {% if proposition.stagePeriode.stagePeriodeInterruptions|length > 0 %}Période(s) d'interruption(s) : {% for inter in
+                        proposition.stagePeriode.stagePeriodeInterruptions %}
+                        du {{ inter.dateDebut|date('d/m/Y') }} au {{ inter.dateFin|date('d/m/Y') }}{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                    {% endif %}. {{ proposition.periodesInterruptions }}</p>
                 </p><br>
             </td>
         </tr>
@@ -160,17 +158,41 @@
             <td style="width: 50%; border: 1px solid black;padding:5px;">
                 <div class="center"><strong><u>TUTEUR DE L’ETABLISSEMENT D’ENSEIGNEMENT SUPERIEUR</u></strong></div>
                 <br>
-                <p>Nom et prénom du tuteur universitaire : {tuteur.nom}</p>
-                <p>Tél. : {tuteur.telephone} </p>
-                <p>Email : {tuteur.email}</p>
+                {% if proposition.tuteurUniversitaire != null %}
+                    <p>Nom et prénom du tuteur universitaire : {{ proposition.tuteurUniversitaire.display }}</p>
+                    {% if proposition.tuteurUniversitaire.domaines != "" or proposition.tuteurUniversitaire.responsabilites != "" %}
+                        <p>Fonction
+                           : {% if proposition.tuteurUniversitaire.domaines != "" and proposition.tuteurUniversitaire
+                                .domaines != null %}{{ proposition.tuteurUniversitaire.domaines is iterable ? proposition.tuteurUniversitaire.domaines|join(', ') : proposition.tuteurUniversitaire.domaines }}{% else %}{{ proposition.tuteurUniversitaire.responsabilites }}{% endif %}</p>
+                    {% else %}
+                        <p>Fonction : </p>
+                    {% endif %}
+                    <p>Tél. : {{ proposition.tuteurUniversitaire.telbureau|tel_format }} </p>
+                    <p>Email : {{ proposition.tuteurUniversitaire.mailUniv }}</p>
+                {% else %}
+                    <p>Nom et prénom de l’enseignant référent : </p>
+                    <p>Fonction (ou discipline) : </p>
+                    <p>Tél. : </p>
+                    <p>Email :</p>
+                {% endif %}
             </td>
             <td style="width: 50%; border: 1px solid black;padding:5px;">
                 <div class="center"><strong><u>TUTEUR DE L’ORGANISME D’ACCUEIL</u></strong></div>
                 <br>
-                <p>Nom et prénom : {tuteur_entreprise.nom}</p>
-                <p>Fonction : {tuteur_entreprise.fonction}</p>
-                <p>Tél. : {tuteur_entreprise.telephone}</p>
-                <p>Email : {tuteur_entreprise.email}</p>
+                {% if proposition.tuteur != null %}
+                    <p>Nom et prénom :
+                        {{ proposition.tuteur.display }}</p>
+                    <p>Fonction : {{ proposition.tuteur.fonction }}</p>
+                    <p>Tél. : {{ proposition.tuteur.telephone != null ? proposition.tuteur.telephone|tel_format :
+                        proposition.tuteur.portable|tel_format }}</p>
+                    <p>Email : {{ proposition.tuteur.email }}</p>
+                {% else %}
+                    <p>Nom et prénom :
+                        {{ proposition.entreprise.responsable.display }} </p>
+                    <p>Fonction : {{ proposition.entreprise.responsable.fonction }}</p>
+                    <p>Tél. : {{ proposition.entreprise.responsable.telephone != null ? proposition.entreprise.responsable.telephone|tel_format : proposition.entreprise.responsable.portable|tel_format }}</p>
+                    <p>Email : {{ proposition.entreprise.responsable.email }}</p>
+                {% endif %}
             </td>
         </tr>
     </table>
@@ -180,8 +202,8 @@
             <td style="width: 100%; border: 1px solid black">
                 Caisse primaire d’assurance maladie à contacter en cas d’accident (lieu de domicile du stagiaire sauf
                 exception) : <br>
-                {etudiant.secu}.<br>
-                {etudiant.secu_adresse}.
+                {{ proposition.etudiant.intituleSecuriteSociale }}.<br>
+                {{ proposition.etudiant.adresseSecuriteSociale }}.
             </td>
         </tr>
     </table>
@@ -286,17 +308,18 @@
                 défini par son établissement d’enseignement et approuvées par l’organisme d’accueil ;<br>
                 Le programme est établi par l’établissement d’enseignement et l’organisme d’accueil en fonction du
                 programme général de la formation dispensée.<br>
-                <u>ACTIVITES CONFIEES</u> : <br>{stage.activites}<br>
+                <u>ACTIVITES CONFIEES</u> : <br>{{ proposition.activites }}<br>
                 <u>COMPETENCES A ACQUERIR OU A DEVELOPPER</u> :<br>
-                {stage.competences}<br><br>
+                {{ proposition.stagePeriode.competencesVisees }}<br><br>
 
                 <strong>Article 3 – Modalités du stage</strong><br>
                 La durée hebdomadaire de présence du stagiaire dans le(s) lieu(x) désigné(s) dans l’entête sera de
-                {stage.heures_hebdo} heures sur la base d’un temps complet / <s>temps partiel</s> (rayer
+                {{ proposition.dureeHebdomadaire }} heures sur la base d’un temps complet / <s>temps partiel</s> (rayer
                 la mention inutile),<br>
                 Il est interdit de confier au stagiaire des tâches dangereuses pour sa santé ou sa sécurité.<br>
                 Si le stagiaire doit être présent dans l’organisme d’accueil et/ou dans le lieu désigné dans l’entête
-                la nuit, le dimanche ou un jour férié / préciser les cas particuliers : {stage.amenagements}.<br><br>
+                la nuit, le dimanche ou un jour férié / préciser les cas particuliers : {{ proposition
+                .amenagementStage }}.<br><br>
 
                 <strong>Article 4 – Accueil et encadrement du stagiaire</strong><br>
                 Le stagiaire est suivi par l’enseignant référent désigné dans la présente convention ainsi que par le
@@ -305,7 +328,7 @@
                 le suivi du stagiaire et d’optimiser les conditions de réalisation du stage conformément aux
                 stipulations pédagogiques définies.<br>
                 <u>MODALITES D’ENCADREMENT</u> (visites, rendez-vous téléphoniques, etc)<br>
-                {stage.modalites_encadrement}<br>
+                {{ proposition.stagePeriode.modaliteEncadrement }}<br>
                 Si les conditions sanitaires le permettent : d’une part, le stagiaire est autorisé à revenir dans son
                 établissement d’enseignement pendant la durée du stage pour y suivre des cours demandés explicitement
                 par le programme, ou pour participer à des réunions (les dates sont portées à la connaissance de
@@ -342,16 +365,16 @@
                 lieu(x) indiqué(s).<br><br>
 
                 <u>LE MONTANT DE LA GRATIFICATION</u> est fixé
-                à {{ proposition
-                .gratificationMontant }}- € par {% if proposition
+                à {% if proposition.gratification == true %}{{ proposition
+                .gratificationMontant }}{% else %}-{% endif %} € par {% if proposition
                     .gratificationPeriode == 'M' %}mois / <s>jour</s> / <s>heure</s>
-                
+                {% elseif proposition.gratificationPeriode == 'H' %}
                     <s>mois</s> / <s>jour</s> / heure
-                
+                {% elseif proposition.gratificationPeriode == 'J' %}
                     <s>mois</s> / jour / <s>heure</s>
-                
+                {% else %}
                     mois / jour / heure
-                 (rayer les
+                {% endif %} (rayer les
                 mentions inutiles) .<br><br>
 
                 <strong>Article 5 bis –STAGES EN FRANCE Accès aux droits des salariés – Avantages</strong><br>
@@ -365,7 +388,7 @@
                 Le stagiaire accède aux activités sociales et culturelles mentionnées à l’article L.2323-83 du code
                 du travail dans les mêmes conditions que les salariés.<br>
                 L’organisme d’accueil s’engage à respecter toute directive sanitaire nationale ou sectorielle.<br>
-                <u>AUTRES AVANTAGES ACCORDES</u> : {stage.avantages}.<br><br>
+                <u>AUTRES AVANTAGES ACCORDES</u> : {{ proposition.avantages }}.<br><br>
 
                 <strong>Article 5ter – STAGES EN FRANCE Accès aux droits des agents - Avantages</strong><br>
                 (Organisme de droit public en France sauf en cas de règles particulières applicables dans certaines
@@ -379,7 +402,7 @@
                 vigueur.<br>
                 Est considéré comme sa résidence administrative le(s) lieu(x) du stage indiqué(s) dans la présente
                 convention.<br>
-                <u>AUTRES AVANTAGES ACCORDES</u> : {stage.avantages}.<br><br>
+                <u>AUTRES AVANTAGES ACCORDES</u> : {{ proposition.avantages }}.<br><br>
 
                 <strong>Article 6 – Régime de protection sociale (maladie et accidents)</strong><br>
                 Pendant la durée du stage, le stagiaire reste affilié à son régime de Sécurité sociale antérieur. Il
@@ -622,9 +645,9 @@
                 3) <u>Evaluation de l’activité du stagiaire</u> : à l’issue du stage, l’organisme d’accueil renseigne
                 une fiche d’évaluation de l’activité du stagiaire qu’il retourne à l’enseignant référent(ou préciser si
                 fiche annexe ou modalités d’évaluation préalablement définis en accord avec l’enseignant
-                référent) {tuteur.nom}<br>
+                référent) {{ proposition.tuteurUniversitaire ? proposition.tuteurUniversitaire.displayPr : '' }}<br>
                 4) <u>Modalités d’évaluation pédagogiques</u> : le stagiaire devra rendre <br>
-                {stage.documents_a_rendre}.<br>
+                {{ proposition.stagePeriode.documentRendre }}.<br>
                 <u>NOMBRE D’ECTS (le cas échéant)</u>: {{ proposition.stagePeriode.nbEcts == 0 ? 'Le stage ne donne
                 pas lieu à des ECTS mais une note comptant dans différentes UE' : proposition.stagePeriode.nbEcts }}
                 .<br>
@@ -645,7 +668,7 @@
     <div style="page-break-after: always"></div>
 
     <br><br><br>
-    <strong>Fait A</strong> Troyes <strong>Le</strong> {date_creation}
+    <strong>Fait A</strong> Troyes <strong>Le</strong> {{ 'now'|date('d/m/Y') }}
     <br>
     <br>
     <br>
@@ -656,10 +679,12 @@
         </tr>
         <tr>
             <td><strong>Représentant de l’établissement</strong><br/>Nom et signature
-                                                                     :<br/>{etablissement.signataire}</td>
+                                                                     :<br/>{{ user_data.departement.ufr.responsable
+                .display }}</td>
             <td><strong>Représentant de l’organisme d’accueil</strong><br/>
                 Nom, signature et cachet de la société :<br/>
-                {entreprise.signataire}
+                {{ proposition.entreprise.responsable.prenom|capitalize }} {{ proposition
+                .entreprise.responsable.nom|upper }}
             </td>
         </tr>
         <tr style="height: 120px;">
@@ -668,7 +693,7 @@
         </tr>
         <tr>
             <td><strong>Stagiaire (ou son représentant légal échéant)</strong><br/>
-                Nom et signature:<br/>{etudiant.prenom} {etudiant.nom}</td>
+                Nom et signature:<br/>{{ proposition.etudiant.displayPr }}</td>
             <td></td>
         </tr>
         <tr style="height: 120px;">
@@ -677,15 +702,24 @@
         </tr>
         <tr>
             <td><strong>Tuteur Universitaire</strong><br/>Nom et signature
-                                                          :<br/>{tuteur.nom}
-                
+                                                          :<br/>{% if proposition.tuteurUniversitaire != null %}{{ proposition.tuteurUniversitaire.displayPr }}{% endif %}
+                {% if proposition.tuteurUniversitaire != null and proposition.tuteurUniversitaire.signatureElectronique != null %}
+                    <br/>
+                    <img src="{{ settings('BASE_PATH') }}signature/{{ proposition.tuteurUniversitaire
+                    .signatureElectronique }}" width="100px" alt="Signature électronique"/>
+                {% endif %}
             </td>
             <td><strong>Le tuteur de l’organisme d’accueil</strong><br/>
-                Nom et signature :<br/>
-                    {tuteur_entreprise.nom}
+                Nom et signature :<br/>{% if proposition.tuteur != null %}
+                    {{ proposition.tuteur.prenom|capitalize }}  {{ proposition.tuteur.nom|upper }}{% else %}{{ proposition.entreprise.responsable.prenom|capitalize }} {{ proposition.entreprise.responsable.nom|upper }}{% endif %}
             </td>
         </tr>
-        
+        {% if proposition.tuteurUniversitaire == null or proposition.tuteurUniversitaire.signatureElectronique == null %}
+            <tr style="height: 80px;">
+                <td>&nbsp;<br><br><br><br><br></td>
+                <td><br><br><br><br><br></td>
+        </tr>
+        {% endif %}
     </table>
 
     <p>Annexe 1 : attestation de stage / Annexe 2 à fournir par l’étudiant (e) : attestation de
@@ -707,11 +741,11 @@
             <td style="width: 100%; border: 1px solid black;padding:5px; line-height: 1.3em">
                 <div class="center"><strong><u>L’ORGANISME D’ACCUEIL</u></strong></div>
                 <br>
-                <p>Nom : {entreprise.nom}</p>
+                <p>Nom : {{ proposition.entreprise.raisonSociale }}</p>
                 <p>Adresse
-                   : {entreprise.adresse}
+                   : {% if proposition.entreprise.adresse != null %}{{ proposition.entreprise.adresse.display|striptags }}{% endif %}
                 </p>
-                <p>Tél. : {entreprise.telephone}</p>
+                <p>Tél. : {{ proposition.entreprise.responsable.telephone != null ? proposition.entreprise.responsable.telephone|tel_format : proposition.entreprise.responsable.portable|tel_format }}</p>
             </td>
         </tr>
     </table>
@@ -724,20 +758,21 @@
             <td style="width: 100%; border: 1px solid black;padding:5px; line-height: 1.3em">
                 <div class="center"><strong>LE STAGIAIRE</strong></div>
                 <br>
-                <p>Nom: {etudiant.nom} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Prénom
-                   : {etudiant.prenom}
+                <p>Nom: {{ proposition.etudiant.nom }} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Prénom
+                   : {{ proposition.etudiant.prenom|title }}
                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Sexe
-                   : {etudiant.sexe} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                   Né(e) le : {etudiant.date_naissance}</p>
+                   : {% if proposition.etudiant.civilite == "Mme" %}Femme{% else %}Homme{% endif %} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                   Né(e) le : {{ proposition.etudiant.datenaissance|date('d/m/Y') }}</p>
                 <p>Adresse
-                   : {etudiant.adresse}</p>
+                   : {% if proposition.etudiant.adresse != null %}{{ proposition.etudiant.adresse.display|striptags }}{% endif %}</p>
 
                 <p>Tél. : {{ proposition.etudiant.tel1 }} / {{ proposition.etudiant.tel2|tel_format }}. Email
-                   : {etudiant.email} </p>
+                   : {{ proposition.etudiant.mailUniv }} | {{ proposition.etudiant.mailPerso }}</p>
                 <p><strong style="font-size: 14px">ETUDIANT EN</strong> (intitulé de la formation ou du cursus de
                                                                         l’enseignement supérieur suivi par le ou la
                                                                         stagiaire)</p>
-                <p>{etudiant.formation}</p>
+                <p>{{ proposition.etudiant.semestre.annee.diplome.typediplome.libelle }} {{ proposition
+                    .etudiant.semestre.annee.diplome.libelle }}</p>
                 <p><strong style="font-size: 14px">AU SEIN DE </strong>(nom de l'établissement d'enseignement supérieur)
                 </p>
                 <p>UNIVERSITÉ DE REIMS CHAMPAGNE-ARDENNE / IUT de Troyes</p>
@@ -792,5 +827,9 @@
                 Nom, titre et signature du représentant de l’organisme d’accueil
             </td>
         </tr>
-    </table></body>
-</html>
+    </table>
+
+
+
+
+{% endblock %}

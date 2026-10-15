@@ -66,9 +66,7 @@ const validate = () => {
 // Watch for changes in the model value
 watch(() => props.modelValue, () => {
   dirty.value = true;
-  if (props.validateOnInput) {
-    validate();
-  }
+  validate();
 });
 
 // Handle blur event

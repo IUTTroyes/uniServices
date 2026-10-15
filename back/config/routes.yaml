@@ -10,3 +10,9 @@ intranet_controllers:
         namespace: IntranetBundle\Controller
     type: attribute
 
+stage_controllers:
+    resource:
+        path: '../../packages/stage-bundle/src/Controller/'
+        namespace: StageBundle\Controller
+    type: attribute
+

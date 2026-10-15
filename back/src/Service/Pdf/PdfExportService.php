@@ -35,7 +35,7 @@ class PdfExportService
         array $context,
         string $filename,
         ?PdfExportOptions $options = null,
-    ): HtmlPdfBuilder {
+    ): HtmlPdfBuilder|\Sensiolabs\GotenbergBundle\Debug\Builder\TraceableBuilder {
         $options ??= new PdfExportOptions();
 
         $genDate = $options->generationDate ?? new DateTimeImmutable('now');
@@ -70,7 +70,7 @@ class PdfExportService
             ->marginBottom($options->marginBottom, Unit::Centimeters)
             ->marginLeft($options->marginLeft, Unit::Centimeters)
             ->marginRight($options->marginRight, Unit::Centimeters)
-            ->fileName($cleanFilename, HeaderUtils::DISPOSITION_ATTACHMENT);
+            ->fileName($cleanFilename, $options->disposition);
 
         if ($options->withHeader) {
             $builder->header($options->headerTemplate, $headerContext);

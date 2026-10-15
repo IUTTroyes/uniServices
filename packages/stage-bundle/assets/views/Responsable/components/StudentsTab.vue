@@ -456,7 +456,17 @@ const deleteStudentSubmission = () => {
   }
 };
 
+const openConventionPdf = (studentOrId) => {
+  const id = typeof studentOrId === 'object' ? (studentOrId.stageId || studentOrId.id) : studentOrId;
+  if (id) {
+    window.open(`/api/stage_etudiants/${id}/pdf`, '_blank');
+  }
+};
+
 const generatePDF = () => {
+  if (selectedRequest.value && (selectedRequest.value.stageId || selectedRequest.value.id)) {
+    openConventionPdf(selectedRequest.value);
+  }
   emit('update-student', {
     id: selectedRequest.value.id,
     changes: {
@@ -537,6 +547,9 @@ const studentsSigned = computed(() => {
 });
 
 const printConvention = (student) => {
+  if (student && (student.stageId || student.id)) {
+    openConventionPdf(student);
+  }
   emit('update-student', {
     id: student.id,
     changes: {
@@ -696,9 +709,14 @@ const finalizeSignature = (student) => {
                 <span class="font-bold text-xs truncate">{{ s.studentName }}</span>
                 <span class="text-[9px] text-slate-455 truncate">{{ s.company }}</span>
               </div>
-              <button @click="finalizeSignature(s)" class="p-1.5 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-all cursor-pointer" v-tooltip.left="'Marquer comme signée/récupérée'">
-                <CheckCircleIcon class="w-3.5 h-3.5" />
-              </button>
+              <div class="flex items-center gap-1">
+                <button @click="openConventionPdf(s)" class="p-1.5 bg-slate-100 dark:bg-slate-750 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all cursor-pointer" v-tooltip.left="'Voir la convention PDF'">
+                  <i class="pi pi-file-pdf text-[11px] text-red-500"></i>
+                </button>
+                <button @click="finalizeSignature(s)" class="p-1.5 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-all cursor-pointer" v-tooltip.left="'Marquer comme signée/récupérée'">
+                  <CheckCircleIcon class="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
             <div v-if="studentsSigning.length === 0" class="text-center py-6 text-[10px] text-slate-450 italic">
               Aucune convention en cours
@@ -723,8 +741,13 @@ const finalizeSignature = (student) => {
                 <span class="font-bold text-xs truncate">{{ s.studentName }}</span>
                 <span class="text-[9px] text-slate-455 truncate">{{ s.company }}</span>
               </div>
-              <div class="p-1 text-emerald-600 dark:text-emerald-400">
-                <CheckIcon class="w-3.5 h-3.5 text-emerald-500" />
+              <div class="flex items-center gap-1">
+                <button @click="openConventionPdf(s)" class="p-1.5 bg-slate-100 dark:bg-slate-750 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all cursor-pointer" v-tooltip.left="'Télécharger le PDF'">
+                  <i class="pi pi-file-pdf text-[11px] text-red-500"></i>
+                </button>
+                <div class="p-1 text-emerald-600 dark:text-emerald-400">
+                  <CheckIcon class="w-3.5 h-3.5 text-emerald-500" />
+                </div>
               </div>
             </div>
             <div v-if="studentsSigned.length === 0" class="text-center py-6 text-[10px] text-slate-450 italic">
@@ -926,11 +949,18 @@ const finalizeSignature = (student) => {
             </button>
 
             <!-- Case C: Convention in signature -->
-            <button v-else-if="slotProps.data.conventionStatus === 'En cours de signature'" @click="finalizeSignature(slotProps.data)"
-              class="text-[10px] font-bold px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all flex items-center gap-1.5 ml-auto cursor-pointer">
-              <i class="pi pi-check-square text-[8px]"></i>
-              <span>Finaliser</span>
-            </button>
+            <div v-else-if="slotProps.data.conventionStatus === 'En cours de signature'" class="flex items-center gap-1.5 ml-auto">
+              <button @click="openConventionPdf(slotProps.data)"
+                class="text-[10px] font-bold p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-all flex items-center cursor-pointer"
+                v-tooltip.top="'Télécharger PDF'">
+                <i class="pi pi-file-pdf text-[10px] text-red-500"></i>
+              </button>
+              <button @click="finalizeSignature(slotProps.data)"
+                class="text-[10px] font-bold px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all flex items-center gap-1 cursor-pointer">
+                <i class="pi pi-check-square text-[8px]"></i>
+                <span>Finaliser</span>
+              </button>
+            </div>
 
             <!-- Case D: Student has no placement, send reminder -->
             <button v-else-if="!slotProps.data.hasStage" @click="contactStudent(slotProps.data.studentName)"
@@ -940,11 +970,19 @@ const finalizeSignature = (student) => {
             </button>
 
             <!-- Case E: Convention already signed / rejected, show detailed sheet -->
-            <button v-else @click="openReviewRequest(slotProps.data)"
-              class="text-[10px] font-bold px-3 py-1.5 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600/60 text-slate-700 dark:text-slate-300 rounded-lg transition-all flex items-center gap-1.5 ml-auto cursor-pointer">
-              <i class="pi pi-info-circle text-[8px]"></i>
-              <span>Détails</span>
-            </button>
+            <div v-else class="flex items-center gap-1.5 ml-auto">
+              <button v-if="slotProps.data.hasStage && slotProps.data.conventionStatus === 'Signée'"
+                @click="openConventionPdf(slotProps.data)"
+                class="text-[10px] font-bold p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-all flex items-center cursor-pointer"
+                v-tooltip.top="'Télécharger PDF'">
+                <i class="pi pi-file-pdf text-[10px] text-red-500"></i>
+              </button>
+              <button @click="openReviewRequest(slotProps.data)"
+                class="text-[10px] font-bold px-3 py-1.5 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600/60 text-slate-700 dark:text-slate-300 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                <i class="pi pi-info-circle text-[8px]"></i>
+                <span>Détails</span>
+              </button>
+            </div>
           </template>
         </Column>
       </DataTable>
@@ -986,11 +1024,11 @@ const finalizeSignature = (student) => {
           </div>
 
           <div class="space-y-4">
-            <!-- Section 1 : Profil Étudiant & Assurances -->
+            <!-- Section 1 : Profil Étudiant & Sécurité sociale -->
             <FormSection
               :icon="UserIcon"
               tone="teal"
-              title="1. Profil Étudiant & Assurances"
+              title="1. Profil Étudiant & Sécurité sociale"
             >
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1">
@@ -1002,11 +1040,11 @@ const finalizeSignature = (student) => {
                   <input v-model="editForm.studentEmail" type="email" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="q-label">Compagnie d'assurance RC</label>
+                  <label class="q-label">Organisme de sécurité sociale</label>
                   <input v-model="editForm.insuranceCompany" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="q-label">Numéro de police d'assurance</label>
+                  <label class="q-label">Adresse de l'organisme</label>
                   <input v-model="editForm.insurancePolicyNumber" type="text" class="q-input q-input-sm" />
                 </div>
               </div>
@@ -1249,6 +1287,12 @@ const finalizeSignature = (student) => {
             <button v-if="selectedRequest && selectedRequest.hasStage && selectedRequest.conventionStatus === 'Validée'" @click="generatePDF" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
               <i class="pi pi-file-pdf"></i>
               <span>Générer la convention PDF</span>
+            </button>
+
+            <!-- If in signature or signed, show View PDF button -->
+            <button v-if="selectedRequest && selectedRequest.hasStage && ['En cours de signature', 'Signée'].includes(selectedRequest.conventionStatus)" @click="openConventionPdf(selectedRequest)" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
+              <i class="pi pi-file-pdf text-red-500"></i>
+              <span>Télécharger la convention PDF</span>
             </button>
 
             <!-- If in signature, show Finalize signature button -->

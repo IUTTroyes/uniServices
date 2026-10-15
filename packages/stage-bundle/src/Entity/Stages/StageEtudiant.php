@@ -374,6 +374,11 @@ class StageEtudiant implements TimestampableInterface
         return $this->gratification;
     }
 
+    public function isGratification(): bool
+    {
+        return $this->gratification;
+    }
+
     public function setGratification(bool $gratification): self
     {
         $this->gratification = $gratification;

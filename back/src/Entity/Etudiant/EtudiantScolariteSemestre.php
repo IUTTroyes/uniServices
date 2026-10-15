@@ -49,12 +49,12 @@ class EtudiantScolariteSemestre
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite-semestre:manage-groupes', 'scolarite-semestre:absence', 'scolarite:light'])]
+    #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite-semestre:manage-groupes', 'scolarite-semestre:absence', 'scolarite:light', 'scolarite:user'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'scolariteSemestre')]
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
-    #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite-semestre:absence', 'scolarite:light'])]
+    #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite-semestre:absence', 'scolarite:light', 'scolarite:user'])]
     private ?StructureSemestre $semestre = null;
 
     /**
@@ -62,7 +62,7 @@ class EtudiantScolariteSemestre
      * Null for native V4 scolarities (2026-2027 and later).
      */
     #[ORM\Column(type: Types::JSON, nullable: true)]
-    #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite:light'])]
+    #[Groups(['scolarite-semestre:detail', 'etudiant:read', 'scolarite:light', 'scolarite:user'])]
     private ?array $legacyContext = null;
 
     /**
@@ -241,7 +241,7 @@ class EtudiantScolariteSemestre
         $this->moyenne = $moyenne;
     }
 
-    public function getDecision(): ?bool
+    public function getNbAbsences(): int
     {
         return $this->nbAbsences;
     }
@@ -249,6 +249,18 @@ class EtudiantScolariteSemestre
     public function setNbAbsences(int $nbAbsences): static
     {
         $this->nbAbsences = $nbAbsences;
+
+        return $this;
+    }
+
+    public function getDecision(): ?bool
+    {
+        return $this->decision;
+    }
+
+    public function setDecision(?bool $decision): static
+    {
+        $this->decision = $decision;
 
         return $this;
     }

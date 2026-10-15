@@ -158,6 +158,10 @@ class StagePeriode
     public function getModalitesEncadrement(): ?string { return $this->modalitesEncadrement; }
     public function setModalitesEncadrement(?string $v): static { $this->modalitesEncadrement = $v; return $this; }
     public function getDocumentsRendre(): ?string { return $this->documentsRendre; }
+    public function getDocumentRendre(): ?string { return $this->documentsRendre; }
+    public function getModaliteEncadrement(): ?string { return $this->modalitesEncadrement; }
+    public function getStagePeriodeInterruptions(): Collection { return $this->periodesInterruption; }
+    public function getNbEcts(): int { return 0; }
     public function setDocumentsRendre(?string $v): static { $this->documentsRendre = $v; return $this; }
     public function getConsignesFichiers(): ?array { return $this->consignesFichiers; }
     public function setConsignesFichiers(?array $v): static { $this->consignesFichiers = $v; return $this; }

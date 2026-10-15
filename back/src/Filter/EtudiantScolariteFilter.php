@@ -29,7 +29,7 @@ class EtudiantScolariteFilter implements FilterInterface
 
     protected function filterProperty(
         string $property,
-        $value,
+        mixed $value,
         QueryBuilder $queryBuilder,
         QueryNameGeneratorInterface $queryNameGenerator,
         string $resourceClass,
@@ -87,6 +87,15 @@ class EtudiantScolariteFilter implements FilterInterface
         }
 
 
+
+        if ('actif' === $property) {
+            $bool = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if (null !== $bool) {
+                $queryBuilder
+                    ->andWhere("$alias.actif = :scolActif")
+                    ->setParameter('scolActif', $bool);
+            }
+        }
 
         if ('etudiant' === $property) {
             $queryBuilder
