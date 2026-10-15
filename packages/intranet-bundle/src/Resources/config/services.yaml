@@ -13,6 +13,12 @@ services:
         - app.dashboard.definition
     App\Service\Email\AbstractEmailDefinition:
       tags: [ 'app.email_definition' ]
+    IntranetBundle\Commission\Contract\CommissionStrategyInterface:
+      tags: [ 'intranet.commission.strategy' ]
+
+  IntranetBundle\Commission\Contract\CommissionServiceInterface: '@IntranetBundle\Commission\Service\CommissionService'
+  IntranetBundle\Commission\Contract\CommissionDataLoaderInterface: '@IntranetBundle\Commission\Service\CommissionDataLoader'
+  IntranetBundle\Commission\Contract\CommissionStrategyResolverInterface: '@IntranetBundle\Commission\Service\CommissionStrategyResolver'
 
   IntranetBundle\:
     resource: "../../"
