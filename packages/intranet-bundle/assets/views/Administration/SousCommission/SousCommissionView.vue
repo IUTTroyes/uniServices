@@ -41,6 +41,7 @@ const searchQuery = ref('');
 const showDetails = ref(false);
 const stickyHeader = ref(true);
 const stickyColumn = ref(true);
+const apcDisplayMode = ref<'ue' | 'enseignement'>('ue');
 
 // Filtrage instantané par nom / prénom / numéro étudiant / bac
 const filteredRows = computed<CommissionRow[]>(() => {
@@ -105,7 +106,9 @@ const exportCsv = () => {
   if (!commissionData.value) return;
 
   const data = commissionData.value;
-  const cols = data.columns;
+  const isApcByEns = data.mode === 'apc' && apcDisplayMode.value === 'enseignement' && (data.columnsByEnseignement?.length ?? 0) > 0;
+  const cols = isApcByEns ? (data.columnsByEnseignement ?? data.columns) : data.columns;
+
   const headers = [
     'Nom',
     'Prénom',
@@ -113,7 +116,7 @@ const exportCsv = () => {
     'Date de naissance',
     'Bac',
     'Rang',
-    ...cols.map((c) => c.label),
+    ...cols.map((c) => c.label + (c.sublabel ? ` (${c.sublabel})` : '')),
     'Moyenne',
     'Décision',
   ];
@@ -135,7 +138,7 @@ const exportCsv = () => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
-  link.setAttribute('download', `commission_semestre_${selectedSemestre.value?.libelle || 'export'}.csv`);
+  link.setAttribute('download', `commission_${data.mode}_${apcDisplayMode.value}_${selectedSemestre.value?.libelle || 'export'}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -193,6 +196,33 @@ watch(anneeId, async () => {
             class="font-semibold text-xs px-2.5 py-1"
           />
         </div>
+
+        <!-- Bascule des 2 modes APC (Par UE vs Par Ressource/SAÉ) -->
+        <div
+          v-if="commissionData?.mode === 'apc'"
+          class="inline-flex rounded-lg border border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800 p-0.5"
+        >
+          <button
+            type="button"
+            class="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer"
+            :class="apcDisplayMode === 'ue' ? 'bg-surface-0 dark:bg-surface-900 text-primary-600 dark:text-primary-400 shadow-xs' : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100'"
+            @click="apcDisplayMode = 'ue'"
+            title="Affichage regroupé par Unité d'Enseignement (UE)"
+          >
+            <i class="pi pi-th-large text-xs"></i>
+            <span>Par UE</span>
+          </button>
+          <button
+            type="button"
+            class="flex items-center gap-1.5 px-3 py-1 text-xs font-semibold rounded-md transition-all cursor-pointer"
+            :class="apcDisplayMode === 'enseignement' ? 'bg-surface-0 dark:bg-surface-900 text-primary-600 dark:text-primary-400 shadow-xs' : 'text-surface-600 dark:text-surface-400 hover:text-surface-900 dark:hover:text-surface-100'"
+            @click="apcDisplayMode = 'enseignement'"
+            title="Affichage à plat par Ressource et SAÉ avec carrés d'UE / compétences"
+          >
+            <i class="pi pi-list text-xs"></i>
+            <span>Par Ressource / SAÉ</span>
+          </button>
+        </div>
       </div>
 
       <!-- Actions de droite : recherche, bascule détail, export -->
@@ -208,8 +238,9 @@ watch(anneeId, async () => {
           />
         </div>
 
-        <!-- Bascule Afficher/Masquer le détail (SAÉ / Ressources / Matières) -->
+        <!-- Bascule Afficher/Masquer le détail (actif en mode Par UE) -->
         <Button
+          v-if="commissionData?.mode !== 'apc' || apcDisplayMode === 'ue'"
           :label="showDetails ? 'Masquer matières/SAÉ' : 'Détail matières/SAÉ'"
           :icon="showDetails ? 'pi pi-eye-slash' : 'pi pi-eye'"
           size="small"
@@ -325,6 +356,8 @@ watch(anneeId, async () => {
         v-else-if="commissionData.mode === 'apc'"
         :rows="filteredRows"
         :columns="commissionData.columns"
+        :columns-by-enseignement="commissionData.columnsByEnseignement"
+        :mode="apcDisplayMode"
         :show-details="showDetails"
         :sticky-header="stickyHeader"
         :sticky-column="stickyColumn"

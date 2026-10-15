@@ -52,6 +52,7 @@ abstract class AbstractCommissionStrategy implements CommissionStrategyInterface
             $this->buildColumns($semestre),
             $rows,
             $this->buildStatistiques($rows),
+            $this->buildColumnsByEnseignement($semestre),
         );
     }
 
@@ -73,7 +74,11 @@ abstract class AbstractCommissionStrategy implements CommissionStrategyInterface
             foreach ($ue->getEnseignementUes() as $enseignementUe) {
                 /** @var ScolEnseignementUe $enseignementUe */
                 $enseignementId = $enseignementUe->getEnseignement()?->getId();
-                $cells['ens_'.$ue->getId().'_'.$enseignementId] = $dataset->moyennesEnseignement[$scolId][$enseignementId] ?? null;
+                $note = $dataset->moyennesEnseignement[$scolId][$enseignementId] ?? null;
+                $cells['ens_'.$ue->getId().'_'.$enseignementId] = $note;
+                if (null !== $enseignementId) {
+                    $cells['ens_'.$enseignementId] = $note;
+                }
             }
         }
 
@@ -174,19 +179,26 @@ abstract class AbstractCommissionStrategy implements CommissionStrategyInterface
     {
         $columns = [];
         foreach ($this->getUes($semestre) as $ue) {
+            $ueNumero = (int) $ue->getNumero();
+            $ueColor = self::getUeColor($ueNumero);
             $ueKey = 'ue_'.$ue->getId();
             $columns[] = new CommissionColumn(
                 $ueKey,
-                'UE'.$ue->getNumero(),
+                'UE'.$ueNumero,
                 CommissionColumn::TYPE_UE,
                 null,
                 $ue->getCoefficient(),
                 $withEcts ? $ue->getNbEcts() : null,
                 $ue->getLibelle(),
+                'ue',
+                null,
+                null,
+                $ueColor,
             );
 
             foreach ($ue->getEnseignementUes() as $enseignementUe) {
                 $enseignement = $enseignementUe->getEnseignement();
+                $nature = $enseignement?->getType()?->value ?? 'matiere';
                 $columns[] = new CommissionColumn(
                     'ens_'.$ue->getId().'_'.$enseignement?->getId(),
                     $enseignement?->getCodeEnseignement() ?? $enseignement?->getLibelleCourt() ?? '',
@@ -195,10 +207,38 @@ abstract class AbstractCommissionStrategy implements CommissionStrategyInterface
                     $enseignementUe->getCoefficient(),
                     $withEcts ? $enseignementUe->getEcts() : null,
                     $enseignement?->getLibelle(),
+                    $nature,
+                    $enseignement?->getId(),
                 );
             }
         }
 
         return $columns;
+    }
+
+    /**
+     * Colonnes à plat par Ressource / SAÉ (mode spécifique APC / BUT).
+     *
+     * @return CommissionColumn[]
+     */
+    protected function buildColumnsByEnseignement(StructureSemestre $semestre): array
+    {
+        return [];
+    }
+
+    public static function getUeColor(int $numero): string
+    {
+        $colors = [
+            1 => 'emerald',
+            2 => 'blue',
+            3 => 'purple',
+            4 => 'amber',
+            5 => 'pink',
+            6 => 'teal',
+            7 => 'indigo',
+            8 => 'rose',
+        ];
+
+        return $colors[$numero] ?? 'blue';
     }
 }

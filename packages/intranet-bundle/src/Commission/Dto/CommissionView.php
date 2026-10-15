@@ -7,9 +7,10 @@ use IntranetBundle\Commission\Enum\CommissionModeEnum;
 final readonly class CommissionView implements \JsonSerializable
 {
     /**
-     * @param CommissionColumn[] $columns
+     * @param CommissionColumn[] $columns Colonnes par UE (mode par défaut)
      * @param CommissionRow[]    $rows
      * @param array<string, mixed> $statistiques
+     * @param CommissionColumn[] $columnsByEnseignement Colonnes uniques par Ressource / SAÉ (mode alternatif APC)
      */
     public function __construct(
         public CommissionModeEnum $mode,
@@ -18,6 +19,7 @@ final readonly class CommissionView implements \JsonSerializable
         public array $columns,
         public array $rows,
         public array $statistiques = [],
+        public array $columnsByEnseignement = [],
     ) {
     }
 
@@ -28,6 +30,7 @@ final readonly class CommissionView implements \JsonSerializable
             'modeLibelle' => $this->mode->getLibelle(),
             'semestre' => ['id' => $this->semestreId, 'libelle' => $this->semestreLibelle],
             'columns' => $this->columns,
+            'columnsByEnseignement' => $this->columnsByEnseignement,
             'rows' => $this->rows,
             'statistiques' => $this->statistiques,
         ];

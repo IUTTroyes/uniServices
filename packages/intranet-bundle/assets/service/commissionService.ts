@@ -1,5 +1,17 @@
 import api from '@helpers/axios';
 
+export interface CommissionColumnUeLink {
+  id: number;
+  numero: number;
+  label: string;
+  libelle: string;
+  coefficient: number;
+  ects: number;
+  color: string;
+  competenceNomCourt?: string | null;
+  competenceCouleur?: string | null;
+}
+
 export interface CommissionColumn {
   key: string;
   label: string;
@@ -8,6 +20,12 @@ export interface CommissionColumn {
   coefficient?: number | null;
   ects?: number | null;
   sublabel?: string | null;
+  nature?: 'ressource' | 'sae' | 'matiere' | 'ue';
+  enseignementId?: number | null;
+  ues?: CommissionColumnUeLink[] | null;
+  color?: string | null;
+  competenceNomCourt?: string | null;
+  competenceCouleur?: string | null;
 }
 
 export interface CommissionRow {
@@ -40,6 +58,7 @@ export interface CommissionViewData {
   modeLibelle: string;
   semestre: { id: number; libelle: string };
   columns: CommissionColumn[];
+  columnsByEnseignement?: CommissionColumn[];
   rows: CommissionRow[];
   statistiques: CommissionStatistiques;
 }
