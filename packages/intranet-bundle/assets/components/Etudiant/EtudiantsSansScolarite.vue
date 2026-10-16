@@ -13,9 +13,11 @@ import {
   getEtudiantScolariteSemestresService,
   updateEtudiantScolariteSemestreService,
 } from '@requests';
+import { useUsersStore } from '@stores';
 import { useEtudiantFilters } from '../../../../../shared/composables/filters/usersFilters/useEtudiantFilters.ts';
 
 const toast = useToast();
+const userStore = useUsersStore();
 const loading = ref(false);
 const hasError = ref(false);
 const savingStep = ref(false);
@@ -29,6 +31,8 @@ const anneesUniversitaires = ref([]);
 const annees = ref([]);
 const selectedAnneeUniversitaire = ref(null);
 const selectedAnnee = ref(null);
+const isLoadingAnneesUniversitaires = ref(true);
+const isLoadingAnnees = ref(true);
 const savedDestination = ref(null);
 
 const etudiantScolariteSemestres = ref([]);
@@ -84,17 +88,42 @@ const getEtudiantsSansScolarite = async () => {
   }
 };
 
-const loadInitData = async () => {
+const getAnneesUniversitaires = async () => {
   try {
-    [anneesUniversitaires.value, annees.value] = await Promise.all([
-      getAnneesUniversitairesService({}, '', false),
-      getAnneesService({}, '', false),
-    ]);
+    isLoadingAnneesUniversitaires.value = true;
+    const params = {
+      since: new Date().getFullYear(),
+    };
+    anneesUniversitaires.value = await getAnneesUniversitairesService(params, '', false);
+    selectedAnneeUniversitaire.value = anneesUniversitaires.value.find(annee => annee.actif) ?? null;
   } catch (error) {
-    console.error('Erreur lors du chargement des données initiales :', error);
-    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger les années.', life: 3000 });
+    console.error('Erreur lors du chargement des années universitaires :', error);
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger les années universitaires.', life: 3000 });
+  } finally {
+    isLoadingAnneesUniversitaires.value = false;
   }
 };
+
+const getAnnees = async () => {
+  try {
+    isLoadingAnnees.value = true;
+    const params = {
+      departement: userStore.departementDefaut.id,
+      actif: true,
+    };
+    annees.value = await getAnneesService(params, '', false);
+  } catch (error) {
+    console.error('Erreur lors du chargement des années :', error);
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de charger les années.', life: 3000 });
+  } finally {
+    isLoadingAnnees.value = false;
+  }
+};
+
+const loadInitData = async () => {
+  await Promise.all([getAnneesUniversitaires(), getAnnees()]);
+};
+
 
 const viewEtudiant = etudiant => {
   selectedEtudiant.value = etudiant;
@@ -240,17 +269,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <HeaderComponent
-      icon="pi pi-users"
-      titre="Intégration des étudiants sans scolarité"
-      description="Depuis l'ajout d'étudiants, intégrez des étudiants existants dans une année puis affectez leurs groupes"
-  />
-
   <Message v-if="hasError" severity="error" class="mb-4">
     Une erreur est survenue lors du chargement des données.
   </Message>
-
-  <div class="card">
+  <div v-else class="mt-8">
     <header class="card-header mb-6">
       <p class="top-card-header">Parcours guidé</p>
       <h2 class="mt-0!">Régularisation des étudiants sans scolarité</h2>
@@ -263,14 +285,39 @@ onUnmounted(() => {
     ]" :activeStep="currentStep - 1" readonly class="mb-5" />
 
     <div v-if="currentStep === 1" class="card-body">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-        <div>
-          <label class="block mb-2">Année universitaire</label>
-          <Dropdown v-model="selectedAnneeUniversitaire" :options="anneesUniversitaires" optionLabel="libelle" placeholder="Sélectionner" class="w-full" />
+      <div class="flex flex-col gap-4 mb-4">
+        <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+          <div v-if="anneesUniversitaires.length > 1" class="font-medium text-lg">
+            Sélectionner une année universitaire
+          </div>
+          <div v-else class="font-medium text-lg">
+            Année universitaire
+          </div>
+          <ListSkeleton v-if="isLoadingAnneesUniversitaires" class="w-full"/>
+          <SelectButton
+              v-else
+              :options="anneesUniversitaires"
+              v-model="selectedAnneeUniversitaire"
+              class="w-full justify-center"
+              optionLabel="libelle"
+          />
         </div>
-        <div>
-          <label class="block mb-2">Année pédagogique</label>
-          <Dropdown v-model="selectedAnnee" :options="annees" optionLabel="libelle" placeholder="Sélectionner" class="w-full" />
+        <Divider></Divider>
+        <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+          <div class="font-medium text-lg">
+            Sélectionner une année
+          </div>
+          <ListSkeleton v-if="isLoadingAnnees" class="w-full"/>
+          <Button
+              v-else
+              :severity="selectedAnnee && selectedAnnee.id === annee.id ? 'primary' : 'secondary'"
+              v-for="annee in annees"
+              :key="annee.id"
+              class="w-full"
+              @click="selectedAnnee = annee"
+          >
+            {{ annee.libelle }}
+          </Button>
         </div>
       </div>
       <div class="flex justify-end">

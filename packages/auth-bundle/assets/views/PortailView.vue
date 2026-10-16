@@ -195,20 +195,22 @@ watch(() => route.path, async (newPath, oldPath) => {
         <aside class="col-span-12 lg:col-span-2 pt-28 pb-14 h-screen">
           <div class="card card-body h-full overflow-y-auto flex flex-col gap-6">
             <div class="flex flex-col gap-4">
-              <div class="text-md font-semibold text-color-secondary uppercase">Applications</div>
+              <div class="flex flex-col">
+                <div class="text-md font-semibold text-color-secondary uppercase">Applications</div>
+                <div class="text-sm font-semibold text-color-secondary opacity-70">Accéder à :</div>
+              </div>
               <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
               <div v-else class="flex flex-col">
                 <template v-if="activatedBundles.length > 0">
                   <Button
                       v-for="bundle in activatedBundles"
                       :key="bundle.urlSlug"
-                      type="button"
-                      text
+                      severity="secondary"
                       rounded
-                      class="justify-between! text-left font-semibold w-full hover:bg-transparent! hover:scale-105! transition-transform! duration-200!"
+                      text
                       @click="onBundleClick(bundle.url)"
                   >
-                    <ApplicationBadge :app="bundle.urlSlug" :showIcon="true"/>
+                    <ApplicationBadge :app="bundle.urlSlug" :showIcon="true" class="w-full! border!"/>
                   </Button>
                 </template>
                 <Message v-else severity="warn" class="flex! flex-col! items-center! justify-center! text-center!">
@@ -218,7 +220,7 @@ watch(() => route.path, async (newPath, oldPath) => {
               </div>
 
               <div v-if="unactivatedBundles.length > 0" class="flex flex-col gap-4">
-                <div class="text-sm font-semibold pl-4 uppercase opacity-70">Inactives</div>
+                <div class="text-sm font-semibold text-color-secondary opacity-70">Inactives</div>
                 <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
                 <div v-else class="flex flex-col">
                   <Button
@@ -229,9 +231,9 @@ watch(() => route.path, async (newPath, oldPath) => {
                       rounded
                       severity="secondary"
                       disabled
-                      class="justify-between! text-left font-semibold w-full opacity-60"
+                      class="justify-between! text-left font-semibold w-full!"
                   >
-                    <ApplicationBadge :app="bundle.urlSlug" :showIcon="true"/>
+                    <ApplicationBadge :app="bundle.urlSlug" :showIcon="true" class="w-full! opacity-60"/>
                   </Button>
                 </div>
               </div>
