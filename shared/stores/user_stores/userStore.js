@@ -206,9 +206,23 @@ export const useUsersStore = defineStore('users', () => {
                     const params = {
                         actif: true,
                         etudiant: userId.value
-                    }
+                    };
                     const scolaritesActives = await getEtudiantScolaritesService(params, '/user');
-                    scolariteActif.value = scolaritesActives[0];
+                    const activeFromList = Array.isArray(scolaritesActives)
+                        ? (scolaritesActives.find(s => s.actif === true) || scolaritesActives.find(s => s.anneeUniversitaire?.actif === true) || scolaritesActives[0])
+                        : null;
+                    const activeFromUser = Array.isArray(user.value?.scolarites)
+                        ? (user.value.scolarites.find(s => s.actif === true) || user.value.scolarites.find(s => s.anneeUniversitaire?.actif === true))
+                        : null;
+
+                    scolariteActif.value = {
+                        ...(activeFromUser || {}),
+                        ...(activeFromList || {}),
+                        scolariteSemestre: (activeFromList?.scolariteSemestre && activeFromList.scolariteSemestre.length > 0)
+                            ? activeFromList.scolariteSemestre
+                            : (activeFromUser?.scolariteSemestre || []),
+                        departement: activeFromList?.departement || activeFromUser?.departement || {}
+                    };
                     departementDefaut.value = scolariteActif.value?.departement || {};
                     departements.value = departementDefaut.value?.id ? [departementDefaut.value] : [];
                     departementsNotDefaut.value = [];

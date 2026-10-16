@@ -619,6 +619,32 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
         return $this->getPrenom() . ' ' . $this->getNom();
     }
 
+    public function getDisplayPr(): string
+    {
+        return mb_strtoupper($this->getNom()) . ' ' . ucfirst($this->getPrenom());
+    }
+
+    public function getAdresse(): ?Adresse
+    {
+        return $this->getAdresseEtudiante() ?? $this->getAdresseParentale();
+    }
+
+
+    public function getIntituleSecuriteSociale(): ?string
+    {
+        return $this->getOpt()['intitule_securite_sociale'] ?? null;
+    }
+
+    public function getAdresseSecuriteSociale(): ?string
+    {
+        return $this->getOpt()['adresse_securite_sociale'] ?? null;
+    }
+
+    public function getCivilite(): ?string
+    {
+        return $this->getOpt()['civilite'] ?? 'M.';
+    }
+
     /**
      * @return Collection<int, ScolEvaluationRattrapage>
      */

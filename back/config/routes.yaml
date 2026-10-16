@@ -10,3 +10,15 @@ intranet_controllers:
         namespace: IntranetBundle\Controller
     type: attribute
 
+stage_controllers:
+    resource:
+        path: '../../packages/stage-bundle/src/Controller/'
+        namespace: StageBundle\Controller
+    type: attribute
+
+questionnaire_controllers:
+    resource:
+        path: '../../packages/questionnaire-bundle/src/Controller/'
+        namespace: QuestionnaireBundle\Controller
+    type: attribute
+

@@ -100,7 +100,7 @@ class StructureAnneeUniversitaire implements TimestampableInterface
     private Collection $personnels;
 
     #[ORM\Column]
-    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'maquette:detail', 'pn:read', 'scolarite:read', 'etudiant:read', 'scolarite:user'])]
+    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write', 'maquette:detail', 'pn:read', 'scolarite:read', 'etudiant:read', 'scolarite:user', 'stage_periode:read'])]
     private bool $actif = false;
 
     /**

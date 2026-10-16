@@ -48,8 +48,9 @@ class StagePeriodeFilter implements FilterInterface
 
         if ('anneeUniversitaire' === $property) {
             $univId = is_string($value) && str_contains($value, '/') ? (int) basename($value) : (int) $value;
+            $spAu = $this->getOrCreateJoin($queryBuilder, $queryNameGenerator, $alias, 'anneeUniversitaire');
             $queryBuilder
-                ->andWhere(sprintf('%s.anneeUniversitaire = :stageAnneeUniv', $alias))
+                ->andWhere(sprintf('(%s.id = :stageAnneeUniv OR %s.annee = :stageAnneeUniv)', $spAu, $spAu))
                 ->setParameter('stageAnneeUniv', $univId);
         }
 

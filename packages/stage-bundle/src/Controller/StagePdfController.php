@@ -3,7 +3,10 @@
 namespace StageBundle\Controller;
 
 use App\Entity\Etablissement;
+use App\Service\Pdf\PdfExportOptions;
+use App\Service\Pdf\PdfExportService;
 use Doctrine\ORM\EntityManagerInterface;
+use StageBundle\Adapter\StageConventionAdapter;
 use StageBundle\Entity\Stages\StageEtudiant;
 use StageBundle\Entity\Stages\StageAvenant;
 use StageBundle\Entity\Stages\StageConventionTemplate;
@@ -15,13 +18,11 @@ use Symfony\Component\Routing\Attribute\Route;
 //todo: a déplacer dans le bundle stage
 class StagePdfController extends AbstractController
 {
-    private EntityManagerInterface $em;
-    private GotenbergService $gotenbergService;
-
-    public function __construct(EntityManagerInterface $em, GotenbergService $gotenbergService)
-    {
-        $this->em = $em;
-        $this->gotenbergService = $gotenbergService;
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly GotenbergService $gotenbergService,
+        private readonly PdfExportService $pdfExportService,
+    ) {
     }
 
     #[Route('/api/stage_etudiants/{id}/pdf', name: 'api_stage_etudiants_pdf', methods: ['GET'])]
@@ -32,26 +33,76 @@ class StagePdfController extends AbstractController
             return new Response('Stage étudiant non trouvé', Response::HTTP_NOT_FOUND);
         }
 
-        $template = $this->em->getRepository(StageConventionTemplate::class)->findOneBy(['code' => 'default_convention']);
-        $templateText = $template ? $template->getTexte() : "CONVENTION DE STAGE\n(Modèle par défaut non configuré en base)";
+        // Get main establishment
+        $etab = $this->em->getRepository(Etablissement::class)->findOneBy(['isMain' => true])
+            ?? $this->em->getRepository(Etablissement::class)->findOneBy([]);
 
-        // Replace placeholders
-        $text = $this->replacePlaceholders($templateText, $stage);
+        $periode = $stage->getStagePeriode();
+        $semestre = $periode?->getSemestreProgramme();
+        $annee = $semestre?->getAnnee();
+        $diplome = $annee?->getDiplome();
+        $dept = $diplome?->getDepartement() ?? $periode?->getDepartement();
 
-        // Convert to nice HTML page
-        $html = $this->renderConventionHtml($text, $stage);
+        // Année universitaire
+        $anneeUnivStr = $periode && $periode->getAnneeUniversitaire()
+            ? $periode->getAnneeUniversitaire()->getLibelle()
+            : (date('Y') . '/' . (date('Y') + 1));
 
-        // Call Gotenberg
+        $deptTel = $dept?->getTelContact() ?? ($etab?->getTelephone() ?? '03.26.91.34.68');
+        $directeurNom = 'Martial Martin';
+
+        $userData = [
+            'displayAnneeUniversitaire' => $anneeUnivStr,
+            'departement' => [
+                'telcontact' => $deptTel,
+                'ufr' => [
+                    'sitePrincipal' => [
+                        'adresse' => $etab?->getAdresse(),
+                    ],
+                    'responsable' => [
+                        'display' => $directeurNom,
+                    ],
+                ],
+            ],
+        ];
+
+        $adaptedStage = new StageConventionAdapter($stage, $semestre, $diplome);
+
+        $nomFichier = 'convention_stage_' . ($stage->getEtudiant()?->getNom() ? mb_strtolower($stage->getEtudiant()->getNom()) : 'etudiant') . '.pdf';
+
+        $options = PdfExportOptions::create()
+            ->setWithHeader(false)
+            ->setWithFooter(false)
+            ->setMargins(0.8, 0.8, 0.8, 0.8)
+            ->setInline(true)
+            ->setTitle('Convention de stage - ' . ($stage->getEtudiant()?->getDisplay() ?? 'Étudiant'));
+
         try {
-            $pdfBytes = $this->gotenbergService->convertHtmlToPdf($html);
+            return $this->pdfExportService->generateStreamedResponse(
+                '@Stage/pdf/conventionStagePDF.html.twig',
+                [
+                    'proposition' => $adaptedStage,
+                    'user_data' => $userData,
+                ],
+                $nomFichier,
+                $options
+            );
         } catch (\Exception $e) {
-            return new Response('Erreur lors de la génération PDF : ' . $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            // En cas d'erreur de rendu Gotenberg, fallback avec template texte brut
+            $template = $this->em->getRepository(StageConventionTemplate::class)->findOneBy(['code' => 'default_convention']);
+            $templateText = $template ? $template->getTexte() : "CONVENTION DE STAGE\n(Modèle par défaut non configuré en base)";
+            $text = $this->replacePlaceholders($templateText, $stage);
+            $html = $this->renderConventionHtml($text, $stage);
+            try {
+                $pdfBytes = $this->gotenbergService->convertHtmlToPdf($html);
+                return new Response($pdfBytes, Response::HTTP_OK, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'inline; filename="' . $nomFichier . '"',
+                ]);
+            } catch (\Exception $e2) {
+                return new Response('Erreur lors de la génération PDF : ' . $e->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
         }
-
-        return new Response($pdfBytes, Response::HTTP_OK, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="convention_stage_' . ($stage->getEtudiant()?->getNom() ?? 'etudiant') . '.pdf"',
-        ]);
     }
 
     #[Route('/api/stage_avenants/{id}/pdf', name: 'api_stage_avenants_pdf', methods: ['GET'])]
@@ -201,8 +252,8 @@ class StagePdfController extends AbstractController
             '{etudiant.email}' => $etu ? $etu->getMailUniv() : '',
             '{etudiant.formation}' => $formationLibelle,
             '{formation.volume_horaire}' => $volumeHoraire,
-            '{etudiant.secu}' => $etu && method_exists($etu, 'getOpt') && !empty($etu->getOpt()['intitule_securite_sociale']) ? $etu->getOpt()['intitule_securite_sociale'] : ($etu && method_exists($etu, 'getIntituleSecuriteSociale') && $etu->getIntituleSecuriteSociale() ? $etu->getIntituleSecuriteSociale() : 'CPAM de l\'Aube'),
-            '{etudiant.secu_adresse}' => $etu && method_exists($etu, 'getOpt') && !empty($etu->getOpt()['adresse_securite_sociale']) ? $etu->getOpt()['adresse_securite_sociale'] : ($etu && method_exists($etu, 'getAdresseSecuriteSociale') && $etu->getAdresseSecuriteSociale() ? $etu->getAdresseSecuriteSociale() : ''),
+            '{etudiant.secu}' => $stage->getAssuranceCompagnie() ?: ($etu && method_exists($etu, 'getOpt') && !empty($etu->getOpt()['intitule_securite_sociale']) ? $etu->getOpt()['intitule_securite_sociale'] : ($etu && method_exists($etu, 'getIntituleSecuriteSociale') && $etu->getIntituleSecuriteSociale() ? $etu->getIntituleSecuriteSociale() : 'CPAM de l\'Aube')),
+            '{etudiant.secu_adresse}' => $stage->getAssuranceNumero() ?: ($etu && method_exists($etu, 'getOpt') && !empty($etu->getOpt()['adresse_securite_sociale']) ? $etu->getOpt()['adresse_securite_sociale'] : ($etu && method_exists($etu, 'getAdresseSecuriteSociale') && $etu->getAdresseSecuriteSociale() ? $etu->getAdresseSecuriteSociale() : '')),
 
             '{entreprise.nom}' => $ent ? $ent->getRaisonSociale() : '',
             '{entreprise.adresse}' => $stage->getAdresseStage() ? (string) $stage->getAdresseStage() : ($ent && $ent->getAdresse() ? (string) $ent->getAdresse() : ''),

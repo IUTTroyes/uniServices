@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick } from 'vue';
+import { nextTick, computed } from 'vue';
 import FormValidator from './FormValidator.vue';
 import InputText from 'primevue/inputtext';
 import Password from 'primevue/password';
@@ -182,13 +182,21 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
   await nextTick();
   handleBlurFn(event);
 };
+const isRequired = computed(() => {
+  if (!props.rules) return false;
+  if (props.rules === 'required' || props.rules === validationRules.required) return true;
+  if (Array.isArray(props.rules)) {
+    return props.rules.some(r => r === 'required' || r === validationRules.required || (r && r.message === validationRules.required.message));
+  }
+  return false;
+});
 </script>
 
 <template>
   <div class="validated-input">
     <label v-if="label" :for="name" class="block mb-1">
       {{ label }}
-      <span v-if="rules && (rules === 'required' || (Array.isArray(rules) && (rules.includes('required') || rules.includes(validationRules.required))))" class="text-red-500">*</span>
+      <span v-if="isRequired" class="text-red-500 ml-0.5" title="Champ obligatoire">*</span>
     </label>
     <FormValidator
         :model-value="modelValue"
@@ -289,6 +297,7 @@ const onBlurModelValue = async (event: Event, handleBlurFn: Function) => {
           :manualInput="manualInput"
           :minDate="minDate"
           :maxDate="maxDate"
+          :disabled="disabled"
         />
 
         <Textarea

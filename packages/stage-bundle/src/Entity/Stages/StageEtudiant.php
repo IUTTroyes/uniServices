@@ -24,9 +24,11 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 
-use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
+use App\Filter\StageEtudiantFilter;
 
 #[ORM\Entity(repositoryClass: StageEtudiantRepository::class)]
+#[ApiFilter(StageEtudiantFilter::class)]
 #[ApiResource(
     operations: [
         new Get(normalizationContext: ['groups' => ['stage_etudiant:read', 'etudiant:light', 'stage_periode:read']]),
@@ -42,9 +44,11 @@ use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
         new Delete()
     ],
     parameters: [
-        'stagePeriode' => new QueryParameter(filter: SearchFilter::class),
-        'tuteurUniversitaire' => new QueryParameter(filter: SearchFilter::class),
-        'etudiant' => new QueryParameter(filter: SearchFilter::class),
+        'stagePeriode' => new QueryParameter(filter: StageEtudiantFilter::class),
+        'tuteurUniversitaire' => new QueryParameter(filter: StageEtudiantFilter::class),
+        'etudiant' => new QueryParameter(filter: StageEtudiantFilter::class),
+        'anneeUniversitaire' => new QueryParameter(filter: StageEtudiantFilter::class),
+        'departement' => new QueryParameter(filter: StageEtudiantFilter::class),
     ]
 )]
 class StageEtudiant implements TimestampableInterface
@@ -370,6 +374,11 @@ class StageEtudiant implements TimestampableInterface
     }
 
     public function getGratification(): bool
+    {
+        return $this->gratification;
+    }
+
+    public function isGratification(): bool
     {
         return $this->gratification;
     }

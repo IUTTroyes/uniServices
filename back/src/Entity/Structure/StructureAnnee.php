@@ -54,15 +54,15 @@ class StructureAnnee implements TimestampableInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['maquette:detail', 'annee:light', 'annee:read', 'semestre:detail', 'scolarite:administration', 'stage_periode:read'])]
+    #[Groups(['maquette:detail', 'annee:light', 'annee:read', 'semestre:detail', 'scolarite:administration', 'stage_periode:read', 'scolarite:user'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['maquette:detail', 'scolarite:read', 'annee:read', 'annee:light', 'semestre:detail', 'scolarite:administration', 'stage_periode:read'])]
+    #[Groups(['maquette:detail', 'scolarite:read', 'annee:read', 'annee:light', 'semestre:detail', 'scolarite:administration', 'stage_periode:read', 'scolarite:user'])]
     private ?string $libelle = null;
 
     #[ORM\Column]
-    #[Groups(['maquette:detail', 'stage_periode:read'])]
+    #[Groups(['maquette:detail', 'stage_periode:read', 'annee:light', 'scolarite:user'])]
     private int $ordre = 0;
 
     #[ORM\Column(length: 255, nullable: true)]
@@ -267,6 +267,11 @@ class StructureAnnee implements TimestampableInterface
         $this->pn = $pn;
 
         return $this;
+    }
+
+    public function getTypeDiplome(): ?StructureTypeDiplome
+    {
+        return $this->pn?->getDiplome()?->getTypeDiplome();
     }
 
     public function getDiplome(): ?StructureDiplome

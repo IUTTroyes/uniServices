@@ -506,6 +506,24 @@ const exportQuestionnaireExcel = async (surveyUuid) => {
         throw error;
     }
 }
+const exportQuestionnairePdf = async (surveyUuid, charts = {}) => {
+    try {
+        const response = await api.post(`/api/questionnaires/${surveyUuid}/export-pdf`, { charts }, {
+            responseType: 'blob'
+        });
+        const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `Statistiques_${surveyUuid}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Erreur lors de l\'export PDF:', error);
+        throw error;
+    }
+}
 
 export {
     getMiniSemestres,
@@ -542,5 +560,6 @@ export {
     submitInvitation,
     getQuestionnaireInvitations,
     getQuestionnaireAnalytics,
-    exportQuestionnaireExcel
+    exportQuestionnaireExcel,
+    exportQuestionnairePdf
 };

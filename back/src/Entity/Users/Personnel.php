@@ -761,6 +761,16 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
         return $this->getPrenom() . ' ' . $this->getNom();
     }
 
+    public function getDisplayPr(): string
+    {
+        return mb_strtoupper($this->getNom()) . ' ' . ucfirst($this->getPrenom());
+    }
+
+    public function getSignatureElectronique(): ?string
+    {
+        return null;
+    }
+
     #[Groups(['diplome:detail', 'maquette:detail', 'personnel:detail', 'personnel:light', 'previsionnel:read', 'previsionnel_enseignement:read', 'previsionnel_personnel:read', 'previsionnel_semestre:read', 'previsionnel_all_personnels:read', 'edt_event:read:agenda'])]
     public function getDisplayCourt(): string
     {

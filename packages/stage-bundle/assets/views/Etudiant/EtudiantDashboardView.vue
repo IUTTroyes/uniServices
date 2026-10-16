@@ -33,7 +33,9 @@ import {
   LockOpenIcon,
   MapPinIcon,
   CurrencyEuroIcon,
-  UserGroupIcon
+  UserGroupIcon,
+  DocumentCheckIcon,
+  XCircleIcon
 } from '@heroicons/vue/24/outline';
 
 const router = useRouter();
@@ -82,10 +84,146 @@ const setSubTab = (periodId, tabName) => {
 
 // Pure API Academic History (No Mock Data)
 const studentAcademicHistory = ref({
-  BUT1: { yearLabel: 'BUT 1 - Année Universitaire 2023-2024', periods: [] },
-  BUT2: { yearLabel: 'BUT 2 - Année Universitaire 2024-2025', periods: [] },
-  BUT3: { yearLabel: 'BUT 3 - Année Universitaire 2025-2026', periods: [] }
+  BUT1: { yearLabel: 'BUT 1', periods: [] },
+  BUT2: { yearLabel: 'BUT 2', periods: [] },
+  BUT3: { yearLabel: 'BUT 3', periods: [] }
 });
+
+// Dynamic stage data and workflow mapping based on real EtatStageEnum
+const mapStudentStageData = (matchedStage, respName) => {
+  if (!matchedStage) return null;
+
+  const etat = matchedStage.etatStage || 'ETAT_STAGE_DEPOSE';
+  const formatDate = (isoStr) => {
+    if (!isoStr) return '';
+    const parts = isoStr.substring(0, 10).split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return isoStr;
+  };
+
+  let status = 'En attente de validation';
+  let statusClass = 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50';
+  let statusHeaderLabel = 'Demande déposée — En attente de validation';
+  let statusBadgeSeverity = 'warn';
+
+  let step1Completed = true;
+  let step1Date = formatDate(matchedStage.dateDepotFormulaire) || 'Déposée';
+
+  let step2Completed = false;
+  let step2Date = 'En attente';
+
+  let step3Completed = false;
+  let step3Date = 'En attente';
+
+  let step4Completed = false;
+  let step4Date = 'En attente';
+
+  let step5Completed = !!matchedStage.reportUploaded;
+  let step5Date = matchedStage.reportDate || (matchedStage.reportUploaded ? 'Déposé' : 'En attente');
+
+  if (etat === 'ETAT_STAGE_DEPOSE') {
+    status = 'En attente de validation';
+    statusClass = 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50';
+    statusHeaderLabel = 'Demande déposée — En attente de validation pédagogique';
+    statusBadgeSeverity = 'warn';
+    step2Date = 'En cours d\'examen';
+  } else if (etat === 'ETAT_STAGE_REFUS') {
+    status = 'Demande rejetée';
+    statusClass = 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-800/50';
+    statusHeaderLabel = 'Demande rejetée par le responsable';
+    statusBadgeSeverity = 'danger';
+    step2Completed = false;
+    step2Date = 'Rejetée';
+  } else if (etat === 'ETAT_STAGE_VALIDE') {
+    status = 'Convention validée';
+    statusClass = 'bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800/50';
+    statusHeaderLabel = 'Convention validée — En attente d\'édition';
+    statusBadgeSeverity = 'info';
+    step2Completed = true;
+    step2Date = formatDate(matchedStage.dateValidation) || 'Validée';
+    step3Date = 'En attente d\'édition';
+  } else if (etat === 'ETAT_STAGE_CONVENTION_IMPRIMEE' || etat === 'ETAT_STAGE_CONVENTION_ENVOYEE') {
+    status = 'En cours de signature';
+    statusClass = 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/50';
+    statusHeaderLabel = 'Convention éditée — Signatures en cours';
+    statusBadgeSeverity = 'info';
+    step2Completed = true;
+    step2Date = formatDate(matchedStage.dateValidation) || 'Validée';
+    step3Completed = true;
+    step3Date = formatDate(matchedStage.dateImprime || matchedStage.dateConventionEnvoyee) || 'Générée';
+    step4Date = 'Signatures en cours';
+  } else if (etat === 'ETAT_STAGE_CONVENTION_RECUE') {
+    step2Completed = true;
+    step2Date = formatDate(matchedStage.dateValidation) || 'Validée';
+    step3Completed = true;
+    step3Date = formatDate(matchedStage.dateImprime || matchedStage.dateConventionEnvoyee) || 'Générée';
+    step4Completed = true;
+    step4Date = formatDate(matchedStage.dateConventionRecu) || 'Signée';
+
+    if (matchedStage.evaluationNote) {
+      status = 'Terminé';
+      statusClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50';
+      statusHeaderLabel = 'Stage terminé & noté';
+      statusBadgeSeverity = 'success';
+    } else if (matchedStage.reportUploaded) {
+      status = 'Rapport déposé';
+      statusClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50';
+      statusHeaderLabel = 'Rapport déposé — En attente d\'évaluation';
+      statusBadgeSeverity = 'success';
+    } else {
+      status = 'Convention signée';
+      statusClass = 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/50';
+      statusHeaderLabel = 'Convention signée & validée';
+      statusBadgeSeverity = 'success';
+    }
+  }
+
+  const tutorUniv = matchedStage.tuteurUniversitaire;
+  const tutorUnivName = tutorUniv
+    ? `${tutorUniv.civilite || 'M.'} ${tutorUniv.prenom || ''} ${tutorUniv.nom || ''}`.trim()
+    : 'En attente d\'attribution (après validation pédagogique)';
+
+  const tut = matchedStage.tuteur;
+  const companySupervisorName = tut
+    ? `${tut.civilite || 'M.'} ${tut.prenom || ''} ${tut.nom || ''}`.trim()
+    : 'Maître de stage';
+
+  const ent = matchedStage.entreprise || {};
+  const addr = ent.adresse;
+  const fullAddress = addr
+    ? `${addr.adresse || ''}, ${addr.codePostal || ''} ${addr.ville || ''}`.replace(/^,\s*|,\s*$/g, '').trim() || 'Adresse entreprise'
+    : 'Adresse entreprise';
+
+  return {
+    id: matchedStage.id,
+    etatStage: etat,
+    company: ent.raisonSociale || matchedStage.entrepriseNom || 'Entreprise d\'accueil',
+    address: fullAddress,
+    subject: matchedStage.sujetStage || 'Sujet non précisé',
+    dates: matchedStage.dateDebutStage && matchedStage.dateFinStage 
+      ? `${formatDate(matchedStage.dateDebutStage)} au ${formatDate(matchedStage.dateFinStage)}`
+      : 'Dates du stage',
+    academicTutor: tutorUnivName,
+    companySupervisor: companySupervisorName,
+    status,
+    statusClass,
+    statusHeaderLabel,
+    statusBadgeSeverity,
+    reportUploaded: !!matchedStage.reportUploaded,
+    reportName: matchedStage.reportName || (matchedStage.reportUploaded ? 'Rapport_Stage_Final.pdf' : ''),
+    reportDate: matchedStage.reportDate || '',
+    grade: matchedStage.evaluationNote ? `${matchedStage.evaluationNote} / 20` : null,
+    workflowSteps: [
+      { id: 1, label: 'Demande déposée', completed: step1Completed, date: step1Date },
+      { id: 2, label: 'Validation responsable', completed: step2Completed, date: step2Date },
+      { id: 3, label: 'Convention générée', completed: step3Completed, date: step3Date },
+      { id: 4, label: 'Signatures collectées', completed: step4Completed, date: step4Date },
+      { id: 5, label: 'Dépôt du rapport', completed: step5Completed, date: step5Date }
+    ]
+  };
+};
 
 // REAL API FETCHING & DATA MAPPING
 const fetchDashboardData = async () => {
@@ -106,16 +244,18 @@ const fetchDashboardData = async () => {
     const activeAnneeUnivLib = activeScol?.anneeUniversitaire?.libelle || '';
 
     // Détection de l'année/BUT courant de l'étudiant
-    let detectedOrdre = 3;
+    let detectedOrdre = 1;
     const firstSem = activeScol?.scolariteSemestre?.[0]?.semestre;
-    if (firstSem?.annee?.ordre) {
+    if (firstSem?.ordreAnnee) {
+      detectedOrdre = firstSem.ordreAnnee;
+    } else if (firstSem?.annee?.ordre) {
       detectedOrdre = firstSem.annee.ordre;
     } else if (firstSem?.libelle) {
       const semLib = firstSem.libelle.toUpperCase();
       if (semLib.includes('S1') || semLib.includes('S2')) detectedOrdre = 1;
       else if (semLib.includes('S3') || semLib.includes('S4')) detectedOrdre = 2;
       else if (semLib.includes('S5') || semLib.includes('S6')) detectedOrdre = 3;
-    } else if (activeScol?.ordre) {
+    } else if (activeScol?.ordre && activeScol.ordre <= 3) {
       detectedOrdre = activeScol.ordre;
     }
 
@@ -136,10 +276,53 @@ const fetchDashboardData = async () => {
     const gedOffers = await fetchStageOfferDocuments();
 
     const history = {
-      BUT1: { yearLabel: `BUT 1 ${detectedOrdre === 1 && activeAnneeUnivLib ? '- ' + activeAnneeUnivLib : ''}`.trim(), periods: [] },
-      BUT2: { yearLabel: `BUT 2 ${detectedOrdre === 2 && activeAnneeUnivLib ? '- ' + activeAnneeUnivLib : ''}`.trim(), periods: [] },
-      BUT3: { yearLabel: `BUT 3 ${detectedOrdre === 3 && activeAnneeUnivLib ? '- ' + activeAnneeUnivLib : ''}`.trim(), periods: [] }
+      BUT1: { yearLabel: 'BUT 1', periods: [] },
+      BUT2: { yearLabel: 'BUT 2', periods: [] },
+      BUT3: { yearLabel: 'BUT 3', periods: [] }
     };
+
+    // Reconstitution des libellés d'années universitaires réelles depuis l'historique de scolarité de l'étudiant
+    if (Array.isArray(user?.scolarites)) {
+      user.scolarites.forEach(scol => {
+        const auLib = scol.anneeUniversitaire?.libelle;
+        if (!auLib) return;
+
+        let scOrdre = null;
+        const sem = scol.scolariteSemestre?.[0]?.semestre;
+        const leg = scol.scolariteSemestre?.[0]?.legacyContext;
+
+        if (sem?.ordreAnnee) {
+          scOrdre = sem.ordreAnnee;
+        } else if (sem?.annee?.ordre) {
+          scOrdre = sem.annee.ordre;
+        } else if (sem?.libelle) {
+          const l = sem.libelle.toUpperCase();
+          if (l.includes('S1') || l.includes('S2')) scOrdre = 1;
+          else if (l.includes('S3') || l.includes('S4')) scOrdre = 2;
+          else if (l.includes('S5') || l.includes('S6')) scOrdre = 3;
+        } else if (leg?.semestre?.libelle) {
+          const l = leg.semestre.libelle.toUpperCase();
+          if (l.includes('S1') || l.includes('S2')) scOrdre = 1;
+          else if (l.includes('S3') || l.includes('S4')) scOrdre = 2;
+          else if (l.includes('S5') || l.includes('S6')) scOrdre = 3;
+        } else if (leg?.annee?.libelle) {
+          const anneeLib = leg.annee.libelle.toUpperCase();
+          if (anneeLib.includes(' 1') || anneeLib.endsWith('1')) scOrdre = 1;
+          else if (anneeLib.includes(' 2') || anneeLib.endsWith('2')) scOrdre = 2;
+          else if (anneeLib.includes(' 3') || anneeLib.endsWith('3')) scOrdre = 3;
+        }
+
+        if (scOrdre && history[`BUT${scOrdre}`]) {
+          if (scol.actif || !history[`BUT${scOrdre}`].yearLabel.includes('20')) {
+            history[`BUT${scOrdre}`].yearLabel = `BUT ${scOrdre} - Année Universitaire ${auLib}`;
+          }
+        }
+      });
+    }
+
+    if (activeAnneeUnivLib && history[`BUT${detectedOrdre}`]) {
+      history[`BUT${detectedOrdre}`].yearLabel = `BUT ${detectedOrdre} - Année Universitaire ${activeAnneeUnivLib}`;
+    }
 
     if (Array.isArray(apiPeriods)) {
       // Filtrer strictement les périodes par le département de l'étudiant (aucun débordement inter-département)
@@ -170,7 +353,7 @@ const fetchDashboardData = async () => {
         const isCurrentUniv = p.anneeUniversitaire?.actif === true || (activeAnneeUnivLib && anneeUnivLib === activeAnneeUnivLib);
 
         if (anneeUnivLib && history[yearKey]) {
-          if (pOrdre === detectedOrdre || isCurrentUniv || !history[yearKey].yearLabel.includes('20')) {
+          if (isCurrentUniv || !history[yearKey].yearLabel.includes('20')) {
             history[yearKey].yearLabel = `BUT ${pOrdre} - Année Universitaire ${anneeUnivLib}`;
           }
         }
@@ -190,7 +373,16 @@ const fetchDashboardData = async () => {
           : [];
 
         // Check if student's current semester is in semestresSaisie
-        const inputAuth = p.semestresSaisie && Array.isArray(p.semestresSaisie) ? p.semestresSaisie.length > 0 : true;
+        const studentSemId = firstSem?.id;
+        const semSaisieIds = (p.semestresSaisie || []).map(s => typeof s === 'object' ? s.id : (typeof s === 'string' && s.includes('/') ? parseInt(s.split('/').pop()) : s)).filter(Boolean);
+        const progSemId = p.semestreProgramme?.id || (typeof p.semestreProgramme === 'string' && p.semestreProgramme.includes('/') ? parseInt(p.semestreProgramme.split('/').pop()) : p.semestreProgramme);
+
+        let inputAuth = true;
+        if (semSaisieIds.length > 0) {
+          inputAuth = studentSemId ? (semSaisieIds.includes(studentSemId) || progSemId === studentSemId) : true;
+        } else if (progSemId && studentSemId) {
+          inputAuth = (progSemId === studentSemId);
+        }
 
         const periodObj = {
           id: p.id,
@@ -214,30 +406,10 @@ const fetchDashboardData = async () => {
           inputAuthorized: inputAuth,
           documents: p.consignesFichiers || [],
           offers: gedOffers || [],
-          hasStage: !!matchedStage,
-          stage: matchedStage ? {
-            company: matchedStage.entreprise?.raisonSociale || matchedStage.entrepriseNom || 'Entreprise d\'accueil',
-            address: matchedStage.entreprise?.adresse?.adresse || 'Adresse entreprise',
-            subject: matchedStage.sujetStage || 'Sujet du stage',
-            dates: matchedStage.dateDebutStage && matchedStage.dateFinStage 
-              ? `${new Date(matchedStage.dateDebutStage).toLocaleDateString('fr-FR')} au ${new Date(matchedStage.dateFinStage).toLocaleDateString('fr-FR')}`
-              : 'Dates du stage',
-            academicTutor: matchedStage.tuteurUniversitaire ? `${matchedStage.tuteurUniversitaire.prenom || ''} ${matchedStage.tuteurUniversitaire.nom || ''}` : respName,
-            companySupervisor: matchedStage.tuteur ? `${matchedStage.tuteur.prenom || ''} ${matchedStage.tuteur.nom || ''}` : 'Maître de stage',
-            status: matchedStage.evaluationNote ? 'Terminé' : (matchedStage.reportUploaded ? 'Rapport Déposé' : 'En cours - Convention signée'),
-            statusClass: matchedStage.evaluationNote ? 'bg-emerald-100 text-emerald-800' : 'bg-indigo-100 text-indigo-800',
-            reportUploaded: !!matchedStage.reportUploaded,
-            reportName: matchedStage.reportName || (matchedStage.reportUploaded ? 'Rapport_Stage_Final.pdf' : ''),
-            reportDate: matchedStage.reportDate || '',
-            grade: matchedStage.evaluationNote ? `${matchedStage.evaluationNote} / 20` : null,
-            workflowSteps: [
-              { id: 1, label: 'Demande saisie', completed: true, date: 'Validé' },
-              { id: 2, label: 'Validation responsable', completed: true, date: 'Validé' },
-              { id: 3, label: 'Convention générée', completed: true, date: 'Validé' },
-              { id: 4, label: 'Signatures collectées', completed: true, date: 'Validé' },
-              { id: 5, label: 'Dépôt du rapport', completed: !!matchedStage.reportUploaded, date: matchedStage.reportDate || 'En attente' }
-            ]
-          } : null
+          hasStage: !!matchedStage && matchedStage.etatStage !== 'ETAT_STAGE_AUTORISE' && matchedStage.etatStage !== 'ETAT_STAGE_INCOMPLET',
+          stage: matchedStage && matchedStage.etatStage !== 'ETAT_STAGE_AUTORISE' && matchedStage.etatStage !== 'ETAT_STAGE_INCOMPLET'
+            ? mapStudentStageData(matchedStage, respName)
+            : null
         };
 
         if (history[yearKey]) {
@@ -568,9 +740,12 @@ const openOfferModal = (offer) => {
                 </span>
 
                 <!-- Statut global du stage ou de la demande -->
-                <span v-if="period.hasStage" class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 flex items-center gap-1">
-                  <CheckCircleIcon class="w-3.5 h-3.5 text-emerald-600" />
-                  <span>Convention Validée &amp; Signée</span>
+                <span v-if="period.hasStage" :class="['px-2.5 py-0.5 text-[10px] font-bold rounded-full flex items-center gap-1', period.stage.statusClass]">
+                  <CheckCircleIcon v-if="period.stage.etatStage === 'ETAT_STAGE_CONVENTION_RECUE'" class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <ClockIcon v-else-if="period.stage.etatStage === 'ETAT_STAGE_DEPOSE'" class="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                  <XCircleIcon v-else-if="period.stage.etatStage === 'ETAT_STAGE_REFUS'" class="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+                  <DocumentCheckIcon v-else class="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  <span>{{ period.stage.statusHeaderLabel }}</span>
                 </span>
                 <span v-else-if="period.inputAuthorized" class="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-300 flex items-center gap-1">
                   <LockOpenIcon class="w-3.5 h-3.5 text-indigo-600" />
@@ -740,13 +915,76 @@ const openOfferModal = (offer) => {
               <div v-if="period.hasStage" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
                 <div class="lg:col-span-2 space-y-6">
+                  <!-- Alerte contextuelle selon l'état réel de la convention -->
+                  <div v-if="period.stage.etatStage === 'ETAT_STAGE_DEPOSE'" class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 flex items-start gap-3">
+                    <ClockIcon class="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                    <div class="text-xs space-y-1">
+                      <h4 class="font-extrabold text-amber-900 dark:text-amber-200">Demande déposée — En attente de validation pédagogique</h4>
+                      <p class="text-amber-700 dark:text-amber-300 leading-relaxed">
+                        Votre demande de convention a bien été enregistrée. Elle est actuellement transmise au responsable pédagogique (<strong>{{ period.responsible || period.responsablePrincipal }}</strong>) pour vérification des missions et attribution de votre tuteur enseignant.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div v-else-if="period.stage.etatStage === 'ETAT_STAGE_VALIDE'" class="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/60 flex items-start gap-3">
+                    <CheckCircleIcon class="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
+                    <div class="text-xs space-y-1">
+                      <h4 class="font-extrabold text-blue-900 dark:text-blue-200">Convention validée par le responsable pédagogique</h4>
+                      <p class="text-blue-700 dark:text-blue-300 leading-relaxed">
+                        Votre sujet et votre structure d'accueil ont été validés avec succès ! Tuteur universitaire : <strong>{{ period.stage.academicTutor }}</strong>. Le secrétariat va désormais procéder à l'édition de votre convention.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div v-else-if="period.stage.etatStage === 'ETAT_STAGE_CONVENTION_IMPRIMEE' || period.stage.etatStage === 'ETAT_STAGE_CONVENTION_ENVOYEE'" class="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800/60 flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3">
+                      <DocumentCheckIcon class="w-5 h-5 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+                      <div class="text-xs space-y-1">
+                        <h4 class="font-extrabold text-indigo-900 dark:text-indigo-200">Convention éditée — Signatures en cours</h4>
+                        <p class="text-indigo-700 dark:text-indigo-300 leading-relaxed">
+                          Votre convention de stage a été générée. Elle est en cours de diffusion pour recueil des signatures des différentes parties.
+                        </p>
+                      </div>
+                    </div>
+                    <a :href="'/api/stage_etudiants/' + period.stage.id + '/pdf'" target="_blank" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shrink-0 shadow-xs">
+                      <i class="pi pi-file-pdf"></i>
+                      <span>Voir le PDF</span>
+                    </a>
+                  </div>
+
+                  <div v-else-if="period.stage.etatStage === 'ETAT_STAGE_CONVENTION_RECUE'" class="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-start justify-between gap-3">
+                    <div class="flex items-start gap-3">
+                      <CheckBadgeIcon class="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                      <div class="text-xs space-y-1">
+                        <h4 class="font-extrabold text-emerald-900 dark:text-emerald-200">Convention signée &amp; enregistrée</h4>
+                        <p class="text-emerald-700 dark:text-emerald-300 leading-relaxed">
+                          Toutes les signatures ont été enregistrées. Votre convention est en règle pour le déroulement de votre stage.
+                        </p>
+                      </div>
+                    </div>
+                    <a :href="'/api/stage_etudiants/' + period.stage.id + '/pdf'" target="_blank" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shrink-0 shadow-xs">
+                      <i class="pi pi-file-pdf"></i>
+                      <span>Télécharger PDF</span>
+                    </a>
+                  </div>
+
+                  <div v-else-if="period.stage.etatStage === 'ETAT_STAGE_REFUS'" class="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 flex items-start gap-3">
+                    <XCircleIcon class="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                    <div class="text-xs space-y-1">
+                      <h4 class="font-extrabold text-rose-900 dark:text-rose-200">Demande rejetée par le responsable pédagogique</h4>
+                      <p class="text-rose-700 dark:text-rose-300 leading-relaxed">
+                        Des modifications ou précisions sont demandées sur votre déclaration. Veuillez corriger les informations nécessaires et déposer à nouveau votre demande.
+                      </p>
+                    </div>
+                  </div>
+
                   <Card
                     title="Détails du Stage Enregistré"
                     :subtitle="period.stage.company"
                     icon="pi pi-briefcase"
                     color="violet"
                     :badge="period.stage.status"
-                    badgeSeverity="info"
+                    :badgeSeverity="period.stage.statusBadgeSeverity"
                   >
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                       <div class="bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
@@ -784,14 +1022,28 @@ const openOfferModal = (offer) => {
                     </div>
 
                     <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700/50 flex flex-wrap justify-between items-center gap-3">
-                      <span class="text-xs text-slate-400 font-medium">Vous pouvez consulter ou mettre à jour la fiche de votre convention.</span>
-                      <button 
-                        @click="navigateToRequest(period.id)"
-                        class="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-2"
-                      >
-                        <PencilSquareIcon class="w-4 h-4" />
-                        <span>Compléter / Modifier ma convention</span>
-                      </button>
+                      <span class="text-xs text-slate-400 font-medium">
+                        {{ period.stage.etatStage === 'ETAT_STAGE_CONVENTION_RECUE' ? 'Votre convention est définitivement enregistrée.' : 'Vous pouvez consulter ou corriger votre demande tant qu\'elle n\'est pas définitivement signée.' }}
+                      </span>
+                      <div class="flex items-center gap-2">
+                        <a 
+                          v-if="period.stage && period.stage.id && ['ETAT_STAGE_VALIDE', 'ETAT_STAGE_CONVENTION_IMPRIMEE', 'ETAT_STAGE_CONVENTION_ENVOYEE', 'ETAT_STAGE_CONVENTION_RECUE'].includes(period.stage.etatStage)"
+                          :href="'/api/stage_etudiants/' + period.stage.id + '/pdf'"
+                          target="_blank"
+                          class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <i class="pi pi-file-pdf"></i>
+                          <span>Télécharger la convention PDF</span>
+                        </a>
+                        <button 
+                          v-if="period.stage.etatStage !== 'ETAT_STAGE_CONVENTION_RECUE'"
+                          @click="navigateToRequest(period.id)"
+                          class="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-2 cursor-pointer"
+                        >
+                          <PencilSquareIcon class="w-4 h-4" />
+                          <span>{{ period.stage.etatStage === 'ETAT_STAGE_DEPOSE' ? 'Consulter / Corriger ma demande' : 'Compléter / Modifier ma convention' }}</span>
+                        </button>
+                      </div>
                     </div>
                   </Card>
                 </div>

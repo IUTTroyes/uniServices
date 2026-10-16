@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Statistiques - {{ questionnaire.title }}</title>
+    <style>
+        * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 11px; color: #1e293b; margin: 0; }
+        h1 { font-size: 20px; margin: 0 0 4px; color: #0f172a; }
+        h2 { font-size: 15px; margin: 22px 0 10px; padding-bottom: 4px; border-bottom: 2px solid #0284c7; color: #0369a1; }
+        h3 { font-size: 12px; margin: 0 0 8px; color: #0f172a; }
+        .subtitle { color: #64748b; font-size: 11px; margin-bottom: 14px; }
+        .kpis { display: flex; gap: 10px; margin-bottom: 14px; }
+        .kpi { flex: 1; border: 1px solid #cbd5e1; border-radius: 6px; padding: 8px 10px; background: #f8fafc; }
+        .kpi .label { font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: .5px; }
+        .kpi .value { font-size: 20px; font-weight: 800; color: #0369a1; margin-top: 2px; }
+        .grid { display: flex; flex-wrap: wrap; gap: 12px; }
+        .card { border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; margin-bottom: 10px; page-break-inside: avoid; break-inside: avoid; }
+        .card.half { width: calc(50% - 6px); }
+        .card.full { width: 100%; }
+        .chart { text-align: center; margin-bottom: 8px; }
+        .chart img { max-width: 100%; max-height: 220px; }
+        table.data { width: 100%; border-collapse: collapse; font-size: 10px; }
+        table.data th, table.data td { border: 1px solid #cbd5e1; padding: 3px 6px; }
+        table.data th { background: #f1f5f9; text-align: left; }
+        table.data td.num { text-align: right; white-space: nowrap; }
+        .total { margin-top: 6px; font-size: 9px; color: #64748b; }
+        .comment { border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 4px; padding: 4px 6px; margin-bottom: 4px; font-size: 10px; }
+        .muted { color: #64748b; font-style: italic; }
+        .tag { font-size: 9px; color: #4338ca; background: #eef2ff; padding: 1px 6px; border-radius: 8px; margin-left: 6px; }
+    </style>
+</head>
+<body>
+    <h1>{{ questionnaire.title }}</h1>
+    <div class="subtitle">Rapport statistique des réponses</div>
+
+    <div class="kpis">
+        <div class="kpi"><div class="label">Participants invités</div><div class="value">{{ analytics.totalInvited }}</div></div>
+        <div class="kpi"><div class="label">Réponses complétées</div><div class="value">{{ analytics.totalResponses }}</div></div>
+        <div class="kpi"><div class="label">Taux de complétion</div><div class="value">{{ analytics.completionRate|round(1) }} %</div></div>
+        <div class="kpi">
+            <div class="label">Temps moyen</div>
+            {% set secs = analytics.averageTimeSpent|round(0) %}
+            <div class="value">{{ (secs // 60) }} min {{ '%02d'|format(secs % 60) }}</div>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="card half">
+            <h3>Évolution des réponses</h3>
+            {% if charts.responses|default(null) %}
+                <div class="chart"><img src="{{ charts.responses }}" alt="Évolution des réponses"></div>
+            {% else %}
+                <table class="data">
+                    <tr><th>Date</th><th>Réponses</th></tr>
+                    {% for date, count in analytics.responsesByDate %}
+                        <tr><td>{{ date }}</td><td class="num">{{ count }}</td></tr>
+                    {% endfor %}
+                </table>
+            {% endif %}
+        </div>
+        <div class="card half">
+            <h3>Répartition par statut</h3>
+            {% if charts.status|default(null) %}
+                <div class="chart"><img src="{{ charts.status }}" alt="Répartition par statut"></div>
+            {% endif %}
+            <table class="data">
+                <tr><td>Terminé</td><td class="num">{{ analytics.statusCounts.submitted|default(0) }}</td></tr>
+                <tr><td>En cours</td><td class="num">{{ analytics.statusCounts.started|default(0) }}</td></tr>
+                <tr><td>Non commencé</td><td class="num">{{ analytics.statusCounts.pending|default(0) }}</td></tr>
+            </table>
+        </div>
+    </div>
+
+    {% for section in analytics.sections %}
+        <h2>
+            {{ section.sectionTitle }}
+            {% if section.sectionType == 'configurable' %}<span class="tag">Instance répétable</span>{% endif %}
+        </h2>
+        {% if section.repeatItemType %}
+            <div class="subtitle">Sujet évalué : {{ section.repeatItemType }} (ID : {{ section.repeatItemId }})</div>
+        {% endif %}
+
+        <div class="grid">
+        {% for question in section.questions %}
+            {% set stats = question.stats %}
+            {% set isWide = question.questionType in ['matrix', 'text_short', 'text_long'] %}
+            <div class="card {{ isWide ? 'full' : 'half' }}">
+                <h3>{{ question.questionLabel }}</h3>
+
+                {% if charts[question.questionId]|default(null) %}
+                    <div class="chart"><img src="{{ charts[question.questionId] }}" alt="Graphique"></div>
+                {% endif %}
+
+                {% if question.questionType in ['single_choice', 'multiple_choice'] %}
+                    <table class="data">
+                        <tr><th>Option</th><th>Réponses</th><th>%</th></tr>
+                        {% for choice in stats.choices|default([]) %}
+                            <tr><td>{{ choice.text }}</td><td class="num">{{ choice.count }}</td><td class="num">{{ choice.percentage }} %</td></tr>
+                        {% endfor %}
+                    </table>
+                {% elseif question.questionType == 'scale' %}
+                    <table class="data">
+                        <tr><th>Note</th><th>Réponses</th></tr>
+                        {% for note, count in stats.distribution|default({}) %}
+                            <tr><td>{{ note }}</td><td class="num">{{ count }}</td></tr>
+                        {% endfor %}
+                    </table>
+                    <div class="total"><strong>Moyenne : {{ stats.average|default(0) }} / {{ stats.max|default('') }}</strong></div>
+                {% elseif question.questionType == 'ranking' %}
+                    <table class="data">
+                        <tr><th>Option</th><th>Rang moyen</th></tr>
+                        {% for item in stats.ranking|default([]) %}
+                            <tr><td>{{ item.text }}</td><td class="num">{{ item.averageRank }}</td></tr>
+                        {% endfor %}
+                    </table>
+                {% elseif question.questionType == 'matrix' %}
+                    <table class="data">
+                        <tr>
+                            <th>Critère</th>
+                            {% for col in stats.columns|default([]) %}<th>{{ col }}</th>{% endfor %}
+                        </tr>
+                        {% for row in stats.rows|default([]) %}
+                            <tr>
+                                <td>{{ row }}</td>
+                                {% for col in stats.columns|default([]) %}
+                                    <td class="num">{{ stats.grid[row][col]|default(0) }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% endfor %}
+                    </table>
+                {% elseif question.questionType in ['text_short', 'text_long'] %}
+                    {% for sample in stats.samples|default([]) %}
+                        <div class="comment">« {{ sample }} »</div>
+                    {% else %}
+                        <div class="muted">Aucune réponse textuelle enregistrée.</div>
+                    {% endfor %}
+                {% endif %}
+
+                <div class="total">Total : {{ question.totalResponses }} réponse{{ question.totalResponses > 1 ? 's' : '' }}</div>
+            </div>
+        {% endfor %}
+        </div>
+    {% endfor %}
+</body>
+</html>

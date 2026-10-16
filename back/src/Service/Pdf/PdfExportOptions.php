@@ -32,6 +32,7 @@ class PdfExportOptions
         public string $headerTemplate = 'pdf/_header.html.twig',
         public string $footerTemplate = 'pdf/_footer.html.twig',
         public array $extraContext = [],
+        public string $disposition = \Symfony\Component\HttpFoundation\HeaderUtils::DISPOSITION_ATTACHMENT,
     ) {
     }
 
@@ -130,6 +131,20 @@ class PdfExportOptions
     public function setExtraContext(array $context): self
     {
         $this->extraContext = $context;
+        return $this;
+    }
+
+    public function setDisposition(string $disposition): self
+    {
+        $this->disposition = $disposition;
+        return $this;
+    }
+
+    public function setInline(bool $inline = true): self
+    {
+        $this->disposition = $inline
+            ? \Symfony\Component\HttpFoundation\HeaderUtils::DISPOSITION_INLINE
+            : \Symfony\Component\HttpFoundation\HeaderUtils::DISPOSITION_ATTACHMENT;
         return $this;
     }
 }

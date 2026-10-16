@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useToast } from 'primevue/usetoast';
+import AutoComplete from 'primevue/autocomplete';
 import { Kpi, Card } from '@components';
 import {
   ArrowDownTrayIcon,
@@ -86,6 +87,44 @@ const showReviewDialog = ref(false);
 const tutorSelect = ref('');
 const rejectReason = ref('');
 
+const filteredTutors = ref([]);
+const searchTutors = (event) => {
+  const query = (event.query || '').trim().toLowerCase();
+  if (!query) {
+    filteredTutors.value = [...props.teachers];
+  } else {
+    filteredTutors.value = props.teachers.filter(t =>
+      (t.fullName && t.fullName.toLowerCase().includes(query)) ||
+      (t.shortName && t.shortName.toLowerCase().includes(query)) ||
+      (t.nom && t.nom.toLowerCase().includes(query)) ||
+      (t.prenom && t.prenom.toLowerCase().includes(query))
+    );
+  }
+};
+
+const dialogTutorSuggestions = ref([]);
+const searchDialogTutors = (event) => {
+  const query = (event.query || '').trim().toLowerCase();
+  if (!query) {
+    dialogTutorSuggestions.value = [...props.teachers];
+  } else {
+    dialogTutorSuggestions.value = props.teachers.filter(t =>
+      (t.fullName && t.fullName.toLowerCase().includes(query)) ||
+      (t.shortName && t.shortName.toLowerCase().includes(query)) ||
+      (t.nom && t.nom.toLowerCase().includes(query)) ||
+      (t.prenom && t.prenom.toLowerCase().includes(query)) ||
+      (t.email && t.email.toLowerCase().includes(query))
+    );
+  }
+};
+
+const getSelectedTutorName = () => {
+  if (typeof tutorSelect.value === 'object' && tutorSelect.value !== null) {
+    return tutorSelect.value.fullName || tutorSelect.value.shortName || '';
+  }
+  return tutorSelect.value || '';
+};
+
 // local form state for proofreading & editing
 const parseSupervisor = (supervisorStr) => {
   if (!supervisorStr || supervisorStr === '-') {
@@ -164,7 +203,8 @@ const editForm = ref({
 
 const openReviewRequest = (student) => {
   selectedRequest.value = student;
-  tutorSelect.value = student.tutor || (props.teachers[0]?.fullName || 'M. Jean Dupont');
+  const foundTeacher = props.teachers.find(t => t.fullName === student.tutor || t.shortName === student.tutor);
+  tutorSelect.value = foundTeacher || (student.tutor && student.tutor !== 'Non affecté' ? student.tutor : '');
   rejectReason.value = '';
 
   const supInfo = parseSupervisor(student.supervisor);
@@ -254,7 +294,7 @@ const saveEdits = (silent = false) => {
     activities: editForm.value.activities,
     supervisor: supervisorFormatted,
     salary: salaryFormatted,
-    tutor: tutorSelect.value,
+    tutor: getSelectedTutorName() || 'Non affecté',
 
     studentPhone: editForm.value.studentPhone,
     studentEmail: editForm.value.studentEmail,
@@ -303,20 +343,28 @@ const approveRequest = () => {
   // Save edits first
   saveEdits(true);
 
+  const assignedTutorName = getSelectedTutorName() || 'Non affecté';
+  const assignedTutorIri = typeof tutorSelect.value === 'object' && tutorSelect.value ? tutorSelect.value.iri : undefined;
+
   emit('update-student', {
     id: selectedRequest.value.id,
     changes: {
       conventionStatus: 'Validée',
-      tutor: tutorSelect.value
+      tutor: assignedTutorName,
+      tutorIri: assignedTutorIri
     }
   });
 
   selectedRequest.value.conventionStatus = 'Validée';
+  selectedRequest.value.tutor = assignedTutorName;
+  if (assignedTutorIri) {
+    selectedRequest.value.tutorIri = assignedTutorIri;
+  }
 
   toast.add({
     severity: 'success',
     summary: 'Convention Validée',
-    detail: `La demande de ${selectedRequest.value.studentName} a été approuvée. Tuteur : ${tutorSelect.value}.`,
+    detail: `La demande de ${selectedRequest.value.studentName} a été approuvée. Tuteur : ${assignedTutorName}.`,
     life: 4000
   });
   showReviewDialog.value = false;
@@ -456,7 +504,17 @@ const deleteStudentSubmission = () => {
   }
 };
 
+const openConventionPdf = (studentOrId) => {
+  const id = typeof studentOrId === 'object' ? (studentOrId.stageId || studentOrId.id) : studentOrId;
+  if (id) {
+    window.open(`/api/stage_etudiants/${id}/pdf`, '_blank');
+  }
+};
+
 const generatePDF = () => {
+  if (selectedRequest.value && (selectedRequest.value.stageId || selectedRequest.value.id)) {
+    openConventionPdf(selectedRequest.value);
+  }
   emit('update-student', {
     id: selectedRequest.value.id,
     changes: {
@@ -473,17 +531,26 @@ const generatePDF = () => {
 };
 
 const assignTutorDirectly = (student, newTutor) => {
+  const tutorName = typeof newTutor === 'object' && newTutor ? newTutor.fullName : (newTutor || 'Non affecté');
+  const tutorIri = typeof newTutor === 'object' && newTutor ? newTutor.iri : undefined;
+
+  student.tutor = tutorName;
+  if (tutorIri !== undefined) {
+    student.tutorIri = tutorIri;
+  }
+
   emit('update-student', {
     id: student.id,
     changes: {
-      tutor: newTutor
+      tutor: tutorName,
+      tutorIri: tutorIri
     }
   });
 
   toast.add({
     severity: 'success',
     summary: 'Tuteur affecté',
-    detail: `Tuteur de ${student.studentName} mis à jour : ${newTutor}.`,
+    detail: `Tuteur de ${student.studentName} mis à jour : ${tutorName}.`,
     life: 3000
   });
 };
@@ -537,6 +604,9 @@ const studentsSigned = computed(() => {
 });
 
 const printConvention = (student) => {
+  if (student && (student.stageId || student.id)) {
+    openConventionPdf(student);
+  }
   emit('update-student', {
     id: student.id,
     changes: {
@@ -696,9 +766,14 @@ const finalizeSignature = (student) => {
                 <span class="font-bold text-xs truncate">{{ s.studentName }}</span>
                 <span class="text-[9px] text-slate-455 truncate">{{ s.company }}</span>
               </div>
-              <button @click="finalizeSignature(s)" class="p-1.5 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-all cursor-pointer" v-tooltip.left="'Marquer comme signée/récupérée'">
-                <CheckCircleIcon class="w-3.5 h-3.5" />
-              </button>
+              <div class="flex items-center gap-1">
+                <button @click="openConventionPdf(s)" class="p-1.5 bg-slate-100 dark:bg-slate-750 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all cursor-pointer" v-tooltip.left="'Voir la convention PDF'">
+                  <i class="pi pi-file-pdf text-[11px] text-red-500"></i>
+                </button>
+                <button @click="finalizeSignature(s)" class="p-1.5 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 hover:text-indigo-700 rounded-lg transition-all cursor-pointer" v-tooltip.left="'Marquer comme signée/récupérée'">
+                  <CheckCircleIcon class="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
             <div v-if="studentsSigning.length === 0" class="text-center py-6 text-[10px] text-slate-450 italic">
               Aucune convention en cours
@@ -723,8 +798,13 @@ const finalizeSignature = (student) => {
                 <span class="font-bold text-xs truncate">{{ s.studentName }}</span>
                 <span class="text-[9px] text-slate-455 truncate">{{ s.company }}</span>
               </div>
-              <div class="p-1 text-emerald-600 dark:text-emerald-400">
-                <CheckIcon class="w-3.5 h-3.5 text-emerald-500" />
+              <div class="flex items-center gap-1">
+                <button @click="openConventionPdf(s)" class="p-1.5 bg-slate-100 dark:bg-slate-750 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-all cursor-pointer" v-tooltip.left="'Télécharger le PDF'">
+                  <i class="pi pi-file-pdf text-[11px] text-red-500"></i>
+                </button>
+                <div class="p-1 text-emerald-600 dark:text-emerald-400">
+                  <CheckIcon class="w-3.5 h-3.5 text-emerald-500" />
+                </div>
               </div>
             </div>
             <div v-if="studentsSigned.length === 0" class="text-center py-6 text-[10px] text-slate-450 italic">
@@ -869,17 +949,37 @@ const finalizeSignature = (student) => {
           </template>
         </Column>
 
-        <!-- Column 4: Tutor assignment drop-down -->
-        <Column header="Tuteur Universitaire" field="tutor" sortable :showFilterMenu="false" class="min-w-[170px]">
+        <!-- Column 4: Tutor assignment AutoComplete -->
+        <Column header="Tuteur Universitaire" field="tutor" sortable :showFilterMenu="false" class="min-w-[200px]">
           <template #body="slotProps">
-            <!-- Dropdown directly editable in table if they have a stage -->
-            <select v-if="slotProps.data.hasStage" :value="slotProps.data.tutor || ''"
-              @change="assignTutorDirectly(slotProps.data, $event.target.value)"
-              class="p-1 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-[10px] font-semibold text-slate-800 dark:text-slate-200 focus:outline-none w-full max-w-[150px]">
-              <option value="">-- Assigner --</option>
-              <option v-for="t in teachers" :key="t.iri || t" :value="t.fullName || t">{{ t.fullName || t }}</option>
-            </select>
-            <span v-else class="text-[10px] text-slate-400">Non applicable</span>
+            <div v-if="slotProps.data.hasStage" class="w-full max-w-[210px]">
+              <AutoComplete
+                :modelValue="slotProps.data.tutor && slotProps.data.tutor !== 'Non affecté' ? slotProps.data.tutor : ''"
+                :suggestions="filteredTutors"
+                @complete="searchTutors"
+                optionLabel="fullName"
+                placeholder="Assigner un tuteur..."
+                dropdown
+                class="w-full text-xs"
+                inputClass="text-[11px] py-1 px-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 w-full focus:outline-none"
+                scrollHeight="220px"
+                appendTo="body"
+                @item-select="(e) => assignTutorDirectly(slotProps.data, e.value)"
+                @clear="assignTutorDirectly(slotProps.data, 'Non affecté')"
+                :showClear="Boolean(slotProps.data.tutor && slotProps.data.tutor !== 'Non affecté')"
+              >
+                <template #option="{ option }">
+                  <div class="flex flex-col py-0.5">
+                    <span class="text-xs font-semibold text-slate-800 dark:text-slate-200">{{ option.fullName }}</span>
+                    <span v-if="option.email" class="text-[9px] text-slate-400">{{ option.email }}</span>
+                  </div>
+                </template>
+                <template #empty>
+                  <div class="p-2 text-xs text-slate-400 italic">Aucun enseignant trouvé</div>
+                </template>
+              </AutoComplete>
+            </div>
+            <span v-else class="text-[10px] text-slate-400 italic">Sans stage</span>
           </template>
           <template #filter="{ filterModel, filterCallback }">
             <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer..."
@@ -926,11 +1026,18 @@ const finalizeSignature = (student) => {
             </button>
 
             <!-- Case C: Convention in signature -->
-            <button v-else-if="slotProps.data.conventionStatus === 'En cours de signature'" @click="finalizeSignature(slotProps.data)"
-              class="text-[10px] font-bold px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all flex items-center gap-1.5 ml-auto cursor-pointer">
-              <i class="pi pi-check-square text-[8px]"></i>
-              <span>Finaliser</span>
-            </button>
+            <div v-else-if="slotProps.data.conventionStatus === 'En cours de signature'" class="flex items-center gap-1.5 ml-auto">
+              <button @click="openConventionPdf(slotProps.data)"
+                class="text-[10px] font-bold p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-all flex items-center cursor-pointer"
+                v-tooltip.top="'Télécharger PDF'">
+                <i class="pi pi-file-pdf text-[10px] text-red-500"></i>
+              </button>
+              <button @click="finalizeSignature(slotProps.data)"
+                class="text-[10px] font-bold px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-all flex items-center gap-1 cursor-pointer">
+                <i class="pi pi-check-square text-[8px]"></i>
+                <span>Finaliser</span>
+              </button>
+            </div>
 
             <!-- Case D: Student has no placement, send reminder -->
             <button v-else-if="!slotProps.data.hasStage" @click="contactStudent(slotProps.data.studentName)"
@@ -940,11 +1047,19 @@ const finalizeSignature = (student) => {
             </button>
 
             <!-- Case E: Convention already signed / rejected, show detailed sheet -->
-            <button v-else @click="openReviewRequest(slotProps.data)"
-              class="text-[10px] font-bold px-3 py-1.5 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600/60 text-slate-700 dark:text-slate-300 rounded-lg transition-all flex items-center gap-1.5 ml-auto cursor-pointer">
-              <i class="pi pi-info-circle text-[8px]"></i>
-              <span>Détails</span>
-            </button>
+            <div v-else class="flex items-center gap-1.5 ml-auto">
+              <button v-if="slotProps.data.hasStage && slotProps.data.conventionStatus === 'Signée'"
+                @click="openConventionPdf(slotProps.data)"
+                class="text-[10px] font-bold p-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-all flex items-center cursor-pointer"
+                v-tooltip.top="'Télécharger PDF'">
+                <i class="pi pi-file-pdf text-[10px] text-red-500"></i>
+              </button>
+              <button @click="openReviewRequest(slotProps.data)"
+                class="text-[10px] font-bold px-3 py-1.5 bg-slate-50 dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600/60 text-slate-700 dark:text-slate-300 rounded-lg transition-all flex items-center gap-1.5 cursor-pointer">
+                <i class="pi pi-info-circle text-[8px]"></i>
+                <span>Détails</span>
+              </button>
+            </div>
           </template>
         </Column>
       </DataTable>
@@ -986,11 +1101,11 @@ const finalizeSignature = (student) => {
           </div>
 
           <div class="space-y-4">
-            <!-- Section 1 : Profil Étudiant & Assurances -->
+            <!-- Section 1 : Profil Étudiant & Sécurité sociale -->
             <FormSection
               :icon="UserIcon"
               tone="teal"
-              title="1. Profil Étudiant & Assurances"
+              title="1. Profil Étudiant & Sécurité sociale"
             >
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1">
@@ -1002,11 +1117,11 @@ const finalizeSignature = (student) => {
                   <input v-model="editForm.studentEmail" type="email" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="q-label">Compagnie d'assurance RC</label>
+                  <label class="q-label">Organisme de sécurité sociale</label>
                   <input v-model="editForm.insuranceCompany" type="text" class="q-input q-input-sm" />
                 </div>
                 <div class="flex flex-col gap-1">
-                  <label class="q-label">Numéro de police d'assurance</label>
+                  <label class="q-label">Adresse de l'organisme</label>
                   <input v-model="editForm.insurancePolicyNumber" type="text" class="q-input q-input-sm" />
                 </div>
               </div>
@@ -1167,9 +1282,29 @@ const finalizeSignature = (student) => {
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-2">
                   <label class="q-label">Tuteur Universitaire (IUT)</label>
-                  <select v-model="tutorSelect" class="q-input q-input-sm">
-                    <option v-for="t in teachers" :key="t.iri || t" :value="t.fullName || t">{{ t.fullName || t }}</option>
-                  </select>
+                  <AutoComplete
+                    v-model="tutorSelect"
+                    :suggestions="dialogTutorSuggestions"
+                    @complete="searchDialogTutors"
+                    optionLabel="fullName"
+                    placeholder="Taper un nom ou choisir un tuteur..."
+                    dropdown
+                    class="w-full text-xs"
+                    inputClass="q-input q-input-sm w-full"
+                    scrollHeight="220px"
+                    appendTo="body"
+                    :showClear="true"
+                  >
+                    <template #option="{ option }">
+                      <div class="flex items-center justify-between py-0.5">
+                        <span class="font-medium text-xs">{{ option.fullName }}</span>
+                        <span v-if="option.email" class="text-[10px] text-slate-400 ml-2">{{ option.email }}</span>
+                      </div>
+                    </template>
+                    <template #empty>
+                      <div class="p-2 text-xs text-slate-400 italic">Aucun enseignant trouvé</div>
+                    </template>
+                  </AutoComplete>
                 </div>
                 <div class="flex flex-col gap-1 md:col-span-2">
                   <label class="q-label">Sujet du stage / Mission principale</label>
@@ -1249,6 +1384,12 @@ const finalizeSignature = (student) => {
             <button v-if="selectedRequest && selectedRequest.hasStage && selectedRequest.conventionStatus === 'Validée'" @click="generatePDF" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
               <i class="pi pi-file-pdf"></i>
               <span>Générer la convention PDF</span>
+            </button>
+
+            <!-- If in signature or signed, show View PDF button -->
+            <button v-if="selectedRequest && selectedRequest.hasStage && ['En cours de signature', 'Signée'].includes(selectedRequest.conventionStatus)" @click="openConventionPdf(selectedRequest)" class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold rounded-xl text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-xs">
+              <i class="pi pi-file-pdf text-red-500"></i>
+              <span>Télécharger la convention PDF</span>
             </button>
 
             <!-- If in signature, show Finalize signature button -->

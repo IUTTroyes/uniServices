@@ -168,6 +168,16 @@ class Adresse implements \JsonSerializable, \Stringable
         return implode($separator, $lines);
     }
 
+    public function getDisplay(): string
+    {
+        return $this->getFullAdresse('<br>');
+    }
+
+    public function display(): string
+    {
+        return $this->getDisplay();
+    }
+
     public function __toString(): string
     {
         return $this->getInlineAdresse();

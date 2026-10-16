@@ -2,6 +2,7 @@
 
 namespace IntranetBundle\Repository\Etudiant;
 
+use App\Entity\Structure\StructureSemestre;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use IntranetBundle\Entity\Etudiant\MoyenneUe;
@@ -14,6 +15,27 @@ class MoyenneUeRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, MoyenneUe::class);
+    }
+
+    /**
+     * @return array<int, array<int, float>> [scolariteSemestreId][ueId] => moyenne
+     */
+    public function findIndexedBySemestre(StructureSemestre $semestre): array
+    {
+        $rows = $this->createQueryBuilder('m')
+            ->select('IDENTITY(m.etudiantScolariteSemestre) AS scolId', 'IDENTITY(m.ue) AS ueId', 'm.value AS value')
+            ->join('m.etudiantScolariteSemestre', 'ess')
+            ->where('ess.semestre = :semestre')
+            ->setParameter('semestre', $semestre)
+            ->getQuery()
+            ->getArrayResult();
+
+        $result = [];
+        foreach ($rows as $row) {
+            $result[(int) $row['scolId']][(int) $row['ueId']] = (float) $row['value'];
+        }
+
+        return $result;
     }
 
     //    /**

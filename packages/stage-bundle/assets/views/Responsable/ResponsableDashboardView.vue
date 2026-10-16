@@ -226,8 +226,14 @@ const syncRouteState = async () => {
     selectedPeriodId.value = pId;
     viewMode.value = 'period';
     const curPeriod = periods.value.find(p => p.id === pId);
-    if (curPeriod && curPeriod.semestreIds && curPeriod.semestreIds.length > 0) {
-      await fetchStudentsForSemesters(curPeriod.semestreIds, curPeriod.anneeUniversitaireId);
+    if (curPeriod) {
+      const deptId = curPeriod.departementId || userStore.departementDefaut?.id;
+      if (deptId) {
+        await loadPersonnelsForDepartment(deptId);
+      }
+      if (curPeriod.semestreIds && curPeriod.semestreIds.length > 0) {
+        await fetchStudentsForSemesters(curPeriod.semestreIds, curPeriod.anneeUniversitaireId);
+      }
     }
   } else {
     viewMode.value = 'dashboard';
@@ -245,8 +251,14 @@ watch(selectedPeriodId, async (newId) => {
   }
   if (newId) {
     const curPeriod = periods.value.find(p => p.id === newId);
-    if (curPeriod && curPeriod.semestreIds && curPeriod.semestreIds.length > 0) {
-      await fetchStudentsForSemesters(curPeriod.semestreIds, curPeriod.anneeUniversitaireId);
+    if (curPeriod) {
+      const deptId = curPeriod.departementId || userStore.departementDefaut?.id;
+      if (deptId) {
+        await loadPersonnelsForDepartment(deptId);
+      }
+      if (curPeriod.semestreIds && curPeriod.semestreIds.length > 0) {
+        await fetchStudentsForSemesters(curPeriod.semestreIds, curPeriod.anneeUniversitaireId);
+      }
     }
   }
 });
@@ -261,24 +273,34 @@ const dbAnneeUnivs = ref([]);
 const dbSemestres = ref([]);
 const isLoading = ref(true);
 
-const teachers = computed(() => {
-  if (dbPersonnels.value.length === 0) {
-    return [
-      { iri: '/api/personnels/1', fullName: 'M. Jean Dupont', shortName: 'Jean Dupont' },
-      { iri: '/api/personnels/2', fullName: 'Mme. Marie Lestrade', shortName: 'Marie Lestrade' },
-      { iri: '/api/personnels/3', fullName: 'Mme. Sophie Gomez', shortName: 'Sophie Gomez' },
-      { iri: '/api/personnels/4', fullName: 'M. Marc Vasseur', shortName: 'Marc Vasseur' },
-      { iri: '/api/personnels/5', fullName: 'M. Eric Martin', shortName: 'Eric Martin' }
-    ];
+const loadPersonnelsForDepartment = async (deptId) => {
+  const targetDeptId = deptId || userStore.departementDefaut?.id;
+  try {
+    const params = { itemsPerPage: 300 };
+    if (targetDeptId) {
+      params.departement = targetDeptId;
+    }
+    const list = await getPersonnelsService(params);
+    dbPersonnels.value = list || [];
+  } catch (err) {
+    console.error('Erreur chargement personnels du département:', err);
   }
+};
+
+const teachers = computed(() => {
   return dbPersonnels.value.map(p => {
     const civ = p.civilite || 'M.';
     return {
+      id: p.id,
       iri: p['@id'],
-      fullName: `${civ} ${p.prenom} ${p.nom}`,
-      shortName: `${p.prenom} ${p.nom}`
+      prenom: p.prenom || '',
+      nom: p.nom || '',
+      civilite: civ,
+      fullName: `${civ} ${p.prenom} ${p.nom}`.trim(),
+      shortName: `${p.prenom} ${p.nom}`.trim(),
+      email: p.mailUniv || ''
     };
-  });
+  }).sort((a, b) => a.shortName.localeCompare(b.shortName, 'fr'));
 });
 
 // Helper: Dates string parsing & formatting
@@ -334,6 +356,16 @@ const mapPeriodToVue = (backendPeriod) => {
   const diplomeObj = anneeObj?.pn?.diplome;
   const diplomeLibelle = diplomeObj?.sigle || diplomeObj?.libelle || anneeObj?.libelle || 'Diplôme non défini';
 
+  const deptObj = backendPeriod.departement;
+  const deptId = (typeof deptObj === 'object' && deptObj !== null)
+    ? deptObj.id
+    : (typeof deptObj === 'string'
+      ? parseInt(deptObj.split('/').pop(), 10)
+      : (diplomeObj?.departement?.id || userStore.departementDefaut?.id || null));
+  const deptLibelle = (typeof deptObj === 'object' && deptObj !== null)
+    ? (deptObj.libelle || '')
+    : (userStore.departementDefaut?.libelle || '');
+
   // Responsable Principal resolution
   let mainRespName = 'Non renseigné';
   let mainRespIri = '';
@@ -388,6 +420,8 @@ const mapPeriodToVue = (backendPeriod) => {
     semestreProgrammeId: semProgId,
     semestreIds: allSemIds,
     anneeUniversitaireId: anneeUnivId,
+    departementId: deptId,
+    departementLibelle: deptLibelle,
     dates: datesStr,
     minWeeks: backendPeriod.nbSemaines || 16,
     studentCount: backendPeriod.studentCount || 0,
@@ -480,9 +514,6 @@ const loadAllData = async () => {
     const years = await getAnneesUniversitairesService();
     dbAnneeUnivs.value = years || [];
 
-    const personnels = await getPersonnelsService({ limit: 200 });
-    dbPersonnels.value = personnels || [];
-
     const semestresParams = { limit: 100 };
     if (!userStore.isSuperAdmin && userStore.departementDefaut?.id) {
       semestresParams.departement = userStore.departementDefaut.id;
@@ -504,6 +535,12 @@ const loadAllData = async () => {
     } else {
       periods.value = [];
     }
+
+    // Determine target department from route period or user default
+    const routePeriodId = route.params.id ? parseInt(route.params.id, 10) : null;
+    const activePeriod = periods.value.find(p => p.id === (routePeriodId || selectedPeriodId.value));
+    const activeDeptId = activePeriod?.departementId || userStore.departementDefaut?.id;
+    await loadPersonnelsForDepartment(activeDeptId);
 
     await fetchAllStudents();
     await syncRouteState();
@@ -743,15 +780,22 @@ const handleUpdateStudent = async ({ id, changes }) => {
 
     // Map academic tutor assignment
     if (changes.tutor !== undefined) {
-      const teacher = dbPersonnels.value.map(p => {
-        const civ = p.civilite || 'M.';
-        return {
-          iri: p['@id'],
-          fullName: `${civ} ${p.prenom} ${p.nom}`
-        };
-      }).find(t => t.fullName === changes.tutor);
+      if (!changes.tutor || changes.tutor === 'Non affecté') {
+        patchPayload.tuteurUniversitaire = null;
+      } else if (changes.tutorIri) {
+        patchPayload.tuteurUniversitaire = changes.tutorIri;
+      } else {
+        const teacher = dbPersonnels.value.map(p => {
+          const civ = p.civilite || 'M.';
+          return {
+            iri: p['@id'],
+            fullName: `${civ} ${p.prenom} ${p.nom}`.trim(),
+            shortName: `${p.prenom} ${p.nom}`.trim()
+          };
+        }).find(t => t.fullName === changes.tutor || t.shortName === changes.tutor || t.iri === changes.tutor);
 
-      patchPayload.tuteurUniversitaire = teacher ? teacher.iri : null;
+        patchPayload.tuteurUniversitaire = teacher ? teacher.iri : null;
+      }
     }
 
     // Map reset or delete submission (clearing internship details)

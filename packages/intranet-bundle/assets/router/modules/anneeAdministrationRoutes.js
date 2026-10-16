@@ -186,16 +186,19 @@ export default [
   {
     path: 'sous-commission',
     name: 'sous-commission',
-    component: () => import('@/views/Groupes/StructureGroupeView.vue'),
+    component: () => import('@/views/Administration/SousCommission/SousCommissionView.vue'),
     meta: {
       permission: 'canViewAdministration',
-      breadcrumb: [{ label: 'Dashboard', route: '/' }, {
-        label: 'Administration',
-        route: '/intranet/administration',
-        icon: 'pi pi-wrench'
-      },
-      { label: 'Année', route: null },
-      { label: 'Sous commission', route: null }]
+      breadcrumb: () => {
+        const anneeStore = useAnneeStore();
+        const selectedAnnee = anneeStore.annee;
+        return [
+          { label: 'Dashboard', route: '/' },
+          { label: 'Administration', route: '/intranet/administration', icon: 'pi pi-wrench' },
+          { label: selectedAnnee?.libelle ?? 'Année', route: null },
+          { label: 'Sous commission', route: null }
+        ];
+      }
     },
   },
 ]
