@@ -20,9 +20,13 @@ const userStore = useUsersStore();
 
 const visible = ref(false);
 
-const totalSize = ref(0);
-const totalSizePercent = ref(0);
-const files = ref([]);
+const csvTotalSize = ref(0);
+const csvTotalSizePercent = ref(0);
+const csvFiles = ref([]);
+
+const zipTotalSize = ref(0);
+const zipTotalSizePercent = ref(0);
+const zipFiles = ref([]);
 
 const annees = ref([]);
 const selectedAnnee = ref(null);
@@ -32,16 +36,27 @@ const selectedAnneeUniv = ref(null);
 const isLoadingAnnees = ref(true);
 const isLoadingAnneesUniv = ref(true);
 
-const onRemoveTemplatingFile = (file, removeFileCallback, index) => {
+const onRemoveTemplatingFile = (file, removeFileCallback, index, type) => {
   removeFileCallback(index);
-  totalSize.value -= file.size;
-  totalSizePercent.value = (totalSize.value / 1000000) * 100;
+  if (type === 'csv') {
+    csvTotalSize.value -= file.size;
+    csvTotalSizePercent.value = (csvTotalSize.value / 1000000) * 100;
+  } else {
+    zipTotalSize.value -= file.size;
+    zipTotalSizePercent.value = (zipTotalSize.value / 1000000) * 100;
+  }
 };
 
-const onSelectedFiles = (event) => {
-  files.value = event.files;
-  totalSize.value = files.value.reduce((acc, file) => acc + file.size, 0);
-  totalSizePercent.value = (totalSize.value / 1000000) * 100;
+const onSelectedFiles = (event, type) => {
+  if (type === 'csv') {
+    csvFiles.value = event.files;
+    csvTotalSize.value = csvFiles.value.reduce((acc, file) => acc + file.size, 0);
+    csvTotalSizePercent.value = (csvTotalSize.value / 1000000) * 100;
+  } else {
+    zipFiles.value = event.files;
+    zipTotalSize.value = zipFiles.value.reduce((acc, file) => acc + file.size, 0);
+    zipTotalSizePercent.value = (zipTotalSize.value / 1000000) * 100;
+  }
 };
 
 const formatSize = (bytes) => {
@@ -80,7 +95,10 @@ const getAnnees = async () => {
 const getAnneesUniv = async () => {
   try {
     isLoadingAnneesUniv.value = true;
-    anneesUniv.value = await getAnneesUniversitairesService();
+    const params = {
+      since: new Date().getFullYear()
+    };
+    anneesUniv.value = await getAnneesUniversitairesService(params);
   } catch (error) {
     console.error('Erreur lors du chargement des années universitaires :', error);
     hasError.value = true;
@@ -92,6 +110,7 @@ const getAnneesUniv = async () => {
     });
   } finally {
     isLoadingAnneesUniv.value = false;
+    selectedAnneeUniv.value = anneesUniv.value.find(annee => annee.actif)?.id ?? null;
   }
 };
 
@@ -121,7 +140,7 @@ const createEtudiant = async () => {
       });
       return;
     }
-    if (files.value.length === 0) {
+    if (csvFiles.value.length === 0) {
       toast.add({
         severity: 'warn',
         summary: 'Avertissement',
@@ -131,7 +150,7 @@ const createEtudiant = async () => {
       return;
     }
 
-    const file = files.value[0];
+    const file = csvFiles.value[0];
     const reader = new FileReader();
 
     reader.onload = async (event) => {
@@ -193,90 +212,156 @@ const downloadCsv = () => {
 
 <template>
   <ErrorView v-if="hasError" class="m-4"/>
-  <div v-else class="flex flex-col gap-4">
-    <div class="text-2xl font-bold text-center">Importer des étudiants via un fichier .csv</div>
-
-    <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
-      <div class="font-medium text-lg">
-        Sélectionner une année universitaire
+  <div v-else class="mt-8">
+    <header class="card-header mb-6">
+      <p class="top-card-header">En une seule étape</p>
+      <h2 class="mt-0!">Importer un fichier d'étudiants</h2>
+    </header>
+    <div class="flex flex-col gap-4">
+      <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+        <div class="font-medium text-lg">
+          Sélectionner une année universitaire
+        </div>
+        <ListSkeleton v-if="isLoadingAnneesUniv" class="w-full"/>
+        <SelectButton v-else :options="anneesUniv" v-model="selectedAnneeUniv" class="w-full justify-center" optionLabel="libelle" optionValue="id"/>
       </div>
-      <ListSkeleton v-if="isLoadingAnneesUniv" class="w-full"/>
-      <SelectButton v-else :options="anneesUniv" v-model="selectedAnneeUniv" class="w-full justify-center" optionLabel="libelle" optionValue="id"/>
-    </div>
-    <Divider></Divider>
+      <Divider></Divider>
 
-    <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
-      Fichier csv (séparateur ";"). Télécharger un modèle ici :
-      <a class="font-bold underline hover:cursor-pointer" @click.prevent="downloadCsv">Modèle d'import d'une liste d'étudiants</a>
-    </Message>
-    <Button label="Voir les codes étape" class="mx-auto" @click="visible = true"/>
+      <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
+        Fichier csv (séparateur ";"). Télécharger un modèle ici :
+        <a class="font-bold underline hover:cursor-pointer" @click.prevent="downloadCsv">Modèle d'import d'une liste d'étudiants</a>
+      </Message>
+      <Button label="Voir les codes étape" class="mx-auto" @click="visible = true"/>
 
-    <Dialog v-model:visible="visible" modal header="Afficher les codes étape à saisir dans le fichier" :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
-      <div class="flex flex-col gap-4">
-        <div class="w-full flex gap-2">
-          <div class="text-lg font-medium border p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
-            <ListSkeleton v-if="isLoadingAnnees" class="w-full"/>
-            <Button v-else :severity="selectedAnnee && selectedAnnee.id === annee.id ? 'primary' : 'secondary'" v-for="annee in annees" :key="annee.id" class="w-full" @click="copyToClipboard(annee.apogeeCodeEtape)">
-              {{annee.libelle}} - <span class="font-bold">{{annee.apogeeCodeEtape}}</span> <i class="pi pi-copy"></i>
-            </Button>
+      <Dialog v-model:visible="visible" modal header="Afficher les codes étape à saisir dans le fichier" :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
+        <div class="flex flex-col gap-4">
+          <div class="w-full flex gap-2">
+            <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
+              <ListSkeleton v-if="isLoadingAnnees" class="w-full"/>
+              <Button v-else :severity="selectedAnnee && selectedAnnee.id === annee.id ? 'primary' : 'secondary'" v-for="annee in annees" :key="annee.id" class="w-full" @click="copyToClipboard(annee.apogeeCodeEtape)">
+                {{annee.libelle}} - <span class="font-bold">{{annee.apogeeCodeEtape}}</span> <i class="pi pi-copy"></i>
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-    </Dialog>
+      </Dialog>
 
-    <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2">
-      <div class="flex flex-col items-center justify-center h-full">
-      </div>
-      <Toast />
-      <!--    todo: définir la taille max du fichier      -->
-      <FileUpload
-          name="csvUpload"
-          :multiple="false"
-          accept=".csv"
-          :maxFileSize="1000000"
-          :auto="false"
-          :showUploadButton="false"
-          :showCancelButton="false"
-          @select="onSelectedFiles"
-      >
-        <template #header="{ chooseCallback, clearCallback, files }">
-          <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
-            <div class="flex gap-2">
-              <Button @click="chooseCallback()" icon="pi pi-plus" label="Choisir"></Button>
-            </div>
-            <div class="w-full">
-              <div class="flex text-muted-color">Taille du fichier : {{ totalSize }}B / 1Mb</div>
-              <ProgressBar :value="totalSizePercent" :showValue="false" class="h-1 w-full md:ml-auto">
-              </ProgressBar>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2 border border-surface">
+          <div class="flex flex-col items-center justify-center h-full">
+            <div class="font-medium text-lg">
+              Importer les étudiants <span class="text-red-500">(obligatoire)</span>
             </div>
           </div>
-        </template>
-        <template #content="{ files, removeFileCallback }">
-          <div class="flex flex-col gap-8 pt-4">
-            <div v-if="files.length > 0">
-              <div class="flex flex-wrap gap-4">
-                <div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="p-4 rounded-border flex flex-col border border-surface items-center gap-2 w-full">
-                  <div>
-                    <span class="font-semibold text-ellipsis whitespace-nowrap overflow-hidden text-sm">{{ file.name }}</span>
-                    <div>{{ formatSize(file.size) }}</div>
-                  </div>
-                  <Button icon="pi pi-times" @click="onRemoveTemplatingFile(file, removeFileCallback, index)" variant="outlined" rounded severity="danger" />
+          <Toast />
+          <!--    todo: définir la taille max du fichier      -->
+          <FileUpload
+              name="csvUpload"
+              :multiple="false"
+              accept=".csv"
+              :maxFileSize="1000000"
+              :auto="false"
+              :showUploadButton="false"
+              :showCancelButton="false"
+              @select="(event) => onSelectedFiles(event, 'csv')"
+          >
+            <template #header="{ chooseCallback }">
+              <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
+                <div class="flex gap-2">
+                  <Button @click="chooseCallback()" icon="pi pi-plus" label="Choisir"></Button>
+                </div>
+                <div class="w-full">
+                  <div class="flex text-muted-color">Taille du fichier : {{ csvTotalSize }}B / 1Mb</div>
+                  <ProgressBar :value="csvTotalSizePercent" :showValue="false" class="h-1 w-full md:ml-auto">
+                  </ProgressBar>
                 </div>
               </div>
+            </template>
+            <template #content="{ files, removeFileCallback }">
+              <div class="flex flex-col gap-8 pt-4">
+                <div v-if="files.length > 0">
+                  <div class="flex flex-wrap gap-4">
+                    <div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="p-4 rounded-border flex flex-col border border-surface items-center gap-2 w-full">
+                      <div>
+                        <span class="font-semibold text-ellipsis whitespace-nowrap overflow-hidden text-sm">{{ file.name }}</span>
+                        <div>{{ formatSize(file.size) }}</div>
+                      </div>
+                      <Button icon="pi pi-times" @click="onRemoveTemplatingFile(file, removeFileCallback, index, 'csv')" variant="outlined" rounded severity="danger" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <template #empty>
+              <div class="flex items-center justify-center flex-col gap-2">
+                <i class="pi pi-folder-open !text-2xl !text-muted-color" />
+                <p>Glissez-déposez votre fichier .csv ici pour l'importer.</p>
+              </div>
+            </template>
+          </FileUpload>
+        </div>
+
+        <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2 border border-surface">
+          <div class="flex flex-col items-center justify-center h-full">
+            <div class="font-medium text-lg">
+              Importer les photos des étudiants <span class="text-muted-color">(facultatif)</span>
             </div>
+            <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
+              Récupérez les photos (format .zip) sur le bureau virtuel de l'URCA (enseignement > trombinoscope) et importez les ici.
+            </Message>
           </div>
-        </template>
-        <template #empty>
-          <div class="flex items-center justify-center flex-col gap-2">
-            <i class="pi pi-folder-open !text-2xl !text-muted-color" />
-            <p>Glissez-déposez votre fichier .csv ici pour l'importer.</p>
-          </div>
-        </template>
-      </FileUpload>
-      <div class="flex items-center justify-center w-full mt-4">
-        <Button severity="primary" class="w-full" @click="createEtudiant()">
-          Importer les étudiants
-        </Button>
+          <Toast />
+          <FileUpload
+              name="zipUpload"
+              :multiple="false"
+              accept=".zip"
+              :maxFileSize="1000000"
+              :auto="false"
+              :showUploadButton="false"
+              :showCancelButton="false"
+              @select="(event) => onSelectedFiles(event, 'zip')"
+          >
+            <template #header="{ chooseCallback }">
+              <div class="flex flex-wrap justify-between items-center flex-1 gap-4">
+                <div class="flex gap-2">
+                  <Button @click="chooseCallback()" icon="pi pi-plus" label="Choisir"></Button>
+                </div>
+                <div class="w-full">
+                  <div class="flex text-muted-color">Taille du fichier : {{ zipTotalSize }}B / 1Mb</div>
+                  <ProgressBar :value="zipTotalSizePercent" :showValue="false" class="h-1 w-full md:ml-auto">
+                  </ProgressBar>
+                </div>
+              </div>
+            </template>
+            <template #content="{ files, removeFileCallback }">
+              <div class="flex flex-col gap-8 pt-4">
+                <div v-if="files.length > 0">
+                  <div class="flex flex-wrap gap-4">
+                    <div v-for="(file, index) of files" :key="file.name + file.type + file.size" class="p-4 rounded-border flex flex-col border border-surface items-center gap-2 w-full">
+                      <div>
+                        <span class="font-semibold text-ellipsis whitespace-nowrap overflow-hidden text-sm">{{ file.name }}</span>
+                        <div>{{ formatSize(file.size) }}</div>
+                      </div>
+                      <Button icon="pi pi-times" @click="onRemoveTemplatingFile(file, removeFileCallback, index, 'zip')" variant="outlined" rounded severity="danger" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <template #empty>
+              <div class="flex items-center justify-center flex-col gap-2">
+                <i class="pi pi-folder-open !text-2xl !text-muted-color" />
+                <p>Glissez-déposez votre fichier .zip ici pour l'importer.</p>
+              </div>
+            </template>
+          </FileUpload>
+        </div>
+
+        <div class="flex items-center justify-center w-full mt-2 lg:col-span-2">
+          <Button severity="primary" class="w-full" @click="createEtudiant()">
+            Importer les étudiants
+          </Button>
+        </div>
       </div>
     </div>
   </div>

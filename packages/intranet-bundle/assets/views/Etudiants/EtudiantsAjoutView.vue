@@ -41,6 +41,10 @@ onMounted(async () => {
   />
   <div class="card">
     <div class="card-body">
+      <Message severity="info" icon="pi pi-info-circle" class="mx-auto mb-8 flex justify-center">
+        Faire un import n'écrase pas les étudiants déjà présents dans la base de données. Les étudiants déjà existants seront mis à jour avec les nouvelles informations ou ignorés si aucune modification n'est détectée. Vous pouvez donc réaliser plusieurs imports sans risque de perte de données.
+      </Message>
+
       <Tabs :value="activeTab" scrollable>
         <TabList>
           <router-link
