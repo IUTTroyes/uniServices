@@ -83,10 +83,18 @@ export interface ConfigurableElement {
     metadata?: Record<string, any>;
 }
 
+export interface DepartementLight {
+    id: number;
+    libelle: string;
+    couleur?: string;
+    [key: string]: any;
+}
+
 export interface Survey {
     uuid: string;
     title: string;
     description?: string;
+    departement?: DepartementLight | null;
     startText?: string;
     endText?: string;
     estimatedTime?: number;

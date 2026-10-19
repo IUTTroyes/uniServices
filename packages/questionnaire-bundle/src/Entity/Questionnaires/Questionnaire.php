@@ -2,6 +2,10 @@
 
 namespace QuestionnaireBundle\Entity\Questionnaires;
 
+use ApiPlatform\Doctrine\Orm\Filter\ExistsFilter;
+use ApiPlatform\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Metadata\ApiFilter;
 use ApiPlatform\Metadata\ApiProperty;
 use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
@@ -10,6 +14,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Contracts\TimestampableInterface;
+use App\Entity\Structure\StructureDepartement;
 use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OptionTrait;
 use QuestionnaireBundle\Enum\QuestStatutEnum;
@@ -35,6 +40,13 @@ use Symfony\Component\Uid\Uuid;
     ],
     normalizationContext: ['groups' => ['questionnaire:read', 'timestamp:read']],
 )]
+#[ApiFilter(SearchFilter::class, properties: [
+    'departement' => 'exact',
+    'status' => 'exact',
+    'title' => 'partial',
+])]
+#[ApiFilter(ExistsFilter::class, properties: ['departement'])]
+#[ApiFilter(OrderFilter::class, properties: ['createdAt', 'title', 'openingDate', 'closingDate'], arguments: ['orderParameterName' => 'order'])]
 class Questionnaire implements TimestampableInterface
 {
     use TimestampableTrait;
@@ -120,6 +132,11 @@ class Questionnaire implements TimestampableInterface
     #[ORM\Column(nullable: true)]
     #[Groups(['questionnaire:read'])]
     private ?int $estimatedTime = null;
+
+    #[ORM\ManyToOne(targetEntity: StructureDepartement::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[Groups(['questionnaire:read', 'invitation:read'])]
+    private ?StructureDepartement $departement = null;
 
     public function __construct()
     {
@@ -379,5 +396,17 @@ class Questionnaire implements TimestampableInterface
         return $this->invitations->filter(
             fn(QuestionnaireInvitation $inv) => $inv->getStatus() === QuestInvitationStatusEnum::SUBMITTED
         )->count();
+    }
+
+    public function getDepartement(): ?StructureDepartement
+    {
+        return $this->departement;
+    }
+
+    public function setDepartement(?StructureDepartement $departement): static
+    {
+        $this->departement = $departement;
+
+        return $this;
     }
 }

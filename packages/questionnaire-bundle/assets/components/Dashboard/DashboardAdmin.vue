@@ -34,6 +34,7 @@ import { hasPermission } from '@utils/permissions';
 import { formatDate, formatRelativeTime } from '@/utils/date';
 import { Kpi, QuickActionCard, EmptyState, Card } from '@components';
 import DuplicateSurveyModal from '@/components/Questionnaire/DuplicateSurveyModal.vue';
+import { getAllDepartementsService } from '@requests';
 import type { Survey } from '@types';
 
 const router = useRouter();
@@ -82,9 +83,16 @@ const currentDepartmentName = computed(() => {
 
 const selectedDepartement = ref<string | number>('all');
 
+const allDepartements = ref<any[]>([]);
+
 const departementOptions = computed(() => {
-  const list = Array.isArray(userStore?.departements) ? userStore.departements : [];
-  const options = [{ label: 'Tous les départements (Vue Globale IUT)', value: 'all' }];
+  const list = allDepartements.value.length > 0
+    ? allDepartements.value
+    : (Array.isArray(userStore?.departements) ? userStore.departements : []);
+  const options = [
+    { label: 'Tous les départements (Vue Globale IUT)', value: 'all' },
+    { label: 'Uniquement IUT (Global)', value: 'global' }
+  ];
   list.forEach(dept => {
     if (dept && (dept.id || dept.libelle)) {
       options.push({
@@ -97,6 +105,14 @@ const departementOptions = computed(() => {
 });
 
 onMounted(async () => {
+  try {
+    const list = await getAllDepartementsService();
+    if (Array.isArray(list) && list.length > 0) {
+      allDepartements.value = list;
+    }
+  } catch (e) {
+    // fallback to userStore
+  }
   if (!surveyStore.surveys || surveyStore.surveys.length === 0) {
     await surveyStore.loadQuestionnaires();
   }
@@ -146,9 +162,12 @@ const scopedSurveys = computed<Survey[]>(() => {
   if (isGlobalQuality.value && selectedDepartement.value === 'all') {
     return surveyStore.surveys;
   }
+  if (selectedDepartement.value === 'global') {
+    return surveyStore.surveys.filter(s => !s.departement && !(s as any).departementId);
+  }
   if (selectedDepartement.value !== 'all') {
     return surveyStore.surveys.filter(s => {
-      const sDept = (s as any).departementId || (s as any).departement?.id;
+      const sDept = (s as any).departementId || s.departement?.id;
       return !sDept || String(sDept) === String(selectedDepartement.value);
     });
   }
@@ -429,6 +448,7 @@ function getSurveyStats(surveyUuid: string) {
               <thead>
                 <tr class="border-b border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider bg-gray-50/70 dark:bg-gray-800/40">
                   <th scope="col" class="py-3 px-5">Enquête / Campagne</th>
+                  <th scope="col" class="py-3 px-4">Portée</th>
                   <th scope="col" class="py-3 px-4">Statut</th>
                   <th scope="col" class="py-3 px-4">Participation</th>
                   <th scope="col" class="py-3 px-4">Période</th>
@@ -446,6 +466,29 @@ function getSurveyStats(surveyUuid: string) {
                     <div v-if="survey.description" class="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs mt-0.5">
                       {{ survey.description }}
                     </div>
+                  </td>
+                  <td class="py-3.5 px-4 whitespace-nowrap">
+                    <span
+                      v-if="survey.departement"
+                      class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-semibold border shadow-2xs"
+                      :style="{
+                        backgroundColor: survey.departement.couleur ? `${survey.departement.couleur}15` : '#f0fdf4',
+                        color: survey.departement.couleur || '#16a34a',
+                        borderColor: survey.departement.couleur ? `${survey.departement.couleur}40` : '#bbf7d0'
+                      }"
+                    >
+                      <span
+                        class="w-1.5 h-1.5 rounded-full shrink-0"
+                        :style="{ backgroundColor: survey.departement.couleur || '#16a34a' }"
+                      ></span>
+                      <span>{{ survey.departement.libelle || `Dpt ${survey.departement.id}` }}</span>
+                    </span>
+                    <span
+                      v-else
+                      class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                    >
+                      <span>IUT (Global)</span>
+                    </span>
                   </td>
                   <td class="py-3.5 px-4 whitespace-nowrap">
                     <Tag 

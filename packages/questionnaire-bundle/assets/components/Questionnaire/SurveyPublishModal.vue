@@ -125,31 +125,74 @@
         </div>
 
         <!-- 1. MANUAL MODE -->
-        <div v-if="activeMode === 'manual'">
-          <div class="flex items-center justify-between gap-3">
-            <label for="publish-emails" class="q-label">
+        <div v-if="activeMode === 'manual'" class="space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <label for="publish-emails" class="q-label !mb-0">
               Adresses email (une par ligne, ou séparées par des virgules)
             </label>
-            <button
-              v-if="existingParticipants.length > 0 && !hasImported"
-              type="button"
-              class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer mb-1.5"
-              @click="importExistingParticipants"
-            >
-              Importer existants ({{ existingParticipants.length }})
-            </button>
+            <div class="flex items-center gap-2">
+              <button
+                v-if="existingParticipants.length > 0 && !hasImported"
+                type="button"
+                class="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer"
+                @click="importExistingParticipants"
+              >
+                Importer existants ({{ existingParticipants.length }})
+              </button>
+
+              <label class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-950/60 hover:bg-primary-100 dark:hover:bg-primary-900/60 border border-primary-200 dark:border-primary-800/80 cursor-pointer transition-colors shadow-2xs">
+                <ArrowUpTrayIcon class="w-3.5 h-3.5 shrink-0" />
+                <span>Importer CSV / XLSX</span>
+                <input
+                  type="file"
+                  accept=".csv,.xlsx,.xls,.tsv,.txt"
+                  class="hidden"
+                  @change="handleFileUpload"
+                />
+              </label>
+            </div>
           </div>
+
           <textarea
             id="publish-emails"
             v-model="rawEmails"
-            rows="4"
+            rows="5"
             class="q-input"
-            placeholder="invite1@example.com&#10;invite2@example.com"
+            placeholder="invite1@example.com&#10;invite2@example.com&#10;ou importez un fichier CSV / Excel..."
           />
+
+          <!-- Success/Error banner for import -->
+          <div
+            v-if="importMessage"
+            :class="[
+              'text-xs p-2.5 rounded-lg border flex items-center justify-between gap-2 transition-all',
+              importMessage.type === 'success'
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/60'
+                : 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800/60'
+            ]"
+          >
+            <div class="flex items-center gap-2">
+              <CheckCircleIcon v-if="importMessage.type === 'success'" class="w-4 h-4 shrink-0" />
+              <ExclamationTriangleIcon v-else class="w-4 h-4 shrink-0" />
+              <span>{{ importMessage.text }}</span>
+            </div>
+            <button
+              type="button"
+              class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 border-0 bg-transparent cursor-pointer p-0.5"
+              @click="importMessage = null"
+            >
+              <i class="pi pi-times text-xs"></i>
+            </button>
+          </div>
         </div>
 
         <!-- 2. PERSONNEL MODE -->
         <div v-else-if="activeMode === 'personnels'" class="space-y-3">
+          <div v-if="surveyDept" class="text-xs text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-950/40 p-2.5 rounded-lg border border-primary-200 dark:border-primary-800/60 flex items-center gap-2">
+            <BuildingOfficeIcon class="w-4 h-4 shrink-0 text-primary-600 dark:text-primary-400" />
+            <span>Personnels filtrés pour le département <strong>{{ surveyDept.libelle || surveyDept.id }}</strong></span>
+          </div>
+
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField label="Type de personnel" for="publish-pers-type">
               <select id="publish-pers-type" v-model="personnelFilterType" class="q-input">
@@ -173,15 +216,57 @@
 
         <!-- 3. STUDENT MODE -->
         <div v-else-if="activeMode === 'etudiants'" class="space-y-3">
-          <FormField label="Sélectionnez le semestre" for="publish-semestre">
-            <select id="publish-semestre" v-model="selectedSemestre" class="q-input" @change="loadSemesterStudents">
-              <option value="">Choisir un semestre...</option>
-              <option v-for="sem in semesters" :key="sem.id" :value="sem.id">{{ sem.libelle }}</option>
-            </select>
-          </FormField>
+          <div v-if="surveyDept" class="text-xs text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-950/40 p-2.5 rounded-lg border border-primary-200 dark:border-primary-800/60 flex items-center gap-2">
+            <BuildingOfficeIcon class="w-4 h-4 shrink-0 text-primary-600 dark:text-primary-400" />
+            <span>Semestres préselectionnés pour le département <strong>{{ surveyDept.libelle || surveyDept.id }}</strong></span>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <label class="q-label !mb-0">Semestres cibles</label>
+              <div v-if="semesters.length > 0" class="flex items-center gap-3 text-xs">
+                <button type="button" class="font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer" @click="selectAllTargetSemestres">
+                  Tout sélectionner
+                </button>
+                <span class="text-slate-300 dark:text-slate-600">|</span>
+                <button type="button" class="text-slate-500 dark:text-slate-400 hover:underline border-0 bg-transparent cursor-pointer" @click="clearTargetSemestres">
+                  Effacer
+                </button>
+              </div>
+            </div>
+
+            <div v-if="semesters.length === 0 && isLoadingData" class="q-hint">
+              Chargement des semestres...
+            </div>
+            <div v-else-if="semesters.length > 0" class="flex flex-wrap items-center gap-2 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800">
+              <label
+                v-for="sem in semesters"
+                :key="sem.id"
+                :class="[
+                  'px-3 py-1.5 rounded-lg border text-xs font-medium cursor-pointer transition-all flex items-center gap-2 select-none',
+                  selectedSemestres.includes(sem.id)
+                    ? 'bg-primary-50 dark:bg-primary-950/60 border-primary-300 dark:border-primary-700 text-primary-700 dark:text-primary-300 font-semibold'
+                    : 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                ]"
+              >
+                <input
+                  type="checkbox"
+                  :value="sem.id"
+                  v-model="selectedSemestres"
+                  @change="loadSemesterStudents"
+                  class="q-check !w-3.5 !h-3.5"
+                />
+                <span>{{ sem.libelle }}</span>
+              </label>
+            </div>
+            <p v-else class="text-xs text-slate-500 py-4 text-center border border-dashed border-slate-300 dark:border-slate-700 rounded-xl">
+              Aucun semestre trouvé.
+            </p>
+          </div>
+
           <p v-if="isLoadingData" class="q-hint">Chargement des étudiants...</p>
-          <p v-else-if="selectedSemestre" class="text-xs text-slate-700 dark:text-slate-300">
-            <strong>{{ filteredStudents.length }}</strong> étudiants sélectionnés pour ce semestre.
+          <p v-else-if="selectedSemestres.length > 0" class="text-xs text-slate-700 dark:text-slate-300">
+            <strong>{{ filteredStudents.length }}</strong> étudiants sélectionnés ({{ selectedSemestres.length }} semestre{{ selectedSemestres.length > 1 ? 's' : '' }}).
           </p>
         </div>
 
@@ -237,7 +322,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import {
@@ -248,8 +333,11 @@ import {
   InformationCircleIcon,
   CheckCircleIcon,
   CheckBadgeIcon,
-  PaperAirplaneIcon
+  PaperAirplaneIcon,
+  BuildingOfficeIcon,
+  ArrowUpTrayIcon
 } from '@heroicons/vue/24/outline';
+import * as XLSX from 'xlsx';
 import type { Survey, Section } from '@types';
 import { useSurveyStore } from '@/stores/survey';
 import { useResponseStore } from '@/stores/responses';
@@ -259,6 +347,7 @@ import {
   getAllPersonnels, 
   getStudentSemestres 
 } from '@/requests/questionnaire_services/questionnaireService';
+import { getDepartementSemestresService } from '@requests';
 import { DialogHeader, FormField, FormSection, ToggleCard } from '../Form';
 import { calculateEstimatedTime, formatEstimatedTime } from '@/utils/survey';
 
@@ -420,6 +509,90 @@ const kpis = computed(() => [
 const rawEmails = ref('');
 const isConfirmed = ref(false);
 const hasImported = ref(false);
+const importMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null);
+
+const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+
+async function handleFileUpload(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  importMessage.value = null;
+
+  try {
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data, { type: 'array' });
+
+    const foundEmails = new Set<string>();
+
+    for (const sheetName of workbook.SheetNames) {
+      const sheet = workbook.Sheets[sheetName];
+      if (!sheet) continue;
+
+      const rows: any[] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+      for (const row of rows) {
+        if (Array.isArray(row)) {
+          for (const cell of row) {
+            if (cell !== null && cell !== undefined) {
+              const str = String(cell).trim();
+              const matches = str.match(EMAIL_REGEX);
+              if (matches) {
+                matches.forEach(email => foundEmails.add(email.toLowerCase().trim()));
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (foundEmails.size === 0) {
+      importMessage.value = {
+        type: 'error',
+        text: `Aucune adresse email valide trouvée dans le fichier "${file.name}".`
+      };
+      input.value = '';
+      return;
+    }
+
+    const currentEmails = new Set(
+      rawEmails.value
+        .split(/[\n,;]+/)
+        .map(e => e.trim().toLowerCase())
+        .filter(Boolean)
+    );
+
+    let addedCount = 0;
+    const newEmailsList: string[] = [];
+    foundEmails.forEach(email => {
+      if (!currentEmails.has(email)) {
+        newEmailsList.push(email);
+        addedCount++;
+      }
+    });
+
+    if (newEmailsList.length > 0) {
+      if (rawEmails.value.trim() !== '') {
+        rawEmails.value = rawEmails.value.trim() + '\n' + newEmailsList.join('\n');
+      } else {
+        rawEmails.value = newEmailsList.join('\n');
+      }
+    }
+
+    importMessage.value = {
+      type: 'success',
+      text: `${foundEmails.size} adresse(s) email détectée(s) dans "${file.name}" (${addedCount} nouvelle(s) ajoutée(s)).`
+    };
+  } catch (error) {
+    console.error('Erreur lors de la lecture du fichier:', error);
+    importMessage.value = {
+      type: 'error',
+      text: `Erreur lors de la lecture du fichier "${file.name}". Assurez-vous qu'il s'agit d'un fichier CSV ou Excel valide.`
+    };
+  } finally {
+    input.value = '';
+  }
+}
 
 const activeMode = ref('manual'); // 'manual' | 'personnels' | 'etudiants'
 const modes = [
@@ -428,23 +601,56 @@ const modes = [
   { id: 'etudiants', label: 'Étudiants' }
 ];
 
+const surveyDept = computed(() => {
+  if (props.survey?.departement) {
+    if (typeof props.survey.departement === 'object') {
+      return props.survey.departement;
+    }
+    return { id: props.survey.departement };
+  }
+  return null;
+});
+
+const surveyDeptId = computed(() => surveyDept.value?.id || null);
+
+const configuredSemesterIds = computed(() => {
+  const ids = new Set<string | number>();
+  effectiveSections.value.forEach(s => {
+    if (s.typeSection === 'configurable' && s.opt?.selectedSemesters) {
+      s.opt.selectedSemesters.forEach((id: any) => ids.add(id));
+    }
+  });
+  return Array.from(ids);
+});
+
 const semesters = ref<any[]>([]);
 const statuses = ref<string[]>([]);
 const personnels = ref<any[]>([]);
 const students = ref<any[]>([]);
 
-const selectedSemestre = ref('');
+const selectedSemestres = ref<any[]>([]);
 const personnelFilterType = ref('all'); // 'all' | 'permanent' | 'vacataire'
 const personnelFilterStatut = ref('');
 const isLoadingData = ref(false);
+
+function selectAllTargetSemestres() {
+  selectedSemestres.value = semesters.value.map(s => s.id);
+  loadSemesterStudents();
+}
+
+function clearTargetSemestres() {
+  selectedSemestres.value = [];
+  students.value = [];
+}
 
 async function selectMode(mode: string) {
   activeMode.value = mode;
   if (mode === 'personnels' && personnels.value.length === 0) {
     isLoadingData.value = true;
     try {
+      const deptId = surveyDeptId.value;
       const [resPers, resStats] = await Promise.all([
-        getAllPersonnels(),
+        getAllPersonnels(deptId),
         getAllStatuses()
       ]);
       personnels.value = resPers?.member || resPers || [];
@@ -457,8 +663,26 @@ async function selectMode(mode: string) {
   } else if (mode === 'etudiants' && semesters.value.length === 0) {
     isLoadingData.value = true;
     try {
-      const resSem = await getMiniSemestres();
+      let resSem: any;
+      if (surveyDeptId.value) {
+        resSem = await getDepartementSemestresService(surveyDeptId.value, true);
+      } else {
+        resSem = await getMiniSemestres();
+      }
       semesters.value = resSem?.member || resSem || [];
+
+      // Preselection of semesters if department or configured in sections
+      if (semesters.value.length > 0) {
+        if (configuredSemesterIds.value.length > 0) {
+          const matched = semesters.value.filter(s => configuredSemesterIds.value.includes(s.id)).map(s => s.id);
+          selectedSemestres.value = matched.length > 0 ? matched : semesters.value.map(s => s.id);
+        } else if (surveyDeptId.value) {
+          selectedSemestres.value = semesters.value.map(s => s.id);
+        }
+        if (selectedSemestres.value.length > 0) {
+          await loadSemesterStudents();
+        }
+      }
     } catch (e) {
       console.error(e);
     } finally {
@@ -468,14 +692,25 @@ async function selectMode(mode: string) {
 }
 
 async function loadSemesterStudents() {
-  if (!selectedSemestre.value) {
+  if (selectedSemestres.value.length === 0) {
     students.value = [];
     return;
   }
   isLoadingData.value = true;
   try {
-    const resStud = await getStudentSemestres(selectedSemestre.value);
-    students.value = resStud?.member || resStud || [];
+    const responses = await Promise.all(
+      selectedSemestres.value.map(semId => getStudentSemestres(semId))
+    );
+    const all = responses.flatMap(res => res?.member || res || []);
+    const map = new Map();
+    for (const item of all) {
+      const email = item.etudiant?.mailUniv || item.mailUniv;
+      const key = item.id || email;
+      if (key && !map.has(key)) {
+        map.set(key, item);
+      }
+    }
+    students.value = Array.from(map.values());
   } catch (e) {
     console.error(e);
     students.value = [];
@@ -566,4 +801,10 @@ function submitPublish() {
     closingDate: closingIso
   });
 }
+
+onMounted(async () => {
+  if (configurableSectionsCount.value > 0 || surveyDeptId.value) {
+    await selectMode('etudiants');
+  }
+});
 </script>

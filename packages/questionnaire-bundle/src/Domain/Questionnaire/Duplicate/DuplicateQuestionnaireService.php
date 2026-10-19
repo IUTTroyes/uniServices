@@ -27,6 +27,7 @@ final class DuplicateQuestionnaireService
             $duplicate->setOpeningDate(null);
             $duplicate->setClosingDate(null);
             $duplicate->setOpt($source->getOpt() ?? []);
+            $duplicate->setDepartement($source->getDepartement());
 
             $this->em->persist($duplicate);
 

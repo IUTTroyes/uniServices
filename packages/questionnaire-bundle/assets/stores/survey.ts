@@ -36,11 +36,12 @@ export const useSurveyStore = defineStore('survey', () => {
     );
 
     // Survey Management
-    async function createSurvey(title: string, description?: string): Promise<Survey> {
+    async function createSurvey(title: string, description?: string, departement?: any): Promise<Survey> {
         const survey: Survey = {
             uuid: uuidv4(),
             title,
             description,
+            departement: departement ? (typeof departement === 'number' ? `/api/structure_departements/${departement}` : departement) : null,
             sections: [],
             opt: {
                 anonymous: false,

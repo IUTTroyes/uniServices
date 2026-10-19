@@ -155,7 +155,18 @@
 
           <!-- Checklist of API Elements -->
           <div>
-            <label class="q-label">Éléments disponibles à évaluer</label>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <label class="q-label !mb-0">Éléments disponibles à évaluer</label>
+              <div v-if="availableElements.length > 0" class="flex items-center gap-3 text-xs">
+                <button type="button" class="font-semibold text-primary-600 dark:text-primary-400 hover:underline border-0 bg-transparent cursor-pointer" @click="selectAllElements">
+                  Tout sélectionner
+                </button>
+                <span class="text-slate-300 dark:text-slate-600">|</span>
+                <button type="button" class="text-slate-500 dark:text-slate-400 hover:underline border-0 bg-transparent cursor-pointer" @click="deselectAllElements">
+                  Effacer
+                </button>
+              </div>
+            </div>
 
             <div v-if="isLoadingElements" class="flex justify-center items-center py-6 text-xs text-slate-500 gap-2">
               <i class="pi pi-spin pi-spinner text-primary-500 text-lg"></i>
@@ -288,11 +299,13 @@ import {
   getSemestrePreviService,
   getEnseignementsService
 } from '@requests';
+import { getMiniSemestres } from '@/requests/questionnaire_services/questionnaireService';
 import { v4 as uuidv4 } from 'uuid';
 import { DialogHeader, FormField, FormSection } from '../Form';
 
 interface Props {
   section?: Section | null;
+  departement?: any;
 }
 
 interface Emits {
@@ -326,14 +339,33 @@ const semestres = ref<any>({});
 const isLoadingElements = ref(false);
 const availableElements = ref<ConfigurableElement[]>([]);
 
+const targetDepartementId = computed(() => {
+  if (props.departement) {
+    if (typeof props.departement === 'object' && props.departement.id) {
+      return props.departement.id;
+    }
+    return props.departement;
+  }
+  return localStorage.getItem('departement');
+});
+
 const semestresList = computed(() => {
   return Array.isArray(semestres.value) ? semestres.value : Object.values(semestres.value || {});
 });
 
 const loadSemestres = async () => {
-  if (Object.keys(semestres.value).length === 0) {
-    const departement = localStorage.getItem('departement');
-    semestres.value = await getDepartementSemestresService(departement);
+  const deptId = targetDepartementId.value;
+  if (deptId) {
+    const res = await getDepartementSemestresService(deptId, true);
+    semestres.value = res || [];
+  } else {
+    const res = await getMiniSemestres();
+    semestres.value = res?.member || res || [];
+  }
+
+  // Preselect semesters if none selected
+  if (localSection.value.opt && (!localSection.value.opt.selectedSemesters || localSection.value.opt.selectedSemesters.length === 0)) {
+    localSection.value.opt.selectedSemesters = semestresList.value.map((s: any) => s.id);
   }
 };
 
@@ -422,11 +454,36 @@ const fetchElements = async () => {
         semesters: [item.semId]
       }));
     }
+
+    // Preselect all available elements if elements array is empty
+    if (availableElements.value.length > 0 && (!localSection.value.opt.elements || localSection.value.opt.elements.length === 0)) {
+      localSection.value.opt.elements = availableElements.value.map(avail => ({
+        id: avail.id || uuidv4(),
+        name: avail.name,
+        code: avail.code,
+        semesters: avail.semesters || []
+      }));
+    }
   } catch (error) {
     console.error('Erreur lors du chargement des éléments configurables:', error);
   } finally {
     isLoadingElements.value = false;
   }
+};
+
+const selectAllElements = () => {
+  if (!localSection.value.opt) return;
+  localSection.value.opt.elements = availableElements.value.map(avail => ({
+    id: avail.id || uuidv4(),
+    name: avail.name,
+    code: avail.code,
+    semesters: avail.semesters || []
+  }));
+};
+
+const deselectAllElements = () => {
+  if (!localSection.value.opt) return;
+  localSection.value.opt.elements = [];
 };
 
 const isElementSelected = (avail: ConfigurableElement) => {
@@ -497,7 +554,6 @@ function removeCustomElement(element: ConfigurableElement) {
 // Watch for section type changes and initialize configurable object
 watch(() => localSection.value.typeSection, async (newType) => {
   if (newType === 'configurable') {
-    await loadSemestres();
     if (!localSection.value.opt) {
       localSection.value.opt = {
         sourceType: 'previsionnel',
@@ -507,6 +563,7 @@ watch(() => localSection.value.typeSection, async (newType) => {
         selectedSemesters: []
       };
     }
+    await loadSemestres();
     await fetchElements();
   }
 });
@@ -537,10 +594,11 @@ function selectSourceType(sourceType: string) {
       sourceLabel: '',
       elements: [],
       titleTemplate: 'Évaluation de {element}',
-      selectedSemesters: []
+      selectedSemesters: semestresList.value.map(item => item.id)
     };
   } else {
     localSection.value.opt.sourceType = sourceType as any;
+    localSection.value.opt.elements = [];
   }
 
   // Set default label
@@ -581,7 +639,6 @@ onMounted(async () => {
     localSection.value = { ...props.section };
 
     if (localSection.value.typeSection === 'configurable') {
-      await loadSemestres();
       if (!localSection.value.opt) {
         localSection.value.opt = {
           sourceType: 'previsionnel',
@@ -590,9 +647,8 @@ onMounted(async () => {
           titleTemplate: 'Évaluation de {element}',
           selectedSemesters: []
         };
-      } else if (!localSection.value.opt.selectedSemesters) {
-        localSection.value.opt.selectedSemesters = [];
       }
+      await loadSemestres();
       await fetchElements();
     }
   }

@@ -24,11 +24,14 @@ import DuplicateSurveyModal from '@/components/Questionnaire/DuplicateSurveyModa
 import { formatDate } from '@/utils/date';
 import { HeaderComponent, Kpi, Card } from '@components';
 import ActionButtonVertical from '@components/components/ActionButtonVertical.vue';
+import { getAllDepartementsService } from '@requests';
+import { useUsersStore } from '@stores';
 
 const router = useRouter();
 const surveyStore = useSurveyStore();
 const responseStore = useResponseStore();
 const uiStore = useUIStore();
+const userStore = useUsersStore();
 
 const showDuplicateModal = ref(false);
 const selectedSurveyToDuplicate = ref<any>(null);
@@ -74,19 +77,52 @@ const selectedQuestionnaire = ref<any>(null);
 const page = ref(0);
 const rowOptions = [30, 60, 120];
 
+const departements = ref<any[]>([]);
+
+const departementFilterOptions = computed(() => [
+  { label: 'Tous les départements', value: 'all' },
+  { label: 'IUT (Global)', value: 'global' },
+  ...departements.value.map(d => ({
+    label: d.libelle || `Département ${d.id}`,
+    value: d.id
+  }))
+]);
+
 const limit = ref(rowOptions[0]);
 const offset = computed(() => Number(limit.value * page.value));
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
   titre: { value: null, matchMode: FilterMatchMode.CONTAINS },
-  statut: { value: null, matchMode: FilterMatchMode.EQUALS }
+  statut: { value: null, matchMode: FilterMatchMode.EQUALS },
+  departement: { value: null, matchMode: FilterMatchMode.EQUALS }
 });
 
 const fetchQuestionnaires = async () => {
   loading.value = true;
   try {
-    const data = await getAllQuestionnaires(page.value + 1, filters.value);
+    const apiParams: Record<string, any> = {};
+
+    const searchTitle = filters.value.titre?.value || filters.value.global?.value;
+    if (searchTitle && String(searchTitle).trim()) {
+      apiParams.title = String(searchTitle).trim();
+    }
+
+    if (filters.value.statut?.value) {
+      const sVal = typeof filters.value.statut.value === 'object' ? filters.value.statut.value : filters.value.statut.value;
+      if (sVal) apiParams.status = sVal;
+    }
+
+    const deptVal = typeof filters.value.departement?.value === 'object' ? filters.value.departement.value : filters.value.departement?.value;
+    if (deptVal !== undefined && deptVal !== null && deptVal !== 'all') {
+      if (deptVal === 'global') {
+        apiParams['exists[departement]'] = 'false';
+      } else {
+        apiParams.departement = `/api/structure_departements/${deptVal}`;
+      }
+    }
+
+    const data = await getAllQuestionnaires(page.value + 1, apiParams);
     nbQuestionnaires.value = data['totalItems'];
     questionnaires.value = data['member'];
   } catch (error) {
@@ -96,8 +132,20 @@ const fetchQuestionnaires = async () => {
   }
 };
 
-onMounted(() => {
-  fetchQuestionnaires();
+onMounted(async () => {
+  try {
+    const list = await getAllDepartementsService();
+    if (Array.isArray(list) && list.length > 0) {
+      departements.value = list;
+    } else if (userStore.departements && userStore.departements.length > 0) {
+      departements.value = userStore.departements;
+    }
+  } catch (e) {
+    if (userStore.departements && userStore.departements.length > 0) {
+      departements.value = userStore.departements;
+    }
+  }
+  await fetchQuestionnaires();
   responseStore.loadFromLocalStorage();
 });
 
@@ -243,6 +291,54 @@ const exportSurvey = (survey: any) => {
               </template>
               <template #option="slotProps">
                 <Tag :value="slotProps.option.label" :severity="slotProps.option.severity" />
+              </template>
+            </Select>
+          </template>
+        </Column>
+
+        <!-- Département / Portée -->
+        <Column field="departement" header="Département" :showFilterMenu="false" style="min-width: 12rem">
+          <template #body="{ data }">
+            <span
+              v-if="data.departement"
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shadow-2xs border"
+              :style="{
+                backgroundColor: data.departement.couleur ? `${data.departement.couleur}15` : '#f0fdf4',
+                color: data.departement.couleur || '#16a34a',
+                borderColor: data.departement.couleur ? `${data.departement.couleur}40` : '#bbf7d0'
+              }"
+            >
+              <span
+                class="w-2 h-2 rounded-full shrink-0"
+                :style="{ backgroundColor: data.departement.couleur || '#16a34a' }"
+              ></span>
+              <span class="truncate max-w-[130px]">{{ data.departement.libelle || `Dpt ${data.departement.id}` }}</span>
+            </span>
+            <span
+              v-else
+              class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs"
+            >
+              <span class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
+              <span>IUT (Global)</span>
+            </span>
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <Select
+              v-model="filterModel.value"
+              @change="filterCallback()"
+              :options="departementFilterOptions"
+              optionLabel="label"
+              optionValue="value"
+              placeholder="Tous"
+              style="min-width: 11rem"
+              :showClear="true"
+              class="border border-gray-300 dark:border-gray-700 text-xs"
+            >
+              <template #value="slotProps">
+                <span v-if="slotProps.value" class="text-xs font-semibold">
+                  {{ slotProps.value === 'global' ? 'IUT (Global)' : (departements.find(d => d.id === slotProps.value)?.libelle || slotProps.value) }}
+                </span>
+                <span v-else class="text-gray-500 text-xs">Tous</span>
               </template>
             </Select>
           </template>

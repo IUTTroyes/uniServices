@@ -3,9 +3,26 @@
     <div class="max-w-2xl mx-auto px-4">
       <!-- Survey Header -->
       <div v-if="survey" class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-          {{ survey.title }}
-        </h1>
+        <div class="flex items-center justify-center gap-2 mb-4">
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+            {{ survey.title }}
+          </h1>
+          <span
+            v-if="survey.departement"
+            class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border shadow-2xs"
+            :style="{
+              backgroundColor: survey.departement.couleur ? `${survey.departement.couleur}15` : '#f0fdf4',
+              color: survey.departement.couleur || '#16a34a',
+              borderColor: survey.departement.couleur ? `${survey.departement.couleur}40` : '#bbf7d0'
+            }"
+          >
+            <span
+              class="w-1.5 h-1.5 rounded-full shrink-0"
+              :style="{ backgroundColor: survey.departement.couleur || '#16a34a' }"
+            ></span>
+            <span>{{ survey.departement.libelle || `Dpt ${survey.departement.id}` }}</span>
+          </span>
+        </div>
         <p v-if="survey.description" class="text-lg text-gray-600 dark:text-gray-400 mb-6">
           {{ survey.description }}
         </p>

@@ -360,11 +360,16 @@ const getAllStatuses = async (showToast = false) => {
     }
 }
 
-const getAllPersonnels = async (showToast = false) => {
+const getAllPersonnels = async (departement = null, showToast = false) => {
     try {
+        const params = { pagination: false };
+        const deptId = typeof departement === 'object' && departement !== null ? departement.id : departement;
+        if (deptId) {
+            params.departement = deptId;
+        }
         return await apiCall(
             api.get,
-            [`/api/personnels`, { params: { pagination: false } }],
+            [`/api/personnels`, { params }],
             'Personnels récupérés avec succès',
             'Erreur lors de la récupération des personnels',
             showToast
