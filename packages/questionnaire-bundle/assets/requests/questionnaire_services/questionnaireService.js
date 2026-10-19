@@ -473,6 +473,21 @@ const getQuestionnaireInvitations = async (surveyUuid, showToast = false) => {
     }
 }
 
+const sendQuestionnaireReminders = async (surveyUuid, tokens, subject, message, showToast = false) => {
+    try {
+        return await apiCall(
+            api.post,
+            [`/api/questionnaires/${surveyUuid}/reminders`, { tokens, subject, message }],
+            'Relances envoyées avec succès',
+            'Erreur lors de l\'envoi des relances',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans sendQuestionnaireReminders:', error);
+        throw error;
+    }
+}
+
 const getQuestionnaireAnalytics = async (surveyUuid, showToast = false) => {
     try {
         return await apiCall(
@@ -559,6 +574,7 @@ export {
     saveInvitationAnswers,
     submitInvitation,
     getQuestionnaireInvitations,
+    sendQuestionnaireReminders,
     getQuestionnaireAnalytics,
     exportQuestionnaireExcel,
     exportQuestionnairePdf

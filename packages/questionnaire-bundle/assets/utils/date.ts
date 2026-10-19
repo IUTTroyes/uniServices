@@ -8,6 +8,13 @@ export function formatDate(date?: Date | string | number | null): string {
   return format(d, 'dd/MM/yyyy', { locale: fr });
 }
 
+export function formatDateTime(date?: Date | string | number | null): string {
+  if (!date) return '-';
+  const d = date instanceof Date ? date : new Date(date);
+  if (isNaN(d.getTime())) return '-';
+  return format(d, "dd/MM/yyyy 'à' HH:mm", { locale: fr });
+}
+
 export function formatRelativeTime(date?: Date | string | number | null): string {
   if (!date) return '-';
   const d = date instanceof Date ? date : new Date(date);

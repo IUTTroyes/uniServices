@@ -3,7 +3,7 @@ import { ref, computed } from 'vue';
 import type { Response, Participant, SurveyInvitation, SurveyAnalytics } from '@/types/survey';
 import { v4 as uuidv4 } from 'uuid';
 import { faker } from '@faker-js/faker';
-import { getQuestionnaireInvitations, getQuestionnaireAnalytics, exportQuestionnaireExcel } from '@/requests/questionnaire_services/questionnaireService';
+import { getQuestionnaireInvitations, getQuestionnaireAnalytics, exportQuestionnaireExcel, sendQuestionnaireReminders } from '@/requests/questionnaire_services/questionnaireService';
 
 export const useResponseStore = defineStore('responses', () => {
   const responses = ref<Response[]>([]);
@@ -187,15 +187,72 @@ export const useResponseStore = defineStore('responses', () => {
       demoParticipants.push(participant);
 
       if (participant.respondedAt) {
+        const completed = faker.datatype.boolean(0.8);
+        const hasReminders = !completed && faker.datatype.boolean(0.5);
+        const remindersCount = hasReminders ? faker.number.int({ min: 1, max: 2 }) : 0;
+        const remindersHistory = [];
+        let remindedAt: Date | undefined;
+        if (remindersCount > 0) {
+          for (let r = 0; r < remindersCount; r++) {
+            const rDate = faker.date.recent({ days: 10 - r * 3 });
+            remindersHistory.push({
+              id: uuidv4(),
+              sentAt: rDate,
+              subject: `Rappel : questionnaire en attente`,
+              message: `Bonjour,\n\nNous vous rappelons que le questionnaire est toujours en attente de votre réponse.\n\nMerci de bien vouloir y répondre.`,
+              type: (r === 0 ? 'bulk' : 'manual') as 'bulk' | 'manual'
+            });
+            remindedAt = rDate;
+          }
+          remindersHistory.sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime());
+        }
+
         const response: Response = {
           id: uuidv4(),
           surveyId,
           participantId: participant.id,
           answers: generateDemoAnswers(),
-          completed: faker.datatype.boolean(0.8),
+          completed,
           startedAt: participant.respondedAt,
           lastActivity: faker.date.recent({ days: 1 }),
-          submittedAt: faker.datatype.boolean(0.8) ? faker.date.recent({ days: 1 }) : undefined
+          submittedAt: completed ? faker.date.recent({ days: 1 }) : undefined,
+          remindedAt,
+          remindersCount,
+          remindersHistory
+        };
+
+        demoResponses.push(response);
+      } else {
+        const hasReminders = faker.datatype.boolean(0.4);
+        const remindersCount = hasReminders ? faker.number.int({ min: 1, max: 2 }) : 0;
+        const remindersHistory = [];
+        let remindedAt: Date | undefined;
+        if (remindersCount > 0) {
+          for (let r = 0; r < remindersCount; r++) {
+            const rDate = faker.date.recent({ days: 8 - r * 3 });
+            remindersHistory.push({
+              id: uuidv4(),
+              sentAt: rDate,
+              subject: `Rappel : votre avis nous intéresse`,
+              message: `Bonjour,\n\nVous n'avez pas encore commencé à répondre au questionnaire. Votre participation est importante.\n\nMerci de prendre quelques minutes.`,
+              type: 'manual' as const
+            });
+            remindedAt = rDate;
+          }
+          remindersHistory.sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime());
+        }
+
+        const response: Response = {
+          id: participant.inviteToken,
+          surveyId,
+          participantId: participant.id,
+          answers: {},
+          completed: false,
+          startedAt: participant.invitedAt || new Date(),
+          lastActivity: participant.invitedAt || new Date(),
+          remindedAt,
+          remindersCount,
+          remindersHistory
         };
 
         demoResponses.push(response);
@@ -269,7 +326,15 @@ export const useResponseStore = defineStore('responses', () => {
           ...r,
           startedAt: new Date(r.startedAt),
           lastActivity: new Date(r.lastActivity),
-          submittedAt: r.submittedAt ? new Date(r.submittedAt) : undefined
+          submittedAt: r.submittedAt ? new Date(r.submittedAt) : undefined,
+          remindedAt: r.remindedAt ? new Date(r.remindedAt) : undefined,
+          remindersCount: r.remindersCount ?? (r.remindersHistory?.length || 0),
+          remindersHistory: Array.isArray(r.remindersHistory)
+            ? r.remindersHistory.map((rem: any) => ({
+                ...rem,
+                sentAt: new Date(rem.sentAt),
+              }))
+            : [],
         }));
       }
 
@@ -319,6 +384,13 @@ export const useResponseStore = defineStore('responses', () => {
         const submittedDate = invitation.submittedAt ? new Date(invitation.submittedAt) : undefined;
         const lastActivityDate = submittedDate || startedDate || createdDate;
 
+        const remindedDate = invitation.remindedAt ? new Date(invitation.remindedAt) : undefined;
+        const remindersCount = invitation.remindersCount ?? (invitation.remindedAt ? 1 : 0);
+
+        // Preserve client-recorded history from local state if present
+        const existing = responses.value.find(r => r.id === invitation.token);
+        const existingHistory = existing?.remindersHistory || [];
+
         mappedResponses.push({
           id: invitation.token,
           surveyId: surveyUuid,
@@ -327,7 +399,17 @@ export const useResponseStore = defineStore('responses', () => {
           submittedAt: submittedDate,
           startedAt: startedDate ?? createdDate,
           lastActivity: lastActivityDate,
-          answers: answersMap
+          answers: answersMap,
+          remindedAt: remindedDate || (existingHistory.length > 0 ? existingHistory[existingHistory.length - 1].sentAt : undefined),
+          remindersCount: remindersCount || existingHistory.length,
+          remindersHistory: existingHistory.length > 0
+            ? existingHistory
+            : (remindedDate ? [{
+                id: `rem-${invitation.token}-1`,
+                sentAt: remindedDate,
+                subject: 'Rappel pour le questionnaire',
+                type: 'automatic',
+              }] : []),
         });
 
         mappedParticipants.push({
@@ -355,6 +437,31 @@ export const useResponseStore = defineStore('responses', () => {
     }
   }
 
+  function recordReminders(
+    responseIds: string[],
+    details: { subject?: string; message?: string; type?: 'manual' | 'bulk' } = {}
+  ) {
+    const now = new Date();
+    responseIds.forEach(id => {
+      const resp = responses.value.find(r => r.id === id);
+      if (resp) {
+        if (!resp.remindersHistory) {
+          resp.remindersHistory = [];
+        }
+        resp.remindersHistory.push({
+          id: uuidv4(),
+          sentAt: now,
+          subject: details.subject || 'Rappel : questionnaire en attente',
+          message: details.message || '',
+          type: details.type || (responseIds.length === 1 ? 'manual' : 'bulk'),
+        });
+        resp.remindedAt = now;
+        resp.remindersCount = resp.remindersHistory.length;
+      }
+    });
+    saveToLocalStorage();
+  }
+
   async function fetchDetailedAnalytics(surveyUuid: string) {
     try {
       const data = await getQuestionnaireAnalytics(surveyUuid);
@@ -370,6 +477,31 @@ export const useResponseStore = defineStore('responses', () => {
       await exportQuestionnaireExcel(surveyUuid);
     } catch (e) {
       console.error('Failed to export to Excel:', e);
+    }
+  }
+
+  async function sendReminders(surveyUuid: string, tokens: string[], subject?: string, message?: string) {
+    try {
+      const res = await sendQuestionnaireReminders(surveyUuid, tokens, subject, message);
+      if (res && res.invitations && Array.isArray(res.invitations)) {
+        res.invitations.forEach((inv: any) => {
+          const resp = responses.value.find(r => r.id === inv.token);
+          if (resp) {
+            resp.remindedAt = inv.remindedAt ? new Date(inv.remindedAt) : new Date();
+            resp.remindersCount = inv.remindersCount;
+            resp.remindersHistory = (inv.remindersHistory || []).map((h: any) => ({
+              ...h,
+              sentAt: new Date(h.sentAt)
+            }));
+          }
+        });
+        saveToLocalStorage();
+      }
+      return res;
+    } catch (e) {
+      console.warn('Backend send failed or running offline, using local reminder fallback:', e);
+      recordReminders(tokens, { subject, message, type: tokens.length > 1 ? 'bulk' : 'manual' });
+      return null;
     }
   }
 
@@ -397,6 +529,8 @@ export const useResponseStore = defineStore('responses', () => {
     getSurveyAnalytics,
     generateDemoData,
     fetchSurveyResponses,
+    recordReminders,
+    sendReminders,
     fetchDetailedAnalytics,
     triggerExcelExport,
     saveToLocalStorage,

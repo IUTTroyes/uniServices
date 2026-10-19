@@ -27,7 +27,7 @@ import Button from 'primevue/button';
 import Dialog from 'primevue/dialog';
 import Tag from 'primevue/tag';
 import type { Response } from '@/types/survey';
-import { formatRelativeTime, formatDuration } from '@/utils/date';
+import { formatRelativeTime, formatDuration, formatDateTime } from '@/utils/date';
 import { DialogHeader, FormField, FormSection } from '@/components/Form';
 import { HeaderComponent, Kpi, Card, EmptyState, ActionButtonVertical } from '@components';
 
@@ -51,10 +51,13 @@ const filters = ref({
   participantName: { value: null, matchMode: FilterMatchMode.CONTAINS },
   participantGroup: { value: null, matchMode: FilterMatchMode.EQUALS },
   statusLabel: { value: null, matchMode: FilterMatchMode.EQUALS },
+  remindersStatus: { value: null, matchMode: FilterMatchMode.EQUALS },
 });
 const showInviteModal = ref(false);
 const showResponseDetail = ref(false);
 const selectedResponse = ref<Response | null>(null);
+const showHistoryModal = ref(false);
+const historyTargetResponse = ref<any | null>(null);
 
 // --- Selection & Bulk actions ---
 const selectedResponses = ref<any[]>([]);
@@ -120,13 +123,15 @@ function clearSelection() {
 
 function exportSelectedCsv() {
   if (selectedResponses.value.length === 0) return;
-  const headers = ['Nom', 'Email', 'Groupe', 'Statut', 'Progression (%)', 'Dernière activité'];
+  const headers = ['Nom', 'Email', 'Groupe', 'Statut', 'Progression (%)', 'Relances (nb)', 'Dernière relance', 'Dernière activité'];
   const rows = selectedResponses.value.map(r => [
     r.participantName || '',
     r.participantEmail || '',
     r.participantGroup || '',
     r.statusLabel || '',
     r.progress !== undefined ? String(r.progress) : '',
+    r.remindersCount !== undefined ? String(r.remindersCount) : '0',
+    r.remindedAt ? new Date(r.remindedAt).toLocaleString('fr-FR') : '',
     r.lastActivity ? new Date(r.lastActivity).toLocaleString('fr-FR') : ''
   ]);
 
@@ -197,10 +202,25 @@ function openReminderModal(targets: Response[]) {
 
 async function confirmSendReminders() {
   isSendingReminders.value = true;
-  // Simulate async send
-  await new Promise(resolve => setTimeout(resolve, 800));
+
+  const targetIds = reminderTargets.value.map(r => r.id);
+  await responseStore.sendReminders(
+    surveyId,
+    targetIds,
+    reminderSubject.value,
+    reminderMessage.value
+  );
+
   isSendingReminders.value = false;
   showReminderModal.value = false;
+
+  // Refresh active history modal participant if open
+  if (historyTargetResponse.value) {
+    const updated = responsesWithDetails.value.find(r => r.id === historyTargetResponse.value.id);
+    if (updated) {
+      historyTargetResponse.value = updated;
+    }
+  }
 
   const names = reminderTargets.value
     .map(r => getParticipantName(r.participantId))
@@ -213,6 +233,27 @@ async function confirmSendReminders() {
   );
 
   clearSelection();
+}
+
+function openHistoryModal(response: any) {
+  historyTargetResponse.value = response;
+  showHistoryModal.value = true;
+}
+
+const sortedReminderHistory = computed(() => {
+  if (!historyTargetResponse.value?.remindersHistory) return [];
+  return [...historyTargetResponse.value.remindersHistory].sort((a, b) => {
+    const da = new Date(a.sentAt).getTime();
+    const db = new Date(b.sentAt).getTime();
+    return db - da;
+  });
+});
+
+function triggerDirectReminderFromHistory() {
+  if (!historyTargetResponse.value) return;
+  const target = historyTargetResponse.value;
+  showHistoryModal.value = false;
+  openReminderModal([target]);
 }
 
 // --- Store data ---
@@ -239,6 +280,10 @@ const availableGroups = computed(() => {
 const responsesWithDetails = computed(() => {
   return responses.value.map(response => {
     const participant = participants.value.find(p => p.id === response.participantId);
+    const history = response.remindersHistory || [];
+    const count = response.remindersCount ?? history.length;
+    const lastReminder = response.remindedAt || (history.length > 0 ? history[history.length - 1].sentAt : null);
+
     return {
       ...response,
       participantName: participant?.name || participant?.email || 'Participant anonyme',
@@ -246,6 +291,10 @@ const responsesWithDetails = computed(() => {
       participantGroup: participant?.group || '',
       statusLabel: getStatusLabel(response),
       progress: getProgress(response),
+      remindersCount: count,
+      remindedAt: lastReminder ? new Date(lastReminder) : null,
+      remindersHistory: history,
+      remindersStatus: count > 0 ? 'Relancé' : 'Non relancé',
     };
   }).sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime());
 });
@@ -656,13 +705,49 @@ onMounted(async () => {
           </template>
         </Column>
 
+        <Column field="remindersStatus" sortField="remindersCount" header="Relances" sortable style="min-width: 12rem" :showFilterMenu="false">
+          <template #body="{ data }">
+            <div class="flex flex-col gap-0.5">
+              <div class="flex items-center gap-1.5">
+                <button
+                  v-if="data.remindersCount > 0"
+                  type="button"
+                  class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-colors cursor-pointer"
+                  title="Cliquer pour consulter l'historique des relances"
+                  @click="openHistoryModal(data)"
+                >
+                  <i class="pi pi-bell text-[10px]" />
+                  <span>{{ data.remindersCount }} relance{{ data.remindersCount > 1 ? 's' : '' }}</span>
+                </button>
+                <span v-else class="text-xs text-slate-400 dark:text-slate-500 italic">
+                  Aucune relance
+                </span>
+              </div>
+              <span v-if="data.remindedAt" class="text-[11px] text-slate-500 dark:text-slate-400">
+                Dernière : {{ formatRelativeTime(data.remindedAt) }}
+              </span>
+            </div>
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <Select
+              v-if="filterModel"
+              v-model="filterModel.value"
+              :options="['Relancé', 'Non relancé']"
+              placeholder="Tous"
+              :showClear="true"
+              class="w-full text-xs border border-gray-300 dark:border-gray-700 rounded focus:ring-1 focus:ring-primary-500"
+              @change="filterCallback()"
+            />
+          </template>
+        </Column>
+
         <Column field="lastActivity" header="Dernière activité" sortable style="min-width: 12rem">
           <template #body="{ data }">
             {{ formatRelativeTime(data.lastActivity) }}
           </template>
         </Column>
 
-        <Column header="Actions" style="min-width: 15rem">
+        <Column header="Actions" style="min-width: 18rem">
           <template #body="{ data }">
             <div class="flex items-center gap-1">
               <Button
@@ -685,6 +770,17 @@ onMounted(async () => {
                 title="Copier l'URL du questionnaire de ce participant"
                 class="text-xs !py-1 !px-2"
                 @click="copySurveyUrl(data)"
+              />
+              <Button
+                type="button"
+                icon="pi pi-history"
+                label="Historique"
+                text
+                size="small"
+                :severity="data.remindersCount > 0 ? 'warn' : 'secondary'"
+                title="Consulter l'historique des relances"
+                class="text-xs !py-1 !px-2"
+                @click="openHistoryModal(data)"
               />
               <Button
                 v-if="!data.completed"
@@ -823,6 +919,161 @@ onMounted(async () => {
             :loading="isSendingReminders"
             :icon="isSendingReminders ? undefined : 'pi pi-bell'"
             @click="confirmSendReminders"
+          />
+        </div>
+      </div>
+    </Dialog>
+
+    <!-- Reminder History Modal -->
+    <Dialog
+      :style="{ width: '92vw', maxWidth: '720px' }"
+      :visible="showHistoryModal"
+      :modal="true"
+      :closable="true"
+      :draggable="false"
+      @update:visible="showHistoryModal = $event"
+    >
+      <template #header>
+        <DialogHeader
+          :icon="ClockIcon"
+          tone="amber"
+          title="Historique des relances"
+          :subtitle="`${historyTargetResponse?.participantName || 'Participant'} (${historyTargetResponse?.participantEmail || ''})`"
+          @close="showHistoryModal = false"
+        />
+      </template>
+
+      <div v-if="historyTargetResponse" class="space-y-5 pt-1">
+        <!-- Participant Summary Banner -->
+        <div class="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-slate-50/70 dark:bg-slate-900/40 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 rounded-full flex items-center justify-center font-bold text-sm border border-amber-200 dark:border-amber-800/60 shadow-xs">
+              {{ getParticipantInitials(historyTargetResponse.participantId) }}
+            </div>
+            <div>
+              <p class="text-sm font-semibold text-slate-900 dark:text-white">
+                {{ historyTargetResponse.participantName }}
+              </p>
+              <p class="text-xs text-slate-500 dark:text-slate-400">
+                {{ historyTargetResponse.participantEmail }} • Groupe : {{ historyTargetResponse.participantGroup || 'Non assigné' }}
+              </p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <Tag
+              :value="historyTargetResponse.statusLabel"
+              :severity="getStatusSeverity(historyTargetResponse)"
+              class="text-xs font-sans"
+            />
+            <Tag
+              :value="`${historyTargetResponse.remindersCount || 0} relance${(historyTargetResponse.remindersCount || 0) > 1 ? 's' : ''}`"
+              :severity="(historyTargetResponse.remindersCount || 0) > 0 ? 'warn' : 'secondary'"
+              class="text-xs font-sans"
+            />
+          </div>
+        </div>
+
+        <!-- History List / Timeline -->
+        <div v-if="historyTargetResponse.remindersHistory && historyTargetResponse.remindersHistory.length > 0" class="space-y-3">
+          <div class="flex items-center justify-between pb-1">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+              <i class="pi pi-history text-xs" />
+              <span>Détail chronologique des envois ({{ historyTargetResponse.remindersHistory.length }})</span>
+            </h4>
+            <span class="text-[11px] text-slate-400 dark:text-slate-500">
+              Classé du plus récent au plus ancien
+            </span>
+          </div>
+
+          <div class="relative pl-6 space-y-4 before:content-[''] before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-slate-700">
+            <div
+              v-for="(item, idx) in sortedReminderHistory"
+              :key="item.id || idx"
+              class="relative group"
+            >
+              <!-- Timeline node dot -->
+              <div class="absolute -left-6 top-2 w-5 h-5 rounded-full bg-amber-500 dark:bg-amber-400 border-2 border-white dark:border-slate-800 flex items-center justify-center text-white shadow-xs">
+                <i class="pi pi-bell text-[9px]" />
+              </div>
+
+              <!-- Card Content -->
+              <div class="p-3.5 bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-xl shadow-xs transition hover:border-amber-300 dark:hover:border-amber-700">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-900 dark:text-white">
+                      Relance #{{ historyTargetResponse.remindersHistory.length - idx }}
+                    </span>
+                    <Tag
+                      :value="item.type === 'bulk' ? 'Relance groupée' : (item.type === 'automatic' ? 'Automatique' : 'Relance individuelle')"
+                      :severity="item.type === 'bulk' ? 'info' : (item.type === 'automatic' ? 'help' : 'warn')"
+                      class="text-[10px] font-sans !py-0.5 !px-2"
+                    />
+                  </div>
+                  <div class="text-right">
+                    <span class="text-xs font-medium text-slate-700 dark:text-slate-300">
+                      {{ formatDateTime(item.sentAt) }}
+                    </span>
+                    <span class="text-[11px] text-slate-400 dark:text-slate-500 block">
+                      ({{ formatRelativeTime(item.sentAt) }})
+                    </span>
+                  </div>
+                </div>
+
+                <div v-if="item.subject" class="text-xs font-medium text-slate-800 dark:text-slate-200 mb-1">
+                  <span class="text-slate-400 dark:text-slate-500 font-normal">Objet :</span> {{ item.subject }}
+                </div>
+
+                <div v-if="item.message" class="mt-2 p-2.5 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 whitespace-pre-line font-mono text-[11px] leading-relaxed">
+                  {{ item.message }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty History State -->
+        <div v-else class="py-8 text-center bg-slate-50/50 dark:bg-slate-900/30 border border-dashed border-slate-200 dark:border-slate-700/80 rounded-2xl">
+          <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400 mb-3">
+            <i class="pi pi-bell-slash text-xl" />
+          </div>
+          <h4 class="text-sm font-semibold text-slate-800 dark:text-slate-200">
+            Aucune relance effectuée
+          </h4>
+          <p class="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto mt-1 mb-4">
+            Ce participant n'a encore reçu aucun rappel ou email de relance pour ce questionnaire.
+          </p>
+          <Button
+            v-if="!historyTargetResponse.completed"
+            type="button"
+            icon="pi pi-bell"
+            label="Envoyer une première relance"
+            severity="warn"
+            size="small"
+            class="text-xs shadow-xs"
+            @click="triggerDirectReminderFromHistory"
+          />
+        </div>
+
+        <!-- Modal Actions Footer -->
+        <div class="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-700/80">
+          <Button
+            type="button"
+            label="Fermer"
+            severity="secondary"
+            outlined
+            size="small"
+            class="text-xs !py-1.5 !px-3"
+            @click="showHistoryModal = false"
+          />
+          <Button
+            v-if="!historyTargetResponse.completed"
+            type="button"
+            icon="pi pi-bell"
+            label="Nouvelle relance"
+            severity="warn"
+            size="small"
+            class="text-xs !py-1.5 !px-3 shadow-xs"
+            @click="triggerDirectReminderFromHistory"
           />
         </div>
       </div>

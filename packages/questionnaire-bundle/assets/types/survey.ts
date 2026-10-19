@@ -109,6 +109,15 @@ export interface SurveySettings {
     requireCompletion: boolean;
 }
 
+export interface ReminderHistoryItem {
+    id: string;
+    sentAt: Date;
+    subject?: string;
+    message?: string;
+    type?: 'manual' | 'bulk' | 'automatic';
+    sender?: string;
+}
+
 export interface Answer {
     id: string;
     surveyId: string;
@@ -118,6 +127,9 @@ export interface Answer {
     submittedAt?: Date;
     startedAt: Date;
     lastActivity: Date;
+    remindedAt?: Date;
+    remindersCount?: number;
+    remindersHistory?: ReminderHistoryItem[];
     metadata?: Record<string, any>;
 }
 
