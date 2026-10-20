@@ -1,0 +1,17 @@
+Bilan de clôture de votre questionnaire
+
+Bonjour{% if authorName %} {{ authorName }}{% endif %},
+
+Votre questionnaire "{{ questionnaire.title }}" est désormais terminé.
+
+Statistiques de participation :
+- Taux de participation : {{ stats.rate }} %
+- Réponses complétées : {{ stats.submitted }} / {{ stats.total }}
+{% if stats.isFullyCompleted %}
+- Statut : 100% des participants ont répondu !
+{% elseif stats.isDateExpired and questionnaire.closingDate %}
+- Statut : Date limite atteinte ({{ questionnaire.closingDate|date('d/m/Y à H:i') }}).
+{% endif %}
+
+Consulter les résultats et statistiques :
+{{ analyticsUrl }}

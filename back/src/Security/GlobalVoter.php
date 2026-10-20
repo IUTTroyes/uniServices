@@ -12,9 +12,13 @@ use Symfony\Component\Security\Core\Authorization\Voter\Voter;
 class GlobalVoter extends Voter
 {
     public const IS_SUPER_ADMIN = 'IS_SUPER_ADMIN';
+    public const SUPER_ADMIN = 'SUPER_ADMIN';
+    public const ROLE_SUPER_ADMIN = 'ROLE_SUPER_ADMIN';
 
     private const SUPPORTED_ATTRIBUTES = [
         self::IS_SUPER_ADMIN,
+        self::SUPER_ADMIN,
+        self::ROLE_SUPER_ADMIN,
     ];
 
     public function __construct(

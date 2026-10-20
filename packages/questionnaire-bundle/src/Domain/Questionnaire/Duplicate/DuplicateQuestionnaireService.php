@@ -28,6 +28,9 @@ final class DuplicateQuestionnaireService
             $duplicate->setClosingDate(null);
             $duplicate->setOpt($source->getOpt() ?? []);
             $duplicate->setDepartement($source->getDepartement());
+            $duplicate->setAuthor($source->getAuthor());
+            $duplicate->setCompletionNotified(false);
+            $duplicate->setCompletionNotifiedAt(null);
 
             $this->em->persist($duplicate);
 

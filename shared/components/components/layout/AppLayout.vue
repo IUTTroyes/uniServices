@@ -53,7 +53,8 @@ const containerClass = computed(() => {
 const getPackageFromPath = (path) => {
   const segments = path.split('/').filter(Boolean);
   if (segments.length === 0) return null;
-  const first = segments[0];
+  const first = segments[0] === 'app' ? segments[1] : segments[0];
+  if (!first) return null;
   if (first === 'intranet') return 'intranet';
   if (first === 'stage') return 'stages';
   if (first === 'edt') return 'edt';
@@ -61,7 +62,9 @@ const getPackageFromPath = (path) => {
   if (first === 'questionnaire') return 'questionnaire';
   if (first === 'unifolio') return 'unifolio';
   if (first === 'auth') return 'auth';
-  return null;
+  if (first === 'finance') return 'finance';
+  if (first === 'documents') return 'documents';
+  return first;
 };
 
 const computedMenuItems = computed(() => {

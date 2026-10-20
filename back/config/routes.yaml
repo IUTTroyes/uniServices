@@ -22,3 +22,9 @@ questionnaire_controllers:
         namespace: QuestionnaireBundle\Controller
     type: attribute
 
+finance_controllers:
+    resource:
+        path: '../../packages/finance-bundle/src/Controller/'
+        namespace: FinanceBundle\Controller
+    type: attribute
+

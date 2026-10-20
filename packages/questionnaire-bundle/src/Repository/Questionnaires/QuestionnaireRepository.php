@@ -31,4 +31,19 @@ class QuestionnaireRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return array<Questionnaire>
+     */
+    public function findPendingCompletionNotification(): array
+    {
+        return $this->createQueryBuilder('q')
+            ->leftJoin('q.author', 'a')
+            ->addSelect('a')
+            ->where('q.status IN (:statuses)')
+            ->setParameter('statuses', [QuestStatutEnum::PUBLISHED, QuestStatutEnum::CLOSED])
+            ->andWhere('q.completionNotified = false OR q.completionNotified IS NULL')
+            ->getQuery()
+            ->getResult();
+    }
 }

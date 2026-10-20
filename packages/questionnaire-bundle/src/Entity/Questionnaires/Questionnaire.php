@@ -15,6 +15,7 @@ use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Contracts\TimestampableInterface;
 use App\Entity\Structure\StructureDepartement;
+use App\Entity\Users\Personnel;
 use App\Entity\Traits\TimestampableTrait;
 use App\Entity\Traits\OptionTrait;
 use QuestionnaireBundle\Enum\QuestStatutEnum;
@@ -137,6 +138,19 @@ class Questionnaire implements TimestampableInterface
     #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
     #[Groups(['questionnaire:read', 'invitation:read'])]
     private ?StructureDepartement $departement = null;
+
+    #[ORM\ManyToOne(targetEntity: Personnel::class)]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[Groups(['questionnaire:read', 'invitation:read'])]
+    private ?Personnel $author = null;
+
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    #[Groups(['questionnaire:read'])]
+    private bool $completionNotified = false;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    #[Groups(['questionnaire:read'])]
+    private ?\DateTimeImmutable $completionNotifiedAt = null;
 
     public function __construct()
     {
@@ -406,6 +420,42 @@ class Questionnaire implements TimestampableInterface
     public function setDepartement(?StructureDepartement $departement): static
     {
         $this->departement = $departement;
+
+        return $this;
+    }
+
+    public function getAuthor(): ?Personnel
+    {
+        return $this->author;
+    }
+
+    public function setAuthor(?Personnel $author): static
+    {
+        $this->author = $author;
+
+        return $this;
+    }
+
+    public function isCompletionNotified(): bool
+    {
+        return $this->completionNotified;
+    }
+
+    public function setCompletionNotified(bool $completionNotified): static
+    {
+        $this->completionNotified = $completionNotified;
+
+        return $this;
+    }
+
+    public function getCompletionNotifiedAt(): ?\DateTimeImmutable
+    {
+        return $this->completionNotifiedAt;
+    }
+
+    public function setCompletionNotifiedAt(?\DateTimeImmutable $completionNotifiedAt): static
+    {
+        $this->completionNotifiedAt = $completionNotifiedAt;
 
         return $this;
     }

@@ -7,7 +7,7 @@ const financeMenu = {
   label: 'Finances & Achats',
   icon: 'pi pi-fw pi-wallet',
   items: [
-    { label: 'Tableau de bord', icon: 'pi pi-fw pi-chart-bar', to: '/finance/' },
+    { label: 'Tableau de bord', icon: 'pi pi-fw pi-chart-bar', to: '/finance' },
     { label: 'Nouvelle demande', icon: 'pi pi-fw pi-plus-circle', to: '/finance/demande/nouveau' },
   ]
 };
@@ -33,7 +33,7 @@ export default {
           component: FinanceDashboardView,
           meta: {
             title: 'Tableau de bord financier',
-            breadcrumb: [{ label: 'Finances', route: '/finance/' }, { label: 'Tableau de bord', route: null }]
+            breadcrumb: [{ label: 'Finances', route: '/finance' }, { label: 'Tableau de bord', route: null }]
           }
         },
         {
@@ -42,7 +42,7 @@ export default {
           component: DemandeAchatDetailView,
           meta: {
             title: 'Nouvelle demande',
-            breadcrumb: [{ label: 'Finances', route: '/finance/' }, { label: 'Nouvelle demande', route: null }]
+            breadcrumb: [{ label: 'Finances', route: '/finance' }, { label: 'Nouvelle demande', route: null }]
           }
         },
         {
@@ -52,7 +52,7 @@ export default {
           props: true,
           meta: {
             title: 'Détail Demande',
-            breadcrumb: [{ label: 'Finances', route: '/finance/' }, { label: 'Détail de la commande', route: null }]
+            breadcrumb: [{ label: 'Finances', route: '/finance' }, { label: 'Détail de la commande', route: null }]
           }
         }
       ]

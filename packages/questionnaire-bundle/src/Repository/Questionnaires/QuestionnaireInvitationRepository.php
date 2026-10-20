@@ -32,4 +32,29 @@ class QuestionnaireInvitationRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return array{total: int, submitted: int, pending: int, rate: float}
+     */
+    public function getParticipationStats(Questionnaire $questionnaire): array
+    {
+        $qb = $this->createQueryBuilder('i')
+            ->select('COUNT(i.id) as total')
+            ->addSelect('SUM(CASE WHEN i.status = :submitted THEN 1 ELSE 0 END) as submitted')
+            ->where('i.questionnaire = :questionnaire')
+            ->setParameter('questionnaire', $questionnaire)
+            ->setParameter('submitted', QuestInvitationStatusEnum::SUBMITTED);
+
+        $res = $qb->getQuery()->getSingleResult();
+        $total = (int) ($res['total'] ?? 0);
+        $submitted = (int) ($res['submitted'] ?? 0);
+        $rate = $total > 0 ? round(($submitted / $total) * 100, 1) : 0.0;
+
+        return [
+            'total' => $total,
+            'submitted' => $submitted,
+            'pending' => max(0, $total - $submitted),
+            'rate' => $rate,
+        ];
+    }
 }

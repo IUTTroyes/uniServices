@@ -6,12 +6,12 @@
     <style>
         @page {
             size: A4 portrait;
-            margin: 10mm;
+            margin: 8mm;
         }
         * {
             box-sizing: border-box;
             font-family: Arial, Helvetica, sans-serif;
-            font-size: 10pt;
+            font-size: 9.5pt;
             color: #111827;
         }
         body {
@@ -22,16 +22,16 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .header-title {
             text-align: center;
             font-weight: bold;
-            font-size: 13pt;
+            font-size: 12pt;
             text-transform: uppercase;
             border: 2px solid #000;
-            padding: 6px;
-            margin-bottom: 10px;
+            padding: 5px;
+            margin-bottom: 6px;
             background-color: #f9fafb;
         }
         .main-table {
@@ -43,7 +43,7 @@
             width: 28px;
             text-align: center;
             font-weight: bold;
-            font-size: 9pt;
+            font-size: 8.5pt;
             writing-mode: vertical-rl;
             transform: rotate(180deg);
             background-color: #f3f4f6;
@@ -53,7 +53,7 @@
             vertical-align: middle;
         }
         .content-cell {
-            padding: 8px;
+            padding: 6px 8px;
             border-bottom: 2px solid #000;
             vertical-align: top;
         }
@@ -67,10 +67,10 @@
             text-align: center;
             line-height: 12px;
             font-weight: bold;
-            font-size: 9pt;
+            font-size: 8.5pt;
         }
         .row {
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
         .label {
             font-weight: bold;
@@ -84,51 +84,73 @@
         .note-box {
             border: 1px solid #9ca3af;
             background: #fafafa;
-            min-height: 55px;
-            padding: 6px;
-            margin-top: 4px;
-            font-size: 9.5pt;
+            min-height: 45px;
+            padding: 5px;
+            margin-top: 3px;
+            font-size: 9pt;
         }
         .signatures-grid {
             display: flex;
             justify-content: space-between;
-            margin-top: 8px;
+            margin-top: 6px;
         }
         .sig-block {
             width: 48%;
             border: 1px dashed #9ca3af;
-            padding: 6px;
-            min-height: 50px;
+            padding: 5px;
+            min-height: 48px;
         }
         .migo-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 4px;
-            margin: 6px 0;
+            margin: 4px 0;
         }
         .footer-note {
-            font-size: 7.5pt;
+            font-size: 7pt;
             font-style: italic;
-            margin-top: 6px;
+            margin-top: 4px;
             display: flex;
             justify-content: space-between;
+        }
+        .pending-step-note {
+            font-style: italic;
+            font-size: 8pt;
+            color: #6b7280;
+            margin-top: 3px;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div style="font-weight: bold; font-size: 14pt; color: #1e3a8a;">
+        <div style="font-weight: bold; font-size: 13pt; color: #1e3a8a;">
             <span style="color:#f59e0b;">iUT</span> Troyes
         </div>
-        <div style="text-align: right; font-size: 8.5pt; text-transform: uppercase; font-weight: bold;">
-            Université de Reims<br><span style="font-size: 7.5pt; font-weight: normal;">Champagne-Ardenne</span>
+        <div style="text-align: right; font-size: 8pt; text-transform: uppercase; font-weight: bold;">
+            Université de Reims<br><span style="font-size: 7pt; font-weight: normal;">Champagne-Ardenne</span>
         </div>
     </div>
 
     <div class="header-title">
-        Formulaire accompagnement bon de commande
+        {% if step is defined and step == 1 %}
+            DEMANDE INITIALE D'ACHAT — À FAIRE ÉMARGER / SIGNER
+        {% elseif step is defined and step == 2 %}
+            BON DE COMMANDE — ÉTAPE 2 : VÉRIFICATION SIFAC
+        {% elseif step is defined and step == 3 %}
+            BON DE COMMANDE — ÉTAPE 3 : VISA D'ENGAGEMENT (CSA)
+        {% elseif step is defined and step == 4 %}
+            BON DE COMMANDE — ÉTAPE 4 : CONSTATATION DU SERVICE FAIT
+        {% else %}
+            FORMULAIRE D'ACCOMPAGNEMENT DU BON DE COMMANDE
+        {% endif %}
     </div>
+
+    {% if step is defined and step == 1 %}
+    <div style="font-size: 8pt; color: #4b5563; margin-top: -3px; margin-bottom: 6px; text-align: center; font-style: italic;">
+        Demande initiale générée pour recueil de signature externe avant instruction par le directeur / chef de service.
+    </div>
+    {% endif %}
 
     <table class="main-table">
         <!-- 1 - DEMANDE -->
@@ -141,32 +163,32 @@
                         {{ commande.service ? commande.service.libelle : (commande.departement ? commande.departement.libelle : '____________________') }}
                     </span>
                 </div>
-                <div class="row" style="margin-top: 6px;">
+                <div class="row">
                     <span class="label">Prestation :</span> &nbsp;&nbsp;
-                    <span class="checkbox-box">{{ commande.prestation.value == 'Fournitures' ? 'X' : '' }}</span> Fournitures &nbsp;&nbsp;&nbsp;&nbsp;
-                    <span class="checkbox-box">{{ commande.prestation.value == 'Services' ? 'X' : '' }}</span> Services &nbsp;&nbsp;&nbsp;&nbsp;
-                    <span class="checkbox-box">{{ commande.prestation.value == 'Travaux' ? 'X' : '' }}</span> Travaux
+                    <span class="checkbox-box">{{ commande.prestation and commande.prestation.value == 'Fournitures' ? 'X' : '' }}</span> Fournitures &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="checkbox-box">{{ commande.prestation and commande.prestation.value == 'Services' ? 'X' : '' }}</span> Services &nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="checkbox-box">{{ commande.prestation and commande.prestation.value == 'Travaux' ? 'X' : '' }}</span> Travaux
                 </div>
-                <div class="row" style="margin-top: 6px;">
-                    <span class="label">Responsable :</span>
+                <div class="row">
+                    <span class="label">Responsable / Demandeur :</span>
                     <span class="underline-field" style="min-width: 350px;">
                         {{ commande.responsable ? commande.responsable.display : (commande.demandeur ? commande.demandeur.display : '____________________') }}
                     </span>
                 </div>
-                <div class="row" style="margin-top: 6px;">
+                <div class="row">
                     <span class="label">Objet de la demande :</span>
                     <span class="underline-field" style="min-width: 450px; font-weight: 500;">
                         {{ commande.objetDemande }}
                     </span>
                 </div>
-                <div class="row" style="margin-top: 6px;">
+                <div class="row">
                     <span class="label">Montant :</span>
                     <span class="underline-field" style="min-width: 150px; font-weight: bold;">
                         {{ commande.montantHt ? (commande.montantHt ~ ' € HT') : '' }}
                         {{ commande.montantTtc ? (' / ' ~ commande.montantTtc ~ ' € TTC') : '' }}
                     </span>
                 </div>
-                <div class="row" style="margin-top: 6px;">
+                <div class="row">
                     <span class="label">Note explicative synthétique (contexte / motivation / objectifs…) :</span>
                     <div class="note-box">
                         {{ commande.noteExplicative|default('Aucune note saisie.')|nl2br }}
@@ -175,22 +197,28 @@
 
                 <div class="signatures-grid">
                     <div class="sig-block">
-                        <div><strong>Date :</strong> {{ commande.dateDemande ? commande.dateDemande|date('d/m/Y') : '' }}</div>
-                        <div style="margin-top: 4px;"><strong>Signature du Responsable :</strong></div>
+                        <div><strong>Date :</strong> {{ commande.dateDemande ? commande.dateDemande|date('d/m/Y') : ("now"|date('d/m/Y')) }}</div>
+                        <div style="margin-top: 4px;"><strong>Signature du Responsable / Demandeur :</strong></div>
                         {% if commande.dateSignatureResponsable or commande.dateSignatureDemandeur %}
-                            <div style="color: #059669; font-size: 8pt; margin-top: 6px;">[Signé électroniquement]</div>
+                            <div style="color: #059669; font-size: 8pt; margin-top: 4px;">
+                                [Signé le {{ (commande.dateSignatureResponsable ?? commande.dateSignatureDemandeur)|date('d/m/Y') }}]
+                            </div>
+                        {% else %}
+                            <div style="height: 32px; border: 1px dashed #d1d5db; margin-top: 4px; display: flex; align-items: center; justify-content: center; color: #9ca3af; font-size: 7.5pt;">
+                                Signature externe / manuscrite
+                            </div>
                         {% endif %}
                     </div>
                     <div class="sig-block">
-                        <div><strong>Avis du Directeur :</strong></div>
+                        <div><strong>Avis du Directeur / Chef de service :</strong></div>
                         <div style="margin-top: 4px;">
                             <span class="checkbox-box">{{ commande.avisDirecteur and commande.avisDirecteur.value == 'FAVORABLE' ? 'X' : '' }}</span> Favorable &nbsp;&nbsp;
                             <span class="checkbox-box">{{ commande.avisDirecteur and commande.avisDirecteur.value == 'DEFAVORABLE' ? 'X' : '' }}</span> Défavorable
                         </div>
-                        <div style="margin-top: 3px;">
+                        <div style="margin-top: 2px;">
                             <span class="checkbox-box">{{ commande.avisDirecteur and commande.avisDirecteur.value == 'DEMANDE_INFO' ? 'X' : '' }}</span> Demande d'information : {{ commande.avisDirecteurCommentaire }}
                         </div>
-                        <div style="margin-top: 4px; font-size: 8.5pt;">
+                        <div style="margin-top: 3px; font-size: 8pt;">
                             Date : {{ commande.dateAvisDirecteur ? commande.dateAvisDirecteur|date('d/m/Y') : '' }} - Signature : {{ commande.signataireDirecteur ? commande.signataireDirecteur.display : '' }}
                         </div>
                     </div>
@@ -201,7 +229,7 @@
         <!-- 2 - VERIFICATION -->
         <tr>
             <td class="step-col">2 - VERIFICATION</td>
-            <td class="content-cell">
+            <td class="content-cell" style="{% if step is defined and step < 2 %}opacity: 0.5; background-color: #fafafa;{% endif %}">
                 <div class="row">
                     <span class="label">N° et Nom du fournisseur :</span>
                     <span class="underline-field" style="min-width: 380px;">
@@ -212,7 +240,7 @@
                         {% endif %}
                     </span>
                 </div>
-                <div class="row" style="margin-top: 6px;">
+                <div class="row">
                     <span class="label">Commande sur marché :</span>
                     <span class="checkbox-box">{{ commande.commandeSurMarche ? 'X' : '' }}</span> OUI &nbsp;&nbsp;
                     <span class="checkbox-box">{{ not commande.commandeSurMarche ? 'X' : '' }}</span> NON
@@ -220,7 +248,7 @@
                     <span class="label">N° Bon de Commande :</span>
                     <span class="underline-field" style="min-width: 180px; font-weight: bold;">{{ commande.numeroBonCommande|default('________________') }}</span>
                 </div>
-                <div class="row" style="margin-top: 6px;">
+                <div class="row">
                     <span class="label">Date de livraison renseignée :</span>
                     <span class="checkbox-box">{{ commande.dateLivraisonRenseignee ? 'X' : '' }}</span> OUI &nbsp;&nbsp;
                     <span class="checkbox-box">{{ not commande.dateLivraisonRenseignee ? 'X' : '' }}</span> NON
@@ -232,20 +260,26 @@
                         <strong>Signature du service financier :</strong> {{ commande.verificateurFinancier ? commande.verificateurFinancier.display : '' }}
                     </div>
                 </div>
+                {% if step is defined and step < 2 %}
+                    <div class="pending-step-note">[Réservé au service financier - Étape 2 en attente]</div>
+                {% endif %}
             </td>
         </tr>
 
         <!-- 3 - VISA -->
         <tr>
             <td class="step-col">3 - VISA</td>
-            <td class="content-cell" style="padding-top: 4px; padding-bottom: 4px;">
+            <td class="content-cell" style="padding-top: 4px; padding-bottom: 4px; {% if step is defined and step < 3 %}opacity: 0.5; background-color: #fafafa;{% endif %}">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div><strong>Date :</strong> {{ commande.dateVisaEngagement ? commande.dateVisaEngagement|date('d/m/Y') : '' }}</div>
                     <div><strong>Signature :</strong> {{ commande.signataireVisaEngagement ? commande.signataireVisaEngagement.display : '' }}</div>
-                    <div style="font-style: italic; font-size: 8.5pt; font-weight: bold;">
+                    <div style="font-style: italic; font-size: 8pt; font-weight: bold;">
                         Chef des Services Administratifs / Responsable du service financier
                     </div>
                 </div>
+                {% if step is defined and step < 3 %}
+                    <div class="pending-step-note">[Visa d'engagement CSA - Étape 3 en attente]</div>
+                {% endif %}
             </td>
         </tr>
 
@@ -253,65 +287,71 @@
         {% set rec = commande.receptions|first %}
         <tr>
             <td class="step-col">4 - CONSTATATION SERVICE FAIT</td>
-            <td class="content-cell">
+            <td class="content-cell" style="{% if step is defined and step < 4 %}opacity: 0.5; background-color: #fafafa;{% endif %}">
                 <div class="row">
                     Je soussigné* <span class="underline-field" style="min-width: 250px; font-weight: bold;">{{ rec and rec.receptionnaire ? rec.receptionnaire.display : (commande.demandeur ? commande.demandeur.display : '____________________') }}</span>
                     agissant en qualité de <span class="underline-field" style="min-width: 180px;">{{ rec ? rec.qualiteReceptionnaire : '________________' }}</span> atteste :
                 </div>
-                <div class="row" style="margin-left: 10px; margin-top: 4px;">
+                <div class="row" style="margin-left: 10px;">
                     <span class="checkbox-box">{{ rec and rec.dateEffectiveReception ? 'X' : '' }}</span> avoir reçu le : <strong>{{ rec and rec.dateEffectiveReception ? rec.dateEffectiveReception|date('d/m/Y') : '____ / ____ / ________' }}</strong> (date effective de réception)
                 </div>
                 <div class="row" style="margin-left: 20px;">
-                    <span class="checkbox-box">{{ rec and rec.typeReception.value == 'TOTALE' ? 'X' : '' }}</span> la totalité de la commande mentionnée ci-dessous - Montant TTC : <strong>{{ rec and rec.typeReception.value == 'TOTALE' ? rec.montantTtcConstate : (commande.montantTtc|default('')) }} €</strong>
+                    <span class="checkbox-box">{{ rec and rec.typeReception and rec.typeReception.value == 'TOTALE' ? 'X' : '' }}</span> la totalité de la commande mentionnée ci-dessous - Montant TTC : <strong>{{ rec and rec.typeReception and rec.typeReception.value == 'TOTALE' ? rec.montantTtcConstate : (commande.montantTtc|default('')) }} €</strong>
                 </div>
                 <div class="row" style="margin-left: 20px;">
-                    <span class="checkbox-box">{{ rec and rec.typeReception.value == 'PARTIELLE' ? 'X' : '' }}</span> une partie des biens/prestations commandés dans la commande ci-dessous - Montant TTC : <strong>{{ rec and rec.typeReception.value == 'PARTIELLE' ? rec.montantTtcConstate : '' }} €</strong>
+                    <span class="checkbox-box">{{ rec and rec.typeReception and rec.typeReception.value == 'PARTIELLE' ? 'X' : '' }}</span> une partie des biens/prestations commandés dans la commande ci-dessous - Montant TTC : <strong>{{ rec and rec.typeReception and rec.typeReception.value == 'PARTIELLE' ? rec.montantTtcConstate : '' }} €</strong>
                 </div>
-                <div class="row" style="margin-left: 10px; margin-top: 2px;">
+                <div class="row" style="margin-left: 10px;">
                     <span class="checkbox-box">{{ rec and rec.prestationsConformes ? 'X' : '' }}</span> que les prestations ont été exécutées et sont conformes
                 </div>
                 {% if rec and rec.detailsReceptionPartielle %}
-                <div class="row" style="margin-top: 4px; font-size: 8.5pt;">
+                <div class="row" style="margin-top: 3px; font-size: 8pt;">
                     <em>En cas de réception partielle :</em> {{ rec.detailsReceptionPartielle }}
                 </div>
                 {% endif %}
 
-                <div class="migo-grid" style="margin-top: 6px;">
+                <div class="migo-grid">
                     <div>N° MIGO : <span class="underline-field" style="min-width: 140px;">{{ rec and rec.numerosMigo ? rec.numerosMigo|join(', ') : '' }}</span></div>
                     <div>BL rattaché dans SIFAC : <span class="checkbox-box">{{ rec and rec.blRattacheSifac ? 'X' : '' }}</span> OUI &nbsp; <span class="checkbox-box">{{ rec and not rec.blRattacheSifac ? 'X' : '' }}</span> NON</div>
                 </div>
 
-                <div class="signatures-grid" style="margin-top: 6px;">
+                <div class="signatures-grid">
                     <div style="width: 48%; border: 1px dashed #9ca3af; padding: 4px;">
-                        <div style="font-size: 8pt;"><strong>Signature du demandeur de l'achat / réceptionnaire :</strong></div>
-                        <div style="font-size: 8pt; color: #059669; margin-top: 4px;">{{ rec and rec.dateSignatureServiceFait ? ('Signé le ' ~ rec.dateSignatureServiceFait|date('d/m/Y')) : '' }}</div>
+                        <div style="font-size: 7.5pt;"><strong>Signature du demandeur de l'achat / réceptionnaire :</strong></div>
+                        <div style="font-size: 7.5pt; color: #059669; margin-top: 3px;">{{ rec and rec.dateSignatureServiceFait ? ('Signé le ' ~ rec.dateSignatureServiceFait|date('d/m/Y')) : '' }}</div>
                     </div>
                     <div style="width: 48%; border: 1px dashed #9ca3af; padding: 4px;">
-                        <div style="font-size: 8pt;"><strong>Date :</strong> {{ rec and rec.dateSignatureServiceFait ? rec.dateSignatureServiceFait|date('d/m/Y') : '' }}</div>
-                        <div style="font-size: 8pt; margin-top: 2px;"><strong>Signature du Responsable :</strong></div>
+                        <div style="font-size: 7.5pt;"><strong>Date :</strong> {{ rec and rec.dateSignatureServiceFait ? rec.dateSignatureServiceFait|date('d/m/Y') : '' }}</div>
+                        <div style="font-size: 7.5pt; margin-top: 2px;"><strong>Signature du Responsable :</strong></div>
                     </div>
                 </div>
+                {% if step is defined and step < 4 %}
+                    <div class="pending-step-note">[Constatation de service fait - Étape 4 en attente]</div>
+                {% endif %}
             </td>
         </tr>
 
         <!-- 5 - CERTIFICATION -->
         <tr>
             <td class="step-col">5 - CERTIFICATION</td>
-            <td class="content-cell" style="padding-top: 4px; padding-bottom: 4px;">
+            <td class="content-cell" style="padding-top: 4px; padding-bottom: 4px; {% if step is defined and step < 5 %}opacity: 0.5; background-color: #fafafa;{% endif %}">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div><strong>Pour certification du service fait</strong></div>
                     <div>Date : {{ commande.dateCertificationServiceFait ? commande.dateCertificationServiceFait|date('d/m/Y') : '' }}</div>
-                    <div style="font-style: italic; font-size: 8.5pt; font-weight: bold;">
+                    <div style="font-style: italic; font-size: 8pt; font-weight: bold;">
                         Chef des Services Administratifs / Responsable du service financier
                     </div>
                 </div>
+                {% if step is defined and step < 5 %}
+                    <div class="pending-step-note">[Certification du service fait - Étape 5 en attente]</div>
+                {% endif %}
             </td>
         </tr>
     </table>
 
     <div class="footer-note">
         <div>*NOM - prénom du demandeur de l'achat (personne ayant exprimé le besoin d'achat ou désignée par ce dernier pour réceptionner le bien/service)</div>
-        <div>version du {{ "now"|date("d/m/Y") }}</div>
+        <div>Édité le {{ "now"|date("d/m/Y à H:i") }}</div>
     </div>
 
 </body>

@@ -1,0 +1,63 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block subject %}Votre questionnaire est terminé : {{ questionnaire.title }}{% endblock %}
+
+{% block preheader %}Le questionnaire {{ questionnaire.title }} est maintenant clôturé ou complété.{% endblock %}
+
+{% block body %}
+    <h1>Bilan de clôture de votre questionnaire</h1>
+
+    <p>Bonjour{% if authorName %} {{ authorName }}{% endif %},</p>
+
+    <p>
+        Votre questionnaire est arrivé à son terme :
+    </p>
+
+    <h2 style="color:#1a3a5c; margin: 12px 0 6px 0;">{{ questionnaire.title }}</h2>
+
+    {% if questionnaire.description %}
+    <p style="color:#718096;font-style:italic; margin-top:0;">{{ questionnaire.description }}</p>
+    {% endif %}
+
+    <div style="background-color:#f7fafc; border:1px solid #e2e8f0; border-radius:8px; padding:16px; margin:20px 0;">
+        <h3 style="margin-top:0; color:#2d3748; font-size:16px;">Statistiques de participation</h3>
+        <table style="width:100%; border-collapse:collapse;">
+            <tr>
+                <td style="padding:6px 0; color:#718096;">Taux de participation :</td>
+                <td style="padding:6px 0; font-weight:bold; color:#2b6cb0; text-align:right;">{{ stats.rate }} %</td>
+            </tr>
+            <tr>
+                <td style="padding:6px 0; color:#718096;">Réponses complétées :</td>
+                <td style="padding:6px 0; font-weight:bold; color:#2d3748; text-align:right;">{{ stats.submitted }} / {{ stats.total }}</td>
+            </tr>
+            {% if stats.isFullyCompleted %}
+            <tr>
+                <td colspan="2" style="padding-top:8px; color:#276749; font-weight:bold;">
+                    ✓ 100% des participants invités ont répondu !
+                </td>
+            </tr>
+            {% elseif stats.isDateExpired and questionnaire.closingDate %}
+            <tr>
+                <td colspan="2" style="padding-top:8px; color:#718096; font-size:13px;">
+                    La date limite de réponse ({{ questionnaire.closingDate|date('d/m/Y à H:i') }}) est atteinte.
+                </td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+
+    <p>
+        Vous pouvez dès à présent consulter les résultats détaillés, graphiques et exporter les données au format PDF ou Excel :
+    </p>
+
+    <p style="text-align:center; margin:25px 0;">
+        <a href="{{ analyticsUrl }}" class="btn">Consulter les résultats et statistiques</a>
+    </p>
+
+    <hr class="divider">
+
+    <p style="font-size:13px;color:#718096;">
+        Si le bouton ne fonctionne pas, copiez-collez ce lien dans votre navigateur :<br>
+        <a href="{{ analyticsUrl }}" style="word-break:break-all;">{{ analyticsUrl }}</a>
+    </p>
+{% endblock %}

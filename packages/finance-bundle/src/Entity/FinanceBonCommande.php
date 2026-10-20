@@ -245,7 +245,7 @@ class FinanceBonCommande implements TimestampableInterface
     private StatutCommandeEnum $statut = StatutCommandeEnum::BROUILLON;
 
     #[ORM\Column(length: 255, nullable: true)]
-    #[Groups(['finance:read', 'finance:detail'])]
+    #[Groups(['finance:read', 'finance:detail', 'finance:list', 'finance:write'])]
     private ?string $pdfFilePath = null;
 
     public function __construct()

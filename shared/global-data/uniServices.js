@@ -15,6 +15,8 @@ export const tools = (toolsMeta || []).map(item => {
   let targetUrl = item.url || `/${item.urlSlug}`;
   if (targetUrl.startsWith('http://localhost') || targetUrl.startsWith('https://localhost')) {
     targetUrl = `/app/${item.urlSlug}`;
+  } else if (targetUrl.startsWith('/') && !targetUrl.startsWith('/app/')) {
+    targetUrl = `/app${targetUrl}`;
   }
   const meta = getApplicationMeta(item.urlSlug || item.name);
   return {

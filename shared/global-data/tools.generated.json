@@ -1,9 +1,15 @@
 [
     {
-        "name": "Documents",
+        "name": "DocumentBundle",
         "description": "Gestion \u00c9lectronique de Documents (GED)",
         "urlSlug": "documents",
         "url": "http://localhost:5173/documents"
+    },
+    {
+        "name": "FinanceBundle",
+        "description": "Gestion financi\u00e8re, bons de commande et suivi budg\u00e9taire",
+        "urlSlug": "finance",
+        "url": "http://localhost:3007/finance/"
     },
     {
         "name": "HelpDesk",
@@ -18,13 +24,13 @@
         "url": "http://localhost:3001/intranet/"
     },
     {
-        "name": "Questionnaires",
-        "description": "Application de gestion des questionnaires",
+        "name": "QuestionnaireBundle",
+        "description": "Application QuestionnaireBundle",
         "urlSlug": "questionnaire",
         "url": "http://localhost:3005/questionnaire/"
     },
     {
-        "name": "Stage/Alternance",
+        "name": "StageBundle",
         "description": "Gestion des stages et alternances",
         "urlSlug": "stage",
         "url": "http://localhost:3005/stage/"
@@ -40,11 +46,5 @@
         "description": "Plateforme de correction des travaux et des examens.",
         "urlSlug": "correcto",
         "url": "/correcto"
-    },
-    {
-        "name": "Finance",
-        "description": "Outil de gestion des bons de commandes et de suivi des paiements.",
-        "urlSlug": "finance",
-        "url": "/finance"
     }
 ]
