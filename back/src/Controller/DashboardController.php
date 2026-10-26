@@ -44,6 +44,7 @@ class DashboardController extends AbstractController
         if ($structureDepartementPersonnelId) {
             $structureDepartementPersonnel = $this->structureDepartementPersonnelRepository->find($structureDepartementPersonnelId);
         }
+        $accessibleBundles = $this->getAccessibleBundlesForUser($user, $structureDepartementPersonnel);
 
         // on recupere les preferences de l'utilisateur si elles existent
         $preferences = $this->preferenceRepository->findByUser($user, $structureDepartementPersonnel, $dashboardCode);
@@ -55,7 +56,7 @@ class DashboardController extends AbstractController
             // Si aucune préférence n'existe, on charge le layout par défaut
             foreach ($dashboard->getDefaultLayout() as $layout) {
                 $widgetDefinition = $this->coreWidgetRegistry->get($layout->widgetCode);
-                if (null === $widgetDefinition || !$widgetDefinition->isAllowedForUser($user)) {
+                if (!$this->isWidgetAccessibleForUser($widgetDefinition, $user, $accessibleBundles)) {
                     continue;
                 }
                 $definition = $widgetDefinition->toArray();
@@ -75,7 +76,7 @@ class DashboardController extends AbstractController
                     continue;
                 }
                 $widgetDefinition = $this->coreWidgetRegistry->get($preference->getWidgetKey());
-                if (null === $widgetDefinition || !$widgetDefinition->isAllowedForUser($user)) {
+                if (!$this->isWidgetAccessibleForUser($widgetDefinition, $user, $accessibleBundles)) {
                     continue;
                 }
                 $definition = $widgetDefinition->toArray();
@@ -109,6 +110,7 @@ class DashboardController extends AbstractController
         if ($structureDepartementPersonnelId) {
             $structureDepartementPersonnel = $this->structureDepartementPersonnelRepository->find($structureDepartementPersonnelId);
         }
+        $accessibleBundles = $this->getAccessibleBundlesForUser($user, $structureDepartementPersonnel);
 
         $dashboard = $this->dashboardRegistry->get($dashboardCode);
 
@@ -122,7 +124,7 @@ class DashboardController extends AbstractController
         $widgets = [];
         foreach ($dashboard->getAvailableWidgets() as $layout) {
             $widgetDefinition = $this->coreWidgetRegistry->get($layout->widgetCode);
-            if ($widgetDefinition && $widgetDefinition->isAllowedForUser($user)) {
+            if ($this->isWidgetAccessibleForUser($widgetDefinition, $user, $accessibleBundles)) {
                 $widgets[] = $widgetDefinition->toArray();
             }
         }
@@ -132,7 +134,7 @@ class DashboardController extends AbstractController
             // On commence par les widgets du layout par défaut
             foreach ($dashboard->getDefaultLayout() as $layout) {
                 $widgetDefinition = $this->coreWidgetRegistry->get($layout->widgetCode);
-                if (null === $widgetDefinition || !$widgetDefinition->isAllowedForUser($user)) {
+                if (!$this->isWidgetAccessibleForUser($widgetDefinition, $user, $accessibleBundles)) {
                     continue;
                 }
 
@@ -219,8 +221,14 @@ class DashboardController extends AbstractController
         if ($structureDepartementPersonnelId) {
             $structureDepartementPersonnel = $this->structureDepartementPersonnelRepository->find($structureDepartementPersonnelId);
         }
+        $accessibleBundles = $this->getAccessibleBundlesForUser($user, $structureDepartementPersonnel);
 
         $data = json_decode($request->getContent(), true) ?? [];
+
+        $widgetDefinition = $this->coreWidgetRegistry->get($widgetKey);
+        if (!$this->isWidgetAccessibleForUser($widgetDefinition, $user, $accessibleBundles)) {
+            return new JsonResponse(['message' => 'Widget non autorisé pour cet utilisateur'], JsonResponse::HTTP_FORBIDDEN);
+        }
 
         $dashboard = $this->dashboardRegistry->get($dashboardCode);
 
@@ -424,7 +432,7 @@ class DashboardController extends AbstractController
             return new JsonResponse(['message' => 'Widget introuvable'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        if (!$widgetDefinition->isAllowedForUser($user)) {
+        if (!$this->isWidgetAccessibleForUser($widgetDefinition, $user, $this->getAccessibleBundlesForUser($user))) {
             return new JsonResponse(['message' => 'Widget non autorisé pour cet utilisateur'], JsonResponse::HTTP_FORBIDDEN);
         }
 
@@ -442,5 +450,35 @@ class DashboardController extends AbstractController
         $user = $this->getUser();
 
         return $user instanceof Personnel || $user instanceof Etudiant ? $user : null;
+    }
+
+    private function getAccessibleBundlesForUser(Personnel|Etudiant $user, ?StructureDepartementPersonnel $structureDepartementPersonnel = null): array
+    {
+        if ($user instanceof Personnel) {
+            $packages = $structureDepartementPersonnel?->getPackages() ?? ['intranet'];
+            $normalizedPackages = array_values(array_unique(array_filter(array_map(
+                static fn ($package) => strtolower((string) $package),
+                $packages,
+            ))));
+
+            return [] === $normalizedPackages ? ['intranet'] : $normalizedPackages;
+        }
+
+        $applications = $user->getApplications() ?? ['Intranet'];
+        $normalizedApplications = array_values(array_unique(array_filter(array_map(
+            static fn ($application) => strtolower((string) $application),
+            $applications,
+        ))));
+
+        return [] === $normalizedApplications ? ['intranet'] : $normalizedApplications;
+    }
+
+    private function isWidgetAccessibleForUser(?WidgetDefinition $widgetDefinition, Personnel|Etudiant $user, array $accessibleBundles): bool
+    {
+        if (null === $widgetDefinition || !$widgetDefinition->isAllowedForUser($user)) {
+            return false;
+        }
+
+        return in_array(strtolower($widgetDefinition->getBundle()), $accessibleBundles, true);
     }
 }
