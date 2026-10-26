@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, watch } from "vue";
-import {getAnneeService, getGroupesService, getSemestresService, updateGroupeService } from "@requests";
+import { getGroupesService, getSemestresService, updateGroupeService } from "@requests";
 import { SimpleSkeleton, GlobalLoader, PermissionGuard, ButtonDelete, ButtonEdit, ButtonInfo, HeaderComponent } from "@components";
 import { useUsersStore, useSemestreStore, useAnneeStore } from "@stores";
 import {typesGroupes} from "@config/uniServices.js";
@@ -16,6 +16,7 @@ const annees = ref([]);
 const annee = ref({});
 const groupes = ref({});
 const hasError = ref(false);
+const isLoadingAnnees = ref(true);
 const isLoadingAnnee = ref(true);
 const isLoadingSemestres = ref(true);
 const selectedGroupe = ref(null);
@@ -55,22 +56,24 @@ watch(groupes, (newVal) => {
 });
 
 const getAnnees = async () => {
-  if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
-    annees.value = anneeStore.annees;
-  } else {
-    try {
-      const params = {
-        departement: departementId,
-        actif: true,
-      };
-      await anneeStore.getAnneesDepartement(params);
-      annees.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
-    } catch (error) {
-      console.error("Erreur lors de la récupération des années :", error);
-      hasError.value = true;
-    } finally {
-      isLoadingAnnee.value = false;
+  isLoadingAnnees.value = true;
+  try {
+    if (anneeStore.annees && Array.isArray(anneeStore.annees) && anneeStore.annees.length > 0) {
+      annees.value = anneeStore.annees;
+      return;
     }
+
+    const params = {
+      departement: departementId,
+      actif: true,
+    };
+    await anneeStore.getAnneesDepartement(params);
+    annees.value = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
+  } catch (error) {
+    console.error("Erreur lors de la récupération des années :", error);
+    hasError.value = true;
+  } finally {
+    isLoadingAnnees.value = false;
   }
 };
 
@@ -81,7 +84,7 @@ const getAnnee = async () => {
   try {
     const anneeId = Number.parseInt(String(route.params.anneeId), 10);
     if (!Number.isNaN(anneeId)) {
-      annee.value = await getAnneeService(anneeId);
+      annee.value = annees.value.find((item) => item.id === anneeId) || annees.value[0] || {};
     } else {
       annee.value = annees.value[0] || {};
     }
@@ -176,11 +179,6 @@ const deleteGroupeFromSemestre = async (groupeId, semestre) => {
 </script>
 
 <template>
-  <HeaderComponent
-      icon="pi pi-sitemap"
-      titre="Structure des groupes"
-      description="Gérer la structure des groupes"
-  />
   <div class="card">
     <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
       <div>
@@ -189,28 +187,31 @@ const deleteGroupeFromSemestre = async (groupeId, semestre) => {
         </p>
         <div class="flex flex-col items-start">
           <p class="uppercase text-xs font-bold mb-0! text-muted-color">
-            année
+            {{annee.libelle}}
           </p>
           <h2 class="mt-0!">
-            {{annee.libelle}}
+            Listing des groupes importés depuis Apogée
           </h2>
         </div>
       </div>
-      <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
+      <SimpleSkeleton v-if="isLoadingAnnees" class="!w-60 !h-10"></SimpleSkeleton>
       <div v-else class="flex flex-col gap-2">
         <div class="flex gap-4 justify-end">
           <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
-          <Button
-              @click="synchroApogee()"
-              label="Synchronisation depuis Apogée"
-              icon="pi pi-refresh"/>
         </div>
+        <Button
+            @click="synchroApogee()"
+            label="Synchronisation depuis Apogée"
+            icon="pi pi-refresh"/>
       </div>
     </div>
     <div class="card-body flex items-start justify-center gap-2">
       <GlobalLoader v-if="isLoadingGroupes" class="w-full h-64" />
       <div v-else v-for="semestre in semestres" :key="semestre.id" class="p-4 w-full card">
-        <h3 class="text-xl! font-black mb-4">Semestre {{ semestre.libelle }}</h3>
+        <div>
+          <div class="uppercase text-xs font-bold mb-0! text-muted-color">semestre</div>
+          <h3 class="text-xl! font-black mb-4 mt-0!">{{ semestre.libelle }}</h3>
+        </div>
         <div v-for="(groupesType, type) in groupes[semestre.id]" :key="type" class="mb-4 bg-primary-300/20 rounded-md p-2">
           <h4 class="text-lg! font-bold">Type de groupe {{ type }}</h4>
           <div class="flex flex-wrap gap-4">

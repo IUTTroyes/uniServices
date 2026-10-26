@@ -23,65 +23,35 @@ watch(selectedAnnee, (newVal) => {
 
 const anneeId = computed(() => selectedAnnee.value?.id ?? null);
 
-const panelMenuItems = computed(() => {
+const actionButtons = computed(() => {
   // Use the annee id for routes
   const aid = anneeId.value;
   if (!selectedAnnee.value) return [];
   return [
     {
-      label: 'Étudiants', icon: 'pi pi-user', command: () => {}, items: [
-        {
-          label: 'Liste des étudiants', icon: 'pi pi-list',
-          route: aid ? '/intranet/administration/annee/' + aid + '/etudiants' : null
-        },
-      ]
+      label: 'Étudiants',
+      icon: 'pi pi-user',
+      route: aid ? '/intranet/administration/annee/' + aid + '/etudiants' : null,
     },
     {
-      label: 'Groupes', icon: 'pi pi-users', command: () => {}, items: [
-        {
-          label: 'Composition des groupes', icon: 'pi pi-list',
-          route: aid ? '/intranet/administration/annee/' + aid + '/groupes/affectation' : null,
-        },
-        {
-          label: 'Structure des groupes', icon: 'pi pi-cog', route: aid ? '/intranet/administration/annee/' + aid + '/groupes/structure' : null,
-        }
-      ]
+      label: 'Groupes',
+      icon: 'pi pi-users',
+      route: aid ? '/intranet/administration/annee/' + aid + '/groupes/affectation' : null,
     },
     {
-      label: 'Absences', icon: 'pi pi-calendar', command: () => {}, items: [
-        {
-          label: 'Liste des absences', icon: 'pi pi-list',
-          route: aid ? '/intranet/administration/annee/' + aid + '/absences/liste' : null,
-        },
-        {
-          label: 'Liste des justificatifs', icon: 'pi pi-folder-open',
-          route: aid ? '/intranet/administration/annee/' + aid + '/justificatifs-absences/liste' : null,
-        },
-        { label: 'Suivi des pointages de présence', icon: 'pi pi-eye',
-          route: aid ? '/intranet/administration/annee/' + aid + '/pointages/liste' : null
-        },
-      ]
+      label: 'Absences',
+      icon: 'pi pi-calendar',
+      route: aid ? '/intranet/administration/annee/' + aid + '/absences/liste' : null,
     },
     {
-      label: 'Notes et Évaluations', icon: 'pi pi-book', command: () => {}, items: [
-        {
-          label: 'Gestion des évaluations et saisie des notes', icon: 'pi pi-list',
-          route: aid ? '/intranet/administration/annee/' + aid + '/evaluations' : null
-        },
-        {
-          label: 'Demandes de rattrapages', icon: 'pi pi-history',
-          route: aid ? '/intranet/administration/annee/' + aid + '/rattrapages/liste' : null },
-        { label: 'Modalités du contrôle continu', icon: 'pi pi-map',
-          route: aid ? '/intranet/administration/annee/' + aid + '/mccc/liste' : null
-        },
-      ]
+      label: 'Notes et Évaluations',
+      icon: 'pi pi-book',
+      route: aid ? '/intranet/administration/annee/' + aid + '/evaluations' : null,
     },
     {
-      label: 'Fin de semestre', icon: 'pi pi-check', command: () => {}, items: [
-        { label: 'Préparation de la sous-commission', icon: 'pi pi-calculator',
-          route: aid ? '/intranet/administration/annee/' + aid + '/sous-commission' : null},
-        { label: 'Changement de semestre des étudiants', icon: 'pi pi-forward', command: () => {} },
-      ]
+      label: 'Fin de semestre',
+      icon: 'pi pi-check',
+      route: aid ? '/intranet/administration/annee/' + aid + '/sous-commission' : null,
     },
   ]
 });
@@ -173,21 +143,17 @@ const selectAnnee = (annee) => {
         </div>
         <div class="w-1/2 " v-if="selectedAnnee">
           <h3 class="font-bold text-xl mb-4">Actions pour {{ selectedAnnee.libelle }}</h3>
-          <PanelMenu :model="panelMenuItems" multiple>
-            <template #item="{ item }">
-              <router-link v-if="item.route" v-slot="{ href, navigate }" :to="item.route" :annees="anneesGrouped.value" custom>
-                <a v-ripple class="flex items-center cursor-pointer text-surface-700 dark:text-surface-0 px-4 py-2" :href="href" @click="navigate">
-                  <span :class="item.icon" />
-                  <span class="ml-2">{{ item.label }}</span>
-                </a>
-              </router-link>
-              <a v-else v-ripple class="flex items-center cursor-pointer text-surface-700 dark:text-surface-0 px-4 py-2" :href="item.url" :target="item.target">
-                <span :class="item.icon" />
-                <span class="ml-2">{{ item.label }}</span>
-                <span v-if="item.items" class="pi pi-angle-down text-primary ml-auto" />
-              </a>
-            </template>
-          </PanelMenu>
+          <div class="flex flex-col gap-3">
+            <router-link
+              v-for="item in actionButtons"
+              :key="item.label"
+              :to="item.route"
+              class="flex items-center gap-3 p-3 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-primary-400/10 transition-colors"
+            >
+              <i :class="item.icon" class="text-primary" />
+              <span class="font-medium text-surface-700 dark:text-surface-0">{{ item.label }}</span>
+            </router-link>
+          </div>
         </div>
       </div>
     </Fieldset>

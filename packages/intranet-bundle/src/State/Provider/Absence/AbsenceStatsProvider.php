@@ -32,19 +32,19 @@ class AbsenceStatsProvider implements ProviderInterface
 
             $stats['total']['title'] = 'Total de périodes d\'absence';
             $stats['total']['icon'] = 'pi pi-list';
-            $stats['total']['color'] = 'yellow-500';
+            $stats['total']['color'] = 'amber';
             $stats['total']['value'] = count($episodes);
             $stats['justifiee']['title'] = 'Justifiées';
             $stats['justifiee']['icon'] = 'pi pi-check';
-            $stats['justifiee']['color'] = 'green-500';
+            $stats['justifiee']['color'] = 'green';
             $stats['justifiee']['value'] = count(array_filter($episodes, fn(array $episode) => (bool)($episode['justifiee'] ?? false)));
             $stats['non_justifiee']['title'] = 'Non justifiées';
             $stats['non_justifiee']['icon'] = 'pi pi-times';
-            $stats['non_justifiee']['color'] = 'red-500';
+            $stats['non_justifiee']['color'] = 'red';
             $stats['non_justifiee']['value'] = count(array_filter($episodes, fn(array $episode) => !($episode['justifiee'] ?? false)));
             $stats['scolarite_semestre']['title'] = 'Étudiants concernés';
             $stats['scolarite_semestre']['icon'] = 'pi pi-calendar';
-            $stats['scolarite_semestre']['color'] = 'blue-500';
+            $stats['scolarite_semestre']['color'] = 'blue';
             $stats['scolarite_semestre']['value'] = count(
                 array_unique(
                     array_filter(

@@ -98,9 +98,14 @@ const getAnnees = async () => {
 const getAnnee = async () => {
   isLoadingAnnee.value = true;
   hasError.value = false;
+  // Récupération de l'id de l'année via l'URL
   try {
-    const anneeId = route.params.anneeId;
-    annee.value = await getAnneeService(anneeId);
+    const anneeId = Number.parseInt(String(route.params.anneeId), 10);
+    if (!Number.isNaN(anneeId)) {
+      annee.value = annees.value.find((item) => item.id === anneeId) || annees.value[0] || {};
+    } else {
+      annee.value = annees.value[0] || {};
+    }
     await anneeStore.setSelectedAnnee(annee.value);
   } catch (error) {
     hasError.value = true;
@@ -177,12 +182,6 @@ const onPageChange = async event => {
 </script>
 
 <template>
-  <HeaderComponent
-      icon="pi pi-calendar"
-      titre="Suivi du pointage des présences"
-      description="Vérifiez que l'appel a bien été réalisée sur l'ensemble des cours"
-  />
-
   <!--  <div class="flex justify-around items-center mb-12">-->
   <!--    <div v-for="stat in absencesStats" :key="stat.title" class="card w-1/5 flex items-center justify-center flex-col">-->
   <!--      <Kpi-->
@@ -203,22 +202,17 @@ const onPageChange = async event => {
           </p>
           <div class="flex flex-col items-start">
             <p class="uppercase text-xs font-bold mb-0! text-muted-color">
-              année
+              {{ annee?.libelle }}
             </p>
             <h2 class="mt-0!">
-              {{ annee?.libelle }}
+              Suivi du pointage des présences
             </h2>
           </div>
         </div>
         <SimpleSkeleton v-if="isLoadingAnnees || isLoadingAnnee" class="!w-60 !h-10"></SimpleSkeleton>
         <div v-else class="flex flex-col gap-2">
-          <div class="flex flex-col justify-center items-end filters-card-header">
-            <div class="text-sm uppercase font-semibold">Changer d'année</div>
-            <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
-              <template #value>
-                {{ annee?.libelle || "Changer d'année" }}
-              </template>
-            </Select>
+          <div class="flex gap-4 justify-end">
+            <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
           </div>
         </div>
       </div>
@@ -235,7 +229,7 @@ const onPageChange = async event => {
           Maintenez Ctrl ou Cmd et cliquez sur plusieurs colonnes pour trier par plusieurs champs à la fois.
         </Message>
         <Message severity="info" icon="pi pi-info-circle" class="w-full flex justify-center" v-if="!isLoadingEvents && (!events || events.length === 0)">
-          Aucuns événements trouvée pour cette année.
+          Aucun événement trouvé pour cette année.
         </Message>
         <DataTable
             v-else

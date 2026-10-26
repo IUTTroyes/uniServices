@@ -24,7 +24,7 @@ export default [
   {
     path: 'groupes/structure',
     name: 'structure-groupe',
-    component: () => import('@/views/Groupes/StructureGroupeView.vue'),
+    component: () => import('@/views/Administration/AnneeActions/GroupesView.vue'),
     meta: {
       permission: 'canViewAdministration',
       breadcrumb: () => {
@@ -43,7 +43,7 @@ export default [
   {
     path: 'groupes/affectation',
     name: 'affectation-groupe',
-    component: () => import('@/views/Groupes/AffectationGroupeView.vue'),
+    component: () => import('@/views/Administration/AnneeActions/GroupesView.vue'),
     // breadcrumb is a function so we can read the store at render time (not at module import)
     meta: {
       breadcrumb: () => {
@@ -62,7 +62,7 @@ export default [
   {
     path: 'absences/liste',
     name: 'liste-absences',
-    component: () => import('@/views/Absence/AbsenceListeView.vue'),
+    component: () => import('@/views/Administration/AnneeActions/AbsencesView.vue'),
     meta: {
       permission: 'canViewAdministration',
       breadcrumb: () => {
@@ -138,7 +138,7 @@ export default [
   {
     path: 'evaluations',
     name: 'liste-evaluations',
-    component: () => import('@/views/Evaluations/EvaluationsView.vue'),
+    component: () => import('@/views/Administration/AnneeActions/EvaluationsView.vue'),
     meta: {
       breadcrumb: () => {
         const anneeStore = useAnneeStore();

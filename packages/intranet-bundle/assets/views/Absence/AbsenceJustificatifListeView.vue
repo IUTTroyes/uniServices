@@ -7,6 +7,7 @@ import {useRoute, useRouter} from 'vue-router';
 import {FilterMatchMode} from '@primevue/core/api';
 import {useConfirm} from "primevue/useconfirm";
 
+const hasError = ref(false);
 const route = useRoute();
 const router = useRouter();
 const anneeStore = useAnneeStore();
@@ -50,10 +51,10 @@ const stats = computed(() => {
   const enAttente = justificatifs.value.filter(item => item.etat === 'EN_ATTENTE').length;
   const refuses = justificatifs.value.filter(item => item.etat === 'REFUSE').length;
   return [
-    {title: 'Total justificatifs', value: total, color: 'blue-500', icon: 'pi pi-list'},
-    {title: 'Validés', value: valides, color: 'green-500', icon: 'pi pi-check'},
-    {title: 'En attente', value: enAttente, color: 'yellow-500', icon: 'pi pi-clock'},
-    {title: 'Refusés', value: refuses, color: 'red-500', icon: 'pi pi-times'},
+    {title: 'Total justificatifs', value: total, color: 'blue', icon: 'pi pi-list'},
+    {title: 'Validés', value: valides, color: 'green', icon: 'pi pi-check'},
+    {title: 'En attente', value: enAttente, color: 'amber', icon: 'pi pi-clock'},
+    {title: 'Refusés', value: refuses, color: 'red', icon: 'pi pi-times'},
   ];
 });
 
@@ -96,10 +97,19 @@ const getAnnees = async () => {
 
 const getAnnee = async () => {
   isLoadingAnnee.value = true;
+  hasError.value = false;
+  // Récupération de l'id de l'année via l'URL
   try {
-    const anneeId = route.params.anneeId;
-    annee.value = await getAnneeService(anneeId);
+    const anneeId = Number.parseInt(String(route.params.anneeId), 10);
+    if (!Number.isNaN(anneeId)) {
+      annee.value = annees.value.find((item) => item.id === anneeId) || annees.value[0] || {};
+    } else {
+      annee.value = annees.value[0] || {};
+    }
     await anneeStore.setSelectedAnnee(annee.value);
+  } catch (error) {
+    hasError.value = true;
+    console.error("Erreur lors de la récupération de l'année :", error);
   } finally {
     isLoadingAnnee.value = false;
   }
@@ -265,148 +275,144 @@ const showValidate = item => {
 </script>
 
 <template>
-  <HeaderComponent icon="pi pi-file" titre="Justificatifs d'absences" description="Gérez les justificatifs déposés" /><div class="flex justify-around items-center mb-12">
-  <div v-for="stat in stats" :key="stat.title" class="card w-1/5 flex items-center justify-center flex-col">
-    <Kpi :label="stat.title" :value="stat.value" :icon="stat.icon" :color="stat.color" />
+  <div class="flex justify-around items-center mb-12 gap-4">
+    <div v-for="stat in stats" :key="stat.title" class="card w-full flex items-center justify-center flex-col">
+      <Kpi :label="stat.title" :value="stat.value" :icon="stat.icon" :color="stat.color" />
+    </div>
   </div>
-</div><div class="card">
-  <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
-    <div>
-      <p class="top-card-header">
-        Contrôle des justificatifs
-      </p>
-      <div class="flex flex-col items-start">
-        <p class="uppercase text-xs font-bold mb-0! text-muted-color">
-          année
+  <div class="card">
+    <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
+      <div>
+        <p class="top-card-header">
+          Contrôle des justificatifs
         </p>
-        <h2 class="mt-0!">
-          {{ annee?.libelle }}
-        </h2>
+        <div class="flex flex-col items-start">
+          <p class="uppercase text-xs font-bold mb-0! text-muted-color">
+            {{ annee?.libelle }}
+          </p>
+          <h2 class="mt-0!">
+            Liste des justificatifs
+          </h2>
+        </div>
+      </div>
+      <SimpleSkeleton v-if="isLoadingAnnees || isLoadingAnnee" class="!w-60 !h-10"></SimpleSkeleton>
+      <div v-else class="flex flex-col gap-2">
+        <div class="flex gap-4 justify-end">
+          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
+        </div>
       </div>
     </div>
-    <SimpleSkeleton v-if="isLoadingAnnees || isLoadingAnnee" class="!w-60 !h-10"></SimpleSkeleton>
-    <div v-else class="flex flex-col gap-2">
-      <div class="flex flex-col justify-center items-end filters-card-header">
-        <div class="text-sm uppercase font-semibold">Changer d'année</div>
-        <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
-          <template #value>
-            {{ annee?.libelle || "Changer d'année" }}
+    <div class="card-body">
+      <Message severity="info" :closable="false" icon="pi pi-info-circle" class="mb-2">
+        Maintenez Ctrl ou Cmd et cliquez sur plusieurs colonnes pour trier par plusieurs champs à la fois.
+      </Message>
+      <DataTable
+          :value="justificatifs"
+          v-model:filters="filters"
+          lazy
+          paginator
+          removableSort
+          sortMode="multiple"
+          filterDisplay="row"
+          :rows="limit"
+          :first="offset"
+          :rowsPerPageOptions="rowOptions"
+          :totalRecords="nbJustificatifs"
+          :loading="isLoading"
+          @page="onPageChange"
+          @sort="onSortChange"
+      >
+        <Column field="etudiant.display" header="Étudiant" style="min-width: 6rem" sortable :showFilterMenu="false">
+          <template #filter="{ filterModel, filterCallback }">
+            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par étudiant"/>
           </template>
-        </Select>
-      </div>
-    </div>
-  </div>
-  <div class="card-body">
-    <Message severity="info" :closable="false" icon="pi pi-info-circle" class="mb-2">
-      Maintenez Ctrl ou Cmd et cliquez sur plusieurs colonnes pour trier par plusieurs champs à la fois.
-    </Message>
-    <DataTable
-        :value="justificatifs"
-        v-model:filters="filters"
-        lazy
-        paginator
-        removableSort
-        sortMode="multiple"
-        filterDisplay="row"
-        :rows="limit"
-        :first="offset"
-        :rowsPerPageOptions="rowOptions"
-        :totalRecords="nbJustificatifs"
-        :loading="isLoading"
-        @page="onPageChange"
-        @sort="onSortChange"
-    >
-      <Column field="etudiant.display" header="Étudiant" style="min-width: 6rem" sortable :showFilterMenu="false">
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par étudiant"/>
-        </template>
-      </Column>
-      <Column field="periode" header="Période" sortable :showFilterMenu="false">
-        <template #body="slotProps">
-          {{ new Date(slotProps.data.debut).toLocaleString('fr-FR') }} - {{ new Date(slotProps.data.fin).toLocaleString('fr-FR') }}
-        </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <ValidatedInput
-              v-model="filterModel.value"
-              name="date"
-              type="date"
-              :rules="[]"
-              selectionMode="range"
-              :manualInput="false"
-              :minDate="minDate"
-              :maxDate="maxDate"
-              placeholder="Filtrer par période"
-              @input="filterCallback()"
-              class="mb-0!"
-          />
-        </template>
-      </Column>
-      <Column field="motif" header="Motif" :showFilterMenu="false">
-        <template #filter="{ filterModel, filterCallback }">
-          <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par motif"/>
-        </template>
-      </Column>
-      <Column field="etat" header="État" sortable :showFilterMenu="false">
-        <template #body="slotProps">
-          <div class="flex items-center gap-2">
-            <Badge :severity="getEtatBadge(slotProps.data)">{{ getEtatLibelle(slotProps.data) }}</Badge>
-            <Badge v-if="slotProps.data.motif_refus" severity="danger" v-tooltip.top="`${slotProps.data.motif_refus}`"><i class="pi pi-info-circle text-xs!"></i></Badge>
+        </Column>
+        <Column field="periode" header="Période" sortable :showFilterMenu="false">
+          <template #body="slotProps">
+            {{ new Date(slotProps.data.debut).toLocaleString('fr-FR') }} - {{ new Date(slotProps.data.fin).toLocaleString('fr-FR') }}
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <ValidatedInput
+                v-model="filterModel.value"
+                name="date"
+                type="date"
+                :rules="[]"
+                selectionMode="range"
+                :manualInput="false"
+                :minDate="minDate"
+                :maxDate="maxDate"
+                placeholder="Filtrer par période"
+                @input="filterCallback()"
+                class="mb-0!"
+            />
+          </template>
+        </Column>
+        <Column field="motif" header="Motif" :showFilterMenu="false">
+          <template #filter="{ filterModel, filterCallback }">
+            <InputText v-model="filterModel.value" type="text" @input="filterCallback()" placeholder="Filtrer par motif"/>
+          </template>
+        </Column>
+        <Column field="etat" header="État" sortable :showFilterMenu="false">
+          <template #body="slotProps">
+            <div class="flex items-center gap-2">
+              <Badge :severity="getEtatBadge(slotProps.data)">{{ getEtatLibelle(slotProps.data) }}</Badge>
+              <Badge v-if="slotProps.data.motif_refus" severity="danger" v-tooltip.top="`${slotProps.data.motif_refus}`"><i class="pi pi-info-circle text-xs!"></i></Badge>
+            </div>
+          </template>
+          <template #filter="{ filterModel, filterCallback }">
+            <Select v-model="filterModel.value" @change="filterCallback()" :options="getEtatOptions()" option-label="label" option-value="value"
+                    placeholder="Filtrer" style="min-width: 8rem" :showClear="true"/>
+          </template>
+        </Column>
+        <Column header="Fichier">
+          <template #body="slotProps">
+            <Button v-if="slotProps.data.fichier" size="small" target="_blank" icon="pi pi-eye" label="Afficher" severity="secondary" />
+            <span v-else>-</span>
+          </template>
+        </Column>
+        <Column field="absencesCount" header="Cours manqués" />
+        <Column header="Actions">
+          <template #body="slotProps">
+            <div class="flex">
+              <Button icon="pi pi-check" class="mr-2" rounded variant="outlined" severity="success" :disabled="slotProps.data.etat === 1" v-tooltip.top="`Valider le justificatif`" @click="showValidate(slotProps.data)" />
+              <Button icon="pi pi-times" class="mr-2" rounded variant="outlined" severity="warn" :disabled="slotProps.data.etat === 2" v-tooltip.top="`Refuser le justificatif`" @click="showRefuse(slotProps.data)" />
+              <ButtonInfo :tooltip="`Voir le détail du justificatif`" @click="openDetails(slotProps.data)" />
+              <ButtonDelete :tooltip="`Supprimer le justificatif`" @confirm-delete="deleteJustificatif(slotProps.data)" />
+            </div>
+          </template>
+        </Column>
+        <template #footer> {{ nbJustificatifs }} résultat(s).</template>
+      </DataTable>
+      <ConfirmDialog group="refuse">
+        <template #message="{ message, icon }">
+          <div class="flex flex-col gap-4">
+            <div class="flex items-center gap-4">
+              <i :class="message.icon" class="text-4xl!" />
+              <p>{{ message.message }}</p>
+            </div>
+            <ValidatedInput
+                type="textarea"
+                label="Motif du refus"
+                v-model="refuseMotif"
+                name="motif_refus"
+                :rules="[validationRules.required]"
+                placeholder="Motif du refus"
+                class="mt-4"
+                help-text="'Indiquez le motif de refus du justificatif. Ce motif sera visible par l\'étudiant.'"
+            />
           </div>
         </template>
-        <template #filter="{ filterModel, filterCallback }">
-          <Select v-model="filterModel.value" @change="filterCallback()" :options="getEtatOptions()" option-label="label" option-value="value"
-                  placeholder="Filtrer" style="min-width: 8rem" :showClear="true"/>
-        </template>
-      </Column>
-      <Column header="Fichier">
-        <template #body="slotProps">
-          <Button v-if="slotProps.data.fichier" size="small" target="_blank" icon="pi pi-eye" label="Afficher" severity="secondary" />
-          <span v-else>-</span>
-        </template>
-      </Column>
-      <Column field="absencesCount" header="Cours manqués" />
-      <Column header="Actions">
-        <template #body="slotProps">
-          <div class="flex">
-            <Button icon="pi pi-check" class="mr-2" rounded variant="outlined" severity="success" :disabled="slotProps.data.etat === 1" v-tooltip.top="`Valider le justificatif`" @click="showValidate(slotProps.data)" />
-            <Button icon="pi pi-times" class="mr-2" rounded variant="outlined" severity="warn" :disabled="slotProps.data.etat === 2" v-tooltip.top="`Refuser le justificatif`" @click="showRefuse(slotProps.data)" />
-            <ButtonInfo :tooltip="`Voir le détail du justificatif`" @click="openDetails(slotProps.data)" />
-            <ButtonDelete :tooltip="`Supprimer le justificatif`" @confirm-delete="deleteJustificatif(slotProps.data)" />
-          </div>
-        </template>
-      </Column>
-      <template #footer> {{ nbJustificatifs }} résultat(s).</template>
-    </DataTable>
-    <ConfirmDialog group="refuse">
-      <template #message="{ message, icon }">
-        <div class="flex flex-col gap-4">
+      </ConfirmDialog>
+      <ConfirmDialog group="valide">
+        <template #message="{ message, icon }">
           <div class="flex items-center gap-4">
             <i :class="message.icon" class="text-4xl!" />
             <p>{{ message.message }}</p>
           </div>
-          <ValidatedInput
-              type="textarea"
-              label="Motif du refus"
-              v-model="refuseMotif"
-              name="motif_refus"
-              :rules="[validationRules.required]"
-              placeholder="Motif du refus"
-              class="mt-4"
-              help-text="'Indiquez le motif de refus du justificatif. Ce motif sera visible par l\'étudiant.'"
-          />
-        </div>
-      </template>
-    </ConfirmDialog>
-    <ConfirmDialog group="valide">
-      <template #message="{ message, icon }">
-        <div class="flex items-center gap-4">
-          <i :class="message.icon" class="text-4xl!" />
-          <p>{{ message.message }}</p>
-        </div>
-      </template>
-    </ConfirmDialog>
-  </div>
-</div><Dialog header="Détail du justificatif" :visible="showDetailsDialog" modal dismissable-mask :style="{ width: '85vw' }" @update:visible="showDetailsDialog = $event">
+        </template>
+      </ConfirmDialog>
+    </div>
+  </div><Dialog header="Détail du justificatif" :visible="showDetailsDialog" modal dismissable-mask :style="{ width: '85vw' }" @update:visible="showDetailsDialog = $event">
   <div v-if="selectedJustificatif" class="mb-4">
     <div class="text-900 text-xl font-semibold mb-1">{{ selectedJustificatif.etudiant?.display || '-' }}</div>
     <div class="text-500 mb-3">Période : {{ formatDateTime(selectedJustificatif.debut) }} → {{ formatDateTime(selectedJustificatif.fin) }}</div>

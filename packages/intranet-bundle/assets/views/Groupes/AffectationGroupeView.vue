@@ -555,11 +555,6 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <HeaderComponent
-      icon="pi pi-address-book"
-      titre="Composition des groupes"
-      description="Répartir les étudiants dans les groupes"
-  />
   <div class="card">
     <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
       <div>
@@ -568,11 +563,9 @@ onUnmounted(() => {
         </p>
         <div class="flex flex-col items-start">
           <p class="uppercase text-xs font-bold mb-0! text-muted-color">
-            semestre
-          </p>
-          <h2 class="mt-0!">
             {{semestre.libelle}}
-          </h2>
+          </p>
+          <h2 class="mt-0!">Répartir les étudiants dans les groupes</h2>
         </div>
       </div>
       <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>

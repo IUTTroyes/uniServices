@@ -61,9 +61,14 @@ const getAnnees = async () => {
 const getAnnee = async () => {
   isLoadingAnnee.value = true;
   hasError.value = false;
+  // Récupération de l'id de l'année via l'URL
   try {
-    const anneeId = route.params.anneeId;
-    annee.value = await getAnneeService(anneeId);
+    const anneeId = Number.parseInt(String(route.params.anneeId), 10);
+    if (!Number.isNaN(anneeId)) {
+      annee.value = annees.value.find((item) => item.id === anneeId) || annees.value[0] || {};
+    } else {
+      annee.value = annees.value[0] || {};
+    }
     await anneeStore.setSelectedAnnee(annee.value);
   } catch (error) {
     hasError.value = true;
@@ -262,12 +267,6 @@ const onPageChange = async event => {
 </script>
 
 <template>
-  <HeaderComponent
-      icon="pi pi-calendar"
-      titre="Absences"
-      description="Gérez les absences et les justificatifs"
-  />
-
   <div class="flex justify-around items-center mb-12 gap-4">
     <div v-for="stat in absencesStats" :key="stat.title" class="card w-full flex items-center justify-center flex-col">
       <Kpi
@@ -287,23 +286,14 @@ const onPageChange = async event => {
             Contrôle des présences
           </p>
           <div class="flex flex-col items-start">
-            <p class="uppercase text-xs font-bold mb-0! text-muted-color">
-              année
-            </p>
-            <h2 class="mt-0!">
-              {{ annee?.libelle }}
-            </h2>
+            <p class="uppercase text-xs font-bold mb-0! text-muted-color">{{ annee?.libelle }}</p>
+            <h2 class="mt-0!">Liste des absences</h2>
           </div>
         </div>
         <SimpleSkeleton v-if="isLoadingAnnees || isLoadingAnnee" class="!w-60 !h-10"></SimpleSkeleton>
         <div v-else class="flex flex-col gap-2">
-          <div class="flex flex-col justify-center items-end filters-card-header">
-            <div class="text-sm uppercase font-semibold">Changer d'année</div>
-            <Select class="w-60" v-model="annee" option-label="libelle" :options="annees">
-              <template #value>
-                {{ annee?.libelle || "Changer d'année" }}
-              </template>
-            </Select>
+          <div class="flex gap-4 justify-end">
+            <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
           </div>
           <div class="flex justify-end items-center">
             <router-link :to="{ name: 'new-absence', params: { anneeId: annee?.id } }">

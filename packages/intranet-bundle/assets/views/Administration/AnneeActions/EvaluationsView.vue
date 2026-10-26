@@ -1,0 +1,62 @@
+<script setup>
+import { computed, markRaw } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { HeaderComponent } from '@components';
+import Tabs from 'primevue/tabs';
+import TabList from 'primevue/tablist';
+import Tab from 'primevue/tab';
+import TabPanels from 'primevue/tabpanels';
+import TabPanel from 'primevue/tabpanel';
+import EvaluationsView from '@/views/Evaluations/EvaluationsView.vue';
+import StructureGroupeView from '@/views/Groupes/StructureGroupeView.vue';
+
+const route = useRoute();
+const router = useRouter();
+
+const tabs = [
+  { title: 'Évaluations', value: 'evaluations', component: markRaw(EvaluationsView) },
+  { title: 'Rattrapages', value: 'rattrapages', component: markRaw(StructureGroupeView) },
+  { title: 'MCCC', value: 'mccc', component: markRaw(StructureGroupeView) },
+];
+
+const tabValues = tabs.map(tab => tab.value);
+
+const activeTab = computed(() => {
+  const tab = String(route.query.tab || 'evaluations');
+  return tabValues.includes(tab) ? tab : 'evaluations';
+});
+
+const onTabChange = async (value) => {
+  await router.replace({
+    query: {
+      ...route.query,
+      tab: value,
+    },
+  });
+};
+</script>
+
+<template>
+  <div class="flex flex-col gap-4">
+    <HeaderComponent
+      icon="pi pi-book"
+      titre="Notes et évaluations"
+      description="Retrouvez les évaluations, rattrapages et modalités dans un seul écran"
+    />
+
+    <div class="card">
+      <Tabs :value="activeTab" @update:value="onTabChange">
+        <TabList>
+          <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">
+            {{ tab.title }}
+          </Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel v-for="tab in tabs" :key="tab.value" :value="tab.value">
+            <component :is="tab.component" />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </div>
+  </div>
+</template>
