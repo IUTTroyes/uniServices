@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.2.0](https://github.com/IUTTroyes/uniServices/compare/v0.1.17...v0.2.0) (2026-10-26)
+
+
+### ✨ Fonctionnalités
+
+* affichage du profil sur le trombi ([9520dbc](https://github.com/IUTTroyes/uniServices/commit/9520dbcd419a52e3a1ead91a60b0b7a176ad28f4))
+* filtre des périodes de stage pour un étudiant ([2b94335](https://github.com/IUTTroyes/uniServices/commit/2b943356531006ecbf5cee4a820c4dce513cb9e9))
+* **finance:** refonte package + pdf ([f97f829](https://github.com/IUTTroyes/uniServices/commit/f97f829e84ec77811a92b96085251d460100530b))
+* génération convention + correctif stage et saisie partie étudiante ([62fb937](https://github.com/IUTTroyes/uniServices/commit/62fb937a5a7206e2c0a2ca273e5034a52ec1d170))
+* Gestion des accès étudiants + styleguide sur les applications + amélioration page gestion des accès personnels ([9090dcd](https://github.com/IUTTroyes/uniServices/commit/9090dcd5416188b83ba2438b1f81a3b0aa613b4d))
+* Gestion des PDF/Excels/Export des étudiants (mise en page à finaliser) + Trombinoscope ([2e37857](https://github.com/IUTTroyes/uniServices/commit/2e37857a0b151df5c66b5fc2102bda5977c8bfa1))
+* **intranet:** Page de sous-commission (WIP) ([5b39f06](https://github.com/IUTTroyes/uniServices/commit/5b39f062f7d1ed47149a4dce1c76137e142d3a72))
+* **intranet:** Sous commission APC ([357499e](https://github.com/IUTTroyes/uniServices/commit/357499ef6be515c6e03a3670600ed5e104bcd102))
+* partie questionnaire + styleguide pour AI ([eb54915](https://github.com/IUTTroyes/uniServices/commit/eb54915d965342f1ac6c6a555c9a9629a0b1c1e3))
+* **questionnaire:** Affichage du département. ([8e4522f](https://github.com/IUTTroyes/uniServices/commit/8e4522f3141856e769e2a1d16089eb84a2998508))
+
+
+### 🐛 Corrections
+
+* add Symfony polyfills for deep cloning and PHP 8.6 support ([5834054](https://github.com/IUTTroyes/uniServices/commit/583405430516db29002d92d3e0b2c2f94ab3cc35))
+* ApplicationBadge utilise le composant Primevue Chip ([6acb738](https://github.com/IUTTroyes/uniServices/commit/6acb7381b31f5899fcc597960acf31e9834dd36f))
+* deprecated on ApiPlatform Filter ([cc45908](https://github.com/IUTTroyes/uniServices/commit/cc4590889ef12c33a02add2c43e1311ba1df1aa4))
+* rename unitranet -&gt; intranet ([5d8af99](https://github.com/IUTTroyes/uniServices/commit/5d8af9973d459681da797878c865ea1da4dd365f))
+* suite commit ([c3baa69](https://github.com/IUTTroyes/uniServices/commit/c3baa69db1b83bd3c1bda29f4362f44a1321c168))
+
+
+### 📚 Documentation
+
+* **changelog:** backfill recent GitHub authors ([675d185](https://github.com/IUTTroyes/uniServices/commit/675d185034d4bd786a8fc03aa49671a96ab4526a))
+
 ## [0.1.17](https://github.com/IUTTroyes/uniServices/compare/v0.1.16...v0.1.17) (2026-10-12)
 
 
