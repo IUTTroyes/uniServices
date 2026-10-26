@@ -19,6 +19,7 @@ const router = useRouter();
 const userStore = useUsersStore();
 
 const visible = ref(false);
+const infoZip = ref(false);
 
 const csvTotalSize = ref(0);
 const csvTotalSizePercent = ref(0);
@@ -227,12 +228,6 @@ const downloadCsv = () => {
       </div>
       <Divider></Divider>
 
-      <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
-        Fichier csv (séparateur ";"). Télécharger un modèle ici :
-        <a class="font-bold underline hover:cursor-pointer" @click.prevent="downloadCsv">Modèle d'import d'une liste d'étudiants</a>
-      </Message>
-      <Button label="Voir les codes étape" class="mx-auto" @click="visible = true"/>
-
       <Dialog v-model:visible="visible" modal header="Afficher les codes étape à saisir dans le fichier" :style="{ width: '50vw' }" :breakpoints="{ '1199px': '75vw', '575px': '90vw' }">
         <div class="flex flex-col gap-4">
           <div class="w-full flex gap-2">
@@ -248,10 +243,15 @@ const downloadCsv = () => {
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2 border border-surface">
-          <div class="flex flex-col items-center justify-center h-full">
+          <div class="flex flex-col items-center justify-center h-full gap-2">
             <div class="font-medium text-lg">
               Importer les étudiants <span class="text-red-500">(obligatoire)</span>
             </div>
+            <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
+              Fichier csv (séparateur ";"). Télécharger un modèle ici :
+              <a class="font-bold underline! hover:cursor-pointer" @click.prevent="downloadCsv">Modèle d'import d'une liste d'étudiants</a>
+            </Message>
+            <Button label="Voir les codes étape" class="mx-auto" @click="visible = true"/>
           </div>
           <Toast />
           <!--    todo: définir la taille max du fichier      -->
@@ -302,12 +302,20 @@ const downloadCsv = () => {
         </div>
 
         <div class="text-lg font-medium p-4 w-full text-center mx-auto rounded-md flex flex-col gap-2 border border-surface">
-          <div class="flex flex-col items-center justify-center h-full">
+          <div class="flex flex-col items-center justify-center h-full gap-2">
             <div class="font-medium text-lg">
               Importer les photos des étudiants <span class="text-muted-color">(facultatif)</span>
             </div>
+            <div class="text-muted-color text-sm">
+              L'import des photos est également possible à n'importe quel moment depuis l'Administration ou le profil d'un étudiant.
+            </div>
             <Message severity="info" icon="pi pi-info-circle" class="mx-auto">
-              Récupérez les photos (format .zip) sur le bureau virtuel de l'URCA (enseignement > trombinoscope) et importez les ici.
+              Créer un fichier .zip contenant les photos des étudiants. <span @click="infoZip = !infoZip" class="font-bold underline hover:cursor-pointer">Plus d'info</span>
+              <ul v-if="infoZip" class="text-left text-sm text-muted-color">
+                <li>Le nom de chaque photo doit correspondre au numéro étudiant de l'étudiant.</li>
+                <li>Les photos doivent être au format .jpg ou .png et peser moins de 10Mo.</li>
+                <li>Le fichier .zip ne doit pas dépasser 10Mo.</li>
+              </ul>
             </Message>
           </div>
           <Toast />

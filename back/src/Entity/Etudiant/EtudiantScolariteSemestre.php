@@ -6,12 +6,14 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
+use ApiPlatform\Metadata\Post;
 use ApiPlatform\Metadata\QueryParameter;
 use App\ApiDto\EtudiantScolariteSemestre\EtudiantScolariteSemestreDto;
 use App\Entity\Structure\StructureGroupe;
 use App\Entity\Structure\StructureSemestre;
 use App\Filter\EtudiantScolariteSemestreFilter;
 use App\Repository\EtudiantScolariteSemestreRepository;
+use App\State\Processor\EtudiantScolariteSemestre\SynchroSemestrePreviousProcessor;
 use App\State\Provider\EtudiantScolariteSemestre\EtudiantScolariteSemestreProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -32,6 +34,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(
             uriTemplate: '/absence/etudiant_scolarite_semestres',
             normalizationContext: ['groups' => ['scolarite-semestre:absence']],
+        ),
+        new Post(
+            uriTemplate: '/manage-groupes/synchro-semestre-previous/etudiant_scolarite_semestres',
+            processor: SynchroSemestrePreviousProcessor::class,
+            read: false,
+            deserialize: false,
+            validate: false,
+            output: false,
         ),
         new GetCollection(normalizationContext: ['groups' => ['scolarite-semestre:detail', 'semestre:light', 'annee:light', 'groupe:light']]),
         new Patch(normalizationContext: ['groups' => ['scolarite-semestre:write']], securityPostDenormalize: "is_granted('CAN_EDIT_SCOL', object)"),

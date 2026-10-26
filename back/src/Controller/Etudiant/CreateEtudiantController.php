@@ -162,17 +162,31 @@ class CreateEtudiantController extends AbstractController
                     $existingEtudiant = $this->etudiantRepository->findOneBy(['num_ine' => $rowData['numero_ine']]);
                 }
 
-                if (!$existingEtudiant && !empty($rowData['nom']) && !empty($rowData['prenom'])) {
-                    // Générer un username basé sur le prénom et le nom comme dans createEtudiantFromData
-                    $username = strtolower($rowData['prenom'] . '.' . $rowData['nom']);
-                    $username = preg_replace('/[^a-z0-9.]/', '', $username);
-                    $existingEtudiant = $this->etudiantRepository->findOneBy(['username' => $username]);
-                }
-
                 if ($existingEtudiant) {
-                    // L'étudiant existe déjà
-                    $lineInfo['status'] = 'existant';
-                    $lineInfo['message'] = 'Étudiant déjà inscrit';
+                    // L'étudiant existe déjà, vérifier son intégration pour l'année ciblée
+                    $etudiantSco = $this->etudiantScolariteRepository->findOneBy([
+                        'etudiant' => $existingEtudiant,
+                        'anneeUniversitaire' => $anneeUniv,
+                    ]);
+
+                    $hasScolarite = $etudiantSco instanceof EtudiantScolarite;
+                    $hasSemestres = $hasScolarite && $this->hasScolariteSemestresForAnnee($etudiantSco, $annee);
+
+                    if (!$hasScolarite) {
+                        $etudiantSco = $this->createEtudiantScolariteFromData($existingEtudiant, $anneeUniv, $annee);
+                        $this->entityManager->persist($etudiantSco);
+                    }
+
+                    $this->createEtudiantScolariteSemestreFromData($etudiantSco, $annee);
+
+                    if ($hasScolarite && $hasSemestres) {
+                        $lineInfo['status'] = 'existant';
+                        $lineInfo['message'] = 'Étudiant déjà inscrit';
+                    } else {
+                        $lineInfo['status'] = 'intégré';
+                        $lineInfo['message'] = 'Étudiant existant intégré à l\'année sélectionnée';
+                    }
+
                     $lineInfo['etudiantId'] = $existingEtudiant->getId();
                 } else {
                     // Créer un nouvel étudiant
@@ -337,5 +351,23 @@ class CreateEtudiantController extends AbstractController
         }
 
         return $createdSemestres;
+    }
+
+    private function hasScolariteSemestresForAnnee(EtudiantScolarite $etudiantScolarite, StructureAnnee $annee): bool
+    {
+        $semestres = $this->structureSemestreRepository->findBy(['annee' => $annee]);
+
+        foreach ($semestres as $semestre) {
+            $existing = $this->etudiantScolariteSemestreRepository->findOneBy([
+                'scolarite' => $etudiantScolarite,
+                'semestre' => $semestre,
+            ]);
+
+            if (!$existing instanceof EtudiantScolariteSemestre) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

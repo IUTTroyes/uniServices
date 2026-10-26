@@ -268,8 +268,8 @@ const onPageChange = async event => {
       description="Gérez les absences et les justificatifs"
   />
 
-  <div class="flex justify-around items-center mb-12">
-    <div v-for="stat in absencesStats" :key="stat.title" class="card w-1/5 flex items-center justify-center flex-col">
+  <div class="flex justify-around items-center mb-12 gap-4">
+    <div v-for="stat in absencesStats" :key="stat.title" class="card w-full flex items-center justify-center flex-col">
       <Kpi
           :label="stat.title"
           :value="stat.value"
