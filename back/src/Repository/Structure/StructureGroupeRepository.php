@@ -28,4 +28,14 @@ class StructureGroupeRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    public function findAllBySemestreId($semestreId)
+    {
+        return $this->createQueryBuilder('g')
+            ->join('g.semestres', 's')
+            ->andWhere('s.id = :semestreId')
+            ->setParameter('semestreId', $semestreId)
+            ->getQuery()
+            ->getResult();
+    }
 }

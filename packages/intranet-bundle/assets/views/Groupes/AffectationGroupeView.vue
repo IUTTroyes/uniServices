@@ -8,7 +8,8 @@ import {
   getGroupesService,
   getSemestresService,
   getAnneesService,
-  updateEtudiantScolariteSemestreService
+  updateEtudiantScolariteSemestreService,
+  synchroSemestrePreviousService
 } from "@requests";
 import {useRoute, useRouter} from "vue-router";
 import { useToast } from 'primevue/usetoast';
@@ -497,6 +498,27 @@ const synchroParents = async () => {
   }
 };
 
+const synchroSemestrePrevious = async () => {
+  if (!semestre.value?.id || !selectedAnneeUniversitaireId.value) return;
+  isSynchroLoading.value = true;
+  try {
+    await synchroSemestrePreviousService(
+      semestre.value.id,
+      selectedAnneeUniversitaireId.value,
+      true
+    );
+
+    await getEtudiants();
+    syncPreselectedRadios();
+
+  } catch (error) {
+    console.error('Erreur lors de la répartition depuis le semestre précédent :', error);
+    toast.add({ severity: 'error', summary: 'Erreur', detail: 'Une erreur est survenue lors de la répartition depuis le semestre précédent.', life: 5000 });
+  } finally {
+    isSynchroLoading.value = false;
+  }
+};
+
 const handleRepartitionAutoGroupe = async () => {
   if (!semestre.value?.id) return;
   isRepartitionLoading.value = true;
@@ -560,6 +582,17 @@ onUnmounted(() => {
           <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
         </div>
         <div class="flex justify-end items-center gap-4">
+          <Button
+              v-if="semestre.ordreAnnee > 1"
+              label="Synchroniser depuis le semestre précédent"
+              severity="secondary"
+              icon="pi pi-sync"
+              @click="synchroSemestrePrevious()"
+              class="p-button"
+              :loading="isRepartitionLoading"
+              :disabled="isLoadingEtudiants || isLoadingGroupes || isRepartitionLoading"
+              v-tooltip.bottom="`Répartir les étudiants dans les groupes du semestre actuel en se basant sur les affectations du semestre précédent`"
+          />
           <Button
               label="Répartition automatique"
               severity="secondary"

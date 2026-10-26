@@ -228,6 +228,12 @@ const viewEtudiantProfile = async (etudiantId) => {
           <li v-for="(error, index) in errors" :key="index" class="text-red-500">{{ error }}</li>
         </ul>
       </div>
+      <div class="flex flex-col gap-2 items-center border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900 p-4 rounded-lg">
+        <div class="font-bold text-xl">Prochaine étape</div>
+        <router-link to="affectation-groupe">
+          <Button label="Affectation des groupes" icon="pi pi-arrow-right" />
+        </router-link>
+      </div>
     </div>
   </div>
 </template>

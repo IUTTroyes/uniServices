@@ -2,9 +2,6 @@ import api from '@helpers/axios';
 import createApiService from '@requests/apiService';
 import apiCall from '@helpers/apiCall';
 
-// Create API service for etudiant_scolarite_semestres endpoint
-const etudiantScolariteSemestresService = createApiService('/api/etudiant_scolarite_semestres');
-
 // ----------------------------------------------
 // ------------------- GET ----------------------
 // ----------------------------------------------
@@ -63,8 +60,8 @@ const getEtudiantScolariteSemestreService = async (id, scope = '', showToast = f
 const updateEtudiantScolariteSemestreService = async (id, data, showToast = false) => {
     try {
         const response = await apiCall(
-            etudiantScolariteSemestresService.update,
-            [id, data],
+            api.put,
+            [`/api/etudiant_scolarite_semestres/${id}`, data],
             'Semestre de la Scolarité de l\'étudiant mis à jour avec succès',
             'Erreur lors de la mise à jour du Semestre de la Scolarité de l\'étudiant',
             showToast
@@ -76,9 +73,26 @@ const updateEtudiantScolariteSemestreService = async (id, data, showToast = fals
     }
 }
 
+const synchroSemestrePreviousService = async (semestreId, anneeUniversitaireId, showToast = false) => {
+    try {
+        const response = await apiCall(
+            api.post,
+            ['/api/manage-groupes/synchro-semestre-previous/etudiant_scolarite_semestres', { semestreId, anneeUniversitaireId }],
+            'Synchronisation depuis le semestre précédent effectuée',
+            'Erreur lors de la synchronisation depuis le semestre précédent',
+            showToast
+        );
+
+        return response.member ?? response;
+    } catch (error) {
+        console.error('Erreur dans synchroSemestrePreviousService:', error);
+        throw error;
+    }
+}
+
 
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
-export { getEtudiantScolariteSemestresService, updateEtudiantScolariteSemestreService };
+export { getEtudiantScolariteSemestresService, updateEtudiantScolariteSemestreService, synchroSemestrePreviousService };
