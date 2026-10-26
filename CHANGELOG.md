@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/IUTTroyes/uniServices/compare/v0.2.0...v0.3.0) (2026-10-26)
+
+
+### ✨ Fonctionnalités
+
+* [Widgets] Limite aux widgets des applis accessibles par le user ([11ff61d](https://github.com/IUTTroyes/uniServices/commit/11ff61d2e41900ecaf02742d7dda4ea76a8ca48e))
+
 ## [0.2.0](https://github.com/IUTTroyes/uniServices/compare/v0.1.17...v0.2.0) (2026-10-26)
 
 
