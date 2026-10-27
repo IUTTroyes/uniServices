@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.6.0](https://github.com/IUTTroyes/uniServices/compare/v0.5.0...v0.6.0) (2026-10-27)
+
+
+### ✨ Fonctionnalités
+
+* Gestion des accès pour les widgets ([688fead](https://github.com/IUTTroyes/uniServices/commit/688feada9c9eb712e560c41afce11283874e91bd))
+
+
+### 🐛 Corrections
+
+* mise à jour de la gestion des droits pour le responsable de parcours -&gt; liaison avec x diplomes ([ac4950f](https://github.com/IUTTroyes/uniServices/commit/ac4950fd9fa078749593f3e9480f49493529f39e))
+* mise à jour des bundles pour retirer le mot "Bundle" de leurs noms. ([4e18aeb](https://github.com/IUTTroyes/uniServices/commit/4e18aebd5d009a8df43addbdebc76a32fdc1e9b3))
+
 ## [0.5.0](https://github.com/IUTTroyes/uniServices/compare/v0.4.0...v0.5.0) (2026-10-27)
 
 
