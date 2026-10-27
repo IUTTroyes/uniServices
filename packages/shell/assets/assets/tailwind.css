@@ -9,7 +9,7 @@
 @source "../../../../shared/**/*.ts";
 
 .card {
-    @apply bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700/60 shadow-sm;
+    @apply bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700/60 shadow-sm;
 }
 .card-header {
     @apply pt-3 pb-4 px-4 bg-slate-50/50 dark:bg-slate-900/40 border-b border-slate-100 dark:border-slate-700/40 w-full;
@@ -29,3 +29,10 @@
 .card-section {
     @apply bg-slate-50/30 dark:bg-slate-700/20 rounded-2xl p-5 border border-slate-100 dark:border-slate-600/30;
 }
+
+/* Shared surfaces and explicit table densities. */
+.card { border-radius: var(--ui-radius-card); }
+.card-header { border-radius: var(--ui-radius-card) var(--ui-radius-card) 0 0; }
+.card-section { border-radius: var(--ui-radius-section); }
+.ui-table-compact { --p-datatable-body-cell-padding: 0.5rem 0.75rem; }
+.ui-table-comfortable { --p-datatable-body-cell-padding: 0.875rem 1rem; }

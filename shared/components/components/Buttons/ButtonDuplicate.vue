@@ -35,11 +35,11 @@ const showConfirmDialog = () => {
 
 <template>
   <Button icon="pi pi-copy"
-          outlined
-          severity="warn"
-          rounded
+          text
+          size="small"
+          severity="secondary"
           v-tooltip.bottom="tooltip"
-          class="mr-2"
+          :aria-label="tooltip"
           @click="showConfirmDialog"
   />
 </template>

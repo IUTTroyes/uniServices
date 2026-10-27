@@ -20,9 +20,11 @@ import fr from '@config/fr.json';
 
 import './assets/styles.scss';
 import './assets/tailwind.css';
+import '@styles/forms.css';
 
 const MyPreset = definePreset(Aura, {
     semantic: {
+        formField: { borderRadius: 'var(--ui-radius-control)' },
         primary: {
             50: '{violet.50}',
             100: '{violet.100}',

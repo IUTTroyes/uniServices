@@ -1,8 +1,10 @@
 <template>
-  <div class="min-h-screen flex">
+  <div class="space-y-6">
     <Toast />
     <ConfirmDialog />
 
+    <HeaderComponent titre="Documents" description="Retrouvez, classez et partagez vos documents." icon="pi pi-folder" color="blue" :show-back="false" />
+    <div class="flex flex-col lg:flex-row gap-4 items-start">
     <!-- Sidebar -->
     <Sidebar
         :categories="categories"
@@ -14,13 +16,13 @@
         @selectFavorites="selectFavorites"
         @search="handleSearch"
         @openUploadModal="showUploadModal = true"
-        class="me-3"
+        class="w-full lg:w-64 lg:shrink-0"
     />
 
     <!-- Main Content -->
-    <div class="flex-1 flex flex-col overflow-hidden">
+    <div class="w-full min-w-0 flex-1 flex flex-col">
       <!-- Loading State with Shared Skeletons -->
-      <div v-if="loading" class="flex-1 overflow-y-auto p-4 space-y-4">
+      <div v-if="loading" class="flex-1 space-y-4">
         <div class="flex justify-between items-center mb-6">
           <div class="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
           <div class="h-8 w-32 bg-gray-200 rounded animate-pulse"></div>
@@ -34,7 +36,7 @@
       </div>
 
       <!-- Content -->
-      <main v-else class="flex-1 overflow-y-auto p-4">
+      <main v-else class="flex-1 min-w-0">
         <DocumentGrid
             v-if="viewMode === 'grid'"
             :documents="filteredDocuments"
@@ -73,6 +75,8 @@
       </main>
     </div>
 
+    </div>
+
     <!-- Detail Drawer -->
     <DocumentDetailDrawer
       v-model:visible="showDetailDrawer"
@@ -105,7 +109,7 @@ import DocumentList from '@/components/Documents/DocumentList.vue';
 import DocumentUploadModal from '@/components/Documents/DocumentUploadModal.vue';
 import DocumentDetailDrawer from '@/components/Documents/DocumentDetailDrawer.vue';
 import { documentService } from '@/service/documentService';
-import { CardSkeleton, ListSkeleton } from '@components';
+import { HeaderComponent, CardSkeleton, ListSkeleton } from '@components';
 import { useSecurity } from '@stores';
 import type { Category, Document, SortField, SortOrder, PaginationInfo, ViewMode } from '@types';
 

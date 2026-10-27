@@ -262,7 +262,7 @@ Idéal dans les barres d'actions et les en-têtes de page.
 ```
 
 #### Sévérités disponibles
-- `'primary'` (Orange/Accent)
+- `'primary'` (couleur du module actif)
 - `'secondary'` (Gris neutre)
 - `'success'` (Émeraude)
 - `'info'` (Bleu)
@@ -417,3 +417,13 @@ Pour toutes les pages de liste et de gestion :
 Pour visualiser, tester et copier les extraits de code en direct, rendez-vous dans l'application sur la route du styleguide :
 `http://localhost:3000/auth/configuration/styleguide` (composant `StyleguideView.vue`).
 
+
+## 7. Règles communes de lisibilité et de densité
+
+- Utiliser `--ui-page-title-size` pour les titres de page, les tokens `--ui-space-*` pour les espacements et `--ui-radius-*` pour les surfaces.
+- Réserver `primary` à l'action principale ; utiliser `secondary` et `text` pour les actions courantes, `danger` pour les suppressions. Les couleurs de statut gardent leur sens indépendamment du module.
+- Utiliser `text-sm` au minimum pour les labels, aides et sous-titres des nouveaux formulaires et cartes.
+- Les classes de formulaire `q-*` sont définies dans `shared/styles/forms.css`. Les anciens points d'entrée des bundles réexportent ce fichier ; ne pas créer de variantes locales.
+- Les tableaux peuvent utiliser `ui-table-compact` ou `ui-table-comfortable` selon leur densité. Ne pas fixer de hauteur qui coupe le contenu.
+- Les panneaux secondaires se placent au-dessus du contenu sur mobile ; éviter `min-h-screen` dans un layout qui gère déjà la hauteur et le défilement.
+- Vérifier le dashboard, une liste et un formulaire en mode clair/sombre et sur petit écran. Préserver les libellés accessibles des actions avec icône seule et les indicateurs de focus.

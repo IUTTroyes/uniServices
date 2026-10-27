@@ -14,11 +14,11 @@ const props = defineProps({
 
 <template>
   <Button :icon="icon"
-          outlined
-          severity="info"
-          rounded
+          text
+          size="small"
+          severity="secondary"
           v-tooltip.bottom="tooltip"
-          class="mr-2"
+          :aria-label="tooltip"
            />
 </template>
 

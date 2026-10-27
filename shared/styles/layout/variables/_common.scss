@@ -18,3 +18,14 @@
     --focus-ring-offset: var(--p-focus-ring-offset);
     --focus-ring-shadow: var(--p-focus-ring-shadow);
 }
+
+:root {
+    --ui-radius-control: 0.5rem;
+    --ui-radius-card: 1rem;
+    --ui-radius-section: 0.75rem;
+    --ui-space-1: 0.5rem;
+    --ui-space-2: 1rem;
+    --ui-space-3: 1.5rem;
+    --ui-space-4: 2rem;
+    --ui-page-title-size: clamp(1.5rem, 2.5vw, 2rem);
+}

@@ -3,7 +3,7 @@
     flex-direction: column;
     height: calc(100vh - 4rem);
     justify-content: space-between;
-    padding: 2rem;
+    padding: var(--ui-space-3);
     transition: margin-left var(--layout-section-transition-duration);
     box-shadow: rgba(0, 0, 0, 0.06) 0px 4px 4px 1px inset;
     overflow-y: auto;
@@ -14,7 +14,8 @@
 
 .layout-main {
     flex: 1 1 auto;
-    padding: 1rem;
+    min-width: 0;
+    padding: 0;
 }
 
 .page-title {

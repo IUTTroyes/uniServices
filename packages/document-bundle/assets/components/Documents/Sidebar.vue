@@ -1,15 +1,14 @@
 <template>
-  <div class="h-full bg-white border-r border-gray-200 flex flex-col w-64">
+  <div class="bg-surface-0 dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-2xl flex flex-col w-full">
     <!-- Action Header -->
-    <div class="p-4 border-b border-gray-200 space-y-3">
-      <button
+    <div class="p-4 border-b border-surface-200 dark:border-surface-700 space-y-3">
+      <Button
         v-permission="'isPersonnel'"
+        label="Nouveau document"
+        icon="pi pi-plus"
+        class="w-full"
         @click="$emit('openUploadModal')"
-        class="w-full bg-primary-600 hover:bg-primary-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center space-x-2 text-sm"
-      >
-        <span class="text-lg">+</span>
-        <span>Nouveau document</span>
-      </button>
+      />
 
       <SearchBar
           v-model="searchQuery"
@@ -18,20 +17,20 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-1 px-4 py-4 space-y-2 overflow-y-auto">
+    <nav class="flex-1 px-4 py-4 space-y-2 max-h-80 lg:max-h-none overflow-y-auto">
       <!-- All Documents -->
       <button
         @click="$emit('selectCategory', null)"
         :class="[
           'w-full flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
           selectedCategory === null && !showFavorites
-            ? 'bg-primary-50 text-primary-700 border border-primary-200'
-            : 'text-gray-700 hover:bg-gray-50'
+            ? 'bg-primary-50 dark:bg-primary-950 text-primary-700 dark:text-primary-200 border border-primary-200 dark:border-primary-800'
+            : 'text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800'
         ]"
       >
-        <span class="text-lg">📁</span>
+        <i class="pi pi-folder" aria-hidden="true" />
         <span>Tous les documents</span>
-        <span class="ml-auto text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+        <span class="ml-auto text-xs bg-surface-100 dark:bg-surface-800 text-muted-color px-2 py-1 rounded-full">
           {{ totalDocuments }}
         </span>
       </button>
@@ -42,13 +41,13 @@
         :class="[
           'w-full flex items-center space-x-3 px-3 py-2 text-sm font-medium rounded-md transition-colors',
           showFavorites
-            ? 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-            : 'text-gray-700 hover:bg-gray-50'
+            ? 'bg-primary-50 dark:bg-primary-950 text-primary-700 dark:text-primary-200 border border-primary-200 dark:border-primary-800'
+            : 'text-surface-700 dark:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-800'
         ]"
       >
-        <span class="text-lg">⭐</span>
+        <i class="pi pi-star" aria-hidden="true" />
         <span>Favoris</span>
-        <span class="ml-auto text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+        <span class="ml-auto text-xs bg-surface-100 dark:bg-surface-800 text-muted-color px-2 py-1 rounded-full">
           {{ favoriteCount }}
         </span>
       </button>
@@ -74,6 +73,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import Button from 'primevue/button';
 import CategoryItem from './CategoryItem.vue';
 import SearchBar from './SearchBar.vue';
 import type { Category } from '@types';

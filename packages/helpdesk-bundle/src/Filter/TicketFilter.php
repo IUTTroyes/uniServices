@@ -43,7 +43,7 @@ class TicketFilter extends AbstractFilter
 
             $queryBuilder
                 ->leftJoin(sprintf('%s.helpdeskMessages', $alias), 'm')
-                ->andWhere('m.created >= :dateLimite')
+                ->andWhere('m.createdAt >= :dateLimite')
                 ->setParameter('dateLimite', $dateLimite);
         }
     }

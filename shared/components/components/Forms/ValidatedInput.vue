@@ -194,7 +194,7 @@ const isRequired = computed(() => {
 
 <template>
   <div class="validated-input">
-    <label v-if="label" :for="name" class="block mb-1">
+    <label v-if="label" :for="name" class="q-label">
       {{ label }}
       <span v-if="isRequired" class="text-red-500 ml-0.5" title="Champ obligatoire">*</span>
     </label>

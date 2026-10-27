@@ -10,11 +10,11 @@ const props = defineProps({
 
 <template>
   <Button icon="pi pi-pencil"
-          outlined
-          severity="warn"
-          rounded
+          text
+          size="small"
+          severity="secondary"
           v-tooltip.bottom="tooltip"
-          class="mr-2"
+          :aria-label="tooltip"
            />
 </template>
 

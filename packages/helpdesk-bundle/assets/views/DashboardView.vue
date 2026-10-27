@@ -1,19 +1,19 @@
 <script setup xmlns="http://www.w3.org/1999/html">
-import { computed, ref, onMounted } from "vue";
+import { ref, onMounted } from "vue";
 import { formatDateLong } from "@helpers/date.js";
 import { useUsersStore } from "@stores";
 import TicketMessageCard from "@/components/TicketMessageCard.vue";
 import { useRouter } from 'vue-router';
 import { getTicketsService } from '@requests';
 import AccordeonMessages from "@/components/AccordeonMessages.vue";
-import StatsDashboards from "@/components/StatsDashboards.vue";
+import { HeaderComponent, Kpi, Card, EmptyState, ActionButtonVertical } from "@components";
 
 const router = useRouter();
 const userStore = useUsersStore();
 const date = new Date();
-const checked = ref(false);
-const first = ref(0);
-const rows = ref(5);
+
+
+
 const ticketsList = ref([]);
 const ticketsNewMessageList= ref ([]);
 const loading = ref(true);
@@ -25,18 +25,6 @@ const goToTicket = (id) => {
 const goToNewTicket = () => {
   router.push({ name: 'NewTicketView' });
 };
-
-const onPageChange = (event) => {
-  first.value = event.first;
-};
-
-const paginatedTickets = computed(() => {
-  return ticketsList.value.slice(first.value, first.value + rows.value);
-});
-
-const initiales = computed(
-    () => `${userStore.user?.prenom?.charAt(0) || ""}${userStore.user?.nom?.charAt(0) || ""}`
-);
 
 const getTickets = async () => {
   try {
@@ -84,73 +72,36 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <div class="m-5 mb-10 flex items-center justify-between gap-8">
-      <div v-if="!userStore.isLoading" class="flex items-center">
-        <div class="w-20 h-20 bg-violet-400 rounded-full flex items-center justify-center shrink-0">
-          <template v-if="userStore.userPhoto">
-            <img :src="userStore.userPhoto" alt="photo de profil" class="rounded-full" />
-          </template>
-          <template v-else>
-            <span class="text-gray-700 text-xl">{{ initiales }}</span>
-          </template>
-        </div>
-        <div class="ml-4">
-          <h2 class="text-2xl! mb-0! font-bold flex items-center gap-2">
-            <span class="font-light">Bonjour,</span> {{ userStore.user.prenom }}
-          </h2>
-          <small class="text-gray-500">{{ formatDateLong(date) }}</small>
-        </div>
-      </div>
+  <div class="space-y-6">
+    <HeaderComponent titre="Assistance" :description="`Bonjour${userStore.user?.prenom ? ', ' + userStore.user.prenom : ''} · ${formatDateLong(date)}`" icon="pi pi-question-circle" color="orange" :show-back="false">
+      <template #actions>
+        <ActionButtonVertical icon="pi pi-plus" label="Créer un ticket" severity="primary" @click="goToNewTicket" />
+      </template>
+    </HeaderComponent>
 
-      <StatsDashboards :tickets="ticketsList"/>
+    <Message severity="info" icon="pi pi-info-circle">
+      Nous traitons actuellement un volume élevé de tickets. Merci de limiter vos ouvertures de tickets aux besoins essentiels afin de nous aider à réduire les délais de réponse.
+    </Message>
 
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <Kpi label="Tickets récents" :value="ticketsList.length" icon="pi pi-ticket" color="orange" :loading="loading" />
+      <Kpi label="En attente" :value="ticketsList.filter(t => t.statut === 'En attente').length" icon="pi pi-clock" color="amber" :loading="loading" />
+      <Kpi label="En cours" :value="ticketsList.filter(t => t.statut === 'En cours').length" icon="pi pi-spinner" color="blue" :loading="loading" />
+      <Kpi label="Refusés" :value="ticketsList.filter(t => t.statut === 'Refusé').length" icon="pi pi-times-circle" color="red" :loading="loading" />
     </div>
 
+    <AccordeonMessages v-if="ticketsNewMessageList.length" :tickets="ticketsNewMessageList" />
 
-    <div>
-      <Message severity="info" icon="pi pi-info-circle" class="mt-2 mb-10">
-        Nous traitons actuellement un volume élevé de tickets. Merci de limiter vos ouvertures de tickets aux besoins essentiels afin de nous aider à réduire les délais de réponse.
-      </Message>
-    </div>
-
-    <div class="flex justify-around mb-8">
-      <div class="card text-center">
-        <span class="text-violet-600 font-bold text-2xl">{{ticketsList.filter(t => t.statut === 'En attente').length}}</span>
-        <p class="text-1xl">Tickets en attente</p>
-      </div>
-      <div class="card text-center">
-        <span class="text-violet-600 font-bold text-2xl">{{ticketsList.filter(t => t.statut === 'En cours').length}}</span>
-        <p class="text-1xl">Tickets en cours</p>
-      </div>
-      <div class="card text-center">
-        <span class="text-violet-600 font-bold text-2xl">{{ticketsList.filter(t => t.statut === 'Refusé').length}}</span>
-        <p class="text-1xl">Tickets refusés</p>
-      </div>
-    </div>
-
-    <div>
-      <AccordeonMessages v-if="ticketsNewMessageList" :tickets="ticketsNewMessageList" />
-    </div>
-
-    <div class="card">
-      <div class="font-semibold text-xl">
-
-        <div class="font-semibold mb-6 text-xl">Derniers tickets postés</div>
-
-        <Carousel :value="ticketsList" :numVisible="3" :numScroll="1">
-
-          <template #item="{ data: ticket }">
-            <div class="rounded m-2 p-4">
-              <div class="mb-4">
-                <TicketMessageCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer"/>
-              </div>
-            </div>
-          </template>
-
-        </Carousel>
-
-      </div>
-    </div>
+    <Card title="Derniers tickets postés" icon="pi pi-ticket" color="orange">
+      <div v-if="loading" role="status" class="py-6 text-muted-color">Chargement des tickets…</div>
+      <EmptyState v-else-if="!ticketsList.length" title="Aucun ticket récent" description="Créez un ticket pour contacter l’assistance." icon="pi pi-ticket" compact />
+      <Carousel v-else :value="ticketsList" :numVisible="3" :numScroll="1" :responsiveOptions="[{ breakpoint: '1200px', numVisible: 2, numScroll: 1 }, { breakpoint: '640px', numVisible: 1, numScroll: 1 }]">
+        <template #item="{ data: ticket }">
+          <div class="p-2">
+            <TicketMessageCard :ticket="ticket" @click="goToTicket(ticket.id)" class="cursor-pointer" />
+          </div>
+        </template>
+      </Carousel>
+    </Card>
   </div>
 </template>

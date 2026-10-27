@@ -10,7 +10,7 @@
       @input="handleSearch"
       type="text"
       placeholder="Rechercher des documents..."
-      class="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+      class="block w-full pl-10 pr-4 py-2 border border-surface-300 dark:border-surface-600 rounded-md leading-5 bg-white dark:bg-surface-900 placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
     />
     <div
       v-if="searchQuery"

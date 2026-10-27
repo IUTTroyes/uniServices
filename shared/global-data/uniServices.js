@@ -20,7 +20,7 @@ export const tools = (toolsMeta || []).map(item => {
   }
   const meta = getApplicationMeta(item.urlSlug || item.name);
   return {
-    name: item.name,
+    name: meta.name || item.name,
     description: item.description,
     url: targetUrl,
     logo: LogoIut || item.logo,

@@ -505,7 +505,7 @@ onMounted(async () => {
                 :rows="15"
                 :rows-per-page-options="[10, 15, 30, 50]"
                 responsive-layout="scroll"
-                class="p-datatable-sm"
+                class="ui-table-compact"
             >
                 <template #header>
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">

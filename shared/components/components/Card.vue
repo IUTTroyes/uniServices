@@ -132,7 +132,7 @@ const colorClasses = computed(() => {
             </span>
             <h3 class="text-sm font-bold text-slate-900 dark:text-white leading-snug">{{ title }}</h3>
           </div>
-          <p v-if="subtitle" :class="['text-[11px] text-slate-400 mt-0.5 leading-normal', icon ? 'pl-11' : '']">
+          <p v-if="subtitle" :class="['text-sm text-slate-500 dark:text-slate-400 mt-0.5 leading-normal', icon ? 'pl-11' : '']">
             {{ subtitle }}
           </p>
         </div>

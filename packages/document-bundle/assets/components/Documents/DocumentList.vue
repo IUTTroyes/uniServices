@@ -1,12 +1,12 @@
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h2 class="text-2xl font-bold text-gray-900">
+        <h2 class="text-xl font-semibold text-surface-900 dark:text-surface-0">
           {{ title }}
         </h2>
-        <p class="text-gray-500 mt-1">
+        <p class="text-sm text-muted-color mt-1">
           {{ paginatedDocuments.length }} documents
           <span v-if="paginationInfo.totalItems > paginationInfo.itemsPerPage">
             ({{ paginationInfo.totalItems }} au total)
@@ -14,7 +14,7 @@
         </p>
       </div>
       
-      <div class="flex items-center space-x-3">
+      <div class="flex flex-wrap items-center gap-3">
         <!-- View Mode Toggle -->
         <ViewModeToggle
           :view-mode="viewMode"

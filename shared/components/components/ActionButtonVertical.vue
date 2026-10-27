@@ -3,16 +3,18 @@
     :is="to ? 'router-link' : 'button'"
     :to="to"
     :disabled="disabled"
-    class="flex flex-col items-center justify-center p-3 rounded-xl border transition-all duration-200 group text-center min-w-[120px]"
+    :aria-disabled="disabled || undefined"
+    :type="to ? undefined : 'button'"
+    class="flex flex-col items-center justify-center p-3 rounded-xl border transition-colors duration-200 group text-center min-w-[120px]"
     :class="[
       severityClasses,
-      disabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95 cursor-pointer shadow-sm hover:shadow-md'
+      disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer shadow-sm'
     ]"
     @click="handleClick"
   >
-    <i v-if="typeof icon === 'string'" :class="[icon, 'text-xl mb-1.5 transition-transform group-hover:scale-110']" />
-    <component v-else-if="icon" :is="icon" class="w-5 h-5 mb-1.5 transition-transform group-hover:scale-110" />
-    <span class="text-xs font-semibold leading-tight select-none">{{ label }}</span>
+    <i v-if="typeof icon === 'string'" :class="[icon, 'text-xl mb-1.5']" />
+    <component v-else-if="icon" :is="icon" class="w-5 h-5 mb-1.5" />
+    <span class="text-sm font-semibold leading-tight select-none">{{ label }}</span>
   </component>
 </template>
 
@@ -37,15 +39,17 @@ const emit = defineEmits<{
 }>();
 
 function handleClick(event: MouseEvent) {
-  if (!props.disabled) {
-    emit('click', event);
+  if (props.disabled) {
+    event.preventDefault();
+    return;
   }
+  emit('click', event);
 }
 
 const severityClasses = computed(() => {
   switch (props.severity) {
     case 'primary':
-      return 'bg-orange-50 hover:bg-orange-100 text-orange-600 border-orange-200 hover:border-orange-300 dark:bg-orange-950/20 dark:hover:bg-orange-900/40 dark:text-orange-400 dark:border-orange-900/50';
+      return 'bg-primary text-primary-contrast border-primary hover:brightness-95';
     case 'success':
       return 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border-emerald-200 hover:border-emerald-300 dark:bg-emerald-950/20 dark:hover:bg-emerald-900/40 dark:text-emerald-400 dark:border-emerald-900/50';
     case 'info':

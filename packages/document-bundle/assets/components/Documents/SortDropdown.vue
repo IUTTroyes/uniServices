@@ -2,7 +2,7 @@
   <div class="relative">
     <button
       @click="isOpen = !isOpen"
-      class="flex items-center space-x-2 px-3 py-2 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+      class="flex items-center space-x-2 px-3 py-2 bg-white dark:bg-surface-900 border border-surface-300 dark:border-surface-600 rounded-md hover:bg-surface-100 dark:hover:bg-surface-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
     >
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4"/>
@@ -20,7 +20,7 @@
 
     <div
       v-if="isOpen"
-      class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50"
+      class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white dark:bg-surface-900 ring-1 ring-black ring-opacity-5 z-50"
     >
       <div class="py-1">
         <button
@@ -28,10 +28,10 @@
           :key="`${option.field}-${option.order}`"
           @click="selectSort(option.field, option.order)"
           :class="[
-            'flex items-center justify-between w-full px-4 py-2 text-sm text-left hover:bg-gray-50',
+            'flex items-center justify-between w-full px-4 py-2 text-sm text-left hover:bg-surface-100 dark:hover:bg-surface-800',
             sortField === option.field && sortOrder === option.order
               ? 'bg-primary-50 text-primary-700'
-              : 'text-gray-700'
+              : 'text-surface-700 dark:text-surface-200'
           ]"
         >
           <span>{{ option.label }}</span>

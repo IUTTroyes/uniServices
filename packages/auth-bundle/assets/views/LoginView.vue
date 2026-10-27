@@ -101,34 +101,35 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="bg w-full h-screen fixed top-0 left-0 -z-10">
+  <div class="bg w-full h-screen fixed top-0 left-0 -z-10" aria-hidden="true">
   </div>
-  <div class="w-full min-h-screen flex justify-center items-center md:py-16 p-4">
-    <div class="md:w-3/4 w-full h-full flex md:flex-row flex-col shadow-xl">
-      <div class="bg-black bg-opacity-60 text-white backdrop-blur-sm p-12 md:rounded-tl-xl md:rounded-bl-xl rounded-tl-xl rounded-tr-xl w-full flex flex-col gap-4">
+  <div class="w-full min-h-screen flex justify-center items-center py-6 sm:py-10 p-4">
+    <div class="w-full max-w-5xl flex md:flex-row flex-col shadow-lg rounded-2xl overflow-hidden border border-surface-200 dark:border-surface-700">
+      <div class="bg-surface-50 dark:bg-surface-900 text-surface-900 dark:text-surface-0 p-6 lg:p-8 w-full md:w-2/5 flex flex-col gap-4">
         <div class="flex items-center w-full gap-4">
-          <Logo :logo-url="logoUrl" alt="logo de l'iut" class="w-1/4 rounded-md"/>
+          <Logo :logo-url="logoUrl" alt="logo de l'iut" class="w-16 rounded-lg shrink-0"/>
           <div>
-            <div class="text-2xl font-bold">Bienvenue sur UniServices</div>
-            <div>Plateforme de gestion centralisée des services universitaires</div>
+            <div class="text-xl font-bold">Bienvenue sur UniServices</div>
+            <p class="text-sm text-muted-color mt-2">Vos services universitaires, réunis au même endroit.</p>
           </div>
         </div>
-        <div class="hidden md:block md:h-full">
+        <div class="hidden md:block">
           <Divider></Divider>
-          <div class="flex flex-col justify-between h-full">
-            <ul class="h-full flex flex-col justify-start gap-6 py-4">
+          <div class="flex flex-col gap-4">
+            <ul class="flex flex-col gap-5 py-2">
               <li v-for="tool in paginatedTools" :key="tool.name" class="w-full p-0 flex items-center gap-4">
-                <Logo :logo-url="tool.logo" alt="logo de l'iut" class="w-16 bg-white rounded-xl"/>
+                <Logo :logo-url="tool.logo" alt="logo de l'iut" class="w-10 bg-white rounded-lg shrink-0"/>
                 <div>
-              <span class="font-bold text-xl">
+              <span class="font-semibold text-sm">
                 {{ tool.name }}
               </span>
-                  <p class="text-lg">{{ tool.description }}</p>
+                  <p class="text-sm text-muted-color mt-1">{{ tool.description }}</p>
                 </div>
               </li>
             </ul>
             <div v-if="totalPages > 1" class="flex justify-center items-center gap-2 mt-4">
               <button
+                  aria-label="Applications précédentes"
                   @click="prevPage"
                   :disabled="currentPage === 0"
                   class="pagination-btn"
@@ -136,8 +137,9 @@ onMounted(async () => {
               >
                 &lt;
               </button>
-              <span class="text-white">{{ currentPage + 1 }} / {{ totalPages }}</span>
+              <span class="text-sm text-muted-color">{{ currentPage + 1 }} / {{ totalPages }}</span>
               <button
+                  aria-label="Applications suivantes"
                   @click="nextPage"
                   :disabled="currentPage === totalPages - 1"
                   class="pagination-btn"
@@ -149,12 +151,12 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <div class="bg-white p-12 md:rounded-tr-xl md:rounded-br-xl md:rounded-bl-none rounded-br-xl rounded-bl-xl w-full flex flex-col gap-4">
+      <div class="bg-white dark:bg-surface-950 p-6 lg:p-8 w-full md:w-3/5 flex flex-col gap-4">
         <div class="text-center mb-8">
-          <div class="text-surface-900 dark:text-surface-0 text-3xl font-medium uppercase">Connexion</div>
+          <div class="text-surface-900 dark:text-surface-0 text-3xl font-bold">Connexion</div>
           <span class="text-muted-color font-medium">Etudiants, personnels de l'Université et vacataires, connectez-vous avec l'authentification de l'Université.</span>
         </div>
-        <Button label="Connexion URCA" class="w-full" as="router-link" to="/"></Button>
+        <Button label="Connexion URCA" class="w-full login-primary" as="router-link" to="/"></Button>
 
         <Divider></Divider>
 
@@ -185,7 +187,7 @@ onMounted(async () => {
               <label for="rememberme1">Se souvenir de moi</label>
             </div>
             <div class="flex justify-end items-center">
-              <router-link to="/reset-password" class="font-medium underline ml-2 text-right cursor-pointer text-primary">Mot de passe oublié ?</router-link>
+              <router-link to="/reset-password" class="font-medium underline ml-2 text-right cursor-pointer text-surface-700 dark:text-surface-200">Mot de passe oublié ?</router-link>
             </div>
             <div class="w-full flex flex-col gap-2">
               <Message v-if="errorMessage" severity="error">
@@ -206,7 +208,7 @@ onMounted(async () => {
 
 <style scoped>
 .bg {
-  background-image: url("../assets/iut.jpg");
+  background-image: linear-gradient(rgba(248, 250, 252, 0.88), rgba(248, 250, 252, 0.88)), url("../assets/iut.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -216,8 +218,8 @@ onMounted(async () => {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
+  background-color: var(--p-content-hover-background);
+  color: var(--p-text-color);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -226,11 +228,17 @@ onMounted(async () => {
 }
 
 .pagination-btn:hover:not(.disabled) {
-  background-color: rgba(255, 255, 255, 0.4);
+  background-color: var(--p-content-border-color);
 }
 
 .pagination-btn.disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+/* Yellow remains the portal accent; dark text keeps its primary action legible. */
+.login-primary {
+  --p-button-primary-color: var(--p-yellow-950);
+  --p-button-primary-hover-color: var(--p-yellow-950);
+  --p-button-primary-active-color: var(--p-yellow-950);
 }
 </style>

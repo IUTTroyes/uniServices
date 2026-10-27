@@ -1,12 +1,12 @@
 <template>
-  <div class="flex items-center bg-gray-100 rounded-lg p-1">
+  <div class="flex items-center bg-surface-100 dark:bg-surface-800 rounded-lg p-1">
     <button
       @click="$emit('changeView', 'grid')"
       :class="[
         'flex items-center px-3 py-1 rounded-md text-sm font-medium transition-colors',
         viewMode === 'grid'
-          ? 'bg-white text-gray-900 shadow-sm'
-          : 'text-gray-500 hover:text-gray-700'
+          ? 'bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-0 shadow-sm'
+          : 'text-surface-500 dark:text-surface-400 hover:text-gray-700'
       ]"
     >
       <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -20,8 +20,8 @@
       :class="[
         'flex items-center px-3 py-1 rounded-md text-sm font-medium transition-colors',
         viewMode === 'list'
-          ? 'bg-white text-gray-900 shadow-sm'
-          : 'text-gray-500 hover:text-gray-700'
+          ? 'bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-0 shadow-sm'
+          : 'text-surface-500 dark:text-surface-400 hover:text-gray-700'
       ]"
     >
       <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
