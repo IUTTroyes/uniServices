@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.5.0](https://github.com/IUTTroyes/uniServices/compare/v0.4.0...v0.5.0) (2026-10-27)
+
+
+### ✨ Fonctionnalités
+
+* [Evaluations] Rename EvaluationsView to SuiviEvaluationsView and update layout ([6b12732](https://github.com/IUTTroyes/uniServices/commit/6b12732d0f046a2b2907f3673b3162d13c6b1ae3))
+* Update UI components for improved styling and accessibility ([b79a176](https://github.com/IUTTroyes/uniServices/commit/b79a176b0193569016d3e2d5bdfb60fceb927b90))
+* Update UI portail components for more visibility ([3a4887a](https://github.com/IUTTroyes/uniServices/commit/3a4887acff0d1711d0bc1188d8473daac5c8579a))
+
 ## [0.4.0](https://github.com/IUTTroyes/uniServices/compare/v0.3.0...v0.4.0) (2026-10-26)
 
 
