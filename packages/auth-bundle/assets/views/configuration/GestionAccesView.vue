@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { HeaderComponent, ButtonEdit, PhotoUser } from '@components'
 import { getPersonnelsService } from '@requests'
-import { useEtablissementStore, useAnneeUnivStore } from '@stores'
+import { useEtablissementStore, useAnneeUnivStore, useUsersStore } from '@stores'
 import api from '@helpers/axios'
 import AccessPersonnelDialog from "./components/AccessPersonnelDialog.vue";
 import { usePersonnelFilters } from '@composables/filters/usersFilters/usePersonnelFilters.ts';
@@ -80,6 +80,7 @@ const saveAccess = async () => {
           {
             packages: flattenUnique(department.packages),
             permissions: flattenUnique(department.permissions),
+            responsableParcoursDiplomes: department.permissions?.includes('ROLE_RESP_PARCOURS') ? (department.responsableParcoursDiplomes ?? []) : [],
             defaut: !!department.defaut,
             affectation: !!department.affectation,
           },
@@ -88,6 +89,10 @@ const saveAccess = async () => {
       })
     )
 
+    const userStore = useUsersStore()
+    if (String(selectedPersonnel.value.id) === String(userStore.userId)) {
+      await userStore.getUser()
+    }
     await getPersonnels()
     accessDialogVisible.value = false
   } finally {

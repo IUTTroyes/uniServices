@@ -69,6 +69,8 @@ class PersonnelConfigProvider implements ProviderInterface
                 'defaut' => $departementPersonnel->isDefaut(),
                 'affectation' => $departementPersonnel->isAffectation(),
                 'packages' => array_values(array_unique(array_map('strval', $departementPersonnel->getPackages()))),
+                'responsableParcoursDiplomes' => array_values(array_map(static fn ($diplome) => '/api/structure_diplomes/'.$diplome->getId(), $departementPersonnel->getResponsableParcoursDiplomes()->toArray())),
+                'diplomes' => array_map(static fn ($diplome) => ['id' => $diplome->getId(), 'libelle' => $diplome->getLibelle(), 'iri' => '/api/structure_diplomes/'.$diplome->getId()], $departement?->getStructureDiplomes()->toArray() ?? []),
                 'permissions' => array_values(array_unique(array_map('strval', $departementPersonnel->getPermissions()))),
             ];
 

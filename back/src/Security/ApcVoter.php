@@ -95,27 +95,27 @@ class ApcVoter extends Voter
         return match($attribute) {
             // Référentiel
             self::CAN_VIEW_APC_REFERENTIEL => $this->canViewReferentiel($user),
-            self::CAN_EDIT_APC_REFERENTIEL => $this->canEditReferentiel($user),
+            self::CAN_EDIT_APC_REFERENTIEL => $this->canEditReferentiel($user, $subject),
             self::CAN_DELETE_APC_REFERENTIEL => $this->canDeleteReferentiel($user),
 
             // Compétences
             self::CAN_VIEW_APC_COMPETENCE => $this->canViewCompetence($user),
-            self::CAN_EDIT_APC_COMPETENCE => $this->canEditCompetence($user),
+            self::CAN_EDIT_APC_COMPETENCE => $this->canEditCompetence($user, $subject),
             self::CAN_DELETE_APC_COMPETENCE => $this->canDeleteCompetence($user),
 
             // Niveaux
             self::CAN_VIEW_APC_NIVEAU => $this->canViewNiveau($user),
-            self::CAN_EDIT_APC_NIVEAU => $this->canEditNiveau($user),
+            self::CAN_EDIT_APC_NIVEAU => $this->canEditNiveau($user, $subject),
             self::CAN_DELETE_APC_NIVEAU => $this->canDeleteNiveau($user),
 
             // Parcours
             self::CAN_VIEW_APC_PARCOURS => $this->canViewParcours($user),
-            self::CAN_EDIT_APC_PARCOURS => $this->canEditParcours($user),
+            self::CAN_EDIT_APC_PARCOURS => $this->canEditParcours($user, $subject),
             self::CAN_DELETE_APC_PARCOURS => $this->canDeleteParcours($user),
 
             // Apprentissages Critiques
             self::CAN_VIEW_APC_AC => $this->canViewAc($user),
-            self::CAN_EDIT_APC_AC => $this->canEditAc($user),
+            self::CAN_EDIT_APC_AC => $this->canEditAc($user, $subject),
             self::CAN_DELETE_APC_AC => $this->canDeleteAc($user),
 
             default => false,
@@ -129,9 +129,9 @@ class ApcVoter extends Voter
         return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
-    private function hasAnyRole(Personnel $user, array $roles): bool
+    private function hasAnyRole(Personnel $user, array $roles, mixed $subject = null): bool
     {
-        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles, $subject);
     }
 
     // ========== Référentiel ==========
@@ -142,14 +142,14 @@ class ApcVoter extends Voter
         return true;
     }
 
-    private function canEditReferentiel(Personnel|Etudiant $user): bool
+    private function canEditReferentiel(Personnel|Etudiant $user, mixed $subject = null): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS'
-        ]);
+        ], $subject);
     }
 
     private function canDeleteReferentiel(Personnel|Etudiant $user): bool
@@ -168,14 +168,14 @@ class ApcVoter extends Voter
         return true;
     }
 
-    private function canEditCompetence(Personnel|Etudiant $user): bool
+    private function canEditCompetence(Personnel|Etudiant $user, mixed $subject = null): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS'
-        ]);
+        ], $subject);
     }
 
     private function canDeleteCompetence(Personnel|Etudiant $user): bool
@@ -194,14 +194,14 @@ class ApcVoter extends Voter
         return true;
     }
 
-    private function canEditNiveau(Personnel|Etudiant $user): bool
+    private function canEditNiveau(Personnel|Etudiant $user, mixed $subject = null): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS'
-        ]);
+        ], $subject);
     }
 
     private function canDeleteNiveau(Personnel|Etudiant $user): bool
@@ -220,14 +220,14 @@ class ApcVoter extends Voter
         return true;
     }
 
-    private function canEditParcours(Personnel|Etudiant $user): bool
+    private function canEditParcours(Personnel|Etudiant $user, mixed $subject = null): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS'
-        ]);
+        ], $subject);
     }
 
     private function canDeleteParcours(Personnel|Etudiant $user): bool
@@ -246,14 +246,14 @@ class ApcVoter extends Voter
         return true;
     }
 
-    private function canEditAc(Personnel|Etudiant $user): bool
+    private function canEditAc(Personnel|Etudiant $user, mixed $subject = null): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS'
-        ]);
+        ], $subject);
     }
 
     private function canDeleteAc(Personnel|Etudiant $user): bool

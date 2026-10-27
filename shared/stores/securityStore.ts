@@ -8,6 +8,7 @@ export const useSecurity = defineStore('security', () => {
   const departments = ref<any[]>([]);
   const activePackages = ref<string[]>([]);
   const resolvedPermissions = ref<string[]>([]);
+  const scopedPermissions = ref<Record<string, { diplomeIds: number[] }>>({});
   const isLoaded = ref(false);
   const isLoading = ref(false);
 
@@ -22,6 +23,7 @@ export const useSecurity = defineStore('security', () => {
         departments.value = response.departments || [];
         activePackages.value = response.packages || [];
         resolvedPermissions.value = response.permissions || [];
+        scopedPermissions.value = response.scopedPermissions || {};
         isLoaded.value = true;
       }
     } catch (e) {
@@ -50,11 +52,13 @@ export const useSecurity = defineStore('security', () => {
       return true;
     }
 
-    if (packageName === 'intranet' || packageName === 'auth' || packageName === 'documents' || packageName === 'document') {
+    if (packageName === 'auth') {
       return true;
     }
     if (!isLoaded.value) return false;
-    return activePackages.value.includes(packageName);
+    const aliases: Record<string, string> = { stages: 'stage', document: 'documents' };
+    const normalized = aliases[packageName] || packageName;
+    return activePackages.value.some(name => (aliases[name] || name) === normalized);
   };
 
   const reset = () => {
@@ -63,6 +67,7 @@ export const useSecurity = defineStore('security', () => {
     departments.value = [];
     activePackages.value = [];
     resolvedPermissions.value = [];
+    scopedPermissions.value = {};
     isLoaded.value = false;
   };
 
@@ -72,6 +77,7 @@ export const useSecurity = defineStore('security', () => {
     departments,
     activePackages,
     resolvedPermissions,
+    scopedPermissions,
     isLoaded,
     isLoading,
     loadSecurityContext,

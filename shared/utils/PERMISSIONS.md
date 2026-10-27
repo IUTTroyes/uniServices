@@ -1,323 +1,127 @@
-# Système de Gestion des Droits d'Accès
+# Droits et rôles UniServices
 
-Ce document décrit le système de gestion des droits d'accès utilisé dans l'application UniServices. Il explique comment utiliser les différentes méthodes pour contrôler l'affichage et l'accès aux fonctionnalités en fonction des rôles et permissions des utilisateurs.
+## Modèle retenu
 
-## Vue d'ensemble
+Un compte est de type **Personnel** (`personnels`) ou **Étudiant** (`etudiants`). Ce sont des types d'identité, pas des responsabilités administratives à attribuer à un étudiant.
 
-Le système de gestion des droits d'accès est basé sur deux approches complémentaires :
+Pour le personnel, chaque `StructureDepartementPersonnel` porte :
 
-1. **Directive Vue (`v-permission`)** : Pour le contrôle simple de visibilité des éléments dans les templates
-2. **Composant `PermissionGuard`** : Pour des scénarios plus complexes nécessitant un contenu alternatif
+- les applications activées (`packages`) ;
+- les rôles métier (`permissions`) ;
+- les diplômes de la responsabilité de parcours (`responsableParcoursDiplomes`), si ce rôle est attribué.
 
-Ces deux approches utilisent la même logique sous-jacente définie dans le fichier `permissions.js`.
+Les droits se cumulent dans le département actif. Changer de département recharge le contexte. Un rôle de comptabilité, de référent ou de responsable de parcours n'accorde pas automatiquement les fonctions d'un chef de département ou d'un super administrateur.
 
-## Architecture Modulaire des Droits (Symfony + Vue 3)
+Le serveur résout les rôles et héritages via `PermissionRegistry`, les providers des bundles et `PermissionResolver`. Le navigateur utilise `GET /api/me/security-context` :
 
-Depuis la refactorisation de la gestion des accès, les droits sont structurés de manière modulaire :
+- `permissions` : droits résolus, sans rôle de parcours global ;
+- `packages` : applications activées ;
+- `currentDepartment` : département actif ;
+- `scopedPermissions.ROLE_RESP_PARCOURS.diplomeIds` : liste des diplômes de la responsabilité valide.
 
-1. **Activation des Applications par Département** : Pour le personnel, la liste des applications actives provient des `packages` de l'affectation départementale active (`StructureDepartementPersonnel.packages`).
-2. **Droits par Département (Local)** : Dans chaque département d'affectation, l'utilisateur possède :
-   - Une liste de **packages actifs** (ex: `intranet`, `stages`, `questionnaire`).
-   - Une liste de **permissions/rôles spécifiques** (ex: `ROLE_CHEF_DEPARTEMENT`, `ROLE_STAGE_MANAGER`).
+`userStore.hasRole` et `permissions.js` utilisent le contexte résolu pour les rôles métier. Ils refusent ces droits si le contexte n'est pas chargé ou correspond à un autre département. Les rôles temporaires simulent uniquement l'affichage ; ils ne modifient jamais les droits serveur.
 
-### Résolution dynamique et unifiée (`securityStore`)
-Le serveur résout à chaque chargement de contexte de sécurité (`/api/security/context`) les droits de l'utilisateur pour le département actif.
-- `resolvedPermissions` contient la liste à plat des rôles autorisés.
-- `activePackages` contient la liste des packages actifs.
+## Catalogue de responsabilités
 
-### Vérification de l'activation d'un Package (`package:<nom>`)
-Dans le frontend, vous pouvez désormais vérifier si un package est activé pour l'utilisateur dans son département actuel en utilisant le préfixe `package:` dans `v-permission` ou `PermissionGuard`.
+Le catalogue des propriétés côté Vue est centralisé dans `roleCatalog.js`. Le catalogue attribuable de l'écran de configuration provient du serveur (`GET /api/security/permissions`).
 
-**Exemples** :
-- `v-permission="'package:stages'"` : L'élément ne s'affiche que si le package de gestion des stages est actif.
-- `v-permission="'package:questionnaire'"` : L'élément ne s'affiche que si le questionnaire est activé.
+| Responsabilité | Propriété Vue | Rôle serveur | Portée / accès associé |
+|---|---|---|---|
+| Chef de département | `isChefDepartement` | `ROLE_CHEF_DEPARTEMENT` | Département, fonctions de direction prévues par les voters |
+| Directeur des études | `isDirecteurEtudes` | `ROLE_DIRECTEUR_ETUDES` | Département, fonctions pédagogiques prévues par les voters |
+| Responsable de parcours | `isRespParcours` | `ROLE_RESP_PARCOURS` | **Un ou plusieurs diplômes du département**, contrôle de chaque ressource |
+| Assistant de formation | `isAssistant` | `ROLE_ASSISTANT` | Département, fonctions administratives existantes |
+| Référent UniServices | `isReferent` | `ROLE_REFERENT` | Coordination, aucun accès super administrateur implicite |
+| Référent Edusign | `isEdusign` | `ROLE_EDUSIGN` | Fonctions Edusign explicitement protégées |
+| Responsable des absences | `isAbsence` | `ROLE_ABSENCE` | Gestion des absences |
+| Responsable des stages | `isStage` | `ROLE_STAGE_MANAGER` | Gestion des stages, application `stage` / `stages` |
+| Responsable des emplois du temps | `isEdt` | `ROLE_EDT` | Fonctions EDT prévues par les voters |
+| Responsable des notes | `isNote` | `ROLE_NOTES_MANAGER` | Gestion des évaluations et notes prévue par les voters |
+| Référent communication | `isRelaiComm` | `ROLE_RELAI_COMM` | Coordination de la communication |
+| Référent Intranet | `isReferentIntranet` | `ROLE_REFERENT_INTRANET` | Coordination Intranet |
+| Référent Portfolio | `isReferentPortfolio` | `ROLE_REFERENT_PORTFOLIO` | Coordination Portfolio, application `unifolio` |
+| Référent Projet | `isReferentProjet` | `ROLE_REFERENT_PROJET` | Coordination des projets |
+| Service informatique | `isInformatique` | `ROLE_INFORMATIQUE` | Accès explicitement associés au service, aucun super administrateur implicite |
+| Service comptabilité | `isCompta` | `ROLE_COMPTA` | Fonctions comptables existantes, compatibilité `ROLE_COMPTABILITE` |
+| Service qualité | `isQualite` | `ROLE_QUALITE` | Fonctions qualité explicitement protégées |
+| Service scolarité | `isScolarite` | `ROLE_SCOLARITE` | Gestion de la scolarité |
+| Direction | `isDirection` | `ROLE_DIRECTION` | Fonctions de direction existantes |
+| Super administrateur | `isSuperAdmin` | `SUPER_ADMIN` | Administration technique, attribuée dans le département actif |
 
-## Types d'utilisateurs et rôles
+Les nouvelles responsabilités de coordination sont définies et attribuables ; leur attribution ne crée **pas** d'autorisation d'écriture sur tous les objets d'un bundle. Une nouvelle action doit être protégée explicitement côté serveur et, pour l'affichage, côté Vue. Le référent Portfolio n'hérite pas automatiquement des rôles de correcteur/publication ; le service informatique n'hérite pas automatiquement de l'administration Helpdesk ; la comptabilité n'hérite pas automatiquement de la validation financière.
 
-Le système distingue deux types principaux d'utilisateurs :
+Les anciens noms `ROLE_NOTE` / `ROLE_RESP_NOTES` et `ROLE_STAGE` sont convertis lors de la résolution vers `ROLE_NOTES_MANAGER` et `ROLE_STAGE_MANAGER`. Les données historiques ne sont pas supprimées.
 
-- **Étudiants** (`isEtudiant`)
-- **Personnel** (`isPersonnel`)
+## Responsable de parcours : rattachement obligatoire
 
-### Hiérarchie des rôles et source des permissions
+L'écran Gestion des accès propose les diplômes du département de l'affectation. Il faut sélectionner **au moins un diplôme** pour enregistrer ce rôle. L'API valide la même contrainte, même si le navigateur est contourné. Le champ utilise une relation Doctrine et une clé étrangère ; la suppression d’un diplôme retire son rattachement.
 
-Le système utilise les rôles/permissions du **département actif** comme source unique pour le personnel :
+Le rôle est refusé si le lien manque, si l’un des diplômes change de département, si Intranet est désactivé ou si la ressource concerne un diplôme non attribué. Les anciens rôles sans diplôme restent visibles pour correction mais ne donnent aucun droit de parcours.
 
-1. **Rôles du département actif** (`StructureDepartementPersonnel.permissions`) : rôles métier spécifiques au département dans lequel l'utilisateur est actuellement positionné.
-2. **Rôle structurel** (`ROLE_PERSONNEL` ou `ROLE_ETUDIANT`) : déduit du type d'utilisateur connecté.
-3. **Permission super admin** (`SUPER_ADMIN`) : lue depuis `StructureDepartementPersonnel.permissions` du département actif.
+Une relation `StructureDiplome.responsableDiplome` existait déjà : elle décrit le responsable pédagogique affiché sur le diplôme et conserve ses contrôles existants. Elle ne remplace pas l'attribution explicite d'une responsabilité de parcours dans les accès. Pour éviter une double saisie métier, une synchronisation pourra être décidée ultérieurement ; aucune nomination n'est déduite automatiquement.
 
-### Détection du bundle actif
+### Vérification côté serveur
 
-La clé applicative est déduite automatiquement depuis `import.meta.env.BASE_URL` (configuré par Vite via `base:` dans `vite.config.js`) :
+```php
+// Contrôle explicite sur un diplôme ou un objet possédant un diplôme identifiable.
+$permissions->hasPermission($user, 'ROLE_RESP_PARCOURS', $diplome);
+$this->isGranted('ROLE_RESP_PARCOURS', $diplome);
 
-| Bundle | `base:` Vite | Clé applicative |
-|---|---|---|
-| intranet-bundle | `/intranet/` | `intranet` |
-| edt-bundle | `/edt/` | `edt` |
-| helpdesk-bundle | `/helpdesk/` | `helpdesk` |
-| auth-bundle | `/auth/` | `auth` |
-| unifolio-bundle | `/unifolio/` | `unifolio` |
-
-Exemple de structure `permissions` dans `StructureDepartementPersonnel` :
-
-```json
-["ROLE_CHEF_DEPARTEMENT", "ROLE_STAGE_MANAGER", "ROLE_EDT"]
+// Sans sujet : le rôle de parcours est refusé.
+$permissions->hasPermission($user, 'ROLE_RESP_PARCOURS'); // false
 ```
 
-Un personnel connecté hérite des rôles définis sur son affectation départementale active.
+`DiplomeScope` remonte les relations académiques d'un objet : diplôme, semestre, PN, année, évaluation, enseignement, UE, niveau ou référentiel. Une collection doit contenir un seul élément pour être retenue. Une ressource partagée, inconnue ou sans diplôme identifiable n'est pas autorisée au seul titre de ce rôle. Les droits indépendants de l'utilisateur restent applicables : être également chef de département peut donc accorder un accès plus large.
 
-### Changement de département
+Les voters Structure, Scolarité, APC, Post, Prévisionnel et Questionnaire transmettent le sujet pour leurs branches utilisant ce rôle. Les opérations sur des collections ou des objets partagés nécessitent une politique dédiée ; il ne faut pas simplement tester le rôle sans sujet.
 
-Lorsque l'utilisateur change de département actif, les rôles sont automatiquement rechargés et tous les éléments protégés par `v-permission` ou `PermissionGuard` se réévaluent dynamiquement.
-
- Cette hiérarchie est respectée même lors de l'utilisation des rôles temporaires (impersonnalisation). Par exemple, si vous sélectionnez le rôle temporaire "Scolarité", les vérifications pour `isPersonnel` renverront également `true`.
-
-### Liste des rôles spécifiques au Personnel
-
-- `isAssistant` - Assistants administratifs
-- `isQualite` - Responsables qualité
-- `isCompta` - Service comptabilité
-- `isScolarite` - Service scolarité
-- `isDirection` - Direction
-- `isChefDepartement` - Chefs de département
-- `isRespParcours` - Responsables de parcours
-- `isDirecteurEtudes` - Directeurs d'études
-- `isAbsence` - Gestionnaires des absences
-- `isNote` - Gestionnaires des notes
-- `isEdt` - Gestionnaires des emplois du temps
-- `isStage` - Gestionnaires des stages
-- `isRelaiComm` - Relais communication
-- `isEdusign` - Utilisateurs Edusign
-- `isSuperAdmin` - Super administrateurs
-
-## Accès SuperAdmin
-
-Les utilisateurs ayant le rôle `isSuperAdmin` bénéficient d'un accès complet à toutes les fonctionnalités de l'application, indépendamment des permissions spécifiques requises. Le système est configuré pour accorder automatiquement toutes les permissions aux superAdmins.
-
-Cela signifie que :
-- Un superAdmin peut voir et modifier toutes les données
-- Un superAdmin peut accéder à toutes les fonctionnalités
-- Il n'est pas nécessaire d'ajouter explicitement le rôle superAdmin à chaque vérification de permission
-
-Cette approche simplifie la gestion des droits pour les administrateurs système tout en maintenant un contrôle d'accès granulaire pour les autres utilisateurs.
-
-## Permissions composées
-
-En plus des rôles simples, le système définit des permissions composées qui combinent plusieurs rôles :
-
-- `canViewAdministration` - Peut accéder aux fonctionnalités d'administration
-- `canViewEtudiantDetails` - Peut voir les détails des étudiants
-- `canEditEtudiantDetails` - Peut modifier les détails des étudiants
-- `canViewPersonnelDetails` - Peut voir les détails du personnel
-- `canEditPersonnelDetails` - Peut modifier les détails du personnel
-- `canViewNotes` - Peut voir les notes
-- `canEditAbsences` - Peut modifier les absences
-
-## Utilisation de la directive `v-permission`
-
-La directive `v-permission` permet de contrôler la visibilité d'un élément en fonction des permissions de l'utilisateur. Elle est réactive et s'adapte automatiquement aux changements du store (chargement des données, changement de rôle temporaire) grâce à un observateur (`watch`) interne.
-
-> **Note importante** : Contrairement au composant `PermissionGuard` qui peut supprimer complètement le contenu du DOM ou afficher un contenu alternatif, la directive `v-permission` utilise la propriété CSS `display: none !important` pour masquer l'élément si l'utilisateur n'a pas les droits. Cela garantit que l'élément peut réapparaître dynamiquement si les permissions changent sans nécessiter un remontage du composant.
-
-### Exemples
-
-```vue
-<!-- Visible uniquement pour les utilisateurs du service scolarité -->
-<div v-permission="'isScolarite'">
-  Contenu réservé au service scolarité
-</div>
-
-<!-- Visible pour les utilisateurs du service scolarité OU de la direction -->
-<div v-permission="['isScolarite', 'isDirection']">
-  Contenu visible par la scolarité ou la direction
-</div>
-
-<!-- Visible uniquement pour les utilisateurs ayant TOUS les rôles spécifiés -->
-<div v-permission="{permissions: ['isScolarite', 'isDirection'], requireAll: true}">
-  Contenu visible uniquement si l'utilisateur a les deux rôles
-</div>
-```
-
-## Utilisation du composant `PermissionGuard`
-
-Le composant `PermissionGuard` offre plus de flexibilité que la directive, notamment la possibilité d'afficher un contenu alternatif lorsque l'utilisateur n'a pas les permissions requises.
-
-### Exemples
-
-```vue
-<!-- Affichage conditionnel simple -->
-<PermissionGuard permission="isScolarite">
-  <p>Contenu visible uniquement par le service scolarité</p>
-</PermissionGuard>
-
-<!-- Avec contenu alternatif -->
-<PermissionGuard permission="isScolarite" :showFallback="true">
-  <p>Contenu visible uniquement par le service scolarité</p>
-
-  <template #fallback>
-    <p>Vous n'avez pas accès à ce contenu</p>
-  </template>
-</PermissionGuard>
-
-<!-- Avec plusieurs permissions (OR logique) -->
-<PermissionGuard :permission="['isEtudiant', 'canViewEtudiantDetails']">
-  <p>Contenu visible par l'étudiant lui-même ou par les utilisateurs autorisés</p>
-</PermissionGuard>
-
-<!-- Avec plusieurs permissions (AND logique) -->
-<PermissionGuard
-  :permission="['canViewAdministration', { permission: 'canManageEvaluation', context: { evaluation } }]"
-  :requireAll="true"
->
-  <p>Contenu visible uniquement si les deux permissions sont validées</p>
-</PermissionGuard>
-```
-
-## Vérification programmatique des permissions
-
-Pour vérifier les permissions dans le code JavaScript, utilisez la fonction `hasPermission` :
-
-```javascript
-import { hasPermission } from '@utils';
-
-// Vérification simple
-if (hasPermission('isScolarite')) {
-  // Code exécuté uniquement pour les utilisateurs du service scolarité
-}
-
-// Vérification multiple (OR logique par défaut)
-if (hasPermission(['isScolarite', 'isDirection'])) {
-  // Code exécuté si l'utilisateur a au moins un des rôles
-}
-
-// Vérification multiple avec AND logique
-if (hasPermission(['isScolarite', 'isDirection'], { requireAll: true })) {
-  // Code exécuté uniquement si l'utilisateur a tous les rôles
-}
-```
-
-## Gestion des accès aux routes (Vue Router)
-
-Le système de permissions est intégré aux gardes de navigation de Vue Router (`router.beforeEach`) dans chaque bundle (`auth`, `intranet`, `edt`).
-
-### Configuration des routes
-
-Pour protéger une route, ajoutez une propriété `permission` dans l'objet `meta` de la définition de la route :
-
-```javascript
-// Exemple dans un fichier de routes
-export default [
-  {
-    path: 'gestion-acces',
-    component: GestionAccesView,
-    name: 'gestion-acces',
-    meta: {
-      permission: 'isSuperAdmin', // Permission requise
-      breadcrumb: [/* ... */]
-    },
-  }
-]
-```
-
-### Fonctionnement du garde de navigation
-
-Dans chaque `router/index.js`, le garde effectue les actions suivantes :
-1. Attend l'initialisation de l'authentification (`userStore.initAuth()`).
-2. Charge les données de l'utilisateur si nécessaire (`userStore.getUser()`).
-3. Vérifie la permission définie dans `to.meta.permission`.
-   - Si la route actuelle n'a pas de permission, il vérifie les routes parentes (`to.matched`).
-4. Si la permission est manquante, l'utilisateur est redirigé vers la page `/access` (Accès Refusé).
-
-### Cas particuliers
-
-- **Routes publiques** : Marquez les routes publiques avec `meta: { public: true }` pour ignorer les vérifications d'authentification et de permissions.
-- **Permissions héritées** : Si une route parente possède une permission, toutes ses routes enfants en héritent automatiquement, sauf si elles définissent leur propre permission plus restrictive.
-
-## Bonnes pratiques
-
-1. **Cohérence** : Utilisez les mêmes permissions pour les mêmes types d'actions dans toute l'application
-2. **Granularité** : Créez des permissions spécifiques plutôt que de réutiliser des rôles généraux
-3. **Documentation** : Commentez l'utilisation des permissions dans le code pour faciliter la maintenance
-4. **Sécurité** : N'oubliez pas que les contrôles côté client ne sont pas suffisants - assurez-vous que les API sont également protégées
-
-## Extension du système
-
-Pour ajouter de nouvelles permissions composées, modifiez le fichier `permissions.js` en ajoutant une nouvelle condition dans la fonction `checkSinglePermission`.
-
-## Permissions contextuelles (avancé)
-
-Au-delà des rôles et des permissions composées, vous pouvez définir des permissions « contextuelles » qui dépendent d’un objet métier (ex.: une évaluation).
-
-Format pris en charge partout (directive, composant, code JS) via `hasPermission`:
-
-- Objet contextuel: `{ permission: string, context?: any }`
-- Exemple pratique: `canManageEvaluation` utilise `context.evaluation`
-
-Exemples d’utilisation:
-
-```vue
-<!-- Dans un template avec PermissionGuard -->
-<PermissionGuard :permission="{ permission: 'canManageEvaluation', context: { evaluation } }">
-  <!-- contenu autorisé -->
-</PermissionGuard>
-
-<!-- Combiner avec d’autres permissions (OR par défaut) -->
-<PermissionGuard :permission="[{ permission: 'canManageEvaluation', context: { evaluation } }, 'isDirection']"/>
-
-<!-- Combiner avec d’autres permissions (AND) -->
-<PermissionGuard
-  :permission="[
-    { permission: 'canManageEvaluation', context: { evaluation } },
-    'canViewAdministration'
-  ]"
-  :requireAll="true"
-/>
-```
+### Vérification côté Vue
 
 ```js
-// En JavaScript
-import { hasPermission } from '@utils/permissions';
-
-if (hasPermission({ permission: 'canManageEvaluation', context: { evaluation } })) {
-  // ...
-}
-
-// OR (par défaut)
-if (hasPermission([
-  { permission: 'canManageEvaluation', context: { evaluation } },
-  'canViewAdministration'
-])) {
-  // ...
-}
-
-// AND
-if (hasPermission([
-  { permission: 'canManageEvaluation', context: { evaluation } },
-  'canViewAdministration'
-], { requireAll: true })) {
-  // ...
-}
+hasPermission({ permission: 'isRespParcours', context: { diplome: { id: 12 } } });
+hasPermission({ permission: 'canViewNotes', context: { diplome: 12 } });
+userStore.isResponsableParcours(diplome);
 ```
 
-Déclaration des handlers contextuels:
-- Dans `permissions.js`, ajoutez une entrée au registre `contextualHandlers`:
+```vue
+<PermissionGuard :permission="{ permission: 'isRespParcours', context: { diplome } }">
+  <!-- contenu limité au diplôme -->
+</PermissionGuard>
+<div v-permission="{ permission: 'canViewNotes', context: { diplome } }" />
+```
+
+`userStore.isRespParcours` indique qu'une responsabilité valide existe, pour afficher une entrée de navigation. Pour autoriser une action, utiliser le contrôle contextuel. `hasPermission('isRespParcours')` seul ne suffit pas et renvoie `false` hors dérogation super administrateur.
+
+## Permissions composées et affichage
+
+Les permissions existantes `canViewAdministration`, `canViewEtudiantDetails`, `canEditEtudiantDetails`, `canViewPersonnelDetails`, `canEditPersonnelDetails`, `canViewNotes` et `canEditAbsences` restent disponibles. Une branche basée sur le responsable de parcours exige le contexte du diplôme, sauf `canViewAdministration` qui permet uniquement d'ouvrir la navigation lorsqu'une responsabilité valide existe. Cette permission de navigation ne doit jamais servir à autoriser une opération sur des données.
+
+Les points d'accès dédiés sont `canManageStages`, `canManageEdt`, `canManageNotes`, `canUseEdusign`, `canCoordinateUniservices`, `canCoordinateIntranet`, `canCoordinatePortfolio`, `canCoordinateProjet`, `canManageCommunication`, `canAccessInformatique`, `canAccessComptabilite` et `canAccessQualite`. Ils ne remplacent pas les voters des actions serveur.
 
 ```js
-const contextualHandlers = {
-  canManageEvaluation: ({ userStore, context }) => {
-    const evaluation = context?.evaluation;
-    if (!evaluation) return false;
-    if (userStore.isSuperAdmin || userStore.isNote) return true;
-    // Vérification d’appartenance dans evaluation.personnelAutorise ...
-    return /* true/false */
-  },
-  // Ajoutez vos propres handlers ici
-};
+hasPermission('isAssistant');
+hasPermission(['isAssistant', 'isScolarite']); // OU
+hasPermission(['isAssistant', 'package:intranet'], { requireAll: true }); // ET
+hasPermission({ permissions: ['isAssistant', 'package:intranet'], requireAll: true });
+hasPermission({ permission: 'canManageEvaluation', context: { evaluation } });
 ```
 
-Bonnes pratiques:
-- Gardez la logique serveur alignée (Voter/Policy) pour la sécurité.
-- Nommez les permissions contextuelles de manière explicite (`canManageX`, `canEditY`).
-- Réutilisez `hasPermission` pour composer simplement des règles plus riches.
-- Préférez `:requireAll="true"` sur `PermissionGuard` (ou `{ requireAll: true }` avec `hasPermission`) lorsque plusieurs règles doivent être satisfaites simultanément.
+```vue
+<PermissionGuard :permission="['isAssistant', 'package:intranet']" :requireAll="true" />
+<div v-permission="{ permissions: ['isAssistant', 'package:intranet'], requireAll: true }" />
+```
+
+La directive observe les changements de droits et de contexte ; elle masque l'élément sans le supprimer. `PermissionGuard` propose un slot `fallback`. Aucun de ces mécanismes ne protège les données téléchargées dans le navigateur.
+
+Les types Personnel/Étudiant restent distincts, même pour le super administrateur. `false` reste un refus explicite. Les applications sont vérifiées dans `activePackages` ; seul le shell `auth` est systématiquement accessible, avec la dérogation super administrateur existante.
+
+## Déploiement et vérifications
+
+1. Appliquer la migration `back/migrations/Version20261027160000.php` avec le processus habituel de déploiement. Elle crée une table de rattachement multiple et y copie les liens existants avant de supprimer la colonne unique. Elle succède à `Version20261027144343` et ne choisit aucun diplôme arbitrairement.
+2. Dans Gestion des accès, compléter les anciens responsables de parcours avec un ou plusieurs diplômes de leur département, ou retirer le rôle.
+3. Recharger le contexte de sécurité après modification des droits.
+4. Exécuter `php back/tests/Security/DepartmentRolesTest.php`, puis `npm exec -- vitest run --config shared/utils/__tests__/vitest.config.js` et `npm run build:shell`.
+
+L'écriture des affectations (création, modification, suppression) est réservée à `SUPER_ADMIN`. Le changement de département personnel conserve son processeur qui vérifie la propriété de l'affectation.
+
+Voir également [l'audit des limites restantes](../../docs/SECURITE_ROLES_IUT.md). Cette évolution ne constitue pas une sécurisation exhaustive de toutes les API.

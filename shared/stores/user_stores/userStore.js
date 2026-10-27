@@ -7,7 +7,7 @@ import {
     getUserService,
     updateUserService
 } from "@requests";
-import {useDepartementStore} from '@stores';
+import {useDepartementStore, useSecurity} from '@stores';
 import noImage from "@images/photos_etudiants/noimage.png";
 import { getAuthenticatedUser, logout as authLogout } from "@helpers/authService";
 
@@ -239,6 +239,7 @@ export const useUsersStore = defineStore('users', () => {
                 }
             }
             isLoaded.value = true;
+            await useSecurity().loadSecurityContext();
             return user.value;
         } catch (error) {
             console.error('Error fetching user:', error);
@@ -336,50 +337,24 @@ export const useUsersStore = defineStore('users', () => {
         temporaryRole.value = null;
     };
 
-    // Clé applicative déduite dynamiquement depuis l'URL active de la SPA
-    // (ne pas utiliser useRouter/useRoute dans un store)
-    const currentAppKey = computed(() => {
-        const pathname = window.location.pathname || '/';
-        const segments = pathname.split('/').filter(Boolean);
-        if (segments.length > 0) {
-            const first = segments[0];
-            if (first === 'app') {
-                return segments[1] || null;
-            }
-            return first;
-        }
-        return null;
-    });
-
-    // Rôles actifs pour l'application courante dans le département par défaut
-    // Source principale : departementPersonnel.permissions (format actuel)
-    // Compatibilité legacy : departementPersonnel.roles indexé par clé applicative
+    // Le contexte résolu par le serveur est la source des rôles métier.
     const rolesActifs = computed(() => {
-        const dp = departementDefaut.value?.departementPersonnel;
-        const appKey = currentAppKey.value;
-
-        if (!dp) {
-            return userType.value === 'etudiants' ? ['ROLE_ETUDIANT'] : [];
-        }
-
-        if (Array.isArray(dp.permissions)) {
-            return dp.permissions;
-        }
-
-        if (appKey && dp?.roles && typeof dp.roles === 'object') {
-            const appRoles = dp.roles[appKey];
-            // Format tableau : { "intranet": ["ROLE_X", "ROLE_Y"] }
-            if (Array.isArray(appRoles)) {
-                return appRoles;
-            }
-            // Format string unique : { "intranet": "ROLE_X" }
-            if (typeof appRoles === 'string' && appRoles.trim().length > 0) {
-                return [appRoles.trim()];
-            }
-        }
-
-        return [];
+        const security = useSecurity();
+        return security.isLoaded && String(security.currentDepartment?.id) === String(departementDefaut.value?.id)
+            ? security.resolvedPermissions : [];
     });
+
+    const isResponsableParcours = (diplome) => {
+        const security = useSecurity();
+        const id = typeof diplome === 'object' ? diplome?.id : diplome;
+        const scope = security.scopedPermissions?.ROLE_RESP_PARCOURS;
+        return isPersonnel.value
+            && security.isLoaded
+            && String(security.currentDepartment?.id) === String(departementDefaut.value?.id)
+            && (!temporaryRole.value || temporaryRole.value === 'ROLE_RESP_PARCOURS')
+            && Array.isArray(scope?.diplomeIds) && id != null
+            && scope.diplomeIds.some(diplomeId => String(id) === String(diplomeId));
+    };
 
     // Vérifie si un rôle spécifique est actif.
     // Priorité :
@@ -387,7 +362,8 @@ export const useUsersStore = defineStore('users', () => {
     //   2. SUPER_ADMIN → lu depuis les permissions du département actif
     //   3. ROLE_PERSONNEL/ROLE_ETUDIANT → déduit du type d'utilisateur
     //   4. Rôles métier → lus depuis rolesActifs (département actif)
-    const hasRole = (role) => {
+    const hasRole = (role, diplome = null) => {
+        if (role === 'ROLE_RESP_PARCOURS') return isResponsableParcours(diplome);
         if (temporaryRole.value) {
             // Correspondance exacte
             if (temporaryRole.value === role) {
@@ -405,8 +381,7 @@ export const useUsersStore = defineStore('users', () => {
 
         // SUPER_ADMIN vient des permissions du département actif
         if (role === 'SUPER_ADMIN') {
-            const permissions = departementDefaut.value?.departementPersonnel?.permissions;
-            return Array.isArray(permissions) ? permissions.includes('SUPER_ADMIN') : false;
+            return rolesActifs.value.includes('SUPER_ADMIN');
         }
 
         // Rôle structurel déduit du type d'utilisateur
@@ -435,21 +410,24 @@ export const useUsersStore = defineStore('users', () => {
         return userType.value === 'etudiants';
     });
 
-    //todo: sand doute à revoir ? Les rôles ne devrait pas être en dur ici
     const isAssistant = computed(() => hasRole('ROLE_ASSISTANT'));
     const isQualite = computed(() => hasRole('ROLE_QUALITE'));
     const isCompta = computed(() => hasRole('ROLE_COMPTA'));
     const isScolarite = computed(() => hasRole('ROLE_SCOLARITE'));
     const isDirection = computed(() => hasRole('ROLE_DIRECTION'));
     const isChefDepartement = computed(() => hasRole('ROLE_CHEF_DEPARTEMENT'));
-    const isRespParcours = computed(() => hasRole('ROLE_RESP_PARCOURS'));
+    const isRespParcours = computed(() => isResponsableParcours(useSecurity().scopedPermissions?.ROLE_RESP_PARCOURS?.diplomeIds?.[0]));
     const isDirecteurEtudes = computed(() => hasRole('ROLE_DIRECTEUR_ETUDES'));
     const isAbsence = computed(() => hasRole('ROLE_ABSENCE'));
-    const isNote = computed(() => hasRole('ROLE_NOTE'));
+    const isNote = computed(() => hasRole('ROLE_NOTES_MANAGER'));
     const isEdt = computed(() => hasRole('ROLE_EDT'));
-    const isStage = computed(() => hasRole('ROLE_STAGE'));
+    const isStage = computed(() => hasRole('ROLE_STAGE_MANAGER'));
     const isRelaiComm = computed(() => hasRole('ROLE_RELAI_COMM'));
     const isEdusign = computed(() => hasRole('ROLE_EDUSIGN'));
+    const isReferentIntranet = computed(() => hasRole('ROLE_REFERENT_INTRANET'));
+    const isReferentPortfolio = computed(() => hasRole('ROLE_REFERENT_PORTFOLIO'));
+    const isReferentProjet = computed(() => hasRole('ROLE_REFERENT_PROJET'));
+    const isInformatique = computed(() => hasRole('ROLE_INFORMATIQUE'));
     const isAdmin = computed(() => hasRole('SUPER_ADMIN') || hasRole('ROLE_DIRECTION') || hasRole('ROLE_SCOLARITE') || hasRole('ROLE_ASSISTANT') || hasRole('ROLE_CHEF_DEPARTEMENT') || hasRole('ROLE_DIRECTEUR_ETUDES'));
     const isReferent = computed(() => hasRole('ROLE_REFERENT'));
     const isSuperAdmin = computed(() => hasRole('SUPER_ADMIN'));
@@ -489,6 +467,11 @@ export const useUsersStore = defineStore('users', () => {
         isDirection,
         isChefDepartement,
         isRespParcours,
+        isResponsableParcours,
+        isReferentIntranet,
+        isReferentPortfolio,
+        isReferentProjet,
+        isInformatique,
         isDirecteurEtudes,
         isAbsence,
         isNote,
@@ -503,7 +486,6 @@ export const useUsersStore = defineStore('users', () => {
         setTemporaryRole,
         clearTemporaryRole,
         temporaryRole,
-        currentAppKey,
         rolesActifs,
     };
 });

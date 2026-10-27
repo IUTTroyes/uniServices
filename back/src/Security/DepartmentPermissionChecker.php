@@ -24,10 +24,7 @@ class DepartmentPermissionChecker
             ]);
 
             if ($superAdminInDepartment) {
-                $resolvedPermissions = $this->resolver->resolve(
-                    $superAdminInDepartment->getPermissions(),
-                    $superAdminInDepartment->getPackages()
-                );
+                $resolvedPermissions = $this->resolver->resolveForDepartment($superAdminInDepartment);
 
                 if (in_array('SUPER_ADMIN', $resolvedPermissions, true)) {
                     return true;
@@ -55,7 +52,7 @@ class DepartmentPermissionChecker
                 return false;
             }
 
-            $resolvedPermissions = $this->resolver->resolve($dp->getPermissions(), $dp->getPackages());
+            $resolvedPermissions = $this->resolver->resolveForDepartment($dp);
 
             return in_array($permission, $resolvedPermissions, true);
         }

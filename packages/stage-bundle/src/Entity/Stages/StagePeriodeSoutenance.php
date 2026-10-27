@@ -18,9 +18,9 @@ use Symfony\Component\Serializer\Attribute\Groups;
     operations: [
         new Get(normalizationContext: ['groups' => ['stage_periode:read']]),
         new GetCollection(normalizationContext: ['groups' => ['stage_periode:read']]),
-        new Post(securityPostDenormalize: "is_granted('ROLE_STAGE')"),
-        new Patch(securityPostDenormalize: "is_granted('ROLE_STAGE')"),
-        new Delete(security: "is_granted('ROLE_STAGE')"),
+        new Post(securityPostDenormalize: "is_granted('ROLE_STAGE_MANAGER')"),
+        new Patch(securityPostDenormalize: "is_granted('ROLE_STAGE_MANAGER')"),
+        new Delete(security: "is_granted('ROLE_STAGE_MANAGER')"),
     ]
 )]
 class StagePeriodeSoutenance

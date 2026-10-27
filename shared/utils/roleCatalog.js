@@ -1,0 +1,27 @@
+// Catalogue partagé par les contrôles et la simulation de rôles.
+export const AVAILABLE_ROLES = [
+  { property: 'isPersonnel', label: 'Personnel', role: 'ROLE_PERSONNEL', scope: 'type' },
+  { property: 'isEtudiant', label: 'Étudiant', role: 'ROLE_ETUDIANT', scope: 'type' },
+  { property: 'isChefDepartement', label: 'Chef de département', role: 'ROLE_CHEF_DEPARTEMENT', scope: 'departement' },
+  { property: 'isDirecteurEtudes', label: 'Directeur des études', role: 'ROLE_DIRECTEUR_ETUDES', scope: 'departement' },
+  { property: 'isRespParcours', label: 'Responsable de parcours', role: 'ROLE_RESP_PARCOURS', scope: 'diplome' },
+  { property: 'isAssistant', label: 'Assistant de formation', role: 'ROLE_ASSISTANT', scope: 'departement' },
+  { property: 'isReferent', label: 'Référent UniServices', role: 'ROLE_REFERENT', scope: 'departement' },
+  { property: 'isEdusign', label: 'Référent Edusign', role: 'ROLE_EDUSIGN', scope: 'departement' },
+  { property: 'isAbsence', label: 'Responsable des absences', role: 'ROLE_ABSENCE', scope: 'departement' },
+  { property: 'isStage', label: 'Responsable des stages', role: 'ROLE_STAGE_MANAGER', scope: 'departement' },
+  { property: 'isEdt', label: 'Responsable des emplois du temps', role: 'ROLE_EDT', scope: 'departement' },
+  { property: 'isNote', label: 'Responsable des notes', role: 'ROLE_NOTES_MANAGER', scope: 'departement' },
+  { property: 'isRelaiComm', label: 'Référent communication', role: 'ROLE_RELAI_COMM', scope: 'departement' },
+  { property: 'isReferentIntranet', label: 'Référent Intranet', role: 'ROLE_REFERENT_INTRANET', scope: 'departement' },
+  { property: 'isReferentPortfolio', label: 'Référent Portfolio', role: 'ROLE_REFERENT_PORTFOLIO', scope: 'departement' },
+  { property: 'isReferentProjet', label: 'Référent Projet', role: 'ROLE_REFERENT_PROJET', scope: 'departement' },
+  { property: 'isInformatique', label: 'Service informatique', role: 'ROLE_INFORMATIQUE', scope: 'departement' },
+  { property: 'isCompta', label: 'Service comptabilité', role: 'ROLE_COMPTA', scope: 'departement' },
+  { property: 'isQualite', label: 'Service qualité', role: 'ROLE_QUALITE', scope: 'departement' },
+  { property: 'isScolarite', label: 'Service scolarité', role: 'ROLE_SCOLARITE', scope: 'departement' },
+  { property: 'isDirection', label: 'Direction', role: 'ROLE_DIRECTION', scope: 'departement' },
+  { property: 'isSuperAdmin', label: 'Super administrateur', role: 'SUPER_ADMIN', scope: 'departement' },
+];
+
+export const ROLE_MAP = Object.fromEntries(AVAILABLE_ROLES.map(({ property, role }) => [property, role]));

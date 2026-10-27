@@ -7,7 +7,9 @@
 /public/bundles/
 /var/
 /vendor/
-/migrations/
+/migrations/*
+!/migrations/Version20261027144343.php
+!/migrations/Version20261027160000.php
 ###< symfony/framework-bundle ###
 
 ###> lexik/jwt-authentication-bundle ###

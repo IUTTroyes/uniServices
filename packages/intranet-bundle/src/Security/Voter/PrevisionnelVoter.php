@@ -72,7 +72,7 @@ class PrevisionnelVoter extends Voter
             self::CAN_DELETE_PREVISIONNEL => $this->canDeletePrevisionnel($user),
 
             // Heures complémentaires
-            self::CAN_VIEW_HRS => $this->canViewHrs($user),
+            self::CAN_VIEW_HRS => $this->canViewHrs($user, $subject),
             self::CAN_EDIT_HRS => $this->canEditHrs($user),
             self::CAN_DELETE_HRS => $this->canDeleteHrs($user),
 
@@ -87,9 +87,9 @@ class PrevisionnelVoter extends Voter
         return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
-    private function hasAnyRole(Personnel $user, array $roles): bool
+    private function hasAnyRole(Personnel $user, array $roles, mixed $subject = null): bool
     {
-        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles, $subject);
     }
 
     // ========== Prévisionnel ==========
@@ -108,7 +108,7 @@ class PrevisionnelVoter extends Voter
             'ROLE_DIRECTEUR_ETUDES',
             'ROLE_RESP_PARCOURS',
             'ROLE_ASSISTANT'
-        ])) {
+        ], $subject)) {
             return true;
         }
 
@@ -118,7 +118,7 @@ class PrevisionnelVoter extends Voter
         }
 
         // Tous les permanents peuvent voir les prévisionnels
-        if ($this->hasAnyRole($user, ['ROLE_PERMANENT'])) {
+        if ($this->hasAnyRole($user, ['ROLE_PERMANENT'], $subject)) {
             return true;
         }
 
@@ -137,12 +137,12 @@ class PrevisionnelVoter extends Voter
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_DIRECTEUR_ETUDES'
-        ])) {
+        ], $subject)) {
             return true;
         }
 
         // Responsable de parcours peut modifier les prévisionnels de son parcours
-        if ($this->hasAnyRole($user, ['ROLE_RESP_PARCOURS'])) {
+        if ($this->hasAnyRole($user, ['ROLE_RESP_PARCOURS'], $subject)) {
             return true;
         }
 
@@ -161,7 +161,7 @@ class PrevisionnelVoter extends Voter
 
     // ========== Heures Complémentaires (HRS) ==========
 
-    private function canViewHrs(Personnel|Etudiant $user): bool
+    private function canViewHrs(Personnel|Etudiant $user, mixed $subject = null): bool
     {
         if (!$user instanceof Personnel) {
             return false;
@@ -176,12 +176,12 @@ class PrevisionnelVoter extends Voter
             'ROLE_RESP_PARCOURS',
             'ROLE_ASSISTANT',
             'ROLE_COMPTABILITE'
-        ])) {
+        ], $subject)) {
             return true;
         }
 
         // Un personnel peut voir ses propres heures
-        return $this->hasAnyRole($user, ['ROLE_PERMANENT']);
+        return $this->hasAnyRole($user, ['ROLE_PERMANENT'], $subject);
     }
 
     private function canEditHrs(Personnel|Etudiant $user): bool

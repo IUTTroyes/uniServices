@@ -269,7 +269,7 @@ class SecurityController extends AbstractController
                         'couleur' => $dept->getCouleur(),
                     ];
                     $activePackages = $dp->getPackages();
-                    $resolvedPermissions = $resolver->resolve($dp->getPermissions(), $activePackages);
+                    $resolvedPermissions = $resolver->resolveForDepartment($dp);
                 }
             }
 
@@ -283,7 +283,7 @@ class SecurityController extends AbstractController
                         'couleur' => $dept->getCouleur(),
                     ];
                     $activePackages = $dp->getPackages();
-                    $resolvedPermissions = $resolver->resolve($dp->getPermissions(), $activePackages);
+                    $resolvedPermissions = $resolver->resolveForDepartment($dp);
                 }
             }
         } elseif ($user instanceof Etudiant) {
@@ -323,6 +323,7 @@ class SecurityController extends AbstractController
             'departments' => $departmentsData,
             'packages' => $activePackages,
             'permissions' => $resolvedPermissions,
+            'scopedPermissions' => $effectivePermissionService->getScopedPermissions($user),
         ]);
     }
 

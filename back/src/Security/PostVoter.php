@@ -132,7 +132,7 @@ class PostVoter extends Voter
 
             // Scolarité
             self::CAN_VIEW_SCOL => $this->canViewScolarite($subject, $user),
-            self::CAN_EDIT_SCOL => $this->canEditScolarite($user),
+            self::CAN_EDIT_SCOL => $this->canEditScolarite($user, $subject),
             self::CAN_DELETE_SCOL => $this->canDeleteScolarite($user),
 
             // Evaluation
@@ -175,9 +175,9 @@ class PostVoter extends Voter
         return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
-    private function hasAnyRole(Personnel $user, array $roles): bool
+    private function hasAnyRole(Personnel $user, array $roles, mixed $subject = null): bool
     {
-        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles, $subject);
     }
 
     // ========== Etudiant ==========
@@ -231,7 +231,7 @@ class PostVoter extends Voter
                 'ROLE_DIRECTEUR_ETUDES',
                 'ROLE_RESP_PARCOURS',
                 'ROLE_PERMANENT'
-            ]);
+            ], $subject);
         }
 
         // Un étudiant peut voir sa propre scolarité
@@ -243,7 +243,7 @@ class PostVoter extends Voter
         return false;
     }
 
-    private function canEditScolarite(Personnel|Etudiant $user): bool
+    private function canEditScolarite(Personnel|Etudiant $user, mixed $subject = null): bool
     {
         if ($user instanceof Personnel) {
             return $this->hasAnyRole($user, [
@@ -254,7 +254,7 @@ class PostVoter extends Voter
                 'ROLE_ASSISTANT',
                 'ROLE_DIRECTEUR_ETUDES',
                 'ROLE_RESP_PARCOURS'
-            ]);
+            ], $subject);
         }
 
         return false;
@@ -280,9 +280,9 @@ class PostVoter extends Voter
                 'ROLE_ADMIN',
                 'ROLE_CHEF_DEPT',
                 'ROLE_RESP_PARCOURS',
-                'ROLE_RESP_NOTES',
+                'ROLE_NOTES_MANAGER',
                 'ROLE_PERMANENT'
-            ])) {
+            ], $subject)) {
                 return true;
             }
 
@@ -312,8 +312,8 @@ class PostVoter extends Voter
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS',
-            'ROLE_RESP_NOTES'
-        ])) {
+            'ROLE_NOTES_MANAGER'
+        ], $subject)) {
             return true;
         }
 
@@ -335,7 +335,7 @@ class PostVoter extends Voter
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
-            'ROLE_RESP_NOTES'
+            'ROLE_NOTES_MANAGER'
         ]);
     }
 
@@ -349,9 +349,9 @@ class PostVoter extends Voter
                 'ROLE_ADMIN',
                 'ROLE_CHEF_DEPT',
                 'ROLE_RESP_PARCOURS',
-                'ROLE_RESP_NOTES',
+                'ROLE_NOTES_MANAGER',
                 'ROLE_PERMANENT'
-            ])) {
+            ], $subject)) {
                 return true;
             }
 
@@ -389,8 +389,8 @@ class PostVoter extends Voter
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS',
-            'ROLE_RESP_NOTES'
-        ])) {
+            'ROLE_NOTES_MANAGER'
+        ], $subject)) {
             return true;
         }
 
@@ -410,7 +410,7 @@ class PostVoter extends Voter
         return $user instanceof Personnel && $this->hasAnyRole($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
-            'ROLE_RESP_NOTES'
+            'ROLE_NOTES_MANAGER'
         ]);
     }
 
@@ -547,7 +547,7 @@ class PostVoter extends Voter
                 'ROLE_DIRECTEUR_ETUDES',
                 'ROLE_RESP_PARCOURS',
                 'ROLE_PERMANENT'
-            ]);
+            ], $subject);
         }
 
         // Un étudiant peut voir sa propre scolarité

@@ -50,6 +50,7 @@ const togglePermission = (department, permissionName, enabled) => {
   if (enabled) permissions.add(permissionName)
   else permissions.delete(permissionName)
   department.permissions = [...permissions]
+  if (permissionName === 'ROLE_RESP_PARCOURS' && !enabled) department.responsableParcoursDiplomes = []
 }
 
 const becomeSuperAdminAllDepartments = () => {
@@ -60,8 +61,18 @@ const becomeSuperAdminAllDepartments = () => {
   })
 }
 
+const hasValidParcoursDiplomes = (department) => Array.isArray(department.responsableParcoursDiplomes)
+  && department.responsableParcoursDiplomes.length > 0
+  && department.responsableParcoursDiplomes.every(iri => (department.diplomes ?? []).some(diplome => diplome.iri === iri))
+
 const closeDialog = () => emit('update:isVisible', false)
-const save = () => emit('save')
+const hasInvalidParcours = computed(() => departments.value.some((department) =>
+  hasPermission(department, 'ROLE_RESP_PARCOURS')
+  && !hasValidParcoursDiplomes(department)
+))
+const save = () => {
+  if (!hasInvalidParcours.value) emit('save')
+}
 </script>
 
 <template>
@@ -198,6 +209,26 @@ const save = () => emit('save')
                     </div>
                   </div>
                 </Fieldset>
+                <Fieldset v-if="hasPermission(department, 'ROLE_RESP_PARCOURS')" legend="Diplômes du responsable de parcours">
+                  <label :for="`parcours-diplome-${departmentKey(department)}`" class="block mb-2 text-sm">
+                    Sélectionnez au moins un diplôme de ce département
+                  </label>
+                  <MultiSelect
+                      :input-id="`parcours-diplome-${departmentKey(department)}`"
+                      v-model="department.responsableParcoursDiplomes"
+                      :options="department.diplomes ?? []"
+                      option-label="libelle"
+                      option-value="iri"
+                      placeholder="Sélectionner les diplômes"
+                      display="chip"
+                      class="w-full"
+                      :invalid="!hasValidParcoursDiplomes(department)"
+                      filter
+                  />
+                  <Message v-if="!(department.diplomes ?? []).length" severity="warn" class="mt-2">
+                    Aucun diplôme dans ce département : ce rôle ne peut pas être attribué.
+                  </Message>
+                </Fieldset>
               </div>
             </TabPanel>
           </TabPanels>
@@ -206,7 +237,7 @@ const save = () => emit('save')
 
       <div class="mt-2 flex flex-wrap justify-end gap-2 border-t border-surface-300 pt-4">
         <Button label="Annuler" severity="secondary" text @click="closeDialog" />
-        <Button label="Enregistrer" icon="pi pi-save" @click="save" />
+        <Button label="Enregistrer" icon="pi pi-save" :disabled="hasInvalidParcours" @click="save" />
       </div>
     </div>
   </Dialog>

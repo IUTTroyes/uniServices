@@ -349,7 +349,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
             return [];
         }
 
-        return array_values(array_unique(array_map('strval', $activeDepartementPersonnel->getPermissions())));
+        return array_values(array_unique(array_diff(array_map('strval', $activeDepartementPersonnel->getPermissions()), ['ROLE_RESP_PARCOURS'])));
     }
 
     public function getPrenom(): ?string

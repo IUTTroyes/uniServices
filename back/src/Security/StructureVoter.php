@@ -154,7 +154,7 @@ class StructureVoter extends Voter
 
             // UE
             self::CAN_VIEW_UE => $this->canViewUe($user),
-            self::CAN_EDIT_UE => $this->canEditUe($user),
+            self::CAN_EDIT_UE => $this->canEditUe($user, $subject),
             self::CAN_DELETE_UE => $this->canDeleteUe($user),
 
             // PN
@@ -193,9 +193,9 @@ class StructureVoter extends Voter
         return $this->effectivePermissionService->isSuperAdmin($user);
     }
 
-    private function hasAnyRole(Personnel $user, array $roles): bool
+    private function hasAnyRole(Personnel $user, array $roles, mixed $subject = null): bool
     {
-        return $this->effectivePermissionService->hasAnyPermission($user, $roles);
+        return $this->effectivePermissionService->hasAnyPermission($user, $roles, $subject);
     }
 
     // ========== Département ==========
@@ -246,6 +246,10 @@ class StructureVoter extends Voter
             return true;
         }
 
+        if ($this->hasAnyRole($user, ['ROLE_RESP_PARCOURS'], $subject)) {
+            return true;
+        }
+
         // Le responsable du diplôme peut le modifier
         if ($subject instanceof StructureDiplome) {
             return $subject->getResponsableDiplome() === $user ||
@@ -284,7 +288,7 @@ class StructureVoter extends Voter
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS',
             'ROLE_DIRECTEUR_ETUDES'
-        ])) {
+        ], $subject)) {
             return true;
         }
 
@@ -343,14 +347,14 @@ class StructureVoter extends Voter
         return true;
     }
 
-    private function canEditUe(Personnel|Etudiant $user): bool
+    private function canEditUe(Personnel|Etudiant $user, mixed $subject = null): bool
     {
         return $user instanceof Personnel && $this->hasAnyRole($user, [
             'SUPER_ADMIN',
             'ROLE_ADMIN',
             'ROLE_CHEF_DEPT',
             'ROLE_RESP_PARCOURS'
-        ]);
+        ], $subject);
     }
 
     private function canDeleteUe(Personnel|Etudiant $user): bool
