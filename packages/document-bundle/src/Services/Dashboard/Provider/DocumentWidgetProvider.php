@@ -37,7 +37,9 @@ class DocumentWidgetProvider implements WidgetProviderInterface
                 'pi pi-folder',
                 'DocumentStatsWidget',
                 'small',
-                true
+                true,
+                allowedProfiles: [WidgetDefinition::PROFILE_PERSONNEL],
+                requiredPermissions: ['ROLE_REFERENT', 'ROLE_REFERENT_INTRANET', 'ROLE_DIRECTION', 'ROLE_CHEF_DEPARTEMENT']
             ),
         ];
     }

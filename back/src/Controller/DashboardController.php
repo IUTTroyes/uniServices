@@ -8,9 +8,10 @@ use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Repository\Dashboard\DashboardPreferenceRepository;
-use App\Repository\Structure\StructureDepartementPersonnelRepository;
 use App\Service\Dashboard\Core\DashboardRegistry;
 use App\Service\Dashboard\Core\WidgetDataRegistry;
+use App\Service\Dashboard\Core\WidgetAccessChecker;
+use App\Security\UserEffectivePermissionService;
 use App\Service\Dashboard\Core\WidgetRegistry as CoreWidgetRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,8 +24,9 @@ class DashboardController extends AbstractController
         private readonly CoreWidgetRegistry $coreWidgetRegistry,
         private readonly WidgetDataRegistry $widgetDataRegistry,
         private readonly DashboardPreferenceRepository $preferenceRepository,
-        private readonly StructureDepartementPersonnelRepository $structureDepartementPersonnelRepository,
         private readonly DashboardRegistry $dashboardRegistry,
+        private readonly WidgetAccessChecker $widgetAccessChecker,
+        private readonly UserEffectivePermissionService $permissions,
     ) {}
 
 
@@ -40,23 +42,20 @@ class DashboardController extends AbstractController
         $dashboardCode = $request->query->get('dashboardCode', 'portail');
         $structureDepartementPersonnelId = $request->query->get('structureDepartementPersonnelId');
 
-        $structureDepartementPersonnel = null;
-        if ($structureDepartementPersonnelId) {
-            $structureDepartementPersonnel = $this->structureDepartementPersonnelRepository->find($structureDepartementPersonnelId);
-        }
-        $accessibleBundles = $this->getAccessibleBundlesForUser($user, $structureDepartementPersonnel);
+        $structureDepartementPersonnel = $this->getActiveAssignment($user, $structureDepartementPersonnelId);
 
         // on recupere les preferences de l'utilisateur si elles existent
         $preferences = $this->preferenceRepository->findByUser($user, $structureDepartementPersonnel, $dashboardCode);
 
         $widgets = [];
         $dashboard = $this->dashboardRegistry->get($dashboardCode);
+        if ($dashboard === null) return new JsonResponse(['message' => 'Tableau de bord introuvable'], 404);
 
         if (empty($preferences)) {
             // Si aucune préférence n'existe, on charge le layout par défaut
             foreach ($dashboard->getDefaultLayout() as $layout) {
                 $widgetDefinition = $this->coreWidgetRegistry->get($layout->widgetCode);
-                if (!$this->isWidgetAccessibleForUser($widgetDefinition, $user, $accessibleBundles)) {
+                if (!$this->widgetAccessChecker->isGranted($widgetDefinition, $user)) {
                     continue;
                 }
                 $definition = $widgetDefinition->toArray();
@@ -76,7 +75,7 @@ class DashboardController extends AbstractController
                     continue;
                 }
                 $widgetDefinition = $this->coreWidgetRegistry->get($preference->getWidgetKey());
-                if (!$this->isWidgetAccessibleForUser($widgetDefinition, $user, $accessibleBundles)) {
+                if (!$this->widgetAccessChecker->isGranted($widgetDefinition, $user)) {
                     continue;
                 }
                 $definition = $widgetDefinition->toArray();
@@ -91,8 +90,16 @@ class DashboardController extends AbstractController
             }
         }
 
+        foreach ($widgets as $position => &$widget) {
+            $widget['position'] = $position;
+        }
+        unset($widget);
+
         return new JsonResponse([
-            'bundles' => $this->coreWidgetRegistry->getBundles(),
+            'bundles' => array_values(array_filter($this->coreWidgetRegistry->getBundles(), fn ($bundle) => count(array_filter(
+                $this->coreWidgetRegistry->all(),
+                fn ($widget) => $widget->getBundle() === $bundle['code'] && $this->widgetAccessChecker->isGranted($widget, $user)
+            )) > 0)),
             'widgets' => $widgets,
         ]);
     }
@@ -106,13 +113,10 @@ class DashboardController extends AbstractController
         }
 
         $structureDepartementPersonnelId = $request->query->get('structureDepartementPersonnelId');
-        $structureDepartementPersonnel = null;
-        if ($structureDepartementPersonnelId) {
-            $structureDepartementPersonnel = $this->structureDepartementPersonnelRepository->find($structureDepartementPersonnelId);
-        }
-        $accessibleBundles = $this->getAccessibleBundlesForUser($user, $structureDepartementPersonnel);
+        $structureDepartementPersonnel = $this->getActiveAssignment($user, $structureDepartementPersonnelId);
 
         $dashboard = $this->dashboardRegistry->get($dashboardCode);
+        if ($dashboard === null) return new JsonResponse(['message' => 'Tableau de bord introuvable'], 404);
 
         // Récupération des préférences
         $preferences = [];
@@ -124,7 +128,7 @@ class DashboardController extends AbstractController
         $widgets = [];
         foreach ($dashboard->getAvailableWidgets() as $layout) {
             $widgetDefinition = $this->coreWidgetRegistry->get($layout->widgetCode);
-            if ($this->isWidgetAccessibleForUser($widgetDefinition, $user, $accessibleBundles)) {
+            if ($this->widgetAccessChecker->isGranted($widgetDefinition, $user)) {
                 $widgets[] = $widgetDefinition->toArray();
             }
         }
@@ -134,7 +138,7 @@ class DashboardController extends AbstractController
             // On commence par les widgets du layout par défaut
             foreach ($dashboard->getDefaultLayout() as $layout) {
                 $widgetDefinition = $this->coreWidgetRegistry->get($layout->widgetCode);
-                if (!$this->isWidgetAccessibleForUser($widgetDefinition, $user, $accessibleBundles)) {
+                if (!$this->widgetAccessChecker->isGranted($widgetDefinition, $user)) {
                     continue;
                 }
 
@@ -217,20 +221,24 @@ class DashboardController extends AbstractController
         $dashboardCode = $request->query->get('dashboardCode', 'intranet');
         $structureDepartementPersonnelId = $request->query->get('structureDepartementPersonnelId');
 
-        $structureDepartementPersonnel = null;
-        if ($structureDepartementPersonnelId) {
-            $structureDepartementPersonnel = $this->structureDepartementPersonnelRepository->find($structureDepartementPersonnelId);
-        }
-        $accessibleBundles = $this->getAccessibleBundlesForUser($user, $structureDepartementPersonnel);
+        $structureDepartementPersonnel = $this->getActiveAssignment($user, $structureDepartementPersonnelId);
 
         $data = json_decode($request->getContent(), true) ?? [];
 
         $widgetDefinition = $this->coreWidgetRegistry->get($widgetKey);
-        if (!$this->isWidgetAccessibleForUser($widgetDefinition, $user, $accessibleBundles)) {
+        if (!$this->widgetAccessChecker->isGranted($widgetDefinition, $user)) {
             return new JsonResponse(['message' => 'Widget non autorisé pour cet utilisateur'], JsonResponse::HTTP_FORBIDDEN);
         }
 
         $dashboard = $this->dashboardRegistry->get($dashboardCode);
+
+        if ($dashboard === null) {
+            return new JsonResponse(['message' => 'Tableau de bord introuvable'], JsonResponse::HTTP_NOT_FOUND);
+        }
+        $availableCodes = array_map(static fn ($layout) => $layout->widgetCode, $dashboard->getAvailableWidgets());
+        if (!in_array($widgetKey, $availableCodes, true)) {
+            return new JsonResponse(['message' => 'Widget indisponible sur ce tableau de bord'], JsonResponse::HTTP_FORBIDDEN);
+        }
 
         // Construire un index d'ordre du layout par défaut pour le tri
         $defaultOrder = [];
@@ -250,6 +258,7 @@ class DashboardController extends AbstractController
 
             foreach ($availableWidgets as $availableWidget) {
                 $code = $availableWidget->widgetCode;
+                if (!$this->widgetAccessChecker->isGranted($this->coreWidgetRegistry->get($code), $user)) continue;
                 $pref = new DashboardPreference();
                 if ($user instanceof Personnel) {
                     $pref->setPersonnel($user);
@@ -432,7 +441,7 @@ class DashboardController extends AbstractController
             return new JsonResponse(['message' => 'Widget introuvable'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        if (!$this->isWidgetAccessibleForUser($widgetDefinition, $user, $this->getAccessibleBundlesForUser($user))) {
+        if (!$this->widgetAccessChecker->isGranted($widgetDefinition, $user)) {
             return new JsonResponse(['message' => 'Widget non autorisé pour cet utilisateur'], JsonResponse::HTTP_FORBIDDEN);
         }
 
@@ -452,33 +461,12 @@ class DashboardController extends AbstractController
         return $user instanceof Personnel || $user instanceof Etudiant ? $user : null;
     }
 
-    private function getAccessibleBundlesForUser(Personnel|Etudiant $user, ?StructureDepartementPersonnel $structureDepartementPersonnel = null): array
+    private function getActiveAssignment(Personnel|Etudiant $user, mixed $requestedId): ?StructureDepartementPersonnel
     {
-        if ($user instanceof Personnel) {
-            $packages = $structureDepartementPersonnel?->getPackages() ?? ['intranet'];
-            $normalizedPackages = array_values(array_unique(array_filter(array_map(
-                static fn ($package) => strtolower((string) $package),
-                $packages,
-            ))));
-
-            return [] === $normalizedPackages ? ['intranet'] : $normalizedPackages;
+        $assignment = $user instanceof Personnel ? $this->permissions->getActiveDepartementPersonnel($user) : null;
+        if ($requestedId !== null && $requestedId !== '' && (string) $assignment?->getId() !== (string) $requestedId) {
+            throw $this->createAccessDeniedException('Le contexte demandé ne correspond pas à votre affectation active.');
         }
-
-        $applications = $user->getApplications() ?? ['Intranet'];
-        $normalizedApplications = array_values(array_unique(array_filter(array_map(
-            static fn ($application) => strtolower((string) $application),
-            $applications,
-        ))));
-
-        return [] === $normalizedApplications ? ['intranet'] : $normalizedApplications;
-    }
-
-    private function isWidgetAccessibleForUser(?WidgetDefinition $widgetDefinition, Personnel|Etudiant $user, array $accessibleBundles): bool
-    {
-        if (null === $widgetDefinition || !$widgetDefinition->isAllowedForUser($user)) {
-            return false;
-        }
-
-        return in_array(strtolower($widgetDefinition->getBundle()), $accessibleBundles, true);
+        return $assignment;
     }
 }

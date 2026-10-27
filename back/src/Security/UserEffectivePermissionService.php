@@ -71,7 +71,7 @@ class UserEffectivePermissionService
         return $user instanceof Personnel && $this->hasPermission($user, 'SUPER_ADMIN');
     }
 
-    private function getActiveDepartementPersonnel(Personnel $user): ?StructureDepartementPersonnel
+    public function getActiveDepartementPersonnel(Personnel $user): ?StructureDepartementPersonnel
     {
         foreach ($user->getDepartementsPersonnel() as $departementPersonnel) {
             if ($departementPersonnel->isDefaut()) {

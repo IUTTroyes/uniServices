@@ -20,6 +20,8 @@ class WidgetDefinition
         private readonly bool $enabled = true,
         private readonly array $defaultConfig = [],
         private readonly array $allowedProfiles = [self::PROFILE_PERSONNEL, self::PROFILE_ETUDIANT],
+        private readonly array $requiredPermissions = [],
+        private readonly bool $requireAllPermissions = false,
     ) {}
 
     public function getCode(): string
@@ -41,6 +43,17 @@ class WidgetDefinition
         return in_array(self::PROFILE_ETUDIANT, $this->allowedProfiles, true);
     }
 
+    /** @return string[] */
+    public function getRequiredPermissions(): array
+    {
+        return $this->requiredPermissions;
+    }
+
+    public function requiresAllPermissions(): bool
+    {
+        return $this->requireAllPermissions;
+    }
+
     public function toArray(): array
     {
         return [
@@ -53,6 +66,8 @@ class WidgetDefinition
             'enabled' => $this->enabled,
             'defaultConfig' => $this->defaultConfig,
             'allowedProfiles' => $this->allowedProfiles,
+            'requiredPermissions' => $this->requiredPermissions,
+            'requireAllPermissions' => $this->requireAllPermissions,
         ];
     }
 }

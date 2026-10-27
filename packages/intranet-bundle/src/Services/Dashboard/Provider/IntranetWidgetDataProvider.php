@@ -3,6 +3,7 @@
 namespace IntranetBundle\Services\Dashboard\Provider;
 
 use App\Domain\Dashboard\WidgetDataProviderInterface;
+use App\Domain\Dashboard\DashboardContext;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
 use App\Repository\Edt\EdtEventRepository;
@@ -18,11 +19,13 @@ class IntranetWidgetDataProvider implements WidgetDataProviderInterface
         return str_starts_with($code, 'intranet.');
     }
 
-    public function getData(string $code, Personnel|Etudiant $user): array
+    public function getData(string $code, Personnel|Etudiant $user, ?DashboardContext $context = null): array
     {
         return match ($code) {
             'intranet.emploi_du_temps' => $this->getEmploiDuTemps($user),
-            'intranet.actions_urgentes' => [
+            'intranet.actions_urgentes' => $context?->getDiplomeIds() !== null
+                ? ['items' => [], 'diplomeIds' => $context->getDiplomeIds()]
+                : [
                 'items' => [
                     ['label' => '3 validations de stages en attente', 'priority' => 'high'],
                     ['label' => '2 conventions à signer aujourd\'hui', 'priority' => 'medium'],

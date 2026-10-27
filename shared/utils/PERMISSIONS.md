@@ -125,3 +125,45 @@ Les types Personnel/Étudiant restent distincts, même pour le super administrat
 L'écriture des affectations (création, modification, suppression) est réservée à `SUPER_ADMIN`. Le changement de département personnel conserve son processeur qui vérifie la propriété de l'affectation.
 
 Voir également [l'audit des limites restantes](../../docs/SECURITE_ROLES_IUT.md). Cette évolution ne constitue pas une sécurisation exhaustive de toutes les API.
+
+## Permissions des widgets
+
+Les widgets cumulent désormais trois conditions, contrôlées **côté serveur** par `WidgetAccessChecker` : profil compatible, application activée dans le département actif, puis permissions requises. Le shell `auth` reste accessible sans application métier. Les alias historiques `document`/`documents`, `portfolio`/`unifolio` et `stages`/`stage` sont reconnus.
+
+Une définition peut déclarer :
+
+```php
+new WidgetDefinition(
+    'intranet.exemple', 'intranet', 'Exemple', 'pi pi-home', 'ExampleWidget',
+    allowedProfiles: [WidgetDefinition::PROFILE_PERSONNEL],
+    requiredPermissions: ['ROLE_DIRECTEUR_ETUDES', 'ROLE_RESP_PARCOURS'],
+    requireAllPermissions: false, // OU par défaut ; true impose toutes les permissions
+);
+```
+
+Sans `requiredPermissions`, le profil et l'application restent obligatoires. Le super administrateur satisfait les permissions métier, mais ne contourne ni le profil ni l'activation du bundle.
+
+| Widget | Profil | Permissions supplémentaires (OU) |
+|---|---|---|
+| Emploi du temps, actualités, questionnaires en attente, documents récents | Personnel / Étudiant | Aucune |
+| Listings étudiants | Personnel | Enseignant, assistant, scolarité, chef de département ou directeur des études |
+| Actions urgentes | Personnel | Responsable de parcours valide, direction, chef de département, directeur des études, assistant, scolarité, responsable des stages, des absences ou des notes |
+| Statistiques et dernières réponses des questionnaires | Personnel | Gestionnaire des questionnaires ou service qualité |
+| Portfolios à corriger | Personnel | Correcteur de portfolios |
+| Progression portfolio, notes étudiantes | Étudiant | Aucune |
+| Alertes portfolio | Personnel | Référent Portfolio, correcteur ou responsable de publication |
+| Statistiques documentaires | Personnel | Référent UniServices, référent Intranet, direction ou chef de département |
+
+Le catalogue, la configuration, l'enregistrement des préférences et les données appliquent la même règle. Une préférence sauvegardée ne constitue jamais une autorisation. Les préférences devenues interdites sont conservées mais masquées ; elles pourront redevenir disponibles après réattribution des droits. Un widget nouvellement autorisé peut être activé depuis la configuration, sans remplacer la personnalisation existante.
+
+Un paramètre `structureDepartementPersonnelId` ne peut pas sélectionner une autre affectation que celle active de l'utilisateur connecté. Le même contexte est utilisé pour l'affichage et les données, même lorsque le paramètre est omis.
+
+### Portée des données de parcours
+
+Pour la visibilité d'un widget, `ROLE_RESP_PARCOURS` exige au moins un diplôme valide attribué dans le département actif. Cela ne crée aucune permission générale sur les ressources de ce département.
+
+Si cette responsabilité est la seule raison de l'accès, `WidgetDataRegistry` transmet aux fournisseurs un `DashboardContext` dont `getDiplomeIds()` contient les seuls diplômes attribués. Chaque fournisseur qui charge des données de parcours doit utiliser cette liste pour filtrer ses requêtes. `null` signifie qu'aucune restriction par diplôme n'est imposée par cette règle, notamment si un autre rôle de pilotage accorde indépendamment l'accès.
+
+Le fournisseur « Actions urgentes » contient actuellement des exemples statiques sans diplôme associé. Dans le contexte limité au parcours, il renvoie une liste vide plutôt que ces exemples non contextualisés ; le widget affiche alors son état vide. Le chargement d'actions métier réelles devra appliquer le filtre transmis.
+
+Vérification sans base : `php back/tests/Dashboard/WidgetPermissionsTest.php`.
