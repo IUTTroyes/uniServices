@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+require_once __DIR__ . '/utils/tool-display-name.php';
+
 function runCommand(string $command, ?string $workingDir = null): int
 {
     if ($workingDir) {
@@ -119,10 +121,11 @@ $bundleShortName = preg_replace('/-bundle$/', '', $bundleKebab);
 
 // Interactive prompt for missing info
 if (empty($displayName)) {
-    $defaultName = $bundlePascal;
+    $defaultName = ucwords(str_replace('-', ' ', $bundleShortName));
     echo "Nom de l'outil (par défaut: $defaultName): ";
     $displayName = trim(fgets(STDIN)) ?: $defaultName;
 }
+$displayName = tool_display_name($displayName, ucwords(str_replace('-', ' ', $bundleShortName)));
 if (empty($description)) {
     $defaultDesc = "Application $displayName";
     echo "Description de l'outil (par défaut: $defaultDesc): ";

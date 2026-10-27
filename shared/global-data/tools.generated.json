@@ -1,12 +1,12 @@
 [
     {
-        "name": "DocumentBundle",
-        "description": "Gestion \u00c9lectronique de Documents (GED)",
+        "name": "Documents",
+        "description": "Gestion \u00c9lectronique de Documents",
         "urlSlug": "documents",
         "url": "http://localhost:5173/documents"
     },
     {
-        "name": "FinanceBundle",
+        "name": "Finances & Achats",
         "description": "Gestion financi\u00e8re, bons de commande et suivi budg\u00e9taire",
         "urlSlug": "finance",
         "url": "http://localhost:3007/finance/"
@@ -19,18 +19,18 @@
     },
     {
         "name": "Intranet",
-        "description": "Gestion de la structure des formations et des \u00e9tudiants.",
+        "description": "Gestion des formations et \u00e9tudiants.",
         "urlSlug": "intranet",
         "url": "http://localhost:3001/intranet/"
     },
     {
-        "name": "QuestionnaireBundle",
-        "description": "Application QuestionnaireBundle",
+        "name": "Questionnaires",
+        "description": "Cr\u00e9ation et gestion des questionnaires",
         "urlSlug": "questionnaire",
         "url": "http://localhost:3005/questionnaire/"
     },
     {
-        "name": "StageBundle",
+        "name": "Stage/Alternance",
         "description": "Gestion des stages et alternances",
         "urlSlug": "stage",
         "url": "http://localhost:3005/stage/"

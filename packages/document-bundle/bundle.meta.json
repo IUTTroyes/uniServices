@@ -1,6 +1,6 @@
 {
-    "name": "DocumentBundle",
-    "description": "Gestion Électronique de Documents (GED)",
+    "name": "Documents",
+    "description": "Gestion Électronique de Documents",
     "urlSlug": "documents",
     "url": "http://localhost:5173/documents"
 }
