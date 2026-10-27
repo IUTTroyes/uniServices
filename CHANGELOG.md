@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/IUTTroyes/uniServices/compare/v0.3.0...v0.4.0) (2026-10-26)
+
+
+### ✨ Fonctionnalités
+
+* [Absences] Refactor absence management views and improve error handling ([3076e6f](https://github.com/IUTTroyes/uniServices/commit/3076e6f078e9ba746134ffc39ebbedac63967346))
+
 ## [0.3.0](https://github.com/IUTTroyes/uniServices/compare/v0.2.0...v0.3.0) (2026-10-26)
 
 
