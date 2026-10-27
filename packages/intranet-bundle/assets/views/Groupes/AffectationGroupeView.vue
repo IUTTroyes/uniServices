@@ -563,7 +563,7 @@ onUnmounted(() => {
         </p>
         <div class="flex flex-col items-start">
           <p class="uppercase text-xs font-bold mb-0! text-muted-color">
-            {{semestre.libelle}}
+            {{annee.libelle}} - {{semestre.libelle}}
           </p>
           <h2 class="mt-0!">Répartir les étudiants dans les groupes</h2>
         </div>

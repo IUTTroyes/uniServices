@@ -308,12 +308,6 @@ const onEvaluationSaved = async () => {
 </script>
 
 <template>
-  <HeaderComponent
-      icon="pi pi-chart-line"
-      titre="Évaluations"
-      description="Gérez les évaluations, la planification et la saisie des notes"
-  />
-
   <div class="flex justify-around items-center mb-12">
     <div class="card w-1/5 flex items-center justify-center flex-col">
       <div class="font-bold text-lg card-header text-center">À initialiser</div>
@@ -355,13 +349,13 @@ const onEvaluationSaved = async () => {
       <div class="flex justify-between items-end w-full card-header">
         <div>
           <p class="top-card-header">
-            Liste des évaluations
+            Suivi des évaluations
           </p>
-          <h2 class="text-sm text-color-secondary">
-            Semestre :
+          <div class="flex flex-col items-start">
             <SimpleSkeleton v-if="isLoadingSemestres" class="!w-32"></SimpleSkeleton>
-            <span v-else>{{ semestre.libelle }}</span>
-          </h2>
+            <p v-else class="uppercase text-xs font-bold mb-0! text-muted-color">{{ annee?.libelle }} - {{ semestre?.libelle }}</p>
+            <h2 class="mt-0!">Gestion, planification et saisie des notes</h2>
+          </div>
         </div>
         <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
         <div v-else class="flex flex-col gap-2">

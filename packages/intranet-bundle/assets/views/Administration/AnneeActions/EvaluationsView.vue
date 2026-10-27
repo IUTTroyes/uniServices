@@ -7,7 +7,7 @@ import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
-import EvaluationsView from '@/views/Evaluations/EvaluationsView.vue';
+import EvaluationsView from '@/views/Evaluations/SuiviEvaluationsView.vue';
 import StructureGroupeView from '@/views/Groupes/StructureGroupeView.vue';
 
 const route = useRoute();
@@ -39,24 +39,22 @@ const onTabChange = async (value) => {
 <template>
   <div class="flex flex-col gap-4">
     <HeaderComponent
-      icon="pi pi-book"
-      titre="Notes et évaluations"
-      description="Retrouvez les évaluations, rattrapages et modalités dans un seul écran"
+        icon="pi pi-book"
+        titre="Notes et évaluations"
+        description="Retrouvez les évaluations, rattrapages et modalités de contrôle des connaissances"
     />
 
-    <div class="card">
-      <Tabs :value="activeTab" @update:value="onTabChange">
-        <TabList>
-          <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">
-            {{ tab.title }}
-          </Tab>
-        </TabList>
-        <TabPanels>
-          <TabPanel v-for="tab in tabs" :key="tab.value" :value="tab.value">
-            <component :is="tab.component" />
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
-    </div>
+    <Tabs :value="activeTab" @update:value="onTabChange">
+      <TabList class="bg-transparent!">
+        <Tab v-for="tab in tabs" :key="tab.value" :value="tab.value">
+          {{ tab.title }}
+        </Tab>
+      </TabList>
+      <TabPanels class="bg-transparent!">
+        <TabPanel v-for="tab in tabs" :key="tab.value" :value="tab.value">
+          <component :is="tab.component" />
+        </TabPanel>
+      </TabPanels>
+    </Tabs>
   </div>
 </template>
