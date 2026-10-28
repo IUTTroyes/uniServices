@@ -193,11 +193,10 @@ watch(() => route.path, async (newPath, oldPath) => {
     <div v-if="!route.path.includes('/portail/widgets')" class="px-4 lg:px-10">
       <div class="grid grid-cols-12 gap-4">
         <aside class="col-span-12 lg:col-span-2 pt-28 pb-14 lg:h-screen">
-          <div class="card card-body h-full overflow-y-auto flex flex-col gap-6">
+          <div class="card card-body h-full overflow-y-auto flex flex-col">
             <div class="flex flex-col gap-4">
               <div class="flex items-center justify-between gap-3">
                 <h2 id="portail-applications-title" class="m-0! text-base! font-semibold">Mes applications</h2>
-                <span v-if="!isLoadingBundles" class="text-sm text-muted-color">{{ activatedBundles.length }}</span>
               </div>
               <p class="m-0! text-sm text-muted-color">Retrouvez les outils de votre espace de travail.</p>
               <GlobalLoader v-if="isLoadingBundles" text="Chargement des applications..."/>
@@ -207,37 +206,34 @@ watch(() => route.path, async (newPath, oldPath) => {
                     :key="bundle.urlSlug"
                     :href="bundle.url"
                     :class="[
-                      'flex items-center gap-3 p-3.5 border rounded-md transition-colors duration-200',
-                      bundleColorClasses[bundle.color] ?? 'border-[var(--surface-border)] hover:bg-[var(--surface-hover)]',
+                      'flex items-center gap-3 p-1.5 border rounded-md transition-colors duration-200',
+                      bundleColorClasses[bundle.color] ?? 'border-surface-300 hover:bg-surface-300/20]',
                     ]"
                 >
-                  <span class="flex items-center justify-center shrink-0 w-10 h-10 border rounded-[0.625rem] text-lg" :class="bundle.meta.iconBgClasses" aria-hidden="true">
+                  <span class="flex items-center justify-center shrink-0 w-10 h-10 border rounded-md text-lg" :class="bundle.meta.iconBgClasses" aria-hidden="true">
                     <i :class="bundle.icon || 'pi pi-th-large'" />
                   </span>
-                  <span class="flex flex-col gap-1 min-w-0 [overflow-wrap:anywhere]">
-                    <span class="font-semibold leading-[1.3]">{{ bundle.name }}</span>
-                    <span v-if="bundle.description" class="text-[var(--p-text-muted-color)] text-xs leading-[1.5]">{{ bundle.description }}</span>
+                  <span class="flex flex-col gap-1 min-w-0">
+                    <span class="font-semibold text-sm">{{ bundle.name }}</span>
                   </span>
-                  <i class="pi pi-arrow-right ml-auto shrink-0 text-[var(--p-text-muted-color)] text-xs" aria-hidden="true" />
+                  <i class="pi pi-arrow-right ml-auto shrink-0 text-muted-color text-xs" aria-hidden="true" />
                 </a>
+
+                <div v-if="userStore.isSuperAdmin" class="flex flex-col gap-4">
+                  <a @click="router.push('/configuration')" class="flex items-center gap-3 p-1.5 border rounded-md transition-colors duration-200 hover:bg-surface-400/20 hover:cursor-pointer">
+              <span class="flex items-center justify-center shrink-0 w-10 h-10 border rounded-md text-lg bg-surface-100 text-surface-800" aria-hidden="true">
+                <i class="pi pi-cog" />
+                </span>
+                    <span class="flex flex-col gap-1 min-w-0">
+                <span class="font-semibold text-sm">Configuration</span>
+              </span>
+                    <i class="pi pi-arrow-right ml-auto shrink-0 text-muted text-xs" aria-hidden="true" />
+                  </a>
+                </div>
               </nav>
               <Message v-else severity="info">
                 Aucune application accessible dans cet espace. Contactez votre administrateur pour faire vérifier vos accès.
               </Message>
-            </div>
-            <div v-if="userStore.isSuperAdmin" class="flex flex-col gap-4">
-              <div class="text-md font-semibold text-color-secondary uppercase">Administration</div>
-              <div class="flex flex-col">
-                <Button
-                    type="button"
-                    text
-                    rounded
-                    class="justify-start! text-left font-semibold text-black! text-sm!"
-                    @click="router.push('/configuration')"
-                >
-                  Configuration
-                </Button>
-              </div>
             </div>
           </div>
         </aside>
