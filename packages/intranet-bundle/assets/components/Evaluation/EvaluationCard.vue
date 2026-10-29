@@ -1,10 +1,10 @@
 <script setup>
-import { ref, computed, nextTick } from 'vue';
+import { ref, computed, nextTick, defineAsyncComponent } from 'vue';
 import {PermissionGuard} from '@components';
 import EvaluationSaisieNotesForm from "./EvaluationSaisieNotesForm.vue";
 import EvaluationForm from "./EvaluationForm.vue";
 import EvaluationListeInitForm from "./EvaluationListeInitForm.vue";
-import EvaluationStatistiques from "./EvaluationStatistiques.vue";
+const EvaluationStatistiques = defineAsyncComponent(() => import("./EvaluationStatistiques.vue"));
 import { useConfirm } from 'primevue/useconfirm'
 import { updateEtudiantNoteService, updateEvaluationService, getEtudiantNotesService } from '@requests';
 import { useToast } from "primevue/usetoast";
