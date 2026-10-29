@@ -8,6 +8,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { tools } from '@config/uniServices.js';
 import noImage from "@images/photos_etudiants/noimage.png";
 import { PermissionGuard } from "@components";
+import ApplicationBadge from '../Application/ApplicationBadge.vue';
 
 const anneeUnivStore = useAnneeUnivStore();
 const userStore = useUsersStore();
@@ -200,6 +201,10 @@ const isEnabled = (item) => {
   return item.urlSlug === 'intranet' || userStore.applications.includes(item.urlSlug);
 };
 
+const activeTools = computed(() => {
+  return (tools || []).filter(item => isEnabled(item));
+});
+
 // L'accès au simulateur dépend des droits réels, même pendant une simulation vide.
 const showRolesMenu = computed(() => userStore.isPersonnel && userStore.rolesActifs.includes('SUPER_ADMIN'));
 
@@ -261,11 +266,10 @@ const selectAnneeUniversitaire = (annee) => {
             <i class="pi pi-box text-primary"></i>
             <span>Applications</span>
           </button>
-          <Menu ref="toolsMenu" id="tools_menu" :model="tools" :popup="true">
+          <Menu ref="toolsMenu" id="tools_menu" :model="activeTools" :popup="true">
             <template #item="{ item, props }">
-              <a v-if="item.url && isEnabled(item)" :href="item.url" v-ripple v-bind="props.action">
-                <Logo :logo-url="item.logo" class="logo_menu" />
-                <span class="ml-2">{{ item.name }}</span>
+              <a v-if="item.url && isEnabled(item)" :href="item.url" v-ripple v-bind="props.action" class="flex items-center w-full">
+                <ApplicationBadge :app="item.urlSlug || item" show-icon full-width />
               </a>
             </template>
           </Menu>

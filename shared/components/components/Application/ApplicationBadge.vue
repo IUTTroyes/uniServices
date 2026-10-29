@@ -24,9 +24,22 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  fullWidth: {
+    type: Boolean,
+    default: false,
+  },
+  fluid: {
+    type: Boolean,
+    default: false,
+  },
+  block: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const meta = computed(() => getApplicationMeta(props.app));
+const isFullWidth = computed(() => props.fullWidth || props.fluid || props.block);
 
 const sizeClasses = computed(() => {
   switch (props.size) {
@@ -54,8 +67,15 @@ const iconSizeClasses = computed(() => {
 </script>
 
 <template>
-  <Chip :label="meta.name" :class="[sizeClasses,
-      meta.badgeClasses]">
+  <Chip
+    :label="meta.name"
+    :class="[
+      sizeClasses,
+      meta.badgeClasses,
+      isFullWidth && 'w-full !flex',
+      props.rounded && '!rounded-full',
+    ]"
+  >
     <template #icon>
       <i v-if="props.showIcon && meta.icon" :class="[meta.icon, iconSizeClasses, 'shrink-0']" />
     </template>
