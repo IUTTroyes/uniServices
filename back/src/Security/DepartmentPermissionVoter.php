@@ -19,7 +19,8 @@ class DepartmentPermissionVoter extends Voter
 
     protected function supports(string $attribute, mixed $subject): bool
     {
-        return ($subject === null || $subject instanceof StructureDepartement) &&
+        return !in_array($attribute, ['ROLE_PERSONNEL', 'ROLE_ETUDIANT'], true)
+            && ($subject === null || $subject instanceof StructureDepartement) &&
             ($this->registry->getPermissionByRole($attribute) !== null || str_starts_with($attribute, 'ROLE_'));
     }
 

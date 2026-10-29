@@ -30,6 +30,10 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new Get(normalizationContext: ['groups' => ['enseignement:detail', 'enseignement_ue:read']]),
         new GetCollection(normalizationContext: ['groups' => ['enseignement:detail']]),
         new GetCollection(
+            normalizationContext: ['groups' => ['enseignement:dashboard']],
+            uriTemplate: 'dashboard/scol_enseignements',
+        ),
+        new GetCollection(
             normalizationContext: ['groups' => ['enseignement:light']],
             uriTemplate: 'mini/scol_enseignements',
         ),
@@ -39,6 +43,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
     ],
     parameters: [
         'semestre' => new QueryParameter(filter: EnseignementFilter::class),
+        'personnel' => new QueryParameter(filter: EnseignementFilter::class),
         'departement' => new QueryParameter(filter: EnseignementFilter::class),
         'ue' => new QueryParameter(filter: EnseignementFilter::class),
         'actif' => new QueryParameter(filter: EnseignementFilter::class),
@@ -56,15 +61,15 @@ class ScolEnseignement
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init', 'absence:administration'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'previsionnel_personnel:read', 'edt_event:read:agenda', 'evaluation:init', 'absence:administration', 'enseignement:dashboard'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'evaluation:init'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'evaluation:init', 'enseignement:dashboard'])]
     private ?string $libelle = null;
 
     #[ORM\Column(length: 25, nullable: true)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement:dashboard'])]
     private ?string $libelle_court = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -88,7 +93,7 @@ class ScolEnseignement
     private array $opt = [];
 
     #[ORM\Column(length: 20, nullable: true)]
-    #[Groups(['maquette:detail', 'enseignement:detail', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda', 'evaluation:init'])]
+    #[Groups(['maquette:detail', 'enseignement:detail', 'previsionnel:read', 'previsionnel_semestre:read', 'previsionnel_personnel:read', 'enseignement_ue:read', 'edt_event:read:agenda', 'evaluation:init', 'enseignement:dashboard'])]
     private ?string $codeEnseignement = null;
 
     #[ORM\Column]
@@ -100,7 +105,7 @@ class ScolEnseignement
     private array $heures = [];
 
     #[ORM\Column(type: 'string', enumType: TypeEnseignementEnum::class)]
-    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'edt_event:read:agenda', 'evaluation:init'])]
+    #[Groups(['maquette:detail', 'previsionnel:read', 'enseignement:detail', 'enseignement:light', 'enseignement_ue:read', 'edt_event:read:agenda', 'evaluation:init', 'enseignement:dashboard'])]
     private TypeEnseignementEnum $type = TypeEnseignementEnum::TYPE_RESSOURCE;
 
     #[ORM\Column]
@@ -169,7 +174,7 @@ class ScolEnseignement
      * @var Collection<int, Previsionnel>
      */
     #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'enseignement', cascade: ['remove'], orphanRemoval: true)]
-    #[Groups(['enseignement:detail', 'edt_event:read:agenda'])]
+    #[Groups(['enseignement:detail', 'edt_event:read:agenda', 'enseignement:dashboard'])]
     private Collection $previsionnels;
 
     public function __construct()
@@ -624,5 +629,15 @@ class ScolEnseignement
     public function setSae(?ScolEnseignement $sae): void
     {
         $this->sae = $sae;
+    }
+
+    #[Groups(['enseignement:dashboard'])]
+    public function getDiplome(): ?string
+    {
+        $enseignementUe = $this->enseignementUes->first();
+        if ($enseignementUe) {
+            return $enseignementUe->getUe()->getSemestre()->getDiplome()->getSigle();
+        }
+        return null;
     }
 }

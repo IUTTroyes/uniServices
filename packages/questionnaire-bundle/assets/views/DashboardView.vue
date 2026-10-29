@@ -38,6 +38,7 @@
       <DashboardAdmin v-if="currentView === 'admin'" />
       <DashboardTeacher v-else-if="currentView === 'teacher'" />
       <DashboardStudent v-else-if="currentView === 'student'" />
+      <Message v-else severity="info">Aucun dashboard n’est disponible avec vos responsabilités actuelles. Vous pouvez consulter les questionnaires depuis le menu.</Message>
     </div>
   </div>
 </template>
@@ -48,7 +49,6 @@ import DashboardStudent from '../components/Dashboard/DashboardStudent.vue';
 import DashboardTeacher from '../components/Dashboard/DashboardTeacher.vue';
 import DashboardAdmin from '../components/Dashboard/DashboardAdmin.vue';
 import { useSurveyStore } from '@/stores/survey';
-import { useResponseStore } from '@/stores/responses';
 import { useUsersStore } from '@stores';
 import { HeaderComponent } from '@components';
 import Button from 'primevue/button';
@@ -56,31 +56,15 @@ import { hasPermission } from '@utils/permissions';
 
 const userStore = useUsersStore();
 const surveyStore = useSurveyStore();
-const responseStore = useResponseStore();
 
 const activeTab = ref<'admin' | 'teacher'>('admin');
 
-const isQualiteUser = computed(() => {
-  if (userStore?.temporaryRole) {
-    return userStore.temporaryRole === 'ROLE_QUALITE' || userStore.temporaryRole === 'SUPER_ADMIN';
-  }
-  return (
-    hasPermission('isQualite') ||
-    hasPermission('isSuperAdmin') ||
-    hasPermission('isAdmin') ||
-    hasPermission('isDirection') ||
-    hasPermission('isChefDepartement') ||
-    Boolean(userStore?.isSuperAdmin) ||
-    Boolean(userStore?.isAdmin) ||
-    Boolean(userStore?.isQualite) ||
-    Boolean(userStore?.user?.roles?.includes('ROLE_QUALITE')) ||
-    Boolean(userStore?.user?.roles?.includes('ROLE_ADMIN')) ||
-    Boolean(userStore?.user?.roles?.includes('SUPER_ADMIN'))
-  );
-});
-
-const isTeacherUser = computed(() => hasPermission('isPersonnel') || Boolean(userStore?.isPersonnel));
-const isStudentUser = computed(() => hasPermission('isEtudiant') || Boolean(userStore?.isEtudiant));
+const isQualiteUser = computed(() => hasPermission([
+  'isQualite', 'ROLE_QUESTIONNAIRE_MANAGER', 'isChefDepartement',
+  'isDirecteurEtudes', 'isDirection', 'ROLE_ADMIN', 'SUPER_ADMIN',
+]));
+const isTeacherUser = computed(() => hasPermission('isEnseignant'));
+const isStudentUser = computed(() => hasPermission('isEtudiant'));
 
 const canSwitchViews = computed(() => isQualiteUser.value && isTeacherUser.value);
 
@@ -91,7 +75,7 @@ const currentView = computed(() => {
   if (isQualiteUser.value) return 'admin';
   if (isTeacherUser.value) return 'teacher';
   if (isStudentUser.value) return 'student';
-  return 'student';
+  return null;
 });
 
 // Initialization

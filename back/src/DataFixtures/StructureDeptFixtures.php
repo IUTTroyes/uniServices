@@ -72,7 +72,7 @@ class StructureDeptFixtures extends Fixture implements OrderedFixtureInterface
             $superadminDept->setPersonnel($superadmin)
                 ->setDepartement($departement1)
                 ->setPackages(['intranet', 'stages', 'edt', 'helpdesk', 'questionnaire', 'unifolio', 'finance'])
-                ->setPermissions(['SUPER_ADMIN'])
+                ->setPermissions(['SUPER_ADMIN', 'ROLE_TEACHER'])
                 ->setDefaut(true);
             $manager->persist($superadminDept);
         }
@@ -84,7 +84,7 @@ class StructureDeptFixtures extends Fixture implements OrderedFixtureInterface
             $assistanteDept->setPersonnel($assistante)
                 ->setDepartement($departement1)
                 ->setPackages(['intranet', 'stages', 'edt', 'helpdesk', 'questionnaire', 'unifolio', 'finance'])
-                ->setPermissions(['ROLE_ASSISTANTE', 'ROLE_FINANCE_DEMANDEUR', 'ROLE_FINANCE_VIEW'])
+                ->setPermissions(['ROLE_BIATSS', 'ROLE_ASSISTANT', 'ROLE_FINANCE_DEMANDEUR', 'ROLE_FINANCE_VIEW'])
                 ->setDefaut(true);
             $manager->persist($assistanteDept);
         }
@@ -96,7 +96,7 @@ class StructureDeptFixtures extends Fixture implements OrderedFixtureInterface
             $financeDept->setPersonnel($finance)
                 ->setDepartement($departement1)
                 ->setPackages(['intranet', 'helpdesk', 'finance'])
-                ->setPermissions(['ROLE_FINANCE_MANAGER', 'ROLE_FINANCE_DEMANDEUR', 'ROLE_FINANCE_VIEW'])
+                ->setPermissions(['ROLE_BIATSS', 'ROLE_FINANCE_MANAGER', 'ROLE_FINANCE_DEMANDEUR', 'ROLE_FINANCE_VIEW'])
                 ->setDefaut(true);
             $manager->persist($financeDept);
         }

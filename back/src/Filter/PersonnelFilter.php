@@ -7,6 +7,7 @@ use ApiPlatform\Doctrine\Orm\Util\QueryNameGeneratorInterface;
 use ApiPlatform\Metadata\BackwardCompatibleFilterDescriptionTrait;
 use ApiPlatform\Metadata\Operation;
 use Doctrine\ORM\QueryBuilder;
+use App\Entity\Structure\StructureDepartementPersonnel;
 
 class PersonnelFilter implements FilterInterface
 {
@@ -62,11 +63,23 @@ class PersonnelFilter implements FilterInterface
                 ->andWhere(sprintf('%s.id = :enseignement', $enseignementAlias))
                 ->setParameter('enseignement', $value);
         }
-        if (('enseignant' === $property) && $value) {
-            // si true : récupérer les personnels dont statut != "BIATSS"
-            $queryBuilder
-                ->andWhere(sprintf('%s.statut != :statut', $alias))
-                ->setParameter('statut', 'BIATSS');
+        if (in_array($property, ['enseignant', 'biatss'], true) && filter_var($value, FILTER_VALIDATE_BOOLEAN)) {
+            $role = $property === 'enseignant' ? 'ROLE_TEACHER' : 'ROLE_BIATSS';
+            $functionAlias = $queryNameGenerator->generateJoinAlias('fonctionPersonnel');
+            $roleParameter = $queryNameGenerator->generateParameterName('fonctionRole');
+            // Quoted JSON token matching avoids treating a statutory BIATSS as a non-teacher.
+            $scopeQuery = sprintf(
+                'SELECT %1$s.id FROM %2$s %1$s WHERE %1$s.personnel = %3$s AND %1$s.permissions LIKE :%4$s',
+                $functionAlias, StructureDepartementPersonnel::class, $alias, $roleParameter
+            );
+            $department = $context['filters']['departement']
+                ?? $operation?->getParameters()?->get('departement')?->getValue();
+            if (is_numeric($department)) {
+                $departmentParameter = $queryNameGenerator->generateParameterName('fonctionDepartement');
+                $scopeQuery .= sprintf(' AND IDENTITY(%s.departement) = :%s', $functionAlias, $departmentParameter);
+                $queryBuilder->setParameter($departmentParameter, (int) $department);
+            }
+            $queryBuilder->andWhere('EXISTS ('.$scopeQuery.')')->setParameter($roleParameter, '%"'.$role.'"%');
         }
 
         if ('nom' === $property) {

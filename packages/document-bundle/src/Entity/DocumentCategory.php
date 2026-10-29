@@ -24,14 +24,14 @@ use Symfony\Component\Serializer\Attribute\Groups;
         new GetCollection(normalizationContext: ['groups' => ['document_category:read']]),
         new Post(
             denormalizationContext: ['groups' => ['document_category:write']],
-            security: "is_granted('ROLE_PERSONNEL')"
+            security: "is_granted('IS_PERSONNEL')"
         ),
         new Patch(
             denormalizationContext: ['groups' => ['document_category:write']],
-            security: "is_granted('ROLE_PERSONNEL')"
+            security: "is_granted('IS_PERSONNEL')"
         ),
         new Delete(
-            security: "is_granted('ROLE_PERSONNEL')"
+            security: "is_granted('IS_PERSONNEL')"
         ),
     ],
     normalizationContext: ['groups' => ['document_category:read']],

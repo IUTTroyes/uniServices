@@ -82,7 +82,6 @@ class StructureUserFixtures extends Fixture implements OrderedFixtureInterface
         $etudiant->setUsername('etudiant')
             ->setMailUniv('etudiant.user@etudiant.univ-reims.fr')
             ->setPassword($password)
-            ->setRoles(['ROLE_ETUDIANT'])
             ->setPrenom('Jane')
             ->setNom('Doe')
             ->setBoursier(0)

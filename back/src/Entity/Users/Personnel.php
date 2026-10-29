@@ -67,6 +67,7 @@ use Symfony\Component\Serializer\Attribute\Groups;
         'departement' => new QueryParameter(filter: PersonnelFilter::class),
         'enseignement' => new QueryParameter(filter: PersonnelFilter::class),
         'enseignant' => new QueryParameter(filter: PersonnelFilter::class),
+        'biatss' => new QueryParameter(filter: PersonnelFilter::class),
         'username' => new QueryParameter(filter: PersonnelFilter::class),
         'numeroHarpege' => new QueryParameter(filter: PersonnelFilter::class),
         'structureServices' => new QueryParameter(filter: SearchFilter::class),
@@ -349,7 +350,7 @@ class Personnel implements UserInterface, PasswordAuthenticatedUserInterface, Ti
             return [];
         }
 
-        return array_values(array_unique(array_diff(array_map('strval', $activeDepartementPersonnel->getPermissions()), ['ROLE_RESP_PARCOURS'])));
+        return array_values(array_unique(array_diff(array_map('strval', $activeDepartementPersonnel->getPermissions()), ['ROLE_RESP_PARCOURS', 'ROLE_PERSONNEL', 'ROLE_ETUDIANT'])));
     }
 
     public function getPrenom(): ?string

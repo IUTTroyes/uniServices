@@ -144,7 +144,6 @@ class StructureGroupeFixtures extends Fixture implements OrderedFixtureInterface
             $etudiant->setMailUniv('etudiant'.$i.'@mail.com');
             $etudiant->setUsername('etudiant'.$i);
             $etudiant->setPassword('test');
-            $etudiant->setRoles(['ROLE_ETUDIANT']);
             $etudiant->setPhotoName('noimage.png');
             $etudiant->setApplications(['Intranet']);
             $etudiant->setNumEtudiant('123456789'.$i);

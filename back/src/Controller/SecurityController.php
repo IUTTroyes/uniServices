@@ -305,7 +305,7 @@ class SecurityController extends AbstractController
             if (empty($activePackages)) {
                 $activePackages = ['intranet'];
             }
-            $resolvedPermissions = ['ROLE_ETUDIANT'];
+            $resolvedPermissions = [];
         }
 
         return new JsonResponse([

@@ -8,6 +8,8 @@ use App\Entity\Users\Personnel;
 
 class UserEffectivePermissionService
 {
+    public const IUT_DIRECTION_ROLES = ['ROLE_DIRECTEUR_IUT', 'ROLE_DIRECTEUR_ADJOINT_IUT', 'ROLE_CHEF_SERVICES_ADMINISTRATIFS'];
+
     public function __construct(
         private readonly PermissionResolver $resolver
     ) {}
@@ -18,15 +20,12 @@ class UserEffectivePermissionService
     public function getEffectivePermissions(Personnel|Etudiant $user, mixed $subject = null): array
     {
         if ($user instanceof Etudiant) {
-            return ['ROLE_ETUDIANT'];
-        }
-
-        $activeDepartementPersonnel = $this->getActiveDepartementPersonnel($user);
-        if (null === $activeDepartementPersonnel) {
             return [];
         }
 
-        return $this->resolver->resolveForDepartment($activeDepartementPersonnel, DiplomeScope::fromSubject($subject));
+        $assignment = $this->getActiveDepartementPersonnel($user);
+        if ($assignment === null) return [];
+        return $this->resolver->resolveForDepartment($assignment, DiplomeScope::fromSubject($subject));
     }
 
     public function hasPermission(Personnel|Etudiant $user, string $permission, mixed $subject = null): bool
@@ -64,6 +63,21 @@ class UserEffectivePermissionService
             static fn ($diplome) => $diplome->getId(),
             $assignment->getResponsableParcoursDiplomes()->toArray()
         ))]];
+    }
+
+    public function isTeacher(Personnel|Etudiant $user): bool
+    {
+        return $user instanceof Personnel && $this->hasPermission($user, 'ROLE_TEACHER');
+    }
+
+    public function isBiatss(Personnel|Etudiant $user): bool
+    {
+        return $user instanceof Personnel && $this->hasPermission($user, 'ROLE_BIATSS');
+    }
+
+    public function isDirectionIut(Personnel|Etudiant $user): bool
+    {
+        return $user instanceof Personnel && $this->hasAnyPermission($user, self::IUT_DIRECTION_ROLES);
     }
 
     public function isSuperAdmin(Personnel|Etudiant $user): bool

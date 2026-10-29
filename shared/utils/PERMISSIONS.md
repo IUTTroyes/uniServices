@@ -27,6 +27,11 @@ Le catalogue des propriétés côté Vue est centralisé dans `roleCatalog.js`. 
 
 | Responsabilité | Propriété Vue | Rôle serveur | Portée / accès associé |
 |---|---|---|---|
+| Enseignant | `isEnseignant` | `ROLE_TEACHER` | Fonction explicite et cumulable avec BIATSS ; accès à « Mon activité » |
+| BIATSS | `isBiatss` | `ROLE_BIATSS` | Fonction explicite et cumulable avec Enseignant |
+| Directeur de l’IUT | `isDirecteurIut` | `ROLE_DIRECTEUR_IUT` | Direction IUT sur les départements affectés |
+| Directeur adjoint de l’IUT | `isDirecteurAdjointIut` | `ROLE_DIRECTEUR_ADJOINT_IUT` | Direction IUT sur les départements affectés |
+| Chef des services administratifs | `isChefServicesAdministratifs` | `ROLE_CHEF_SERVICES_ADMINISTRATIFS` | Direction IUT sur les départements affectés |
 | Chef de département | `isChefDepartement` | `ROLE_CHEF_DEPARTEMENT` | Département, fonctions de direction prévues par les voters |
 | Directeur des études | `isDirecteurEtudes` | `ROLE_DIRECTEUR_ETUDES` | Département, fonctions pédagogiques prévues par les voters |
 | Responsable de parcours | `isRespParcours` | `ROLE_RESP_PARCOURS` | **Un ou plusieurs diplômes du département**, contrôle de chaque ressource |
@@ -45,7 +50,7 @@ Le catalogue des propriétés côté Vue est centralisé dans `roleCatalog.js`. 
 | Service comptabilité | `isCompta` | `ROLE_COMPTA` | Fonctions comptables existantes, compatibilité `ROLE_COMPTABILITE` |
 | Service qualité | `isQualite` | `ROLE_QUALITE` | Fonctions qualité explicitement protégées |
 | Service scolarité | `isScolarite` | `ROLE_SCOLARITE` | Gestion de la scolarité |
-| Direction | `isDirection` | `ROLE_DIRECTION` | Fonctions de direction existantes |
+| Direction (historique) | `isDirection` | `ROLE_DIRECTION` | Fonctions de direction existantes |
 | Super administrateur | `isSuperAdmin` | `SUPER_ADMIN` | Administration technique, attribuée dans le département actif |
 
 Les nouvelles responsabilités de coordination sont définies et attribuables ; leur attribution ne crée **pas** d'autorisation d'écriture sur tous les objets d'un bundle. Une nouvelle action doit être protégée explicitement côté serveur et, pour l'affichage, côté Vue. Le référent Portfolio n'hérite pas automatiquement des rôles de correcteur/publication ; le service informatique n'hérite pas automatiquement de l'administration Helpdesk ; la comptabilité n'hérite pas automatiquement de la validation financière.
@@ -166,4 +171,87 @@ Si cette responsabilité est la seule raison de l'accès, `WidgetDataRegistry` t
 
 Le fournisseur « Actions urgentes » contient actuellement des exemples statiques sans diplôme associé. Dans le contexte limité au parcours, il renvoie une liste vide plutôt que ces exemples non contextualisés ; le widget affiche alors son état vide. Le chargement d'actions métier réelles devra appliquer le filtre transmis.
 
-Vérification sans base : `php back/tests/Dashboard/WidgetPermissionsTest.php`.
+
+
+## Architecture des accueils : Portail et dashboards métier
+
+Le **Portail** est le seul dashboard personnalisable. Les API de catalogue, de configuration et d’enregistrement des préférences acceptent uniquement `dashboardCode=portail`. Les bundles continuent à fournir leurs widgets au Portail et conservent leurs contrôles de profil, d’application et de permissions.
+
+L’**Intranet** présente un dashboard commun, fixe, sans sélecteur de profil. « Vos accès métier » conserve les liens vers les outils existants : chaque carte utilise `PermissionGuard`, les applications doivent être activées et les destinations gardent leurs autorisations.
+
+Les sections sont cumulables : activité personnelle pour les enseignants, formations pour la direction du département, la scolarité et les assistants, départements de direction pour la direction de l’IUT, diplômes attribués pour les responsables de parcours. Un BIATSS enseignant bénéficie aussi de son activité pédagogique. Les étudiants et les BIATSS sans responsabilité retrouvent leurs accès quotidiens sur la même page.
+
+Chaque composant de données est monté à l’intérieur de son `PermissionGuard`. Il charge uniquement ses données via `GET /api/intranet/dashboard/{section}`. Le serveur contrôle les droits réels et le périmètre avant lecture ; masquer une section ne constitue jamais une autorisation. Parcours reste limité aux diplômes attribués et la direction IUT aux départements affectés avec les permissions correspondantes. Les données sont effacées au changement de département ou de droits, et les réponses obsolètes sont ignorées.
+
+L’agenda réutilise le service du widget Portail sans charger le système de widgets. Aucun compteur fictif n’est affiché.
+
+Les anciennes préférences Intranet restent en base sans être utilisées ni supprimées. L’ancien lien `/intranet/widgets` redirige vers la personnalisation du Portail. Les préférences du Portail sont conservées telles quelles.
+
+Questionnaires conserve ses vues métier « Pilotage Qualité », « Mes Évaluations » et son espace étudiant. Leurs contrôles d’affichage utilisent le même utilitaire de permissions, sans recours aux rôles bruts du compte.
+
+
+
+### Fonctions Enseignant et BIATSS
+
+`Personnel` reste le type du compte. `ROLE_TEACHER` (Enseignant) et `ROLE_BIATSS` sont des fonctions attribuées explicitement sur l’affectation départementale ; elles ne sont pas exclusives. Activer Intranet, être permanent, avoir une responsabilité ou être super administrateur n’attribue pas automatiquement la fonction Enseignant.
+
+Exemples d’affectations :
+
+- Enseignant sans responsabilité : `ROLE_TEACHER` → « Mon activité ».
+- BIATSS informatique : `ROLE_BIATSS`, `ROLE_INFORMATIQUE` → « Mon espace BIATSS » avec une section Informatique.
+- BIATSS informatique donnant des cours : `ROLE_BIATSS`, `ROLE_INFORMATIQUE`, `ROLE_TEACHER` → « Mon espace BIATSS » et « Mon activité », enrichis de la section Informatique.
+- BIATSS : `ROLE_BIATSS` → « Mon espace BIATSS », sans outils d’enseignement.
+
+Les fonctions sont disponibles dans la gestion des accès (cases indépendantes). Les propriétés `userStore.isEnseignant` et `userStore.isBiatss`, ainsi que `hasPermission('isEnseignant')` / `hasPermission('isBiatss')`, vérifient les rôles explicites du département actif. Elles ne bénéficient pas de la dérogation automatique super administrateur. Le retrait du rôle Enseignant masque immédiatement « Mon activité ». Questionnaires applique la même règle à « Mes Évaluations » ; un BIATSS qualité conserve son espace de pilotage sans être assimilé à un enseignant.
+
+Les filtres API `enseignant=true` et `biatss=true` utilisent ces rôles, avec le département demandé lorsqu’il est fourni. Ils peuvent être combinés pour retrouver les BIATSS qui enseignent. Le statut administratif `Personnel.statut` (MCF, BIATSS, etc.) est conservé indépendamment et ne sert plus à exclure les BIATSS des listes d’enseignants.
+
+**Transition des comptes existants :** `ROLE_TEACHER` n’est plus accordé par défaut à tous les personnels. Compléter les affectations avec Enseignant et/ou BIATSS dans la gestion des accès, puis recharger le contexte de sécurité. Les attributions déjà explicites restent valables. Aucune affectation n’est inventée à partir du statut administratif et aucune base de données n’est modifiée automatiquement. Aucun changement de schéma n’est nécessaire.
+
+
+### Types de compte distincts des rôles attribuables
+
+Personnel (`personnels`) et Étudiant (`etudiants`) sont exclusivement des **types de compte**. Ils ne figurent plus dans `AVAILABLE_ROLES` ni dans `ROLE_MAP` et ne sont jamais à attribuer dans les permissions départementales. Enseignant, BIATSS et les responsabilités métier restent des rôles indépendants et cumulables pour les personnels.
+
+Les contrôles existants restent utilisables sans transformer les types en rôles :
+
+```js
+userStore.isPersonnel; // userType === 'personnels'
+userStore.isEtudiant;  // userType === 'etudiants'
+hasPermission('isPersonnel');
+hasPermission('isEtudiant');
+```
+
+```vue
+<PermissionGuard permission="isPersonnel">Contenu réservé aux personnels</PermissionGuard>
+<div v-permission="'isEtudiant'">Contenu réservé aux étudiants</div>
+```
+
+Côté Symfony, utiliser `is_granted('IS_PERSONNEL')` ou `is_granted('IS_ETUDIANT')`. `UserTypeVoter` se fonde sur la classe du compte authentifié (`Personnel` / `Etudiant`) : aucun rôle et aucune dérogation super administrateur ne changent son type. Les règles des documents qui utilisaient `ROLE_PERSONNEL` ont été adaptées à `IS_PERSONNEL`.
+
+Le contexte de sécurité d’un étudiant ne fabrique plus de rôle `ROLE_ETUDIANT`. Les créations, imports et fixtures d’étudiants n’en attribuent plus. Les anciens `ROLE_PERSONNEL` / `ROLE_ETUDIANT` déjà stockés sont ignorés à la lecture et écartés à la sauvegarde. Les contrôles `hasRole` ne doivent plus être utilisés pour tester un type.
+
+La simulation de rôles concerne seulement les rôles métier d’un personnel : elle ne transforme jamais un personnel en étudiant ni un étudiant en personnel. Pour tester un parcours étudiant, utiliser un véritable compte étudiant. Le simulateur local de Stages qui mélangeait types et rôles a été supprimé ; le menu commun de simulation reste disponible aux personnels administrateurs.
+
+Aucune modification de schéma ni attribution de rôle Personnel/Étudiant n’est nécessaire. Recharger le contexte de sécurité après mise à jour.
+
+
+### Deux groupes de direction distincts, mêmes permissions départementales
+
+La direction du département regroupe exclusivement le chef de département (`ROLE_CHEF_DEPARTEMENT`, avec l’alias historique `ROLE_CHEF_DEPT`) et les directeurs d’études (`ROLE_DIRECTEUR_ETUDES`).
+
+La direction de l’IUT regroupe trois fonctions séparées et attribuables :
+
+- Directeur : `ROLE_DIRECTEUR_IUT` (`isDirecteurIut`).
+- Directeur adjoint : `ROLE_DIRECTEUR_ADJOINT_IUT` (`isDirecteurAdjointIut`).
+- Chef des services administratifs : `ROLE_CHEF_SERVICES_ADMINISTRATIFS` (`isChefServicesAdministratifs`).
+
+`isDirectionIut` est un groupe calculé, pas un quatrième rôle attribuable. Le rôle générique `ROLE_DIRECTION` est conservé pour les usages historiques, mais n’active aucune des deux sections de direction et n’est jamais converti automatiquement en fonction IUT.
+
+Ces trois fonctions restent dans la propriété **`permissions` de chaque affectation départementale**. Aucun champ établissement ni migration n’est ajouté. Dans Gestion des accès, le groupe « Fonctions de direction de l’IUT » permet d’appliquer chaque fonction à tous les départements du personnel. À l’enregistrement, les attributions partielles sont complétées sur les affectations présentes, sans recopier les rôles Enseignant, BIATSS ou les autres responsabilités locales d’un département vers un autre. Décocher une fonction la retire de toutes les affectations de la personne.
+
+Le serveur continue à vérifier les permissions de l’affectation active. Le dashboard IUT ne liste que les départements actifs auxquels la personne est rattachée, où Intranet est activé et où une de ces trois fonctions de direction est autorisée. Il n’accorde aucun accès aux départements non affectés ou dépourvus de permission, ni à l’administration technique. Une nouvelle affectation doit recevoir les fonctions voulues ; l’écran de gestion des accès les propage lors de l’enregistrement.
+
+### Menu Rôles et affichage
+
+Le sélecteur du super administrateur permet de cocher plusieurs rôles temporaires. Leur cumul agit uniquement sur les `PermissionGuard` côté interface. Une sélection vide simule un personnel sans fonction métier ; le bouton « Rétablir mes droits réels » quitte explicitement la simulation. Les droits réels de super administrateur maintiennent l’accès au sélecteur, sans accorder leur contournement aux sections simulées. Aucun rôle simulé n’est transmis à l’API et aucune permission persistée n’est modifiée. Les données restent soumises aux droits réels du compte. Le type Personnel / Étudiant et le périmètre des diplômes restent inchangés.

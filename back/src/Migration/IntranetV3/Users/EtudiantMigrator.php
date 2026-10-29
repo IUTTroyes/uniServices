@@ -78,7 +78,6 @@ SQL;
                         'intitule_securite_sociale' => $row['intitule_securite_sociale'] ?: null,
                         'adresse_securite_sociale' => $row['adresse_securite_sociale'] ?: null,
                     ])
-                    ->setRoles(['ROLE_ETUDIANT'])
                     ->setMailPerso($row['mail_perso'])
                     ->setDateNaissance(null !== $row['date_naissance'] ? new \DateTime((string) $row['date_naissance']) : null)
                     ->setTel1($row['tel1'])

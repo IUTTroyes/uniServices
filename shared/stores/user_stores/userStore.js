@@ -1,5 +1,6 @@
 import {defineStore} from 'pinia';
 import {computed, ref} from 'vue';
+import { IUT_DIRECTION_ROLES, AVAILABLE_ROLES } from '../../utils/roleCatalog';
 import {
     changeDepartementActifService,
     getAllStatutsService,
@@ -24,7 +25,10 @@ export const useUsersStore = defineStore('users', () => {
     const departementsPersonnelNotDefaut = ref({});
     const statuts = ref([]);
     const scolariteActif = ref(null);
-    const temporaryRole = ref(null);
+    // null = droits réels ; [] = simulation explicite sans rôle métier.
+    const temporaryRoles = ref(null);
+    const isSimulatingRoles = computed(() => temporaryRoles.value !== null);
+    const temporaryRole = computed(() => temporaryRoles.value?.[0] ?? null);
 
     const isLoading = ref(false);
     const isLoaded = ref(false);
@@ -50,9 +54,7 @@ export const useUsersStore = defineStore('users', () => {
     const applications = computed(() => {
         if (userType.value === 'personnels') {
             const packages = departementDefaut.value?.departementPersonnel?.packages;
-            if (!Array.isArray(packages)) {
-                return [];
-            }
+            if (!Array.isArray(packages)) return [];
 
             const normalizedPackages = packages
                 .map(normalizePackageSlug)
@@ -327,15 +329,18 @@ export const useUsersStore = defineStore('users', () => {
         }
     };
 
-    // Méthode pour définir temporairement un rôle utilisateur
-    const setTemporaryRole = (role) => {
-        temporaryRole.value = role;
+    const setTemporaryRoles = (roles) => {
+        const knownRoles = new Set(AVAILABLE_ROLES.map(item => item.role));
+        temporaryRoles.value = userType.value === 'personnels' && Array.isArray(roles)
+            ? [...new Set(roles.filter(role => knownRoles.has(role)))] : null;
     };
 
-    // Méthode pour effacer le rôle temporaire
-    const clearTemporaryRole = () => {
-        temporaryRole.value = null;
+    // Compatibilité avec les appels à une simulation de rôle unique.
+    const setTemporaryRole = (role) => {
+        if (!AVAILABLE_ROLES.some(item => item.role === role)) clearTemporaryRole();
+        else setTemporaryRoles([role]);
     };
+    const clearTemporaryRole = () => { temporaryRoles.value = null; };
 
     // Le contexte résolu par le serveur est la source des rôles métier.
     const rolesActifs = computed(() => {
@@ -351,69 +356,33 @@ export const useUsersStore = defineStore('users', () => {
         return isPersonnel.value
             && security.isLoaded
             && String(security.currentDepartment?.id) === String(departementDefaut.value?.id)
-            && (!temporaryRole.value || temporaryRole.value === 'ROLE_RESP_PARCOURS')
+            && (!isSimulatingRoles.value || temporaryRoles.value.includes('ROLE_RESP_PARCOURS'))
             && Array.isArray(scope?.diplomeIds) && id != null
             && scope.diplomeIds.some(diplomeId => String(id) === String(diplomeId));
     };
 
-    // Vérifie si un rôle spécifique est actif.
-    // Priorité :
-    //   1. Mode impersonnalisation (temporaryRole) → comportement inchangé
-    //   2. SUPER_ADMIN → lu depuis les permissions du département actif
-    //   3. ROLE_PERSONNEL/ROLE_ETUDIANT → déduit du type d'utilisateur
-    //   4. Rôles métier → lus depuis rolesActifs (département actif)
+    // Types come from account identity; only personnel can hold business roles.
     const hasRole = (role, diplome = null) => {
+        if (userType.value !== 'personnels' || ['ROLE_PERSONNEL', 'ROLE_ETUDIANT'].includes(role)) return false;
         if (role === 'ROLE_RESP_PARCOURS') return isResponsableParcours(diplome);
-        if (temporaryRole.value) {
-            // Correspondance exacte
-            if (temporaryRole.value === role) {
-                return true;
-            }
-
-            // Hiérarchie : Si on a un rôle spécifique, on est aussi Personnel (sauf pour ROLE_ETUDIANT)
-            if (role === 'ROLE_PERSONNEL' && temporaryRole.value !== 'ROLE_ETUDIANT') {
-                return true;
-            }
-
-            // Hiérarchie inverse : Si on est en mode ROLE_PERSONNEL, on n'a pas les sous-rôles spécifiques (déjà géré par le premier if)
-            return false;
-        }
-
-        // SUPER_ADMIN vient des permissions du département actif
-        if (role === 'SUPER_ADMIN') {
-            return rolesActifs.value.includes('SUPER_ADMIN');
-        }
-
-        // Rôle structurel déduit du type d'utilisateur
-        if (role === 'ROLE_PERSONNEL') {
-            return userType.value === 'personnels';
-        }
-
-        if (role === 'ROLE_ETUDIANT') {
-            return userType.value === 'etudiants';
-        }
-
-        // Rôles métier : lus depuis le département actif
+        if (isSimulatingRoles.value) return temporaryRoles.value.includes(role);
         return rolesActifs.value.includes(role);
     };
 
-    const isPersonnel = computed(() => {
-        if (temporaryRole.value) {
-            return temporaryRole.value !== 'ROLE_ETUDIANT';
-        }
-        return userType.value === 'personnels';
-    });
-    const isEtudiant = computed(() => {
-        if (temporaryRole.value) {
-            return temporaryRole.value === 'ROLE_ETUDIANT';
-        }
-        return userType.value === 'etudiants';
-    });
+    const isPersonnel = computed(() => userType.value === 'personnels');
+    const isEtudiant = computed(() => userType.value === 'etudiants');
+
+    const isEnseignant = computed(() => isPersonnel.value && hasRole('ROLE_TEACHER'));
+    const isBiatss = computed(() => isPersonnel.value && hasRole('ROLE_BIATSS'));
 
     const isAssistant = computed(() => hasRole('ROLE_ASSISTANT'));
     const isQualite = computed(() => hasRole('ROLE_QUALITE'));
     const isCompta = computed(() => hasRole('ROLE_COMPTA'));
     const isScolarite = computed(() => hasRole('ROLE_SCOLARITE'));
+    const isDirecteurIut = computed(() => hasRole('ROLE_DIRECTEUR_IUT'));
+    const isDirecteurAdjointIut = computed(() => hasRole('ROLE_DIRECTEUR_ADJOINT_IUT'));
+    const isChefServicesAdministratifs = computed(() => hasRole('ROLE_CHEF_SERVICES_ADMINISTRATIFS'));
+    const isDirectionIut = computed(() => isPersonnel.value && IUT_DIRECTION_ROLES.some(role => hasRole(role)));
     const isDirection = computed(() => hasRole('ROLE_DIRECTION'));
     const isChefDepartement = computed(() => hasRole('ROLE_CHEF_DEPARTEMENT'));
     const isRespParcours = computed(() => isResponsableParcours(useSecurity().scopedPermissions?.ROLE_RESP_PARCOURS?.diplomeIds?.[0]));
@@ -434,6 +403,7 @@ export const useUsersStore = defineStore('users', () => {
 
     // Fonction de déconnexion
     const logout = async () => {
+        clearTemporaryRole();
         await authLogout();
     };
 
@@ -460,11 +430,17 @@ export const useUsersStore = defineStore('users', () => {
         isAuthInitialized,
         isPersonnel,
         isEtudiant,
+        isEnseignant,
+        isBiatss,
         isAssistant,
         isQualite,
         isCompta,
         isScolarite,
         isDirection,
+        isDirectionIut,
+        isDirecteurIut,
+        isDirecteurAdjointIut,
+        isChefServicesAdministratifs,
         isChefDepartement,
         isRespParcours,
         isResponsableParcours,
@@ -483,6 +459,9 @@ export const useUsersStore = defineStore('users', () => {
         isReferent,
         isAdmin,
         hasRole,
+        setTemporaryRoles,
+        temporaryRoles,
+        isSimulatingRoles,
         setTemporaryRole,
         clearTemporaryRole,
         temporaryRole,

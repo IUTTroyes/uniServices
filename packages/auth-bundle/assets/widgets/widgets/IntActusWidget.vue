@@ -38,6 +38,10 @@ const publicOptions = ref([
 ]);
 
 const props = defineProps({
+  widget: {
+    type: Object,
+    default: () => ({}),
+  },
   data: {
     type: Object,
     default: () => ({items: []}),
@@ -205,7 +209,7 @@ const deleteActus = async (actus) => {
       Aucune actualité disponible.
     </Message>
 
-    <PermissionGuard :permissions="['ROLE_ADMIN']">
+    <PermissionGuard :permission="['ROLE_ADMIN']">
       <Button size="small" severity="primary" label="Gérer les actus" icon="pi pi-pencil" @click="showActuDialog = true"/>
     </PermissionGuard>
   </div>

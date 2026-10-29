@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Dashboard\DashboardPreference;
-use App\Domain\Dashboard\WidgetDefinition;
 use App\Entity\Structure\StructureDepartementPersonnel;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
@@ -40,6 +39,7 @@ class DashboardController extends AbstractController
 
         // on recupere le code du dashboard depuis la requete, par defaut 'portail'
         $dashboardCode = $request->query->get('dashboardCode', 'portail');
+        if ($dashboardCode !== 'portail') return new JsonResponse(['message' => 'La personnalisation des widgets est réservée au Portail'], 404);
         $structureDepartementPersonnelId = $request->query->get('structureDepartementPersonnelId');
 
         $structureDepartementPersonnel = $this->getActiveAssignment($user, $structureDepartementPersonnelId);
@@ -111,6 +111,8 @@ class DashboardController extends AbstractController
         if (null === $user) {
             return new JsonResponse(['message' => 'Utilisateur non autorisé'], JsonResponse::HTTP_FORBIDDEN);
         }
+
+        if ($dashboardCode !== 'portail') return new JsonResponse(['message' => 'La personnalisation des widgets est réservée au Portail'], 404);
 
         $structureDepartementPersonnelId = $request->query->get('structureDepartementPersonnelId');
         $structureDepartementPersonnel = $this->getActiveAssignment($user, $structureDepartementPersonnelId);
@@ -218,7 +220,8 @@ class DashboardController extends AbstractController
             return new JsonResponse(['message' => 'Utilisateur non autorisé'], JsonResponse::HTTP_FORBIDDEN);
         }
 
-        $dashboardCode = $request->query->get('dashboardCode', 'intranet');
+        $dashboardCode = $request->query->get('dashboardCode', 'portail');
+        if ($dashboardCode !== 'portail') return new JsonResponse(['message' => 'La personnalisation des widgets est réservée au Portail'], 404);
         $structureDepartementPersonnelId = $request->query->get('structureDepartementPersonnelId');
 
         $structureDepartementPersonnel = $this->getActiveAssignment($user, $structureDepartementPersonnelId);

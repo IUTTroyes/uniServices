@@ -6,12 +6,12 @@ use App\Domain\Dashboard\WidgetDataProviderInterface;
 use App\Domain\Dashboard\DashboardContext;
 use App\Entity\Users\Etudiant;
 use App\Entity\Users\Personnel;
-use App\Repository\Edt\EdtEventRepository;
+use IntranetBundle\Service\Dashboard\IntranetScheduleService;
 
 class IntranetWidgetDataProvider implements WidgetDataProviderInterface
 {
     public function __construct(
-        private readonly EdtEventRepository $edtEventRepository,
+        private readonly IntranetScheduleService $schedule,
     ) {}
 
     public function supports(string $code): bool
@@ -22,7 +22,7 @@ class IntranetWidgetDataProvider implements WidgetDataProviderInterface
     public function getData(string $code, Personnel|Etudiant $user, ?DashboardContext $context = null): array
     {
         return match ($code) {
-            'intranet.emploi_du_temps' => $this->getEmploiDuTemps($user),
+            'intranet.emploi_du_temps' => $this->schedule->getToday($user),
             'intranet.actions_urgentes' => $context?->getDiplomeIds() !== null
                 ? ['items' => [], 'diplomeIds' => $context->getDiplomeIds()]
                 : [
@@ -46,29 +46,4 @@ class IntranetWidgetDataProvider implements WidgetDataProviderInterface
         };
     }
 
-    private function getEmploiDuTemps(Personnel|Etudiant $user): array
-    {
-        if (!$user instanceof Personnel) {
-            return [
-                'todayLabel' => (new \IntlDateFormatter('fr_FR', \IntlDateFormatter::FULL, \IntlDateFormatter::NONE, null, \IntlDateFormatter::GREGORIAN, 'EEEE d MMMM yyyy'))->format(new \DateTimeImmutable('today')),
-                'items' => [],
-            ];
-        }
-
-        $today = new \DateTimeImmutable('today');
-        $tomorrow = $today->modify('+1 day');
-        $events = $this->edtEventRepository->findByPersonnelAndRange($user->getId(), $today, $tomorrow);
-        $formatter = new \IntlDateFormatter('fr_FR', \IntlDateFormatter::FULL, \IntlDateFormatter::NONE, null, \IntlDateFormatter::GREGORIAN, 'EEEE d MMMM yyyy');
-        return [
-            'todayLabel' => $formatter->format($today),
-            'items' => array_map(fn($e) => [
-                'heure'  => $e->getDebut()?->format('H:i') . ' - ' . $e->getFin()?->format('H:i'),
-                'groupe' => $e->getLibGroupe(),
-                'cours'  => $e->getCodeModule() . ' - ' . $e->getLibModule(),
-                'salle'  => $e->getSalle() ?? '-',
-                'color'  => $e->getCouleur(),
-                'eval'   => $e->isEvaluation(),
-            ], $events),
-        ];
-    }
 }

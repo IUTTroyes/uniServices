@@ -41,7 +41,25 @@ class EnseignementFilter implements FilterInterface
                 ->join("enseignementUe.ue", "ue")
                 ->andWhere("ue.semestre = :semestre")
                 ->setParameter("semestre", $value);
-            ;
+        }
+
+        if ('personnel' === $property) {
+            $queryBuilder
+                // si il y a des previsionnels avec des personnels
+                ->join("$alias.previsionnels", "previsionnel")
+                ->join("previsionnel.personnel", "personnel")
+                ->andWhere("personnel.id = :personnel")
+                ->setParameter("personnel", $value);
+                if ($context['filters']['anneeUniversitaire'] ?? null) {
+                    $queryBuilder
+                        ->join("previsionnel.anneeUniversitaire", "anneeUniversitaire")
+                        ->andWhere("anneeUniversitaire.id = :anneeUniversitaireId")
+                        ->setParameter("anneeUniversitaireId", $context['filters']['anneeUniversitaire']);
+                } else {
+                    $queryBuilder
+                        ->join("previsionnel.anneeUniversitaire", "anneeUniversitaire")
+                        ->andWhere("anneeUniversitaire.actif = true");
+                }
         }
 
         if ('annee' === $property) {
@@ -54,8 +72,6 @@ class EnseignementFilter implements FilterInterface
         }
 
         if ('departement' === $property) {
-            $anneeUniversitaireId = $context['filters']['anneeUniversitaire'] ?? null;
-
             $queryBuilder
                 ->join("$alias.enseignementUes", "enseignementUe")
                 ->join("enseignementUe.ue", "ue")
@@ -68,6 +84,7 @@ class EnseignementFilter implements FilterInterface
                 ->andWhere("departement.id = :departement")
                 ->setParameter("departement", $value);
 
+            $anneeUniversitaireId = $context['filters']['anneeUniversitaire'] ?? null;
             if ($anneeUniversitaireId) {
                 $queryBuilder
                     ->join("diplome.anneesUniversitaires", "diplomeAnneeUniv")
@@ -79,6 +96,7 @@ class EnseignementFilter implements FilterInterface
                     ->andWhere("anneeUniversitaire.actif = true");
             }
         }
+
 
         if ('ue' === $property) {
             $queryBuilder

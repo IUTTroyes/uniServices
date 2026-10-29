@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { tools } from '@config/uniServices.js'
 import { ApplicationBadge } from '@components'
+import { IUT_DIRECTION_ROLES, setIutDirectionRole } from '@utils/roleCatalog'
 
 const props = defineProps({
   isVisible: Boolean,
@@ -26,7 +27,16 @@ const packageNames = computed(() => {
   return [...new Set([...realPackages, ...fromDepartments])]
 })
 
-const permissionPackageNames = computed(() => Object.keys(props.permissionCatalog || {}))
+const departmentCatalog = computed(() => Object.fromEntries(Object.entries(props.permissionCatalog ?? {})
+  .map(([pkg, roles]) => [pkg, roles.filter(role => !IUT_DIRECTION_ROLES.includes(role.role))])
+  .filter(([, roles]) => roles.length)))
+const permissionPackageNames = computed(() => Object.keys(departmentCatalog.value))
+const institutionRoles = computed(() => Object.values(props.permissionCatalog ?? {}).flat().filter(role => IUT_DIRECTION_ROLES.includes(role.role)))
+const hasInstitutionRole = (role) => departments.value.length > 0 && departments.value.every(department => (department.permissions ?? []).includes(role))
+const hasPartialInstitutionRole = role => departments.value.some(department => (department.permissions ?? []).includes(role)) && !hasInstitutionRole(role)
+const toggleInstitutionRole = (role, enabled) => {
+  setIutDirectionRole(departments.value, role, enabled)
+}
 const departments = computed(() => props.personnel?.departements ?? [])
 const SUPER_ADMIN_ROLE = 'SUPER_ADMIN'
 const isPersonnelSuperAdmin = computed(() =>
@@ -106,6 +116,17 @@ const save = () => {
             @click="becomeSuperAdminAllDepartments"
         />
       </div>
+
+      <Fieldset v-if="institutionRoles.length" legend="Fonctions de direction de l’IUT">
+        <p class="text-sm text-muted-color mt-0">Chaque fonction sélectionnée est activée sur tous les départements auxquels cette personne est rattachée.</p>
+        <div v-for="role in institutionRoles" :key="role.role" class="flex items-center gap-2">
+          <Checkbox :input-id="`institution-${role.role}`" :binary="true" :disabled="departments.length === 0"
+                    :model-value="hasInstitutionRole(role.role)"
+                    :indeterminate="hasPartialInstitutionRole(role.role)"
+                    @update:model-value="toggleInstitutionRole(role.role, $event)" />
+          <label :for="`institution-${role.role}`">{{ role.label }}</label>
+        </div>
+      </Fieldset>
 
       <Message v-if="departments.length === 0" severity="warn" class="mb-4" icon="pi pi-exclamation-triangle">
         Aucun département affecté.
@@ -193,7 +214,7 @@ const save = () => {
                       <p class="mb-2 text-xs font-bold uppercase text-muted-color">{{ pkg }}</p>
                       <div class="flex flex-wrap gap-3">
                         <div
-                            v-for="role in (props.permissionCatalog[pkg] ?? [])"
+                            v-for="role in (departmentCatalog[pkg] ?? [])"
                             :key="`${departmentKey(department)}-${role.role}`"
                             class="inline-flex items-center gap-2 rounded-full border border-surface-300 bg-surface-0 px-3 py-1.5"
                         >

@@ -247,9 +247,6 @@ class CreateEtudiantController extends AbstractController
         $hashedPassword = $this->passwordHasher->hashPassword($etudiant, $plainPassword);
         $etudiant->setPassword($hashedPassword);
 
-        // Définir les rôles
-        $etudiant->setRoles(['ROLE_ETUDIANT']);
-
         // Ajouter l'image par défaut
         $etudiant->setPhotoName('noimage.png');
 

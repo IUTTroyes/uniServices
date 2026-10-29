@@ -49,12 +49,6 @@ const selectedSurveyToDuplicate = ref<Survey | null>(null);
 
 // Scope management
 const isGlobalQuality = computed(() => {
-  if (userStore?.temporaryRole) {
-    const role = typeof userStore.temporaryRole === 'object' && userStore.temporaryRole !== null && 'value' in userStore.temporaryRole
-      ? (userStore.temporaryRole as any).value
-      : userStore.temporaryRole;
-    return role === 'ROLE_QUALITE' || role === 'ROLE_SUPER_ADMIN' || role === 'SUPER_ADMIN' || role === 'ROLE_DIRECTION';
-  }
   return (
     hasPermission('isQualite') ||
     hasPermission('isSuperAdmin') ||
@@ -66,12 +60,6 @@ const isGlobalQuality = computed(() => {
 });
 
 const isChefDepartement = computed(() => {
-  if (userStore?.temporaryRole) {
-    const role = typeof userStore.temporaryRole === 'object' && userStore.temporaryRole !== null && 'value' in userStore.temporaryRole
-      ? (userStore.temporaryRole as any).value
-      : userStore.temporaryRole;
-    return role === 'ROLE_CHEF_DEPARTEMENT';
-  }
   return hasPermission('isChefDepartement') || Boolean(userStore?.isChefDepartement);
 });
 

@@ -4,6 +4,7 @@ import { HeaderComponent, ButtonEdit, PhotoUser } from '@components'
 import { getPersonnelsService } from '@requests'
 import { useEtablissementStore, useAnneeUnivStore, useUsersStore } from '@stores'
 import api from '@helpers/axios'
+import { normalizeIutDirectionRoles } from '@utils/roleCatalog'
 import AccessPersonnelDialog from "./components/AccessPersonnelDialog.vue";
 import { usePersonnelFilters } from '@composables/filters/usersFilters/usePersonnelFilters.ts';
 
@@ -66,11 +67,12 @@ const openAccessDialog = (personnel) => {
 }
 
 const saveAccess = async () => {
-  if (!selectedPersonnel.value || !selectedPersonnel.value.departements?.length) return
+  if (!selectedPersonnel.value) return
 
   isSaving.value = true
 
   try {
+    normalizeIutDirectionRoles(selectedPersonnel.value.departements ?? [])
     await Promise.all(
       selectedPersonnel.value.departements.map(async (department) => {
         if (!department.id) return

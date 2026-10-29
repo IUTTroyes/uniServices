@@ -80,7 +80,16 @@ const updateDashboardWidgetLayoutService = async (widgetKey, payload, params = {
 // ------------------- DELETE -------------------
 // ----------------------------------------------
 
+const getIntranetDashboardSectionService = async (section, showToast = false) => apiCall(
+    api.get,
+    [`/api/intranet/dashboard/${encodeURIComponent(section)}`],
+    'Accueil Intranet chargé',
+    'Impossible de charger votre accueil Intranet',
+    showToast,
+);
+
 export {
+    getIntranetDashboardSectionService,
     getDashboardService,
     getDashboardWidgetDataService,
     getWidgetsCatalogService,

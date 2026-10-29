@@ -7,6 +7,9 @@ class CorePermissionProvider implements PermissionProviderInterface
     public function getPermissions(): array
     {
         return [
+            new PermissionDefinition('institution.directeur', 'ROLE_DIRECTEUR_IUT', 'Directeur de l’IUT', 'intranet', []),
+            new PermissionDefinition('institution.directeur_adjoint', 'ROLE_DIRECTEUR_ADJOINT_IUT', 'Directeur adjoint de l’IUT', 'intranet', []),
+            new PermissionDefinition('institution.chef_services', 'ROLE_CHEF_SERVICES_ADMINISTRATIFS', 'Chef des services administratifs', 'intranet', []),
             new PermissionDefinition('intranet.super_admin', 'SUPER_ADMIN', 'Super Administrateur', 'intranet', []),
             new PermissionDefinition('intranet.admin', 'ROLE_ADMIN', 'Administrateur', 'intranet', [
                 'ROLE_DIRECTION',
@@ -20,10 +23,11 @@ class CorePermissionProvider implements PermissionProviderInterface
                 'ROLE_PERMANENT',
             ]),
             new PermissionDefinition('intranet.permanent', 'ROLE_PERMANENT', 'Personnel permanent', 'intranet', []),
-            new PermissionDefinition('intranet.teacher', 'ROLE_TEACHER', 'Enseignant', 'intranet', [], true),
+            new PermissionDefinition('intranet.teacher', 'ROLE_TEACHER', 'Enseignant', 'intranet', []),
+            new PermissionDefinition('intranet.biatss', 'ROLE_BIATSS', 'BIATSS', 'intranet', []),
             new PermissionDefinition('intranet.assistant', 'ROLE_ASSISTANT', 'Assistant de formation', 'intranet', []),
             new PermissionDefinition('intranet.scolarite', 'ROLE_SCOLARITE', 'Scolarité', 'intranet', []),
-            new PermissionDefinition('intranet.direction', 'ROLE_DIRECTION', 'Direction', 'intranet', []),
+            new PermissionDefinition('intranet.direction', 'ROLE_DIRECTION', 'Direction (historique)', 'intranet', []),
             new PermissionDefinition('intranet.chef_departement', 'ROLE_CHEF_DEPARTEMENT', 'Chef Département', 'intranet', ['ROLE_CHEF_DEPT']),
             new PermissionDefinition('intranet.chef_dept', 'ROLE_CHEF_DEPT', 'Chef Département', 'intranet', []),
             new PermissionDefinition('intranet.directeur_etudes', 'ROLE_DIRECTEUR_ETUDES', 'Directeur Études', 'intranet', []),

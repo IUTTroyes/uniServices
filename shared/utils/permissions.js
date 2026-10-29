@@ -227,14 +227,14 @@ function checkSinglePermission(permission, userStore, context = {}) {
     return userStore.isEtudiant;
   }
 
-  // Si un rôle temporaire est défini, on ignore le statut SuperAdmin pour permettre une impersonnalisation réelle
-  // Sauf si le rôle temporaire lui-même est SUPER_ADMIN (ou l'ancien ROLE_SUPER_ADMIN pour compatibilité)
-  const isImpersonating = !!userStore.temporaryRole
-    && userStore.temporaryRole !== 'SUPER_ADMIN'
-    && userStore.temporaryRole !== 'ROLE_SUPER_ADMIN';
+  if (permission === 'isDirectionIut') return userStore.isDirectionIut;
 
-  // SuperAdmin a accès à tout (sauf en mode impersonnalisation)
-  if (userStore.hasRole('SUPER_ADMIN') && !isImpersonating) {
+  // These staff functions are explicit and cumulative, not an administrator override.
+  if (permission === 'isEnseignant' || permission === 'ROLE_TEACHER') return userStore.isEnseignant;
+  if (permission === 'isBiatss' || permission === 'ROLE_BIATSS') return userStore.isBiatss;
+
+  // Seuls les rôles sélectionnés sont utilisés pendant la simulation, y compris une sélection vide.
+  if (userStore.hasRole('SUPER_ADMIN')) {
     return true;
   }
 

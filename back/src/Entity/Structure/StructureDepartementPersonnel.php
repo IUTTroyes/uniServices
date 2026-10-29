@@ -184,12 +184,12 @@ class StructureDepartementPersonnel
 
     public function getPermissions(): array
     {
-        return $this->permissions ?? [];
+        return array_values(array_diff($this->permissions ?? [], ['ROLE_PERSONNEL', 'ROLE_ETUDIANT']));
     }
 
     public function setPermissions(array $permissions): static
     {
-        $this->permissions = $permissions;
+        $this->permissions = array_values(array_diff($permissions, ['ROLE_PERSONNEL', 'ROLE_ETUDIANT']));
 
         return $this;
     }

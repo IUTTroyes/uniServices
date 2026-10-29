@@ -8,20 +8,7 @@ import ApplicationBadge from '../Application/ApplicationBadge.vue';
 const router = useRouter();
 const userStore = useUsersStore();
 const widgets = ref([]);
-const bundle = computed(() => {
-  if (router.currentRoute.value.params.bundle) {
-    return router.currentRoute.value.params.bundle;
-  }
-  const routeName = router.currentRoute.value.name;
-  if (routeName && routeName.toLowerCase().includes('intranet')) {
-    return 'intranet';
-  }
-  const routePath = router.currentRoute.value.path;
-  if (routePath && routePath.toLowerCase().includes('intranet')) {
-    return 'intranet';
-  }
-  return 'portail';
-});
+const dashboardCode = 'portail';
 const structureDepartementPersonnelId = computed(() => {
   return userStore.departementDefaut?.departementPersonnel?.id || null;
 });
@@ -38,9 +25,8 @@ const getBundleWidgets = async () => {
   const params = {
     structureDepartementPersonnelId: structureDepartementPersonnelId.value
   };
-  const response = await getWidgetsAvailableService(bundle.value, params);
+  const response = await getWidgetsAvailableService(dashboardCode, params);
   widgets.value = response.widgets || [];
-  console.log(widgets.value)
   loading.value = false;
 
 }
@@ -50,7 +36,7 @@ const updateWidget = async (widget) => {
 
   const payload = { enabled: !widget.enabled };
   const params = {
-    dashboardCode: bundle.value,
+    dashboardCode,
     structureDepartementPersonnelId: structureDepartementPersonnelId.value
   };
 
@@ -65,10 +51,10 @@ const updateWidget = async (widget) => {
   <div class="space-y-4">
     <div class="flex items-center justify-between card card-body">
       <div>
-        <div class="text-xl font-semibold">Configuration du dashboard</div>
-        <div class="text-sm text-color-secondary">Choisissez les widgets à afficher pour votre structure active.</div>
+        <div class="text-xl font-semibold">Personnaliser mon Portail</div>
+        <div class="text-sm text-color-secondary">Choisissez les widgets de votre Portail pour le département actif.</div>
       </div>
-      <Button icon="pi pi-chevron-left" label="Retour au dashboard" severity="secondary" size="small" @click="router.back()"/>
+      <Button icon="pi pi-chevron-left" label="Retour au Portail" severity="secondary" size="small" @click="router.push({ name: 'portail' })"/>
     </div>
 
     <div v-if="loading" class="card">

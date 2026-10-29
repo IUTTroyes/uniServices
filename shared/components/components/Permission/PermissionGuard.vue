@@ -48,7 +48,7 @@ const hasRequiredPermission = computed(() => {
   // Ceci est nécessaire car hasPermission est une fonction externe qui accède au store
   // mais Vue ne peut pas toujours tracker les dépendances à travers les appels de fonction.
   // eslint-disable-next-line no-unused-vars
-  const _temporaryRole = userStore.temporaryRole;
+  const _temporaryRoles = userStore.temporaryRoles;
   // eslint-disable-next-line no-unused-vars
   const _isLoaded = userStore.isLoaded;
   // eslint-disable-next-line no-unused-vars

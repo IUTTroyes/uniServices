@@ -280,12 +280,12 @@ class Etudiant implements UserInterface, PasswordAuthenticatedUserInterface, Tim
 
     public function getRoles(): array
     {
-        return $this->roles;
+        return array_values(array_diff($this->roles, ['ROLE_PERSONNEL', 'ROLE_ETUDIANT']));
     }
 
     public function setRoles(array $roles): static
     {
-        $this->roles = $roles;
+        $this->roles = array_values(array_diff($roles, ['ROLE_PERSONNEL', 'ROLE_ETUDIANT']));
 
         return $this;
     }

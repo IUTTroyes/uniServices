@@ -25,7 +25,11 @@ const anneeItems = ref([
     items: []
   }
 ]);
-const rolesItems = ref([]);
+const selectableRoles = AVAILABLE_ROLES.filter(role => !['SUPER_ADMIN', 'ROLE_SUPER_ADMIN'].includes(role.role));
+const selectedRoles = computed({
+  get: () => userStore.temporaryRoles ?? [],
+  set: roles => userStore.setTemporaryRoles(roles),
+});
 
 const selectedAnneeUniversitaire = ref(null);
 
@@ -36,24 +40,6 @@ onMounted(async () => {
 
 watch(() => userStore.user, async () => {
   await fetchData();
-});
-
-// Surveiller les changements du rôle temporaire pour mettre à jour l'interface utilisateur
-watch(() => userStore.temporaryRole, () => {
-  const hasTemporaryRole = typeof userStore.temporaryRole === 'string' && userStore.temporaryRole.length > 0;
-  // Mettre à jour l'état actif des éléments de rôle lorsque le rôle temporaire change
-  if (rolesItems.value.length > 0) {
-    AVAILABLE_ROLES.forEach((role, index) => {
-      if (rolesItems.value[index]) {
-        rolesItems.value[index].active = hasTemporaryRole ?
-          (userStore.temporaryRole === role.role) :
-          userStore[role.property];
-      }
-    });
-  }
-
-  // afficher le role impersonnalisé dans la console pour le développement
-  console.log('Rôle temporaire actuel:', userStore.temporaryRole);
 });
 
 const fetchData = async () => {
@@ -90,30 +76,6 @@ const fetchData = async () => {
       if (selectedAnneeUniversitaire.value && selectedAnneeUniversitaire.value.libelle) {
         selectedAnneeUniversitaire.value.label = selectedAnneeUniversitaire.value.libelle;
       }
-    }
-
-    if (userStore.user) {
-      // Mapper les rôles aux éléments du menu avec l'état actif et la fonction de commande
-      rolesItems.value = AVAILABLE_ROLES.map(role => ({
-        label: role.label,
-        command: () => {
-          if (userStore.temporaryRole === role.role) {
-            userStore.clearTemporaryRole();
-          } else {
-            userStore.setTemporaryRole(role.role);
-          }
-        },
-        active: (typeof userStore.temporaryRole === 'string' && userStore.temporaryRole.length > 0)
-          ? (userStore.temporaryRole === role.role)
-          : userStore[role.property]
-      }));
-
-      // Ajouter une option "Réinitialiser le rôle" à la fin
-      rolesItems.value.push({
-        label: 'Réinitialiser le rôle',
-        command: () => userStore.clearTemporaryRole(),
-        icon: 'pi pi-refresh'
-      });
     }
 
     // Gérer les données des départements pour l'interface utilisateur
@@ -238,12 +200,8 @@ const isEnabled = (item) => {
   return item.urlSlug === 'intranet' || userStore.applications.includes(item.urlSlug);
 };
 
-// Propriété calculée pour déterminer si le menu des rôles doit être affiché
-const showRolesMenu = computed(() => {
-  // Afficher le menu si l'utilisateur est un superAdmin ou a un rôle temporaire défini
-  const hasTemporaryRole = typeof userStore.temporaryRole === 'string' && userStore.temporaryRole.length > 0;
-  return userStore.isSuperAdmin || hasTemporaryRole;
-});
+// L'accès au simulateur dépend des droits réels, même pendant une simulation vide.
+const showRolesMenu = computed(() => userStore.isPersonnel && userStore.rolesActifs.includes('SUPER_ADMIN'));
 
 const selectAnneeUniversitaire = (annee) => {
   // Passer l'objet annee original au store
@@ -326,9 +284,25 @@ const selectAnneeUniversitaire = (annee) => {
           <button v-if="showRolesMenu" type="button" class="layout-topbar-action layout-topbar-action-text"
             @click="toggleRolesMenu" aria-haspopup="true" aria-controls="roles_menu">
             <i class="pi pi-shield text-primary"></i>
-            <span>Rôles</span>
+            <span>{{ userStore.isSimulatingRoles ? `Rôles (${selectedRoles.length})` : 'Rôles' }}</span>
           </button>
-          <Menu ref="rolesMenu" id="roles_menu" :model="rolesItems" :popup="true" />
+          <Popover v-if="showRolesMenu" ref="rolesMenu" id="roles_menu">
+            <div class="w-80 max-w-[calc(100vw-3rem)] flex flex-col gap-3">
+              <div>
+                <p class="m-0! font-semibold">Simuler des rôles</p>
+                <p class="mt-1! mb-0! text-sm text-muted-color">Cumulez les fonctions pour vérifier les accès affichés. Les droits enregistrés restent inchangés.</p>
+              </div>
+              <p class="m-0! text-xs text-muted-color" aria-live="polite">{{ userStore.isSimulatingRoles ? `${selectedRoles.length} rôle(s) simulé(s)` : 'Droits réels du compte actifs' }}</p>
+              <div class="max-h-80 overflow-y-auto flex flex-col gap-1" role="group" aria-label="Rôles à simuler">
+                <label v-for="role in selectableRoles" :key="role.role" :for="`simulate-${role.role}`" class="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800 cursor-pointer">
+                  <Checkbox v-model="selectedRoles" :input-id="`simulate-${role.role}`" :value="role.role" />
+                  <span class="text-sm">{{ role.label }}</span>
+                </label>
+              </div>
+              <p v-if="userStore.isSimulatingRoles && !selectedRoles.length" class="m-0! text-xs text-muted-color">Aucun rôle métier simulé. Le type de compte reste inchangé.</p>
+              <Button label="Rétablir mes droits réels" icon="pi pi-refresh" severity="secondary" size="small" :disabled="!userStore.isSimulatingRoles" @click="userStore.clearTemporaryRole()" />
+            </div>
+          </Popover>
 
           <PermissionGuard permission="isPersonnel">
             <button type="button" class="layout-topbar-action layout-topbar-action-text" @click="toggleAnneeMenu"
