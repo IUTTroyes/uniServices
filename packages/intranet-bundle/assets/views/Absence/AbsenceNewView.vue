@@ -1,6 +1,6 @@
 <script setup>
 import { onMounted, ref, watch, computed } from "vue";
-import {SimpleSkeleton, ValidatedInput, ListSkeleton, HeaderComponent, UserCard, EdtEventRow} from "@components";
+import {SimpleSkeleton, ValidatedInput, ListSkeleton, HeaderComponent, UserCard, EdtEventRow, Kpi} from "@components";
 import {useAnneeStore, useSemestreStore, useUsersStore} from "@stores";
 import {getAnneeService, getSemestresService, getGroupesService, getEtudiantScolariteSemestresService, getEdtEventsService, createEtudiantAbsenceService, getEtudiantAbsencesService} from "@requests";
 import {useRoute, useRouter} from "vue-router";
@@ -277,6 +277,28 @@ const formattedPaginatedEdtEvents = computed(() => {
 
 const isFormValid = computed(() => {
   return selectedEtudiants.value.length > 0 && selectedEvents.value.length > 0;
+});
+
+const creationStats = computed(() => {
+  const nbEtudiants = selectedEtudiants.value.length;
+  const nbCours = selectedEvents.value.length;
+  const totalAbsences = nbEtudiants * nbCours;
+  return [
+    { label: 'Étudiants sélectionnés', value: nbEtudiants, icon: 'pi pi-users', color: 'blue' },
+    { label: 'Cours sélectionnés', value: nbCours, icon: 'pi pi-calendar', color: 'teal' },
+    { label: 'Absences à créer', value: totalAbsences, icon: 'pi pi-exclamation-triangle', color: totalAbsences > 0 ? 'orange' : 'gray' },
+  ];
+});
+
+const summaryModalStats = computed(() => {
+  const total = absencesSummary.value.length;
+  const toCreate = absencesSummary.value.filter(a => !a.alreadyExists).length;
+  const exists = absencesSummary.value.filter(a => a.alreadyExists).length;
+  return [
+    { label: 'Total absences', value: total, icon: 'pi pi-list', color: 'blue' },
+    { label: 'À créer', value: toCreate, icon: 'pi pi-plus', color: 'green' },
+    { label: 'Déjà existantes', value: exists, icon: 'pi pi-exclamation-circle', color: exists > 0 ? 'amber' : 'gray' },
+  ];
 });
 
 const etudiantOptions = computed(() => {
@@ -713,6 +735,17 @@ const confirmAbsencesCreation = async () => {
         </div>
       </section>
 
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 my-6">
+        <Kpi
+          v-for="stat in creationStats"
+          :key="stat.label"
+          :label="stat.label"
+          :value="stat.value"
+          :icon="stat.icon"
+          :color="stat.color"
+        />
+      </div>
+
       <div class="w-full flex justify-center mt-4">
         <Button
             label="Enregistrer les absences"
@@ -733,6 +766,17 @@ const confirmAbsencesCreation = async () => {
           :style="{ width: '75vw' }"
           :breakpoints="{ '1199px': '90vw', '575px': '95vw' }"
       >
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+          <Kpi
+            v-for="stat in summaryModalStats"
+            :key="stat.label"
+            :label="stat.label"
+            :value="stat.value"
+            :icon="stat.icon"
+            :color="stat.color"
+          />
+        </div>
+
         <DataTable :value="absencesSummary" striped-rows>
           <Column field="etudiantLabel" header="Étudiant" />
           <Column field="eventLabel" header="Cours" />

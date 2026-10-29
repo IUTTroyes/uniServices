@@ -179,19 +179,32 @@ const onPageChange = async event => {
   page.value = event.page;
   await getEdtEvents();
 };
+
+const pointageStats = computed(() => {
+  const list = Array.isArray(events.value) ? events.value : [];
+  const total = totalEvents.value || list.length;
+  const faits = list.filter(e => e.appel).length;
+  const nonFaits = list.filter(e => !e.appel).length;
+  return [
+    { title: 'Total cours', value: total, color: 'blue', icon: 'pi pi-calendar' },
+    { title: 'Appels réalisés', value: faits, color: 'green', icon: 'pi pi-check' },
+    { title: 'Appels non réalisés', value: nonFaits, color: 'red', icon: 'pi pi-times' },
+  ];
+});
 </script>
 
 <template>
-  <!--  <div class="flex justify-around items-center mb-12">-->
-  <!--    <div v-for="stat in absencesStats" :key="stat.title" class="card w-1/5 flex items-center justify-center flex-col">-->
-  <!--      <Kpi-->
-  <!--          :label="stat.title"-->
-  <!--          :value="stat.value"-->
-  <!--          :icon="stat.icon"-->
-  <!--          :color="stat.color"-->
-  <!--      />-->
-  <!--    </div>-->
-  <!--  </div>-->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <Kpi
+      v-for="stat in pointageStats"
+      :key="stat.title"
+      :label="stat.title"
+      :value="stat.value"
+      :icon="stat.icon"
+      :color="stat.color"
+      :loading="isLoadingEvents"
+    />
+  </div>
 
   <div class="flex flex-col gap-6">
     <div class="card">

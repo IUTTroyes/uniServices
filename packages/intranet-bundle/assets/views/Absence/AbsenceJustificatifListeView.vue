@@ -275,10 +275,15 @@ const showValidate = item => {
 </script>
 
 <template>
-  <div class="flex justify-around items-center mb-12 gap-4">
-    <div v-for="stat in stats" :key="stat.title" class="card w-full flex items-center justify-center flex-col">
-      <Kpi :label="stat.title" :value="stat.value" :icon="stat.icon" :color="stat.color" />
-    </div>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <Kpi
+      v-for="stat in stats"
+      :key="stat.title"
+      :label="stat.title"
+      :value="stat.value"
+      :icon="stat.icon"
+      :color="stat.color"
+    />
   </div>
   <div class="card">
     <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
