@@ -110,7 +110,6 @@ new WidgetDefinition(
     'pi pi-inbox',
     'QuestionnairePendingWidget',
     'medium',
-    true,
     allowedProfiles: [WidgetDefinition::PROFILE_PERSONNEL]
 )
 ```
