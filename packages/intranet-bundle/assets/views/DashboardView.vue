@@ -123,7 +123,7 @@ const actions = [
         <template v-for="action in actions" :key="action.id">
           <PermissionGuard :permission="action.permission">
             <RouterLink v-if="!action.application || userStore.applications.includes(action.application)"
-                        :to="action.to" class="business-access card p-5! mb-0! flex items-start gap-4">
+                        :to="action.to" class="card p-5! mb-0! flex items-start gap-4 hover:border-primary-400! hover:border! transition-all">
               <span class="flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-primary-50 text-primary-600 dark:bg-primary-950 dark:text-primary-300">
                 <i :class="action.icon" aria-hidden="true" />
               </span>
@@ -168,7 +168,4 @@ const actions = [
 </template>
 
 <style scoped>
-.business-access { border: 1px solid var(--p-surface-200); transition: border-color .15s, box-shadow .15s; }
-.business-access:hover, .business-access:focus-visible { border-color: var(--p-primary-color); box-shadow: 0 2px 8px color-mix(in srgb, var(--p-primary-color) 12%, transparent); }
-:global(.app-dark) .business-access { border-color: var(--p-surface-700); }
 </style>

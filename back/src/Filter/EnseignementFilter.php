@@ -36,73 +36,98 @@ class EnseignementFilter implements FilterInterface
         $alias = $queryBuilder->getRootAliases()[0];
 
         if ('semestre' === $property) {
+            $enseignementUeAlias = $queryNameGenerator->generateJoinAlias('enseignementUe');
+            $ueAlias = $queryNameGenerator->generateJoinAlias('ue');
+
             $queryBuilder
-                ->join("$alias.enseignementUes", "enseignementUe")
-                ->join("enseignementUe.ue", "ue")
-                ->andWhere("ue.semestre = :semestre")
+                ->join("$alias.enseignementUes", $enseignementUeAlias)
+                ->join("$enseignementUeAlias.ue", $ueAlias)
+                ->andWhere("$ueAlias.semestre = :semestre")
                 ->setParameter("semestre", $value);
         }
 
         if ('personnel' === $property) {
+            $previsionnelAlias = $queryNameGenerator->generateJoinAlias('previsionnel');
+            $personnelAlias = $queryNameGenerator->generateJoinAlias('personnel');
+            $anneeUniversitaireAlias = $queryNameGenerator->generateJoinAlias('anneeUniversitaire');
+
             $queryBuilder
                 // si il y a des previsionnels avec des personnels
-                ->join("$alias.previsionnels", "previsionnel")
-                ->join("previsionnel.personnel", "personnel")
-                ->andWhere("personnel.id = :personnel")
+                ->join("$alias.previsionnels", $previsionnelAlias)
+                ->join("$previsionnelAlias.personnel", $personnelAlias)
+                ->andWhere("$personnelAlias.id = :personnel")
                 ->setParameter("personnel", $value);
                 if ($context['filters']['anneeUniversitaire'] ?? null) {
                     $queryBuilder
-                        ->join("previsionnel.anneeUniversitaire", "anneeUniversitaire")
-                        ->andWhere("anneeUniversitaire.id = :anneeUniversitaireId")
+                        ->join("$previsionnelAlias.anneeUniversitaire", $anneeUniversitaireAlias)
+                        ->andWhere("$anneeUniversitaireAlias.id = :anneeUniversitaireId")
                         ->setParameter("anneeUniversitaireId", $context['filters']['anneeUniversitaire']);
                 } else {
                     $queryBuilder
-                        ->join("previsionnel.anneeUniversitaire", "anneeUniversitaire")
-                        ->andWhere("anneeUniversitaire.actif = true");
+                        ->join("$previsionnelAlias.anneeUniversitaire", $anneeUniversitaireAlias)
+                        ->andWhere("$anneeUniversitaireAlias.actif = true");
                 }
         }
 
         if ('annee' === $property) {
+            $enseignementUeAlias = $queryNameGenerator->generateJoinAlias('enseignementUe');
+            $ueAlias = $queryNameGenerator->generateJoinAlias('ue');
+            $semestreAlias = $queryNameGenerator->generateJoinAlias('semestre');
+
             $queryBuilder
-                ->join("$alias.enseignementUes", "enseignementUe2")
-                ->join("enseignementUe2.ue", "ue2")
-                ->join("ue2.semestre", "semestre2")
-                ->andWhere("semestre2.annee = :annee")
+                ->join("$alias.enseignementUes", $enseignementUeAlias)
+                ->join("$enseignementUeAlias.ue", $ueAlias)
+                ->join("$ueAlias.semestre", $semestreAlias)
+                ->andWhere("$semestreAlias.annee = :annee")
                 ->setParameter("annee", $value);
         }
 
         if ('departement' === $property) {
+            $enseignementUeAlias = $queryNameGenerator->generateJoinAlias('enseignementUe');
+            $ueAlias = $queryNameGenerator->generateJoinAlias('ue');
+            $semestreAlias = $queryNameGenerator->generateJoinAlias('semestre');
+            $anneeAlias = $queryNameGenerator->generateJoinAlias('annee');
+            $pnAlias = $queryNameGenerator->generateJoinAlias('pn');
+            $anneeUniversitaireAlias = $queryNameGenerator->generateJoinAlias('anneeUniversitaire');
+            $diplomeAlias = $queryNameGenerator->generateJoinAlias('diplome');
+            $departementAlias = $queryNameGenerator->generateJoinAlias('departement');
+
             $queryBuilder
-                ->join("$alias.enseignementUes", "enseignementUe")
-                ->join("enseignementUe.ue", "ue")
-                ->join("ue.semestre", "semestre")
-                ->join("semestre.annee" , "annee")
-                ->join("annee.pn", "pn")
-                ->join("pn.anneeUniversitaire", "anneeUniversitaire")
-                ->join("pn.diplome", "diplome")
-                ->join("diplome.departement", "departement")
-                ->andWhere("departement.id = :departement")
+                ->join("$alias.enseignementUes", $enseignementUeAlias)
+                ->join("$enseignementUeAlias.ue", $ueAlias)
+                ->join("$ueAlias.semestre", $semestreAlias)
+                ->join("$semestreAlias.annee" , $anneeAlias)
+                ->join("$anneeAlias.pn", $pnAlias)
+                ->join("$pnAlias.anneeUniversitaire", $anneeUniversitaireAlias)
+                ->join("$pnAlias.diplome", $diplomeAlias)
+                ->join("$diplomeAlias.departement", $departementAlias)
+                ->andWhere("$departementAlias.id = :departement")
                 ->setParameter("departement", $value);
 
             $anneeUniversitaireId = $context['filters']['anneeUniversitaire'] ?? null;
             if ($anneeUniversitaireId) {
+                $diplomeAnneeUnivAlias = $queryNameGenerator->generateJoinAlias('diplomeAnneeUniv');
+
                 $queryBuilder
-                    ->join("diplome.anneesUniversitaires", "diplomeAnneeUniv")
-                    ->andWhere("diplomeAnneeUniv.id = :anneeUniversitaireId")
-                    ->andWhere("anneeUniversitaire.id = :anneeUniversitaireId")
+                    ->join("$diplomeAlias.anneesUniversitaires", $diplomeAnneeUnivAlias)
+                    ->andWhere("$diplomeAnneeUnivAlias.id = :anneeUniversitaireId")
+                    ->andWhere("$anneeUniversitaireAlias.id = :anneeUniversitaireId")
                     ->setParameter("anneeUniversitaireId", $anneeUniversitaireId);
             } else {
                 $queryBuilder
-                    ->andWhere("anneeUniversitaire.actif = true");
+                    ->andWhere("$anneeUniversitaireAlias.actif = true");
             }
         }
 
 
         if ('ue' === $property) {
+            $enseignementUeAlias = $queryNameGenerator->generateJoinAlias('enseignementUe');
+            $ueAlias = $queryNameGenerator->generateJoinAlias('ue');
+
             $queryBuilder
-                ->join("$alias.enseignementUes", "enseignementUe")
-                ->join("enseignementUe.ue", "ue")
-                ->andWhere("ue.id = :ue")
+                ->join("$alias.enseignementUes", $enseignementUeAlias)
+                ->join("$enseignementUeAlias.ue", $ueAlias)
+                ->andWhere("$ueAlias.id = :ue")
                 ->setParameter("ue", $value);
         }
     }

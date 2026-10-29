@@ -7,6 +7,7 @@ import {useUsersStore} from '@stores';
 const enseignements = ref([]);
 const usersStore = useUsersStore();
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
+const departement = usersStore.departementDefaut
 
 onMounted(async () => {
   try {
@@ -21,6 +22,7 @@ const getEnseignements = async () => {
     const params = {
       personnel: usersStore.user.id,
       anneeUniversitaire: anneeUniv.id,
+      departement: departement?.id ?? null,
     };
     enseignements.value = await getEnseignementsService(params, '/dashboard');
   } catch (error) {
@@ -144,7 +146,7 @@ function openTeaching(teaching, shortcut) {
           </TabPanel>
         </TabPanels>
       </Tabs>
-      <p v-else class="m-0! text-sm text-muted-color">Aucun enseignement disponible pour cette année universitaire.</p>
+      <p v-else class="m-0! text-sm text-muted-color">Aucun enseignement disponible pour ce contexte.</p>
     </article>
 
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
