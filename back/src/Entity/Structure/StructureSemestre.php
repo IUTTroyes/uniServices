@@ -94,7 +94,7 @@ class StructureSemestre implements TimestampableInterface
     private string $libelle;
 
     #[ORM\Column]
-    #[Groups(['semestre:detail', 'semestre:light', 'maquette:detail', 'scolarite:user'])]
+    #[Groups(['semestre:detail', 'semestre:light', 'maquette:detail', 'scolarite:user', 'annee:read'])]
     private int $ordreAnnee = 0;
 
     #[ORM\Column]
@@ -102,7 +102,7 @@ class StructureSemestre implements TimestampableInterface
     private int $ordreLmd = 0;
 
     #[ORM\Column]
-    #[Groups(['semestre:detail', 'semestre:light'])]
+    #[Groups(['semestre:detail', 'semestre:light', 'annee:read'])]
     private bool $actif = true;
 
     #[ORM\Column]

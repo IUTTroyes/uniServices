@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, computed, watch } from "vue";
+import Tag from "primevue/tag";
 import { ErrorView, ListSkeleton } from "@components";
 import { useUsersStore, useSemestreStore, useAnneeStore, useAnneeUnivStore } from "@stores";
 
@@ -14,10 +15,32 @@ const isLoading = ref(true);
 const hasError = ref(false);
 const anneesGrouped = ref({ fi: [], fc: [] });
 
+// Vérifier si l'année (ou le diplôme lié) est actif
+const isAnneeActive = (annee) => {
+  if (annee?.actif === false) return false;
+  if (annee?.diplome && annee.diplome.actif === false) return false;
+  if (annee?.pn?.diplome && annee.pn.diplome.actif === false) return false;
+  return annee?.actif === true || annee?.actif === undefined;
+};
+
+// Récupérer et trier les semestres d'une année
+const getSortedSemestres = (annee) => {
+  if (!annee?.semestres || !Array.isArray(annee.semestres)) return [];
+  return [...annee.semestres]
+    .filter(s => s.actif === undefined || s.actif === true)
+    .sort((a, b) => {
+      if (a.ordreAnnee !== undefined && b.ordreAnnee !== undefined && a.ordreAnnee !== b.ordreAnnee) {
+        return a.ordreAnnee - b.ordreAnnee;
+      }
+      return (a.libelle || '').localeCompare(b.libelle || '', undefined, { numeric: true });
+    });
+};
+
 // When the selected year changes, store it globally and select the first semester of that year if needed
 watch(selectedAnnee, (newVal) => {
   anneeStore.setSelectedAnnee(newVal);
-  const firstSem = newVal?.semestres?.[0] ?? null;
+  const sortedSemestres = getSortedSemestres(newVal);
+  const firstSem = sortedSemestres[0] ?? null;
   semestreStore.setSelectedSemestre(firstSem);
 });
 
@@ -63,7 +86,7 @@ onMounted(async () => {
 const getAnnees = async () => {
   try {
     isLoading.value = true;
-    const departementId = userStore.departementDefaut.id;
+    const departementId = userStore.departementDefaut?.id;
 
     if (!departementId) {
       console.error("Aucun département par défaut trouvé pour l'utilisateur.");
@@ -71,16 +94,20 @@ const getAnnees = async () => {
       return;
     }
     try {
+      const anneeUnivId = selectedAnneeUniversitaire?.id ?? selectedAnneeUniversitaire?.value?.id;
       const params = {
         departement: departementId,
-        anneeUniversitaire: selectedAnneeUniversitaire.id
+        actif: true,
       };
+      if (anneeUnivId) {
+        params.anneeUniversitaire = anneeUnivId;
+      }
       await anneeStore.getAnneesDepartement(params);
-      const annees = anneeStore.annees;
+      const annees = Array.isArray(anneeStore.annees) ? anneeStore.annees : [];
       // Créer un nouvel objet pour stocker les années de formation initiale et continue
       anneesGrouped.value = {
-        fi: annees.filter(a => a.opt.alternance === false).map(a => a),
-        fc: annees.filter(a => a.opt.alternance === true).map(a => a),
+        fi: annees.filter(a => isAnneeActive(a) && a.opt?.alternance === false),
+        fc: annees.filter(a => isAnneeActive(a) && a.opt?.alternance === true),
       };
     } catch (error) {
       console.error("Erreur lors de la récupération des années :", error);
@@ -126,15 +153,24 @@ const selectAnnee = (annee) => {
       <div v-else class="flex gap-10 mt-4">
         <div class="w-1/2 flex gap-4">
           <ul v-for="(list, type) in anneesGrouped" class="w-1/2">
-            <Fieldset :legend="type === 'fi' ? 'Formation Initiale' : 'Formation continue'" class="max-h-96 overflow-auto">
+            <Fieldset :legend="type === 'fi' ? `Formation Initiale (${list.length})` : `Formation Alternance (${list.length})`" class="max-h-96 overflow-auto">
               <ul>
                 <li v-for="annee in list"
                     :key="annee.id"
                     class="mb-2 text-sm">
                   <div @click="selectAnnee(annee)"
-                       class="cursor-pointer hover:bg-primary-400/10 rounded-md w-full p-2 border border-neutral-200 dark:border-neutral-700"
+                       class="cursor-pointer hover:bg-primary-400/10 rounded-md w-full p-2 border border-neutral-200 dark:border-neutral-700 flex items-center justify-between gap-2 transition-colors"
                        :class="{'bg-primary-400/20': selectedAnnee && selectedAnnee.id === annee.id}">
-                    {{ annee.libelle }}
+                    <span class="truncate">{{ annee.libelle }}</span>
+                    <div v-if="getSortedSemestres(annee).length > 0" class="flex items-center gap-1 shrink-0">
+                      <Tag
+                        v-for="semestre in getSortedSemestres(annee)"
+                        :key="semestre.id"
+                        severity="primary"
+                        class="!text-xs !py-0.5 !px-1.5"
+                        :value="semestre.libelle"
+                      />
+                    </div>
                   </div>
                 </li>
               </ul>
