@@ -100,14 +100,14 @@ const staffStats = computed(() => {
     <!-- Left: Count summary & filter tag chips -->
     <div class="flex items-center flex-wrap gap-3">
       <div class="flex items-baseline gap-2">
-        <span class="text-2xl font-bold text-gray-900 tracking-tight">{{ filteredCount }}</span>
-        <span class="text-sm font-medium text-gray-400">/ {{ totalCount }}</span>
-        <span class="text-sm font-medium text-gray-700">
+        <span class="text-2xl font-black text-gray-900 tracking-tight">{{ filteredCount }}</span>
+        <span class="text-sm font-semibold text-gray-500">/ {{ totalCount }}</span>
+        <span class="text-sm font-bold text-gray-800">
           {{ filters.mode === 'students' ? (filteredCount > 1 ? 'étudiants' : 'étudiant') : 'personnel' }}
         </span>
         <span
             v-if="anneeUnivLabel && filters.mode === 'students'"
-            class="hidden md:inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-gray-100 text-gray-600 border border-gray-200"
+            class="hidden md:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-50 text-primary-800 border border-primary-200"
         >
           {{ anneeUnivLabel }}
         </span>
@@ -118,14 +118,16 @@ const staffStats = computed(() => {
         <span
             v-for="flt in activeFiltersList"
             :key="flt"
-            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-primary-50 text-primary-700 border border-primary-200"
+            class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-50 text-primary-800 border border-primary-300 shadow-2xs max-w-[200px] truncate"
+            v-tooltip.top="flt"
+            :title="flt"
         >
-          {{ flt }}
+          <span class="truncate">{{ flt }}</span>
         </span>
 
         <button
             @click="emit('resetFilters')"
-            class="text-xs text-gray-400 hover:text-red-600 transition-colors inline-flex items-center gap-1 ml-1"
+            class="text-xs font-semibold text-gray-600 hover:text-red-700 bg-gray-100 hover:bg-red-50 px-2 py-0.5 rounded-md border border-gray-300 transition-colors inline-flex items-center gap-1 ml-1 cursor-pointer"
             title="Effacer les filtres"
         >
           <i class="pi pi-times-circle text-xs"></i>
@@ -135,30 +137,30 @@ const staffStats = computed(() => {
     </div>
 
     <!-- Right: Quick breakdown stats -->
-    <div class="flex items-center gap-4 flex-wrap">
+    <div class="flex items-center gap-3 flex-wrap">
       <!-- Students Stats -->
-      <div v-if="filters.mode === 'students' && studentStats" class="flex items-center gap-4 text-xs">
-        <div class="flex items-center gap-1.5 text-gray-500">
-          <i class="pi pi-calendar text-gray-400"></i>
-          <span class="font-medium text-gray-700">{{ Object.keys(studentStats.semesters).length }}</span>
-          <span>semestres</span>
+      <div v-if="filters.mode === 'students' && studentStats" class="flex items-center gap-2.5 text-xs">
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100/90 border border-gray-200 text-gray-700 font-medium">
+          <i class="pi pi-calendar text-primary-600"></i>
+          <span class="font-bold text-gray-900">{{ Object.keys(studentStats.semesters).length }}</span>
+          <span>semestre{{ Object.keys(studentStats.semesters).length > 1 ? 's' : '' }}</span>
         </div>
-        <div class="flex items-center gap-1.5 text-emerald-600">
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium">
           <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <span class="font-semibold text-gray-800">{{ studentStats.activeCount }}</span>
-          <span class="text-gray-500">actifs</span>
+          <span class="font-bold text-emerald-950">{{ studentStats.activeCount }}</span>
+          <span>actifs</span>
         </div>
       </div>
 
       <!-- Staff Stats -->
-      <div v-if="filters.mode === 'staff' && staffStats" class="flex items-center gap-3 text-xs">
+      <div v-if="filters.mode === 'staff' && staffStats" class="flex items-center gap-2.5 text-xs">
         <div
             v-for="(count, category) in staffStats.categories"
             :key="category"
-            class="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gray-50 border border-gray-200/80"
+            class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100/90 border border-gray-200 text-gray-700 font-medium"
         >
-          <span class="text-gray-500">{{ category }}:</span>
-          <span class="font-semibold text-gray-800">{{ count }}</span>
+          <span class="text-gray-600 font-medium">{{ category }}:</span>
+          <span class="font-bold text-gray-900">{{ count }}</span>
         </div>
       </div>
     </div>

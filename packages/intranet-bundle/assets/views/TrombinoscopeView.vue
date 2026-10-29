@@ -98,7 +98,16 @@ const mapEtudiantToStudentCard = (e: any) => {
 
   // Extract scolariteSemestre array
   const scolariteSemestres = activeScol?.scolariteSemestre || [];
-  const activeScolSem = scolariteSemestres[0] || null;
+  let activeScolSem = null;
+  if (filters.value.studentFilters.semester) {
+    activeScolSem = scolariteSemestres.find((ss: any) => {
+      const sId = ss?.semestre?.id ?? ss?.legacyContext?.semestre?.oldId;
+      return sId === filters.value.studentFilters.semester;
+    });
+  }
+  if (!activeScolSem) {
+    activeScolSem = scolariteSemestres.find((ss: any) => (ss?.groupes && ss.groupes.length > 0)) || scolariteSemestres[0] || null;
+  }
 
   // Semestre object (support both native V4 StructureSemestre and legacyContext)
   const semObj = activeScolSem?.semestre;
@@ -111,8 +120,13 @@ const mapEtudiantToStudentCard = (e: any) => {
   const groupesMap: { CM: string[]; TD: string[]; TP: string[] } = { CM: [], TD: [], TP: [] };
   const groupesIdsMap: { CM: number[]; TD: number[]; TP: number[] } = { CM: [], TD: [], TP: [] };
 
-  (activeScolSem?.groupes || []).forEach((g: any) => {
-    const type = (g.type || 'TD') as 'CM' | 'TD' | 'TP';
+  const rawGroups = (activeScolSem?.groupes && activeScolSem.groupes.length > 0)
+    ? activeScolSem.groupes
+    : (e.groupes || []);
+
+  rawGroups.forEach((g: any) => {
+    const rawType = String(g.type || 'TD').toUpperCase();
+    const type = (['CM', 'TD', 'TP'].includes(rawType) ? rawType : 'TD') as 'CM' | 'TD' | 'TP';
     if (groupesMap[type]) {
       groupesMap[type].push(g.libelle);
       groupesIdsMap[type].push(g.id);
@@ -414,16 +428,16 @@ onUnmounted(() => {
 
           <!-- Empty State -->
           <div v-else-if="currentFilteredData.length === 0" class="bg-white border border-gray-200 rounded-2xl p-12 text-center max-w-md mx-auto my-12 shadow-sm">
-            <div class="w-16 h-16 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-4">
+            <div class="w-16 h-16 rounded-2xl bg-gray-100 border border-gray-200 text-gray-500 flex items-center justify-center mx-auto mb-4 shadow-2xs">
               <i class="pi pi-search text-2xl"></i>
             </div>
-            <h3 class="text-base font-semibold text-gray-900 mb-1">Aucun résultat trouvé</h3>
-            <p class="text-xs text-gray-500 mb-6">
+            <h3 class="text-base font-bold text-gray-900 mb-1.5">Aucun résultat trouvé</h3>
+            <p class="text-xs text-gray-600 mb-6 leading-relaxed">
               Aucun {{ filters.mode === 'students' ? 'étudiant' : 'membre du personnel' }} ne correspond à vos critères de filtrage.
             </p>
             <button
                 @click="resetFilters"
-                class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-2"
+                class="px-4 py-2.5 bg-primary-600 hover:bg-primary-700 active:bg-primary-800 text-white rounded-lg text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-2 cursor-pointer"
             >
               <i class="pi pi-refresh text-xs"></i>
               <span>Réinitialiser les critères</span>
@@ -464,17 +478,17 @@ onUnmounted(() => {
         <!-- Footer status bar -->
         <footer class="bg-white border-t border-gray-200 px-6 py-2.5 flex items-center justify-between text-xs text-gray-500">
           <div class="flex items-center gap-4">
-            <span>
-              <kbd class="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[10px] font-mono">Ctrl+F</kbd> recherche
+            <span class="flex items-center gap-1.5 text-gray-600">
+              <kbd class="px-2 py-0.5 bg-gray-100 border border-gray-300 rounded text-[11px] font-mono text-gray-700 font-semibold shadow-2xs">Ctrl+F</kbd> recherche
             </span>
-            <span>
-              <kbd class="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[10px] font-mono">Ctrl+R</kbd> réinitialiser
+            <span class="flex items-center gap-1.5 text-gray-600">
+              <kbd class="px-2 py-0.5 bg-gray-100 border border-gray-300 rounded text-[11px] font-mono text-gray-700 font-semibold shadow-2xs">Ctrl+R</kbd> réinitialiser
             </span>
-            <span>
-              <kbd class="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[10px] font-mono">Ctrl+E</kbd> exporter CSV
+            <span class="flex items-center gap-1.5 text-gray-600">
+              <kbd class="px-2 py-0.5 bg-gray-100 border border-gray-300 rounded text-[11px] font-mono text-gray-700 font-semibold shadow-2xs">Ctrl+E</kbd> exporter CSV
             </span>
           </div>
-          <div class="font-medium text-gray-600">
+          <div class="font-semibold text-gray-700 bg-gray-50 px-3 py-1 rounded-full border border-gray-200 shadow-2xs">
             {{ currentFilteredData.length }} élément{{ currentFilteredData.length > 1 ? 's' : '' }} affiché{{ currentFilteredData.length > 1 ? 's' : '' }}
           </div>
         </footer>
