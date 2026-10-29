@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.7.0](https://github.com/IUTTroyes/uniServices/compare/v0.6.0...v0.7.0) (2026-10-29)
+
+
+### ✨ Fonctionnalités
+
+* (wip)Intranet Dashboard structure + Définition des rôles ([7775e59](https://github.com/IUTTroyes/uniServices/commit/7775e590809cb45fa9a9a1fcb4e415fcf770706f))
+* commande en dev pour générer des étudiants pour tests ([54adc41](https://github.com/IUTTroyes/uniServices/commit/54adc41ba4cc576d40c193c1c6b5ed41a36aafcf))
+
+
+### 🐛 Corrections
+
+* Amélioration de l'UI du Portail - Navigation vers bundles plus claires ([dc0ee62](https://github.com/IUTTroyes/uniServices/commit/dc0ee62d929aa17af309640dfb7a4f975f39c4a6))
+* lien vers évaluations ([187b207](https://github.com/IUTTroyes/uniServices/commit/187b207c2cc6fc652fce7735560328f380f15656))
+* Update widget configurations to improve layout and permissions ([aa15909](https://github.com/IUTTroyes/uniServices/commit/aa15909aaa4698ed44d59ec07eafa72c24e5c476))
+
 ## [0.6.0](https://github.com/IUTTroyes/uniServices/compare/v0.5.0...v0.6.0) (2026-10-27)
 
 
