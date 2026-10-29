@@ -14,6 +14,14 @@ const helpdeskMenu = {
     { label: 'Nouveau Ticket', icon: 'pi pi-fw pi-plus', to: '/helpdesk/nouveauticket' },
     { label: 'Mes Tickets', icon: 'pi pi-fw pi-ticket', to: '/helpdesk/mestickets' },
     { label: 'Tous les Tickets', icon: 'pi pi-fw pi-list', to: '/helpdesk/ticketsliste', permission: 'isPersonnelService' }
+  ],
+  bottomItems: [
+    {
+      label: 'Configuration',
+      icon: 'pi pi-fw pi-sliders-h',
+      to: '/helpdesk/configuration',
+      permission: 'isChefDepartement'
+    }
   ]
 };
 
@@ -83,6 +91,19 @@ export default {
               icon: 'pi pi-wrench'
             }]
           },
+        },
+        {
+          path: 'configuration',
+          name: 'helpdesk_configuration',
+          component: () => import('./views/Configuration/HelpdeskConfigurationView.vue'),
+          meta: {
+            permission: 'isChefDepartement',
+            breadcrumb: [{ label: 'Dashboard', route: '/helpdesk/' }, {
+              label: 'Configuration',
+              route: null,
+              icon: 'pi pi-sliders-h'
+            }]
+          }
         }
       ]
     }

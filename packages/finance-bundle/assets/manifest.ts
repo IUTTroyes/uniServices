@@ -9,6 +9,14 @@ const financeMenu = {
   items: [
     { label: 'Tableau de bord', icon: 'pi pi-fw pi-chart-bar', to: '/finance' },
     { label: 'Nouvelle demande', icon: 'pi pi-fw pi-plus-circle', to: '/finance/demande/nouveau' },
+  ],
+  bottomItems: [
+    {
+      label: 'Configuration',
+      icon: 'pi pi-fw pi-sliders-h',
+      to: '/finance/configuration',
+      permission: 'isChefDepartement'
+    }
   ]
 };
 
@@ -53,6 +61,16 @@ export default {
           meta: {
             title: 'Détail Demande',
             breadcrumb: [{ label: 'Finances', route: '/finance' }, { label: 'Détail de la commande', route: null }]
+          }
+        },
+        {
+          path: 'configuration',
+          name: 'finance_configuration',
+          component: () => import('./views/Configuration/FinanceConfigurationView.vue'),
+          meta: {
+            permission: 'isChefDepartement',
+            title: 'Configuration des Finances',
+            breadcrumb: [{ label: 'Finances', route: '/finance' }, { label: 'Configuration', route: null, icon: 'pi pi-sliders-h' }]
           }
         }
       ]

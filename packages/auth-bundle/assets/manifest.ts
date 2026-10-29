@@ -13,6 +13,14 @@ const authMenu = {
   icon: 'pi pi-fw pi-user',
   items: [
     { label: 'Portail', icon: 'pi pi-fw pi-th-large', to: '/auth/portail' }
+  ],
+  bottomItems: [
+    {
+      label: 'Configuration',
+      icon: 'pi pi-fw pi-sliders-h',
+      to: '/auth/configuration/',
+      permission: 'SUPER_ADMIN'
+    }
   ]
 };
 

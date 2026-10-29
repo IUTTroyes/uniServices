@@ -12,6 +12,14 @@ const questionnaireMenu = {
     { label: 'Tableau de bord', icon: 'pi pi-fw pi-home', to: '/questionnaire/' },
     { label: 'Tous les questionnaires', icon: 'pi pi-fw pi-list', to: '/questionnaire/qualite/enquetes/liste', permission: 'isPersonnel' },
     { label: 'Créer un questionnaire', icon: 'pi pi-fw pi-plus', to: '/questionnaire/qualite/enquetes/builder/new', permission: 'isPersonnel' },
+  ],
+  bottomItems: [
+    {
+      label: 'Configuration',
+      icon: 'pi pi-fw pi-sliders-h',
+      to: '/questionnaire/configuration',
+      permission: 'isChefDepartement'
+    }
   ]
 };
 

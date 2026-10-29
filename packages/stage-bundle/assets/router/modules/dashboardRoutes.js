@@ -75,5 +75,17 @@ export default [
                 { label: 'Modèles de Conventions', route: null, icon: 'pi pi-cog' }
             ]
         },
+    },
+    {
+        path: 'configuration',
+        component: () => import('@/views/Configuration/StageConfigurationView.vue'),
+        name: 'StageConfiguration',
+        meta: {
+            permission: 'isChefDepartement',
+            breadcrumb: [
+                { label: 'Dashboard', route: '/stage' },
+                { label: 'Configuration', route: null, icon: 'pi pi-sliders-h' }
+            ]
+        }
     }
 ];

@@ -13,6 +13,14 @@ const stageMenu = {
     { label: 'Espace Tuteur', icon: 'pi pi-fw pi-users', to: '/stage/enseignant', permission: 'isPersonnel' },
     { label: 'Espace Responsable', icon: 'pi pi-fw pi-shield', to: '/stage/responsable', permission: 'ROLE_STAGE_MANAGER' },
     { label: 'Modèles de Convention', icon: 'pi pi-fw pi-cog', to: '/stage/admin/templates', permission: 'SUPER_ADMIN' },
+  ],
+  bottomItems: [
+    {
+      label: 'Configuration',
+      icon: 'pi pi-fw pi-sliders-h',
+      to: '/stage/configuration',
+      permission: 'isChefDepartement'
+    }
   ]
 };
 

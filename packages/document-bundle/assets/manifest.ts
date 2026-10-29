@@ -8,6 +8,14 @@ const documentMenu = {
   icon: 'pi pi-fw pi-folder',
   items: [
     { label: 'Tous les documents', icon: 'pi pi-fw pi-file', to: '/documents' },
+  ],
+  bottomItems: [
+    {
+      label: 'Configuration',
+      icon: 'pi pi-fw pi-sliders-h',
+      to: '/documents/configuration',
+      permission: 'isChefDepartement'
+    }
   ]
 };
 

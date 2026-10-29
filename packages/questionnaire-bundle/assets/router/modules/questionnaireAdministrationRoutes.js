@@ -82,5 +82,17 @@ export default [
         { label: 'Répondre au questionnaire', route: null }
       ]
     }
+  },
+  {
+    path: 'configuration',
+    name: 'questionnaire_configuration',
+    component: () => import('@/views/Configuration/QuestionnaireConfigurationView.vue'),
+    meta: {
+      permission: 'isChefDepartement',
+      breadcrumb: [
+        { label: 'Dashboard', route: '/questionnaire' },
+        { label: 'Configuration', route: null, icon: 'pi pi-sliders-h' }
+      ]
+    }
   }
 ]
