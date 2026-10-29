@@ -7,14 +7,14 @@ import TabList from 'primevue/tablist';
 import Tab from 'primevue/tab';
 import TabPanels from 'primevue/tabpanels';
 import TabPanel from 'primevue/tabpanel';
-import EvaluationsView from '@/views/Evaluations/SuiviEvaluationsView.vue';
+import SuiviEvaluationsView from '@/views/Evaluations/SuiviEvaluationsView.vue';
 import StructureGroupeView from '@/views/Groupes/StructureGroupeView.vue';
 
 const route = useRoute();
 const router = useRouter();
 
 const tabs = [
-  { title: 'Évaluations', value: 'evaluations', component: markRaw(EvaluationsView) },
+  { title: 'Évaluations', value: 'evaluations', component: markRaw(SuiviEvaluationsView) },
   { title: 'Rattrapages', value: 'rattrapages', component: markRaw(StructureGroupeView) },
   { title: 'MCCC', value: 'mccc', component: markRaw(StructureGroupeView) },
 ];
