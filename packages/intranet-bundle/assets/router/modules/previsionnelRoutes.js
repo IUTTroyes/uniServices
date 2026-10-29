@@ -1,33 +1,30 @@
-import PrevisionnelSemestreView from "@/views/Previsionnel/PrevisionnelSemestreView.vue";
-import PrevisionnelSemestreTestView from "@/views/Previsionnel/PrevisionnelSemestreTestView.vue";
-import PrevisionnelPersonnelView from "@/views/Previsionnel/PrevisionnelPersonnelView.vue";
-import PrevisionnelEnseignementView from "@/views/Previsionnel/PrevisionnelEnseignementView.vue";
-import PrevisionnelPrimesView from "@/views/Previsionnel/PrevisionnelPrimesView.vue";
-import PrevisionnelActionsView from "@/views/Previsionnel/PrevisionnelActionsView.vue";
-
 export default [
   {
+    path: '',
+    redirect: 'semestre',
+  },
+  {
     path: 'semestre',
-    component: PrevisionnelSemestreView,
+    component: () => import("@/views/Previsionnel/PrevisionnelSemestreView.vue"),
   },
   {
     path: 'semestre_test',
-    component: PrevisionnelSemestreTestView,
+    component: () => import("@/views/Previsionnel/PrevisionnelSemestreTestView.vue"),
   },
   {
     path: 'personnel',
-    component: PrevisionnelPersonnelView,
+    component: () => import("@/views/Previsionnel/PrevisionnelPersonnelView.vue"),
   },
   {
     path: 'matiere',
-    component: PrevisionnelEnseignementView,
+    component: () => import("@/views/Previsionnel/PrevisionnelEnseignementView.vue"),
   },
   {
     path: 'primes',
-    component: PrevisionnelPrimesView,
+    component: () => import("@/views/Previsionnel/PrevisionnelPrimesView.vue"),
   },
   {
     path: 'actions',
-    component: PrevisionnelActionsView,
-  }
-]
+    component: () => import("@/views/Previsionnel/PrevisionnelActionsView.vue"),
+  },
+];

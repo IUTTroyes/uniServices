@@ -1,6 +1,6 @@
 <script setup>
 import {ref, onMounted} from 'vue';
-import {HeaderComponent, GlobalLoader} from '@components';
+import {HeaderComponent, ListSkeleton} from '@components';
 import { useUsersStore } from '@stores';
 import {getEtudiantScolaritesService} from '@requests';
 
@@ -56,7 +56,7 @@ onMounted(async () => {
       </div>
     </header>
     <div class="card-body">
-      <GlobalLoader v-if="isLoadingScolarites" />
+      <ListSkeleton v-if="isLoadingScolarites" />
 
     </div>
   </div>

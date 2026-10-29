@@ -64,35 +64,6 @@ const activeFiltersList = computed(() => {
   return list;
 });
 
-const studentStats = computed(() => {
-  if (props.filters.mode !== 'students') return null;
-
-  const semesters = props.students.reduce((acc, student: any) => {
-    const sem = student.semestreLibelle || (student.semestre ? `S${student.semestre}` : 'Non assigné');
-    acc[sem] = (acc[sem] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  const activeCount = props.students.filter((s: any) => s.status === 'active').length;
-
-  return { semesters, activeCount };
-});
-
-const staffStats = computed(() => {
-  if (props.filters.mode !== 'staff') return null;
-
-  const categories = props.staff.reduce((acc, member) => {
-    const statut = member.statut || 'Autre';
-    const group =
-        ['MCF', 'PU', 'PRCE', 'PRAG', 'contractuel'].includes(statut) ? 'Permanents' :
-            ['VAC', 'ATER', 'vacataire', 'ENSAM', 'DO'].includes(statut) ? 'Vacataires' :
-                'Personnels';
-    acc[group] = (acc[group] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
-  return { categories };
-});
 </script>
 
 <template>
@@ -133,35 +104,6 @@ const staffStats = computed(() => {
           <i class="pi pi-times-circle text-xs"></i>
           <span>Effacer</span>
         </button>
-      </div>
-    </div>
-
-    <!-- Right: Quick breakdown stats -->
-    <div class="flex items-center gap-3 flex-wrap">
-      <!-- Students Stats -->
-      <div v-if="filters.mode === 'students' && studentStats" class="flex items-center gap-2.5 text-xs">
-        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100/90 border border-gray-200 text-gray-700 font-medium">
-          <i class="pi pi-calendar text-primary-600"></i>
-          <span class="font-bold text-gray-900">{{ Object.keys(studentStats.semesters).length }}</span>
-          <span>semestre{{ Object.keys(studentStats.semesters).length > 1 ? 's' : '' }}</span>
-        </div>
-        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 font-medium">
-          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <span class="font-bold text-emerald-950">{{ studentStats.activeCount }}</span>
-          <span>actifs</span>
-        </div>
-      </div>
-
-      <!-- Staff Stats -->
-      <div v-if="filters.mode === 'staff' && staffStats" class="flex items-center gap-2.5 text-xs">
-        <div
-            v-for="(count, category) in staffStats.categories"
-            :key="category"
-            class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-100/90 border border-gray-200 text-gray-700 font-medium"
-        >
-          <span class="text-gray-600 font-medium">{{ category }}:</span>
-          <span class="font-bold text-gray-900">{{ count }}</span>
-        </div>
       </div>
     </div>
   </div>

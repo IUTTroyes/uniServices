@@ -20,6 +20,9 @@ import {
   Kpi,
   Card,
   EmptyState,
+  ListSkeleton,
+  SimpleSkeleton,
+  GlobalLoader,
   QuickActionCard,
   ButtonDelete,
   ButtonEdit,
@@ -37,7 +40,7 @@ import ActionButtonVertical from '@components/components/ActionButtonVertical.vu
 import Alert from '@components/components/Alert.vue';
 
 // Active tab sidebar selection
-const activeComponent = ref<'header' | 'card' | 'kpi' | 'quick-action' | 'action-btn' | 'alert' | 'empty-state' | 'buttons' | 'forms' | 'application-badge'>('header');
+const activeComponent = ref<'header' | 'card' | 'kpi' | 'quick-action' | 'action-btn' | 'alert' | 'empty-state' | 'loaders' | 'buttons' | 'forms' | 'application-badge'>('header');
 const copiedText = ref(false);
 
 function triggerCopiedNotification() {
@@ -217,6 +220,25 @@ const emptyStateCode = computed(() => {
 />`;
 });
 
+// 6c. Loaders & Skeletons
+const loaderType = ref<'list' | 'simple' | 'global'>('list');
+const skeletonWidth = ref('100%');
+
+const loaderCode = computed(() => {
+  if (loaderType.value === 'list') {
+    const widthStr = skeletonWidth.value !== '100%' ? ` width="${skeletonWidth.value}"` : '';
+    return `<!-- Chargement de données structurées (listes, tableaux, cartes) -->
+<ListSkeleton${widthStr} />`;
+  }
+  if (loaderType.value === 'simple') {
+    const widthStr = skeletonWidth.value !== '100%' ? ` width="${skeletonWidth.value}"` : '';
+    return `<!-- Chargement d'un élément textuel ou sélecteur inline -->
+<SimpleSkeleton${widthStr} />`;
+  }
+  return `<!-- Opération bloquante / traitement global (synchro Apogée, exports lourds) -->
+<GlobalLoader />`;
+});
+
 // 7. Buttons (Confirmation & Action buttons)
 const buttonTooltip = ref('Action du bouton');
 const buttonLabel = ref('Supprimer');
@@ -362,6 +384,14 @@ const availableAppsList = computed(() => Object.keys(APPLICATION_REGISTRY));
           >
             <i class="pi pi-inbox text-sm" />
             EmptyState
+          </button>
+          <button
+            @click="activeComponent = 'loaders'"
+            :class="['w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2',
+                     activeComponent === 'loaders' ? 'bg-primary-500 text-white shadow-md' : 'text-gray-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-slate-700/50']"
+          >
+            <i class="pi pi-spin pi-spinner text-sm" />
+            Loaders & Squelettes
           </button>
           <div class="h-[1px] bg-slate-100 dark:bg-slate-700 my-2"></div>
           <button
@@ -1408,6 +1438,105 @@ const availableAppsList = computed(() => Object.keys(APPLICATION_REGISTRY));
             <pre class="bg-slate-950 text-slate-200 p-5 rounded-2xl overflow-x-auto text-xs leading-relaxed font-mono"><code>{{ emptyStateCode }}</code></pre>
             <button
               @click="copyCode(emptyStateCode)"
+              class="absolute top-3 right-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white p-2 rounded-xl text-xs flex items-center gap-1.5 transition-all duration-200 border border-slate-700/50"
+            >
+              <CheckIcon v-if="copiedText" class="w-4 h-4 text-green-400" />
+              <ClipboardIcon v-else class="w-4 h-4" />
+              {{ copiedText ? 'Copié !' : 'Copier' }}
+            </button>
+          </div>
+        </Card>
+      </div>
+
+      <!-- 6c. LOADERS & SKELETONS DOCUMENTATION -->
+      <div v-if="activeComponent === 'loaders'" class="space-y-6">
+        <div class="card p-6 bg-gradient-to-br from-primary-500/5 to-transparent border border-primary-500/10 rounded-2xl">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Loaders & Squelettes de Chargement</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Système normalisé pour gérer les temps d'attente utilisateur sans provoquer de décalage de mise en page (Cumulative Layout Shift) et avec une vitesse perçue optimale.
+          </p>
+        </div>
+
+        <!-- Guide des règles -->
+        <Card title="Règles d'Usage et Bonnes Pratiques">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            <div class="p-4 rounded-xl border border-blue-200 bg-blue-50/60 dark:bg-blue-900/20 dark:border-blue-800 space-y-2">
+              <div class="font-bold text-blue-900 dark:text-blue-300 flex items-center gap-1.5 text-sm">
+                <i class="pi pi-bars text-blue-600" />
+                ListSkeleton & SimpleSkeleton
+              </div>
+              <p class="text-blue-800/80 dark:text-blue-300/80 leading-relaxed">
+                <strong>Pour les données de consultation :</strong> listes, tableaux, grilles de cartes, fiches et sélecteurs.<br>
+                Ils réservent l'empreinte visuelle exacte du contenu, évitent les sauts d'écran brutaux et diminuent le temps d'attente perçu de 25%.
+              </p>
+            </div>
+            <div class="p-4 rounded-xl border border-purple-200 bg-purple-50/60 dark:bg-purple-900/20 dark:border-purple-800 space-y-2">
+              <div class="font-bold text-purple-900 dark:text-purple-300 flex items-center gap-1.5 text-sm">
+                <i class="pi pi-spin pi-spinner text-purple-600" />
+                GlobalLoader
+              </div>
+              <p class="text-purple-800/80 dark:text-purple-300/80 leading-relaxed">
+                <strong>Pour les opérations bloquantes :</strong> synchronisation Apogée, exports lourds PDF/Excel, initialisation pleine page ou session.<br>
+                Fournit un feedback explicite centré avec indicateur d'action en cours.
+              </p>
+            </div>
+          </div>
+          <div class="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+            <i class="pi pi-exclamation-triangle flex-shrink-0" />
+            <span><strong>Règle stricte :</strong> Ne jamais coder de spinner CSS personnalisé ad-hoc (<code class="font-mono bg-amber-100 dark:bg-amber-800/40 px-1 py-0.5 rounded">animate-spin</code>) dans les vues. Toujours exploiter les composants partagés.</span>
+          </div>
+        </Card>
+
+        <!-- Live Demo -->
+        <Card title="Aperçu Interactif">
+          <!-- Switcher -->
+          <div class="flex items-center gap-2 mb-6 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl max-w-md">
+            <button
+              type="button"
+              @click="loaderType = 'list'"
+              :class="['flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer', loaderType === 'list' ? 'bg-white dark:bg-slate-700 text-primary-600 shadow-xs' : 'text-gray-600 dark:text-gray-400']"
+            >
+              ListSkeleton
+            </button>
+            <button
+              type="button"
+              @click="loaderType = 'simple'"
+              :class="['flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer', loaderType === 'simple' ? 'bg-white dark:bg-slate-700 text-primary-600 shadow-xs' : 'text-gray-600 dark:text-gray-400']"
+            >
+              SimpleSkeleton
+            </button>
+            <button
+              type="button"
+              @click="loaderType = 'global'"
+              :class="['flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer', loaderType === 'global' ? 'bg-white dark:bg-slate-700 text-primary-600 shadow-xs' : 'text-gray-600 dark:text-gray-400']"
+            >
+              GlobalLoader
+            </button>
+          </div>
+
+          <div class="bg-slate-50 dark:bg-slate-900/40 p-6 rounded-2xl border border-slate-100 dark:border-slate-800/80 mb-6 min-h-[140px] flex items-center justify-center">
+            <ListSkeleton v-if="loaderType === 'list'" :width="skeletonWidth" class="w-full" />
+            <SimpleSkeleton v-else-if="loaderType === 'simple'" :width="skeletonWidth" class="w-full" />
+            <div v-else class="h-32 flex items-center justify-center w-full">
+              <GlobalLoader />
+            </div>
+          </div>
+
+          <!-- Controls for Skeletons -->
+          <div v-if="loaderType !== 'global'" class="bg-slate-50/50 dark:bg-slate-800/20 p-5 rounded-2xl border border-slate-100 dark:border-slate-800/40 text-xs">
+            <div>
+              <label class="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">Largeur (width)</label>
+              <input v-model="skeletonWidth" type="text" class="w-full md:w-64 p-2.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-mono" placeholder="100%, 300px, 50%..." />
+            </div>
+          </div>
+        </Card>
+
+        <!-- Code Snippet -->
+        <Card title="Code d'intégration">
+          <div class="relative">
+            <pre class="bg-slate-950 text-slate-200 p-5 rounded-2xl overflow-x-auto text-xs leading-relaxed font-mono"><code>{{ loaderCode }}</code></pre>
+            <button
+              @click="copyCode(loaderCode)"
               class="absolute top-3 right-3 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white p-2 rounded-xl text-xs flex items-center gap-1.5 transition-all duration-200 border border-slate-700/50"
             >
               <CheckIcon v-if="copiedText" class="w-4 h-4 text-green-400" />

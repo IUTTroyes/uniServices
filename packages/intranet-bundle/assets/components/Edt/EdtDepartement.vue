@@ -3,7 +3,7 @@ import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
 import {useUsersStore} from '@stores';
-import {PhotoUser, SimpleSkeleton, ErrorView} from '@components';
+import {PhotoUser, SimpleSkeleton, ListSkeleton, ErrorView} from '@components';
 import {getISOWeekNumber} from "@helpers/date";
 import EdtEvent from "./EdtEvent.vue";
 import {
@@ -19,7 +19,6 @@ import {
 } from "@requests";
 import {adjustColor, darkenColor} from "@helpers/colors.js";
 import EdtListe from "./EdtListe.vue";
-import Loader from "@components/loader/GlobalLoader.vue";
 import {
   applyOverlapMetadata,
   calculateHoursByType,
@@ -465,7 +464,7 @@ const heuresParType = computed(() => {
     <Button v-else @click="liste = false">Masquer la liste</Button>
   </div>
 
-  <Loader v-if="isLoadingEvents"/>
+  <ListSkeleton v-if="isLoadingEvents"/>
   <ErrorView v-else-if="hasError" message="Une erreur est survenue lors du chargement de l'emploi du temps. Veuillez réessayer plus tard."/>
   <vue-cal
       v-else

@@ -1,10 +1,9 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useAnneeUnivStore, useUsersStore } from '@stores'
-import { ErrorView, SimpleSkeleton, PermissionGuard, HeaderComponent } from '@components'
+import { ErrorView, SimpleSkeleton, ListSkeleton, PermissionGuard, HeaderComponent } from '@components'
 import { getDiplomesService, deleteAnneeService, deletePnService, deleteDiplomeService, deleteSemestreService, deleteUeService, deleteEnseignementUeService } from '@requests'
 import { synchronisationProgrameOreofService } from '@/service/oreofService.ts'
-import Loader from '@components/loader/GlobalLoader.vue'
 import FicheRessource from '../../components/Pn/FicheRessource.vue'
 import FicheSae from '../../components/Pn/FicheSae.vue'
 import FicheMatiere from '../../components/Pn/FicheMatiere.vue'
@@ -206,7 +205,7 @@ const deleteObject = async (objectType, id) => {
         </Tabs>
       </div>
 
-      <Loader v-if="isLoadingDiplome" class="mt-6"/>
+      <ListSkeleton v-if="isLoadingDiplome" class="mt-6"/>
       <div v-else class="mt-6">
         <PermissionGuard permission="isSuperAdmin">
           <ButtonDelete tooltip="Supprimer ce Diplôme" @confirm-delete="deleteObject('diplome', selectedDiplome.id)"/>

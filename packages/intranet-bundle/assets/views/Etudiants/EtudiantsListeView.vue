@@ -9,7 +9,7 @@ import { getEtudiantsScolariteService, demissionEtudiantScolariteService, getAnn
 import { useToast } from 'primevue/usetoast';
 import { useUsersStore, useAnneeUnivStore } from '@stores';
 import { getAppTagInfo } from '@utils';
-import { useEtudiantFilters } from '../../../../../shared/composables/filters/usersFilters/useEtudiantFilters.ts';
+import { useEtudiantFilters } from '@composables/filters/usersFilters/useEtudiantFilters';
 import { Button } from 'primevue';
 
 const toast = useToast();

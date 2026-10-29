@@ -14,7 +14,6 @@ import {
   getDiplomesService,
   getSemestresService,
 } from "@requests";
-import Loader from "@components/loader/GlobalLoader.vue";
 import {clampDateInRange, deriveAcademicYearBounds, formatDateAsDayMonthYear} from "@/service/utils/edtUtils";
 
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
@@ -676,7 +675,7 @@ const exportDataHeures = async () => {
     </div>
   </div>
 
-  <Loader v-if="isLoadingEventsData" class="my-12"/>
+  <ListSkeleton v-if="isLoadingEventsData" class="my-12"/>
   <div v-else class="flex flex-col gap-6 w-full">
     <div class="text-xl font-bold">
       Statistiques pour

@@ -100,6 +100,16 @@ const hasActiveFilters = computed(() => {
   return Boolean(props.filters.staffFilters.statut || props.filters.staffFilters.department);
 });
 
+const searchInputRef = ref<HTMLInputElement | null>(null);
+
+const focusSearch = () => {
+  searchInputRef.value?.focus();
+};
+
+defineExpose({
+  focusSearch,
+});
+
 const updateMode = (mode: 'students' | 'staff') => {
   emit('updateFilters', {
     mode,
@@ -250,6 +260,7 @@ const updateViewMode = (viewMode: 'grid' | 'list') => {
         <div class="relative">
           <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
           <input
+              ref="searchInputRef"
               type="text"
               :value="filters.searchTerm"
               @input="updateSearch(($event.target as HTMLInputElement).value)"

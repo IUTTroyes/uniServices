@@ -2,8 +2,7 @@
 import {ref, computed, onMounted} from 'vue';
 import { marked } from 'marked';
 import {getEnseignementService} from "@requests";
-import Loader from '@components/loader/GlobalLoader.vue';
-import {ErrorView} from "@components";
+import {ErrorView, ListSkeleton} from "@components";
 import { useUsersStore } from "@stores";
 import { useRouter } from "vue-router";
 
@@ -114,7 +113,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Loader v-if="isLoading" />
+  <ListSkeleton v-if="isLoading" />
   <ErrorView v-else-if="hasError"/>
   <div v-else>
     <div class="px-8 flex flex-row items-center gap-4">

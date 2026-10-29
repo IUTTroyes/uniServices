@@ -235,7 +235,40 @@ import { EmptyState } from '@components';
 
 ---
 
-### 2.5. `ActionButtonVertical` — Boutons d'action modernes
+### 2.5. Indicateurs de chargement — `ListSkeleton`, `SimpleSkeleton` & `GlobalLoader`
+
+Pour garantir la stabilité visuelle (éviter le *Cumulative Layout Shift*) et une sensation de réactivité optimale, respectez la règle de répartition suivante :
+
+| Composant | Rôle & Cas d'usage | Exemples |
+|---|---|---|
+| **`ListSkeleton`** | Chargement de **données structurées** de liste ou tableau. | Liste d'étudiants, trombinoscope, vue agenda/planning, liste de tâches. |
+| **`SimpleSkeleton`** | Chargement d'un **élément textuel ou sélecteur unique**. | Sélecteur de semestre/année, titre d'en-tête, valeur de KPI (`:loading="true"`). |
+| **`GlobalLoader`** | **Opération bloquante** ou traitement global. | Synchronisation Apogée, génération lourde de PDF/Excel, initialisation pleine page. |
+
+> ⚠️ **Interdiction stricte** : Ne jamais concevoir de spinner CSS ad-hoc (`animate-spin`) ou d'indicateur inline non standardisé. Toujours importer depuis `@components`.
+
+#### Exemple d'utilisation
+
+```vue
+<script setup lang="ts">
+import { ListSkeleton, SimpleSkeleton, GlobalLoader } from '@components';
+</script>
+
+<template>
+  <!-- Données en cours de chargement : utiliser ListSkeleton -->
+  <ListSkeleton v-if="isLoading" class="w-full" />
+
+  <!-- Sélecteur en attente : utiliser SimpleSkeleton -->
+  <SimpleSkeleton v-if="isLoadingSemestres" width="180px" />
+
+  <!-- Traitement lourd bloquant : utiliser GlobalLoader -->
+  <GlobalLoader v-if="isSynchronizingApogee" />
+</template>
+```
+
+---
+
+### 2.6. `ActionButtonVertical` — Boutons d'action modernes
 
 Idéal dans les barres d'actions et les en-têtes de page.
 
