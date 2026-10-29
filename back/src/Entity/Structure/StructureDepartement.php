@@ -291,6 +291,7 @@ class StructureDepartement implements TimestampableInterface
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $resolver->setIgnoreUndefined(true);
         $resolver->setDefaults([
             'materiel' => false,
             'edt' => false,
@@ -301,7 +302,7 @@ class StructureDepartement implements TimestampableInterface
         $resolver->setAllowedTypes('materiel', 'bool');
         $resolver->setAllowedTypes('edt', 'bool');
         $resolver->setAllowedTypes('stage', 'bool');
-        $resolver->setAllowedTypes('resp_ri', 'string'); //todo: sauvegarder l'IRI de la personne ? pour faire le lien en front ?
+        $resolver->setAllowedTypes('resp_ri', ['string', 'int', 'null']); //todo: sauvegarder l'IRI de la personne ? pour faire le lien en front ?
     }
 
     /**

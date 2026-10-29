@@ -66,7 +66,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
             normalizationContext: ['groups' => ['semestre:light', 'groupe:detail']]
         ),
         new Post(securityPostDenormalize: "is_granted('CAN_EDIT_SEMESTRE', object)"),
-        new Patch(securityPostDenormalize: "is_granted('CAN_EDIT_SEMESTRE', object)"),
+        new Patch(
+            normalizationContext: ['groups' => ['semestre:detail']],
+            denormalizationContext: ['groups' => ['semestre:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_SEMESTRE', object)"
+        ),
         new Delete(security: "is_granted('CAN_DELETE_SEMESTRE', object)")
     ],
     parameters: [
@@ -332,6 +336,7 @@ class StructureSemestre implements TimestampableInterface
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $resolver->setIgnoreUndefined(true);
         $resolver->setDefaults([
             'mail_releve' => false,
             'mail_modif_note' => false,
@@ -352,19 +357,19 @@ class StructureSemestre implements TimestampableInterface
 
         $resolver->setAllowedTypes('mail_releve', 'bool');
         $resolver->setAllowedTypes('mail_modif_note', 'bool');
-        $resolver->setAllowedTypes('dest_mail_releve', 'int');
-        $resolver->setAllowedTypes('dest_mail_modif_note', 'int');
+        $resolver->setAllowedTypes('dest_mail_releve', ['int', 'string', 'null']);
+        $resolver->setAllowedTypes('dest_mail_modif_note', ['int', 'string', 'null']);
         $resolver->setAllowedTypes('eval_visible', 'bool');
         $resolver->setAllowedTypes('eval_modif', 'bool');
-        $resolver->setAllowedTypes('penalite_absence', 'float');
+        $resolver->setAllowedTypes('penalite_absence', ['float', 'int']);
         $resolver->setAllowedTypes('mail_absence_resp', 'bool');
-        $resolver->setAllowedTypes('dest_mail_absence_resp', 'int');
+        $resolver->setAllowedTypes('dest_mail_absence_resp', ['int', 'string', 'null']);
         $resolver->setAllowedTypes('mail_absence_etudiant', 'bool');
         $resolver->setAllowedTypes('opt_penalite_absence', 'bool');
         $resolver->setAllowedTypes('mail_assistante_justif_absence', 'bool');
         $resolver->setAllowedTypes('bilan_semestre', 'bool');
         $resolver->setAllowedTypes('rattrapage', 'bool');
-        $resolver->setAllowedTypes('mail_rattrapage', 'int');
+        $resolver->setAllowedTypes('mail_rattrapage', ['int', 'string', 'null']);
     }
 
     /**

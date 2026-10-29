@@ -5,10 +5,6 @@
     width: 8rem;
     height: calc(100vh - 6rem);
     z-index: 999;
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: var(--p-primary-100) var(--surface-card);
-    scrollbar-track-color: var(--surface-card);
     user-select: none;
     top: 6rem;
     left: 0;
@@ -18,6 +14,21 @@
     background-color: var(--surface-overlay);
     border-radius: var(--content-border-radius);
     padding: 0.5rem 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.layout-sidebar-top {
+    flex: 1 1 0%;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--p-primary-100) var(--surface-card);
+    scrollbar-track-color: var(--surface-card);
+}
+
+.layout-sidebar-bottom {
+    flex-shrink: 0;
 }
 
 .layout-menu {

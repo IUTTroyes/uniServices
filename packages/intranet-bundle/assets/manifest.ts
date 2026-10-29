@@ -52,6 +52,14 @@ const intranetMenu = {
       to: '/intranet/super-administration',
       permission: 'SUPER_ADMIN'
     }
+  ],
+  bottomItems: [
+    {
+      label: 'Configuration',
+      icon: 'pi pi-fw pi-sliders-h',
+      to: '/intranet/configuration',
+      permission: 'isChefDepartement'
+    }
   ]
 };
 

@@ -96,6 +96,21 @@ const getAnneeSemestresService = async (anneeId, showToast = false) => {
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
 
+const updateSemestreService = async (semestreId, data, showToast = true) => {
+    try {
+        return await apiCall(
+            api.patch,
+            [`/api/structure_semestres/${semestreId}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
+            'Semestre mis à jour avec succès',
+            'Erreur lors de la mise à jour du semestre',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans updateSemestreService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
@@ -115,4 +130,4 @@ const deleteSemestreService = async (semestreId, showToast = false) => {
     }
 }
 
-export { getSemestresService, getSemestreService, getDepartementSemestresService, getDiplomeSemestresService, getAnneeSemestresService, deleteSemestreService };
+export { getSemestresService, getSemestreService, getDepartementSemestresService, getDiplomeSemestresService, getAnneeSemestresService, updateSemestreService, deleteSemestreService };

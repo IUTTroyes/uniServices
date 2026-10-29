@@ -43,6 +43,21 @@ const getAnneeService = async (anneeId, showToast = false) => {
 // ------------------- UPDATE -------------------
 // ----------------------------------------------
 
+const updateAnneeService = async (anneeId, data, showToast = true) => {
+    try {
+        return await apiCall(
+            api.patch,
+            [`/api/structure_annees/${anneeId}`, data, { headers: { 'Content-Type': 'application/merge-patch+json' }}],
+            'Année mise à jour avec succès',
+            'Erreur lors de la mise à jour de l\'année',
+            showToast
+        );
+    } catch (error) {
+        console.error('Erreur dans updateAnneeService:', error);
+        throw error;
+    }
+}
+
 // ----------------------------------------------
 // ------------------- DELETE -------------------
 // ----------------------------------------------
@@ -62,4 +77,4 @@ const deleteAnneeService = async (anneeId, showToast = false) => {
     }
 }
 
-export { getAnneesService, getAnneeService, deleteAnneeService };
+export { getAnneesService, getAnneeService, updateAnneeService, deleteAnneeService };

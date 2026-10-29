@@ -103,12 +103,34 @@ const computedMenuItems = computed(() => {
 
   return assembled;
 });
+
+const computedBottomMenuItems = computed(() => {
+  const pathPkg = getPackageFromPath(currentRoute?.path || '/');
+
+  const activeBundle = bundles.find(b => b.name === pathPkg);
+  if (!activeBundle || !activeBundle.menu) return [];
+
+  const rawBottom = activeBundle.menu.bottomItems || activeBundle.bottomMenu?.items || [];
+  const filteredItems = rawBottom.filter(item => {
+    if (item.permission) {
+      return hasPermission(item.permission);
+    }
+    return true;
+  });
+
+  if (filteredItems.length === 0) return [];
+
+  return [{
+    label: '',
+    items: filteredItems
+  }];
+});
 </script>
 
 <template>
   <div class="layout-wrapper" :class="containerClass">
     <app-topbar :app-name :logo-url></app-topbar>
-    <app-sidebar :menu-items="computedMenuItems"></app-sidebar>
+    <app-sidebar :menu-items="computedMenuItems" :bottom-items="computedBottomMenuItems"></app-sidebar>
     <div class="layout-main-container">
       <div class="flex justify-between items-center">
         <app-breadcrumb v-if="breadcrumbItems.length > 0" :items="breadcrumbItems"></app-breadcrumb>

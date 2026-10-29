@@ -5,11 +5,23 @@ import AdminBlocPersonnel from '@/components/Administration/blocs_admin/AdminBlo
 import AdminBlocPn from '@/components/Administration/blocs_admin/AdminBlocPn.vue'
 import AdminBlocEdt from '@/components/Administration/blocs_admin/AdminBlocEdt.vue'
 import AdminBlocStage from '../../components/Administration/blocs_admin/AdminBlocStage.vue'
-import {HeaderComponent} from '@components'
+import { HeaderComponent, PermissionGuard } from '@components'
+import Button from 'primevue/button'
 </script>
 
 <template>
-  <HeaderComponent icon="pi pi-cog" titre="Administration" description="Gestion des paramètres d'administration" />
+  <HeaderComponent icon="pi pi-cog" titre="Administration" description="Gestion des paramètres d'administration" :show-back="false">
+    <template #actions>
+      <PermissionGuard permission="isChefDepartement">
+        <Button
+          label="Configuration"
+          icon="pi pi-sliders-h"
+          severity="primary"
+          @click="$router.push('/intranet/configuration')"
+        />
+      </PermissionGuard>
+    </template>
+  </HeaderComponent>
   <template class="flex flex-col gap-6">
     <div class="card">
       <div class="card-body flex flex-col gap-10">

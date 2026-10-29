@@ -7,6 +7,7 @@ use ApiPlatform\Metadata\ApiResource;
 use ApiPlatform\Metadata\Delete;
 use ApiPlatform\Metadata\Get;
 use ApiPlatform\Metadata\GetCollection;
+use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\QueryParameter;
 use App\Entity\Apc\ApcNiveau;
 use App\Entity\Etudiant\EtudiantScolarite;
@@ -32,6 +33,11 @@ use Symfony\Component\Serializer\Attribute\Groups;
             uriTemplate: '/liste/structure_annees',
             normalizationContext: ['groups' => ['annee:read']],
             provider: EtudiantAnneesStatsProvider::class,
+        ),
+        new Patch(
+            normalizationContext: ['groups' => ['annee:read']],
+            denormalizationContext: ['groups' => ['annee:write']],
+            securityPostDenormalize: "is_granted('CAN_EDIT_ANNEE', object)"
         ),
         new Delete(),
     ],
@@ -202,6 +208,7 @@ class StructureAnnee implements TimestampableInterface
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $resolver->setIgnoreUndefined(true);
         $resolver->setDefaults([
             'alternance' => false,
         ]);
