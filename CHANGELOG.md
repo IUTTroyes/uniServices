@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/IUTTroyes/uniServices/compare/v0.8.0...v0.9.0) (2026-10-30)
+
+
+### ✨ Fonctionnalités
+
+* **messagerie:** widget ([1d31012](https://github.com/IUTTroyes/uniServices/commit/1d31012d93861b7550d3c2f087e076d466d699e1))
+
+
+### 🐛 Corrections
+
+* **intranet:** suppression bloc stage dans administration ([c973bdd](https://github.com/IUTTroyes/uniServices/commit/c973bdd55e270b755bf94e30c2a861cf165bb618))
+
 ## [0.8.0](https://github.com/IUTTroyes/uniServices/compare/v0.7.0...v0.8.0) (2026-10-29)
 
 
