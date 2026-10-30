@@ -32,5 +32,33 @@ class MessageRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * @return Message[]
+     */
+    public function findMessagesOlderThan(\DateTimeInterface $date, int $limit = 200): array
+    {
+        return $this->createQueryBuilder('m')
+            ->leftJoin('m.destinataires', 'd')
+            ->leftJoin('m.piecesJointes', 'pj')
+            ->addSelect('d')
+            ->addSelect('pj')
+            ->where('m.createdAt < :date')
+            ->setParameter('date', $date)
+            ->orderBy('m.createdAt', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function countMessagesOlderThan(\DateTimeInterface $date): int
+    {
+        return (int) $this->createQueryBuilder('m')
+            ->select('COUNT(m.id)')
+            ->where('m.createdAt < :date')
+            ->setParameter('date', $date)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }
 
