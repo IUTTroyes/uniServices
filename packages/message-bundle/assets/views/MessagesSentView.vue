@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { HeaderComponent } from '@components';
+import { HeaderComponent, EmptyState } from '@components';
 import { useMessageStore } from '../stores/messageStore';
 import Button from 'primevue/button';
 import DataTable from 'primevue/datatable';
@@ -68,9 +68,16 @@ const formatDate = (isoString) => {
       @row-click="e => router.push(`/message/${e.data.id}`)"
     >
       <template #empty>
-        <div class="text-center py-8 text-gray-500">
-          <i class="pi pi-send text-3xl mb-2 text-gray-400" />
-          <p class="m-0">Vous n'avez envoyé aucun message pour le moment.</p>
+        <div class="p-6">
+          <EmptyState
+            title="Aucun message envoyé"
+            description="Vous n'avez diffusé aucune communication officielle pour le moment."
+            icon="pi pi-send"
+            color="emerald"
+            action-label="Rédiger un nouveau message"
+            action-icon="pi pi-pencil"
+            @action="router.push('/message/nouveau')"
+          />
         </div>
       </template>
 

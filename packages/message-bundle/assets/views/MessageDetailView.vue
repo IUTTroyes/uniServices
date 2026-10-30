@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { HeaderComponent, CardSkeleton, ArticleSkeleton } from '@components';
+import { HeaderComponent, CardSkeleton, ArticleSkeleton, EmptyState } from '@components';
 import { useMessageStore } from '../stores/messageStore';
 import messageService from '../requests/messageService';
 import Button from 'primevue/button';
@@ -139,20 +139,15 @@ const getFileIcon = (mimeType, filename) => {
   </div>
 
   <!-- Message introuvable ou erreur -->
-  <div v-else-if="!message" class="card py-16 text-center">
-    <i class="pi pi-exclamation-circle text-4xl text-red-500 mb-2" />
-    <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50">
-      Message introuvable ou accès refusé
-    </h3>
-    <p class="text-sm text-surface-500 mt-1">
-      Ce message n'existe pas ou vous n'avez pas l'autorisation de le consulter.
-    </p>
-    <Button
-      label="Retour à la boîte de réception"
-      icon="pi pi-arrow-left"
-      class="mt-4"
-      severity="primary"
-      @click="router.push('/message')"
+  <div v-else-if="!message" class="card p-6">
+    <EmptyState
+      title="Message introuvable ou accès refusé"
+      description="Ce message n'existe pas ou vous n'avez pas l'autorisation de le consulter."
+      icon="pi pi-exclamation-circle"
+      color="rose"
+      action-label="Retour à la boîte de réception"
+      action-icon="pi pi-arrow-left"
+      @action="router.push('/message')"
     />
   </div>
 
@@ -294,6 +289,17 @@ const getFileIcon = (mimeType, filename) => {
   >
     <div v-if="stats">
       <DataTable :value="stats.readers" paginator :rows="10" striped-rows size="small">
+        <template #empty>
+          <div class="p-4">
+            <EmptyState
+              compact
+              title="Aucun lecteur enregistré"
+              description="Aucun destinataire n'a encore ouvert ce message."
+              icon="pi pi-users"
+              color="gray"
+            />
+          </div>
+        </template>
         <Column field="nom" header="Destinataire" sortable>
           <template #body="{ data }">
             <div class="flex items-center gap-2">

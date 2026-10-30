@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { HeaderComponent } from '@components';
+import { HeaderComponent, EmptyState, Alert } from '@components';
 import { useMessageStore } from '../stores/messageStore';
 import messageService from '../requests/messageService';
 import Button from 'primevue/button';
@@ -318,10 +318,12 @@ const submitMessage = async () => {
   />
 
   <div class="card p-6 mx-auto space-y-6">
-    <div v-if="errorMessage" class="p-3 rounded-lg bg-red-100 text-red-800 text-sm flex items-center gap-2 border border-red-200">
-      <i class="pi pi-exclamation-triangle text-base" />
-      <span>{{ errorMessage }}</span>
-    </div>
+    <Alert
+      v-if="errorMessage"
+      severity="error"
+      :message="errorMessage"
+      @close="errorMessage = ''"
+    />
 
     <form @submit.prevent="openConfirmDialog" class="space-y-6">
       <!-- 1. SÉLECTION DES DESTINATAIRES PRINCIPAUX -->
@@ -359,199 +361,41 @@ const submitMessage = async () => {
 
         <!-- NIVEAU 1 : SEMESTRES COMPLETS -->
         <div v-if="targetType === 'SEMESTRES'" class="space-y-2 pt-1">
-          <div class="flex items-center justify-between text-xs text-surface-600 dark:text-surface-400">
-            <span>Sélectionnez un ou plusieurs semestres actifs :</span>
-            <div class="flex items-center gap-2">
-              <button
-                type="button"
-                class="text-teal-600 dark:text-teal-400 hover:underline font-medium"
-                @click="selectAllSemestres"
-              >
-                Tous
-              </button>
-              <span>•</span>
-              <button
-                type="button"
-                class="text-surface-500 hover:underline"
-                @click="clearSemestres"
-              >
-                Effacer
-              </button>
+          <EmptyState
+            v-if="!isLoadingTargets && semestresList.length === 0"
+            compact
+            title="Aucun semestre actif"
+            description="Aucun semestre actif n'a été trouvé pour votre département."
+            icon="pi pi-calendar"
+            color="amber"
+          />
+          <template v-else>
+            <div class="flex items-center justify-between text-xs text-surface-600 dark:text-surface-400">
+              <span>Sélectionnez un ou plusieurs semestres actifs :</span>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="text-teal-600 dark:text-teal-400 hover:underline font-medium"
+                  @click="selectAllSemestres"
+                >
+                  Tous
+                </button>
+                <span>•</span>
+                <button
+                  type="button"
+                  class="text-surface-500 hover:underline"
+                  @click="clearSemestres"
+                >
+                  Effacer
+                </button>
+              </div>
             </div>
-          </div>
 
-          <MultiSelect
-            v-model="selectedSemestres"
-            :options="semestresList"
-            option-label="libelle"
-            placeholder="Choisir un ou plusieurs semestres..."
-            display="chip"
-            filter
-            class="w-full"
-            :loading="isLoadingTargets"
-          >
-            <template #option="slotProps">
-              <div class="flex items-center justify-between w-full py-1">
-                <span class="font-medium text-sm">{{ slotProps.option.libelle }}</span>
-                <span class="text-xs text-surface-500 font-mono px-2 py-0.5 rounded bg-surface-100 dark:bg-surface-800">
-                  {{ slotProps.option.code }}
-                </span>
-              </div>
-            </template>
-          </MultiSelect>
-          <p class="text-xs text-surface-500">
-            Tous les étudiants inscrits dans les semestres sélectionnés recevront le message.
-          </p>
-        </div>
-
-        <!-- NIVEAU 2 : GROUPES (CM / TD / TP) -->
-        <div v-else-if="targetType === 'GROUPES'" class="space-y-2 pt-1">
-          <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-surface-600 dark:text-surface-400">
-            <span>Sélectionnez un ou plusieurs groupes de cours :</span>
-            <div class="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                class="px-2 py-0.5 rounded border border-purple-200 text-purple-700 dark:border-purple-800 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-xs font-medium"
-                @click="selectAllGroupesByType('CM')"
-              >
-                + Tous les CM
-              </button>
-              <button
-                type="button"
-                class="px-2 py-0.5 rounded border border-blue-200 text-blue-700 dark:border-blue-800 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-xs font-medium"
-                @click="selectAllGroupesByType('TD')"
-              >
-                + Tous les TD
-              </button>
-              <button
-                type="button"
-                class="px-2 py-0.5 rounded border border-emerald-200 text-emerald-700 dark:border-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs font-medium"
-                @click="selectAllGroupesByType('TP')"
-              >
-                + Tous les TP
-              </button>
-              <button
-                type="button"
-                class="text-surface-500 hover:underline ml-1"
-                @click="clearGroupes"
-              >
-                Effacer
-              </button>
-            </div>
-          </div>
-
-          <MultiSelect
-            v-model="selectedGroupes"
-            :options="groupesList"
-            option-label="libelle"
-            placeholder="Choisir des groupes (CM, TD, TP)..."
-            display="chip"
-            filter
-            class="w-full"
-            :loading="isLoadingTargets"
-          >
-            <template #option="slotProps">
-              <div class="flex items-center justify-between w-full py-1">
-                <div class="flex items-center gap-2">
-                  <span
-                    :class="['text-xs font-semibold px-2 py-0.5 rounded border', getGroupeTypeBadgeClass(slotProps.option.type)]"
-                  >
-                    {{ slotProps.option.type }}
-                  </span>
-                  <span class="font-medium text-sm">{{ slotProps.option.libelle }}</span>
-                </div>
-                <span class="text-xs text-surface-500">
-                  {{ slotProps.option.semestres?.join(', ') }}
-                </span>
-              </div>
-            </template>
-            <template #chip="slotProps">
-              <div class="inline-flex items-center gap-1.5 py-0.5 px-2 rounded text-xs bg-surface-200 dark:bg-surface-700">
-                <span class="font-bold text-[10px] uppercase opacity-75">{{ slotProps.value.type }}</span>
-                <span>{{ slotProps.value.libelle }}</span>
-              </div>
-            </template>
-          </MultiSelect>
-          <p class="text-xs text-surface-500">
-            Les étudiants appartenant à au moins l'un des groupes sélectionnés seront destinataires (sans doublons).
-          </p>
-        </div>
-
-        <!-- NIVEAU 3 : ÉTUDIANTS NOMINATIFS -->
-        <div v-else-if="targetType === 'ETUDIANTS'" class="space-y-2 pt-1">
-          <label class="block text-xs text-surface-600 dark:text-surface-400">
-            Recherchez et sélectionnez des étudiants précis de votre département :
-          </label>
-
-          <MultiSelect
-            v-model="selectedEtudiants"
-            :options="etudiantsList"
-            option-label="display"
-            placeholder="Rechercher par nom, prénom ou numéro étudiant..."
-            display="chip"
-            filter
-            filter-placeholder="Tapez pour filtrer..."
-            class="w-full"
-            :loading="isLoadingTargets"
-          >
-            <template #option="slotProps">
-              <div class="flex items-center justify-between w-full py-1">
-                <div>
-                  <span class="font-medium text-sm">{{ slotProps.option.nom }} {{ slotProps.option.prenom }}</span>
-                  <span v-if="slotProps.option.numeroEtudiant" class="text-xs text-surface-500 ml-2 font-mono">
-                    #{{ slotProps.option.numeroEtudiant }}
-                  </span>
-                </div>
-                <Tag v-if="slotProps.option.semestre" :value="slotProps.option.semestre" severity="secondary" class="text-xs" />
-              </div>
-            </template>
-          </MultiSelect>
-          <p class="text-xs text-surface-500">
-            Idéal pour convoquer individuellement des étudiants ou faire un rappel ciblé.
-          </p>
-        </div>
-
-        <!-- NIVEAU 4 : ENSEIGNANTS -->
-        <div v-else-if="targetType === 'ENSEIGNANTS'" class="space-y-3 pt-1">
-          <label class="block text-xs font-semibold text-surface-700 dark:text-surface-300">
-            Catégorie d'enseignants ciblée :
-          </label>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div
-              v-for="opt in enseignantsTypeOptions"
-              :key="opt.value"
-              class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
-              :class="[
-                enseignantsType === opt.value
-                  ? 'border-teal-500 bg-teal-50/60 dark:bg-teal-950/30'
-                  : 'border-surface-200 dark:border-surface-700 hover:bg-surface-100/50 dark:hover:bg-surface-800/50'
-              ]"
-              @click="enseignantsType = opt.value"
-            >
-              <RadioButton
-                v-model="enseignantsType"
-                :input-id="'ens-' + opt.value"
-                :value="opt.value"
-                class="mt-0.5"
-              />
-              <label :for="'ens-' + opt.value" class="cursor-pointer text-sm">
-                <span class="font-semibold block text-surface-900 dark:text-surface-50">{{ opt.label }}</span>
-                <span class="text-xs text-surface-500">{{ opt.desc }}</span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Si nominatif : MultiSelect des enseignants -->
-          <div v-if="enseignantsType === 'NOMINATIF'" class="pt-2 space-y-1">
-            <label class="block text-xs text-surface-600 dark:text-surface-400">
-              Sélectionnez les enseignants destinataires :
-            </label>
             <MultiSelect
-              v-model="selectedEnseignants"
-              :options="enseignantsList"
-              option-label="display"
-              placeholder="Sélectionner des enseignants..."
+              v-model="selectedSemestres"
+              :options="semestresList"
+              option-label="libelle"
+              placeholder="Choisir un ou plusieurs semestres..."
               display="chip"
               filter
               class="w-full"
@@ -559,19 +403,217 @@ const submitMessage = async () => {
             >
               <template #option="slotProps">
                 <div class="flex items-center justify-between w-full py-1">
-                  <div>
-                    <span class="font-medium text-sm">{{ slotProps.option.nom }} {{ slotProps.option.prenom }}</span>
-                    <span class="text-xs text-surface-500 ml-2">({{ slotProps.option.email }})</span>
-                  </div>
-                  <Tag
-                    :value="slotProps.option.statutLibelle || slotProps.option.statut"
-                    :severity="slotProps.option.categorie === 'PERMANENT' ? 'success' : 'info'"
-                    class="text-xs"
-                  />
+                  <span class="font-medium text-sm">{{ slotProps.option.libelle }}</span>
+                  <span class="text-xs text-surface-500 font-mono px-2 py-0.5 rounded bg-surface-100 dark:bg-surface-800">
+                    {{ slotProps.option.code }}
+                  </span>
                 </div>
               </template>
             </MultiSelect>
-          </div>
+            <p class="text-xs text-surface-500">
+              Tous les étudiants inscrits dans les semestres sélectionnés recevront le message.
+            </p>
+          </template>
+        </div>
+
+        <!-- NIVEAU 2 : GROUPES (CM / TD / TP) -->
+        <div v-else-if="targetType === 'GROUPES'" class="space-y-2 pt-1">
+          <EmptyState
+            v-if="!isLoadingTargets && groupesList.length === 0"
+            compact
+            title="Aucun groupe disponible"
+            description="Aucun groupe de cours n'a été configuré sur les semestres actifs."
+            icon="pi pi-users"
+            color="amber"
+          />
+          <template v-else>
+            <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-surface-600 dark:text-surface-400">
+              <span>Sélectionnez un ou plusieurs groupes de cours :</span>
+              <div class="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  class="px-2 py-0.5 rounded border border-purple-200 text-purple-700 dark:border-purple-800 dark:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-950/40 text-xs font-medium"
+                  @click="selectAllGroupesByType('CM')"
+                >
+                  + Tous les CM
+                </button>
+                <button
+                  type="button"
+                  class="px-2 py-0.5 rounded border border-blue-200 text-blue-700 dark:border-blue-800 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 text-xs font-medium"
+                  @click="selectAllGroupesByType('TD')"
+                >
+                  + Tous les TD
+                </button>
+                <button
+                  type="button"
+                  class="px-2 py-0.5 rounded border border-emerald-200 text-emerald-700 dark:border-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-xs font-medium"
+                  @click="selectAllGroupesByType('TP')"
+                >
+                  + Tous les TP
+                </button>
+                <button
+                  type="button"
+                  class="text-surface-500 hover:underline ml-1"
+                  @click="clearGroupes"
+                >
+                  Effacer
+                </button>
+              </div>
+            </div>
+
+            <MultiSelect
+              v-model="selectedGroupes"
+              :options="groupesList"
+              option-label="libelle"
+              placeholder="Choisir des groupes (CM, TD, TP)..."
+              display="chip"
+              filter
+              class="w-full"
+              :loading="isLoadingTargets"
+            >
+              <template #option="slotProps">
+                <div class="flex items-center justify-between w-full py-1">
+                  <div class="flex items-center gap-2">
+                    <span
+                      :class="['text-xs font-semibold px-2 py-0.5 rounded border', getGroupeTypeBadgeClass(slotProps.option.type)]"
+                    >
+                      {{ slotProps.option.type }}
+                    </span>
+                    <span class="font-medium text-sm">{{ slotProps.option.libelle }}</span>
+                  </div>
+                  <span class="text-xs text-surface-500">
+                    {{ slotProps.option.semestres?.join(', ') }}
+                  </span>
+                </div>
+              </template>
+              <template #chip="slotProps">
+                <div class="inline-flex items-center gap-1.5 py-0.5 px-2 rounded text-xs bg-surface-200 dark:bg-surface-700">
+                  <span class="font-bold text-[10px] uppercase opacity-75">{{ slotProps.value.type }}</span>
+                  <span>{{ slotProps.value.libelle }}</span>
+                </div>
+              </template>
+            </MultiSelect>
+            <p class="text-xs text-surface-500">
+              Les étudiants appartenant à au moins l'un des groupes sélectionnés seront destinataires (sans doublons).
+            </p>
+          </template>
+        </div>
+
+        <!-- NIVEAU 3 : ÉTUDIANTS NOMINATIFS -->
+        <div v-else-if="targetType === 'ETUDIANTS'" class="space-y-2 pt-1">
+          <EmptyState
+            v-if="!isLoadingTargets && etudiantsList.length === 0"
+            compact
+            title="Aucun étudiant trouvé"
+            description="Aucun étudiant n'a de scolarité active dans ce département."
+            icon="pi pi-user"
+            color="amber"
+          />
+          <template v-else>
+            <label class="block text-xs text-surface-600 dark:text-surface-400">
+              Recherchez et sélectionnez des étudiants précis de votre département :
+            </label>
+
+            <MultiSelect
+              v-model="selectedEtudiants"
+              :options="etudiantsList"
+              option-label="display"
+              placeholder="Rechercher par nom, prénom ou numéro étudiant..."
+              display="chip"
+              filter
+              filter-placeholder="Tapez pour filtrer..."
+              class="w-full"
+              :loading="isLoadingTargets"
+            >
+              <template #option="slotProps">
+                <div class="flex items-center justify-between w-full py-1">
+                  <div>
+                    <span class="font-medium text-sm">{{ slotProps.option.nom }} {{ slotProps.option.prenom }}</span>
+                    <span v-if="slotProps.option.numeroEtudiant" class="text-xs text-surface-500 ml-2 font-mono">
+                      #{{ slotProps.option.numeroEtudiant }}
+                    </span>
+                  </div>
+                  <Tag v-if="slotProps.option.semestre" :value="slotProps.option.semestre" severity="secondary" class="text-xs" />
+                </div>
+              </template>
+            </MultiSelect>
+            <p class="text-xs text-surface-500">
+              Idéal pour convoquer individuellement des étudiants ou faire un rappel ciblé.
+            </p>
+          </template>
+        </div>
+
+        <!-- NIVEAU 4 : ENSEIGNANTS -->
+        <div v-else-if="targetType === 'ENSEIGNANTS'" class="space-y-3 pt-1">
+          <EmptyState
+            v-if="!isLoadingTargets && enseignantsList.length === 0"
+            compact
+            title="Aucun enseignant trouvé"
+            description="Aucun personnel enseignant n'est rattaché à votre département."
+            icon="pi pi-briefcase"
+            color="amber"
+          />
+          <template v-else>
+            <label class="block text-xs font-semibold text-surface-700 dark:text-surface-300">
+              Catégorie d'enseignants ciblée :
+            </label>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div
+                v-for="opt in enseignantsTypeOptions"
+                :key="opt.value"
+                class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+                :class="[
+                  enseignantsType === opt.value
+                    ? 'border-teal-500 bg-teal-50/60 dark:bg-teal-950/30'
+                    : 'border-surface-200 dark:border-surface-700 hover:bg-surface-100/50 dark:hover:bg-surface-800/50'
+                ]"
+                @click="enseignantsType = opt.value"
+              >
+                <RadioButton
+                  v-model="enseignantsType"
+                  :input-id="'ens-' + opt.value"
+                  :value="opt.value"
+                  class="mt-0.5"
+                />
+                <label :for="'ens-' + opt.value" class="cursor-pointer text-sm">
+                  <span class="font-semibold block text-surface-900 dark:text-surface-50">{{ opt.label }}</span>
+                  <span class="text-xs text-surface-500">{{ opt.desc }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Si nominatif : MultiSelect des enseignants -->
+            <div v-if="enseignantsType === 'NOMINATIF'" class="pt-2 space-y-1">
+              <label class="block text-xs text-surface-600 dark:text-surface-400">
+                Sélectionnez les enseignants destinataires :
+              </label>
+              <MultiSelect
+                v-model="selectedEnseignants"
+                :options="enseignantsList"
+                option-label="display"
+                placeholder="Sélectionner des enseignants..."
+                display="chip"
+                filter
+                class="w-full"
+                :loading="isLoadingTargets"
+              >
+                <template #option="slotProps">
+                  <div class="flex items-center justify-between w-full py-1">
+                    <div>
+                      <span class="font-medium text-sm">{{ slotProps.option.nom }} {{ slotProps.option.prenom }}</span>
+                      <span class="text-xs text-surface-500 ml-2">({{ slotProps.option.email }})</span>
+                    </div>
+                    <Tag
+                      :value="slotProps.option.statutLibelle || slotProps.option.statut"
+                      :severity="slotProps.option.categorie === 'PERMANENT' ? 'success' : 'info'"
+                      class="text-xs"
+                    />
+                  </div>
+                </template>
+              </MultiSelect>
+            </div>
+          </template>
         </div>
       </div>
 

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
-import { HeaderComponent, PermissionGuard, ListSkeleton } from '@components';
+import { HeaderComponent, PermissionGuard, ListSkeleton, EmptyState } from '@components';
 import { useMessageStore } from '../stores/messageStore';
 import Button from 'primevue/button';
 import InputText from 'primevue/inputtext';
@@ -31,6 +31,47 @@ const handleMarkAllAsRead = async () => {
     isMarkingAllRead.value = false;
   }
 };
+
+const emptyStateConfig = computed(() => {
+  if (messageStore.searchQuery) {
+    return {
+      title: 'Aucun résultat trouvé',
+      description: `Aucun message ne correspond à la recherche "${messageStore.searchQuery}".`,
+      icon: 'pi pi-search',
+      color: 'gray',
+    };
+  }
+  switch (messageStore.activeFilter) {
+    case 'unread':
+      return {
+        title: 'Aucun message non lu',
+        description: 'Vous êtes à jour ! Vous avez consulté l\'ensemble de vos messages.',
+        icon: 'pi pi-check-circle',
+        color: 'emerald',
+      };
+    case 'urgent':
+      return {
+        title: 'Aucun message prioritaire',
+        description: 'Aucune communication urgente n\'est en attente dans votre boîte.',
+        icon: 'pi pi-info-circle',
+        color: 'gray',
+      };
+    case 'archived':
+      return {
+        title: 'Aucun message archivé',
+        description: 'Vous n\'avez archivé aucun message pour le moment.',
+        icon: 'pi pi-folder',
+        color: 'gray',
+      };
+    default:
+      return {
+        title: 'Votre boîte de réception est vide',
+        description: 'Aucune communication officielle reçue pour le moment.',
+        icon: 'pi pi-inbox',
+        color: 'emerald',
+      };
+  }
+});
 
 onMounted(async () => {
   await messageStore.fetchInbox();
@@ -149,16 +190,13 @@ const getInitiales = (nom, prenom) => {
     <ListSkeleton />
   </div>
 
-  <div v-else-if="messageStore.messages.length === 0" class="card py-16 text-center">
-    <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-100 dark:bg-surface-800 flex items-center justify-center">
-      <i class="pi pi-inbox text-3xl text-gray-400" />
-    </div>
-    <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-1">
-      Aucun message dans cette boîte
-    </h3>
-    <p class="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-      {{ messageStore.activeFilter === 'unread' ? 'Vous avez lu tous vos messages.' : 'Aucune communication reçue pour le moment.' }}
-    </p>
+  <div v-else-if="messageStore.messages.length === 0" class="card p-6">
+    <EmptyState
+      :title="emptyStateConfig.title"
+      :description="emptyStateConfig.description"
+      :icon="emptyStateConfig.icon"
+      :color="emptyStateConfig.color"
+    />
   </div>
 
   <div v-else class="space-y-3">

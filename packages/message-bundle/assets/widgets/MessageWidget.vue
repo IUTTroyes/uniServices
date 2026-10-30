@@ -1,6 +1,7 @@
 <script setup>
 import { defineProps } from 'vue';
 import { useRouter } from 'vue-router';
+import { EmptyState } from '@components';
 import Button from 'primevue/button';
 import Badge from 'primevue/badge';
 
@@ -42,9 +43,14 @@ const goToMessage = (id) => {
         <span v-else class="text-xs text-gray-400">À jour</span>
       </div>
 
-      <div v-if="!props.data?.messages || props.data.messages.length === 0" class="py-6 text-center text-gray-400 text-xs">
-        <i class="pi pi-check-circle text-2xl text-teal-500 mb-1" />
-        <p class="m-0">Aucun nouveau message</p>
+      <div v-if="!props.data?.messages || props.data.messages.length === 0" class="py-2">
+        <EmptyState
+          compact
+          title="Aucun nouveau message"
+          description="Votre boîte de réception est à jour."
+          icon="pi pi-check-circle"
+          color="emerald"
+        />
       </div>
 
       <ul v-else class="divide-y divide-surface-100 dark:divide-surface-800 m-0 p-0 list-none">
