@@ -9,7 +9,13 @@
     "scripts": {
         "dev": "npm run dev:shell",
         "dev:shell": "cd packages/shell && vite --port 3000",
-        "build:shell": "cd packages/shell && vite build"
+        "build:shell": "cd packages/shell && vite build",
+        "test": "npm run test:backend && npm run test:frontend",
+        "test:frontend": "vitest run",
+        "test:frontend:message": "vitest run packages/message-bundle",
+        "test:backend": "./vendor/bin/phpunit",
+        "test:backend:message": "./vendor/bin/phpunit packages/message-bundle/tests",
+        "test:message": "npm run test:backend:message && npm run test:frontend:message"
     },
     "devDependencies": {
         "@primeuix/themes": "^2.0.3",

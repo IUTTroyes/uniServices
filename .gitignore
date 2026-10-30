@@ -24,6 +24,8 @@
 
 # Cache
 /back/var/cache/
+.phpunit.cache/
+.vitest/
 
 # Database dumps
 *.sql
