@@ -1,0 +1,27 @@
+{
+    "name": "iuttroyes/message-bundle",
+    "type": "symfony-bundle",
+    "description": "MessageBundle for uniServices - Messagerie interne et communications",
+    "require": {
+        "php": "^8.4",
+        "symfony/framework-bundle": "^8.1",
+        "symfony/http-kernel": "^8.1",
+        "doctrine/orm": "*",
+        "doctrine/doctrine-bundle": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "MessageBundle\\": "src/"
+        }
+    },
+    "extra": {
+        "symfony": {
+            "allow-contrib": false,
+            "require": "8.1.*"
+        }
+    }
+}
+

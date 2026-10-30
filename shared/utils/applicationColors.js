@@ -123,6 +123,18 @@ export const APPLICATION_REGISTRY = {
     iconBgClasses: '!text-rose-600 !bg-rose-50 !dark:bg-rose-950/40 !border-rose-200 !dark:border-rose-800',
     dotClass: 'bg-rose-500',
   },
+  message: {
+    slug: 'message',
+    name: 'Messagerie',
+    shortLabel: 'Messages',
+    primaryColor: 'cyan',
+    color: 'cyan',
+    icon: 'pi pi-inbox',
+    isDefault: false,
+    badgeClasses: '!bg-cyan-100 !text-cyan-800 !border-cyan-200 !dark:bg-cyan-950/60 !dark:text-cyan-300 !dark:border-cyan-800',
+    iconBgClasses: '!text-cyan-600 !bg-cyan-50 !dark:bg-cyan-950/40 !border-cyan-200 !dark:border-cyan-800',
+    dotClass: 'bg-cyan-500',
+  },
 };
 
 /**
@@ -146,6 +158,8 @@ export function normalizeAppSlug(appInput) {
     'help-desk': 'helpdesk',
     portfolio: 'unifolio',
     portfolios: 'unifolio',
+    messages: 'message',
+    messagerie: 'message',
   };
 
   return aliases[clean] || clean;

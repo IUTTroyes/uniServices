@@ -1,0 +1,22 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  _instanceof:
+    App\Domain\Dashboard\WidgetProviderInterface:
+      tags: [ 'app.dashboard.widget_provider' ]
+    App\Domain\Dashboard\WidgetDataProviderInterface:
+      tags: [ 'app.dashboard.widget_data_provider' ]
+    App\Security\PermissionProviderInterface:
+      tags: [ 'app.permission_provider' ]
+    App\Service\Email\AbstractEmailDefinition:
+      tags: [ 'app.email_definition' ]
+
+  MessageBundle\:
+    resource: '../../'
+    exclude:
+      - '../../Entity/'
+      - '../../DependencyInjection/'
+      - '../../MessageBundle.php'
+
