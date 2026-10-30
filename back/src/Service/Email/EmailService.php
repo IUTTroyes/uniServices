@@ -60,6 +60,7 @@ final class EmailService
         ?StructureDepartement $departement = null,
         ?string $replyTo = null,
         string $locale = 'fr',
+        array $attachments = [],
     ): void {
         $resolved = $this->resolver->resolve($emailKey, $departement, $locale);
 
@@ -87,6 +88,14 @@ final class EmailService
 
         foreach ((array) $to as $address) {
             $email->addTo($address);
+        }
+
+        foreach ($attachments as $att) {
+            if (is_array($att) && isset($att['path'])) {
+                $email->attachFromPath($att['path'], $att['name'] ?? null, $att['contentType'] ?? null);
+            } elseif (is_string($att) && file_exists($att)) {
+                $email->attachFromPath($att);
+            }
         }
 
         $this->mailer->send($email);
