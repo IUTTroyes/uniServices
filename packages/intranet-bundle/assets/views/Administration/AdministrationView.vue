@@ -4,7 +4,6 @@ import AdminBlocEtudiant from '@/components/Administration/blocs_admin/AdminBloc
 import AdminBlocPersonnel from '@/components/Administration/blocs_admin/AdminBlocPersonnel.vue'
 import AdminBlocPn from '@/components/Administration/blocs_admin/AdminBlocPn.vue'
 import AdminBlocEdt from '@/components/Administration/blocs_admin/AdminBlocEdt.vue'
-import AdminBlocStage from '../../components/Administration/blocs_admin/AdminBlocStage.vue'
 import { HeaderComponent, PermissionGuard } from '@components'
 import Button from 'primevue/button'
 </script>
@@ -37,14 +36,6 @@ import Button from 'primevue/button'
         <div class="flex flex-row justify-between gap-10">
           <admin-bloc-edt class="w-full"/>
           <admin-bloc-pn class="w-full"/>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="card-body flex flex-col gap-10">
-        <div class="flex flex-row justify-between gap-10">
-          <admin-bloc-stage class="w-full"/>
         </div>
       </div>
     </div>

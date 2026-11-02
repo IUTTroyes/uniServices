@@ -24,6 +24,12 @@
         "url": "http://localhost:3001/intranet/"
     },
     {
+        "name": "Messagerie",
+        "description": "Communications et annonces internes",
+        "urlSlug": "message",
+        "url": "http://localhost:3001/message/"
+    },
+    {
         "name": "Questionnaires",
         "description": "Cr\u00e9ation et gestion des questionnaires",
         "urlSlug": "questionnaire",

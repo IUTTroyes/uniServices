@@ -9,6 +9,7 @@ import { tools } from '@config/uniServices.js';
 import noImage from "@images/photos_etudiants/noimage.png";
 import { PermissionGuard } from "@components";
 import ApplicationBadge from '../Application/ApplicationBadge.vue';
+import api from '@helpers/axios';
 
 const anneeUnivStore = useAnneeUnivStore();
 const userStore = useUsersStore();
@@ -33,14 +34,31 @@ const selectedRoles = computed({
 });
 
 const selectedAnneeUniversitaire = ref(null);
+const unreadMessagesCount = ref(0);
+
+const fetchUnreadMessages = async () => {
+  if (!userStore.user) return;
+  try {
+    const res = await api.get('/api/messages/unread-count');
+    unreadMessagesCount.value = res.data?.unreadCount ?? 0;
+  } catch (_) {
+    // Ignore silensieusement si non authentifié ou indisponible
+  }
+};
+
+const goToMessages = () => {
+  router.push('/message');
+};
 
 onMounted(async () => {
   selectedAnneeUniversitaire.value = localStorage.getItem('selectedAnneeUniv');
   await fetchData();
+  await fetchUnreadMessages();
 });
 
 watch(() => userStore.user, async () => {
   await fetchData();
+  await fetchUnreadMessages();
 });
 
 const fetchData = async () => {
@@ -317,8 +335,19 @@ const selectAnneeUniversitaire = (annee) => {
             <Menu ref="anneeMenu" id="annee_menu" :model="anneeItems" :popup="true" />
           </PermissionGuard>
 
-          <button type="button" class="layout-topbar-action">
+          <button
+            type="button"
+            class="layout-topbar-action relative"
+            @click="goToMessages"
+            aria-label="Messagerie interne"
+          >
             <i class="pi pi-inbox"></i>
+            <span
+              v-if="unreadMessagesCount > 0"
+              class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold rounded-full h-4 min-w-4 px-1 flex items-center justify-center pointer-events-none"
+            >
+              {{ unreadMessagesCount > 99 ? '99+' : unreadMessagesCount }}
+            </span>
             <span>Messages</span>
           </button>
           <button type="button" class="layout-topbar-action">

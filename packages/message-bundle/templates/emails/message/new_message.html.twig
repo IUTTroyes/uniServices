@@ -1,0 +1,37 @@
+{% extends 'emails/layout.html.twig' %}
+
+{% block subject %}[Messagerie] {{ message.sujet }}{% endblock %}
+
+{% block preheader %}Nouveau message de {{ expediteur_nom }} : {{ message.sujet }}{% endblock %}
+
+{% block body %}
+    <h1>Nouveau message interne</h1>
+
+    <p>Bonjour {{ destinataire_nom }},</p>
+
+    <p>
+        <strong>{{ expediteur_nom }}</strong> vous a envoyé un message sur l'intranet :
+    </p>
+
+    <div style="background-color: #f8fafc; border-left: 4px solid #06b6d4; padding: 16px; margin: 20px 0; border-radius: 4px;">
+        <h2 style="color: #0f172a; margin-top: 0; font-size: 18px;">{{ message.sujet }}</h2>
+        <div style="color: #334155; font-size: 14px; line-height: 1.6;">
+            {{ message.contenu|raw }}
+        </div>
+    </div>
+
+    {% if prioritaire %}
+    <div style="background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 4px; margin-bottom: 20px;">
+        ⚠️ <strong>Important :</strong> Ce message a été marqué comme prioritaire.
+    </div>
+    {% endif %}
+
+    <p>
+        <a href="{{ urlPortal|default('/app/message') }}" class="btn">Consulter sur la messagerie</a>
+    </p>
+
+    <p style="font-size: 12px; color: #64748b; margin-top: 24px;">
+        Ce message vous a été adressé via la messagerie interne de votre établissement. Les étudiants ne peuvent pas répondre directement à cet email.
+    </p>
+{% endblock %}
+

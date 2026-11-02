@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.8.0](https://github.com/IUTTroyes/uniServices/compare/v0.7.0...v0.8.0) (2026-10-29)
+
+
+### ✨ Fonctionnalités
+
+* **intranet:** Dashboard Enseignements ([6a41761](https://github.com/IUTTroyes/uniServices/commit/6a4176191755374982739ba3db92a93ca9824d29))
+* **layout:** Badge application dans la topbar ([4978af0](https://github.com/IUTTroyes/uniServices/commit/4978af083bd21beb2677e30e8d5aa2d402f9ef51))
+* pages configurations sur les autres packages (fictives) ([6a30dbb](https://github.com/IUTTroyes/uniServices/commit/6a30dbb22e56f7fc061824f5ac29320cfe126f14))
+* Partie configuration + base communes pour les autres packages ([cad0a0a](https://github.com/IUTTroyes/uniServices/commit/cad0a0ab931b6881971f60300c6eda0ee352584e))
+
+
+### 🐛 Corrections
+
+* **intranet:** usage Kpi sur Absences ([0c71cb7](https://github.com/IUTTroyes/uniServices/commit/0c71cb7fb45de0368b6c9bf079779d2a12b20ccd))
+* reference ([f2e1479](https://github.com/IUTTroyes/uniServices/commit/f2e14790f361d1125408086165face5fa75fc200))
+
 ## [0.7.0](https://github.com/IUTTroyes/uniServices/compare/v0.6.0...v0.7.0) (2026-10-29)
 
 

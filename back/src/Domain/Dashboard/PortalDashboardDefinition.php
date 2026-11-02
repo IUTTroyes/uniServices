@@ -69,6 +69,13 @@ class PortalDashboardDefinition implements DashboardDefinitionInterface
                 colSpan: 2,
                 rowSpan: 1,
             ),
+
+            new DashboardWidgetLayout(
+                'message.recent',
+                4,
+                colSpan: 2,
+                rowSpan: 1,
+            ),
         ];
     }
 }

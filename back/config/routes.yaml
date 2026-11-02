@@ -28,3 +28,9 @@ finance_controllers:
         namespace: FinanceBundle\Controller
     type: attribute
 
+message_controllers:
+    resource:
+        path: '../../packages/message-bundle/src/Controller/'
+        namespace: MessageBundle\Controller
+    type: attribute
+
