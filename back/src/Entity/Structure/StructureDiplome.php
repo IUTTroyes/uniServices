@@ -96,11 +96,11 @@ class StructureDiplome implements TimestampableInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:light', 'stage_periode:read'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:light', 'stage_periode:read', 'enseignement:dashboard'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:detail', 'pn:light', 'stage_periode:read'])]
+    #[Groups(['diplome:detail', 'diplome:light', 'diplome:edt:read', 'maquette:detail', 'annee_universitaire:detail', 'pn:detail', 'pn:light', 'stage_periode:read', 'enseignement:dashboard'])]
     private string $libelle;
 
     #[ORM\ManyToOne(inversedBy: 'responsableDiplome', cascade: ['persist'])]

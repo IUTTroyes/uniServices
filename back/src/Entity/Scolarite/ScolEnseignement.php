@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\QueryParameter;
 use ApiPlatform\Metadata\Post;
 use App\Entity\Apc\ApcApprentissageCritique;
 use App\Entity\Edt\EdtEvent;
+use App\Entity\Structure\StructureDiplome;
 use IntranetBundle\Entity\Previsionnel\Previsionnel;
 use App\Entity\Traits\ApogeeTrait;
 use App\Entity\Traits\OldIdTrait;
@@ -632,11 +633,21 @@ class ScolEnseignement
     }
 
     #[Groups(['enseignement:dashboard'])]
-    public function getDiplome(): ?string
+    public function getDiplome(): ?StructureDiplome
     {
         $enseignementUe = $this->enseignementUes->first();
         if ($enseignementUe) {
-            return $enseignementUe->getUe()->getSemestre()->getDiplome()->getSigle();
+            return $enseignementUe->getUe()->getSemestre()->getDiplome();
+        }
+        return null;
+    }
+
+    #[Groups(['enseignement:dashboard'])]
+    public function getSemestre()
+    {
+        $enseignementUe = $this->enseignementUes->first();
+        if ($enseignementUe) {
+            return $enseignementUe->getUe()->getSemestre();
         }
         return null;
     }

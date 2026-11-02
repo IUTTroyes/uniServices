@@ -2,12 +2,16 @@
 import { computed, ref, onMounted, watch } from 'vue';
 import IndicateursDashboard from './IndicateursDashboard.vue';
 import { getEnseignementsService } from '@requests';
+import { ListSkeleton } from '@components';
 import {useUsersStore} from '@stores';
 
 const enseignements = ref([]);
+const isLoadingEnseignements = ref(true);
 const usersStore = useUsersStore();
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
 const departement = usersStore.departementDefaut
+const selectedDiplome = ref(null);
+const selectedType = ref('tous');
 
 onMounted(async () => {
   try {
@@ -18,6 +22,7 @@ onMounted(async () => {
 });
 
 const getEnseignements = async () => {
+  isLoadingEnseignements.value = true;
   try {
     const params = {
       personnel: usersStore.user.id,
@@ -28,48 +33,68 @@ const getEnseignements = async () => {
   } catch (error) {
     console.error('Erreur lors de la récupération des enseignements :', error);
   } finally {
-    console.log('Enseignements récupérés :', enseignements.value);
+    isLoadingEnseignements.value = false;
   }
 };
 
-// Le diplôme est exposé sous forme de sigle par l'API du dashboard.
-const diplomeSelectionne = ref(null);
-const typeSelectionne = ref('tous');
-const libellesTypes = { ressource: 'Ressources', sae: 'SAÉ', matiere: 'Matières' };
 const diplomes = computed(() => {
-  const groupes = new Map();
-  for (const enseignement of enseignements.value) {
-    const diplome = enseignement.diplome?.trim() || 'Diplôme non renseigné';
-    if (!groupes.has(diplome)) groupes.set(diplome, { id: diplome, libelle: diplome, enseignements: [] });
-    groupes.get(diplome).enseignements.push(enseignement);
-  }
-  return [...groupes.values()];
-});
-const enseignementsDuDiplome = computed(() => diplomes.value.find(item => item.id === diplomeSelectionne.value)?.enseignements ?? []);
-const typesDisponibles = computed(() => {
-  const counts = new Map();
-  for (const enseignement of enseignementsDuDiplome.value) {
-    const type = enseignement.type || 'non-renseigne';
-    counts.set(type, (counts.get(type) ?? 0) + 1);
-  }
-  return [...counts].map(([value, count]) => ({ value, label: `${libellesTypes[value] ?? (value === 'non-renseigne' ? 'Type non renseigné' : value)} (${count})` }));
-});
-const filtresTypes = computed(() => [{ value: 'tous', label: `Tous (${enseignementsDuDiplome.value.length})` }, ...typesDisponibles.value]);
-const enseignementsFiltres = computed(() => enseignementsDuDiplome.value.filter(item => typeSelectionne.value === 'tous' || (item.type || 'non-renseigne') === typeSelectionne.value));
-watch(diplomes, (items) => {
-  if (!items.some(item => item.id === diplomeSelectionne.value)) diplomeSelectionne.value = items[0]?.id ?? null;
-}, { immediate: true });
-watch(diplomeSelectionne, () => { typeSelectionne.value = 'tous'; });
-watch(typesDisponibles, (items) => {
-  if (!items.some(item => item.value === typeSelectionne.value)) typeSelectionne.value = 'tous';
+  const diplomesMap = new Map();
+  enseignements.value.forEach(enseignement => {
+    if (!enseignement?.diplome?.id) {
+      return;
+    }
+
+    if (!diplomesMap.has(enseignement.diplome.id)) {
+      diplomesMap.set(enseignement.diplome.id, { ...enseignement.diplome, enseignements: [] });
+    }
+    diplomesMap.get(enseignement.diplome.id).enseignements.push(enseignement);
+  });
+
+  return Array.from(diplomesMap.values());
 });
 
-// Données de démonstration : à remplacer par les enseignements de l'utilisateur connecté.
-const teachings = [
-  { id: 'R1.01', label: 'Initiation au développement', formation: 'BUT Informatique · S1', groups: 'TP A, TP B', planned: 64, completed: 28, plan: 'Objectifs : concevoir un algorithme, utiliser les structures de contrôle et tester un programme.', absences: [{ student: 'Camille Martin', date: '27/10', status: 'Justifiée' }, { student: 'Alex Dubois', date: '29/10', status: 'En attente' }] },
-  { id: 'R3.01', label: 'Développement web', formation: 'BUT Informatique · S3', groups: 'TD 1, TD 2', planned: 48, completed: 32, plan: 'Objectifs : développer une interface accessible, consommer une API et organiser les composants.', absences: [{ student: 'Lou Bernard', date: '29/10', status: 'Non justifiée' }] },
-  { id: 'SAÉ 5.01', label: 'Développement avancé', formation: 'BUT Informatique · S5', groups: 'Promotion entière', planned: 40, completed: 12, plan: 'Objectifs : piloter un projet en équipe et livrer une application documentée.', absences: [] },
-];
+watch(diplomes, (newDiplomes) => {
+  if (!newDiplomes.length) {
+    selectedDiplome.value = null;
+    return;
+  }
+
+  if (!newDiplomes.some(diplome => diplome.id === selectedDiplome.value)) {
+    selectedDiplome.value = newDiplomes[0].id;
+  }
+}, { immediate: true });
+
+watch(selectedDiplome, () => {
+  selectedType.value = 'tous';
+});
+
+const enseignementsDiplomeSelectionne = computed(() => {
+  const diplome = diplomes.value.find(item => item.id === selectedDiplome.value);
+  return diplome?.enseignements ?? [];
+});
+
+const typesDisponibles = computed(() => {
+  const types = new Set(
+      enseignementsDiplomeSelectionne.value
+          .map(enseignement => enseignement?.type)
+          .filter(Boolean)
+  );
+  return Array.from(types);
+});
+
+const filtresTypes = computed(() => [
+  { label: 'Tous', value: 'tous' },
+  ...typesDisponibles.value.map(type => ({ label: type, value: type }))
+]);
+
+const enseignementsFiltres = computed(() => {
+  if (selectedType.value === 'tous') {
+    return enseignementsDiplomeSelectionne.value;
+  }
+
+  return enseignementsDiplomeSelectionne.value.filter(enseignement => enseignement?.type === selectedType.value);
+});
+
 const evaluations = [
   { id: 1, teaching: 'R1.01', label: 'Contrôle algorithmique', group: 'TP A', entered: 18, expected: 26, due: '30 octobre', status: 'À compléter' },
   { id: 2, teaching: 'R3.01', label: 'Projet interface web', group: 'TD 1', entered: 0, expected: 28, due: '3 novembre', status: 'À saisir' },
@@ -82,8 +107,13 @@ const messages = [
 ];
 const reminders = computed(() => evaluations.filter(item => item.entered < item.expected));
 const workload = computed(() => {
-  const planned = teachings.reduce((sum, item) => sum + item.planned, 0);
-  const completed = teachings.reduce((sum, item) => sum + item.completed, 0);
+  const planned = enseignements.value.reduce((sum, item) => sum + (item.planned ?? 0), 0);
+  const completed = enseignements.value.reduce((sum, item) => sum + (item.completed ?? 0), 0);
+
+  if (!planned) {
+    return { planned, completed, remaining: 0, percentage: 0 };
+  }
+
   return { planned, completed, remaining: planned - completed, percentage: Math.round(completed / planned * 100) };
 });
 const metrics = computed(() => [
@@ -118,7 +148,8 @@ function openTeaching(teaching, shortcut) {
         <h3 class="m-0! text-lg!">Mes enseignements</h3>
         <span class="text-sm text-muted-color">{{ enseignements.length }} enseignements</span>
       </div>
-      <Tabs v-if="diplomes.length" v-model:value="diplomeSelectionne" scrollable>
+      <ListSkeleton v-if="isLoadingEnseignements" :count="3" class="mb-4" />
+      <Tabs v-else-if="diplomes.length" v-model:value="selectedDiplome" scrollable>
         <TabList aria-label="Diplômes de mes enseignements">
           <Tab v-for="diplome in diplomes" :key="diplome.id" :value="diplome.id">
             <span>{{ diplome.libelle }}</span>
@@ -127,10 +158,10 @@ function openTeaching(teaching, shortcut) {
         </TabList>
         <TabPanels class="px-0! pb-0!">
           <TabPanel v-for="diplome in diplomes" :key="diplome.id" :value="diplome.id">
-            <template v-if="diplome.id === diplomeSelectionne">
+            <template v-if="diplome.id === selectedDiplome">
               <div v-if="typesDisponibles.length > 1" class="flex flex-wrap items-center gap-3 mb-4">
                 <span id="types-enseignements" class="text-sm text-muted-color">Type d’enseignement</span>
-                <SelectButton v-model="typeSelectionne" :options="filtresTypes" option-label="label" option-value="value" :allow-empty="false" aria-labelledby="types-enseignements" size="small" class="flex-wrap" />
+                <SelectButton v-model="selectedType" :options="filtresTypes" option-label="label" option-value="value" :allow-empty="false" aria-labelledby="types-enseignements" size="small" class="flex-wrap" />
               </div>
               <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
                 <article v-for="enseignement in enseignementsFiltres" :key="enseignement.id" class="p-4 rounded-xl border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
@@ -158,7 +189,7 @@ function openTeaching(teaching, shortcut) {
         <ul class="list-none m-0! p-0! flex flex-col divide-y divide-surface-200 dark:divide-surface-700">
           <li v-for="evaluation in reminders" :key="evaluation.id" class="py-3 flex flex-wrap items-center justify-between gap-3">
             <div><p class="m-0! font-semibold">{{ evaluation.label }}</p><p class="m-0! text-sm text-muted-color">{{ evaluation.teaching }} · {{ evaluation.group }} · échéance {{ evaluation.due }}</p><p class="mt-1! mb-0! text-sm">{{ evaluation.entered }} / {{ evaluation.expected }} notes renseignées</p></div>
-            <Button label="Consulter" icon="pi pi-arrow-right" size="small" severity="secondary" @click="openTeaching(teachings.find(item => item.id === evaluation.teaching), 'notes')" />
+            <Button label="Consulter" icon="pi pi-arrow-right" size="small" severity="secondary" @click="openTeaching(enseignements.find(item => item.id === evaluation.teaching), 'notes')" />
           </li>
         </ul>
       </article>
