@@ -101,6 +101,18 @@ const enseignementsFiltres = computed(() => {
   return enseignementsDiplomeSelectionne.value.filter(enseignement => enseignement?.type === selectedType.value);
 });
 
+const mesEnseignementsModel = computed(() => ({
+  enseignements: enseignements.value,
+  isLoadingEnseignements: isLoadingEnseignements.value,
+  diplomes: diplomes.value,
+  selectedDiplome: selectedDiplome.value,
+  typesDisponibles: typesDisponibles.value,
+  filtresTypes: filtresTypes.value,
+  selectedType: selectedType.value,
+  enseignementsFiltres: enseignementsFiltres.value,
+  shortcuts,
+}));
+
 const evaluations = [
   { id: 1, teaching: 'R1.01', label: 'Contrôle algorithmique', group: 'TP A', entered: 18, expected: 26, due: '30 octobre', status: 'À compléter' },
   { id: 2, teaching: 'R3.01', label: 'Projet interface web', group: 'TD 1', entered: 0, expected: 28, due: '3 novembre', status: 'À saisir' },
@@ -162,15 +174,7 @@ function openTeaching(teaching, shortcut) {
   <section :aria-labelledby="props.afficherSuivi ? 'teacher-dashboard' : undefined" class="flex flex-col gap-4">
     <h2 v-if="props.afficherSuivi" id="teacher-dashboard" class="m-0! text-xl! flex items-center gap-2"><i class="pi pi-user text-primary" aria-hidden="true" />Mon activité d’enseignant</h2>
     <MesEnseignementsSection
-        :enseignements="enseignements"
-        :is-loading-enseignements="isLoadingEnseignements"
-        :diplomes="diplomes"
-        :selected-diplome="selectedDiplome"
-        :types-disponibles="typesDisponibles"
-        :filtres-types="filtresTypes"
-        :selected-type="selectedType"
-        :enseignements-filtres="enseignementsFiltres"
-        :shortcuts="shortcuts"
+        :model="mesEnseignementsModel"
         @update:selected-diplome="selectedDiplome = $event"
         @update:selected-type="selectedType = $event"
         @open-teaching="openTeaching"
