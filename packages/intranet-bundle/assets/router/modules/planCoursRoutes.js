@@ -1,26 +1,32 @@
-import PlanCoursListView from '@/views/PlanCours/Personnel/PlanCoursListView.vue'
+import PedagogieView from '@/views/PedagogieView.vue'
 import PlanCoursEditView from '@/views/PlanCours/Personnel/PlanCoursEditView.vue'
 
 export default [
   {
-    path: 'plan-de-cours',
-    component: PlanCoursListView,
+    path: 'pedagogie',
+    component: PedagogieView,
     meta: {
       permission: 'isPersonnel',
       breadcrumb: [
-        { label: 'Dashboard', route: '/' },
-        { label: 'Plans de cours', route: null, icon: 'pi pi-book' }
+        { label: 'Dashboard', route: '/intranet' },
+        { label: 'Pédagogie', route: null, icon: 'pi pi-book' }
       ]
     }
   },
   {
-    path: 'plan-de-cours/edit/:id',
+    path: 'plan-de-cours',
+    redirect: to => ({ path: '/intranet/pedagogie', query: to.query }),
+  },
+  {
+    path: 'pedagogie/plans-de-cours/edit/:id',
+    alias: 'plan-de-cours/edit/:id',
     component: PlanCoursEditView,
     meta: {
       permission: 'isPersonnel',
       breadcrumb: [
-        { label: 'Dashboard', route: '/' },
-        { label: 'Plans de cours', route: '/intranet/plan-de-cours', icon: 'pi pi-book' },
+        { label: 'Dashboard', route: '/intranet' },
+        { label: 'Pédagogie', route: '/intranet/pedagogie', icon: 'pi pi-book' },
+        { label: 'Plans de cours', route: '/intranet/pedagogie?onglet=plans' },
         { label: 'Édition', route: null }
       ]
     }

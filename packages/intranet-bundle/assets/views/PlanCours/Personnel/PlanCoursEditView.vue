@@ -195,7 +195,7 @@ const savePlan = async (etat = 'EN_COURS', redirect = false) => {
     showSuccess(etat === 'COMPLET' ? 'Plan de cours validé et transmis avec succès !' : 'Plan de cours enregistré.')
 
     if (redirect) {
-      router.push('/intranet/plan-de-cours')
+      router.push('/intranet/pedagogie?onglet=plans')
     }
   } catch (error) {
     console.error('Erreur sauvegarde:', error)
@@ -223,7 +223,7 @@ const savePlan = async (etat = 'EN_COURS', redirect = false) => {
       <!-- Barre d'état & retour -->
       <div class="card p-4 rounded-xl border border-surface-200 dark:border-surface-700 flex flex-wrap items-center justify-between gap-4">
         <div class="flex items-center gap-3">
-          <Button icon="pi pi-arrow-left" severity="secondary" text @click="router.push('/intranet/plan-de-cours')" />
+          <Button icon="pi pi-arrow-left" severity="secondary" text @click="router.push('/intranet/pedagogie?onglet=plans')" />
           <div>
             <h3 class="text-base font-bold text-surface-900 dark:text-surface-0">{{ enseignement?.libelle }}</h3>
             <span class="text-xs text-muted-color">Code : <strong>{{ enseignement?.codeEnseignement }}</strong></span>

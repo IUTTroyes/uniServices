@@ -8,6 +8,8 @@ import { showSuccess, showDanger } from '@helpers/toast'
 import PlanCoursShowDialog from '@/components/PlanCours/PlanCoursShowDialog.vue'
 import PlanCoursRecopieDialog from '@/components/PlanCours/PlanCoursRecopieDialog.vue'
 
+defineProps({ integre: { type: Boolean, default: false } })
+
 const router = useRouter()
 const anneeUnivStore = useAnneeUnivStore()
 const usersStore = useUsersStore()
@@ -116,7 +118,7 @@ const openRecopieDialog = (item) => {
 
 const handleEditOrCreate = async (item) => {
   if (item.planCours?.id) {
-    router.push(`/intranet/plan-de-cours/edit/${item.planCours.id}`)
+    router.push(`/intranet/pedagogie/plans-de-cours/edit/${item.planCours.id}`)
   } else {
     // Initialiser le plan de cours pour ce module
     try {
@@ -127,7 +129,7 @@ const handleEditOrCreate = async (item) => {
         anneeUniversitaireId: activeAnneeId,
       }, '/init_module')
       showSuccess('Plan de cours initialisé.')
-      router.push(`/intranet/plan-de-cours/edit/${res.id}`)
+      router.push(`/intranet/pedagogie/plans-de-cours/edit/${res.id}`)
     } catch (error) {
       showDanger('Erreur lors de la création du plan de cours.')
       isLoading.value = false
@@ -155,6 +157,7 @@ const getEtatLabel = (etat) => {
 <template>
   <div>
     <HeaderComponent
+      v-if="!integre"
       icon="pi pi-book"
       titre="Plans de cours"
       :description="`Gestion et rédaction de vos plans de cours pour l'année universitaire ${anneeUniv?.libelle || ''}`"
@@ -317,7 +320,7 @@ const getEtatLabel = (etat) => {
       v-model:visible="showDialogVisible"
       :planCours="selectedPlanCoursDetail"
       :enseignement="selectedEnseignementDetail"
-      @edit="(id) => router.push(`/intranet/plan-de-cours/edit/${id}`)"
+      @edit="(id) => router.push(`/intranet/pedagogie/plans-de-cours/edit/${id}`)"
     />
 
     <PlanCoursRecopieDialog
