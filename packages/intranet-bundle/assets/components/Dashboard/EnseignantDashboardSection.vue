@@ -100,12 +100,17 @@ const evaluations = [
   { id: 2, teaching: 'R3.01', label: 'Projet interface web', group: 'TD 1', entered: 0, expected: 28, due: '3 novembre', status: 'À saisir' },
   { id: 3, teaching: 'R1.01', label: 'Travaux pratiques', group: 'TP B', entered: 26, expected: 26, due: '23 octobre', status: 'Terminée' },
 ];
-const messages = [
-  { id: 1, sender: 'Scolarité', subject: 'Vérification des listes de groupes', preview: 'Merci de vérifier la composition des groupes avant vendredi.', date: '10:24', unread: true },
-  { id: 2, sender: 'Camille Martin', subject: 'Question sur le projet web', preview: 'Bonjour, pouvons-nous utiliser une bibliothèque pour les graphiques ?', date: '09:15', unread: true },
-  { id: 3, sender: 'Équipe pédagogique', subject: 'Réunion de coordination', preview: 'La prochaine réunion se tiendra mardi à 14 h en salle du conseil.', date: 'Hier', unread: false },
-];
 const reminders = computed(() => evaluations.filter(item => item.entered < item.expected));
+const assiduite = computed(() => enseignements.value
+    .map(enseignement => ({
+      id: enseignement.id,
+      code: enseignement.codeEnseignement,
+      libelle: enseignement.libelle,
+      absences: enseignement.absences?.length ?? 0,
+    }))
+    .filter(item => item.absences > 0)
+);
+const totalAbsences = computed(() => assiduite.value.reduce((sum, item) => sum + item.absences, 0));
 const workload = computed(() => {
   const planned = enseignements.value.reduce((sum, item) => sum + (item.planned ?? 0), 0);
   const completed = enseignements.value.reduce((sum, item) => sum + (item.completed ?? 0), 0);
@@ -123,7 +128,7 @@ const metrics = computed(() => [
   { label: 'Service réalisé', value: `${workload.value.percentage} %`, icon: 'pi pi-chart-bar' },
 ]);
 const shortcuts = [
-  { key: 'notes', label: 'Notes', icon: 'pi pi-pencil' },
+  { key: 'evaluations', label: 'Évaluations', icon: 'pi pi-pencil' },
   { key: 'absences', label: 'Absences', icon: 'pi pi-user-minus' },
   { key: 'plan', label: 'Plan de cours', icon: 'pi pi-book' },
   { key: 'previsionnel', label: 'Prévisionnel', icon: 'pi pi-calendar' },
@@ -131,8 +136,6 @@ const shortcuts = [
 const selectedTeaching = ref(null);
 const selectedShortcut = ref(null);
 const dialogVisible = ref(false);
-const selectedMessage = ref(null);
-const messageVisible = ref(false);
 function openTeaching(teaching, shortcut) {
   selectedTeaching.value = teaching;
   selectedShortcut.value = shortcuts.find(item => item.key === shortcut);
@@ -168,7 +171,6 @@ function openTeaching(teaching, shortcut) {
                   <div><span class="uppercase font-semibold text-xs text-muted-color">{{ enseignement.type }} - </span><span class="text-xs font-semibold text-primary">{{ enseignement.codeEnseignement }}</span></div>
                   <h4 class="m-0! text-base!">{{ enseignement.libelle }}</h4>
                   <div class="flex flex-wrap gap-1 mt-auto">
-                    <!-- TODO : raccorder les accès à la logique métier de chaque enseignement. -->
                     <Button v-for="shortcut in shortcuts" :key="shortcut.key" :label="shortcut.label" :icon="shortcut.icon" severity="secondary" text size="small" :aria-label="`${shortcut.label} — ${enseignement.libelle}`" @click="openTeaching(enseignement, shortcut.key)" />
                   </div>
                 </article>
@@ -195,18 +197,19 @@ function openTeaching(teaching, shortcut) {
       </article>
       <article class="card p-5! mb-0!">
         <div class="flex items-center justify-between gap-3 mb-4">
-          <h3 class="m-0! text-lg! flex items-center gap-2"><i class="pi pi-envelope text-primary" aria-hidden="true" />Ma messagerie</h3>
-          <Tag :value="`${messages.filter(item => item.unread).length} non lus`" severity="info" />
+          <h3 class="m-0! text-lg! flex items-center gap-2"><i class="pi pi-user-minus text-primary" aria-hidden="true" />Suivi de l’assiduité</h3>
+          <Tag :value="`${totalAbsences} absence${totalAbsences > 1 ? 's' : ''}`" severity="warn" />
         </div>
-        <ul class="list-none m-0! p-0! flex flex-col gap-2">
-          <li v-for="message in messages" :key="message.id">
-            <button type="button" class="w-full text-left p-3 rounded-lg bg-surface-50 dark:bg-surface-800 hover:bg-surface-100 dark:hover:bg-surface-700 focus-visible:outline-2 focus-visible:outline-primary" @click="selectedMessage = message; messageVisible = true">
-              <span class="flex items-center justify-between gap-3 text-sm"><span class="font-semibold">{{ message.sender }}<span v-if="message.unread" class="ml-2 text-primary text-xs">Non lu</span></span><span class="text-muted-color">{{ message.date }}</span></span>
-              <span class="block mt-1 text-sm">{{ message.subject }}</span>
-              <span class="block text-xs text-muted-color truncate">{{ message.preview }}</span>
-            </button>
+        <ul v-if="assiduite.length" class="list-none m-0! p-0! flex flex-col divide-y divide-surface-200 dark:divide-surface-700">
+          <li v-for="enseignement in assiduite" :key="enseignement.id" class="py-3 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p class="m-0! font-semibold">{{ enseignement.libelle }}</p>
+              <p class="m-0! text-sm text-muted-color">{{ enseignement.code }}</p>
+            </div>
+            <Tag :value="`${enseignement.absences} absence${enseignement.absences > 1 ? 's' : ''}`" severity="warn" />
           </li>
         </ul>
+        <p v-else class="m-0! text-sm text-muted-color">Aucune absence signalée pour vos enseignements.</p>
       </article>
     </div>
     <article class="card p-5! mb-0!">
@@ -231,9 +234,6 @@ function openTeaching(teaching, shortcut) {
         <IndicateursDashboard v-else :items="[{ label: 'Prévues', value: `${selectedTeaching.planned} h` }, { label: 'Réalisées', value: `${selectedTeaching.completed} h` }, { label: 'Restantes', value: `${selectedTeaching.planned - selectedTeaching.completed} h` }]" />
         <p class="mb-0! mt-4! text-xs text-muted-color">Aperçu de démonstration · aucune modification enregistrée.</p>
       </template>
-    </Dialog>
-    <Dialog v-model:visible="messageVisible" modal :header="selectedMessage?.subject" class="w-full max-w-xl mx-4">
-      <template v-if="selectedMessage"><p class="mt-0! text-sm text-muted-color">{{ selectedMessage.sender }} · {{ selectedMessage.date }}</p><p>{{ selectedMessage.preview }}</p><p class="text-xs text-muted-color">Message de démonstration.</p></template>
     </Dialog>
   </section>
 </template>

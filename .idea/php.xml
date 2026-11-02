@@ -554,6 +554,8 @@
       <path value="$PROJECT_DIR$/back/vendor/symfony/workflow" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-deepclone" />
       <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-php86" />
+      <path value="$PROJECT_DIR$/back/vendor/sensiolabs/gotenberg-bundle" />
+      <path value="$PROJECT_DIR$/back/vendor/symfony/polyfill-time" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.4" />
@@ -570,7 +572,7 @@
     <phpunit_settings>
       <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/packages/intranet-bundle/vendor/autoload.php" />
       <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/back/vendor/autoload.php" />
-      <PhpUnitSettings custom_loader_path="$PROJECT_DIR$/vendor/autoload.php" />
+      <PhpUnitSettings configuration_file_path="$PROJECT_DIR$/phpunit.xml.dist" custom_loader_path="$PROJECT_DIR$/vendor/autoload.php" use_configuration_file="true" />
     </phpunit_settings>
   </component>
   <component name="Psalm">
