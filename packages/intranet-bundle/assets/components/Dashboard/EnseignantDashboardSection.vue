@@ -1,15 +1,21 @@
 <script setup>
 import { computed, ref, onMounted, watch } from 'vue';
 import IndicateursDashboard from './IndicateursDashboard.vue';
+import EnseignementAvancementDialog from '../EnseignementAvancementDialog.vue';
+import MesEnseignementsSection from './EnseignantDashboardSection/MesEnseignementsSection.vue';
+import NotesASaisirSection from './EnseignantDashboardSection/NotesASaisirSection.vue';
+import SuiviAssiduiteSection from './EnseignantDashboardSection/SuiviAssiduiteSection.vue';
+import ServicePrevisionnelSection from './EnseignantDashboardSection/ServicePrevisionnelSection.vue';
 import { getEnseignementsService } from '@requests';
-import { ListSkeleton } from '@components';
 import {useUsersStore} from '@stores';
+
+const props = defineProps({ afficherSuivi: { type: Boolean, default: true } });
 
 const enseignements = ref([]);
 const isLoadingEnseignements = ref(true);
 const usersStore = useUsersStore();
 const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
-const departement = usersStore.departementDefaut
+const departement = usersStore.departementDefaut;
 const selectedDiplome = ref(null);
 const selectedType = ref('tous');
 
@@ -128,15 +134,24 @@ const metrics = computed(() => [
   { label: 'Service réalisé', value: `${workload.value.percentage} %`, icon: 'pi pi-chart-bar' },
 ]);
 const shortcuts = [
+  { key: 'avancement', label: 'Avancement', icon: 'pi pi-map-marker' },
   { key: 'evaluations', label: 'Évaluations', icon: 'pi pi-pencil' },
   { key: 'absences', label: 'Absences', icon: 'pi pi-user-minus' },
   { key: 'plan', label: 'Plan de cours', icon: 'pi pi-book' },
   { key: 'previsionnel', label: 'Prévisionnel', icon: 'pi pi-calendar' },
 ];
+const avancementVisible = ref(false);
+const enseignementAvancement = ref(null);
 const selectedTeaching = ref(null);
 const selectedShortcut = ref(null);
 const dialogVisible = ref(false);
 function openTeaching(teaching, shortcut) {
+  if (shortcut === 'avancement') {
+    enseignementAvancement.value = teaching;
+    avancementVisible.value = true;
+    return;
+  }
+
   selectedTeaching.value = teaching;
   selectedShortcut.value = shortcuts.find(item => item.key === shortcut);
   dialogVisible.value = true;
@@ -144,93 +159,43 @@ function openTeaching(teaching, shortcut) {
 </script>
 
 <template>
-  <section aria-labelledby="teacher-dashboard" class="flex flex-col gap-4">
-    <h2 id="teacher-dashboard" class="m-0! text-xl! flex items-center gap-2"><i class="pi pi-user text-primary" aria-hidden="true" />Mon activité d’enseignant</h2>
-    <article class="card p-5! mb-0!">
-      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
-        <h3 class="m-0! text-lg!">Mes enseignements</h3>
-        <span class="text-sm text-muted-color">{{ enseignements.length }} enseignements</span>
-      </div>
-      <ListSkeleton v-if="isLoadingEnseignements" :count="3" class="mb-4" />
-      <Tabs v-else-if="diplomes.length" v-model:value="selectedDiplome" scrollable>
-        <TabList aria-label="Diplômes de mes enseignements">
-          <Tab v-for="diplome in diplomes" :key="diplome.id" :value="diplome.id">
-            <span>{{ diplome.libelle }}</span>
-            <span class="ml-2 text-xs text-muted-color">({{ diplome.enseignements.length }})</span>
-          </Tab>
-        </TabList>
-        <TabPanels class="px-0! pb-0!">
-          <TabPanel v-for="diplome in diplomes" :key="diplome.id" :value="diplome.id">
-            <template v-if="diplome.id === selectedDiplome">
-              <div v-if="typesDisponibles.length > 1" class="flex flex-wrap items-center gap-3 mb-4">
-                <span id="types-enseignements" class="text-sm text-muted-color">Type d’enseignement</span>
-                <SelectButton v-model="selectedType" :options="filtresTypes" option-label="label" option-value="value" :allow-empty="false" aria-labelledby="types-enseignements" size="small" class="flex-wrap" />
-              </div>
-              <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                <article v-for="enseignement in enseignementsFiltres" :key="enseignement.id" class="p-4 rounded-xl border border-surface-200 dark:border-surface-700 flex flex-col gap-2">
-                  <div><span class="uppercase font-semibold text-xs text-muted-color">{{ enseignement.type }} - </span><span class="text-xs font-semibold text-primary">{{ enseignement.codeEnseignement }}</span></div>
-                  <h4 class="m-0! text-base!">{{ enseignement.libelle }}</h4>
-                  <div class="flex flex-wrap gap-1 mt-auto">
-                    <Button v-for="shortcut in shortcuts" :key="shortcut.key" :label="shortcut.label" :icon="shortcut.icon" severity="secondary" text size="small" :aria-label="`${shortcut.label} — ${enseignement.libelle}`" @click="openTeaching(enseignement, shortcut.key)" />
-                  </div>
-                </article>
-              </div>
-            </template>
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
-      <p v-else class="m-0! text-sm text-muted-color">Aucun enseignement disponible pour ce contexte.</p>
-    </article>
+  <section :aria-labelledby="props.afficherSuivi ? 'teacher-dashboard' : undefined" class="flex flex-col gap-4">
+    <h2 v-if="props.afficherSuivi" id="teacher-dashboard" class="m-0! text-xl! flex items-center gap-2"><i class="pi pi-user text-primary" aria-hidden="true" />Mon activité d’enseignant</h2>
+    <MesEnseignementsSection
+        :enseignements="enseignements"
+        :is-loading-enseignements="isLoadingEnseignements"
+        :diplomes="diplomes"
+        :selected-diplome="selectedDiplome"
+        :types-disponibles="typesDisponibles"
+        :filtres-types="filtresTypes"
+        :selected-type="selectedType"
+        :enseignements-filtres="enseignementsFiltres"
+        :shortcuts="shortcuts"
+        @update:selected-diplome="selectedDiplome = $event"
+        @update:selected-type="selectedType = $event"
+        @open-teaching="openTeaching"
+    />
 
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-      <article class="card p-5! mb-0!">
-        <div class="flex items-center justify-between gap-3 mb-4">
-          <h3 class="m-0! text-lg! flex items-center gap-2"><i class="pi pi-pencil text-primary" aria-hidden="true" />Notes à saisir</h3>
-          <Tag :value="`${reminders.length} évaluations`" severity="warn" />
-        </div>
-        <ul class="list-none m-0! p-0! flex flex-col divide-y divide-surface-200 dark:divide-surface-700">
-          <li v-for="evaluation in reminders" :key="evaluation.id" class="py-3 flex flex-wrap items-center justify-between gap-3">
-            <div><p class="m-0! font-semibold">{{ evaluation.label }}</p><p class="m-0! text-sm text-muted-color">{{ evaluation.teaching }} · {{ evaluation.group }} · échéance {{ evaluation.due }}</p><p class="mt-1! mb-0! text-sm">{{ evaluation.entered }} / {{ evaluation.expected }} notes renseignées</p></div>
-            <Button label="Consulter" icon="pi pi-arrow-right" size="small" severity="secondary" @click="openTeaching(enseignements.find(item => item.id === evaluation.teaching), 'notes')" />
-          </li>
-        </ul>
-      </article>
-      <article class="card p-5! mb-0!">
-        <div class="flex items-center justify-between gap-3 mb-4">
-          <h3 class="m-0! text-lg! flex items-center gap-2"><i class="pi pi-user-minus text-primary" aria-hidden="true" />Suivi de l’assiduité</h3>
-          <Tag :value="`${totalAbsences} absence${totalAbsences > 1 ? 's' : ''}`" severity="warn" />
-        </div>
-        <ul v-if="assiduite.length" class="list-none m-0! p-0! flex flex-col divide-y divide-surface-200 dark:divide-surface-700">
-          <li v-for="enseignement in assiduite" :key="enseignement.id" class="py-3 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p class="m-0! font-semibold">{{ enseignement.libelle }}</p>
-              <p class="m-0! text-sm text-muted-color">{{ enseignement.code }}</p>
-            </div>
-            <Tag :value="`${enseignement.absences} absence${enseignement.absences > 1 ? 's' : ''}`" severity="warn" />
-          </li>
-        </ul>
-        <p v-else class="m-0! text-sm text-muted-color">Aucune absence signalée pour vos enseignements.</p>
-      </article>
+    <div v-if="props.afficherSuivi" class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+      <NotesASaisirSection :reminders="reminders" :enseignements="enseignements" @open-teaching="openTeaching" />
+      <SuiviAssiduiteSection :assiduite="assiduite" :total-absences="totalAbsences" />
     </div>
-    <article class="card p-5! mb-0!">
-      <h3 class="mt-0! mb-4! text-lg!">Mon service prévisionnel</h3>
-      <IndicateursDashboard :items="metrics" />
-      <ProgressBar :value="workload.percentage" :show-value="false" class="mt-4 h-2!" :aria-label="`${workload.percentage} % du service réalisé`" />
-      <p class="mt-2! mb-0! text-sm text-muted-color">Heures d’enseignement de démonstration, hors primes et équivalences.</p>
-    </article>
+    <ServicePrevisionnelSection v-if="props.afficherSuivi" :metrics="metrics" :workload="workload" />
+
+    <EnseignementAvancementDialog v-model:visible="avancementVisible" :enseignement="enseignementAvancement" :annee-universitaire="anneeUniv?.id" />
 
     <Dialog v-model:visible="dialogVisible" modal :header="`${selectedShortcut?.label ?? ''} · ${selectedTeaching?.id ?? ''}`" class="w-full max-w-2xl mx-4">
       <template v-if="selectedTeaching">
         <p class="mt-0! font-semibold">{{ selectedTeaching.label }} · {{ selectedTeaching.groups }}</p>
-        <template v-if="selectedShortcut.key === 'notes'">
+        <template v-if="selectedShortcut?.key === 'notes'">
           <div v-for="evaluation in evaluations.filter(item => item.teaching === selectedTeaching.id)" :key="evaluation.id" class="p-3 mb-2 rounded-lg bg-surface-50 dark:bg-surface-800 flex justify-between gap-3"><span>{{ evaluation.label }} · {{ evaluation.group }}</span><span>{{ evaluation.entered }} / {{ evaluation.expected }} notes</span></div>
           <p v-if="!evaluations.some(item => item.teaching === selectedTeaching.id)" class="text-muted-color">Aucune évaluation prévue pour cet enseignement.</p>
         </template>
-        <template v-else-if="selectedShortcut.key === 'absences'">
+        <template v-else-if="selectedShortcut?.key === 'absences'">
           <div v-for="absence in selectedTeaching.absences" :key="absence.student" class="p-3 mb-2 rounded-lg bg-surface-50 dark:bg-surface-800 flex flex-wrap justify-between gap-2"><span>{{ absence.student }} · {{ absence.date }}</span><Tag :value="absence.status" :severity="absence.status === 'Justifiée' ? 'success' : 'warn'" /></div>
           <p v-if="!selectedTeaching.absences.length" class="text-muted-color">Aucune absence signalée pour cet enseignement.</p>
         </template>
-        <p v-else-if="selectedShortcut.key === 'plan'">{{ selectedTeaching.plan }}</p>
+        <p v-else-if="selectedShortcut?.key === 'plan'">{{ selectedTeaching.plan }}</p>
         <IndicateursDashboard v-else :items="[{ label: 'Prévues', value: `${selectedTeaching.planned} h` }, { label: 'Réalisées', value: `${selectedTeaching.completed} h` }, { label: 'Restantes', value: `${selectedTeaching.planned - selectedTeaching.completed} h` }]" />
         <p class="mb-0! mt-4! text-xs text-muted-color">Aperçu de démonstration · aucune modification enregistrée.</p>
       </template>

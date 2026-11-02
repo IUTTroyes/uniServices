@@ -52,3 +52,5 @@ export * from './dashboardService.js';
 export * from './actu_services/actualiteService.js'
 export * from './plan_cours_services/planCoursService.js';
 
+
+export * from './scol_services/avancementEnseignementService.js';

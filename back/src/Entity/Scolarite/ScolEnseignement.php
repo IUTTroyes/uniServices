@@ -175,7 +175,7 @@ class ScolEnseignement
      * @var Collection<int, Previsionnel>
      */
     #[ORM\OneToMany(targetEntity: Previsionnel::class, mappedBy: 'enseignement', cascade: ['remove'], orphanRemoval: true)]
-    #[Groups(['enseignement:detail', 'edt_event:read:agenda', 'enseignement:dashboard'])]
+    #[Groups(['enseignement:detail', 'edt_event:read:agenda'])]
     private Collection $previsionnels;
 
     public function __construct()
@@ -642,7 +642,6 @@ class ScolEnseignement
         return null;
     }
 
-    #[Groups(['enseignement:dashboard'])]
     public function getSemestre()
     {
         $enseignementUe = $this->enseignementUes->first();
