@@ -147,14 +147,17 @@ const getEnseignements = async () => {
       semestre: semestre.value.id,
     };
     enseignements.value = await getEnseignementsService(params);
-    for (const enseignement of enseignements.value) {
-      enseignement.evaluations = await getEvaluations(enseignement.id) || [];
-    }
+    const evaluationsByEnseignement = await Promise.all(
+      enseignements.value.map(enseignement => getEvaluations(enseignement.id))
+    );
+    enseignements.value.forEach((enseignement, index) => {
+      enseignement.evaluations = evaluationsByEnseignement[index] || [];
+    });
     // Preload expected totals per typeGroupe for the semestre based on loaded evaluations
     await preloadExpectedTotalsForSemestre(semestre.value.id, enseignements.value);
     // Calculer la progression pour chaque enseignement
     for (const enseignement of enseignements.value) {
-      await calcEnseignementProgress(enseignement);
+      calcEnseignementProgress(enseignement);
     }
   } catch (error) {
     hasError.value = true;
@@ -174,7 +177,7 @@ const getEvaluations = async (enseignement) => {
     const evaluations = await getEvaluationsService(params);
     // Calculer la progression pour chaque évaluation
     for (const evaluation of evaluations) {
-      await calcEvaluationProgress(evaluation);
+      calcEvaluationProgress(evaluation);
     }
     return evaluations;
   } catch (error) {

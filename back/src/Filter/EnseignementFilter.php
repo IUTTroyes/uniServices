@@ -108,11 +108,7 @@ class EnseignementFilter implements FilterInterface
 
             $anneeUniversitaireId = $context['filters']['anneeUniversitaire'] ?? null;
             if ($anneeUniversitaireId) {
-                $diplomeAnneeUnivAlias = $queryNameGenerator->generateJoinAlias('diplomeAnneeUniv');
-
                 $queryBuilder
-                    ->join("$diplomeAlias.anneesUniversitaires", $diplomeAnneeUnivAlias)
-                    ->andWhere("$diplomeAnneeUnivAlias.id = :anneeUniversitaireId")
                     ->andWhere("$anneeUniversitaireAlias.id = :anneeUniversitaireId")
                     ->setParameter("anneeUniversitaireId", $anneeUniversitaireId);
             } else {
