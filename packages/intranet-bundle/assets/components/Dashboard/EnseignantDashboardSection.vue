@@ -4,40 +4,13 @@ import MesEnseignementsSection from './EnseignantDashboardSection/MesEnseignemen
 import NotesASaisirSection from './EnseignantDashboardSection/NotesASaisirSection.vue';
 import SuiviAssiduiteSection from './EnseignantDashboardSection/SuiviAssiduiteSection.vue';
 import ServicePrevisionnelSection from './EnseignantDashboardSection/ServicePrevisionnelSection.vue';
-import { getEnseignementsService } from '@requests';
-import {useUsersStore} from '@stores';
 
 const props = defineProps({ afficherSuivi: { type: Boolean, default: true } });
 
 const enseignements = ref([]);
-const isLoadingEnseignements = ref(true);
-const usersStore = useUsersStore();
-const anneeUniv = localStorage.getItem('selectedAnneeUniv') ? JSON.parse(localStorage.getItem('selectedAnneeUniv')) : { id: null };
-const departement = usersStore.departementDefaut;
 
 onMounted(async () => {
-  try {
-    await getEnseignements();
-  } catch (error) {
-    console.error('Erreur lors de la récupération des enseignements :', error);
-  }
 });
-
-const getEnseignements = async () => {
-  isLoadingEnseignements.value = true;
-  try {
-    const params = {
-      personnel: usersStore.user.id,
-      anneeUniversitaire: anneeUniv.id,
-      departement: departement?.id ?? null,
-    };
-    enseignements.value = await getEnseignementsService(params, '/dashboard');
-  } catch (error) {
-    console.error('Erreur lors de la récupération des enseignements :', error);
-  } finally {
-    isLoadingEnseignements.value = false;
-  }
-};
 
 const evaluations = [
   { id: 1, teaching: 'R1.01', label: 'Contrôle algorithmique', group: 'TP A', entered: 18, expected: 26, due: '30 octobre', status: 'À compléter' },

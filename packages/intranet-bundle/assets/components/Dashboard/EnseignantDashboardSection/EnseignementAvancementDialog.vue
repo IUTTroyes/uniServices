@@ -49,6 +49,8 @@ const messageErreur = err => err.response?.status === 403
   : 'Impossible de charger le suivi. Vous pouvez réessayer.';
 
 async function charger() {
+  if (!props.visible || !props.enseignement?.id) return;
+
   const current = ++requestId;
   loading.value = true;
   error.value = '';
