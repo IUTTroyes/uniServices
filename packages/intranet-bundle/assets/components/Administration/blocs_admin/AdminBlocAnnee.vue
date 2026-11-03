@@ -162,15 +162,6 @@ const selectAnnee = (annee) => {
                        class="cursor-pointer hover:bg-primary-400/10 rounded-md w-full p-2 border border-neutral-200 dark:border-neutral-700 flex items-center justify-between gap-2 transition-colors"
                        :class="{'bg-primary-400/20': selectedAnnee && selectedAnnee.id === annee.id}">
                     <span class="truncate">{{ annee.libelle }}</span>
-                    <div v-if="getSortedSemestres(annee).length > 0" class="flex items-center gap-1 shrink-0">
-                      <Tag
-                        v-for="semestre in getSortedSemestres(annee)"
-                        :key="semestre.id"
-                        severity="primary"
-                        class="!text-xs !py-0.5 !px-1.5"
-                        :value="semestre.libelle"
-                      />
-                    </div>
                   </div>
                 </li>
               </ul>
