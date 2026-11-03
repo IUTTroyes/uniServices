@@ -2,7 +2,7 @@
 import {computed, onMounted, ref} from "vue";
 import {useRoute, useRouter} from "vue-router";
 import {Access, ErrorView, ListSkeleton, PermissionGuard} from "@components";
-import {getAnneeUniversitaireService, getPns, deletePnService, deleteDiplomeFromAnneeUnivService} from "@requests";
+import {getAnneeUniversitaireService, getPns, deletePnService} from "@requests";
 import ButtonInfo from "@components/components/Buttons/ButtonInfo.vue";
 import ButtonDelete from "../../../../../../shared/components/components/Buttons/ButtonDelete.vue";
 
