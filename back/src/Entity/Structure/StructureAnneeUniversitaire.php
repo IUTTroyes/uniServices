@@ -136,9 +136,13 @@ class StructureAnneeUniversitaire implements TimestampableInterface
     /**
      * @var Collection<int, StructureDiplome>
      */
-    #[ORM\ManyToMany(targetEntity: StructureDiplome::class, mappedBy: 'anneesUniversitaires')]
-    #[Groups(['annee_universitaire:detail', 'annee_universitaire:write'])]
-    private Collection $diplomes;
+    #[ORM\ManyToMany(targetEntity: StructureDiplome::class, mappedBy: 'legacyAnneesUniversitaires')]
+    // Stockage historique conservé sans lecture/écriture métier. La liste publique est calculée via les PN.
+    private Collection $legacyDiplomes;
+
+    /** Sélection explicite du formulaire d'initialisation ; null signifie « ne pas modifier les PN ». */
+    #[Groups(['annee_universitaire:write'])]
+    private ?array $diplomeIds = null;
 
     public function __construct()
     {
@@ -152,7 +156,7 @@ class StructureAnneeUniversitaire implements TimestampableInterface
         $this->calendriers = new ArrayCollection();
         $this->previsionnels = new ArrayCollection();
         $this->enseignantHrs = new ArrayCollection();
-        $this->diplomes = new ArrayCollection();
+        $this->legacyDiplomes = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -452,27 +456,21 @@ class StructureAnneeUniversitaire implements TimestampableInterface
     /**
      * @return Collection<int, StructureDiplome>
      */
+    #[Groups(['annee_universitaire:detail'])]
     public function getDiplomes(): Collection
     {
-        return $this->diplomes;
+        $diplomes = new ArrayCollection();
+        foreach ($this->pns as $pn) {
+            $diplome = $pn->getDiplome();
+            if ($diplome !== null && !$diplomes->contains($diplome)) $diplomes->add($diplome);
+        }
+        return $diplomes;
     }
 
-    public function addDiplome(StructureDiplome $diplome): static
+    public function getDiplomeIds(): ?array { return $this->diplomeIds; }
+    public function setDiplomeIds(?array $ids): static
     {
-        if (!$this->diplomes->contains($diplome)) {
-            $this->diplomes->add($diplome);
-            $diplome->addAnneeUniversitaire($this);
-        }
-
-        return $this;
-    }
-
-    public function removeDiplome(StructureDiplome $diplome): static
-    {
-        if ($this->diplomes->removeElement($diplome)) {
-            $diplome->removeAnneeUniversitaire($this);
-        }
-
+        $this->diplomeIds = $ids;
         return $this;
     }
 }

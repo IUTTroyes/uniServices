@@ -3,6 +3,8 @@
 namespace App\Repository\Structure;
 
 use App\Entity\Structure\StructureDiplome;
+use App\Filter\DiplomeFilter;
+use ApiPlatform\Doctrine\Orm\Util\QueryNameGenerator;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -11,46 +13,18 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class StructureDiplomeRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(ManagerRegistry $registry, private readonly DiplomeFilter $diplomeFilter)
     {
         parent::__construct($registry, StructureDiplome::class);
     }
 
-    // en passant par le lien diplome->pns (collection)->anneeUniversitaire
-    public function findByAnneeUniversitaire(int $anneeUniversitaire)
+    /** @return StructureDiplome[] */
+    public function findByAnneeUniversitaire(int $anneeUniversitaire): array
     {
-        return $this->createQueryBuilder('d')
-            ->join('d.pns', 'p')
-            ->join('p.anneeUniversitaire', 'au')
-            ->andWhere('au.id = :anneeUniversitaire')
-            ->setParameter('anneeUniversitaire', $anneeUniversitaire)
-            ->getQuery()
-            ->getResult()
-        ;
+        $queryBuilder = $this->createQueryBuilder('d');
+        $this->diplomeFilter->apply($queryBuilder, new QueryNameGenerator(), StructureDiplome::class, context: [
+            'filters' => ['anneeUniversitaire' => $anneeUniversitaire],
+        ]);
+        return $queryBuilder->getQuery()->getResult();
     }
-
-//    /**
-//     * @return StructureDiplome[] Returns an array of StructureDiplome objects
-//     */
-//    public function findByExampleField($value): array
-//    {
-//        return $this->createQueryBuilder('s')
-//            ->andWhere('s.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->orderBy('s.id', 'ASC')
-//            ->setMaxResults(10)
-//            ->getQuery()
-//            ->getResult()
-//        ;
-//    }
-
-//    public function findOneBySomeField($value): ?StructureDiplome
-//    {
-//        return $this->createQueryBuilder('s')
-//            ->andWhere('s.exampleField = :val')
-//            ->setParameter('val', $value)
-//            ->getQuery()
-//            ->getOneOrNullResult()
-//        ;
-//    }
 }

@@ -23,9 +23,10 @@ class StructureAnneeUniversitaireRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('a')
             ->update()
             ->set('a.actif', ':inactif')
-            ->where('a.id != :id')
-            ->setParameter('inactif', false)
-            ->setParameter('id', $anneeUniversitaire->getId());
+            ->setParameter('inactif', false);
+        if ($anneeUniversitaire->getId() !== null) {
+            $qb->where('a.id != :id')->setParameter('id', $anneeUniversitaire->getId());
+        }
 
         $qb->getQuery()->execute();
     }

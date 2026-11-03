@@ -179,23 +179,12 @@ class StructureDiplome implements TimestampableInterface
     #[Groups(['diplome:detail'])]
     private Collection $enseignantHrs;
 
-    /**@deprecated */
-    //todo: utiliser le lien diplome->pn->anneeUniversitaire
-    /**
-     * @var Collection<int, StructureAnneeUniversitaire>
-     */
-    #[ORM\ManyToMany(targetEntity: StructureAnneeUniversitaire::class, inversedBy: 'diplomes', cascade: ['persist'])]
-    #[ORM\JoinTable(name: 'structure_diplome_annee_universitaire')]
-    #[Groups(['diplome:detail'])]
-    private Collection $anneesUniversitaires;
-
     public function __construct()
     {
         $this->enfants = new ArrayCollection();
         $this->pns = new ArrayCollection();
         $this->setOpt([]);
         $this->enseignantHrs = new ArrayCollection();
-        $this->anneesUniversitaires = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -533,25 +522,15 @@ class StructureDiplome implements TimestampableInterface
     /**
      * @return Collection<int, StructureAnneeUniversitaire>
      */
+    #[Groups(['diplome:detail'])]
     public function getAnneesUniversitaires(): Collection
     {
-        return $this->anneesUniversitaires;
-    }
-
-    public function addAnneeUniversitaire(StructureAnneeUniversitaire $anneeUniversitaire): static
-    {
-        if (!$this->anneesUniversitaires->contains($anneeUniversitaire)) {
-            $this->anneesUniversitaires->add($anneeUniversitaire);
+        $annees = new ArrayCollection();
+        foreach ($this->pns as $pn) {
+            $annee = $pn->getAnneeUniversitaire();
+            if ($annee !== null && !$annees->contains($annee)) $annees->add($annee);
         }
-
-        return $this;
-    }
-
-    public function removeAnneeUniversitaire(StructureAnneeUniversitaire $anneeUniversitaire): static
-    {
-        $this->anneesUniversitaires->removeElement($anneeUniversitaire);
-
-        return $this;
+        return $annees;
     }
 
     public function getLogoPartenaireName(): ?string
