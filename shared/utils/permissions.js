@@ -74,7 +74,7 @@ const compositePermissions = {
 // Handlers de permissions contextuelles nommées
 // Permet d'écrire: hasPermission({ permission: 'canManageEvaluation', context: { evaluation } })
 const getUserIdentifiers = (userStore) => ({
-  ids: [userStore?.personnel?.id, userStore?.user?.id, userStore?.id, userStore?.uid].filter(v => v !== null && v !== undefined),
+  ids: [userStore?.userId, userStore?.personnel?.id, userStore?.user?.id, userStore?.id, userStore?.uid].filter(v => v !== null && v !== undefined),
   emails: [userStore?.email, userStore?.user?.email, userStore?.personnel?.email]
     .filter(v => typeof v === 'string' && v.trim() !== '')
     .map(v => v.trim().toLowerCase()),
@@ -123,14 +123,26 @@ const isUserInList = (userStore, list) => {
 
 const contextualHandlers = {
   canManageEvaluation: ({ userStore, context }) => {
-    if (!context?.evaluation) return false;
-    if (userStore.isSuperAdmin || userStore.isNote) return true;
+    const evaluation = context?.evaluation;
+    if (!evaluation || !userStore.isPersonnel) return false;
+    if (userStore.isSuperAdmin || isUserInList(userStore, evaluation.personnelAutorise)) return true;
+    if (evaluation.etat === 'non_initialisee'
+        && userStore.userId != null
+        && evaluation.intervenantIdsPourInitialisation?.some(id => String(id) === String(userStore.userId))) {
+      return true;
+    }
 
-    const list = Array.isArray(context.evaluation.personnelAutorise)
-      ? context.evaluation.personnelAutorise
-      : [];
 
-    return isUserInList(userStore, list);
+    if (evaluation.departementId == null ||
+        String(evaluation.departementId) !== String(userStore.departementDefaut?.id)) {
+      return false;
+    }
+
+    return userStore.isDirection
+      || userStore.isChefDepartement
+      || userStore.hasRole('ROLE_CHEF_DEPT')
+      || userStore.isNote
+      || userStore.isResponsableParcours(evaluation.diplomeId);
   },
 };
 

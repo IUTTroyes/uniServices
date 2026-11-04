@@ -290,11 +290,7 @@ const reactiverEval = async () => {
 </div>
 
 <PermissionGuard
-  :permission="[
-    { permission: 'canManageEvaluation', context: { evaluation } },
-    'canViewAdministration'
-  ]"
-  :requireAll="false"
+  :permission="{ permission: 'canManageEvaluation', context: { evaluation } }"
 >
   <Divider />
   <div class="flex justify-between items-center gap-4">

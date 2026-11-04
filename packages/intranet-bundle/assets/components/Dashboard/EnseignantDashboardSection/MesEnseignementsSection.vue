@@ -159,7 +159,7 @@ function openTeaching(teaching, shortcut) {
                 <div><span class="uppercase font-semibold text-xs text-muted-color">{{ enseignement.type }} - </span><span class="text-xs font-semibold text-primary">{{ enseignement.codeEnseignement }}</span></div>
                 <h4 class="m-0! text-base!">{{ enseignement.libelle }}</h4>
                 <div class="flex flex-wrap items-center gap-2 mt-auto">
-                  <Button v-for="shortcut in shortcuts" :key="shortcut.key" :label="shortcut.label" :icon="shortcut.icon" severity="secondary" text size="small" :aria-label="`${shortcut.label} — ${enseignement.libelle}`" @click="openTeaching(enseignement, shortcut.key)" />
+                  <Button v-for="shortcut in shortcuts" :key="shortcut.key" :label="shortcut.label" :icon="shortcut.icon" severity="secondary" text size="small" :aria-label="`${shortcut.label} — ${enseignement.libelle}`" @click="openTeaching(enseignement, shortcut.key)" class="my-0" />
                 </div>
               </article>
             </div>

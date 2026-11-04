@@ -201,7 +201,7 @@ async function chargerHistorique() {
 <template>
   <Dialog :visible="visible" @update:visible="emit('update:visible', $event)" modal
           :header="`Avancement · ${enseignement?.codeEnseignement} ${enseignement?.libelle}`" :aria-labelledby="`avancement-${enseignement?.id}`"
-          :closable="saving === null" :close-on-escape="saving === null" class="w-full max-w-4xl mx-4">
+          :closable="saving === null" :close-on-escape="saving === null" class="w-[90vw] md:w-[75vw] lg:w-[75vw]">
     <p class="mt-0! mb-1! font-semibold">{{ enseignement?.libelle }}</p>
     <p class="mt-0! text-sm text-muted-color">Un repère partagé par groupe, visible et modifiable par les enseignants de cet enseignement. Entrée pour enregistrer, Maj + Entrée pour revenir à la ligne.</p>
     <p v-if="loading" role="status" class="text-muted-color">Chargement des groupes et de leurs repères…</p>

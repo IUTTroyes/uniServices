@@ -295,7 +295,7 @@ const openEvaluationDialog = (evaluationId, mode = 'edit', header) => {
     selectedEvaluation.value = evaluationId;
   }
   dialogMode.value = mode;
-  dialogHeader.value = `${header || (mode === 'saisie' ? 'Saisie des notes' : mode === 'init' ? 'Initialiser l\'évaluation' : 'Modifier l\'évaluation')} — ${semestre.value.libelle || 'Semestre non sélectionné'}`;
+  dialogHeader.value = `${header || (mode === 'saisie' ? 'Saisie des notes' : mode === 'init' ? 'Initialiser l\'évaluation' : 'Modifier l\'évaluation')}`;
   showDialog.value = true;
 };
 

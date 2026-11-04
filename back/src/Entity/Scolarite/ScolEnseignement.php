@@ -642,6 +642,7 @@ class ScolEnseignement
         return null;
     }
 
+    #[Groups(['enseignement:dashboard'])]
     public function getSemestre()
     {
         $enseignementUe = $this->enseignementUes->first();
