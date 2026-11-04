@@ -1,4 +1,5 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import {computed, onMounted, ref, watch} from "vue";
 import {SimpleSkeleton, HeaderComponent, EdtEventRow, ButtonInfo, ButtonEdit, ButtonDelete, Kpi} from "@components";
 import {useAnneeStore, useUsersStore} from "@stores";
@@ -267,6 +268,12 @@ const onPageChange = async event => {
 </script>
 
 <template>
+  <ContexteSelection titre="Année de travail" :valeur="[annee?.libelle].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-annee" class="text-sm font-semibold text-muted-color">Année de formation</label>
+      <Select :loading="isLoadingAnnees" :disabled="isLoadingAnnees" input-id="contexte-annee" class="w-full sm:w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
+    </div>
+  </ContexteSelection>
+
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <Kpi
       v-for="stat in absencesStats"
@@ -292,9 +299,7 @@ const onPageChange = async event => {
         </div>
         <SimpleSkeleton v-if="isLoadingAnnees || isLoadingAnnee" class="!w-60 !h-10"></SimpleSkeleton>
         <div v-else class="flex flex-col gap-2">
-          <div class="flex gap-4 justify-end">
-            <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
-          </div>
+
           <div class="flex justify-end items-center">
             <router-link :to="{ name: 'new-absence', params: { anneeId: annee?.id } }">
               <Button label="Créer une absence" icon="pi pi-plus" @click="getAbsences()" severity="primary"/>

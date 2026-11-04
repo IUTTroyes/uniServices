@@ -1,4 +1,5 @@
 <script setup>
+import ContexteSelection from '../Structure/ContexteSelection.vue';
 import {VueCal} from 'vue-cal'
 import 'vue-cal/style'
 import {computed, nextTick, onMounted, ref, watch} from 'vue';
@@ -407,12 +408,12 @@ const heuresParType = computed(() => {
       <SimpleSkeleton class="w-1/2"/>
       <SimpleSkeleton class="w-1/2"/>
     </div>
-    <div v-else class="mt-8 flex items-center gap-4 w-full">
+    <ContexteSelection v-else titre="Contexte de travail" :valeur="[selectedAnnee?.libelle, selectedSemestre?.libelle].filter(Boolean).join(' · ')">
       <SimpleSkeleton v-if="isLoadingAnnees" class="w-1/2"/>
       <Select v-else-if="selectedDiplome" v-model="selectedAnnee" :options="annees" option-label="libelle" placeholder="Sélectionner une année" class="w-1/2"/>
       <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/2"/>
       <Select v-else-if="selectedAnnee" v-model="selectedSemestre" :options="semestres" option-label="libelle" placeholder="Sélectionner un semestre" class="w-1/2"/>
-    </div>
+    </ContexteSelection>
     <div class="flex justify-center items-center gap-4 mb-4">
       <SimpleSkeleton v-if="isLoadingEnseignants" class="w-1/3"/>
       <Message v-else-if="hasErrorEnseignants" severity="error" class="w-full my-6" icon="pi pi-exclamation-circle">

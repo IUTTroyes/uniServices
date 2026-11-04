@@ -1,4 +1,5 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { SimpleSkeleton, ErrorView, ListSkeleton, ButtonDelete } from "@components";
 import { useAnneeStore, useEnseignementsStore, useUsersStore } from "@stores";
@@ -187,17 +188,11 @@ const emptyPrevi = (previs) => {
   }
 }
 
-
-
 //-------------------------
 //-------------------------
 //-------------------------
 //-------------------------
 //-------------------------
-
-
-
-
 
 /**
  * Recalcule les totaux locaux pour la synthèse en bas du tableau après une modification d'heures ou de groupes.
@@ -569,23 +564,27 @@ const footerColsForm = computed(() => {
 </script>
 
 <template>
-  <ErrorView v-if="hasError" />
-  <div v-else class="px-4 flex flex-col">
-    <div class="flex justify-between gap-10">
-      <div class="flex gap-6 w-1/2">
-        <SimpleSkeleton v-if="isLoadingAnnees" class="!w-60 !h-10"></SimpleSkeleton>
-        <Select v-else class="w-60" v-model="selectedAnnee" option-label="libelle" :options="annees">
+  <ContexteSelection titre="Semestre de travail" :valeur="[selectedAnnee?.libelle, selectedSemestre?.libelle].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-selectedAnnee" class="text-sm font-semibold text-muted-color">Année de formation</label>
+      <Select :loading="isLoadingAnnees" :disabled="isLoadingAnnees" input-id="contexte-selectedAnnee" class="w-full sm:w-60" v-model="selectedAnnee" option-label="libelle" :options="annees">
           <template #value>
             {{ selectedAnnee?.libelle || "Sélectionner une année" }}
           </template>
         </Select>
-        <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
-        <Select v-else class="w-60" v-model="selectedSemestre" option-label="libelle" :options="semestres">
+    </div>
+    <div class="flex flex-col gap-2"><label for="contexte-selectedSemestre" class="text-sm font-semibold text-muted-color">Semestre</label>
+      <Select :loading="isLoadingSemestres" :disabled="isLoadingSemestres" input-id="contexte-selectedSemestre" class="w-full sm:w-60" v-model="selectedSemestre" option-label="libelle" :options="semestres">
           <template #value>
             {{ selectedSemestre?.libelle || "Sélectionner un semestre" }}
           </template>
         </Select>
-      </div>
+    </div>
+  </ContexteSelection>
+
+  <ErrorView v-if="hasError" />
+  <div v-else class="px-4 flex flex-col">
+    <div class="flex justify-between gap-10">
+
       <div class="flex items-center gap-4">
         <Button v-if="!isEditing" label="Saisir le prévisionnel" icon="pi pi-plus" @click="isEditing = !isEditing" />
         <Button v-else label="Afficher le prévisionnel" icon="pi pi-eye" @click="isEditing = !isEditing" />

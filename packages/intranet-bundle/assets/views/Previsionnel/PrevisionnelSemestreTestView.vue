@@ -1,4 +1,5 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import {onMounted, ref, watch} from 'vue';
 import {useAnneeUnivStore, useEnseignementsStore, useSemestreStore, useUsersStore} from "@stores";
 import {SimpleSkeleton, ListSkeleton, ErrorView} from "@components";
@@ -150,7 +151,6 @@ const calculTotal = (type) => {
   });
 };
 
-
 watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv]) => {
   if (newSemestre && newAnneeUniv) {
     await getPrevi(newSemestre.id, newAnneeUniv.id);
@@ -159,31 +159,26 @@ watch([selectedSemestre, selectedAnneeUniv], async ([newSemestre, newAnneeUniv])
 </script>
 
 <template>
-  <ErrorView v-if="hasError" />
-  <div v-else class="flex gap-6 w-1/2 m-6">
-    <SimpleSkeleton v-if="isLoadingSemestres" class="w-1/2" />
-    <IftaLabel v-else class="w-1/2">
-      <Select
+  <ContexteSelection titre="Semestre de travail" :valeur="[selectedSemestre?.libelle, selectedAnneeUniv?.libelle].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-selectedSemestre" class="text-sm font-semibold text-muted-color">Semestre</label>
+      <Select :loading="isLoadingSemestres" :disabled="isLoadingSemestres" input-id="contexte-selectedSemestre"
           v-model="selectedSemestre"
           :options="semestresList"
           optionLabel="libelle"
-          placeholder="Sélectionner un semestre"
-          class="w-full"
+          placeholder="Sélectionner un semestre" class="w-full sm:w-60"
       />
-      <label for="semestre">Semestre</label>
-    </IftaLabel>
-    <SimpleSkeleton v-if="isLoadingAnneesUniv" class="w-1/2" />
-    <IftaLabel v-else class="w-1/2">
-      <Select
+    </div>
+    <div class="flex flex-col gap-2"><label for="contexte-selectedAnneeUniv" class="text-sm font-semibold text-muted-color">Année universitaire</label>
+      <Select :loading="isLoadingAnneesUniv" :disabled="isLoadingAnneesUniv" input-id="contexte-selectedAnneeUniv"
           v-model="selectedAnneeUniv"
           :options="anneesUnivList"
           optionLabel="libelle"
-          placeholder="Sélectionner une année universitaire"
-          class="w-full"
+          placeholder="Sélectionner une année universitaire" class="w-full sm:w-60"
       />
-      <label for="anneeUniversitaire">Année universitaire</label>
-    </IftaLabel>
-  </div>
+    </div>
+  </ContexteSelection>
+
+  <ErrorView v-if="hasError" />
 
   <SimpleSkeleton v-if="isLoadingPrevisionnel" width="50%" />
   <Message v-else severity="info" class="w-fit my-6 mx-auto" icon="pi pi-info-circle">

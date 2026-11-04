@@ -1,4 +1,5 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import {computed, onMounted, onUnmounted, ref, watch, nextTick} from 'vue'
 import {SimpleSkeleton, HeaderComponent} from "@components";
 import {typesGroupes} from '@config/uniServices.js';
@@ -61,7 +62,6 @@ watchChanges(() => {
   }, FILTERS_DEBOUNCE_MS);
 });
 
-
 onMounted(async () => {
   isInitialLoading.value = true;
   try {
@@ -119,7 +119,6 @@ watch(annee, async (newAnnee, oldAnnee) => {
     syncPreselectedRadios();
   }
 });
-
 
 watch(groupes, (newVal) => {
   const types = Object.keys(newVal);
@@ -551,10 +550,18 @@ onUnmounted(() => {
   if (filtersDebounceTimeout) clearTimeout(filtersDebounceTimeout);
 });
 
-
 </script>
 
 <template>
+  <ContexteSelection titre="Semestre de travail" :valeur="[annee?.libelle, semestre?.libelle].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-annee" class="text-sm font-semibold text-muted-color">Année de formation</label>
+      <Select :loading="isLoadingAnnees" :disabled="isLoadingAnnees" input-id="contexte-annee" class="w-full sm:w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
+    </div>
+    <div class="flex flex-col gap-2"><label for="contexte-semestre" class="text-sm font-semibold text-muted-color">Semestre</label>
+      <Select :loading="isLoadingSemestres" :disabled="isLoadingSemestres" input-id="contexte-semestre" class="w-full sm:w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
+    </div>
+  </ContexteSelection>
+
   <div class="card">
     <div class="flex flex-col md:flex-row justify-between items-start w-full card-header">
       <div>
@@ -570,10 +577,7 @@ onUnmounted(() => {
       </div>
       <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
       <div v-else class="flex flex-col gap-2">
-        <div class="flex gap-4 justify-end">
-          <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
-          <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
-        </div>
+
         <div class="flex justify-end items-center gap-4">
           <Button
               v-if="semestre.ordreAnnee > 1"

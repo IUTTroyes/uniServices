@@ -1,4 +1,5 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import {computed, onMounted, ref, watch} from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import {
@@ -294,7 +295,7 @@ const openEvaluationDialog = (evaluationId, mode = 'edit', header) => {
     selectedEvaluation.value = evaluationId;
   }
   dialogMode.value = mode;
-  dialogHeader.value = header || (mode === 'saisie' ? 'Saisie des notes' : mode === 'init' ? 'Initialiser l\'évaluation' : 'Modifier l\'évaluation');
+  dialogHeader.value = `${header || (mode === 'saisie' ? 'Saisie des notes' : mode === 'init' ? 'Initialiser l\'évaluation' : 'Modifier l\'évaluation')} — ${semestre.value.libelle || 'Semestre non sélectionné'}`;
   showDialog.value = true;
 };
 
@@ -311,6 +312,21 @@ const onEvaluationSaved = async () => {
 </script>
 
 <template>
+  <ContexteSelection titre="Semestre de travail" :valeur="semestre?.libelle">
+      <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!h-16 w-full lg:!w-96"/>
+      <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="flex flex-col gap-2">
+          <label for="evaluations-annee" class="text-sm font-semibold text-muted-color">Année de formation</label>
+          <Select input-id="evaluations-annee" class="w-full lg:w-52" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
+        </div>
+        <div class="flex flex-col gap-2">
+          <label for="evaluations-semestre" class="text-sm font-semibold text-muted-color">Semestre</label>
+          <Select input-id="evaluations-semestre" class="w-full lg:w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
+        </div>
+      </div>
+
+  </ContexteSelection>
+
   <div class="flex justify-around items-center mb-12">
     <div class="card w-1/5 flex items-center justify-center flex-col">
       <div class="font-bold text-lg card-header text-center">À initialiser</div>
@@ -360,13 +376,13 @@ const onEvaluationSaved = async () => {
             <h2 class="mt-0!">Gestion, planification et saisie des notes</h2>
           </div>
         </div>
-        <SimpleSkeleton v-if="isLoadingAnnees || isLoadingSemestres" class="!w-60 !h-10"></SimpleSkeleton>
-        <div v-else class="flex flex-col gap-2">
-          <div class="flex gap-4">
-            <Select class="w-60" v-model="annee" option-label="libelle" :options="annees" placeholder="Changer d'année"/>
-            <Select class="w-60" v-model="semestre" option-label="libelle" :options="semestres" placeholder="Changer de semestre"/>
-          </div>
-          <Button label="Initialiser toutes les évaluations" icon="pi pi-plus-circle" severity="primary" size="small" @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')"/>
+        <div class="flex flex-col gap-2">
+        <Button
+            :label="`Initialiser les évaluations — ${semestre?.libelle || 'Semestre non sélectionné'}`"
+            :disabled="isLoadingSemestres || !semestre?.id"
+            icon="pi pi-plus-circle" severity="primary" size="small"
+            @click="openEvaluationDialog('', 'initAll', 'Initialisation des évaluations')"
+        />
         </div>
       </div>
       <ListSkeleton v-if="isLoadingEnseignements" class="card-body"/>

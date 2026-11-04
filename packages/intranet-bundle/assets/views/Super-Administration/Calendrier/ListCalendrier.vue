@@ -1,4 +1,5 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import {
@@ -227,6 +228,19 @@ const deleteItem = async (item) => {
 </script>
 
 <template>
+  <ContexteSelection titre="Année de travail" :valeur="[anneesUniv.find(item => item.id === selectedAnneeUniv)?.libelle].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-selectedAnneeUniv" class="text-sm font-semibold text-muted-color">Année universitaire</label>
+      <Select input-id="contexte-selectedAnneeUniv"
+            v-model="selectedAnneeUniv"
+            :options="anneesUniv"
+            optionLabel="libelle"
+            optionValue="id"
+            placeholder="Filtrer par année universitaire" class="w-full sm:w-60"
+            showClear
+          />
+    </div>
+  </ContexteSelection>
+
   <HeaderComponent
     icon="pi pi-calendar"
     color="purple"
@@ -251,15 +265,7 @@ const deleteItem = async (item) => {
     <template v-else>
       <div class="mb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <Select
-            v-model="selectedAnneeUniv"
-            :options="anneesUniv"
-            optionLabel="libelle"
-            optionValue="id"
-            placeholder="Filtrer par année universitaire"
-            class="w-full md:w-64"
-            showClear
-          />
+
           <IconField iconPosition="left" class="w-full md:w-72">
             <InputIcon class="pi pi-search" />
             <InputText v-model="searchQuery" placeholder="Rechercher une semaine..." class="w-full" />

@@ -1,4 +1,5 @@
 <script setup>
+import ContexteSelection from '../Structure/ContexteSelection.vue';
 import {computed, onMounted, ref, watch} from "vue";
 import {ErrorView, ListSkeleton, PermissionGuard, SimpleSkeleton, ValidatedInput} from "@components";
 import {useUsersStore} from "@stores";
@@ -54,7 +55,6 @@ const features = [
   { id: 'enseignement', libelle: 'Par enseignement' },
 ];
 const selectedFeature = ref(features[0].id);
-
 
 onMounted( async() => {
   isLoadingEventsData.value = true;
@@ -307,7 +307,6 @@ const getStatsPreviData = async () => {
     isLoadingStatsPreviData.value = false;
   }
 };
-
 
 // Préparer les données pour le chart
 const chartDataTypes = computed(() => {
@@ -563,7 +562,7 @@ const exportDataHeures = async () => {
         <SimpleSkeleton class="w-1/2"/>
         <SimpleSkeleton class="w-1/2"/>
       </div>
-      <div v-else class="mt-8 flex items-center gap-4 w-full">
+      <ContexteSelection v-else titre="Contexte de travail" :valeur="[selectedAnnee?.libelle, selectedSemestre?.libelle].filter(Boolean).join(' · ')">
         <ValidatedInput
             v-model="selectedAnneeId"
             :options="annees.map(annee => ({...annee, label: annee.libelle, value: annee.id}))"
@@ -586,7 +585,7 @@ const exportDataHeures = async () => {
             :show-clear="true"
             :disabled="!selectedAnnee || isLoadingSemestres"
         />
-      </div>
+      </ContexteSelection>
     </div>
     <Divider></Divider>
     <div class="flex items-end flex-wrap gap-4 mb-6 h-full">

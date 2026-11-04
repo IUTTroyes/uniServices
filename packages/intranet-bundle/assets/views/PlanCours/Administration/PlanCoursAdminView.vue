@@ -1,4 +1,5 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { onMounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAnneeUnivStore, useUsersStore } from '@stores'
@@ -183,6 +184,18 @@ const getBadgeSeverity = (etat) => {
 </script>
 
 <template>
+  <ContexteSelection titre="Semestre de travail" :valeur="[semestreOptions.find(item => item.value === selectedSemestre)?.label].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-selectedSemestre" class="text-sm font-semibold text-muted-color">Semestre</label>
+      <Select input-id="contexte-selectedSemestre"
+            v-model="selectedSemestre"
+            :options="semestreOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Semestre" class="w-full sm:w-60"
+          />
+    </div>
+  </ContexteSelection>
+
   <div>
     <HeaderComponent
       icon="pi pi-file"
@@ -211,14 +224,6 @@ const getBadgeSeverity = (etat) => {
         </div>
 
         <div class="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <Select
-            v-model="selectedSemestre"
-            :options="semestreOptions"
-            optionLabel="label"
-            optionValue="value"
-            placeholder="Semestre"
-            class="w-full sm:w-44"
-          />
 
           <Select
             v-model="selectedEtat"

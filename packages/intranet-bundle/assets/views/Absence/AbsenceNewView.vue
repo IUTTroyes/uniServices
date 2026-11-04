@@ -1,4 +1,5 @@
 <script setup>
+import ContexteSelection from '@/components/Structure/ContexteSelection.vue';
 import { onMounted, ref, watch, computed } from "vue";
 import {SimpleSkeleton, ValidatedInput, ListSkeleton, HeaderComponent, UserCard, EdtEventRow, Kpi} from "@components";
 import {useAnneeStore, useSemestreStore, useUsersStore} from "@stores";
@@ -572,6 +573,31 @@ const confirmAbsencesCreation = async () => {
 </script>
 
 <template>
+  <ContexteSelection titre="Semestre de travail" :valeur="[annee?.libelle, semestre?.libelle].filter(Boolean).join(' · ')">
+    <div class="flex flex-col gap-2"><label for="contexte-annee" class="text-sm font-semibold text-muted-color">Année de formation</label>
+      <Select :loading="isLoadingAnnee" :disabled="isLoadingAnnee" input-id="contexte-annee"
+            v-model="annee" class="w-full sm:w-60"
+            option-label="libelle"
+            :options="annees"
+        >
+          <template #value>
+            {{ annee?.libelle || "Changer d'année" }}
+          </template>
+        </Select>
+    </div>
+    <div class="flex flex-col gap-2"><label for="contexte-semestre" class="text-sm font-semibold text-muted-color">Semestre</label>
+      <Select :loading="isLoadingSemestres" :disabled="isLoadingSemestres" input-id="contexte-semestre"
+            v-model="semestre" class="w-full sm:w-60"
+            option-label="libelle"
+            :options="semestres"
+        >
+          <template #value>
+            {{ semestre?.libelle || "Changer de semestre" }}
+          </template>
+        </Select>
+    </div>
+  </ContexteSelection>
+
   <HeaderComponent
       icon="pi pi-calendar"
       titre="Absences"
@@ -595,30 +621,6 @@ const confirmAbsencesCreation = async () => {
         </div>
       </div>
 
-      <SimpleSkeleton v-if="isLoadingSemestres" class="!w-60 !h-10" />
-      <div v-else class="flex gap-4">
-        <Select
-            v-model="annee"
-            class="w-60"
-            option-label="libelle"
-            :options="annees"
-        >
-          <template #value>
-            {{ annee?.libelle || "Changer d'année" }}
-          </template>
-        </Select>
-
-        <Select
-            v-model="semestre"
-            class="w-60"
-            option-label="libelle"
-            :options="semestres"
-        >
-          <template #value>
-            {{ semestre?.libelle || "Changer de semestre" }}
-          </template>
-        </Select>
-      </div>
     </header>
 
     <div class="card-body">
