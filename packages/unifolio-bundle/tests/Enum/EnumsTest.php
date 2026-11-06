@@ -62,4 +62,21 @@ class EnumsTest extends TestCase
             $this->assertSame($type->requiertFichier(), $type->mimeTypesAcceptes() !== [], $type->value);
         }
     }
+
+    public function testTypeDepuisMimeType(): void
+    {
+        $this->assertSame(TypeMediaEnum::IMAGE, TypeMediaEnum::depuisMimeType('image/webp'));
+        $this->assertSame(TypeMediaEnum::PDF, TypeMediaEnum::depuisMimeType('application/pdf'));
+        $this->assertSame(TypeMediaEnum::VIDEO, TypeMediaEnum::depuisMimeType('video/mp4'));
+        $this->assertSame(TypeMediaEnum::FICHIER, TypeMediaEnum::depuisMimeType('application/zip'));
+        $this->assertNull(TypeMediaEnum::depuisMimeType('application/x-msdownload'));
+    }
+
+    public function testTypesCompatibles(): void
+    {
+        $this->assertSame([TypeMediaEnum::IMAGE, TypeMediaEnum::FICHIER], TypeMediaEnum::IMAGE->typesCompatibles('image/png'));
+        $this->assertSame([TypeMediaEnum::PDF, TypeMediaEnum::FICHIER], TypeMediaEnum::FICHIER->typesCompatibles('application/pdf'));
+        $this->assertSame([TypeMediaEnum::LIEN, TypeMediaEnum::EMBED], TypeMediaEnum::LIEN->typesCompatibles());
+        $this->assertSame([TypeMediaEnum::TEXTE, TypeMediaEnum::CODE], TypeMediaEnum::CODE->typesCompatibles());
+    }
 }

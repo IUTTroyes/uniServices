@@ -22,9 +22,9 @@ class LocalMediaStorage implements MediaStorageInterface
         $this->filesystem = $filesystem ?? new Filesystem();
     }
 
-    public function store(UploadedFile $fichier, TypeMediaEnum $type): StoredMedia
+    public function store(UploadedFile $fichier, ?TypeMediaEnum $type = null): StoredMedia
     {
-        if (!$type->requiertFichier()) {
+        if ($type !== null && !$type->requiertFichier()) {
             throw new MediaValidationException(sprintf('Le type « %s » ne repose pas sur un fichier.', $type->getLibelle()));
         }
         if (!$fichier->isValid()) {
@@ -41,6 +41,8 @@ class LocalMediaStorage implements MediaStorageInterface
 
         // Type détecté depuis le contenu, jamais depuis le nom ou le type déclaré par le client.
         $mimeType = (string) $fichier->getMimeType();
+        $type ??= TypeMediaEnum::depuisMimeType($mimeType)
+            ?? throw new MediaValidationException(sprintf('Le format de « %s » n\'est pas pris en charge.', $this->nettoyerNom($fichier->getClientOriginalName())));
         if (!\in_array($mimeType, $type->mimeTypesAcceptes(), true)) {
             throw new MediaValidationException(sprintf(
                 'Le format « %s » n\'est pas accepté pour un média de type « %s ».',
@@ -60,6 +62,7 @@ class LocalMediaStorage implements MediaStorageInterface
             nomOriginal: $this->nettoyerNom($fichier->getClientOriginalName()),
             mimeType: $mimeType,
             taille: $taille,
+            type: $type,
         );
     }
 

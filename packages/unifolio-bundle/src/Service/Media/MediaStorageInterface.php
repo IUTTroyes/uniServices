@@ -11,8 +11,12 @@ use UnifolioBundle\Enum\TypeMediaEnum;
  */
 interface MediaStorageInterface
 {
-    /** @throws MediaValidationException si le fichier ne correspond pas au type attendu */
-    public function store(UploadedFile $fichier, TypeMediaEnum $type): StoredMedia;
+    /**
+     * @param TypeMediaEnum|null $type null = déduit du format réel du fichier
+     *
+     * @throws MediaValidationException si le format n'est pas accepté
+     */
+    public function store(UploadedFile $fichier, ?TypeMediaEnum $type = null): StoredMedia;
 
     /** Chemin absolu sur disque, pour un BinaryFileResponse. */
     public function cheminAbsolu(string $chemin): string;

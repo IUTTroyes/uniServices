@@ -42,6 +42,24 @@ class LocalMediaStorageTest extends TestCase
         $this->assertFalse($storage->exists($stored->chemin));
     }
 
+    public function testDeduitLeTypeDuFormatReel(): void
+    {
+        $storage = new LocalMediaStorage($this->racine, 1024 * 1024);
+        // Le nom et le type annoncés par le navigateur ne comptent pas.
+        $stored = $storage->store($this->png('document.pdf'));
+
+        $this->assertSame(TypeMediaEnum::IMAGE, $stored->type);
+        $this->assertSame('image/png', $stored->mimeType);
+    }
+
+    public function testRefuseUnFormatNonPrisEnCharge(): void
+    {
+        $chemin = $this->sources . '/exe';
+        file_put_contents($chemin, "MZ\x90\x00" . str_repeat("\x00", 64));
+        $this->expectException(MediaValidationException::class);
+        (new LocalMediaStorage($this->racine, 1024 * 1024))->store(new UploadedFile($chemin, 'outil.exe', null, null, true));
+    }
+
     public function testRefuseUnTypeNonConforme(): void
     {
         $this->expectException(MediaValidationException::class);

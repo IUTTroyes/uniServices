@@ -73,4 +73,41 @@ enum TypeMediaEnum: string
             default => [],
         };
     }
+
+    /** Type déduit du format réel d'un fichier ; null si le format n'est pas pris en charge. */
+    public static function depuisMimeType(string $mimeType): ?self
+    {
+        foreach ([self::IMAGE, self::PDF, self::VIDEO, self::FICHIER] as $type) {
+            if (\in_array($mimeType, $type->mimeTypesAcceptes(), true)) {
+                return $type;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Types vers lesquels un média de ce type peut basculer sans ressaisie :
+     * fichier ↔ « fichier à télécharger », lien ↔ contenu intégré, texte ↔ code.
+     *
+     * @return self[]
+     */
+    public function typesCompatibles(?string $mimeType = null): array
+    {
+        if ($this->requiertFichier()) {
+            $types = [];
+            foreach ([self::IMAGE, self::PDF, self::VIDEO, self::FICHIER] as $type) {
+                if ($type === self::FICHIER || ($mimeType !== null && \in_array($mimeType, $type->mimeTypesAcceptes(), true))) {
+                    $types[] = $type;
+                }
+            }
+
+            return $types;
+        }
+
+        return match ($this) {
+            self::LIEN, self::EMBED => [self::LIEN, self::EMBED],
+            default => [self::TEXTE, self::CODE],
+        };
+    }
 }

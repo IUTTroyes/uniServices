@@ -18,7 +18,8 @@ describe('unifolio manifest', () => {
   it('déclare une route par section, protégée par la même permission que le menu', () => {
     const items = unifolioSections.flatMap((s) => s.items);
     expect(racine).toBeDefined();
-    expect(racine.children.map((c) => c.path)).toEqual(['', ...items.map((i) => i.path)]);
+    const attendus = ['', ...items.flatMap((i) => [i.path, ...(i.sousRoutes ?? []).map((s) => s.path)])];
+    expect(racine.children.map((c) => c.path)).toEqual(attendus);
 
     for (const item of items) {
       const route = racine.children.find((c) => c.path === item.path);
@@ -36,6 +37,15 @@ describe('unifolio manifest', () => {
     expect(byPath['admin/grilles'].permission).toBe('isReferentPortfolio');
     expect(byPath.evaluations.capacite).toBe('correcteur');
     expect(byPath.moderation.capacite).toBe('moderateur');
+  });
+
+  it('protège les pages filles des traces comme la bibliothèque', () => {
+    for (const path of ['traces/nouvelle', 'traces/:uuid', 'traces/:uuid/modifier']) {
+      const route = racine.children.find((c) => c.path === path);
+      expect(route, path).toBeDefined();
+      expect(route.meta.permission).toBe('isEtudiant');
+      expect(typeof route.component).toBe('function');
+    }
   });
 
   it('a des noms de routes uniques', () => {

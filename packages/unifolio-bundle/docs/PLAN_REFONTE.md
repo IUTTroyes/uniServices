@@ -104,6 +104,7 @@ StructureAnneeUniversitaire ──< Campagne ──< CampagneAffectation (évalu
   - `niveau` : évaluation par niveau de compétence (`ApcNiveau`) ;
   - `ac` : évaluation par apprentissage critique (`ApcApprentissageCritique`).
   - **Périmètre = l'année concernée** : seuls les éléments du référentiel liés à la `StructureAnnee` de la scolarité de l'étudiant (via `ApcNiveau.annee`, filtré par parcours) sont proposés au rattachement, à l'auto‑évaluation et à l'évaluation. En granularité `competence`, la compétence est évaluée au niveau attendu cette année‑là.
+    - *Constat lot 1* : `apc_niveau.annee_id` n'est pas renseigné dans les données. Le service `ReferentielAnnee` utilise ce lien s'il existe, sinon les niveaux du référentiel du diplôme dont `ordreAnnee` (à défaut `ordre`) vaut le rang de l'année de BUT (`StructureAnnee.ordre`) — une compétence peut démarrer au niveau 1 en BUT2.
   - Le choix s'applique **de bout en bout** : rattachement des traces, auto‑évaluation, évaluation enseignante, tableaux de bord et blocs de progression utilisent la même cible.
   - Un AC / niveau / compétence peut être couvert par plusieurs traces : agrégation configurable (`max`, `moyenne`, `derniere`) pour le bilan.
 

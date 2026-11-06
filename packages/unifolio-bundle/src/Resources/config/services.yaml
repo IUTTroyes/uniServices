@@ -29,6 +29,8 @@ services:
       - '../../DependencyInjection/'
       - '../../Service/Media/StoredMedia.php'
       - '../../Service/Media/MediaValidationException.php'
+      - '../../Service/Media/EmbedPolicy.php'
+      - '../../Service/Trace/UnifolioValidationException.php'
       - '../../UnifolioBundle.php'
 
   UnifolioBundle\Service\Media\MediaStorageInterface: '@UnifolioBundle\Service\Media\LocalMediaStorage'
