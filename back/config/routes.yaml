@@ -34,3 +34,8 @@ message_controllers:
         namespace: MessageBundle\Controller
     type: attribute
 
+unifolio_controllers:
+    resource:
+        path: '../../packages/unifolio-bundle/src/Controller/'
+        namespace: UnifolioBundle\Controller
+    type: attribute

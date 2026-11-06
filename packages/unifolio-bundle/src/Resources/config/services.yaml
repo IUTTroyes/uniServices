@@ -1,7 +1,15 @@
+parameters:
+  # Médias UniFolio stockés hors webroot : servis uniquement via les contrôleurs (voters).
+  unifolio.media_dir: '%kernel.project_dir%/var/unifolio/media'
+  unifolio.media_max_size: 52428800 # 50 Mo
+
 services:
   _defaults:
     autowire: true
     autoconfigure: true
+    bind:
+      string $unifolioMediaDir: '%unifolio.media_dir%'
+      int $unifolioMediaMaxSize: '%unifolio.media_max_size%'
 
   _instanceof:
     App\Domain\Dashboard\WidgetProviderInterface:
@@ -17,5 +25,10 @@ services:
     resource: '../../'
     exclude:
       - '../../Entity/'
+      - '../../Enum/'
       - '../../DependencyInjection/'
+      - '../../Service/Media/StoredMedia.php'
+      - '../../Service/Media/MediaValidationException.php'
       - '../../UnifolioBundle.php'
+
+  UnifolioBundle\Service\Media\MediaStorageInterface: '@UnifolioBundle\Service\Media\LocalMediaStorage'

@@ -8,6 +8,9 @@
         <testsuite name="MessageBundle">
             <directory>packages/message-bundle/tests</directory>
         </testsuite>
+        <testsuite name="UnifolioBundle">
+            <directory>packages/unifolio-bundle/tests</directory>
+        </testsuite>
     </testsuites>
 </phpunit>
 

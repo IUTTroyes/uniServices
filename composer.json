@@ -41,7 +41,8 @@
     },
     "scripts": {
         "test": "phpunit",
-        "test:message": "phpunit packages/message-bundle/tests"
+        "test:message": "phpunit packages/message-bundle/tests",
+        "test:unifolio": "phpunit packages/unifolio-bundle/tests"
     },
     "replace": {
         "iuttroyes/auth-bundle": "self.version",
