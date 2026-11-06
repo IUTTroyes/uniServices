@@ -8,6 +8,8 @@ import Button from 'primevue/button';
 import Tag from 'primevue/tag';
 import ProgressBar from 'primevue/progressbar';
 import MediaPreview from '../components/traces/MediaPreview.vue';
+import AutoEvaluationPanel from '../components/autoeval/AutoEvaluationPanel.vue';
+import { pourcentage } from '../requests/autoEvaluationService';
 import traceService, { messageErreur } from '../requests/traceService';
 import { couleurCompetence, texteSurCompetence } from '../components/traces/options';
 
@@ -20,8 +22,9 @@ const trace = ref(null);
 const chargement = ref(true);
 const erreur = ref(null);
 
-const charger = async () => {
-  chargement.value = true;
+/** silencieux : rafraîchit sans masquer la page (ex. panneau d'auto-évaluation ouvert). */
+const charger = async (silencieux = false) => {
+  if (silencieux !== true) chargement.value = true;
   try {
     const { data } = await traceService.lire(route.params.uuid);
     trace.value = data;
@@ -44,6 +47,18 @@ const rattachementsParCompetence = computed(() => {
 });
 
 const libelleType = { competence: 'Compétence', niveau: 'Niveau', ac: 'AC' };
+
+const panneau = ref(false);
+const cibleAuto = ref(null);
+const autoEvaluer = (r) => {
+  cibleAuto.value = { rattachement: r.id };
+  panneau.value = true;
+};
+const declarationIa = computed(() => (trace.value ? {
+  conception: trace.value.conceptionIa.libelle,
+  realisation: trace.value.realisationIa.libelle,
+  detail: trace.value.usageIaDetail,
+} : null));
 
 const action = async (fn, succes) => {
   try {
@@ -149,6 +164,18 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
                 >{{ r.code || libelleType[r.type] }}</span>{{ r.libelle }}
               </span>
               <span v-if="r.argumentaire" class="text-sm text-muted-color whitespace-pre-line">{{ r.argumentaire }}</span>
+              <div class="flex items-center gap-2">
+                <Button
+                  :label="r.autoEvaluation ? 'Mon auto-évaluation' : 'M\'auto-évaluer'"
+                  icon="pi pi-chart-line"
+                  size="small"
+                  text
+                  class="!px-0"
+                  @click="autoEvaluer(r)"
+                />
+                <Tag v-if="r.autoEvaluation" :value="r.autoEvaluation.statut.libelle" :severity="r.autoEvaluation.statut.badge" />
+                <span v-if="pourcentage(r.autoEvaluation?.score) !== null" class="text-xs text-muted-color">{{ pourcentage(r.autoEvaluation.score) }} %</span>
+              </div>
             </div>
           </div>
         </section>
@@ -161,5 +188,7 @@ const formatDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { d
         </section>
       </div>
     </div>
+
+    <AutoEvaluationPanel v-model:visible="panneau" :cible="cibleAuto" :declaration-ia="declarationIa" @change="charger(true)" />
   </template>
 </template>

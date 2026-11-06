@@ -6,6 +6,7 @@ use App\Entity\Etudiant\EtudiantScolarite;
 use UnifolioBundle\Entity\Trace;
 use UnifolioBundle\Entity\TraceMedia;
 use UnifolioBundle\Entity\TraceRattachement;
+use UnifolioBundle\Repository\AutoEvaluationRepository;
 use UnifolioBundle\Service\Perimetre\UnifolioPerimetre;
 
 /** Représentation JSON des traces pour l'API. */
@@ -13,6 +14,7 @@ class TraceNormalizer
 {
     public function __construct(
         private readonly UnifolioPerimetre $perimetre,
+        private readonly AutoEvaluationRepository $autoEvaluations,
     ) {
     }
 
@@ -55,6 +57,8 @@ class TraceNormalizer
     /** @return array<string, mixed> */
     public function detail(Trace $trace): array
     {
+        $autos = $this->autoEvaluations->findParRattachements($trace->getRattachements()->toArray());
+
         return $this->resume($trace) + [
             'contexte' => $trace->getContexte(),
             'conceptionIa' => ['value' => $trace->getConceptionIa()->value, 'libelle' => $trace->getConceptionIa()->getLibelle()],
@@ -63,7 +67,15 @@ class TraceNormalizer
             'deposeeLe' => $trace->getDeposeeLe()?->format(\DATE_ATOM),
             'erreursDepot' => $trace->getErreursDepot(),
             'medias' => array_map(fn (TraceMedia $m) => $this->media($trace, $m), $trace->getMedias()->toArray()),
-            'rattachements' => array_map(fn (TraceRattachement $r) => $this->rattachement($r), $trace->getRattachements()->toArray()),
+            'rattachements' => array_map(function (TraceRattachement $r) use ($autos) {
+                $auto = $autos[$r->getId()] ?? null;
+
+                return $this->rattachement($r) + ['autoEvaluation' => $auto !== null ? [
+                    'uuid' => $auto->getUuidString(),
+                    'statut' => ['value' => $auto->getStatut()->value, 'libelle' => $auto->getStatut()->getLibelle(), 'badge' => $auto->getStatut()->getBadge()],
+                    'score' => $auto->getScore(),
+                ] : null];
+            }, $trace->getRattachements()->toArray()),
         ];
     }
 

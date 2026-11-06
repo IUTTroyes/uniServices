@@ -93,6 +93,7 @@ StructureAnneeUniversitaire ──< Campagne ──< CampagneAffectation (évalu
 - **`AutoEvaluation`** : `etudiant`, `cible` (rattachement **ou** bilan compétence/niveau sur une campagne), `grilleVersion`, `reflexion` (texte : points forts, axes de progrès), `statut` (`brouillon`, `soumise`), `soumiseLe`.
 - **`ReponseCritere`** partagée auto‑éval / éval : `critere`, `echelon` | `valeurNumerique` | `valeurBool` | `texte`.
 - Vue « écart » : comparaison auto‑éval vs évaluation enseignante, critère par critère (levier pédagogique fort).
+- *Réalisé (lot 3)* : bilan rattaché à l'**année de BUT** (`EtudiantScolarite`) en attendant les campagnes du lot 4 ; une seule cible par auto-évaluation (rattachement **ou** élément du référentiel, contrainte CHECK) ; version de grille figée à l'ouverture ; score pondéré normalisé 0–1 (échelle ramenée entre son min et son max, oui/non = 1/0, note / note max) ; seuls les critères « utilisé en auto-évaluation » sont proposés. Sans paramétrage de la formation, la granularité du bilan est celle de la grille retenue.
 
 ### 3.4 Évaluation enseignante (M5)
 
